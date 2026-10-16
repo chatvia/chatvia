@@ -3,7 +3,7 @@
 namespace App\Identity\Workspace\Jobs;
 
 use App\Identity\Workspace\Actions\DataExport\BuildDataExportArchiveAction;
-use App\Identity\Workspace\Enums\DataExportStatus;
+use App\Identity\Workspace\Actions\DataExport\MarkDataExportFailedAction;
 use App\Identity\Workspace\Models\DataExport;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,8 +12,6 @@ use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\Attributes\UniqueFor;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -28,10 +26,10 @@ use Throwable;
 #[UniqueFor(3600)]
 class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable;
 
     public function __construct(
-        public int $dataExportId,
+        public readonly int $dataExportId,
     ) {}
 
     public function handle(BuildDataExportArchiveAction $action): void
@@ -53,10 +51,7 @@ class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $export->update([
-            'status' => DataExportStatus::Failed,
-            'error_message' => Str::limit($e->getMessage(), 1000),
-        ]);
+        app(MarkDataExportFailedAction::class)->execute($export, $e);
     }
 
     public function uniqueId(): string

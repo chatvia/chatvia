@@ -49,7 +49,7 @@ class GetDashboardStatsAction
     public function execute(User $user, ?Team $team): DashboardStatsData
     {
         $workspace = $user->workspace();
-        $agentIds = Agent::where('workspace_id', $workspace->id)->pluck('id');
+        $agentIds = Agent::query()->where('workspace_id', $workspace->id)->pluck('id');
 
         $activity = $this->cache->remember(
             AnalyticsCache::workspaceKey($workspace->id, 'dashboard', 'to-'.now()->toDateString()),

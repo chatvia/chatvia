@@ -39,7 +39,7 @@ class AgentInvitationSocialCallbackController
         $pending = $request->session()->pull('pending_agent_invitation');
 
         if (! is_array($pending) || ($pending['provider'] ?? null) !== $providerEnum->value) {
-            return redirect()->route('login')->with('error', 'Your invitation link expired. Ask for a fresh one.');
+            return redirect()->route('login')->with('error', __('Your invitation link expired. Ask for a fresh one.'));
         }
 
         $invitation = AgentChatterInvitation::query()
@@ -47,13 +47,13 @@ class AgentInvitationSocialCallbackController
             ->find($pending['invitation_id'] ?? 0);
 
         if ($invitation === null) {
-            return redirect()->route('login')->with('error', 'Your invitation link expired. Ask for a fresh one.');
+            return redirect()->route('login')->with('error', __('Your invitation link expired. Ask for a fresh one.'));
         }
 
         $agent = $invitation->agent;
 
         if ($agent === null) {
-            return redirect()->route('login')->with('error', 'That agent is no longer available.');
+            return redirect()->route('login')->with('error', __('That agent is no longer available.'));
         }
 
         try {
@@ -66,7 +66,7 @@ class AgentInvitationSocialCallbackController
         } catch (Throwable $e) {
             report($e);
 
-            return redirect()->route('login')->with('error', "Couldn't complete the {$providerEnum->value} sign-in.");
+            return redirect()->route('login')->with('error', __("Couldn't complete the :provider sign-in.", ['provider' => $providerEnum->value]));
         }
 
         try {

@@ -31,7 +31,7 @@ describe('deactivated accounts', function (): void {
             ->assertRedirect(route('login'))
             ->assertSessionHasErrors('email');
 
-        $this->assertGuest();
+        expect(auth()->check())->toBeFalse();
     });
 
     it('cannot sign in with a magic link sent before the deactivation', function (): void {
@@ -53,7 +53,7 @@ describe('deactivated accounts', function (): void {
             ->get(route('dashboard'))
             ->assertRedirect(route('login'));
 
-        $this->assertGuest();
+        expect(auth()->check())->toBeFalse();
     });
 
     it('cannot open the dashboard', function (): void {
@@ -77,7 +77,7 @@ it('does not open the dashboard with a chatter\'s password, even when a staff ac
     $this->post(route('login'), ['email' => 'shared@example.test', 'password' => 'chatter-pass'])
         ->assertSessionHasErrors('email');
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 
     $this->post(route('login'), ['email' => 'shared@example.test', 'password' => 'staff-pass'])
         ->assertRedirect(route('dashboard'));
@@ -93,7 +93,7 @@ it('computes a password hash on the dashboard login even when the email is unkno
     $this->post(route('login'), ['email' => 'nobody@example.test', 'password' => 'any-password'])
         ->assertSessionHasErrors('email');
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 });
 
 it('stamps last_login_at only once the sign-in completes', function (): void {
@@ -119,7 +119,7 @@ it('does not stamp last_login_at when the login stops at the 2FA challenge', fun
     $this->post(route('login'), ['email' => 'twofa@example.test', 'password' => 'right-password'])
         ->assertRedirect(route('two-factor.login'));
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
     expect(session('login.id'))->toBe($user->id)
         ->and($user->fresh()->last_login_at)->toBeNull();
 });
@@ -138,5 +138,5 @@ it('signs in at once when a two-factor secret was set up but never confirmed', f
     $this->post(route('login'), ['email' => 'halfway@example.test', 'password' => 'right-password'])
         ->assertRedirect(route('dashboard'));
 
-    $this->assertAuthenticatedAs($user);
+    expect(auth()->user()?->is($user))->toBeTrue();
 });

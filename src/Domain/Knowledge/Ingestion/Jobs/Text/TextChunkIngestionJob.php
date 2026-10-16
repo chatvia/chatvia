@@ -48,9 +48,9 @@ class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
     use Batchable, Queueable;
 
     public function __construct(
-        public Agent $agent,
-        public SourceText $sourceText,
-        public PageGroupData $group,
+        public readonly Agent $agent,
+        public readonly SourceText $sourceText,
+        public readonly PageGroupData $group,
     ) {}
 
     /**

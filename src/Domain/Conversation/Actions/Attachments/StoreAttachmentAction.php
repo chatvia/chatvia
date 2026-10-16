@@ -5,7 +5,7 @@ namespace Domain\Conversation\Actions\Attachments;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Conversation\Models\Attachment;
-use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
@@ -19,6 +19,8 @@ use Throwable;
  */
 class StoreAttachmentAction
 {
+    public function __construct(private readonly PdfInspector $pdfInspector) {}
+
     public function execute(UploadAttachmentData $data): Attachment
     {
         // Generate the storage filename from a fresh UUID. The model's
@@ -56,9 +58,7 @@ class StoreAttachmentAction
         }
 
         try {
-            // Resolved per use: PdfInfo is final, so tests swap a stand-in
-            // into the container instead of passing one in.
-            return app(PdfInfo::class)->getInfo($data->file->getPathname())->length;
+            return $this->pdfInspector->getInfo($data->file->getPathname())->length;
         } catch (Throwable) {
             return null;
         }

@@ -8,16 +8,14 @@ use Domain\Knowledge\Ingestion\Actions\Website\StartWebsiteIngestionAction;
 use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batchable;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\Attributes\UniqueFor;
-use Illuminate\Queue\InteractsWithQueue;
 use Throwable;
 
 /**
@@ -35,12 +33,12 @@ use Throwable;
 #[DeleteWhenMissingModels]
 class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, Dispatchable, InteractsWithQueue, Queueable;
+    use Batchable, Queueable;
 
     public function __construct(
-        public SourceWebsite $website,
-        public Agent $agent,
-        public TrainingTrigger $trigger = TrainingTrigger::Manual,
+        public readonly SourceWebsite $website,
+        public readonly Agent $agent,
+        public readonly TrainingTrigger $trigger = TrainingTrigger::Manual,
     ) {}
 
     public function handle(StartWebsiteIngestionAction $action): void

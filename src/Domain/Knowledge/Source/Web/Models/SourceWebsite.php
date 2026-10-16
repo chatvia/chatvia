@@ -42,7 +42,7 @@ use Support\Concerns\HasExternalId;
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
- * @property string|null $last_retrieved_at
+ * @property Carbon|null $last_retrieved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read AgentSource|null $pivot
@@ -108,6 +108,7 @@ class SourceWebsite extends Model implements ChunkableContract
             'status' => SourceStatus::class,
             'refresh_interval' => RefreshInterval::class,
             'refreshed_at' => 'datetime',
+            'last_retrieved_at' => 'datetime',
         ];
     }
 

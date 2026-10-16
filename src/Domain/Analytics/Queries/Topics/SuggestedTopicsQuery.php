@@ -10,6 +10,7 @@ use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Support\Casts\EncryptedTolerant;
 
 /**
@@ -67,12 +68,14 @@ class SuggestedTopicsQuery
         return $this->forAgentConversations(ConversationTopic::query(), $agent)
             ->selectRaw('suggested_label, count(distinct chat_conversation_id) as conversations')
             ->whereNotNull('suggested_label')
+            // In SQL, before the LIMIT: rejecting covered labels in PHP after
+            // the cap would return fewer rows than uncovered labels exist.
+            ->whereNotIn(DB::raw('lower(suggested_label)'), $existingNames)
             ->groupBy('suggested_label')
             ->havingRaw('count(distinct chat_conversation_id) >= ?', [$minOccurrences])
             ->orderByDesc('conversations')
             ->limit(self::MAX_SUGGESTIONS)
             ->get()
-            ->reject(fn (ConversationTopic $row): bool => in_array(mb_strtolower((string) $row->suggested_label), $existingNames, true))
             ->values();
     }
 

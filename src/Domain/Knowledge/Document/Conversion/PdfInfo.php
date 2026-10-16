@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Document\Conversion;
 
+use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -13,7 +14,7 @@ use RuntimeException;
  * `pdfinfo`. The page count is the PDF's length in the sources UI and feeds the
  * chat-attachment page cap (the `MaxPdfPages` rule).
  */
-final readonly class PdfInfo
+final readonly class PdfInfo implements PdfInspector
 {
     private string $pdfInfoPath;
 

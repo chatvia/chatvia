@@ -141,7 +141,7 @@ class BuildDataExportArchiveAction
                 'expires_at' => now()->addDay(),
             ]);
 
-            event(new DataExportReady($export->fresh()));
+            DataExportReady::dispatch($export->fresh());
         } catch (Throwable $e) {
             $this->discard($zip);
             $localDisk->delete($zipRelativePath);

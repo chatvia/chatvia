@@ -33,17 +33,21 @@ Route::post('invitation/{invitation}/accept', AcceptTeamInvitationController::cl
 // replaces Laravel's signed-URL approach. The row is deleted on accept, so
 // the link is single-use. Expiry is checked in the controller.
 Route::get('chat-invitation/{token}', AgentInvitationController::class)
+    ->middleware('throttle:20,1,chat-invitation')
     ->name('agents.invitation.show');
 
 Route::post('chat-invitation/{token}/accept', AcceptAgentInvitationController::class)
+    ->middleware('throttle:20,1,chat-invitation')
     ->name('agents.invitation.accept');
 
 Route::get('chat-invitation/{token}/oauth/{provider}', AgentInvitationSocialStartController::class)
+    ->middleware('throttle:20,1,chat-invitation-oauth')
     ->name('agents.invitation.social.start');
 
 // The OAuth provider redirects back here after the user signs in there; the
 // pending invitation reference is read from the session.
 Route::get('chat-invitation/oauth/{provider}/callback', AgentInvitationSocialCallbackController::class)
+    ->middleware('throttle:30,1,chat-invitation-oauth-callback')
     ->name('agents.invitation.social.callback');
 
 // Login / forgot-password / reset / verify-email / confirm-password / logout /
@@ -65,7 +69,7 @@ Route::middleware(['guest', EnsureRegistrationIsOpen::class])->group(function ()
 
 Route::middleware('guest')->group(function (): void {
     Route::post('magic-link', [MagicLinkController::class, 'store'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:6,1,magic-link')
         ->name('magic-link.send');
 
     // Overrides Fortify's auto-registered POST /forgot-password. The wrapper
@@ -73,6 +77,6 @@ Route::middleware('guest')->group(function (): void {
     // throttle caps account-enumeration attempts. Re-using `password.email`
     // means every existing call site (route name + URL) keeps working.
     Route::post('forgot-password', ForgotPasswordController::class)
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:5,1,forgot-password')
         ->name('password.email');
 });

@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Notification;
  */
 class NotifySourceTrainingFailed implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     public function __construct(
         private readonly NotificationRecipients $recipients,
     ) {}

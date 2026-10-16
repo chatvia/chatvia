@@ -15,13 +15,14 @@ use Illuminate\Queue\Attributes\Tries;
  * Dispatched by the AgentFunction observer when a function is created or its
  * name/description changes; the tokens bill to the function's workspace.
  */
-// One retry for a passing embedding-service error.
+// Covers a failure before the Action's own try/catch (a lost connection);
+// embedding-service errors are swallowed and logged by the Action itself.
 #[Tries(2)]
 class EmbedFunctionJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public int $functionId) {}
+    public function __construct(public readonly int $functionId) {}
 
     public function handle(EmbedAgentFunctionAction $action): void
     {

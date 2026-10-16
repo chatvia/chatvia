@@ -28,7 +28,7 @@ class EmbedQaQuestionsJob implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        public AgentQuestionAnswer $qa,
+        public readonly AgentQuestionAnswer $qa,
     ) {}
 
     public function handle(EmbedQaQuestionsAction $action): void

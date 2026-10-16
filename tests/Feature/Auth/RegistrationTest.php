@@ -45,7 +45,7 @@ it('gives a new account its own workspace and default team, signs it in and asks
     $user = User::query()->where('email', 'new-signup@example.test')->sole();
     $workspace = $user->workspace();
 
-    $this->assertAuthenticatedAs($user);
+    expect(auth()->user()?->is($user))->toBeTrue();
     expect($user->workspaceRole())->toBe(WorkspaceRole::Owner)
         ->and($workspace->name)->toBe('Ada Lovelace')
         ->and($workspace->members()->pluck('users.id')->all())->toBe([$user->id])
@@ -67,6 +67,6 @@ it('refuses an email that already has an account', function (): void {
         'password_confirmation' => 'a-long-Password-123!',
     ])->assertSessionHasErrors('email');
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
     expect(User::query()->where('email', 'taken-signup@example.test')->count())->toBe(1);
 });

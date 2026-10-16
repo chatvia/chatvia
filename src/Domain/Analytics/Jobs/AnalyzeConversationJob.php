@@ -20,7 +20,7 @@ class AnalyzeConversationJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Conversation $conversation)
+    public function __construct(public readonly Conversation $conversation)
     {
         // The queue name comes from config, which an attribute cannot read.
         $this->onQueue((string) config('chatvia.analytics.queue', 'analytics'));

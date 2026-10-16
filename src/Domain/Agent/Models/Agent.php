@@ -177,6 +177,7 @@ class Agent extends Model
             'auth_secret' => 'encrypted',
             'metadata' => 'array',
             'llm_id' => 'integer',
+            'is_public' => 'boolean',
             'source' => CreatedVia::class,
         ];
     }

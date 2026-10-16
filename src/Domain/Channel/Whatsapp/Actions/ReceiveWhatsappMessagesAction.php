@@ -37,7 +37,7 @@ class ReceiveWhatsappMessagesAction
             $number = $numbers[$message->phoneNumberId];
 
             if (! $number instanceof AgentWhatsappNumber
-                || ! $this->deliveries->firstDelivery("wa:mid:{$number->id}:{$message->messageId}", now()->addDays(7))) {
+                || ! $this->deliveries->firstDelivery("whatsapp:mid:{$number->id}:{$message->messageId}", now()->addDays(7))) {
                 continue;
             }
 

@@ -13,4 +13,13 @@ enum FunctionAuthType: string
     case Bearer = 'bearer';
     case Header = 'header';
     case Hmac = 'hmac';
+
+    /** Whether outbound calls of this auth type carry a configured credential. */
+    public function requiresCredential(): bool
+    {
+        return match ($this) {
+            self::None => false,
+            self::Bearer, self::Header, self::Hmac => true,
+        };
+    }
 }

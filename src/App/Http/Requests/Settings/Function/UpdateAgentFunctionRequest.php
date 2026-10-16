@@ -66,23 +66,27 @@ class UpdateAgentFunctionRequest extends FormRequest
      * A blank `auth_value` means "keep the stored secret". This check lives in an
      * after-hook (not a field rule) because `nullable` short-circuits field rules
      * on empty input — and empty input is exactly the case we need to police.
+     *
+     * @return array<int, callable(Validator): void>
      */
-    public function withValidator(Validator $validator): void
+    public function after(): array
     {
-        $validator->after(function (Validator $validator): void {
-            $type = $this->string('auth_type', 'none')->toString();
-            if (! in_array($type, ['bearer', 'header', 'hmac'], true)) {
-                return;
-            }
-            if (filled($this->input('auth_value'))) {
-                return;
-            }
-            $function = $this->findFunction();
-            $canKeep = $function instanceof AgentFunction && $function->auth_type->value === $type && $function->auth_config !== null;
-            if (! $canKeep) {
-                $validator->errors()->add('auth_value', 'A credential value is required for this auth type.');
-            }
-        });
+        return [
+            function (Validator $validator): void {
+                $type = $this->enum('auth_type', FunctionAuthType::class) ?? FunctionAuthType::None;
+                if (! $type->requiresCredential()) {
+                    return;
+                }
+                if (filled($this->input('auth_value'))) {
+                    return;
+                }
+                $function = $this->findFunction();
+                $canKeep = $function instanceof AgentFunction && $function->auth_type === $type && $function->auth_config !== null;
+                if (! $canKeep) {
+                    $validator->errors()->add('auth_value', __('A credential value is required for this auth type.'));
+                }
+            },
+        ];
     }
 
     public function toData(): FunctionDefinitionData

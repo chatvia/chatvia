@@ -6,6 +6,7 @@ use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Support\Str;
 use Tests\Support\Slack\FakeSlackClient;
@@ -82,10 +83,10 @@ it('tags the conversation as a Slack conversation', function (): void {
 
     $channel = slackResolver(new FakeSlackClient)->resolve($app, 'C123CHAN');
 
-    $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $channel->conversation->external_id,
-        'source' => ConversationSource::Slack->value,
-    ]);
+    expect(Conversation::query()
+        ->where('external_id', $channel->conversation->external_id)
+        ->where('source', ConversationSource::Slack)
+        ->exists())->toBeTrue();
 });
 
 it('copes with a DM (no channel name) and a failed name lookup', function (): void {

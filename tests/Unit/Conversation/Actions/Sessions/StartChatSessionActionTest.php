@@ -7,7 +7,6 @@ use Domain\Conversation\Actions\Sessions\StartChatSessionAction;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatSessions;
-use Illuminate\Support\Carbon;
 
 /**
  * Starting a visitor session: a guest's lapses after a few days, a signed-in
@@ -25,7 +24,7 @@ it('starts a guest session that lapses after a few days', function (): void {
         ->and($row->chatter_id)->toBeNull()
         ->and(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeTrue();
 
-    Carbon::setTestNow(now()->addDays(StartChatSessionAction::GUEST_SESSION_TTL_DAYS)->addMinute());
+    $this->travelTo(now()->addDays(StartChatSessionAction::GUEST_SESSION_TTL_DAYS)->addMinute());
 
     expect(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeFalse();
 });
@@ -37,7 +36,7 @@ it('keeps a signed-in chatter session live', function (): void {
 
     $sessionId = app(StartChatSessionAction::class)->execute($agent, $viewer);
 
-    Carbon::setTestNow(now()->addYear());
+    $this->travelTo(now()->addYear());
 
     expect(ChatSession::query()->where('external_id', $sessionId)->value('chatter_id'))->toBe($chatter->id)
         ->and(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeTrue()
@@ -51,7 +50,7 @@ it('keeps a signed-in staff session live', function (): void {
 
     $sessionId = app(StartChatSessionAction::class)->execute($agent, $viewer);
 
-    Carbon::setTestNow(now()->addYear());
+    $this->travelTo(now()->addYear());
 
     expect(ChatSession::query()->where('external_id', $sessionId)->value('user_id'))->toBe($staffId)
         ->and(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeTrue()

@@ -15,7 +15,7 @@ use Illuminate\Http\UploadedFile;
  * at upload with the reason, instead of failing later while it is trained.
  * Other files pass.
  */
-final class UnlockedPdf implements ValidationRule
+final readonly class UnlockedPdf implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

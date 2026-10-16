@@ -4,6 +4,7 @@ namespace App\Http\Requests\Agent\Form;
 
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormType;
+use Domain\Form\Enums\LeadField;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -45,7 +46,7 @@ class SaveFormDefinitionRequest extends FormRequest
             'schema.*.options.*.label' => ['required_with:schema.*.options', 'string', 'max:120'],
 
             'lead_field_map' => ['nullable', 'array'],
-            'lead_field_map.*' => ['nullable', 'string', 'in:name,email,phone,job_title,company,location,message'],
+            'lead_field_map.*' => ['nullable', 'string', Rule::enum(LeadField::class)],
         ];
     }
 

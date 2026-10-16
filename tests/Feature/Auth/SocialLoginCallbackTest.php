@@ -39,7 +39,7 @@ it('logs in a user already linked to the social identity and redirects to the da
     $this->get(route('auth.google.callback'))
         ->assertRedirect(route('dashboard'));
 
-    $this->assertAuthenticatedAs($user);
+    expect(auth()->user()?->is($user))->toBeTrue();
 });
 
 it('auto-links a verified same-email identity to the existing account and logs in', function (): void {
@@ -51,7 +51,7 @@ it('auto-links a verified same-email identity to the existing account and logs i
     $this->get(route('auth.google.callback'))
         ->assertRedirect(route('dashboard'));
 
-    $this->assertAuthenticatedAs($user);
+    expect(auth()->user()?->is($user))->toBeTrue();
 
     // The identity was persisted so the next sign-in takes the fast path.
     expect(
@@ -70,7 +70,7 @@ it('rejects an unknown social identity instead of creating an account', function
         ->assertRedirect(route('login'))
         ->assertSessionHas('error');
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
     expect(User::where('email', 'stranger@example.com')->exists())->toBeFalse();
 });
 
@@ -85,7 +85,7 @@ it('refuses to auto-link when the provider says the email is unverified', functi
         ->assertRedirect(route('login'))
         ->assertSessionHas('error');
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
     expect(UserSocial::query()->where('user_id', $victim->id)->exists())->toBeFalse();
 });
 
@@ -106,7 +106,7 @@ it('routes a two-factor-enabled user to the challenge instead of signing them in
         ->assertRedirect(route('two-factor.login'))
         ->assertSessionHas('login.id', $user->getAuthIdentifier());
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 });
 
 it('refuses a deactivated account even with a linked social identity', function (): void {
@@ -123,6 +123,6 @@ it('refuses a deactivated account even with a linked social identity', function 
         ->assertRedirect(route('login'))
         ->assertSessionHas('error');
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
     expect(session('login.id'))->toBeNull();
 });

@@ -31,6 +31,8 @@ trait CascadesAttachmentDeletes
      */
     public function cascadeAttachmentDeletes(): void
     {
-        $this->attachments()->each(static fn (Attachment $a) => $a->delete());
+        // lazyById, not each(): offset chunking would skip rows while the
+        // very same rows are being deleted out from under it.
+        $this->attachments()->lazyById()->each(static fn (Attachment $a) => $a->delete());
     }
 }

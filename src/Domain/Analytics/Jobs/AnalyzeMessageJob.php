@@ -16,7 +16,7 @@ class AnalyzeMessageJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public string $externalMessageId)
+    public function __construct(public readonly string $externalMessageId)
     {
         // The queue name comes from config, which an attribute cannot read.
         $this->onQueue((string) config('chatvia.analytics.queue', 'analytics'));

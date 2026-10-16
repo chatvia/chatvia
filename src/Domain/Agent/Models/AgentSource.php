@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  * @property string $sourceable_type
  * @property int $sourceable_id
  * @property int $retrieval_count
- * @property string|null $last_retrieved_at
+ * @property Carbon|null $last_retrieved_at
  * @property-read Agent $agent
  * @property-read Model|\Eloquent $sourceable
  *
@@ -43,6 +44,16 @@ use Illuminate\Support\Facades\DB;
 #[WithoutTimestamps]
 class AgentSource extends MorphPivot
 {
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'last_retrieved_at' => 'datetime',
+        ];
+    }
+
     /** @return BelongsTo<Agent, $this> */
     public function agent(): BelongsTo
     {

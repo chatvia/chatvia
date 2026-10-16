@@ -18,6 +18,6 @@ class RenameAgentController
     {
         $rename->execute($agent, $request->toData());
 
-        return back()->with('success', 'Agent updated successfully');
+        return back()->with('success', __('Agent updated successfully'));
     }
 }

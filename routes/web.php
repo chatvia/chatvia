@@ -33,17 +33,17 @@ require __DIR__.'/agents.php';
 // for traffic generation); callbacks get a higher cap (legit users can land
 // here twice in quick succession during link-then-bounce flows, and we don't
 // want a flaky network retry to lock them out).
-Route::get('/auth/google', GoogleAuthController::class)->middleware('throttle:10,1')->name('auth.google');
-Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.google.callback');
+Route::get('/auth/google', GoogleAuthController::class)->middleware('throttle:10,1,social-start')->name('auth.google');
+Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->middleware('throttle:30,1,social-callback')->name('auth.google.callback');
 
-Route::get('/auth/github', GithubAuthController::class)->middleware('throttle:10,1')->name('auth.github');
-Route::get('/auth/github/callback', GithubCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.github.callback');
+Route::get('/auth/github', GithubAuthController::class)->middleware('throttle:10,1,social-start')->name('auth.github');
+Route::get('/auth/github/callback', GithubCallbackAuthController::class)->middleware('throttle:30,1,social-callback')->name('auth.github.callback');
 
-Route::get('/auth/microsoft', MicrosoftAuthController::class)->middleware('throttle:10,1')->name('auth.microsoft');
-Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.microsoft.callback');
+Route::get('/auth/microsoft', MicrosoftAuthController::class)->middleware('throttle:10,1,social-start')->name('auth.microsoft');
+Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->middleware('throttle:30,1,social-callback')->name('auth.microsoft.callback');
 
-Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1')->name('auth.slack');
-Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
+Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1,social-start')->name('auth.slack');
+Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1,social-callback')->name('auth.slack.callback');
 
 Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');
 
@@ -66,7 +66,7 @@ Route::get('external/files/{type}/{externalId}', SourceFileViewController::class
 Route::get(
     'connectors/oauth/callback',
     ConnectorOAuthCallbackController::class,
-)->middleware(['web', 'auth'])->name('connectors.oauth.callback');
+)->middleware(['web', 'auth', 'throttle:30,1,connector-oauth-callback'])->name('connectors.oauth.callback');
 
 // The end-user chat (its own widget i18n + iframe embedding), transactional/email
 // + invitation links (auth.php), and dev endpoints.

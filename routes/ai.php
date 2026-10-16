@@ -23,11 +23,11 @@ use Laravel\Mcp\Facades\Mcp;
  * can reach them) and, for tools/call, that the calling agent has the connector
  * enabled. A per-agent throttle backs it as a runaway-loop guard.
  */
-Mcp::web('/mcp/weather', WeatherServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
-Mcp::web('/mcp/currency', CurrencyConverterServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
-Mcp::web('/mcp/charts', ChartsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
-Mcp::web('/mcp/forms', FormsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
-Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
+Mcp::web('/mcp/weather', WeatherServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.weather');
+Mcp::web('/mcp/currency', CurrencyConverterServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.currency');
+Mcp::web('/mcp/charts', ChartsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.charts');
+Mcp::web('/mcp/forms', FormsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.forms');
+Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.perplexity');
 
 /**
  * Internal, owner-scoped analytics server. NOT a featured connector and never
@@ -35,4 +35,4 @@ Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternal
  * Same HMAC gate; VerifyInternalMcpRequest also accepts a signed
  * X-Chatvia-Workspace-Id here (workspace mode) instead of a per-agent check.
  */
-Mcp::web('/mcp/account-analytics', AccountAnalyticsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
+Mcp::web('/mcp/account-analytics', AccountAnalyticsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.account-analytics');

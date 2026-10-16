@@ -22,7 +22,7 @@ class ReceiveTelegramUpdateAction
     public function execute(AgentTelegramBot $bot, TelegramUpdateData $update): void
     {
         if ($update->updateId !== null
-            && ! $this->deliveries->firstDelivery("tg:update:{$bot->id}:{$update->updateId}", now()->addDay())) {
+            && ! $this->deliveries->firstDelivery("telegram:update:{$bot->id}:{$update->updateId}", now()->addDay())) {
             return;
         }
 

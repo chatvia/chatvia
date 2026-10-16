@@ -27,7 +27,7 @@ class PurgeAgentJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public int $agentId) {}
+    public function __construct(public readonly int $agentId) {}
 
     public function handle(PurgeAgentAction $purge): void
     {

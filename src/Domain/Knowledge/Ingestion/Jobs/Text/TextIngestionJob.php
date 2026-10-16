@@ -25,7 +25,7 @@ class TextIngestionJob implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    public function __construct(public SourceText $sourceText, public Agent $agent) {}
+    public function __construct(public readonly SourceText $sourceText, public readonly Agent $agent) {}
 
     public function handle(IngestTextAction $action): void
     {

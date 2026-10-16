@@ -51,6 +51,9 @@ use Throwable;
 #[Backoff(5, 30, 120)]
 class RecordAnalytics implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     public function __construct(
         private readonly RecordMessageSentAction $recordMessageSent,
         private readonly RecordFeedbackGivenAction $recordFeedbackGiven,

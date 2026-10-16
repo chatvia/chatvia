@@ -83,14 +83,14 @@ it('checks sign-in, sign-in links and password reset when they are switched on',
 
     $this->from(route('login'))->post(route('login'), ['email' => 'ada@example.com', 'password' => 'password'])
         ->assertSessionHasErrors(BotCheck::FIELD);
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 
     $this->post(route('magic-link.send'), ['email' => 'ada@example.com'])->assertSessionHasErrors(BotCheck::FIELD);
     $this->post(route('password.email'), ['email' => 'ada@example.com'])->assertSessionHasErrors(BotCheck::FIELD);
 
     $this->post(route('login'), ['email' => 'ada@example.com', 'password' => 'password', BotCheck::FIELD => Turnstile::dummy()])
         ->assertRedirect(route('dashboard'));
-    $this->assertAuthenticated();
+    expect(auth()->check())->toBeTrue();
 });
 
 it('leaves a form alone when its switch is off', function (): void {
@@ -99,7 +99,7 @@ it('leaves a form alone when its switch is off', function (): void {
 
     $this->post(route('login'), ['email' => 'ada@example.com', 'password' => 'password'])
         ->assertRedirect(route('dashboard'));
-    $this->assertAuthenticatedAs($user);
+    expect(auth()->user()?->is($user))->toBeTrue();
 });
 
 it('gives the pages the site key and the forms it protects', function (): void {

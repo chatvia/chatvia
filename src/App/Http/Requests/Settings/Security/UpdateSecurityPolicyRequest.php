@@ -88,54 +88,58 @@ class UpdateSecurityPolicyRequest extends FormRequest
      * allowlist and the geo rule are checked separately so the message names the
      * actual cause — a country-only rule never talks about IPs (and vice versa).
      * Geo fails open when the country can't be resolved (so local/dev saves work).
+     *
+     * @return array<int, callable(Validator): void>
      */
-    public function withValidator(Validator $validator): void
+    public function after(): array
     {
-        $validator->after(function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty()) {
-                return;
-            }
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
 
-            $form = $this->toData();
+                $form = $this->toData();
 
-            // The gate enforces the country rule even while the IP allowlist is
-            // off, so a country rule alone must pass the lockout check too.
-            if ($form->ip_allowlist_mode === IpAllowlistMode::Off && $form->geo_mode === GeoMode::Off) {
-                return;
-            }
+                // The gate enforces the country rule even while the IP allowlist is
+                // off, so a country rule alone must pass the lockout check too.
+                if ($form->ip_allowlist_mode === IpAllowlistMode::Off && $form->geo_mode === GeoMode::Off) {
+                    return;
+                }
 
-            $guard = app(NetworkAccessGuard::class);
-            $ip = (string) $this->ip();
-            $country = $form->geo_mode === GeoMode::Off ? null : $this->country();
-            $enforcedAllowlist = $form->ip_allowlist_mode === IpAllowlistMode::Off ? [] : $form->ip_allowlist;
+                $guard = app(NetworkAccessGuard::class);
+                $ip = (string) $this->ip();
+                $country = $form->geo_mode === GeoMode::Off ? null : $this->country();
+                $enforcedAllowlist = $form->ip_allowlist_mode === IpAllowlistMode::Off ? [] : $form->ip_allowlist;
 
-            $ipBlocks = ! $guard->ipAllowed($enforcedAllowlist, $ip);
-            $geoBlocks = ! $guard->geoAllowed($form->geo_mode, $form->geo_countries, $country);
+                $ipBlocks = ! $guard->ipAllowed($enforcedAllowlist, $ip);
+                $geoBlocks = ! $guard->geoAllowed($form->geo_mode, $form->geo_countries, $country);
 
-            if (! $ipBlocks && ! $geoBlocks) {
-                return;
-            }
+                if (! $ipBlocks && ! $geoBlocks) {
+                    return;
+                }
 
-            // One shared "lockout" channel: the Security page renders
-            // errors.ip_allowlist as a prominent alert regardless of which rule is
-            // at fault — so the wording, not the key, has to reflect the cause.
-            $validator->errors()->add('ip_allowlist', $this->lockoutMessage($ipBlocks, $geoBlocks, $form->geo_mode, $ip, $country));
-        });
+                // One shared "lockout" channel: the Security page renders
+                // errors.ip_allowlist as a prominent alert regardless of which rule is
+                // at fault — so the wording, not the key, has to reflect the cause.
+                $validator->errors()->add('ip_allowlist', $this->lockoutMessage($ipBlocks, $geoBlocks, $form->geo_mode, $ip, $country));
+            },
 
-        // Enabling SIEM delivery needs a destination and a signing secret.
-        $validator->after(function (Validator $validator): void {
-            if (! $this->boolean('webhook_enabled')) {
-                return;
-            }
+            // Enabling SIEM delivery needs a destination and a signing secret.
+            function (Validator $validator): void {
+                if (! $this->boolean('webhook_enabled')) {
+                    return;
+                }
 
-            if (blank($this->input('webhook_url'))) {
-                $validator->errors()->add('webhook_url', __('A webhook URL is required to enable delivery.'));
-            }
+                if (blank($this->input('webhook_url'))) {
+                    $validator->errors()->add('webhook_url', __('A webhook URL is required to enable delivery.'));
+                }
 
-            if (blank($this->input('webhook_secret')) && ! $this->hasStoredWebhookSecret()) {
-                $validator->errors()->add('webhook_secret', __('A signing secret is required to enable delivery.'));
-            }
-        });
+                if (blank($this->input('webhook_secret')) && ! $this->hasStoredWebhookSecret()) {
+                    $validator->errors()->add('webhook_secret', __('A signing secret is required to enable delivery.'));
+                }
+            },
+        ];
     }
 
     public function toData(): SecurityPolicyFormData
@@ -225,7 +229,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
     {
         $entries = array_map(fn (mixed $value): string => trim((string) $value), (array) $this->input($key, []));
 
-        return array_values(array_unique(array_filter($entries, fn (string $value): bool => $value !== '')));
+        return array_values(array_unique(array_filter($entries, fn (string $value): bool => filled($value))));
     }
 
     private function blankToNull(mixed $value): ?string

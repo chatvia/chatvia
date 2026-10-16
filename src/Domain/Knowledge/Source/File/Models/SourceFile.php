@@ -55,7 +55,7 @@ use Support\MimeType;
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
- * @property string|null $last_retrieved_at
+ * @property Carbon|null $last_retrieved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read AgentSource|null $pivot
@@ -194,6 +194,7 @@ class SourceFile extends Model implements ChunkableContract
         return [
             'metadata' => 'json',
             'status' => SourceStatus::class,
+            'last_retrieved_at' => 'datetime',
         ];
     }
 

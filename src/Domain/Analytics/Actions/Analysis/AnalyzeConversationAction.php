@@ -156,6 +156,6 @@ class AnalyzeConversationAction
             return null;
         }
 
-        return Language::where('code', $code)->value('id');
+        return Language::query()->where('code', $code)->value('id');
     }
 }

@@ -41,7 +41,7 @@ class ReceiveInstagramMessagesAction
             }
 
             if ($message->messageId !== null
-                && ! $this->deliveries->firstDelivery("ig:mid:{$account->id}:{$message->messageId}", now()->addDays(2))) {
+                && ! $this->deliveries->firstDelivery("instagram:mid:{$account->id}:{$message->messageId}", now()->addDays(2))) {
                 continue;
             }
 

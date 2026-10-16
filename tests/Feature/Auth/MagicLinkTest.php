@@ -30,11 +30,11 @@ it('emails a known address a link that signs it in to the dashboard', function (
             return $notifiable->routes['mail'] === 'known-link@example.test';
         },
     );
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 
     $this->get($url)->assertRedirect(route('dashboard'));
 
-    $this->assertAuthenticatedAs($user);
+    expect(auth()->user()?->is($user))->toBeTrue();
 });
 
 it('answers an unknown address the same way and sends nothing', function (): void {

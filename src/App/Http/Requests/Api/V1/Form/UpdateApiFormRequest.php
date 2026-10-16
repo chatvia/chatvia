@@ -6,6 +6,7 @@ namespace App\Http\Requests\Api\V1\Form;
 
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormType;
+use Domain\Form\Enums\LeadField;
 use Domain\Form\Models\FormDefinition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -54,7 +55,7 @@ class UpdateApiFormRequest extends FormRequest
 
             // Maps field keys to the standard lead fields. Null clears the map.
             'lead_field_map' => ['sometimes', 'nullable', 'array'],
-            'lead_field_map.*' => ['nullable', 'string', 'in:name,email,phone,job_title,company,location,message'],
+            'lead_field_map.*' => ['nullable', 'string', Rule::enum(LeadField::class)],
         ];
     }
 

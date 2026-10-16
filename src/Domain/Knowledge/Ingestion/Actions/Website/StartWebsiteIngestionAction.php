@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Bus;
  */
 class StartWebsiteIngestionAction
 {
+    public function __construct(
+        private readonly CompleteWebsiteIngestionAction $complete,
+    ) {}
+
     public function execute(SourceWebsite $website, Agent $agent, ?string $internalJobId = null, TrainingTrigger $trigger = TrainingTrigger::Manual): void
     {
         $website->update(['status' => SourceStatus::Processing]);
@@ -26,6 +30,20 @@ class StartWebsiteIngestionAction
         WebsiteCrawlStarted::dispatch($website->refresh(), $agent->external_id);
 
         $untrainedUrls = $website->untrainedUrls;
+
+        // A batch without jobs never runs `finally`, so a website with nothing
+        // left to train is completed straight away instead of hanging in
+        // Processing (a retrain where every page is already trained).
+        if ($untrainedUrls->isEmpty()) {
+            $website->update([
+                'internal_ingestion_job_id' => $internalJobId,
+                'expected_chunks' => 0,
+                'checksum' => hash('xxh128', ''),
+            ]);
+            $this->complete->execute($website, $agent, $trigger);
+
+            return;
+        }
 
         $jobs = $untrainedUrls->map(fn (AgentWebsiteUrl $url): WebsiteUrlTrainJob => new WebsiteUrlTrainJob($url, $agent));
 

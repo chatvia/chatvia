@@ -22,7 +22,8 @@ class AnalyzeMessageAction
 
     public function execute(string $externalMessageId): void
     {
-        $message = Message::with('conversation.agent')
+        $message = Message::query()
+            ->with('conversation.agent')
             ->where('external_id', $externalMessageId)
             ->first();
 

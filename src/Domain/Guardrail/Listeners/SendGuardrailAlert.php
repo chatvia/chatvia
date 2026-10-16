@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Cache;
  */
 class SendGuardrailAlert implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {

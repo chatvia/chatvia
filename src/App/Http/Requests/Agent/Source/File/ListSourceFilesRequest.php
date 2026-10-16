@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Agent\Source\File;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Filters the agent's file list by kind (`pdf`, `word`, `audio`, `video`) and
@@ -29,8 +30,8 @@ class ListSourceFilesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file_type' => ['nullable', 'in:'.implode(',', self::FILE_TYPES)],
-            'stage' => ['nullable', 'in:'.implode(',', self::STAGES)],
+            'file_type' => ['nullable', Rule::in(self::FILE_TYPES)],
+            'stage' => ['nullable', Rule::in(self::STAGES)],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }

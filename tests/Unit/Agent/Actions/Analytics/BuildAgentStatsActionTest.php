@@ -8,7 +8,6 @@ use Domain\Agent\Data\Resources\Stats\MessageByDayData;
 use Domain\Agent\Data\Resources\Stats\TopKnowledgeData;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\DateRangeData;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -59,7 +58,7 @@ it('builds the full analytics payload for an agent', function (): void {
 });
 
 it('builds the daily series for the selected range, not the last days before today', function (): void {
-    Carbon::setTestNow('2026-09-30 12:00:00');
+    $this->travelTo('2026-09-30 12:00:00');
     $agent = Agent::factory()->create();
 
     // Activity in an earlier month, inside the selected range.

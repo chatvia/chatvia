@@ -62,7 +62,7 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
             Route::get('connectors', [ConnectorController::class, 'edit'])->name('connectors.edit');
             Route::get('connectors/data', [ConnectorController::class, 'index'])->name('connectors.data');
             Route::post('connectors/{slug}/connect', ConnectController::class)->name('connectors.connect');
-            Route::get('connectors/{slug}/oauth/start', OAuthStartController::class)->name('connectors.oauth.start');
+            Route::get('connectors/{slug}/oauth/start', OAuthStartController::class)->middleware('throttle:10,1,connector-oauth-start')->name('connectors.oauth.start');
             Route::post('connectors/salesforce/connect', SalesforceConnectController::class)->name('connectors.salesforce.connect');
             Route::post('connectors/custom/add', CustomAddController::class)->name('connectors.custom.add');
             Route::post('connectors/{slug}/enable', ToggleConnectorController::class)->name('connectors.enable');

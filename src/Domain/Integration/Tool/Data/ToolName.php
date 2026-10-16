@@ -90,7 +90,7 @@ final readonly class ToolName implements Stringable
      */
     public function hasServerAndTool(): bool
     {
-        return $this->isMcp() && $this->serverSlug !== null && $this->tool !== '';
+        return $this->isMcp() && filled($this->serverSlug) && filled($this->tool);
     }
 
     /**

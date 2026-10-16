@@ -16,7 +16,6 @@ use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\Attributes\UniqueFor;
-use Illuminate\Queue\SerializesModels;
 use Throwable;
 
 /**
@@ -36,10 +35,10 @@ use Throwable;
 #[DeleteWhenMissingModels]
 class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, Queueable, SerializesModels;
+    use Batchable, Queueable;
 
     public function __construct(
-        public SourceFile|SourceText|SourceWebsite $source,
+        public readonly SourceFile|SourceText|SourceWebsite $source,
     ) {}
 
     public function handle(CreateSourceSummaryAction $action): void

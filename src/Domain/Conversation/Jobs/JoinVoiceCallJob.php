@@ -22,14 +22,17 @@ use Illuminate\Queue\Attributes\Tries;
  * plus two minutes to wrap up — below `redis-long`'s retry_after (1900 s).
  * Each call still hangs up at its own time limit.
  */
+// Its own supervisor, so a long call never starves the chat queues.
 #[Queue('voice')]
+// A dropped call must not redial the visitor by itself.
 #[Tries(1)]
+// The longest call plus wrap-up; see the class docblock.
 #[Timeout(1620)]
 class JoinVoiceCallJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public VoiceCallData $call) {}
+    public function __construct(public readonly VoiceCallData $call) {}
 
     public function handle(RunVoiceCallAction $run): void
     {

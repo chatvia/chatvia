@@ -22,6 +22,6 @@ class UpdateAgentDomainController
 
         $setDomain->execute($agent, $newValue);
 
-        return back()->with('success', $newValue ? 'Custom domain updated.' : 'Custom domain removed.');
+        return back()->with('success', $newValue ? __('Custom domain updated.') : __('Custom domain removed.'));
     }
 }

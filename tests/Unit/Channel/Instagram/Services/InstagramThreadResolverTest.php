@@ -6,6 +6,7 @@ use Domain\Channel\Instagram\Models\InstagramThread;
 use Domain\Channel\Instagram\Services\InstagramThreadResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Tests\Support\Instagram\FakeInstagramClient;
 
@@ -80,10 +81,10 @@ it('tags the conversation as an Instagram conversation', function (): void {
 
     $thread = instagramResolver(new FakeInstagramClient)->resolve($account, '5550001234');
 
-    $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $thread->conversation->external_id,
-        'source' => ConversationSource::Instagram->value,
-    ]);
+    expect(Conversation::query()
+        ->where('external_id', $thread->conversation->external_id)
+        ->where('source', ConversationSource::Instagram)
+        ->exists())->toBeTrue();
 });
 
 it('falls back to the @username and copes with a failed profile lookup', function (): void {

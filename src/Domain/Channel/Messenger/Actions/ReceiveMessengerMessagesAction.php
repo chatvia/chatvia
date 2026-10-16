@@ -41,7 +41,7 @@ class ReceiveMessengerMessagesAction
             }
 
             if ($message->messageId !== null
-                && ! $this->deliveries->firstDelivery("msgr:mid:{$page->id}:{$message->messageId}", now()->addDays(2))) {
+                && ! $this->deliveries->firstDelivery("messenger:mid:{$page->id}:{$message->messageId}", now()->addDays(2))) {
                 continue;
             }
 

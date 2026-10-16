@@ -4,6 +4,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
+use Domain\Conversation\Topic\Models\Topic;
 use App\Mcp\Servers\AccountAnalyticsServer;
 use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
 use App\Mcp\Tools\Analytics\GetActivityPatternsTool;
@@ -194,8 +195,8 @@ function seedAnalyticsRollups(Workspace $workspace, Agent $alpha, Agent $beta, W
         $day($other->id, $noise, '2026-06-11', ['sentiment' => 'negative', 'message_count' => 50]),
     ]);
 
-    $pricing = DB::table('topics')->insertGetId(['topic' => 'Pricing', 'description' => 'Plans and prices']);
-    $shipping = DB::table('topics')->insertGetId(['topic' => 'Shipping', 'description' => 'Delivery questions']);
+    $pricing = Topic::create(['topic' => 'Pricing', 'description' => 'Plans and prices'])->id;
+    $shipping = Topic::create(['topic' => 'Shipping', 'description' => 'Delivery questions'])->id;
 
     seededAnalyticsDb()->table('analytics_agent_topic_daily')->insert([
         $day($workspace->id, $alpha, '2026-06-10', ['topic_id' => $pricing, 'conversation_count' => 2]),

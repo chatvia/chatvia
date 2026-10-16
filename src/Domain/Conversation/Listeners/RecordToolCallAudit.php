@@ -16,6 +16,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class RecordToolCallAudit implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     public function __construct(
         private readonly RecordToolCallAuditAction $action,
     ) {}

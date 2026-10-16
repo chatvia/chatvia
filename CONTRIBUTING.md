@@ -180,9 +180,10 @@ then tag the widget release: every build takes the newest release.
 - Tests must not call real external services. Use `Http::fake()` and the fakes
   in `tests/Support/`. `TestCase` calls `Http::preventStrayRequests()`, so a
   request that no fake answers fails the test instead of going out.
-- Put a unit test in the folder of the context it tests, following the source
-  (`tests/Unit/Knowledge/Retrieval/…` for `src/Domain/Knowledge/Retrieval/…`;
-  App code under `tests/Unit/{Admin,Http,Identity,Mcp}/…`). Use the factories
+- Put a unit test at the path of the class it tests:
+  `tests/Unit/Knowledge/Retrieval/Services/KnowledgeBaseTest.php` for
+  `src/Domain/Knowledge/Retrieval/Services/KnowledgeBase.php`, App code under
+  `tests/Unit/{Admin,Http,Identity,Mcp}/…` (`UnitTestLayoutTest` checks it). Use the factories
   and the helpers in `tests/Pest.php` rather than building models by hand. A
   helper function you declare in a test file is global, so give it a short
   prefix of its own (`cscChunk()`), or two files will clash.

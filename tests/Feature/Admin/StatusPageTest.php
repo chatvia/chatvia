@@ -4,14 +4,17 @@ use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Pages\Dashboard;
 use App\Admin\Pages\Status;
 use App\Admin\Pages\Tools;
+use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Status\AiService;
 use App\Admin\Status\AiServiceChecks;
 use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
+use App\Admin\Widgets\ServiceStatusBanner;
 use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -174,4 +177,74 @@ it('checks Firecrawl only once it has a key', function (): void {
     config(['services.firecrawl.key' => 'fc-refused']);
 
     expect(app(AiServiceChecks::class)->check(AiService::WebPages)->state)->toBe(ServiceState::Down);
+});
+
+it('reloads the saved settings from the Caches card', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(Status::getUrl())
+        ->assertSee('Reload the saved settings and AI models');
+
+    DB::table('settings')
+        ->where('group', AiProviderSettings::group())
+        ->where('name', 'openrouter_api_key')
+        ->update(['payload' => json_encode(encrypt('sk-or-reloaded'))]);
+
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->call('reloadSettings')
+        ->assertNotified('Settings reloaded');
+
+    expect(config('services.openrouter.api_key'))->toBe('sk-or-reloaded');
+});
+
+/*
+ * The dashboard's status banner: the same checks, said in one line, with
+ * the services that are not fine listed and a link to this page.
+ */
+
+it('puts a status banner on the dashboard that checks once it is open', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(Dashboard::getUrl())
+        ->assertOk()
+        ->assertSee('Asking each service how it is.')
+        ->assertSee('href="'.Status::getUrl().'"', false);
+});
+
+it('says every system is operational once both checks found nothing wrong', function (): void {
+    Http::fake();
+
+    $banner = Livewire::actingAs($this->admin, 'admin')->test(ServiceStatusBanner::class)
+        ->set('services', [])
+        ->call('checkServices')
+        ->assertSee('Still checking the AI services…')
+        ->assertDontSee('All systems operational');
+
+    expect(array_keys($banner->get('services')))->toBe(array_map(fn (Service $service): string => $service->value, Service::cases()));
+
+    $running = ['state' => 'running', 'summary' => 'Answers.', 'facts' => [], 'providers' => []];
+    $off = ['state' => 'off', 'summary' => 'Not set up.', 'facts' => [], 'providers' => []];
+
+    $banner->set('services', ['database' => $running, 'email' => $off])
+        ->set('aiServices', ['chat' => $running, 'voice' => $off])
+        ->assertSee('All systems operational')
+        ->assertSee('Checked at');
+});
+
+it('lists what is down or needs a look on the banner', function (): void {
+    $running = ['state' => 'running', 'summary' => 'Answers.', 'facts' => [], 'providers' => []];
+
+    Livewire::actingAs($this->admin, 'admin')->test(ServiceStatusBanner::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', [
+            'database' => $running,
+            'queue' => ['state' => 'down', 'summary' => 'Horizon is not running.', 'facts' => [], 'providers' => []],
+        ])
+        ->set('aiServices', ['reranking' => ['state' => 'warning', 'summary' => 'The key was turned down.', 'facts' => [], 'providers' => []]])
+        ->assertSee('1 service is down')
+        ->assertSeeInOrder(['Queue', 'Horizon is not running.', 'Reranking', 'The key was turned down.'])
+        ->assertDontSee('Database')
+        ->assertDontSee('All systems operational');
+});
+
+it('leaves the banner out for anyone who may not open the Status page', function (): void {
+    expect(ServiceStatusBanner::canView())->toBeFalse();
 });

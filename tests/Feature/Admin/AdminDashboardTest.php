@@ -6,6 +6,7 @@ use App\Admin\Widgets\ChannelsChart;
 use App\Admin\Widgets\GrowthChart;
 use App\Admin\Widgets\MessagesChart;
 use App\Admin\Widgets\PlatformStatsOverview;
+use App\Admin\Widgets\ServiceStatusBanner;
 use App\Admin\Widgets\TopAgentsTable;
 use App\Admin\Widgets\TopWorkspacesTable;
 use App\Identity\Workspace\Models\User;
@@ -46,6 +47,7 @@ it('shows every widget for the whole platform', function (): void {
         ->getWidgets();
 
     expect($widgets)->toBe([
+        ServiceStatusBanner::class,
         PlatformStatsOverview::class,
         MessagesChart::class,
         ChannelsChart::class,

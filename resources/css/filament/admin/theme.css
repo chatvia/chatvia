@@ -2684,6 +2684,26 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
+.cv-env__end {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+
+    /* The small reload button sits before the value, so the values of
+     * every row stay lined up at the end. */
+    & .fi-icon-btn {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-block: -0.25rem;
+
+        & .fi-icon {
+            width: 0.875rem;
+            height: 0.875rem;
+        }
+    }
+}
+
 .cv-env__value {
     min-width: 0;
     font-weight: 500;
@@ -2700,6 +2720,48 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     border-radius: var(--cv-radius-pill);
     background-color: color-mix(in oklab, var(--cv-tone) 12%, transparent);
     color: color-mix(in oklab, var(--cv-tone) 70%, var(--cv-text));
+}
+
+/* The dashboard's banner: smaller, with the services that are not fine
+ * listed under the headline. */
+.cv-status-summary--compact {
+    padding: 1.25rem 1.5rem;
+
+    & .cv-status-summary__mark {
+        width: 2.75rem;
+        height: 2.75rem;
+
+        & .fi-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    }
+}
+
+.cv-status-issues {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.875rem;
+}
+
+.cv-status-issue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.625rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.cv-status-issue__name {
+    font-weight: 600;
+    color: var(--cv-text);
+}
+
+.cv-status-issue__summary {
+    min-width: 0;
+    color: var(--cv-text-muted);
+    overflow-wrap: anywhere;
 }
 
 /* Each tone colours a badge, a banner or a value through --cv-tone: green

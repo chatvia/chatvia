@@ -154,7 +154,21 @@
                         @foreach ($group->facts as $fact)
                             <div class="cv-env__fact">
                                 <dt>{{ $fact->label }}</dt>
-                                <dd @class(['cv-env__value', 'cv-env__value--'.$fact->tone => $fact->tone !== null])>{{ $fact->value }}</dd>
+                                <dd class="cv-env__end">
+                                    @if ($fact->action !== null)
+                                        <x-filament::icon-button
+                                            icon="heroicon-m-arrow-path"
+                                            size="xs"
+                                            color="gray"
+                                            :label="$fact->actionLabel"
+                                            :tooltip="$fact->actionLabel"
+                                            wire:click="{{ $fact->action }}"
+                                            wire:target="{{ $fact->action }}"
+                                        />
+                                    @endif
+
+                                    <span @class(['cv-env__value', 'cv-env__value--'.$fact->tone => $fact->tone !== null])>{{ $fact->value }}</span>
+                                </dd>
                             </div>
                         @endforeach
                     </dl>

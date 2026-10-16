@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Pages;
 
 use App\Admin\AdminPanelProvider;
+use App\Admin\Settings\Actions\ReloadSavedSettingsAction;
 use App\Admin\StaffToolsAccess;
 use App\Admin\Status\AiService;
 use App\Admin\Status\AiServiceChecks;
@@ -14,6 +15,7 @@ use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -92,6 +94,14 @@ class Status extends Page
         $this->aiServices = collect(AiService::cases())
             ->mapWithKeys(fn (AiService $service): array => [$service->value => $checks->check($service)->toArray()])
             ->all();
+    }
+
+    /** The reload button of Status → Caches → Settings ({@see ReloadSavedSettingsAction}). */
+    public function reloadSettings(ReloadSavedSettingsAction $action): void
+    {
+        $action->execute();
+
+        Notification::make()->success()->title(__('Settings reloaded'))->send();
     }
 
     #[\Override]

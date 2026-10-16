@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('user_socials', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('provider');
+            // SocialProvider; the values are stored, so the list only grows.
+            $table->enum('provider', ['google', 'microsoft', 'slack', 'github', 'linkedin', 'x']);
             $table->string('provider_id');
             $table->timestamps();
 

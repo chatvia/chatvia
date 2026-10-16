@@ -14,8 +14,24 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
             // One person's inbox: deleting the account deletes its notifications.
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('kind', 64);
-            $table->string('category', 32);
+            // NotificationKind and NotificationCategory; the values are stored,
+            // so the lists only grow — a new case must be added here too.
+            $table->enum('kind', [
+                'handoff_requested',
+                'source_trained',
+                'source_training_failed',
+                'lead_captured',
+                'attack_blocked',
+                'guardrail_skipped',
+                'security_settings_changed',
+                'new_device_sign_in',
+                'message_limit_warning',
+                'message_limit_reached',
+                'rate_limit_exceeded',
+                'eval_run_finished',
+                'data_export_ready',
+            ]);
+            $table->enum('category', ['handoffs', 'security', 'training', 'leads', 'usage', 'reports']);
             // What the dashboard needs to write the line in the reader's own
             // language: the agent, a subject, who did it, and the link.
             $table->jsonb('content');

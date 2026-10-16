@@ -465,7 +465,7 @@ it("answers 404 when any record a route names is another workspace's", function 
     // The floors sit a little under today's counts: a sweep that suddenly
     // sends far fewer requests has lost its routes (a middleware renamed…).
     'dashboard' => [false, 240],
-    'API' => [true, 40],
+    'API' => [true, 60],
 ]);
 
 it("answers 404 when a route pairs the caller's team with another workspace's member or role", function (): void {

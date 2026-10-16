@@ -11,7 +11,7 @@ beforeEach(function (): void {
     config(['chatvia.siem.max_failures' => 3]);
     $this->workspace = User::factory()->create();
     $this->policy = WorkspaceSecurityPolicy::forWorkspace($this->workspace->workspace()->id);
-    $this->policy->forceFill(['webhook_enabled' => true, 'webhook_failures' => 0])->save();
+    $this->policy->forceFill(['is_webhook_enabled' => true, 'webhook_failures' => 0])->save();
 });
 
 it('counts a failure and keeps the webhook on below the threshold', function (): void {
@@ -21,7 +21,7 @@ it('counts a failure and keeps the webhook on below the threshold', function ():
 
     $this->policy->refresh();
     expect($this->policy->webhook_failures)->toBe(1)
-        ->and($this->policy->webhook_enabled)->toBeTrue();
+        ->and($this->policy->is_webhook_enabled)->toBeTrue();
     Event::assertNotDispatched(SecurityEventOccurred::class);
 });
 
@@ -34,13 +34,17 @@ it('switches the webhook off at the threshold and audits it once', function (): 
 
     $this->policy->refresh();
     expect($this->policy->webhook_failures)->toBe(4)
-        ->and($this->policy->webhook_enabled)->toBeFalse();
+        ->and($this->policy->is_webhook_enabled)->toBeFalse();
     Event::assertDispatchedTimes(SecurityEventOccurred::class, 1);
     Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $event): bool => $event->action === SecurityAuditAction::PolicyWebhookDisabled->value);
 });
 
 it('does nothing for a workspace without a policy', function (): void {
+    // Count the whole table (the demo seed holds policies too), so the only
+    // assertion is that this call created none.
+    $before = WorkspaceSecurityPolicy::query()->count();
+
     app(RecordSiemDeliveryFailureAction::class)->execute(User::factory()->create()->workspace()->id);
 
-    expect(WorkspaceSecurityPolicy::query()->count())->toBe(1);
+    expect(WorkspaceSecurityPolicy::query()->count())->toBe($before);
 });

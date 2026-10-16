@@ -30,13 +30,13 @@ class RecordSiemDeliveryFailureAction
             return;
         }
 
-        $wasEnabled = $policy->webhook_enabled;
+        $wasEnabled = $policy->is_webhook_enabled;
         $failures = $policy->webhook_failures + 1;
         $stillEnabled = $wasEnabled && $failures < (int) config('chatvia.siem.max_failures', 15);
 
         $policy->forceFill([
             'webhook_failures' => $failures,
-            'webhook_enabled' => $stillEnabled,
+            'is_webhook_enabled' => $stillEnabled,
         ])->save();
 
         if ($wasEnabled && ! $stillEnabled) {

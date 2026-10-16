@@ -59,7 +59,7 @@ it('persists the form settings and encrypts the webhook secret', function (): vo
         ->and($fresh->ip_allowlist)->toBe(['203.0.113.0/24', '198.51.100.7'])
         ->and($fresh->geo_mode)->toBe(GeoMode::Allow)
         ->and($fresh->geo_countries)->toBe(['ae', 'sa'])
-        ->and($fresh->webhook_enabled)->toBeTrue()
+        ->and($fresh->is_webhook_enabled)->toBeTrue()
         ->and($fresh->webhook_secret)->toBe('shh-secret');
 
     $stored = DB::table('workspace_security_policies')->where('workspace_id', $user->workspace()->id)->value('webhook_secret');
@@ -72,7 +72,7 @@ it('keeps the settings the form does not own', function (): void {
     $user = User::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update([
         'webhook_events' => ['auth.login'],
-        'scim_enabled' => true,
+        'is_scim_enabled' => true,
     ]);
 
     app(UpdateSecurityPolicyAction::class)->execute($user->workspace(), new SecurityPolicyFormData(retention_audit_days: 200), uspActor($user));
@@ -80,7 +80,7 @@ it('keeps the settings the form does not own', function (): void {
     $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
 
     expect($fresh->webhook_events)->toBe(['auth.login'])
-        ->and($fresh->scim_enabled)->toBeTrue()
+        ->and($fresh->is_scim_enabled)->toBeTrue()
         ->and($fresh->retention_audit_days)->toBe(200);
 });
 

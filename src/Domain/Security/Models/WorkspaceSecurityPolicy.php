@@ -37,11 +37,11 @@ use Illuminate\Support\Facades\Cache;
  * @property array<int, string>|null $geo_countries
  * @property string|null $webhook_url
  * @property string|null $webhook_secret
- * @property bool $webhook_enabled
+ * @property bool $is_webhook_enabled
  * @property array<int, string>|null $webhook_events
  * @property int $webhook_failures
  * @property Carbon|null $webhook_last_delivered_at
- * @property bool $scim_enabled
+ * @property bool $is_scim_enabled
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Workspace $workspace
@@ -80,11 +80,11 @@ class WorkspaceSecurityPolicy extends Model
             'geo_mode' => GeoMode::class,
             'geo_countries' => 'array',
             'webhook_secret' => 'encrypted',
-            'webhook_enabled' => 'boolean',
+            'is_webhook_enabled' => 'boolean',
             'webhook_events' => 'array',
             'webhook_failures' => 'integer',
             'webhook_last_delivered_at' => 'datetime',
-            'scim_enabled' => 'boolean',
+            'is_scim_enabled' => 'boolean',
         ];
     }
 

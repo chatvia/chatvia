@@ -55,6 +55,7 @@ it('accepts each of those rows when every key is in the same workspace', functio
         'workspace_id' => $workspaceId,
         'agent_id' => $this->agentA->id,
         'chat_conversation_id' => $conversation->id,
+        'chat_message_id' => $message->id,
         'status' => FormSubmissionStatus::Pending,
     ]);
     $chatter->agents()->attach($this->agentA->id, ['workspace_id' => $workspaceId]);
@@ -114,6 +115,33 @@ it('refuses a lead that points at another workspace\'s conversation', function (
         'chat_conversation_id' => $conversationA->id,
         'status' => FormSubmissionStatus::Pending,
     ]));
+});
+
+it('refuses a lead that points at another workspace\'s message', function (): void {
+    $form = FormDefinition::factory()->forAgent($this->agentB)->create();
+    $messageA = Message::factory()->create(['chat_conversation_id' => Conversation::factory()->create(['agent_id' => $this->agentA->id])->id]);
+
+    refusedByDatabase(fn (): FormSubmission => FormSubmission::query()->create([
+        'form_definition_id' => $form->id,
+        'workspace_id' => $this->agentB->workspace_id,
+        'agent_id' => $this->agentB->id,
+        'chat_message_id' => $messageA->id,
+        'status' => FormSubmissionStatus::Pending,
+    ]));
+});
+
+it('keeps a lead when its message is deleted and clears only the link', function (): void {
+    $form = FormDefinition::factory()->forAgent($this->agentA)->create();
+    $conversation = Conversation::factory()->create(['agent_id' => $this->agentA->id]);
+    $message = Message::factory()->create(['chat_conversation_id' => $conversation->id]);
+    $lead = FormSubmission::factory()->forDefinition($form)->create(['chat_conversation_id' => $conversation->id, 'chat_message_id' => $message->id]);
+
+    $message->forceDelete();
+
+    expect($lead->fresh())
+        ->not->toBeNull()
+        ->chat_message_id->toBeNull()
+        ->chat_conversation_id->toBe($conversation->id);
 });
 
 it('keeps a lead when its conversation is deleted and clears only the link', function (): void {

@@ -54,13 +54,14 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
 
             $table->foreignId('form_definition_id')->constrained('form_definitions')->cascadeOnDelete();
-            // The workspace rides on the agent and conversation keys, so a lead
-            // can never point at another workspace's agent or conversation.
+            // The workspace rides on the agent, conversation and message keys,
+            // so a lead can never point at another workspace's agent,
+            // conversation or message.
             $table->foreignId('workspace_id');
             $table->foreignIdFor(Agent::class);
             $table->foreignId('chat_conversation_id')->nullable()->index();
 
-            $table->foreignId('chat_message_id')->nullable()->index()->constrained('chat_messages')->nullOnDelete();
+            $table->foreignId('chat_message_id')->nullable()->index();
 
             $table->string('status')->default('pending');
 
@@ -87,6 +88,7 @@ return new class extends Migration
         // Deleting the conversation keeps the lead and clears only its
         // conversation link (Postgres can null one column of a composite key).
         DB::statement('ALTER TABLE form_submissions ADD CONSTRAINT form_submissions_workspace_conversation_foreign FOREIGN KEY (workspace_id, chat_conversation_id) REFERENCES chat_conversations (workspace_id, id) ON DELETE SET NULL (chat_conversation_id)');
+        DB::statement('ALTER TABLE form_submissions ADD CONSTRAINT form_submissions_workspace_message_foreign FOREIGN KEY (workspace_id, chat_message_id) REFERENCES chat_messages (workspace_id, id) ON DELETE SET NULL (chat_message_id)');
 
         // The abandoned-form prune (every few minutes): pending rows past expiry.
         DB::statement("CREATE INDEX form_submissions_pending_expiry_idx ON form_submissions (expires_at) WHERE status = 'pending'");

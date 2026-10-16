@@ -4,11 +4,12 @@ use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\RecordSecurityEventAction;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Models\SecurityAuditLog;
 
 /**
- * The recorder writes one row per security event into `security_audit_log`.
+ * The recorder writes one row per security event into `security_audit_logs`.
  * Guarantees under test: denormalized causer name/email are stored, sensitive
  * metadata keys are redacted, oversized payloads are capped, a sha256 of the
  * RAW payload is kept, and the row has no updated_at.
@@ -33,12 +34,12 @@ it('writes one row with denormalized causer, redacted metadata + raw hash', func
         ->and((int) $row->user_id)->toBe($user->id)
         ->and($row->user_name)->toBe($user->name)
         ->and($row->user_email)->toBe($user->email)
-        ->and($row->action)->toBe('api_key.created')
+        ->and($row->action)->toBe(SecurityAuditAction::ApiKeyCreated)
         ->and($row->target_type)->toBe('api_token')
         ->and($row->target_id)->toBe('42')
         ->and($row->target_label)->toBe('CLI key')
         ->and($row->ip)->toBe('203.0.113.7')
-        ->and($row->outcome)->toBe('success')
+        ->and($row->outcome)->toBe(SecurityAuditOutcome::Success)
         ->and($row->metadata['name'])->toBe('CLI key')
         ->and($row->metadata['secret'])->toBe('[redacted]')      // secret never stored
         ->and($row->metadata_sha256)->toBe(hash('sha256', $event->metadata))

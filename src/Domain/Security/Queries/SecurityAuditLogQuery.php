@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\CursorPaginator;
 
 /**
- * Filtered, newest-first page of the immutable `security_audit_log` for the
+ * Filtered, newest-first page of the immutable `security_audit_logs` for the
  * Settings → Security viewer. Cursor pagination pairs with the
  * (workspace_id, id) index — no COUNT(*)/OFFSET over the unbounded log.
  */

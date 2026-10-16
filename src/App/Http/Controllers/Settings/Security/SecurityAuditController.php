@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings\Security;
 use Domain\Security\Data\SecurityAuditFiltersData;
 use Domain\Security\Data\SecurityAuditRowData;
 use Domain\Security\Enums\SecurityAuditCategory;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Models\SecurityAuditLog;
 use Domain\Security\Queries\SecurityAuditLogQuery;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Read-only viewer for the immutable `security_audit_log` — every
+ * Read-only viewer for the immutable `security_audit_logs` — every
  * authentication, membership, configuration, and data event for the workspace.
  * Part of the Security & Compliance suite. Gated by the `account.security`
  * team permission.
@@ -36,7 +37,7 @@ class SecurityAuditController
                 fn (SecurityAuditCategory $c): array => ['value' => $c->value, 'label' => $c->label()],
                 SecurityAuditCategory::cases(),
             ),
-            'outcomes' => ['success', 'failure', 'denied'],
+            'outcomes' => array_column(SecurityAuditOutcome::cases(), 'value'),
             'filters' => $filters,
         ]);
     }

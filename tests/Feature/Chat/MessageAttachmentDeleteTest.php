@@ -90,7 +90,7 @@ it('refuses when the URL conversation id does not match the attachment row', fun
     Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
-it('refuses on a private agent when the requester does not own the conversation', function (): void {
+it('answers 404 on a private agent when the requester does not own the conversation', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     $owner = Chatter::factory()->grantedTo($agent)->create();
     $intruder = Chatter::factory()->grantedTo($agent)->create();
@@ -104,7 +104,7 @@ it('refuses on a private agent when the requester does not own the conversation'
         "/chat/{$agent->external_id}/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}",
     );
 
-    $response->assertForbidden();
+    $response->assertNotFound();
     expect(Attachment::find($attachment->id))->not->toBeNull();
 });
 

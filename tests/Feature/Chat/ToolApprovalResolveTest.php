@@ -79,20 +79,20 @@ it('resumes the visitor\'s own paused turn and runs the approved call', function
     Http::assertSent(fn (ClientRequest $request): bool => str_starts_with($request->url(), 'https://orders.example.test/cancel'));
 });
 
-it('refuses another visitor\'s paused turn and leaves it pending', function (): void {
+it('answers 404 for another visitor\'s paused turn and leaves it pending', function (): void {
     // A fresh browser session is a different visitor.
     $this->flushSession();
 
-    tarResolve($this->agent, $this->checkpoint)->assertForbidden();
+    tarResolve($this->agent, $this->checkpoint)->assertNotFound();
 
     expect($this->checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending);
     Http::assertNothingSent();
 });
 
-it('refuses a paused turn of another agent and leaves it pending', function (): void {
+it('answers 404 for a paused turn of another agent and leaves it pending', function (): void {
     $other = Agent::factory()->create(['is_public' => true]);
 
-    tarResolve($other, $this->checkpoint)->assertForbidden();
+    tarResolve($other, $this->checkpoint)->assertNotFound();
 
     expect($this->checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending);
     Http::assertNothingSent();

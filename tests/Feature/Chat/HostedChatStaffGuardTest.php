@@ -79,7 +79,7 @@ it('never lets a chatter open a staff member\'s conversation when their ids are 
 
     $url = "/chat/{$this->agent->slug}/conversations/{$conversationId}/messages";
 
-    $this->actingAs($chatter, 'chat')->getJson($url)->assertForbidden();
+    $this->actingAs($chatter, 'chat')->getJson($url)->assertNotFound();
 
     app('auth')->forgetGuards();
 

@@ -17,8 +17,9 @@ use Throwable;
 /**
  * Fans a {@see SecurityEventOccurred} out to the workspace's SIEM webhook
  * (Enterprise / advanced compliance). Queued onto the analytics queue so
- * delivery never blocks the request that triggered it. The Action no-ops unless
- * the webhook is enabled, entitled, and the event passes the allowlist.
+ * delivery never blocks the request that triggered it. Nothing is queued unless
+ * the webhook is enabled and the event passes the allowlist; the Action checks
+ * again when the job runs.
  *
  * Transient failures retry via the queue; once retries are exhausted, failed()
  * hands over to {@see RecordSiemDeliveryFailureAction}, which counts the
@@ -47,6 +48,11 @@ class SendSecurityEventToSiem implements ShouldQueue
     public function viaQueue(): string
     {
         return (string) config('chatvia.analytics.queue', 'analytics');
+    }
+
+    public function shouldQueue(SecurityEventOccurred $event): bool
+    {
+        return $this->action->wants($event);
     }
 
     public function handle(SecurityEventOccurred $event): void

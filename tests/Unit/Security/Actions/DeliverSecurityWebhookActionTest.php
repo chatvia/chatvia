@@ -105,10 +105,37 @@ it('throws on a non-2xx response so the queue retries', function (): void {
         ->toThrow(RequestException::class);
 });
 
+it('does not queue a delivery when the workspace has no SIEM webhook', function (): void {
+    Queue::fake();
+    $workspace = User::factory()->create();
+
+    event(siemEvent($workspace->workspace()->id));
+
+    Queue::assertNotPushed(
+        CallQueuedListener::class,
+        fn (CallQueuedListener $job): bool => $job->class === SendSecurityEventToSiem::class,
+    );
+});
+
+it('does not queue an event the allowlist leaves out', function (): void {
+    Queue::fake();
+    $workspace = User::factory()->create();
+    enableSiem($workspace, ['webhook_events' => [SecurityAuditAction::PolicyRetentionChanged->value]]);
+
+    event(siemEvent($workspace->workspace()->id));
+
+    Queue::assertNotPushed(
+        CallQueuedListener::class,
+        fn (CallQueuedListener $job): bool => $job->class === SendSecurityEventToSiem::class,
+    );
+});
+
 it('retries a failed delivery with a growing pause', function (): void {
     Queue::fake();
+    $workspace = User::factory()->create();
+    enableSiem($workspace);
 
-    event(siemEvent(1));
+    event(siemEvent($workspace->workspace()->id));
 
     Queue::assertPushed(
         CallQueuedListener::class,

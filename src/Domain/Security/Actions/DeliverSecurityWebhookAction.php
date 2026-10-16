@@ -27,11 +27,9 @@ class DeliverSecurityWebhookAction
 
     public function execute(SecurityEventOccurred $event): void
     {
-        $policy = WorkspaceSecurityPolicy::query()
-            ->where('workspace_id', $event->workspaceId)
-            ->first();
+        $policy = $this->deliverablePolicy($event);
 
-        if (! $this->shouldDeliver($policy, $event)) {
+        if (! $policy instanceof WorkspaceSecurityPolicy) {
             return;
         }
 
@@ -48,16 +46,31 @@ class DeliverSecurityWebhookAction
         ])->save();
     }
 
-    private function shouldDeliver(?WorkspaceSecurityPolicy $policy, SecurityEventOccurred $event): bool
+    /**
+     * Whether the workspace's SIEM webhook takes this event. The listener asks
+     * before queuing, so a workspace without SIEM never gets a job (and the
+     * actor's details never sit in the queue); execute() asks again because
+     * the policy can change while the job waits.
+     */
+    public function wants(SecurityEventOccurred $event): bool
     {
+        return $this->deliverablePolicy($event) instanceof WorkspaceSecurityPolicy;
+    }
+
+    private function deliverablePolicy(SecurityEventOccurred $event): ?WorkspaceSecurityPolicy
+    {
+        $policy = WorkspaceSecurityPolicy::query()
+            ->where('workspace_id', $event->workspaceId)
+            ->first();
+
         if (! $policy instanceof WorkspaceSecurityPolicy || ! $policy->is_webhook_enabled || blank($policy->webhook_url) || blank($policy->webhook_secret)) {
-            return false;
+            return null;
         }
 
         // Per-action allowlist; null = deliver every event.
         $allowlist = $policy->webhook_events;
 
-        return ! is_array($allowlist) || in_array($event->action, $allowlist, true);
+        return ! is_array($allowlist) || in_array($event->action, $allowlist, true) ? $policy : null;
     }
 
     /**

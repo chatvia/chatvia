@@ -5,6 +5,8 @@ namespace Domain\Conversation\Actions\Messages;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Messages\RegeneratedTurnData;
+use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Memory\ChatMemory;
 
 /**
@@ -38,6 +40,12 @@ class RegenerateMessageAction
 
         if (count($remaining) !== count($messages)) {
             $memory->saveMessages($remaining);
+
+            // Its uploads go with it, as they would have with the answer.
+            Attachment::query()
+                ->whereIn('chat_message_id', Message::query()->where('external_id', $userMessageId)->select('id'))
+                ->get()
+                ->each(static fn (Attachment $attachment) => $attachment->delete());
         }
 
         return new RegeneratedTurnData(

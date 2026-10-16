@@ -82,6 +82,16 @@ it('deletes the files uploaded with the removed messages', function (): void {
     Storage::disk(Attachment::DISK)->assertMissing('users/x/attachments/doc.pdf');
 });
 
+it('keeps the text meant for the model on the messages that stay', function (): void {
+    [$scope, , $ids] = messagePairConversation();
+    $memory = app(ChatMemory::class)->withScope($scope);
+    $memory->saveMessages(array_map(static fn (array $message): array => [...$message, 'message_for_llm' => "masked {$message['content']}"], $memory->cachedMessages()));
+
+    app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
+
+    expect(array_column($memory->cachedMessages(), 'message_for_llm'))->toBe(['masked text q1', 'masked text a1']);
+});
+
 it('hands back the question for a regenerate and drops the last exchange', function (): void {
     [$scope, , $ids] = messagePairConversation();
 
@@ -98,6 +108,25 @@ it('drops only the question on a regenerate when its answer never landed', funct
 
     expect($result?->userMessageContent)->toBe('text q2')
         ->and(messagePairHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
+});
+
+it('deletes the question\'s uploads on a regenerate when its answer never landed', function (): void {
+    [$scope, $conversation, $ids] = messagePairConversation(['q1' => MessageRole::User, 'a1' => MessageRole::Assistant, 'q2' => MessageRole::User]);
+    $question = Message::factory()->fromUser()->create(['external_id' => $ids['q2'], 'chat_conversation_id' => $conversation->id, 'content' => 'text q2']);
+    Storage::disk(Attachment::DISK)->put('users/x/attachments/q2.pdf', 'pdf');
+    $upload = Attachment::create([
+        'chat_conversation_id' => $conversation->id,
+        'chat_message_id' => $question->id,
+        'filepath' => 'users/x/attachments/q2.pdf',
+        'filename' => 'q2.pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 3,
+    ]);
+
+    app(RegenerateMessageAction::class)->execute($scope, (string) Str::uuid(), $ids['q2']);
+
+    expect(Attachment::query()->find($upload->id))->toBeNull();
+    Storage::disk(Attachment::DISK)->assertMissing('users/x/attachments/q2.pdf');
 });
 
 it('regenerates nothing when the question is not in the history', function (): void {

@@ -54,17 +54,21 @@ class TurnContextFactory
             ? RewrittenQueryData::unchanged($guard->text)
             : $this->queryRewriter->rewrite($guard->text, $earlierTurns)
         )->orLanguage($guard->language);
-        $turn = $this->userTurn($data, $guard, $rewritten);
-
         // A follow-up message is recorded now. The first message of a new
         // conversation was already recorded when the conversation was created,
         // so its existing id is reused — otherwise the `start` event would
         // hand the client an id that exists nowhere, and a later regenerate
         // or edit would send that stale id back.
-        if ($data->saveUserMessageImmediately || count($history) > 1) {
+        $recordTurn = $data->saveUserMessageImmediately || count($history) > 1;
+        $turn = $this->userTurn(
+            $data,
+            $guard,
+            $rewritten,
+            $recordTurn ? null : $this->recordedFirstMessageId($memory, $guard->text),
+        );
+
+        if ($recordTurn) {
             $this->addMessage->execute($scope, $turn);
-        } else {
-            $turn->external_message_id = $this->recordedFirstMessageId($memory, $turn) ?? $turn->external_message_id;
         }
 
         $context = new ChatContext(
@@ -175,14 +179,14 @@ class TurnContextFactory
      * (ChatContext::$searchQuery). PDFs travel separately (see PdfSource), so
      * the visible text stays clean.
      */
-    private function userTurn(StreamRequestData $data, GuardResultData $guard, RewrittenQueryData $rewritten): UserTurnData
+    private function userTurn(StreamRequestData $data, GuardResultData $guard, RewrittenQueryData $rewritten, ?string $messageId = null): UserTurnData
     {
         $storedMessage = $guard->text;
 
         return new UserTurnData(
             external_session_id: $data->externalSessionId,
             external_conversation_id: $data->conversationId,
-            external_message_id: Str::uuid7()->toString(),
+            external_message_id: $messageId ?? Str::uuid7()->toString(),
             model: $data->message->model->external_name,
             message: $storedMessage,
             sent_at: $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
@@ -204,10 +208,10 @@ class TurnContextFactory
      * The id of the already-recorded first message. It was stored masked, so
      * it is matched on the masked text, not the raw original.
      */
-    private function recordedFirstMessageId(ChatMemory $memory, UserTurnData $turn): ?string
+    private function recordedFirstMessageId(ChatMemory $memory, string $storedMessage): ?string
     {
         $recorded = collect($memory->getMessagesForConversation())->last(
-            static fn (array $message): bool => $message['role'] === MessageRole::User->value && $message['content'] === $turn->message,
+            static fn (array $message): bool => $message['role'] === MessageRole::User->value && $message['content'] === $storedMessage,
         );
 
         return $recorded['id'] ?? null;

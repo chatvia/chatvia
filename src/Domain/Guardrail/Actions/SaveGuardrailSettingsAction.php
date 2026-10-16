@@ -65,22 +65,37 @@ class SaveGuardrailSettingsAction
 
         $texts = $this->translateMissing($agent, $texts);
 
-        $translated = clone $settings;
-        $translated->refusal_translations = $texts['refusal']->translations ?? [];
-        $translated->blocked_topics = array_map(
-            static fn (BlockedTopicData $topic, int $index): BlockedTopicData => new BlockedTopicData(
-                name: $topic->name,
-                description: $topic->description,
-                examples: $topic->examples,
-                action: $topic->action,
-                reply: $topic->reply,
-                reply_translations: $texts['topic_'.$index]->translations ?? [],
+        return new GuardrailSettingsData(
+            enabled: $settings->enabled,
+            filters: $settings->filters,
+            injection: $settings->injection,
+            toxicity: $settings->toxicity,
+            blocked_topics: array_map(
+                static fn (BlockedTopicData $topic, int $index): BlockedTopicData => new BlockedTopicData(
+                    name: $topic->name,
+                    description: $topic->description,
+                    examples: $topic->examples,
+                    action: $topic->action,
+                    reply: $topic->reply,
+                    reply_translations: $texts['topic_'.$index]->translations ?? [],
+                ),
+                $settings->blocked_topics,
+                array_keys($settings->blocked_topics),
             ),
-            $settings->blocked_topics,
-            array_keys($settings->blocked_topics),
+            allowed_scope: $settings->allowed_scope,
+            refusal_message: $settings->refusal_message,
+            allowlist: $settings->allowlist,
+            refusal_translations: $texts['refusal']->translations ?? [],
+            pii_actions: $settings->pii_actions,
+            custom_patterns: $settings->custom_patterns,
+            injection_mode: $settings->injection_mode,
+            injection_sensitivity: $settings->injection_sensitivity,
+            toxicity_mode: $settings->toxicity_mode,
+            toxicity_sensitivity: $settings->toxicity_sensitivity,
+            topics_mode: $settings->topics_mode,
+            check_before_showing: $settings->check_before_showing,
+            alert_owner: $settings->alert_owner,
         );
-
-        return $translated;
     }
 
     /**

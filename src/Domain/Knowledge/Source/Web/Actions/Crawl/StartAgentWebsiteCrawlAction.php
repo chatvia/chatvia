@@ -59,7 +59,14 @@ class StartAgentWebsiteCrawlAction
             // target is only stored here; FireCrawl does the actual crawl.
             $location = (string) $response->header('Location');
             $this->safely(fn () => SafeUrl::assert($location));
-            $data->url = $location;
+            $data = new CrawlerData(
+                url: $location,
+                limit: $data->limit,
+                include_paths: $data->include_paths,
+                exclude_paths: $data->exclude_paths,
+                country: $data->country,
+                languages: $data->languages,
+            );
         }
 
         $website = DB::transaction(function () use ($agent, $data): SourceWebsite {

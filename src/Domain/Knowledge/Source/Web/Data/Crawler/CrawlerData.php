@@ -17,13 +17,13 @@ class CrawlerData extends Data
      * @param  list<string>  $languages
      */
     public function __construct(
-        public string $url,
-        public ?int $limit = null,
-        public ?string $include_paths = null,
-        public ?string $exclude_paths = null,
+        public readonly string $url,
+        public readonly ?int $limit = null,
+        public readonly ?string $include_paths = null,
+        public readonly ?string $exclude_paths = null,
         // FireCrawl `/map` `location` — proxy country + Accept-Language for the
         // fetch. Optional; does not filter path-localised sites.
-        public ?string $country = null,
-        public array $languages = [],
+        public readonly ?string $country = null,
+        public readonly array $languages = [],
     ) {}
 }

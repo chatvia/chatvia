@@ -21,39 +21,53 @@ class UserTurnData extends Data
      * @param  array<int, array{id: string, url: string, filename: string, mime_type: string, size_bytes: int}>  $attachments
      */
     public function __construct(
-        public string $external_session_id,
-        public string $external_conversation_id,
-        public string $external_message_id,
-        public string $model,
-        public string $message,
-        public Carbon $sent_at,
-        public ?string $message_for_llm = null,
+        public readonly string $external_session_id,
+        public readonly string $external_conversation_id,
+        public readonly string $external_message_id,
+        public readonly string $model,
+        public readonly string $message,
+        public readonly Carbon $sent_at,
+        public readonly ?string $message_for_llm = null,
         // The signed-in chatter sending the turn (chatters.id), or null.
-        public ?int $chatter_id = null,
-        public ?string $language = null,
-        public ?string $ip_address = null,
+        public readonly ?int $chatter_id = null,
+        public readonly ?string $language = null,
+        public readonly ?string $ip_address = null,
         // Lowercase ISO-3166 alpha-2, resolved at request time (CF-aware). Carried
         // to the session so its country comes from Cloudflare's view of the real
         // visitor, not a geo lookup of the CF edge IP on the queued locate listener.
-        public ?string $country = null,
-        public ?string $user_agent = null,
-        public ?string $referrer_url = null,
-        public ?string $page_url = null,
-        public ?string $locale = null,
-        public ?string $source = null,
-        public array $attachments = [],
+        public readonly ?string $country = null,
+        public readonly ?string $user_agent = null,
+        public readonly ?string $referrer_url = null,
+        public readonly ?string $page_url = null,
+        public readonly ?string $locale = null,
+        public readonly ?string $source = null,
+        public readonly array $attachments = [],
     ) {}
 
     /**
-     * Copy with a different LLM-facing message. Knowledge retrieval uses it to
-     * add the reference material; every other field carries over untouched,
-     * so a new field can never be silently dropped by a hand-written rebuild.
+     * Copy with a different LLM-facing message. Knowledge retrieval uses it
+     * to add the reference material; every other field carries over.
      */
     public function withMessageForLlm(?string $messageForLlm): self
     {
-        $clone = clone $this;
-        $clone->message_for_llm = $messageForLlm;
-
-        return $clone;
+        return new self(
+            external_session_id: $this->external_session_id,
+            external_conversation_id: $this->external_conversation_id,
+            external_message_id: $this->external_message_id,
+            model: $this->model,
+            message: $this->message,
+            sent_at: $this->sent_at,
+            message_for_llm: $messageForLlm,
+            chatter_id: $this->chatter_id,
+            language: $this->language,
+            ip_address: $this->ip_address,
+            country: $this->country,
+            user_agent: $this->user_agent,
+            referrer_url: $this->referrer_url,
+            page_url: $this->page_url,
+            locale: $this->locale,
+            source: $this->source,
+            attachments: $this->attachments,
+        );
     }
 }

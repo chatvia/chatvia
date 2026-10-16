@@ -386,12 +386,12 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->middleware('agent.permission:agent.chat.view')->name('logs.revise-answer');
 
         // Handoff (Admin Takeover) routes.
-        Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
+        Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('handoff.pending');
         Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->middleware('agent.permission:agent.chat.takeover')->name('handoff.takeover');
         Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
         Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
         Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
-        Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->name('handoff.mark-read');
+        Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->middleware('agent.permission:agent.chat.view')->name('handoff.mark-read');
 
         // Setup — one unified configuration page for every agent. All content
         // settings (text / persona / starters / model / branding) are shared

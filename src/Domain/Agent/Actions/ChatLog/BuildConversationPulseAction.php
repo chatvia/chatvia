@@ -9,6 +9,8 @@ use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseResourceData;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseSnapshotData;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseSummaryData;
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -111,23 +113,23 @@ class BuildConversationPulseAction
         );
     }
 
-    private function sentimentScore(?string $sentiment): float
+    private function sentimentScore(?Sentiment $sentiment): float
     {
         return match ($sentiment) {
-            'positive' => 1,
-            'negative' => -1,
-            default => 0,
+            Sentiment::Positive => 1,
+            Sentiment::Negative => -1,
+            Sentiment::Neutral, null => 0,
         };
     }
 
-    private function toneScore(?string $tone): float
+    private function toneScore(?Tone $tone): float
     {
         return match ($tone) {
-            'satisfied' => 1,
-            'confused' => -0.25,
-            'urgent' => -0.5,
-            'frustrated' => -1,
-            default => 0,
+            Tone::Satisfied => 1,
+            Tone::Confused => -0.25,
+            Tone::Urgent => -0.5,
+            Tone::Frustrated => -1,
+            Tone::Neutral, null => 0,
         };
     }
 }

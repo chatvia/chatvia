@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Api\V1\Conversation;
 
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
@@ -28,15 +31,15 @@ class ConversationDetailData extends Data
          * The analyzed visitor sentiment: `positive`, `neutral` or
          * `negative`. Null until the conversation is analyzed.
          */
-        public ?string $sentiment,
+        public ?Sentiment $sentiment,
         /**
          * The analyzed conversation tone. Null until analyzed.
          */
-        public ?string $tone,
+        public ?Tone $tone,
         /**
          * Who answers: `ai`, `pending`, `human` or `returned`.
          */
-        public ?string $handoff_status,
+        public ?HandoffStatus $handoff_status,
         /**
          * When the conversation was opened.
          */
@@ -67,7 +70,7 @@ class ConversationDetailData extends Data
             title: $conversation->title,
             sentiment: $conversation->sentiment,
             tone: $conversation->tone,
-            handoff_status: $conversation->handoff_status?->value,
+            handoff_status: $conversation->handoff_status,
             created_at: $conversation->created_at?->toIso8601String(),
             messages: new DataCollection(ConversationMessageData::class, $messages),
         );

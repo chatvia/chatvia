@@ -55,8 +55,8 @@ it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnal
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
     $message->refresh();
-    expect($message->sentiment)->toBe(Sentiment::Negative->value)
-        ->and($message->tone)->toBe(Tone::Frustrated->value);
+    expect($message->sentiment)->toBe(Sentiment::Negative)
+        ->and($message->tone)->toBe(Tone::Frustrated);
 
     Event::assertDispatched(MessageAnalyzed::class, fn (MessageAnalyzed $event): bool => $event->agentId === $agent->id
         && $event->sentiment === Sentiment::Negative->value
@@ -95,8 +95,8 @@ it('is idempotent: skips a message that already has sentiment AND tone', functio
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
     $message->refresh();
-    expect($message->sentiment)->toBe(Sentiment::Positive->value)
-        ->and($message->tone)->toBe(Tone::Satisfied->value);
+    expect($message->sentiment)->toBe(Sentiment::Positive)
+        ->and($message->tone)->toBe(Tone::Satisfied);
     Http::assertNothingSent();
     Event::assertNotDispatched(MessageAnalyzed::class);
 });
@@ -131,8 +131,8 @@ it('stores both dimensions but rolls up only the wanted one', function (bool $se
 
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
-    expect($message->refresh()->sentiment)->toBe(Sentiment::Negative->value)
-        ->and($message->tone)->toBe(Tone::Frustrated->value);
+    expect($message->refresh()->sentiment)->toBe(Sentiment::Negative)
+        ->and($message->tone)->toBe(Tone::Frustrated);
 
     Event::assertDispatched(MessageAnalyzed::class, fn (MessageAnalyzed $event): bool => $event->agentId === $agent->id
         && $event->sentiment === ($sentiment ? Sentiment::Negative->value : null)

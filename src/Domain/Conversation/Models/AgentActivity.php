@@ -5,6 +5,8 @@ namespace Domain\Conversation\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
+use Domain\Integration\Tool\Enums\ToolKind;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,10 +36,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $request_id
  * @property string $tool_call_id
  * @property string $tool_name
- * @property string $tool_kind
+ * @property ToolKind $tool_kind
  * @property string|null $connector_slug
  * @property string|null $connector_name
- * @property string $outcome
+ * @property ToolCallOutcome $outcome
  * @property bool $gated
  * @property bool $is_error
  * @property int|null $latency_ms
@@ -95,6 +97,8 @@ class AgentActivity extends Model
     protected function casts(): array
     {
         return [
+            'tool_kind' => ToolKind::class,
+            'outcome' => ToolCallOutcome::class,
             'arguments' => 'array',
             'is_gated' => 'boolean',
             'is_error' => 'boolean',

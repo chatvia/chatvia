@@ -6,6 +6,7 @@ use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
 use Illuminate\Support\Str;
@@ -19,9 +20,6 @@ use Illuminate\Support\Str;
  */
 class SendVisitorHandoffMessageAction
 {
-    /** Message source that marks a visitor message sent during a handoff. */
-    public const string SOURCE = 'handoff';
-
     /** Model label stored when the agent has no model configured. */
     private const string UNKNOWN_MODEL = 'unknown';
 
@@ -66,7 +64,7 @@ class SendVisitorHandoffMessageAction
                 referrer_url: $data->referrerUrl,
                 page_url: $data->pageUrl,
                 locale: $data->locale,
-                source: self::SOURCE,
+                source: MessageOrigin::Handoff->value,
             ),
         );
 

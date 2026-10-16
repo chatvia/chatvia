@@ -59,7 +59,7 @@ class SaveFormDefinitionRequest extends FormRequest
             slug: null,
             name: $validated['name'],
             subtitle: $validated['subtitle'] ?? null,
-            form_type: $validated['form_type'],
+            form_type: $this->enum('form_type', FormType::class),
             schema: $validated['schema'],
             lead_field_map: $validated['lead_field_map'] ?? null,
             success_message: $validated['success_message'] ?? null,

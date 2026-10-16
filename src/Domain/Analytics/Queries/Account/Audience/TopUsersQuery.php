@@ -8,6 +8,7 @@ use Domain\Analytics\Data\Account\Audience\TopUserData;
 use Domain\Analytics\Data\Account\Audience\TopUsersData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
+use Domain\Conversation\Enums\MessageRole;
 use Illuminate\Database\Query\Builder;
 
 /**
@@ -49,7 +50,7 @@ class TopUsersQuery extends AccountAnalyticsQuery
     private function identifiedMessages(AnalyticsScopeData $scope): Builder
     {
         return $this->messageEvents($scope, $this->rawEventPeriod($scope))
-            ->where('role', 'user')
+            ->where('role', MessageRole::User->value)
             ->whereNotNull('chatter_id');
     }
 }

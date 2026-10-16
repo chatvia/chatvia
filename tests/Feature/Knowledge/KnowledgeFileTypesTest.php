@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Membership\Team\Services\TeamService;
@@ -47,7 +48,7 @@ it('accepts an upload whose file type is on', function (): void {
         ])
         ->assertOk();
 
-    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->value('filetype'))->toBe('text');
+    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->value('filetype'))->toBe(KnowledgeFileType::Text);
 });
 
 it('shares the accepted file types with their extensions', function (): void {

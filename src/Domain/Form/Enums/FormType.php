@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\Form\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * What a form collects. The type does not change how a submission is stored or
  * delivered; it labels the form for the owner and in the CRM payload
  * (`form_type`).
  */
+#[TypeScript]
 enum FormType: string
 {
     case Lead = 'lead';

@@ -70,7 +70,7 @@ class UpdateApiFormRequest extends FormRequest
             slug: null,
             name: $keep('name', $form->name),
             subtitle: $keep('subtitle', $form->subtitle),
-            form_type: $validated['form_type'] ?? $form->form_type->value,
+            form_type: $this->has('form_type') ? $this->enum('form_type', FormType::class) : $form->form_type,
             schema: $keep('schema', $form->schema),
             lead_field_map: $keep('lead_field_map', $form->lead_field_map),
             success_message: $keep('success_message', $form->success_message),

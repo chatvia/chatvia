@@ -54,25 +54,25 @@ it('detects image files by extension only', function (): void {
         ->and(SourceFileTypes::isImage('book.epub'))->toBeFalse();
 });
 
-it('maps extensions to the metering category stored on filetype', function (): void {
-    expect(SourceFileTypes::category('a.pdf'))->toBe('pdf')
-        ->and(SourceFileTypes::category('a.docx'))->toBe('word')
-        ->and(SourceFileTypes::category('a.doc'))->toBe('word')
-        ->and(SourceFileTypes::category('a.rtf'))->toBe('word')
-        ->and(SourceFileTypes::category('a.pptx'))->toBe('presentation')
-        ->and(SourceFileTypes::category('a.xlsx'))->toBe('spreadsheet')
-        ->and(SourceFileTypes::category('a.csv'))->toBe('spreadsheet')
-        ->and(SourceFileTypes::category('a.txt'))->toBe('text')
-        ->and(SourceFileTypes::category('a.md'))->toBe('markdown')
-        ->and(SourceFileTypes::category('a.png'))->toBe('image')
-        ->and(SourceFileTypes::category('a.heic'))->toBe('image')
-        ->and(SourceFileTypes::category('a.epub'))->toBe('document')
-        ->and(SourceFileTypes::category('a.fb2'))->toBe('document');
+it('maps extensions to the type stored on filetype', function (): void {
+    expect(SourceFileTypes::category('a.pdf'))->toBe(KnowledgeFileType::Pdf)
+        ->and(SourceFileTypes::category('a.docx'))->toBe(KnowledgeFileType::Word)
+        ->and(SourceFileTypes::category('a.doc'))->toBe(KnowledgeFileType::Word)
+        ->and(SourceFileTypes::category('a.rtf'))->toBe(KnowledgeFileType::Word)
+        ->and(SourceFileTypes::category('a.pptx'))->toBe(KnowledgeFileType::Presentation)
+        ->and(SourceFileTypes::category('a.xlsx'))->toBe(KnowledgeFileType::Spreadsheet)
+        ->and(SourceFileTypes::category('a.csv'))->toBe(KnowledgeFileType::Spreadsheet)
+        ->and(SourceFileTypes::category('a.txt'))->toBe(KnowledgeFileType::Text)
+        ->and(SourceFileTypes::category('a.md'))->toBe(KnowledgeFileType::Text)
+        ->and(SourceFileTypes::category('a.png'))->toBe(KnowledgeFileType::Image)
+        ->and(SourceFileTypes::category('a.heic'))->toBe(KnowledgeFileType::Image)
+        ->and(SourceFileTypes::category('a.epub'))->toBe(KnowledgeFileType::Ebook)
+        ->and(SourceFileTypes::category('a.fb2'))->toBe(KnowledgeFileType::Ebook);
 });
 
 it('maps audio and video MIME types to their category and rejects unknown ones', function (): void {
-    expect(SourceFileTypes::categoryOfMimeType('audio/mpeg'))->toBe('audio')
-        ->and(SourceFileTypes::categoryOfMimeType('video/mp4'))->toBe('video')
+    expect(SourceFileTypes::categoryOfMimeType('audio/mpeg'))->toBe(KnowledgeFileType::Audio)
+        ->and(SourceFileTypes::categoryOfMimeType('video/mp4'))->toBe(KnowledgeFileType::Video)
         ->and(fn (): string => SourceFileTypes::categoryOfMimeType('application/x-unknown'))
         ->toThrow(RuntimeException::class, 'Unsupported mime type');
 });

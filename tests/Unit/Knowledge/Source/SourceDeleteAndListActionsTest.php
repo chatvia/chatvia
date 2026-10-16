@@ -60,5 +60,5 @@ it('lists the workspace files with the agent that uses each', function (): void 
     expect($rows)->toHaveCount(1)
         ->and($rows[0]->id)->toBe($file->id)
         ->and($rows[0]->agent->id)->toBe($agent->id)
-        ->and($rows[0]->status)->toBe('ingested');
+        ->and($rows[0]->status)->toBe(SourceStatus::Completed);
 });

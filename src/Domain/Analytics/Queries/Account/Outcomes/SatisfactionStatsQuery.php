@@ -5,7 +5,9 @@ namespace Domain\Analytics\Queries\Account\Outcomes;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\Outcomes\SatisfactionStatsData;
 use Domain\Analytics\Data\Account\Outcomes\SentimentSplitData;
+use Domain\Analytics\Enums\Sentiment;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
+use Domain\Conversation\Enums\MessageRole;
 
 /**
  * Quality signals: thumbs up vs down, the sentiment split of messages, how
@@ -25,7 +27,7 @@ class SatisfactionStatsQuery extends AccountAnalyticsQuery
         $answers = $this->liveConversations($scope)
             ->join('chat_messages as m', 'm.chat_conversation_id', '=', 'c.id')
             ->where('m.workspace_id', $scope->workspace->id)
-            ->where('m.role', 'assistant')
+            ->where('m.role', MessageRole::Assistant->value)
             ->whereBetween('m.created_at', [$scope->period->start, $scope->period->end])
             ->selectRaw('COUNT(*) total, COUNT(*) FILTER (WHERE m.has_llm_found_answer = false) not_found, AVG(m.confidence_score) avg_confidence')
             ->first();
@@ -37,9 +39,9 @@ class SatisfactionStatsQuery extends AccountAnalyticsQuery
             feedback: $feedback,
             positiveRatePct: $this->pct($feedback->positive, $feedback->rated()),
             sentiment: new SentimentSplitData(
-                positive: (int) ($sentiment['positive'] ?? 0),
-                neutral: (int) ($sentiment['neutral'] ?? 0),
-                negative: (int) ($sentiment['negative'] ?? 0),
+                positive: (int) ($sentiment[Sentiment::Positive->value] ?? 0),
+                neutral: (int) ($sentiment[Sentiment::Neutral->value] ?? 0),
+                negative: (int) ($sentiment[Sentiment::Negative->value] ?? 0),
             ),
             aiReplies: $aiReplies,
             unanswered: $unanswered,

@@ -3,6 +3,8 @@
 namespace Domain\Agent\Data\Resources\Sources;
 
 use Carbon\CarbonInterface;
+use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -17,10 +19,10 @@ class SourceFileDataResource extends Data
     public function __construct(
         public int $id,
         public string $name,
-        public string $type,
+        public KnowledgeFileType $type,
         public int $size_in_kb,
         public string $mime_type,
-        public string $status,
+        public SourceStatus $status,
         public int $length,
         public int $progress,
         public int $agents_count,
@@ -35,7 +37,7 @@ class SourceFileDataResource extends Data
             type: $file->filetype,
             size_in_kb: $file->size_in_kb,
             mime_type: $file->mime_type,
-            status: $file->status->value,
+            status: $file->status,
             length: $file->length,
             progress: $file->ingestionProgress(),
             agents_count: $file->agents_count ?? 0,

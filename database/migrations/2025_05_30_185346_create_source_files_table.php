@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
             $table->string('filename');
-            $table->enum('filetype', ['pdf', 'word', 'image', 'video', 'audio', 'spreadsheet', 'presentation', 'text', 'markdown', 'document']);
+            $table->enum('filetype', ['pdf', 'word', 'spreadsheet', 'presentation', 'text', 'ebook', 'image', 'audio', 'video']);
             $table->string('filepath')->unique();
             $table->unsignedBigInteger('size_in_kb');
             $table->string('mime_type');

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Agent\Data\Resources\ChatLog\Pulse;
 
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -15,7 +17,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class ChatLogPulseSnapshotData extends Data
 {
     public function __construct(
-        public ?string $tone,
-        public ?string $sentiment,
+        public ?Tone $tone,
+        public ?Sentiment $sentiment,
     ) {}
 }

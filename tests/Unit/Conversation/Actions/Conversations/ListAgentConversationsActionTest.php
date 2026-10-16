@@ -1,6 +1,8 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
 use Domain\Conversation\Data\Conversations\ConversationSummaryData;
 use Domain\Conversation\Models\Conversation;
@@ -83,6 +85,6 @@ it('shows sentiment and tone', function (): void {
 
     $row = app(ListAgentConversationsAction::class)->execute($agent, perPage: 25)->data->first();
 
-    expect($row->sentiment)->toBe('negative')
-        ->and($row->tone)->toBe('frustrated');
+    expect($row->sentiment)->toBe(Sentiment::Negative)
+        ->and($row->tone)->toBe(Tone::Frustrated);
 });

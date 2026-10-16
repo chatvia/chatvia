@@ -2,6 +2,8 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Analysis\AnalyzeConversationAction;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -66,8 +68,8 @@ it('assigns multiple topics, records a suggestion, sets fields and stamps analyz
     $english = Language::query()->where('code', 'en')->value('id');
 
     expect($conversation->analyzed_at)->not->toBeNull()
-        ->and($conversation->sentiment)->toBe('negative')
-        ->and($conversation->tone)->toBe('frustrated')
+        ->and($conversation->sentiment)->toBe(Sentiment::Negative)
+        ->and($conversation->tone)->toBe(Tone::Frustrated)
         ->and($english)->not->toBeNull()
         ->and($conversation->language_id)->toBe($english);
 
@@ -132,8 +134,8 @@ it('stores sentiment and tone but no topics when the agent has topics switched o
     $conversation->refresh();
 
     expect($conversation->analyzed_at)->not->toBeNull()
-        ->and($conversation->sentiment)->toBe('negative')
-        ->and($conversation->tone)->toBe('frustrated')
+        ->and($conversation->sentiment)->toBe(Sentiment::Negative)
+        ->and($conversation->tone)->toBe(Tone::Frustrated)
         ->and(ConversationTopic::query()->where('chat_conversation_id', $conversation->id)->exists())->toBeFalse();
     Event::assertNotDispatched(ConversationTopicAssigned::class);
 });

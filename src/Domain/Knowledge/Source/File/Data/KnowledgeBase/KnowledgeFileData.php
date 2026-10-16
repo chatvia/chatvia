@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Source\File\Data\KnowledgeBase;
 use DateTime;
 use Domain\Agent\Data\Account\AgentData;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Spatie\LaravelData\Data;
 
@@ -23,7 +24,7 @@ final class KnowledgeFileData extends Data
         public float $size_in_kb,
         public string $mime_type,
         public int $length,
-        public string $status,
+        public SourceStatus $status,
         public int $retrieval_count,
         public DateTime $created_at,
         public DateTime $updated_at,
@@ -46,7 +47,7 @@ final class KnowledgeFileData extends Data
             size_in_kb: (float) $file->size_in_kb,
             mime_type: $file->mime_type,
             length: $file->length,
-            status: $file->status->value,
+            status: $file->status,
             retrieval_count: $file->retrieval_count,
             created_at: $file->created_at,
             updated_at: $file->updated_at,

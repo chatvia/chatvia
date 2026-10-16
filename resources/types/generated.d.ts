@@ -54,6 +54,17 @@ declare namespace App {
         }
     }
     namespace Identity {
+        namespace ApiKey {
+            namespace Data {
+                export type ApiKeyRowData = {
+                    id: number;
+                    name: string;
+                    abilities: string[] | null;
+                    last_used_at: string | null;
+                    created_at: string | null;
+                };
+            }
+        }
         namespace Chatter {
             namespace Data {
                 export type WorkspaceChatterRowData = {
@@ -69,6 +80,35 @@ declare namespace App {
                     is_deactivated: boolean;
                     deactivation_reason: string | null;
                 };
+            }
+        }
+        namespace Workspace {
+            namespace Data {
+                namespace Account {
+                    export type PasskeyRowData = {
+                        id: number;
+                        name: string;
+                        last_used_at: string | null;
+                        created_at: string | null;
+                    };
+                    export type SocialAccountRowData = {
+                        provider: string;
+                        label: string;
+                        connected: boolean;
+                        connected_at: string | null;
+                    };
+                }
+                namespace DataExport {
+                    export type DataExportResourceData = {
+                        id: number;
+                        status: string;
+                        file_size: number | null;
+                        expires_at: string | null;
+                        error_message: string | null;
+                        created_at: string | null;
+                        download_url: string | null;
+                    };
+                }
             }
         }
     }
@@ -98,6 +138,13 @@ declare namespace Domain {
                         forms_enabled: boolean;
                     };
                 }
+                namespace Chat {
+                    export type ChatAgentRefData = {
+                        id: string;
+                        name: string;
+                        slug: string | null;
+                    };
+                }
                 namespace ChatLog {
                     namespace Conversations {
                         export type ChatLogConversationData = {
@@ -119,8 +166,8 @@ declare namespace Domain {
                             page_url: string | null;
                             locale: string | null;
                             topics: string[];
-                            sentiment: string | null;
-                            tone: string | null;
+                            sentiment: Domain.Analytics.Enums.Sentiment | null;
+                            tone: Domain.Analytics.Enums.Tone | null;
                         };
                         export type ChatLogConversationsResourceData = {
                             conversations: Domain.Agent.Data.Resources.ChatLog.Conversations.ChatLogConversationData[];
@@ -166,8 +213,8 @@ declare namespace Domain {
                             chat_conversation_id: string;
                             content: string;
                             role: string;
-                            sentiment: string | null;
-                            tone: string | null;
+                            sentiment: Domain.Analytics.Enums.Sentiment | null;
+                            tone: Domain.Analytics.Enums.Tone | null;
                             feedback: string | null;
                             is_response_from_qa: boolean | null;
                             response_time_ms: number | null;
@@ -183,10 +230,11 @@ declare namespace Domain {
                                       data: any;
                                   }[]
                                 | null;
-                            source: string | null;
+                            source: Domain.Conversation.Enums.MessageOrigin | null;
                             read_at: string | null;
                             confidence_score: number | null;
                             voice: boolean;
+                            trace_id: string | null;
                         };
                         export type ChatLogMessagesResourceData = {
                             messages: Illuminate.LengthAwarePaginator<number, Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData>;
@@ -198,24 +246,24 @@ declare namespace Domain {
                     namespace Pulse {
                         export type ChatLogPulseConversationData = {
                             id: string;
-                            sentiment: string | null;
-                            tone: string | null;
+                            sentiment: Domain.Analytics.Enums.Sentiment | null;
+                            tone: Domain.Analytics.Enums.Tone | null;
                             total_messages: number;
                             user_messages: number;
                         };
                         export type ChatLogPulseMessageData = {
                             index: number;
                             content_preview: string;
-                            tone: string | null;
-                            sentiment: string | null;
+                            tone: Domain.Analytics.Enums.Tone | null;
+                            sentiment: Domain.Analytics.Enums.Sentiment | null;
                             sentiment_score: number;
                             tone_score: number;
                             created_at: string;
                         };
                         export type ChatLogPulsePeakData = {
                             index: number;
-                            tone: string | null;
-                            sentiment: string | null;
+                            tone: Domain.Analytics.Enums.Tone | null;
+                            sentiment: Domain.Analytics.Enums.Sentiment | null;
                         };
                         export type ChatLogPulseResourceData = {
                             messages: Domain.Agent.Data.Resources.ChatLog.Pulse.ChatLogPulseMessageData[];
@@ -223,8 +271,8 @@ declare namespace Domain {
                             conversation: Domain.Agent.Data.Resources.ChatLog.Pulse.ChatLogPulseConversationData;
                         };
                         export type ChatLogPulseSnapshotData = {
-                            tone: string | null;
-                            sentiment: string | null;
+                            tone: Domain.Analytics.Enums.Tone | null;
+                            sentiment: Domain.Analytics.Enums.Sentiment | null;
                         };
                         export type ChatLogPulseSummaryData = {
                             started_as: Domain.Agent.Data.Resources.ChatLog.Pulse.ChatLogPulseSnapshotData | null;
@@ -260,10 +308,10 @@ declare namespace Domain {
                     export type SourceFileDataResource = {
                         id: number;
                         name: string;
-                        type: string;
+                        type: Domain.Knowledge.Source.File.Enums.KnowledgeFileType;
                         size_in_kb: number;
                         mime_type: string;
-                        status: string;
+                        status: Domain.Knowledge.Source.Enums.SourceStatus;
                         length: number;
                         progress: number;
                         agents_count: number;
@@ -339,7 +387,7 @@ declare namespace Domain {
                 export type KnowledgeAnalyzeResourceData = {
                     length: number;
                     mime_type: string;
-                    filetype: string;
+                    filetype: Domain.Knowledge.Source.File.Enums.KnowledgeFileType;
                     is_audio_file: boolean;
                     is_video_file: boolean;
                 };
@@ -367,11 +415,201 @@ declare namespace Domain {
             }
         }
     }
+    namespace Analytics {
+        namespace Data {
+            namespace Agent {
+                export type DailyMessagePointData = {
+                    date: string;
+                    messages: number;
+                };
+                export type MessageChartResourceData = {
+                    data: Domain.Analytics.Data.Agent.DailyMessagePointData[];
+                    period: number;
+                };
+                namespace Usage {
+                    export type FunctionUsageRowData = {
+                        name: string | null;
+                        description: string | null;
+                        count: number;
+                        last_used_at: string | null;
+                    };
+                    export type KnowledgeUsageRowData = {
+                        name: string;
+                        sub_kind: string;
+                        mime_type: string | null;
+                        count: number;
+                        last_used_at: string | null;
+                    };
+                    export type McpToolUsageRowData = {
+                        tool_name: string;
+                        tool_description: string | null;
+                        server_name: string | null;
+                        server_slug: string;
+                        connector_slug: string | null;
+                        count: number;
+                        last_used_at: string | null;
+                    };
+                    export type SourceUsageResourceData = {
+                        knowledge: Domain.Analytics.Data.Agent.Usage.KnowledgeUsageRowData[];
+                        functions: Domain.Analytics.Data.Agent.Usage.FunctionUsageRowData[];
+                        mcp_tools: Domain.Analytics.Data.Agent.Usage.McpToolUsageRowData[];
+                    };
+                }
+            }
+        }
+        namespace Enums {
+            export type Sentiment = 'positive' | 'negative' | 'neutral';
+            export type Tone = 'neutral' | 'frustrated' | 'urgent' | 'confused' | 'satisfied';
+        }
+    }
+    namespace Channel {
+        namespace Instagram {
+            namespace Data {
+                export type InstagramAccountPickData = {
+                    ig_id: string;
+                    ig_username: string;
+                    page_name: string;
+                };
+                export type InstagramChannelCardData = {
+                    available: boolean;
+                    connected: boolean;
+                    username: string | null;
+                    enabled: boolean;
+                    pick: Domain.Channel.Instagram.Data.InstagramAccountPickData[] | null;
+                };
+            }
+        }
+        namespace Messenger {
+            namespace Data {
+                export type MessengerChannelCardData = {
+                    available: boolean;
+                    connected: boolean;
+                    page_name: string | null;
+                    enabled: boolean;
+                    pick: Domain.Channel.Messenger.Data.MessengerPagePickData[] | null;
+                };
+                export type MessengerPagePickData = {
+                    id: string;
+                    name: string;
+                };
+            }
+        }
+        namespace Slack {
+            namespace Data {
+                export type SlackChannelCardData = {
+                    connected: boolean;
+                    team_name: string | null;
+                    webhook_url: string | null;
+                    enabled: boolean;
+                };
+            }
+        }
+        namespace Teams {
+            namespace Data {
+                export type TeamsChannelCardData = {
+                    connected: boolean;
+                    app_id: string | null;
+                    webhook_url: string | null;
+                    enabled: boolean;
+                };
+            }
+        }
+        namespace Telegram {
+            namespace Data {
+                export type TelegramChannelCardData = {
+                    connected: boolean;
+                    bot_username: string | null;
+                    enabled: boolean;
+                    commands: Domain.Channel.Telegram.Data.TelegramCommandRowData[];
+                };
+                export type TelegramCommandRowData = {
+                    command: string;
+                    description: string;
+                    type: string;
+                    value: string;
+                    builtin: boolean;
+                };
+            }
+        }
+        namespace Whatsapp {
+            namespace Data {
+                export type WhatsappChannelCardData = {
+                    available: boolean;
+                    connected: boolean;
+                    display_phone_number: string | null;
+                    verified_name: string | null;
+                    enabled: boolean;
+                    app_id: string | null;
+                    config_id: string | null;
+                    graph_version: string | null;
+                };
+            }
+        }
+    }
     namespace Conversation {
+        namespace Data {
+            namespace Audit {
+                export type ToolCallAuditFiltersData = {
+                    outcome: string | null;
+                    connector: string | null;
+                    agent_id: number | null;
+                };
+                export type ToolCallAuditRowData = {
+                    id: number;
+                    created_at: string | null;
+                    outcome: Domain.Integration.Tool.Enums.ToolCallOutcome;
+                    agent_id: number | null;
+                    agent_name: string;
+                    agent_external_id: string | null;
+                    user_id: number | null;
+                    user_name: string | null;
+                    avatar: string | null;
+                    trace_id: string;
+                    tool_name: string;
+                    tool_kind: Domain.Integration.Tool.Enums.ToolKind;
+                    connector_slug: string | null;
+                    connector_name: string | null;
+                    is_error: boolean;
+                    gated: boolean;
+                    latency_ms: number | null;
+                    arguments: Record<string, any> | null;
+                    result_text: string | null;
+                    conversation_external_id: string | null;
+                    decided_at: string | null;
+                    decision_note: string | null;
+                };
+            }
+            namespace Conversations {
+                export type ConversationSearchHitData = {
+                    id: string;
+                    title: string;
+                    timestamp: number;
+                };
+            }
+            namespace Messages {
+                export type RegeneratedTurnData = {
+                    user_message_content: string;
+                    created_at: string;
+                };
+            }
+        }
         namespace Enums {
             export type ConversationSource =
                 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram' | 'api';
             export type HandoffStatus = 'ai' | 'pending' | 'human' | 'returned';
+            export type MessageOrigin =
+                | 'hosted_chat'
+                | 'widget'
+                | 'bar'
+                | 'telegram'
+                | 'slack'
+                | 'messenger'
+                | 'whatsapp'
+                | 'msteams'
+                | 'instagram'
+                | 'api'
+                | 'playground'
+                | 'handoff';
             export type MessageRole = 'user' | 'assistant' | 'agent';
         }
         namespace Topic {
@@ -379,6 +617,14 @@ declare namespace Domain {
                 export type TopicCountByDateData = {
                     date: string;
                     count: number;
+                };
+                export type TopicRowData = {
+                    id: number;
+                    workspace_id: number | null;
+                    topic: string;
+                    description: string;
+                    created_at: string | null;
+                    updated_at: string | null;
                 };
                 export type TopicSummaryData = {
                     id: number;
@@ -405,7 +651,7 @@ declare namespace Domain {
                     external_id: string;
                     name: string;
                     input: string;
-                    scorer_type: string;
+                    scorer_type: Domain.Evaluation.Enums.ScorerType;
                     scorer_config: Record<string, any> | null;
                     expected_output: string | null;
                     active: boolean;
@@ -416,7 +662,7 @@ declare namespace Domain {
                     external_id: string;
                     case_id: number | null;
                     case_name: string;
-                    scorer_type: string;
+                    scorer_type: Domain.Evaluation.Enums.ScorerType;
                     pass: boolean;
                     score: number | null;
                     actual_output: string | null;
@@ -450,6 +696,7 @@ declare namespace Domain {
         }
         namespace Enums {
             export type EvalRunStatus = 'running' | 'completed' | 'failed';
+            export type ScorerType = 'contains' | 'regex' | 'exact' | 'json_schema' | 'llm_judge' | 'tool_call';
         }
     }
     namespace Form {
@@ -459,7 +706,7 @@ declare namespace Domain {
                 slug: string | null;
                 name: string;
                 subtitle: string | null;
-                form_type: string;
+                form_type: Domain.Form.Enums.FormType;
                 schema: Record<string, any>[];
                 lead_field_map: Record<string, string> | null;
                 success_message: string | null;
@@ -478,6 +725,53 @@ declare namespace Domain {
         }
         namespace Enums {
             export type FormSubmissionStatus = 'pending' | 'submitted' | 'expired';
+            export type FormType = 'lead' | 'booking' | 'qualification' | 'generic';
+        }
+    }
+    namespace Guardrail {
+        namespace Data {
+            export type GuardrailEventRowData = {
+                id: number;
+                external_id: string;
+                created_at: string | null;
+                agent_id: number | null;
+                agent_name: string;
+                agent_external_id: string | null;
+                user_id: number | null;
+                user_name: string | null;
+                avatar: string | null;
+                stage: undefined;
+                guard_type: undefined;
+                guard_label: string;
+                outcome: undefined;
+                severity: undefined | null;
+                detail: Record<string, any> | null;
+                snippet: string | null;
+                trace_id: string | null;
+                conversation_external_id: string | null;
+                visitor_key: string | null;
+                offender: undefined | null;
+            };
+            export type GuardrailLogFiltersData = {
+                guard_type: undefined | null;
+                outcome: undefined | null;
+                visitor: string | null;
+            };
+            export type GuardrailTestResultData = {
+                blocked: boolean;
+                text: string;
+                reply: string | null;
+                handoff: boolean;
+                language: string | null;
+                verdicts: Domain.Guardrail.Data.GuardrailTestVerdictData[];
+            };
+            export type GuardrailTestVerdictData = {
+                guard_type: undefined;
+                stage: undefined;
+                outcome: undefined;
+                severity: undefined | null;
+                detail: Record<string, any>;
+            };
         }
     }
     namespace Integration {
@@ -594,10 +888,10 @@ declare namespace Domain {
                         description: string;
                         parameters_schema: Record<string, any>;
                         webhook_url: string;
-                        webhook_method: string;
+                        webhook_method: Domain.Integration.Function.Enums.FunctionWebhookMethod;
                         webhook_header_names: string[];
                         has_webhook_headers: boolean;
-                        auth_type: string;
+                        auth_type: Domain.Integration.Function.Enums.FunctionAuthType;
                         timeout_ms: number;
                         max_response_bytes: number;
                         is_enabled: boolean;
@@ -607,13 +901,12 @@ declare namespace Domain {
                         created_at: string;
                     };
                     export type AgentFunctionRowData = {
-                        id: string;
                         external_id: string;
                         internal_name: string;
                         display_name: string | null;
                         description: string | null;
                         webhook_url: string;
-                        webhook_method: string;
+                        webhook_method: Domain.Integration.Function.Enums.FunctionWebhookMethod;
                         is_enabled: boolean;
                         last_error: string | null;
                         is_attached: boolean;
@@ -623,9 +916,17 @@ declare namespace Domain {
                     };
                 }
             }
+            namespace Enums {
+                export type FunctionAuthType = 'none' | 'bearer' | 'header' | 'hmac';
+                export type FunctionWebhookMethod = 'POST' | 'GET' | 'PATCH' | 'DELETE';
+            }
         }
         namespace Mcp {
             namespace Data {
+                export type ConnectorOptionData = {
+                    slug: string;
+                    name: string | null;
+                };
                 export type McpToolPermissionData = {
                     id: number;
                     permission: Domain.Integration.Mcp.Enums.McpToolPermission;
@@ -638,8 +939,8 @@ declare namespace Domain {
                         connector_slug: string | null;
                         description: string | null;
                         url: string;
-                        transport: string;
-                        auth_type: string;
+                        transport: Domain.Integration.Mcp.Enums.McpTransport;
+                        auth_type: Domain.Integration.Mcp.Enums.McpAuthType;
                         timeout_ms: number;
                         is_enabled: boolean;
                         catalog_tools_count: number;
@@ -652,16 +953,44 @@ declare namespace Domain {
                 }
             }
             namespace Enums {
+                export type McpAuthType = 'none' | 'bearer' | 'header';
                 export type McpToolPermission = 'allow' | 'approval' | 'blocked';
                 export type McpToolScope = 'read' | 'write';
+                export type McpTransport = 'streamable_http' | 'http_sse';
+            }
+        }
+        namespace Tool {
+            namespace Enums {
+                export type ToolCallOutcome = 'auto' | 'approved' | 'denied' | 'rate_limited' | 'not_offered';
+                export type ToolKind = 'mcp' | 'function';
             }
         }
     }
     namespace Knowledge {
         namespace Source {
+            namespace Enums {
+                export type SourceStatus = 'uploaded' | 'pending' | 'crawling' | 'crawled' | 'ingesting' | 'failed' | 'ingested';
+            }
             namespace File {
                 namespace Enums {
                     export type KnowledgeFileType = 'pdf' | 'word' | 'spreadsheet' | 'presentation' | 'text' | 'ebook' | 'image' | 'audio' | 'video';
+                }
+            }
+            namespace Qa {
+                namespace Data {
+                    export type QaQuestionItemData = {
+                        id: string;
+                        question: string;
+                    };
+                    export type QaRowData = {
+                        id: number;
+                        title: string;
+                        questions: Domain.Knowledge.Source.Qa.Data.QaQuestionItemData[];
+                        answer: string;
+                        status: string;
+                        created_at: string | null;
+                        updated_at: string | null;
+                    };
                 }
             }
             namespace Text {
@@ -714,6 +1043,11 @@ declare namespace Domain {
                     export type AgentMembershipRowData = {
                         id: string;
                         name: string;
+                    };
+                    export type ChatterInvitationLinkData = {
+                        email: string;
+                        accept_url: string;
+                        expires_at: string;
                     };
                 }
             }
@@ -874,6 +1208,66 @@ declare namespace Domain {
     }
     namespace Security {
         namespace Data {
+            export type AgentRateLimitSettingsData = {
+                chat_rate_limit_per_minute: number;
+                notify_owner_on_rate_limit: boolean;
+                visitor_rate_limit_per_minute: number;
+            };
+            export type BlockListResourceData = {
+                visitors: Domain.Security.Data.BlockedVisitorRowData[];
+                chatters: Domain.Security.Data.DeactivatedChatterRowData[];
+            };
+            export type BlockedVisitorRowData = {
+                external_id: string;
+                visitor: string;
+                browser: string | null;
+                os: string | null;
+                country: string | null;
+                agent_name: string | null;
+                reason: string | null;
+                blocked_by: string | null;
+                created_at: string | null;
+                expires_at: string | null;
+            };
+            export type DeactivatedChatterRowData = {
+                external_id: string;
+                name: string;
+                reason: string | null;
+                deactivated_at: string | null;
+            };
+            export type RetentionLimitsData = {
+                conversations_max: number;
+                conversations_floor: number;
+                audit_default: number;
+                audit_floor: number;
+                leads_floor: number;
+                analytics_floor: number;
+                anonymize_floor: number;
+                max_days: number;
+            };
+            export type SecurityAuditFiltersData = {
+                category: string | null;
+                outcome: string | null;
+            };
+            export type SecurityAuditRowData = {
+                id: number;
+                created_at: string | null;
+                action: undefined;
+                action_label: string;
+                category: string | null;
+                outcome: Domain.Security.Enums.SecurityAuditOutcome;
+                user_id: number | null;
+                user_name: string | null;
+                user_email: string | null;
+                avatar: string | null;
+                target_type: string | null;
+                target_id: string | null;
+                target_label: string | null;
+                ip: string | null;
+                user_agent: string | null;
+                metadata: Record<string, any> | null;
+                integrity_verified: boolean;
+            };
             export type WorkspaceSecurityPolicyData = {
                 retention_conversations_days: number | null;
                 retention_leads_days: number | null;
@@ -894,6 +1288,7 @@ declare namespace Domain {
         namespace Enums {
             export type GeoMode = 'off' | 'allow' | 'deny';
             export type IpAllowlistMode = 'off' | 'dashboard' | 'dashboard_api';
+            export type SecurityAuditOutcome = 'success' | 'failure' | 'denied';
         }
     }
     namespace Widget {
@@ -933,7 +1328,7 @@ declare namespace Domain {
                 };
                 export type WidgetHandoffStatusData = {
                     conversation_id: string;
-                    handoff_status: string;
+                    handoff_status: Domain.Conversation.Enums.HandoffStatus;
                     is_human_controlled: boolean;
                     admin_name: string | null;
                 };

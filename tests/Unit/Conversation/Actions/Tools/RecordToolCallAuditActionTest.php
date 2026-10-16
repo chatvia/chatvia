@@ -49,7 +49,7 @@ it('writes one agent_activities row with denormalized names, redacted args + raw
     $row = AgentActivity::query()->latest('id')->first();
 
     expect($row)->not->toBeNull()
-        ->and($row->outcome)->toBe('auto')
+        ->and($row->outcome)->toBe(ToolCallOutcome::Auto)
         ->and((int) $row->agent_id)->toBe($agent->id)
         ->and($row->agent_name)->toBe($agent->name)
         ->and((int) $row->workspace_id)->toBe((int) $agent->workspace_id)
@@ -89,7 +89,7 @@ it('records decided_at for a gated approved call', function (): void {
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
 
-    expect($row->outcome)->toBe('approved')
+    expect($row->outcome)->toBe(ToolCallOutcome::Approved)
         ->and($row->is_gated)->toBeTrue()
         ->and($row->decided_at)->not->toBeNull();
 });
@@ -128,7 +128,7 @@ it('stores every outcome the tool loop can report', function (ToolCallOutcome $o
 
     app(RecordToolCallAuditAction::class)->execute($event);
 
-    expect(AgentActivity::query()->latest('id')->first()->outcome)->toBe($outcome->value);
+    expect(AgentActivity::query()->latest('id')->first()->outcome)->toBe($outcome);
 })->with(ToolCallOutcome::cases());
 
 it('redacts secret keys at any depth and in any case', function (): void {

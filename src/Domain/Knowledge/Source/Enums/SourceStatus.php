@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * The ingestion lifecycle status shared by every knowledge source type (file,
  * text, website, website URL, YouTube video). Every source model casts its
@@ -14,6 +16,7 @@ namespace Domain\Knowledge\Source\Enums;
  * allow exactly these values. A new case needs a forward migration that widens
  * the constraint of every table that may store it.
  */
+#[TypeScript]
 enum SourceStatus: string
 {
     /** A file was uploaded but its ingestion has not been requested yet. */

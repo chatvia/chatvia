@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Agent\Data\Resources\ChatLog\Pulse;
 
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -16,8 +18,8 @@ class ChatLogPulseConversationData extends Data
 {
     public function __construct(
         public string $id,
-        public ?string $sentiment,
-        public ?string $tone,
+        public ?Sentiment $sentiment,
+        public ?Tone $tone,
         public int $total_messages,
         public int $user_messages,
     ) {}

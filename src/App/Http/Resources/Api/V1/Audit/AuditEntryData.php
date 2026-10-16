@@ -6,6 +6,8 @@ namespace App\Http\Resources\Api\V1\Audit;
 
 use Carbon\CarbonInterface;
 use Domain\Conversation\Models\AgentActivity;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
+use Domain\Integration\Tool\Enums\ToolKind;
 use Spatie\LaravelData\Data;
 
 /**
@@ -43,7 +45,7 @@ class AuditEntryData extends Data
         /**
          * The tool's kind: `mcp` or `function`.
          */
-        public string $tool_kind,
+        public ToolKind $tool_kind,
         /**
          * The catalog connector the tool belongs to, when it is one.
          */
@@ -55,7 +57,7 @@ class AuditEntryData extends Data
         /**
          * What the gateway decided: `auto`, `approved`, `denied`, `rate_limited` or `not_offered`.
          */
-        public string $outcome,
+        public ToolCallOutcome $outcome,
         /**
          * Whether the call needed a human approval checkpoint.
          */

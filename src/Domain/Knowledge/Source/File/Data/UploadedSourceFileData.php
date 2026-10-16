@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\File\Data;
 
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Spatie\LaravelData\Data;
 
@@ -42,10 +43,10 @@ final class UploadedSourceFileData extends Data
     }
 
     /**
-     * The metering/UI category saved as `filetype`: by extension for documents,
+     * The metering/UI type saved as `filetype`: by extension for documents,
      * by MIME type for audio and video.
      */
-    public function category(): string
+    public function category(): KnowledgeFileType
     {
         return SourceFileTypes::isDocument($this->originalName)
             ? SourceFileTypes::category($this->originalName)

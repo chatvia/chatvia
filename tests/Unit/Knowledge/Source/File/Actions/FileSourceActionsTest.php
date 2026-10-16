@@ -10,6 +10,7 @@ use Domain\Knowledge\Source\File\Actions\DeleteUploadedSourceFilesAction;
 use Domain\Knowledge\Source\File\Actions\ProcessAgentUploadedFilesAction;
 use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Exceptions\UnsupportedSourceFileException;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Llm\Enums\AiProvider;
@@ -49,7 +50,7 @@ it('stores an uploaded document for the workspace and attaches it to the agent',
 
     expect($file->workspace_id)->toBe($agent->workspace_id)
         ->and($file->filename)->toBe('cover.png')
-        ->and($file->filetype)->toBe('image')
+        ->and($file->filetype)->toBe(KnowledgeFileType::Image)
         ->and($file->status)->toBe(SourceStatus::Uploaded)
         ->and($file->length)->toBe(1)
         ->and($file->filepath)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/sources/source_file/'.$file->external_id.'/')
@@ -83,7 +84,7 @@ it('accepts audio only while the admin has audio on', function (): void {
     $upload = fsaUpload('note.mp3', 'ID3', 'audio/mpeg');
 
     expect($upload->isSupported())->toBeTrue()
-        ->and($upload->category())->toBe('audio');
+        ->and($upload->category())->toBe(KnowledgeFileType::Audio);
 
     config(['chatvia.knowledge.file_types' => ['pdf', 'video']]);
 

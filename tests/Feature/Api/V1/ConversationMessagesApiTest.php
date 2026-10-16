@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -96,7 +97,7 @@ it('answers a message as one JSON response and persists the turn as api messages
         ->assertJsonPath('data.error', null);
 
     $roles = Message::query()->where('chat_conversation_id', agentConversation($this->agent)->id)->orderBy('id')->get();
-    expect($roles->pluck('source')->unique()->all())->toBe([ConversationSource::Api->value])
+    expect($roles->pluck('source')->unique()->all())->toBe([MessageOrigin::Api])
         ->and($roles->pluck('content')->all())->toBe(['Hi', 'Hello there!']);
 });
 

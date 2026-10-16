@@ -62,8 +62,8 @@ class AnalyzeMessageAction
         // stays a clean idempotency check. Only the *wanted* dimensions roll
         // up to the daily analytics tables — that is what the toggle controls.
         $message->update([
-            'sentiment' => $analysis->sentiment->value,
-            'tone' => $analysis->tone->value,
+            'sentiment' => $analysis->sentiment,
+            'tone' => $analysis->tone,
         ]);
 
         MessageAnalyzed::dispatch(

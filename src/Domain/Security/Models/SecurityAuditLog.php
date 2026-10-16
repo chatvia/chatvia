@@ -5,6 +5,7 @@ namespace Domain\Security\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\RecordSecurityEventAction;
 use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $user_id
  * @property string|null $user_name
  * @property string|null $user_email
- * @property string $action
+ * @property SecurityAuditAction $action
  * @property string|null $target_type
  * @property string|null $target_id
  * @property string|null $target_label
@@ -35,7 +36,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $metadata
  * @property string|null $metadata_sha256
  * @property bool $metadata_truncated
- * @property string $outcome
+ * @property SecurityAuditOutcome $outcome
  * @property Carbon|null $created_at
  * @property-read User|null $user
  */
@@ -63,14 +64,11 @@ class SecurityAuditLog extends Model
         return $query->where('workspace_id', $workspaceId);
     }
 
-    public function actionEnum(): ?SecurityAuditAction
-    {
-        return SecurityAuditAction::tryFrom($this->action);
-    }
-
     protected function casts(): array
     {
         return [
+            'action' => SecurityAuditAction::class,
+            'outcome' => SecurityAuditOutcome::class,
             'metadata' => 'array',
             'metadata_truncated' => 'boolean',
             'created_at' => 'datetime',

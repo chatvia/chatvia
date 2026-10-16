@@ -3,6 +3,9 @@
 namespace Domain\Conversation\Models;
 
 use Database\Factories\MessageFactory;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
@@ -30,13 +33,13 @@ use Support\Concerns\HasExternalId;
  * @property int|null $llm_id
  * @property int|null $agent_question_answer_id
  * @property string|null $generation_id
- * @property string|null $source
+ * @property MessageOrigin|null $source
  * @property string|null $content
  * @property array<array-key, mixed>|null $metadata
  * @property MessageRole $role
  * @property float|null $confidence_score
- * @property string|null $sentiment
- * @property string|null $tone
+ * @property Sentiment|null $sentiment
+ * @property Tone|null $tone
  * @property string|null $feedback
  * @property bool|null $is_response_from_qa
  * @property bool|null $has_llm_found_answer
@@ -121,6 +124,9 @@ class Message extends Model
     {
         return [
             'role' => MessageRole::class,
+            'source' => MessageOrigin::class,
+            'sentiment' => Sentiment::class,
+            'tone' => Tone::class,
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',

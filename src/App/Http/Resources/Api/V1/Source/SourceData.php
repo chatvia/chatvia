@@ -47,7 +47,7 @@ class SourceData extends Data
         /**
          * Where the source is in training.
          */
-        public ?SourceStatus $status,
+        public SourceStatus $status,
         /**
          * When the source was added.
          */

@@ -3,6 +3,8 @@
 namespace Domain\Conversation\Data\Audit;
 
 use Domain\Conversation\Models\AgentActivity;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
+use Domain\Integration\Tool\Enums\ToolKind;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -21,7 +23,7 @@ class ToolCallAuditRowData extends Data
     public function __construct(
         public int $id,
         public ?string $created_at,
-        public string $outcome,
+        public ToolCallOutcome $outcome,
         public ?int $agent_id,
         public string $agent_name,
         public ?string $agent_external_id,
@@ -30,7 +32,7 @@ class ToolCallAuditRowData extends Data
         public ?string $avatar,
         public string $trace_id,
         public string $tool_name,
-        public string $tool_kind,
+        public ToolKind $tool_kind,
         public ?string $connector_slug,
         public ?string $connector_name,
         public bool $is_error,
@@ -61,7 +63,7 @@ class ToolCallAuditRowData extends Data
             connector_slug: $activity->connector_slug,
             connector_name: $activity->connector_name,
             is_error: $activity->is_error,
-            gated: $activity->gated,
+            gated: $activity->is_gated,
             latency_ms: $activity->latency_ms,
             arguments: $activity->arguments,
             result_text: $activity->result_text,

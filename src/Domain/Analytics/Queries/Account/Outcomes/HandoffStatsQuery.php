@@ -7,6 +7,7 @@ namespace Domain\Analytics\Queries\Account\Outcomes;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\Outcomes\HandoffStatsData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
+use Domain\Conversation\Enums\HandoffStatus;
 
 /**
  * Escalations from the AI to a human in the window, the handoff rate, and the
@@ -25,7 +26,7 @@ class HandoffStatsQuery extends AccountAnalyticsQuery
             conversations: $conversations,
             handoffs: $handoffs,
             handoffRatePct: $this->pct($handoffs, $conversations),
-            pendingNow: (int) $this->liveConversations($scope)->where('c.handoff_status', 'pending')->count(),
+            pendingNow: (int) $this->liveConversations($scope)->where('c.handoff_status', HandoffStatus::Pending->value)->count(),
         );
     }
 }

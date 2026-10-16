@@ -12,6 +12,7 @@ use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\QueryBuilders\SourceFileQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -38,7 +39,7 @@ use Support\MimeType;
  * @property string|null $language
  * @property string|null $document_classification
  * @property string $filename
- * @property string $filetype
+ * @property KnowledgeFileType $filetype
  * @property string $filepath
  * @property numeric $size_in_kb
  * @property string $mime_type
@@ -193,6 +194,7 @@ class SourceFile extends Model implements ChunkableContract
     {
         return [
             'metadata' => 'json',
+            'filetype' => KnowledgeFileType::class,
             'status' => SourceStatus::class,
             'last_retrieved_at' => 'datetime',
         ];

@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Account\FeedbackTallyData;
 use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Analytics\Services\Period;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -116,7 +117,7 @@ abstract class AccountAnalyticsQuery
     {
         return DB::table('form_submissions')
             ->whereIn('agent_id', $scope->agentIds)
-            ->where('status', 'submitted')
+            ->where('status', FormSubmissionStatus::Submitted->value)
             ->whereBetween('created_at', [$scope->period->start, $scope->period->end])
             ->count();
     }

@@ -7,6 +7,7 @@
     "format": "prettier --write resources/",
     "format:check": "prettier --check resources/",
     "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
     "i18n:merge": "node scripts/merge-i18n-locales.mjs",
     "i18n:check": "node scripts/i18n-missing-keys.mjs",
     "lint": "eslint . --fix",
@@ -33,6 +34,7 @@
     "terser": "^5.48.0",
     "typescript-eslint": "^8.71.2",
     "vitepress": "^2.0.0-alpha.17",
+    "vitest": "5.0.3",
     "vue-tsc": "^3.3.5"
   },
   "dependencies": {

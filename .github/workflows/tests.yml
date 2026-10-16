@@ -122,7 +122,7 @@ jobs:
 
       # Every gate a contributor runs locally before a pull request: composer
       # validate + audit, npm audit, Pint, Rector, PHPStan, Prettier, ESLint,
-      # vue-tsc, the i18n check and the Pest suite. It never changes files. The
+      # vue-tsc, Vitest, the i18n check and the Pest suite. It never changes files. The
       # test run installs the Postgres extensions, migrates and seeds the
       # `testing` database by itself, so there is no separate migrate step.
       - name: Run CI checks

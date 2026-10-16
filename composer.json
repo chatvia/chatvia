@@ -151,6 +151,7 @@
             "npm run format:check",
             "npm run lint:check",
             "npm run typecheck",
+            "npm run test",
             "npm run i18n:check",
             "@test"
         ]
@@ -164,7 +165,7 @@
         "refactor": "Apply Rector refactorings.",
         "refactor:check": "Show pending Rector refactorings without changing files.",
         "ci": "Auto-fix formatting, lint and Rector findings, then run ci:check.",
-        "ci:check": "Run every CI gate without changing tracked files: composer validate + audit, npm audit (production deps), Pint, Rector, PHPStan, Wayfinder routes, Prettier, ESLint, vue-tsc, i18n check and the test suite."
+        "ci:check": "Run every CI gate without changing tracked files: composer validate + audit, npm audit (production deps), Pint, Rector, PHPStan, Wayfinder routes, Prettier, ESLint, vue-tsc, the frontend tests (Vitest), i18n check and the test suite."
     },
     "extra": {
         "laravel": {

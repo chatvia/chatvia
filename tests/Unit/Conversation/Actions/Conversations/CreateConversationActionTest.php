@@ -36,6 +36,7 @@ function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
     $ids = [];
     for ($i = 0; $i < $count; $i++) {
         $att = Attachment::create([
+            'workspace_id' => $agent->workspace_id,
             'chat_conversation_id' => null,
             'chat_message_id' => null,
             'filepath' => 'users/test/agents/test/attachments/orphan-'.$i,
@@ -85,6 +86,7 @@ it('does NOT re-bind attachments that already belong to a different conversation
 
     // Attachment is bound to another conversation already.
     $alreadyBound = Attachment::create([
+        'workspace_id' => $otherConversation->workspace_id,
         'chat_conversation_id' => $otherConversation->id,
         'filepath' => 'users/test/agents/test/attachments/already-bound',
         'filename' => 'bound.pdf',

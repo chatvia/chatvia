@@ -122,6 +122,7 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
     $filepath = "users/{$workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
     Storage::disk(Attachment::DISK)->put($filepath, 'data');
     $attachment = Attachment::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'filepath' => $filepath,
         'filename' => 'doc.pdf',

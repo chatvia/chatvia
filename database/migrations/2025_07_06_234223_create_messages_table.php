@@ -167,9 +167,14 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignId('chat_conversation_id')->nullable()->constrained('chat_conversations')->cascadeOnDelete();
+            // The conversation and message keys pair with the workspace: an
+            // attachment can never point at another workspace's chat. Rows are
+            // created at upload, before the conversation exists, so both chat
+            // links are nullable while the workspace is known from the start.
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('chat_conversation_id')->nullable();
 
-            $table->foreignId('chat_message_id')->nullable()->constrained('chat_messages')->cascadeOnDelete();
+            $table->foreignId('chat_message_id')->nullable();
 
             $table->string('filepath', 2048);
             $table->string('filename');
@@ -179,6 +184,9 @@ return new class extends Migration
             $table->unsignedInteger('pages')->nullable();
 
             $table->timestamps();
+
+            $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
+            $table->foreign(['workspace_id', 'chat_message_id'])->references(['workspace_id', 'id'])->on('chat_messages')->cascadeOnDelete();
 
             $table->index(['chat_conversation_id', 'mime_type']);
             $table->index('chat_message_id');

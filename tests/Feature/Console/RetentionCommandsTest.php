@@ -30,7 +30,7 @@ it('anonymizes old visitor sessions with app:anonymize-chat-sessions', function 
 it('deletes stale uploads that joined no conversation with app:prune-chat-attachments', function (): void {
     Storage::fake(Attachment::DISK);
     Storage::disk(Attachment::DISK)->put('users/x/agents/y/attachments/doc.pdf', 'pdf');
-    $upload = Attachment::create(['filepath' => 'users/x/agents/y/attachments/doc.pdf', 'filename' => 'doc.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 3]);
+    $upload = Attachment::create(['workspace_id' => Agent::factory()->create()->workspace_id, 'filepath' => 'users/x/agents/y/attachments/doc.pdf', 'filename' => 'doc.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 3]);
     DB::table('chat_attachments')->where('id', $upload->id)->update(['created_at' => now()->subDays(31)]);
 
     $this->artisan('app:prune-chat-attachments')->assertSuccessful();

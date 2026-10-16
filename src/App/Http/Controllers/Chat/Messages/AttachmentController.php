@@ -21,7 +21,7 @@ class AttachmentController
 
     public function __invoke(
         UploadAttachmentRequest $request,
-        #[HostedChatAgent] ?Agent $agent,
+        #[HostedChatAgent] Agent $agent,
         StoreAttachmentAction $action,
         HostedChatSession $session,
     ): JsonResponse {
@@ -36,11 +36,11 @@ class AttachmentController
      * stored without one, and the conversation claims it when it is created.
      * Only a conversation in the caller's own session is used.
      */
-    private function conversationId(UploadAttachmentRequest $request, ?Agent $agent, HostedChatSession $session): ?int
+    private function conversationId(UploadAttachmentRequest $request, Agent $agent, HostedChatSession $session): ?int
     {
         $externalId = (string) ($request->header('X-CONVERSATION-ID') ?: self::PENDING_CONVERSATION);
 
-        if ($externalId === self::PENDING_CONVERSATION || ! $agent instanceof Agent) {
+        if ($externalId === self::PENDING_CONVERSATION) {
             return null;
         }
 

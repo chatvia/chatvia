@@ -93,6 +93,9 @@ class CreateConversationAction
 
         Attachment::query()
             ->whereIn('external_id', array_slice($attachmentIds, 0, $max))
+            // Only this workspace's orphans: a guessed external id can never
+            // pull another workspace's upload into this conversation.
+            ->where('workspace_id', $conversation->workspace_id)
             ->whereNull('chat_conversation_id')
             ->update(['chat_conversation_id' => $conversation->id]);
     }

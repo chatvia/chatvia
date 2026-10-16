@@ -36,6 +36,7 @@ function dlaAttachment(): Attachment
     Storage::disk(Attachment::DISK)->put($filepath, 'fake pdf');
 
     return Attachment::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'filepath' => $filepath,
         'filename' => 'job-posting.pdf',

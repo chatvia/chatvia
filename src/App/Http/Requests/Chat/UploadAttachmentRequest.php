@@ -16,13 +16,13 @@ class UploadAttachmentRequest extends FormRequest
     use ValidatesPdfAttachment;
 
     /**
-     * @param  Agent|null  $agent  The agent the hosted chat resolved for this
-     *                             request — the authoritative identity, not the
-     *                             client-supplied X-AGENT-ID header. Storage is
-     *                             entity-first (users/{workspace}/agents/{agent}),
-     *                             so deleting a workspace or agent is one prefix wipe.
+     * @param  Agent  $agent  The agent the hosted chat resolved for this
+     *                        request — the authoritative identity, not the
+     *                        client-supplied X-AGENT-ID header. Storage is
+     *                        entity-first (users/{workspace}/agents/{agent}),
+     *                        so deleting a workspace or agent is one prefix wipe.
      */
-    public function toData(?Agent $agent, ?int $conversationId): UploadAttachmentData
+    public function toData(Agent $agent, ?int $conversationId): UploadAttachmentData
     {
         // Sanitize the client-supplied conversation id before it becomes a
         // storage path segment — block `../` cross-prefix writes (see the widget
@@ -33,10 +33,11 @@ class UploadAttachmentRequest extends FormRequest
             file: $this->file('file'),
             directory: sprintf(
                 'workspaces/%s/agents/%s/attachments/%s',
-                $agent?->workspaceExternalId() ?? '',
-                $agent?->external_id ?? '',
+                $agent->workspaceExternalId(),
+                $agent->external_id,
                 $conversationExternalId,
             ),
+            workspaceId: $agent->workspace_id,
             conversationId: $conversationId,
         );
     }

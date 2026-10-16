@@ -44,6 +44,7 @@ function messageAttachment(Agent $agent, Conversation $conversation, Message $me
     Storage::disk(Attachment::DISK)->put($filepath, 'fake');
 
     return Attachment::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'chat_message_id' => $message->id,
         'filepath' => $filepath,

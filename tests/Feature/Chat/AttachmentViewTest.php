@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -19,6 +20,7 @@ function viewableAttachment(string $mimeType = 'application/pdf', string $filena
     Storage::disk(Attachment::DISK)->put($filepath, '%PDF-1.4 brochure');
 
     return Attachment::create([
+        'workspace_id' => Workspace::factory()->create()->id,
         'filepath' => $filepath,
         'filename' => $filename,
         'mime_type' => $mimeType,

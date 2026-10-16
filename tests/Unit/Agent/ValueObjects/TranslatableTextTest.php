@@ -29,8 +29,8 @@ it('normalizes a regional or upper-case locale and ignores auto', function (?str
     [null, 'Hello'],
 ]);
 
-it('reads the stored shape and the legacy plain string', function (): void {
-    expect(TranslatableText::fromStored('Plain')->in('de'))->toBe('Plain')
+it('reads the stored shape, and anything else as empty text', function (): void {
+    expect(TranslatableText::fromStored('Plain')->base)->toBe('')
         ->and(TranslatableText::fromStored(['text' => 'Hi', 'translations' => ['de' => 'Hallo'], 'overrides' => 'junk'])->overrides)->toBe([])
         ->and(TranslatableText::fromStored(['text' => 'Hi', 'translations' => ['de' => 'Hallo']])->in('de'))->toBe('Hallo');
 });

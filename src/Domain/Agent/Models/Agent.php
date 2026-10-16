@@ -493,9 +493,7 @@ class Agent extends Model
 
     /**
      * The widget chat-bubble prompts in editor shape — `{ text, translations,
-     * overrides }` per bubble. Coerces the legacy plain-string list (bubbles
-     * were a `string[]` before they became translatable) so old data still
-     * loads in the Setup editor.
+     * overrides }` per bubble — for the Setup editor.
      *
      * @return array<int, array{text: string, translations: array<string, string>, overrides: array<string, string>}>
      */

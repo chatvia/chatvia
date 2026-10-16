@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Settings\Chatter;
 
-use App\Http\Controllers\Settings\Chatter\Concerns\ResolvesWorkspaceChatters;
 use App\Http\Requests\Settings\Chatter\InviteWorkspaceChatterRequest;
 use App\Http\Requests\Settings\Chatter\UpdateChatterRequest;
 use App\Identity\Chatter\Actions\DeleteChatterAction;
 use App\Identity\Chatter\Actions\UpdateChatterAccessAction;
 use App\Identity\Chatter\Data\WorkspaceChatterRowData;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\InviteWorkspaceChatterAction;
+use Domain\Membership\Agent\Data\Resources\ChatterInvitationLinkData;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,14 +25,12 @@ use Spatie\LaravelData\DataCollection;
  * entirely. Per-agent access is {@see SettingsChatterAgentController}; the
  * password-reset email is {@see ResetChatterPasswordController}.
  *
- * All endpoints are gated by `account.chatters.manage`;
- * {@see ResolvesWorkspaceChatters} enforces the workspace boundary so an
- * employee can never reach a chatter from a different owner.
+ * All endpoints are gated by `account.chatters.manage`; `workspace.scope`
+ * 404s a bound chatter of another workspace, so an employee can never reach
+ * a chatter from a different owner.
  */
 class SettingsChatterController
 {
-    use ResolvesWorkspaceChatters;
-
     /**
      * @return Response|array{data: DataCollection<int, WorkspaceChatterRowData>}
      */
@@ -78,11 +77,7 @@ class SettingsChatterController
             return back()->withErrors([$e->field => $e->getMessage()])->withInput();
         }
 
-        return back()->with('invitation', [
-            'email' => $invitation->email,
-            'accept_url' => route('agents.invitation.show', ['token' => $invitation->token]),
-            'expires_at' => $invitation->expires_at->toIso8601String(),
-        ]);
+        return back()->with('invitation', ChatterInvitationLinkData::fromInvitation($invitation)->toArray());
     }
 
     /**
@@ -92,27 +87,22 @@ class SettingsChatterController
      */
     public function update(
         UpdateChatterRequest $request,
-        string $chatter,
+        Chatter $chatter,
         UpdateChatterAccessAction $update,
     ): WorkspaceChatterRowData {
-        $member = $this->findChatter($request, $chatter);
-
-        $update->execute($request->toData($member));
+        $update->execute($request->toData($chatter));
 
         return WorkspaceChatterRowData::fromModel(
-            $member->loadCount('agents')->load('messageLimit'),
+            $chatter->loadCount('agents')->load('messageLimit'),
         );
     }
 
     public function destroy(
-        Request $request,
-        string $chatter,
+        Chatter $chatter,
         DeleteChatterAction $delete,
     ): RedirectResponse {
-        $member = $this->findChatter($request, $chatter);
+        $delete->execute($chatter);
 
-        $delete->execute($member);
-
-        return back()->with('success', __(':name removed.', ['name' => $member->name]));
+        return back()->with('success', __(':name removed.', ['name' => $chatter->name]));
     }
 }

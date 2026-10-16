@@ -2,25 +2,21 @@
 
 namespace App\Http\Controllers\Settings\Chatter;
 
-use App\Http\Controllers\Settings\Chatter\Concerns\ResolvesWorkspaceChatters;
 use App\Identity\Chatter\Actions\ResetChatterPasswordAction;
+use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Sends a workspace chatter a password-reset link (Settings → Members). Gated
- * by `account.chatters.manage`; the chatter must belong to the workspace.
+ * by `account.chatters.manage`; `workspace.scope` 404s a bound chatter of
+ * another workspace.
  */
 class ResetChatterPasswordController
 {
-    use ResolvesWorkspaceChatters;
-
-    public function __invoke(Request $request, string $chatter, ResetChatterPasswordAction $reset): RedirectResponse
+    public function __invoke(Chatter $chatter, ResetChatterPasswordAction $reset): RedirectResponse
     {
-        $member = $this->findChatter($request, $chatter);
+        $reset->execute($chatter);
 
-        $reset->execute($member);
-
-        return back()->with('success', __('Password reset link sent to :email.', ['email' => $member->email]));
+        return back()->with('success', __('Password reset link sent to :email.', ['email' => $chatter->email]));
     }
 }

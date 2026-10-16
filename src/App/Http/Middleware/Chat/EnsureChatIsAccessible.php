@@ -80,8 +80,10 @@ class EnsureChatIsAccessible
     {
         $conversationId = $request->route('conversationId');
 
+        // Another account's conversation answers like an unknown id, so its id
+        // does not tell that it exists.
         if (! blank($conversationId)) {
-            abort_unless(ChatCache::isOwnedBy($conversationId, HostedChatViewer::data(), $agent->workspaceExternalId()), Response::HTTP_FORBIDDEN);
+            abort_unless(ChatCache::isOwnedBy($conversationId, HostedChatViewer::data(), $agent->workspaceExternalId()), Response::HTTP_NOT_FOUND);
 
             return;
         }

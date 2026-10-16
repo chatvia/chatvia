@@ -729,6 +729,13 @@ Scoping is explicit (no global scopes), with layers that catch a missed check:
   same for the agent and for any record named next to it (it must be the
   agent's, or its workspace's for shared sources and tools). A 403 is only for
   a teammate whose role does not allow the action.
+- **Hosted chat and widget.** A visitor's own records (conversations, tool
+  approvals, form instances, attachments) are looked up within the visitor's
+  session or signed-in account, and anyone else's answers 404. One 403 is on
+  purpose: a protected agent's chat address is public, so a signed-in account
+  without access to that agent gets "You do not have access to this agent",
+  which tells them to sign in with another account and reveals nothing the
+  address did not.
 - **Validation.** Form requests use `WorkspaceRule::exists()` /
   `WorkspaceRule::unique()` (`App\Http\Rules`), so an id or a name of another
   workspace is treated as unknown. A `ConventionsTest` ratchet refuses a bare

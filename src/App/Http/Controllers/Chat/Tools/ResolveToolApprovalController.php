@@ -30,12 +30,12 @@ readonly class ResolveToolApprovalController
         #[HostedChatAgent] ?Agent $agent,
     ): StreamedResponse {
         // The checkpoint must belong to this agent and to the same chat session
-        // that created it — a different visitor cannot resolve it.
+        // that created it. Anyone else's answers like an unknown checkpoint.
         abort_unless(
             $agent instanceof Agent
             && $approval->agent_id === $agent->id
             && $approval->approvalContext()->externalSessionId === $this->session->findOrStart($agent),
-            403,
+            404,
         );
 
         return $this->sse->respond($this->chatStreamService->resume($approval, $request->toData()));

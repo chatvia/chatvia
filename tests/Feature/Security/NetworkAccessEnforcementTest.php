@@ -213,11 +213,12 @@ it('trusts the Cloudflare visitor country over the connecting edge IP', function
     ]);
 
     // The connecting IP geo-resolves to Bulgaria (the CF edge), but the visitor
-    // is in Iraq: the header must let them through.
-    Cache::put('security:geoip:198.51.100.7', 'BG', now()->addDay());
+    // is in Iraq: the header must let them through. The peer is a Cloudflare
+    // edge IP (172.64.0.0/13), so the header counts as genuine.
+    Cache::put('security:geoip:172.70.1.1', 'BG', now()->addDay());
 
     $this->actingAs($this->owner)
-        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withServerVariables(['REMOTE_ADDR' => '172.70.1.1'])
         ->withHeaders(['CF-IPCountry' => 'IQ'])
         ->get(route('security.edit'))
         ->assertOk();
@@ -232,10 +233,10 @@ it('blocks on the Cloudflare visitor country even when the edge IP is elsewhere'
     ]);
 
     // Edge IP looks like Bulgaria, but CF reports the visitor is in Iraq.
-    Cache::put('security:geoip:198.51.100.7', 'BG', now()->addDay());
+    Cache::put('security:geoip:172.70.1.1', 'BG', now()->addDay());
 
     $this->actingAs($this->owner)
-        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withServerVariables(['REMOTE_ADDR' => '172.70.1.1'])
         ->withHeaders(['CF-IPCountry' => 'IQ'])
         ->get(route('security.edit'))
         ->assertForbidden();
@@ -249,12 +250,32 @@ it('falls back to the IP geo lookup when CF-IPCountry is a non-country sentinel'
         'geo_countries' => ['RU'],
     ]);
 
-    Cache::put('security:geoip:198.51.100.7', 'RU', now()->addDay());
+    Cache::put('security:geoip:172.70.1.1', 'RU', now()->addDay());
 
     // XX = country undetermined ⇒ ignore the header, use the IP geo (RU ⇒ 403).
     $this->actingAs($this->owner)
-        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withServerVariables(['REMOTE_ADDR' => '172.70.1.1'])
         ->withHeaders(['CF-IPCountry' => 'XX'])
+        ->get(route('security.edit'))
+        ->assertForbidden();
+});
+
+it('ignores a spoofed CF-IPCountry from a peer that did not come through Cloudflare', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
+        'ip_allowlist_mode' => 'dashboard',
+        'ip_allowlist' => [],
+        'geo_mode' => 'deny',
+        'geo_countries' => ['RU'],
+    ]);
+
+    // The peer's own IP resolves to a blocked country while the header claims
+    // a clean one. A direct connection cannot vouch for CF-* headers, so the
+    // header is ignored and the peer's country decides: blocked.
+    Cache::put('security:geoip:198.51.100.7', 'RU', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withHeaders(['CF-IPCountry' => 'US'])
         ->get(route('security.edit'))
         ->assertForbidden();
 });

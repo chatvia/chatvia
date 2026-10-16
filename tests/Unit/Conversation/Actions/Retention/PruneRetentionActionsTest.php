@@ -36,6 +36,7 @@ function retentionUpload(Conversation $conversation): Attachment
     Storage::disk(Attachment::DISK)->put($path, 'pdf');
 
     return Attachment::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'filepath' => $path,
         'filename' => 'doc.pdf',

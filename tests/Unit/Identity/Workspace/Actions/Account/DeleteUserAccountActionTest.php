@@ -176,6 +176,7 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
     $filepath = "workspaces/{$agent->workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
     Storage::disk(Attachment::DISK)->put($filepath, 'data');
     $attachment = Attachment::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'filepath' => $filepath,
         'filename' => 'doc.pdf',

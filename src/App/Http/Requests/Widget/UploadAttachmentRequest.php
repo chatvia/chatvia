@@ -34,6 +34,7 @@ class UploadAttachmentRequest extends FormRequest
                 $agent->external_id,
                 $sessionId,
             ),
+            workspaceId: $agent->workspace_id,
             conversationId: $conversationId,
         );
     }

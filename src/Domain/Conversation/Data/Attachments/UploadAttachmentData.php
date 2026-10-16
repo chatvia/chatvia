@@ -25,6 +25,7 @@ class UploadAttachmentData extends Data
     public function __construct(
         public UploadedFile $file,
         public string $directory,
+        public int $workspaceId,
         public ?int $conversationId = null,
     ) {}
 }

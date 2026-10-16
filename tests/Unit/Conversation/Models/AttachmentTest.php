@@ -19,8 +19,11 @@ function attachmentModelUpload(): Attachment
     $filepath = 'workspaces/w/chat/'.Str::uuid().'.pdf';
     Storage::disk(Attachment::DISK)->put($filepath, 'fake pdf');
 
+    $conversation = Conversation::factory()->create();
+
     return Attachment::create([
-        'chat_conversation_id' => Conversation::factory()->create()->id,
+        'workspace_id' => $conversation->workspace_id,
+        'chat_conversation_id' => $conversation->id,
         'filepath' => $filepath,
         'filename' => 'job-posting.pdf',
         'mime_type' => 'application/pdf',

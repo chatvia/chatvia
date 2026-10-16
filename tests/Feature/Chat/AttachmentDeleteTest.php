@@ -29,6 +29,7 @@ function adtAttachment(Agent $agent, ?Conversation $conversation = null, ?int $m
     Storage::disk(Attachment::DISK)->put($filepath, 'fake pdf bytes');
 
     return Attachment::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => $conversation?->id,
         'chat_message_id' => $messageId,
         'filepath' => $filepath,

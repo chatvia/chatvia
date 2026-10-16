@@ -186,6 +186,7 @@ it('refuses to resume once the chatter reached their monthly message limit', fun
 it('continues on the document model while the conversation has a PDF', function (): void {
     connectAiProviders(AiProvider::Mistral);
     Attachment::create([
+        'workspace_id' => $this->conversation->workspace_id,
         'chat_conversation_id' => $this->conversation->id,
         'filepath' => 'workspaces/w/chat/terms.pdf',
         'filename' => 'terms.pdf',

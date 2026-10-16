@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Conversation\Models\Attachment;
@@ -56,6 +57,7 @@ it('stores the page count for a PDF upload', function (): void {
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: staPdfUpload(),
         directory: 'users/test-workspace/agents/test-agent/attachments/test',
+        workspaceId: Workspace::factory()->create()->id,
     ));
 
     expect($attachment->pages)->toBe(7)
@@ -68,6 +70,7 @@ it('leaves pages null for a non-PDF upload', function (): void {
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: staTextUpload(),
         directory: 'users/test-workspace/agents/test-agent/attachments/test',
+        workspaceId: Workspace::factory()->create()->id,
     ));
 
     expect($attachment->pages)->toBeNull();

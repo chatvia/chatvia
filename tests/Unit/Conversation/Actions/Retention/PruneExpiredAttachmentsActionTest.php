@@ -39,6 +39,7 @@ function peaUpload(?Conversation $conversation, ?int $daysOld = null): Attachmen
     Storage::disk(Attachment::DISK)->put($path, 'pdf');
 
     $attachment = Attachment::create([
+        'workspace_id' => $conversation?->workspace_id ?? Agent::factory()->create()->workspace_id,
         'chat_conversation_id' => $conversation?->id,
         'filepath' => $path,
         'filename' => 'doc.pdf',

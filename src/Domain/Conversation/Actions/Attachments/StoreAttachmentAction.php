@@ -36,6 +36,7 @@ class StoreAttachmentAction
             ->putFileAs($directory, $data->file, $filename);
 
         return Attachment::create([
+            'workspace_id' => $data->workspaceId,
             'chat_conversation_id' => $data->conversationId,
             'filepath' => $filepath,
             'filename' => $data->file->getClientOriginalName(),

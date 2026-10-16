@@ -111,6 +111,7 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
         $path = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/attachments/'.$conversation->id.'.txt';
         Storage::disk(Attachment::DISK)->put($path, 'attachment-'.$conversation->id);
         Attachment::create([
+            'workspace_id' => $agent->workspace_id,
             'chat_conversation_id' => $conversation->id,
             'filepath' => $path,
             'filename' => '../evil/'.$conversation->id.'.txt',

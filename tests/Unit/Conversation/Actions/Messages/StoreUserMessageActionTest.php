@@ -248,6 +248,7 @@ it('ties the files uploaded into the conversation to the message', function (): 
     $conversation = Conversation::query()->firstWhere('external_id', $turn->external_conversation_id);
 
     $upload = Attachment::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'filepath' => 'workspaces/x/agents/y/attachments/doc.pdf',
         'filename' => 'doc.pdf',

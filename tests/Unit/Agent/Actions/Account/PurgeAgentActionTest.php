@@ -41,6 +41,7 @@ function purgeTestConversation(Agent $agent): Conversation
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
     Message::factory()->count(2)->create(['chat_conversation_id' => $conversation->id]);
     Attachment::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'filepath' => 'workspaces/x/agents/'.$agent->external_id.'/attachments/doc.pdf',
         'filename' => 'doc.pdf',

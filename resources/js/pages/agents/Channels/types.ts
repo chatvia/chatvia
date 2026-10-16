@@ -35,6 +35,8 @@ export interface SlackChannelProps {
 }
 
 export interface MessengerChannelProps {
+    /** False until an admin sets up the Messenger Meta app. */
+    available: boolean;
     connected: boolean;
     page_name: string | null;
     enabled: boolean;
@@ -42,6 +44,8 @@ export interface MessengerChannelProps {
 }
 
 export interface WhatsappChannelProps {
+    /** False until an admin sets up the WhatsApp Meta app. */
+    available: boolean;
     connected: boolean;
     display_phone_number: string | null;
     verified_name: string | null;
@@ -59,6 +63,8 @@ export interface MsTeamsChannelProps {
 }
 
 export interface InstagramChannelProps {
+    /** False until an admin sets up the Instagram Meta app. */
+    available: boolean;
     connected: boolean;
     username: string | null;
     enabled: boolean;
@@ -86,4 +92,6 @@ export interface ChannelItem {
     tagline: string;
     logo: string;
     badge?: { label: string; variant: 'default' | 'secondary' | 'outline' };
+    /** The channel can't be opened: an admin hasn't set it up and nothing is connected. */
+    disabled?: boolean;
 }

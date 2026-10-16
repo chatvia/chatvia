@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa tämän kanavan käyttöön hallintapaneelissa."
+        }
+    }
+}

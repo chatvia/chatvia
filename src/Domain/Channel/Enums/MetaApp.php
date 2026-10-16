@@ -20,6 +20,22 @@ enum MetaApp: string
     case Instagram = 'instagram';
     case Whatsapp = 'whatsapp';
 
+    /**
+     * Whether an admin has filled in everything this channel needs to connect:
+     * the same fields the admin panel marks as required. WhatsApp's Embedded
+     * Signup also cannot open without its Login configuration.
+     */
+    public function isConfigured(): bool
+    {
+        $required = ['app_id', 'app_secret', 'webhook_verify_token'];
+
+        if ($this === self::Whatsapp) {
+            $required[] = 'config_id';
+        }
+
+        return array_all($required, fn (string $key): bool => $this->filled($key) !== null);
+    }
+
     public function appId(): string
     {
         return (string) $this->config('app_id');

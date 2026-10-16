@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Not set up on this server. An admin can turn on this channel in the admin panel."
+        }
+    }
+}

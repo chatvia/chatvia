@@ -3,6 +3,10 @@
  * logo, a tagline that names the connected account, and a "Connected" badge.
  * Computed from the page props so a connect/disconnect reload updates the grid
  * and the open slide-over header together.
+ *
+ * Messenger, WhatsApp and Instagram run on Meta apps an admin sets up in the
+ * admin panel; until then their cards are disabled. A channel that is already
+ * connected stays open so it can still be disconnected.
  */
 import { computed, type ComputedRef } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -10,6 +14,8 @@ import type { ChannelItem, ChannelsPageProps } from './types';
 
 export function useChannelItems(props: ChannelsPageProps): ComputedRef<ChannelItem[]> {
     const { t } = useI18n();
+
+    const unavailable = (channel: { available: boolean; connected: boolean }): boolean => !channel.available && !channel.connected;
 
     return computed<ChannelItem[]>(() => [
         {
@@ -35,18 +41,24 @@ export function useChannelItems(props: ChannelsPageProps): ComputedRef<ChannelIt
             name: t('agents.channels.setup.names.messenger'),
             tagline: props.messenger.connected
                 ? t('agents.channels.messenger.tagline_connected', { page: props.messenger.page_name })
-                : t('agents.channels.messenger.tagline'),
+                : unavailable(props.messenger)
+                  ? t('agents.channels.not_set_up')
+                  : t('agents.channels.messenger.tagline'),
             logo: '/images/logos/channels/messenger.svg',
             badge: props.messenger.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
+            disabled: unavailable(props.messenger),
         },
         {
             kind: 'whatsapp',
             name: t('agents.channels.setup.names.whatsapp'),
             tagline: props.whatsapp.connected
                 ? t('agents.channels.whatsapp.tagline_connected', { name: props.whatsapp.verified_name ?? props.whatsapp.display_phone_number })
-                : t('agents.channels.whatsapp.tagline'),
+                : unavailable(props.whatsapp)
+                  ? t('agents.channels.not_set_up')
+                  : t('agents.channels.whatsapp.tagline'),
             logo: '/images/logos/channels/whatsapp.svg',
             badge: props.whatsapp.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
+            disabled: unavailable(props.whatsapp),
         },
         {
             kind: 'msteams',
@@ -60,9 +72,12 @@ export function useChannelItems(props: ChannelsPageProps): ComputedRef<ChannelIt
             name: t('agents.channels.setup.names.instagram'),
             tagline: props.instagram.connected
                 ? t('agents.channels.instagram.tagline_connected', { username: props.instagram.username })
-                : t('agents.channels.instagram.tagline'),
+                : unavailable(props.instagram)
+                  ? t('agents.channels.not_set_up')
+                  : t('agents.channels.instagram.tagline'),
             logo: '/images/logos/channels/instagram.svg',
             badge: props.instagram.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
+            disabled: unavailable(props.instagram),
         },
     ]);
 }

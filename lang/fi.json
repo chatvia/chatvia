@@ -194,7 +194,7 @@
     "A role with this name already exists.": "Tällä nimellä on jo rooli.",
     "Access from your network is not permitted by this workspace.": "Tämä työtila ei salli pääsyä verkostasi.",
     "Cannot change the owner's role.": "Omistajan roolia ei voi muuttaa.",
-    "Cannot delete the owner or admin role.": "Omistaja- ja ylläpitäjäroolia ei voi poistaa.",
+    "Cannot delete the owner role.": "Omistajaroolia ei voi poistaa.",
     "Cannot delete this role. :count member(s) are assigned to it.": "Roolia ei voi poistaa. Sillä on :count jäsen(tä).",
     "Cannot edit the owner role.": "Omistajaroolia ei voi muokata.",
     "Cannot modify the owner role.": "Omistajaroolia ei voi muuttaa.",

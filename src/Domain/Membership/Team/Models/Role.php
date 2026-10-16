@@ -68,9 +68,6 @@ class Role extends SpatieRole
     /** Code of the default role every team is created with; it can never be edited or deleted. */
     public const string OWNER_CODE = 'owner';
 
-    /** Code of the legacy admin role; like the owner role it can never be deleted. */
-    public const string ADMIN_CODE = 'admin';
-
     public function isOwnerRole(): bool
     {
         return $this->code === self::OWNER_CODE;
@@ -86,11 +83,11 @@ class Role extends SpatieRole
     }
 
     /**
-     * The owner and admin roles hold the team together, so they can never be deleted.
+     * The owner role holds the team together, so it can never be deleted.
      */
     public function isProtected(): bool
     {
-        return in_array($this->code, [self::OWNER_CODE, self::ADMIN_CODE], true);
+        return $this->isOwnerRole();
     }
 
     /**

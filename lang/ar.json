@@ -194,7 +194,7 @@
     "A role with this name already exists.": "يوجد دور بهذا الاسم بالفعل.",
     "Access from your network is not permitted by this workspace.": "لا تسمح مساحة العمل هذه بالوصول من شبكتك.",
     "Cannot change the owner's role.": "لا يمكن تغيير دور المالك.",
-    "Cannot delete the owner or admin role.": "لا يمكن حذف دور المالك أو المسؤول.",
+    "Cannot delete the owner role.": "لا يمكن حذف دور المالك.",
     "Cannot delete this role. :count member(s) are assigned to it.": "لا يمكن حذف هذا الدور. عدد الأعضاء المسندين إليه: :count.",
     "Cannot edit the owner role.": "لا يمكن تعديل دور المالك.",
     "Cannot modify the owner role.": "لا يمكن تعديل دور المالك.",

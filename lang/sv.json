@@ -194,7 +194,7 @@
     "A role with this name already exists.": "Det finns redan en roll med det här namnet.",
     "Access from your network is not permitted by this workspace.": "Den här arbetsytan tillåter inte åtkomst från ditt nätverk.",
     "Cannot change the owner's role.": "Ägarens roll kan inte ändras.",
-    "Cannot delete the owner or admin role.": "Ägar- och administratörsrollen kan inte raderas.",
+    "Cannot delete the owner role.": "Ägarrollen kan inte raderas.",
     "Cannot delete this role. :count member(s) are assigned to it.": "Rollen kan inte raderas. :count medlem(mar) har den.",
     "Cannot edit the owner role.": "Ägarrollen kan inte redigeras.",
     "Cannot modify the owner role.": "Ägarrollen kan inte ändras.",

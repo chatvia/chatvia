@@ -27,8 +27,9 @@ class StartAgentWebsiteCrawlRequest extends FormRequest
     {
         return [
             'url' => ['required', 'url', new SafeWebhookUrl],
-            'include_paths' => ['nullable'],
-            'exclude_paths' => ['nullable'],
+            // Comma-separated lists; an array payload is a 422, never a TypeError.
+            'include_paths' => ['nullable', 'string'],
+            'exclude_paths' => ['nullable', 'string'],
         ];
     }
 

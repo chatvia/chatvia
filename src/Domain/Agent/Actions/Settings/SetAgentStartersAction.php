@@ -3,6 +3,7 @@
 namespace Domain\Agent\Actions\Settings;
 
 use Domain\Agent\Data\Settings\Copy\StarterData;
+use Domain\Agent\Data\Settings\Copy\UpdateStartersData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentTextTranslator;
 use Domain\Agent\ValueObjects\TranslatableText;
@@ -23,11 +24,11 @@ class SetAgentStartersAction
     ) {}
 
     /**
-     * @param  list<StarterData>  $starters
      * @return list<StarterData>
      */
-    public function execute(Agent $agent, array $starters): array
+    public function execute(Agent $agent, UpdateStartersData $data): array
     {
+        $starters = $data->starters;
         $languages = $agent->enabledLanguages();
         $previous = $this->previousCopy($agent);
 

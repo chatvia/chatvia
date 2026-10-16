@@ -7,6 +7,7 @@ use App\Identity\Workspace\Services\ProfilePhotoStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Spatie\LaravelData\Optional;
 
 /**
  * A chatter edits their own profile on the hosted chat: name, password (the
@@ -35,7 +36,7 @@ class UpdateChatterProfileAction
             }
         }
 
-        if ($data->name !== null) {
+        if (! $data->name instanceof Optional) {
             $user->name = $data->name;
         }
 

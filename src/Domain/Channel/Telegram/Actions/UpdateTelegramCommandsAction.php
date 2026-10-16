@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Channel\Telegram\Actions;
 
+use Domain\Channel\Telegram\Data\UpdateTelegramCommandsData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 
@@ -18,12 +19,9 @@ class UpdateTelegramCommandsAction
         private readonly TelegramCommandRouter $commands,
     ) {}
 
-    /**
-     * @param  list<array{command: string, description: string, type: string, value: string}>  $commands
-     */
-    public function execute(AgentTelegramBot $bot, array $commands): void
+    public function execute(AgentTelegramBot $bot, UpdateTelegramCommandsData $data): void
     {
-        $bot->update(['commands' => array_values($commands)]);
+        $bot->update(['commands' => $data->toStoredCommands()]);
 
         $this->commands->sync($bot);
     }

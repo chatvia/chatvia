@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings\Function;
 
+use App\Http\Requests\Concerns\ValidatesFunctionAuth;
 use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
@@ -9,7 +10,6 @@ use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Spatie\LaravelData\Optional;
 
 /**
@@ -19,6 +19,8 @@ use Spatie\LaravelData\Optional;
  */
 class CreateAgentFunctionRequest extends FormRequest
 {
+    use ValidatesFunctionAuth;
+
     public function authorize(): bool
     {
         return true;
@@ -41,10 +43,7 @@ class CreateAgentFunctionRequest extends FormRequest
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => ['required', 'string', new ValidParametersSchema],
             'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
-            'webhook_method' => ['sometimes', Rule::enum(FunctionWebhookMethod::class)],
-            'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
-            'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
-            'auth_value' => ['nullable', 'required_if:auth_type,bearer,header,hmac', 'string', 'max:8192'],
+            ...$this->functionAuthRules(),
             'requires_approval' => ['sometimes', 'boolean'],
         ];
     }

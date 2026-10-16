@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Agent\Starters;
 
 use Domain\Agent\Data\Settings\Copy\StarterData;
+use Domain\Agent\Data\Settings\Copy\UpdateStartersData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -33,16 +34,15 @@ class UpdateAgentStartersRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return list<StarterData>
-     */
-    public function toData(): array
+    public function toData(): UpdateStartersData
     {
-        return array_values(array_map(static fn (array $starter): StarterData => new StarterData(
-            id: $starter['id'] ?? null,
-            text: (string) $starter['text'],
-            icon: $starter['icon'] ?? null,
-            overrides: array_filter((array) ($starter['overrides'] ?? []), is_string(...)),
-        ), (array) ($this->validated('starters') ?? [])));
+        return new UpdateStartersData(
+            starters: array_values(array_map(static fn (array $starter): StarterData => new StarterData(
+                id: $starter['id'] ?? null,
+                text: (string) $starter['text'],
+                icon: $starter['icon'] ?? null,
+                overrides: array_filter((array) ($starter['overrides'] ?? []), is_string(...)),
+            ), (array) ($this->validated('starters') ?? []))),
+        );
     }
 }

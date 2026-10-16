@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\LaravelData\Optional;
 
 /**
  * Validates a partial update of an agent from the dashboard: name, chat slug,
@@ -50,12 +51,10 @@ class UpdateAgentRequest extends FormRequest
         return new UpdateAgentData(
             agent: $agent,
             actor: $actor,
-            name: $this->has('name') ? $this->string('name')->toString() : null,
-            slug: $this->has('slug') ? $this->input('slug') : null,
-            changePrompt: $this->has('prompt_id'),
-            promptExternalId: $this->input('prompt_id'),
-            changeSystemInstructions: $this->has('system_instructions'),
-            systemInstructions: $this->input('system_instructions'),
+            name: $this->has('name') ? $this->string('name')->toString() : new Optional,
+            slug: $this->has('slug') ? $this->input('slug') : new Optional,
+            promptExternalId: $this->has('prompt_id') ? $this->input('prompt_id') : new Optional,
+            systemInstructions: $this->has('system_instructions') ? $this->input('system_instructions') : new Optional,
         );
     }
 }

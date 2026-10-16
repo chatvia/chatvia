@@ -29,7 +29,8 @@ class AddCustomConnectorRequest extends FormRequest
             'name' => ['required', 'string', 'min:2', 'max:64'],
             'url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'auth_strategy' => ['required', Rule::enum(ConnectorAuthStrategy::class)],
-            'token' => ['sometimes', 'nullable', 'string', 'max:8192'],
+            // Token auth without a token is refused here, as on the API twin.
+            'token' => ['required_if:auth_strategy,token', 'nullable', 'string', 'max:8192'],
         ];
     }
 

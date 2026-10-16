@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Api\V1\Form;
 
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Domain\Form\Data\SubmissionSelectionData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -32,12 +33,12 @@ class ExportApiSubmissionsRequest extends FormRequest
     }
 
     /**
-     * The selected submission ids; empty means "all".
-     *
-     * @return list<string>
+     * The selection; empty means "all".
      */
-    public function toData(): array
+    public function toData(): SubmissionSelectionData
     {
-        return array_values(array_map(strval(...), $this->validated('ids') ?? []));
+        return new SubmissionSelectionData(
+            ids: array_values(array_map(strval(...), $this->validated('ids') ?? [])),
+        );
     }
 }

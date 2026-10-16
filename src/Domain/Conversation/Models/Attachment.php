@@ -29,6 +29,7 @@ use Throwable;
  *
  * @property int $id
  * @property string $external_id
+ * @property int $workspace_id
  * @property int|null $chat_conversation_id
  * @property int|null $chat_message_id
  * @property string $filepath
@@ -43,6 +44,7 @@ use Throwable;
  * @property-read Message|null $message
  */
 #[Fillable([
+    'workspace_id',
     'chat_conversation_id',
     'chat_message_id',
     'filepath',

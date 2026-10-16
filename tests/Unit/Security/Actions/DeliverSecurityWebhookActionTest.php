@@ -37,7 +37,7 @@ function enableSiem(User $workspace, array $overrides = []): WorkspaceSecurityPo
 {
     $policy = WorkspaceSecurityPolicy::forWorkspace($workspace->workspace()->id);
     $policy->update(array_merge([
-        'webhook_enabled' => true,
+        'is_webhook_enabled' => true,
         'webhook_url' => 'https://siem.example.com/ingest',
         'webhook_secret' => 'shh-secret',
     ], $overrides));
@@ -79,7 +79,7 @@ it('re-checks the stored URL at send time and refuses an internal target', funct
 it('does not deliver when the webhook is disabled', function (): void {
     Http::fake();
     $workspace = User::factory()->create();
-    enableSiem($workspace, ['webhook_enabled' => false]);
+    enableSiem($workspace, ['is_webhook_enabled' => false]);
 
     app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
 

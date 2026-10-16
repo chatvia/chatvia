@@ -190,7 +190,7 @@ it('lets a workspace save a SIEM webhook', function (): void {
 
     $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
 
-    expect($policy->webhook_enabled)->toBeTrue()
+    expect($policy->is_webhook_enabled)->toBeTrue()
         ->and($policy->webhook_url)->toBe('https://siem.example.com/ingest')
         ->and($policy->webhook_secret)->toBe('super-secret'); // decrypted by the cast
 });

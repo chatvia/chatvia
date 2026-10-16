@@ -39,7 +39,7 @@ class UpdateSecurityPolicyAction
     private const array NETWORK_FIELDS = ['ip_allowlist_mode', 'ip_allowlist', 'geo_mode', 'geo_countries'];
 
     /** @var list<string> */
-    private const array OTHER_FIELDS = ['webhook_url', 'webhook_enabled', 'webhook_events', 'scim_enabled'];
+    private const array OTHER_FIELDS = ['webhook_url', 'is_webhook_enabled', 'webhook_events', 'is_scim_enabled'];
 
     /**
      * @throws UnsafeWebhookUrlException when the webhook URL is not a public https URL
@@ -79,7 +79,7 @@ class UpdateSecurityPolicyAction
             'geo_mode' => $form->geo_mode,
             'geo_countries' => $form->geo_countries,
             'webhook_url' => $form->webhook_url,
-            'webhook_enabled' => $form->webhook_enabled,
+            'is_webhook_enabled' => $form->webhook_enabled,
         ];
 
         if ($form->rotatesWebhookSecret()) {

@@ -6,8 +6,13 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Models\AgentActivity;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Topic\Models\Topic;
+use Domain\Evaluation\Enums\EvalRunStatus;
+use Domain\Evaluation\Models\EvalRun;
+use Domain\Form\Models\FormDefinition;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
@@ -422,5 +427,121 @@ describe('per-agent: every other mutating route is gated by its own permission',
 
             return ["conversations/{$conversation->external_id}", [], fn (): bool => Conversation::query()->whereKey($conversation->id)->exists()];
         }],
+        'create a form' => ['POST', 'agent.sources.train.connectors', 422, fn (Agent $agent): array => [
+            'forms', [], fn (): bool => FormDefinition::query()->forAgent($agent)->doesntExist(),
+        ]],
+        'update a form' => ['PATCH', 'agent.sources.train.connectors', 200, function (Agent $agent): array {
+            $form = FormDefinition::factory()->forAgent($agent)->create(['name' => 'Original']);
+
+            return ["forms/{$form->external_id}", ['name' => 'Renamed'], fn (): bool => $form->fresh()->name === 'Original'];
+        }],
+        'delete a form' => ['DELETE', 'agent.sources.train.connectors', 204, function (Agent $agent): array {
+            $form = FormDefinition::factory()->forAgent($agent)->create();
+
+            return ["forms/{$form->external_id}", [], fn (): bool => FormDefinition::query()->whereKey($form->id)->exists()];
+        }],
+        'trigger an eval run' => ['POST', 'agent.evals.manage', 201, fn (Agent $agent): array => [
+            'evals/runs', [], fn (): bool => EvalRun::query()->forAgent($agent->id)->doesntExist(),
+        ]],
+        'create a topic' => ['POST', 'agent.topics.manage', 422, fn (Agent $agent): array => [
+            'topics', [], fn (): bool => Topic::query()->where('workspace_id', $agent->workspace_id)->doesntExist(),
+        ]],
+        'rename a topic' => ['PATCH', 'agent.topics.manage', 422, function (Agent $agent): array {
+            $topic = Topic::query()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Shipping', 'description' => 'Delivery questions']);
+            $agent->topics()->attach($topic->id);
+
+            return ["topics/{$topic->external_id}", [], fn (): bool => $topic->fresh()->topic === 'Shipping'];
+        }],
+        'detach a topic' => ['DELETE', 'agent.topics.manage', 204, function (Agent $agent): array {
+            $topic = Topic::query()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Returns', 'description' => 'Return questions']);
+            $agent->topics()->attach($topic->id);
+
+            return ["topics/{$topic->external_id}", [], fn (): bool => $agent->topics()->where('topics.id', $topic->id)->exists()];
+        }],
     ]);
+});
+
+// ---------------------------------------------------------------------------
+// Per-agent reads — each gated by its own permission
+// ---------------------------------------------------------------------------
+
+describe('per-agent: every read endpoint is gated by its own permission', function (): void {
+
+    it('forbids a member without the permission and lets one with it through', function (string $permission, Closure $request): void {
+        $uri = $request($this->agent);
+
+        withApiToken(permMemberToken($this->owner, []))
+            ->getJson("/api/v1/agents/{$this->agent->external_id}/{$uri}")
+            ->assertForbidden();
+
+        withApiToken(permMemberToken($this->owner, [$permission]))
+            ->getJson("/api/v1/agents/{$this->agent->external_id}/{$uri}")
+            ->assertOk();
+
+        withApiToken($this->ownerToken)
+            ->getJson("/api/v1/agents/{$this->agent->external_id}/{$uri}")
+            ->assertOk();
+    })->with([
+        'list submissions (agent.leads.view)' => ['agent.leads.view', function (Agent $agent): string {
+            $form = FormDefinition::factory()->forAgent($agent)->create();
+
+            return "forms/{$form->external_id}/submissions";
+        }],
+        'export submissions (agent.leads.export)' => ['agent.leads.export', function (Agent $agent): string {
+            $form = FormDefinition::factory()->forAgent($agent)->create();
+
+            return "forms/{$form->external_id}/submissions/export";
+        }],
+        'list eval runs (agent.evals.view)' => ['agent.evals.view', fn (): string => 'evals/runs'],
+        'show an eval run (agent.evals.view)' => ['agent.evals.view', function (Agent $agent): string {
+            $run = EvalRun::create([
+                'agent_id' => $agent->id,
+                'agent_name' => $agent->name,
+                'workspace_id' => $agent->workspace_id,
+                'status' => EvalRunStatus::Completed,
+                'total_cases' => 0,
+                'started_at' => now(),
+            ]);
+
+            return "evals/runs/{$run->external_id}";
+        }],
+        'list topics (agent.topics.manage)' => ['agent.topics.manage', fn (): string => 'topics'],
+        'analytics overview (agent.analytics.chats)' => ['agent.analytics.chats', fn (): string => 'analytics/overview'],
+        'analytics sentiment (agent.analytics.sentiment)' => ['agent.analytics.sentiment', fn (): string => 'analytics/sentiment'],
+        'analytics tone (agent.analytics.tone)' => ['agent.analytics.tone', fn (): string => 'analytics/tone'],
+        'analytics topics (agent.analytics.topics)' => ['agent.analytics.topics', fn (): string => 'analytics/topics'],
+        'analytics sources (agent.analytics.sources)' => ['agent.analytics.sources', fn (): string => 'analytics/sources'],
+        'audit log (agent.audit.view)' => ['agent.audit.view', fn (): string => 'audit'],
+    ]);
+});
+
+describe('workspace audit log (account.governance)', function (): void {
+
+    it('lets the owner read it', function (): void {
+        withApiToken($this->ownerToken)->getJson('/api/v1/audit')->assertOk();
+    });
+
+    it('forbids a member WITHOUT account.governance and lets one WITH it through', function (): void {
+        AgentActivity::create([
+            'agent_id' => $this->agent->id,
+            'agent_name' => $this->agent->name,
+            'workspace_id' => $this->agent->workspace_id,
+            'trace_id' => (string) Str::uuid(),
+            'tool_call_id' => 'call_'.Str::random(6),
+            'tool_name' => 'get_weather',
+            'tool_kind' => 'function',
+            'outcome' => 'auto',
+            'gated' => false,
+            'is_error' => false,
+            'arguments_truncated' => false,
+            'result_truncated' => false,
+        ]);
+
+        withApiToken(permMemberToken($this->owner, []))->getJson('/api/v1/audit')->assertForbidden();
+
+        withApiToken(permMemberToken($this->owner, ['account.governance']))
+            ->getJson('/api/v1/audit')
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    });
 });

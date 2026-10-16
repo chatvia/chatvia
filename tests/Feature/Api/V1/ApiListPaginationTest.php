@@ -8,6 +8,11 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Topic\Models\Topic;
+use Domain\Evaluation\Enums\EvalRunStatus;
+use Domain\Evaluation\Models\EvalRun;
+use Domain\Form\Models\FormDefinition;
+use Domain\Form\Models\FormSubmission;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -65,6 +70,29 @@ function pagedRecords(string $list, User $owner, Agent $agent): array
             fn (): string => Message::factory()->create(['chat_conversation_id' => pagedConversation($agent)->id])->external_id,
             range(1, 3),
         ),
+        'forms' => array_map(fn (): string => FormDefinition::factory()->forAgent($agent)->create()->external_id, range(1, 3)),
+        'form submissions' => array_map(
+            fn (): string => FormSubmission::factory()->forDefinition(pagedForm($agent))->submitted()->create()->external_id,
+            range(1, 3),
+        ),
+        'eval runs' => array_map(fn (): string => EvalRun::create([
+            'agent_id' => $agent->id,
+            'agent_name' => $agent->name,
+            'workspace_id' => $agent->workspace_id,
+            'status' => EvalRunStatus::Completed,
+            'total_cases' => 0,
+            'started_at' => now(),
+        ])->external_id, range(1, 3)),
+        'topics' => array_map(function () use ($agent): string {
+            $topic = Topic::query()->create([
+                'workspace_id' => $agent->workspace_id,
+                'topic' => 'Topic '.Str::random(6),
+                'description' => 'Paging test topic',
+            ]);
+            $agent->topics()->attach($topic->id);
+
+            return $topic->external_id;
+        }, range(1, 3)),
     };
 
     $uri = match ($list) {
@@ -72,9 +100,20 @@ function pagedRecords(string $list, User $owner, Agent $agent): array
         'agent functions' => $agentPath.'/functions',
         'agent mcps' => $agentPath.'/mcps',
         'conversation messages' => $agentPath.'/conversations/'.pagedConversation($agent)->external_id.'/messages',
+        'forms' => $agentPath.'/forms',
+        'form submissions' => $agentPath.'/forms/'.pagedForm($agent)->external_id.'/submissions',
+        'eval runs' => $agentPath.'/evals/runs',
+        'topics' => $agentPath.'/topics',
     };
 
     return [$uri, array_reverse($ids)];
+}
+
+/** The one form these paging runs put submissions in (made on first use). */
+function pagedForm(Agent $agent): FormDefinition
+{
+    return FormDefinition::query()->where('agent_id', $agent->id)->first()
+        ?? FormDefinition::factory()->forAgent($agent)->create();
 }
 
 /** The one conversation these paging runs put messages in (made on first use). */
@@ -91,7 +130,7 @@ function pagedConversation(Agent $agent): Conversation
     );
 }
 
-dataset('paged lists', ['agents', 'teams', 'functions', 'mcps', 'agent functions', 'agent mcps', 'users', 'chatters', 'prompts', 'conversation messages']);
+dataset('paged lists', ['agents', 'teams', 'functions', 'mcps', 'agent functions', 'agent mcps', 'users', 'chatters', 'prompts', 'conversation messages', 'forms', 'form submissions', 'eval runs', 'topics']);
 
 it('pages a list newest first and walks it with the cursor', function (string $list): void {
     [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);

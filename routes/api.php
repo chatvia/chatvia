@@ -6,6 +6,13 @@ use App\Http\Controllers\Api\V1\Agent\AgentController;
 use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\PromptController;
+use App\Http\Controllers\Api\V1\Analytics\OverviewAnalyticsController;
+use App\Http\Controllers\Api\V1\Analytics\SentimentAnalyticsController;
+use App\Http\Controllers\Api\V1\Analytics\SourceUsageAnalyticsController;
+use App\Http\Controllers\Api\V1\Analytics\ToneAnalyticsController;
+use App\Http\Controllers\Api\V1\Analytics\TopicsAnalyticsController;
+use App\Http\Controllers\Api\V1\Audit\AgentAuditLogController;
+use App\Http\Controllers\Api\V1\Audit\WorkspaceAuditLogController;
 use App\Http\Controllers\Api\V1\Chat\ConversationController;
 use App\Http\Controllers\Api\V1\Chat\ConversationMessageController;
 use App\Http\Controllers\Api\V1\Chatter\ChatterController;
@@ -14,6 +21,10 @@ use App\Http\Controllers\Api\V1\Chatter\DeleteChatterController;
 use App\Http\Controllers\Api\V1\Chatter\ExternalChatterController;
 use App\Http\Controllers\Api\V1\Chatter\GrantChatterAgentsController;
 use App\Http\Controllers\Api\V1\Chatter\RevokeChatterAgentsController;
+use App\Http\Controllers\Api\V1\Eval\EvalRunController;
+use App\Http\Controllers\Api\V1\Form\ExportFormSubmissionsController;
+use App\Http\Controllers\Api\V1\Form\FormController;
+use App\Http\Controllers\Api\V1\Form\FormSubmissionController;
 use App\Http\Controllers\Api\V1\Function\FunctionController;
 use App\Http\Controllers\Api\V1\Mcp\McpServerController;
 use App\Http\Controllers\Api\V1\Source\SourceFileController;
@@ -26,6 +37,7 @@ use App\Http\Controllers\Api\V1\Team\RoleMemberController;
 use App\Http\Controllers\Api\V1\Team\TeamController;
 use App\Http\Controllers\Api\V1\Team\TeamMemberController;
 use App\Http\Controllers\Api\V1\Team\UserController;
+use App\Http\Controllers\Api\V1\Topic\TopicController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,7 +69,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
     ->prefix('v1')
     ->name('api.v1.')
-    ->whereUuid(['chatter', 'conversation', 'file', 'function', 'mcp', 'member', 'qa', 'role', 'team', 'text', 'website'])
+    ->whereUuid(['chatter', 'conversation', 'file', 'form', 'function', 'mcp', 'member', 'qa', 'role', 'run', 'team', 'text', 'topic', 'website'])
     ->group(function (): void {
 
         // Listing agents is scoped per-caller in the controller (owners see
@@ -117,6 +129,13 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
             Route::post('mcps', [McpServerController::class, 'store'])->name('mcps.store');
             Route::get('mcps/{mcp}', [McpServerController::class, 'show'])->name('mcps.show');
             Route::delete('mcps/{mcp}', [McpServerController::class, 'destroy'])->name('mcps.destroy');
+        });
+
+        // The workspace-wide tool-call audit log (Governed MCP Gateway),
+        // read-only — the API face of Settings → Governance, gated by the
+        // same account.governance team permission.
+        Route::middleware('team.permission:account.governance')->group(function (): void {
+            Route::get('audit', WorkspaceAuditLogController::class)->name('audit.index');
         });
 
         // The prompt library, read-only: how an API client discovers the
@@ -185,5 +204,43 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
             Route::post('conversations', [ConversationController::class, 'store'])->name('conversations.store');
             Route::get('conversations/{conversation}/messages', [ConversationMessageController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('conversations.messages.index');
             Route::post('conversations/{conversation}/messages', [ConversationMessageController::class, 'store'])->middleware('throttle:api-chat')->name('conversations.messages.store');
+
+            // Inline forms — reads are open like the dashboard's Forms page;
+            // mutations carry its agent.sources.train.connectors permission.
+            Route::get('forms', [FormController::class, 'index'])->name('forms.index');
+            Route::post('forms', [FormController::class, 'store'])->middleware('agent.permission:agent.sources.train.connectors')->name('forms.store');
+            Route::get('forms/{form}', [FormController::class, 'show'])->name('forms.show');
+            Route::patch('forms/{form}', [FormController::class, 'update'])->middleware('agent.permission:agent.sources.train.connectors')->name('forms.update');
+            Route::delete('forms/{form}', [FormController::class, 'destroy'])->middleware('agent.permission:agent.sources.train.connectors')->name('forms.destroy');
+
+            // Leads: a form's captured submissions, and the CSV export —
+            // gated by the dashboard's agent.leads.* permissions.
+            Route::get('forms/{form}/submissions', [FormSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
+            Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware('agent.permission:agent.leads.export')->name('forms.submissions.export');
+
+            // Eval runs: trigger a suite run and poll it by id (CI use).
+            Route::get('evals/runs', [EvalRunController::class, 'index'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.index');
+            Route::post('evals/runs', [EvalRunController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.store');
+            Route::get('evals/runs/{run}', [EvalRunController::class, 'show'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.show');
+
+            // Conversation topics — list, attach/create, rename, detach;
+            // gated by agent.topics.manage like the dashboard's Topics page.
+            Route::middleware('agent.permission:agent.topics.manage')->group(function (): void {
+                Route::get('topics', [TopicController::class, 'index'])->name('topics.index');
+                Route::post('topics', [TopicController::class, 'store'])->name('topics.store');
+                Route::patch('topics/{topic:external_id}', [TopicController::class, 'update'])->name('topics.update');
+                Route::delete('topics/{topic:external_id}', [TopicController::class, 'destroy'])->name('topics.destroy');
+            });
+
+            // Read-only analytics — each endpoint carries the same
+            // agent.analytics.* permission as its dashboard page.
+            Route::get('analytics/overview', OverviewAnalyticsController::class)->middleware('agent.permission:agent.analytics.chats')->name('analytics.overview');
+            Route::get('analytics/sentiment', SentimentAnalyticsController::class)->middleware('agent.permission:agent.analytics.sentiment')->name('analytics.sentiment');
+            Route::get('analytics/tone', ToneAnalyticsController::class)->middleware('agent.permission:agent.analytics.tone')->name('analytics.tone');
+            Route::get('analytics/topics', TopicsAnalyticsController::class)->middleware('agent.permission:agent.analytics.topics')->name('analytics.topics');
+            Route::get('analytics/sources', SourceUsageAnalyticsController::class)->middleware('agent.permission:agent.analytics.sources')->name('analytics.sources');
+
+            // The agent's tool-call audit log, read-only (agent.audit.view).
+            Route::get('audit', AgentAuditLogController::class)->middleware('agent.permission:agent.audit.view')->name('audit.index');
         });
     });

@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Api\V1\Topic;
+
+use App\Http\Rules\WorkspaceRule;
+use App\Identity\Workspace\Models\User;
+use Illuminate\Foundation\Http\FormRequest;
+
+/**
+ * `POST /api/v1/agents/{agent}/topics` — give the agent a topic: either
+ * attach an existing one by `topic_id` (a system topic or one of the
+ * workspace's own), or create a new workspace topic from `topic` +
+ * `description`.
+ */
+class StoreApiTopicRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        /** @var User $user */
+        $user = $this->user();
+
+        return [
+            // The ID of an existing topic to attach. Leave it out to create one.
+            'topic_id' => [
+                'sometimes', 'required', 'uuid', 'prohibits:topic,description',
+                WorkspaceRule::existsOrBuiltIn('topics', $user->workspace(), 'external_id'),
+            ],
+            // The new topic's name.
+            'topic' => ['required_without:topic_id', 'string', 'max:120'],
+            // What conversations the topic covers — written for the analysis model.
+            'description' => ['required_without:topic_id', 'string', 'max:255'],
+        ];
+    }
+
+    /** Whether the request attaches an existing topic (vs creating one). */
+    public function isAttach(): bool
+    {
+        return filled($this->validated('topic_id'));
+    }
+}

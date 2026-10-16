@@ -78,6 +78,10 @@ class ManageWorkspaceSettings extends AdminSettingsPage
                         }
                     }),
             ])->summary(fn (): string => 'Kept '.$this->valueInUse('retention_days').' days'),
+            SettingsCard::make('notifications', 'Notifications', 'How long the dashboard keeps notifications.', Heroicon::OutlinedBell, fn (): array => [
+                $this->integer('notification_retention_days', 'Days to keep notifications',
+                    help: 'Older notifications are deleted every night, read or not.', min: 1, max: 365),
+            ])->summary(fn (): string => 'Kept '.$this->valueInUse('notification_retention_days').' days'),
         ];
     }
 

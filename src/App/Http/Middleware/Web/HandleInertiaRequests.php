@@ -5,9 +5,11 @@ namespace App\Http\Middleware\Web;
 use App\Http\Auth\BotCheck;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Identity\Workspace\Enums\SocialProvider;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Services\AgentUrlBuilder;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Membership\Team\Services\TeamService;
+use Domain\Notification\Data\NotificationSummaryData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Middleware;
@@ -85,6 +87,12 @@ class HandleInertiaRequests extends Middleware
             // a /chat page the browser holds two XSRF-TOKEN cookies (the
             // dashboard's and the chat's), so reading the cookie is ambiguous.
             'csrfToken' => csrf_token(...),
+            // The notification bell: the unread count and the person's switches
+            // for desktop alerts and sound. Live updates come over Reverb.
+            'notifications' => fn (): ?NotificationSummaryData => $user instanceof User ? new NotificationSummaryData(
+                unread: $user->userNotifications()->unread()->count(),
+                preferences: $user->notificationPreferences(),
+            ) : null,
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
             // Install-wide switches for unfinished features (`chatvia.features`).

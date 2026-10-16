@@ -78,6 +78,10 @@ Schedule::command('app:anonymize-chat-sessions')->dailyAt('03:50')->withoutOverl
 Schedule::command('app:prune-leads')->dailyAt('04:05')->withoutOverlapping()->onOneServer();
 Schedule::command('app:prune-workspace-analytics')->dailyAt('04:50')->withoutOverlapping()->onOneServer();
 
+// The dashboard's notification center keeps a week by default (Settings →
+// Workspaces → Notifications).
+Schedule::command('app:prune-notifications')->dailyAt('04:55')->withoutOverlapping()->onOneServer();
+
 // Framework growth tables that have producers but had no reaper: finished
 // ingestion/eval batches, failed jobs, year-expired Sanctum tokens, and
 // consumed/expired magic links.

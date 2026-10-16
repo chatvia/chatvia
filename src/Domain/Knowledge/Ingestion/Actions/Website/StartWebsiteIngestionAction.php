@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Website;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Bus;
  */
 class StartWebsiteIngestionAction
 {
-    public function execute(SourceWebsite $website, Agent $agent, ?string $internalJobId = null): void
+    public function execute(SourceWebsite $website, Agent $agent, ?string $internalJobId = null, TrainingTrigger $trigger = TrainingTrigger::Manual): void
     {
         $website->update(['status' => SourceStatus::Processing]);
 
@@ -32,6 +33,7 @@ class StartWebsiteIngestionAction
         // only and load the models again when they run.
         $websiteId = $website->id;
         $agentId = $agent->id;
+        $triggerValue = $trigger->value;
 
         // A batch pushes every job onto its own queue and ignores the one the
         // job names, so the batch names the website ingestion queue.
@@ -44,13 +46,13 @@ class StartWebsiteIngestionAction
                     ->update(['internal_chunking_batch_id' => $batch->id]);
             })
             ->allowFailures()
-            ->finally(static function () use ($websiteId, $agentId): void {
+            ->finally(static function () use ($websiteId, $agentId, $triggerValue): void {
                 $agent = Agent::find($agentId);
                 $website = SourceWebsite::find($websiteId);
 
                 // The website or the agent may have been deleted meanwhile.
                 if ($agent !== null && $website !== null) {
-                    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
+                    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent, TrainingTrigger::from($triggerValue));
                 }
             })
             ->dispatch();

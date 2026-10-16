@@ -17,6 +17,7 @@ return new class extends SettingsMigration
             $group->add('new_workspace_message_limit');
             $group->add('retention_days');
             $group->add('retention_floor_days');
+            $group->add('notification_retention_days');
         });
     }
 

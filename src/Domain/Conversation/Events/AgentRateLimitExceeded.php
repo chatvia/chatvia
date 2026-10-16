@@ -6,15 +6,17 @@ namespace Domain\Conversation\Events;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
 
 /**
  * Fired when an agent's per-minute chat rate limit blocks an incoming message.
- * The listener emails the workspace owner (throttled), but only when the agent
- * opted in via the `notify_owner_on_rate_limit` security setting.
+ * One listener emails the workspace owner (throttled), but only when the agent
+ * opted in via the `notify_owner_on_rate_limit` security setting; another puts
+ * it in the notification center of the people who manage the agent.
  */
 class AgentRateLimitExceeded
 {
-    use Dispatchable;
+    use Dispatchable, SerializesModels;
 
     public function __construct(
         public Agent $agent,

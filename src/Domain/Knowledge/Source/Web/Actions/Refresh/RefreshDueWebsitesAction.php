@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Source\Web\Actions\Refresh;
 
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteIngestionJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
@@ -67,7 +68,7 @@ class RefreshDueWebsitesAction
 
         Bus::chain([
             new WebsiteCrawlerJob($website, $crawler, $agent),
-            new WebsiteIngestionJob($website, $agent),
+            new WebsiteIngestionJob($website, $agent, TrainingTrigger::Scheduled),
         ])->dispatch();
     }
 }

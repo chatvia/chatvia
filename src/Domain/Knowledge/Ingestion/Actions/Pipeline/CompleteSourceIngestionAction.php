@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Pipeline;
 
+use Domain\Knowledge\Ingestion\Events\SourceTrained;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -16,7 +17,8 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
  * some chunk jobs failed: what was chunked is searchable. The broadcast is the
  * authoritative "done" signal — per-chunk progress can stay below 100%
  * (duplicate or blank pages create no chunk), and without this event the page
- * would keep showing "ingesting".
+ * would keep showing "ingesting". The people who train sources on the agent
+ * are told it is done ({@see SourceTrained}).
  */
 class CompleteSourceIngestionAction
 {
@@ -28,5 +30,7 @@ class CompleteSourceIngestionAction
             $source instanceof SourceFile => FileIngestionProgressed::dispatch($source, $agentExternalId),
             $source instanceof SourceText => TextIngestionStarted::dispatch($source, $agentExternalId),
         };
+
+        SourceTrained::dispatch($source, $agentExternalId);
     }
 }

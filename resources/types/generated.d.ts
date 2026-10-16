@@ -44,6 +44,13 @@ declare namespace App {
                     count: number;
                 };
             }
+            namespace Notification {
+                export type NotificationFeedResourceData = {
+                    notifications: Domain.Notification.Data.UserNotificationData[];
+                    next_cursor: string | null;
+                    unread: number;
+                };
+            }
         }
     }
     namespace Identity {
@@ -803,6 +810,66 @@ declare namespace Domain {
                     }
                 }
             }
+        }
+    }
+    namespace Notification {
+        namespace Data {
+            export type CategoryPreferenceData = {
+                bell: boolean;
+                desktop: boolean;
+                sound: boolean;
+            };
+            export type NotificationAgentData = {
+                id: string;
+                name: string;
+            };
+            export type NotificationContentData = {
+                url: string;
+                agent: Domain.Notification.Data.NotificationAgentData | null;
+                subject: string | null;
+                detail: string | null;
+                actor: string | null;
+            };
+            export type NotificationPreferencesData = {
+                handoffs: Domain.Notification.Data.CategoryPreferenceData;
+                security: Domain.Notification.Data.CategoryPreferenceData;
+                training: Domain.Notification.Data.CategoryPreferenceData;
+                leads: Domain.Notification.Data.CategoryPreferenceData;
+                usage: Domain.Notification.Data.CategoryPreferenceData;
+                reports: Domain.Notification.Data.CategoryPreferenceData;
+            };
+            export type NotificationSummaryData = {
+                unread: number;
+                preferences: Domain.Notification.Data.NotificationPreferencesData;
+            };
+            export type UserNotificationData = {
+                id: string;
+                kind: Domain.Notification.Enums.NotificationKind;
+                category: Domain.Notification.Enums.NotificationCategory;
+                content: Domain.Notification.Data.NotificationContentData;
+                count: number;
+                read: boolean;
+                created_at: string;
+                updated_at: string;
+            };
+        }
+        namespace Enums {
+            export type NotificationCategory = 'handoffs' | 'security' | 'training' | 'leads' | 'usage' | 'reports';
+            export type NotificationFilter = 'all' | 'unread';
+            export type NotificationKind =
+                | 'handoff_requested'
+                | 'source_trained'
+                | 'source_training_failed'
+                | 'lead_captured'
+                | 'attack_blocked'
+                | 'guardrail_skipped'
+                | 'security_settings_changed'
+                | 'new_device_sign_in'
+                | 'message_limit_warning'
+                | 'message_limit_reached'
+                | 'rate_limit_exceeded'
+                | 'eval_run_finished'
+                | 'data_export_ready';
         }
     }
     namespace Security {

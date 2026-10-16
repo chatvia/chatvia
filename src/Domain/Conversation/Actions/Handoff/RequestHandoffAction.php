@@ -4,13 +4,15 @@ namespace Domain\Conversation\Actions\Handoff;
 
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
+use Domain\Conversation\Events\HandoffRequested;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 
 /**
  * Puts a visitor's conversation in the queue for a human operator. It only
  * ever moves a conversation into `pending`; one that is already waiting or
- * already with a human is returned as it is, without a second broadcast.
+ * already with a human is returned as it is, without a second broadcast or
+ * a second staff notification.
  */
 class RequestHandoffAction
 {
@@ -28,6 +30,7 @@ class RequestHandoffAction
         $conversation->update(['handoff_status' => HandoffStatus::Pending]);
 
         HandedOff::dispatch($conversation->external_id, HandoffStatus::Pending->value);
+        HandoffRequested::dispatch($conversation);
 
         return HandoffStatus::Pending;
     }

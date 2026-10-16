@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Evaluation\Actions;
 
 use Domain\Evaluation\Enums\EvalRunStatus;
+use Domain\Evaluation\Events\EvalRunFinished;
 use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
@@ -14,7 +15,8 @@ use Domain\Evaluation\Models\EvalRun;
  * {@see EvalResult} rows are the source of truth, so
  * the run's counts are always consistent even after a partial/cancelled batch.
  * Invoked from the Bus::batch `finally()` callback (and inline when a run has no
- * active cases).
+ * active cases). The person who started the run is told it finished
+ * ({@see EvalRunFinished}).
  */
 class FinalizeEvalRunAction
 {
@@ -41,6 +43,7 @@ class FinalizeEvalRunAction
             // so the resource never lazy-loads under Model::shouldBeStrict()).
             $run->loadMissing('triggeredByUser');
             EvalRunProgressed::dispatch($run, $agentExternalId);
+            EvalRunFinished::dispatch($run);
         }
 
         return $run;

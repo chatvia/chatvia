@@ -15,6 +15,8 @@ use Domain\Agent\Models\ModelSetting;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
+use Domain\Notification\Data\NotificationPreferencesData;
+use Domain\Notification\Models\UserNotification;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -74,6 +76,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $deactivation_reason
  * @property string|null $deactivated_at
  * @property DateFormat|null $date_format
+ * @property array<string, mixed>|null $notification_preferences
  * @property Carbon|null $last_login_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -94,6 +97,7 @@ use Support\Concerns\HasExternalId;
  * @property-read int|null $roles_count
  * @property-read Collection<int, UserSocial> $socials
  * @property-read int|null $socials_count
+ * @property-read Collection<int, UserNotification> $userNotifications
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
@@ -172,6 +176,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'last_login_at' => 'datetime',
             'is_admin' => 'boolean',
             'date_format' => DateFormat::class,
+            'notification_preferences' => 'array',
         ];
     }
 
@@ -211,6 +216,23 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function socials(): HasMany
     {
         return $this->hasMany(UserSocial::class);
+    }
+
+    /**
+     * This person's notification center. Not `notifications()`: that name is
+     * Laravel's own database channel, which the app does not use.
+     *
+     * @return HasMany<UserNotification, $this>
+     */
+    public function userNotifications(): HasMany
+    {
+        return $this->hasMany(UserNotification::class);
+    }
+
+    /** Which notifications ring the bell, alert the desktop or play a sound. */
+    public function notificationPreferences(): NotificationPreferencesData
+    {
+        return NotificationPreferencesData::fromStored($this->notification_preferences);
     }
 
     /**

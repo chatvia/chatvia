@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Pipeline;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Events\SourceTrainingFailed;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Events\TextIngestionStarted;
@@ -20,7 +21,9 @@ use Throwable;
  * hook, once the queue has given up on them.
  *
  * File failures are not broadcast: the Files page shows the status on its next
- * load, as it always has.
+ * load, as it always has. A whole file, text or website that failed is also
+ * told to the people who train it ({@see SourceTrainingFailed}); one failed
+ * page of a website is not, since the website goes on with the rest.
  */
 class MarkSourceFailedAction
 {
@@ -41,5 +44,9 @@ class MarkSourceFailedAction
             $source instanceof AgentWebsiteUrl => UrlIngestionStarted::dispatch($source, $agent->external_id),
             $source instanceof SourceFile => null,
         };
+
+        if (! $source instanceof AgentWebsiteUrl) {
+            SourceTrainingFailed::dispatch($source, $agent->external_id);
+        }
     }
 }

@@ -30,7 +30,7 @@ class ExportFormSubmissionsController
     {
         $filename = 'submissions-'.$form->slug.'-'.now()->format('Ymd-His').'.csv';
 
-        return response($export->execute($form, $request->toData()), 200, [
+        return response($export->execute($form, $request->toData()->ids), 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);

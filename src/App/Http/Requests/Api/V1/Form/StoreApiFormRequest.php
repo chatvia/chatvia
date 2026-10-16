@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Form;
 
+use App\Http\Requests\Concerns\ValidatesFormSchema;
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Enums\LeadField;
@@ -17,8 +18,7 @@ use Illuminate\Validation\Rule;
  */
 class StoreApiFormRequest extends FormRequest
 {
-    /** The field types a form field can have. */
-    public const array FIELD_TYPES = ['text', 'email', 'tel', 'number', 'textarea', 'select', 'radio', 'checkbox', 'multicheckbox', 'date'];
+    use ValidatesFormSchema;
 
     public function authorize(): bool
     {
@@ -46,14 +46,7 @@ class StoreApiFormRequest extends FormRequest
 
             // The field definitions the chat renders, in order (1–30 fields).
             'schema' => ['required', 'array', 'min:1', 'max:30'],
-            'schema.*.key' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_]*$/i'],
-            'schema.*.label' => ['required', 'string', 'max:120'],
-            'schema.*.type' => ['required', Rule::in(self::FIELD_TYPES)],
-            'schema.*.required' => ['boolean'],
-            'schema.*.placeholder' => ['nullable', 'string', 'max:120'],
-            'schema.*.options' => ['nullable', 'array'],
-            'schema.*.options.*.value' => ['required_with:schema.*.options', 'string', 'max:120'],
-            'schema.*.options.*.label' => ['required_with:schema.*.options', 'string', 'max:120'],
+            ...$this->formSchemaFieldRules(),
 
             // Maps field keys to the standard lead fields.
             'lead_field_map' => ['sometimes', 'nullable', 'array'],

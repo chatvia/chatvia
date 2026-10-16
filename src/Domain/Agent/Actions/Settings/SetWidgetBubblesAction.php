@@ -3,6 +3,7 @@
 namespace Domain\Agent\Actions\Settings;
 
 use Domain\Agent\Data\Settings\Copy\BubbleData;
+use Domain\Agent\Data\Settings\Copy\UpdateBubblesData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentTextTranslator;
 use Domain\Agent\ValueObjects\TranslatableText;
@@ -23,11 +24,11 @@ class SetWidgetBubblesAction
     ) {}
 
     /**
-     * @param  list<BubbleData>  $bubbles
      * @return list<BubbleData>
      */
-    public function execute(Agent $agent, array $bubbles): array
+    public function execute(Agent $agent, UpdateBubblesData $data): array
     {
+        $bubbles = $data->bubbles;
         $languages = $agent->enabledLanguages();
         $locales = array_keys($languages);
         $previous = $this->previousCopy($agent);

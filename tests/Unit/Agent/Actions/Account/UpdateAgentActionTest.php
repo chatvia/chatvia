@@ -5,6 +5,7 @@ use Domain\Agent\Actions\Account\UpdateAgentAction;
 use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
+use Spatie\LaravelData\Optional;
 
 /**
  * UpdateAgentAction owns the agent_prompt_id ↔ system_instructions
@@ -18,15 +19,14 @@ function uaaOwnedPrompt(User $user): AgentPrompt
 
 function uaaData(Agent $agent, array $overrides = []): UpdateAgentData
 {
+    // Absent fields are Optional: the Action must leave them alone.
     return new UpdateAgentData(...array_merge([
         'agent' => $agent,
         'actor' => $agent->workspace->owner,
-        'name' => null,
-        'slug' => null,
-        'changePrompt' => false,
-        'promptExternalId' => null,
-        'changeSystemInstructions' => false,
-        'systemInstructions' => null,
+        'name' => new Optional,
+        'slug' => new Optional,
+        'promptExternalId' => new Optional,
+        'systemInstructions' => new Optional,
     ], $overrides));
 }
 
@@ -43,7 +43,6 @@ it('switching to a library prompt clears system_instructions', function (): void
     $prompt = uaaOwnedPrompt($agent->workspace->owner);
 
     $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, [
-        'changePrompt' => true,
         'promptExternalId' => $prompt->external_id,
     ]));
 
@@ -57,7 +56,6 @@ it('switching to custom system_instructions clears agent_prompt_id', function ()
     $agent->update(['agent_prompt_id' => $prompt->id]);
 
     $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, [
-        'changeSystemInstructions' => true,
         'systemInstructions' => 'New custom instructions',
     ]));
 
@@ -71,7 +69,6 @@ it('clearing the library prompt by sending null clears both prompt and instructi
     $agent->update(['agent_prompt_id' => $prompt->id]);
 
     $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, [
-        'changePrompt' => true,
         'promptExternalId' => null, // explicit null = "no prompt selected"
     ]));
 

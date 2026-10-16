@@ -44,7 +44,7 @@ class AgentSubmissionController
     {
         $this->ensureFormOfAgent($agent, $form);
 
-        $form->deleteSubmissions($request->toData());
+        $form->deleteSubmissions($request->toData()->ids);
 
         return back();
     }

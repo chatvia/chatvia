@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Agent\Form;
 
+use App\Http\Requests\Concerns\ValidatesFormSchema;
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Enums\LeadField;
@@ -14,6 +15,8 @@ use Illuminate\Validation\Rule;
  */
 class SaveFormDefinitionRequest extends FormRequest
 {
+    use ValidatesFormSchema;
+
     public function authorize(): bool
     {
         // Route middleware (agent.permission) gates access.
@@ -25,8 +28,6 @@ class SaveFormDefinitionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $types = ['text', 'email', 'tel', 'number', 'textarea', 'select', 'radio', 'checkbox', 'multicheckbox', 'date'];
-
         return [
             'name' => ['required', 'string', 'max:120'],
             'subtitle' => ['nullable', 'string', 'max:300'],
@@ -36,14 +37,7 @@ class SaveFormDefinitionRequest extends FormRequest
             'is_active' => ['boolean'],
 
             'schema' => ['required', 'array', 'min:1', 'max:30'],
-            'schema.*.key' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_]*$/i'],
-            'schema.*.label' => ['required', 'string', 'max:120'],
-            'schema.*.type' => ['required', Rule::in($types)],
-            'schema.*.required' => ['boolean'],
-            'schema.*.placeholder' => ['nullable', 'string', 'max:120'],
-            'schema.*.options' => ['nullable', 'array'],
-            'schema.*.options.*.value' => ['required_with:schema.*.options', 'string', 'max:120'],
-            'schema.*.options.*.label' => ['required_with:schema.*.options', 'string', 'max:120'],
+            ...$this->formSchemaFieldRules(),
 
             'lead_field_map' => ['nullable', 'array'],
             'lead_field_map.*' => ['nullable', 'string', Rule::enum(LeadField::class)],

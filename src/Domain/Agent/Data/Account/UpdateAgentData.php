@@ -7,14 +7,14 @@ namespace Domain\Agent\Data\Account;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Optional;
 
 /**
  * Inputs for `UpdateAgentAction::execute()`.
  *
- * `changePrompt` / `changeSystemInstructions` carry whether the request
- * INCLUDED the corresponding key, separately from its value being null.
- * That distinction matters: clients can clear a field by sending `null`,
- * but absence means "leave this alone."
+ * A field left out of the partial update arrives as `Optional` and is left
+ * alone, separately from its value being null: clients can clear a field by
+ * sending `null`, but absence means "leave this alone."
  *
  * `prompt_id` and `system_instructions` are mutually exclusive at the
  * agent level — providing one clears the other. The FormRequest validates
@@ -25,11 +25,9 @@ class UpdateAgentData extends Data
     public function __construct(
         public Agent $agent,
         public User $actor,
-        public ?string $name,
-        public ?string $slug,
-        public bool $changePrompt,
-        public ?string $promptExternalId,
-        public bool $changeSystemInstructions,
-        public ?string $systemInstructions,
+        public string|Optional $name,
+        public string|Optional|null $slug,
+        public string|Optional|null $promptExternalId,
+        public string|Optional|null $systemInstructions,
     ) {}
 }

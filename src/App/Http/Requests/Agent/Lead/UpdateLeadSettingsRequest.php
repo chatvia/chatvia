@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Agent\Lead;
 
 use Domain\Form\Data\LeadFieldData;
+use Domain\Form\Data\UpdateLeadSettingsData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -30,17 +31,16 @@ class UpdateLeadSettingsRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return list<LeadFieldData>
-     */
-    public function toData(): array
+    public function toData(): UpdateLeadSettingsData
     {
-        return array_values(array_map(
-            fn (array $field): LeadFieldData => new LeadFieldData(
-                title: (string) $field['title'],
-                required: filter_var($field['required'], FILTER_VALIDATE_BOOLEAN),
-            ),
-            (array) $this->validated('fields'),
-        ));
+        return new UpdateLeadSettingsData(
+            fields: array_values(array_map(
+                fn (array $field): LeadFieldData => new LeadFieldData(
+                    title: (string) $field['title'],
+                    required: filter_var($field['required'], FILTER_VALIDATE_BOOLEAN),
+                ),
+                (array) $this->validated('fields'),
+            )),
+        );
     }
 }

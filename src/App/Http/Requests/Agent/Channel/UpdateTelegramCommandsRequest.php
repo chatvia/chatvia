@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Agent\Channel;
 
+use Domain\Channel\Telegram\Data\TelegramCommandData;
+use Domain\Channel\Telegram\Data\UpdateTelegramCommandsData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -89,14 +91,18 @@ class UpdateTelegramCommandsRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return list<array{command: string, description: string, type: string, value: string}>
-     */
-    public function commands(): array
+    public function toData(): UpdateTelegramCommandsData
     {
         /** @var list<array{command: string, description: string, type: string, value: string}> $commands */
-        $commands = (array) $this->input('commands', []);
+        $commands = array_values((array) $this->input('commands', []));
 
-        return array_values($commands);
+        return new UpdateTelegramCommandsData(
+            commands: array_map(static fn (array $command): TelegramCommandData => new TelegramCommandData(
+                command: $command['command'],
+                description: $command['description'],
+                type: $command['type'],
+                value: $command['value'],
+            ), $commands),
+        );
     }
 }

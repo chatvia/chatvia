@@ -7,6 +7,7 @@ namespace App\Http\Requests\Api\V1\Chatter;
 use App\Identity\Chatter\Data\UpdateChatterAccessData;
 use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\LaravelData\Optional;
 
 /**
  * Updating a chatter's access controls over the public API: the monthly
@@ -42,11 +43,11 @@ class UpdateApiChatterRequest extends FormRequest
             chatter: $chatter,
             messagesLimit: $this->has('messages_limit')
                 ? ($this->filled('messages_limit') ? $this->integer('messages_limit') : null)
-                : $chatter->messageLimit?->monthly_limit,
-            deactivated: $this->has('deactivated') ? $this->boolean('deactivated') : $chatter->isDeactivated(),
+                : new Optional,
+            deactivated: $this->has('deactivated') ? $this->boolean('deactivated') : new Optional,
             deactivationReason: $this->has('deactivation_reason')
                 ? ($this->string('deactivation_reason')->toString() ?: null)
-                : $chatter->deactivation_reason,
+                : new Optional,
         );
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Form;
 
+use App\Http\Requests\Concerns\ValidatesFormSchema;
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Enums\LeadField;
@@ -18,6 +19,8 @@ use Illuminate\Validation\Rule;
  */
 class UpdateApiFormRequest extends FormRequest
 {
+    use ValidatesFormSchema;
+
     public function authorize(): bool
     {
         return true;
@@ -44,14 +47,7 @@ class UpdateApiFormRequest extends FormRequest
 
             // The full replacement field list, in order (1–30 fields).
             'schema' => ['sometimes', 'array', 'min:1', 'max:30'],
-            'schema.*.key' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_]*$/i'],
-            'schema.*.label' => ['required', 'string', 'max:120'],
-            'schema.*.type' => ['required', Rule::in(StoreApiFormRequest::FIELD_TYPES)],
-            'schema.*.required' => ['boolean'],
-            'schema.*.placeholder' => ['nullable', 'string', 'max:120'],
-            'schema.*.options' => ['nullable', 'array'],
-            'schema.*.options.*.value' => ['required_with:schema.*.options', 'string', 'max:120'],
-            'schema.*.options.*.label' => ['required_with:schema.*.options', 'string', 'max:120'],
+            ...$this->formSchemaFieldRules(),
 
             // Maps field keys to the standard lead fields. Null clears the map.
             'lead_field_map' => ['sometimes', 'nullable', 'array'],

@@ -19,7 +19,7 @@ class UpdateAgentTelegramCommandsController
             return back()->withErrors(['commands' => __('Connect a Telegram bot before adding commands.')]);
         }
 
-        $update->execute($agent->telegramBot, $request->commands());
+        $update->execute($agent->telegramBot, $request->toData());
 
         return back();
     }

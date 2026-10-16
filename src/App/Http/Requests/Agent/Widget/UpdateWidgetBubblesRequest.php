@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Agent\Widget;
 
 use Domain\Agent\Data\Settings\Copy\BubbleData;
+use Domain\Agent\Data\Settings\Copy\UpdateBubblesData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -32,14 +33,13 @@ class UpdateWidgetBubblesRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return list<BubbleData>
-     */
-    public function toData(): array
+    public function toData(): UpdateBubblesData
     {
-        return array_values(array_map(static fn (array $bubble): BubbleData => new BubbleData(
-            text: (string) $bubble['text'],
-            overrides: array_filter((array) ($bubble['overrides'] ?? []), is_string(...)),
-        ), (array) ($this->validated('bubbles') ?? [])));
+        return new UpdateBubblesData(
+            bubbles: array_values(array_map(static fn (array $bubble): BubbleData => new BubbleData(
+                text: (string) $bubble['text'],
+                overrides: array_filter((array) ($bubble['overrides'] ?? []), is_string(...)),
+            ), (array) ($this->validated('bubbles') ?? []))),
+        );
     }
 }

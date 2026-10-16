@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent\Form;
 
+use Domain\Form\Data\SubmissionSelectionData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -30,12 +31,12 @@ class FormSubmissionSelectionRequest extends FormRequest
     }
 
     /**
-     * The selected external ids; anything that is not a string is ignored.
-     *
-     * @return list<string>
+     * The selection; anything that is not a string is ignored.
      */
-    public function toData(): array
+    public function toData(): SubmissionSelectionData
     {
-        return array_values(array_filter((array) $this->input('external_ids', []), is_string(...)));
+        return new SubmissionSelectionData(
+            ids: array_values(array_filter((array) $this->input('external_ids', []), is_string(...))),
+        );
     }
 }

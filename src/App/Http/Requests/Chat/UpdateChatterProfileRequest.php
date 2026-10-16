@@ -5,6 +5,7 @@ namespace App\Http\Requests\Chat;
 use App\Identity\Chatter\Data\UpdateChatterProfileData;
 use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\LaravelData\Optional;
 
 /**
  * Validates a signed-in chatter's profile changes on the hosted chat.
@@ -42,7 +43,7 @@ class UpdateChatterProfileRequest extends FormRequest
 
         return new UpdateChatterProfileData(
             user: $user,
-            name: $this->input('name'),
+            name: $this->has('name') ? $this->string('name')->toString() : new Optional,
             currentPassword: $this->input('current_password'),
             newPassword: $this->input('password'),
             photo: $this->file('photo'),

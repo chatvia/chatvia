@@ -359,6 +359,20 @@ theme.
   warns when `shared_buffers` outgrows the container's shared memory
   (`shm_size`). The complete installation tunes the same way from the
   server's memory and processors, into PostgreSQL's `conf.d/chatvia.conf`.
+- **The queue workers size themselves to the machine.** `php artisan
+  app:tune-workers` reads the memory and processors (a container limit
+  counts) and saves a worker count per pool — chat, files and websites,
+  analytics, audio and video, voice — as the Settings → Platform values,
+  where you change them later. `--dry-run` only shows the numbers,
+  `--restart` restarts a running Horizon so they apply. Both installers run
+  it once at the end of an install, so a new install starts sized to its
+  machine instead of the smallest server's defaults (in Docker:
+  `./manage artisan app:tune-workers --restart`).
+- **Redis 8.** The Docker stack runs `redis:8.10-alpine`, and the complete
+  installation takes the newest Redis from packages.redis.io when it carries
+  that Ubuntu release (Ubuntu 26.04's own Redis 8 otherwise).
+- **fail2ban protects SSH** on the complete installation: repeated failed
+  sign-ins ban the address, read from the systemd journal.
 - Docker upgrades: `.env` names the exact version an install runs (the
   installer turns `latest` into the release number). `./manage upgrade`
   shows the change and the release notes, backs up, downloads everything

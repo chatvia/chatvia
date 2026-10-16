@@ -74,7 +74,7 @@ jobs:
 
       - name: Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Composer dependencies
         uses: actions/cache@v4
@@ -132,7 +132,7 @@ jobs:
         run: npm run build
 
   scripts:
-    name: Shell scripts
+    name: Shell scripts and workflows
     runs-on: ubuntu-latest
 
     steps:
@@ -143,6 +143,11 @@ jobs:
       # the scripts inside the image. ShellCheck comes with the runner.
       - name: ShellCheck
         run: shellcheck install.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
+
+      # The workflow files themselves: expressions, job references and the
+      # shell in each run step.
+      - name: actionlint
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color
 
   bash-3:
     name: Installer on bash 3.2

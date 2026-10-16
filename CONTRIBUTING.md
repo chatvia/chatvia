@@ -82,14 +82,16 @@ changes a file**. It runs, in this order, and stops at the first failure:
 | 10 | `npm run i18n:check` | Every static `t('…')` key exists in `en.json`, and every locale's messages compile. |
 | 11 | `composer test` | The Pest suite (Unit, Feature, Architecture, Eval). |
 
-CI also checks the shell scripts in two small jobs of their own: ShellCheck
-on the installer, `docker/manage` and the scripts in the image, and a parse
-of `install.sh` and `docker/manage` with bash 3.2, the bash of macOS. After
-changing one of them, run:
+CI also checks the shell scripts and workflows in two small jobs of their
+own: ShellCheck on the installer, `docker/manage` and the scripts in the
+image, actionlint on `.github/workflows`, and a parse of `install.sh` and
+`docker/manage` with bash 3.2, the bash of macOS. After changing one of them,
+run:
 
 ```bash
 shellcheck install.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
 /bin/bash -n install.sh && /bin/bash -n docker/manage   # bash 3.2 on macOS
+actionlint                                                # brew install actionlint
 ```
 
 ### `composer ci`: fix, then check

@@ -2,8 +2,10 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
+use Domain\Conversation\Data\Memory\LlmMessageData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Turn\TurnContextFactory;
@@ -69,7 +71,10 @@ function rewriterSees(array $history, array $earlierTurns, string $rewritten = '
 {
     $memory = Mockery::mock(ChatMemory::class);
     $memory->shouldReceive('withScope')->andReturnSelf();
-    $memory->shouldReceive('getLlmMessages')->andReturn($history);
+    $memory->shouldReceive('getLlmMessages')->andReturn(array_map(
+        static fn (array $message): LlmMessageData => new LlmMessageData(MessageRole::from($message['role']), $message['content']),
+        $history,
+    ));
     $memory->shouldReceive('getMessagesForConversation')->andReturn([]);
     app()->instance(ChatMemory::class, $memory);
 

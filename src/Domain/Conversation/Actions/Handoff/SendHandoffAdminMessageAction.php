@@ -7,6 +7,7 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
+use Domain\Conversation\Exceptions\ConversationNotHeldException;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\DB;
@@ -15,8 +16,8 @@ use Illuminate\Support\Str;
 /**
  * Posts a human operator's reply into a conversation they hold: writes it to
  * the live chat memory and the database under one external id, then
- * broadcasts it to the visitor. Returns null when the operator does not hold
- * the conversation or its session has no agent any more.
+ * broadcasts it to the visitor. Returns null when the conversation's session
+ * has no agent any more.
  */
 class SendHandoffAdminMessageAction
 {
@@ -24,13 +25,16 @@ class SendHandoffAdminMessageAction
         private readonly ChatMemory $memory,
     ) {}
 
+    /**
+     * @throws ConversationNotHeldException when the operator has not taken the conversation over
+     */
     public function execute(SendHandoffAdminMessageData $data): ?Message
     {
         $conversation = $data->conversation;
         $admin = $data->admin;
 
         if (! $conversation->isHeldBy($admin)) {
-            return null;
+            throw ConversationNotHeldException::forReplying();
         }
 
         $session = $conversation->session;

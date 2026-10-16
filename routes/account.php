@@ -32,17 +32,18 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // Account deletion lives on its own page so the destructive flow has the
         // user's full attention. Two-factor: re-enter the password (request) →
         // open the signed email link (confirm, 30-min expiry) → final explicit
-        // click (destroy). Workspace owners only — gated in the controller +
-        // FormRequest.
-        Route::get('delete-account', [DeleteAccountController::class, 'edit'])->name('delete');
-        Route::post('delete-account', RequestAccountDeletionController::class)
-            ->middleware('throttle:5,60,account-deletion')
-            ->name('delete.request');
-        Route::get('delete-account/confirm/{userId}', ConfirmAccountDeletionController::class)
-            ->whereNumber('userId')
-            ->middleware('signed')
-            ->name('delete.confirm');
-        Route::delete('delete-account', [DeleteAccountController::class, 'destroy'])->name('destroy');
+        // click (destroy). Workspace owners only (`workspace.owner`).
+        Route::middleware('workspace.owner')->group(function (): void {
+            Route::get('delete-account', [DeleteAccountController::class, 'edit'])->name('delete');
+            Route::post('delete-account', RequestAccountDeletionController::class)
+                ->middleware('throttle:5,60,account-deletion')
+                ->name('delete.request');
+            Route::get('delete-account/confirm/{userId}', ConfirmAccountDeletionController::class)
+                ->whereNumber('userId')
+                ->middleware('signed')
+                ->name('delete.confirm');
+            Route::delete('delete-account', [DeleteAccountController::class, 'destroy'])->name('destroy');
+        });
 
         Route::get('password', [PasswordController::class, 'edit'])->name('password.edit');
         Route::put('password', [PasswordController::class, 'update'])->name('password.update');

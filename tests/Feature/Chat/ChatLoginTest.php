@@ -2,7 +2,6 @@
 
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
-use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -70,16 +69,13 @@ it('answers a correct staff password exactly like a wrong one', function (): voi
     $wrong->assertSessionHasErrors(['email' => trans('auth.failed')]);
 });
 
-it('locks the form after five failures for one workspace and email', function (): void {
-    // The route's per-IP throttle would answer 429 first; switch it off to
-    // reach the form's own counter.
-    $this->withoutMiddleware(ThrottleRequests::class);
-
+it('locks the form after five attempts for one workspace and email', function (): void {
     $chatter = Chatter::factory()->grantedTo($this->agent)->create([
         'email' => 'chatter@example.test',
         'password' => Hash::make('chatter-pass'),
     ]);
 
+    // The named `chat-login` limiter counts per workspace + email + IP.
     foreach (range(1, 5) as $_) {
         $this->from($this->login)->post($this->login, [
             'email' => 'chatter@example.test',
@@ -91,8 +87,7 @@ it('locks the form after five failures for one workspace and email', function ()
     $this->from($this->login)->post($this->login, [
         'email' => 'chatter@example.test',
         'password' => 'chatter-pass',
-    ])->assertSessionHasErrors('email');
+    ])->assertTooManyRequests();
 
-    expect(session('errors')->first('email'))->not->toBe(trans('auth.failed'))
-        ->and(Auth::guard('chat')->check())->toBeFalse();
+    expect(Auth::guard('chat')->check())->toBeFalse();
 });

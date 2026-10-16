@@ -5,10 +5,8 @@ namespace App\Http\Requests\Auth;
 use App\Http\Auth\BotCheck;
 use App\Http\Auth\BotCheckForm;
 use App\Identity\Workspace\Data\Sessions\LoginData;
-use Domain\Agent\Models\Agent;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 
 /**
  * Validates credentials for the agent-scoped chat member login at /chat/login.
@@ -50,14 +48,5 @@ class LoginRequest extends FormRequest
             password: $this->string('password')->toString(),
             remember: $this->boolean('remember'),
         );
-    }
-
-    /**
-     * Failed attempts are counted per workspace, email and IP, so a chatter
-     * locked out of one workspace's chat is not locked out of another's.
-     */
-    public function throttleKey(Agent $agent): string
-    {
-        return Str::transliterate('chat-login|'.$agent->workspace_id.'|'.Str::lower($this->string('email')).'|'.$this->ip());
     }
 }

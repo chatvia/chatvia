@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings\Account;
 
 use App\Identity\Workspace\Actions\Account\DeleteAccountAction;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\AccountDeletionConfirmation;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,26 +17,19 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
  * Before that click the owner confirms their password and gets a signed email
  * link ({@see RequestAccountDeletionController}); opening the link arms the
  * deletion for this session for 30 minutes
- * ({@see ConfirmAccountDeletionController}). The link itself never deletes,
- * so email link scanners can't trigger it.
+ * ({@see ConfirmAccountDeletionController}, {@see AccountDeletionConfirmation}).
+ * The `workspace.owner` route middleware keeps teammates out.
  */
 class DeleteAccountController
 {
-    /**
-     * Session key holding the unix timestamp at which the email confirmation
-     * link was opened. `destroy()` requires this to be present and fresh.
-     */
-    public const string CONFIRMED_AT_KEY = 'account_deletion_confirmed_at';
-
-    /** How long (seconds) a confirmed deletion stays armed before it lapses. */
-    private const CONFIRMATION_TTL = 30 * 60;
+    public function __construct(
+        private readonly AccountDeletionConfirmation $confirmation,
+    ) {}
 
     public function edit(Request $request): Response
     {
         /** @var User $user */
         $user = $request->user();
-
-        abort_unless($user->isWorkspaceOwner(), 403);
 
         return Inertia::render('account/DeleteAccount', [
             'agents' => $user->workspace()->agents()
@@ -43,7 +37,7 @@ class DeleteAccountController
                 ->get(['name'])
                 ->map(fn (Agent $agent): array => ['name' => $agent->name])
                 ->all(),
-            'deletionConfirmed' => $this->confirmationIsFresh($request),
+            'deletionConfirmed' => $this->confirmation->isFresh($request->session()),
         ]);
     }
 
@@ -57,9 +51,7 @@ class DeleteAccountController
         /** @var User $user */
         $user = $request->user();
 
-        abort_unless($user->isWorkspaceOwner(), 403);
-
-        if (! $this->confirmationIsFresh($request)) {
+        if (! $this->confirmation->isFresh($request->session())) {
             return back()->withErrors([
                 'confirmation' => __('Your confirmation link has expired. Please request account deletion again.'),
             ]);
@@ -77,12 +69,5 @@ class DeleteAccountController
         // it — return 204 and let the client do a full-page native redirect to '/'
         // (see DeleteUser.vue's onSuccess).
         return response()->noContent();
-    }
-
-    private function confirmationIsFresh(Request $request): bool
-    {
-        $confirmedAt = $request->session()->get(self::CONFIRMED_AT_KEY);
-
-        return is_int($confirmedAt) && (now()->timestamp - $confirmedAt) <= self::CONFIRMATION_TTL;
     }
 }

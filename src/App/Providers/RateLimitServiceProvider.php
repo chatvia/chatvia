@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Domain\Widget\WidgetHeaders;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 /**
  * Named rate limiters used by route `throttle:<name>` middleware. The login,
@@ -102,6 +104,22 @@ class RateLimitServiceProvider extends ServiceProvider
 
     private function configureChatLimiters(): void
     {
+        // Chatter password sign-in. Two layers: a per-IP ceiling, and a
+        // tighter counter per workspace + email + IP, so hammering one
+        // mailbox locks only that form while the workspace next door stays
+        // reachable. The route's `chat.agent` middleware has already resolved
+        // the agent when the limiter runs.
+        RateLimiter::for('chat-login', function (Request $request): array {
+            $agent = HostedChatAgent::from($request);
+
+            return [
+                Limit::perMinute(15)->by('chat-login-ip|'.$request->ip()),
+                Limit::perMinute(5)->by(Str::transliterate(
+                    'chat-login|'.($agent?->workspace_id ?? 'none').'|'.Str::lower($request->string('email')->toString()).'|'.$request->ip(),
+                )),
+            ];
+        });
+
         // Hosted-chat LLM-cost endpoints (stream, transcription, regenerate,
         // attachment upload). Keyed by the authenticated chatter, IP fallback.
         RateLimiter::for('chat-stream', function (Request $request) {

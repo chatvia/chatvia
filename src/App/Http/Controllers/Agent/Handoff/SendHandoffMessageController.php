@@ -11,7 +11,8 @@ use Domain\Conversation\Models\Message;
 
 /**
  * The operator who holds a conversation replies to the visitor. Agent access
- * is checked by the route's `can.access.agent` middleware.
+ * and the conversation belonging to the agent are checked by the route's
+ * `can.access.agent` middleware; holding the conversation by the Action.
  */
 class SendHandoffMessageController
 {
@@ -21,14 +22,6 @@ class SendHandoffMessageController
         Conversation $conversation,
         SendHandoffAdminMessageAction $sendMessage,
     ): HandoffMessageResultData {
-        abort_unless($conversation->belongsToAgent($agent), 403, __('Unauthorized.'));
-
-        abort_unless(
-            $conversation->isHeldBy($request->user()),
-            403,
-            __('You must take over this conversation before sending messages.'),
-        );
-
         $message = $sendMessage->execute($request->toData($conversation));
 
         abort_if(! $message instanceof Message, 500, __('Failed to send message.'));

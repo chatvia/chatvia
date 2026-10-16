@@ -63,7 +63,7 @@ Route::prefix('chat/{agentSlug}')
         Route::middleware('guest:chat,chat_staff')->group(function (): void {
             Route::get('login', ChatShowLoginController::class)->name('chat.login.show');
             Route::post('login', ChatLoginController::class)
-                ->middleware('throttle:5,1,chat-login')
+                ->middleware('throttle:chat-login')
                 ->name('chat.login');
 
             Route::post('magic-link', ChatMagicLinkController::class)

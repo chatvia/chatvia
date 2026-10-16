@@ -26,7 +26,7 @@ import { useDateFormat } from '@/composables/useDateFormat';
 import { useHandoff, type HandoffMessageEvent, type HandoffState } from '@/composables/useHandoff';
 import { useTimeAgo } from '@/composables/useTimeAgo';
 import { i18n } from '@/i18n';
-import { usePage } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import * as format from './chatLogFormat';
 
@@ -215,6 +215,18 @@ export function useChatLog() {
         if (found) currentConversationData.value = { ...found };
     }
 
+    // Mirrors the selection into the address bar (the server reads
+    // ?conversation_id= back on reload). A client-side visit: no request is
+    // made, and Inertia's page object and history entry stay consistent.
+    function syncUrlToSelection() {
+        router.replace({
+            url: chatLogUrl(agentId(), currentConversationId.value),
+            props: (props) => ({ ...props, current_conversation_id: currentConversationId.value }),
+            preserveScroll: true,
+            preserveState: true,
+        });
+    }
+
     /** Loads the first page with the current filters, replacing the list. */
     async function fetchConversations(refreshCurrentConversation = false) {
         const version = ++conversationsListVersion;
@@ -234,9 +246,7 @@ export function useChatLog() {
                 if (activeTab.value === 'pulse') await fetchPulseData();
             }
 
-            if (currentConversationId.value) {
-                window.history.pushState({}, '', chatLogUrl(agentId(), currentConversationId.value));
-            }
+            syncUrlToSelection();
         } catch {
             // The list keeps what it had; the refresh button retries.
         } finally {
@@ -368,6 +378,7 @@ export function useChatLog() {
         currentConversationData.value = { ...conversationData };
         pulseData.value = null;
         pulseError.value = null;
+        syncUrlToSelection();
     }
 
     function clearAllFilters() {

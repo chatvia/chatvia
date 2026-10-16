@@ -9,7 +9,7 @@ use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
- * Persists a {@see SecurityEventOccurred} as an immutable `security_audit_log`
+ * Persists a {@see SecurityEventOccurred} as an immutable `security_audit_logs`
  * row. Queued onto the analytics queue so the write never blocks the request
  * that triggered it (same posture as the tool-call / guardrail audit listeners).
  * The feature kill-switch `security_audit.enabled` short-circuits it before any

@@ -7,14 +7,13 @@ use Domain\Security\Actions\RecordSecurityEventAction;
 use Domain\Security\Enums\SecurityAuditAction;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Immutable, workspace-scoped security audit row (`security_audit_log`). Written
+ * Immutable, workspace-scoped security audit row (`security_audit_logs`). Written
  * once by {@see RecordSecurityEventAction} off the queue; read by the audit
  * viewer (Settings → Governance) and the Compliance API.
  *
@@ -41,7 +40,6 @@ use Illuminate\Support\Carbon;
  * @property-read User|null $user
  */
 #[Guarded(['id'])]
-#[Table(name: 'security_audit_log')]
 class SecurityAuditLog extends Model
 {
     /** Insert-only audit log. */

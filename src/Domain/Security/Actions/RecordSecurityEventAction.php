@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 use Support\Text\Utf8;
 
 /**
- * Writes one immutable security audit row (`security_audit_log`) for a
+ * Writes one immutable security audit row (`security_audit_logs`) for a
  * {@see SecurityEventOccurred}. Invoked from the queued {@see RecordSecurityEvent}
  * listener, off the request path.
  *

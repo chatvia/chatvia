@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
  * Scheduled retention for the security audit log (see
  * {@see PruneSecurityAuditLogAction}).
  */
-#[Description('Delete security audit rows (security_audit_log) older than the retention window, honouring per-workspace overrides clamped to the config floor.')]
+#[Description('Delete security audit rows (security_audit_logs) older than the retention window, honouring per-workspace overrides clamped to the config floor.')]
 #[Signature('app:prune-security-audit-log {--days= : Default retention in days; defaults to config(chatvia.security_audit.retention_days)}')]
 class PruneSecurityAuditLog extends Command
 {

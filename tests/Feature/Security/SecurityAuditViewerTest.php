@@ -11,7 +11,7 @@ use Inertia\Testing\AssertableInertia;
 | Security audit log viewer
 |--------------------------------------------------------------------------
 |
-| Read-only view of the immutable security_audit_log, for every workspace.
+| Read-only view of the immutable security_audit_logs, for every workspace.
 | Gated by the account.security team permission (proven in
 | SecurityPolicyTest).
 */

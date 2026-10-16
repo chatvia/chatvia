@@ -4,6 +4,7 @@ namespace Domain\Security\Events;
 
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Listeners\RecordSecurityEvent;
 use Illuminate\Foundation\Events\Dispatchable;
 
@@ -12,7 +13,7 @@ use Illuminate\Foundation\Events\Dispatchable;
  * per audited operation, every emission point dispatches this with an `action`
  * discriminator ({@see SecurityAuditAction}) and a fully-denormalized scalar
  * payload, so the queued {@see RecordSecurityEvent} listener can write one
- * immutable `security_audit_log` row without touching any live request state.
+ * immutable `security_audit_logs` row without touching any live request state.
  *
  * `metadata` is a RAW JSON string — the recorder hashes it (sha256) for
  * tamper-evidence BEFORE redacting + size-capping for storage.
@@ -49,7 +50,7 @@ final readonly class SecurityEventOccurred
         int|string|null $targetId = null,
         ?string $targetLabel = null,
         array $metadata = [],
-        string $outcome = 'success',
+        SecurityAuditOutcome $outcome = SecurityAuditOutcome::Success,
     ): self {
         return new self(
             workspaceId: $workspaceId,
@@ -63,7 +64,7 @@ final readonly class SecurityEventOccurred
             targetId: $targetId === null ? null : (string) $targetId,
             targetLabel: $targetLabel,
             metadata: (string) json_encode($metadata === [] ? (object) [] : $metadata),
-            outcome: $outcome,
+            outcome: $outcome->value,
         );
     }
 }

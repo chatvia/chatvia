@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('security_audit_log', function (Blueprint $table): void {
+        Schema::create('security_audit_logs', function (Blueprint $table): void {
             $table->id();
 
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
@@ -42,11 +42,11 @@ return new class extends Migration
             $table->index('user_id');
         });
 
-        DB::statement('CREATE INDEX security_audit_log_created_at_brin ON security_audit_log USING brin (created_at)');
+        DB::statement('CREATE INDEX security_audit_logs_created_at_brin ON security_audit_logs USING brin (created_at)');
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('security_audit_log');
+        Schema::dropIfExists('security_audit_logs');
     }
 };

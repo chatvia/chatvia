@@ -73,20 +73,26 @@ class WidgetVerification
     }
 
     /**
-     * Whether the session id is already taken by another agent's session. A
-     * visitor's widget picks a fresh id on its first visit, so only a replayed
-     * id can be another agent's, and nothing may be read or started in it.
+     * Whether the session id is already taken by someone else's session:
+     * another agent's, or on a protected agent another signed-in account's
+     * (pass `$viewer`). A visitor's widget picks a fresh id on its first visit,
+     * so only a replayed id can be someone else's, and nothing may be read or
+     * started in it. An id no session has yet is free.
      */
-    public function isSessionOfAnotherAgent(?string $sessionId, Agent $agent): bool
+    public function isSessionOfSomeoneElse(?string $sessionId, Agent $agent, ?ChatViewerData $viewer = null): bool
     {
         if (! $sessionId || ! Str::isUuid($sessionId)) {
             return false;
         }
 
-        return Session::query()
-            ->where('external_id', $sessionId)
-            ->where('agent_id', '!=', $agent->id)
-            ->exists();
+        $session = Session::query()->where('external_id', $sessionId)->first();
+
+        if (! $session instanceof Session) {
+            return false;
+        }
+
+        return $session->agent_id !== $agent->id
+            || ($viewer instanceof ChatViewerData && $session->getAttribute($viewer->sessionColumn()) !== $viewer->id);
     }
 
     /**

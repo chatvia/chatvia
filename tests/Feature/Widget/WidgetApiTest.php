@@ -136,7 +136,7 @@ it('reads the messages of the visitor\'s own conversation only', function (): vo
     // Another agent's widget, with the visitor's own ids.
     $other = Agent::factory()->create(['is_public' => true]);
     EmbeddedWidget::allowSite($other);
-    $read($boot['session_id'], $other)->assertForbidden();
+    $read($boot['session_id'], $other)->assertNotFound();
 });
 
 it('reports the AI as answering a conversation the visitor cannot see', function (): void {

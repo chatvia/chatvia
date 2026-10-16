@@ -42,7 +42,7 @@ class ConversationMessageController
         // another's thread by replaying their ids.
         $conversation = $verification->verifyConversationId($conversationId, $agent, $this->widgetViewer($request));
 
-        abort_if(! $conversation, JsonResponse::HTTP_FORBIDDEN, 'Invalid thread');
+        abort_if(! $conversation, JsonResponse::HTTP_NOT_FOUND, 'Invalid thread');
 
         $chatMemory = $memory->withContext($agent, $sessionId, $conversationId);
 

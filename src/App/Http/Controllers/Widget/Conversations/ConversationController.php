@@ -43,7 +43,7 @@ class ConversationController
         }
 
         // Another agent's session id, replayed here, lists and starts nothing.
-        if ($widgetVerification->isSessionOfAnotherAgent($sessionId, $agent)) {
+        if ($widgetVerification->isSessionOfSomeoneElse($sessionId, $agent)) {
             return new WidgetConversationsResultData(conversations: []);
         }
 

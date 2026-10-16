@@ -3,15 +3,14 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\CompleteConnectorOAuthAction;
 use Domain\Integration\Connector\Data\OAuth\ConnectorOAuthCallbackData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Mcp\Actions\Catalog\SyncMcpServerCatalogAction;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Tests\Support\Connector\PendingConnectorOAuth;
 
 /**
  * Finishing a connector OAuth flow: the state is single-use and must belong
@@ -22,22 +21,6 @@ use Illuminate\Support\Facades\Http;
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
 });
-
-function stashCompletablePendingState(string $state, User $starter, string $binding, ?string $connectorSlug = 'notion'): void
-{
-    Cache::put('oauth:mcp:state:'.$state, new PendingOAuthState(
-        userId: $starter->id,
-        connectorSlug: $connectorSlug,
-        authServerUrl: 'https://auth.example.test',
-        tokenEndpoint: 'https://auth.example.test/token',
-        clientId: 'client-123',
-        codeVerifier: 'verifier',
-        mcpUrl: 'https://mcp.example.test/rpc',
-        customName: $connectorSlug === null ? 'My server' : null,
-        customSlug: $connectorSlug === null ? 'my_server' : null,
-        sessionBindingHash: PendingOAuthState::hashBinding($binding),
-    )->seal(), 600);
-}
 
 it('rejects an unknown or already-used state', function (): void {
     Http::fake();
@@ -52,7 +35,7 @@ it('rejects an unknown or already-used state', function (): void {
 
 it('rejects a callback from a different user without exchanging the code', function (): void {
     Http::fake();
-    stashCompletablePendingState('abc', User::factory()->create(), 'binding');
+    PendingConnectorOAuth::stash('abc', User::factory()->create(), 'binding');
 
     expect(fn () => app(CompleteConnectorOAuthAction::class)->execute(
         User::factory()->create(),
@@ -65,7 +48,7 @@ it('rejects a callback from a different user without exchanging the code', funct
 it('rejects a callback from another browser session of the same user', function (): void {
     Http::fake();
     $user = User::factory()->create();
-    stashCompletablePendingState('abc', $user, 'binding-a');
+    PendingConnectorOAuth::stash('abc', $user, 'binding-a');
 
     expect(fn () => app(CompleteConnectorOAuthAction::class)->execute(
         $user,
@@ -88,7 +71,7 @@ it('saves the tokens under the workspace owner and keeps a catalog failure on th
 
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
-    stashCompletablePendingState('abc', $teammate, 'binding');
+    PendingConnectorOAuth::stash('abc', $teammate, 'binding');
 
     $server = app(CompleteConnectorOAuthAction::class)->execute(
         $teammate,
@@ -118,7 +101,7 @@ it('saves a custom server under its carried name and slug', function (): void {
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
 
     $user = User::factory()->create();
-    stashCompletablePendingState('abc', $user, 'binding', connectorSlug: null);
+    PendingConnectorOAuth::stash('abc', $user, 'binding', connectorSlug: null);
 
     $server = app(CompleteConnectorOAuthAction::class)->execute(
         $user,
@@ -143,7 +126,7 @@ it('updates the workspace\'s existing server on a repeat connect', function (): 
         'is_enabled' => false,
         'last_error' => 'The access token expired.',
     ]);
-    stashCompletablePendingState('abc', $user, 'binding');
+    PendingConnectorOAuth::stash('abc', $user, 'binding');
 
     $server = app(CompleteConnectorOAuthAction::class)->execute(
         $user,

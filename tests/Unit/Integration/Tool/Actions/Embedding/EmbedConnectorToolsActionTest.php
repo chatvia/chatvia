@@ -15,20 +15,13 @@ function connectorToolIsEmbedded(ConnectorTool $tool): bool
     return (bool) $row->embedded;
 }
 
-/**
- * Swap in an embedder that records every text it is asked to embed.
- *
- * @param  array<int, string>  $texts
- */
-function recordEmbeddedTexts(array &$texts): void
+/** A fresh embeddings fake, bound for the action; it records what it embeds. */
+function ectRecordingEmbedder(): FakeEmbeddingsProvider
 {
-    $recording = Mockery::mock(EmbeddingsProviderInterface::class);
-    $recording->shouldReceive('embed')->andReturnUsing(function (string $text) use (&$texts): array {
-        $texts[] = $text;
+    $embedder = new FakeEmbeddingsProvider;
+    app()->instance(EmbeddingsProviderInterface::class, $embedder);
 
-        return (new FakeEmbeddingsProvider)->embed($text);
-    });
-    app()->instance(EmbeddingsProviderInterface::class, $recording);
+    return $embedder;
 }
 
 it('embeds the shared catalog rows of one connector only', function (): void {
@@ -47,12 +40,11 @@ it('skips rows that are already embedded, so later connects pay nothing', functi
     ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'lookup']);
     app(EmbedConnectorToolsAction::class)->execute('acme-crm');
 
-    $texts = [];
-    recordEmbeddedTexts($texts);
+    $embedder = ectRecordingEmbedder();
 
     app(EmbedConnectorToolsAction::class)->execute('acme-crm');
 
-    expect($texts)->toBe([]);
+    expect($embedder->texts)->toBe([]);
 });
 
 it('embeds a builtin connector name and description from the MCP registry', function (): void {
@@ -61,10 +53,9 @@ it('embeds a builtin connector name and description from the MCP registry', func
     ]);
     ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'lookup', 'description' => 'Find a customer']);
 
-    $texts = [];
-    recordEmbeddedTexts($texts);
+    $embedder = ectRecordingEmbedder();
 
     app(EmbedConnectorToolsAction::class)->execute('acme-crm');
 
-    expect($texts)->toBe(["Acme CRM\nCustomer records\n\nlookup\n\nFind a customer"]);
+    expect($embedder->texts)->toBe(["Acme CRM\nCustomer records\n\nlookup\n\nFind a customer"]);
 });

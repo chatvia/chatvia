@@ -7,11 +7,8 @@ use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Llm\Contracts\LlmProviderInterface;
-use GuzzleHttp\Psr7\Response as PsrResponse;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Str;
-use Psr\Http\Message\ResponseInterface;
+use Tests\Support\ScriptedLlmProvider;
 
 /**
  * Forms render as a web-only inline artifact. The forms prompt is withheld off
@@ -22,48 +19,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 function crrReplyTo(string $answer): string
 {
-    $sse = 'data: '.json_encode(['id' => 'gen-test', 'choices' => [['delta' => ['content' => $answer]]]])."\n\n"
-        ."data: [DONE]\n\n";
-
-    bindFakeLlmProvider(new readonly class($sse) implements LlmProviderInterface
-    {
-        public function __construct(private string $sse) {}
-
-        public function stream(string $model, array $messages, array $settings = []): ResponseInterface
-        {
-            return new PsrResponse(200, ['Content-Type' => 'text/event-stream'], $this->sse);
-        }
-
-        public function client(): PendingRequest
-        {
-            throw new RuntimeException('The channel turn only streams.');
-        }
-
-        public function completion(array $data): never
-        {
-            throw new RuntimeException('The channel turn only streams.');
-        }
-
-        public function headers(): array
-        {
-            return [];
-        }
-
-        public function getGenerationCost(string $generationId): ?array
-        {
-            return null;
-        }
-
-        public function getCompletionEndpoint(): string
-        {
-            return 'https://llm.example.test/v1/chat/completions';
-        }
-
-        public function supportsCostTracking(): bool
-        {
-            return false;
-        }
-    });
+    bindFakeLlmProvider(ScriptedLlmProvider::answering($answer));
 
     $agent = Agent::factory()->create(['is_public' => true, 'llm_id' => testLlm()->id]);
     $agent->setSetting('enabled', false, 'guardrails');

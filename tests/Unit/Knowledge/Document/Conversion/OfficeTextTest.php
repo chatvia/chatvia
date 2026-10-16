@@ -4,7 +4,6 @@ use Domain\Knowledge\Document\Conversion\OfficeText;
 use Illuminate\Support\Facades\Process;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\Process\ExecutableFinder;
 
 /**
  * Office and plain-text files are read without an office suite: slides and
@@ -12,12 +11,6 @@ use Symfony\Component\Process\ExecutableFinder;
  * OfficeText::CHARS_PER_PAGE characters. The pandoc and catdoc tests need
  * those programs and skip cleanly when they are not installed.
  */
-function officeBinary(string $name): bool
-{
-    $binary = (string) config("services.bin.{$name}");
-
-    return $binary !== '' && (is_executable($binary) || (new ExecutableFinder)->find($binary) !== null);
-}
 
 /**
  * A minimal .pptx with one slide per entry (each a list of paragraphs).
@@ -105,7 +98,7 @@ it('gives one empty page for a file without text', function (): void {
 });
 
 it('reads a Word document as Markdown without image references', function (): void {
-    if (! officeBinary('pandoc')) {
+    if (! programInstalled('pandoc')) {
         $this->markTestSkipped('pandoc is not installed.');
     }
 

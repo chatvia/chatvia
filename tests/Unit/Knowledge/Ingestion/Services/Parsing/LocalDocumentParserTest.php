@@ -4,7 +4,6 @@ use Domain\Knowledge\Document\Conversion\OfficeText;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Mockery\MockInterface;
-use Symfony\Component\Process\ExecutableFinder;
 
 /**
  * The local document parser reads documents on the server with poppler's
@@ -12,12 +11,6 @@ use Symfony\Component\Process\ExecutableFinder;
  * without an OCR service can still ingest PDFs. The PDF tests need the
  * pdftotext binary and skip cleanly when it is not installed.
  */
-function ldpPdftotextAvailable(): bool
-{
-    $binary = (string) config('services.bin.pdftotext');
-
-    return $binary !== '' && (is_executable($binary) || (new ExecutableFinder)->find($binary) !== null);
-}
 
 /**
  * Write a minimal, valid PDF with one line of text per page and return its path.
@@ -66,7 +59,7 @@ function ldpPdf(array $pages, string $extension = 'pdf'): string
 }
 
 it('reads each PDF page into its own PageData', function (): void {
-    if (! ldpPdftotextAvailable()) {
+    if (! programInstalled('pdftotext')) {
         $this->markTestSkipped('pdftotext is not installed.');
     }
 
@@ -133,7 +126,7 @@ it('rejects a format it cannot read', function (): void {
 });
 
 it('reports a PDF the text tool cannot read as a parsing failure', function (): void {
-    if (! ldpPdftotextAvailable()) {
+    if (! programInstalled('pdftotext')) {
         $this->markTestSkipped('pdftotext is not installed.');
     }
 

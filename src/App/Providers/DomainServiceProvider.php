@@ -85,6 +85,7 @@ use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
+use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
@@ -217,6 +218,10 @@ class DomainServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(TextSplitter::class, BuiltinTextSplitter::class);
+
+        // Scoped: the auto driver asks the database for the pg_textsearch
+        // extension once per request, not once per consumer.
+        $this->app->scoped(LexicalSearch::class);
 
         $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none')) {
             'scaleway' => $app->make(ScalewayTranscriber::class),

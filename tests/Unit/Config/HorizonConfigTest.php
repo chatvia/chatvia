@@ -19,7 +19,6 @@ use Domain\Knowledge\Ingestion\Jobs\Text\TextChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\TextFile\TextFileIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
-use Domain\Knowledge\Retrieval\Jobs\RebuildVectorIndexesJob;
 
 /**
  * Horizon's supervisors must cover every queue the app uses, and a queue
@@ -97,7 +96,6 @@ it('pops each long job through a connection whose retry_after outlasts the job',
     [PrepareDataExportJob::class, 'exports'],
     [DeleteWorkspaceJob::class, 'exports'],
     [PurgeAgentJob::class, 'exports'],
-    [RebuildVectorIndexesJob::class, 'ingestion.chunks'],
     [JoinVoiceCallJob::class, 'voice'],
 ]);
 

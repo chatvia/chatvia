@@ -17,7 +17,7 @@ use Domain\Llm\Operations\Pricing\CostCalculator;
  * context) and the questions the page answers. Following Anthropic's
  * contextual-retrieval recipe the summary is prepended to the chunk text that
  * is embedded, which measurably improves recall; the questions get their own
- * dense and BM25 embeddings for question-to-question matching. Document pages
+ * dense and lexical signals for question-to-question matching. Document pages
  * also get prose descriptions of their images and tables (see
  * {@see PageVisualsDescriber}), which join the embedded text and the metadata.
  * The embeddings themselves are made by the caller, in one batch.

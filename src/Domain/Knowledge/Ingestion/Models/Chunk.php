@@ -18,8 +18,8 @@ use Support\Concerns\HasExternalId;
 
 /**
  * One searchable piece of a knowledge source: the text, its dense embedding
- * (pgvector halfvec, 1024 dimensions) and BM25 vector, and — once enhanced —
- * a summary and the questions it answers with their own embeddings.
+ * (pgvector, the install's type and size) and lexical search text, and — once
+ * enhanced — a summary and the questions it answers with their own embeddings.
  *
  * Chunks belong to a source, not to an agent: `chunkable_type` holds the
  * source's morph alias (never a class name), and agents reach chunks through
@@ -37,11 +37,10 @@ use Support\Concerns\HasExternalId;
  * @property string|null $summary
  * @property string|null $questions
  * @property HalfVector|null $questions_embedding
- * @property string|null $questions_embedding_bm25
  * @property int $cost_in_micro_cents
  * @property int $tokens
  * @property HalfVector $embedding
- * @property string $embedding_bm25
+ * @property string $search_text
  * @property array<array-key, mixed>|null $metadata
  * @property string $checksum
  * @property Carbon|null $created_at
@@ -66,8 +65,8 @@ use Support\Concerns\HasExternalId;
  * @method static ChunkQueryBuilder<static>|Chunk whereCostInCents($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereCreatedAt($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbedding($value)
- * @method static ChunkQueryBuilder<static>|Chunk whereEmbeddingBm25($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbeddingModel($value)
+ * @method static ChunkQueryBuilder<static>|Chunk whereSearchText($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereIsEnhanced($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereExternalId($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereId($value)
@@ -96,8 +95,7 @@ class Chunk extends Model
     protected function casts(): array
     {
         return [
-            // chunk/summary/questions are plaintext text columns. The searchable
-            // embedding columns are plaintext too (vector/BM25 search needs them).
+            // chunk/summary/questions/search_text are plaintext text columns.
             'embedding' => HalfVector::class,
             'metadata' => 'json',
         ];

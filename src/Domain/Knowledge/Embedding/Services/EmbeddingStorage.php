@@ -16,9 +16,6 @@ use Domain\Knowledge\Embedding\Exceptions\InvalidEmbeddingStorageException;
  */
 final class EmbeddingStorage
 {
-    /** The most dimensions a pgvector `vector` or `halfvec` column can hold. */
-    public const int MAX_DIMENSIONS = 16000;
-
     public function type(): VectorType
     {
         $value = config('chatvia.embeddings.type');
@@ -27,12 +24,17 @@ final class EmbeddingStorage
             ?? throw InvalidEmbeddingStorageException::type($value);
     }
 
+    /**
+     * Capped at what pgvector's HNSW index accepts for the type (2000 for
+     * `vector`, 4000 for `halfvec`): the chunks indexes are created with this
+     * size. Providers with larger native sizes support shortening (MRL).
+     */
     public function dimensions(): int
     {
         $value = config('chatvia.embeddings.dimensions');
         $dimensions = filter_var($value, FILTER_VALIDATE_INT);
 
-        if ($dimensions === false || $dimensions < 1 || $dimensions > self::MAX_DIMENSIONS) {
+        if ($dimensions === false || $dimensions < 1 || $dimensions > $this->type()->maxIndexedDimensions()) {
             throw InvalidEmbeddingStorageException::dimensions($value);
         }
 

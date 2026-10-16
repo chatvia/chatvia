@@ -20,7 +20,7 @@ use Domain\Llm\Services\TikToken;
  * and the questions it answers, with the neighbouring pages as context. The
  * reply must follow a strict JSON schema. The summary is later prepended to the
  * chunk before embedding ("contextual retrieval"); the questions get their own
- * embedding. Both are written in the page's own language: the keyword (BM25)
+ * embedding. Both are written in the page's own language: the keyword
  * search only matches words in the language a chatter asks in.
  */
 class Chunker

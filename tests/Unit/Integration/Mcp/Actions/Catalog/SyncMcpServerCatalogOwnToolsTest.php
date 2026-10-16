@@ -9,7 +9,6 @@ use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Integration\Tool\Registry\ToolRegistry;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -59,13 +58,13 @@ it('drops tools the server no longer advertises and adds the new ones', function
 it('re-indexes a tool whose description changed and leaves untouched ones indexed', function (): void {
     sotAdvertise([['ask-tutor', 'old wording'], ['correct-writing', 'correct']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
-    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['embedding_bm25' => Bm25Tokenizer::expression('indexed')]);
+    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['search_text' => 'indexed']);
     Queue::fake();
 
     sotAdvertise([['ask-tutor', 'new wording'], ['correct-writing', 'correct']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
-    $bm25 = fn (string $name): ?string => McpTool::query()->where('mcp_server_id', $this->server->id)->where('name', $name)->value('embedding_bm25');
+    $bm25 = fn (string $name): ?string => McpTool::query()->where('mcp_server_id', $this->server->id)->where('name', $name)->value('search_text');
 
     expect($bm25('ask-tutor'))->toBeNull()
         ->and($bm25('correct-writing'))->not->toBeNull();
@@ -90,20 +89,20 @@ it('busts every attached agent\'s cached tool pool so the next turn sees the fre
 it('re-indexes every tool when the server is renamed or re-described', function (): void {
     sotAdvertise([['ask-tutor', 'ask']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
-    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['embedding_bm25' => Bm25Tokenizer::expression('indexed')]);
+    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['search_text' => 'indexed']);
     Queue::fake();
 
     $this->server->fresh()->update(['description' => 'Danish tutor for Hejly learners']);
 
-    expect(McpTool::query()->where('mcp_server_id', $this->server->id)->value('embedding_bm25'))->toBeNull();
+    expect(McpTool::query()->where('mcp_server_id', $this->server->id)->value('search_text'))->toBeNull();
     Queue::assertPushed(EmbedMcpToolsJob::class);
 
     // An unrelated change (e.g. the catalog timestamp) leaves the index alone.
-    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['embedding_bm25' => Bm25Tokenizer::expression('indexed')]);
+    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['search_text' => 'indexed']);
     Queue::fake();
     $this->server->fresh()->update(['last_error' => null, 'catalog_cached_at' => now()]);
 
-    expect(McpTool::query()->where('mcp_server_id', $this->server->id)->value('embedding_bm25'))->not->toBeNull();
+    expect(McpTool::query()->where('mcp_server_id', $this->server->id)->value('search_text'))->not->toBeNull();
     Queue::assertNothingPushed();
 });
 

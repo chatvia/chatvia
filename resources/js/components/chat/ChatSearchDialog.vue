@@ -17,7 +17,7 @@ const props = defineProps<{
     open: boolean;
     // Recents, shown when the query is empty.
     conversations: Conversation[];
-    // Server search across title + message content (BM25). Returns the hits.
+    // Server search across title + message content (full-text). Returns the hits.
     search: (query: string) => Promise<Conversation[]>;
 }>();
 

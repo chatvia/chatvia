@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
+        <!-- On-demand eval harnesses (real embeddings; self-skip without an API
+             key, so harmless in the default run). Target with the eval group. -->
+        <testsuite name="Eval">
+            <directory>tests/Eval</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>src/App</directory>
+            <directory>src/Domain</directory>
+            <directory>src/Support</directory>
+        </include>
+    </source>
+    <php>
+        <!-- Applies inside every (parallel) worker process — the CLI default
+             of 128M fatals partway through the suite. -->
+        <ini name="memory_limit" value="2G"/>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="5432"/>
+        <env name="DB_DATABASE" value="testing"/>
+        <env name="DB_USERNAME" value="chatvia"/>
+        <env name="DB_PASSWORD" value="password"/>
+        <!-- Pulse records nothing in tests. Its tables go in the testing
+             database, so the suite needs no second database. -->
+        <env name="DB_PULSE_DATABASE" value="testing"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <!-- Spectra stays installed (its dashboard routes are tested) but
+             records nothing: its admin switch is off by default. -->
+        <env name="DB_SPECTRA_DATABASE" value="testing"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+    </php>
+</phpunit>

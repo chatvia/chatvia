@@ -6,12 +6,11 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Populates the dense (Qwen3) + BM25 (llmlingua2) embeddings for a CUSTOM
+ * Populates the dense embedding + lexical search text for a CUSTOM
  * server's per-server `mcp_tools` rows that are missing either signal. The
  * shared preset catalog has its own action, {@see EmbedConnectorToolsAction}.
  *
@@ -32,7 +31,7 @@ class EmbedMcpToolsAction
             ->with('mcpServer')
             ->where('mcp_server_id', $mcpServerId)
             ->where(function ($q): void {
-                $q->whereNull('embedding')->orWhereNull('embedding_bm25');
+                $q->whereNull('embedding')->orWhereNull('search_text');
             })
             ->get();
 
@@ -47,7 +46,7 @@ class EmbedMcpToolsAction
                 $text = trim($serverContext."\n\n".$tool->name."\n\n".$tool->description);
                 $tool->forceFill([
                     'embedding' => $this->embeddings->embed($text),
-                    'embedding_bm25' => Bm25Tokenizer::expression($text),
+                    'search_text' => $text,
                 ])->save();
             } catch (Throwable $e) {
                 Log::warning('MCP tool embedding failed', [
@@ -58,7 +57,7 @@ class EmbedMcpToolsAction
                 // Leave the row unembedded; the next refresh will try
                 // again. Hybrid search degrades gracefully — rows missing
                 // an embedding simply don't compete in that retrieval
-                // channel, but the BM25 channel can still surface them.
+                // channel, but the keyword channel can still surface them.
             }
         }
     }

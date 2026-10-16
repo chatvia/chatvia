@@ -10,7 +10,6 @@ use Domain\Evaluation\Enums\EvalQuestionSource;
 use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Str;
@@ -50,7 +49,7 @@ function knowledgeEvalChunk(Agent $agent, string $text, bool $attach = true): Ch
         'chunk' => $text,
         'tokens' => 1,
         'embedding' => '['.implode(',', array_fill(0, 1024, 0)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
+        'search_text' => $text,
         'checksum' => Str::random(32),
     ]);
 }

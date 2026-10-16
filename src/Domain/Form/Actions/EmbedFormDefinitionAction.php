@@ -7,13 +7,12 @@ namespace Domain\Form\Actions;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Populates `form_definitions.embedding` (Qwen3 dense vector) and
- * `form_definitions.embedding_bm25` (BM25 sparse vector via llmlingua2) for a
+ * Populates `form_definitions.embedding` (dense vector) and
+ * `form_definitions.search_text` (what the lexical channel searches) for a
  * single form. Dispatched by the FormDefinition observer on create/update so a
  * form becomes scorable by {@see FormHybridSearch} — the
  * agent picks the right form by the visitor's INTENT rather than its title.
@@ -37,7 +36,7 @@ class EmbedFormDefinitionAction
             $text = trim($form->name."\n\n".$form->agent_instructions);
             $form->forceFill([
                 'embedding' => $this->embeddings->embed($text),
-                'embedding_bm25' => Bm25Tokenizer::expression($text),
+                'search_text' => $text,
             ])->save();
         } catch (Throwable $e) {
             Log::warning('Form embedding failed', [

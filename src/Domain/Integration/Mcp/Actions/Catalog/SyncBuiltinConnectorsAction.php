@@ -138,7 +138,7 @@ class SyncBuiltinConnectorsAction
     {
         if ($options->reembedAll) {
             ConnectorTool::query()->where('connector_slug', $slug)
-                ->update(['embedding' => null, 'embedding_bm25' => null]);
+                ->update(['embedding' => null, 'search_text' => null]);
         }
 
         if ($options->queueEmbedding) {

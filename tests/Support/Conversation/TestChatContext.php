@@ -33,6 +33,7 @@ final class TestChatContext
         ?string $requestId = null,
         bool $streamSources = false,
         ?string $userMessageId = null,
+        ?int $chatterId = null,
     ): ChatContext {
         $llm ??= Llm::factory()->create();
 
@@ -41,6 +42,7 @@ final class TestChatContext
             message: new StreamRequestMessageData(model: $llm, message: $message),
             externalSessionId: $externalSessionId ?? (string) Str::uuid(),
             conversationId: $conversationId ?? (string) Str::uuid(),
+            chatterId: $chatterId,
             streamSources: $streamSources,
             requestId: $requestId ?? 'req_'.Str::random(12),
         );

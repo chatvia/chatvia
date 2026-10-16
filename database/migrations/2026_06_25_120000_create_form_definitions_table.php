@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Retrieval\Actions\ConfigureLexicalIndexesAction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -36,14 +37,15 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
 
             $table->embedding('embedding')->nullable();
-            $table->bm25vector('embedding_bm25')->nullable();
+            // What the embedding was computed from; the lexical channels search it.
+            $table->text('search_text')->nullable();
 
             $table->timestamps();
 
             $table->unique(['agent_id', 'slug']);
         });
 
-        DB::statement('CREATE INDEX form_definitions_embedding_bm25 ON form_definitions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
+        app(ConfigureLexicalIndexesAction::class)->execute('form_definitions');
         // No vector index: an agent reaches a few dozen forms at most, so its
         // search ranks them by exact distance (an approximate index over every
         // workspace's rows would only add work and miss some).

@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
-use Domain\Knowledge\Retrieval\Services\VectorIndexSizing;
+use Domain\Knowledge\Retrieval\Actions\ConfigureLexicalIndexesAction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -29,11 +29,12 @@ return new class extends Migration
             $table->unsignedInteger('tokens');
 
             $table->embedding('embedding');
-            $table->bm25vector('embedding_bm25');
+            // What the embedding was computed from (summary + content + visual
+            // descriptions); the lexical channels search it.
+            $table->text('search_text');
 
             $table->text('questions')->nullable();
             $table->embedding('questions_embedding')->nullable();
-            $table->bm25vector('questions_embedding_bm25')->nullable();
 
             $table->jsonb('metadata')->nullable();
 
@@ -45,11 +46,11 @@ return new class extends Migration
             $table->index(['chunkable_type', 'chunkable_id', 'chunk_index'], 'chunks_page_idx');
         });
 
-        DB::statement('CREATE INDEX chunks_embedding_bm25 ON chunks USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
-        DB::statement('CREATE INDEX chunks_questions_embedding_bm25 ON chunks USING bm25 (questions_embedding_bm25 bm25_catalog.bm25_ops)');
+        // The lexical (keyword) indexes, in the shape of the install's driver.
+        app(ConfigureLexicalIndexesAction::class)->execute('chunks');
 
-        $this->createVectorChordIndex('chunks_embedding_vchordrq_optimized', 'embedding');
-        $this->createVectorChordIndex('chunks_questions_embedding_vchordrq', 'questions_embedding');
+        $this->createHnswIndex('chunks_embedding_hnsw', 'embedding');
+        $this->createHnswIndex('chunks_questions_embedding_hnsw', 'questions_embedding');
 
         DB::statement(<<<'SQL'
 ALTER TABLE chunks SET (
@@ -66,17 +67,14 @@ SQL);
     }
 
     /**
-     * A flat vchordrq index (no partitions): right for an empty or small table,
-     * and nothing to train yet. `php artisan vector:reindex` (weekly) partitions
-     * it once the table passes 100k rows (RebuildVectorIndexAction).
+     * A pgvector HNSW index (default build options). It needs no training and
+     * grows with the table, so it is never rebuilt for size.
      */
-    private function createVectorChordIndex(string $indexName, string $column): void
+    private function createHnswIndex(string $indexName, string $column): void
     {
-        $options = app(VectorIndexSizing::class)->flatOptions();
-
         // The install's vector type decides the operator class (EmbeddingStorage).
         $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
-        DB::statement("CREATE INDEX {$indexName} ON chunks USING vchordrq ({$column} {$ops}) WITH (options = '{$options}')");
+        DB::statement("CREATE INDEX {$indexName} ON chunks USING hnsw ({$column} {$ops})");
     }
 };

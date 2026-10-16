@@ -4,13 +4,12 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Populates `functions.embedding` (Qwen3 dense vector) and
- * `functions.embedding_bm25` (BM25 sparse vector via llmlingua2) for a
+ * Populates `functions.embedding` (dense vector) and
+ * `functions.search_text` (what the lexical channel searches) for a
  * single function. Dispatched by the AgentFunction observer on
  * create/update so user-defined webhook functions are immediately
  * scorable by ToolHybridSearch alongside MCP tools.
@@ -38,7 +37,7 @@ class EmbedAgentFunctionAction
             $text = trim($name."\n\n".$function->description);
             $function->forceFill([
                 'embedding' => $this->embeddings->embed($text),
-                'embedding_bm25' => Bm25Tokenizer::expression($text),
+                'search_text' => $text,
             ])->save();
         } catch (Throwable $e) {
             Log::warning('Function embedding failed', [

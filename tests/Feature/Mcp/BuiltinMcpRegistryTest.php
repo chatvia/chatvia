@@ -64,7 +64,7 @@ it('catalogs the built-in servers as global rows and indexes their tools', funct
     // Every tool got indexed (dense + BM25) into the shared catalog by the
     // inline embed step.
     expect(ConnectorTool::where('connector_slug', 'account-analytics')->whereNull('embedding')->count())->toBe(0)
-        ->and(ConnectorTool::where('connector_slug', 'account-analytics')->whereNull('embedding_bm25')->count())->toBe(0);
+        ->and(ConnectorTool::where('connector_slug', 'account-analytics')->whereNull('search_text')->count())->toBe(0);
 });
 
 it('is idempotent — re-running keeps two global rows', function (): void {

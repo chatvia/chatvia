@@ -2,8 +2,6 @@
 
 namespace Domain\Conversation\Actions\Messages;
 
-use App\Identity\Workspace\Actions\MessageLimits\RecordMessageUsageAction;
-use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\MessageRole;
@@ -18,16 +16,16 @@ use Illuminate\Support\Facades\DB;
 /**
  * Writes one visitor message to the chat log. In one transaction it stores the
  * message under its session and conversation, links the files the visitor
- * uploaded for it, pushes the conversation's retention horizon out, and counts
- * the message against the chatter's monthly limit. Once committed it asks for
- * the visitor's location and announces the message to analytics.
+ * uploaded for it, and pushes the conversation's retention horizon out. Once
+ * committed it asks for the visitor's location and announces the message to
+ * analytics. The chatter's monthly count is not kept here: the turn counts
+ * the message as it runs ({@see AddMessageToConversationAction}), so an
+ * agent's chat log switched off still counts.
  */
 class StoreUserMessageAction
 {
     public function __construct(
         private readonly ChatLogWriter $chatLog,
-        private readonly RecordMessageUsageAction $recordUsage,
-        private readonly MessageAllowance $allowance,
     ) {}
 
     public function execute(Agent $agent, UserTurnData $turn): Message
@@ -43,14 +41,6 @@ class StoreUserMessageAction
             // Activity-based retention: a new visitor message pushes the
             // horizon out when it is close (the model only writes then).
             $conversation->extendRetentionIfDueSoon($agent->messageRetentionInDays());
-
-            // A chatter's message counts against the chatter's own monthly
-            // limit (the workspace's limit counts replies). Counted here, not
-            // from chat_messages (retention prunes those), so the monthly
-            // tally survives. A no-op for a chatter without a limit.
-            if ($session->chatter_id !== null) {
-                $this->recordUsage->execute($this->allowance->limitForChatter($session->chatter_id));
-            }
 
             return $message->setRelation('conversation', $conversation->setRelation('session', $session));
         });

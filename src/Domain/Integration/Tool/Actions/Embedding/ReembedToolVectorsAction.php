@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * after the embedding provider or model changed: vectors of two models
  * cannot be compared, so tool routing would match the wrong tools. The old
  * vectors are cleared first, then one embed job is queued per connector,
- * MCP server, function and form; the keyword (BM25) columns are kept.
+ * MCP server, function and form; the lexical `search_text` columns are kept.
  */
 class ReembedToolVectorsAction
 {

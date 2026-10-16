@@ -34,7 +34,7 @@ class ConnectorToolFactory extends Factory
             'scope' => McpToolScope::Write,
             'default_permission' => McpToolPermission::Approval,
             'embedding' => null,
-            'embedding_bm25' => null,
+            'search_text' => null,
             'fetched_at' => now(),
         ];
     }

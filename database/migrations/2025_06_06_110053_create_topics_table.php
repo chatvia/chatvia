@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -11,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('topics', function (Blueprint $table): void {
             $table->id();
+            $table->uuid('external_id')->unique();
             // Null for a system topic every workspace can use.
             $table->foreignId('workspace_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('topic');
@@ -31,7 +33,7 @@ return new class extends Migration
             $table->index('topic_id');
         });
 
-        DB::table('topics')->insert([
+        $systemTopics = [
             [
                 'workspace_id' => null,
                 'topic' => 'General Questions',
@@ -116,7 +118,12 @@ return new class extends Migration
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-        ]);
+        ];
+
+        DB::table('topics')->insert(array_map(
+            static fn (array $topic): array => [...$topic, 'external_id' => (string) Str::uuid7()],
+            $systemTopics,
+        ));
     }
 
     public function down(): void

@@ -6,16 +6,16 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
-use Domain\Knowledge\Retrieval\Services\VectorIndexLayout;
-use Domain\Knowledge\Retrieval\Services\VectorIndexSizing;
+use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
 
 /**
  * The SQL of the knowledge-base search: four ranked channels over an agent's
- * chunks — dense vector, dense vector on the generated questions, BM25, and
- * BM25 on the questions — fused with Reciprocal Rank Fusion (k = 60). With
- * `chatvia.vector.search.hybrid` off, only the two vector channels run. A
- * BM25 channel only ranks chunks that share a term with the query.
+ * chunks — dense vector, dense vector on the generated questions, keyword
+ * (LexicalSearch), and keyword on the questions — fused with Reciprocal Rank
+ * Fusion (k = 60). With `chatvia.vector.search.hybrid` off, only the two
+ * vector channels run. A keyword channel only ranks chunks that share a term
+ * with the query.
  *
  * The channels reach the agent's chunks in one of two ways
  * ({@see ChunkSearchScope}), chosen from a bounded count of those chunks:
@@ -24,10 +24,10 @@ use Illuminate\Support\Facades\DB;
  *   the agent's chunks scores all four channels at once. Exact distances mean
  *   full recall, and no other workspace's rows are ever read, so the cost
  *   follows the agent's size, not the platform's.
- * - Indexed (many chunks): each channel is a self-contained subquery that the
- *   vchordrq / BM25 index serves in `prefilter` mode, with the tenant filter
- *   (`c.workspace_id`) and the agent's sources (`EXISTS`) checked during the
- *   index scan. The probes follow the index's live partitions.
+ * - Indexed (many chunks): each channel is a self-contained subquery served by
+ *   its own index — HNSW for the dense channels (iterative scan keeps
+ *   fetching until enough rows pass the tenant and source filters), the
+ *   lexical index for the keyword channels.
  *
  * Retrieval quality is measured by the knowledge retrieval eval
  * (tests/Eval/KnowledgeRetrievalEvalTest.php): any change to this SQL changes
@@ -38,16 +38,9 @@ final readonly class HybridChunkSearch
     /** Each channel returns this many times the final limit before fusion. */
     private const int CANDIDATES_PER_RESULT = 3;
 
-    /** The vchordrq indexes the two dense channels of the indexed path use. */
-    private const array VECTOR_INDEXES = [
-        'chunks_embedding_vchordrq_optimized',
-        'chunks_questions_embedding_vchordrq',
-    ];
-
     public function __construct(
         private EmbeddingStorage $storage,
-        private VectorIndexLayout $layout,
-        private VectorIndexSizing $sizing,
+        private LexicalSearch $lexical,
     ) {}
 
     /**
@@ -108,56 +101,24 @@ SQL, [$cap, $agent->id, $cap]);
     }
 
     /**
-     * Set the vchordrq search parameters for the current transaction (call
-     * inside one). SET takes no bind parameters, so the values are
-     * interpolated; the casts keep a stray config string from becoming SQL.
+     * Set the HNSW search parameters for the current transaction (call inside
+     * one). SET takes no bind parameters, so the values are interpolated; the
+     * casts keep a stray config string from becoming SQL.
      *
-     * Probes must match the shape of every vector index the query scans: none
-     * for a flat index, one value per level for a partitioned one. The GUC is
-     * set only when both indexes are partitioned on one level; otherwise each
-     * index uses the default probes stored on it by `vector:reindex`.
+     * The tenant and source filters are checked after the index returns a
+     * candidate, so iterative scan keeps the walk going until the channel's
+     * LIMIT is filled instead of stopping at the first `ef_search` rows.
      *
      * @param  array<string, mixed>  $config  the `chatvia.vector` config
      */
     public function configureAccuracy(string $accuracyLevel, array $config): void
     {
-        $epsilon = (float) ($config['search']['epsilon'][$accuracyLevel]
-            ?? $config['search']['epsilon']['default']
-            ?? 1.9);
+        $efSearch = (int) ($config['search']['ef_search'][$accuracyLevel]
+            ?? $config['search']['ef_search']['default']
+            ?? 100);
 
-        // prefilter is a database-wide default (vchordrq install migration).
-        DB::statement('SET LOCAL vchordrq.epsilon = '.max(0.0, min(4.0, $epsilon)));
-
-        $percent = (float) ($config['search']['probes_percent'][$accuracyLevel]
-            ?? $config['search']['probes_percent']['default']
-            ?? 3);
-
-        if (($probes = $this->probes($percent)) !== null) {
-            DB::statement("SET LOCAL vchordrq.probes = '{$probes}'");
-        }
-    }
-
-    /**
-     * One probes value valid for every vector index, or null to leave each
-     * index on its own stored default (a flat index, mixed shapes, or an index
-     * missing for a moment while a rebuild swaps it).
-     */
-    private function probes(float $percent): ?string
-    {
-        $percent = max(0.01, min(100.0, $percent));
-        $probes = 0;
-
-        foreach (self::VECTOR_INDEXES as $index) {
-            $lists = $this->layout->lists($index);
-
-            if ($lists === null || count($lists) !== 1) {
-                return null;
-            }
-
-            $probes = max($probes, (int) $this->sizing->probes($lists, $percent));
-        }
-
-        return (string) $probes;
+        DB::statement('SET LOCAL hnsw.ef_search = '.max(1, min(1000, $efSearch)));
+        DB::statement('SET LOCAL hnsw.iterative_scan = relaxed_order');
     }
 
     /**
@@ -177,17 +138,17 @@ SQL, [$cap, $agent->id, $cap]);
         $hybrid = $this->hybrid();
         $candidateLimit = $limit * self::CANDIDATES_PER_RESULT;
 
-        // The query is tokenized and turned into BM25 queries once, not once
-        // per chunk. A score of 0 means no shared term: not a BM25 hit.
-        $keywordInputs = $hybrid ? <<<'SQL'
+        // The query text is parsed once, not once per chunk. A score of 0
+        // means no shared term: not a keyword hit (LexicalSearch).
+        $keywordInputs = $hybrid ? <<<SQL
 ,
-           bm25_catalog.to_bm25query('chunks_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS chunk_terms,
-           bm25_catalog.to_bm25query('chunks_questions_embedding_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2')) AS question_terms
+           {$this->lexical->queryExpression('chunks_search_text_lexical')} AS chunk_terms,
+           {$this->lexical->queryExpression('chunks_questions_lexical')} AS question_terms
 SQL : '';
-        $keywordScores = $hybrid ? <<<'SQL'
+        $keywordScores = $hybrid ? <<<SQL
 ,
-           NULLIF(c.embedding_bm25 <&> q.chunk_terms, 0) AS bm25_dist,
-           NULLIF(c.questions_embedding_bm25 <&> q.question_terms, 0) AS question_bm25_dist
+           NULLIF({$this->lexical->score('c.search_text', 'q.chunk_terms')}, 0) AS bm25_dist,
+           NULLIF({$this->lexical->score('c.questions', 'q.question_terms')}, 0) AS question_bm25_dist
 SQL : '';
 
         $channels = [
@@ -224,7 +185,7 @@ scope AS MATERIALIZED (
     FROM search q
     CROSS JOIN agent_sources s
     CROSS JOIN LATERAL (
-        SELECT c.id, c.workspace_id, c.embedding, c.questions_embedding, c.embedding_bm25, c.questions_embedding_bm25
+        SELECT c.id, c.workspace_id, c.embedding, c.questions_embedding, c.search_text, c.questions
         FROM chunks c
         WHERE c.chunkable_type = s.sourceable_type
           AND c.chunkable_id = s.sourceable_id
@@ -239,7 +200,7 @@ SQL;
 
         $bindings = [
             $queryVector,
-            ...($hybrid ? [$query, $query] : []),
+            ...($hybrid ? [$this->lexical->queryText($query), $this->lexical->queryText($query)] : []),
             $agent->id,
             (int) $agent->workspace_id,
             ...array_fill(0, count($channels), $candidateLimit),
@@ -257,21 +218,21 @@ SQL;
     private function indexed(Agent $agent, string $query, string $queryVector, int $limit): array
     {
         $candidateLimit = $limit * self::CANDIDATES_PER_RESULT;
-        $channels = $this->indexedChannels();
+        $channels = $this->indexedChannels($query, $queryVector);
 
-        // Bindings follow each channel's textual `?` order: the ranking
-        // expression (query vector or text), the tenant filter, the agent id
-        // in EXISTS and the channel limit; the final LIMIT comes last.
+        // Bindings follow each channel's textual `?` order (the channel knows
+        // its own); the final SELECT measures each result's similarity to the
+        // query, and the final LIMIT comes last.
         $bindings = [];
 
         foreach ($channels as $channel) {
-            $bindings[] = $channel['keyword'] ? $query : $queryVector;
+            array_push($bindings, ...$channel['bindings']);
             $bindings[] = (int) $agent->workspace_id;
+            array_push($bindings, ...$channel['conditionBindings']);
             $bindings[] = $agent->id;
             $bindings[] = $candidateLimit;
         }
 
-        // The final SELECT measures each result's similarity to the query.
         $bindings[] = $queryVector;
         $bindings[] = $queryVector;
         $bindings[] = $limit;
@@ -284,18 +245,20 @@ SQL;
 
     /**
      * The ranked channels of the indexed path: always the two vector channels,
-     * plus the two BM25 (keyword) channels when hybrid search is on.
+     * plus the two keyword channels when hybrid search is on. Each channel
+     * carries the bindings of its ranking expression and of its extra
+     * condition, in their textual order.
      *
-     * @return list<array{name: string, sql: string, keyword: bool}>
+     * @return list<array{name: string, sql: string, bindings: list<string>, conditionBindings: list<string>}>
      */
-    private function indexedChannels(): array
+    private function indexedChannels(string $query, string $queryVector): array
     {
         $cast = $this->storage->columnType();
 
         $channels = [
-            ['name' => 'vector_ranked', 'keyword' => false,
+            ['name' => 'vector_ranked', 'bindings' => [$queryVector], 'conditionBindings' => [],
                 'sql' => $this->indexedChannel('vector_ranked', 'vector', "c.embedding <-> ?::{$cast}")],
-            ['name' => 'question_ranked', 'keyword' => false,
+            ['name' => 'question_ranked', 'bindings' => [$queryVector], 'conditionBindings' => [],
                 'sql' => $this->indexedChannel('question_ranked', 'question', "c.questions_embedding <-> ?::{$cast}", 'c.questions_embedding IS NOT NULL')],
         ];
 
@@ -303,13 +266,23 @@ SQL;
             return $channels;
         }
 
+        $terms = $this->lexical->queryText($query);
+        $match = $this->lexical->matchCondition('c.search_text');
+        $questionMatch = $this->lexical->matchCondition('c.questions');
+
         return [
             ...$channels,
-            ['name' => 'bm25_ranked', 'keyword' => true,
-                'sql' => $this->indexedChannel('bm25_ranked', 'bm25', $this->bm25Distance('c.embedding_bm25', 'chunks_embedding_bm25'))],
-            ['name' => 'question_bm25_ranked', 'keyword' => true,
-                'sql' => $this->indexedChannel('question_bm25_ranked', 'question_bm25', $this->bm25Distance('c.questions_embedding_bm25', 'chunks_questions_embedding_bm25'), 'c.questions_embedding_bm25 IS NOT NULL')],
+            ['name' => 'bm25_ranked', 'bindings' => [$terms], 'conditionBindings' => $match !== null ? [$terms] : [],
+                'sql' => $this->indexedChannel('bm25_ranked', 'bm25', $this->lexical->distance('c.search_text', 'chunks_search_text_lexical'), $match)],
+            ['name' => 'question_bm25_ranked', 'bindings' => [$terms], 'conditionBindings' => $questionMatch !== null ? [$terms] : [],
+                'sql' => $this->indexedChannel('question_bm25_ranked', 'question_bm25', $this->lexical->distance('c.questions', 'chunks_questions_lexical'), $this->both($questionMatch, 'c.questions IS NOT NULL'))],
         ];
+    }
+
+    /** Both conditions joined with AND, in this order (the first may be null). */
+    private function both(?string $first, string $second): string
+    {
+        return $first === null ? $second : "{$first} AND {$second}";
     }
 
     /**
@@ -318,8 +291,10 @@ SQL;
      *
      * Both filters are written so that the only way to answer the query is the
      * channel's own index, which visits rows closest-first and checks the
-     * filters on each (prefilter). Otherwise the planner, misjudging how many
-     * rows match, scores every one of a large agent's chunks, once per channel:
+     * filters on each (the dense channels keep scanning under
+     * `hnsw.iterative_scan` until the LIMIT is filled). Otherwise the planner,
+     * misjudging how many rows match, scores every one of a large agent's
+     * chunks, once per channel:
      * - `c.workspace_id + 0` is the tenant filter kept off the workspace_id
      *   btree; as a cheap scalar check it runs before the EXISTS;
      * - `OFFSET 0` keeps the EXISTS a per-row check (an index-only probe of
@@ -385,16 +360,6 @@ FROM rrf_scores r
 JOIN chunks c USING (id){$join}
 ORDER BY r.rrf_score DESC, r.id
 LIMIT ?
-SQL;
-    }
-
-    private function bm25Distance(string $column, string $index): string
-    {
-        return <<<SQL
-{$column} <&> bm25_catalog.to_bm25query(
-            '{$index}',
-            tokenizer_catalog.tokenize(?, 'llmlingua2')
-        )
 SQL;
     }
 

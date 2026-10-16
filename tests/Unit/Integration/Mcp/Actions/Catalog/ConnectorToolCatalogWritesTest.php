@@ -52,7 +52,7 @@ it('never gates a first-party builtin, even its write tools', function (): void 
 
 it('clears the embedding only when the description changes', function (): void {
     [$read] = app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());
-    ConnectorTool::whereKey($read->id)->update(['embedding_bm25' => null]);
+    ConnectorTool::whereKey($read->id)->update(['search_text' => null]);
     $read->forceFill(['embedding' => array_fill(0, app(EmbeddingStorage::class)->dimensions(), 0.1)])->save();
 
     app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());

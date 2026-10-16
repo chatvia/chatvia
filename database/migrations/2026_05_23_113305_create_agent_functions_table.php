@@ -1,9 +1,9 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Retrieval\Actions\ConfigureLexicalIndexesAction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -39,7 +39,8 @@ return new class extends Migration
             $table->boolean('is_enabled')->default(true);
 
             $table->embedding('embedding')->nullable();
-            $table->bm25vector('embedding_bm25')->nullable();
+            // What the embedding was computed from; the lexical channels search it.
+            $table->text('search_text')->nullable();
 
             $table->timestamp('last_invoked_at')->nullable();
             $table->text('last_error')->nullable();
@@ -50,7 +51,7 @@ return new class extends Migration
             $table->unique(['workspace_id', 'internal_name']);
         });
 
-        DB::statement('CREATE INDEX functions_embedding_bm25 ON functions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
+        app(ConfigureLexicalIndexesAction::class)->execute('functions');
 
         // No vector index: an agent reaches a few dozen functions at most, so its
         // search ranks them by exact distance (an approximate index over every

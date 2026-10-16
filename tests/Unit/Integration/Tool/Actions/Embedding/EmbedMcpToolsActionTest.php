@@ -20,7 +20,7 @@ function mcpToolIsEmbedded(McpTool $tool): bool
 {
     $row = McpTool::query()
         ->whereKey($tool->id)
-        ->selectRaw('embedding IS NOT NULL AND embedding_bm25 IS NOT NULL AS embedded')
+        ->selectRaw('embedding IS NOT NULL AND search_text IS NOT NULL AS embedded')
         ->first();
 
     return (bool) $row->embedded;

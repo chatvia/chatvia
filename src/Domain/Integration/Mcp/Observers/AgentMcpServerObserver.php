@@ -32,7 +32,7 @@ class AgentMcpServerObserver
         if ($server->wasChanged(['name', 'description'])) {
             $stale = McpTool::query()
                 ->where('mcp_server_id', $server->id)
-                ->update(['embedding' => null, 'embedding_bm25' => null]);
+                ->update(['embedding' => null, 'search_text' => null]);
 
             if ($stale > 0) {
                 EmbedMcpToolsJob::dispatch($server->id);

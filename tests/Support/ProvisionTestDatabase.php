@@ -31,10 +31,9 @@ class ProvisionTestDatabase
         // A missing schema, a missing checksum, or a checksum mismatch all
         // mean this particular database needs (re)building.
         if (! $this->databaseAlreadyMigrated()) {
-            // Fresh DB: install extensions then run migrate. We do NOT call
-            // migrate:fresh because db:wipe drops tables across all schemas
-            // (including extension catalogs) which leaves the extension types
-            // in a half-broken state for subsequent CREATE TABLE calls.
+            // Fresh DB: install extensions then run migrate (the install
+            // migration also creates them, but the test role may lack the
+            // rights, so each is attempted here under rescue() first).
             // Seeding loads reference data (the LLM catalogue) that tests read.
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
@@ -45,13 +44,7 @@ class ProvisionTestDatabase
         }
 
         if ($this->storedChecksum() !== $this->calculateChecksum()) {
-            // Rebuild from zero. Order matters twice over: the extension
-            // catalogs must be gone BEFORE the wipe (db:wipe cannot drop
-            // extension-owned tables like tokenizer_catalog.*), and the
-            // extensions must be back BEFORE migrate (the schema uses their
-            // types). That rules out migrate:fresh, which wipes and migrates
-            // in one step.
-            $this->dropPostgresExtensions();
+            // Rebuild from zero. The extensions survive the wipe.
             Artisan::call('db:wipe');
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
@@ -125,32 +118,17 @@ class ProvisionTestDatabase
         return md5($checksum);
     }
 
-    protected function dropPostgresExtensions(): void
-    {
-        $extensions = [
-            'pg_tokenizer',
-            'vchord',
-            'vchord_bm25',
-        ];
-
-        foreach ($extensions as $extension) {
-            rescue(fn () => DB::statement("DROP EXTENSION IF EXISTS {$extension} CASCADE"));
-        }
-    }
-
     /**
-     * Install Postgres extensions required by the schema. Order matters:
-     * `vector` first (required by vchord), then the rest. The migrations
-     * reference these schemas/types but don't create the extensions.
+     * Install the Postgres extensions the schema uses. pg_textsearch is
+     * best-effort: without it (it must be preloaded into the server) the
+     * lexical indexes are built for the built-in full-text search instead.
      */
     protected function installPostgresExtensions(): void
     {
         $extensions = [
             'vector',
             'pg_trgm',
-            'pg_tokenizer',
-            'vchord',
-            'vchord_bm25',
+            'pg_textsearch',
         ];
 
         foreach ($extensions as $extension) {

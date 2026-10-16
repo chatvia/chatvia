@@ -12,7 +12,6 @@ use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Enums\ToolSearchPool;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Pgvector\Laravel\Vector;
 
 /**
@@ -124,7 +123,7 @@ function toolSearchCustomTool(AgentMcpServer $server, string $name, array $vecto
         'permission' => $permission,
     ])->forceFill([
         'embedding' => new Vector($vector),
-        'embedding_bm25' => Bm25Tokenizer::expression("Tool {$name}"),
+        'search_text' => "Tool {$name}",
     ])->save();
 }
 
@@ -140,7 +139,7 @@ function toolSearchFunction(int $workspaceId, string $name, array $vector, strin
     // Replace the vectors the create-time embed job wrote with the test's own.
     $function->forceFill([
         'embedding' => new Vector($vector),
-        'embedding_bm25' => Bm25Tokenizer::expression($name.' '.$description),
+        'search_text' => $name.' '.$description,
     ])->saveQuietly();
 
     return $function;

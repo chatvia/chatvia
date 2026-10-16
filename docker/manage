@@ -42,7 +42,7 @@ readonly DATABASE_USERS="app horizon scheduler reverb pulse"
 # Where PostgreSQL reads postgres/postgresql.conf inside its container.
 readonly PG_CONF_MOUNT="/etc/postgresql/chatvia"
 # Chatvia's search needs these PostgreSQL libraries loaded at start.
-readonly REQUIRED_LIBRARIES="vchord vchord_bm25 vector pg_tokenizer"
+readonly REQUIRED_LIBRARIES="pg_textsearch"
 
 #------------------------------------------------------------------------------
 # Output (the same look as install.sh)
@@ -1010,14 +1010,11 @@ dump_database() {
     compose exec -T postgres pg_restore --list <"$1" >/dev/null
 }
 
-# SQL for what pg_dump leaves out, for a restore to run after the dump:
-#   - the database's own settings (ALTER DATABASE ... SET, made by a
-#     migration). pg_dump only keeps them with --create;
-#   - the tokenizers of the keyword search. pg_tokenizer keeps them in tables
-#     of its own, and pg_dump skips an extension's tables.
-# Restore runs it with psql -v dbname=<the new database>.
+# SQL for what pg_dump leaves out, for a restore to run after the dump: the
+# database's own settings (ALTER DATABASE ... SET), which pg_dump only keeps
+# with --create. Restore runs it with psql -v dbname=<the new database>.
 dump_extras() {
-    local db=$1 table tables
+    local db=$1
     printf -- '-- Written by ./manage on %s: what pg_dump leaves out.\n\n' "$(date '+%Y-%m-%d %H:%M:%S')"
     psql_in "$db" -At <<'SQL' || return
 SELECT format('ALTER DATABASE :"dbname" SET %I = %s;', name,
@@ -1029,13 +1026,6 @@ FROM (SELECT split_part(setting, '=', 1) AS name, substr(setting, strpos(setting
       WHERE s.setrole = 0
         AND s.setdatabase = (SELECT oid FROM pg_database WHERE datname = current_database())) AS settings;
 SQL
-    tables=$(psql_in "$db" -At -c "SELECT tablename FROM pg_tables WHERE schemaname = 'tokenizer_catalog' ORDER BY tablename") ||
-        return
-    for table in $tables; do
-        printf '\nCREATE TEMP TABLE "restore_%s" (LIKE tokenizer_catalog."%s");\nCOPY "restore_%s" FROM stdin;\n' "$table" "$table" "$table"
-        psql_in "$db" -c "COPY tokenizer_catalog.\"$table\" TO STDOUT" || return
-        printf '\\.\nINSERT INTO tokenizer_catalog."%s" SELECT * FROM "restore_%s" ON CONFLICT DO NOTHING;\n' "$table" "$table"
-    done
 }
 
 read_secrets() {
@@ -1201,7 +1191,7 @@ do_backup() {
     members='backup.env database-extras.sql'
     run_step 'Backing up the database' dump_database "$tmp/database.dump" ||
         die 'The database backup failed. Nothing was saved.'
-    run_step 'Saving the search tokenizers and the database settings' \
+    run_step 'Saving the database settings pg_dump misses' \
         to_file "$tmp/database-extras.sql" dump_extras '' ||
         die 'The backup failed. Nothing was saved.'
     if [ "$with_secrets" = 1 ]; then
@@ -1550,7 +1540,7 @@ restore_backup() {
     fi
     if [ ! -s "$extras" ]; then
         # A plain dump: take them from the current database.
-        dump_extras '' >"$extras" || die 'Could not read the search tokenizers of the current database.'
+        dump_extras '' >"$extras" || die 'Could not read the settings of the current database.'
     fi
     run_step 'Restoring the database next to the current one (Chatvia keeps running)' \
         restore_database "$file" "$kind" "$restore_db" "$extras" ||
@@ -2391,7 +2381,7 @@ pg_tune_settings() {
     cache_mb=$((ram_mb * 3 / 4))
 
     # Index builds work in maintenance_work_mem: the search indexes
-    # (VectorChord, bm25) build much faster with room here.
+    # (HNSW, bm25) build much faster with room here.
     maintenance_mb=$((ram_mb / 16))
     if [ "$maintenance_mb" -gt 2048 ]; then maintenance_mb=2048; fi
 
@@ -2533,8 +2523,8 @@ export_postgres_config() {
 # It checks this file, reloads PostgreSQL, and restarts it when a changed
 # setting needs that (they say "change requires restart" below).
 #
-# Chatvia's search needs vchord, vchord_bm25, vector and pg_tokenizer in
-# shared_preload_libraries: add your own libraries after them.
+# Chatvia's keyword search needs pg_textsearch in shared_preload_libraries:
+# add your own libraries after it.
 #
 # ./manage postgres export starts over from the defaults. Every setting:
 # https://www.postgresql.org/docs/current/runtime-config.html
@@ -2813,8 +2803,8 @@ command_help() {
             help_option '--yes' 'No questions'
             ;;
         backup)
-            info "Saves a backup in $(pretty_path "$(backup_dir)"): the database, the search"
-            info 'tokenizers and settings that pg_dump misses, the app key, and Redis'
+            info "Saves a backup in $(pretty_path "$(backup_dir)"): the database, the"
+            info 'database settings that pg_dump misses, the app key, and Redis'
             info '(who is signed in, the chat memory).'
             help_option '--files' 'Also the uploaded files (when they are stored here, not in S3)'
             help_option '--no-secrets' 'Leave out the app key (keep it somewhere else then)'

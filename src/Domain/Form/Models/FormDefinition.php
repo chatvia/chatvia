@@ -35,7 +35,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $agent_instructions
  * @property bool $is_active
  * @property Vector|null $embedding
- * @property string|null $embedding_bm25
+ * @property string|null $search_text
  *
  * @method static \Database\Factories\FormDefinitionFactory factory($count = null, $state = [])
  *

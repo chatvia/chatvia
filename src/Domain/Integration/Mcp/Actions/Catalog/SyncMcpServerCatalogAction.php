@@ -90,7 +90,7 @@ class SyncMcpServerCatalogAction
 
         McpTool::query()
             ->where('mcp_server_id', $server->id)
-            ->update(['embedding' => null, 'embedding_bm25' => null]);
+            ->update(['embedding' => null, 'search_text' => null]);
     }
 
     /**
@@ -171,7 +171,7 @@ class SyncMcpServerCatalogAction
             $tool->permission = $definition->defaultPermission();
         } elseif ($tool->description !== $definition->description) {
             $tool->embedding = null;
-            $tool->embedding_bm25 = null;
+            $tool->search_text = null;
         }
 
         $tool->forceFill([

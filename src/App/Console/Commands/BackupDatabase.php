@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\Storage;
  * removed — nothing lingers on disk.
  *
  * Restore: pull the object, then `pg_restore -d <db> --clean --if-exists
- * --no-owner --no-privileges <file>` (the vector/vchord/pg_tokenizer
- * extensions must already be installed on the target — see DbFresh).
+ * --no-owner --no-privileges <file>` (the vector extension — and
+ * pg_textsearch, when the install uses it — must be available on the target).
  */
 #[Description('Dump the Postgres database with pg_dump and upload it to the private storage bucket, retaining the newest --keep dumps.')]
 #[Signature('app:backup-database {--keep=14 : Number of most-recent backups to keep in the bucket; older ones are pruned}')]
@@ -31,13 +31,6 @@ class BackupDatabase extends Command
 
     /** Object-key prefix for database dumps within the bucket. */
     private const string PREFIX = 'backups';
-
-    /**
-     * Extensions whose contents must be included so the dump restores cleanly.
-     * Without these the bm25 / tokenizer catalogs and vector types come back
-     * incomplete.
-     */
-    private const array EXTENSIONS = ['vector', 'vchord', 'vchord_bm25', 'pg_tokenizer'];
 
     public function handle(): int
     {
@@ -61,8 +54,6 @@ class BackupDatabase extends Command
         }
 
         try {
-            $extensionArgs = array_map(static fn (string $ext): string => '--extension='.$ext, self::EXTENSIONS);
-
             // -Fc = custom format (compressed). Args passed as an array so no
             // shell is involved; the password goes through PGPASSWORD, never argv.
             $result = Process::timeout(3600)
@@ -72,7 +63,6 @@ class BackupDatabase extends Command
                     '-Fc',
                     '--no-owner',
                     '--no-privileges',
-                    ...$extensionArgs,
                     '-h', (string) ($db['host'] ?? '127.0.0.1'),
                     '-p', (string) ($db['port'] ?? '5432'),
                     '-U', (string) ($db['username'] ?? ''),

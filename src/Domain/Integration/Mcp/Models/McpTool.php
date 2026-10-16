@@ -33,7 +33,7 @@ use Pgvector\Laravel\Vector;
  * @property McpToolScope $scope
  * @property McpToolPermission $permission
  * @property Vector|null $embedding
- * @property string|null $embedding_bm25
+ * @property string|null $search_text
  * @property Carbon $fetched_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

@@ -11,7 +11,6 @@ use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Queue;
 use Mockery\MockInterface;
@@ -195,13 +194,13 @@ it('backfills a preset\'s missing description from the catalog and re-embeds its
     foreach (scsTools() as $tool) {
         McpTool::factory()->for($server, 'mcpServer')->create(['name' => $tool['name'], 'description' => $tool['description'], 'embedding' => $vector]);
     }
-    McpTool::where('mcp_server_id', $server->id)->update(['embedding_bm25' => Bm25Tokenizer::expression('indexed')]);
+    McpTool::where('mcp_server_id', $server->id)->update(['search_text' => 'indexed']);
 
     app(SyncMcpServerCatalogAction::class)->execute($server);
 
     expect($server->fresh()->description)->toBe(config('connectors.zendesk.description'))
         ->and(McpTool::where('mcp_server_id', $server->id)->count())->toBe(2)
-        ->and(McpTool::where('mcp_server_id', $server->id)->where(fn (Builder $query): Builder => $query->whereNotNull('embedding')->orWhereNotNull('embedding_bm25'))->exists())->toBeFalse();
+        ->and(McpTool::where('mcp_server_id', $server->id)->where(fn (Builder $query): Builder => $query->whereNotNull('embedding')->orWhereNotNull('search_text'))->exists())->toBeFalse();
     Queue::assertPushed(EmbedMcpToolsJob::class, fn (EmbedMcpToolsJob $job): bool => $job->mcpServerId === $server->id);
 });
 

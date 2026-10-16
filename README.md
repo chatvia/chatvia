@@ -21,8 +21,8 @@ Chatvia lets a team create AI agents, give them knowledge (files, web pages,
 text and Q&A pairs), connect them to tools, and put them in
 front of people: on a hosted chat page, in a widget on any website, in a
 command bar, through messaging apps, or through a REST API. Answers come from
-retrieval-augmented generation (RAG) with hybrid search (vectors + BM25) inside
-PostgreSQL. It is built with Laravel, Inertia and Vue, and is designed to work
+retrieval-augmented generation (RAG) with hybrid search (vectors + keywords)
+inside PostgreSQL. It is built with Laravel, Inertia and Vue, and is designed to work
 with open-weight models.
 
 ## Contents
@@ -55,9 +55,9 @@ with open-weight models.
   snippets and Q&A pairs. (YouTube sources are experimental and hidden unless
   `FEATURE_YOUTUBE_SOURCES=true`; videos are not ingested yet.)
 - Ingestion runs in background queues and reports progress live.
-- Hybrid search: vector search ([VectorChord](https://github.com/tensorchord/VectorChord))
-  and keyword search ([VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)),
-  merged and reranked.
+- Hybrid search: vector search ([pgvector](https://github.com/pgvector/pgvector) HNSW)
+  and keyword search ([pg_textsearch](https://github.com/timescale/pg_textsearch) BM25,
+  falling back to PostgreSQL's own full-text search), merged and reranked.
 
 **Tools**
 - Functions: call your own HTTP endpoints (webhooks).
@@ -91,7 +91,7 @@ with open-weight models.
 |---|---|
 | Backend | PHP 8.5, Laravel 13 |
 | Frontend | Inertia, Vue 3, TypeScript, Tailwind CSS 4, shadcn-vue, Vite |
-| Database | PostgreSQL 18 with `vchord`, `vchord_bm25`, `pg_tokenizer` and pgvector |
+| Database | PostgreSQL 18 with pgvector; `pg_textsearch` for BM25 keyword search where available |
 | Queues and cache | Redis, Laravel Horizon |
 | Real-time updates | Laravel Reverb (WebSockets) and server-sent events for streamed answers |
 | Admin panel | Filament |
@@ -120,11 +120,13 @@ explains how to work on it.
 - **Composer 2**
 - **Node.js 22.18** or newer, npm and **git** (to download and build the chat
   widget)
-- **PostgreSQL 18** with the [VectorChord](https://github.com/tensorchord/VectorChord) (`vchord`),
-  [VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25) (`vchord_bm25`)
-  and [pg_tokenizer](https://github.com/tensorchord/pg_tokenizer.rs) (`pg_tokenizer`)
-  extensions, and pgvector (`vector`). The easiest way is the
-  `tensorchord/vchord-suite` Docker image (see below).
+- **PostgreSQL 17 or 18** with [pgvector](https://github.com/pgvector/pgvector)
+  (`vector`). [pg_textsearch](https://github.com/timescale/pg_textsearch) is
+  recommended for true BM25 keyword ranking, but optional: it must be preloaded
+  into the server, so on a managed database (where that is not possible)
+  keyword search falls back to PostgreSQL's built-in full-text search
+  (`SEARCH_LEXICAL_DRIVER=auto` picks this up). The easiest way is the
+  `ghcr.io/chatvia/postgres` Docker image (see below).
 - **Redis** 7 or newer
 - **System tools** for some file types. You only need the ones for the
   features you use:
@@ -186,12 +188,15 @@ all data.
 <details>
 <summary><strong>Without Docker</strong></summary>
 
-1. Install PostgreSQL 18 and build or install the `vchord`, `vchord_bm25` and
-   `pg_tokenizer` extensions and pgvector (see each project's README).
-2. Load the libraries in `postgresql.conf` and restart PostgreSQL:
+1. Install PostgreSQL 17 or 18 with pgvector, and (recommended) the
+   `pg_textsearch` extension from its
+   [releases](https://github.com/timescale/pg_textsearch/releases). On a
+   managed database without it, keyword search uses PostgreSQL's built-in
+   full-text search instead.
+2. With pg_textsearch, load it in `postgresql.conf` and restart PostgreSQL:
 
    ```
-   shared_preload_libraries = 'vchord,vchord_bm25,vector,pg_tokenizer'
+   shared_preload_libraries = 'pg_textsearch'
    ```
 
 3. Create a role and the two databases. The first migration runs

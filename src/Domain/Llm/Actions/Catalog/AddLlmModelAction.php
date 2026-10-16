@@ -7,6 +7,7 @@ namespace Domain\Llm\Actions\Catalog;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Operations\Pricing\CostCalculator;
 
 /**
  * Adds one of a provider's models to the catalog, with what the provider said
@@ -26,8 +27,12 @@ final class AddLlmModelAction
                 'descriptive_name' => $model->name,
                 'context_window' => $model->contextWindow,
                 'features' => $model->features,
-                'input_price_per_1m_tokens' => $model->inputPricePerMillion,
-                'output_price_per_1m_tokens' => $model->outputPricePerMillion,
+                'input_price_per_1m_tokens_in_micro_cents' => $model->inputPricePerMillion === null
+                    ? null
+                    : CostCalculator::dollarsToMicroCents($model->inputPricePerMillion),
+                'output_price_per_1m_tokens_in_micro_cents' => $model->outputPricePerMillion === null
+                    ? null
+                    : CostCalculator::dollarsToMicroCents($model->outputPricePerMillion),
             ],
         );
 

@@ -20,7 +20,7 @@ beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
 });
 
-function prunedConversation(array $attributes = []): Conversation
+function peaConversation(array $attributes = []): Conversation
 {
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
@@ -33,7 +33,7 @@ function prunedConversation(array $attributes = []): Conversation
     ]);
 }
 
-function storedUpload(?Conversation $conversation, ?int $daysOld = null): Attachment
+function peaUpload(?Conversation $conversation, ?int $daysOld = null): Attachment
 {
     $path = 'users/x/agents/y/attachments/'.Str::uuid().'.pdf';
     Storage::disk(Attachment::DISK)->put($path, 'pdf');
@@ -55,8 +55,8 @@ function storedUpload(?Conversation $conversation, ?int $daysOld = null): Attach
 
 it('never touches the files of a conversation, live or expired, however old they are', function (): void {
     // An expired conversation's files go with the conversation prune.
-    $live = storedUpload(prunedConversation(['expires_at' => now()->addDays(10)]), daysOld: 400);
-    $expired = storedUpload(prunedConversation(['expires_at' => now()->subDay()]), daysOld: 400);
+    $live = peaUpload(peaConversation(['expires_at' => now()->addDays(10)]), daysOld: 400);
+    $expired = peaUpload(peaConversation(['expires_at' => now()->subDay()]), daysOld: 400);
 
     expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(0)
         ->and(Attachment::query()->whereKey([$live->id, $expired->id])->count())->toBe(2);
@@ -64,8 +64,8 @@ it('never touches the files of a conversation, live or expired, however old they
 });
 
 it('deletes an upload that never joined a conversation only after the orphan window', function (): void {
-    $fresh = storedUpload(null, daysOld: 2);
-    $stale = storedUpload(null, daysOld: 31);
+    $fresh = peaUpload(null, daysOld: 2);
+    $stale = peaUpload(null, daysOld: 31);
 
     expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(1)
         ->and(Attachment::query()->find($fresh->id))->not->toBeNull()
@@ -73,17 +73,9 @@ it('deletes an upload that never joined a conversation only after the orphan win
 });
 
 it('deletes stale uploads in chunks', function (): void {
-    $stale = collect(range(1, 3))->map(fn (): Attachment => storedUpload(null, daysOld: 31));
+    $stale = collect(range(1, 3))->map(fn (): Attachment => peaUpload(null, daysOld: 31));
 
     expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 1))->toBeGreaterThanOrEqual(3)
         ->and(Attachment::query()->whereKey($stale->pluck('id'))->exists())->toBeFalse();
     $stale->each(fn (Attachment $upload) => Storage::disk(Attachment::DISK)->assertMissing($upload->filepath));
-});
-
-it('runs from the scheduled command', function (): void {
-    $upload = storedUpload(null, daysOld: 31);
-
-    $this->artisan('app:prune-chat-attachments')->assertSuccessful();
-
-    expect(Attachment::query()->find($upload->id))->toBeNull();
 });

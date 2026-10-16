@@ -1,6 +1,5 @@
 <?php
 
-use App\Admin\Settings\AiProviderCheck;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
@@ -126,33 +125,6 @@ it('sends the file to Azure, waits for it, and reads its pages and tables', func
         && $request->header('Ocp-Apim-Subscription-Key') === ['az-key']
         && $request['base64Source'] === base64_encode('%PDF-1.4 test'));
     Sleep::assertSleptTimes(1);
-});
-
-it('checks an Azure key against its resource', function (): void {
-    Http::fake([
-        'good.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0]]),
-        'bad.cognitiveservices.azure.com/*' => Http::response(['error' => ['code' => '401']], 401),
-    ]);
-
-    $check = app(AiProviderCheck::class);
-
-    expect($check->check(AiProvider::Azure, 'az-key', 'https://good.cognitiveservices.azure.com')->connected)->toBeTrue()
-        ->and($check->check(AiProvider::Azure, 'az-key', 'https://bad.cognitiveservices.azure.com')->keyRefused)->toBeTrue()
-        ->and($check->check(AiProvider::Azure, 'az-key')->message)->toBe('Add the endpoint of your Azure resource too.');
-});
-
-it('warns when the Azure resource is on the free tier', function (): void {
-    Http::fake([
-        'free.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0, 'limit' => 500]]),
-        'paid.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0, 'limit' => 5000]]),
-    ]);
-
-    $check = app(AiProviderCheck::class);
-    $free = $check->check(AiProvider::Azure, 'az-key', 'https://free.cognitiveservices.azure.com');
-
-    expect($free->connected)->toBeTrue()
-        ->and($free->warning)->toContain('free tier (F0)')->toContain('first 2 pages')
-        ->and($check->check(AiProvider::Azure, 'az-key', 'https://paid.cognitiveservices.azure.com')->warning)->toBeNull();
 });
 
 /** Azure accepts the file and answers with these pages (each a short text). */

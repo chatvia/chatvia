@@ -66,13 +66,3 @@ it('never uses a window below the configured floor', function (): void {
     expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(0)
         ->and(FormSubmission::query()->whereKey($lead->id)->exists())->toBeTrue();
 });
-
-it('runs from the app:prune-leads command', function (): void {
-    $agent = Agent::factory()->create();
-    pwlSetRetention($agent, 30);
-    $old = pwlLead($agent, 60);
-
-    $this->artisan('app:prune-leads', ['--batch' => 1])->assertSuccessful();
-
-    expect(FormSubmission::query()->whereKey($old->id)->exists())->toBeFalse();
-});

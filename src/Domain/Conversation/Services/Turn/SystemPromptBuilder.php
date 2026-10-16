@@ -7,6 +7,7 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Guardrail\Services\GuardrailService;
+use Locale;
 
 /**
  * Assembles what the LLM receives for a turn: the system prompt (the
@@ -46,20 +47,28 @@ class SystemPromptBuilder
         }
 
         return [
-            ['role' => 'system', 'content' => $this->systemPrompt($context->requestData)],
+            ['role' => 'system', 'content' => $this->systemPrompt($context->requestData, $context->queryLanguage)],
             ...$history,
             ['role' => MessageRole::User->value, 'content' => $context->payload->message_for_llm],
         ];
     }
 
-    public function systemPrompt(StreamRequestData $data): string
+    /**
+     * `$language` is the ISO 639-1 code of the visitor's message when one was
+     * detected ({@see ChatContext::$queryLanguage}):
+     * the grounding rules then name that language, so reference material
+     * written in another language cannot drag the answer into it.
+     */
+    public function systemPrompt(StreamRequestData $data, ?string $language = null): string
     {
         $agent = $data->agent;
         $marker = $data->guardrailsEnabled ? $this->guardrails->leakMarker($agent) : null;
 
         return $this->withCallerAndBusiness(
             ($marker !== null ? trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
-                .rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding'),
+                .rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding', [
+                    'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
+                ]),
             $agent,
             $data->chatterName,
         );

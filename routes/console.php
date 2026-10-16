@@ -106,12 +106,6 @@ Schedule::command('cache:prune-stale-tags chat')->hourly()->withoutOverlapping(6
 // whatever has newly crossed that age.
 Schedule::command('app:analyze-conversations')->hourly()->withoutOverlapping(60)->onOneServer();
 
-// Size the chunks vector indexes for the current rows: flat below 100k rows,
-// then about 4·√N partitions, rebuilt side by side (CONCURRENTLY) when the
-// rows have doubled. Cheap when nothing changed; run it by hand after a large
-// bulk ingestion.
-Schedule::command('vector:reindex')->sundays()->at('04:30')->withoutOverlapping()->onOneServer();
-
 // Database backup: pg_dump (custom/compressed format) streamed to the private
 // disk (this server, or the private bucket of Settings → Storage), keeping the
 // newest 14 (~7 days at this cadence).

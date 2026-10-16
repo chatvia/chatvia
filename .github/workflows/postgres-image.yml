@@ -1,0 +1,68 @@
+name: Postgres image
+
+# Builds the Postgres image (docker/postgres/Dockerfile: pgvector +
+# pg_textsearch) and pushes it to the GitHub Container Registry whenever the
+# Dockerfile changes. Publishes two tags: the moving `18`, and the pinned
+# `18-<pg_textsearch version>` that docker/compose.yaml, docker-compose.yml
+# and .github/workflows/tests.yml reference — bump those pins after changing
+# PG_TEXTSEARCH_VERSION in the Dockerfile.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docker/postgres/Dockerfile
+      - .github/workflows/postgres-image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: postgres-image
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/postgres
+
+jobs:
+  image:
+    name: Build and push
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read the pg_textsearch version from the Dockerfile
+        id: version
+        run: |
+          version=$(sed -n 's/^ARG PG_TEXTSEARCH_VERSION=//p' docker/postgres/Dockerfile)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/postgres
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:18
+            ${{ env.IMAGE }}:18-${{ steps.version.outputs.version }}

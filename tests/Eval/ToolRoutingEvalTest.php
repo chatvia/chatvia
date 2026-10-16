@@ -17,7 +17,6 @@ use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -168,7 +167,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
             $text = trim($connector['name']."\n".$connector['description']."\n\n".$tool['name']."\n\n".$tool['description']);
             $vectors = [
                 'embedding' => app(EmbeddingsProviderInterface::class)->embed($text),
-                'embedding_bm25' => Bm25Tokenizer::expression($text),
+                'search_text' => $text,
             ];
 
             if ($pool === 'preset') {

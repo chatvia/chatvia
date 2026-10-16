@@ -10,6 +10,7 @@ use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Enums\ToolSearchPool;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -27,8 +28,9 @@ use Illuminate\Support\Facades\Log;
  * candidate, yielding a unified score across pools of wildly different sizes.
  *
  * Pool scoping:
- *   - PRESET rows rank over the shared `connector_tools` embedding index,
- *     filtered against `reachable_preset` — the agent's reachable catalog-tool
+ *   - PRESET rows rank over the shared `connector_tools` catalog (a few
+ *     thousand rows at most, scored exactly — it has no ANN index), filtered
+ *     against `reachable_preset` — the agent's reachable catalog-tool
  *     ids, precomputed once from its handful of servers (attached via
  *     `agent_mcp_server` OR a global builtin) joined to their unblocked
  *     `mcp_server_tool` memberships. Driving from the agent's servers keeps
@@ -59,6 +61,7 @@ class ToolHybridSearch
 
     public function __construct(
         private readonly EmbeddingStorage $storage,
+        private readonly LexicalSearch $lexical,
     ) {}
 
     /**
@@ -72,23 +75,19 @@ class ToolHybridSearch
 
         $startedAt = microtime(true);
 
-        // No per-query vchordrq GUCs. prefilter is a database-wide default
-        // (ALTER DATABASE ... SET vchordrq.prefilter = on, in the vchordrq
-        // install migration) — it pushes the preset channels' reachability
-        // filter (the hashed IN-probe against the materialized reachable_preset
-        // set) into the connector_tools index scan, so the per-channel LIMIT
-        // returns the top-N *reachable* rows. probes stays at its empty default
-        // because the flat connector_tools index (no `lists`) requires 0
-        // probes; the custom and function channels use no index at all. So
-        // this runs as a plain query with no wrapping transaction.
+        // Every channel scores its pool exactly — none of the three tables has
+        // an ANN index, and the keyword channels score through LexicalSearch —
+        // so this runs as a plain query with no per-query GUCs and no wrapping
+        // transaction.
+        $terms = $this->lexical->queryText($userMessage);
         $rows = DB::select($this->sql(), [
             $agent->id,                                    // reachable_servers
             $vectorString, $vectorString, $candidateLimit, // preset_vector
-            $userMessage, $candidateLimit,                 // preset_bm25
-            $vectorString, $userMessage,                   // custom_scope
+            $terms, $candidateLimit,                       // preset_bm25
+            $vectorString, $terms,                         // custom_scope
             $candidateLimit,                               // custom_vector
             $candidateLimit,                               // custom_bm25
-            $vectorString, $userMessage, $agent->id,       // fn_scope
+            $vectorString, $terms, $agent->id,             // fn_scope
             $candidateLimit,                               // fn_vector
             $candidateLimit,                               // fn_bm25
             $vectorString,                                 // final similarity
@@ -206,17 +205,19 @@ preset_vector AS (
     LIMIT ?
 ),
 preset_bm25 AS (
-    SELECT 'mcp_preset' AS kind, ct.id,
-           ROW_NUMBER() OVER (
-               ORDER BY ct.embedding_bm25 <&> bm25_catalog.to_bm25query(
-                   'connector_tools_embedding_bm25',
-                   tokenizer_catalog.tokenize(?::text, 'llmlingua2')
-               )
-           ) AS rank
-    FROM connector_tools ct
-    WHERE ct.embedding_bm25 IS NOT NULL
-      AND ct.id IN (SELECT connector_tool_id FROM reachable_preset)
-    ORDER BY rank
+    -- Exact keyword scores over the reachable catalog rows; a score of 0
+    -- means no shared term, so the row is not a keyword hit.
+    SELECT 'mcp_preset' AS kind, scored.id,
+           ROW_NUMBER() OVER (ORDER BY scored.bm25_dist, scored.id) AS rank
+    FROM (
+        SELECT ct.id, NULLIF({$this->lexical->score('ct.search_text', 'q.terms')}, 0) AS bm25_dist
+        FROM (SELECT {$this->lexical->queryExpression('connector_tools_search_text_lexical')} AS terms) q
+        CROSS JOIN connector_tools ct
+        WHERE ct.search_text IS NOT NULL
+          AND ct.id IN (SELECT connector_tool_id FROM reachable_preset)
+    ) scored
+    WHERE scored.bm25_dist IS NOT NULL
+    ORDER BY scored.bm25_dist, scored.id
     LIMIT ?
 ),
 custom_scope AS MATERIALIZED (
@@ -226,10 +227,10 @@ custom_scope AS MATERIALIZED (
     SELECT t.id, t.name, t.description, t.input_schema, t.scope, rs.slug AS server_slug,
            t.embedding <-> q.vector AS vector_dist,
            1 - (t.embedding <=> q.vector) AS similarity,
-           NULLIF(t.embedding_bm25 <&> q.terms, 0) AS bm25_dist
+           NULLIF({$this->lexical->score('t.search_text', 'q.terms')}, 0) AS bm25_dist
     FROM (
         SELECT ?::{$cast} AS vector,
-               bm25_catalog.to_bm25query('mcp_tools_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')) AS terms
+               {$this->lexical->queryExpression('mcp_tools_search_text_lexical')} AS terms
     ) q
     CROSS JOIN reachable_servers rs
     INNER JOIN mcp_tools t ON t.mcp_server_id = rs.id
@@ -255,10 +256,10 @@ fn_scope AS MATERIALIZED (
     SELECT f.id, f.internal_name, f.description, f.parameters_schema, f.webhook_method,
            f.embedding <-> q.vector AS vector_dist,
            1 - (f.embedding <=> q.vector) AS similarity,
-           NULLIF(f.embedding_bm25 <&> q.terms, 0) AS bm25_dist
+           NULLIF({$this->lexical->score('f.search_text', 'q.terms')}, 0) AS bm25_dist
     FROM (
         SELECT ?::{$cast} AS vector,
-               bm25_catalog.to_bm25query('functions_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')) AS terms
+               {$this->lexical->queryExpression('functions_search_text_lexical')} AS terms
     ) q
     CROSS JOIN agent_function af
     INNER JOIN functions f ON f.id = af.function_id

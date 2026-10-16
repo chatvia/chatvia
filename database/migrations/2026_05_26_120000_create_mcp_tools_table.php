@@ -1,9 +1,8 @@
 <?php
 
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Retrieval\Actions\ConfigureLexicalIndexesAction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,7 +10,6 @@ return new class extends Migration
     public function up(): void
     {
         // Embedding columns use the install's vector type and size (EmbeddingStorage).
-        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
         Schema::create('connector_tools', function (Blueprint $table) {
             $table->id();
@@ -30,7 +28,8 @@ return new class extends Migration
                 ->default('approval');
 
             $table->embedding('embedding')->nullable();
-            $table->bm25vector('embedding_bm25')->nullable();
+            // What the embedding was computed from; the lexical channels search it.
+            $table->text('search_text')->nullable();
 
             $table->timestamp('fetched_at');
             $table->timestamps();
@@ -38,8 +37,10 @@ return new class extends Migration
             $table->unique(['connector_slug', 'name']);
         });
 
-        DB::statement('CREATE INDEX connector_tools_embedding_bm25 ON connector_tools USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
-        DB::statement("CREATE INDEX connector_tools_embedding_vchordrq ON connector_tools USING vchordrq (embedding {$ops})");
+        app(ConfigureLexicalIndexesAction::class)->execute('connector_tools');
+
+        // No vector index: the shared catalog holds a few thousand rows at
+        // most, so the preset channels rank them by exact distance.
 
         Schema::create('mcp_tools', function (Blueprint $table) {
             $table->id();
@@ -59,7 +60,8 @@ return new class extends Migration
                 ->default('approval');
 
             $table->embedding('embedding')->nullable();
-            $table->bm25vector('embedding_bm25')->nullable();
+            // What the embedding was computed from; the lexical channels search it.
+            $table->text('search_text')->nullable();
 
             $table->timestamp('fetched_at');
 
@@ -68,7 +70,7 @@ return new class extends Migration
             $table->unique(['mcp_server_id', 'name']);
         });
 
-        DB::statement('CREATE INDEX mcp_tools_embedding_bm25 ON mcp_tools USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
+        app(ConfigureLexicalIndexesAction::class)->execute('mcp_tools');
 
         // No vector index: an agent reaches a few dozen MCP tools at most, so its
         // search ranks them by exact distance (an approximate index over every

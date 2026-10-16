@@ -19,7 +19,7 @@ export function useChatConversations() {
         isLoading.value = false;
     }
 
-    // Shared with the ⌘K palette: matches titles and message content (BM25).
+    // Shared with the ⌘K palette: matches titles and message content (full-text).
     const search = (query: string): Promise<ChatConversationSummary[]> => searchConversations(query);
 
     /** Renames on the server, then mirrors the new title locally. Returns false on failure. */

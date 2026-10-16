@@ -8,7 +8,6 @@ use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Web\Actions\Crawl\CrawlWebsiteAction;
@@ -233,7 +232,7 @@ it('writes a large website document in chunk_index order, batch after batch', fu
         'chunk' => "Part {$i}",
         'tokens' => 2,
         'embedding' => $vector,
-        'embedding_bm25' => Bm25Tokenizer::expression("Part {$i}"),
+        'search_text' => "Part {$i}",
         'checksum' => "part-{$i}",
         'cost_in_micro_cents' => 0,
     ])->all());

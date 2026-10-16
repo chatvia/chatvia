@@ -76,8 +76,8 @@ class ConversationSearchController
             ->filter(fn (Conversation $conversation): bool => str_contains(mb_strtolower((string) $conversation->title), $needle))
             ->pluck('id');
 
-        // Content matches — BM25 over messages in these conversations, most
-        // relevant first, de-duplicated to their conversations.
+        // Content matches — full-text search over messages in these
+        // conversations, most relevant first, de-duplicated to their conversations.
         $contentMatchIds = Message::query()
             ->searchContent($term)
             ->whereIn('chat_conversation_id', $conversations->pluck('id'))

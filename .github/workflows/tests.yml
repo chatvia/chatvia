@@ -37,7 +37,8 @@ jobs:
     services:
       postgres:
         # Same image and tag as docker-compose.yml; keep them in sync.
-        image: tensorchord/vchord-suite:pg18-20260501
+        # Built by .github/workflows/postgres-image.yml (pgvector + pg_textsearch).
+        image: ghcr.io/chatvia/postgres:18-1.5.1
         env:
           POSTGRES_DB: testing
           POSTGRES_USER: chatvia

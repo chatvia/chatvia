@@ -50,7 +50,7 @@ use Support\Concerns\HasExternalId;
  * @property bool $requires_approval
  * @property bool $is_enabled
  * @property Vector|null $embedding
- * @property string|null $embedding_bm25
+ * @property string|null $search_text
  * @property Carbon|null $last_invoked_at
  * @property string|null $last_error
  * @property int $invocation_count

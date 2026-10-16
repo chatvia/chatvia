@@ -14,12 +14,21 @@ enum VectorType: string
     case Halfvec = 'halfvec';
     case Vector = 'vector';
 
-    /** Operator class of a vchordrq index on a column of this type (L2 distance). */
+    /** Operator class of an HNSW index on a column of this type (L2 distance). */
     public function operatorClass(): string
     {
         return match ($this) {
             self::Halfvec => 'halfvec_l2_ops',
             self::Vector => 'vector_l2_ops',
+        };
+    }
+
+    /** The most dimensions pgvector's HNSW index accepts for this type. */
+    public function maxIndexedDimensions(): int
+    {
+        return match ($this) {
+            self::Halfvec => 4000,
+            self::Vector => 2000,
         };
     }
 }

@@ -414,8 +414,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | `mode` is "default", "high_accuracy" or "high_speed"; it picks the
-    | `probes_percent` and `epsilon` the vector indexes search with. `hybrid`
-    | adds keyword (BM25) search to meaning (vector) search.
+    | `ef_search` the HNSW vector indexes search with (higher finds more,
+    | slower). `hybrid` adds keyword search to meaning (vector) search.
     |
     | `relevance_check` leaves out weak matches: with a reranker, chunks it
     | scores below `relevance_threshold`; without one, chunks whose meaning
@@ -430,9 +430,7 @@ return [
     | `rerank_candidates` is how many hits go to the reranker; keep it well
     | above `max_chunks`. Agents with at most `exact_max_chunks` chunks are
     | searched exactly, without the indexes (0 always uses them). A search
-    | slower than `slow_log_ms` is logged (0 turns it off). `build_threads`
-    | and `build_memory_mb` are for `php artisan vector:reindex`, which
-    | partitions the indexes once chunks pass 100k rows.
+    | slower than `slow_log_ms` is logged (0 turns it off).
     |
     */
 
@@ -450,21 +448,33 @@ return [
             'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 25),
             'exact_max_chunks' => 10_000,
 
-            'probes_percent' => [
-                'default' => 3,
-                'high_accuracy' => 6,
-                'high_speed' => 1.5,
-            ],
-
-            'epsilon' => [
-                'default' => 1.9,
-                'high_accuracy' => 2.5,
-                'high_speed' => 1.4,
+            'ef_search' => [
+                'default' => 100,
+                'high_accuracy' => 300,
+                'high_speed' => 40,
             ],
         ],
+    ],
 
-        'build_threads' => env('VECTORCHORD_BUILD_THREADS', 4),
-        'build_memory_mb' => 2048,
+    /*
+    |--------------------------------------------------------------------------
+    | Lexical Search
+    |--------------------------------------------------------------------------
+    |
+    | How the keyword half of hybrid search runs. `lexical_driver` is
+    | "pg_textsearch" (true BM25 ranking; the extension must be preloaded
+    | into Postgres), "postgres" (the built-in full-text search — works on
+    | any Postgres, including managed databases), or "auto" to use
+    | pg_textsearch when it is installed. `text_config` is the Postgres text
+    | search configuration both drivers tokenize with; "simple" works for
+    | every language (no stemming). After changing either, run `php artisan
+    | search:lexical-indexes` to rebuild the indexes.
+    |
+    */
+
+    'search' => [
+        'lexical_driver' => env('SEARCH_LEXICAL_DRIVER', 'auto'),
+        'text_config' => env('SEARCH_TEXT_CONFIG', 'simple'),
     ],
 
     /*

@@ -75,8 +75,8 @@ readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 
-# The complete installation. The extension versions are the ones in the
-# tensorchord/vchord-suite image that the Docker install uses.
+# The complete installation. The pg_textsearch version matches the one the
+# Docker install's Postgres image (docker/postgres/Dockerfile) carries.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
 readonly NATIVE_UBUNTU="26.04"
 readonly NATIVE_REPO="https://github.com/chatvia/chatvia.git"
@@ -89,9 +89,7 @@ readonly NATIVE_LOG="/var/log/chatvia-install.log"
 readonly NATIVE_BACKUPS="/var/backups/chatvia"
 readonly NATIVE_PHP="8.5"
 readonly NATIVE_PG="18"
-readonly VCHORD_VERSION="1.1.1"
-readonly VCHORD_BM25_VERSION="0.3.0"
-readonly PG_TOKENIZER_VERSION="0.1.1"
+readonly PG_TEXTSEARCH_VERSION="1.5.1"
 readonly DEPLOYER_VERSION="^8.0"
 readonly MIN_NODE_VERSION="22.18.0"
 # Less memory than this (a 4 GB server), and no swap: the frontend build
@@ -2489,28 +2487,21 @@ node_can_build() {
     node "$WORK_DIR/check.ts" >/dev/null 2>&1
 }
 
-# VectorChord, VectorChord-bm25 and pg_tokenizer come as packages from
-# their GitHub releases; pgvector comes from Ubuntu.
+# pg_textsearch (BM25 keyword search) comes as a package from its GitHub
+# release; pgvector comes from Ubuntu.
 native_install_extensions() {
-    local arch dir="$WORK_DIR/debs" name version repo file files=()
+    local arch dir="$WORK_DIR/debs" file
     arch=$(dpkg --print-architecture)
+    if [ "$(dpkg-query -W -f='${Version}' "pg-textsearch-postgresql-$NATIVE_PG" 2>/dev/null)" = "$PG_TEXTSEARCH_VERSION-1" ]; then
+        echo "pg-textsearch-postgresql-$NATIVE_PG $PG_TEXTSEARCH_VERSION is installed."
+        return 0
+    fi
     mkdir -p "$dir"
-    for name in vchord vchord-bm25 pg-tokenizer; do
-        case $name in
-            vchord) version=$VCHORD_VERSION repo=VectorChord ;;
-            vchord-bm25) version=$VCHORD_BM25_VERSION repo=VectorChord-bm25 ;;
-            pg-tokenizer) version=$PG_TOKENIZER_VERSION repo=pg_tokenizer.rs ;;
-        esac
-        if [ "$(dpkg-query -W -f='${Version}' "postgresql-$NATIVE_PG-$name" 2>/dev/null)" = "$version-1" ]; then
-            echo "postgresql-$NATIVE_PG-$name $version is installed."
-            continue
-        fi
-        file="$dir/postgresql-$NATIVE_PG-${name}_$version-1_$arch.deb"
-        curl -fsSL -o "$file" \
-            "https://github.com/tensorchord/$repo/releases/download/$version/postgresql-$NATIVE_PG-${name}_$version-1_$arch.deb"
-        files+=("$file")
-    done
-    if [ "${#files[@]}" -gt 0 ]; then apt_get install "${files[@]}"; fi
+    file="$dir/pg-textsearch-v$PG_TEXTSEARCH_VERSION-pg$NATIVE_PG-$arch.zip"
+    curl -fsSL -o "$file" \
+        "https://github.com/timescale/pg_textsearch/releases/download/v$PG_TEXTSEARCH_VERSION/pg-textsearch-v$PG_TEXTSEARCH_VERSION-pg$NATIVE_PG-$arch.zip"
+    unzip -o -q "$file" -d "$dir"
+    apt_get install "$dir/pg-textsearch-postgresql-${NATIVE_PG}_$PG_TEXTSEARCH_VERSION-1_$arch.deb"
 }
 
 # The tuned PostgreSQL settings for the memory, processors and connections it
@@ -2529,7 +2520,7 @@ pg_tune_settings() {
     cache_mb=$((ram_mb * 3 / 4))
 
     # Index builds work in maintenance_work_mem: the search indexes
-    # (VectorChord, bm25) build much faster with room here.
+    # (HNSW, bm25) build much faster with room here.
     maintenance_mb=$((ram_mb / 16))
     if [ "$maintenance_mb" -gt 2048 ]; then maintenance_mb=2048; fi
 
@@ -2595,9 +2586,9 @@ native_postgres_conf() {
     case $cpus in '' | *[!0-9]* | 0) cpus=1 ;; esac
 
     cat <<'EOF'
-# Written by the Chatvia installer. Chatvia's search needs these libraries
-# loaded when PostgreSQL starts; add your own after them.
-shared_preload_libraries = 'vchord,vchord_bm25,vector,pg_tokenizer'
+# Written by the Chatvia installer. Chatvia's keyword search needs
+# pg_textsearch loaded when PostgreSQL starts; add your own after it.
+shared_preload_libraries = 'pg_textsearch'
 EOF
     # No memory reading, no tuning: PostgreSQL's own defaults stay.
     if [ "$ram_mb" -eq 0 ]; then return 0; fi
@@ -2989,9 +2980,8 @@ after('deploy:failed', 'deploy:unlock');
 EOF
 }
 
-# The first deploy. Its first migration installs the PostgreSQL extensions
-# and sets up the keyword tokenizer, which needs a superuser: the database
-# user is one for this deploy only.
+# The first deploy. Its first migration installs the PostgreSQL extensions,
+# which needs a superuser: the database user is one for this deploy only.
 native_first_deploy() {
     local status=0
     native_unlock_stale
@@ -3231,7 +3221,7 @@ native_show_finish() {
     info "Live updates  Reverb $(dim '(Supervisor: chatvia-reverb, through nginx at /app/)')"
     info "Server stats  Pulse $(dim '(Supervisor: chatvia-pulse)')"
     info "Scheduler     every minute $(dim '(cron: /etc/cron.d/chatvia)')"
-    info "Database      PostgreSQL $NATIVE_PG $(dim '(vchord, vchord_bm25, pg_tokenizer, pgvector)')"
+    info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch)')"
     info "Cache         Redis $(dim '(with a password, kept on disk)')"
     if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
     if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi

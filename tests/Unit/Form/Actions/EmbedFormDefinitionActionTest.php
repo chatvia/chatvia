@@ -18,7 +18,7 @@ function efdUnembeddedForm(): FormDefinition
         'agent_instructions' => 'Show when the visitor wants their money back.',
     ]);
 
-    $form->forceFill(['embedding' => null, 'embedding_bm25' => null])->saveQuietly();
+    $form->forceFill(['embedding' => null, 'search_text' => null])->saveQuietly();
 
     return $form;
 }
@@ -28,7 +28,7 @@ function efdEmbeddedColumns(FormDefinition $form): array
 {
     $row = FormDefinition::query()
         ->whereKey($form->id)
-        ->selectRaw('embedding IS NOT NULL AS has_vec, embedding_bm25 IS NOT NULL AS has_bm25')
+        ->selectRaw('embedding IS NOT NULL AS has_vec, search_text IS NOT NULL AS has_bm25')
         ->first();
 
     return ['has_vec' => (bool) $row->has_vec, 'has_bm25' => (bool) $row->has_bm25];

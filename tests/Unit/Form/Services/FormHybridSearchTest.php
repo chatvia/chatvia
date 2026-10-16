@@ -6,7 +6,7 @@ use Domain\Form\Services\FormHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 
 /**
- * Exercises the real two-channel RRF query (vchordrq + BM25) against Postgres,
+ * Exercises the real two-channel RRF query (vector + keyword) against Postgres,
  * plus the small-set / cap / fallback policy in forPrompt(). Forms are embedded
  * inline by the observer (sync queue + FakeEmbeddingsProvider) on create, so the
  * dense + sparse columns are populated without touching the network.
@@ -76,7 +76,7 @@ it('falls back to the alphabetical slice when an oversized catalog has no embedd
     }
     // Wipe the embeddings the create-observer populated (mass update skips events)
     // so the hybrid channels return nothing and forPrompt must degrade.
-    FormDefinition::query()->forAgent($agent)->update(['embedding' => null, 'embedding_bm25' => null]);
+    FormDefinition::query()->forAgent($agent)->update(['embedding' => null, 'search_text' => null]);
 
     $forms = app(FormHybridSearch::class)->forPrompt($agent, 'anything at all');
 

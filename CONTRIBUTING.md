@@ -156,10 +156,11 @@ then tag the widget release: every build takes the newest release.
   `tests/Architecture/`, and quality checks with real models in `tests/Eval/`
   (they skip themselves without an API key).
 - Tests run against **PostgreSQL**, not SQLite, because the app uses the
-  `vchord`, `vchord_bm25`, `pg_tokenizer` and `vector` extensions.
+  `vector` (and, when available, `pg_textsearch`) extensions.
   `docker compose up -d` starts a server with these extensions and an empty
   `testing` database (user `chatvia`, password `password`; see
-  `phpunit.xml`).
+  `phpunit.xml`). Without pg_textsearch the suite still runs: keyword search
+  falls back to the built-in full-text search.
 - **The test database sets itself up.** On the first run the suite installs
   the extensions, runs the migrations and seeds the reference data. When the
   migration files change, it rebuilds the schema on the next run. Each test
@@ -234,14 +235,17 @@ then tag the widget release: every build takes the newest release.
 - An embedding column is `$table->embedding('name')`, never `halfvec()` or
   `vector()` with a fixed size: it takes the install's `EMBEDDING_VECTOR_TYPE`
   and `EMBEDDING_DIMENSIONS`. A query vector is cast with
-  `EmbeddingStorage::columnType()`, and a vchordrq index uses
+  `EmbeddingStorage::columnType()`, and an HNSW index uses
   `EmbeddingStorage::type()->operatorClass()`.
-- A vector index only pays off on a large shared table (`chunks`,
-  `connector_tools`). A small per-agent set (its tools, functions, forms, or
-  the chunks of an agent with few of them) is searched exactly: collect the
-  agent's rows in a `MATERIALIZED` CTE and order them by distance. The chunks
-  indexes start flat; `php artisan vector:reindex` (weekly) partitions them as
-  the table grows.
+- A vector index only pays off on the large shared `chunks` table. A small
+  per-agent set (its tools, functions, forms, or the chunks of an agent with
+  few of them) is searched exactly: collect the agent's rows in a
+  `MATERIALIZED` CTE and order them by distance.
+- Keyword search goes through `LexicalSearch` (never inline BM25 or
+  full-text SQL): it writes the driver's SQL, and
+  `ConfigureLexicalIndexesAction` keeps the indexes in the driver's shape
+  (`php artisan search:lexical-indexes` after changing the driver or
+  `SEARCH_TEXT_CONFIG`).
 - Key workspace data to the **workspace** (`$agent->workspace_id`,
   `$user->workspace()->id`), not to the person who is acting.
 

@@ -84,7 +84,7 @@ it('embeds the catalog inline when embedding is not queued', function (): void {
     $catalog = fn (): Builder => ConnectorTool::query()->whereIn('connector_slug', ['charts', 'forms']);
 
     expect($catalog()->count())->toBe(3)
-        ->and($catalog()->whereNotNull('embedding')->whereNotNull('embedding_bm25')->count())->toBe(3);
+        ->and($catalog()->whereNotNull('embedding')->whereNotNull('search_text')->count())->toBe(3);
     Queue::assertNotPushed(EmbedConnectorToolsJob::class);
 });
 
@@ -94,9 +94,9 @@ it('keeps stored vectors on a re-run and clears them all for a full re-embed', f
 
     // Unchanged descriptions keep their vectors.
     app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true));
-    expect($catalog()->whereNotNull('embedding')->whereNotNull('embedding_bm25')->count())->toBe(3);
+    expect($catalog()->whereNotNull('embedding')->whereNotNull('search_text')->count())->toBe(3);
 
     // The queue is faked, so the cleared rows stay empty here.
     app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true, reembedAll: true));
-    expect($catalog()->whereNull('embedding')->whereNull('embedding_bm25')->count())->toBe(3);
+    expect($catalog()->whereNull('embedding')->whereNull('search_text')->count())->toBe(3);
 });

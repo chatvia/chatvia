@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This is the first open-source release. The list below groups the changes by
 theme.
 
+### Search runs on plain PostgreSQL (VectorChord replaced)
+
+- **The VectorChord extensions are gone** (`vchord`, `vchord_bm25`,
+  `pg_tokenizer`; the project is no longer maintained). Vector search now uses
+  pgvector's HNSW indexes, and keyword search has two drivers: Timescale's
+  actively maintained [pg_textsearch](https://github.com/timescale/pg_textsearch)
+  (true BM25 ranking; bundled in the Docker image and installed by the Ubuntu
+  installer), and PostgreSQL's built-in full-text search as the fallback.
+- **Chatvia now runs on managed PostgreSQL** (for example RDS or Cloud SQL):
+  only the pgvector extension is required. `SEARCH_LEXICAL_DRIVER=auto`
+  (the default) uses pg_textsearch when it is installed and the built-in
+  full-text search when it is not; `SEARCH_TEXT_CONFIG` picks the text search
+  configuration (default `simple`, which works for every language). After
+  changing either, run `php artisan search:lexical-indexes`.
+- The Postgres Docker image is now `ghcr.io/chatvia/postgres`
+  (pgvector + pg_textsearch), replacing `tensorchord/vchord-suite`.
+- Embedding dimensions are capped at what the HNSW index accepts: 4000 for
+  `halfvec`, 2000 for `vector` (providers with larger native sizes support
+  shortening).
+
 ### Admin panel: simpler AI setup and Settings
 
 - **Each AI key is entered once**, on a new **Settings → AI providers** page:

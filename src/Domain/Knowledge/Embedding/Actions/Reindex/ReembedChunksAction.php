@@ -6,15 +6,13 @@ namespace Domain\Knowledge\Embedding\Actions\Reindex;
 
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Embeds the chunks in one id range again with the embedding model in use:
- * the chunk from the same text ingestion embedded ({@see ChunkEmbeddingText}),
+ * the chunk from the same text ingestion embedded (its stored `search_text`),
  * and its questions when it has them. One part of a re-index
- * ({@see StartEmbeddingReindexAction}). The text and the keyword (BM25)
- * columns stay as they are.
+ * ({@see StartEmbeddingReindexAction}). The text columns stay as they are.
  */
 class ReembedChunksAction
 {
@@ -30,14 +28,14 @@ class ReembedChunksAction
         $chunks = Chunk::query()
             ->whereBetween('id', [$firstId, $lastId])
             ->orderBy('id')
-            ->get(['id', 'chunk_index', 'chunk', 'summary', 'questions', 'metadata'])
+            ->get(['id', 'search_text', 'questions'])
             ->values();
 
         if ($chunks->isEmpty()) {
             return 0;
         }
 
-        $vectors = $this->embeddings->embedBatch($chunks->map(ChunkEmbeddingText::of(...))->all());
+        $vectors = $this->embeddings->embedBatch($chunks->map(fn (Chunk $chunk): string => $chunk->search_text)->all());
         $questionVectors = $this->questionVectors($chunks->all());
 
         DB::transaction(function () use ($chunks, $vectors, $questionVectors): void {

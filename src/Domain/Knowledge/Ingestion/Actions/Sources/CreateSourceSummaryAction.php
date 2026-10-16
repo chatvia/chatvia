@@ -8,7 +8,6 @@ use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Domain\Knowledge\Ingestion\Services\ContentAnalyzer;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -57,14 +56,13 @@ class CreateSourceSummaryAction
             'summary' => '',
             'questions' => $questions !== '' ? $questions : null,
             'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
-            'questions_embedding_bm25' => $questions !== '' ? Bm25Tokenizer::expression($questions) : null,
             'chunked_using_model' => config('chatvia.ai.models.summary'),
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
                 $this->llmCost($analyzed, $summary) + $this->embeddingCost($plainSummary) + $this->embeddingCost($questions),
             ),
             'tokens' => TikToken::countTokens($summaryText),
             'embedding' => $this->embeddings->embed($plainSummary, true),
-            'embedding_bm25' => Bm25Tokenizer::expression($plainSummary),
+            'search_text' => $plainSummary,
             'metadata' => $analyzed->analysis->metadata->toArray(),
             'checksum' => hash('xxh128', $summaryText),
         ]);

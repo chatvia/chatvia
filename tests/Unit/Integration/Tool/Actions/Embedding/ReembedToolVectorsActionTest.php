@@ -10,7 +10,6 @@ use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
 use Domain\Integration\Tool\Jobs\EmbedFunctionJob;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Bus;
 
@@ -24,19 +23,19 @@ use Illuminate\Support\Facades\Bus;
 /** Whether the row has lost its dense vector and kept its keyword vector. */
 function reembedClearedDenseOnly(Model $row): bool
 {
-    return $row->newQuery()->whereKey($row->getKey())->whereNull('embedding')->whereNotNull('embedding_bm25')->exists();
+    return $row->newQuery()->whereKey($row->getKey())->whereNull('embedding')->whereNotNull('search_text')->exists();
 }
 
 it('clears the dense vectors, keeps the keyword vectors and queues an embed job for every tool', function (): void {
     $vector = app(EmbeddingsProviderInterface::class)->embed('a tool', true);
-    $bm25 = Bm25Tokenizer::expression('a tool');
+    $bm25 = 'a tool';
     $connectorTool = ConnectorTool::factory()->create(['connector_slug' => 'acme']);
     $mcpTool = McpTool::factory()->create();
     // Creating a function embeds it (the observer's job runs on the sync queue).
     $function = AgentFunction::factory()->create();
     $form = FormDefinition::factory()->create();
     foreach ([$connectorTool, $mcpTool, $form] as $row) {
-        $row->newQuery()->whereKey($row->getKey())->update(['embedding' => $vector, 'embedding_bm25' => $bm25]);
+        $row->newQuery()->whereKey($row->getKey())->update(['embedding' => $vector, 'search_text' => $bm25]);
     }
 
     Bus::fake();

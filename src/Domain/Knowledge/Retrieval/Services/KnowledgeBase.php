@@ -23,7 +23,7 @@ use Throwable;
  *   1. embed the query (cached per query and model);
  *   2. run the four-channel hybrid SQL ({@see HybridChunkSearch}) for a pool
  *      of candidates: exactly over the agent's own chunks when it has few,
- *      through the vector and BM25 indexes when it has many;
+ *      through the vector and lexical indexes when it has many;
  *   3. the relevance check narrows the pool to `max_chunks`: the reranker's
  *      threshold, or without one (or when it fails) a basic similarity
  *      check; then the context budget (`max_context_tokens`).

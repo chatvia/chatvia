@@ -17,8 +17,9 @@ use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * A re-index embeds the stored rows of an id range again with the model in
- * use: chunks from the text ingestion embedded (and their questions), Q&A
- * questions from their text. Rows outside the range keep their vectors.
+ * use: chunks from the text ingestion embedded (their stored search_text, and
+ * their questions), Q&A questions from their text. Rows outside the range
+ * keep their vectors.
  */
 
 /**
@@ -45,6 +46,8 @@ function reembedChunk(SourceFile $file, string $text, ?string $questions = null,
     return Chunk::factory()->forSource($file)->create([
         'chunk' => $text,
         'summary' => $summary,
+        // What ingestion embedded and stored: the summary prepended to the text.
+        'search_text' => $summary === null ? $text : "{$summary}\n\n{$text}",
         'questions' => $questions,
         'questions_embedding' => $questions === null ? null : reembedOldVector(),
         'embedding' => reembedOldVector(),
@@ -64,7 +67,7 @@ it('embeds the chunks of a range again from their text and questions', function 
     $asked = reembedChunk($file, 'Opening hours.', questions: 'When are you open?', summary: 'About hours.');
     $plain = reembedChunk($file, 'Prices.');
     $outside = reembedChunk($file, 'Outside the range.');
-    $keywords = Chunk::query()->whereKey($asked->id)->value('embedding_bm25');
+    $keywords = Chunk::query()->whereKey($asked->id)->value('search_text');
     $provider = reembedProvider();
 
     $done = app(ReembedChunksAction::class)->execute($asked->id, $plain->id);
@@ -76,7 +79,7 @@ it('embeds the chunks of a range again from their text and questions', function 
         ->and(reembedHasNewVector('chunks', 'embedding', $plain->id))->toBeTrue()
         ->and(Chunk::query()->whereKey($plain->id)->value('questions_embedding'))->toBeNull()
         ->and(reembedHasNewVector('chunks', 'embedding', $outside->id))->toBeFalse()
-        ->and(Chunk::query()->whereKey($asked->id)->value('embedding_bm25'))->toBe($keywords);
+        ->and(Chunk::query()->whereKey($asked->id)->value('search_text'))->toBe($keywords);
 });
 
 it('does nothing for a range without chunks', function (): void {

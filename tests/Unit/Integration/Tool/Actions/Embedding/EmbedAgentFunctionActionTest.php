@@ -15,7 +15,7 @@ function embedTestFunction(): AgentFunction
 
     // Creating it runs the observer's embed job on the sync queue; clear its
     // output so each test starts from an unembedded row.
-    AgentFunction::query()->whereKey($function->id)->update(['embedding' => null, 'embedding_bm25' => null]);
+    AgentFunction::query()->whereKey($function->id)->update(['embedding' => null, 'search_text' => null]);
 
     return $function;
 }
@@ -25,7 +25,7 @@ function embeddedFunctionColumns(int $functionId): array
 {
     $row = AgentFunction::query()
         ->whereKey($functionId)
-        ->selectRaw('embedding IS NOT NULL AS has_vec, embedding_bm25 IS NOT NULL AS has_bm25')
+        ->selectRaw('embedding IS NOT NULL AS has_vec, search_text IS NOT NULL AS has_bm25')
         ->first();
 
     return ['has_vec' => (bool) $row->has_vec, 'has_bm25' => (bool) $row->has_bm25];

@@ -56,9 +56,10 @@ services:
       - secrets:/var/lib/chatvia
 
   postgres:
-    # PostgreSQL 18 with pgvector, VectorChord, VectorChord-bm25 and
-    # pg_tokenizer. The image's default command loads the extensions.
-    image: tensorchord/vchord-suite:pg18-20260501
+    # PostgreSQL 18 with pgvector and pg_textsearch (docker/postgres/
+    # Dockerfile). The image's default command preloads pg_textsearch, so do
+    # not override `command`.
+    image: ghcr.io/chatvia/postgres:18-1.5.1
     restart: unless-stopped
     depends_on:
       setup:

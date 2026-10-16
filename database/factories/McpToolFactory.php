@@ -37,7 +37,7 @@ class McpToolFactory extends Factory
             'scope' => McpToolScope::Write,
             'permission' => McpToolPermission::Approval,
             'embedding' => null,
-            'embedding_bm25' => null,
+            'search_text' => null,
             'fetched_at' => now(),
         ];
     }

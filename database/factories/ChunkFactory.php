@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -17,8 +15,8 @@ use Illuminate\Support\Str;
  * Builds a page chunk (`chunk_index` 1) of a knowledge source, in the source's
  * workspace. Without {@see forSource()} it belongs to a new file. The dense
  * vector is the same everywhere (0.1), so use {@see withVector()} when the
- * order of the results matters; the BM25 vector is made from the chunk text
- * by the database tokenizer, as ingestion does.
+ * order of the results matters; the lexical search text is the chunk text,
+ * as ingestion writes it.
  *
  * @extends Factory<Chunk>
  */
@@ -42,7 +40,7 @@ class ChunkFactory extends Factory
             'chunk' => fake()->sentence(),
             'tokens' => 3,
             'embedding' => $this->vectorLiteral(array_fill(0, (int) config('chatvia.embeddings.dimensions'), 0.1)),
-            'embedding_bm25' => fn (array $attributes): Expression => Bm25Tokenizer::expression($attributes['chunk']),
+            'search_text' => fn (array $attributes): string => (string) $attributes['chunk'],
             // Unique per source, so two chunks with the same text never collide.
             'checksum' => fn (): string => hash('sha256', (string) Str::uuid7()),
             'cost_in_micro_cents' => 0,

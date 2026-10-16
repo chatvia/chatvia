@@ -4,7 +4,6 @@ use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -38,7 +37,7 @@ function slChunk(Model $source, int $workspaceId): void
         'chunk' => 'A chunk.',
         'tokens' => 2,
         'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression('A chunk.'),
+        'search_text' => 'A chunk.',
         'checksum' => md5(uniqid()),
         'cost_in_micro_cents' => 0,
     ]);

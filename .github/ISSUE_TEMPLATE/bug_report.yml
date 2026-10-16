@@ -70,7 +70,7 @@ body:
       label: Environment
       description: PHP, PostgreSQL and Node versions, operating system, browser (for UI bugs), and how you run it (Docker services, Herd, a server, ...).
       placeholder: |
-        PHP 8.5.x, PostgreSQL 18 (tensorchord/vchord-suite), Node 22
+        PHP 8.5.x, PostgreSQL 18 (ghcr.io/chatvia/postgres), Node 22
         macOS 15 / Ubuntu 24.04
         Firefox 140
     validations:

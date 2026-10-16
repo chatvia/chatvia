@@ -16,7 +16,7 @@ use Pgvector\Laravel\Vector;
  * One row per tool of a PRESET ("GA") connector, keyed by connector_slug — the
  * central, workspace-agnostic catalog. leads/stripe/github/… are stored here
  * ONCE regardless of how many workspaces connect them, so the heavy columns
- * (definition + embeddings) and their vchordrq/BM25 indexes are single-copy.
+ * (definition + embeddings) and their lexical index are single-copy.
  *
  * `name` is the raw MCP tool name (unprefixed); the `mcp__{slug}__` prefix is
  * reapplied at compile time from the per-workspace server's slug.
@@ -35,7 +35,7 @@ use Pgvector\Laravel\Vector;
  * @property McpToolScope $scope
  * @property McpToolPermission $default_permission
  * @property Vector|null $embedding
- * @property string|null $embedding_bm25
+ * @property string|null $search_text
  * @property Carbon $fetched_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

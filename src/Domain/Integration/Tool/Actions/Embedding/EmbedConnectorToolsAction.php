@@ -8,12 +8,11 @@ use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Populates the dense (Qwen3) + BM25 (llmlingua2) embeddings of the shared
+ * Populates the dense embedding + lexical search text of the shared
  * `connector_tools` catalog for one connector_slug — computed ONCE, however
  * many workspaces connect that connector. Custom servers' own tools are
  * embedded by {@see EmbedMcpToolsAction}.
@@ -34,7 +33,7 @@ class EmbedConnectorToolsAction
         $tools = ConnectorTool::query()
             ->where('connector_slug', $connectorSlug)
             ->where(function ($q): void {
-                $q->whereNull('embedding')->orWhereNull('embedding_bm25');
+                $q->whereNull('embedding')->orWhereNull('search_text');
             })
             ->get();
 
@@ -53,7 +52,7 @@ class EmbedConnectorToolsAction
                 $text = trim($context."\n\n".$tool->name."\n\n".$tool->description);
                 $tool->forceFill([
                     'embedding' => $this->embeddings->embed($text),
-                    'embedding_bm25' => Bm25Tokenizer::expression($text),
+                    'search_text' => $text,
                 ])->save();
             } catch (Throwable $e) {
                 Log::warning('Connector tool embedding failed', [

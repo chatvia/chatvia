@@ -11,7 +11,7 @@ use Spatie\LaravelData\Data;
 final class RetrievalSettingsData extends Data
 {
     public function __construct(
-        /** vchordrq accuracy mode (`default`, …); picks probes and epsilon. */
+        /** Vector-search accuracy mode (`default`, …); picks the HNSW ef_search. */
         public string $accuracy,
         /** How many chunks a search returns at most. */
         public int $maxChunks,

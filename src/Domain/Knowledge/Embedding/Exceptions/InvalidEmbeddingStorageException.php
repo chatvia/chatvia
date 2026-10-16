@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding\Exceptions;
 
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use RuntimeException;
 
 /**
@@ -24,8 +23,7 @@ class InvalidEmbeddingStorageException extends RuntimeException
     public static function dimensions(mixed $value): self
     {
         return new self(sprintf(
-            'EMBEDDING_DIMENSIONS must be a whole number from 1 to %d, not "%s".',
-            EmbeddingStorage::MAX_DIMENSIONS,
+            'EMBEDDING_DIMENSIONS must be a whole number the vector index accepts (up to 4000 for "halfvec", 2000 for "vector"), not "%s".',
             is_scalar($value) ? (string) $value : get_debug_type($value),
         ));
     }

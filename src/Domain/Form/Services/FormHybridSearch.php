@@ -7,6 +7,7 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,8 +16,8 @@ use Throwable;
 /**
  * Intent-driven retrieval of the forms to return to the model from the
  * `find-forms` MCP tool, so it renders a form by the visitor's INTENT rather than
- * the form's title. Mirrors {@see ToolHybridSearch}: a dense (L2) and a sparse
- * (BM25, llmlingua2) channel over an agent's active forms, fused with RRF
+ * the form's title. Mirrors {@see ToolHybridSearch}: a dense (L2) and a
+ * keyword (LexicalSearch) channel over an agent's active forms, fused with RRF
  * (k = 60). An agent has a few dozen forms at most, so both channels score
  * exactly the agent's own forms (`form_definitions` has no vector index).
  *
@@ -40,6 +41,7 @@ class FormHybridSearch
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly EmbeddingStorage $storage,
+        private readonly LexicalSearch $lexical,
     ) {}
 
     /**
@@ -106,16 +108,16 @@ class FormHybridSearch
         $rrfK = self::RRF_K;
 
         // The agent's active forms are collected once (MATERIALIZED, from the
-        // agent_id key) and scored on both channels by exact distance. A BM25
-        // score of 0 means no shared term: not a keyword hit.
+        // agent_id key) and scored on both channels by exact distance. A
+        // keyword score of 0 means no shared term: not a keyword hit.
         $sql = <<<SQL
 WITH scope AS MATERIALIZED (
     SELECT fd.id,
            fd.embedding <-> q.vector AS vector_dist,
-           NULLIF(fd.embedding_bm25 <&> q.terms, 0) AS bm25_dist
+           NULLIF({$this->lexical->score('fd.search_text', 'q.terms')}, 0) AS bm25_dist
     FROM (
         SELECT ?::{$cast} AS vector,
-               bm25_catalog.to_bm25query('form_definitions_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')) AS terms
+               {$this->lexical->queryExpression('form_definitions_search_text_lexical')} AS terms
     ) q
     CROSS JOIN form_definitions fd
     WHERE fd.agent_id = ?
@@ -150,7 +152,7 @@ SQL;
 
         try {
             $rows = DB::select($sql, [
-                $vectorString, $message, $agent->id, // scope
+                $vectorString, $this->lexical->queryText($message), $agent->id, // scope
                 $candidateLimit,                     // form_vector
                 $candidateLimit,                     // form_bm25
                 $limit,                              // final LIMIT

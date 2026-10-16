@@ -129,12 +129,11 @@ services:
       SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan pulse:check"
 
   postgres:
-    # PostgreSQL 18 with pgvector, VectorChord (vchord), VectorChord-bm25 and
-    # pg_tokenizer. Same image and tag as CI (.github/workflows/tests.yml); keep
-    # them in sync. The dated tag is what `pg18-latest` pointed to when it was
-    # pinned. The image's default command preloads the extensions, so do not
-    # override `command`.
-    image: tensorchord/vchord-suite:pg18-20260501
+    # PostgreSQL 18 with pgvector and pg_textsearch
+    # (docker/postgres/Dockerfile). Same image and tag as CI
+    # (.github/workflows/tests.yml); keep them in sync. The image's default
+    # command preloads pg_textsearch, so do not override `command`.
+    image: ghcr.io/chatvia/postgres:18-1.5.1
     # The database, user and password come from .env. Postgres reads them
     # only when it creates an empty volume; after that, changing .env does
     # not change them. The tests (phpunit.xml, .env.testing) expect the

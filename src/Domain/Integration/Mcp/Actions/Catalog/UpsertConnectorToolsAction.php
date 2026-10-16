@@ -74,7 +74,7 @@ class UpsertConnectorToolsAction
 
         if ($row->description !== $tool->description) {
             $row->embedding = null;
-            $row->embedding_bm25 = null;
+            $row->search_text = null;
         }
 
         $row->fill($attributes);

@@ -33,9 +33,20 @@ it('rejects a vector type the database cannot store', function (): void {
         ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_VECTOR_TYPE must be "halfvec" or "vector", not "float".');
 });
 
-it('rejects a size the database cannot store', function (mixed $dimensions): void {
+it('rejects a size the vector index cannot hold', function (mixed $dimensions): void {
     config(['chatvia.embeddings.dimensions' => $dimensions]);
 
     expect(fn (): int => (new EmbeddingStorage)->dimensions())
-        ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_DIMENSIONS must be a whole number from 1 to 16000');
-})->with([0, 16001, '1024.5', 'many']);
+        ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_DIMENSIONS must be a whole number the vector index accepts');
+})->with([0, 4001, '1024.5', 'many']);
+
+it('caps the size at what the HNSW index accepts for the type', function (): void {
+    config(['chatvia.embeddings.type' => 'vector', 'chatvia.embeddings.dimensions' => 2048]);
+
+    expect(fn (): int => (new EmbeddingStorage)->dimensions())
+        ->toThrow(InvalidEmbeddingStorageException::class);
+
+    config(['chatvia.embeddings.type' => 'halfvec']);
+
+    expect((new EmbeddingStorage)->dimensions())->toBe(2048);
+});

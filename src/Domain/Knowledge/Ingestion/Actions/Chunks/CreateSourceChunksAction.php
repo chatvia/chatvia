@@ -9,7 +9,6 @@ use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Collection;
@@ -131,10 +130,9 @@ class CreateSourceChunksAction
                 'cost_in_micro_cents' => CostCalculator::centsToMicroCents($enhancement->costInCents ?? 0.0),
                 'tokens' => $tokens[$position],
                 'embedding' => $this->vectorLiteral($vectors[$position]),
-                'embedding_bm25' => Bm25Tokenizer::expression($embeddingTexts[$position]),
+                'search_text' => $embeddingTexts[$position],
                 'questions' => $questions,
                 'questions_embedding' => $questions !== null ? $this->vectorLiteral($questionVectors[$questions]) : null,
-                'questions_embedding_bm25' => $questions !== null ? Bm25Tokenizer::expression($questions) : null,
                 'metadata' => json_encode($enhancement->metadata ?? [], JSON_THROW_ON_ERROR),
                 'checksum' => $page->checksum,
                 'created_at' => $now,

@@ -33,8 +33,12 @@ use Throwable;
  */
 final readonly class ServiceChecks
 {
-    /** The database extensions the app's schema uses (see `app:db-fresh`). */
-    private const array EXTENSIONS = ['vector', 'pg_trgm', 'pg_tokenizer', 'vchord', 'vchord_bm25'];
+    /**
+     * The database extensions the app's schema cannot run without.
+     * pg_textsearch is deliberately not here: without it, lexical search
+     * falls back to the built-in full-text search (LexicalSearch).
+     */
+    private const array EXTENSIONS = ['vector', 'pg_trgm'];
 
     /** How long a network check waits before it counts the service as down. */
     private const int TIMEOUT_SECONDS = 3;
@@ -78,8 +82,16 @@ final readonly class ServiceChecks
         $version = (string) DB::scalar('show server_version');
         $time = $this->millisecondsSince($started);
 
-        $missing = array_values(array_diff(self::EXTENSIONS, DB::table('pg_extension')->pluck('extname')->all()));
-        $facts = ['PostgreSQL '.Str::before($version, ' '), __(':ms ms', ['ms' => $time])];
+        $installed = DB::table('pg_extension')->pluck('extname')->all();
+        $missing = array_values(array_diff(self::EXTENSIONS, $installed));
+
+        $facts = [
+            'PostgreSQL '.Str::before($version, ' '),
+            __(':ms ms', ['ms' => $time]),
+            in_array('pg_textsearch', $installed, true)
+                ? __('Keyword search: pg_textsearch (BM25)')
+                : __('Keyword search: built-in full-text search'),
+        ];
 
         if ($missing !== []) {
             return new ServiceStatusData(ServiceState::Down, __('Missing extensions: :list.', ['list' => implode(', ', $missing)]), $facts);

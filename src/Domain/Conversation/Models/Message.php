@@ -21,9 +21,7 @@ use Support\Concerns\HasExternalId;
 /**
  * One message of a conversation in the chat log: a visitor message, an AI
  * reply, or a human operator's reply during a handoff (see MessageRole). Holds
- * what analytics read back — usage, cost, timing, confidence,
- * feedback — and a BM25 copy of the text for search, kept in step with the
- * text on every save.
+ * what analytics read back: usage, cost, timing, confidence and feedback.
  *
  * @property int $id
  * @property string $external_id

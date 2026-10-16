@@ -109,7 +109,7 @@ class UpdateRetrievalStatsAction
     {
         $columns = match ($type) {
             'source_file' => ['id', 'filename', 'mime_type'],
-            'source_website', 'agent_website_url' => ['id', 'url'],
+            'source_website' => ['id', 'url'],
             'source_text' => ['id', 'excerpt'],
             'source_youtube_video' => ['id', 'title', 'url'],
             default => ['id'],
@@ -129,7 +129,7 @@ class UpdateRetrievalStatsAction
     {
         return match ($type) {
             'source_file' => (string) $row->getAttribute('filename'),
-            'source_website', 'agent_website_url' => (string) $row->getAttribute('url'),
+            'source_website' => (string) $row->getAttribute('url'),
             'source_text' => Str::limit(trim((string) preg_replace('/\s+/', ' ', (string) $row->getAttribute('excerpt'))), self::TEXT_LABEL_LENGTH),
             'source_youtube_video' => (string) ($row->getAttribute('title') ?: $row->getAttribute('url')),
             default => null,

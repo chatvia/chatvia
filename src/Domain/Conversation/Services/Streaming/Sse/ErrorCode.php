@@ -15,6 +15,8 @@ enum ErrorCode: string
     case UpstreamUnavailable = 'upstream_unavailable';
     case RateLimited = 'rate_limited';
     case Internal = 'internal';
+    // A workspace admin blocked this visitor (Guardrails → Activity).
+    case AccessBlocked = 'access_blocked';
 
     public function isRetryable(): bool
     {

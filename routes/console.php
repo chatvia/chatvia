@@ -45,6 +45,9 @@ Schedule::command('app:prune-agent-activity')->dailyAt('04:00')->withoutOverlapp
 // documented but nothing pruned the table.
 Schedule::command('app:prune-guardrail-events')->dailyAt('04:15')->withoutOverlapping()->onOneServer();
 
+// Visitor blocks that ended more than 30 days ago (`blocked_visitors`).
+Schedule::command('app:prune-expired-visitor-blocks')->dailyAt('04:20')->withoutOverlapping()->onOneServer();
+
 // Security audit retention: trims `security_audit_log` past the config default,
 // honouring per-workspace `retention_audit_days` overrides clamped to the floor.
 // Runs after the guardrail prune so the audit sweeps don't fight for workers.

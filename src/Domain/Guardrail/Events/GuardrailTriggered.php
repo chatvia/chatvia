@@ -38,5 +38,8 @@ class GuardrailTriggered
         // The chatter whose turn tripped the guard; `userId` is set instead
         // for a staff account. Both null for an anonymous visitor.
         public readonly ?int $chatterId = null,
+        // An anonymous visitor's fingerprint (VisitorFingerprint), so repeat
+        // attacks can be seen and the visitor blocked.
+        public readonly ?string $visitorKey = null,
     ) {}
 }

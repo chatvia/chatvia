@@ -28,8 +28,12 @@ use Support\Concerns\HasExternalId;
  * @property string $external_id
  * @property int|null $agent_id
  * @property string $agent_name
+ * @property int $workspace_id
  * @property int|null $user_id
+ * @property int|null $chatter_id
  * @property string|null $user_name
+ * @property string|null $visitor_key
+ * @property string|null $conversation_external_id
  * @property GuardStage $stage
  * @property GuardType $guard_type
  * @property GuardOutcome $outcome
@@ -109,6 +113,7 @@ class GuardrailEvent extends Model
             'snippet' => $this->snippet,
             'trace_id' => $this->trace_id,
             'conversation_external_id' => $this->conversation_external_id,
+            'visitor_key' => $this->visitor_key,
         ];
     }
 

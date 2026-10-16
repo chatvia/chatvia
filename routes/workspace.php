@@ -22,6 +22,7 @@ use App\Http\Controllers\Settings\Function\FunctionController;
 use App\Http\Controllers\Settings\Function\ToggleFunctionController;
 use App\Http\Controllers\Settings\Governance\GovernanceAuditController;
 use App\Http\Controllers\Settings\Prompt\PromptController;
+use App\Http\Controllers\Settings\Security\BlockedVisitorController;
 use App\Http\Controllers\Settings\Security\SecurityAuditController;
 use App\Http\Controllers\Settings\Security\SecurityPolicyController;
 use App\Http\Controllers\Team\Crud\TeamDeleteController;
@@ -150,6 +151,9 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
         // Read-only security audit log viewer.
         Route::get('my/workspace/security/audit', SecurityAuditController::class)->name('security.audit');
+
+        // Remove a visitor block (blocks are made from an agent's Guardrails activity).
+        Route::delete('my/workspace/security/blocked-visitors/{blockedVisitor}', [BlockedVisitorController::class, 'destroy'])->name('security.blocked-visitors.destroy');
     });
 
     // Teams — workspace teammates and roles. URLs and names are unchanged

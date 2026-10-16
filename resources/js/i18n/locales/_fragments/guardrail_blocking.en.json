@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Visitor · {id}",
+                "blocked": "Blocked",
+                "recent_attempts": "{count} injection or abuse attempt in the last 24 hours | {count} injection or abuse attempts in the last 24 hours",
+                "show_all": "Show all from this visitor",
+                "clear_visitor": "Show all visitors",
+                "block_chatter": "Block chatter",
+                "block_visitor": "Block visitor",
+                "chatter_title": "Block {name}",
+                "chatter_description": "Their account is turned off, and they are signed out of every agent in this workspace. You can turn it back on under People.",
+                "visitor_title": "Block this visitor",
+                "visitor_description": "They cannot chat with any agent in this workspace until the block ends.",
+                "duration": "How long",
+                "reason": "Reason",
+                "reason_placeholder": "e.g. Tried many times to get the agent's instructions",
+                "reason_help": "Only your team sees this.",
+                "notify": "Tell {name} by email",
+                "visitor_limits": "Visitors are recognized by their network and browser. Someone else on the same network with the same browser is blocked too, and a new network or browser gets past the block. You can see and remove blocks under Security.",
+                "chatter_blocked": "Chatter blocked",
+                "visitor_blocked": "Visitor blocked",
+                "error": "Could not block. Please try again.",
+                "durations": {
+                    "day": "1 day",
+                    "week": "7 days",
+                    "month": "30 days",
+                    "forever": "Until you unblock them"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Chat blocked"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Blocked visitors",
+                "help": "Visitors who cannot chat with your agents. You block a visitor from an agent's Guardrails activity.",
+                "visitor": "Visitor · {id}",
+                "browser_on_os": "{browser} on {os}",
+                "on_agent": "On {agent}",
+                "by": "By {name}",
+                "until": "Until {date}",
+                "until_unblocked": "Until unblocked",
+                "unblock": "Unblock",
+                "unblocked": "Visitor unblocked",
+                "unblock_error": "Could not unblock. Please try again.",
+                "empty": "No blocked visitors."
+            }
+        }
+    }
+}

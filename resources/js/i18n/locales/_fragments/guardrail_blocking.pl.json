@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Odwiedzający · {id}",
+                "blocked": "Zablokowany",
+                "recent_attempts": "{count} próba wstrzyknięcia lub nadużycia w ciągu ostatnich 24 godzin | Prób wstrzyknięcia lub nadużycia w ciągu ostatnich 24 godzin: {count}",
+                "show_all": "Pokaż wszystko od tego odwiedzającego",
+                "clear_visitor": "Pokaż wszystkich odwiedzających",
+                "block_chatter": "Zablokuj czatowicza",
+                "block_visitor": "Zablokuj odwiedzającego",
+                "chatter_title": "Zablokuj: {name}",
+                "chatter_description": "Konto zostanie wyłączone, a osoba wylogowana ze wszystkich agentów w tym obszarze roboczym. Możesz je ponownie włączyć w sekcji Użytkownicy.",
+                "visitor_title": "Zablokuj tego odwiedzającego",
+                "visitor_description": "Do końca blokady nie będzie mógł czatować z żadnym agentem w tym obszarze roboczym.",
+                "duration": "Na jak długo",
+                "reason": "Powód",
+                "reason_placeholder": "np. Wiele razy próbował poznać instrukcje agenta",
+                "reason_help": "Widzi to tylko Twój zespół.",
+                "notify": "Powiadom: {name} e-mailem",
+                "visitor_limits": "Odwiedzający są rozpoznawani po sieci i przeglądarce. Ktoś inny w tej samej sieci z tą samą przeglądarką też zostanie zablokowany, a nowa sieć lub przeglądarka pozwala obejść blokadę. Blokady możesz zobaczyć i usunąć w sekcji Bezpieczeństwo.",
+                "chatter_blocked": "Czatowicz zablokowany",
+                "visitor_blocked": "Odwiedzający zablokowany",
+                "error": "Nie udało się zablokować. Spróbuj ponownie.",
+                "durations": {
+                    "day": "1 dzień",
+                    "week": "7 dni",
+                    "month": "30 dni",
+                    "forever": "Do odblokowania"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Czat zablokowany"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Zablokowani odwiedzający",
+                "help": "Odwiedzający, którzy nie mogą czatować z Twoimi agentami. Odwiedzającego blokujesz w aktywności zabezpieczeń agenta.",
+                "visitor": "Odwiedzający · {id}",
+                "browser_on_os": "{browser} w {os}",
+                "on_agent": "Agent: {agent}",
+                "by": "Zablokował(a): {name}",
+                "until": "Do {date}",
+                "until_unblocked": "Do odblokowania",
+                "unblock": "Odblokuj",
+                "unblocked": "Odwiedzający odblokowany",
+                "unblock_error": "Nie udało się odblokować. Spróbuj ponownie.",
+                "empty": "Brak zablokowanych odwiedzających."
+            }
+        }
+    }
+}

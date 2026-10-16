@@ -14,6 +14,8 @@ use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Llm\Enums\AiProvider;
+use Domain\Security\Models\BlockedVisitor;
+use Domain\Security\Services\VisitorFingerprint;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\Request;
@@ -100,6 +102,25 @@ it('refuses the call while a teammate holds the conversation', function (): void
     $this->conversation->update(['handoff_status' => HandoffStatus::Human, 'handoff_user_id' => $this->agent->workspace->owner->id]);
 
     expect(svcRefusal(fn (): VoiceCallStartedData => app(StartVoiceCallAction::class)->execute(svcCaller(), 'v=0 offer')))->toBe(VoiceCallRefusal::HandedOff);
+    Http::assertNothingSent();
+});
+
+it('refuses the call from a visitor an admin blocked, without calling OpenAI', function (): void {
+    BlockedVisitor::factory()->create([
+        'workspace_id' => $this->agent->workspace_id,
+        'visitor_key' => app(VisitorFingerprint::class)->for($this->agent->workspace_id, '203.0.113.60', 'Safari/18'),
+    ]);
+
+    $caller = new VoiceCallerData(
+        agent: $this->agent,
+        surface: ConversationSource::HostedChat,
+        sessionId: $this->session->external_id,
+        conversationId: $this->conversation->external_id,
+        ipAddress: '203.0.113.60',
+        userAgent: 'Safari/18',
+    );
+
+    expect(svcRefusal(fn (): VoiceCallStartedData => app(StartVoiceCallAction::class)->execute($caller, 'v=0 offer')))->toBe(VoiceCallRefusal::Blocked);
     Http::assertNothingSent();
 });
 

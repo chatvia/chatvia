@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Khách · {id}",
+                "blocked": "Đã chặn",
+                "recent_attempts": "{count} lần thử chèn câu lệnh hoặc lạm dụng trong 24 giờ qua | {count} lần thử chèn câu lệnh hoặc lạm dụng trong 24 giờ qua",
+                "show_all": "Xem tất cả từ khách này",
+                "clear_visitor": "Xem tất cả khách",
+                "block_chatter": "Chặn người dùng",
+                "block_visitor": "Chặn khách",
+                "chatter_title": "Chặn {name}",
+                "chatter_description": "Tài khoản bị tắt và bị đăng xuất khỏi mọi Trợ lý AI trong không gian làm việc này. Bạn có thể bật lại trong Mọi người.",
+                "visitor_title": "Chặn khách này",
+                "visitor_description": "Họ không thể trò chuyện với Trợ lý AI nào trong không gian làm việc này cho đến khi hết thời gian chặn.",
+                "duration": "Trong bao lâu",
+                "reason": "Lý do",
+                "reason_placeholder": "vd: Nhiều lần cố lấy hướng dẫn của trợ lý",
+                "reason_help": "Chỉ nhóm của bạn thấy nội dung này.",
+                "notify": "Báo cho {name} qua email",
+                "visitor_limits": "Khách được nhận ra qua mạng và trình duyệt. Người khác trên cùng mạng dùng cùng trình duyệt cũng bị chặn, và mạng hoặc trình duyệt mới có thể vượt qua việc chặn. Bạn có thể xem và bỏ chặn trong Bảo mật.",
+                "chatter_blocked": "Đã chặn người dùng",
+                "visitor_blocked": "Đã chặn khách",
+                "error": "Không chặn được. Vui lòng thử lại.",
+                "durations": {
+                    "day": "1 ngày",
+                    "week": "7 ngày",
+                    "month": "30 ngày",
+                    "forever": "Cho đến khi bạn bỏ chặn"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Cuộc trò chuyện bị chặn"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Khách bị chặn",
+                "help": "Những khách không thể trò chuyện với Trợ lý AI của bạn. Bạn chặn khách từ hoạt động quy tắc kiểm soát của một trợ lý.",
+                "visitor": "Khách · {id}",
+                "browser_on_os": "{browser} trên {os}",
+                "on_agent": "Tại {agent}",
+                "by": "Bởi {name}",
+                "until": "Đến {date}",
+                "until_unblocked": "Cho đến khi bỏ chặn",
+                "unblock": "Bỏ chặn",
+                "unblocked": "Đã bỏ chặn khách",
+                "unblock_error": "Không bỏ chặn được. Vui lòng thử lại.",
+                "empty": "Không có khách bị chặn."
+            }
+        }
+    }
+}

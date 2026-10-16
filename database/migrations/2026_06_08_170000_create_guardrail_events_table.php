@@ -20,6 +20,11 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('chatter_id')->nullable()->constrained()->nullOnDelete();
             $table->string('user_name')->nullable();
+            // An anonymous visitor's fingerprint (VisitorFingerprint): a keyed
+            // hash of their network address and browser, so repeat attacks from
+            // one visitor can be seen and blocked. Null for chatters, staff and
+            // the messaging channels.
+            $table->string('visitor_key', 64)->nullable();
 
             $table->uuid('conversation_external_id')->nullable();
             $table->uuid('message_id')->nullable();
@@ -41,7 +46,7 @@ return new class extends Migration
             $table->index('chatter_id');
             $table->index(['workspace_id', 'created_at']);
             $table->index(['agent_id', 'id']);
-
+            $table->index(['workspace_id', 'visitor_key', 'created_at']);
         });
 
         DB::statement('CREATE INDEX guardrail_events_created_at_brin ON guardrail_events USING brin (created_at)');

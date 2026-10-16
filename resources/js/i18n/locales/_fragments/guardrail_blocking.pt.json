@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Visitante · {id}",
+                "blocked": "Bloqueado",
+                "recent_attempts": "{count} tentativa de injeção ou abuso nas últimas 24 horas | {count} tentativas de injeção ou abuso nas últimas 24 horas",
+                "show_all": "Ver tudo deste visitante",
+                "clear_visitor": "Ver todos os visitantes",
+                "block_chatter": "Bloquear chatter",
+                "block_visitor": "Bloquear visitante",
+                "chatter_title": "Bloquear {name}",
+                "chatter_description": "A conta é desativada e a sessão é terminada em todos os agentes deste workspace. Pode voltar a ativá-la em Pessoas.",
+                "visitor_title": "Bloquear este visitante",
+                "visitor_description": "Não poderá conversar com nenhum agente deste workspace até o bloqueio terminar.",
+                "duration": "Durante quanto tempo",
+                "reason": "Motivo",
+                "reason_placeholder": "p. ex. Tentou muitas vezes obter as instruções do agente",
+                "reason_help": "Só a sua equipa vê isto.",
+                "notify": "Avisar {name} por e-mail",
+                "visitor_limits": "Os visitantes são reconhecidos pela rede e pelo navegador. Outra pessoa na mesma rede com o mesmo navegador também fica bloqueada, e uma rede ou navegador novo contorna o bloqueio. Pode ver e remover bloqueios em Segurança.",
+                "chatter_blocked": "Chatter bloqueado",
+                "visitor_blocked": "Visitante bloqueado",
+                "error": "Não foi possível bloquear. Tente novamente.",
+                "durations": {
+                    "day": "1 dia",
+                    "week": "7 dias",
+                    "month": "30 dias",
+                    "forever": "Até o desbloquear"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Conversa bloqueada"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Visitantes bloqueados",
+                "help": "Visitantes que não podem conversar com os seus agentes. Bloqueia um visitante a partir da atividade dos guardrails de um agente.",
+                "visitor": "Visitante · {id}",
+                "browser_on_os": "{browser} em {os}",
+                "on_agent": "Em {agent}",
+                "by": "Por {name}",
+                "until": "Até {date}",
+                "until_unblocked": "Até ser desbloqueado",
+                "unblock": "Desbloquear",
+                "unblocked": "Visitante desbloqueado",
+                "unblock_error": "Não foi possível desbloquear. Tente novamente.",
+                "empty": "Nenhum visitante bloqueado."
+            }
+        }
+    }
+}

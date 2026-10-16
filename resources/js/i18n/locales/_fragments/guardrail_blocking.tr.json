@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Ziyaretçi · {id}",
+                "blocked": "Engellendi",
+                "recent_attempts": "Son 24 saatte {count} enjeksiyon veya kötüye kullanım girişimi | Son 24 saatte {count} enjeksiyon veya kötüye kullanım girişimi",
+                "show_all": "Bu ziyaretçinin tümünü göster",
+                "clear_visitor": "Tüm ziyaretçileri göster",
+                "block_chatter": "Kullanıcıyı engelle",
+                "block_visitor": "Ziyaretçiyi engelle",
+                "chatter_title": "{name} kişisini engelle",
+                "chatter_description": "Hesabı kapatılır ve bu çalışma alanındaki tüm asistanlardan çıkış yaptırılır. Kişiler bölümünden yeniden açabilirsiniz.",
+                "visitor_title": "Bu ziyaretçiyi engelle",
+                "visitor_description": "Engel bitene kadar bu çalışma alanındaki hiçbir asistanla sohbet edemez.",
+                "duration": "Ne kadar süre",
+                "reason": "Neden",
+                "reason_placeholder": "örn. Asistanın talimatlarını almayı birçok kez denedi",
+                "reason_help": "Bunu yalnızca ekibiniz görür.",
+                "notify": "{name} kişisine e-postayla bildir",
+                "visitor_limits": "Ziyaretçiler ağlarından ve tarayıcılarından tanınır. Aynı ağda aynı tarayıcıyı kullanan başka biri de engellenir, yeni bir ağ veya tarayıcıyla engel aşılabilir. Engelleri Güvenlik bölümünde görüp kaldırabilirsiniz.",
+                "chatter_blocked": "Kullanıcı engellendi",
+                "visitor_blocked": "Ziyaretçi engellendi",
+                "error": "Engellenemedi. Lütfen tekrar deneyin.",
+                "durations": {
+                    "day": "1 gün",
+                    "week": "7 gün",
+                    "month": "30 gün",
+                    "forever": "Siz engeli kaldırana kadar"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Sohbet engellendi"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Engellenen ziyaretçiler",
+                "help": "Asistanlarınızla sohbet edemeyen ziyaretçiler. Bir ziyaretçiyi bir asistanın koruma kuralları etkinliğinden engellersiniz.",
+                "visitor": "Ziyaretçi · {id}",
+                "browser_on_os": "{os} üzerinde {browser}",
+                "on_agent": "{agent} üzerinde",
+                "by": "Engelleyen: {name}",
+                "until": "{date} tarihine kadar",
+                "until_unblocked": "Engel kaldırılana kadar",
+                "unblock": "Engeli kaldır",
+                "unblocked": "Ziyaretçinin engeli kaldırıldı",
+                "unblock_error": "Engel kaldırılamadı. Lütfen tekrar deneyin.",
+                "empty": "Engellenen ziyaretçi yok."
+            }
+        }
+    }
+}

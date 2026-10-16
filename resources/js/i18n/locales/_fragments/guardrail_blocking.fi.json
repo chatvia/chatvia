@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Kävijä · {id}",
+                "blocked": "Estetty",
+                "recent_attempts": "{count} injektio- tai väärinkäyttöyritys viimeisten 24 tunnin aikana | {count} injektio- tai väärinkäyttöyritystä viimeisten 24 tunnin aikana",
+                "show_all": "Näytä kaikki tältä kävijältä",
+                "clear_visitor": "Näytä kaikki kävijät",
+                "block_chatter": "Estä chatteri",
+                "block_visitor": "Estä kävijä",
+                "chatter_title": "Estä {name}",
+                "chatter_description": "Tili poistetaan käytöstä, ja hänet kirjataan ulos kaikista tämän työtilan agenteista. Voit ottaa tilin uudelleen käyttöön kohdassa Henkilöt.",
+                "visitor_title": "Estä tämä kävijä",
+                "visitor_description": "Hän ei voi keskustella minkään tämän työtilan agentin kanssa ennen kuin esto päättyy.",
+                "duration": "Kuinka kauan",
+                "reason": "Syy",
+                "reason_placeholder": "esim. Yritti monta kertaa saada agentin ohjeet",
+                "reason_help": "Vain tiimisi näkee tämän.",
+                "notify": "Kerro {name} sähköpostilla",
+                "visitor_limits": "Kävijät tunnistetaan verkon ja selaimen perusteella. Myös muut samassa verkossa samalla selaimella estetään, ja uudella verkolla tai selaimella eston voi kiertää. Estot näet ja poistat kohdassa Tietoturva.",
+                "chatter_blocked": "Chatteri estetty",
+                "visitor_blocked": "Kävijä estetty",
+                "error": "Estäminen epäonnistui. Yritä uudelleen.",
+                "durations": {
+                    "day": "1 päivä",
+                    "week": "7 päivää",
+                    "month": "30 päivää",
+                    "forever": "Kunnes poistat eston"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Keskustelu estetty"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Estetyt kävijät",
+                "help": "Kävijät, jotka eivät voi keskustella agenttiesi kanssa. Kävijä estetään agentin turvarajojen toiminnasta.",
+                "visitor": "Kävijä · {id}",
+                "browser_on_os": "{browser}, {os}",
+                "on_agent": "Agentti: {agent}",
+                "by": "Estäjä: {name}",
+                "until": "{date} asti",
+                "until_unblocked": "Kunnes esto poistetaan",
+                "unblock": "Poista esto",
+                "unblocked": "Esto poistettu",
+                "unblock_error": "Eston poistaminen epäonnistui. Yritä uudelleen.",
+                "empty": "Ei estettyjä kävijöitä."
+            }
+        }
+    }
+}

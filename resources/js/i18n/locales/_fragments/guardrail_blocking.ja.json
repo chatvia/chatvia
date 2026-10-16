@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "訪問者 · {id}",
+                "blocked": "ブロック済み",
+                "recent_attempts": "過去24時間にインジェクションまたは悪用の試みが{count}件 | 過去24時間にインジェクションまたは悪用の試みが{count}件",
+                "show_all": "この訪問者の記録をすべて表示",
+                "clear_visitor": "すべての訪問者を表示",
+                "block_chatter": "チャッターをブロック",
+                "block_visitor": "訪問者をブロック",
+                "chatter_title": "{name}をブロック",
+                "chatter_description": "アカウントが無効になり、このワークスペースのすべてのエージェントからサインアウトされます。ユーザーで再び有効にできます。",
+                "visitor_title": "この訪問者をブロック",
+                "visitor_description": "ブロックが終わるまで、このワークスペースのどのエージェントともチャットできません。",
+                "duration": "期間",
+                "reason": "理由",
+                "reason_placeholder": "例: エージェントの指示を何度も聞き出そうとした",
+                "reason_help": "チームだけが見られます。",
+                "notify": "{name}にメールで知らせる",
+                "visitor_limits": "訪問者はネットワークとブラウザで識別されます。同じネットワークで同じブラウザを使う別の人もブロックされ、新しいネットワークやブラウザならブロックを回避できます。ブロックはセキュリティで確認・解除できます。",
+                "chatter_blocked": "チャッターをブロックしました",
+                "visitor_blocked": "訪問者をブロックしました",
+                "error": "ブロックできませんでした。もう一度お試しください。",
+                "durations": {
+                    "day": "1日",
+                    "week": "7日",
+                    "month": "30日",
+                    "forever": "ブロックを解除するまで"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "チャットはブロックされています"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "ブロックした訪問者",
+                "help": "エージェントとチャットできない訪問者です。訪問者はエージェントのガードレールのアクティビティからブロックします。",
+                "visitor": "訪問者 · {id}",
+                "browser_on_os": "{browser}（{os}）",
+                "on_agent": "{agent}",
+                "by": "ブロックした人: {name}",
+                "until": "{date}まで",
+                "until_unblocked": "解除するまで",
+                "unblock": "ブロック解除",
+                "unblocked": "ブロックを解除しました",
+                "unblock_error": "ブロックを解除できませんでした。もう一度お試しください。",
+                "empty": "ブロックした訪問者はいません。"
+            }
+        }
+    }
+}

@@ -11,6 +11,7 @@ import { Head } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, Save } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import BlockedVisitorsCard, { type BlockedVisitor } from './BlockedVisitorsCard.vue';
 import type { Country } from './countries';
 import NetworkAccessCard from './NetworkAccessCard.vue';
 import RetentionCard from './RetentionCard.vue';
@@ -24,6 +25,8 @@ interface Props {
     // The viewer's own country (lowercase ISO code) for the live lockout warning;
     // null when it can't be resolved (private IP / provider miss).
     current_country: string | null;
+    // Visitors blocked from chatting (made from an agent's Guardrails activity).
+    blocked_visitors: BlockedVisitor[];
 }
 
 const props = defineProps<Props>();
@@ -89,6 +92,9 @@ const { form, save } = useSecurityPolicyForm(props.policy);
                         {{ t('workspace.security.save') }}
                     </Button>
                 </div>
+
+                <!-- Saved on its own: Unblock applies right away, not with Save. -->
+                <BlockedVisitorsCard :blocks="props.blocked_visitors" :can-manage="canManage" />
             </div>
         </WorkspaceLayout>
     </AppLayout>

@@ -18,6 +18,17 @@ enum GuardType: string
     case Toxicity = 'toxicity';
     case PromptLeak = 'prompt_leak';
 
+    /**
+     * The guards that catch a person misusing the agent (as opposed to data
+     * or topics), which the Guardrails page lets an admin block them for.
+     *
+     * @return list<self>
+     */
+    public static function abusive(): array
+    {
+        return [self::PromptInjection, self::PromptLeak, self::Toxicity];
+    }
+
     public function label(): string
     {
         return match ($this) {

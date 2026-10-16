@@ -61,7 +61,9 @@ const canManage = computed(() => hasPermission('agent.guardrails.manage'));
 const canViewChats = computed(() => hasPermission('agent.chat.view'));
 
 // A filtered log link opens on the Activity tab.
-const activeTab = ref<'config' | 'test' | 'activity'>(props.filters.guard_type || props.filters.outcome ? 'activity' : 'config');
+const activeTab = ref<'config' | 'test' | 'activity'>(
+    props.filters.guard_type || props.filters.outcome || props.filters.visitor ? 'activity' : 'config',
+);
 
 const { form, save, toggle, piiEnabled, togglePii, selectedFilters } = useGuardrailSettings(props, canManage);
 

@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "访客 · {id}",
+                "blocked": "已屏蔽",
+                "recent_attempts": "过去 24 小时内有 {count} 次注入或滥用尝试 | 过去 24 小时内有 {count} 次注入或滥用尝试",
+                "show_all": "查看此访客的全部记录",
+                "clear_visitor": "查看所有访客",
+                "block_chatter": "屏蔽用户",
+                "block_visitor": "屏蔽访客",
+                "chatter_title": "屏蔽 {name}",
+                "chatter_description": "其账号将被停用，并退出此工作区的所有智能体。你可以在人员中重新启用。",
+                "visitor_title": "屏蔽此访客",
+                "visitor_description": "屏蔽结束前，对方无法与此工作区的任何智能体聊天。",
+                "duration": "屏蔽时长",
+                "reason": "原因",
+                "reason_placeholder": "例如：多次试图获取智能体的指令",
+                "reason_help": "只有你的团队能看到。",
+                "notify": "通过邮件通知 {name}",
+                "visitor_limits": "访客通过网络和浏览器识别。同一网络中使用相同浏览器的其他人也会被屏蔽，换用新的网络或浏览器即可绕过屏蔽。你可以在安全中查看和解除屏蔽。",
+                "chatter_blocked": "已屏蔽用户",
+                "visitor_blocked": "已屏蔽访客",
+                "error": "无法屏蔽，请重试。",
+                "durations": {
+                    "day": "1 天",
+                    "week": "7 天",
+                    "month": "30 天",
+                    "forever": "直到你解除屏蔽"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "聊天已被屏蔽"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "已屏蔽的访客",
+                "help": "无法与你的智能体聊天的访客。你可以在智能体的防护规则活动中屏蔽访客。",
+                "visitor": "访客 · {id}",
+                "browser_on_os": "{os} 上的 {browser}",
+                "on_agent": "智能体：{agent}",
+                "by": "操作人：{name}",
+                "until": "至 {date}",
+                "until_unblocked": "直到解除屏蔽",
+                "unblock": "解除屏蔽",
+                "unblocked": "已解除访客屏蔽",
+                "unblock_error": "无法解除屏蔽，请重试。",
+                "empty": "没有被屏蔽的访客。"
+            }
+        }
+    }
+}

@@ -55,6 +55,7 @@ use App\Http\Controllers\Agent\Form\AgentSubmissionController;
 use App\Http\Controllers\Agent\Form\ExportFormSubmissionsController;
 use App\Http\Controllers\Agent\Form\RewriteFormDescriptionController;
 use App\Http\Controllers\Agent\Guardrail\AgentGuardrailController;
+use App\Http\Controllers\Agent\Guardrail\BlockGuardrailOffenderController;
 use App\Http\Controllers\Agent\Guardrail\TestGuardrailMessageController;
 use App\Http\Controllers\Agent\Handoff\AgentHandoffController;
 use App\Http\Controllers\Agent\Handoff\HandoffTypingController;
@@ -332,6 +333,9 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware('agent.permission:agent.guardrails.manage')->name('guardrails.update');
         // Try a sample message against the form's settings (runs the classifier, so rate limited).
         Route::post('guardrails/test', TestGuardrailMessageController::class)->middleware(['agent.permission:agent.guardrails.manage', 'throttle:20,1'])->name('guardrails.test');
+        // Block the chatter or visitor behind an abusive trigger; the request
+        // checks the chatter or security permission that the block needs.
+        Route::post('guardrails/events/{event}/block', BlockGuardrailOffenderController::class)->middleware('agent.permission:agent.guardrails.view')->name('guardrails.block');
 
         // Capabilities — first-party, no-auth chat enrichments (Interactive
         // Charts, …). A friendlier surface over the builtin-connector machinery;

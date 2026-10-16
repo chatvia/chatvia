@@ -74,7 +74,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $registered_country_code
  * @property string|null $profile_image_path
  * @property string|null $deactivation_reason
- * @property string|null $deactivated_at
+ * @property Carbon|null $deactivated_at
  * @property DateFormat|null $date_format
  * @property array<string, mixed>|null $notification_preferences
  * @property Carbon|null $last_login_at
@@ -172,6 +172,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     {
         return [
             'email_verified_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
+            'deactivated_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
             'is_admin' => 'boolean',

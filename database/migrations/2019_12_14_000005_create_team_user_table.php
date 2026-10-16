@@ -16,6 +16,7 @@ return new class extends Migration
             $table->primary(['team_id', 'user_id']);
 
             $table->index('user_id');
+            $table->index('role_id');
         });
     }
 

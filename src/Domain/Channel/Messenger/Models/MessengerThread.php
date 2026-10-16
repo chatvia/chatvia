@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * ongoing conversation (and its history) across messages.
  *
  * @property string $psid
+ * @property int $workspace_id
  * @property int $chat_session_id
  * @property int $chat_conversation_id
  * @property string|null $first_name

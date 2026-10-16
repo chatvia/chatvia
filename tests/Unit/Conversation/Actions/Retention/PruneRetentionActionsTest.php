@@ -46,8 +46,11 @@ function retentionUpload(Conversation $conversation): Attachment
 
 function retentionCheckpoint(ToolApprovalStatus $status, ?CarbonInterface $expiresAt, int $daysSinceUpdate = 0): ToolApprovalCheckpoint
 {
+    $agent = Agent::factory()->create();
+
     $checkpoint = ToolApprovalCheckpoint::create([
-        'agent_id' => Agent::factory()->create()->id,
+        'workspace_id' => $agent->workspace_id,
+        'agent_id' => $agent->id,
         'conversation_external_id' => (string) Str::uuid(),
         'assistant_message_id' => (string) Str::uuid(),
         'iteration' => 0,
@@ -253,7 +256,7 @@ it('deletes audit rows older than the retention window', function (): void {
         'tool_name' => 'get_weather',
         'tool_kind' => 'function',
         'outcome' => 'auto',
-        'gated' => false,
+        'is_gated' => false,
         'is_error' => false,
         'arguments_truncated' => false,
         'result_truncated' => false,

@@ -195,7 +195,9 @@ class TopicsSeeder extends Seeder
             $topicName = $titleToTopic[$conversation->title] ?? null;
 
             if ($topicName && isset($topics[$topicName])) {
-                $conversation->topics()->syncWithoutDetaching([$topics[$topicName]]);
+                $conversation->topics()->syncWithoutDetaching([
+                    $topics[$topicName] => ['workspace_id' => $conversation->workspace_id],
+                ]);
                 $conversationsUpdated++;
             }
         }

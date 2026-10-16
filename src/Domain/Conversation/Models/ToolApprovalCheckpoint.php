@@ -23,6 +23,7 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string $external_id
+ * @property int $workspace_id
  * @property int $agent_id
  * @property string $conversation_external_id
  * @property string $assistant_message_id

@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * messages.
  *
  * @property string $channel_id
+ * @property int $workspace_id
  * @property int $chat_session_id
  * @property int $chat_conversation_id
  * @property string|null $channel_name

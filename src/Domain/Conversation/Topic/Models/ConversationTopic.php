@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * (committed) or `suggested_label` (emergent, pre-promotion) is set.
  *
  * @property int $id
+ * @property int $workspace_id
  * @property int $chat_conversation_id
  * @property int|null $topic_id
  * @property string|null $suggested_label

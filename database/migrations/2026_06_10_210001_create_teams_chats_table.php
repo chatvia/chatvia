@@ -15,13 +15,17 @@ return new class extends Migration
             $table->text('service_url');
             $table->string('conversation_type')->nullable();
 
-            $table->foreignId('chat_session_id')->index()
-                ->constrained('chat_sessions')->cascadeOnDelete();
-            $table->foreignId('chat_conversation_id')->index()
-                ->constrained('chat_conversations')->cascadeOnDelete();
+            // The session and conversation keys pair with the workspace: a
+            // mapping can never point at another workspace's chat.
+            $table->foreignId('workspace_id');
+            $table->foreignId('chat_session_id')->index();
+            $table->foreignId('chat_conversation_id')->index();
             $table->string('peer_name')->nullable();
             $table->timestamp('last_message_at')->nullable();
             $table->timestamps();
+
+            $table->foreign(['workspace_id', 'chat_session_id'])->references(['workspace_id', 'id'])->on('chat_sessions')->cascadeOnDelete();
+            $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
 
             $table->unique(['agent_teams_bot_id', 'conversation_id']);
         });

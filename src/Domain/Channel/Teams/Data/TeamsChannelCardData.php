@@ -27,7 +27,7 @@ class TeamsChannelCardData extends Data
             connected: $bot !== null,
             app_id: $bot?->app_id,
             webhook_url: $bot !== null ? route('msteams.webhook', ['secret' => $bot->webhook_secret]) : null,
-            enabled: (bool) $bot?->enabled,
+            enabled: (bool) $bot?->is_enabled,
         );
     }
 }

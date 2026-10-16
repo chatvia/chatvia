@@ -23,7 +23,7 @@ class TelegramWebhookController
         $bot = AgentTelegramBot::query()
             ->with('agent')
             ->where('webhook_secret', $secret)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->first();
 
         if ($bot !== null && hash_equals($bot->webhook_secret, (string) $request->header('X-Telegram-Bot-Api-Secret-Token'))) {

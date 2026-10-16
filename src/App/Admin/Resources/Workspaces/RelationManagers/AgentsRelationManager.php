@@ -74,7 +74,7 @@ class AgentsRelationManager extends RelationManager
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
                 ->with('llm')
                 ->withExists(array_map(
-                    fn (): \Closure => fn (Builder $channel): Builder => $channel->where('enabled', true),
+                    fn (): \Closure => fn (Builder $channel): Builder => $channel->where('is_enabled', true),
                     self::CHANNELS,
                 ))
                 ->addSelect(['sources_count' => DB::table('agent_sources')

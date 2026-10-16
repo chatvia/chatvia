@@ -20,7 +20,7 @@ it('remembers queued messages per WhatsApp number', function (): void {
         'access_token' => 'EAAG-wa-token',
         'phone_number_id' => $phoneNumberId,
         'waba_id' => '999',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $first = $number('111');
     $second = $number('222');

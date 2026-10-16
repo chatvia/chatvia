@@ -34,7 +34,7 @@ it('connects a bot and registers the webhook with its fresh secret', function ()
 
     expect($row->agent_id)->toBe($agent->id)
         ->and($row->bot_username)->toBe('demo_bot')
-        ->and($row->enabled)->toBeTrue()
+        ->and($row->is_enabled)->toBeTrue()
         ->and(strlen($row->webhook_secret))->toBe(48);
 
     expect($client->webhooks)->toHaveCount(1)

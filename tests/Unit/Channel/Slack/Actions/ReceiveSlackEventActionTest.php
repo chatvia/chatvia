@@ -23,7 +23,7 @@ it('remembers queued events per Slack app', function (): void {
         'bot_user_id' => 'U0BOT',
         'team_name' => 'Acme',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $first = $app();
     $second = $app();

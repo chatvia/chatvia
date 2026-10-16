@@ -27,7 +27,7 @@ class SlackChannelCardData extends Data
             connected: $app !== null,
             team_name: $app?->team_name,
             webhook_url: $app !== null ? route('slack.webhook', ['secret' => $app->webhook_secret]) : null,
-            enabled: (bool) $app?->enabled,
+            enabled: (bool) $app?->is_enabled,
         );
     }
 }

@@ -37,7 +37,7 @@ class MessengerChannelCardData extends Data
             available: MetaApp::Messenger->isConfigured(),
             connected: $page !== null,
             page_name: $page?->page_name,
-            enabled: (bool) $page?->enabled,
+            enabled: (bool) $page?->is_enabled,
             pick: $pending === [] ? null : new DataCollection(MessengerPagePickData::class, array_map(MessengerPagePickData::fromArray(...), $pending)),
         );
     }

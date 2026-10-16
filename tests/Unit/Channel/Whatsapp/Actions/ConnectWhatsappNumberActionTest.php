@@ -39,7 +39,7 @@ it('connects a number: exchanges the code, subscribes the WABA and registers the
         ->and($row->waba_id)->toBe('999888777666555')
         ->and($row->display_phone_number)->toBe('+15551234567')
         ->and($row->verified_name)->toBe('Acme Support')
-        ->and($row->enabled)->toBeTrue();
+        ->and($row->is_enabled)->toBeTrue();
 
     expect($client->subscriptions)->toHaveCount(1)
         ->and($client->subscriptions[0]['wabaId'])->toBe('999888777666555');

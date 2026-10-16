@@ -46,7 +46,7 @@ class ConnectSlackAppAction
                 'bot_user_id' => $identity['user_id'],
                 'team_name' => $identity['team'],
                 'webhook_secret' => Str::random(48),
-                'enabled' => true,
+                'is_enabled' => true,
             ],
         );
     }

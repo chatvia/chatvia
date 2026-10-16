@@ -26,7 +26,7 @@ it('stores the bot when Entra accepts the credentials', function (): void {
         ->and($bot->app_id)->toBe('f5e1f9d2-1111-2222-3333-444455556666')
         ->and($bot->tenant_id)->toBeNull()
         ->and(strlen($bot->webhook_secret))->toBe(48)
-        ->and($bot->enabled)->toBeTrue();
+        ->and($bot->is_enabled)->toBeTrue();
 });
 
 it('stores the tenant id for single-tenant bots', function (): void {

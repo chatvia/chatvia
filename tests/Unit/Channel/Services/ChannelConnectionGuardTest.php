@@ -19,7 +19,7 @@ it('turns a unique-index clash into a taken-by-another-agent failure', function 
         'page_access_token' => 'token',
         'page_id' => 'PAGE-1',
         'page_name' => 'Acme',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 
     $page(Agent::factory()->create());

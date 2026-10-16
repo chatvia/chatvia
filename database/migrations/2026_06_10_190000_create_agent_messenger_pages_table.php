@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('page_access_token');
             $table->string('page_id')->nullable()->unique();
             $table->string('page_name')->nullable();
-            $table->boolean('enabled')->default(true);
+            $table->boolean('is_enabled')->default(true);
             $table->timestamps();
         });
     }

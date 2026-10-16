@@ -28,7 +28,7 @@ function crrReplyTo(string $answer): string
         'bot_token' => '123:token',
         'bot_username' => 'demo_bot',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $chat = app(TelegramChatResolver::class)->resolve($bot, '555', new TelegramSenderData('Sam'));
 

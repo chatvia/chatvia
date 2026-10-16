@@ -31,7 +31,7 @@ class TelegramChannelCardData extends Data
         return new self(
             connected: $bot !== null,
             bot_username: $bot?->bot_username,
-            enabled: (bool) $bot?->enabled,
+            enabled: (bool) $bot?->is_enabled,
             commands: new DataCollection(TelegramCommandRowData::class, array_map(TelegramCommandRowData::fromArray(...), $commands)),
         );
     }

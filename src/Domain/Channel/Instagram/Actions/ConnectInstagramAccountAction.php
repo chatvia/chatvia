@@ -39,7 +39,7 @@ class ConnectInstagramAccountAction
                 'page_id' => $account->page_id,
                 'ig_id' => $account->ig_id,
                 'username' => $account->ig_username,
-                'enabled' => true,
+                'is_enabled' => true,
             ],
         ));
 

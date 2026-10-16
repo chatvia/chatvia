@@ -38,7 +38,7 @@ class ConnectMessengerPageAction
                 'page_access_token' => $page->access_token,
                 'page_id' => $page->id,
                 'page_name' => $page->name,
-                'enabled' => true,
+                'is_enabled' => true,
             ],
         ));
 

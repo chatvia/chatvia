@@ -20,7 +20,7 @@ it('remembers queued messages per Page', function (): void {
         'page_access_token' => 'EAAG-page-token',
         'page_id' => $pageId,
         'page_name' => 'Acme',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $first = $page('PAGE-1');
     $second = $page('PAGE-2');

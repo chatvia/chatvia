@@ -28,7 +28,7 @@ beforeEach(function (): void {
         'app_secret' => 'client-secret-value',
         'tenant_id' => null,
         'webhook_secret' => $this->secret,
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 
     $this->verifier = new class extends TeamsActivityVerifier
@@ -125,7 +125,7 @@ it('returns 200 for an unknown webhook secret without dispatching', function ():
 });
 
 it('ignores a disabled bot', function (): void {
-    $this->teamsBot->update(['enabled' => false]);
+    $this->teamsBot->update(['is_enabled' => false]);
 
     postTeamsActivity($this->secret, teamsActivity())->assertOk();
 

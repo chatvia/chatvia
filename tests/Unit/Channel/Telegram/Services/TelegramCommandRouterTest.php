@@ -28,7 +28,7 @@ function telegramRouterBot(array $commands = []): AgentTelegramBot
         'bot_token' => '123:secret-token',
         'bot_username' => 'demo_bot',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
         'commands' => $commands,
     ]);
 }

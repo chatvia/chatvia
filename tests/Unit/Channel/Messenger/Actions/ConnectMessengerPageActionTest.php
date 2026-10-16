@@ -32,7 +32,7 @@ it('stores the page and subscribes the app to it', function (): void {
         ->and($row->agent_id)->toBe($agent->id)
         ->and($row->page_id)->toBe('1234567890')
         ->and($row->page_name)->toBe('Acme Support')
-        ->and($row->enabled)->toBeTrue();
+        ->and($row->is_enabled)->toBeTrue();
 
     expect($client->subscriptions)->toHaveCount(1)
         ->and($client->subscriptions[0]['pageId'])->toBe('1234567890');

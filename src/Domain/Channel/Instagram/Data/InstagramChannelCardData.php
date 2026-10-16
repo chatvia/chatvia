@@ -38,7 +38,7 @@ class InstagramChannelCardData extends Data
             available: MetaApp::Instagram->isConfigured(),
             connected: $account !== null,
             username: $account?->username,
-            enabled: (bool) $account?->enabled,
+            enabled: (bool) $account?->is_enabled,
             pick: $pending === [] ? null : new DataCollection(InstagramAccountPickData::class, array_map(InstagramAccountPickData::fromArray(...), $pending)),
         );
     }

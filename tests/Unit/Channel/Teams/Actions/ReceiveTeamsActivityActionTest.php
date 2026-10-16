@@ -20,7 +20,7 @@ it('remembers queued activities per Teams bot', function (): void {
         'app_id' => (string) Str::uuid(),
         'app_secret' => 'client-secret-value',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $first = $bot();
     $second = $bot();

@@ -28,7 +28,7 @@ function slackHandleApp(): AgentSlackApp
         'bot_user_id' => 'U0BOT',
         'team_name' => 'Acme Inc',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 

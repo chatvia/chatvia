@@ -40,7 +40,7 @@ function hcmMessengerPage(bool $public = true): AgentMessengerPage
         'page_access_token' => 'EAAG-page-token',
         'page_id' => '1234567890',
         'page_name' => 'Acme Support',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 
@@ -53,7 +53,7 @@ function hcmSlackApp(): AgentSlackApp
         'bot_user_id' => 'U0BOT',
         'team_name' => 'Acme Inc',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 

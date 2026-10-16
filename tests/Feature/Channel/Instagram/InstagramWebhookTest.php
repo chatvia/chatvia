@@ -28,7 +28,7 @@ beforeEach(function (): void {
         'page_id' => '998877',
         'ig_id' => '17840012345',
         'username' => 'acme.support',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 
@@ -94,7 +94,7 @@ it('returns 200 for an unknown IG account id without dispatching', function (): 
 });
 
 it('ignores a disabled account', function (): void {
-    $this->account->update(['enabled' => false]);
+    $this->account->update(['is_enabled' => false]);
 
     MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm1', 'text' => 'hello']), $this->appSecret)->assertOk();
 

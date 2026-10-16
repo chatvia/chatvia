@@ -58,7 +58,7 @@ class ReceiveInstagramMessagesAction
         return AgentInstagramAccount::query()
             ->with('agent')
             ->where('ig_id', $igId)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->first();
     }
 }

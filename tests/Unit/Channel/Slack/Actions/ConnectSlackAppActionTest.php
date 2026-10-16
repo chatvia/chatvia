@@ -30,7 +30,7 @@ it('connects an app with a fresh webhook secret and records the bot identity', f
     expect($row->agent_id)->toBe($agent->id)
         ->and($row->team_name)->toBe('Acme Inc')
         ->and($row->bot_user_id)->toBe('U0BOT')
-        ->and($row->enabled)->toBeTrue()
+        ->and($row->is_enabled)->toBeTrue()
         ->and(strlen($row->webhook_secret))->toBe(48);
 });
 

@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Settings\Account;
 use App\Http\Requests\Settings\Account\RequestDataExportRequest;
 use App\Identity\Workspace\Actions\DataExport\DeleteDataExportAction;
 use App\Identity\Workspace\Actions\DataExport\RequestDataExportAction;
-use App\Identity\Workspace\Enums\DataExportStatus;
+use App\Identity\Workspace\Data\DataExport\DataExportResourceData;
 use App\Identity\Workspace\Exceptions\ActiveDataExportExistsException;
 use App\Identity\Workspace\Models\DataExport;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Queries\ActiveDataExportQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -22,38 +22,12 @@ use Inertia\Response;
  */
 class DataExportController
 {
-    public function edit(Request $request): Response
+    public function edit(Request $request, ActiveDataExportQuery $active): Response
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        $activeExport = DataExport::query()
-            ->where('user_id', $user->id)
-            ->where(function ($query): void {
-                $query->whereIn('status', [
-                    DataExportStatus::Pending,
-                    DataExportStatus::Processing,
-                    DataExportStatus::Failed,
-                ])->orWhere(function ($q): void {
-                    $q->where('status', DataExportStatus::Ready)
-                        ->where('expires_at', '>', now());
-                });
-            })
-            ->latest('id')
-            ->first();
+        $export = $active->forUser($request->user());
 
         return Inertia::render('account/DataExport', [
-            'activeExport' => $activeExport ? [
-                'id' => $activeExport->id,
-                'status' => $activeExport->status->value,
-                'file_size' => $activeExport->file_size,
-                'expires_at' => $activeExport->expires_at?->toIso8601String(),
-                'error_message' => $activeExport->error_message,
-                'created_at' => $activeExport->created_at?->toIso8601String(),
-                'download_url' => $activeExport->isReady() && ! $activeExport->isExpired()
-                    ? route('account.data-export.download', $activeExport)
-                    : null,
-            ] : null,
+            'activeExport' => $export !== null ? DataExportResourceData::fromModel($export) : null,
         ]);
     }
 

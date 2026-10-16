@@ -83,7 +83,7 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
     async function deletePairOnServer(userMessageId: MessageId, assistantMessageId: MessageId): Promise<RegeneratedTurn | null> {
         try {
             const result = await regenerateMessage({ conversationId, userMessageId, assistantMessageId });
-            if (result?.success) return result;
+            if (result?.user_message_content !== undefined) return result;
         } catch (error) {
             // 404: the conversation was deleted elsewhere (e.g. another tab).
             if (isAxiosError(error) && error.response?.status === 404) {

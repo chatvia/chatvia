@@ -11,12 +11,12 @@ use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Accept an agent-invitation link (password path). The route param is the
- * invitation `token`; we resolve the matching {@see AgentChatterInvitation} row
- * and hand it to the accept Action, which checks expiry, activates the chatter
- * and deletes the invitation (single use) in one transaction. The chatter is
- * then handed into the agent's hosted chat via an `auth_token`: the chat has
- * its own session, separate from this page's.
+ * Accept an agent-invitation link (password path). The route binds the
+ * invitation by its opaque token (`{invitation:token}`) and hands it to the
+ * accept Action, which checks expiry, activates the chatter and deletes the
+ * invitation (single use) in one transaction. The chatter is then handed into
+ * the agent's hosted chat via an `auth_token`: the chat has its own session,
+ * separate from this page's.
  *
  * The redirect uses {@see Inertia::location()} on purpose: the form submits
  * via Inertia XHR, and the chat is a full page outside this Inertia app, so a
@@ -27,16 +27,13 @@ class AcceptAgentInvitationController
 {
     public function __invoke(
         AcceptAgentInvitationRequest $request,
-        string $token,
+        AgentChatterInvitation $invitation,
         AcceptAgentInvitationAction $accept,
         ChatterAuthTokenService $authTokens,
     ): Response {
-        $invitation = AgentChatterInvitation::query()
-            ->with('agent')
-            ->where('token', $token)
-            ->first();
+        $invitation->loadMissing('agent');
 
-        abort_if($invitation === null || $invitation->agent === null, 404);
+        abort_if($invitation->agent === null, 404);
 
         $agent = $invitation->agent;
 

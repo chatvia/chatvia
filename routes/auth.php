@@ -32,15 +32,15 @@ Route::post('invitation/{invitation}/accept', AcceptTeamInvitationController::cl
 // string stored on `agent_chatter_invitations` and looked up at the controller — it
 // replaces Laravel's signed-URL approach. The row is deleted on accept, so
 // the link is single-use. Expiry is checked in the controller.
-Route::get('chat-invitation/{token}', AgentInvitationController::class)
+Route::get('chat-invitation/{invitation:token}', AgentInvitationController::class)
     ->middleware('throttle:20,1,chat-invitation')
     ->name('agents.invitation.show');
 
-Route::post('chat-invitation/{token}/accept', AcceptAgentInvitationController::class)
+Route::post('chat-invitation/{invitation:token}/accept', AcceptAgentInvitationController::class)
     ->middleware('throttle:20,1,chat-invitation')
     ->name('agents.invitation.accept');
 
-Route::get('chat-invitation/{token}/oauth/{provider}', AgentInvitationSocialStartController::class)
+Route::get('chat-invitation/{invitation:token}/oauth/{provider}', AgentInvitationSocialStartController::class)
     ->middleware('throttle:20,1,chat-invitation-oauth')
     ->name('agents.invitation.social.start');
 

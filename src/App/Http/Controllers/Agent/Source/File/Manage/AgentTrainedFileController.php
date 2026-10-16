@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
-use App\Http\Requests\Agent\Source\File\LinkSourceFileRequest;
 use App\Http\Requests\Agent\Source\File\ListTrainedFilesRequest;
 use Domain\Agent\Actions\Sources\UnlinkSourceFileFromAgentAction;
 use Domain\Agent\Data\Resources\Sources\AgentSourcesListData;
@@ -10,6 +9,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Actions\AttachSourceToAgentAction;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Http\Request;
 
 /**
  * The shared file pool of a workspace: lists trained files an agent does not
@@ -37,11 +37,9 @@ class AgentTrainedFileController
         return AgentSourcesListData::fromSources($files);
     }
 
-    public function store(LinkSourceFileRequest $request, Agent $agent, int $fileId, AttachSourceToAgentAction $attach): void
+    public function store(Request $request, Agent $agent, SourceFile $file, AttachSourceToAgentAction $attach): void
     {
-        // Another workspace's file answers like an unknown id.
-        $file = SourceFile::query()->where('workspace_id', $agent->workspace_id)->findOrFail($fileId);
-
+        // Another workspace's file answers like an unknown id (`can.access.agent`).
         abort_if($request->user()->cannot('view', $file), 403);
 
         $attach->execute($agent, $file);

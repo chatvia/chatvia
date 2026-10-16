@@ -221,9 +221,9 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         Route::get('sources/text', [AgentTextController::class, 'index'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.index');
         Route::post('sources/text', [AgentTextController::class, 'store'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.store');
-        Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.show');
-        Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.update');
-        Route::post('sources/text/{id}/unlink', DetachAgentTextController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.text.unlink');
+        Route::get('sources/text/{text}', [AgentTextController::class, 'show'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.show');
+        Route::patch('sources/text/{text}', [AgentTextController::class, 'update'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.update');
+        Route::post('sources/text/{text}/unlink', DetachAgentTextController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.text.unlink');
 
         Route::get('sources/qa', [AgentQaController::class, 'index'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.index');
         Route::post('sources/qa', [AgentQaController::class, 'store'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.store');
@@ -262,7 +262,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.upload');
-        Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
+        Route::delete('sources/text/{text}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.delete');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.uploaded-files');
         Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.process');
@@ -306,7 +306,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::middleware('agent.permission:agent.chatters.manage')->group(function (): void {
             Route::get('chatters', [AgentChatterController::class, 'index'])->name('chatters.index');
             Route::post('chatters', [AgentChatterController::class, 'store'])->name('chatters.store');
-            Route::post('chatters/{chatter:external_id}/grant', GrantAgentChatterAccessController::class)->name('chatters.grant');
+            Route::post('chatters/{chatter:external_id}/grant', GrantAgentChatterAccessController::class)->withoutScopedBindings()->name('chatters.grant');
             Route::delete('chatters/{chatter:external_id}', [AgentChatterController::class, 'destroy'])->name('chatters.destroy');
         });
 
@@ -470,12 +470,12 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         // Linking / Unlinking Source Files
         Route::get('sources/trained-files', [AgentTrainedFileController::class, 'index'])->middleware('agent.permission:agent.sources.train.files')->name('sources.list');
-        Route::post('sources/trained-files/{fileId}/link', [AgentTrainedFileController::class, 'store'])->middleware('agent.permission:agent.sources.train.files')->name('sources.files.link');
+        Route::post('sources/trained-files/{file}/link', [AgentTrainedFileController::class, 'store'])->middleware('agent.permission:agent.sources.train.files')->name('sources.files.link');
         Route::post('sources/trained-files/{file}/unlink', [AgentTrainedFileController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.files.unlink');
 
         // Text Sources
         Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->middleware('agent.permission:agent.sources.train.text')->name('sources.texts.list');
-        Route::post('sources/trained-texts/{textId}/link', AgentSourcesLinkTextController::class)->middleware('agent.permission:agent.sources.train.text')->name('sources.texts.link');
+        Route::post('sources/trained-texts/{text}/link', AgentSourcesLinkTextController::class)->middleware('agent.permission:agent.sources.train.text')->name('sources.texts.link');
 
         // Website Sources (cross-agent shared pool)
         Route::get('sources/trained-websites', [AgentTrainedWebsiteController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.trained-websites.index');

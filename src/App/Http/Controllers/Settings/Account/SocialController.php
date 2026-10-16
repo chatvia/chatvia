@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
+use App\Identity\Workspace\Data\Account\SocialAccountRowData;
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\UserSocial;
 use Illuminate\Http\RedirectResponse;
@@ -29,12 +30,10 @@ class SocialController
         return Inertia::render('account/Social', [
             // A provider that is not set up cannot be connected; one already
             // linked still shows, so it can be disconnected.
-            'accounts' => collect(SocialProvider::linkable())->filter(fn (SocialProvider $p): bool => $p->isConfigured() || $linked->has($p->value))->map(fn (SocialProvider $p): array => [
-                'provider' => $p->value,
-                'label' => ucfirst($p->value),
-                'connected' => $linked->has($p->value),
-                'connected_at' => $linked->get($p->value)?->created_at?->toIso8601String(),
-            ])->values(),
+            'accounts' => collect(SocialProvider::linkable())
+                ->filter(fn (SocialProvider $p): bool => $p->isConfigured() || $linked->has($p->value))
+                ->map(fn (SocialProvider $p): SocialAccountRowData => SocialAccountRowData::fromProvider($p, $linked->get($p->value)))
+                ->values(),
         ]);
     }
 

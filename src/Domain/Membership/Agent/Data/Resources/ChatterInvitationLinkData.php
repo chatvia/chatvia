@@ -23,7 +23,7 @@ class ChatterInvitationLinkData extends Data
     {
         return new self(
             email: $invitation->email,
-            accept_url: route('agents.invitation.show', ['token' => $invitation->token]),
+            accept_url: route('agents.invitation.show', ['invitation' => $invitation->token]),
             expires_at: $invitation->expires_at->toIso8601String(),
         );
     }

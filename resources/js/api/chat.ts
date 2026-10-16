@@ -16,7 +16,6 @@ export interface ChatUsage {
 
 /** The server deleted the old pair and returns what the re-streamed turn needs. */
 export interface RegeneratedTurn {
-    success: boolean;
     user_message_content: string;
     created_at: string;
 }

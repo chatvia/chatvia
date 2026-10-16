@@ -32,10 +32,7 @@ class MessageRegenerateController
             return response()->json(['error' => __('User message not found')], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'user_message_content' => $result->userMessageContent,
-            'created_at' => $result->createdAt,
-        ]);
+        // An explicit 200: the POST removed a pair, it created nothing.
+        return response()->json($result);
     }
 }

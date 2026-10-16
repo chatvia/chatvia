@@ -23,7 +23,7 @@ class AgentChatterInvitationNotification extends Notification
 
     public function acceptUrl(): string
     {
-        return route('agents.invitation.show', ['token' => $this->token]);
+        return route('agents.invitation.show', ['invitation' => $this->token]);
     }
 
     /**

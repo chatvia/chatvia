@@ -49,8 +49,8 @@ class RegenerateMessageAction
         }
 
         return new RegeneratedTurnData(
-            userMessageContent: $userMessage->content,
-            createdAt: now()->toISOString(),
+            user_message_content: $userMessage->content,
+            created_at: now()->toISOString(),
         );
     }
 }

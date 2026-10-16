@@ -24,7 +24,7 @@ class TeamRoleDeleteController
 
         $role = $team->roles()->findOrFail($roleId);
 
-        abort_if($role->isProtected(), 403, __('Cannot delete the owner or admin role.'));
+        abort_if($role->isProtected(), 403, __('Cannot delete the owner role.'));
 
         $delete->execute($team, $role);
 

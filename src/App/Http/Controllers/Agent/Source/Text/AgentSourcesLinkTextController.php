@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers\Agent\Source\Text;
 
-use App\Http\Requests\Agent\Source\LinkSourceTextRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Actions\AttachSourceToAgentAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Lets the agent use a text the workspace already trained.
  */
 class AgentSourcesLinkTextController
 {
-    public function __invoke(LinkSourceTextRequest $request, Agent $agent, int $textId, AttachSourceToAgentAction $attach): JsonResponse
+    public function __invoke(Request $request, Agent $agent, SourceText $text, AttachSourceToAgentAction $attach): JsonResponse
     {
-        // Another workspace's text answers like an unknown id.
-        $text = SourceText::query()->where('workspace_id', $agent->workspace_id)->findOrFail($textId);
-
+        // Another workspace's text answers like an unknown id (`can.access.agent`).
         abort_if($request->user()->cannot('view', $text), 403);
 
         if (! $attach->execute($agent, $text)) {

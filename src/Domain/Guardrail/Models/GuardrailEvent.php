@@ -23,7 +23,7 @@ use Support\Concerns\HasExternalId;
  * redactions, and flags. Written off the hot path by the queued
  * {@see RecordGuardrailEvent} listener; read by the
  * per-agent Guardrails page. Denormalized `agent_name`/`user_name` keep a row
- * readable after the agent or visitor is deleted, exactly like `agent_activity`.
+ * readable after the agent or visitor is deleted, exactly like `agent_activities`.
  *
  * @property string $external_id
  * @property int|null $agent_id

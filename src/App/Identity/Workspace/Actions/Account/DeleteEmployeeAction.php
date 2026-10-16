@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\DB;
  *    preview chat sessions — plus the Spatie role pivots (the `deleting` hook
  *    on HasRoles).
  *  - SET NULL unlinks them everywhere they appear only as an actor:
- *    `chat_conversations.handoff_user_id`, `agent_activity.user_id`,
+ *    `chat_conversations.handoff_user_id`, `agent_activities.user_id`,
  *    `guardrail_events.user_id`,
- *    `security_audit_log.user_id`, `eval_runs.triggered_by_user_id`. Those rows
+ *    `security_audit_logs.user_id`, `eval_runs.triggered_by_user_id`. Those rows
  *    belong to the workspace and survive — only the person is detached. The
  *    audit logs keep their denormalised name/email on purpose.
  *

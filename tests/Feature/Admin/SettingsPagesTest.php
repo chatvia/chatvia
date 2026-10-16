@@ -386,7 +386,7 @@ it('refuses a choice that is not offered', function (): void {
 
 it('refuses an embedding provider that cannot return the stored vector size', function (): void {
     Chunk::query()->delete();
-    config(['chatvia.embeddings.dimensions' => 4096]);
+    config(['chatvia.embeddings.dimensions' => 2048]);
     connectAiProviders(AiProvider::Mistral);
 
     settingsPage($this->admin, ManageAiModelSettings::class)

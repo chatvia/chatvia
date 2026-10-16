@@ -347,6 +347,18 @@ theme.
   costs and times (without prompts and replies), and sets how many days a
   call is kept (30 by default). **Tools** links to Spectra next to Horizon
   and Pulse.
+- **`./manage postgres tune` sizes PostgreSQL to its machine.** It reads the
+  memory and processors the database container actually gets (a container
+  limit counts), computes the usual sizes for a web app on SSD storage —
+  `shared_buffers`, `effective_cache_size`, `maintenance_work_mem` (what the
+  search index builds use), `work_mem`, the WAL sizes, the planner's SSD
+  costs and the parallel workers — shows every change next to the running
+  value, asks, then checks and applies the file (and offers the restart some
+  settings need). Its lines in `postgres/postgresql.conf` are marked `# set
+  by Chatvia tune`: a new run replaces them and never your own edits. It
+  warns when `shared_buffers` outgrows the container's shared memory
+  (`shm_size`). The complete installation tunes the same way from the
+  server's memory and processors, into PostgreSQL's `conf.d/chatvia.conf`.
 - Docker upgrades: `.env` names the exact version an install runs (the
   installer turns `latest` into the release number). `./manage upgrade`
   shows the change and the release notes, backs up, downloads everything

@@ -21,8 +21,36 @@ return [
 
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
-        'description' => 'Welcome',
+        'description' => <<<'MARKDOWN'
+            Every request carries your bearer token in the `Authorization` header.
 
+            ## Pagination
+
+            Every list endpoint returns one page of items, newest first:
+
+            ```json
+            {
+              "data": ["…"],
+              "next_cursor": "eyJpZCI6MTg2LCJfcG9pbnRzVG9OZXh0SXRlbXMiOnRydWV9"
+            }
+            ```
+
+            To get the next page, send the `next_cursor` of the response back as the
+            `cursor` query parameter. Leave `cursor` out for the first page. On the
+            last page `next_cursor` is `null`: stop there.
+
+            `per_page` sets how many items a page holds, from 1 to 100 (25 when left
+            out). A value outside that range is brought into range, not rejected.
+
+            A cursor marks a fixed place in the list, not a page number. Pages stay
+            stable — items created or deleted while you page through never shift
+            what you get — and a late page costs the server no more than the first.
+            That is also why there are no page numbers and no total count.
+
+            Treat the cursor as an opaque string: send back exactly the
+            `next_cursor` you received, and never build or edit one. A cursor the
+            endpoint did not hand out starts the list again at the first page.
+            MARKDOWN,
     ],
 
     'ui' => [

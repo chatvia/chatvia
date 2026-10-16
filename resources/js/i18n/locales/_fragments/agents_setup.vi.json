@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "setup": {
+            "bubbles_description": "Các gợi ý tin nhắn nhanh hiển thị bên cạnh trình khởi chạy widget."
+        }
+    }
+}

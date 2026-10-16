@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "f.eks. Besvar kun spørgsmål om vores produkter, priser og forsendelse.",
             "allowed_scope_help": "Beskriv hvad agenten må hjælpe med. Lad feltet være tomt for at tillade ethvert relevant spørgsmål.",
             "refusal_message": "Afslagsbesked",
-            "refusal_message_placeholder": "Det kan jeg ikke hjælpe med.",
+            "refusal_message_placeholder": "Beklager, jeg kan ikke hjælpe med den forespørgsel.",
             "save": "Gem",
             "saved": "Sikkerhedsregler gemt",
             "save_error": "Kunne ikke gemme sikkerhedsregler. Prøv igen.",

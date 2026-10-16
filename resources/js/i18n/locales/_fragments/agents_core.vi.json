@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "guardrails": {
+            "injection_help": "Phát hiện và chặn các nỗ lực ghi đè hoặc làm lộ hướng dẫn của trợ lý AI, trong tin nhắn, kiến thức và kết quả công cụ.",
+            "refusal_message_placeholder": "Xin lỗi, tôi không thể hỗ trợ yêu cầu đó."
+        },
+        "security": {
+            "rate_limiting": {
+                "subtitle": "Giới hạn số tin nhắn mà trợ lý AI của bạn trả lời mỗi phút, và số tin nhắn một khách truy cập có thể gửi.",
+                "card_description": "Bảo vệ trợ lý AI của bạn khỏi lạm dụng và chi phí ngoài dự kiến.",
+                "messages_per_minute": "Số tin nhắn mỗi phút (tất cả khách truy cập)",
+                "default_hint": "Số tin nhắn tối đa mà trợ lý AI trả lời mỗi phút, tính trên tất cả khách truy cập.",
+                "notify_hint": "Nhận email khi trợ lý AI chạm tới giới hạn này."
+            }
+        }
+    }
+}

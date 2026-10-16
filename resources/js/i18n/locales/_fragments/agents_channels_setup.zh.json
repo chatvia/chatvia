@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "telegram": {
+                    "commands": {
+                        "builtins_note": "每个命令会回复一条已保存的消息，或通过你的智能体运行提示词。",
+                        "dialog_description": "每个命令要么回复一条固定消息，要么通过你的智能体运行提示词（智能体会使用其知识库和工具）。/start、/reset 和 /help 为内置命令——你可以编辑，但不能删除。",
+                        "dialog_title": "命令",
+                        "empty": "暂无命令"
+                    }
+                }
+            }
+        }
+    }
+}

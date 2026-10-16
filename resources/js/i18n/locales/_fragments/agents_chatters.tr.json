@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "chatters": {
+            "public_description": "Bağlantıya sahip olan herkes bu asistanla sohbet edebilir, bu nedenle kullanıcı izinleri geçerli olmaz. Kullanıcıları kullanmak için asistanı Güvenlik sekmesinden korumalı yapın."
+        }
+    }
+}

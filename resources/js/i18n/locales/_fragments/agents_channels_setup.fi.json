@@ -39,7 +39,13 @@
                         "connect_2": "Lähetä {command} ja seuraa ohjeita",
                         "connect_3": "Liitä tunnus alle — yhdistämme sen automaattisesti"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "builtins_note": "Jokainen komento vastaa tallennetulla viestillä tai suorittaa kehotteen agenttisi kautta.",
+                        "dialog_description": "Jokainen komento joko vastaa kiinteällä viestillä tai suorittaa kehotteen agenttisi kautta (agentti käyttää tietojaan ja työkalujaan). /start, /reset ja /help ovat sisäänrakennettuja — voit muokata niitä, mutta et poistaa niitä.",
+                        "dialog_title": "Komennot",
+                        "empty": "Ei vielä komentoja"
+                    }
                 },
                 "slack": {
                     "steps": {

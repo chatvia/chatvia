@@ -101,7 +101,7 @@
                 "topics_hint": "Detetar e agrupar automaticamente o que os visitantes perguntam."
             },
             "bubbles_title": "Balões de Chat",
-            "bubbles_description": "Sugestões de mensagens rápidas apresentadas junto ao balão do widget. Prima Enter para adicionar cada uma.",
+            "bubbles_description": "Sugestões de mensagens rápidas apresentadas junto ao lançador do widget.",
             "bubbles_placeholder": "ex.: Como posso ajudá-lo?",
             "model_title": "Estilo de resposta",
             "model_description": "Ajuste o grau de foco ou criatividade das respostas do seu agente. Valores mais baixos mantêm as respostas precisas e consistentes; valores mais altos permitem maior variedade.",

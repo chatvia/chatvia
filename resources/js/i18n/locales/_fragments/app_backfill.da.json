@@ -7,7 +7,8 @@
         "search_group_yesterday": "I går",
         "search_group_previous_7_days": "Seneste 7 dage",
         "search_group_previous_30_days": "Seneste 30 dage",
-        "search_group_older": "Ældre"
+        "search_group_older": "Ældre",
+        "agents_dialog_description": "Få adgang til dine AI-agenter"
     },
     "chat": {
         "conversation_gone": "Denne samtale findes ikke længere."

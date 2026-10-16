@@ -101,7 +101,7 @@
                 "topics_hint": "Tunnista ja ryhmittele automaattisesti, mistä vierailijat kysyvät."
             },
             "bubbles_title": "Chat-kuplat",
-            "bubbles_description": "Pikaviestikehotukset, jotka näytetään widget-kuplan vieressä. Lisää painamalla Enter.",
+            "bubbles_description": "Pikaviestikehotukset, jotka näytetään widgetin käynnistimen vieressä.",
             "bubbles_placeholder": "esim. Kuinka voin auttaa sinua?",
             "model_title": "Vastaustyyli",
             "model_description": "Säädä, kuinka tarkennettuja tai luovia agenttiasi vastaukset ovat. Alempi pitää vastaukset täsmällisinä ja johdonmukaisina; korkeampi sallii enemmän vaihtelua.",

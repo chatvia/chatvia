@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "p. ej. Responder solo preguntas sobre nuestros productos, precios y envíos.",
             "allowed_scope_help": "Describe con qué puede ayudar el agente. Déjalo vacío para permitir cualquier pregunta relacionada.",
             "refusal_message": "Mensaje de rechazo",
-            "refusal_message_placeholder": "No puedo ayudarte con eso.",
+            "refusal_message_placeholder": "Lo siento, no puedo ayudar con esa solicitud.",
             "save": "Guardar",
             "saved": "Restricciones guardadas",
             "save_error": "No se pudieron guardar las restricciones. Por favor, inténtalo de nuevo.",

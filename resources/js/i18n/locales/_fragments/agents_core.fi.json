@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "esim. Vastaa kysymyksiin tuotteistamme, hinnoittelustamme ja toimituksesta.",
             "allowed_scope_help": "Kuvaile, mihin agentti saa tarjota apua. Jätä tyhjäksi salliaksesi kaikki aiheeseen liittyvät kysymykset.",
             "refusal_message": "Kieltäytymisviesti",
-            "refusal_message_placeholder": "En pysty auttamaan siinä.",
+            "refusal_message_placeholder": "Valitettavasti en voi auttaa tämän pyynnön kanssa.",
             "save": "Tallenna",
             "saved": "Turvarajat tallennettu",
             "save_error": "Turvarajojen tallentaminen epäonnistui. Yritä uudelleen.",

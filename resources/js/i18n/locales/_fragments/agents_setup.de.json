@@ -101,7 +101,7 @@
                 "topics_hint": "Erkennen und gruppieren Sie automatisch, was Besucher fragen."
             },
             "bubbles_title": "Chat-Blasen",
-            "bubbles_description": "Schnelle Nachrichtenvorschläge, die neben der Widget-Blase angezeigt werden. Drücken Sie die Eingabetaste, um jeden hinzuzufügen.",
+            "bubbles_description": "Schnelle Nachrichtenvorschläge, die neben dem Starter des Widgets angezeigt werden.",
             "bubbles_placeholder": "z. B. Wie kann ich Ihnen helfen?",
             "model_title": "Antwortstil",
             "model_description": "Stellen Sie ein, wie fokussiert oder kreativ die Antworten Ihres Agenten sind. Niedrige Werte sorgen für präzise und konsistente Antworten; höhere Werte ermöglichen mehr Abwechslung.",

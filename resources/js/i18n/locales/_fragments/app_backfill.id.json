@@ -7,7 +7,8 @@
         "search_group_yesterday": "Kemarin",
         "search_group_previous_7_days": "7 hari sebelumnya",
         "search_group_previous_30_days": "30 hari sebelumnya",
-        "search_group_older": "Lebih lama"
+        "search_group_older": "Lebih lama",
+        "agents_dialog_description": "Akses agen AI Anda"
     },
     "chat": {
         "conversation_gone": "Percakapan ini sudah tidak ada lagi."

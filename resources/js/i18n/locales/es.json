@@ -240,11 +240,11 @@
                     "botfather": "{'@'}BotFather",
                     "commands": {
                         "title": "Comandos",
-                        "empty": "Aún no hay comandos personalizados",
+                        "empty": "Aún no hay comandos",
                         "manage": "Gestionar",
-                        "builtins_note": "/start, /reset y /help están integrados y siempre disponibles.",
-                        "dialog_title": "Comandos personalizados",
-                        "dialog_description": "Añade comandos con barra que la gente puede pulsar en Telegram. Cada uno responde con el texto que definas. Los comandos integrados (/start, /reset, /help) siempre están disponibles.",
+                        "builtins_note": "Cada comando responde con un mensaje guardado o ejecuta un prompt a través de tu agente.",
+                        "dialog_title": "Comandos",
+                        "dialog_description": "Cada comando responde con un mensaje fijo o ejecuta un prompt a través de tu agente (que usa su conocimiento y sus herramientas). /start, /reset y /help están integrados: puedes editarlos, pero no eliminarlos.",
                         "command_placeholder": "precios",
                         "description_placeholder": "Qué hace este comando",
                         "remove": "Eliminar comando",
@@ -266,7 +266,7 @@
                     "steps": {
                         "connected_1": "En {link}, abre {event_subscriptions}, actívalo y pega la URL de solicitud indicada arriba",
                         "connected_2": "Suscríbete a los eventos del bot {mention} y {im}, luego guarda",
-                        "connected_3": "Invita al bot a un canal con {invite} y mencionalo con {'@'}{'@'} {live}",
+                        "connected_3": "Invita al bot a un canal con {invite} y menciónalo con {'@'} {live}",
                         "connect_1": "Crea una app en {link} en tu espacio de trabajo",
                         "connect_2": "En {oauth}, agrega los permisos del bot {scope1}, {scope2}, {scope3}, luego instala la app y copia el token del bot",
                         "connect_3": "Copia el secreto de firma desde {basic_info} y pega ambos a continuación"
@@ -608,7 +608,7 @@
             "allowed_scope_placeholder": "p. ej. Responder solo preguntas sobre nuestros productos, precios y envíos.",
             "allowed_scope_help": "Describe con qué puede ayudar el agente. Déjalo vacío para permitir cualquier pregunta relacionada.",
             "refusal_message": "Mensaje de rechazo",
-            "refusal_message_placeholder": "No puedo ayudarte con eso.",
+            "refusal_message_placeholder": "Lo siento, no puedo ayudar con esa solicitud.",
             "save": "Guardar",
             "saved": "Restricciones guardadas",
             "save_error": "No se pudieron guardar las restricciones. Por favor, inténtalo de nuevo.",
@@ -1564,7 +1564,7 @@
             "tone": "Tono",
             "topics": "Temas",
             "sources": "Fuentes",
-            "chat": "Chat",
+            "chat": "Registro de chat",
             "chat_tooltip": "Inspeccionar mensajes de chat por sesión",
             "audit": "Auditoría",
             "audit_tooltip": "Registro de auditoría de llamadas a herramientas de este agente",
@@ -1792,7 +1792,7 @@
                 "show_sources_hint": "Muestra un botón debajo de cada respuesta con el conocimiento que se usó."
             },
             "bubbles_title": "Burbujas de chat",
-            "bubbles_description": "Mensajes de inicio rápido que se muestran junto a la burbuja del widget. Presiona Enter para agregar cada uno.",
+            "bubbles_description": "Mensajes de inicio rápido que se muestran junto al lanzador del widget.",
             "bubbles_placeholder": "Ej., ¿En qué puedo ayudarte?",
             "model_title": "Estilo de respuesta",
             "model_description": "Ajusta qué tan enfocadas o creativas son las respuestas de tu agente. Un valor más bajo mantiene las respuestas precisas y consistentes; uno más alto permite mayor variedad.",
@@ -3121,7 +3121,7 @@
             "integrations": "Integraciones",
             "library": "Biblioteca",
             "people": "Personas",
-            "governance": "Gobernanza"
+            "governance": "Gobernanza y seguridad"
         },
         "nav": {
             "connectors": "Conectores",
@@ -3678,7 +3678,7 @@
             "all_outcomes": "Todos los resultados",
             "all_connectors": "Todos los conectores",
             "all_agents": "Todos los agentes",
-            "col_by": "Por",
+            "col_by": "Actor",
             "col_agent": "Agente",
             "col_tool": "Herramienta",
             "col_connector": "Conector",

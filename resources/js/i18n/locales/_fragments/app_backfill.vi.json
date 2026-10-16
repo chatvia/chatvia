@@ -7,7 +7,8 @@
         "search_group_yesterday": "Hôm qua",
         "search_group_previous_7_days": "7 ngày trước",
         "search_group_previous_30_days": "30 ngày trước",
-        "search_group_older": "Cũ hơn"
+        "search_group_older": "Cũ hơn",
+        "agents_dialog_description": "Truy cập các trợ lý AI của bạn"
     },
     "chat": {
         "conversation_gone": "Cuộc trò chuyện này không còn tồn tại."

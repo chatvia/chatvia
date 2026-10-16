@@ -33,7 +33,7 @@
             "tone": "Tono",
             "topics": "Temas",
             "sources": "Fuentes",
-            "chat": "Chat",
+            "chat": "Registro de chat",
             "chat_tooltip": "Inspeccionar mensajes de chat por sesión",
             "audit": "Auditoría",
             "audit_tooltip": "Registro de auditoría de llamadas a herramientas de este agente",

@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "setup": {
+            "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri."
+        }
+    }
+}

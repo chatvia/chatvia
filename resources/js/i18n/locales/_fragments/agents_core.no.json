@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "f.eks. Svar kun på spørsmål om våre produkter, priser og frakt.",
             "allowed_scope_help": "Beskriv hva agenten har lov til å hjelpe med. La stå tom for å tillate ethvert relevant spørsmål.",
             "refusal_message": "Avvisningsmelding",
-            "refusal_message_placeholder": "Jeg kan ikke hjelpe med det.",
+            "refusal_message_placeholder": "Beklager, jeg kan ikke hjelpe med den forespørselen.",
             "save": "Lagre",
             "saved": "Sikkerhetssperrer lagret",
             "save_error": "Kunne ikke lagre sikkerhetssperrer. Prøv igjen.",

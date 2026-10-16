@@ -39,7 +39,13 @@
                         "connect_2": "Wyślij {command} i postępuj zgodnie z instrukcjami",
                         "connect_3": "Wklej token poniżej — połączymy go automatycznie"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "builtins_note": "Każda komenda odpowiada zapisaną wiadomością lub uruchamia prompt przez Twojego agenta.",
+                        "dialog_description": "Każda komenda odpowiada stałą wiadomością albo uruchamia prompt przez Twojego agenta (który korzysta ze swojej wiedzy i narzędzi). /start, /reset i /help są wbudowane — możesz je edytować, ale nie możesz ich usunąć.",
+                        "dialog_title": "Komendy",
+                        "empty": "Brak komend"
+                    }
                 },
                 "slack": {
                     "steps": {

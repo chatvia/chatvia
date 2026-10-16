@@ -101,7 +101,7 @@
                 "topics_hint": "Détecter et regrouper automatiquement ce que les visiteurs demandent."
             },
             "bubbles_title": "Bulles de chat",
-            "bubbles_description": "Invitations rapides affichées à côté de la bulle du widget. Appuyez sur Entrée pour en ajouter une.",
+            "bubbles_description": "Invitations rapides affichées à côté du lanceur du widget.",
             "bubbles_placeholder": "Ex. : Comment puis-je vous aider ?",
             "model_title": "Style de réponse",
             "model_description": "Réglez le niveau de précision ou de créativité des réponses de votre agent. Une valeur basse maintient des réponses précises et cohérentes ; une valeur haute permet plus de variété.",

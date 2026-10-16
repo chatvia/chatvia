@@ -101,7 +101,7 @@
                 "topics_hint": "Detecta y agrupa automáticamente lo que los visitantes preguntan."
             },
             "bubbles_title": "Burbujas de chat",
-            "bubbles_description": "Mensajes de inicio rápido que se muestran junto a la burbuja del widget. Presiona Enter para agregar cada uno.",
+            "bubbles_description": "Mensajes de inicio rápido que se muestran junto al lanzador del widget.",
             "bubbles_placeholder": "Ej., ¿En qué puedo ayudarte?",
             "model_title": "Estilo de respuesta",
             "model_description": "Ajusta qué tan enfocadas o creativas son las respuestas de tu agente. Un valor más bajo mantiene las respuestas precisas y consistentes; uno más alto permite mayor variedad.",

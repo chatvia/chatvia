@@ -7,7 +7,8 @@
         "search_group_yesterday": "Ontem",
         "search_group_previous_7_days": "Últimos 7 dias",
         "search_group_previous_30_days": "Últimos 30 dias",
-        "search_group_older": "Mais antigas"
+        "search_group_older": "Mais antigas",
+        "agents_dialog_description": "Aceda aos seus agentes de IA"
     },
     "chat": {
         "conversation_gone": "Esta conversa já não existe."

@@ -33,7 +33,7 @@
             "tone": "Tom",
             "topics": "Tópicos",
             "sources": "Fontes",
-            "chat": "Conversa",
+            "chat": "Registo de conversa",
             "chat_tooltip": "Inspecione mensagens de conversas por sessão",
             "audit": "Auditoria",
             "audit_tooltip": "Registo de auditoria de chamadas de ferramentas deste agente",

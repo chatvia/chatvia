@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "np. Odpowiadaj tylko na pytania dotyczące naszych produktów, cen i wysyłki.",
             "allowed_scope_help": "Opisz, w czym agent może pomagać. Pozostaw puste, aby zezwolić na dowolne tematyczne pytanie.",
             "refusal_message": "Wiadomość odmowy",
-            "refusal_message_placeholder": "Nie mogę w tym pomóc.",
+            "refusal_message_placeholder": "Przepraszam, nie mogę pomóc w tej sprawie.",
             "save": "Zapisz",
             "saved": "Zabezpieczenia zapisane",
             "save_error": "Nie udało się zapisać zabezpieczeń. Spróbuj ponownie.",

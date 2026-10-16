@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "telegram": {
+                    "commands": {
+                        "builtins_note": "각 명령어는 저장된 메시지로 답하거나 에이전트를 통해 프롬프트를 실행합니다.",
+                        "dialog_description": "각 명령어는 고정된 메시지로 답하거나 에이전트를 통해 프롬프트를 실행합니다(에이전트는 자신의 지식과 도구를 사용합니다). /start, /reset, /help는 기본 제공 명령어로, 수정할 수는 있지만 삭제할 수는 없습니다.",
+                        "dialog_title": "명령어",
+                        "empty": "아직 명령어가 없습니다"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "t.ex. Besvara endast frågor om våra produkter, priser och leverans.",
             "allowed_scope_help": "Beskriv vad agenten är tillåten att hjälpa med. Lämna tomt för att tillåta alla relevanta frågor.",
             "refusal_message": "Avslagsmeddelande",
-            "refusal_message_placeholder": "Jag kan inte hjälpa till med det.",
+            "refusal_message_placeholder": "Tyvärr kan jag inte hjälpa till med den förfrågan.",
             "save": "Spara",
             "saved": "Skyddsräcken sparade",
             "save_error": "Det gick inte att spara skyddsräcken. Försök igen.",

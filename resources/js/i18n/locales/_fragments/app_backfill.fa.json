@@ -7,7 +7,8 @@
         "search_group_yesterday": "دیروز",
         "search_group_previous_7_days": "۷ روز گذشته",
         "search_group_previous_30_days": "۳۰ روز گذشته",
-        "search_group_older": "قدیمی‌تر"
+        "search_group_older": "قدیمی‌تر",
+        "agents_dialog_description": "به عامل‌های هوش مصنوعی خود دسترسی داشته باشید"
     },
     "chat": {
         "conversation_gone": "این گفتگو دیگر وجود ندارد."

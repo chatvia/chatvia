@@ -7,7 +7,8 @@
         "search_group_yesterday": "昨日",
         "search_group_previous_7_days": "過去7日間",
         "search_group_previous_30_days": "過去30日間",
-        "search_group_older": "それ以前"
+        "search_group_older": "それ以前",
+        "agents_dialog_description": "AI エージェントにアクセスします"
     },
     "chat": {
         "conversation_gone": "この会話はすでに存在しません。"

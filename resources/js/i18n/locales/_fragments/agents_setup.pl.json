@@ -101,7 +101,7 @@
                 "topics_hint": "Automatycznie wykrywaj i grupuj to, o co pytają odwiedzający."
             },
             "bubbles_title": "Dymki czatu",
-            "bubbles_description": "Szybkie podpowiedzi wiadomości wyświetlane obok dymka widgetu. Naciśnij Enter, aby dodać każdą z nich.",
+            "bubbles_description": "Szybkie podpowiedzi wiadomości wyświetlane obok przycisku uruchamiającego widget.",
             "bubbles_placeholder": "np. Jak mogę Ci pomóc?",
             "model_title": "Styl odpowiedzi",
             "model_description": "Dostosuj stopień skupienia lub kreatywności odpowiedzi agenta. Niższa wartość utrzymuje odpowiedzi precyzyjne i spójne; wyższa pozwala na większą różnorodność.",

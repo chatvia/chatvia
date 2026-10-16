@@ -240,11 +240,11 @@
                     "botfather": "{'@'}BotFather",
                     "commands": {
                         "title": "Komennot",
-                        "empty": "Ei vielä mukautettuja komentoja",
+                        "empty": "Ei vielä komentoja",
                         "manage": "Hallinnoi",
-                        "builtins_note": "/start, /reset ja /help ovat sisäänrakennettuja ja aina käytettävissä.",
-                        "dialog_title": "Mukautetut komennot",
-                        "dialog_description": "Lisää kauttaviiva-komentoja, joita käyttäjät voivat napauttaa Telegramissa. Jokainen vastaa määrittämälläsi tekstillä. Sisäänrakennetut komennot (/start, /reset, /help) ovat aina käytettävissä.",
+                        "builtins_note": "Jokainen komento vastaa tallennetulla viestillä tai suorittaa kehotteen agenttisi kautta.",
+                        "dialog_title": "Komennot",
+                        "dialog_description": "Jokainen komento joko vastaa kiinteällä viestillä tai suorittaa kehotteen agenttisi kautta (agentti käyttää tietojaan ja työkalujaan). /start, /reset ja /help ovat sisäänrakennettuja — voit muokata niitä, mutta et poistaa niitä.",
                         "command_placeholder": "hinnoittelu",
                         "description_placeholder": "Mitä tämä komento tekee",
                         "remove": "Poista komento",
@@ -608,7 +608,7 @@
             "allowed_scope_placeholder": "esim. Vastaa kysymyksiin tuotteistamme, hinnoittelustamme ja toimituksesta.",
             "allowed_scope_help": "Kuvaile, mihin agentti saa tarjota apua. Jätä tyhjäksi salliaksesi kaikki aiheeseen liittyvät kysymykset.",
             "refusal_message": "Kieltäytymisviesti",
-            "refusal_message_placeholder": "En pysty auttamaan siinä.",
+            "refusal_message_placeholder": "Valitettavasti en voi auttaa tämän pyynnön kanssa.",
             "save": "Tallenna",
             "saved": "Turvarajat tallennettu",
             "save_error": "Turvarajojen tallentaminen epäonnistui. Yritä uudelleen.",
@@ -1564,7 +1564,7 @@
             "tone": "Sävy",
             "topics": "Aiheet",
             "sources": "Lähteet",
-            "chat": "Keskustelu",
+            "chat": "Chatloki",
             "chat_tooltip": "Tarkastele raakaviestejä istunnoittain",
             "audit": "Tarkastus",
             "audit_tooltip": "Tämän agentin työkalukutsujen tarkastusloki",
@@ -1792,7 +1792,7 @@
                 "show_sources_hint": "Näytä jokaisen vastauksen alla painike, joka luettelee vastauksessa käytetyn tiedon."
             },
             "bubbles_title": "Chat-kuplat",
-            "bubbles_description": "Pikaviestikehotukset, jotka näytetään widget-kuplan vieressä. Lisää painamalla Enter.",
+            "bubbles_description": "Pikaviestikehotukset, jotka näytetään widgetin käynnistimen vieressä.",
             "bubbles_placeholder": "esim. Kuinka voin auttaa sinua?",
             "model_title": "Vastaustyyli",
             "model_description": "Säädä, kuinka tarkennettuja tai luovia agenttiasi vastaukset ovat. Alempi pitää vastaukset täsmällisinä ja johdonmukaisina; korkeampi sallii enemmän vaihtelua.",
@@ -3121,7 +3121,7 @@
             "integrations": "Integraatiot",
             "library": "Kirjasto",
             "people": "Ihmiset",
-            "governance": "Hallinto"
+            "governance": "Hallinto ja suojaus"
         },
         "nav": {
             "connectors": "Liittimet",

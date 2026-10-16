@@ -33,7 +33,7 @@
             "tone": "Sävy",
             "topics": "Aiheet",
             "sources": "Lähteet",
-            "chat": "Keskustelu",
+            "chat": "Chatloki",
             "chat_tooltip": "Tarkastele raakaviestejä istunnoittain",
             "audit": "Tarkastus",
             "audit_tooltip": "Tämän agentin työkalukutsujen tarkastusloki",

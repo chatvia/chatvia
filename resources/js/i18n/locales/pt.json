@@ -81,7 +81,7 @@
         "remove_photo_title": "Remover foto de perfil?",
         "remove_photo_description": "A sua foto reverterá para as suas iniciais. Pode carregar uma nova a qualquer momento.",
         "agents_dialog_title": "Meus agentes",
-        "agents_dialog_description": "Gerencie seus agentes de IA e suas configurações.",
+        "agents_dialog_description": "Aceda aos seus agentes de IA",
         "loading_agents": "Carregando agentes...",
         "no_agents": "Nenhum agente encontrado.",
         "switching_agent": "Alternando...",
@@ -240,11 +240,11 @@
                     "botfather": "{'@'}BotFather",
                     "commands": {
                         "title": "Comandos",
-                        "empty": "Ainda não há comandos personalizados",
+                        "empty": "Ainda não há comandos",
                         "manage": "Gerir",
-                        "builtins_note": "/start, /reset e /help são integrados e estão sempre disponíveis.",
-                        "dialog_title": "Comandos personalizados",
-                        "dialog_description": "Adicione comandos de barra em que as pessoas podem tocar no Telegram. Cada um responde com o texto que definir. Os comandos integrados (/start, /reset, /help) estão sempre disponíveis.",
+                        "builtins_note": "Cada comando responde com uma mensagem guardada ou executa um prompt através do seu agente.",
+                        "dialog_title": "Comandos",
+                        "dialog_description": "Cada comando responde com uma mensagem fixa ou executa um prompt através do seu agente (que usa o conhecimento e as ferramentas dele). /start, /reset e /help são integrados — pode editá-los, mas não removê-los.",
                         "command_placeholder": "pricing",
                         "description_placeholder": "O que este comando faz",
                         "remove": "Remover comando",
@@ -266,7 +266,7 @@
                     "steps": {
                         "connected_1": "Em {link}, abra {event_subscriptions}, ative-o e cole o URL de pedido acima",
                         "connected_2": "Subscreva os eventos do bot {mention} e {im} e, em seguida, guarde",
-                        "connected_3": "Convide o bot para um canal com {invite} e mencione-o com {'@'}{'@'} {live}",
+                        "connected_3": "Convide o bot para um canal com {invite} e mencione-o com {'@'} {live}",
                         "connect_1": "Crie uma aplicação em {link} na sua área de trabalho",
                         "connect_2": "Em {oauth}, adicione os âmbitos do bot {scope1}, {scope2}, {scope3}, instale a aplicação e copie o token do bot",
                         "connect_3": "Copie o segredo de assinatura em {basic_info} e cole ambos abaixo"
@@ -608,7 +608,7 @@
             "allowed_scope_placeholder": "ex. Responder apenas a questões sobre os nossos produtos, preços e envios.",
             "allowed_scope_help": "Descreva o que o agente tem permissão para ajudar. Deixe em branco para permitir qualquer questão dentro do tema.",
             "refusal_message": "Mensagem de recusa",
-            "refusal_message_placeholder": "Não consigo ajudar com isso.",
+            "refusal_message_placeholder": "Desculpe, não posso ajudar com esse pedido.",
             "save": "Guardar",
             "saved": "Guardrails guardados",
             "save_error": "Não foi possível guardar os guardrails. Por favor tente novamente.",
@@ -1564,7 +1564,7 @@
             "tone": "Tom",
             "topics": "Tópicos",
             "sources": "Fontes",
-            "chat": "Conversa",
+            "chat": "Registo de conversa",
             "chat_tooltip": "Inspecione mensagens de conversas por sessão",
             "audit": "Auditoria",
             "audit_tooltip": "Registo de auditoria de chamadas de ferramentas deste agente",
@@ -1792,7 +1792,7 @@
                 "show_sources_hint": "Mostrar por baixo de cada resposta um botão que lista o conhecimento utilizado."
             },
             "bubbles_title": "Balões de Chat",
-            "bubbles_description": "Sugestões de mensagens rápidas apresentadas junto ao balão do widget. Prima Enter para adicionar cada uma.",
+            "bubbles_description": "Sugestões de mensagens rápidas apresentadas junto ao lançador do widget.",
             "bubbles_placeholder": "ex.: Como posso ajudá-lo?",
             "model_title": "Estilo de resposta",
             "model_description": "Ajuste o grau de foco ou criatividade das respostas do seu agente. Valores mais baixos mantêm as respostas precisas e consistentes; valores mais altos permitem maior variedade.",
@@ -3121,7 +3121,7 @@
             "integrations": "Integrações",
             "library": "Biblioteca",
             "people": "Pessoas",
-            "governance": "Governação"
+            "governance": "Governação e segurança"
         },
         "nav": {
             "connectors": "Conectores",
@@ -3678,7 +3678,7 @@
             "all_outcomes": "Todos os resultados",
             "all_connectors": "Todos os conectores",
             "all_agents": "Todos os agentes",
-            "col_by": "Por",
+            "col_by": "Autor",
             "col_agent": "Agente",
             "col_tool": "Ferramenta",
             "col_connector": "Conector",

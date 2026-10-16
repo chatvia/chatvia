@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "telegram": {
+                    "commands": {
+                        "builtins_note": "Mỗi lệnh trả lời bằng một tin nhắn đã lưu hoặc chạy một câu lệnh qua trợ lý AI của bạn.",
+                        "dialog_description": "Mỗi lệnh hoặc trả lời bằng một tin nhắn cố định, hoặc chạy một câu lệnh qua trợ lý AI của bạn (trợ lý dùng kiến thức và công cụ của mình). /start, /reset và /help được tích hợp sẵn — bạn có thể chỉnh sửa nhưng không thể xóa chúng.",
+                        "dialog_title": "Lệnh",
+                        "empty": "Chưa có lệnh nào"
+                    }
+                }
+            }
+        }
+    }
+}

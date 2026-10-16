@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "guardrails": {
+            "injection_help": "Mesajlarda, bilgide ve araç sonuçlarında asistanın talimatlarını geçersiz kılma veya açığa çıkarma girişimlerini algılayıp engelleyin.",
+            "refusal_message_placeholder": "Üzgünüm, bu istekte yardımcı olamıyorum."
+        },
+        "security": {
+            "rate_limiting": {
+                "subtitle": "Asistanınızın dakikada kaç mesaja yanıt vereceğini ve tek bir ziyaretçinin kaç mesaj gönderebileceğini sınırlayın.",
+                "card_description": "Asistanınızı kötüye kullanıma ve beklenmedik maliyetlere karşı koruyun.",
+                "messages_per_minute": "Dakika başına mesaj (tüm ziyaretçiler)",
+                "default_hint": "Asistanın tüm ziyaretçiler genelinde dakikada yanıtladığı en fazla mesaj sayısı.",
+                "notify_hint": "Asistan bu sınıra ulaştığında e-posta alın."
+            }
+        }
+    }
+}

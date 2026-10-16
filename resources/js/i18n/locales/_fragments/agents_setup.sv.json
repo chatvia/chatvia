@@ -101,7 +101,7 @@
                 "topics_hint": "Identifiera och gruppera automatiskt vad besökare frågar om."
             },
             "bubbles_title": "Chattbubblor",
-            "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetbubblan. Tryck på Enter för att lägga till var och en.",
+            "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetens startknapp.",
             "bubbles_placeholder": "t.ex., Hur kan jag hjälpa dig?",
             "model_title": "Svarsstil",
             "model_description": "Justera hur fokuserade eller kreativa din agents svar är. Lägre håller svaren precisa och konsekventa; högre tillåter mer variation.",

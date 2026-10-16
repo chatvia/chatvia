@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "chatters": {
+            "public_description": "Siapa pun yang memiliki tautan dapat chat dengan agen ini, jadi pemberian akses chatter tidak berlaku. Untuk menggunakan chatter, jadikan agen terlindungi dari tab Keamanannya."
+        }
+    }
+}

@@ -125,15 +125,15 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
     Route::middleware('team.permission:account.chatters.manage')->prefix('my/workspace/people')->name('people.')->group(function (): void {
         Route::get('chatters', [SettingsChatterController::class, 'index'])->name('chatters.index');
         Route::post('chatters/invite', [SettingsChatterController::class, 'store'])->name('chatters.invite');
-        Route::patch('chatters/{chatter}', [SettingsChatterController::class, 'update'])->name('chatters.update');
-        Route::post('chatters/{chatter}/reset-password', ResetChatterPasswordController::class)->name('chatters.reset-password');
-        Route::delete('chatters/{chatter}', [SettingsChatterController::class, 'destroy'])->name('chatters.destroy');
+        Route::patch('chatters/{chatter:external_id}', [SettingsChatterController::class, 'update'])->name('chatters.update');
+        Route::post('chatters/{chatter:external_id}/reset-password', ResetChatterPasswordController::class)->name('chatters.reset-password');
+        Route::delete('chatters/{chatter:external_id}', [SettingsChatterController::class, 'destroy'])->name('chatters.destroy');
 
         // Per-chatter agent grants — same shape as the Connectors/Functions agent
         // toggles, consumed by useAgentAttachments('chatter').
-        Route::get('chatters/{chatter}/agents', [SettingsChatterAgentController::class, 'index'])->name('chatters.agents.index');
-        Route::post('chatters/{chatter}/agents/{agent}', [SettingsChatterAgentController::class, 'store'])->name('chatters.agents.attach');
-        Route::delete('chatters/{chatter}/agents/{agent}', [SettingsChatterAgentController::class, 'destroy'])->name('chatters.agents.detach');
+        Route::get('chatters/{chatter:external_id}/agents', [SettingsChatterAgentController::class, 'index'])->name('chatters.agents.index');
+        Route::post('chatters/{chatter:external_id}/agents/{agent}', [SettingsChatterAgentController::class, 'store'])->name('chatters.agents.attach');
+        Route::delete('chatters/{chatter:external_id}/agents/{agent}', [SettingsChatterAgentController::class, 'destroy'])->name('chatters.agents.detach');
     });
 
     // Governance — the tool-call audit log (Governed MCP Gateway). Read-only;

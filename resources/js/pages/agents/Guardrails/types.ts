@@ -1,6 +1,6 @@
 /**
  * Shapes for the agent Guardrails page: the saved settings, the PII filter
- * catalog, one row of the trigger log (GuardrailEvent::toLogArray()) and the
+ * catalog, one row of the trigger log (GuardrailEventRowData) and the
  * log's filters.
  */
 

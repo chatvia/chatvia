@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Agent\Chatter;
 
 use App\Http\Requests\Agent\Chatter\InviteAgentChatterRequest;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\InviteAgentChatterAction;
 use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Domain\Membership\Agent\Data\Resources\AgentChatterRowData;
+use Domain\Membership\Agent\Data\Resources\ChatterInvitationLinkData;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
-use Domain\Membership\Agent\Models\AgentChatterInvitation;
+use Domain\Membership\Agent\Queries\AgentChatterRowsQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,53 +34,10 @@ class AgentChatterController
     /**
      * @return Response|array{data: DataCollection<int, AgentChatterRowData>}
      */
-    public function index(Request $request, Agent $agent): Response|array
+    public function index(Request $request, Agent $agent, AgentChatterRowsQuery $rows): Response|array
     {
         if ($request->wantsJson()) {
-            $agent->loadMissing('workspace');
-            $workspace = $agent->workspace;
-
-            // All chatters owned by the workspace, alphabetised. We don't
-            // track when the pivot row was attached — the convention in this
-            // project is no timestamps on pivot tables — so the rows just
-            // carry a boolean `has_access` for this agent.
-            $chatters = $workspace->chatters()->orderBy('name')->get();
-            $grantedIds = $agent->chatters()->pluck('chatters.id')->all();
-            $grantedSet = array_flip($grantedIds);
-
-            // Outstanding invitations for this agent, keyed by lower-cased
-            // email. A pending member's sign-up link lives here; we surface it
-            // so the owner can copy it from the member sheet.
-            $invitations = AgentChatterInvitation::query()
-                ->where('agent_id', $agent->id)
-                ->get()
-                ->keyBy(fn (AgentChatterInvitation $invitation): string => strtolower($invitation->email));
-
-            $rows = $chatters
-                ->map(function ($chatter) use ($grantedSet, $invitations): AgentChatterRowData {
-                    $invitationUrl = null;
-                    $invitationExpiresAt = null;
-
-                    if ($chatter->email_verified_at === null && $chatter->email !== null) {
-                        $invitation = $invitations->get(strtolower($chatter->email));
-
-                        if ($invitation !== null && ! $invitation->hasExpired()) {
-                            $invitationUrl = route('agents.invitation.show', ['token' => $invitation->token]);
-                            $invitationExpiresAt = $invitation->expires_at->toIso8601String();
-                        }
-                    }
-
-                    return AgentChatterRowData::fromModelAndGrant(
-                        $chatter,
-                        isset($grantedSet[$chatter->id]),
-                        $invitationUrl,
-                        $invitationExpiresAt,
-                    );
-                })
-                ->sortBy(fn ($row): array => [$row->has_access ? 0 : 1, strtolower($row->name)])
-                ->values();
-
-            return ['data' => AgentChatterRowData::collect($rows, DataCollection::class)];
+            return ['data' => $rows->forAgent($agent)];
         }
 
         return Inertia::render('agents/Chatters', [
@@ -97,22 +56,15 @@ class AgentChatterController
             return back()->withErrors([$e->field => $e->getMessage()])->withInput();
         }
 
-        return back()->with('invitation', [
-            'email' => $invitation->email,
-            'accept_url' => route('agents.invitation.show', ['token' => $invitation->token]),
-            'expires_at' => $invitation->expires_at->toIso8601String(),
-        ]);
+        return back()->with('invitation', ChatterInvitationLinkData::fromInvitation($invitation)->toArray());
     }
 
     public function destroy(
-        Request $request,
         Agent $agent,
-        string $chatter,
+        Chatter $chatter,
         RevokeAgentMembershipAction $revoke,
     ): RedirectResponse {
-        $member = $agent->chatters()->where('chatters.external_id', $chatter)->firstOrFail();
-
-        $revoke->execute($agent, $member);
+        $revoke->execute($agent, $chatter);
 
         return back();
     }

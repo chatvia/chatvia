@@ -227,9 +227,9 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         Route::get('sources/qa', [AgentQaController::class, 'index'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.index');
         Route::post('sources/qa', [AgentQaController::class, 'store'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.store');
-        Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.show');
-        Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.update');
-        Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.qa.destroy');
+        Route::get('sources/qa/{qa}', [AgentQaController::class, 'show'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.show');
+        Route::patch('sources/qa/{qa}', [AgentQaController::class, 'update'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.update');
+        Route::delete('sources/qa/{qa}', [AgentQaController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.qa.destroy');
 
         // Functions (LLM tool calls — webhook-backed). Functions are owned at
         // the account level (Settings → Functions); on the agent screen the
@@ -306,8 +306,8 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::middleware('agent.permission:agent.chatters.manage')->group(function (): void {
             Route::get('chatters', [AgentChatterController::class, 'index'])->name('chatters.index');
             Route::post('chatters', [AgentChatterController::class, 'store'])->name('chatters.store');
-            Route::post('chatters/{chatter}/grant', GrantAgentChatterAccessController::class)->name('chatters.grant');
-            Route::delete('chatters/{chatter}', [AgentChatterController::class, 'destroy'])->name('chatters.destroy');
+            Route::post('chatters/{chatter:external_id}/grant', GrantAgentChatterAccessController::class)->name('chatters.grant');
+            Route::delete('chatters/{chatter:external_id}', [AgentChatterController::class, 'destroy'])->name('chatters.destroy');
         });
 
         Route::get('logs', [AgentChatLogController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs');

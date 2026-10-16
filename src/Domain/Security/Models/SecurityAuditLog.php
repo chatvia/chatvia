@@ -70,38 +70,6 @@ class SecurityAuditLog extends Model
         return SecurityAuditAction::tryFrom($this->action);
     }
 
-    /**
-     * Shape one row for the audit viewer. The live avatar is taken from the
-     * eager-loaded `user` relation when present; rows without a user (or a
-     * deleted user) fall back to the denormalized name.
-     *
-     * @return array<string, mixed>
-     */
-    public function toAuditArray(): array
-    {
-        $action = $this->actionEnum();
-
-        return [
-            'id' => $this->id,
-            'created_at' => $this->created_at?->toIso8601String(),
-            'action' => $this->action,
-            'action_label' => $action?->label() ?? $this->action,
-            'category' => $action?->category()->value,
-            'outcome' => $this->outcome,
-            'user_id' => $this->user_id,
-            'user_name' => $this->user_name,
-            'user_email' => $this->user_email,
-            'avatar' => $this->relationLoaded('user') ? $this->user?->avatar : null,
-            'target_type' => $this->target_type,
-            'target_id' => $this->target_id,
-            'target_label' => $this->target_label,
-            'ip' => $this->ip,
-            'user_agent' => $this->user_agent,
-            'metadata' => $this->metadata,
-            'integrity_verified' => $this->metadata_sha256 !== null,
-        ];
-    }
-
     protected function casts(): array
     {
         return [

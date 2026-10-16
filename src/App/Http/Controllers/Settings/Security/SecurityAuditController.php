@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Security;
 
-use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Data\SecurityAuditFiltersData;
+use Domain\Security\Data\SecurityAuditRowData;
 use Domain\Security\Enums\SecurityAuditCategory;
 use Domain\Security\Models\SecurityAuditLog;
-use Illuminate\Database\Eloquent\Builder;
+use Domain\Security\Queries\SecurityAuditLogQuery;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,19 +19,16 @@ use Inertia\Response;
  */
 class SecurityAuditController
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, SecurityAuditLogQuery $audit): Response
     {
-        $query = SecurityAuditLog::query()
-            ->forWorkspace($request->user()->workspace()->id)
-            ->with('user:id,name,email,profile_image_path')
-            ->orderByDesc('id');
+        $filters = new SecurityAuditFiltersData(
+            category: $request->filled('category') ? (string) $request->string('category') : null,
+            outcome: $request->filled('outcome') ? (string) $request->string('outcome') : null,
+        );
 
-        $this->applyFilters($query, $request);
-
-        // Cursor pagination pairs with the (workspace_id, id) index — no COUNT/OFFSET over the unbounded log.
-        $rows = $query->cursorPaginate(30)
+        $rows = $audit->forWorkspace($request->user()->workspace()->id, $filters)
             ->withQueryString()
-            ->through(fn (SecurityAuditLog $row): array => $row->toAuditArray());
+            ->through(fn (SecurityAuditLog $row): SecurityAuditRowData => SecurityAuditRowData::fromModel($row));
 
         return Inertia::render('workspace/security/SecurityAudit', [
             'rows' => $rows,
@@ -39,34 +37,7 @@ class SecurityAuditController
                 SecurityAuditCategory::cases(),
             ),
             'outcomes' => ['success', 'failure', 'denied'],
-            'filters' => [
-                'category' => $request->filled('category') ? (string) $request->string('category') : null,
-                'outcome' => $request->filled('outcome') ? (string) $request->string('outcome') : null,
-            ],
+            'filters' => $filters,
         ]);
-    }
-
-    /**
-     * @param  Builder<SecurityAuditLog>  $query
-     */
-    private function applyFilters(Builder $query, Request $request): void
-    {
-        if ($request->filled('outcome')) {
-            $query->where('outcome', (string) $request->string('outcome'));
-        }
-
-        if ($request->filled('category')) {
-            $category = SecurityAuditCategory::tryFrom((string) $request->string('category'));
-
-            if ($category !== null) {
-                // The table stores `action`, not category — expand to its actions.
-                $actions = array_values(array_map(
-                    fn (SecurityAuditAction $a): string => $a->value,
-                    array_filter(SecurityAuditAction::cases(), fn (SecurityAuditAction $a): bool => $a->category() === $category),
-                ));
-
-                $query->whereIn('action', $actions);
-            }
-        }
     }
 }

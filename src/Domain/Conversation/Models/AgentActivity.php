@@ -94,41 +94,6 @@ class AgentActivity extends Model
         return $query->where('agent_id', $agentId);
     }
 
-    /**
-     * Shape one row for the audit viewers (account + per-agent). The live avatar
-     * is taken from the eager-loaded `user` relation when present; rows without a
-     * user (or a deleted user) fall back to the denormalized name / "visitor".
-     *
-     * @return array<string, mixed>
-     */
-    public function toAuditArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'created_at' => $this->created_at?->toIso8601String(),
-            'outcome' => $this->outcome,
-            'agent_id' => $this->agent_id,
-            'agent_name' => $this->agent_name,
-            'agent_external_id' => $this->relationLoaded('agent') ? $this->agent?->external_id : null,
-            'user_id' => $this->user_id,
-            'user_name' => $this->user_name,
-            'avatar' => $this->relationLoaded('user') ? $this->user?->avatar : null,
-            'trace_id' => $this->trace_id,
-            'tool_name' => $this->tool_name,
-            'tool_kind' => $this->tool_kind,
-            'connector_slug' => $this->connector_slug,
-            'connector_name' => $this->connector_name,
-            'is_error' => $this->is_error,
-            'gated' => $this->gated,
-            'latency_ms' => $this->latency_ms,
-            'arguments' => $this->arguments,
-            'result_text' => $this->result_text,
-            'conversation_external_id' => $this->conversation_external_id,
-            'decided_at' => $this->decided_at?->toIso8601String(),
-            'decision_note' => $this->decision_note,
-        ];
-    }
-
     protected function casts(): array
     {
         return [

@@ -117,7 +117,8 @@ class ConversationQueryBuilder extends Builder
                 $q->where('role', MessageRole::Assistant);
                 match (ConfidenceBand::tryFrom($confidenceScore)) {
                     ConfidenceBand::High => $q->where('confidence_score', '>=', ConfidenceBand::HIGH_FLOOR),
-                    ConfidenceBand::Medium => $q->whereBetween('confidence_score', [ConfidenceBand::MEDIUM_FLOOR, ConfidenceBand::HIGH_FLOOR]),
+                    // The high floor itself is high, so a score is in one band only.
+                    ConfidenceBand::Medium => $q->where('confidence_score', '>=', ConfidenceBand::MEDIUM_FLOOR)->where('confidence_score', '<', ConfidenceBand::HIGH_FLOOR),
                     ConfidenceBand::Low => $q->where('confidence_score', '<', ConfidenceBand::MEDIUM_FLOOR),
                     null => null,
                 };

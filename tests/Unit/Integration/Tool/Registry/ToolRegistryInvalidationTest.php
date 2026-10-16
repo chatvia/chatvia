@@ -74,21 +74,3 @@ it('drops the cached pool when an attached connector is deleted', function (): v
 
     expect(registryPoolNames($registry->for($agent)))->not->toContain('mcp__doomed__do_thing');
 });
-
-it('drops the cached pool when an attached function is deleted from Settings', function (): void {
-    $agent = Agent::factory()->create();
-    $owner = $agent->workspace->owner;
-
-    $function = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'doomed_fn']);
-    $agent->attachFunction($function);
-
-    $registry = app(ToolRegistry::class);
-    expect(registryPoolNames($registry->for($agent)))->toContain('doomed_fn');
-
-    test()->actingAs($owner)
-        ->delete(route('integrations.functions.destroy', ['external_id' => $function->external_id]))
-        ->assertRedirect();
-
-    expect(AgentFunction::query()->whereKey($function->id)->exists())->toBeFalse()
-        ->and(registryPoolNames($registry->for($agent)))->not->toContain('doomed_fn');
-});

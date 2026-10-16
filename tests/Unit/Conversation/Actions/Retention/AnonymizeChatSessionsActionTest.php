@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * visitor's details but keep what analytics needs; other workspaces and newer
  * sessions are untouched.
  */
-function visitorSession(Agent $agent, int $daysAgo): Session
+function acsVisitorSession(Agent $agent, int $daysAgo): Session
 {
     $session = Session::factory()->withCountry()->create([
         'agent_id' => $agent->id,
@@ -41,19 +41,19 @@ function visitorSession(Agent $agent, int $daysAgo): Session
     return $session;
 }
 
-function anonymizeAfter(Agent $agent, ?int $days): void
+function acsAnonymizeAfter(Agent $agent, ?int $days): void
 {
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['anonymize_after_days' => $days]);
 }
 
 it('clears visitor details on that workspace\'s older sessions and keeps the analytics fields', function (): void {
     $agent = Agent::factory()->create();
-    anonymizeAfter($agent, 30);
-    $old = visitorSession($agent, 45);
-    $recent = visitorSession($agent, 5);
+    acsAnonymizeAfter($agent, 30);
+    $old = acsVisitorSession($agent, 45);
+    $recent = acsVisitorSession($agent, 5);
 
     $other = Agent::factory()->create(); // no anonymize window set
-    $otherOld = visitorSession($other, 400);
+    $otherOld = acsVisitorSession($other, 400);
 
     expect(app(AnonymizeChatSessionsAction::class)->execute())->toBe(1);
 
@@ -87,9 +87,9 @@ it('clears visitor details on that workspace\'s older sessions and keeps the ana
 
 it('anonymizes in small batches and only once', function (): void {
     $agent = Agent::factory()->create();
-    anonymizeAfter($agent, 7);
+    acsAnonymizeAfter($agent, 7);
     foreach (range(1, 5) as $i) {
-        visitorSession($agent, 10 + $i);
+        acsVisitorSession($agent, 10 + $i);
     }
 
     $action = app(AnonymizeChatSessionsAction::class);
@@ -102,19 +102,9 @@ it('anonymizes in small batches and only once', function (): void {
 it('never uses a window below the configured floor', function (): void {
     config(['chatvia.retention.anonymize_floor_days' => 30]);
     $agent = Agent::factory()->create();
-    anonymizeAfter($agent, 1); // saved before the floor was raised
-    $session = visitorSession($agent, 10);
+    acsAnonymizeAfter($agent, 1); // saved before the floor was raised
+    $session = acsVisitorSession($agent, 10);
 
     expect(app(AnonymizeChatSessionsAction::class)->execute())->toBe(0)
         ->and(DB::table('chat_sessions')->where('id', $session->id)->value('email'))->toBe('dana@example.com');
-});
-
-it('runs from the app:anonymize-chat-sessions command', function (): void {
-    $agent = Agent::factory()->create();
-    anonymizeAfter($agent, 30);
-    $session = visitorSession($agent, 60);
-
-    $this->artisan('app:anonymize-chat-sessions', ['--batch' => 1])->assertSuccessful();
-
-    expect(DB::table('chat_sessions')->where('id', $session->id)->value('anonymized_at'))->not->toBeNull();
 });

@@ -1,8 +1,11 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
@@ -177,4 +180,20 @@ it('saves other fields when a stored schema that fails the shape rules is sent b
         ->assertSessionHasNoErrors();
 
     expect($fn->fresh()->description)->toBe('Edited without touching the schema');
+});
+
+it('takes a deleted function out of its agents\' cached tool pool', function (): void {
+    $agent = Agent::factory()->create();
+    $function = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'doomed_fn']);
+    $agent->attachFunction($function);
+    $names = fn (): array => array_map(static fn (ToolEntry $entry): string => $entry->name, app(ToolRegistry::class)->for($agent));
+
+    expect($names())->toContain('doomed_fn');
+
+    $this->actingAs($agent->workspace->owner)
+        ->delete(route('integrations.functions.destroy', ['external_id' => $function->external_id]))
+        ->assertRedirect();
+
+    expect(AgentFunction::query()->whereKey($function->id)->exists())->toBeFalse()
+        ->and($names())->not->toContain('doomed_fn');
 });

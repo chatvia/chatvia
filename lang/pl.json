@@ -421,5 +421,12 @@
     "Check again": "Sprawdź ponownie",
     "Services": "Usługi",
     "AI and other services": "AI i inne usługi",
-    "Open :tool": "Otwórz :tool"
+    "Open :tool": "Otwórz :tool",
+    "You cannot chat with this assistant.": "Nie możesz czatować z tym asystentem.",
+    "No one can be blocked for this trigger.": "Za to zdarzenie nie można nikogo zablokować.",
+    "Your chat access has been turned off": "Twój dostęp do czatu został wyłączony",
+    "The team at :name turned off your access to chat with their assistants.": "Zespół :name wyłączył Twój dostęp do czatu z jego asystentami.",
+    "This happens when messages try to make an assistant break its rules or show its instructions.": "Dzieje się tak, gdy wiadomości próbują sprawić, by asystent złamał swoje zasady lub pokazał swoje instrukcje.",
+    "If you think this is a mistake, please contact :name.": "Jeśli uważasz, że to pomyłka, skontaktuj się z :name.",
+    "You can block the person who sent them from the guardrails activity.": "Osobę, która je wysłała, możesz zablokować w aktywności zabezpieczeń."
 }

@@ -26,6 +26,7 @@ use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Turn\TurnContextFactory;
+use Domain\Security\Services\VisitorBlocklist;
 use Generator;
 
 /**
@@ -34,7 +35,9 @@ use Generator;
  * starts — and the chosen source's generator streams the rest (the App layer
  * turns the events into server-sent events). In order:
  *
- *   1. a deactivated workspace's agent answers nothing ({@see WorkspaceActivation});
+ *   1. a deactivated workspace's agent answers nothing ({@see WorkspaceActivation}),
+ *      and neither does any agent of the workspace to a visitor it blocked
+ *      ({@see VisitorBlocklist});
  *   2. a retried request replays its finished answer;
  *   3. a conversation held by a human operator relays the message to them;
  *   4. the workspace's and the chatter's monthly message limits and the
@@ -62,6 +65,7 @@ readonly class ChatStreamService
         private AgentChatRateLimiter $rateLimiter,
         private WorkspaceActivation $activation,
         private RequestHandoffAction $requestHandoff,
+        private VisitorBlocklist $blocklist,
     ) {}
 
     /**
@@ -74,6 +78,10 @@ readonly class ChatStreamService
         // messaging channels send the same text.
         if (! $this->activation->isActive($data->agent->workspace_id)) {
             return $this->errorSource->events(ErrorCode::Internal, __('Sorry — this assistant is unavailable right now. Please try again later.'));
+        }
+
+        if ($this->isBlockedVisitor($data)) {
+            return $this->errorSource->events(ErrorCode::AccessBlocked, __('You cannot chat with this assistant.'));
         }
 
         $replay = $this->replay($data);
@@ -121,6 +129,18 @@ readonly class ChatStreamService
         }
 
         return $this->llmSource->resume($context, $checkpoint, $data->decisions);
+    }
+
+    /**
+     * Whether a workspace admin blocked this visitor. Only anonymous turns: a
+     * chatter is switched off on their account instead, and staff previews
+     * are never blocked.
+     */
+    private function isBlockedVisitor(StreamRequestData $data): bool
+    {
+        return $data->chatterId === null
+            && $data->actorUserId === null
+            && $this->blocklist->blocks((int) $data->agent->workspace_id, $data->ipAddress, $data->userAgent);
     }
 
     /**

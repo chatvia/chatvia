@@ -23,11 +23,13 @@ enum VoiceCallRefusal: string
     case Busy = 'voice_busy';
     // The provider refused or did not answer.
     case Failed = 'voice_failed';
+    // A workspace admin blocked this visitor (Guardrails → Activity).
+    case Blocked = 'access_blocked';
 
     public function status(): int
     {
         return match ($this) {
-            self::NotAvailable => 403,
+            self::NotAvailable, self::Blocked => 403,
             self::MessageLimitReached, self::ChatterMessageLimitReached, self::RateLimited => 429,
             self::HandedOff => 409,
             self::Busy => 503,
@@ -45,6 +47,7 @@ enum VoiceCallRefusal: string
             self::HandedOff => __('A team member has joined this conversation. Please continue in the chat.'),
             self::Busy => __('Voice is busy right now. Please try again in a moment.'),
             self::Failed => __('The voice call could not start. Please try again.'),
+            self::Blocked => __('You cannot chat with this assistant.'),
         };
     }
 }

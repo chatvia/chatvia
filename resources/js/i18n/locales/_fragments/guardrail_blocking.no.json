@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Besøkende · {id}",
+                "blocked": "Blokkert",
+                "recent_attempts": "{count} injeksjons- eller misbruksforsøk siste 24 timer | {count} injeksjons- eller misbruksforsøk siste 24 timer",
+                "show_all": "Vis alt fra denne besøkende",
+                "clear_visitor": "Vis alle besøkende",
+                "block_chatter": "Blokker chatter",
+                "block_visitor": "Blokker besøkende",
+                "chatter_title": "Blokker {name}",
+                "chatter_description": "Kontoen slås av, og personen logges ut av alle agenter i dette arbeidsområdet. Du kan slå den på igjen under Personer.",
+                "visitor_title": "Blokker denne besøkende",
+                "visitor_description": "Personen kan ikke chatte med noen agent i dette arbeidsområdet før blokkeringen slutter.",
+                "duration": "Hvor lenge",
+                "reason": "Årsak",
+                "reason_placeholder": "f.eks. Prøvde mange ganger å få agentens instruksjoner",
+                "reason_help": "Bare teamet ditt ser dette.",
+                "notify": "Si fra til {name} på e-post",
+                "visitor_limits": "Besøkende kjennes igjen på nettverk og nettleser. Andre på samme nettverk med samme nettleser blokkeres også, og et nytt nettverk eller en ny nettleser kommer forbi blokkeringen. Du kan se og fjerne blokkeringer under Sikkerhet.",
+                "chatter_blocked": "Chatter blokkert",
+                "visitor_blocked": "Besøkende blokkert",
+                "error": "Kunne ikke blokkere. Prøv igjen.",
+                "durations": {
+                    "day": "1 dag",
+                    "week": "7 dager",
+                    "month": "30 dager",
+                    "forever": "Til du fjerner blokkeringen"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Chat blokkert"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Blokkerte besøkende",
+                "help": "Besøkende som ikke kan chatte med agentene dine. Du blokkerer en besøkende fra aktiviteten under en agents sikkerhetssperrer.",
+                "visitor": "Besøkende · {id}",
+                "browser_on_os": "{browser} på {os}",
+                "on_agent": "På {agent}",
+                "by": "Av {name}",
+                "until": "Til {date}",
+                "until_unblocked": "Til blokkeringen fjernes",
+                "unblock": "Fjern blokkering",
+                "unblocked": "Blokkering fjernet",
+                "unblock_error": "Kunne ikke fjerne blokkeringen. Prøv igjen.",
+                "empty": "Ingen blokkerte besøkende."
+            }
+        }
+    }
+}

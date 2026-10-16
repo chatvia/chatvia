@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Pengunjung · {id}",
+                "blocked": "Diblokir",
+                "recent_attempts": "{count} upaya injeksi atau penyalahgunaan dalam 24 jam terakhir | {count} upaya injeksi atau penyalahgunaan dalam 24 jam terakhir",
+                "show_all": "Tampilkan semua dari pengunjung ini",
+                "clear_visitor": "Tampilkan semua pengunjung",
+                "block_chatter": "Blokir chatter",
+                "block_visitor": "Blokir pengunjung",
+                "chatter_title": "Blokir {name}",
+                "chatter_description": "Akunnya dinonaktifkan dan dikeluarkan dari semua agen di ruang kerja ini. Anda bisa mengaktifkannya lagi di Orang.",
+                "visitor_title": "Blokir pengunjung ini",
+                "visitor_description": "Mereka tidak bisa chat dengan agen mana pun di ruang kerja ini sampai blokir berakhir.",
+                "duration": "Berapa lama",
+                "reason": "Alasan",
+                "reason_placeholder": "mis. Berkali-kali mencoba mendapatkan instruksi agen",
+                "reason_help": "Hanya tim Anda yang melihat ini.",
+                "notify": "Beri tahu {name} lewat email",
+                "visitor_limits": "Pengunjung dikenali dari jaringan dan browser mereka. Orang lain di jaringan yang sama dengan browser yang sama juga ikut diblokir, dan jaringan atau browser baru bisa melewati blokir. Anda bisa melihat dan menghapus blokir di Keamanan.",
+                "chatter_blocked": "Chatter diblokir",
+                "visitor_blocked": "Pengunjung diblokir",
+                "error": "Gagal memblokir. Silakan coba lagi.",
+                "durations": {
+                    "day": "1 hari",
+                    "week": "7 hari",
+                    "month": "30 hari",
+                    "forever": "Sampai Anda membuka blokir"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Chat diblokir"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Pengunjung yang diblokir",
+                "help": "Pengunjung yang tidak bisa chat dengan agen Anda. Anda memblokir pengunjung dari aktivitas pagar pengaman sebuah agen.",
+                "visitor": "Pengunjung · {id}",
+                "browser_on_os": "{browser} di {os}",
+                "on_agent": "Di {agent}",
+                "by": "Oleh {name}",
+                "until": "Sampai {date}",
+                "until_unblocked": "Sampai blokir dibuka",
+                "unblock": "Buka blokir",
+                "unblocked": "Blokir pengunjung dibuka",
+                "unblock_error": "Gagal membuka blokir. Silakan coba lagi.",
+                "empty": "Tidak ada pengunjung yang diblokir."
+            }
+        }
+    }
+}

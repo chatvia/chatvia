@@ -421,5 +421,12 @@
     "Check again": "بررسی دوباره",
     "Services": "سرویس‌ها",
     "AI and other services": "هوش مصنوعی و سرویس‌های دیگر",
-    "Open :tool": "باز کردن :tool"
+    "Open :tool": "باز کردن :tool",
+    "You cannot chat with this assistant.": "نمی‌توانید با این دستیار گفتگو کنید.",
+    "No one can be blocked for this trigger.": "برای این مورد نمی‌توان کسی را مسدود کرد.",
+    "Your chat access has been turned off": "دسترسی شما به گفتگو خاموش شد",
+    "The team at :name turned off your access to chat with their assistants.": "تیم :name دسترسی شما برای گفتگو با دستیارهایشان را خاموش کرد.",
+    "This happens when messages try to make an assistant break its rules or show its instructions.": "این وقتی پیش می‌آید که پیام‌ها تلاش کنند دستیار قوانینش را بشکند یا دستورالعمل‌هایش را نشان دهد.",
+    "If you think this is a mistake, please contact :name.": "اگر فکر می‌کنید اشتباهی رخ داده، لطفاً با :name تماس بگیرید.",
+    "You can block the person who sent them from the guardrails activity.": "می‌توانید فرستنده را از فعالیت حفاظ‌ها مسدود کنید."
 }

@@ -20,12 +20,13 @@ use Domain\Conversation\Services\Voice\VoiceTurnGate;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Exceptions\RealtimeCallFailedException;
+use Domain\Security\Services\VisitorBlocklist;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 
 /**
  * Opens a voice call in one of the visitor's conversations: checks that
- * voice is on and the visitor may still send, takes one of the voice
+ * voice is on, the visitor is not blocked and may still send, takes one of the voice
  * workers, opens the call with the provider for the browser's WebRTC offer
  * (the agent's speaking instructions, voice and tools go with it), and sends
  * a worker to join it ({@see JoinVoiceCallJob}). Returns the answer the
@@ -47,6 +48,7 @@ class StartVoiceCallAction
         private readonly VoiceCallSlots $slots,
         private readonly VoiceCallStore $store,
         private readonly VoiceToolCatalog $tools,
+        private readonly VisitorBlocklist $blocklist,
     ) {}
 
     public function execute(VoiceCallerData $caller, string $offerSdp): VoiceCallStartedData
@@ -65,6 +67,13 @@ class StartVoiceCallAction
 
         if ($conversation->isHandedOff()) {
             throw new VoiceCallRefusedException(VoiceCallRefusal::HandedOff);
+        }
+
+        // As on a typed turn: only an anonymous visitor can be blocked. A block
+        // made during a call applies from the next call.
+        if ($caller->chatterId === null && $caller->actorUserId === null
+            && $this->blocklist->blocks((int) $agent->workspace_id, $caller->ipAddress, $caller->userAgent)) {
+            throw new VoiceCallRefusedException(VoiceCallRefusal::Blocked);
         }
 
         $refusal = $this->gate->refusal($agent, $caller->chatterId);

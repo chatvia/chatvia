@@ -27,6 +27,7 @@ class RecordGuardrailEventAction
             'user_id' => $event->userId,
             'chatter_id' => $event->chatterId,
             'user_name' => $event->userName,
+            'visitor_key' => $event->visitorKey,
             'conversation_external_id' => $event->conversationExternalId,
             'message_id' => $event->messageId,
             'trace_id' => $event->traceId,

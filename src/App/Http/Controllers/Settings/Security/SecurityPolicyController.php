@@ -8,6 +8,7 @@ use Domain\Security\Actions\UpdateSecurityPolicyAction;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Data\WorkspaceSecurityPolicyData;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
+use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,8 +19,9 @@ use Support\Localization\Country\Models\Country;
 
 /**
  * Workspace Security & Compliance settings: the network access control (IP
- * allowlist and country rules), retention and the SIEM webhook. Viewing and
- * saving require the `account.security` team permission.
+ * allowlist and country rules), retention, the SIEM webhook and the visitors
+ * blocked from chatting (made from an agent's Guardrails activity). Viewing
+ * and saving require the `account.security` team permission.
  */
 class SecurityPolicyController
 {
@@ -45,6 +47,14 @@ class SecurityPolicyController
             // ISO-3166 alpha-2 values the geo gate stores and matches against.
             'countries' => Country::options(),
             'current_country' => $currentCountry,
+            'blocked_visitors' => BlockedVisitor::query()
+                ->where('workspace_id', $workspace->id)
+                ->active()
+                ->with(['agent:id,name', 'country', 'blockedBy:id,name'])
+                ->orderByDesc('id')
+                ->limit(200)
+                ->get()
+                ->map(fn (BlockedVisitor $block): array => $block->toListArray()),
             // Retention bounds for the form: conversations cap at the install's
             // retention (shorten only); audit sits between the mandated floor
             // and default; leads and analytics go up to `max_days`; anonymize

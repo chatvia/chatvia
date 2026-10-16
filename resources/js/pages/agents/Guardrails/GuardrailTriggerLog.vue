@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // The guardrail trigger log: a paginated table of every time a guard fired
-// for this agent, filtered by guard and outcome, and a detail dialog with the
-// flagged snippet, what the guard found and a link to the conversation.
+// for this agent, filtered by guard, outcome and visitor, and a detail dialog
+// with the flagged snippet, what the guard found, a link to the conversation
+// and, for an abusive trigger, who sent it and a Block button.
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { guardrails, logs } from '@/routes/agents';
 import { Link, router } from '@inertiajs/vue3';
-import { ExternalLink, User } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { Ban, ExternalLink, User, X } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import BlockOffenderDialog from './BlockOffenderDialog.vue';
 import { FILTER_LABELS, GUARD_LABELS, labelFor, OUTCOME_LABELS, SEVERITY_LABELS, STAGE_LABELS } from './labels';
 import type { GuardrailLogFilters, GuardrailTrigger, GuardrailTriggerPage } from './types';
 
@@ -29,6 +32,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
+const { hasPermission } = useTeamPermissions();
 
 const guardLabel = (type: string) => labelFor(t, GUARD_LABELS, type);
 const outcomeLabel = (outcome: string) => labelFor(t, OUTCOME_LABELS, outcome);
@@ -38,6 +42,7 @@ const severityLabel = (severity: string | null) => labelFor(t, SEVERITY_LABELS, 
 // 'all' stands for "no filter" (a Select item cannot have an empty value).
 const guardType = ref(props.filters.guard_type ?? 'all');
 const outcome = ref(props.filters.outcome ?? 'all');
+const visitor = ref<string | null>(props.filters.visitor);
 
 const applyFilters = () => {
     router.get(
@@ -45,10 +50,29 @@ const applyFilters = () => {
         {
             guard_type: guardType.value === 'all' ? undefined : guardType.value,
             outcome: outcome.value === 'all' ? undefined : outcome.value,
+            visitor: visitor.value ?? undefined,
         },
         { preserveState: true, preserveScroll: true, replace: true },
     );
 };
+
+/** Only this visitor's triggers (null shows everyone again). */
+const filterByVisitor = (key: string | null) => {
+    visitor.value = key;
+    detailOpen.value = false;
+    applyFilters();
+};
+
+// A visitor has no name: show the start of their fingerprint, so repeat
+// attacks from one visitor are easy to spot.
+const visitorLabel = (key: string) => t('agents.guardrails.block.visitor_short', { id: key.slice(0, 6) });
+const personLabel = (row: GuardrailTrigger) => row.user_name ?? (row.visitor_key ? visitorLabel(row.visitor_key) : t('agents.guardrails.visitor'));
+
+// Blocking a chatter needs the People permission; blocking a visitor, the
+// Security one (the Security page lists the blocks).
+const canBlock = (row: GuardrailTrigger) =>
+    row.offender !== null && hasPermission(row.offender.kind === 'chatter' ? 'account.chatters.manage' : 'account.security');
+const blockOpen = ref(false);
 
 const outcomeVariant = (o: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     if (o === 'blocked') return 'destructive';
@@ -62,6 +86,14 @@ const openDetail = (row: GuardrailTrigger) => {
     selected.value = row;
     detailOpen.value = true;
 };
+
+// After a block the page reloads its rows: keep the open one current.
+watch(
+    () => props.triggers,
+    (page) => {
+        if (selected.value) selected.value = page.data.find((row) => row.id === selected.value?.id) ?? selected.value;
+    },
+);
 
 const go = (url: string | null) => {
     if (url) router.get(url, {}, { preserveScroll: true, preserveState: true });
@@ -106,7 +138,12 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
                     {{ t('agents.guardrails.triggers_logged', { total: triggers.total }) }}
                 </p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <Button v-if="visitor" variant="secondary" size="sm" class="h-9" @click="filterByVisitor(null)">
+                    {{ visitorLabel(visitor) }}
+                    <X class="ms-1.5 h-3.5 w-3.5" />
+                    <span class="sr-only">{{ t('agents.guardrails.block.clear_visitor') }}</span>
+                </Button>
                 <Select v-model="guardType" @update:model-value="applyFilters">
                     <SelectTrigger class="w-44">
                         <SelectValue :placeholder="t('agents.guardrails.all_guards')" />
@@ -151,9 +188,10 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
                                         <User v-else class="text-muted-foreground size-3.5" />
                                     </AvatarFallback>
                                 </Avatar>
-                                <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
-                                    row.user_name ?? t('agents.guardrails.visitor')
-                                }}</span>
+                                <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{ personLabel(row) }}</span>
+                                <Badge v-if="row.offender?.blocked" variant="destructive" class="font-normal">{{
+                                    t('agents.guardrails.block.blocked')
+                                }}</Badge>
                             </div>
                         </TableCell>
                         <TableCell
@@ -200,11 +238,46 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
                 </DialogTitle>
                 <DialogDescription>
                     {{ selected ? stageLabel(selected.stage) : '' }} · {{ selected ? formatDateTime(selected.created_at) : '' }} ·
-                    {{ t('agents.guardrails.by_user', { name: selected?.user_name ?? t('agents.guardrails.visitor') }) }}
+                    {{ t('agents.guardrails.by_user', { name: selected ? personLabel(selected) : '' }) }}
                 </DialogDescription>
             </DialogHeader>
 
             <div v-if="selected" class="space-y-4 text-sm">
+                <!-- Who sent it, how often lately, and the Block button -->
+                <div v-if="selected.offender" class="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
+                    <div>
+                        <p class="font-medium">{{ personLabel(selected) }}</p>
+                        <p class="text-muted-foreground text-xs">
+                            {{
+                                t(
+                                    'agents.guardrails.block.recent_attempts',
+                                    { count: selected.offender.recent_attempts },
+                                    selected.offender.recent_attempts,
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="selected.visitor_key && visitor !== selected.visitor_key"
+                            variant="ghost"
+                            size="sm"
+                            @click="filterByVisitor(selected.visitor_key)"
+                        >
+                            {{ t('agents.guardrails.block.show_all') }}
+                        </Button>
+                        <Badge v-if="selected.offender.blocked" variant="destructive">{{ t('agents.guardrails.block.blocked') }}</Badge>
+                        <Button v-else-if="canBlock(selected)" variant="destructive" size="sm" @click="blockOpen = true">
+                            <Ban class="me-1.5 h-4 w-4" />
+                            {{
+                                selected.offender.kind === 'chatter'
+                                    ? t('agents.guardrails.block.block_chatter')
+                                    : t('agents.guardrails.block.block_visitor')
+                            }}
+                        </Button>
+                    </div>
+                </div>
+
                 <div>
                     <p class="text-muted-foreground mb-1 text-xs font-medium uppercase">{{ t('agents.guardrails.snippet') }}</p>
                     <p class="bg-muted/40 max-h-48 overflow-y-auto rounded-md p-3 break-words whitespace-pre-wrap">
@@ -237,4 +310,6 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
             </div>
         </DialogContent>
     </Dialog>
+
+    <BlockOffenderDialog v-model:open="blockOpen" :agent-id="agent.external_id" :trigger="selected" />
 </template>

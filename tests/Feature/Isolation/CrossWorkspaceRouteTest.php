@@ -14,6 +14,7 @@ use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Form\Models\FormDefinition;
+use Domain\Guardrail\Models\GuardrailEvent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -23,6 +24,7 @@ use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Membership\Team\Models\Team;
+use Domain\Security\Models\BlockedVisitor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ValidateSignature;
@@ -173,6 +175,16 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'member' => User::factory()->employee($owner)->create(),
         'export' => DataExport::query()->create(['user_id' => $owner->id, 'status' => DataExportStatus::Ready, 'download_token' => Str::random(40), 'expires_at' => now()->addDay()]),
         'tokenId' => $owner->createToken('account')->accessToken,
+        'event' => GuardrailEvent::create([
+            'agent_id' => $agent->id,
+            'agent_name' => $agent->name,
+            'workspace_id' => $agent->workspace_id,
+            'visitor_key' => hash('sha256', 'isolation-visitor'),
+            'stage' => 'input',
+            'guard_type' => 'prompt_injection',
+            'outcome' => 'blocked',
+        ]),
+        'blockedVisitor' => BlockedVisitor::factory()->create(['workspace_id' => $agent->workspace_id]),
         default => null,
     };
 }
@@ -384,6 +396,7 @@ function isolationRecordParameters(): array
         'agent', 'conversation', 'conversationId', 'function', 'external_id', 'mcp', 'file', 'source', 'fileId',
         'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'youtube', 'topic',
         'chatter', 'form', 'run', 'case', 'team', 'role', 'roleId', 'invitationId', 'member', 'export', 'tokenId',
+        'event', 'blockedVisitor',
     ];
 }
 

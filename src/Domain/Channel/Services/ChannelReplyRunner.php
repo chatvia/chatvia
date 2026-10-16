@@ -90,6 +90,9 @@ class ChannelReplyRunner
      * The fixed message (an English translation key) to send instead of
      * running the turn, or null when the turn may run. `$visitorKey` names
      * the chat on the channel, for the per-visitor cap.
+     *
+     * Unlike the web chat there is no blocked-visitor check: a channel sender
+     * has no network address or browser to fingerprint (see VisitorBlocklist).
      */
     private function refusal(Agent $agent, string $visitorKey): ?string
     {

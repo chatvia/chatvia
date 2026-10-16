@@ -48,6 +48,9 @@ enum SecurityAuditAction: string
     case ScimGroupChanged = 'scim.group.changed';
 
     case GuardrailAttackBlocked = 'guardrail.attack_blocked';
+    case VisitorBlocked = 'visitor.blocked';
+    case VisitorUnblocked = 'visitor.unblocked';
+    case ChatterBlocked = 'chatter.blocked';
 
     public function label(): string
     {
@@ -77,6 +80,9 @@ enum SecurityAuditAction: string
             self::ScimUserDeprovisioned => 'User deprovisioned (SCIM)',
             self::ScimGroupChanged => 'Group changed (SCIM)',
             self::GuardrailAttackBlocked => 'Attack blocked by guardrails',
+            self::VisitorBlocked => 'Visitor blocked',
+            self::VisitorUnblocked => 'Visitor unblocked',
+            self::ChatterBlocked => 'Chatter blocked',
         };
     }
 
@@ -111,7 +117,10 @@ enum SecurityAuditAction: string
             self::DataDeletionRequested,
             self::AuditExported => SecurityAuditCategory::Data,
 
-            self::GuardrailAttackBlocked => SecurityAuditCategory::Threat,
+            self::GuardrailAttackBlocked,
+            self::VisitorBlocked,
+            self::VisitorUnblocked,
+            self::ChatterBlocked => SecurityAuditCategory::Threat,
         };
     }
 }

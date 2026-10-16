@@ -44,6 +44,7 @@ class GuardrailAlertNotification extends Notification implements ShouldQueue
         $message = $this->alert === GuardAlert::Attack
             ? $message->line(__('Your agent ":name" blocked an attempt to override its instructions or reveal them.', $name))
                 ->line(__('One attempt is usually nothing to worry about. Many in a short time may be someone testing your agent.'))
+                ->line(__('You can block the person who sent them from the guardrails activity.'))
             : $message->line(__('The safety check of your agent ":name" could not run, so some messages were answered without it.', $name))
                 ->line(__('This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.'));
 

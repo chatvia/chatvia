@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "방문자 · {id}",
+                "blocked": "차단됨",
+                "recent_attempts": "최근 24시간 동안 인젝션 또는 악용 시도 {count}건 | 최근 24시간 동안 인젝션 또는 악용 시도 {count}건",
+                "show_all": "이 방문자의 기록 모두 보기",
+                "clear_visitor": "모든 방문자 보기",
+                "block_chatter": "채터 차단",
+                "block_visitor": "방문자 차단",
+                "chatter_title": "{name} 차단",
+                "chatter_description": "계정이 비활성화되고 이 워크스페이스의 모든 에이전트에서 로그아웃됩니다. 사용자에서 다시 활성화할 수 있습니다.",
+                "visitor_title": "이 방문자 차단",
+                "visitor_description": "차단이 끝날 때까지 이 워크스페이스의 어떤 에이전트와도 채팅할 수 없습니다.",
+                "duration": "기간",
+                "reason": "사유",
+                "reason_placeholder": "예: 에이전트의 지침을 여러 번 알아내려고 함",
+                "reason_help": "팀만 볼 수 있습니다.",
+                "notify": "{name}에게 이메일로 알리기",
+                "visitor_limits": "방문자는 네트워크와 브라우저로 식별됩니다. 같은 네트워크에서 같은 브라우저를 쓰는 다른 사람도 차단되며, 새 네트워크나 브라우저로는 차단을 피할 수 있습니다. 차단은 보안에서 보고 해제할 수 있습니다.",
+                "chatter_blocked": "채터를 차단했습니다",
+                "visitor_blocked": "방문자를 차단했습니다",
+                "error": "차단하지 못했습니다. 다시 시도해 주세요.",
+                "durations": {
+                    "day": "1일",
+                    "week": "7일",
+                    "month": "30일",
+                    "forever": "차단을 해제할 때까지"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "채팅이 차단됨"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "차단된 방문자",
+                "help": "에이전트와 채팅할 수 없는 방문자입니다. 방문자는 에이전트의 가드레일 활동에서 차단합니다.",
+                "visitor": "방문자 · {id}",
+                "browser_on_os": "{os}의 {browser}",
+                "on_agent": "{agent}에서",
+                "by": "{name}님이 차단",
+                "until": "{date}까지",
+                "until_unblocked": "해제할 때까지",
+                "unblock": "차단 해제",
+                "unblocked": "방문자 차단을 해제했습니다",
+                "unblock_error": "차단을 해제하지 못했습니다. 다시 시도해 주세요.",
+                "empty": "차단된 방문자가 없습니다."
+            }
+        }
+    }
+}

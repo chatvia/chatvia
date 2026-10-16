@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Besucher · {id}",
+                "blocked": "Gesperrt",
+                "recent_attempts": "{count} Injection- oder Missbrauchsversuch in den letzten 24 Stunden | {count} Injection- oder Missbrauchsversuche in den letzten 24 Stunden",
+                "show_all": "Alles von diesem Besucher zeigen",
+                "clear_visitor": "Alle Besucher zeigen",
+                "block_chatter": "Chatter sperren",
+                "block_visitor": "Besucher sperren",
+                "chatter_title": "{name} sperren",
+                "chatter_description": "Das Konto wird deaktiviert und bei allen Agenten in diesem Workspace abgemeldet. Unter Personen können Sie es wieder aktivieren.",
+                "visitor_title": "Diesen Besucher sperren",
+                "visitor_description": "Er kann mit keinem Agenten in diesem Workspace chatten, bis die Sperre endet.",
+                "duration": "Wie lange",
+                "reason": "Grund",
+                "reason_placeholder": "z. B. Hat oft versucht, die Anweisungen des Agenten zu bekommen",
+                "reason_help": "Das sieht nur Ihr Team.",
+                "notify": "{name} per E-Mail informieren",
+                "visitor_limits": "Besucher werden an Netzwerk und Browser erkannt. Andere im selben Netzwerk mit demselben Browser werden ebenfalls gesperrt, und mit einem neuen Netzwerk oder Browser lässt sich die Sperre umgehen. Sperren sehen und aufheben können Sie unter Sicherheit.",
+                "chatter_blocked": "Chatter gesperrt",
+                "visitor_blocked": "Besucher gesperrt",
+                "error": "Sperren nicht möglich. Bitte versuchen Sie es erneut.",
+                "durations": {
+                    "day": "1 Tag",
+                    "week": "7 Tage",
+                    "month": "30 Tage",
+                    "forever": "Bis Sie die Sperre aufheben"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Chat gesperrt"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Gesperrte Besucher",
+                "help": "Besucher, die nicht mit Ihren Agenten chatten können. Einen Besucher sperren Sie in der Aktivität der Leitplanken eines Agenten.",
+                "visitor": "Besucher · {id}",
+                "browser_on_os": "{browser} unter {os}",
+                "on_agent": "Bei {agent}",
+                "by": "Von {name}",
+                "until": "Bis {date}",
+                "until_unblocked": "Bis zur Aufhebung",
+                "unblock": "Sperre aufheben",
+                "unblocked": "Sperre aufgehoben",
+                "unblock_error": "Aufheben nicht möglich. Bitte versuchen Sie es erneut.",
+                "empty": "Keine gesperrten Besucher."
+            }
+        }
+    }
+}

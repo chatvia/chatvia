@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "guardrails": {
+            "block": {
+                "visitor_short": "Visiteur · {id}",
+                "blocked": "Bloqué",
+                "recent_attempts": "{count} tentative d'injection ou d'abus ces dernières 24 heures | {count} tentatives d'injection ou d'abus ces dernières 24 heures",
+                "show_all": "Tout voir de ce visiteur",
+                "clear_visitor": "Voir tous les visiteurs",
+                "block_chatter": "Bloquer le chatter",
+                "block_visitor": "Bloquer le visiteur",
+                "chatter_title": "Bloquer {name}",
+                "chatter_description": "Son compte est désactivé et il est déconnecté de tous les agents de cet espace de travail. Vous pouvez le réactiver dans Personnes.",
+                "visitor_title": "Bloquer ce visiteur",
+                "visitor_description": "Il ne peut plus discuter avec aucun agent de cet espace de travail jusqu'à la fin du blocage.",
+                "duration": "Durée",
+                "reason": "Motif",
+                "reason_placeholder": "ex. A essayé plusieurs fois d'obtenir les instructions de l'agent",
+                "reason_help": "Seule votre équipe voit ceci.",
+                "notify": "Prévenir {name} par e-mail",
+                "visitor_limits": "Les visiteurs sont reconnus à leur réseau et à leur navigateur. Une autre personne sur le même réseau avec le même navigateur est aussi bloquée, et un nouveau réseau ou navigateur permet de passer le blocage. Vous pouvez voir et retirer les blocages dans Sécurité.",
+                "chatter_blocked": "Chatter bloqué",
+                "visitor_blocked": "Visiteur bloqué",
+                "error": "Blocage impossible. Veuillez réessayer.",
+                "durations": {
+                    "day": "1 jour",
+                    "week": "7 jours",
+                    "month": "30 jours",
+                    "forever": "Jusqu'à ce que vous le débloquiez"
+                }
+            }
+        }
+    },
+    "errors": {
+        "access_blocked": "Discussion bloquée"
+    },
+    "workspace": {
+        "security": {
+            "blocked_visitors": {
+                "title": "Visiteurs bloqués",
+                "help": "Visiteurs qui ne peuvent pas discuter avec vos agents. Vous bloquez un visiteur depuis l'activité des garde-fous d'un agent.",
+                "visitor": "Visiteur · {id}",
+                "browser_on_os": "{browser} sous {os}",
+                "on_agent": "Sur {agent}",
+                "by": "Par {name}",
+                "until": "Jusqu'au {date}",
+                "until_unblocked": "Jusqu'au déblocage",
+                "unblock": "Débloquer",
+                "unblocked": "Visiteur débloqué",
+                "unblock_error": "Déblocage impossible. Veuillez réessayer.",
+                "empty": "Aucun visiteur bloqué."
+            }
+        }
+    }
+}

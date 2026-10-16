@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Admin\Settings\Listeners\ReindexForNewEmbeddingModel;
+use App\Identity\Chatter\Events\ChatterBlocked;
 use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
+use App\Identity\Chatter\Listeners\SendChatterBlockedEmail;
 use App\Identity\Chatter\Listeners\SendChatterPasswordResetLink;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
 use App\Identity\Workspace\Events\DataExportReady;
@@ -303,6 +305,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
         Event::listen(ChatterPasswordResetRequested::class, SendChatterPasswordResetLink::class);
+        Event::listen(ChatterBlocked::class, SendChatterBlockedEmail::class);
         Event::listen(SessionLocationUnknown::class, LocateSession::class);
         Event::listen(AssistantReplyCompleted::class, CountReplyAgainstMessageLimit::class);
         Event::listen(MessageSent::class, QueueMessageAnalysis::class);

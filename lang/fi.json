@@ -421,5 +421,12 @@
     "Check again": "Tarkista uudelleen",
     "Services": "Palvelut",
     "AI and other services": "Tekoäly ja muut palvelut",
-    "Open :tool": "Avaa :tool"
+    "Open :tool": "Avaa :tool",
+    "You cannot chat with this assistant.": "Et voi keskustella tämän avustajan kanssa.",
+    "No one can be blocked for this trigger.": "Tästä tapahtumasta ei voi estää ketään.",
+    "Your chat access has been turned off": "Pääsysi keskusteluun on poistettu käytöstä",
+    "The team at :name turned off your access to chat with their assistants.": ":name-tiimi poisti pääsysi keskustella heidän avustajiensa kanssa.",
+    "This happens when messages try to make an assistant break its rules or show its instructions.": "Näin käy, kun viestit yrittävät saada avustajan rikkomaan sääntöjään tai näyttämään ohjeensa.",
+    "If you think this is a mistake, please contact :name.": "Jos uskot tämän olevan virhe, ota yhteyttä: :name.",
+    "You can block the person who sent them from the guardrails activity.": "Voit estää ne lähettäneen henkilön turvarajojen toiminnasta."
 }

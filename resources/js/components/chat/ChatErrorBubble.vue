@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import type { Message } from '@/types/chat';
 import type { StreamErrorCode } from '@/types/stream';
-import { AlertTriangle, MessageSquareOff, RefreshCw, WifiOff } from 'lucide-vue-next';
+import { AlertTriangle, Ban, MessageSquareOff, RefreshCw, WifiOff } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -61,6 +61,12 @@ const TREATMENT: Record<StreamErrorCode, Treatment> = {
         severity: 'warn',
         icon: AlertTriangle,
         titleKey: 'errors.something_went_wrong',
+    },
+    // A workspace admin blocked this visitor; trying again cannot help.
+    access_blocked: {
+        severity: 'block',
+        icon: Ban,
+        titleKey: 'errors.access_blocked',
     },
 };
 

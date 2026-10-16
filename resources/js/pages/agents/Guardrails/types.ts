@@ -51,6 +51,17 @@ export interface GuardSettings {
 export interface GuardrailLogFilters {
     guard_type: string | null;
     outcome: string | null;
+    // One visitor's fingerprint: only their triggers.
+    visitor: string | null;
+}
+
+/** Who an abusive trigger can be blamed on, whether they are blocked, and how often they tried in the last 24 hours. */
+export interface GuardrailOffender {
+    kind: 'chatter' | 'visitor';
+    blocked: boolean;
+    recent_attempts: number;
+    visitor_key: string | null;
+    chatter_external_id: string | null;
 }
 
 /** One PII filter the agent can switch on, e.g. `{ key: 'email', label: 'Email addresses' }`. */
@@ -79,6 +90,10 @@ export interface GuardrailTrigger {
     snippet: string | null;
     trace_id: string | null;
     conversation_external_id: string | null;
+    // An anonymous visitor's fingerprint; null for chatters, staff and channels.
+    visitor_key: string | null;
+    // Set on abusive triggers someone can be blocked for.
+    offender: GuardrailOffender | null;
 }
 
 /** Laravel length-aware paginator of trigger rows. */

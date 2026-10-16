@@ -1,0 +1,16 @@
+{
+    "workspace": {
+        "security": {
+            "retention": {
+                "leads": "Prospek (hari)",
+                "leads_help": "Hapus prospek yang lebih lama dari sekian hari ini.",
+                "analytics": "Analitik (hari)",
+                "analytics_help": "Hapus data analitik yang lebih lama dari sekian hari ini. Minimal {floor} hari.",
+                "anonymize": "Anonimkan pengunjung setelah (hari)",
+                "anonymize_help": "Hapus detail pengunjung dari chat yang lebih lama dari sekian hari ini — nama, email, telepon, alamat IP, string browser lengkap, lokasi, dan tautan halaman. Pesan dan jenis perangkat tetap disimpan. Hingga {max} hari.",
+                "keep_forever": "Simpan selamanya",
+                "never": "Tidak pernah"
+            }
+        }
+    }
+}

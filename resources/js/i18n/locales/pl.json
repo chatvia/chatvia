@@ -150,7 +150,8 @@
         "connection_lost": "Utracono połączenie",
         "unexpected_response": "Nieoczekiwana odpowiedź",
         "something_went_wrong": "Coś poszło nie tak",
-        "try_again": "Spróbuj ponownie"
+        "try_again": "Spróbuj ponownie",
+        "access_blocked": "Czat zablokowany"
     },
     "sources": {
         "title": "Źródła wiedzy",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram połączono"
             },
-            "setup_tab": "Konfiguracja"
+            "setup_tab": "Konfiguracja",
+            "not_set_up": "Nie skonfigurowano na tym serwerze. Administrator może włączyć ten kanał w panelu administracyjnym."
         },
         "chatlog": {
             "title": "Dziennik czatu",
@@ -465,7 +467,8 @@
                 "qa_matched": "Dopasowanie Q&A",
                 "revised": "Poprawiona odpowiedź",
                 "revise": "Popraw",
-                "voice": "Głos"
+                "voice": "Głos",
+                "confidence_help": "Jak dobrze wiedza agenta pasowała do tego pytania — a nie jak dobra jest odpowiedź."
             },
             "details": {
                 "select_conversation": "Wybierz rozmowę, aby wyświetlić szczegóły",
@@ -746,7 +749,7 @@
             "alert_owner": "Powiadamiaj mnie e-mailem o atakach",
             "alert_owner_help": "Otrzymuj e-mail, gdy agent zablokuje próbę obejścia jego instrukcji lub gdy kontrola bezpieczeństwa nie może się uruchomić. Najwyżej jeden e-mail na godzinę.",
             "test_title": "Przetestuj wiadomość",
-            "test_description": "Zobacz, co dostałby odwiedzający przy powyższych ustawieniach, zanim zapiszesz. Nic nie jest zapisywane.",
+            "test_description": "Zobacz, co dostałby odwiedzający przy ustawieniach z karty Konfiguracja, nawet zanim zapiszesz. Nic nie jest zapisywane.",
             "test_placeholder": "Wpisz wiadomość do przetestowania",
             "test_samples": "Wypróbuj:",
             "test_run": "Testuj",
@@ -760,7 +763,42 @@
             "test_no_guards": "Żadne zabezpieczenie niczego nie znalazło.",
             "detail_topic": "Temat: {topic}",
             "classifier_unavailable": "Kontrola bezpieczeństwa nie mogła się uruchomić, więc tekst nie został sprawdzony.",
-            "open_conversation": "Otwórz rozmowę"
+            "open_conversation": "Otwórz rozmowę",
+            "about_title": "Czym są zabezpieczenia?",
+            "about_body": "Zabezpieczenia to kontrole bezpieczeństwa czatów agenta. Sprawdzają każdą wiadomość odwiedzającego, zanim agent odpowie, oraz każdą odpowiedź napisaną przez agenta. Mogą ukrywać dane osobowe, zatrzymywać próby oszukania agenta, blokować obraźliwy język i pilnować, by agent trzymał się tematu.",
+            "about_ai_calls": "Wykrywanie danych PII dopasowuje stałe wzorce i nie dodaje wywołań AI. Kontrole oznaczone „Kontrola AI” pytają model AI: jedno dodatkowe wywołanie dla wiadomości odwiedzającego i jedno dla odpowiedzi, czyli najwyżej dwa na odpowiedź.",
+            "ai_check": "Kontrola AI",
+            "about_aria": "Informacje o zabezpieczeniach",
+            "about_cost": "Wszystkie kontrole AI dzielą te wywołania, więc włączenie kolejnych nie dodaje wywołań. Odpowiedzi mogą trwać nieco dłużej i zużywać więcej tokenów AI.",
+            "test_off": "Zabezpieczenia są wyłączone. Włącz je, aby przetestować wiadomość.",
+            "block": {
+                "visitor_short": "Odwiedzający · {id}",
+                "blocked": "Zablokowany",
+                "recent_attempts": "{count} próba wstrzyknięcia lub nadużycia w ciągu ostatnich 24 godzin | Prób wstrzyknięcia lub nadużycia w ciągu ostatnich 24 godzin: {count}",
+                "show_all": "Pokaż wszystko od tego odwiedzającego",
+                "clear_visitor": "Pokaż wszystkich odwiedzających",
+                "block_chatter": "Zablokuj czatowicza",
+                "block_visitor": "Zablokuj odwiedzającego",
+                "chatter_title": "Zablokuj: {name}",
+                "chatter_description": "Konto zostanie wyłączone, a osoba wylogowana ze wszystkich agentów w tym obszarze roboczym. Możesz je ponownie włączyć w sekcji Użytkownicy.",
+                "visitor_title": "Zablokuj tego odwiedzającego",
+                "visitor_description": "Do końca blokady nie będzie mógł czatować z żadnym agentem w tym obszarze roboczym.",
+                "duration": "Na jak długo",
+                "reason": "Powód",
+                "reason_placeholder": "np. Wiele razy próbował poznać instrukcje agenta",
+                "reason_help": "Widzi to tylko Twój zespół.",
+                "notify": "Powiadom: {name} e-mailem",
+                "visitor_limits": "Odwiedzający są rozpoznawani po sieci i przeglądarce. Ktoś inny w tej samej sieci z tą samą przeglądarką też zostanie zablokowany, a nowa sieć lub przeglądarka pozwala obejść blokadę. Blokady możesz zobaczyć i usunąć w sekcji Bezpieczeństwo.",
+                "chatter_blocked": "Czatowicz zablokowany",
+                "visitor_blocked": "Odwiedzający zablokowany",
+                "error": "Nie udało się zablokować. Spróbuj ponownie.",
+                "durations": {
+                    "day": "1 dzień",
+                    "week": "7 dni",
+                    "month": "30 dni",
+                    "forever": "Do odblokowania"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "Historia czatu jest usuwana po tylu dniach. Maksymalnie {max} dni.",
                 "audit": "Dziennik audytu bezpieczeństwa (dni)",
                 "audit_help": "Domyślnie {default} dni, minimum {floor}.",
-                "plan_default": "Domyślnie ({days} dni)"
+                "plan_default": "Domyślnie ({days} dni)",
+                "leads": "Leady (dni)",
+                "leads_help": "Usuwaj leady starsze niż tyle dni.",
+                "analytics": "Analityka (dni)",
+                "analytics_help": "Usuwaj dane analityczne starsze niż tyle dni. Co najmniej {floor} dni.",
+                "anonymize": "Anonimizuj odwiedzających po (dniach)",
+                "anonymize_help": "Usuwa dane odwiedzających z czatów starszych niż tyle dni — imię, e-mail, telefon, adres IP, pełny ciąg przeglądarki, lokalizację i linki do stron. Wiadomości i typ urządzenia zostają zachowane. Maksymalnie {max} dni.",
+                "keep_forever": "Przechowuj zawsze",
+                "never": "Nigdy"
             },
             "siem": {
                 "title": "Webhook SIEM",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Pozostaw puste, aby zachować bieżący klucz",
                 "secret_help": "Używany do podpisywania każdej dostawy algorytmem HMAC, aby Twój SIEM mógł ją zweryfikować.",
                 "signature_help": "Każde żądanie POST jest podpisywane algorytmem HMAC-SHA256 w nagłówku X-Chatvia-Signature."
+            },
+            "blocked_visitors": {
+                "title": "Zablokowani odwiedzający",
+                "help": "Odwiedzający, którzy nie mogą czatować z Twoimi agentami. Odwiedzającego blokujesz w aktywności zabezpieczeń agenta.",
+                "visitor": "Odwiedzający · {id}",
+                "browser_on_os": "{browser} w {os}",
+                "on_agent": "Agent: {agent}",
+                "by": "Zablokował(a): {name}",
+                "until": "Do {date}",
+                "until_unblocked": "Do odblokowania",
+                "unblock": "Odblokuj",
+                "unblocked": "Odwiedzający odblokowany",
+                "unblock_error": "Nie udało się odblokować. Spróbuj ponownie.",
+                "empty": "Brak zablokowanych odwiedzających."
             }
         },
         "security_audit": {

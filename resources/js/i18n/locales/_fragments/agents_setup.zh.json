@@ -1,6 +1,21 @@
 {
     "agents": {
         "setup": {
+            "toasts": {
+                "replies_saved": "回复选项已保存",
+                "replies_error": "无法保存回复选项"
+            },
+            "settings": {
+                "replies_title": "回复",
+                "replies_description": "选择在每条回答下方显示的内容。",
+                "show_sources_label": "显示来源",
+                "show_sources_hint": "在每条回答下方显示一个按钮，列出该回答用到的知识。"
+            },
+            "model_picker_title": "模型",
+            "model_picker_description": "此智能体用来回答的 AI 模型。由管理员决定这个列表中有哪些模型（管理面板 → Settings → AI models）。",
+            "model_placeholder": "选择模型",
+            "model_default": "默认",
+            "model_empty": "暂无模型。管理员可在管理面板的 Settings → AI models 中添加。",
             "bubbles_description": "显示在挂件启动器旁的快捷消息提示。"
         }
     }

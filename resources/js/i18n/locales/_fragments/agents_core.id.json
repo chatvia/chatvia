@@ -1,17 +1,27 @@
 {
     "agents": {
-        "guardrails": {
-            "injection_help": "Deteksi dan blokir upaya untuk menimpa instruksi agen atau mengungkapkannya, dalam pesan, pengetahuan, dan hasil alat.",
-            "refusal_message_placeholder": "Maaf, saya tidak dapat membantu permintaan itu."
+        "chatlog": {
+            "sidebar": {
+                "load_more": "Muat lebih banyak"
+            },
+            "messages": {
+                "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya."
+            }
         },
         "security": {
             "rate_limiting": {
+                "visitor_messages_per_minute": "Pesan per menit (satu pengunjung)",
+                "visitor_hint": "Jumlah pesan terbanyak yang dapat dikirim satu pengunjung per menit. Pengunjung yang melewatinya harus menunggu, sementara yang lain tetap bisa mengobrol.",
                 "subtitle": "Batasi berapa banyak pesan yang dijawab agen Anda per menit, dan berapa banyak yang dapat dikirim satu pengunjung.",
                 "card_description": "Lindungi agen Anda dari penyalahgunaan dan biaya tak terduga.",
                 "messages_per_minute": "Pesan per menit (semua pengunjung)",
                 "default_hint": "Jumlah pesan terbanyak yang dijawab agen per menit, dari semua pengunjung.",
                 "notify_hint": "Terima email saat agen mencapai batas ini."
             }
+        },
+        "guardrails": {
+            "injection_help": "Deteksi dan blokir upaya untuk menimpa instruksi agen atau mengungkapkannya, dalam pesan, pengetahuan, dan hasil alat.",
+            "refusal_message_placeholder": "Maaf, saya tidak dapat membantu permintaan itu."
         }
     }
 }

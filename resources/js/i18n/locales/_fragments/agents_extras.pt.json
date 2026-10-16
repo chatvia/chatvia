@@ -108,7 +108,7 @@
             "alert_owner": "Avisar-me de ataques por email",
             "alert_owner_help": "Receba um email quando o agente bloquear uma tentativa de contornar as suas instruções, ou quando a verificação de segurança não puder correr. No máximo um email por hora.",
             "test_title": "Testar uma mensagem",
-            "test_description": "Veja o que um visitante receberia com as definições acima, antes de guardar. Nada é guardado.",
+            "test_description": "Veja o que um visitante receberia com as definições do separador Configuração, mesmo antes de guardar. Nada é guardado.",
             "test_placeholder": "Escreva uma mensagem para testar",
             "test_samples": "Experimente:",
             "test_run": "Testar",

@@ -150,7 +150,8 @@
         "connection_lost": "Forbindelse mistet",
         "unexpected_response": "Uventet svar",
         "something_went_wrong": "Noget gik galt",
-        "try_again": "Prøv igen"
+        "try_again": "Prøv igen",
+        "access_blocked": "Chat blokeret"
     },
     "sources": {
         "title": "Vidensskilder",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram tilsluttet"
             },
-            "setup_tab": "Opsætning"
+            "setup_tab": "Opsætning",
+            "not_set_up": "Ikke sat op på denne server. En administrator kan slå denne kanal til i adminpanelet."
         },
         "chatlog": {
             "title": "Chatlog",
@@ -465,7 +467,8 @@
                 "qa_matched": "Q&A-match",
                 "revised": "Revideret svar",
                 "revise": "Revidér",
-                "voice": "Stemme"
+                "voice": "Stemme",
+                "confidence_help": "Hvor godt agentens viden matchede dette spørgsmål — ikke hvor godt svaret er."
             },
             "details": {
                 "select_conversation": "Vælg en samtale for at se detaljer",
@@ -746,7 +749,7 @@
             "alert_owner": "Send mig en e-mail om angreb",
             "alert_owner_help": "Få en e-mail, når agenten blokerer et forsøg på at omgå sine instruktioner, eller når sikkerhedstjekket ikke kan køre. Højst én e-mail i timen.",
             "test_title": "Test en besked",
-            "test_description": "Se, hvad en besøgende ville få med indstillingerne ovenfor, før du gemmer. Intet bliver gemt.",
+            "test_description": "Se, hvad en besøgende ville få med indstillingerne under Konfiguration, også før du gemmer. Intet bliver gemt.",
             "test_placeholder": "Skriv en besked at teste",
             "test_samples": "Prøv:",
             "test_run": "Test",
@@ -760,7 +763,42 @@
             "test_no_guards": "Ingen beskyttelse fandt noget.",
             "detail_topic": "Emne: {topic}",
             "classifier_unavailable": "Sikkerhedstjekket kunne ikke køre, så teksten blev ikke tjekket.",
-            "open_conversation": "Åbn samtale"
+            "open_conversation": "Åbn samtale",
+            "about_title": "Hvad er sikkerhedsregler?",
+            "about_body": "Sikkerhedsregler er sikkerhedstjek af din agents chats. De tjekker hver besked fra en besøgende, før agenten svarer, og hvert svar, agenten skriver. De kan skjule persondata, stoppe forsøg på at narre agenten, blokere krænkende sprog og holde agenten til emnet.",
+            "about_ai_calls": "PII-registrering bruger faste mønstre og tilføjer ingen AI-kald. Tjek mærket „AI-tjek“ spørger en AI-model: ét ekstra kald for den besøgendes besked og ét for svaret, altså højst to pr. svar.",
+            "ai_check": "AI-tjek",
+            "about_aria": "Om sikkerhedsregler",
+            "about_cost": "Alle AI-tjek deler disse kald, så flere slået til giver ikke flere kald. Svar kan tage lidt længere tid og bruge flere AI-tokens.",
+            "test_off": "Sikkerhedsreglerne er slået fra. Slå dem til for at teste en besked.",
+            "block": {
+                "visitor_short": "Besøgende · {id}",
+                "blocked": "Blokeret",
+                "recent_attempts": "{count} injektions- eller misbrugsforsøg de seneste 24 timer | {count} injektions- eller misbrugsforsøg de seneste 24 timer",
+                "show_all": "Vis alt fra denne besøgende",
+                "clear_visitor": "Vis alle besøgende",
+                "block_chatter": "Bloker chatter",
+                "block_visitor": "Bloker besøgende",
+                "chatter_title": "Bloker {name}",
+                "chatter_description": "Kontoen slås fra, og personen logges ud af alle agenter i dette workspace. Du kan slå den til igen under Personer.",
+                "visitor_title": "Bloker denne besøgende",
+                "visitor_description": "Personen kan ikke chatte med nogen agent i dette workspace, før blokeringen slutter.",
+                "duration": "Hvor længe",
+                "reason": "Årsag",
+                "reason_placeholder": "f.eks. Prøvede mange gange at få agentens instruktioner",
+                "reason_help": "Kun dit team kan se dette.",
+                "notify": "Fortæl {name} det via e-mail",
+                "visitor_limits": "Besøgende genkendes på deres netværk og browser. Andre på samme netværk med samme browser blokeres også, og et nyt netværk eller en ny browser kommer uden om blokeringen. Du kan se og fjerne blokeringer under Sikkerhed.",
+                "chatter_blocked": "Chatter blokeret",
+                "visitor_blocked": "Besøgende blokeret",
+                "error": "Kunne ikke blokere. Prøv igen.",
+                "durations": {
+                    "day": "1 dag",
+                    "week": "7 dage",
+                    "month": "30 dage",
+                    "forever": "Indtil du fjerner blokeringen"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "Chathistorik slettes efter dette antal dage. Op til {max} dage.",
                 "audit": "Sikkerhedsauditlog (dage)",
                 "audit_help": "Standard {default} dage, minimum {floor}.",
-                "plan_default": "Standard ({days} dage)"
+                "plan_default": "Standard ({days} dage)",
+                "leads": "Leads (dage)",
+                "leads_help": "Slet leads, der er ældre end dette antal dage.",
+                "analytics": "Analyse (dage)",
+                "analytics_help": "Slet analysedata, der er ældre end dette antal dage. Mindst {floor} dage.",
+                "anonymize": "Anonymiser besøgende efter (dage)",
+                "anonymize_help": "Fjern besøgendes oplysninger fra chats, der er ældre end dette antal dage — navn, e-mail, telefon, IP-adresse, fuld browserstreng, placering og sidelinks. Beskeder og enhedstype bevares. Op til {max} dage.",
+                "keep_forever": "Behold for altid",
+                "never": "Aldrig"
             },
             "siem": {
                 "title": "SIEM-webhook",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Lad stå tomt for at beholde den nuværende hemmelighed",
                 "secret_help": "Bruges til at HMAC-signere hver levering, så dit SIEM kan verificere den.",
                 "signature_help": "Hver POST signeres med HMAC-SHA256 i headeren X-Chatvia-Signature."
+            },
+            "blocked_visitors": {
+                "title": "Blokerede besøgende",
+                "help": "Besøgende, der ikke kan chatte med dine agenter. Du blokerer en besøgende fra aktiviteten under en agents sikkerhedsregler.",
+                "visitor": "Besøgende · {id}",
+                "browser_on_os": "{browser} på {os}",
+                "on_agent": "På {agent}",
+                "by": "Af {name}",
+                "until": "Indtil {date}",
+                "until_unblocked": "Indtil blokeringen fjernes",
+                "unblock": "Fjern blokering",
+                "unblocked": "Blokering fjernet",
+                "unblock_error": "Kunne ikke fjerne blokeringen. Prøv igen.",
+                "empty": "Ingen blokerede besøgende."
             }
         },
         "security_audit": {

@@ -1,0 +1,16 @@
+{
+    "workspace": {
+        "security": {
+            "retention": {
+                "leads": "Khách hàng tiềm năng (ngày)",
+                "leads_help": "Xóa khách hàng tiềm năng cũ hơn số ngày này.",
+                "analytics": "Phân tích (ngày)",
+                "analytics_help": "Xóa dữ liệu phân tích cũ hơn số ngày này. Ít nhất {floor} ngày.",
+                "anonymize": "Ẩn danh khách truy cập sau (ngày)",
+                "anonymize_help": "Xóa thông tin khách truy cập khỏi các cuộc trò chuyện cũ hơn số ngày này — tên, email, số điện thoại, địa chỉ IP, chuỗi trình duyệt đầy đủ, vị trí và liên kết trang. Tin nhắn và loại thiết bị được giữ lại. Tối đa {max} ngày.",
+                "keep_forever": "Giữ vĩnh viễn",
+                "never": "Không bao giờ"
+            }
+        }
+    }
+}

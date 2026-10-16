@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "プロンプト漏えい"
+            },
+            "filter_labels": {
+                "email": "メールアドレス",
+                "credit_card": "クレジットカード",
+                "us_ssn": "米国社会保障番号",
+                "german_ssn": "ドイツの社会保険番号",
+                "danish_cpr": "デンマークのCPR番号",
+                "phone": "電話番号",
+                "iban": "銀行口座（IBAN）",
+                "uk_nino": "英国国民保険番号",
+                "ip_address": "IPアドレス"
+            },
+            "outcome_labels": {
+                "blocked": "ブロック済み",
+                "redacted": "マスキング済み",
+                "flagged": "フラグ付き",
+                "skipped": "スキップ"
+            },
+            "stage_labels": {
+                "input": "メッセージ",
+                "source": "ナレッジ",
+                "output": "回答",
+                "tool": "ツールの結果"
+            },
+            "severity_labels": {
+                "none": "なし",
+                "low": "低",
+                "medium": "中",
+                "high": "高"
+            },
+            "allowlist_title": "マスキングしない値",
+            "allowlist_description": "サポート用のメールアドレスや電話番号など、エージェントが常に表示してよい値です。メールのドメイン全体を許可するには {'@'} で始めます（例：{'@'}acme.com）。ビジネスプロフィールのメールアドレスと電話番号は常に許可されます。",
+            "allowlist_placeholder_first": "例：support{'@'}acme.com",
+            "allowlist_placeholder_more": "別の値を追加",
+            "add_allowlist_value": "値を追加",
+            "remove_allowlist_value": "値を削除",
+            "allowlist_count": "マスキングしない値：{count}件 | マスキングしない値：{count}件",
+            "all_guards": "すべてのガード",
+            "all_outcomes": "すべての結果",
+            "refusal_message_help": "ガードがメッセージをブロックしたときに表示されます。保存すると、エージェントの言語に翻訳されます。空欄のままにすると、デフォルトのメッセージが使われます。",
+            "mode_labels": {
+                "block": "ブロック",
+                "monitor": "記録のみ"
+            },
+            "sensitivity_labels": {
+                "high": "高：最も多くブロック",
+                "medium": "中",
+                "low": "低：最も少なくブロック"
+            },
+            "pii_action_labels": {
+                "mask": "マスキング",
+                "block": "メッセージをブロック"
+            },
+            "topic_action_labels": {
+                "refuse": "拒否メッセージ",
+                "reply": "独自の返信",
+                "handoff": "チームの担当者"
+            },
+            "detail_labels": {
+                "topic": "トピック",
+                "types": "データ",
+                "count": "検出数",
+                "categories": "カテゴリ",
+                "tool": "ツール",
+                "pattern": "ルール",
+                "reason": "理由"
+            },
+            "pii_action": "対応方法",
+            "pii_action_help": "マスキングではデータを隠し、チャットはそのまま続きます。ブロックではメッセージを止め、訪問者にその情報を共有しないよう求めます。回答は常にマスキングされます。",
+            "custom_patterns_title": "独自のパターン",
+            "custom_patterns_description": "顧客番号など、その他の個人データを正規表現で見つけます。",
+            "custom_pattern_name": "名前",
+            "custom_pattern_name_placeholder": "例：顧客番号",
+            "custom_pattern": "パターン",
+            "custom_pattern_placeholder": "例：CUST-[0-9]+",
+            "add_custom_pattern": "パターンを追加",
+            "remove_custom_pattern": "パターンを削除",
+            "topic_name": "トピック",
+            "topic_description": "説明",
+            "topic_description_placeholder": "このトピックの対象（任意）",
+            "topic_examples": "質問の例",
+            "topic_examples_placeholder": "質問の例（1行に1つ、任意）",
+            "topic_action": "訪問者に返す内容",
+            "topic_handoff_help": "ライブチャットがオンのとき、チャットウィジェットで動作します。それ以外の場所では、訪問者には拒否メッセージが表示されます。",
+            "topic_handoff_reply_placeholder": "担当者につなぐ間のメッセージ（任意）",
+            "topic_reply_placeholder": "訪問者が読む返信",
+            "topic_reply": "返信",
+            "mode": "動作",
+            "sensitivity": "感度",
+            "mode_help": "「記録のみ」では、ガードが見つけたものをブロックせずに記録します。訪問者に影響する前に確認できます。",
+            "check_before_showing": "回答を表示する前にチェックする",
+            "check_before_showing_help": "訪問者には、ガードのチェックが終わった回答だけが表示されます。回答は少し遅れて、まとめて表示されます。",
+            "alert_owner": "攻撃をメールで知らせる",
+            "alert_owner_help": "エージェントが指示を上書きしようとする試みをブロックしたとき、または安全チェックを実行できなかったときにメールを受け取ります。メールは1時間に最大1通です。",
+            "test_title": "メッセージをテスト",
+            "test_description": "保存する前でも、「設定」タブの設定で訪問者に何が返されるかを確認できます。何も保存されません。",
+            "test_placeholder": "テストするメッセージを入力",
+            "test_samples": "例：",
+            "test_run": "テスト",
+            "test_error": "メッセージをテストできませんでした。もう一度お試しください。",
+            "test_blocked": "ブロック",
+            "test_allowed": "許可",
+            "test_handoff": "チャットはチームに引き継がれます。",
+            "test_visitor_sees": "訪問者に表示される内容",
+            "test_model_reads": "エージェントが読む内容",
+            "test_guards": "ガード",
+            "test_no_guards": "どのガードも何も検出しませんでした。",
+            "detail_topic": "トピック：{topic}",
+            "classifier_unavailable": "安全チェックを実行できなかったため、テキストはチェックされていません。",
+            "open_conversation": "会話を開く",
             "blocked_topics_dialog_description": "エージェントが話してはいけないトピックです。短い説明と質問の例をいくつか加えると、チェックで見つけやすくなります。"
         }
     }

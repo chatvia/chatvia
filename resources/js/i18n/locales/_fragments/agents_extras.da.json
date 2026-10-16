@@ -108,7 +108,7 @@
             "alert_owner": "Send mig en e-mail om angreb",
             "alert_owner_help": "Få en e-mail, når agenten blokerer et forsøg på at omgå sine instruktioner, eller når sikkerhedstjekket ikke kan køre. Højst én e-mail i timen.",
             "test_title": "Test en besked",
-            "test_description": "Se, hvad en besøgende ville få med indstillingerne ovenfor, før du gemmer. Intet bliver gemt.",
+            "test_description": "Se, hvad en besøgende ville få med indstillingerne under Konfiguration, også før du gemmer. Intet bliver gemt.",
             "test_placeholder": "Skriv en besked at teste",
             "test_samples": "Prøv:",
             "test_run": "Test",

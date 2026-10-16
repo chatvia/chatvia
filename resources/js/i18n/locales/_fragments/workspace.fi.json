@@ -301,6 +301,18 @@
             "api_keys": "API-avaimet",
             "prompts": "Kehotteet",
             "members": "Chatterit"
+        },
+        "security": {
+            "retention": {
+                "leads": "Liidit (päivää)",
+                "leads_help": "Poista liidit, jotka ovat vanhempia kuin näin monta päivää.",
+                "analytics": "Analytiikka (päivää)",
+                "analytics_help": "Poista analytiikka, joka on vanhempaa kuin näin monta päivää. Vähintään {floor} päivää.",
+                "anonymize": "Anonymisoi kävijät (päivän kuluttua)",
+                "anonymize_help": "Poista kävijän tiedot keskusteluista, jotka ovat vanhempia kuin näin monta päivää — nimi, sähköposti, puhelin, IP-osoite, koko selainmerkkijono, sijainti ja sivulinkit. Viestit ja laitetyyppi säilytetään. Enintään {max} päivää.",
+                "keep_forever": "Säilytä aina",
+                "never": "Ei koskaan"
+            }
         }
     }
 }

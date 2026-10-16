@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "İstem sızıntısı"
+            },
+            "filter_labels": {
+                "email": "E-posta adresi",
+                "credit_card": "Kredi kartı",
+                "us_ssn": "ABD Sosyal Güvenlik Numarası",
+                "german_ssn": "Alman sosyal sigorta numarası",
+                "danish_cpr": "Danimarka CPR numarası",
+                "phone": "Telefon numarası",
+                "iban": "Banka hesabı (IBAN)",
+                "uk_nino": "Birleşik Krallık Ulusal Sigorta numarası",
+                "ip_address": "IP adresi"
+            },
+            "outcome_labels": {
+                "blocked": "Engellendi",
+                "redacted": "Gizlendi",
+                "flagged": "İşaretlendi",
+                "skipped": "Atlandı"
+            },
+            "stage_labels": {
+                "input": "Mesaj",
+                "source": "Bilgi",
+                "output": "Yanıt",
+                "tool": "Araç sonucu"
+            },
+            "severity_labels": {
+                "none": "Yok",
+                "low": "Düşük",
+                "medium": "Orta",
+                "high": "Yüksek"
+            },
+            "allowlist_title": "Asla gizleme",
+            "allowlist_description": "Asistanın her zaman gösterebileceği değerler; örneğin destek e-postanız veya telefon numaranız. Bir e-posta alan adının tamamına izin vermek için {'@'} ile başlayın, örneğin {'@'}acme.com. İşletme profilindeki e-posta ve telefona her zaman izin verilir.",
+            "allowlist_placeholder_first": "ör. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Başka bir değer ekleyin",
+            "add_allowlist_value": "Değer ekle",
+            "remove_allowlist_value": "Değeri kaldır",
+            "allowlist_count": "{count} değer hiç gizlenmez | {count} değer hiç gizlenmez",
+            "all_guards": "Tüm korumalar",
+            "all_outcomes": "Tüm sonuçlar",
+            "refusal_message_help": "Bir koruma mesajı engellediğinde gösterilir. Kaydettiğinizde asistanınızın dillerine çevrilir. Varsayılan mesajı kullanmak için boş bırakın.",
+            "mode_labels": {
+                "block": "Engelle",
+                "monitor": "Yalnızca kaydet"
+            },
+            "sensitivity_labels": {
+                "high": "Yüksek: en çok engeller",
+                "medium": "Orta",
+                "low": "Düşük: en az engeller"
+            },
+            "pii_action_labels": {
+                "mask": "Gizle",
+                "block": "Mesajı engelle"
+            },
+            "topic_action_labels": {
+                "refuse": "Ret mesajı",
+                "reply": "Kendine ait bir yanıt",
+                "handoff": "Ekibinizden biri"
+            },
+            "detail_labels": {
+                "topic": "Konu",
+                "types": "Veri",
+                "count": "Bulunan",
+                "categories": "Kategoriler",
+                "tool": "Araç",
+                "pattern": "Kural",
+                "reason": "Neden"
+            },
+            "pii_action": "Ne yapılsın",
+            "pii_action_help": "Gizle, veriyi gizler ve sohbet devam eder. Engelle, mesajı durdurur ve ziyaretçiden bu bilgiyi paylaşmamasını ister. Yanıtlardaki veriler her zaman gizlenir.",
+            "custom_patterns_title": "Kendi desenleriniz",
+            "custom_patterns_description": "Müşteri numarası gibi diğer kişisel verileri düzenli ifadeyle bulun.",
+            "custom_pattern_name": "Ad",
+            "custom_pattern_name_placeholder": "ör. Müşteri numarası",
+            "custom_pattern": "Desen",
+            "custom_pattern_placeholder": "ör. CUST-[0-9]+",
+            "add_custom_pattern": "Desen ekle",
+            "remove_custom_pattern": "Deseni kaldır",
+            "topic_name": "Konu",
+            "topic_description": "Açıklama",
+            "topic_description_placeholder": "Konunun kapsadıkları (isteğe bağlı)",
+            "topic_examples": "Örnek sorular",
+            "topic_examples_placeholder": "Örnek sorular, her satıra bir tane (isteğe bağlı)",
+            "topic_action": "Ziyaretçiye ne gider",
+            "topic_handoff_help": "Canlı sohbet açıkken Sohbet Widget'ında çalışır. Diğer yerlerde ziyaretçi ret mesajını alır.",
+            "topic_handoff_reply_placeholder": "Bağlanırken gösterilecek mesaj (isteğe bağlı)",
+            "topic_reply_placeholder": "Ziyaretçinin okuyacağı yanıt",
+            "topic_reply": "Yanıt",
+            "mode": "Ne olur",
+            "sensitivity": "Hassasiyet",
+            "mode_help": "Yalnızca kaydet, korumanın bulduklarını engellemeden kaydeder; böylece ziyaretçileri etkilemeden önce kontrol edebilirsiniz.",
+            "check_before_showing": "Yanıtları göstermeden önce kontrol et",
+            "check_before_showing_help": "Ziyaretçi bir yanıtı ancak korumalar kontrol ettikten sonra görür. Yanıtlar biraz daha geç ve tek seferde görünür.",
+            "alert_owner": "Saldırılar hakkında bana e-posta gönder",
+            "alert_owner_help": "Asistan talimatlarını geçersiz kılma girişimini engellediğinde veya güvenlik kontrolü çalışamadığında e-posta alın. Saatte en fazla bir e-posta.",
+            "test_title": "Bir mesajı test et",
+            "test_description": "Kaydetmeden önce bile, Yapılandırma sekmesindeki ayarlarla bir ziyaretçinin ne alacağını görün. Hiçbir şey saklanmaz.",
+            "test_placeholder": "Test etmek için bir mesaj yazın",
+            "test_samples": "Deneyin:",
+            "test_run": "Test et",
+            "test_error": "Mesaj test edilemedi. Lütfen tekrar deneyin.",
+            "test_blocked": "Engellendi",
+            "test_allowed": "İzin verildi",
+            "test_handoff": "Sohbet ekibinize aktarılırdı.",
+            "test_visitor_sees": "Ziyaretçinin gördüğü",
+            "test_model_reads": "Asistanın okuduğu",
+            "test_guards": "Korumalar",
+            "test_no_guards": "Hiçbir koruma bir şey bulmadı.",
+            "detail_topic": "Konu: {topic}",
+            "classifier_unavailable": "Güvenlik kontrolü çalışamadı, bu yüzden metin kontrol edilmedi.",
+            "open_conversation": "Görüşmeyi aç",
             "blocked_topics_dialog_description": "Asistanın konuşmaması gereken konular. Kısa bir açıklama ve birkaç örnek soru, denetimin bunları bulmasına yardımcı olur."
         }
     }

@@ -170,6 +170,7 @@
                 "no_results": "No messages match your search",
                 "clear_search": "Clear search",
                 "confidence": "{percent}% confidence",
+                "confidence_help": "How well the agent's knowledge matched this question — not how good the answer is.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Prompt: {prompt} · Completion: {completion}",
                 "playground": "Playground",

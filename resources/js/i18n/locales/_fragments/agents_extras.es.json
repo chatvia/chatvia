@@ -108,7 +108,7 @@
             "alert_owner": "Avisarme de ataques por correo",
             "alert_owner_help": "Recibe un correo cuando el agente bloquee un intento de saltarse sus instrucciones, o cuando la comprobación de seguridad no pueda ejecutarse. Como máximo un correo por hora.",
             "test_title": "Probar un mensaje",
-            "test_description": "Mira qué recibiría un visitante con los ajustes de arriba, antes de guardar. No se guarda nada.",
+            "test_description": "Mira qué recibiría un visitante con los ajustes de Configuración, incluso antes de guardar. No se guarda nada.",
             "test_placeholder": "Escribe un mensaje para probar",
             "test_samples": "Prueba:",
             "test_run": "Probar",

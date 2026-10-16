@@ -170,6 +170,7 @@
                 "no_results": "Keine Nachrichten entsprechen Ihrer Suche",
                 "clear_search": "Suche zurücksetzen",
                 "confidence": "{percent}% Konfidenz",
+                "confidence_help": "Wie gut das Wissen des Agenten zu dieser Frage passte — nicht, wie gut die Antwort ist.",
                 "tokens": "{count} Tokens",
                 "tokens_breakdown": "Prompt: {prompt} · Antwort: {completion}",
                 "playground": "Playground",

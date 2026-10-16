@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "Kebocoran prompt"
+            },
+            "filter_labels": {
+                "email": "Alamat email",
+                "credit_card": "Kartu kredit",
+                "us_ssn": "Nomor Jaminan Sosial AS",
+                "german_ssn": "Nomor asuransi sosial Jerman",
+                "danish_cpr": "Nomor CPR Denmark",
+                "phone": "Nomor telepon",
+                "iban": "Rekening bank (IBAN)",
+                "uk_nino": "Nomor Asuransi Nasional Inggris",
+                "ip_address": "Alamat IP"
+            },
+            "outcome_labels": {
+                "blocked": "Diblokir",
+                "redacted": "Disamarkan",
+                "flagged": "Ditandai",
+                "skipped": "Dilewati"
+            },
+            "stage_labels": {
+                "input": "Pesan",
+                "source": "Pengetahuan",
+                "output": "Jawaban",
+                "tool": "Hasil alat"
+            },
+            "severity_labels": {
+                "none": "Tidak ada",
+                "low": "Rendah",
+                "medium": "Sedang",
+                "high": "Tinggi"
+            },
+            "allowlist_title": "Jangan pernah disamarkan",
+            "allowlist_description": "Nilai yang selalu boleh ditampilkan agen, seperti email atau nomor telepon dukungan Anda. Awali dengan {'@'} untuk mengizinkan seluruh domain email, misalnya {'@'}acme.com. Email dan telepon di profil bisnis selalu diizinkan.",
+            "allowlist_placeholder_first": "mis. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Tambahkan nilai lain",
+            "add_allowlist_value": "Tambah nilai",
+            "remove_allowlist_value": "Hapus nilai",
+            "allowlist_count": "{count} nilai tidak pernah disamarkan | {count} nilai tidak pernah disamarkan",
+            "all_guards": "Semua pengaman",
+            "all_outcomes": "Semua hasil",
+            "refusal_message_help": "Ditampilkan saat pengaman memblokir pesan. Saat disimpan, pesan ini diterjemahkan ke bahasa-bahasa agen Anda. Biarkan kosong untuk memakai pesan bawaan.",
+            "mode_labels": {
+                "block": "Blokir",
+                "monitor": "Catat saja"
+            },
+            "sensitivity_labels": {
+                "high": "Tinggi: paling banyak memblokir",
+                "medium": "Sedang",
+                "low": "Rendah: paling sedikit memblokir"
+            },
+            "pii_action_labels": {
+                "mask": "Samarkan",
+                "block": "Blokir pesan"
+            },
+            "topic_action_labels": {
+                "refuse": "Pesan penolakan",
+                "reply": "Balasan tersendiri",
+                "handoff": "Seseorang dari tim Anda"
+            },
+            "detail_labels": {
+                "topic": "Topik",
+                "types": "Data",
+                "count": "Ditemukan",
+                "categories": "Kategori",
+                "tool": "Alat",
+                "pattern": "Aturan",
+                "reason": "Alasan"
+            },
+            "pii_action": "Tindakan",
+            "pii_action_help": "Samarkan menyembunyikan data dan chat tetap berjalan. Blokir menghentikan pesan dan meminta pengunjung untuk tidak membagikannya. Jawaban selalu disamarkan.",
+            "custom_patterns_title": "Pola Anda sendiri",
+            "custom_patterns_description": "Temukan data pribadi lain, seperti nomor pelanggan, dengan ekspresi reguler.",
+            "custom_pattern_name": "Nama",
+            "custom_pattern_name_placeholder": "mis. Nomor pelanggan",
+            "custom_pattern": "Pola",
+            "custom_pattern_placeholder": "mis. CUST-[0-9]+",
+            "add_custom_pattern": "Tambah pola",
+            "remove_custom_pattern": "Hapus pola",
+            "topic_name": "Topik",
+            "topic_description": "Deskripsi",
+            "topic_description_placeholder": "Apa yang dicakup topik ini (opsional)",
+            "topic_examples": "Contoh pertanyaan",
+            "topic_examples_placeholder": "Contoh pertanyaan, satu per baris (opsional)",
+            "topic_action": "Yang diterima pengunjung",
+            "topic_handoff_help": "Berfungsi di Chat Widget saat obrolan langsung aktif. Di tempat lain, pengunjung menerima pesan penolakan.",
+            "topic_handoff_reply_placeholder": "Pesan selama kami menghubungkan mereka (opsional)",
+            "topic_reply_placeholder": "Balasan yang dibaca pengunjung",
+            "topic_reply": "Balasan",
+            "mode": "Yang terjadi",
+            "sensitivity": "Sensitivitas",
+            "mode_help": "Catat saja merekam temuan pengaman tanpa memblokir, sehingga Anda dapat memeriksanya sebelum berdampak pada pengunjung.",
+            "check_before_showing": "Periksa jawaban sebelum ditampilkan",
+            "check_before_showing_help": "Pengunjung melihat jawaban hanya setelah pengaman memeriksanya. Jawaban muncul sedikit lebih lambat, sekaligus.",
+            "alert_owner": "Kirimi saya email tentang serangan",
+            "alert_owner_help": "Dapatkan email saat agen memblokir upaya untuk menimpa instruksinya, atau saat pemeriksaan keamanan tidak dapat berjalan. Paling banyak satu email per jam.",
+            "test_title": "Uji pesan",
+            "test_description": "Lihat apa yang akan diterima pengunjung dengan pengaturan di tab Konfigurasi, bahkan sebelum Anda menyimpan. Tidak ada yang disimpan.",
+            "test_placeholder": "Ketik pesan untuk diuji",
+            "test_samples": "Coba:",
+            "test_run": "Uji",
+            "test_error": "Tidak dapat menguji pesan. Silakan coba lagi.",
+            "test_blocked": "Diblokir",
+            "test_allowed": "Diizinkan",
+            "test_handoff": "Chat akan diteruskan ke tim Anda.",
+            "test_visitor_sees": "Yang dilihat pengunjung",
+            "test_model_reads": "Yang dibaca agen",
+            "test_guards": "Pengaman",
+            "test_no_guards": "Tidak ada pengaman yang menemukan apa pun.",
+            "detail_topic": "Topik: {topic}",
+            "classifier_unavailable": "Pemeriksaan keamanan tidak dapat berjalan, jadi teks tidak diperiksa.",
+            "open_conversation": "Buka percakapan",
             "blocked_topics_dialog_description": "Topik yang tidak boleh dibahas agen. Deskripsi singkat dan beberapa contoh pertanyaan membantu pemeriksaan menemukannya."
         }
     }

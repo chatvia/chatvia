@@ -301,6 +301,18 @@
             "api_keys": "API-nøkler",
             "prompts": "Instruksjoner",
             "members": "Chattere"
+        },
+        "security": {
+            "retention": {
+                "leads": "Leads (dager)",
+                "leads_help": "Slett leads som er eldre enn så mange dager.",
+                "analytics": "Analyse (dager)",
+                "analytics_help": "Slett analysedata som er eldre enn så mange dager. Minst {floor} dager.",
+                "anonymize": "Anonymiser besøkende etter (dager)",
+                "anonymize_help": "Fjern opplysninger om besøkende fra chatter som er eldre enn så mange dager — navn, e-post, telefon, IP-adresse, full nettleserstreng, plassering og sidelenker. Meldinger og enhetstype beholdes. Opptil {max} dager.",
+                "keep_forever": "Behold for alltid",
+                "never": "Aldri"
+            }
         }
     }
 }

@@ -301,6 +301,18 @@
             "api_keys": "API-Schlüssel",
             "prompts": "Prompts",
             "members": "Chatter"
+        },
+        "security": {
+            "retention": {
+                "leads": "Leads (Tage)",
+                "leads_help": "Löscht Leads, die älter als diese Anzahl von Tagen sind.",
+                "analytics": "Analysen (Tage)",
+                "analytics_help": "Löscht Analysedaten, die älter als diese Anzahl von Tagen sind. Mindestens {floor} Tage.",
+                "anonymize": "Besucher anonymisieren nach (Tagen)",
+                "anonymize_help": "Löscht Besucherdaten aus Chats, die älter als diese Anzahl von Tagen sind — Name, E-Mail, Telefon, IP-Adresse, vollständige Browserkennung, Standort und Seitenlinks. Nachrichten und Gerätetyp bleiben erhalten. Bis zu {max} Tage.",
+                "keep_forever": "Für immer behalten",
+                "never": "Nie"
+            }
         }
     }
 }

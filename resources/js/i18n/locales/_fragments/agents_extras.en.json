@@ -108,7 +108,7 @@
             "alert_owner": "Email me about attacks",
             "alert_owner_help": "Get an email when the agent blocks an attempt to override its instructions, or when the safety check cannot run. At most one email per hour.",
             "test_title": "Test a message",
-            "test_description": "See what a visitor would get with the settings above, before you save. Nothing is stored.",
+            "test_description": "See what a visitor would get with the settings on the Configuration tab, even before you save. Nothing is stored.",
             "test_placeholder": "Type a message to test",
             "test_samples": "Try:",
             "test_run": "Test",

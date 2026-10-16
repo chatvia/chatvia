@@ -170,6 +170,7 @@
                 "no_results": "لا توجد رسائل مطابقة لبحثك",
                 "clear_search": "مسح البحث",
                 "confidence": "ثقة {percent}٪",
+                "confidence_help": "مدى تطابق معرفة الوكيل مع هذا السؤال — وليس مدى جودة الإجابة.",
                 "tokens": "{count} رمز",
                 "tokens_breakdown": "المطالبة: {prompt} · الإكمال: {completion}",
                 "playground": "بيئة التجربة",

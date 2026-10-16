@@ -170,6 +170,7 @@
                 "no_results": "Inga meddelanden matchar din sökning",
                 "clear_search": "Rensa sökning",
                 "confidence": "{percent}% säkerhet",
+                "confidence_help": "Hur väl agentens kunskap matchade den här frågan — inte hur bra svaret är.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Prompt: {prompt} · Svar: {completion}",
                 "playground": "Lekplats",

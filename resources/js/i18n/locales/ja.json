@@ -150,7 +150,8 @@
         "connection_lost": "接続が切れました",
         "unexpected_response": "予期しない応答",
         "something_went_wrong": "問題が発生しました",
-        "try_again": "再試行"
+        "try_again": "再試行",
+        "access_blocked": "チャットはブロックされています"
     },
     "sources": {
         "title": "ナレッジソース",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram を接続しました"
             },
-            "setup_tab": "セットアップ"
+            "setup_tab": "セットアップ",
+            "not_set_up": "このサーバーでは設定されていません。管理者が管理パネルでこのチャネルをオンにできます。"
         },
         "chatlog": {
             "title": "チャットログ",
@@ -417,7 +419,8 @@
                 "expires_in_months": "{count} か月後に期限切れ | {count} か月後に期限切れ",
                 "conversations_count": "{count} 件の会話 | {count} 件の会話",
                 "refresh_conversations": "会話を更新",
-                "remove_filter": "フィルターを削除"
+                "remove_filter": "フィルターを削除",
+                "load_more": "さらに読み込む"
             },
             "pagination": {
                 "prev": "前へ",
@@ -464,7 +467,8 @@
                 "qa_matched": "Q&A 一致",
                 "revised": "修正済みの回答",
                 "revise": "修正",
-                "voice": "音声"
+                "voice": "音声",
+                "confidence_help": "エージェントのナレッジがこの質問とどれだけ一致したかを示します。回答の良し悪しではありません。"
             },
             "details": {
                 "select_conversation": "詳細を表示する会話を選択してください",
@@ -648,7 +652,152 @@
                 "prompt_injection": "プロンプトインジェクション",
                 "pii": "PII",
                 "blocked_topic": "ブロックするトピック",
-                "toxicity": "有害表現"
+                "toxicity": "有害表現",
+                "prompt_leak": "プロンプト漏えい"
+            },
+            "about_title": "ガードレールとは？",
+            "about_body": "ガードレールは、エージェントのチャットに対する安全チェックです。エージェントが答える前に訪問者の各メッセージを、またエージェントが書いた各回答をチェックします。個人データを隠す、エージェントをだまそうとする試みを止める、攻撃的な言葉をブロックする、エージェントを話題から外れさせない、といったことができます。",
+            "about_ai_calls": "PIIの検出は決まったパターンで照合するため、AI呼び出しは増えません。「AIチェック」と表示されたチェックはAIモデルに問い合わせます。訪問者のメッセージに1回、回答に1回の追加呼び出しで、1回の返信につき最大2回です。",
+            "ai_check": "AIチェック",
+            "about_aria": "ガードレールについて",
+            "about_cost": "すべてのAIチェックはこの呼び出しを共有するため、オンにするチェックを増やしても呼び出しは増えません。返信が少し遅くなり、AIトークンの使用量が増えることがあります。",
+            "test_off": "ガードレールはオフです。メッセージをテストするにはオンにしてください。",
+            "filter_labels": {
+                "email": "メールアドレス",
+                "credit_card": "クレジットカード",
+                "us_ssn": "米国社会保障番号",
+                "german_ssn": "ドイツの社会保険番号",
+                "danish_cpr": "デンマークのCPR番号",
+                "phone": "電話番号",
+                "iban": "銀行口座（IBAN）",
+                "uk_nino": "英国国民保険番号",
+                "ip_address": "IPアドレス"
+            },
+            "outcome_labels": {
+                "blocked": "ブロック済み",
+                "redacted": "マスキング済み",
+                "flagged": "フラグ付き",
+                "skipped": "スキップ"
+            },
+            "stage_labels": {
+                "input": "メッセージ",
+                "source": "ナレッジ",
+                "output": "回答",
+                "tool": "ツールの結果"
+            },
+            "severity_labels": {
+                "none": "なし",
+                "low": "低",
+                "medium": "中",
+                "high": "高"
+            },
+            "allowlist_title": "マスキングしない値",
+            "allowlist_description": "サポート用のメールアドレスや電話番号など、エージェントが常に表示してよい値です。メールのドメイン全体を許可するには {'@'} で始めます（例：{'@'}acme.com）。ビジネスプロフィールのメールアドレスと電話番号は常に許可されます。",
+            "allowlist_placeholder_first": "例：support{'@'}acme.com",
+            "allowlist_placeholder_more": "別の値を追加",
+            "add_allowlist_value": "値を追加",
+            "remove_allowlist_value": "値を削除",
+            "allowlist_count": "マスキングしない値：{count}件 | マスキングしない値：{count}件",
+            "all_guards": "すべてのガード",
+            "all_outcomes": "すべての結果",
+            "refusal_message_help": "ガードがメッセージをブロックしたときに表示されます。保存すると、エージェントの言語に翻訳されます。空欄のままにすると、デフォルトのメッセージが使われます。",
+            "mode_labels": {
+                "block": "ブロック",
+                "monitor": "記録のみ"
+            },
+            "sensitivity_labels": {
+                "high": "高：最も多くブロック",
+                "medium": "中",
+                "low": "低：最も少なくブロック"
+            },
+            "pii_action_labels": {
+                "mask": "マスキング",
+                "block": "メッセージをブロック"
+            },
+            "topic_action_labels": {
+                "refuse": "拒否メッセージ",
+                "reply": "独自の返信",
+                "handoff": "チームの担当者"
+            },
+            "detail_labels": {
+                "topic": "トピック",
+                "types": "データ",
+                "count": "検出数",
+                "categories": "カテゴリ",
+                "tool": "ツール",
+                "pattern": "ルール",
+                "reason": "理由"
+            },
+            "pii_action": "対応方法",
+            "pii_action_help": "マスキングではデータを隠し、チャットはそのまま続きます。ブロックではメッセージを止め、訪問者にその情報を共有しないよう求めます。回答は常にマスキングされます。",
+            "custom_patterns_title": "独自のパターン",
+            "custom_patterns_description": "顧客番号など、その他の個人データを正規表現で見つけます。",
+            "custom_pattern_name": "名前",
+            "custom_pattern_name_placeholder": "例：顧客番号",
+            "custom_pattern": "パターン",
+            "custom_pattern_placeholder": "例：CUST-[0-9]+",
+            "add_custom_pattern": "パターンを追加",
+            "remove_custom_pattern": "パターンを削除",
+            "topic_name": "トピック",
+            "topic_description": "説明",
+            "topic_description_placeholder": "このトピックの対象（任意）",
+            "topic_examples": "質問の例",
+            "topic_examples_placeholder": "質問の例（1行に1つ、任意）",
+            "topic_action": "訪問者に返す内容",
+            "topic_handoff_help": "ライブチャットがオンのとき、チャットウィジェットで動作します。それ以外の場所では、訪問者には拒否メッセージが表示されます。",
+            "topic_handoff_reply_placeholder": "担当者につなぐ間のメッセージ（任意）",
+            "topic_reply_placeholder": "訪問者が読む返信",
+            "topic_reply": "返信",
+            "mode": "動作",
+            "sensitivity": "感度",
+            "mode_help": "「記録のみ」では、ガードが見つけたものをブロックせずに記録します。訪問者に影響する前に確認できます。",
+            "check_before_showing": "回答を表示する前にチェックする",
+            "check_before_showing_help": "訪問者には、ガードのチェックが終わった回答だけが表示されます。回答は少し遅れて、まとめて表示されます。",
+            "alert_owner": "攻撃をメールで知らせる",
+            "alert_owner_help": "エージェントが指示を上書きしようとする試みをブロックしたとき、または安全チェックを実行できなかったときにメールを受け取ります。メールは1時間に最大1通です。",
+            "test_title": "メッセージをテスト",
+            "test_description": "保存する前でも、「設定」タブの設定で訪問者に何が返されるかを確認できます。何も保存されません。",
+            "test_placeholder": "テストするメッセージを入力",
+            "test_samples": "例：",
+            "test_run": "テスト",
+            "test_error": "メッセージをテストできませんでした。もう一度お試しください。",
+            "test_blocked": "ブロック",
+            "test_allowed": "許可",
+            "test_handoff": "チャットはチームに引き継がれます。",
+            "test_visitor_sees": "訪問者に表示される内容",
+            "test_model_reads": "エージェントが読む内容",
+            "test_guards": "ガード",
+            "test_no_guards": "どのガードも何も検出しませんでした。",
+            "detail_topic": "トピック：{topic}",
+            "classifier_unavailable": "安全チェックを実行できなかったため、テキストはチェックされていません。",
+            "open_conversation": "会話を開く",
+            "block": {
+                "visitor_short": "訪問者 · {id}",
+                "blocked": "ブロック済み",
+                "recent_attempts": "過去24時間にインジェクションまたは悪用の試みが{count}件 | 過去24時間にインジェクションまたは悪用の試みが{count}件",
+                "show_all": "この訪問者の記録をすべて表示",
+                "clear_visitor": "すべての訪問者を表示",
+                "block_chatter": "チャッターをブロック",
+                "block_visitor": "訪問者をブロック",
+                "chatter_title": "{name}をブロック",
+                "chatter_description": "アカウントが無効になり、このワークスペースのすべてのエージェントからサインアウトされます。ユーザーで再び有効にできます。",
+                "visitor_title": "この訪問者をブロック",
+                "visitor_description": "ブロックが終わるまで、このワークスペースのどのエージェントともチャットできません。",
+                "duration": "期間",
+                "reason": "理由",
+                "reason_placeholder": "例: エージェントの指示を何度も聞き出そうとした",
+                "reason_help": "チームだけが見られます。",
+                "notify": "{name}にメールで知らせる",
+                "visitor_limits": "訪問者はネットワークとブラウザで識別されます。同じネットワークで同じブラウザを使う別の人もブロックされ、新しいネットワークやブラウザならブロックを回避できます。ブロックはセキュリティで確認・解除できます。",
+                "chatter_blocked": "チャッターをブロックしました",
+                "visitor_blocked": "訪問者をブロックしました",
+                "error": "ブロックできませんでした。もう一度お試しください。",
+                "durations": {
+                    "day": "1日",
+                    "week": "7日",
+                    "month": "30日",
+                    "forever": "ブロックを解除するまで"
+                }
             }
         },
         "persona": {
@@ -928,7 +1077,9 @@
                 "notify_hint": "エージェントがこの上限に達したときにメールを受け取ります。",
                 "save": "保存",
                 "saved": "レート制限を保存しました",
-                "save_error": "レート制限を保存できませんでした。もう一度お試しください。"
+                "save_error": "レート制限を保存できませんでした。もう一度お試しください。",
+                "visitor_messages_per_minute": "1 分あたりのメッセージ数（訪問者 1 人）",
+                "visitor_hint": "1 人の訪問者が 1 分間に送信できるメッセージの上限です。上限を超えた訪問者は待つ必要がありますが、ほかの訪問者はそのままチャットを続けられます。"
             }
         },
         "tone": {
@@ -1022,7 +1173,8 @@
                 "remove_from_agent": "エージェントから削除",
                 "used_in_agents": "（{count} 件のエージェントで使用中）",
                 "delete_from_knowledge_base": "ナレッジベースから削除",
-                "agents_count": "{count} 件のエージェント"
+                "agents_count": "{count} 件のエージェント",
+                "load_more": "さらに読み込む"
             },
             "page_title": {
                 "sources": "ソース",
@@ -1619,7 +1771,9 @@
                 "avatar_upload_error": "アバターをアップロードできませんでした",
                 "logo_upload_error": "ロゴをアップロードできませんでした",
                 "avatar_remove_error": "アバターを削除できませんでした",
-                "logo_remove_error": "ロゴを削除できませんでした"
+                "logo_remove_error": "ロゴを削除できませんでした",
+                "replies_saved": "返信オプションを保存しました",
+                "replies_error": "返信オプションを保存できませんでした"
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
@@ -1669,7 +1823,11 @@
                 "voice_conversation_help_2": "話した回答1つが1メッセージとして数えられます。音声通話は文字のチャットよりはるかに費用がかかります。",
                 "voice_label": "声",
                 "voice_default": "デフォルト（{voice}）",
-                "voice_input_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで音声文字変換をオンにできます。"
+                "voice_input_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで音声文字変換をオンにできます。",
+                "replies_title": "返信",
+                "replies_description": "各回答の下に表示する内容を選びます。",
+                "show_sources_label": "ソースを表示",
+                "show_sources_hint": "各回答の下に、使用したナレッジを一覧表示するボタンを表示します。"
             },
             "bubbles_title": "チャットバブル",
             "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。",
@@ -1822,7 +1980,12 @@
             "bubbles_add": "バブルを追加",
             "bubbles_remove": "バブルを削除",
             "bubbles_empty": "チャットバブルはまだありません。",
-            "bubbles_translate_empty": "翻訳するには、まずバブルを追加してください。"
+            "bubbles_translate_empty": "翻訳するには、まずバブルを追加してください。",
+            "model_picker_title": "モデル",
+            "model_picker_description": "このエージェントが回答に使うAIモデルです。このリストに載せるモデルは管理者が選びます（管理パネル → Settings → AI models）。",
+            "model_placeholder": "モデルを選択",
+            "model_default": "デフォルト",
+            "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。"
         },
         "topics_index": {
             "title": "トピック",
@@ -3054,7 +3217,15 @@
                 "conversations_help": "チャット履歴はこの日数の経過後に削除されます。最大{max}日まで。",
                 "audit": "セキュリティ監査ログ（日数）",
                 "audit_help": "デフォルト{default}日、最小{floor}。",
-                "plan_default": "デフォルト（{days}日）"
+                "plan_default": "デフォルト（{days}日）",
+                "leads": "リード（日数）",
+                "leads_help": "この日数より古いリードを削除します。",
+                "analytics": "分析（日数）",
+                "analytics_help": "この日数より古い分析データを削除します。最小{floor}日。",
+                "anonymize": "訪問者を匿名化するまで（日数）",
+                "anonymize_help": "この日数より古いチャットから訪問者の情報（名前、メール、電話番号、IPアドレス、ブラウザの文字列全体、位置情報、ページのリンク）を消去します。メッセージとデバイスの種類は残ります。最大{max}日まで。",
+                "keep_forever": "無期限に保持",
+                "never": "なし"
             },
             "siem": {
                 "title": "SIEM Webhook",
@@ -3064,6 +3235,20 @@
                 "secret_placeholder": "現在のシークレットを維持する場合は空白のまま",
                 "secret_help": "各配信をHMAC署名するために使用され、SIEMが検証できるようにします。",
                 "signature_help": "各POSTはX-Chatvia-SignatureヘッダーでHMAC-SHA256により署名されます。"
+            },
+            "blocked_visitors": {
+                "title": "ブロックした訪問者",
+                "help": "エージェントとチャットできない訪問者です。訪問者はエージェントのガードレールのアクティビティからブロックします。",
+                "visitor": "訪問者 · {id}",
+                "browser_on_os": "{browser}（{os}）",
+                "on_agent": "{agent}",
+                "by": "ブロックした人: {name}",
+                "until": "{date}まで",
+                "until_unblocked": "解除するまで",
+                "unblock": "ブロック解除",
+                "unblocked": "ブロックを解除しました",
+                "unblock_error": "ブロックを解除できませんでした。もう一度お試しください。",
+                "empty": "ブロックした訪問者はいません。"
             }
         },
         "security_audit": {

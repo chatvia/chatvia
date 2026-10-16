@@ -149,9 +149,12 @@ function goToPage(offset: number) {
                                 <span class="group relative cursor-help tabular-nums" :class="getConfidenceColor(getConfidenceScore(m))">
                                     {{ formatConfidenceScore(getConfidenceScore(m)) }}
                                     <span
-                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 w-64 rounded bg-gray-900 px-2 py-1 text-start text-[10px] text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
-                                        {{ t('agents.chatlog.messages.confidence', { percent: (getConfidenceScore(m) * 100).toFixed(0) }) }}
+                                        <span class="block font-medium">
+                                            {{ t('agents.chatlog.messages.confidence', { percent: (getConfidenceScore(m) * 100).toFixed(0) }) }}
+                                        </span>
+                                        <span class="mt-0.5 block text-white/80">{{ t('agents.chatlog.messages.confidence_help') }}</span>
                                     </span>
                                 </span>
                                 <span class="text-muted-foreground/30">•</span>

@@ -150,7 +150,8 @@
         "connection_lost": "Conexión perdida",
         "unexpected_response": "Respuesta inesperada",
         "something_went_wrong": "Algo salió mal",
-        "try_again": "Intentar de nuevo"
+        "try_again": "Intentar de nuevo",
+        "access_blocked": "Chat bloqueado"
     },
     "sources": {
         "title": "Fuentes de conocimiento",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram conectado"
             },
-            "setup_tab": "Configuración"
+            "setup_tab": "Configuración",
+            "not_set_up": "No está configurado en este servidor. Un administrador puede activar este canal en el panel de administración."
         },
         "chatlog": {
             "title": "Registro de chat",
@@ -465,7 +467,8 @@
                 "qa_matched": "Coincidencia de P&R",
                 "revised": "Respuesta revisada",
                 "revise": "Revisar",
-                "voice": "Voz"
+                "voice": "Voz",
+                "confidence_help": "Qué tan bien coincidió el conocimiento del agente con esta pregunta, no qué tan buena es la respuesta."
             },
             "details": {
                 "select_conversation": "Selecciona una conversación para ver los detalles",
@@ -746,7 +749,7 @@
             "alert_owner": "Avisarme de ataques por correo",
             "alert_owner_help": "Recibe un correo cuando el agente bloquee un intento de saltarse sus instrucciones, o cuando la comprobación de seguridad no pueda ejecutarse. Como máximo un correo por hora.",
             "test_title": "Probar un mensaje",
-            "test_description": "Mira qué recibiría un visitante con los ajustes de arriba, antes de guardar. No se guarda nada.",
+            "test_description": "Mira qué recibiría un visitante con los ajustes de Configuración, incluso antes de guardar. No se guarda nada.",
             "test_placeholder": "Escribe un mensaje para probar",
             "test_samples": "Prueba:",
             "test_run": "Probar",
@@ -760,7 +763,42 @@
             "test_no_guards": "Ninguna protección encontró nada.",
             "detail_topic": "Tema: {topic}",
             "classifier_unavailable": "La comprobación de seguridad no pudo ejecutarse, así que el texto no se revisó.",
-            "open_conversation": "Abrir conversación"
+            "open_conversation": "Abrir conversación",
+            "about_title": "¿Qué son las restricciones?",
+            "about_body": "Las restricciones son controles de seguridad en los chats de tu agente. Revisan cada mensaje del visitante antes de que el agente responda, y cada respuesta que escribe el agente. Pueden ocultar datos personales, frenar intentos de engañar al agente, bloquear lenguaje ofensivo y mantener al agente en el tema.",
+            "about_ai_calls": "La detección de PII usa patrones fijos y no añade llamadas a la IA. Los controles marcados con «Control de IA» consultan a un modelo de IA: una llamada extra para el mensaje del visitante y otra para la respuesta, así que como máximo dos por respuesta.",
+            "ai_check": "Control de IA",
+            "about_aria": "Acerca de las restricciones",
+            "about_cost": "Todos los controles de IA comparten estas llamadas, así que activar más no añade más llamadas. Las respuestas pueden tardar un poco más y usar más tokens de IA.",
+            "test_off": "Las restricciones están desactivadas. Actívalas para probar un mensaje.",
+            "block": {
+                "visitor_short": "Visitante · {id}",
+                "blocked": "Bloqueado",
+                "recent_attempts": "{count} intento de inyección o abuso en las últimas 24 horas | {count} intentos de inyección o abuso en las últimas 24 horas",
+                "show_all": "Ver todo de este visitante",
+                "clear_visitor": "Ver todos los visitantes",
+                "block_chatter": "Bloquear usuario",
+                "block_visitor": "Bloquear visitante",
+                "chatter_title": "Bloquear a {name}",
+                "chatter_description": "Su cuenta se desactiva y se cierra su sesión en todos los agentes de este workspace. Puedes volver a activarla en Personas.",
+                "visitor_title": "Bloquear a este visitante",
+                "visitor_description": "No podrá chatear con ningún agente de este workspace hasta que termine el bloqueo.",
+                "duration": "Cuánto tiempo",
+                "reason": "Motivo",
+                "reason_placeholder": "p. ej. Intentó muchas veces obtener las instrucciones del agente",
+                "reason_help": "Solo lo ve tu equipo.",
+                "notify": "Avisar a {name} por correo",
+                "visitor_limits": "Los visitantes se reconocen por su red y su navegador. Otra persona en la misma red con el mismo navegador también queda bloqueada, y con otra red u otro navegador se puede saltar el bloqueo. Puedes ver y quitar los bloqueos en Seguridad.",
+                "chatter_blocked": "Usuario bloqueado",
+                "visitor_blocked": "Visitante bloqueado",
+                "error": "No se pudo bloquear. Inténtalo de nuevo.",
+                "durations": {
+                    "day": "1 día",
+                    "week": "7 días",
+                    "month": "30 días",
+                    "forever": "Hasta que lo desbloquees"
+                }
+            }
         },
         "persona": {
             "title": "Personalidad",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "El historial de chat se elimina tras este número de días. Hasta {max} días.",
                 "audit": "Registro de auditoría de seguridad (días)",
                 "audit_help": "{default} días por defecto, mínimo {floor}.",
-                "plan_default": "Por defecto ({days} días)"
+                "plan_default": "Por defecto ({days} días)",
+                "leads": "Leads (días)",
+                "leads_help": "Elimina los leads con más de este número de días.",
+                "analytics": "Analíticas (días)",
+                "analytics_help": "Elimina las analíticas con más de este número de días. Al menos {floor} días.",
+                "anonymize": "Anonimizar visitantes tras (días)",
+                "anonymize_help": "Borra los datos del visitante en los chats con más de este número de días: nombre, correo electrónico, teléfono, dirección IP, cadena completa del navegador, ubicación y enlaces de página. Se conservan los mensajes y el tipo de dispositivo. Hasta {max} días.",
+                "keep_forever": "Conservar siempre",
+                "never": "Nunca"
             },
             "siem": {
                 "title": "Webhook SIEM",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Déjalo en blanco para mantener el secreto actual",
                 "secret_help": "Se usa para firmar cada envío con HMAC, de modo que tu SIEM pueda verificarlo.",
                 "signature_help": "Cada POST se firma con HMAC-SHA256 en la cabecera X-Chatvia-Signature."
+            },
+            "blocked_visitors": {
+                "title": "Visitantes bloqueados",
+                "help": "Visitantes que no pueden chatear con tus agentes. Bloqueas a un visitante desde la actividad de restricciones de un agente.",
+                "visitor": "Visitante · {id}",
+                "browser_on_os": "{browser} en {os}",
+                "on_agent": "En {agent}",
+                "by": "Por {name}",
+                "until": "Hasta {date}",
+                "until_unblocked": "Hasta que se desbloquee",
+                "unblock": "Desbloquear",
+                "unblocked": "Visitante desbloqueado",
+                "unblock_error": "No se pudo desbloquear. Inténtalo de nuevo.",
+                "empty": "No hay visitantes bloqueados."
             }
         },
         "security_audit": {

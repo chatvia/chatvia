@@ -170,6 +170,7 @@
                 "no_results": "هیچ پیامی با جستجوی شما مطابقت ندارد",
                 "clear_search": "پاک کردن جستجو",
                 "confidence": "اطمینان {percent}%",
+                "confidence_help": "میزان تطابق دانش عامل با این پرسش — نه کیفیت خود پاسخ.",
                 "tokens": "{count} توکن",
                 "tokens_breakdown": "پرامپت: {prompt} · تکمیل: {completion}",
                 "playground": "محیط آزمایشی",

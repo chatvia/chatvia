@@ -150,7 +150,8 @@
         "connection_lost": "Bağlantı kesildi",
         "unexpected_response": "Beklenmeyen yanıt",
         "something_went_wrong": "Bir şeyler ters gitti",
-        "try_again": "Tekrar dene"
+        "try_again": "Tekrar dene",
+        "access_blocked": "Sohbet engellendi"
     },
     "sources": {
         "title": "Bilgi Kaynakları",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram bağlandı"
             },
-            "setup_tab": "Kurulum"
+            "setup_tab": "Kurulum",
+            "not_set_up": "Bu sunucuda ayarlı değil. Bir yönetici bu kanalı yönetim panelinden açabilir."
         },
         "chatlog": {
             "title": "Sohbet günlüğü",
@@ -417,7 +419,8 @@
                 "expires_in_months": "{count} ay içinde sona eriyor | {count} ay içinde sona eriyor",
                 "conversations_count": "{count} görüşme | {count} görüşme",
                 "refresh_conversations": "Konuşmaları yenile",
-                "remove_filter": "Filtreyi kaldır"
+                "remove_filter": "Filtreyi kaldır",
+                "load_more": "Daha fazla yükle"
             },
             "pagination": {
                 "prev": "Önceki",
@@ -464,7 +467,8 @@
                 "qa_matched": "Soru-Cevap eşleşmesi",
                 "revised": "Düzeltilmiş yanıt",
                 "revise": "Düzelt",
-                "voice": "Ses"
+                "voice": "Ses",
+                "confidence_help": "Asistanın bilgisinin bu soruyla ne kadar eşleştiğini gösterir — yanıtın ne kadar iyi olduğunu değil."
             },
             "details": {
                 "select_conversation": "Ayrıntıları görüntülemek için bir görüşme seçin",
@@ -648,7 +652,152 @@
                 "prompt_injection": "İstem enjeksiyonu",
                 "pii": "PII",
                 "blocked_topic": "Engellenen konu",
-                "toxicity": "Zararlı içerik"
+                "toxicity": "Zararlı içerik",
+                "prompt_leak": "İstem sızıntısı"
+            },
+            "about_title": "Koruma kuralları nedir?",
+            "about_body": "Koruma kuralları, asistanınızın sohbetlerindeki güvenlik kontrolleridir. Asistan yanıt vermeden önce ziyaretçinin her mesajını ve asistanın yazdığı her yanıtı kontrol ederler. Kişisel verileri gizleyebilir, asistanı kandırma girişimlerini durdurabilir, hakaret içeren dili engelleyebilir ve asistanı konuda tutabilirler.",
+            "about_ai_calls": "PII algılama sabit kalıplar kullanır ve AI çağrısı eklemez. “AI kontrolü” ile işaretli kontroller bir AI modeline sorar: ziyaretçinin mesajı için bir ek çağrı ve yanıt için bir tane, yani yanıt başına en fazla iki.",
+            "ai_check": "AI kontrolü",
+            "about_aria": "Koruma kuralları hakkında",
+            "about_cost": "Tüm AI kontrolleri bu çağrıları paylaşır, bu yüzden daha fazlasını açmak çağrı eklemez. Yanıtlar biraz daha uzun sürebilir ve daha fazla AI tokeni kullanabilir.",
+            "test_off": "Koruma kuralları kapalı. Bir mesajı test etmek için açın.",
+            "filter_labels": {
+                "email": "E-posta adresi",
+                "credit_card": "Kredi kartı",
+                "us_ssn": "ABD Sosyal Güvenlik Numarası",
+                "german_ssn": "Alman sosyal sigorta numarası",
+                "danish_cpr": "Danimarka CPR numarası",
+                "phone": "Telefon numarası",
+                "iban": "Banka hesabı (IBAN)",
+                "uk_nino": "Birleşik Krallık Ulusal Sigorta numarası",
+                "ip_address": "IP adresi"
+            },
+            "outcome_labels": {
+                "blocked": "Engellendi",
+                "redacted": "Gizlendi",
+                "flagged": "İşaretlendi",
+                "skipped": "Atlandı"
+            },
+            "stage_labels": {
+                "input": "Mesaj",
+                "source": "Bilgi",
+                "output": "Yanıt",
+                "tool": "Araç sonucu"
+            },
+            "severity_labels": {
+                "none": "Yok",
+                "low": "Düşük",
+                "medium": "Orta",
+                "high": "Yüksek"
+            },
+            "allowlist_title": "Asla gizleme",
+            "allowlist_description": "Asistanın her zaman gösterebileceği değerler; örneğin destek e-postanız veya telefon numaranız. Bir e-posta alan adının tamamına izin vermek için {'@'} ile başlayın, örneğin {'@'}acme.com. İşletme profilindeki e-posta ve telefona her zaman izin verilir.",
+            "allowlist_placeholder_first": "ör. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Başka bir değer ekleyin",
+            "add_allowlist_value": "Değer ekle",
+            "remove_allowlist_value": "Değeri kaldır",
+            "allowlist_count": "{count} değer hiç gizlenmez | {count} değer hiç gizlenmez",
+            "all_guards": "Tüm korumalar",
+            "all_outcomes": "Tüm sonuçlar",
+            "refusal_message_help": "Bir koruma mesajı engellediğinde gösterilir. Kaydettiğinizde asistanınızın dillerine çevrilir. Varsayılan mesajı kullanmak için boş bırakın.",
+            "mode_labels": {
+                "block": "Engelle",
+                "monitor": "Yalnızca kaydet"
+            },
+            "sensitivity_labels": {
+                "high": "Yüksek: en çok engeller",
+                "medium": "Orta",
+                "low": "Düşük: en az engeller"
+            },
+            "pii_action_labels": {
+                "mask": "Gizle",
+                "block": "Mesajı engelle"
+            },
+            "topic_action_labels": {
+                "refuse": "Ret mesajı",
+                "reply": "Kendine ait bir yanıt",
+                "handoff": "Ekibinizden biri"
+            },
+            "detail_labels": {
+                "topic": "Konu",
+                "types": "Veri",
+                "count": "Bulunan",
+                "categories": "Kategoriler",
+                "tool": "Araç",
+                "pattern": "Kural",
+                "reason": "Neden"
+            },
+            "pii_action": "Ne yapılsın",
+            "pii_action_help": "Gizle, veriyi gizler ve sohbet devam eder. Engelle, mesajı durdurur ve ziyaretçiden bu bilgiyi paylaşmamasını ister. Yanıtlardaki veriler her zaman gizlenir.",
+            "custom_patterns_title": "Kendi desenleriniz",
+            "custom_patterns_description": "Müşteri numarası gibi diğer kişisel verileri düzenli ifadeyle bulun.",
+            "custom_pattern_name": "Ad",
+            "custom_pattern_name_placeholder": "ör. Müşteri numarası",
+            "custom_pattern": "Desen",
+            "custom_pattern_placeholder": "ör. CUST-[0-9]+",
+            "add_custom_pattern": "Desen ekle",
+            "remove_custom_pattern": "Deseni kaldır",
+            "topic_name": "Konu",
+            "topic_description": "Açıklama",
+            "topic_description_placeholder": "Konunun kapsadıkları (isteğe bağlı)",
+            "topic_examples": "Örnek sorular",
+            "topic_examples_placeholder": "Örnek sorular, her satıra bir tane (isteğe bağlı)",
+            "topic_action": "Ziyaretçiye ne gider",
+            "topic_handoff_help": "Canlı sohbet açıkken Sohbet Widget'ında çalışır. Diğer yerlerde ziyaretçi ret mesajını alır.",
+            "topic_handoff_reply_placeholder": "Bağlanırken gösterilecek mesaj (isteğe bağlı)",
+            "topic_reply_placeholder": "Ziyaretçinin okuyacağı yanıt",
+            "topic_reply": "Yanıt",
+            "mode": "Ne olur",
+            "sensitivity": "Hassasiyet",
+            "mode_help": "Yalnızca kaydet, korumanın bulduklarını engellemeden kaydeder; böylece ziyaretçileri etkilemeden önce kontrol edebilirsiniz.",
+            "check_before_showing": "Yanıtları göstermeden önce kontrol et",
+            "check_before_showing_help": "Ziyaretçi bir yanıtı ancak korumalar kontrol ettikten sonra görür. Yanıtlar biraz daha geç ve tek seferde görünür.",
+            "alert_owner": "Saldırılar hakkında bana e-posta gönder",
+            "alert_owner_help": "Asistan talimatlarını geçersiz kılma girişimini engellediğinde veya güvenlik kontrolü çalışamadığında e-posta alın. Saatte en fazla bir e-posta.",
+            "test_title": "Bir mesajı test et",
+            "test_description": "Kaydetmeden önce bile, Yapılandırma sekmesindeki ayarlarla bir ziyaretçinin ne alacağını görün. Hiçbir şey saklanmaz.",
+            "test_placeholder": "Test etmek için bir mesaj yazın",
+            "test_samples": "Deneyin:",
+            "test_run": "Test et",
+            "test_error": "Mesaj test edilemedi. Lütfen tekrar deneyin.",
+            "test_blocked": "Engellendi",
+            "test_allowed": "İzin verildi",
+            "test_handoff": "Sohbet ekibinize aktarılırdı.",
+            "test_visitor_sees": "Ziyaretçinin gördüğü",
+            "test_model_reads": "Asistanın okuduğu",
+            "test_guards": "Korumalar",
+            "test_no_guards": "Hiçbir koruma bir şey bulmadı.",
+            "detail_topic": "Konu: {topic}",
+            "classifier_unavailable": "Güvenlik kontrolü çalışamadı, bu yüzden metin kontrol edilmedi.",
+            "open_conversation": "Görüşmeyi aç",
+            "block": {
+                "visitor_short": "Ziyaretçi · {id}",
+                "blocked": "Engellendi",
+                "recent_attempts": "Son 24 saatte {count} enjeksiyon veya kötüye kullanım girişimi | Son 24 saatte {count} enjeksiyon veya kötüye kullanım girişimi",
+                "show_all": "Bu ziyaretçinin tümünü göster",
+                "clear_visitor": "Tüm ziyaretçileri göster",
+                "block_chatter": "Kullanıcıyı engelle",
+                "block_visitor": "Ziyaretçiyi engelle",
+                "chatter_title": "{name} kişisini engelle",
+                "chatter_description": "Hesabı kapatılır ve bu çalışma alanındaki tüm asistanlardan çıkış yaptırılır. Kişiler bölümünden yeniden açabilirsiniz.",
+                "visitor_title": "Bu ziyaretçiyi engelle",
+                "visitor_description": "Engel bitene kadar bu çalışma alanındaki hiçbir asistanla sohbet edemez.",
+                "duration": "Ne kadar süre",
+                "reason": "Neden",
+                "reason_placeholder": "örn. Asistanın talimatlarını almayı birçok kez denedi",
+                "reason_help": "Bunu yalnızca ekibiniz görür.",
+                "notify": "{name} kişisine e-postayla bildir",
+                "visitor_limits": "Ziyaretçiler ağlarından ve tarayıcılarından tanınır. Aynı ağda aynı tarayıcıyı kullanan başka biri de engellenir, yeni bir ağ veya tarayıcıyla engel aşılabilir. Engelleri Güvenlik bölümünde görüp kaldırabilirsiniz.",
+                "chatter_blocked": "Kullanıcı engellendi",
+                "visitor_blocked": "Ziyaretçi engellendi",
+                "error": "Engellenemedi. Lütfen tekrar deneyin.",
+                "durations": {
+                    "day": "1 gün",
+                    "week": "7 gün",
+                    "month": "30 gün",
+                    "forever": "Siz engeli kaldırana kadar"
+                }
             }
         },
         "persona": {
@@ -928,7 +1077,9 @@
                 "notify_hint": "Asistan bu sınıra ulaştığında e-posta alın.",
                 "save": "Kaydet",
                 "saved": "Hız sınırı kaydedildi",
-                "save_error": "Hız sınırı kaydedilemedi. Lütfen tekrar deneyin."
+                "save_error": "Hız sınırı kaydedilemedi. Lütfen tekrar deneyin.",
+                "visitor_messages_per_minute": "Dakika başına mesaj (tek ziyaretçi)",
+                "visitor_hint": "Bir ziyaretçinin dakikada gönderebileceği en fazla mesaj sayısı. Bunu aşan ziyaretçi beklemek zorunda kalır, diğerleri ise sohbete devam eder."
             }
         },
         "tone": {
@@ -1022,7 +1173,8 @@
                 "remove_from_agent": "Asistandan kaldır",
                 "used_in_agents": "({count} asistanda kullanılıyor)",
                 "delete_from_knowledge_base": "Bilgi tabanından sil",
-                "agents_count": "{count} asistan"
+                "agents_count": "{count} asistan",
+                "load_more": "Daha fazla yükle"
             },
             "page_title": {
                 "sources": "Kaynaklar",
@@ -1619,7 +1771,9 @@
                 "avatar_upload_error": "Avatar yüklenemedi",
                 "logo_upload_error": "Logo yüklenemedi",
                 "avatar_remove_error": "Avatar kaldırılamadı",
-                "logo_remove_error": "Logo kaldırılamadı"
+                "logo_remove_error": "Logo kaldırılamadı",
+                "replies_saved": "Yanıt seçenekleri kaydedildi",
+                "replies_error": "Yanıt seçenekleri kaydedilemedi"
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
@@ -1669,7 +1823,11 @@
                 "voice_conversation_help_2": "Her sesli yanıt bir mesaj sayılır. Sesli görüşmenin maliyeti yazılı sohbetten çok daha yüksektir.",
                 "voice_label": "Ses",
                 "voice_default": "Varsayılan ({voice})",
-                "voice_input_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici konuşmayı metne çevirmeyi yönetim panelinden açabilir."
+                "voice_input_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici konuşmayı metne çevirmeyi yönetim panelinden açabilir.",
+                "replies_title": "Yanıtlar",
+                "replies_description": "Her yanıtın altında nelerin görüneceğini seçin.",
+                "show_sources_label": "Kaynakları göster",
+                "show_sources_hint": "Her yanıtın altında, kullandığı bilgileri listeleyen bir düğme gösterin."
             },
             "bubbles_title": "Sohbet Balonları",
             "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri.",
@@ -1822,7 +1980,12 @@
             "bubbles_add": "Balon ekle",
             "bubbles_remove": "Balonu kaldır",
             "bubbles_empty": "Henüz sohbet balonu yok.",
-            "bubbles_translate_empty": "Çevirmek için önce bir balon ekleyin."
+            "bubbles_translate_empty": "Çevirmek için önce bir balon ekleyin.",
+            "model_picker_title": "Model",
+            "model_picker_description": "Bu asistanın yanıt verirken kullandığı AI modeli. Bu listede hangi modellerin olacağını bir yönetici seçer (yönetim paneli → Settings → AI models).",
+            "model_placeholder": "Bir model seçin",
+            "model_default": "Varsayılan",
+            "model_empty": "Henüz model yok. Bir yönetici bunları yönetim panelinde, Settings → AI models altında ekler."
         },
         "topics_index": {
             "title": "Konular",
@@ -3054,7 +3217,15 @@
                 "conversations_help": "Sohbet geçmişi bu kadar gün sonra silinir. En fazla {max} gün.",
                 "audit": "Güvenlik denetim günlüğü (gün)",
                 "audit_help": "Varsayılan {default} gün, en az {floor}.",
-                "plan_default": "Varsayılan ({days} gün)"
+                "plan_default": "Varsayılan ({days} gün)",
+                "leads": "Potansiyel müşteriler (gün)",
+                "leads_help": "Bu kadar günden eski potansiyel müşterileri silin.",
+                "analytics": "Analitik (gün)",
+                "analytics_help": "Bu kadar günden eski analitik verilerini silin. En az {floor} gün.",
+                "anonymize": "Ziyaretçileri anonimleştirme süresi (gün)",
+                "anonymize_help": "Bu kadar günden eski sohbetlerden ziyaretçi bilgilerini temizleyin — ad, e-posta, telefon, IP adresi, tam tarayıcı dizesi, konum ve sayfa bağlantıları. Mesajlar ve cihaz türü saklanır. En fazla {max} gün.",
+                "keep_forever": "Süresiz sakla",
+                "never": "Hiçbir zaman"
             },
             "siem": {
                 "title": "SIEM Webhook",
@@ -3064,6 +3235,20 @@
                 "secret_placeholder": "Mevcut gizli anahtarı korumak için boş bırakın",
                 "secret_help": "SIEM'inizin doğrulayabilmesi için her teslimatı HMAC ile imzalamak üzere kullanılır.",
                 "signature_help": "Her POST, X-Chatvia-Signature başlığında HMAC-SHA256 ile imzalanır."
+            },
+            "blocked_visitors": {
+                "title": "Engellenen ziyaretçiler",
+                "help": "Asistanlarınızla sohbet edemeyen ziyaretçiler. Bir ziyaretçiyi bir asistanın koruma kuralları etkinliğinden engellersiniz.",
+                "visitor": "Ziyaretçi · {id}",
+                "browser_on_os": "{os} üzerinde {browser}",
+                "on_agent": "{agent} üzerinde",
+                "by": "Engelleyen: {name}",
+                "until": "{date} tarihine kadar",
+                "until_unblocked": "Engel kaldırılana kadar",
+                "unblock": "Engeli kaldır",
+                "unblocked": "Ziyaretçinin engeli kaldırıldı",
+                "unblock_error": "Engel kaldırılamadı. Lütfen tekrar deneyin.",
+                "empty": "Engellenen ziyaretçi yok."
             }
         },
         "security_audit": {

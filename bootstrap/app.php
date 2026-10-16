@@ -6,6 +6,7 @@ use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
+use App\Http\Middleware\Access\EnsureWorkspaceOwner;
 use App\Http\Middleware\Access\ScopeRequestToWorkspace;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
@@ -20,8 +21,10 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
+use Domain\Conversation\Exceptions\ConversationNotHeldException;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Exceptions\VoiceCallRefusedException;
+use Domain\Membership\Team\Exceptions\TeamOwnerImmutableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -96,6 +99,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'can.access.agent' => EnsureUserCanAccessAgent::class,
             'workspace.scope' => ScopeRequestToWorkspace::class,
             'api.owner' => EnsureApiWorkspaceOwner::class,
+            'workspace.owner' => EnsureWorkspaceOwner::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,
@@ -141,6 +145,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // A visitor asked for a human operator on an agent whose live-chat
         // toggle does not allow it.
         $exceptions->map(fn (HandoffUnavailableException $e): AccessDeniedHttpException => new AccessDeniedHttpException($e->getMessage(), $e));
+        $exceptions->map(fn (ConversationNotHeldException $e): AccessDeniedHttpException => new AccessDeniedHttpException($e->getMessage(), $e));
+        $exceptions->map(fn (TeamOwnerImmutableException $e): AccessDeniedHttpException => new AccessDeniedHttpException($e->getMessage(), $e));
         // A refused voice call: the chat clients switch on the code.
         $exceptions->render(fn (VoiceCallRefusedException $e): JsonResponse => response()->json([
             'error' => $e->refusal->value,

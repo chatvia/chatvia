@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1\Team;
 
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
+use Domain\Membership\Team\Actions\Members\RemoveTeamMemberAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Response;
 
@@ -23,14 +24,13 @@ class TeamMemberController
      * Detaches the user from the team; their account is kept. The team owner
      * cannot be removed.
      */
-    public function destroy(Team $team, User $member): Response
+    public function destroy(Team $team, User $member, RemoveTeamMemberAction $remove): Response
     {
         // `{member}` is resolved through $team->members(), so anyone not on
         // the team — the owner included, who holds the team rather than a
-        // membership — is already a 404. This guard only backstops data drift.
-        abort_if($member->ownsTeam($team), 403, __('Cannot remove the team owner.'));
-
-        $team->removeMember($member);
+        // membership — is already a 404. The Action's owner guard only
+        // backstops data drift.
+        $remove->execute($team, $member);
 
         return response()->noContent();
     }

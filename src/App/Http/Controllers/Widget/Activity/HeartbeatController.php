@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Widget\Activity;
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Activity\TouchConversationActivityAction;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,6 +25,7 @@ readonly class HeartbeatController
         Request $request,
         #[WidgetAgent] Agent $agent,
         FindWidgetConversationAction $findConversation,
+        TouchConversationActivityAction $touchActivity,
     ): JsonResponse|WidgetAckData {
         $sessionId = $this->widgetSessionId($request);
         $conversationId = $request->input('conversation_id') ?? $this->widgetConversationId($request);
@@ -45,17 +46,7 @@ readonly class HeartbeatController
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // A base-query update, so `updated_at` (the chat log's sort key) is
-        // not touched. Only a visible conversation counts as live, and the
-        // stamp moves at most once a minute: every open widget pings.
-        Conversation::query()
-            ->whereKey($conversation->getKey())
-            ->where('is_visible', true)
-            ->where(fn (Builder $query) => $query
-                ->whereNull('last_activity_at')
-                ->orWhere('last_activity_at', '<', now()->subMinute()))
-            ->toBase()
-            ->update(['last_activity_at' => now()]);
+        $touchActivity->execute($conversation);
 
         return new WidgetAckData;
     }

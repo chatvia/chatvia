@@ -11,6 +11,7 @@ use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Enums\MessageReader;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
+use Domain\Conversation\Exceptions\ConversationNotHeldException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Support\Facades\Event;
@@ -88,10 +89,9 @@ it('refuses to post when the actor has not taken the conversation over', functio
     [, , $conversation] = handoffMessageSetup();
     $stranger = User::factory()->create();
 
-    $message = app(SendHandoffAdminMessageAction::class)->execute(
+    expect(fn (): mixed => app(SendHandoffAdminMessageAction::class)->execute(
         new SendHandoffAdminMessageData($conversation, $stranger, 'Hi'),
-    );
+    ))->toThrow(ConversationNotHeldException::class);
 
-    expect($message)->toBeNull();
     Event::assertNotDispatched(MessagePosted::class);
 });

@@ -27,6 +27,13 @@ return new class extends Migration
     {
         $schema = Schema::connection($this->getConnection());
 
+        // On a dedicated connection the Spectra database survives the app's
+        // migrate:fresh, so the columns may already exist while this
+        // migration shows as pending.
+        if ($schema->hasColumn('spectra_requests', 'cached_tokens')) {
+            return;
+        }
+
         $schema->table('spectra_requests', function (Blueprint $table) {
             $table->unsignedInteger('cached_tokens')->default(0)->after('completion_tokens');
             $table->unsignedInteger('cache_write_tokens')->default(0)->after('cached_tokens');

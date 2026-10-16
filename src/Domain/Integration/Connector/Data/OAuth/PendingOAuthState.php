@@ -24,11 +24,11 @@ final readonly class PendingOAuthState
         public string $clientId,
         public string $codeVerifier,
         public string $mcpUrl,
+        public string $sessionBindingHash,
         public ?string $clientSecret = null,
         public ?string $scopes = null,
         public ?string $customName = null,
         public ?string $customSlug = null,
-        public ?string $sessionBindingHash = null,
     ) {}
 
     /**
@@ -42,15 +42,10 @@ final readonly class PendingOAuthState
 
     /**
      * True when the given browser-session secret is the one the flow started
-     * with. A state without a stored binding (created before binding existed)
-     * only relies on the user-id check.
+     * with.
      */
     public function matchesSession(string $sessionBinding): bool
     {
-        if ($this->sessionBindingHash === null) {
-            return true;
-        }
-
         return $sessionBinding !== ''
             && hash_equals($this->sessionBindingHash, self::hashBinding($sessionBinding));
     }
@@ -64,21 +59,22 @@ final readonly class PendingOAuthState
     }
 
     /**
-     * Read a cached payload back. Accepts the encrypted form and the plain
-     * array older flows were cached as; returns null for anything else
-     * (missing, tampered or undecryptable).
+     * Read a cached payload back from its encrypted form; null for anything
+     * else (missing, tampered, undecryptable, or without a session binding).
      */
     public static function unseal(mixed $payload): ?self
     {
-        if (is_string($payload)) {
-            try {
-                $payload = json_decode(Crypt::decryptString($payload), true);
-            } catch (DecryptException) {
-                return null;
-            }
+        if (! is_string($payload)) {
+            return null;
         }
 
-        if (! is_array($payload) || ! isset($payload['user_id'], $payload['client_id'], $payload['code_verifier'])) {
+        try {
+            $payload = json_decode(Crypt::decryptString($payload), true);
+        } catch (DecryptException) {
+            return null;
+        }
+
+        if (! is_array($payload) || ! isset($payload['user_id'], $payload['client_id'], $payload['code_verifier'], $payload['session_binding_hash'])) {
             return null;
         }
 
@@ -119,11 +115,11 @@ final readonly class PendingOAuthState
             clientId: (string) $data['client_id'],
             codeVerifier: (string) $data['code_verifier'],
             mcpUrl: (string) $data['mcp_url'],
+            sessionBindingHash: (string) $data['session_binding_hash'],
             clientSecret: $data['client_secret'] ?? null,
             scopes: $data['scopes'] ?? null,
             customName: $data['custom_name'] ?? null,
             customSlug: $data['custom_slug'] ?? null,
-            sessionBindingHash: $data['session_binding_hash'] ?? null,
         );
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\OAuth\OAuthTokenRefresher;
@@ -159,22 +158,4 @@ it('refuses to refresh when no OAuth client is known for the server', function (
         ->toThrow(McpOAuthException::class, 'No registered OAuth client found for https://auth.example.test');
 
     Http::assertNothingSent();
-});
-
-// unseal() takes the encrypted string the state store writes and also a
-// plain array; anything else (missing, tampered) is no state at all.
-it('reads a plain-array pending state and rejects garbage', function (): void {
-    $plain = [
-        'user_id' => 5,
-        'connector_slug' => 'notion',
-        'auth_server_url' => 'https://auth.example.test',
-        'token_endpoint' => 'https://auth.example.test/token',
-        'client_id' => 'client-123',
-        'code_verifier' => 'verifier',
-        'mcp_url' => 'https://mcp.example.test/rpc',
-    ];
-
-    expect(PendingOAuthState::unseal($plain)?->userId)->toBe(5)
-        ->and(PendingOAuthState::unseal('not-encrypted'))->toBeNull()
-        ->and(PendingOAuthState::unseal(null))->toBeNull();
 });

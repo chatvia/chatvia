@@ -60,7 +60,10 @@ enum EmbeddingProvider: string
     public function qaSimilarityThreshold(): ?float
     {
         return match ($this) {
-            self::Qwen => 0.80,
+            // The highest bar that still matches clear paraphrases; it blocks
+            // every near-miss in the eval, including a cross-language wrong
+            // match at 0.64 (qa.php's sweep — 0.80 matched nothing at all).
+            self::Qwen => 0.65,
             default => null,
         };
     }

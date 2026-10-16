@@ -113,7 +113,13 @@ final class RerankModelCatalog
      */
     private static function measured(): array
     {
-        return [];
+        return [
+            // Knowledge keeps 100% of right passages under both lexical
+            // drivers up to 0.70 (uncovered blocked: 57%). The write bar is
+            // the highest with zero starvation (0.55 already drops correct
+            // writes); it halves wrong-connector writes in the shipped set.
+            'cohere/rerank-4-pro' => ['knowledge' => 0.70, 'tool_read' => 0.30, 'tool_write' => 0.50],
+        ];
     }
 
     /** One name per model: Cohere's own ids and OpenRouter's ids for the same model meet. */

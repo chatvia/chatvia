@@ -17,6 +17,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
+use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
@@ -349,4 +350,25 @@ function attachAgentTopics(Agent $agent, array $names): array
     }
 
     return $ids;
+}
+
+/**
+ * Which embedding provider and model the offline evals (tests/Eval) embed
+ * with, as env overrides for one run: EVAL_EMBEDDING_PROVIDER (an
+ * EmbeddingProvider value, e.g. "openrouter") and EVAL_EMBEDDING_MODEL (that
+ * provider's model, e.g. "qwen/qwen3-embedding-8b"). Unset, the configured
+ * provider runs — in the testing environment that is the config default, not
+ * what the admin panel of an install has.
+ */
+function evalEmbeddingOverrides(): void
+{
+    if (filled($provider = env('EVAL_EMBEDDING_PROVIDER'))) {
+        config(['chatvia.ai.models.embedding' => $provider]);
+    }
+
+    $configured = EmbeddingProvider::tryFrom((string) config('chatvia.ai.models.embedding'));
+
+    if (filled($model = env('EVAL_EMBEDDING_MODEL')) && $configured !== null) {
+        config([$configured->modelConfig() => $model]);
+    }
 }

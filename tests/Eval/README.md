@@ -26,8 +26,12 @@ can change a knob, re-run, and see the number move.
 ## Run it
 
 ```bash
-# baseline (defaults: read 0.45 / write 0.55, connector router off)
+# baseline (connector router off)
 SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval
+
+# or through OpenRouter (same Qwen3 embeddings, no Scaleway account)
+OPENROUTER_API_KEY=… EVAL_EMBEDDING_PROVIDER=openrouter \
+  EVAL_EMBEDDING_MODEL=qwen/qwen3-embedding-8b vendor/bin/pest --testsuite=Eval
 ```
 
 Use `--testsuite=Eval` — **not** `--group=eval` (that trips a Pest TIA crash on
@@ -38,13 +42,17 @@ this PHP build). Knobs are env overrides, applied for one run:
 | `AGENT_TOOL_RELEVANCE_THRESHOLD_READ` | read-tool relevance bar (recall) |
 | `AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE` | write-tool relevance bar (precision) |
 | `AGENT_TOOL_CONNECTOR_CLASSIFIER` | `1` = enable the small-model connector router |
+| `EVAL_EMBEDDING_PROVIDER` / `EVAL_EMBEDDING_MODEL` | embed with another provider/model for one run (e.g. `openrouter` + `qwen/qwen3-embedding-8b`) |
+| `SEARCH_LEXICAL_DRIVER` | the keyword channel of hybrid search: `pg_textsearch` or `postgres` |
 | `EVAL_TOOL_POOL` | where the catalog is seeded: `preset` (default, shared catalog tools), `custom` (a custom MCP server's own tools) or `function` (webhook functions named `{connector}_{tool}`) — each exercises other search channels |
 
-The winning combo so far — loose write bar (no starvation) + router (precision):
+The default bars are per reranker model (`RerankModelCatalog::measured()`,
+e.g. Cohere Rerank 4 Pro: read 0.30 / write 0.50 — the highest write bar with
+zero starvation). The small-model router adds precision on top of the bar
+(it cuts wrong-connector writes the bar cannot separate):
 
 ```bash
-SCALEWAYAI_API_KEY=… AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE=0.45 AGENT_TOOL_CONNECTOR_CLASSIFIER=1 \
-  vendor/bin/pest --testsuite=Eval
+SCALEWAYAI_API_KEY=… AGENT_TOOL_CONNECTOR_CLASSIFIER=1 vendor/bin/pest --testsuite=Eval
 ```
 
 ## The two fixtures

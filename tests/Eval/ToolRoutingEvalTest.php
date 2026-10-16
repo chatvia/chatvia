@@ -55,13 +55,30 @@ beforeEach(function (): void {
     // key on the command line, and skips before any request without one.
     // API keys live in the admin panel, not in .env, so the key is put into
     // config here.
-    $key = env('SCALEWAYAI_API_KEY');
+    $scaleway = env('SCALEWAYAI_API_KEY');
+    $openrouter = env('OPENROUTER_API_KEY');
 
-    if (blank($key)) {
-        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval');
+    if (blank($scaleway) && blank($openrouter)) {
+        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… (or OPENROUTER_API_KEY=…) vendor/bin/pest --testsuite=Eval');
     }
 
-    config(['services.scalewayai.api_key' => $key]);
+    if (filled($scaleway)) {
+        config(['services.scalewayai.api_key' => $scaleway]);
+    }
+
+    if (filled($openrouter)) {
+        config(['services.openrouter.api_key' => $openrouter]);
+    }
+
+    // The reranker's key the same way: without it the gate silently falls
+    // back to the similarity check and every threshold number is about the
+    // wrong scale.
+    if (filled($cohere = env('COHERE_API_KEY'))) {
+        config(['services.cohere.api_key' => $cohere]);
+    }
+
+    evalEmbeddingOverrides();
+
     Http::allowStrayRequests();
 
     // Swap the offline fake (bound in TestCase) for the real, config-selected

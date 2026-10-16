@@ -53,9 +53,10 @@ beforeEach(function (): void {
     // key on the command line, and skips before any request without one.
     $scaleway = env('SCALEWAYAI_API_KEY');
     $cohere = env('COHERE_API_KEY');
+    $openrouter = env('OPENROUTER_API_KEY');
 
-    if (blank($scaleway) && blank($cohere)) {
-        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… (or COHERE_API_KEY=…) vendor/bin/pest --testsuite=Eval');
+    if (blank($scaleway) && blank($cohere) && blank($openrouter)) {
+        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… (or COHERE_API_KEY=… / OPENROUTER_API_KEY=…) vendor/bin/pest --testsuite=Eval');
     }
 
     if (filled($scaleway)) {
@@ -65,6 +66,12 @@ beforeEach(function (): void {
     if (filled($cohere)) {
         config(['services.cohere.api_key' => $cohere]);
     }
+
+    if (filled($openrouter)) {
+        config(['services.openrouter.api_key' => $openrouter]);
+    }
+
+    evalEmbeddingOverrides();
 
     Http::allowStrayRequests();
 

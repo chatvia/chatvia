@@ -108,7 +108,7 @@
             "alert_owner": "Powiadamiaj mnie e-mailem o atakach",
             "alert_owner_help": "Otrzymuj e-mail, gdy agent zablokuje próbę obejścia jego instrukcji lub gdy kontrola bezpieczeństwa nie może się uruchomić. Najwyżej jeden e-mail na godzinę.",
             "test_title": "Przetestuj wiadomość",
-            "test_description": "Zobacz, co dostałby odwiedzający przy powyższych ustawieniach, zanim zapiszesz. Nic nie jest zapisywane.",
+            "test_description": "Zobacz, co dostałby odwiedzający przy ustawieniach z karty Konfiguracja, nawet zanim zapiszesz. Nic nie jest zapisywane.",
             "test_placeholder": "Wpisz wiadomość do przetestowania",
             "test_samples": "Wypróbuj:",
             "test_run": "Testuj",

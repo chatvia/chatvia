@@ -108,7 +108,7 @@
             "alert_owner": "Mich per E-Mail über Angriffe informieren",
             "alert_owner_help": "Erhalten Sie eine E-Mail, wenn der Agent einen Versuch blockiert, seine Anweisungen zu umgehen, oder wenn die Sicherheitsprüfung nicht laufen kann. Höchstens eine E-Mail pro Stunde.",
             "test_title": "Nachricht testen",
-            "test_description": "Sehen Sie vor dem Speichern, was ein Besucher mit den Einstellungen oben bekäme. Es wird nichts gespeichert.",
+            "test_description": "Sehen Sie, was ein Besucher mit den Einstellungen unter Konfiguration bekäme, auch vor dem Speichern. Es wird nichts gespeichert.",
             "test_placeholder": "Nachricht zum Testen eingeben",
             "test_samples": "Probieren:",
             "test_run": "Testen",

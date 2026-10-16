@@ -170,6 +170,7 @@
                 "no_results": "Aucun message ne correspond à votre recherche",
                 "clear_search": "Effacer la recherche",
                 "confidence": "{percent}% de confiance",
+                "confidence_help": "Dans quelle mesure les connaissances de l'agent correspondaient à cette question — pas la qualité de la réponse.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Invite : {prompt} · Complétion : {completion}",
                 "playground": "Bac à sable",

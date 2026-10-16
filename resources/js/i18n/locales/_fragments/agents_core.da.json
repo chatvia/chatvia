@@ -170,6 +170,7 @@
                 "no_results": "Ingen beskeder matcher din søgning",
                 "clear_search": "Ryd søgning",
                 "confidence": "{percent}% sikkerhed",
+                "confidence_help": "Hvor godt agentens viden matchede dette spørgsmål — ikke hvor godt svaret er.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Prompt: {prompt} · Svar: {completion}",
                 "playground": "Playground",

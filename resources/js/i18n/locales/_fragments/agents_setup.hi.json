@@ -1,6 +1,21 @@
 {
     "agents": {
         "setup": {
+            "toasts": {
+                "replies_saved": "उत्तर विकल्प सहेजे गए",
+                "replies_error": "उत्तर विकल्प सहेजे नहीं जा सके"
+            },
+            "settings": {
+                "replies_title": "उत्तर",
+                "replies_description": "चुनें कि हर उत्तर के नीचे क्या दिखे।",
+                "show_sources_label": "स्रोत दिखाएं",
+                "show_sources_hint": "हर उत्तर के नीचे एक बटन दिखाएं, जो बताता है कि उसमें कौन-सी नॉलेज इस्तेमाल हुई।"
+            },
+            "model_picker_title": "मॉडल",
+            "model_picker_description": "वह AI मॉडल जिससे यह एजेंट उत्तर देता है। एडमिन तय करता है कि इस सूची में कौन-से मॉडल हों (एडमिन पैनल → Settings → AI models)।",
+            "model_placeholder": "मॉडल चुनें",
+            "model_default": "डिफ़ॉल्ट",
+            "model_empty": "अभी कोई मॉडल नहीं। एडमिन इन्हें एडमिन पैनल में Settings → AI models के अंतर्गत जोड़ता है।",
             "bubbles_description": "विजेट लॉन्चर के बगल में दिखाए जाने वाले त्वरित संदेश प्रॉम्प्ट।"
         }
     }

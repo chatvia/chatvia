@@ -150,7 +150,8 @@
         "connection_lost": "Anslutningen förlorades",
         "unexpected_response": "Oväntat svar",
         "something_went_wrong": "Något gick fel",
-        "try_again": "Försök igen"
+        "try_again": "Försök igen",
+        "access_blocked": "Chatt blockerad"
     },
     "sources": {
         "title": "Kunskapskällor",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram anslutet"
             },
-            "setup_tab": "Inställningar"
+            "setup_tab": "Inställningar",
+            "not_set_up": "Inte konfigurerat på den här servern. En administratör kan slå på den här kanalen i adminpanelen."
         },
         "chatlog": {
             "title": "Chattlogg",
@@ -465,7 +467,8 @@
                 "qa_matched": "Q&A-matchning",
                 "revised": "Reviderat svar",
                 "revise": "Revidera",
-                "voice": "Röst"
+                "voice": "Röst",
+                "confidence_help": "Hur väl agentens kunskap matchade den här frågan — inte hur bra svaret är."
             },
             "details": {
                 "select_conversation": "Välj en konversation för att visa detaljer",
@@ -746,7 +749,7 @@
             "alert_owner": "Mejla mig om attacker",
             "alert_owner_help": "Få ett mejl när agenten blockerar ett försök att kringgå sina instruktioner, eller när säkerhetskontrollen inte kan köras. Högst ett mejl i timmen.",
             "test_title": "Testa ett meddelande",
-            "test_description": "Se vad en besökare skulle få med inställningarna ovan, innan du sparar. Inget sparas.",
+            "test_description": "Se vad en besökare skulle få med inställningarna under Konfiguration, även innan du sparar. Inget sparas.",
             "test_placeholder": "Skriv ett meddelande att testa",
             "test_samples": "Prova:",
             "test_run": "Testa",
@@ -760,7 +763,42 @@
             "test_no_guards": "Inget skydd hittade något.",
             "detail_topic": "Ämne: {topic}",
             "classifier_unavailable": "Säkerhetskontrollen kunde inte köras, så texten kontrollerades inte.",
-            "open_conversation": "Öppna konversationen"
+            "open_conversation": "Öppna konversationen",
+            "about_title": "Vad är skyddsräcken?",
+            "about_body": "Skyddsräcken är säkerhetskontroller av agentens chattar. De kontrollerar varje meddelande från en besökare innan agenten svarar, och varje svar som agenten skriver. De kan dölja personuppgifter, stoppa försök att lura agenten, blockera kränkande språk och hålla agenten till ämnet.",
+            "about_ai_calls": "PII-identifiering använder fasta mönster och lägger inte till några AI-anrop. Kontroller märkta ”AI-kontroll” frågar en AI-modell: ett extra anrop för besökarens meddelande och ett för svaret, alltså högst två per svar.",
+            "ai_check": "AI-kontroll",
+            "about_aria": "Om skyddsräcken",
+            "about_cost": "Alla AI-kontroller delar på dessa anrop, så fler påslagna kontroller ger inte fler anrop. Svar kan ta lite längre tid och använda fler AI-tokens.",
+            "test_off": "Skyddsräckena är avstängda. Slå på dem för att testa ett meddelande.",
+            "block": {
+                "visitor_short": "Besökare · {id}",
+                "blocked": "Blockerad",
+                "recent_attempts": "{count} injektions- eller missbruksförsök de senaste 24 timmarna | {count} injektions- eller missbruksförsök de senaste 24 timmarna",
+                "show_all": "Visa allt från den här besökaren",
+                "clear_visitor": "Visa alla besökare",
+                "block_chatter": "Blockera chattare",
+                "block_visitor": "Blockera besökare",
+                "chatter_title": "Blockera {name}",
+                "chatter_description": "Kontot stängs av och personen loggas ut från alla agenter i den här arbetsytan. Du kan slå på det igen under Personer.",
+                "visitor_title": "Blockera den här besökaren",
+                "visitor_description": "Personen kan inte chatta med någon agent i den här arbetsytan förrän blockeringen slutar.",
+                "duration": "Hur länge",
+                "reason": "Orsak",
+                "reason_placeholder": "t.ex. Försökte många gånger få agentens instruktioner",
+                "reason_help": "Bara ditt team ser detta.",
+                "notify": "Berätta för {name} via e-post",
+                "visitor_limits": "Besökare känns igen på nätverk och webbläsare. Andra på samma nätverk med samma webbläsare blockeras också, och ett nytt nätverk eller en ny webbläsare tar sig förbi blockeringen. Du kan se och ta bort blockeringar under Säkerhet.",
+                "chatter_blocked": "Chattare blockerad",
+                "visitor_blocked": "Besökare blockerad",
+                "error": "Kunde inte blockera. Försök igen.",
+                "durations": {
+                    "day": "1 dag",
+                    "week": "7 dagar",
+                    "month": "30 dagar",
+                    "forever": "Tills du tar bort blockeringen"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "Chatthistorik raderas efter så här många dagar. Upp till {max} dagar.",
                 "audit": "Säkerhetsgranskningslogg (dagar)",
                 "audit_help": "Standard {default} dagar, minimum {floor}.",
-                "plan_default": "Standard ({days} dagar)"
+                "plan_default": "Standard ({days} dagar)",
+                "leads": "Leads (dagar)",
+                "leads_help": "Radera leads som är äldre än så här många dagar.",
+                "analytics": "Analys (dagar)",
+                "analytics_help": "Radera analysdata som är äldre än så här många dagar. Minst {floor} dagar.",
+                "anonymize": "Anonymisera besökare efter (dagar)",
+                "anonymize_help": "Rensa besökaruppgifter från chattar som är äldre än så här många dagar — namn, e-post, telefon, IP-adress, fullständig webbläsarsträng, plats och sidlänkar. Meddelanden och enhetstyp behålls. Upp till {max} dagar.",
+                "keep_forever": "Behåll för alltid",
+                "never": "Aldrig"
             },
             "siem": {
                 "title": "SIEM-webhook",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Lämna tomt för att behålla den nuvarande hemligheten",
                 "secret_help": "Används för att HMAC-signera varje leverans så att ditt SIEM kan verifiera den.",
                 "signature_help": "Varje POST signeras med HMAC-SHA256 i X-Chatvia-Signature-headern."
+            },
+            "blocked_visitors": {
+                "title": "Blockerade besökare",
+                "help": "Besökare som inte kan chatta med dina agenter. Du blockerar en besökare från aktiviteten under en agents skyddsräcken.",
+                "visitor": "Besökare · {id}",
+                "browser_on_os": "{browser} på {os}",
+                "on_agent": "På {agent}",
+                "by": "Av {name}",
+                "until": "Till {date}",
+                "until_unblocked": "Tills blockeringen tas bort",
+                "unblock": "Ta bort blockering",
+                "unblocked": "Blockering borttagen",
+                "unblock_error": "Kunde inte ta bort blockeringen. Försök igen.",
+                "empty": "Inga blockerade besökare."
             }
         },
         "security_audit": {

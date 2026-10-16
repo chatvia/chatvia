@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "प्रॉम्प्ट लीक"
+            },
+            "filter_labels": {
+                "email": "ईमेल पता",
+                "credit_card": "क्रेडिट कार्ड",
+                "us_ssn": "अमेरिकी सोशल सिक्योरिटी नंबर",
+                "german_ssn": "जर्मन सामाजिक बीमा नंबर",
+                "danish_cpr": "डेनिश CPR नंबर",
+                "phone": "फ़ोन नंबर",
+                "iban": "बैंक खाता (IBAN)",
+                "uk_nino": "यूके नेशनल इंश्योरेंस नंबर",
+                "ip_address": "IP पता"
+            },
+            "outcome_labels": {
+                "blocked": "अवरुद्ध",
+                "redacted": "छिपाया गया",
+                "flagged": "फ़्लैग किया गया",
+                "skipped": "छोड़ा गया"
+            },
+            "stage_labels": {
+                "input": "संदेश",
+                "source": "नॉलेज",
+                "output": "उत्तर",
+                "tool": "टूल परिणाम"
+            },
+            "severity_labels": {
+                "none": "कोई नहीं",
+                "low": "कम",
+                "medium": "मध्यम",
+                "high": "उच्च"
+            },
+            "allowlist_title": "कभी न छिपाएं",
+            "allowlist_description": "ऐसे मान जिन्हें एजेंट हमेशा दिखा सकता है, जैसे आपका सपोर्ट ईमेल या फ़ोन नंबर। पूरे ईमेल डोमेन की अनुमति देने के लिए {'@'} से शुरू करें, जैसे {'@'}acme.com। बिज़नेस प्रोफ़ाइल में दिया ईमेल और फ़ोन हमेशा अनुमत होते हैं।",
+            "allowlist_placeholder_first": "उदा. support{'@'}acme.com",
+            "allowlist_placeholder_more": "एक और मान जोड़ें",
+            "add_allowlist_value": "मान जोड़ें",
+            "remove_allowlist_value": "मान हटाएं",
+            "allowlist_count": "{count} मान कभी नहीं छिपाया जाता | {count} मान कभी नहीं छिपाए जाते",
+            "all_guards": "सभी गार्ड",
+            "all_outcomes": "सभी परिणाम",
+            "refusal_message_help": "जब कोई गार्ड संदेश रोकता है, तब दिखाया जाता है। सहेजने पर इसका अनुवाद आपके एजेंट की भाषाओं में हो जाता है। डिफ़ॉल्ट संदेश के लिए इसे खाली छोड़ें।",
+            "mode_labels": {
+                "block": "रोकें",
+                "monitor": "केवल लॉग करें"
+            },
+            "sensitivity_labels": {
+                "high": "उच्च: सबसे ज़्यादा रोकता है",
+                "medium": "मध्यम",
+                "low": "कम: सबसे कम रोकता है"
+            },
+            "pii_action_labels": {
+                "mask": "छिपाएं",
+                "block": "संदेश रोकें"
+            },
+            "topic_action_labels": {
+                "refuse": "अस्वीकृति संदेश",
+                "reply": "अपना अलग उत्तर",
+                "handoff": "आपकी टीम का कोई व्यक्ति"
+            },
+            "detail_labels": {
+                "topic": "विषय",
+                "types": "डेटा",
+                "count": "मिले",
+                "categories": "श्रेणियाँ",
+                "tool": "टूल",
+                "pattern": "नियम",
+                "reason": "कारण"
+            },
+            "pii_action": "क्या करें",
+            "pii_action_help": "छिपाएं डेटा को छिपा देता है और चैट चलती रहती है। रोकें संदेश को रोक देता है और विज़िटर से यह जानकारी साझा न करने को कहता है। उत्तरों में यह डेटा हमेशा छिपाया जाता है।",
+            "custom_patterns_title": "आपके अपने पैटर्न",
+            "custom_patterns_description": "रेगुलर एक्सप्रेशन से अन्य निजी डेटा खोजें, जैसे ग्राहक नंबर।",
+            "custom_pattern_name": "नाम",
+            "custom_pattern_name_placeholder": "उदा. ग्राहक नंबर",
+            "custom_pattern": "पैटर्न",
+            "custom_pattern_placeholder": "उदा. CUST-[0-9]+",
+            "add_custom_pattern": "पैटर्न जोड़ें",
+            "remove_custom_pattern": "पैटर्न हटाएं",
+            "topic_name": "विषय",
+            "topic_description": "विवरण",
+            "topic_description_placeholder": "यह विषय किस बारे में है (वैकल्पिक)",
+            "topic_examples": "उदाहरण प्रश्न",
+            "topic_examples_placeholder": "उदाहरण प्रश्न, हर पंक्ति में एक (वैकल्पिक)",
+            "topic_action": "विज़िटर को क्या मिलता है",
+            "topic_handoff_help": "लाइव चैट चालू होने पर चैट विजेट में काम करता है। बाकी जगहों पर विज़िटर को अस्वीकृति संदेश मिलता है।",
+            "topic_handoff_reply_placeholder": "जोड़ते समय दिखने वाला संदेश (वैकल्पिक)",
+            "topic_reply_placeholder": "विज़िटर जो उत्तर पढ़ेगा",
+            "topic_reply": "उत्तर",
+            "mode": "क्या होता है",
+            "sensitivity": "संवेदनशीलता",
+            "mode_help": "केवल लॉग करें चुनने पर गार्ड जो पाता है, उसे बिना रोके दर्ज किया जाता है, ताकि विज़िटर पर असर पड़ने से पहले आप उसे जाँच सकें।",
+            "check_before_showing": "उत्तर दिखाने से पहले जाँचें",
+            "check_before_showing_help": "विज़िटर को उत्तर तभी दिखता है जब गार्ड उसे जाँच लेते हैं। उत्तर थोड़ी देर बाद, एक साथ दिखते हैं।",
+            "alert_owner": "हमलों के बारे में मुझे ईमेल करें",
+            "alert_owner_help": "जब एजेंट अपने निर्देश बदलने की किसी कोशिश को रोके, या जब सुरक्षा जाँच न चल सके, तब ईमेल पाएं। एक घंटे में ज़्यादा से ज़्यादा एक ईमेल।",
+            "test_title": "संदेश जाँचें",
+            "test_description": "देखें कि कॉन्फ़िगरेशन टैब की सेटिंग्स के साथ विज़िटर को क्या मिलेगा, सहेजने से पहले भी। कुछ भी संग्रहीत नहीं होता।",
+            "test_placeholder": "जाँचने के लिए संदेश लिखें",
+            "test_samples": "आज़माएं:",
+            "test_run": "जाँचें",
+            "test_error": "संदेश की जाँच नहीं हो सकी। कृपया फिर से प्रयास करें।",
+            "test_blocked": "अवरुद्ध",
+            "test_allowed": "अनुमति है",
+            "test_handoff": "चैट आपकी टीम के पास जाएगी।",
+            "test_visitor_sees": "विज़िटर को दिखता है",
+            "test_model_reads": "एजेंट पढ़ता है",
+            "test_guards": "गार्ड",
+            "test_no_guards": "किसी गार्ड को कुछ नहीं मिला।",
+            "detail_topic": "विषय: {topic}",
+            "classifier_unavailable": "सुरक्षा जाँच नहीं चल सकी, इसलिए टेक्स्ट की जाँच नहीं हुई।",
+            "open_conversation": "बातचीत खोलें",
             "blocked_topics_dialog_description": "ऐसे विषय जिन पर एजेंट को चर्चा नहीं करनी चाहिए। एक छोटा विवरण और कुछ उदाहरण प्रश्न जाँच को उन्हें पहचानने में मदद करते हैं।"
         }
     }

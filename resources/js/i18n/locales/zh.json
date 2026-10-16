@@ -150,7 +150,8 @@
         "connection_lost": "连接中断",
         "unexpected_response": "意外响应",
         "something_went_wrong": "出错了",
-        "try_again": "重试"
+        "try_again": "重试",
+        "access_blocked": "聊天已被屏蔽"
     },
     "sources": {
         "title": "知识来源",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "已连接 Instagram"
             },
-            "setup_tab": "设置"
+            "setup_tab": "设置",
+            "not_set_up": "此服务器尚未设置。管理员可以在管理面板中开启此渠道。"
         },
         "chatlog": {
             "title": "聊天记录",
@@ -417,7 +419,8 @@
                 "expires_in_months": "{count} 个月后过期 | {count} 个月后过期",
                 "conversations_count": "{count} 个会话 | {count} 个会话",
                 "refresh_conversations": "刷新对话",
-                "remove_filter": "移除筛选"
+                "remove_filter": "移除筛选",
+                "load_more": "加载更多"
             },
             "pagination": {
                 "prev": "上一页",
@@ -464,7 +467,8 @@
                 "qa_matched": "问答匹配",
                 "revised": "已修订的回答",
                 "revise": "修订",
-                "voice": "语音"
+                "voice": "语音",
+                "confidence_help": "表示智能体的知识与此问题的匹配程度，而非回答本身的质量。"
             },
             "details": {
                 "select_conversation": "选择一个会话以查看详情",
@@ -648,7 +652,152 @@
                 "prompt_injection": "提示词注入",
                 "pii": "PII",
                 "blocked_topic": "屏蔽主题",
-                "toxicity": "有害内容"
+                "toxicity": "有害内容",
+                "prompt_leak": "提示词泄露"
+            },
+            "about_title": "什么是防护规则？",
+            "about_body": "防护规则是对智能体聊天的安全检查。它们会在智能体回答前检查访客的每条消息，也会检查智能体写出的每条回答。它们可以隐藏个人数据、阻止诱骗智能体的尝试、屏蔽辱骂性语言，并让智能体不偏离主题。",
+            "about_ai_calls": "PII 检测按固定规则匹配，不会增加 AI 调用。标有“AI 检查”的检查会询问 AI 模型：访客消息一次、回答一次额外调用，即每次回复最多两次。",
+            "ai_check": "AI 检查",
+            "about_aria": "关于防护规则",
+            "about_cost": "所有 AI 检查共用这些调用，因此开启更多检查不会增加调用次数。回复可能会稍慢一些，并消耗更多 AI 令牌。",
+            "test_off": "防护规则已关闭。开启后即可测试消息。",
+            "filter_labels": {
+                "email": "电子邮件地址",
+                "credit_card": "信用卡",
+                "us_ssn": "美国社会安全号码",
+                "german_ssn": "德国社会保险号码",
+                "danish_cpr": "丹麦 CPR 号码",
+                "phone": "电话号码",
+                "iban": "银行账户（IBAN）",
+                "uk_nino": "英国国民保险号码",
+                "ip_address": "IP 地址"
+            },
+            "outcome_labels": {
+                "blocked": "已阻止",
+                "redacted": "已脱敏",
+                "flagged": "已标记",
+                "skipped": "已跳过"
+            },
+            "stage_labels": {
+                "input": "消息",
+                "source": "知识库",
+                "output": "回答",
+                "tool": "工具结果"
+            },
+            "severity_labels": {
+                "none": "无",
+                "low": "低",
+                "medium": "中",
+                "high": "高"
+            },
+            "allowlist_title": "始终不脱敏",
+            "allowlist_description": "智能体始终可以显示的值，例如你的客服邮箱或电话号码。以 {'@'} 开头可允许整个邮箱域名，例如 {'@'}acme.com。企业资料中的邮箱和电话始终允许显示。",
+            "allowlist_placeholder_first": "例如：support{'@'}acme.com",
+            "allowlist_placeholder_more": "添加另一个值",
+            "add_allowlist_value": "添加值",
+            "remove_allowlist_value": "移除值",
+            "allowlist_count": "{count} 个值不脱敏 | {count} 个值不脱敏",
+            "all_guards": "全部防护项",
+            "all_outcomes": "全部结果",
+            "refusal_message_help": "当防护项阻止消息时显示。保存时会将其翻译成智能体使用的各种语言。留空则使用默认消息。",
+            "mode_labels": {
+                "block": "阻止",
+                "monitor": "仅记录"
+            },
+            "sensitivity_labels": {
+                "high": "高：阻止最多",
+                "medium": "中",
+                "low": "低：阻止最少"
+            },
+            "pii_action_labels": {
+                "mask": "脱敏",
+                "block": "阻止消息"
+            },
+            "topic_action_labels": {
+                "refuse": "拒绝提示语",
+                "reply": "单独的回复",
+                "handoff": "你团队中的成员"
+            },
+            "detail_labels": {
+                "topic": "主题",
+                "types": "数据",
+                "count": "发现数",
+                "categories": "类别",
+                "tool": "工具",
+                "pattern": "规则",
+                "reason": "原因"
+            },
+            "pii_action": "处理方式",
+            "pii_action_help": "脱敏会隐藏数据，聊天继续进行。阻止会拦下这条消息，并请访客不要分享这些信息。回答始终会脱敏。",
+            "custom_patterns_title": "自定义模式",
+            "custom_patterns_description": "用正则表达式查找其他个人数据，例如客户编号。",
+            "custom_pattern_name": "名称",
+            "custom_pattern_name_placeholder": "例如：客户编号",
+            "custom_pattern": "模式",
+            "custom_pattern_placeholder": "例如：CUST-[0-9]+",
+            "add_custom_pattern": "添加模式",
+            "remove_custom_pattern": "移除模式",
+            "topic_name": "主题",
+            "topic_description": "描述",
+            "topic_description_placeholder": "该主题涵盖的内容（可选）",
+            "topic_examples": "示例问题",
+            "topic_examples_placeholder": "示例问题，每行一个（可选）",
+            "topic_action": "访客会得到",
+            "topic_handoff_help": "在聊天挂件中开启实时聊天时可用。在其他地方，访客会收到拒绝提示语。",
+            "topic_handoff_reply_placeholder": "转接期间显示的消息（可选）",
+            "topic_reply_placeholder": "访客看到的回复",
+            "topic_reply": "回复",
+            "mode": "触发时的操作",
+            "sensitivity": "灵敏度",
+            "mode_help": "“仅记录”只记录防护项发现的内容而不阻止，方便你在影响访客之前先行检查。",
+            "check_before_showing": "先检查回答再显示",
+            "check_before_showing_help": "访客只会看到经防护项检查后的回答。回答会稍晚一些，并一次性显示。",
+            "alert_owner": "遭受攻击时给我发邮件",
+            "alert_owner_help": "当智能体阻止了试图覆盖其指令的行为，或安全检查无法运行时，你会收到一封邮件。每小时最多一封。",
+            "test_title": "测试消息",
+            "test_description": "即使尚未保存，也能查看访客在“配置”选项卡的设置下会得到什么。不会存储任何内容。",
+            "test_placeholder": "输入要测试的消息",
+            "test_samples": "试试：",
+            "test_run": "测试",
+            "test_error": "无法测试该消息。请重试。",
+            "test_blocked": "已阻止",
+            "test_allowed": "已允许",
+            "test_handoff": "该聊天会转给你的团队。",
+            "test_visitor_sees": "访客看到的内容",
+            "test_model_reads": "智能体读取的内容",
+            "test_guards": "防护项",
+            "test_no_guards": "没有防护项发现任何问题。",
+            "detail_topic": "主题：{topic}",
+            "classifier_unavailable": "安全检查无法运行，因此未检查该文本。",
+            "open_conversation": "打开会话",
+            "block": {
+                "visitor_short": "访客 · {id}",
+                "blocked": "已屏蔽",
+                "recent_attempts": "过去 24 小时内有 {count} 次注入或滥用尝试 | 过去 24 小时内有 {count} 次注入或滥用尝试",
+                "show_all": "查看此访客的全部记录",
+                "clear_visitor": "查看所有访客",
+                "block_chatter": "屏蔽用户",
+                "block_visitor": "屏蔽访客",
+                "chatter_title": "屏蔽 {name}",
+                "chatter_description": "其账号将被停用，并退出此工作区的所有智能体。你可以在人员中重新启用。",
+                "visitor_title": "屏蔽此访客",
+                "visitor_description": "屏蔽结束前，对方无法与此工作区的任何智能体聊天。",
+                "duration": "屏蔽时长",
+                "reason": "原因",
+                "reason_placeholder": "例如：多次试图获取智能体的指令",
+                "reason_help": "只有你的团队能看到。",
+                "notify": "通过邮件通知 {name}",
+                "visitor_limits": "访客通过网络和浏览器识别。同一网络中使用相同浏览器的其他人也会被屏蔽，换用新的网络或浏览器即可绕过屏蔽。你可以在安全中查看和解除屏蔽。",
+                "chatter_blocked": "已屏蔽用户",
+                "visitor_blocked": "已屏蔽访客",
+                "error": "无法屏蔽，请重试。",
+                "durations": {
+                    "day": "1 天",
+                    "week": "7 天",
+                    "month": "30 天",
+                    "forever": "直到你解除屏蔽"
+                }
             }
         },
         "persona": {
@@ -928,7 +1077,9 @@
                 "notify_hint": "当智能体达到此限制时接收一封电子邮件。",
                 "save": "保存",
                 "saved": "速率限制已保存",
-                "save_error": "无法保存速率限制，请重试。"
+                "save_error": "无法保存速率限制，请重试。",
+                "visitor_messages_per_minute": "每分钟消息数（单个访客）",
+                "visitor_hint": "单个访客每分钟最多可发送的消息数。超出的访客需要等待，其他访客可以继续聊天。"
             }
         },
         "tone": {
@@ -1022,7 +1173,8 @@
                 "remove_from_agent": "从智能体中移除",
                 "used_in_agents": "（在 {count} 个智能体中使用）",
                 "delete_from_knowledge_base": "从知识库中删除",
-                "agents_count": "{count} 个智能体"
+                "agents_count": "{count} 个智能体",
+                "load_more": "加载更多"
             },
             "page_title": {
                 "sources": "来源",
@@ -1619,7 +1771,9 @@
                 "avatar_upload_error": "无法上传头像",
                 "logo_upload_error": "无法上传 Logo",
                 "avatar_remove_error": "无法移除头像",
-                "logo_remove_error": "无法移除 Logo"
+                "logo_remove_error": "无法移除 Logo",
+                "replies_saved": "回复选项已保存",
+                "replies_error": "无法保存回复选项"
             },
             "settings": {
                 "composer_title": "输入框选项",
@@ -1669,7 +1823,11 @@
                 "voice_conversation_help_2": "每条语音回答计为一条消息。语音通话的运行成本远高于文字聊天。",
                 "voice_label": "声音",
                 "voice_default": "默认（{voice}）",
-                "voice_input_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启语音转文字。"
+                "voice_input_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启语音转文字。",
+                "replies_title": "回复",
+                "replies_description": "选择在每条回答下方显示的内容。",
+                "show_sources_label": "显示来源",
+                "show_sources_hint": "在每条回答下方显示一个按钮，列出该回答用到的知识。"
             },
             "bubbles_title": "聊天气泡",
             "bubbles_description": "显示在挂件启动器旁的快捷消息提示。",
@@ -1822,7 +1980,12 @@
             "bubbles_add": "添加气泡",
             "bubbles_remove": "移除气泡",
             "bubbles_empty": "暂无聊天气泡。",
-            "bubbles_translate_empty": "请先添加气泡，然后再进行翻译。"
+            "bubbles_translate_empty": "请先添加气泡，然后再进行翻译。",
+            "model_picker_title": "模型",
+            "model_picker_description": "此智能体用来回答的 AI 模型。由管理员决定这个列表中有哪些模型（管理面板 → Settings → AI models）。",
+            "model_placeholder": "选择模型",
+            "model_default": "默认",
+            "model_empty": "暂无模型。管理员可在管理面板的 Settings → AI models 中添加。"
         },
         "topics_index": {
             "title": "主题",
@@ -3054,7 +3217,15 @@
                 "conversations_help": "聊天历史将在此天数后被删除。最多 {max} 天。",
                 "audit": "安全审计日志（天）",
                 "audit_help": "默认 {default} 天，最少 {floor}。",
-                "plan_default": "默认（{days} 天）"
+                "plan_default": "默认（{days} 天）",
+                "leads": "线索（天）",
+                "leads_help": "删除早于此天数的线索。",
+                "analytics": "分析（天）",
+                "analytics_help": "删除早于此天数的分析数据。至少 {floor} 天。",
+                "anonymize": "访客匿名化时间（天）",
+                "anonymize_help": "清除早于此天数的聊天中的访客信息——姓名、邮箱、电话、IP 地址、完整浏览器标识、位置和页面链接。消息和设备类型会保留。最多 {max} 天。",
+                "keep_forever": "永久保留",
+                "never": "从不"
             },
             "siem": {
                 "title": "SIEM Webhook",
@@ -3064,6 +3235,20 @@
                 "secret_placeholder": "留空以保留当前密钥",
                 "secret_help": "用于对每次投递进行 HMAC 签名，以便您的 SIEM 验证。",
                 "signature_help": "每个 POST 请求都使用 HMAC-SHA256 在 X-Chatvia-Signature 标头中签名。"
+            },
+            "blocked_visitors": {
+                "title": "已屏蔽的访客",
+                "help": "无法与你的智能体聊天的访客。你可以在智能体的防护规则活动中屏蔽访客。",
+                "visitor": "访客 · {id}",
+                "browser_on_os": "{os} 上的 {browser}",
+                "on_agent": "智能体：{agent}",
+                "by": "操作人：{name}",
+                "until": "至 {date}",
+                "until_unblocked": "直到解除屏蔽",
+                "unblock": "解除屏蔽",
+                "unblocked": "已解除访客屏蔽",
+                "unblock_error": "无法解除屏蔽，请重试。",
+                "empty": "没有被屏蔽的访客。"
             }
         },
         "security_audit": {

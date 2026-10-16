@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "提示词泄露"
+            },
+            "filter_labels": {
+                "email": "电子邮件地址",
+                "credit_card": "信用卡",
+                "us_ssn": "美国社会安全号码",
+                "german_ssn": "德国社会保险号码",
+                "danish_cpr": "丹麦 CPR 号码",
+                "phone": "电话号码",
+                "iban": "银行账户（IBAN）",
+                "uk_nino": "英国国民保险号码",
+                "ip_address": "IP 地址"
+            },
+            "outcome_labels": {
+                "blocked": "已阻止",
+                "redacted": "已脱敏",
+                "flagged": "已标记",
+                "skipped": "已跳过"
+            },
+            "stage_labels": {
+                "input": "消息",
+                "source": "知识库",
+                "output": "回答",
+                "tool": "工具结果"
+            },
+            "severity_labels": {
+                "none": "无",
+                "low": "低",
+                "medium": "中",
+                "high": "高"
+            },
+            "allowlist_title": "始终不脱敏",
+            "allowlist_description": "智能体始终可以显示的值，例如你的客服邮箱或电话号码。以 {'@'} 开头可允许整个邮箱域名，例如 {'@'}acme.com。企业资料中的邮箱和电话始终允许显示。",
+            "allowlist_placeholder_first": "例如：support{'@'}acme.com",
+            "allowlist_placeholder_more": "添加另一个值",
+            "add_allowlist_value": "添加值",
+            "remove_allowlist_value": "移除值",
+            "allowlist_count": "{count} 个值不脱敏 | {count} 个值不脱敏",
+            "all_guards": "全部防护项",
+            "all_outcomes": "全部结果",
+            "refusal_message_help": "当防护项阻止消息时显示。保存时会将其翻译成智能体使用的各种语言。留空则使用默认消息。",
+            "mode_labels": {
+                "block": "阻止",
+                "monitor": "仅记录"
+            },
+            "sensitivity_labels": {
+                "high": "高：阻止最多",
+                "medium": "中",
+                "low": "低：阻止最少"
+            },
+            "pii_action_labels": {
+                "mask": "脱敏",
+                "block": "阻止消息"
+            },
+            "topic_action_labels": {
+                "refuse": "拒绝提示语",
+                "reply": "单独的回复",
+                "handoff": "你团队中的成员"
+            },
+            "detail_labels": {
+                "topic": "主题",
+                "types": "数据",
+                "count": "发现数",
+                "categories": "类别",
+                "tool": "工具",
+                "pattern": "规则",
+                "reason": "原因"
+            },
+            "pii_action": "处理方式",
+            "pii_action_help": "脱敏会隐藏数据，聊天继续进行。阻止会拦下这条消息，并请访客不要分享这些信息。回答始终会脱敏。",
+            "custom_patterns_title": "自定义模式",
+            "custom_patterns_description": "用正则表达式查找其他个人数据，例如客户编号。",
+            "custom_pattern_name": "名称",
+            "custom_pattern_name_placeholder": "例如：客户编号",
+            "custom_pattern": "模式",
+            "custom_pattern_placeholder": "例如：CUST-[0-9]+",
+            "add_custom_pattern": "添加模式",
+            "remove_custom_pattern": "移除模式",
+            "topic_name": "主题",
+            "topic_description": "描述",
+            "topic_description_placeholder": "该主题涵盖的内容（可选）",
+            "topic_examples": "示例问题",
+            "topic_examples_placeholder": "示例问题，每行一个（可选）",
+            "topic_action": "访客会得到",
+            "topic_handoff_help": "在聊天挂件中开启实时聊天时可用。在其他地方，访客会收到拒绝提示语。",
+            "topic_handoff_reply_placeholder": "转接期间显示的消息（可选）",
+            "topic_reply_placeholder": "访客看到的回复",
+            "topic_reply": "回复",
+            "mode": "触发时的操作",
+            "sensitivity": "灵敏度",
+            "mode_help": "“仅记录”只记录防护项发现的内容而不阻止，方便你在影响访客之前先行检查。",
+            "check_before_showing": "先检查回答再显示",
+            "check_before_showing_help": "访客只会看到经防护项检查后的回答。回答会稍晚一些，并一次性显示。",
+            "alert_owner": "遭受攻击时给我发邮件",
+            "alert_owner_help": "当智能体阻止了试图覆盖其指令的行为，或安全检查无法运行时，你会收到一封邮件。每小时最多一封。",
+            "test_title": "测试消息",
+            "test_description": "即使尚未保存，也能查看访客在“配置”选项卡的设置下会得到什么。不会存储任何内容。",
+            "test_placeholder": "输入要测试的消息",
+            "test_samples": "试试：",
+            "test_run": "测试",
+            "test_error": "无法测试该消息。请重试。",
+            "test_blocked": "已阻止",
+            "test_allowed": "已允许",
+            "test_handoff": "该聊天会转给你的团队。",
+            "test_visitor_sees": "访客看到的内容",
+            "test_model_reads": "智能体读取的内容",
+            "test_guards": "防护项",
+            "test_no_guards": "没有防护项发现任何问题。",
+            "detail_topic": "主题：{topic}",
+            "classifier_unavailable": "安全检查无法运行，因此未检查该文本。",
+            "open_conversation": "打开会话",
             "blocked_topics_dialog_description": "智能体不得讨论的主题。简短的描述和几个示例问题有助于检查识别它们。"
         }
     }

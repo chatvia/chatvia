@@ -1,0 +1,16 @@
+{
+    "workspace": {
+        "security": {
+            "retention": {
+                "leads": "리드 (일)",
+                "leads_help": "이 일수보다 오래된 리드를 삭제합니다.",
+                "analytics": "분석 (일)",
+                "analytics_help": "이 일수보다 오래된 분석 데이터를 삭제합니다. 최소 {floor}일입니다.",
+                "anonymize": "방문자 익명화 시점 (일)",
+                "anonymize_help": "이 일수보다 오래된 채팅에서 방문자 정보를 지웁니다 — 이름, 이메일, 전화번호, IP 주소, 전체 브라우저 문자열, 위치, 페이지 링크. 메시지와 기기 유형은 유지됩니다. 최대 {max}일입니다.",
+                "keep_forever": "영구 보관",
+                "never": "안 함"
+            }
+        }
+    }
+}

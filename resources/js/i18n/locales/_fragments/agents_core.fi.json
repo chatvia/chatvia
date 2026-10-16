@@ -170,6 +170,7 @@
                 "no_results": "Mikään viesti ei vastaa hakuasi",
                 "clear_search": "Tyhjennä haku",
                 "confidence": "{percent}% luottamus",
+                "confidence_help": "Kuinka hyvin agentin tietämys vastasi tätä kysymystä — ei sitä, kuinka hyvä vastaus on.",
                 "tokens": "{count} tokenia",
                 "tokens_breakdown": "Kehote: {prompt} · Täydennys: {completion}",
                 "playground": "Testiympäristö",

@@ -1,0 +1,16 @@
+{
+    "workspace": {
+        "security": {
+            "retention": {
+                "leads": "Potansiyel müşteriler (gün)",
+                "leads_help": "Bu kadar günden eski potansiyel müşterileri silin.",
+                "analytics": "Analitik (gün)",
+                "analytics_help": "Bu kadar günden eski analitik verilerini silin. En az {floor} gün.",
+                "anonymize": "Ziyaretçileri anonimleştirme süresi (gün)",
+                "anonymize_help": "Bu kadar günden eski sohbetlerden ziyaretçi bilgilerini temizleyin — ad, e-posta, telefon, IP adresi, tam tarayıcı dizesi, konum ve sayfa bağlantıları. Mesajlar ve cihaz türü saklanır. En fazla {max} gün.",
+                "keep_forever": "Süresiz sakla",
+                "never": "Hiçbir zaman"
+            }
+        }
+    }
+}

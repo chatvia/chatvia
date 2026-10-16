@@ -1,0 +1,16 @@
+{
+    "workspace": {
+        "security": {
+            "retention": {
+                "leads": "线索（天）",
+                "leads_help": "删除早于此天数的线索。",
+                "analytics": "分析（天）",
+                "analytics_help": "删除早于此天数的分析数据。至少 {floor} 天。",
+                "anonymize": "访客匿名化时间（天）",
+                "anonymize_help": "清除早于此天数的聊天中的访客信息——姓名、邮箱、电话、IP 地址、完整浏览器标识、位置和页面链接。消息和设备类型会保留。最多 {max} 天。",
+                "keep_forever": "永久保留",
+                "never": "从不"
+            }
+        }
+    }
+}

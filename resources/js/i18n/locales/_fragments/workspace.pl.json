@@ -301,6 +301,18 @@
             "api_keys": "Klucze API",
             "prompts": "Prompty",
             "members": "Czatowicze"
+        },
+        "security": {
+            "retention": {
+                "leads": "Leady (dni)",
+                "leads_help": "Usuwaj leady starsze niż tyle dni.",
+                "analytics": "Analityka (dni)",
+                "analytics_help": "Usuwaj dane analityczne starsze niż tyle dni. Co najmniej {floor} dni.",
+                "anonymize": "Anonimizuj odwiedzających po (dniach)",
+                "anonymize_help": "Usuwa dane odwiedzających z czatów starszych niż tyle dni — imię, e-mail, telefon, adres IP, pełny ciąg przeglądarki, lokalizację i linki do stron. Wiadomości i typ urządzenia zostają zachowane. Maksymalnie {max} dni.",
+                "keep_forever": "Przechowuj zawsze",
+                "never": "Nigdy"
+            }
         }
     }
 }

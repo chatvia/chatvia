@@ -108,7 +108,7 @@
             "alert_owner": "Mejla mig om attacker",
             "alert_owner_help": "Få ett mejl när agenten blockerar ett försök att kringgå sina instruktioner, eller när säkerhetskontrollen inte kan köras. Högst ett mejl i timmen.",
             "test_title": "Testa ett meddelande",
-            "test_description": "Se vad en besökare skulle få med inställningarna ovan, innan du sparar. Inget sparas.",
+            "test_description": "Se vad en besökare skulle få med inställningarna under Konfiguration, även innan du sparar. Inget sparas.",
             "test_placeholder": "Skriv ett meddelande att testa",
             "test_samples": "Prova:",
             "test_run": "Testa",

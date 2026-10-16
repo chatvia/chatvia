@@ -1,6 +1,21 @@
 {
     "agents": {
         "setup": {
+            "toasts": {
+                "replies_saved": "返信オプションを保存しました",
+                "replies_error": "返信オプションを保存できませんでした"
+            },
+            "settings": {
+                "replies_title": "返信",
+                "replies_description": "各回答の下に表示する内容を選びます。",
+                "show_sources_label": "ソースを表示",
+                "show_sources_hint": "各回答の下に、使用したナレッジを一覧表示するボタンを表示します。"
+            },
+            "model_picker_title": "モデル",
+            "model_picker_description": "このエージェントが回答に使うAIモデルです。このリストに載せるモデルは管理者が選びます（管理パネル → Settings → AI models）。",
+            "model_placeholder": "モデルを選択",
+            "model_default": "デフォルト",
+            "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。",
             "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。"
         }
     }

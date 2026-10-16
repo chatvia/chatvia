@@ -170,6 +170,7 @@
                 "no_results": "Nenhuma mensagem corresponde à sua pesquisa",
                 "clear_search": "Limpar pesquisa",
                 "confidence": "{percent}% de confiança",
+                "confidence_help": "Quão bem o conhecimento do agente correspondeu a esta pergunta — não quão boa é a resposta.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Prompt: {prompt} · Conclusão: {completion}",
                 "playground": "Playground",

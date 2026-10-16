@@ -108,7 +108,7 @@
             "alert_owner": "Ilmoita hyökkäyksistä sähköpostilla",
             "alert_owner_help": "Saat sähköpostin, kun agentti estää yrityksen ohittaa sen ohjeet tai kun turvatarkistus ei voi toimia. Enintään yksi sähköposti tunnissa.",
             "test_title": "Testaa viesti",
-            "test_description": "Katso, mitä kävijä saisi yllä olevilla asetuksilla, ennen tallentamista. Mitään ei tallenneta.",
+            "test_description": "Katso, mitä kävijä saisi Määritys-välilehden asetuksilla, jo ennen tallentamista. Mitään ei tallenneta.",
             "test_placeholder": "Kirjoita testattava viesti",
             "test_samples": "Kokeile:",
             "test_run": "Testaa",

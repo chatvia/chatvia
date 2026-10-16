@@ -108,7 +108,7 @@
             "alert_owner": "M’avertir des attaques par e-mail",
             "alert_owner_help": "Recevez un e-mail quand l’agent bloque une tentative de contourner ses instructions, ou quand la vérification de sécurité ne peut pas s’exécuter. Au plus un e-mail par heure.",
             "test_title": "Tester un message",
-            "test_description": "Voyez ce qu’un visiteur recevrait avec les réglages ci-dessus, avant d’enregistrer. Rien n’est conservé.",
+            "test_description": "Voyez ce qu’un visiteur recevrait avec les réglages de l’onglet Configuration, même avant d’enregistrer. Rien n’est conservé.",
             "test_placeholder": "Saisissez un message à tester",
             "test_samples": "Essayez :",
             "test_run": "Tester",

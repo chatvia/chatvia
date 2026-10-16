@@ -1,6 +1,21 @@
 {
     "agents": {
         "setup": {
+            "toasts": {
+                "replies_saved": "답변 옵션이 저장되었습니다",
+                "replies_error": "답변 옵션을 저장하지 못했습니다"
+            },
+            "settings": {
+                "replies_title": "답변",
+                "replies_description": "각 답변 아래에 표시할 항목을 선택하세요.",
+                "show_sources_label": "소스 표시",
+                "show_sources_hint": "각 답변 아래에 사용된 지식을 보여 주는 버튼을 표시합니다."
+            },
+            "model_picker_title": "모델",
+            "model_picker_description": "이 에이전트가 답변에 사용하는 AI 모델입니다. 이 목록에 들어갈 모델은 관리자가 선택합니다(관리자 패널 → Settings → AI models).",
+            "model_placeholder": "모델 선택",
+            "model_default": "기본값",
+            "model_empty": "아직 모델이 없습니다. 관리자가 관리자 패널의 Settings → AI models에서 추가합니다.",
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다."
         }
     }

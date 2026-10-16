@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "Rò rỉ câu lệnh"
+            },
+            "filter_labels": {
+                "email": "Địa chỉ email",
+                "credit_card": "Thẻ tín dụng",
+                "us_ssn": "Số An sinh Xã hội Hoa Kỳ",
+                "german_ssn": "Số bảo hiểm xã hội Đức",
+                "danish_cpr": "Số CPR Đan Mạch",
+                "phone": "Số điện thoại",
+                "iban": "Tài khoản ngân hàng (IBAN)",
+                "uk_nino": "Số Bảo hiểm Quốc gia Anh",
+                "ip_address": "Địa chỉ IP"
+            },
+            "outcome_labels": {
+                "blocked": "Đã chặn",
+                "redacted": "Đã ẩn",
+                "flagged": "Đã gắn cờ",
+                "skipped": "Đã bỏ qua"
+            },
+            "stage_labels": {
+                "input": "Tin nhắn",
+                "source": "Kiến thức",
+                "output": "Câu trả lời",
+                "tool": "Kết quả công cụ"
+            },
+            "severity_labels": {
+                "none": "Không có",
+                "low": "Thấp",
+                "medium": "Vừa",
+                "high": "Cao"
+            },
+            "allowlist_title": "Không bao giờ ẩn",
+            "allowlist_description": "Những giá trị trợ lý AI luôn được phép hiển thị, như email hoặc số điện thoại hỗ trợ của bạn. Bắt đầu bằng {'@'} để cho phép cả một tên miền email, ví dụ {'@'}acme.com. Email và số điện thoại trong hồ sơ doanh nghiệp luôn được cho phép.",
+            "allowlist_placeholder_first": "ví dụ: support{'@'}acme.com",
+            "allowlist_placeholder_more": "Thêm giá trị khác",
+            "add_allowlist_value": "Thêm giá trị",
+            "remove_allowlist_value": "Xóa giá trị",
+            "allowlist_count": "{count} giá trị không bao giờ bị ẩn | {count} giá trị không bao giờ bị ẩn",
+            "all_guards": "Tất cả bộ bảo vệ",
+            "all_outcomes": "Tất cả kết quả",
+            "refusal_message_help": "Hiển thị khi một bộ bảo vệ chặn tin nhắn. Khi lưu, tin nhắn sẽ được dịch sang các ngôn ngữ của trợ lý AI. Để trống để dùng tin nhắn mặc định.",
+            "mode_labels": {
+                "block": "Chặn",
+                "monitor": "Chỉ ghi nhật ký"
+            },
+            "sensitivity_labels": {
+                "high": "Cao: chặn nhiều nhất",
+                "medium": "Vừa",
+                "low": "Thấp: chặn ít nhất"
+            },
+            "pii_action_labels": {
+                "mask": "Ẩn",
+                "block": "Chặn tin nhắn"
+            },
+            "topic_action_labels": {
+                "refuse": "Tin nhắn từ chối",
+                "reply": "Một câu trả lời riêng",
+                "handoff": "Một người trong nhóm của bạn"
+            },
+            "detail_labels": {
+                "topic": "Chủ đề",
+                "types": "Dữ liệu",
+                "count": "Tìm thấy",
+                "categories": "Danh mục",
+                "tool": "Công cụ",
+                "pattern": "Quy tắc",
+                "reason": "Lý do"
+            },
+            "pii_action": "Cách xử lý",
+            "pii_action_help": "Ẩn sẽ che dữ liệu và cuộc trò chuyện vẫn tiếp tục. Chặn sẽ dừng tin nhắn và đề nghị khách truy cập không chia sẻ thông tin đó. Dữ liệu trong câu trả lời luôn được ẩn.",
+            "custom_patterns_title": "Mẫu của riêng bạn",
+            "custom_patterns_description": "Tìm dữ liệu cá nhân khác, như mã khách hàng, bằng biểu thức chính quy.",
+            "custom_pattern_name": "Tên",
+            "custom_pattern_name_placeholder": "ví dụ: Mã khách hàng",
+            "custom_pattern": "Mẫu",
+            "custom_pattern_placeholder": "ví dụ: CUST-[0-9]+",
+            "add_custom_pattern": "Thêm mẫu",
+            "remove_custom_pattern": "Xóa mẫu",
+            "topic_name": "Chủ đề",
+            "topic_description": "Mô tả",
+            "topic_description_placeholder": "Chủ đề này bao gồm những gì (không bắt buộc)",
+            "topic_examples": "Câu hỏi ví dụ",
+            "topic_examples_placeholder": "Câu hỏi ví dụ, mỗi dòng một câu (không bắt buộc)",
+            "topic_action": "Khách truy cập nhận được",
+            "topic_handoff_help": "Hoạt động trong Chat Widget khi trò chuyện trực tiếp đang bật. Ở nơi khác, khách truy cập nhận được tin nhắn từ chối.",
+            "topic_handoff_reply_placeholder": "Tin nhắn trong lúc chúng tôi kết nối (không bắt buộc)",
+            "topic_reply_placeholder": "Câu trả lời khách truy cập sẽ đọc",
+            "topic_reply": "Câu trả lời",
+            "mode": "Điều gì xảy ra",
+            "sensitivity": "Độ nhạy",
+            "mode_help": "Chỉ ghi nhật ký sẽ ghi lại những gì bộ bảo vệ phát hiện mà không chặn, để bạn kiểm tra trước khi ảnh hưởng đến khách truy cập.",
+            "check_before_showing": "Kiểm tra câu trả lời trước khi hiển thị",
+            "check_before_showing_help": "Khách truy cập chỉ thấy câu trả lời sau khi các bộ bảo vệ đã kiểm tra. Câu trả lời xuất hiện chậm hơn một chút và hiện ra cùng lúc.",
+            "alert_owner": "Gửi email cho tôi khi có tấn công",
+            "alert_owner_help": "Nhận email khi trợ lý AI chặn một nỗ lực ghi đè hướng dẫn của nó, hoặc khi bước kiểm tra an toàn không chạy được. Tối đa một email mỗi giờ.",
+            "test_title": "Thử một tin nhắn",
+            "test_description": "Xem khách truy cập sẽ nhận được gì với các thiết lập ở tab Cấu hình, ngay cả trước khi bạn lưu. Không có gì được lưu lại.",
+            "test_placeholder": "Nhập tin nhắn để thử",
+            "test_samples": "Thử:",
+            "test_run": "Thử",
+            "test_error": "Không thể thử tin nhắn. Vui lòng thử lại.",
+            "test_blocked": "Đã chặn",
+            "test_allowed": "Được phép",
+            "test_handoff": "Cuộc trò chuyện sẽ được chuyển cho nhóm của bạn.",
+            "test_visitor_sees": "Khách truy cập thấy",
+            "test_model_reads": "Trợ lý AI đọc",
+            "test_guards": "Bộ bảo vệ",
+            "test_no_guards": "Không bộ bảo vệ nào phát hiện điều gì.",
+            "detail_topic": "Chủ đề: {topic}",
+            "classifier_unavailable": "Bước kiểm tra an toàn không chạy được, nên văn bản chưa được kiểm tra.",
+            "open_conversation": "Mở cuộc trò chuyện",
             "blocked_topics_dialog_description": "Các chủ đề mà trợ lý AI không được thảo luận. Một mô tả ngắn và vài câu hỏi ví dụ giúp bước kiểm tra nhận ra chúng."
         }
     }

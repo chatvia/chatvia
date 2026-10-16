@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "sources": {
+            "common": {
+                "load_more": "더 불러오기"
+            }
+        }
+    }
+}

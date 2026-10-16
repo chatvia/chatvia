@@ -108,7 +108,7 @@
             "alert_owner": "Send meg e-post om angrep",
             "alert_owner_help": "Få en e-post når agenten blokkerer et forsøk på å omgå instruksjonene sine, eller når sikkerhetssjekken ikke kan kjøre. Høyst én e-post i timen.",
             "test_title": "Test en melding",
-            "test_description": "Se hva en besøkende ville fått med innstillingene over, før du lagrer. Ingenting lagres.",
+            "test_description": "Se hva en besøkende ville fått med innstillingene under Konfigurasjon, også før du lagrer. Ingenting lagres.",
             "test_placeholder": "Skriv en melding å teste",
             "test_samples": "Prøv:",
             "test_run": "Test",

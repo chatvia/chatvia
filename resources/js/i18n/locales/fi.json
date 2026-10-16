@@ -150,7 +150,8 @@
         "connection_lost": "Yhteys katkesi",
         "unexpected_response": "Odottamaton vastaus",
         "something_went_wrong": "Jokin meni pieleen",
-        "try_again": "Yritä uudelleen"
+        "try_again": "Yritä uudelleen",
+        "access_blocked": "Keskustelu estetty"
     },
     "sources": {
         "title": "Tietolähteet",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram yhdistetty"
             },
-            "setup_tab": "Asennus"
+            "setup_tab": "Asennus",
+            "not_set_up": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa tämän kanavan käyttöön hallintapaneelissa."
         },
         "chatlog": {
             "title": "Chatloki",
@@ -465,7 +467,8 @@
                 "qa_matched": "K&V-osuma",
                 "revised": "Tarkistettu vastaus",
                 "revise": "Tarkista",
-                "voice": "Puhe"
+                "voice": "Puhe",
+                "confidence_help": "Kuinka hyvin agentin tietämys vastasi tätä kysymystä — ei sitä, kuinka hyvä vastaus on."
             },
             "details": {
                 "select_conversation": "Valitse keskustelu nähdäksesi tiedot",
@@ -746,7 +749,7 @@
             "alert_owner": "Ilmoita hyökkäyksistä sähköpostilla",
             "alert_owner_help": "Saat sähköpostin, kun agentti estää yrityksen ohittaa sen ohjeet tai kun turvatarkistus ei voi toimia. Enintään yksi sähköposti tunnissa.",
             "test_title": "Testaa viesti",
-            "test_description": "Katso, mitä kävijä saisi yllä olevilla asetuksilla, ennen tallentamista. Mitään ei tallenneta.",
+            "test_description": "Katso, mitä kävijä saisi Määritys-välilehden asetuksilla, jo ennen tallentamista. Mitään ei tallenneta.",
             "test_placeholder": "Kirjoita testattava viesti",
             "test_samples": "Kokeile:",
             "test_run": "Testaa",
@@ -760,7 +763,42 @@
             "test_no_guards": "Mikään suojaus ei löytänyt mitään.",
             "detail_topic": "Aihe: {topic}",
             "classifier_unavailable": "Turvatarkistus ei voinut toimia, joten tekstiä ei tarkistettu.",
-            "open_conversation": "Avaa keskustelu"
+            "open_conversation": "Avaa keskustelu",
+            "about_title": "Mitä turvarajat ovat?",
+            "about_body": "Turvarajat ovat agenttisi keskustelujen turvatarkistuksia. Ne tarkistavat jokaisen kävijän viestin ennen kuin agentti vastaa, sekä jokaisen agentin kirjoittaman vastauksen. Ne voivat piilottaa henkilötietoja, pysäyttää yritykset huijata agenttia, estää loukkaavan kielen ja pitää agentin aiheessa.",
+            "about_ai_calls": "Henkilötietojen havaitseminen käyttää kiinteitä kaavoja eikä lisää tekoälykutsuja. Tarkistukset, joissa on merkintä ”Tekoälytarkistus”, kysyvät tekoälymallilta: yksi lisäkutsu kävijän viestille ja yksi vastaukselle, eli enintään kaksi vastausta kohden.",
+            "ai_check": "Tekoälytarkistus",
+            "about_aria": "Tietoa turvarajoista",
+            "about_cost": "Kaikki tekoälytarkistukset jakavat nämä kutsut, joten useamman tarkistuksen käyttöön ottaminen ei lisää kutsuja. Vastaukset voivat viipyä hieman pidempään ja kuluttaa enemmän tekoälytokeneita.",
+            "test_off": "Turvarajat ovat pois päältä. Ota ne käyttöön testataksesi viestiä.",
+            "block": {
+                "visitor_short": "Kävijä · {id}",
+                "blocked": "Estetty",
+                "recent_attempts": "{count} injektio- tai väärinkäyttöyritys viimeisten 24 tunnin aikana | {count} injektio- tai väärinkäyttöyritystä viimeisten 24 tunnin aikana",
+                "show_all": "Näytä kaikki tältä kävijältä",
+                "clear_visitor": "Näytä kaikki kävijät",
+                "block_chatter": "Estä chatteri",
+                "block_visitor": "Estä kävijä",
+                "chatter_title": "Estä {name}",
+                "chatter_description": "Tili poistetaan käytöstä, ja hänet kirjataan ulos kaikista tämän työtilan agenteista. Voit ottaa tilin uudelleen käyttöön kohdassa Henkilöt.",
+                "visitor_title": "Estä tämä kävijä",
+                "visitor_description": "Hän ei voi keskustella minkään tämän työtilan agentin kanssa ennen kuin esto päättyy.",
+                "duration": "Kuinka kauan",
+                "reason": "Syy",
+                "reason_placeholder": "esim. Yritti monta kertaa saada agentin ohjeet",
+                "reason_help": "Vain tiimisi näkee tämän.",
+                "notify": "Kerro {name} sähköpostilla",
+                "visitor_limits": "Kävijät tunnistetaan verkon ja selaimen perusteella. Myös muut samassa verkossa samalla selaimella estetään, ja uudella verkolla tai selaimella eston voi kiertää. Estot näet ja poistat kohdassa Tietoturva.",
+                "chatter_blocked": "Chatteri estetty",
+                "visitor_blocked": "Kävijä estetty",
+                "error": "Estäminen epäonnistui. Yritä uudelleen.",
+                "durations": {
+                    "day": "1 päivä",
+                    "week": "7 päivää",
+                    "month": "30 päivää",
+                    "forever": "Kunnes poistat eston"
+                }
+            }
         },
         "persona": {
             "title": "Persoona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "Keskusteluhistoria poistetaan näin monen päivän jälkeen. Enintään {max} päivää.",
                 "audit": "Suojaustarkastusloki (päivää)",
                 "audit_help": "Oletus {default} päivää, vähintään {floor}.",
-                "plan_default": "Oletus ({days} päivää)"
+                "plan_default": "Oletus ({days} päivää)",
+                "leads": "Liidit (päivää)",
+                "leads_help": "Poista liidit, jotka ovat vanhempia kuin näin monta päivää.",
+                "analytics": "Analytiikka (päivää)",
+                "analytics_help": "Poista analytiikka, joka on vanhempaa kuin näin monta päivää. Vähintään {floor} päivää.",
+                "anonymize": "Anonymisoi kävijät (päivän kuluttua)",
+                "anonymize_help": "Poista kävijän tiedot keskusteluista, jotka ovat vanhempia kuin näin monta päivää — nimi, sähköposti, puhelin, IP-osoite, koko selainmerkkijono, sijainti ja sivulinkit. Viestit ja laitetyyppi säilytetään. Enintään {max} päivää.",
+                "keep_forever": "Säilytä aina",
+                "never": "Ei koskaan"
             },
             "siem": {
                 "title": "SIEM-webhook",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Jätä tyhjäksi säilyttääksesi nykyisen salaisuuden",
                 "secret_help": "Käytetään jokaisen toimituksen HMAC-allekirjoitukseen, jotta SIEM-järjestelmäsi voi varmistaa sen.",
                 "signature_help": "Jokainen POST allekirjoitetaan HMAC-SHA256:lla X-Chatvia-Signature-otsikossa."
+            },
+            "blocked_visitors": {
+                "title": "Estetyt kävijät",
+                "help": "Kävijät, jotka eivät voi keskustella agenttiesi kanssa. Kävijä estetään agentin turvarajojen toiminnasta.",
+                "visitor": "Kävijä · {id}",
+                "browser_on_os": "{browser}, {os}",
+                "on_agent": "Agentti: {agent}",
+                "by": "Estäjä: {name}",
+                "until": "{date} asti",
+                "until_unblocked": "Kunnes esto poistetaan",
+                "unblock": "Poista esto",
+                "unblocked": "Esto poistettu",
+                "unblock_error": "Eston poistaminen epäonnistui. Yritä uudelleen.",
+                "empty": "Ei estettyjä kävijöitä."
             }
         },
         "security_audit": {

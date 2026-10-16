@@ -150,7 +150,8 @@
         "connection_lost": "Connexion perdue",
         "unexpected_response": "Réponse inattendue",
         "something_went_wrong": "Une erreur s'est produite",
-        "try_again": "Réessayer"
+        "try_again": "Réessayer",
+        "access_blocked": "Discussion bloquée"
     },
     "sources": {
         "title": "Sources de connaissances",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram connecté"
             },
-            "setup_tab": "Configuration"
+            "setup_tab": "Configuration",
+            "not_set_up": "Non configuré sur ce serveur. Un administrateur peut activer ce canal dans le panneau d'administration."
         },
         "chatlog": {
             "title": "Journal de conversation",
@@ -465,7 +467,8 @@
                 "qa_matched": "Correspondance Q&R",
                 "revised": "Réponse révisée",
                 "revise": "Réviser",
-                "voice": "Vocal"
+                "voice": "Vocal",
+                "confidence_help": "Dans quelle mesure les connaissances de l'agent correspondaient à cette question — pas la qualité de la réponse."
             },
             "details": {
                 "select_conversation": "Sélectionnez une conversation pour afficher les détails",
@@ -746,7 +749,7 @@
             "alert_owner": "M’avertir des attaques par e-mail",
             "alert_owner_help": "Recevez un e-mail quand l’agent bloque une tentative de contourner ses instructions, ou quand la vérification de sécurité ne peut pas s’exécuter. Au plus un e-mail par heure.",
             "test_title": "Tester un message",
-            "test_description": "Voyez ce qu’un visiteur recevrait avec les réglages ci-dessus, avant d’enregistrer. Rien n’est conservé.",
+            "test_description": "Voyez ce qu’un visiteur recevrait avec les réglages de l’onglet Configuration, même avant d’enregistrer. Rien n’est conservé.",
             "test_placeholder": "Saisissez un message à tester",
             "test_samples": "Essayez :",
             "test_run": "Tester",
@@ -760,7 +763,42 @@
             "test_no_guards": "Aucune protection n’a rien trouvé.",
             "detail_topic": "Sujet : {topic}",
             "classifier_unavailable": "La vérification de sécurité n’a pas pu s’exécuter, le texte n’a donc pas été vérifié.",
-            "open_conversation": "Ouvrir la conversation"
+            "open_conversation": "Ouvrir la conversation",
+            "about_title": "Que sont les garde-fous ?",
+            "about_body": "Les garde-fous sont des contrôles de sécurité sur les conversations de votre agent. Ils vérifient chaque message du visiteur avant que l'agent réponde, ainsi que chaque réponse de l'agent. Ils peuvent masquer les données personnelles, arrêter les tentatives de manipuler l'agent, bloquer les propos injurieux et garder l'agent dans son sujet.",
+            "about_ai_calls": "La détection des données personnelles utilise des motifs fixes et n'ajoute aucun appel à l'IA. Les contrôles marqués « Contrôle IA » interrogent un modèle d'IA : un appel de plus pour le message du visiteur et un pour la réponse, soit deux au maximum par réponse.",
+            "ai_check": "Contrôle IA",
+            "about_aria": "À propos des garde-fous",
+            "about_cost": "Tous les contrôles IA partagent ces appels : en activer davantage n'ajoute pas d'appels. Les réponses peuvent prendre un peu plus de temps et consommer plus de jetons d'IA.",
+            "test_off": "Les garde-fous sont désactivés. Activez-les pour tester un message.",
+            "block": {
+                "visitor_short": "Visiteur · {id}",
+                "blocked": "Bloqué",
+                "recent_attempts": "{count} tentative d'injection ou d'abus ces dernières 24 heures | {count} tentatives d'injection ou d'abus ces dernières 24 heures",
+                "show_all": "Tout voir de ce visiteur",
+                "clear_visitor": "Voir tous les visiteurs",
+                "block_chatter": "Bloquer le chatter",
+                "block_visitor": "Bloquer le visiteur",
+                "chatter_title": "Bloquer {name}",
+                "chatter_description": "Son compte est désactivé et il est déconnecté de tous les agents de cet espace de travail. Vous pouvez le réactiver dans Personnes.",
+                "visitor_title": "Bloquer ce visiteur",
+                "visitor_description": "Il ne peut plus discuter avec aucun agent de cet espace de travail jusqu'à la fin du blocage.",
+                "duration": "Durée",
+                "reason": "Motif",
+                "reason_placeholder": "ex. A essayé plusieurs fois d'obtenir les instructions de l'agent",
+                "reason_help": "Seule votre équipe voit ceci.",
+                "notify": "Prévenir {name} par e-mail",
+                "visitor_limits": "Les visiteurs sont reconnus à leur réseau et à leur navigateur. Une autre personne sur le même réseau avec le même navigateur est aussi bloquée, et un nouveau réseau ou navigateur permet de passer le blocage. Vous pouvez voir et retirer les blocages dans Sécurité.",
+                "chatter_blocked": "Chatter bloqué",
+                "visitor_blocked": "Visiteur bloqué",
+                "error": "Blocage impossible. Veuillez réessayer.",
+                "durations": {
+                    "day": "1 jour",
+                    "week": "7 jours",
+                    "month": "30 jours",
+                    "forever": "Jusqu'à ce que vous le débloquiez"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "L'historique des conversations est supprimé après ce nombre de jours. Jusqu'à {max} jours.",
                 "audit": "Journal d'audit de sécurité (jours)",
                 "audit_help": "Par défaut {default} jours, minimum {floor}.",
-                "plan_default": "Par défaut ({days} jours)"
+                "plan_default": "Par défaut ({days} jours)",
+                "leads": "Prospects (jours)",
+                "leads_help": "Supprime les prospects de plus de ce nombre de jours.",
+                "analytics": "Analytique (jours)",
+                "analytics_help": "Supprime les données d'analyse de plus de ce nombre de jours. Au moins {floor} jours.",
+                "anonymize": "Anonymiser les visiteurs après (jours)",
+                "anonymize_help": "Efface les données des visiteurs dans les conversations de plus de ce nombre de jours — nom, e-mail, téléphone, adresse IP, chaîne complète du navigateur, localisation et liens de pages. Les messages et le type d'appareil sont conservés. Jusqu'à {max} jours.",
+                "keep_forever": "Conserver indéfiniment",
+                "never": "Jamais"
             },
             "siem": {
                 "title": "Webhook SIEM",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Laissez vide pour conserver le secret actuel",
                 "secret_help": "Utilisé pour signer chaque livraison en HMAC afin que votre SIEM puisse la vérifier.",
                 "signature_help": "Chaque POST est signé en HMAC-SHA256 dans l'en-tête X-Chatvia-Signature."
+            },
+            "blocked_visitors": {
+                "title": "Visiteurs bloqués",
+                "help": "Visiteurs qui ne peuvent pas discuter avec vos agents. Vous bloquez un visiteur depuis l'activité des garde-fous d'un agent.",
+                "visitor": "Visiteur · {id}",
+                "browser_on_os": "{browser} sous {os}",
+                "on_agent": "Sur {agent}",
+                "by": "Par {name}",
+                "until": "Jusqu'au {date}",
+                "until_unblocked": "Jusqu'au déblocage",
+                "unblock": "Débloquer",
+                "unblocked": "Visiteur débloqué",
+                "unblock_error": "Déblocage impossible. Veuillez réessayer.",
+                "empty": "Aucun visiteur bloqué."
             }
         },
         "security_audit": {

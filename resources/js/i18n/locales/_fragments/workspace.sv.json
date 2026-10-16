@@ -301,6 +301,18 @@
             "api_keys": "API-nycklar",
             "prompts": "Prompter",
             "members": "Chattare"
+        },
+        "security": {
+            "retention": {
+                "leads": "Leads (dagar)",
+                "leads_help": "Radera leads som är äldre än så här många dagar.",
+                "analytics": "Analys (dagar)",
+                "analytics_help": "Radera analysdata som är äldre än så här många dagar. Minst {floor} dagar.",
+                "anonymize": "Anonymisera besökare efter (dagar)",
+                "anonymize_help": "Rensa besökaruppgifter från chattar som är äldre än så här många dagar — namn, e-post, telefon, IP-adress, fullständig webbläsarsträng, plats och sidlänkar. Meddelanden och enhetstyp behålls. Upp till {max} dagar.",
+                "keep_forever": "Behåll för alltid",
+                "never": "Aldrig"
+            }
         }
     }
 }

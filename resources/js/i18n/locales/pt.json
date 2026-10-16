@@ -150,7 +150,8 @@
         "connection_lost": "Conexão perdida",
         "unexpected_response": "Resposta inesperada",
         "something_went_wrong": "Algo deu errado",
-        "try_again": "Tentar novamente"
+        "try_again": "Tentar novamente",
+        "access_blocked": "Conversa bloqueada"
     },
     "sources": {
         "title": "Fontes de conhecimento",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram ligado"
             },
-            "setup_tab": "Configuração"
+            "setup_tab": "Configuração",
+            "not_set_up": "Não está configurado neste servidor. Um administrador pode ativar este canal no painel de administração."
         },
         "chatlog": {
             "title": "Registo de conversa",
@@ -465,7 +467,8 @@
                 "qa_matched": "Correspondência Q&A",
                 "revised": "Resposta revista",
                 "revise": "Rever",
-                "voice": "Voz"
+                "voice": "Voz",
+                "confidence_help": "Quão bem o conhecimento do agente correspondeu a esta pergunta — não quão boa é a resposta."
             },
             "details": {
                 "select_conversation": "Selecione uma conversa para ver os detalhes",
@@ -746,7 +749,7 @@
             "alert_owner": "Avisar-me de ataques por email",
             "alert_owner_help": "Receba um email quando o agente bloquear uma tentativa de contornar as suas instruções, ou quando a verificação de segurança não puder correr. No máximo um email por hora.",
             "test_title": "Testar uma mensagem",
-            "test_description": "Veja o que um visitante receberia com as definições acima, antes de guardar. Nada é guardado.",
+            "test_description": "Veja o que um visitante receberia com as definições do separador Configuração, mesmo antes de guardar. Nada é guardado.",
             "test_placeholder": "Escreva uma mensagem para testar",
             "test_samples": "Experimente:",
             "test_run": "Testar",
@@ -760,7 +763,42 @@
             "test_no_guards": "Nenhuma proteção encontrou nada.",
             "detail_topic": "Tema: {topic}",
             "classifier_unavailable": "A verificação de segurança não pôde correr, por isso o texto não foi verificado.",
-            "open_conversation": "Abrir conversa"
+            "open_conversation": "Abrir conversa",
+            "about_title": "O que são guardrails?",
+            "about_body": "Os guardrails são verificações de segurança nas conversas do seu agente. Verificam cada mensagem do visitante antes de o agente responder, e cada resposta que o agente escreve. Podem ocultar dados pessoais, travar tentativas de enganar o agente, bloquear linguagem ofensiva e manter o agente no tema.",
+            "about_ai_calls": "A deteção de PII usa padrões fixos e não acrescenta chamadas à IA. As verificações marcadas com «Verificação por IA» consultam um modelo de IA: uma chamada extra para a mensagem do visitante e outra para a resposta, ou seja, no máximo duas por resposta.",
+            "ai_check": "Verificação por IA",
+            "about_aria": "Sobre os guardrails",
+            "about_cost": "Todas as verificações por IA partilham estas chamadas, por isso ativar mais não acrescenta chamadas. As respostas podem demorar um pouco mais e usar mais tokens de IA.",
+            "test_off": "Os guardrails estão desativados. Ative-os para testar uma mensagem.",
+            "block": {
+                "visitor_short": "Visitante · {id}",
+                "blocked": "Bloqueado",
+                "recent_attempts": "{count} tentativa de injeção ou abuso nas últimas 24 horas | {count} tentativas de injeção ou abuso nas últimas 24 horas",
+                "show_all": "Ver tudo deste visitante",
+                "clear_visitor": "Ver todos os visitantes",
+                "block_chatter": "Bloquear chatter",
+                "block_visitor": "Bloquear visitante",
+                "chatter_title": "Bloquear {name}",
+                "chatter_description": "A conta é desativada e a sessão é terminada em todos os agentes deste workspace. Pode voltar a ativá-la em Pessoas.",
+                "visitor_title": "Bloquear este visitante",
+                "visitor_description": "Não poderá conversar com nenhum agente deste workspace até o bloqueio terminar.",
+                "duration": "Durante quanto tempo",
+                "reason": "Motivo",
+                "reason_placeholder": "p. ex. Tentou muitas vezes obter as instruções do agente",
+                "reason_help": "Só a sua equipa vê isto.",
+                "notify": "Avisar {name} por e-mail",
+                "visitor_limits": "Os visitantes são reconhecidos pela rede e pelo navegador. Outra pessoa na mesma rede com o mesmo navegador também fica bloqueada, e uma rede ou navegador novo contorna o bloqueio. Pode ver e remover bloqueios em Segurança.",
+                "chatter_blocked": "Chatter bloqueado",
+                "visitor_blocked": "Visitante bloqueado",
+                "error": "Não foi possível bloquear. Tente novamente.",
+                "durations": {
+                    "day": "1 dia",
+                    "week": "7 dias",
+                    "month": "30 dias",
+                    "forever": "Até o desbloquear"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "O histórico de conversas é eliminado após este número de dias. Até {max} dias.",
                 "audit": "Registo de auditoria de segurança (dias)",
                 "audit_help": "Predefinição {default} dias, mínimo {floor}.",
-                "plan_default": "Predefinição ({days} dias)"
+                "plan_default": "Predefinição ({days} dias)",
+                "leads": "Leads (dias)",
+                "leads_help": "Elimina os leads mais antigos do que este número de dias.",
+                "analytics": "Análise (dias)",
+                "analytics_help": "Elimina os dados de análise mais antigos do que este número de dias. Pelo menos {floor} dias.",
+                "anonymize": "Anonimizar visitantes após (dias)",
+                "anonymize_help": "Apaga os dados dos visitantes das conversas mais antigas do que este número de dias — nome, e-mail, telefone, endereço IP, cadeia completa do navegador, localização e ligações de páginas. As mensagens e o tipo de dispositivo são mantidos. Até {max} dias.",
+                "keep_forever": "Guardar para sempre",
+                "never": "Nunca"
             },
             "siem": {
                 "title": "Webhook SIEM",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Deixe em branco para manter o segredo atual",
                 "secret_help": "Usado para assinar cada entrega com HMAC, para que o seu SIEM a possa verificar.",
                 "signature_help": "Cada POST é assinado com HMAC-SHA256 no cabeçalho X-Chatvia-Signature."
+            },
+            "blocked_visitors": {
+                "title": "Visitantes bloqueados",
+                "help": "Visitantes que não podem conversar com os seus agentes. Bloqueia um visitante a partir da atividade dos guardrails de um agente.",
+                "visitor": "Visitante · {id}",
+                "browser_on_os": "{browser} em {os}",
+                "on_agent": "Em {agent}",
+                "by": "Por {name}",
+                "until": "Até {date}",
+                "until_unblocked": "Até ser desbloqueado",
+                "unblock": "Desbloquear",
+                "unblocked": "Visitante desbloqueado",
+                "unblock_error": "Não foi possível desbloquear. Tente novamente.",
+                "empty": "Nenhum visitante bloqueado."
             }
         },
         "security_audit": {

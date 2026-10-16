@@ -170,6 +170,7 @@
                 "no_results": "Ingen meldinger samsvarer med søket ditt",
                 "clear_search": "Fjern søk",
                 "confidence": "{percent}% sikkerhet",
+                "confidence_help": "Hvor godt agentens kunnskap samsvarte med dette spørsmålet — ikke hvor godt svaret er.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Forespørsel: {prompt} · Fullføring: {completion}",
                 "playground": "Playground",

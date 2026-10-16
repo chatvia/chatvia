@@ -301,6 +301,18 @@
             "api_keys": "Chaves API",
             "prompts": "Prompts",
             "members": "Chatters"
+        },
+        "security": {
+            "retention": {
+                "leads": "Leads (dias)",
+                "leads_help": "Elimina os leads mais antigos do que este número de dias.",
+                "analytics": "Análise (dias)",
+                "analytics_help": "Elimina os dados de análise mais antigos do que este número de dias. Pelo menos {floor} dias.",
+                "anonymize": "Anonimizar visitantes após (dias)",
+                "anonymize_help": "Apaga os dados dos visitantes das conversas mais antigas do que este número de dias — nome, e-mail, telefone, endereço IP, cadeia completa do navegador, localização e ligações de páginas. As mensagens e o tipo de dispositivo são mantidos. Até {max} dias.",
+                "keep_forever": "Guardar para sempre",
+                "never": "Nunca"
+            }
         }
     }
 }

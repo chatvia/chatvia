@@ -150,7 +150,8 @@
         "connection_lost": "연결이 끊겼습니다",
         "unexpected_response": "예상치 못한 응답",
         "something_went_wrong": "문제가 발생했습니다",
-        "try_again": "다시 시도"
+        "try_again": "다시 시도",
+        "access_blocked": "채팅이 차단됨"
     },
     "sources": {
         "title": "지식 소스",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram 연결됨"
             },
-            "setup_tab": "설정"
+            "setup_tab": "설정",
+            "not_set_up": "이 서버에는 설정되어 있지 않습니다. 관리자가 관리자 패널에서 이 채널을 켤 수 있습니다."
         },
         "chatlog": {
             "title": "채팅 로그",
@@ -417,7 +419,8 @@
                 "expires_in_months": "{count}개월 후 만료 | {count}개월 후 만료",
                 "conversations_count": "대화 {count}개 | 대화 {count}개",
                 "refresh_conversations": "대화 새로고침",
-                "remove_filter": "필터 제거"
+                "remove_filter": "필터 제거",
+                "load_more": "더 불러오기"
             },
             "pagination": {
                 "prev": "이전",
@@ -464,7 +467,8 @@
                 "qa_matched": "Q&A 일치",
                 "revised": "수정된 답변",
                 "revise": "수정",
-                "voice": "음성"
+                "voice": "음성",
+                "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다."
             },
             "details": {
                 "select_conversation": "세부 정보를 보려면 대화를 선택하세요",
@@ -648,7 +652,152 @@
                 "prompt_injection": "프롬프트 인젝션",
                 "pii": "PII",
                 "blocked_topic": "차단된 주제",
-                "toxicity": "유해성"
+                "toxicity": "유해성",
+                "prompt_leak": "프롬프트 유출"
+            },
+            "about_title": "가드레일이란?",
+            "about_body": "가드레일은 에이전트 채팅에 대한 안전 점검입니다. 에이전트가 답하기 전에 방문자의 각 메시지를 점검하고, 에이전트가 쓴 각 답변도 점검합니다. 개인 정보를 숨기고, 에이전트를 속이려는 시도를 막고, 모욕적인 표현을 차단하고, 에이전트가 주제를 벗어나지 않게 할 수 있습니다.",
+            "about_ai_calls": "PII 탐지는 정해진 패턴으로 찾으므로 AI 호출이 추가되지 않습니다. “AI 점검” 표시가 있는 점검은 AI 모델에 묻습니다. 방문자 메시지에 한 번, 답변에 한 번 추가로 호출하므로 답변당 최대 두 번입니다.",
+            "ai_check": "AI 점검",
+            "about_aria": "가드레일 정보",
+            "about_cost": "모든 AI 점검이 이 호출을 함께 쓰므로 점검을 더 켜도 호출은 늘지 않습니다. 답변이 조금 늦어지고 AI 토큰을 더 쓸 수 있습니다.",
+            "test_off": "가드레일이 꺼져 있습니다. 메시지를 테스트하려면 켜세요.",
+            "filter_labels": {
+                "email": "이메일 주소",
+                "credit_card": "신용카드",
+                "us_ssn": "미국 사회보장번호",
+                "german_ssn": "독일 사회보험 번호",
+                "danish_cpr": "덴마크 CPR 번호",
+                "phone": "전화번호",
+                "iban": "은행 계좌(IBAN)",
+                "uk_nino": "영국 국민보험 번호",
+                "ip_address": "IP 주소"
+            },
+            "outcome_labels": {
+                "blocked": "차단됨",
+                "redacted": "마스킹됨",
+                "flagged": "표시됨",
+                "skipped": "건너뜀"
+            },
+            "stage_labels": {
+                "input": "메시지",
+                "source": "지식",
+                "output": "답변",
+                "tool": "도구 결과"
+            },
+            "severity_labels": {
+                "none": "없음",
+                "low": "낮음",
+                "medium": "보통",
+                "high": "높음"
+            },
+            "allowlist_title": "마스킹 안 함",
+            "allowlist_description": "지원 이메일이나 전화번호처럼 에이전트가 항상 보여 줘도 되는 값입니다. 이메일 도메인 전체를 허용하려면 {'@'}로 시작하세요(예: {'@'}acme.com). 비즈니스 프로필의 이메일과 전화번호는 항상 허용됩니다.",
+            "allowlist_placeholder_first": "예: support{'@'}acme.com",
+            "allowlist_placeholder_more": "다른 값 추가",
+            "add_allowlist_value": "값 추가",
+            "remove_allowlist_value": "값 삭제",
+            "allowlist_count": "마스킹하지 않는 값 {count}개 | 마스킹하지 않는 값 {count}개",
+            "all_guards": "모든 가드",
+            "all_outcomes": "모든 결과",
+            "refusal_message_help": "가드가 메시지를 차단할 때 표시됩니다. 저장하면 에이전트의 언어로 번역됩니다. 비워 두면 기본 메시지를 사용합니다.",
+            "mode_labels": {
+                "block": "차단",
+                "monitor": "기록만"
+            },
+            "sensitivity_labels": {
+                "high": "높음: 가장 많이 차단",
+                "medium": "보통",
+                "low": "낮음: 가장 적게 차단"
+            },
+            "pii_action_labels": {
+                "mask": "마스킹",
+                "block": "메시지 차단"
+            },
+            "topic_action_labels": {
+                "refuse": "거부 메시지",
+                "reply": "별도 답변",
+                "handoff": "팀 담당자"
+            },
+            "detail_labels": {
+                "topic": "주제",
+                "types": "데이터",
+                "count": "발견 수",
+                "categories": "카테고리",
+                "tool": "도구",
+                "pattern": "규칙",
+                "reason": "이유"
+            },
+            "pii_action": "처리 방법",
+            "pii_action_help": "마스킹은 데이터를 숨기고 채팅은 계속됩니다. 차단은 메시지를 막고 방문자에게 그 정보를 공유하지 말라고 요청합니다. 답변은 항상 마스킹됩니다.",
+            "custom_patterns_title": "사용자 지정 패턴",
+            "custom_patterns_description": "고객 번호 같은 다른 개인 정보를 정규식으로 찾습니다.",
+            "custom_pattern_name": "이름",
+            "custom_pattern_name_placeholder": "예: 고객 번호",
+            "custom_pattern": "패턴",
+            "custom_pattern_placeholder": "예: CUST-[0-9]+",
+            "add_custom_pattern": "패턴 추가",
+            "remove_custom_pattern": "패턴 삭제",
+            "topic_name": "주제",
+            "topic_description": "설명",
+            "topic_description_placeholder": "이 주제가 다루는 내용(선택 사항)",
+            "topic_examples": "질문 예시",
+            "topic_examples_placeholder": "질문 예시, 한 줄에 하나씩(선택 사항)",
+            "topic_action": "방문자가 받는 응답",
+            "topic_handoff_help": "실시간 채팅이 켜져 있을 때 채팅 위젯에서 작동합니다. 그 외의 곳에서는 방문자에게 거부 메시지가 표시됩니다.",
+            "topic_handoff_reply_placeholder": "연결하는 동안 보낼 메시지(선택 사항)",
+            "topic_reply_placeholder": "방문자가 읽을 답변",
+            "topic_reply": "답변",
+            "mode": "동작",
+            "sensitivity": "민감도",
+            "mode_help": "기록만은 가드가 찾은 내용을 차단하지 않고 기록하므로, 방문자에게 영향을 주기 전에 확인할 수 있습니다.",
+            "check_before_showing": "답변을 보여 주기 전에 점검",
+            "check_before_showing_help": "방문자는 가드가 점검한 뒤에만 답변을 봅니다. 답변이 조금 늦게, 한 번에 표시됩니다.",
+            "alert_owner": "공격이 있으면 이메일로 알림",
+            "alert_owner_help": "에이전트가 지침을 무시하게 하려는 시도를 차단했거나 안전 점검을 실행할 수 없을 때 이메일을 받습니다. 이메일은 시간당 최대 한 통입니다.",
+            "test_title": "메시지 테스트",
+            "test_description": "저장하기 전에도 구성 탭의 설정으로 방문자가 어떤 응답을 받는지 확인하세요. 아무것도 저장되지 않습니다.",
+            "test_placeholder": "테스트할 메시지를 입력하세요",
+            "test_samples": "예시:",
+            "test_run": "테스트",
+            "test_error": "메시지를 테스트할 수 없습니다. 다시 시도해 주세요.",
+            "test_blocked": "차단됨",
+            "test_allowed": "허용됨",
+            "test_handoff": "채팅이 팀으로 넘어갑니다.",
+            "test_visitor_sees": "방문자에게 보이는 내용",
+            "test_model_reads": "에이전트가 읽는 내용",
+            "test_guards": "가드",
+            "test_no_guards": "어떤 가드도 문제를 찾지 못했습니다.",
+            "detail_topic": "주제: {topic}",
+            "classifier_unavailable": "안전 점검을 실행할 수 없어 텍스트를 점검하지 못했습니다.",
+            "open_conversation": "대화 열기",
+            "block": {
+                "visitor_short": "방문자 · {id}",
+                "blocked": "차단됨",
+                "recent_attempts": "최근 24시간 동안 인젝션 또는 악용 시도 {count}건 | 최근 24시간 동안 인젝션 또는 악용 시도 {count}건",
+                "show_all": "이 방문자의 기록 모두 보기",
+                "clear_visitor": "모든 방문자 보기",
+                "block_chatter": "채터 차단",
+                "block_visitor": "방문자 차단",
+                "chatter_title": "{name} 차단",
+                "chatter_description": "계정이 비활성화되고 이 워크스페이스의 모든 에이전트에서 로그아웃됩니다. 사용자에서 다시 활성화할 수 있습니다.",
+                "visitor_title": "이 방문자 차단",
+                "visitor_description": "차단이 끝날 때까지 이 워크스페이스의 어떤 에이전트와도 채팅할 수 없습니다.",
+                "duration": "기간",
+                "reason": "사유",
+                "reason_placeholder": "예: 에이전트의 지침을 여러 번 알아내려고 함",
+                "reason_help": "팀만 볼 수 있습니다.",
+                "notify": "{name}에게 이메일로 알리기",
+                "visitor_limits": "방문자는 네트워크와 브라우저로 식별됩니다. 같은 네트워크에서 같은 브라우저를 쓰는 다른 사람도 차단되며, 새 네트워크나 브라우저로는 차단을 피할 수 있습니다. 차단은 보안에서 보고 해제할 수 있습니다.",
+                "chatter_blocked": "채터를 차단했습니다",
+                "visitor_blocked": "방문자를 차단했습니다",
+                "error": "차단하지 못했습니다. 다시 시도해 주세요.",
+                "durations": {
+                    "day": "1일",
+                    "week": "7일",
+                    "month": "30일",
+                    "forever": "차단을 해제할 때까지"
+                }
             }
         },
         "persona": {
@@ -928,7 +1077,9 @@
                 "notify_hint": "에이전트가 이 한도에 도달하면 이메일을 받습니다.",
                 "save": "저장",
                 "saved": "요청 제한이 저장되었습니다",
-                "save_error": "요청 제한을 저장하지 못했습니다. 다시 시도해 주세요."
+                "save_error": "요청 제한을 저장하지 못했습니다. 다시 시도해 주세요.",
+                "visitor_messages_per_minute": "분당 메시지 수 (방문자 1명)",
+                "visitor_hint": "방문자 한 명이 분당 보낼 수 있는 최대 메시지 수입니다. 이를 넘은 방문자는 기다려야 하며, 다른 방문자는 계속 채팅할 수 있습니다."
             }
         },
         "tone": {
@@ -1022,7 +1173,8 @@
                 "remove_from_agent": "에이전트에서 제거",
                 "used_in_agents": "({count}개 에이전트에서 사용 중)",
                 "delete_from_knowledge_base": "지식 베이스에서 삭제",
-                "agents_count": "{count}개 에이전트"
+                "agents_count": "{count}개 에이전트",
+                "load_more": "더 불러오기"
             },
             "page_title": {
                 "sources": "소스",
@@ -1619,7 +1771,9 @@
                 "avatar_upload_error": "아바타를 업로드할 수 없습니다",
                 "logo_upload_error": "로고를 업로드할 수 없습니다",
                 "avatar_remove_error": "아바타를 제거할 수 없습니다",
-                "logo_remove_error": "로고를 삭제할 수 없습니다"
+                "logo_remove_error": "로고를 삭제할 수 없습니다",
+                "replies_saved": "답변 옵션이 저장되었습니다",
+                "replies_error": "답변 옵션을 저장하지 못했습니다"
             },
             "settings": {
                 "composer_title": "입력창 옵션",
@@ -1669,7 +1823,11 @@
                 "voice_conversation_help_2": "말로 한 답변 하나가 메시지 하나로 집계됩니다. 음성 통화는 글로 하는 채팅보다 비용이 훨씬 많이 듭니다.",
                 "voice_label": "목소리",
                 "voice_default": "기본값 ({voice})",
-                "voice_input_unavailable": "이 서버에는 설정되어 있지 않습니다. 관리자가 관리자 패널에서 음성 텍스트 변환을 켤 수 있습니다."
+                "voice_input_unavailable": "이 서버에는 설정되어 있지 않습니다. 관리자가 관리자 패널에서 음성 텍스트 변환을 켤 수 있습니다.",
+                "replies_title": "답변",
+                "replies_description": "각 답변 아래에 표시할 항목을 선택하세요.",
+                "show_sources_label": "소스 표시",
+                "show_sources_hint": "각 답변 아래에 사용된 지식을 보여 주는 버튼을 표시합니다."
             },
             "bubbles_title": "채팅 말풍선",
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",
@@ -1822,7 +1980,12 @@
             "bubbles_add": "말풍선 추가",
             "bubbles_remove": "말풍선 제거",
             "bubbles_empty": "아직 채팅 말풍선이 없습니다.",
-            "bubbles_translate_empty": "번역하려면 먼저 말풍선을 추가하세요."
+            "bubbles_translate_empty": "번역하려면 먼저 말풍선을 추가하세요.",
+            "model_picker_title": "모델",
+            "model_picker_description": "이 에이전트가 답변에 사용하는 AI 모델입니다. 이 목록에 들어갈 모델은 관리자가 선택합니다(관리자 패널 → Settings → AI models).",
+            "model_placeholder": "모델 선택",
+            "model_default": "기본값",
+            "model_empty": "아직 모델이 없습니다. 관리자가 관리자 패널의 Settings → AI models에서 추가합니다."
         },
         "topics_index": {
             "title": "주제",
@@ -3054,7 +3217,15 @@
                 "conversations_help": "채팅 기록은 이 일수가 지나면 삭제됩니다. 최대 {max}일입니다.",
                 "audit": "보안 감사 로그 (일)",
                 "audit_help": "기본값 {default}일, 최소 {floor}일.",
-                "plan_default": "기본값 ({days}일)"
+                "plan_default": "기본값 ({days}일)",
+                "leads": "리드 (일)",
+                "leads_help": "이 일수보다 오래된 리드를 삭제합니다.",
+                "analytics": "분석 (일)",
+                "analytics_help": "이 일수보다 오래된 분석 데이터를 삭제합니다. 최소 {floor}일입니다.",
+                "anonymize": "방문자 익명화 시점 (일)",
+                "anonymize_help": "이 일수보다 오래된 채팅에서 방문자 정보를 지웁니다 — 이름, 이메일, 전화번호, IP 주소, 전체 브라우저 문자열, 위치, 페이지 링크. 메시지와 기기 유형은 유지됩니다. 최대 {max}일입니다.",
+                "keep_forever": "영구 보관",
+                "never": "안 함"
             },
             "siem": {
                 "title": "SIEM Webhook",
@@ -3064,6 +3235,20 @@
                 "secret_placeholder": "현재 시크릿을 유지하려면 비워 두세요",
                 "secret_help": "각 전송을 HMAC 서명하여 SIEM이 검증할 수 있도록 사용됩니다.",
                 "signature_help": "각 POST는 X-Chatvia-Signature 헤더에 HMAC-SHA256으로 서명됩니다."
+            },
+            "blocked_visitors": {
+                "title": "차단된 방문자",
+                "help": "에이전트와 채팅할 수 없는 방문자입니다. 방문자는 에이전트의 가드레일 활동에서 차단합니다.",
+                "visitor": "방문자 · {id}",
+                "browser_on_os": "{os}의 {browser}",
+                "on_agent": "{agent}에서",
+                "by": "{name}님이 차단",
+                "until": "{date}까지",
+                "until_unblocked": "해제할 때까지",
+                "unblock": "차단 해제",
+                "unblocked": "방문자 차단을 해제했습니다",
+                "unblock_error": "차단을 해제하지 못했습니다. 다시 시도해 주세요.",
+                "empty": "차단된 방문자가 없습니다."
             }
         },
         "security_audit": {

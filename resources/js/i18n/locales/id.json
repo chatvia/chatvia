@@ -150,7 +150,8 @@
         "connection_lost": "Koneksi terputus",
         "unexpected_response": "Respons tidak terduga",
         "something_went_wrong": "Terjadi kesalahan",
-        "try_again": "Coba lagi"
+        "try_again": "Coba lagi",
+        "access_blocked": "Chat diblokir"
     },
     "sources": {
         "title": "Sumber Pengetahuan",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram terhubung"
             },
-            "setup_tab": "Penyiapan"
+            "setup_tab": "Penyiapan",
+            "not_set_up": "Belum diatur di server ini. Admin dapat menyalakan saluran ini di panel admin."
         },
         "chatlog": {
             "title": "Log obrolan",
@@ -417,7 +419,8 @@
                 "expires_in_months": "Kedaluwarsa dalam {count} bulan | Kedaluwarsa dalam {count} bulan",
                 "conversations_count": "{count} percakapan | {count} percakapan",
                 "refresh_conversations": "Muat ulang percakapan",
-                "remove_filter": "Hapus filter"
+                "remove_filter": "Hapus filter",
+                "load_more": "Muat lebih banyak"
             },
             "pagination": {
                 "prev": "Sebelumnya",
@@ -464,7 +467,8 @@
                 "qa_matched": "Kecocokan Q&A",
                 "revised": "Jawaban yang direvisi",
                 "revise": "Revisi",
-                "voice": "Suara"
+                "voice": "Suara",
+                "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya."
             },
             "details": {
                 "select_conversation": "Pilih percakapan untuk melihat detail",
@@ -648,7 +652,152 @@
                 "prompt_injection": "Injeksi prompt",
                 "pii": "PII",
                 "blocked_topic": "Topik yang diblokir",
-                "toxicity": "Toksisitas"
+                "toxicity": "Toksisitas",
+                "prompt_leak": "Kebocoran prompt"
+            },
+            "about_title": "Apa itu pagar pengaman?",
+            "about_body": "Pagar pengaman adalah pemeriksaan keamanan pada chat agen Anda. Pagar pengaman memeriksa setiap pesan pengunjung sebelum agen menjawab, dan setiap jawaban yang ditulis agen. Pagar pengaman dapat menyembunyikan data pribadi, menghentikan upaya mengelabui agen, memblokir bahasa kasar, dan menjaga agen tetap pada topik.",
+            "about_ai_calls": "Deteksi PII mencocokkan pola tetap dan tidak menambah panggilan AI. Pemeriksaan bertanda “Pemeriksaan AI” bertanya ke model AI: satu panggilan tambahan untuk pesan pengunjung dan satu untuk jawaban, jadi paling banyak dua per balasan.",
+            "ai_check": "Pemeriksaan AI",
+            "about_aria": "Tentang pagar pengaman",
+            "about_cost": "Semua pemeriksaan AI berbagi panggilan ini, jadi menyalakan lebih banyak pemeriksaan tidak menambah panggilan. Balasan bisa sedikit lebih lama dan memakai lebih banyak token AI.",
+            "test_off": "Pagar pengaman nonaktif. Aktifkan untuk menguji pesan.",
+            "filter_labels": {
+                "email": "Alamat email",
+                "credit_card": "Kartu kredit",
+                "us_ssn": "Nomor Jaminan Sosial AS",
+                "german_ssn": "Nomor asuransi sosial Jerman",
+                "danish_cpr": "Nomor CPR Denmark",
+                "phone": "Nomor telepon",
+                "iban": "Rekening bank (IBAN)",
+                "uk_nino": "Nomor Asuransi Nasional Inggris",
+                "ip_address": "Alamat IP"
+            },
+            "outcome_labels": {
+                "blocked": "Diblokir",
+                "redacted": "Disamarkan",
+                "flagged": "Ditandai",
+                "skipped": "Dilewati"
+            },
+            "stage_labels": {
+                "input": "Pesan",
+                "source": "Pengetahuan",
+                "output": "Jawaban",
+                "tool": "Hasil alat"
+            },
+            "severity_labels": {
+                "none": "Tidak ada",
+                "low": "Rendah",
+                "medium": "Sedang",
+                "high": "Tinggi"
+            },
+            "allowlist_title": "Jangan pernah disamarkan",
+            "allowlist_description": "Nilai yang selalu boleh ditampilkan agen, seperti email atau nomor telepon dukungan Anda. Awali dengan {'@'} untuk mengizinkan seluruh domain email, misalnya {'@'}acme.com. Email dan telepon di profil bisnis selalu diizinkan.",
+            "allowlist_placeholder_first": "mis. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Tambahkan nilai lain",
+            "add_allowlist_value": "Tambah nilai",
+            "remove_allowlist_value": "Hapus nilai",
+            "allowlist_count": "{count} nilai tidak pernah disamarkan | {count} nilai tidak pernah disamarkan",
+            "all_guards": "Semua pengaman",
+            "all_outcomes": "Semua hasil",
+            "refusal_message_help": "Ditampilkan saat pengaman memblokir pesan. Saat disimpan, pesan ini diterjemahkan ke bahasa-bahasa agen Anda. Biarkan kosong untuk memakai pesan bawaan.",
+            "mode_labels": {
+                "block": "Blokir",
+                "monitor": "Catat saja"
+            },
+            "sensitivity_labels": {
+                "high": "Tinggi: paling banyak memblokir",
+                "medium": "Sedang",
+                "low": "Rendah: paling sedikit memblokir"
+            },
+            "pii_action_labels": {
+                "mask": "Samarkan",
+                "block": "Blokir pesan"
+            },
+            "topic_action_labels": {
+                "refuse": "Pesan penolakan",
+                "reply": "Balasan tersendiri",
+                "handoff": "Seseorang dari tim Anda"
+            },
+            "detail_labels": {
+                "topic": "Topik",
+                "types": "Data",
+                "count": "Ditemukan",
+                "categories": "Kategori",
+                "tool": "Alat",
+                "pattern": "Aturan",
+                "reason": "Alasan"
+            },
+            "pii_action": "Tindakan",
+            "pii_action_help": "Samarkan menyembunyikan data dan chat tetap berjalan. Blokir menghentikan pesan dan meminta pengunjung untuk tidak membagikannya. Jawaban selalu disamarkan.",
+            "custom_patterns_title": "Pola Anda sendiri",
+            "custom_patterns_description": "Temukan data pribadi lain, seperti nomor pelanggan, dengan ekspresi reguler.",
+            "custom_pattern_name": "Nama",
+            "custom_pattern_name_placeholder": "mis. Nomor pelanggan",
+            "custom_pattern": "Pola",
+            "custom_pattern_placeholder": "mis. CUST-[0-9]+",
+            "add_custom_pattern": "Tambah pola",
+            "remove_custom_pattern": "Hapus pola",
+            "topic_name": "Topik",
+            "topic_description": "Deskripsi",
+            "topic_description_placeholder": "Apa yang dicakup topik ini (opsional)",
+            "topic_examples": "Contoh pertanyaan",
+            "topic_examples_placeholder": "Contoh pertanyaan, satu per baris (opsional)",
+            "topic_action": "Yang diterima pengunjung",
+            "topic_handoff_help": "Berfungsi di Chat Widget saat obrolan langsung aktif. Di tempat lain, pengunjung menerima pesan penolakan.",
+            "topic_handoff_reply_placeholder": "Pesan selama kami menghubungkan mereka (opsional)",
+            "topic_reply_placeholder": "Balasan yang dibaca pengunjung",
+            "topic_reply": "Balasan",
+            "mode": "Yang terjadi",
+            "sensitivity": "Sensitivitas",
+            "mode_help": "Catat saja merekam temuan pengaman tanpa memblokir, sehingga Anda dapat memeriksanya sebelum berdampak pada pengunjung.",
+            "check_before_showing": "Periksa jawaban sebelum ditampilkan",
+            "check_before_showing_help": "Pengunjung melihat jawaban hanya setelah pengaman memeriksanya. Jawaban muncul sedikit lebih lambat, sekaligus.",
+            "alert_owner": "Kirimi saya email tentang serangan",
+            "alert_owner_help": "Dapatkan email saat agen memblokir upaya untuk menimpa instruksinya, atau saat pemeriksaan keamanan tidak dapat berjalan. Paling banyak satu email per jam.",
+            "test_title": "Uji pesan",
+            "test_description": "Lihat apa yang akan diterima pengunjung dengan pengaturan di tab Konfigurasi, bahkan sebelum Anda menyimpan. Tidak ada yang disimpan.",
+            "test_placeholder": "Ketik pesan untuk diuji",
+            "test_samples": "Coba:",
+            "test_run": "Uji",
+            "test_error": "Tidak dapat menguji pesan. Silakan coba lagi.",
+            "test_blocked": "Diblokir",
+            "test_allowed": "Diizinkan",
+            "test_handoff": "Chat akan diteruskan ke tim Anda.",
+            "test_visitor_sees": "Yang dilihat pengunjung",
+            "test_model_reads": "Yang dibaca agen",
+            "test_guards": "Pengaman",
+            "test_no_guards": "Tidak ada pengaman yang menemukan apa pun.",
+            "detail_topic": "Topik: {topic}",
+            "classifier_unavailable": "Pemeriksaan keamanan tidak dapat berjalan, jadi teks tidak diperiksa.",
+            "open_conversation": "Buka percakapan",
+            "block": {
+                "visitor_short": "Pengunjung · {id}",
+                "blocked": "Diblokir",
+                "recent_attempts": "{count} upaya injeksi atau penyalahgunaan dalam 24 jam terakhir | {count} upaya injeksi atau penyalahgunaan dalam 24 jam terakhir",
+                "show_all": "Tampilkan semua dari pengunjung ini",
+                "clear_visitor": "Tampilkan semua pengunjung",
+                "block_chatter": "Blokir chatter",
+                "block_visitor": "Blokir pengunjung",
+                "chatter_title": "Blokir {name}",
+                "chatter_description": "Akunnya dinonaktifkan dan dikeluarkan dari semua agen di ruang kerja ini. Anda bisa mengaktifkannya lagi di Orang.",
+                "visitor_title": "Blokir pengunjung ini",
+                "visitor_description": "Mereka tidak bisa chat dengan agen mana pun di ruang kerja ini sampai blokir berakhir.",
+                "duration": "Berapa lama",
+                "reason": "Alasan",
+                "reason_placeholder": "mis. Berkali-kali mencoba mendapatkan instruksi agen",
+                "reason_help": "Hanya tim Anda yang melihat ini.",
+                "notify": "Beri tahu {name} lewat email",
+                "visitor_limits": "Pengunjung dikenali dari jaringan dan browser mereka. Orang lain di jaringan yang sama dengan browser yang sama juga ikut diblokir, dan jaringan atau browser baru bisa melewati blokir. Anda bisa melihat dan menghapus blokir di Keamanan.",
+                "chatter_blocked": "Chatter diblokir",
+                "visitor_blocked": "Pengunjung diblokir",
+                "error": "Gagal memblokir. Silakan coba lagi.",
+                "durations": {
+                    "day": "1 hari",
+                    "week": "7 hari",
+                    "month": "30 hari",
+                    "forever": "Sampai Anda membuka blokir"
+                }
             }
         },
         "persona": {
@@ -928,7 +1077,9 @@
                 "notify_hint": "Terima email saat agen mencapai batas ini.",
                 "save": "Simpan",
                 "saved": "Batas laju disimpan",
-                "save_error": "Tidak dapat menyimpan batas laju. Silakan coba lagi."
+                "save_error": "Tidak dapat menyimpan batas laju. Silakan coba lagi.",
+                "visitor_messages_per_minute": "Pesan per menit (satu pengunjung)",
+                "visitor_hint": "Jumlah pesan terbanyak yang dapat dikirim satu pengunjung per menit. Pengunjung yang melewatinya harus menunggu, sementara yang lain tetap bisa mengobrol."
             }
         },
         "tone": {
@@ -1022,7 +1173,8 @@
                 "remove_from_agent": "Hapus dari agen",
                 "used_in_agents": "(Digunakan di {count} agen)",
                 "delete_from_knowledge_base": "Hapus dari basis pengetahuan",
-                "agents_count": "{count} agen"
+                "agents_count": "{count} agen",
+                "load_more": "Muat lebih banyak"
             },
             "page_title": {
                 "sources": "Sumber",
@@ -1619,7 +1771,9 @@
                 "avatar_upload_error": "Tidak dapat mengunggah avatar",
                 "logo_upload_error": "Tidak dapat mengunggah logo",
                 "avatar_remove_error": "Tidak dapat menghapus avatar",
-                "logo_remove_error": "Tidak dapat menghapus logo"
+                "logo_remove_error": "Tidak dapat menghapus logo",
+                "replies_saved": "Opsi balasan disimpan",
+                "replies_error": "Tidak dapat menyimpan opsi balasan"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -1669,7 +1823,11 @@
                 "voice_conversation_help_2": "Setiap jawaban lisan dihitung sebagai satu pesan. Panggilan suara jauh lebih mahal daripada chat tertulis.",
                 "voice_label": "Suara",
                 "voice_default": "Bawaan ({voice})",
-                "voice_input_unavailable": "Belum diatur di server ini. Admin dapat menyalakan ucapan ke teks di panel admin."
+                "voice_input_unavailable": "Belum diatur di server ini. Admin dapat menyalakan ucapan ke teks di panel admin.",
+                "replies_title": "Balasan",
+                "replies_description": "Pilih apa yang muncul di bawah setiap jawaban.",
+                "show_sources_label": "Tampilkan sumber",
+                "show_sources_hint": "Tampilkan tombol di bawah setiap jawaban yang mencantumkan pengetahuan yang digunakannya."
             },
             "bubbles_title": "Gelembung Obrolan",
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",
@@ -1822,7 +1980,12 @@
             "bubbles_add": "Tambahkan gelembung",
             "bubbles_remove": "Hapus gelembung",
             "bubbles_empty": "Belum ada gelembung obrolan.",
-            "bubbles_translate_empty": "Tambahkan gelembung terlebih dahulu untuk menerjemahkannya."
+            "bubbles_translate_empty": "Tambahkan gelembung terlebih dahulu untuk menerjemahkannya.",
+            "model_picker_title": "Model",
+            "model_picker_description": "Model AI yang dipakai agen ini untuk menjawab. Admin memilih model mana yang ada di daftar ini (panel admin → Settings → AI models).",
+            "model_placeholder": "Pilih model",
+            "model_default": "Bawaan",
+            "model_empty": "Belum ada model. Admin menambahkannya di panel admin, di Settings → AI models."
         },
         "topics_index": {
             "title": "Topik",
@@ -3054,7 +3217,15 @@
                 "conversations_help": "Riwayat chat dihapus setelah sekian hari ini. Hingga {max} hari.",
                 "audit": "Log audit keamanan (hari)",
                 "audit_help": "Bawaan {default} hari, minimum {floor}.",
-                "plan_default": "Bawaan ({days} hari)"
+                "plan_default": "Bawaan ({days} hari)",
+                "leads": "Prospek (hari)",
+                "leads_help": "Hapus prospek yang lebih lama dari sekian hari ini.",
+                "analytics": "Analitik (hari)",
+                "analytics_help": "Hapus data analitik yang lebih lama dari sekian hari ini. Minimal {floor} hari.",
+                "anonymize": "Anonimkan pengunjung setelah (hari)",
+                "anonymize_help": "Hapus detail pengunjung dari chat yang lebih lama dari sekian hari ini — nama, email, telepon, alamat IP, string browser lengkap, lokasi, dan tautan halaman. Pesan dan jenis perangkat tetap disimpan. Hingga {max} hari.",
+                "keep_forever": "Simpan selamanya",
+                "never": "Tidak pernah"
             },
             "siem": {
                 "title": "Webhook SIEM",
@@ -3064,6 +3235,20 @@
                 "secret_placeholder": "Biarkan kosong untuk mempertahankan secret saat ini",
                 "secret_help": "Digunakan untuk menandatangani setiap pengiriman dengan HMAC agar SIEM Anda dapat memverifikasinya.",
                 "signature_help": "Setiap POST ditandatangani dengan HMAC-SHA256 di header X-Chatvia-Signature."
+            },
+            "blocked_visitors": {
+                "title": "Pengunjung yang diblokir",
+                "help": "Pengunjung yang tidak bisa chat dengan agen Anda. Anda memblokir pengunjung dari aktivitas pagar pengaman sebuah agen.",
+                "visitor": "Pengunjung · {id}",
+                "browser_on_os": "{browser} di {os}",
+                "on_agent": "Di {agent}",
+                "by": "Oleh {name}",
+                "until": "Sampai {date}",
+                "until_unblocked": "Sampai blokir dibuka",
+                "unblock": "Buka blokir",
+                "unblocked": "Blokir pengunjung dibuka",
+                "unblock_error": "Gagal membuka blokir. Silakan coba lagi.",
+                "empty": "Tidak ada pengunjung yang diblokir."
             }
         },
         "security_audit": {

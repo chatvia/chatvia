@@ -170,6 +170,7 @@
                 "no_results": "Ningún mensaje coincide con tu búsqueda",
                 "clear_search": "Limpiar búsqueda",
                 "confidence": "{percent}% de confianza",
+                "confidence_help": "Qué tan bien coincidió el conocimiento del agente con esta pregunta, no qué tan buena es la respuesta.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Entrada: {prompt} · Salida: {completion}",
                 "playground": "Playground",

@@ -150,7 +150,8 @@
         "connection_lost": "Connection lost",
         "unexpected_response": "Unexpected response",
         "something_went_wrong": "Something went wrong",
-        "try_again": "Try again"
+        "try_again": "Try again",
+        "access_blocked": "Chat blocked"
     },
     "sources": {
         "title": "Knowledge Sources",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram connected"
             },
-            "setup_tab": "Setup"
+            "setup_tab": "Setup",
+            "not_set_up": "Not set up on this server. An admin can turn on this channel in the admin panel."
         },
         "chatlog": {
             "title": "Chat log",
@@ -465,7 +467,8 @@
                 "qa_matched": "Q&A match",
                 "revised": "Revised answer",
                 "revise": "Revise",
-                "voice": "Voice"
+                "voice": "Voice",
+                "confidence_help": "How well the agent's knowledge matched this question — not how good the answer is."
             },
             "details": {
                 "select_conversation": "Select a conversation to view details",
@@ -746,7 +749,7 @@
             "alert_owner": "Email me about attacks",
             "alert_owner_help": "Get an email when the agent blocks an attempt to override its instructions, or when the safety check cannot run. At most one email per hour.",
             "test_title": "Test a message",
-            "test_description": "See what a visitor would get with the settings above, before you save. Nothing is stored.",
+            "test_description": "See what a visitor would get with the settings on the Configuration tab, even before you save. Nothing is stored.",
             "test_placeholder": "Type a message to test",
             "test_samples": "Try:",
             "test_run": "Test",
@@ -760,7 +763,42 @@
             "test_no_guards": "No guard found anything.",
             "detail_topic": "Topic: {topic}",
             "classifier_unavailable": "The safety check could not run, so the text was not checked.",
-            "open_conversation": "Open conversation"
+            "open_conversation": "Open conversation",
+            "about_title": "What are guardrails?",
+            "about_body": "Guardrails are safety checks on your agent's chats. They check each visitor message before the agent answers, and each answer the agent writes. They can hide personal data, stop attempts to trick the agent, block abusive language, and keep the agent on topic.",
+            "about_ai_calls": "PII detection matches fixed patterns and adds no AI calls. Checks marked “AI check” ask an AI model: one extra call for the visitor's message and one for the answer, so up to two per reply.",
+            "ai_check": "AI check",
+            "about_aria": "About guardrails",
+            "about_cost": "All AI checks share these calls, so turning on more of them adds no more calls. Replies can take a little longer and use more AI tokens.",
+            "test_off": "Guardrails are off. Turn them on to test a message.",
+            "block": {
+                "visitor_short": "Visitor · {id}",
+                "blocked": "Blocked",
+                "recent_attempts": "{count} injection or abuse attempt in the last 24 hours | {count} injection or abuse attempts in the last 24 hours",
+                "show_all": "Show all from this visitor",
+                "clear_visitor": "Show all visitors",
+                "block_chatter": "Block chatter",
+                "block_visitor": "Block visitor",
+                "chatter_title": "Block {name}",
+                "chatter_description": "Their account is turned off, and they are signed out of every agent in this workspace. You can turn it back on under People.",
+                "visitor_title": "Block this visitor",
+                "visitor_description": "They cannot chat with any agent in this workspace until the block ends.",
+                "duration": "How long",
+                "reason": "Reason",
+                "reason_placeholder": "e.g. Tried many times to get the agent's instructions",
+                "reason_help": "Only your team sees this.",
+                "notify": "Tell {name} by email",
+                "visitor_limits": "Visitors are recognized by their network and browser. Someone else on the same network with the same browser is blocked too, and a new network or browser gets past the block. You can see and remove blocks under Security.",
+                "chatter_blocked": "Chatter blocked",
+                "visitor_blocked": "Visitor blocked",
+                "error": "Could not block. Please try again.",
+                "durations": {
+                    "day": "1 day",
+                    "week": "7 days",
+                    "month": "30 days",
+                    "forever": "Until you unblock them"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3197,6 +3235,20 @@
                 "secret_placeholder": "Leave blank to keep the current secret",
                 "secret_help": "Used to HMAC-sign each delivery so your SIEM can verify it.",
                 "signature_help": "Each POST is signed with HMAC-SHA256 in the X-Chatvia-Signature header."
+            },
+            "blocked_visitors": {
+                "title": "Blocked visitors",
+                "help": "Visitors who cannot chat with your agents. You block a visitor from an agent's Guardrails activity.",
+                "visitor": "Visitor · {id}",
+                "browser_on_os": "{browser} on {os}",
+                "on_agent": "On {agent}",
+                "by": "By {name}",
+                "until": "Until {date}",
+                "until_unblocked": "Until unblocked",
+                "unblock": "Unblock",
+                "unblocked": "Visitor unblocked",
+                "unblock_error": "Could not unblock. Please try again.",
+                "empty": "No blocked visitors."
             }
         },
         "security_audit": {

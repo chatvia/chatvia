@@ -1,6 +1,21 @@
 {
     "agents": {
         "setup": {
+            "toasts": {
+                "replies_saved": "Yanıt seçenekleri kaydedildi",
+                "replies_error": "Yanıt seçenekleri kaydedilemedi"
+            },
+            "settings": {
+                "replies_title": "Yanıtlar",
+                "replies_description": "Her yanıtın altında nelerin görüneceğini seçin.",
+                "show_sources_label": "Kaynakları göster",
+                "show_sources_hint": "Her yanıtın altında, kullandığı bilgileri listeleyen bir düğme gösterin."
+            },
+            "model_picker_title": "Model",
+            "model_picker_description": "Bu asistanın yanıt verirken kullandığı AI modeli. Bu listede hangi modellerin olacağını bir yönetici seçer (yönetim paneli → Settings → AI models).",
+            "model_placeholder": "Bir model seçin",
+            "model_default": "Varsayılan",
+            "model_empty": "Henüz model yok. Bir yönetici bunları yönetim panelinde, Settings → AI models altında ekler.",
             "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri."
         }
     }

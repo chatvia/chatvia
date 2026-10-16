@@ -170,6 +170,7 @@
                 "no_results": "Brak wiadomości pasujących do wyszukiwania",
                 "clear_search": "Wyczyść wyszukiwanie",
                 "confidence": "{percent}% pewności",
+                "confidence_help": "Jak dobrze wiedza agenta pasowała do tego pytania — a nie jak dobra jest odpowiedź.",
                 "tokens": "{count} tokenów",
                 "tokens_breakdown": "Prompt: {prompt} · Uzupełnienie: {completion}",
                 "playground": "Plac zabaw",

@@ -301,6 +301,18 @@
             "api_keys": "Claves API",
             "prompts": "Prompts",
             "members": "Usuarios"
+        },
+        "security": {
+            "retention": {
+                "leads": "Leads (días)",
+                "leads_help": "Elimina los leads con más de este número de días.",
+                "analytics": "Analíticas (días)",
+                "analytics_help": "Elimina las analíticas con más de este número de días. Al menos {floor} días.",
+                "anonymize": "Anonimizar visitantes tras (días)",
+                "anonymize_help": "Borra los datos del visitante en los chats con más de este número de días: nombre, correo electrónico, teléfono, dirección IP, cadena completa del navegador, ubicación y enlaces de página. Se conservan los mensajes y el tipo de dispositivo. Hasta {max} días.",
+                "keep_forever": "Conservar siempre",
+                "never": "Nunca"
+            }
         }
     }
 }

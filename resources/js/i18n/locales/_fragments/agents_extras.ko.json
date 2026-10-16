@@ -1,6 +1,118 @@
 {
     "agents": {
         "guardrails": {
+            "guard_labels": {
+                "prompt_leak": "프롬프트 유출"
+            },
+            "filter_labels": {
+                "email": "이메일 주소",
+                "credit_card": "신용카드",
+                "us_ssn": "미국 사회보장번호",
+                "german_ssn": "독일 사회보험 번호",
+                "danish_cpr": "덴마크 CPR 번호",
+                "phone": "전화번호",
+                "iban": "은행 계좌(IBAN)",
+                "uk_nino": "영국 국민보험 번호",
+                "ip_address": "IP 주소"
+            },
+            "outcome_labels": {
+                "blocked": "차단됨",
+                "redacted": "마스킹됨",
+                "flagged": "표시됨",
+                "skipped": "건너뜀"
+            },
+            "stage_labels": {
+                "input": "메시지",
+                "source": "지식",
+                "output": "답변",
+                "tool": "도구 결과"
+            },
+            "severity_labels": {
+                "none": "없음",
+                "low": "낮음",
+                "medium": "보통",
+                "high": "높음"
+            },
+            "allowlist_title": "마스킹 안 함",
+            "allowlist_description": "지원 이메일이나 전화번호처럼 에이전트가 항상 보여 줘도 되는 값입니다. 이메일 도메인 전체를 허용하려면 {'@'}로 시작하세요(예: {'@'}acme.com). 비즈니스 프로필의 이메일과 전화번호는 항상 허용됩니다.",
+            "allowlist_placeholder_first": "예: support{'@'}acme.com",
+            "allowlist_placeholder_more": "다른 값 추가",
+            "add_allowlist_value": "값 추가",
+            "remove_allowlist_value": "값 삭제",
+            "allowlist_count": "마스킹하지 않는 값 {count}개 | 마스킹하지 않는 값 {count}개",
+            "all_guards": "모든 가드",
+            "all_outcomes": "모든 결과",
+            "refusal_message_help": "가드가 메시지를 차단할 때 표시됩니다. 저장하면 에이전트의 언어로 번역됩니다. 비워 두면 기본 메시지를 사용합니다.",
+            "mode_labels": {
+                "block": "차단",
+                "monitor": "기록만"
+            },
+            "sensitivity_labels": {
+                "high": "높음: 가장 많이 차단",
+                "medium": "보통",
+                "low": "낮음: 가장 적게 차단"
+            },
+            "pii_action_labels": {
+                "mask": "마스킹",
+                "block": "메시지 차단"
+            },
+            "topic_action_labels": {
+                "refuse": "거부 메시지",
+                "reply": "별도 답변",
+                "handoff": "팀 담당자"
+            },
+            "detail_labels": {
+                "topic": "주제",
+                "types": "데이터",
+                "count": "발견 수",
+                "categories": "카테고리",
+                "tool": "도구",
+                "pattern": "규칙",
+                "reason": "이유"
+            },
+            "pii_action": "처리 방법",
+            "pii_action_help": "마스킹은 데이터를 숨기고 채팅은 계속됩니다. 차단은 메시지를 막고 방문자에게 그 정보를 공유하지 말라고 요청합니다. 답변은 항상 마스킹됩니다.",
+            "custom_patterns_title": "사용자 지정 패턴",
+            "custom_patterns_description": "고객 번호 같은 다른 개인 정보를 정규식으로 찾습니다.",
+            "custom_pattern_name": "이름",
+            "custom_pattern_name_placeholder": "예: 고객 번호",
+            "custom_pattern": "패턴",
+            "custom_pattern_placeholder": "예: CUST-[0-9]+",
+            "add_custom_pattern": "패턴 추가",
+            "remove_custom_pattern": "패턴 삭제",
+            "topic_name": "주제",
+            "topic_description": "설명",
+            "topic_description_placeholder": "이 주제가 다루는 내용(선택 사항)",
+            "topic_examples": "질문 예시",
+            "topic_examples_placeholder": "질문 예시, 한 줄에 하나씩(선택 사항)",
+            "topic_action": "방문자가 받는 응답",
+            "topic_handoff_help": "실시간 채팅이 켜져 있을 때 채팅 위젯에서 작동합니다. 그 외의 곳에서는 방문자에게 거부 메시지가 표시됩니다.",
+            "topic_handoff_reply_placeholder": "연결하는 동안 보낼 메시지(선택 사항)",
+            "topic_reply_placeholder": "방문자가 읽을 답변",
+            "topic_reply": "답변",
+            "mode": "동작",
+            "sensitivity": "민감도",
+            "mode_help": "기록만은 가드가 찾은 내용을 차단하지 않고 기록하므로, 방문자에게 영향을 주기 전에 확인할 수 있습니다.",
+            "check_before_showing": "답변을 보여 주기 전에 점검",
+            "check_before_showing_help": "방문자는 가드가 점검한 뒤에만 답변을 봅니다. 답변이 조금 늦게, 한 번에 표시됩니다.",
+            "alert_owner": "공격이 있으면 이메일로 알림",
+            "alert_owner_help": "에이전트가 지침을 무시하게 하려는 시도를 차단했거나 안전 점검을 실행할 수 없을 때 이메일을 받습니다. 이메일은 시간당 최대 한 통입니다.",
+            "test_title": "메시지 테스트",
+            "test_description": "저장하기 전에도 구성 탭의 설정으로 방문자가 어떤 응답을 받는지 확인하세요. 아무것도 저장되지 않습니다.",
+            "test_placeholder": "테스트할 메시지를 입력하세요",
+            "test_samples": "예시:",
+            "test_run": "테스트",
+            "test_error": "메시지를 테스트할 수 없습니다. 다시 시도해 주세요.",
+            "test_blocked": "차단됨",
+            "test_allowed": "허용됨",
+            "test_handoff": "채팅이 팀으로 넘어갑니다.",
+            "test_visitor_sees": "방문자에게 보이는 내용",
+            "test_model_reads": "에이전트가 읽는 내용",
+            "test_guards": "가드",
+            "test_no_guards": "어떤 가드도 문제를 찾지 못했습니다.",
+            "detail_topic": "주제: {topic}",
+            "classifier_unavailable": "안전 점검을 실행할 수 없어 텍스트를 점검하지 못했습니다.",
+            "open_conversation": "대화 열기",
             "blocked_topics_dialog_description": "에이전트가 다루면 안 되는 주제입니다. 짧은 설명과 질문 예시 몇 개를 추가하면 검사가 주제를 더 잘 찾아냅니다."
         }
     }

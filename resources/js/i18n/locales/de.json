@@ -150,7 +150,8 @@
         "connection_lost": "Verbindung verloren",
         "unexpected_response": "Unerwartete Antwort",
         "something_went_wrong": "Etwas ist schiefgelaufen",
-        "try_again": "Erneut versuchen"
+        "try_again": "Erneut versuchen",
+        "access_blocked": "Chat gesperrt"
     },
     "sources": {
         "title": "Wissensquellen",
@@ -359,7 +360,8 @@
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram verbunden"
             },
-            "setup_tab": "Einrichtung"
+            "setup_tab": "Einrichtung",
+            "not_set_up": "Auf diesem Server nicht eingerichtet. Ein Admin kann diesen Kanal im Admin-Bereich einschalten."
         },
         "chatlog": {
             "title": "Chat-Protokoll",
@@ -465,7 +467,8 @@
                 "qa_matched": "Q&A-Treffer",
                 "revised": "Überarbeitete Antwort",
                 "revise": "Überarbeiten",
-                "voice": "Sprache"
+                "voice": "Sprache",
+                "confidence_help": "Wie gut das Wissen des Agenten zu dieser Frage passte — nicht, wie gut die Antwort ist."
             },
             "details": {
                 "select_conversation": "Wählen Sie ein Gespräch aus, um Details anzuzeigen",
@@ -746,7 +749,7 @@
             "alert_owner": "Mich per E-Mail über Angriffe informieren",
             "alert_owner_help": "Erhalten Sie eine E-Mail, wenn der Agent einen Versuch blockiert, seine Anweisungen zu umgehen, oder wenn die Sicherheitsprüfung nicht laufen kann. Höchstens eine E-Mail pro Stunde.",
             "test_title": "Nachricht testen",
-            "test_description": "Sehen Sie vor dem Speichern, was ein Besucher mit den Einstellungen oben bekäme. Es wird nichts gespeichert.",
+            "test_description": "Sehen Sie, was ein Besucher mit den Einstellungen unter Konfiguration bekäme, auch vor dem Speichern. Es wird nichts gespeichert.",
             "test_placeholder": "Nachricht zum Testen eingeben",
             "test_samples": "Probieren:",
             "test_run": "Testen",
@@ -760,7 +763,42 @@
             "test_no_guards": "Keine Schutzregel hat etwas gefunden.",
             "detail_topic": "Thema: {topic}",
             "classifier_unavailable": "Die Sicherheitsprüfung konnte nicht laufen, daher wurde der Text nicht geprüft.",
-            "open_conversation": "Unterhaltung öffnen"
+            "open_conversation": "Unterhaltung öffnen",
+            "about_title": "Was sind Leitplanken?",
+            "about_body": "Leitplanken sind Sicherheitsprüfungen für die Chats Ihres Agenten. Sie prüfen jede Nachricht eines Besuchers, bevor der Agent antwortet, und jede Antwort, die der Agent schreibt. Sie können persönliche Daten verbergen, Versuche stoppen, den Agenten auszutricksen, beleidigende Sprache blockieren und den Agenten beim Thema halten.",
+            "about_ai_calls": "Die PII-Erkennung nutzt feste Muster und verursacht keine KI-Aufrufe. Prüfungen mit der Markierung „KI-Prüfung“ fragen ein KI-Modell: ein zusätzlicher Aufruf für die Nachricht des Besuchers und einer für die Antwort, also höchstens zwei pro Antwort.",
+            "ai_check": "KI-Prüfung",
+            "about_aria": "Über Leitplanken",
+            "about_cost": "Alle KI-Prüfungen teilen sich diese Aufrufe, weitere Prüfungen erzeugen also keine weiteren Aufrufe. Antworten können etwas länger dauern und mehr KI-Tokens verbrauchen.",
+            "test_off": "Die Leitplanken sind aus. Schalten Sie sie ein, um eine Nachricht zu testen.",
+            "block": {
+                "visitor_short": "Besucher · {id}",
+                "blocked": "Gesperrt",
+                "recent_attempts": "{count} Injection- oder Missbrauchsversuch in den letzten 24 Stunden | {count} Injection- oder Missbrauchsversuche in den letzten 24 Stunden",
+                "show_all": "Alles von diesem Besucher zeigen",
+                "clear_visitor": "Alle Besucher zeigen",
+                "block_chatter": "Chatter sperren",
+                "block_visitor": "Besucher sperren",
+                "chatter_title": "{name} sperren",
+                "chatter_description": "Das Konto wird deaktiviert und bei allen Agenten in diesem Workspace abgemeldet. Unter Personen können Sie es wieder aktivieren.",
+                "visitor_title": "Diesen Besucher sperren",
+                "visitor_description": "Er kann mit keinem Agenten in diesem Workspace chatten, bis die Sperre endet.",
+                "duration": "Wie lange",
+                "reason": "Grund",
+                "reason_placeholder": "z. B. Hat oft versucht, die Anweisungen des Agenten zu bekommen",
+                "reason_help": "Das sieht nur Ihr Team.",
+                "notify": "{name} per E-Mail informieren",
+                "visitor_limits": "Besucher werden an Netzwerk und Browser erkannt. Andere im selben Netzwerk mit demselben Browser werden ebenfalls gesperrt, und mit einem neuen Netzwerk oder Browser lässt sich die Sperre umgehen. Sperren sehen und aufheben können Sie unter Sicherheit.",
+                "chatter_blocked": "Chatter gesperrt",
+                "visitor_blocked": "Besucher gesperrt",
+                "error": "Sperren nicht möglich. Bitte versuchen Sie es erneut.",
+                "durations": {
+                    "day": "1 Tag",
+                    "week": "7 Tage",
+                    "month": "30 Tage",
+                    "forever": "Bis Sie die Sperre aufheben"
+                }
+            }
         },
         "persona": {
             "title": "Persona",
@@ -3179,7 +3217,15 @@
                 "conversations_help": "Der Chatverlauf wird nach dieser Anzahl von Tagen gelöscht. Bis zu {max} Tage.",
                 "audit": "Sicherheitsprotokoll (Tage)",
                 "audit_help": "Standard {default} Tage, Minimum {floor}.",
-                "plan_default": "Standard ({days} Tage)"
+                "plan_default": "Standard ({days} Tage)",
+                "leads": "Leads (Tage)",
+                "leads_help": "Löscht Leads, die älter als diese Anzahl von Tagen sind.",
+                "analytics": "Analysen (Tage)",
+                "analytics_help": "Löscht Analysedaten, die älter als diese Anzahl von Tagen sind. Mindestens {floor} Tage.",
+                "anonymize": "Besucher anonymisieren nach (Tagen)",
+                "anonymize_help": "Löscht Besucherdaten aus Chats, die älter als diese Anzahl von Tagen sind — Name, E-Mail, Telefon, IP-Adresse, vollständige Browserkennung, Standort und Seitenlinks. Nachrichten und Gerätetyp bleiben erhalten. Bis zu {max} Tage.",
+                "keep_forever": "Für immer behalten",
+                "never": "Nie"
             },
             "siem": {
                 "title": "SIEM-Webhook",
@@ -3189,6 +3235,20 @@
                 "secret_placeholder": "Leer lassen, um das aktuelle Secret beizubehalten",
                 "secret_help": "Wird verwendet, um jede Zustellung per HMAC zu signieren, damit Ihr SIEM sie überprüfen kann.",
                 "signature_help": "Jeder POST wird per HMAC-SHA256 im Header X-Chatvia-Signature signiert."
+            },
+            "blocked_visitors": {
+                "title": "Gesperrte Besucher",
+                "help": "Besucher, die nicht mit Ihren Agenten chatten können. Einen Besucher sperren Sie in der Aktivität der Leitplanken eines Agenten.",
+                "visitor": "Besucher · {id}",
+                "browser_on_os": "{browser} unter {os}",
+                "on_agent": "Bei {agent}",
+                "by": "Von {name}",
+                "until": "Bis {date}",
+                "until_unblocked": "Bis zur Aufhebung",
+                "unblock": "Sperre aufheben",
+                "unblocked": "Sperre aufgehoben",
+                "unblock_error": "Aufheben nicht möglich. Bitte versuchen Sie es erneut.",
+                "empty": "Keine gesperrten Besucher."
             }
         },
         "security_audit": {

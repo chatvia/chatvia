@@ -798,6 +798,16 @@
                     "month": "30 days",
                     "forever": "Until you unblock them"
                 }
+            },
+            "blocked_tab": "Blocked",
+            "blocked_list": {
+                "loading": "Loading…",
+                "load_error": "Could not load who is blocked.",
+                "chatters_title": "Blocked chatters",
+                "chatters_help": "Chatters who have access to this agent but whose account is turned off.",
+                "manage_in_people": "Manage in People",
+                "since": "Since {date}",
+                "no_chatters": "No blocked chatters."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Could not save rate limit. Please try again.",
                 "visitor_messages_per_minute": "Messages per minute (one visitor)",
                 "visitor_hint": "The most messages one visitor can send per minute. A visitor over it has to wait, while others keep chatting."
+            },
+            "blocked": {
+                "title": "Blocked",
+                "head_title": "Blocked · {name}",
+                "subtitle": "Visitors and chatters who cannot chat with this agent. You block them from the Guardrails activity."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Capabilities",
             "capabilities_tooltip": "Add rich features to the chat — like interactive charts",
             "forms": "Forms",
-            "forms_tooltip": "Build forms your agent shows in the chat"
+            "forms_tooltip": "Build forms your agent shows in the chat",
+            "blocked": "Blocked"
         },
         "create_modal": {
             "title": "Create Agent",

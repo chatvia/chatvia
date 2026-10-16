@@ -798,6 +798,16 @@
                     "month": "30 dagar",
                     "forever": "Tills du tar bort blockeringen"
                 }
+            },
+            "blocked_tab": "Blockerade",
+            "blocked_list": {
+                "loading": "Läser in…",
+                "load_error": "Kunde inte läsa in vilka som är blockerade.",
+                "chatters_title": "Blockerade chattare",
+                "chatters_help": "Chattare med åtkomst till den här agenten vars konto är avstängt.",
+                "manage_in_people": "Hantera under Personer",
+                "since": "Sedan {date}",
+                "no_chatters": "Inga blockerade chattare."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Det gick inte att spara hastighetsgränsen. Försök igen.",
                 "visitor_messages_per_minute": "Meddelanden per minut (en besökare)",
                 "visitor_hint": "Flest meddelanden som en besökare kan skicka per minut. Den som går över får vänta, medan andra chattar vidare."
+            },
+            "blocked": {
+                "title": "Blockerade",
+                "head_title": "Blockerade · {name}",
+                "subtitle": "Besökare och chattare som inte kan chatta med den här agenten. Du blockerar dem från aktiviteten under skyddsräckena."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Förmågor",
             "capabilities_tooltip": "Lägg till avancerade funktioner i chatten — som interaktiva diagram",
             "forms": "Formulär",
-            "forms_tooltip": "Bygg formulär som din agent visar i chatten"
+            "forms_tooltip": "Bygg formulär som din agent visar i chatten",
+            "blocked": "Blockerade"
         },
         "create_modal": {
             "title": "Skapa agent",

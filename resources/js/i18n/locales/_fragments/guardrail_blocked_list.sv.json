@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Blockerade"
+        },
+        "guardrails": {
+            "blocked_tab": "Blockerade",
+            "blocked_list": {
+                "loading": "Läser in…",
+                "load_error": "Kunde inte läsa in vilka som är blockerade.",
+                "chatters_title": "Blockerade chattare",
+                "chatters_help": "Chattare med åtkomst till den här agenten vars konto är avstängt.",
+                "manage_in_people": "Hantera under Personer",
+                "since": "Sedan {date}",
+                "no_chatters": "Inga blockerade chattare."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Blockerade",
+                "head_title": "Blockerade · {name}",
+                "subtitle": "Besökare och chattare som inte kan chatta med den här agenten. Du blockerar dem från aktiviteten under skyddsräckena."
+            }
+        }
+    }
+}

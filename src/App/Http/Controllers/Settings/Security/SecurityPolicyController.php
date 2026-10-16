@@ -10,6 +10,7 @@ use Domain\Security\Data\WorkspaceSecurityPolicyData;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Domain\Security\Queries\ActiveVisitorBlocksQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -25,7 +26,7 @@ use Support\Localization\Country\Models\Country;
  */
 class SecurityPolicyController
 {
-    public function edit(Request $request): Response
+    public function edit(Request $request, ActiveVisitorBlocksQuery $blocks): Response
     {
         $workspace = $request->user()->workspace();
 
@@ -47,13 +48,7 @@ class SecurityPolicyController
             // ISO-3166 alpha-2 values the geo gate stores and matches against.
             'countries' => Country::options(),
             'current_country' => $currentCountry,
-            'blocked_visitors' => BlockedVisitor::query()
-                ->where('workspace_id', $workspace->id)
-                ->active()
-                ->with(['agent:id,name', 'country', 'blockedBy:id,name'])
-                ->orderByDesc('id')
-                ->limit(200)
-                ->get()
+            'blocked_visitors' => $blocks->forWorkspace($workspace->id)
                 ->map(fn (BlockedVisitor $block): array => $block->toListArray()),
             // Retention bounds for the form: conversations cap at the install's
             // retention (shorten only); audit sits between the mandated floor

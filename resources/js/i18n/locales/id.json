@@ -798,6 +798,16 @@
                     "month": "30 hari",
                     "forever": "Sampai Anda membuka blokir"
                 }
+            },
+            "blocked_tab": "Diblokir",
+            "blocked_list": {
+                "loading": "Memuat…",
+                "load_error": "Gagal memuat daftar yang diblokir.",
+                "chatters_title": "Chatter yang diblokir",
+                "chatters_help": "Chatter yang punya akses ke agen ini tetapi akunnya dinonaktifkan.",
+                "manage_in_people": "Kelola di Orang",
+                "since": "Sejak {date}",
+                "no_chatters": "Tidak ada chatter yang diblokir."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Tidak dapat menyimpan batas laju. Silakan coba lagi.",
                 "visitor_messages_per_minute": "Pesan per menit (satu pengunjung)",
                 "visitor_hint": "Jumlah pesan terbanyak yang dapat dikirim satu pengunjung per menit. Pengunjung yang melewatinya harus menunggu, sementara yang lain tetap bisa mengobrol."
+            },
+            "blocked": {
+                "title": "Diblokir",
+                "head_title": "Diblokir · {name}",
+                "subtitle": "Pengunjung dan chatter yang tidak bisa chat dengan agen ini. Anda memblokir mereka dari aktivitas pagar pengaman."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Kemampuan",
             "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif",
             "forms": "Formulir",
-            "forms_tooltip": "Buat formulir yang ditampilkan agen Anda di dalam obrolan"
+            "forms_tooltip": "Buat formulir yang ditampilkan agen Anda di dalam obrolan",
+            "blocked": "Diblokir"
         },
         "create_modal": {
             "title": "Buat Agen",

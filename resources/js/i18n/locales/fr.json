@@ -798,6 +798,16 @@
                     "month": "30 jours",
                     "forever": "Jusqu'à ce que vous le débloquiez"
                 }
+            },
+            "blocked_tab": "Bloqués",
+            "blocked_list": {
+                "loading": "Chargement…",
+                "load_error": "Impossible de charger les personnes bloquées.",
+                "chatters_title": "Chatters bloqués",
+                "chatters_help": "Chatters qui ont accès à cet agent mais dont le compte est désactivé.",
+                "manage_in_people": "Gérer dans Personnes",
+                "since": "Depuis le {date}",
+                "no_chatters": "Aucun chatter bloqué."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Impossible d'enregistrer la limite de débit. Veuillez réessayer.",
                 "visitor_messages_per_minute": "Messages par minute (un visiteur)",
                 "visitor_hint": "Le nombre maximal de messages qu’un visiteur peut envoyer par minute. Au-delà, il doit attendre, pendant que les autres continuent."
+            },
+            "blocked": {
+                "title": "Bloqués",
+                "head_title": "Bloqués · {name}",
+                "subtitle": "Visiteurs et chatters qui ne peuvent pas discuter avec cet agent. Vous les bloquez depuis l'activité des garde-fous."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Capacités",
             "capabilities_tooltip": "Ajoutez des fonctionnalités avancées au chat — comme des graphiques interactifs",
             "forms": "Formulaires",
-            "forms_tooltip": "Créez des formulaires que votre agent affiche dans la conversation"
+            "forms_tooltip": "Créez des formulaires que votre agent affiche dans la conversation",
+            "blocked": "Bloqués"
         },
         "create_modal": {
             "title": "Créer un agent",

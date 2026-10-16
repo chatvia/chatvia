@@ -56,6 +56,8 @@ const submit = () => {
 
     form.post(block.url({ agent: props.agentId, event: props.trigger.external_id }), {
         preserveScroll: true,
+        // Keep the Activity tab and the open trigger; the rows reload.
+        preserveState: true,
         onSuccess: () => {
             open.value = false;
             toast.success(isChatter.value ? t('agents.guardrails.block.chatter_blocked') : t('agents.guardrails.block.visitor_blocked'));

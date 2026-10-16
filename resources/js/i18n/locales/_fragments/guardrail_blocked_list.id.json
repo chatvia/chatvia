@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Diblokir"
+        },
+        "guardrails": {
+            "blocked_tab": "Diblokir",
+            "blocked_list": {
+                "loading": "Memuat…",
+                "load_error": "Gagal memuat daftar yang diblokir.",
+                "chatters_title": "Chatter yang diblokir",
+                "chatters_help": "Chatter yang punya akses ke agen ini tetapi akunnya dinonaktifkan.",
+                "manage_in_people": "Kelola di Orang",
+                "since": "Sejak {date}",
+                "no_chatters": "Tidak ada chatter yang diblokir."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Diblokir",
+                "head_title": "Diblokir · {name}",
+                "subtitle": "Pengunjung dan chatter yang tidak bisa chat dengan agen ini. Anda memblokir mereka dari aktivitas pagar pengaman."
+            }
+        }
+    }
+}

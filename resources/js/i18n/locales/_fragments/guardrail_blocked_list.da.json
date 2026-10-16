@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Blokerede"
+        },
+        "guardrails": {
+            "blocked_tab": "Blokerede",
+            "blocked_list": {
+                "loading": "Indlæser…",
+                "load_error": "Kunne ikke hente, hvem der er blokeret.",
+                "chatters_title": "Blokerede chattere",
+                "chatters_help": "Chattere med adgang til denne agent, hvis konto er slået fra.",
+                "manage_in_people": "Administrer under Personer",
+                "since": "Siden {date}",
+                "no_chatters": "Ingen blokerede chattere."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Blokerede",
+                "head_title": "Blokerede · {name}",
+                "subtitle": "Besøgende og chattere, der ikke kan chatte med denne agent. Du blokerer dem fra aktiviteten under sikkerhedsreglerne."
+            }
+        }
+    }
+}

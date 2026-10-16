@@ -798,6 +798,16 @@
                     "month": "30 dager",
                     "forever": "Til du fjerner blokkeringen"
                 }
+            },
+            "blocked_tab": "Blokkerte",
+            "blocked_list": {
+                "loading": "Laster inn…",
+                "load_error": "Kunne ikke laste inn hvem som er blokkert.",
+                "chatters_title": "Blokkerte chattere",
+                "chatters_help": "Chattere med tilgang til denne agenten, men med kontoen slått av.",
+                "manage_in_people": "Administrer under Personer",
+                "since": "Siden {date}",
+                "no_chatters": "Ingen blokkerte chattere."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Kunne ikke lagre hastighetsbegrensning. Prøv igjen.",
                 "visitor_messages_per_minute": "Meldinger per minutt (én besøkende)",
                 "visitor_hint": "Flest meldinger én besøkende kan sende per minutt. Den som går over, må vente, mens andre chatter videre."
+            },
+            "blocked": {
+                "title": "Blokkerte",
+                "head_title": "Blokkerte · {name}",
+                "subtitle": "Besøkende og chattere som ikke kan chatte med denne agenten. Du blokkerer dem fra aktiviteten under sikkerhetssperrene."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Kapabiliteter",
             "capabilities_tooltip": "Legg til avanserte muligheter i chatten — som interaktive diagrammer",
             "forms": "Skjemaer",
-            "forms_tooltip": "Bygg skjemaer agenten din viser i chatten"
+            "forms_tooltip": "Bygg skjemaer agenten din viser i chatten",
+            "blocked": "Blokkerte"
         },
         "create_modal": {
             "title": "Opprett agent",

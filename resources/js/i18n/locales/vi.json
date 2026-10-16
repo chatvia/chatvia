@@ -798,6 +798,16 @@
                     "month": "30 ngày",
                     "forever": "Cho đến khi bạn bỏ chặn"
                 }
+            },
+            "blocked_tab": "Đã chặn",
+            "blocked_list": {
+                "loading": "Đang tải…",
+                "load_error": "Không tải được danh sách bị chặn.",
+                "chatters_title": "Người dùng bị chặn",
+                "chatters_help": "Người dùng có quyền truy cập trợ lý này nhưng tài khoản đã bị tắt.",
+                "manage_in_people": "Quản lý trong Mọi người",
+                "since": "Từ {date}",
+                "no_chatters": "Không có người dùng bị chặn."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Không thể lưu giới hạn tần suất. Vui lòng thử lại.",
                 "visitor_messages_per_minute": "Số tin nhắn mỗi phút (một khách truy cập)",
                 "visitor_hint": "Số tin nhắn tối đa mà một khách truy cập có thể gửi mỗi phút. Khách vượt quá phải chờ, trong khi những người khác vẫn tiếp tục trò chuyện."
+            },
+            "blocked": {
+                "title": "Đã chặn",
+                "head_title": "Đã chặn · {name}",
+                "subtitle": "Khách và người dùng không thể trò chuyện với trợ lý này. Bạn chặn họ từ hoạt động quy tắc kiểm soát."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Khả năng",
             "capabilities_tooltip": "Thêm các tính năng nâng cao vào cuộc trò chuyện — như biểu đồ tương tác",
             "forms": "Biểu mẫu",
-            "forms_tooltip": "Tạo các biểu mẫu mà trợ lý AI của bạn hiển thị trong cuộc trò chuyện"
+            "forms_tooltip": "Tạo các biểu mẫu mà trợ lý AI của bạn hiển thị trong cuộc trò chuyện",
+            "blocked": "Đã chặn"
         },
         "create_modal": {
             "title": "Tạo trợ lý AI",

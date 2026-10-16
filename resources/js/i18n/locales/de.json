@@ -798,6 +798,16 @@
                     "month": "30 Tage",
                     "forever": "Bis Sie die Sperre aufheben"
                 }
+            },
+            "blocked_tab": "Gesperrt",
+            "blocked_list": {
+                "loading": "Wird geladen…",
+                "load_error": "Die gesperrten Personen konnten nicht geladen werden.",
+                "chatters_title": "Gesperrte Chatter",
+                "chatters_help": "Chatter mit Zugang zu diesem Agenten, deren Konto deaktiviert ist.",
+                "manage_in_people": "Unter Personen verwalten",
+                "since": "Seit {date}",
+                "no_chatters": "Keine gesperrten Chatter."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Ratenlimit konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
                 "visitor_messages_per_minute": "Nachrichten pro Minute (ein Besucher)",
                 "visitor_hint": "Die meisten Nachrichten, die ein Besucher pro Minute senden kann. Wer darüber liegt, muss warten, während andere weiterchatten."
+            },
+            "blocked": {
+                "title": "Gesperrt",
+                "head_title": "Gesperrt · {name}",
+                "subtitle": "Besucher und Chatter, die nicht mit diesem Agenten chatten können. Sie sperren sie in der Aktivität der Leitplanken."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Fähigkeiten",
             "capabilities_tooltip": "Erweiterte Funktionen zum Chat hinzufügen – etwa interaktive Diagramme",
             "forms": "Formulare",
-            "forms_tooltip": "Erstellen Sie Formulare, die Ihr Agent im Chat anzeigt"
+            "forms_tooltip": "Erstellen Sie Formulare, die Ihr Agent im Chat anzeigt",
+            "blocked": "Gesperrt"
         },
         "create_modal": {
             "title": "Agent erstellen",

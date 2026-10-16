@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Nie skonfigurowano na tym serwerze. Administrator może włączyć ten kanał w panelu administracyjnym."
+        }
+    }
+}

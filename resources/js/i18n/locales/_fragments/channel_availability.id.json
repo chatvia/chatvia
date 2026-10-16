@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Belum diatur di server ini. Admin dapat menyalakan saluran ini di panel admin."
+        }
+    }
+}

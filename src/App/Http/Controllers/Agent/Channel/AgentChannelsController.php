@@ -80,7 +80,8 @@ class AgentChannelsController
 
     /**
      * Messenger connects via Facebook OAuth (one Chatvia Meta app), so there's
-     * no per-page webhook URL. `pick` holds the Pages returned from Facebook
+     * no per-page webhook URL. `available` is false until an admin sets up the
+     * Messenger Meta app. `pick` holds the Pages returned from Facebook
      * awaiting the workspace's choice (id + name only — the page tokens stay
      * server-side in the session).
      *
@@ -92,6 +93,7 @@ class AgentChannelsController
         $pending = self::pendingAccounts($agent, MetaOAuthChannel::Messenger);
 
         return [
+            'available' => MetaApp::Messenger->isConfigured(),
             'connected' => $page !== null,
             'page_name' => $page?->page_name,
             'enabled' => (bool) $page?->enabled,
@@ -105,7 +107,8 @@ class AgentChannelsController
     /**
      * WhatsApp connects via Embedded Signup (the Facebook JS SDK popup), so
      * there's no per-number webhook URL — the frontend just needs the WhatsApp
-     * Meta app's id + Login configuration to launch it.
+     * Meta app's id + Login configuration to launch it. `available` is false
+     * until an admin sets up that app.
      *
      * @return array<string, mixed>
      */
@@ -114,6 +117,7 @@ class AgentChannelsController
         $number = $agent->whatsappNumber;
 
         return [
+            'available' => MetaApp::Whatsapp->isConfigured(),
             'connected' => $number !== null,
             'display_phone_number' => $number?->display_phone_number,
             'verified_name' => $number?->verified_name,
@@ -141,7 +145,8 @@ class AgentChannelsController
 
     /**
      * Instagram connects via Facebook OAuth (one Chatvia Meta app) — no
-     * per-account webhook URL. `pick` holds the IG-linked accounts returned
+     * per-account webhook URL. `available` is false until an admin sets up the
+     * Instagram Meta app. `pick` holds the IG-linked accounts returned
      * from Facebook awaiting the workspace's choice (ig username + page name
      * only — the page tokens stay server-side in the session).
      *
@@ -153,6 +158,7 @@ class AgentChannelsController
         $pending = self::pendingAccounts($agent, MetaOAuthChannel::Instagram);
 
         return [
+            'available' => MetaApp::Instagram->isConfigured(),
             'connected' => $account !== null,
             'username' => $account?->username,
             'enabled' => (bool) $account?->enabled,

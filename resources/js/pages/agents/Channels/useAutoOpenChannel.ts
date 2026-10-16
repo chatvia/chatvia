@@ -11,7 +11,7 @@ export function useAutoOpenChannel(open: () => ChannelKind | null, items: Ref<Ch
     onMounted(() => {
         const kind = open();
         const item = kind ? items.value.find((i) => i.kind === kind) : undefined;
-        if (!item) return;
+        if (!item || item.disabled) return;
 
         openChannel(item);
 

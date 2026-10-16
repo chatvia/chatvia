@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Inte konfigurerat på den här servern. En administratör kan slå på den här kanalen i adminpanelen."
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Ikke satt opp på denne serveren. En administrator kan slå på denne kanalen i adminpanelet."
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "channels": {
+            "not_set_up": "Chưa được thiết lập trên máy chủ này. Quản trị viên có thể bật kênh này trong trang quản trị."
+        }
+    }
+}

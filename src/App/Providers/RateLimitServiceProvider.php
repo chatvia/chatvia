@@ -87,6 +87,12 @@ class RateLimitServiceProvider extends ServiceProvider
             ? Limit::perMinute(300)->by($request->user()->getAuthIdentifier().'|'.$request->user()::class)
             : Limit::perMinute(60)->by($request->ip()));
 
+        // The public API's message endpoint costs an LLM turn, so it gets the
+        // hosted chat's cap, not the plain `api` one. Keyed by the token's
+        // account (API callers are always staff users).
+        RateLimiter::for('api-chat', fn (Request $request) => Limit::perMinute(30)
+            ->by('api-chat|'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         // Built-in MCP endpoints are only reachable by our own signed tool
         // loop; key the backstop by the calling agent so one runaway agent
         // loop can't exhaust the budget for every other agent.

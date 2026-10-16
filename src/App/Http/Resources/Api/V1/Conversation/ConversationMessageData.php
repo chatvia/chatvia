@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Resources\Api\V1\Conversations;
+declare(strict_types=1);
+
+namespace App\Http\Resources\Api\V1\Conversation;
 
 use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Data;

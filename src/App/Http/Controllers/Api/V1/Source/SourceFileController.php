@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Source;
 
 use App\Http\Requests\Api\V1\Source\UploadSourceFileRequest;
@@ -10,6 +12,7 @@ use Domain\Knowledge\Source\File\Actions\DeleteSourceFileFromAgentAction;
 use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 /**
  * Upload a file (PDF / Word / audio / video) as a knowledge source.
@@ -31,12 +34,12 @@ class SourceFileController
     /**
      * Delete file source
      */
-    public function destroy(Agent $agent, SourceFile $file, DeleteSourceFileFromAgentAction $deleteFile): JsonResponse
+    public function destroy(Agent $agent, SourceFile $file, DeleteSourceFileFromAgentAction $deleteFile): Response
     {
         // {file} is looked up through the agent's own files, so a file of
         // another agent is a 404.
         $deleteFile->execute($agent, $file);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

@@ -24,7 +24,7 @@ class RoleMemberController
     /**
      * Assign a teammate to a role
      *
-     * Body: `{ user_id: string }` — a user's `id` from `POST /api/v1/users`.
+     * Body: `{ user_id: string }` — a user's `id` from `GET /api/v1/users`.
      */
     public function store(AssignRoleMemberRequest $request, Team $team, Role $role, AssignUserToRoleAction $action): JsonResponse
     {
@@ -32,6 +32,6 @@ class RoleMemberController
 
         $action->execute($team, $role, $user);
 
-        return response()->json(['data' => UserData::fromModel($user)], 201);
+        return response()->json(['data' => UserData::fromModel($user)]);
     }
 }

@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Function;
 
 use App\Http\Requests\Api\V1\CursorPageRequest;
 use App\Http\Requests\Api\V1\Function\StoreApiFunctionRequest;
 use App\Http\Requests\Api\V1\Function\UpdateApiFunctionRequest;
-use App\Http\Resources\Api\V1\Tools\FunctionData;
+use App\Http\Resources\Api\V1\Tool\FunctionData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Support\Pagination\CursorPage;
 
 /**
@@ -79,10 +82,10 @@ class FunctionController
     /**
      * Delete function
      */
-    public function destroy(AgentFunction $function): JsonResponse
+    public function destroy(AgentFunction $function): Response
     {
         $function->delete();
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

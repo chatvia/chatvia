@@ -355,6 +355,15 @@ class Conversation extends Model
         return $this->handoff_status === HandoffStatus::Human;
     }
 
+    /**
+     * Whether this conversation happens in the Chat Widget — the only surface
+     * with live chat, so the only one a handoff can bring a person into.
+     */
+    public function isSourceWidget(): bool
+    {
+        return $this->source === ConversationSource::Widget;
+    }
+
     public function displayName(): ?string
     {
         if ($this->lead?->name) {

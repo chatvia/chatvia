@@ -1,16 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Team;
 
 use App\Http\Requests\Api\V1\CursorPageRequest;
 use App\Http\Requests\Api\V1\Team\StoreApiTeamRequest;
 use App\Http\Requests\Api\V1\Team\UpdateApiTeamRequest;
 use App\Http\Resources\Api\V1\Team\TeamData;
+use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Actions\Team\DeleteTeamAction;
 use Domain\Membership\Team\Actions\Team\UpdateTeamAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Support\Pagination\CursorPage;
 
 /**
@@ -54,6 +60,20 @@ class TeamController
     }
 
     /**
+     * Get team
+     *
+     * The team with its agents and roles nested.
+     *
+     * @return array{data: TeamData}
+     */
+    public function show(Team $team): array
+    {
+        $team->load(['agents', 'roles.permissions', 'roles.agents']);
+
+        return ['data' => TeamData::fromModel($team)];
+    }
+
+    /**
      * Update team
      *
      * @return array{data: TeamData}
@@ -61,5 +81,21 @@ class TeamController
     public function update(UpdateApiTeamRequest $request, Team $team, UpdateTeamAction $action): array
     {
         return ['data' => TeamData::fromModel($action->execute($request->toData($team)))];
+    }
+
+    /**
+     * Delete team
+     *
+     * Deletes the team. Your primary team, your only team, and a team that
+     * still has agents cannot be deleted (422).
+     */
+    public function destroy(Request $request, Team $team, DeleteTeamAction $deleteTeam): Response
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $deleteTeam->execute($user, $team);
+
+        return response()->noContent();
     }
 }

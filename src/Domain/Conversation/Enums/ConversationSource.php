@@ -29,6 +29,7 @@ enum ConversationSource: string
     case Whatsapp = 'whatsapp';
     case MsTeams = 'msteams';
     case Instagram = 'instagram';
+    case Api = 'api';
 
     /**
      * The channel's name as reports show it, e.g. "Chat Widget" or "WhatsApp".
@@ -45,6 +46,7 @@ enum ConversationSource: string
             self::Whatsapp => 'WhatsApp',
             self::MsTeams => 'MS Teams',
             self::Instagram => 'Instagram',
+            self::Api => 'API',
         };
     }
 

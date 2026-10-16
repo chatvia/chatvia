@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Source;
 
 use App\Http\Requests\Api\V1\Source\StoreSourceTextRequest;
@@ -10,6 +12,7 @@ use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 /**
  * Ingest a raw block of text as a knowledge source. After upload the text is
@@ -38,12 +41,12 @@ class SourceTextController
     /**
      * Delete text source
      */
-    public function destroy(Agent $agent, SourceText $text, DeleteAgentSourceTextAction $deleteText): JsonResponse
+    public function destroy(Agent $agent, SourceText $text, DeleteAgentSourceTextAction $deleteText): Response
     {
         // {text} is looked up through the agent's own texts, so a text of
         // another agent is a 404.
         $deleteText->execute($agent, $text);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

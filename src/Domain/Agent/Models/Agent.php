@@ -22,6 +22,7 @@ use Domain\Form\Models\FormSubmission;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
@@ -360,6 +361,17 @@ class Agent extends Model
     {
         return $this->morphedByMany(SourceText::class, 'sourceable', 'agent_sources')
             ->using(AgentSource::class);
+    }
+
+    /**
+     * The agent's curated Q&A entries. Named `qas` so the API route's
+     * `{qa}` binding scopes through it.
+     *
+     * @return HasMany<AgentQuestionAnswer, $this>
+     */
+    public function qas(): HasMany
+    {
+        return $this->hasMany(AgentQuestionAnswer::class);
     }
 
     /**

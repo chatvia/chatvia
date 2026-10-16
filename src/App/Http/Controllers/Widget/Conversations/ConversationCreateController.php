@@ -39,7 +39,7 @@ class ConversationCreateController
         }
 
         return new WidgetConversationStoredData(
-            id: $startConversation->execute(new ChatScopeData($agent, $sessionId), ConversationSource::Widget),
+            id: $startConversation->execute(new ChatScopeData($agent, $sessionId), ConversationSource::Widget)->external_id,
         );
     }
 }

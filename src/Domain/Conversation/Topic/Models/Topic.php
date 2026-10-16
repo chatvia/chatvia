@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
+use Support\Concerns\HasExternalId;
 
 /**
  * A subject a conversation can be about ("Billing", "Shipping", ...). The
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
  * workspace. Agents choose their topics through the `agent_topic` pivot.
  *
  * @property int $id
+ * @property string $external_id
  * @property int|null $workspace_id
  * @property string $topic
  * @property string $description
@@ -52,6 +54,10 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class Topic extends Model
 {
+    // The dashboard binds topics by integer id, so the default route key
+    // stays; the public API names them explicitly ({topic:external_id}).
+    use HasExternalId;
+
     /** @return BelongsTo<Workspace, $this> */
     public function workspace(): BelongsTo
     {

@@ -1,5 +1,7 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
@@ -53,7 +55,7 @@ beforeEach(function (): void {
 });
 
 /** The turn of this test's conversation, paused on one gated call in its third round. */
-function resumeCheckpoint(): ToolApprovalCheckpoint
+function resumeCheckpoint(?int $chatterId = null): ToolApprovalCheckpoint
 {
     $context = TestChatContext::make(
         agent: test()->agent,
@@ -61,6 +63,7 @@ function resumeCheckpoint(): ToolApprovalCheckpoint
         llm: test()->llm,
         externalSessionId: test()->conversation->session->external_id,
         conversationId: test()->conversation->external_id,
+        chatterId: $chatterId,
     );
     $pending = PendingToolCallData::fromArray([
         'tool_call_id' => 'call_1',
@@ -119,6 +122,64 @@ it('refuses an expired approval without running the tools', function (): void {
     expect(collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error)->data['message'])
         ->toBe('This action was already handled or has expired.')
         ->and($this->runner->appliedDecisions)->toBe([])
+        ->and($this->runner->runs)->toBe([]);
+});
+
+/**
+ * The waiting period of an approval can outlive a gate's answer, so the
+ * per-turn gates run again on resume: a workspace deactivated or a limit
+ * reached while the turn waited refuses it, and the unclaimed checkpoint
+ * stays resumable once the gate would allow it again.
+ */
+function resumeRefusalMessage(ToolApprovalCheckpoint $checkpoint): ?string
+{
+    $events = resumeEvents($checkpoint);
+
+    return collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error)?->data['message'];
+}
+
+it('refuses to resume for a deactivated workspace, without claiming the checkpoint', function (): void {
+    $checkpoint = resumeCheckpoint();
+    deactivateWorkspaceOf($this->agent);
+
+    expect(resumeRefusalMessage($checkpoint))->toBe('Sorry — this assistant is unavailable right now. Please try again later.')
+        ->and($checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending)
+        ->and($this->runner->runs)->toBe([]);
+});
+
+it('refuses to resume once the workspace reached its monthly message limit', function (): void {
+    $checkpoint = resumeCheckpoint();
+    MessageLimit::create([
+        'workspace_id' => $this->agent->workspace_id,
+        'monthly_limit' => 3,
+        'messages_used' => 3,
+        'period_starts_at' => now()->startOfMonth(),
+    ]);
+
+    $events = resumeEvents($checkpoint);
+    $error = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error);
+
+    expect($error->data['code'])->toBe(ErrorCode::MessageLimitReached->value)
+        ->and($error->id)->toBe($checkpoint->assistant_message_id)
+        ->and($checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending)
+        ->and($this->runner->runs)->toBe([]);
+});
+
+it('refuses to resume once the chatter reached their monthly message limit', function (): void {
+    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
+    $checkpoint = resumeCheckpoint($chatter->id);
+    MessageLimit::create([
+        'chatter_id' => $chatter->id,
+        'monthly_limit' => 3,
+        'messages_used' => 3,
+        'period_starts_at' => now()->startOfMonth(),
+    ]);
+
+    $events = resumeEvents($checkpoint);
+    $error = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error);
+
+    expect($error->data['code'])->toBe(ErrorCode::ChatterMessageLimitReached->value)
+        ->and($checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending)
         ->and($this->runner->runs)->toBe([]);
 });
 

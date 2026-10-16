@@ -1,10 +1,10 @@
-import { Facebook, Globe, Instagram, MessageSquare, Phone, Search, Send, Slack, Users, type LucideIcon } from 'lucide-vue-next';
+import { Facebook, Globe, Instagram, MessageSquare, Phone, Search, Send, Slack, Users, Webhook, type LucideIcon } from 'lucide-vue-next';
 
 /**
  * Channel surface a conversation originated from. Mirrors the backend
  * Domain\Conversation\Enums\ConversationSource enum.
  */
-export type ConversationSource = 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram';
+export type ConversationSource = 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram' | 'api';
 
 /**
  * Single source of truth for the icon shown next to each channel, so the same
@@ -22,9 +22,10 @@ export const sourceIcons: Record<ConversationSource, LucideIcon> = {
     whatsapp: Phone,
     msteams: Users,
     instagram: Instagram,
+    api: Webhook,
 };
 
-/** Icon for a channel, or null for unknown/legacy sources (e.g. playground, api). */
+/** Icon for a channel, or null for unknown/legacy sources (e.g. playground). */
 export function getSourceIcon(source: string | null | undefined): LucideIcon | null {
     return source && source in sourceIcons ? sourceIcons[source as ConversationSource] : null;
 }

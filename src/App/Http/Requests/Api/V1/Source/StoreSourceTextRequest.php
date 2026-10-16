@@ -23,6 +23,7 @@ class StoreSourceTextRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // The text to train on, at least 500 characters.
             'content' => ['required', 'string', 'min:500'],
         ];
     }

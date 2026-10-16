@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Resources\Api\V1\Tools;
+declare(strict_types=1);
+
+namespace App\Http\Resources\Api\V1\Tool;
 
 use Carbon\CarbonInterface;
 use Domain\Integration\Function\Enums\FunctionAuthType;

@@ -6,17 +6,43 @@ use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 
 /**
- * Lightweight conversation projection for the API list endpoint.
+ * Lightweight conversation projection for the public API's list and create
+ * endpoints. Lives in the Domain layer (not Resources) because the list
+ * Action builds it, and Domain cannot import App.
  */
 class ConversationSummaryData extends Data
 {
     public function __construct(
+        /**
+         * The conversation's ID.
+         */
         public string $id,
+        /**
+         * The conversation's title. Auto-generated after the first reply
+         * unless one was set.
+         */
         public ?string $title,
+        /**
+         * The analyzed visitor sentiment: `positive`, `neutral` or
+         * `negative`. Null until the conversation is analyzed.
+         */
         public ?string $sentiment,
+        /**
+         * The analyzed conversation tone. Null until analyzed.
+         */
         public ?string $tone,
+        /**
+         * Who answers: `ai`, `pending` (handoff requested), `human`
+         * (an operator took over) or `returned`.
+         */
         public ?string $handoff_status,
+        /**
+         * When the conversation last saw activity.
+         */
         public ?string $last_activity_at,
+        /**
+         * When the conversation was opened.
+         */
         public ?string $created_at,
     ) {}
 

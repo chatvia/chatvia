@@ -53,7 +53,7 @@ class InitializeWidgetSessionAction
         $conversationId ??= $this->startConversation->execute(
             new ChatScopeData($agent, $session->external_id),
             ConversationSource::Widget,
-        );
+        )->external_id;
 
         return new WidgetSessionInitResultData(
             session_id: $session->external_id,

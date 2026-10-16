@@ -145,6 +145,7 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'link' => isolationLink($built['website'] ?? isolationWebsite($agent)),
         'text', 'textId' => isolationText($agent),
         'id' => str_contains($route->uri(), '/sources/qa/') ? isolationQuestionAnswer($agent) : isolationText($agent),
+        'qa' => isolationQuestionAnswer($agent),
         'youtube' => isolationYoutubeVideo($agent),
         'topic' => isolationTopic($agent),
         'chatter' => Chatter::factory()->grantedTo($agent)->create(),
@@ -397,7 +398,7 @@ function isolationRecordParameters(): array
 {
     return [
         'agent', 'conversation', 'conversationId', 'function', 'external_id', 'mcp', 'file', 'source', 'fileId',
-        'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'youtube', 'topic',
+        'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'qa', 'youtube', 'topic',
         'chatter', 'form', 'run', 'case', 'team', 'role', 'roleId', 'invitationId', 'member', 'export', 'tokenId',
         'event', 'blockedVisitor', 'notification',
     ];
@@ -464,7 +465,7 @@ it("answers 404 when any record a route names is another workspace's", function 
     // The floors sit a little under today's counts: a sweep that suddenly
     // sends far fewer requests has lost its routes (a middleware renamed…).
     'dashboard' => [false, 240],
-    'API' => [true, 36],
+    'API' => [true, 40],
 ]);
 
 it("answers 404 when a route pairs the caller's team with another workspace's member or role", function (): void {

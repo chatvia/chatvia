@@ -34,7 +34,7 @@ readonly class StartVoiceCallController
         StartConversationAction $startConversation,
         ?string $conversationId = null,
     ): JsonResponse {
-        $conversationId ??= $startConversation->execute($this->session->scope($agent), ConversationSource::HostedChat);
+        $conversationId ??= $startConversation->execute($this->session->scope($agent), ConversationSource::HostedChat)->external_id;
 
         $call = $start->execute(
             $this->factory->voiceForChat($request, $agent, $this->session->findOrStart($agent), $conversationId),

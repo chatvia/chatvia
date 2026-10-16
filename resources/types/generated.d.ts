@@ -370,7 +370,7 @@ declare namespace Domain {
     namespace Conversation {
         namespace Enums {
             export type ConversationSource =
-                'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram';
+                'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram' | 'api';
             export type HandoffStatus = 'ai' | 'pending' | 'human' | 'returned';
             export type MessageRole = 'user' | 'assistant' | 'agent';
         }

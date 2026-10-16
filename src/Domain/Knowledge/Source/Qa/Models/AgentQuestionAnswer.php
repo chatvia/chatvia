@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Support\Concerns\HasExternalId;
 
 /**
  * A curated question-and-answer entry of one agent. When a visitor's message
@@ -43,6 +44,8 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class AgentQuestionAnswer extends Model
 {
+    use HasExternalId;
+
     /** @return BelongsTo<Agent, $this> */
     public function agent(): BelongsTo
     {

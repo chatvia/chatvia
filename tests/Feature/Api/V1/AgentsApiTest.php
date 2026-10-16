@@ -159,7 +159,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
 
         $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
-            ->assertCreated();
+            ->assertOk();
 
         $this->withToken($this->token)
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
@@ -186,7 +186,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
 
         $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
-            ->assertCreated();
+            ->assertOk();
 
         $this->withToken($this->token)
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
@@ -201,7 +201,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
 
         $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/functions", ['function_id' => $function->external_id])
-            ->assertCreated()
+            ->assertOk()
             ->assertJsonPath('data.id', $function->external_id);
 
         expect($agent->functions()->pluck('functions.id')->all())->toBe([$function->id]);
@@ -323,12 +323,13 @@ describe('POST /api/v1/chatters/sign', function (): void {
             ->assertJsonValidationErrors(['ttl_seconds']);
     });
 
-    it('404s when minting a link for another account’s agent', function (): void {
+    it('rejects minting a link for another account’s agent as a plain validation error', function (): void {
         $otherAgent = createAgent(User::factory()->create());
 
         $this->withToken($this->token)
             ->postJson('/api/v1/chatters/sign', ['agent_id' => $otherAgent->external_id, 'user_id' => 'x'])
-            ->assertNotFound();
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_id', 'user_id']);
     });
 });
 

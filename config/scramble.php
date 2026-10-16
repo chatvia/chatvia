@@ -11,7 +11,7 @@ return [
     | Generates the OpenAPI 3.1 spec for our customer-facing API. Docs live
     | at `/docs/api` and the raw spec is at `/docs/api.json`.
     |
-    | We scope discovery to /api/v1/* in AppServiceProvider via
+    | We scope discovery to /api/v1/* in ApiDocsServiceProvider via
     | `Scramble::routes(...)` — the `api_path` below is informational only.
     */
 
@@ -50,6 +50,54 @@ return [
             Treat the cursor as an opaque string: send back exactly the
             `next_cursor` you received, and never build or edit one. A cursor the
             endpoint did not hand out starts the list again at the first page.
+
+            ## Chatting with an agent
+
+            Open a conversation with `POST /v1/agents/{id}/conversations`, then
+            send each message with `POST …/conversations/{id}/messages`. By
+            default the reply comes back as one JSON response once it is
+            finished. Add `stream: true` to the body (or send an
+            `Accept: text/event-stream` header) to receive it as server-sent
+            events instead.
+
+            Send a `request_id` of your own with each message to make it safe
+            to retry: resending the same value within a few minutes replays the
+            finished reply instead of generating — and counting — a new one.
+
+            Tool calls that need a person's approval are not available over the
+            API; the agent simply does not see those tools.
+
+            ## Streaming
+
+            With streaming on, the response is a `text/event-stream`. Each
+            frame is one `data:` line of JSON:
+
+            ```
+            data: {"v":1,"seq":3,"id":"<message id>","type":"delta","data":{"text":"Hel"}}
+            ```
+
+            `seq` counts up from 0 and `id` is the reply message's id. `type`
+            tells you what `data` holds:
+
+            | type | data | meaning |
+            |---|---|---|
+            | `start` | `user_message_id`, `request_id`, `replayed` | the turn began |
+            | `delta` | `text` | the next piece of the reply — append it |
+            | `replace` | `text` | a safety check rewrote the reply — replace everything received so far |
+            | `sources` | `sources` | the knowledge sources the reply cited |
+            | `tool` | `phase`, `name`, … | the agent is using a tool |
+            | `meta` | `key`, `value` | extra signals, such as a handoff to a human |
+            | `error` | `code`, `message`, `retryable` | the turn failed — see the codes below |
+            | `done` | `reason`, `response_time_ms` | the last frame; `reason` is `complete` or `error` |
+
+            The error codes, in both modes: `message_limit_reached` and
+            `chatter_message_limit_reached` (the monthly cap), `rate_limited`
+            (try again in a minute), `upstream_unavailable` (the AI provider;
+            retry), `access_blocked`, and `internal`. The JSON mode answers an
+            error that happened before any text with the matching HTTP status
+            (403, 429, 502 or 500); a turn that failed after text began is a
+            200 with `done_reason: "error"` and the partial text, which is
+            already stored — retry with a new message, not a repeat.
             MARKDOWN,
     ],
 

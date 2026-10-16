@@ -11,6 +11,7 @@ return new class extends Migration
     {
         Schema::create('agent_question_answers', function (Blueprint $table): void {
             $table->id();
+            $table->uuid('external_id')->unique();
             $table->foreignIdFor(Agent::class)->index()->constrained()->cascadeOnDelete();
 
             $table->string('title');

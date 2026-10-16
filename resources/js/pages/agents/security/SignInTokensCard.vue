@@ -81,7 +81,7 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                 <p class="text-muted-foreground mt-2 text-sm">
                     {{ t('agents.identity_verification.rest_api_before') }}
                     <a
-                        :href="apiDocsUrl('v1.agents.sign.store')"
+                        :href="apiDocsUrl('v1.chatters.sign')"
                         target="_blank"
                         rel="noopener"
                         class="text-primary inline-flex items-center gap-0.5 font-medium underline-offset-4 hover:underline"

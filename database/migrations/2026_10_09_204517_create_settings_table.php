@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('group');
             $table->string('name');
             $table->boolean('locked')->default(false);
-            $table->json('payload');
+            $table->jsonb('payload');
             $table->timestamps();
 
             $table->unique(['group', 'name']);

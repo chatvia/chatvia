@@ -6,6 +6,9 @@ namespace App\Http\Requests\Api\V1\Topic;
 
 use App\Http\Rules\WorkspaceRule;
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Topic\Data\SaveTopicData;
+use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -16,6 +19,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class StoreApiTopicRequest extends FormRequest
 {
+    private ?Topic $topic = null;
+
     public function authorize(): bool
     {
         return true;
@@ -46,5 +51,26 @@ class StoreApiTopicRequest extends FormRequest
     public function isAttach(): bool
     {
         return filled($this->validated('topic_id'));
+    }
+
+    /**
+     * The existing topic to attach — scoped through forWorkspace (global or
+     * owned by this workspace) so a body-supplied id can't reach another
+     * account's private topic.
+     */
+    public function topic(Agent $agent): Topic
+    {
+        return $this->topic ??= Topic::query()
+            ->forWorkspace($agent->workspace)
+            ->where('external_id', $this->string('topic_id')->toString())
+            ->firstOrFail();
+    }
+
+    public function toData(): SaveTopicData
+    {
+        return new SaveTopicData(
+            topic: $this->string('topic')->toString(),
+            description: $this->string('description')->toString(),
+        );
     }
 }

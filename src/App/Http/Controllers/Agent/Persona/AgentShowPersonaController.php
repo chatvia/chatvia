@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Persona;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Prompt\Data\Resources\AgentPromptPickerData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,11 +25,7 @@ class AgentShowPersonaController
             'prompts' => $request->user()->workspace()->prompts()
                 ->latest()
                 ->get()
-                ->map(fn (AgentPrompt $p): array => [
-                    'id' => $p->external_id,
-                    'name' => $p->name,
-                    'prompt' => $p->prompt,
-                ])
+                ->map(fn (AgentPrompt $prompt): AgentPromptPickerData => AgentPromptPickerData::fromModel($prompt))
                 ->all(),
         ]);
     }

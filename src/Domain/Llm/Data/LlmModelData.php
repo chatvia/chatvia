@@ -28,7 +28,7 @@ class LlmModelData extends Data
         public bool $is_selected = true,
     ) {}
 
-    public static function fromLlmModel(Llm $llm): self
+    public static function fromLlmModel(Llm $llm, bool $selected = true): self
     {
         return new LlmModelData(
             id: $llm->external_name,
@@ -40,6 +40,7 @@ class LlmModelData extends Data
             features: $llm->features,
             location: $llm->location,
             is_reasoning: $llm->is_reasoning,
+            is_selected: $selected,
         );
     }
 }

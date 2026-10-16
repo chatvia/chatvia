@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "차단됨"
+        },
+        "guardrails": {
+            "blocked_tab": "차단됨",
+            "blocked_list": {
+                "loading": "불러오는 중…",
+                "load_error": "차단 목록을 불러오지 못했습니다.",
+                "chatters_title": "차단된 채터",
+                "chatters_help": "이 에이전트에 접근할 수 있지만 계정이 비활성화된 채터입니다.",
+                "manage_in_people": "사용자에서 관리",
+                "since": "{date}부터",
+                "no_chatters": "차단된 채터가 없습니다."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "차단됨",
+                "head_title": "차단됨 · {name}",
+                "subtitle": "이 에이전트와 채팅할 수 없는 방문자와 채터입니다. 가드레일 활동에서 차단합니다."
+            }
+        }
+    }
+}

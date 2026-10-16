@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Bloqueados"
+        },
+        "guardrails": {
+            "blocked_tab": "Bloqueados",
+            "blocked_list": {
+                "loading": "Cargando…",
+                "load_error": "No se pudo cargar quién está bloqueado.",
+                "chatters_title": "Usuarios bloqueados",
+                "chatters_help": "Usuarios con acceso a este agente cuya cuenta está desactivada.",
+                "manage_in_people": "Gestionar en Personas",
+                "since": "Desde {date}",
+                "no_chatters": "No hay usuarios bloqueados."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Bloqueados",
+                "head_title": "Bloqueados · {name}",
+                "subtitle": "Visitantes y usuarios que no pueden chatear con este agente. Los bloqueas desde la actividad de restricciones."
+            }
+        }
+    }
+}

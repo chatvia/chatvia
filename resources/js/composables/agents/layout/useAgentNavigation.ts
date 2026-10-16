@@ -28,6 +28,7 @@ import {
     Sparkles,
     Trash2,
     Users,
+    UserX,
 } from 'lucide-vue-next';
 import { type Component, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -250,17 +251,26 @@ export function useAgentNavigation() {
         if (hasPermission('agent.channels')) {
             items.push(link('channels', t('agents.nav.channels'), Send, 'agents.channels', agents.channels.url, t('agents.nav.channels_tooltip')));
         }
+        // Security: identity and rate limits need the identity grant; the
+        // Blocked list follows the Guardrails page, where people are blocked.
+        const security: AgentNavSubItem[] = [];
         if (hasPermission('agent.identity.manage')) {
+            security.push(
+                subLink('security-identity', t('agents.nav.identity'), Fingerprint, 'agents.identity', agents.identity.url),
+                subLink('security-rate-limit', t('agents.nav.rate_limiting'), Gauge, 'agents.security.rate-limit', agents.security.rateLimit.url),
+            );
+        }
+        if (hasPermission('agent.guardrails.view')) {
+            security.push(subLink('security-blocked', t('agents.nav.blocked'), UserX, 'agents.security.blocked', agents.security.blocked.url));
+        }
+        if (security.length) {
             items.push({
                 kind: 'submenu',
                 id: 'security',
                 label: t('agents.nav.security'),
                 icon: ShieldCheck,
                 tooltip: t('agents.nav.security_tooltip'),
-                subItems: [
-                    subLink('security-identity', t('agents.nav.identity'), Fingerprint, 'agents.identity', agents.identity.url),
-                    subLink('security-rate-limit', t('agents.nav.rate_limiting'), Gauge, 'agents.security.rate-limit', agents.security.rateLimit.url),
-                ],
+                subItems: security,
             });
         }
 

@@ -798,6 +798,16 @@
                     "month": "30 gün",
                     "forever": "Siz engeli kaldırana kadar"
                 }
+            },
+            "blocked_tab": "Engellenenler",
+            "blocked_list": {
+                "loading": "Yükleniyor…",
+                "load_error": "Engellenenler yüklenemedi.",
+                "chatters_title": "Engellenen kullanıcılar",
+                "chatters_help": "Bu asistana erişimi olan ama hesabı kapatılmış kullanıcılar.",
+                "manage_in_people": "Kişiler bölümünde yönet",
+                "since": "{date} tarihinden beri",
+                "no_chatters": "Engellenen kullanıcı yok."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Hız sınırı kaydedilemedi. Lütfen tekrar deneyin.",
                 "visitor_messages_per_minute": "Dakika başına mesaj (tek ziyaretçi)",
                 "visitor_hint": "Bir ziyaretçinin dakikada gönderebileceği en fazla mesaj sayısı. Bunu aşan ziyaretçi beklemek zorunda kalır, diğerleri ise sohbete devam eder."
+            },
+            "blocked": {
+                "title": "Engellenenler",
+                "head_title": "Engellenenler · {name}",
+                "subtitle": "Bu asistanla sohbet edemeyen ziyaretçiler ve kullanıcılar. Onları koruma kuralları etkinliğinden engellersiniz."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Yetenekler",
             "capabilities_tooltip": "Sohbete gelişmiş özellikler ekleyin — etkileşimli grafikler gibi",
             "forms": "Formlar",
-            "forms_tooltip": "Asistanınızın sohbette gösterdiği formları oluşturun"
+            "forms_tooltip": "Asistanınızın sohbette gösterdiği formları oluşturun",
+            "blocked": "Engellenenler"
         },
         "create_modal": {
             "title": "Asistan Oluştur",

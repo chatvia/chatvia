@@ -13,7 +13,8 @@ use Inertia\Testing\AssertableInertia;
  * abusive trigger: a visitor by fingerprint (needs the Security permission;
  * listed and unblocked on the Security page), a chatter by switching their
  * account off and emailing them (needs the People permission). A trigger no
- * one can be blamed for cannot be blocked.
+ * one can be blamed for cannot be blocked. The Blocked list (Guardrails tab,
+ * Security → Blocked) loads who is blocked from the agent.
  */
 beforeEach(function (): void {
     Notification::fake();
@@ -86,9 +87,8 @@ it('blocks a visitor, lists the block on the Security page and unblocks it', fun
             ->where('blocked_visitors.0.external_id', $block->external_id)
             ->where('blocked_visitors.0.reason', 'Prompt hunting'));
 
-    $this->from(route('security.edit'))
-        ->delete(route('security.blocked-visitors.destroy', $block->external_id))
-        ->assertRedirect();
+    $this->deleteJson(route('security.blocked-visitors.destroy', $block->external_id))
+        ->assertNoContent();
 
     expect(BlockedVisitor::query()->whereKey($block->id)->exists())->toBeFalse();
 });
@@ -122,6 +122,39 @@ it('needs the Security permission to block a visitor and the People one to block
 
     expect(BlockedVisitor::query()->where('workspace_id', $this->agent->workspace_id)->count())->toBe(1)
         ->and($chatter->fresh()->isDeactivated())->toBeFalse();
+});
+
+it('lists who is blocked from the agent: the workspace\'s visitors and its own switched-off chatters', function (): void {
+    $visitor = BlockedVisitor::factory()->create(['workspace_id' => $this->agent->workspace_id, 'reason' => 'Prompt hunting']);
+    BlockedVisitor::factory()->expired()->create(['workspace_id' => $this->agent->workspace_id]);
+    BlockedVisitor::factory()->create();
+
+    $blocked = Chatter::factory()->grantedTo($this->agent)->deactivated()->create(['deactivation_reason' => 'Abuse']);
+    Chatter::factory()->grantedTo($this->agent)->create();
+    Chatter::factory()->ofWorkspace($this->owner)->deactivated()->create();
+
+    $this->actingAs($this->owner)
+        ->getJson(route('agents.security.blocked.list', $this->agent->external_id))
+        ->assertOk()
+        ->assertJsonCount(1, 'visitors')
+        ->assertJsonPath('visitors.0.external_id', $visitor->external_id)
+        ->assertJsonPath('visitors.0.reason', 'Prompt hunting')
+        ->assertJsonCount(1, 'chatters')
+        ->assertJsonPath('chatters.0.external_id', $blocked->external_id)
+        ->assertJsonPath('chatters.0.reason', 'Abuse');
+});
+
+it('shows the Blocked page and list to whoever can view the guardrails', function (): void {
+    $viewer = teammateWithPermissions($this->owner, ['agent.guardrails.view']);
+    $outsider = teammateWithPermissions($this->owner, ['agent.setup']);
+
+    $this->actingAs($viewer)
+        ->get(route('agents.security.blocked', $this->agent->external_id))
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('agents/security/Blocked'));
+    $this->actingAs($viewer)->getJson(route('agents.security.blocked.list', $this->agent->external_id))->assertOk();
+
+    $this->actingAs($outsider)->get(route('agents.security.blocked', $this->agent->external_id))->assertForbidden();
+    $this->actingAs($outsider)->getJson(route('agents.security.blocked.list', $this->agent->external_id))->assertForbidden();
 });
 
 it('refuses to block anyone for a trigger no one caused', function (array $attributes): void {

@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Bloqués"
+        },
+        "guardrails": {
+            "blocked_tab": "Bloqués",
+            "blocked_list": {
+                "loading": "Chargement…",
+                "load_error": "Impossible de charger les personnes bloquées.",
+                "chatters_title": "Chatters bloqués",
+                "chatters_help": "Chatters qui ont accès à cet agent mais dont le compte est désactivé.",
+                "manage_in_people": "Gérer dans Personnes",
+                "since": "Depuis le {date}",
+                "no_chatters": "Aucun chatter bloqué."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Bloqués",
+                "head_title": "Bloqués · {name}",
+                "subtitle": "Visiteurs et chatters qui ne peuvent pas discuter avec cet agent. Vous les bloquez depuis l'activité des garde-fous."
+            }
+        }
+    }
+}

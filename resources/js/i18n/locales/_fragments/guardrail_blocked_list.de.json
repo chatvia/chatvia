@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Gesperrt"
+        },
+        "guardrails": {
+            "blocked_tab": "Gesperrt",
+            "blocked_list": {
+                "loading": "Wird geladen…",
+                "load_error": "Die gesperrten Personen konnten nicht geladen werden.",
+                "chatters_title": "Gesperrte Chatter",
+                "chatters_help": "Chatter mit Zugang zu diesem Agenten, deren Konto deaktiviert ist.",
+                "manage_in_people": "Unter Personen verwalten",
+                "since": "Seit {date}",
+                "no_chatters": "Keine gesperrten Chatter."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Gesperrt",
+                "head_title": "Gesperrt · {name}",
+                "subtitle": "Besucher und Chatter, die nicht mit diesem Agenten chatten können. Sie sperren sie in der Aktivität der Leitplanken."
+            }
+        }
+    }
+}

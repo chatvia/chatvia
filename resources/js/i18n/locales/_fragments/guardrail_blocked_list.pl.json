@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Zablokowani"
+        },
+        "guardrails": {
+            "blocked_tab": "Zablokowani",
+            "blocked_list": {
+                "loading": "Ładowanie…",
+                "load_error": "Nie udało się wczytać zablokowanych osób.",
+                "chatters_title": "Zablokowani czatowicze",
+                "chatters_help": "Czatowicze z dostępem do tego agenta, których konto jest wyłączone.",
+                "manage_in_people": "Zarządzaj w sekcji Użytkownicy",
+                "since": "Od {date}",
+                "no_chatters": "Brak zablokowanych czatowiczów."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Zablokowani",
+                "head_title": "Zablokowani · {name}",
+                "subtitle": "Odwiedzający i czatowicze, którzy nie mogą czatować z tym agentem. Blokujesz ich w aktywności zabezpieczeń."
+            }
+        }
+    }
+}

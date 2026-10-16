@@ -798,6 +798,16 @@
                     "month": "30 dias",
                     "forever": "Até o desbloquear"
                 }
+            },
+            "blocked_tab": "Bloqueados",
+            "blocked_list": {
+                "loading": "A carregar…",
+                "load_error": "Não foi possível carregar quem está bloqueado.",
+                "chatters_title": "Chatters bloqueados",
+                "chatters_help": "Chatters com acesso a este agente cuja conta está desativada.",
+                "manage_in_people": "Gerir em Pessoas",
+                "since": "Desde {date}",
+                "no_chatters": "Nenhum chatter bloqueado."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Não foi possível guardar o limite de taxa. Por favor tente novamente.",
                 "visitor_messages_per_minute": "Mensagens por minuto (um visitante)",
                 "visitor_hint": "O máximo de mensagens que um visitante pode enviar por minuto. Quem o ultrapassa tem de esperar, enquanto os outros continuam."
+            },
+            "blocked": {
+                "title": "Bloqueados",
+                "head_title": "Bloqueados · {name}",
+                "subtitle": "Visitantes e chatters que não podem conversar com este agente. Bloqueia-os a partir da atividade dos guardrails."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Capacidades",
             "capabilities_tooltip": "Adicione funcionalidades avançadas ao chat — como gráficos interativos",
             "forms": "Formulários",
-            "forms_tooltip": "Crie formulários que o seu agente mostra na conversa"
+            "forms_tooltip": "Crie formulários que o seu agente mostra na conversa",
+            "blocked": "Bloqueados"
         },
         "create_modal": {
             "title": "Criar Agente",

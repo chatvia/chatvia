@@ -2,6 +2,8 @@
 // Workspace Security settings: network access control (IP allowlist and
 // country rules), data retention and the SIEM webhook, saved together with one
 // button.
+import type { BlockedVisitor } from '@/api/blocking';
+import BlockedVisitorsCard from '@/components/security/BlockedVisitorsCard.vue';
 import { Button } from '@/components/ui/button';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -9,9 +11,8 @@ import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, Save } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import BlockedVisitorsCard, { type BlockedVisitor } from './BlockedVisitorsCard.vue';
 import type { Country } from './countries';
 import NetworkAccessCard from './NetworkAccessCard.vue';
 import RetentionCard from './RetentionCard.vue';
@@ -39,6 +40,12 @@ const canManage = computed(() => hasPermission('account.security'));
 const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.security.breadcrumb'), href: '/my/workspace/security' }];
 
 const { form, save } = useSecurityPolicyForm(props.policy);
+
+// Unblocking answers with no page reload: drop the row here.
+const blockedVisitors = ref<BlockedVisitor[]>([...props.blocked_visitors]);
+const dropBlock = (blockId: string) => {
+    blockedVisitors.value = blockedVisitors.value.filter((block) => block.external_id !== blockId);
+};
 </script>
 
 <template>
@@ -94,7 +101,7 @@ const { form, save } = useSecurityPolicyForm(props.policy);
                 </div>
 
                 <!-- Saved on its own: Unblock applies right away, not with Save. -->
-                <BlockedVisitorsCard :blocks="props.blocked_visitors" :can-manage="canManage" />
+                <BlockedVisitorsCard :blocks="blockedVisitors" :can-manage="canManage" @unblocked="dropBlock" />
             </div>
         </WorkspaceLayout>
     </AppLayout>

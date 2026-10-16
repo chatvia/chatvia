@@ -69,8 +69,10 @@ use App\Http\Controllers\Agent\Lead\AgentLeadSettingsController;
 use App\Http\Controllers\Agent\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agent\Playground\AgentPlaygroundController;
 use App\Http\Controllers\Agent\RenameAgentController;
+use App\Http\Controllers\Agent\Security\AgentBlockedController;
 use App\Http\Controllers\Agent\Security\AgentRateLimitController;
 use App\Http\Controllers\Agent\Security\AgentSecurityUpdateController;
+use App\Http\Controllers\Agent\Security\ListAgentBlocksController;
 use App\Http\Controllers\Agent\Security\UpdateAgentSecuritySettingsController;
 use App\Http\Controllers\Agent\Settings\AgentSettingsController;
 use App\Http\Controllers\Agent\Settings\AppearanceTextController;
@@ -437,6 +439,14 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
             ->middleware('agent.permission:agent.identity.manage')->name('security.rate-limit');
         Route::post('security/settings', UpdateAgentSecuritySettingsController::class)
             ->middleware('agent.permission:agent.identity.manage')->name('security.settings.update');
+
+        // Who cannot chat with the agent (blocked visitors, switched-off
+        // chatters): a page under Security, and the JSON both it and the
+        // Guardrails "Blocked" tab load.
+        Route::get('security/blocked', AgentBlockedController::class)
+            ->middleware('agent.permission:agent.guardrails.view')->name('security.blocked');
+        Route::get('security/blocked/list', ListAgentBlocksController::class)
+            ->middleware('agent.permission:agent.guardrails.view')->name('security.blocked.list');
 
         // Appearance text (chat title / welcome / composer placeholder). Saving
         // auto-translates the three strings into every supported language; owners

@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "已屏蔽"
+        },
+        "guardrails": {
+            "blocked_tab": "已屏蔽",
+            "blocked_list": {
+                "loading": "正在加载…",
+                "load_error": "无法加载已屏蔽列表。",
+                "chatters_title": "已屏蔽的用户",
+                "chatters_help": "可以访问此智能体但账号已停用的用户。",
+                "manage_in_people": "在人员中管理",
+                "since": "自 {date} 起",
+                "no_chatters": "没有被屏蔽的用户。"
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "已屏蔽",
+                "head_title": "已屏蔽 · {name}",
+                "subtitle": "无法与此智能体聊天的访客和用户。你可以在防护规则活动中屏蔽他们。"
+            }
+        }
+    }
+}

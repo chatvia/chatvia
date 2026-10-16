@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "ブロック中"
+        },
+        "guardrails": {
+            "blocked_tab": "ブロック中",
+            "blocked_list": {
+                "loading": "読み込み中…",
+                "load_error": "ブロック中の一覧を読み込めませんでした。",
+                "chatters_title": "ブロック中のチャッター",
+                "chatters_help": "このエージェントへのアクセス権はあるものの、アカウントが無効になっているチャッターです。",
+                "manage_in_people": "ユーザーで管理",
+                "since": "{date}から",
+                "no_chatters": "ブロック中のチャッターはいません。"
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "ブロック中",
+                "head_title": "ブロック中 · {name}",
+                "subtitle": "このエージェントとチャットできない訪問者とチャッターです。ガードレールのアクティビティからブロックします。"
+            }
+        }
+    }
+}

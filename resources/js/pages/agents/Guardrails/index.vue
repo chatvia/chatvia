@@ -1,10 +1,12 @@
 <script setup lang="ts">
-// Guardrails page for one agent, in three tabs: Configuration with the safety
+// Guardrails page for one agent, in four tabs: Configuration with the safety
 // settings (PII redaction, injection and toxicity checks with their mode and
 // sensitivity, blocked topics, allowed scope, refusal message, holding answers
-// until checked, alert emails), "Test a message" against those settings, and
-// Activity with the trigger log.
+// until checked, alert emails), "Test a message" against those settings,
+// Activity with the trigger log, and Blocked: who cannot chat with the agent
+// (loaded when the tab opens).
 import HelpPopover from '@/components/common/HelpPopover.vue';
+import BlockedList from '@/components/security/BlockedList.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +31,7 @@ import {
     SlidersHorizontal,
     Target,
     UserRound,
+    UserX,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -61,7 +64,7 @@ const canManage = computed(() => hasPermission('agent.guardrails.manage'));
 const canViewChats = computed(() => hasPermission('agent.chat.view'));
 
 // A filtered log link opens on the Activity tab.
-const activeTab = ref<'config' | 'test' | 'activity'>(
+const activeTab = ref<'config' | 'test' | 'activity' | 'blocked'>(
     props.filters.guard_type || props.filters.outcome || props.filters.visitor ? 'activity' : 'config',
 );
 
@@ -101,6 +104,10 @@ const topicsOpen = ref(false);
                         <TabsTrigger value="activity" :class="TAB_CLASS">
                             <History class="h-4 w-4" />
                             {{ t('agents.guardrails.activity') }}
+                        </TabsTrigger>
+                        <TabsTrigger value="blocked" :class="TAB_CLASS">
+                            <UserX class="h-4 w-4" />
+                            {{ t('agents.guardrails.blocked_tab') }}
                         </TabsTrigger>
                     </TabsList>
 
@@ -375,6 +382,11 @@ const topicsOpen = ref(false);
                             :filters="props.filters"
                             :can-view-chats="canViewChats"
                         />
+                    </TabsContent>
+
+                    <!-- Who cannot chat with the agent; loaded each time the tab opens -->
+                    <TabsContent value="blocked" class="mt-6">
+                        <BlockedList :agent-id="props.agent.external_id" />
                     </TabsContent>
                 </Tabs>
             </div>

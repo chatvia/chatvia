@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Estetyt"
+        },
+        "guardrails": {
+            "blocked_tab": "Estetyt",
+            "blocked_list": {
+                "loading": "Ladataan…",
+                "load_error": "Estettyjen lataaminen epäonnistui.",
+                "chatters_title": "Estetyt chatterit",
+                "chatters_help": "Chatterit, joilla on pääsy tähän agenttiin mutta joiden tili on poistettu käytöstä.",
+                "manage_in_people": "Hallitse kohdassa Henkilöt",
+                "since": "{date} alkaen",
+                "no_chatters": "Ei estettyjä chattereita."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Estetyt",
+                "head_title": "Estetyt · {name}",
+                "subtitle": "Kävijät ja chatterit, jotka eivät voi keskustella tämän agentin kanssa. Estät heidät turvarajojen toiminnasta."
+            }
+        }
+    }
+}

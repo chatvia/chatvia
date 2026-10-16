@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Blocked"
+        },
+        "guardrails": {
+            "blocked_tab": "Blocked",
+            "blocked_list": {
+                "loading": "Loading…",
+                "load_error": "Could not load who is blocked.",
+                "chatters_title": "Blocked chatters",
+                "chatters_help": "Chatters who have access to this agent but whose account is turned off.",
+                "manage_in_people": "Manage in People",
+                "since": "Since {date}",
+                "no_chatters": "No blocked chatters."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Blocked",
+                "head_title": "Blocked · {name}",
+                "subtitle": "Visitors and chatters who cannot chat with this agent. You block them from the Guardrails activity."
+            }
+        }
+    }
+}

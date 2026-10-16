@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "nav": {
+            "blocked": "Engellenenler"
+        },
+        "guardrails": {
+            "blocked_tab": "Engellenenler",
+            "blocked_list": {
+                "loading": "Yükleniyor…",
+                "load_error": "Engellenenler yüklenemedi.",
+                "chatters_title": "Engellenen kullanıcılar",
+                "chatters_help": "Bu asistana erişimi olan ama hesabı kapatılmış kullanıcılar.",
+                "manage_in_people": "Kişiler bölümünde yönet",
+                "since": "{date} tarihinden beri",
+                "no_chatters": "Engellenen kullanıcı yok."
+            }
+        },
+        "security": {
+            "blocked": {
+                "title": "Engellenenler",
+                "head_title": "Engellenenler · {name}",
+                "subtitle": "Bu asistanla sohbet edemeyen ziyaretçiler ve kullanıcılar. Onları koruma kuralları etkinliğinden engellersiniz."
+            }
+        }
+    }
+}

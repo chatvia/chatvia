@@ -798,6 +798,16 @@
                     "month": "30 dni",
                     "forever": "Do odblokowania"
                 }
+            },
+            "blocked_tab": "Zablokowani",
+            "blocked_list": {
+                "loading": "Ładowanie…",
+                "load_error": "Nie udało się wczytać zablokowanych osób.",
+                "chatters_title": "Zablokowani czatowicze",
+                "chatters_help": "Czatowicze z dostępem do tego agenta, których konto jest wyłączone.",
+                "manage_in_people": "Zarządzaj w sekcji Użytkownicy",
+                "since": "Od {date}",
+                "no_chatters": "Brak zablokowanych czatowiczów."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Nie udało się zapisać limitu. Spróbuj ponownie.",
                 "visitor_messages_per_minute": "Wiadomości na minutę (jeden odwiedzający)",
                 "visitor_hint": "Najwięcej wiadomości, które jeden odwiedzający może wysłać na minutę. Kto go przekroczy, musi poczekać, a inni rozmawiają dalej."
+            },
+            "blocked": {
+                "title": "Zablokowani",
+                "head_title": "Zablokowani · {name}",
+                "subtitle": "Odwiedzający i czatowicze, którzy nie mogą czatować z tym agentem. Blokujesz ich w aktywności zabezpieczeń."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Możliwości",
             "capabilities_tooltip": "Dodaj zaawansowane funkcje do czatu — takie jak interaktywne wykresy",
             "forms": "Formularze",
-            "forms_tooltip": "Twórz formularze, które agent wyświetla w czacie"
+            "forms_tooltip": "Twórz formularze, które agent wyświetla w czacie",
+            "blocked": "Zablokowani"
         },
         "create_modal": {
             "title": "Utwórz agenta",

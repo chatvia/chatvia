@@ -798,6 +798,16 @@
                     "month": "30 dage",
                     "forever": "Indtil du fjerner blokeringen"
                 }
+            },
+            "blocked_tab": "Blokerede",
+            "blocked_list": {
+                "loading": "Indlæser…",
+                "load_error": "Kunne ikke hente, hvem der er blokeret.",
+                "chatters_title": "Blokerede chattere",
+                "chatters_help": "Chattere med adgang til denne agent, hvis konto er slået fra.",
+                "manage_in_people": "Administrer under Personer",
+                "since": "Siden {date}",
+                "no_chatters": "Ingen blokerede chattere."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "Kunne ikke gemme hastighedsgrænsen. Prøv igen.",
                 "visitor_messages_per_minute": "Beskeder pr. minut (én besøgende)",
                 "visitor_hint": "Det højeste antal beskeder, én besøgende kan sende pr. minut. Den, der går over, må vente, mens andre chatter videre."
+            },
+            "blocked": {
+                "title": "Blokerede",
+                "head_title": "Blokerede · {name}",
+                "subtitle": "Besøgende og chattere, der ikke kan chatte med denne agent. Du blokerer dem fra aktiviteten under sikkerhedsreglerne."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Kapabiliteter",
             "capabilities_tooltip": "Tilføj avancerede muligheder til chatten — som interaktive diagrammer",
             "forms": "Formularer",
-            "forms_tooltip": "Byg formularer, som din agent viser i chatten"
+            "forms_tooltip": "Byg formularer, som din agent viser i chatten",
+            "blocked": "Blokerede"
         },
         "create_modal": {
             "title": "Opret agent",

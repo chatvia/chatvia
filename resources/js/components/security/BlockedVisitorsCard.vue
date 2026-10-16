@@ -2,34 +2,26 @@
 // The visitors blocked from chatting with the workspace's agents, made from
 // an agent's Guardrails activity. Each row says who (the start of the
 // fingerprint, browser, system, country), where, why and until when, with an
-// Unblock button.
+// Unblock button. Shown on the Security page, an agent's Guardrails "Blocked"
+// tab and its Security → Blocked page; the parent drops an unblocked row.
+import { unblockVisitor, type BlockedVisitor } from '@/api/blocking';
+import { errorMessage } from '@/api/http';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { destroy } from '@/routes/security/blocked-visitors';
-import { router } from '@inertiajs/vue3';
 import { Ban, LoaderCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
-export interface BlockedVisitor {
-    external_id: string;
-    visitor: string;
-    browser: string | null;
-    os: string | null;
-    country: string | null;
-    agent_name: string | null;
-    reason: string | null;
-    blocked_by: string | null;
-    created_at: string | null;
-    expires_at: string | null;
-}
-
 defineProps<{
     blocks: BlockedVisitor[];
     canManage: boolean;
+}>();
+
+const emit = defineEmits<{
+    unblocked: [blockId: string];
 }>();
 
 const { t } = useI18n();
@@ -37,14 +29,17 @@ const { formatDateTime } = useDateFormat();
 
 const removing = ref<string | null>(null);
 
-const unblock = (block: BlockedVisitor) => {
+const unblock = async (block: BlockedVisitor) => {
     removing.value = block.external_id;
-    router.delete(destroy.url(block.external_id), {
-        preserveScroll: true,
-        onSuccess: () => toast.success(t('workspace.security.blocked_visitors.unblocked')),
-        onError: () => toast.error(t('workspace.security.blocked_visitors.unblock_error')),
-        onFinish: () => (removing.value = null),
-    });
+    try {
+        await unblockVisitor(block.external_id);
+        emit('unblocked', block.external_id);
+        toast.success(t('workspace.security.blocked_visitors.unblocked'));
+    } catch (error) {
+        toast.error(errorMessage(error, t('workspace.security.blocked_visitors.unblock_error')));
+    } finally {
+        removing.value = null;
+    }
 };
 
 /** "Chrome on macOS · Germany", leaving out what is unknown. */

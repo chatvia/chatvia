@@ -798,6 +798,16 @@
                     "month": "30 días",
                     "forever": "Hasta que lo desbloquees"
                 }
+            },
+            "blocked_tab": "Bloqueados",
+            "blocked_list": {
+                "loading": "Cargando…",
+                "load_error": "No se pudo cargar quién está bloqueado.",
+                "chatters_title": "Usuarios bloqueados",
+                "chatters_help": "Usuarios con acceso a este agente cuya cuenta está desactivada.",
+                "manage_in_people": "Gestionar en Personas",
+                "since": "Desde {date}",
+                "no_chatters": "No hay usuarios bloqueados."
             }
         },
         "persona": {
@@ -1080,6 +1090,11 @@
                 "save_error": "No se pudo guardar el límite de velocidad. Por favor, inténtalo de nuevo.",
                 "visitor_messages_per_minute": "Mensajes por minuto (un visitante)",
                 "visitor_hint": "El máximo de mensajes que un visitante puede enviar por minuto. Quien lo supera tiene que esperar, mientras los demás siguen chateando."
+            },
+            "blocked": {
+                "title": "Bloqueados",
+                "head_title": "Bloqueados · {name}",
+                "subtitle": "Visitantes y usuarios que no pueden chatear con este agente. Los bloqueas desde la actividad de restricciones."
             }
         },
         "tone": {
@@ -1653,7 +1668,8 @@
             "capabilities": "Capacidades",
             "capabilities_tooltip": "Añade funciones avanzadas al chat — como gráficos interactivos",
             "forms": "Formularios",
-            "forms_tooltip": "Crea formularios que tu agente muestra en el chat"
+            "forms_tooltip": "Crea formularios que tu agente muestra en el chat",
+            "blocked": "Bloqueados"
         },
         "create_modal": {
             "title": "Crear agente",

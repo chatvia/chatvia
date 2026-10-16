@@ -10,7 +10,6 @@ use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
 use Domain\Conversation\Data\Turn\ReplaySnapshotData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
@@ -101,7 +100,10 @@ readonly class ChatStreamService
 
     /**
      * Resume a turn paused for approval after the person approved or denied
-     * the gated tool calls. The checkpoint is claimed exactly once (so a
+     * the gated tool calls. The wait for a decision can outlive the checks
+     * {@see stream()} ran, so the per-turn gates run again first — before the
+     * claim, so a refused resume leaves the checkpoint for a retry once the
+     * gate would allow it. Then the checkpoint is claimed exactly once (so a
      * double submit cannot run the tools twice), the context is rebuilt from
      * it, and the continuation streams under the original assistant message
      * id — on the same source the paused turn used: the document LLM while the
@@ -111,6 +113,12 @@ readonly class ChatStreamService
      */
     public function resume(ToolApprovalCheckpoint $approval, ResolveToolApprovalData $data): Generator
     {
+        $refusal = $this->resumeRefusal($approval);
+
+        if ($refusal instanceof Generator) {
+            return $refusal;
+        }
+
         $checkpoint = $this->approvalStore->claim($approval->external_id);
 
         if (! $checkpoint instanceof ToolApprovalCheckpoint) {
@@ -129,6 +137,48 @@ readonly class ChatStreamService
         }
 
         return $this->llmSource->resume($context, $checkpoint, $data->decisions);
+    }
+
+    /**
+     * The per-turn gates a resumed turn must pass again: the workspace may
+     * have been deactivated, and the workspace's or the chatter's monthly
+     * message limit reached, while the approval waited for a decision. The
+     * errors carry the paused answer's id, like the claim error, so the
+     * client ties them to the waiting message.
+     *
+     * @return Generator<int, StreamEvent>|null
+     */
+    private function resumeRefusal(ToolApprovalCheckpoint $approval): ?Generator
+    {
+        $agent = $approval->agent;
+
+        if (! $this->activation->isActive($agent->workspace_id)) {
+            return $this->errorSource->events(
+                ErrorCode::Internal,
+                __('Sorry — this assistant is unavailable right now. Please try again later.'),
+                $approval->assistant_message_id,
+            );
+        }
+
+        if (! $this->allowance->canSend($agent->workspace_id)) {
+            return $this->errorSource->events(
+                ErrorCode::MessageLimitReached,
+                __('This agent has reached its monthly message limit. Please try again next month.'),
+                $approval->assistant_message_id,
+            );
+        }
+
+        $chatterId = $approval->approvalContext()->chatterId;
+
+        if ($chatterId !== null && ! $this->allowance->canSendAsChatter($chatterId)) {
+            return $this->errorSource->events(
+                ErrorCode::ChatterMessageLimitReached,
+                __('You have reached your monthly message limit.'),
+                $approval->assistant_message_id,
+            );
+        }
+
+        return null;
     }
 
     /**

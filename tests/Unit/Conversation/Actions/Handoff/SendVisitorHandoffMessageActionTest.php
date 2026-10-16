@@ -1,5 +1,8 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
@@ -58,6 +61,21 @@ it('adds the message to the conversation and broadcasts it with the visitor sess
     Event::assertDispatched(MessagePosted::class, fn (MessagePosted $event): bool => $event->role === 'user'
         && $event->senderId === $session->external_id
         && $event->senderName === 'Visitor');
+});
+
+it('counts a chatter’s relayed message against their monthly limit', function (): void {
+    // A live chat is still the chatter talking: their limit counts the
+    // relayed message like any other, through the turn's own counting.
+    $conversation = visitorHandoffConversation(HandoffStatus::Human);
+    $chatter = Chatter::factory()->grantedTo($conversation->session->agent)->create();
+    $conversation->session->update(['chatter_id' => $chatter->id]);
+    app(SetMessageLimitAction::class)->execute($chatter, 5);
+
+    app(SendVisitorHandoffMessageAction::class)->execute(
+        new SendVisitorHandoffMessageData($conversation->fresh(), 'Still there?'),
+    );
+
+    expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(1);
 });
 
 it('does nothing when no human holds the conversation', function (): void {

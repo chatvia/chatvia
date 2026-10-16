@@ -26,10 +26,10 @@ use Illuminate\Support\Str;
 
 /**
  * Writing a visitor message to the chat log: the message, its session and
- * conversation, the claimed uploads and the chatter's monthly count land in
- * one transaction; the location request and the analytics event follow the
- * commit. Only a chatter session counts against a chatter limit and names a
- * chatter to analytics; a staff preview session (`user_id`) does neither.
+ * conversation and the claimed uploads land in one transaction; the location
+ * request and the analytics event follow the commit. Monthly limits are not
+ * counted here — the turn counts them as it runs — and only a chatter session
+ * names a chatter to analytics; a staff preview session (`user_id`) does not.
  */
 function storeUserTurn(array $overrides = []): UserTurnData
 {
@@ -77,7 +77,7 @@ it('makes a hidden conversation visible with the full retention window on its fi
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
     $scope = new ChatScopeData($agent, (string) Str::uuid());
-    $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget);
+    $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget)->external_id;
 
     $started = Conversation::query()->where('external_id', $conversationId)->sole();
     expect($started->is_visible)->toBeFalse()
@@ -97,7 +97,7 @@ it('brings back an empty conversation that expired while the widget stayed open'
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
     $scope = new ChatScopeData($agent, (string) Str::uuid());
-    $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget);
+    $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget)->external_id;
     Conversation::query()->where('external_id', $conversationId)->sole()->delete();
 
     app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
@@ -113,7 +113,7 @@ it('brings back an empty conversation that expired while the widget stayed open'
 it('refuses a message to a conversation someone deleted, without reusing its id', function (): void {
     $agent = Agent::factory()->create();
     $scope = new ChatScopeData($agent, (string) Str::uuid());
-    $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget);
+    $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget)->external_id;
     $conversation = Conversation::query()->where('external_id', $conversationId)->sole();
     $conversation->update(['deleted_by' => 'user']);
     $conversation->delete();
@@ -197,7 +197,9 @@ it('asks for the location with the request-resolved country', function (): void 
     );
 });
 
-it('counts a chatter message against their monthly limit', function (): void {
+it('counts no message against any monthly limit (the turn counts, not the chat log)', function (): void {
+    // Counting lives in AddMessageToConversationAction, on the turn itself,
+    // so a retried or duplicate chat-log write can never count twice.
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
     app(SetMessageLimitAction::class)->execute($chatter, 5);
@@ -205,36 +207,8 @@ it('counts a chatter message against their monthly limit', function (): void {
 
     app(StoreUserMessageAction::class)->execute($agent, storeUserTurn(['chatter_id' => $chatter->id]));
 
-    // The chatter's own limit counts it; the workspace's limit counts replies.
-    expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(1)
-        ->and(MessageLimit::query()->where('workspace_id', $agent->workspace_id)->value('messages_used'))->toBe(0);
-});
-
-it('does not count an anonymous visitor message against any limit', function (): void {
-    $agent = Agent::factory()->create();
-    app(SetMessageLimitAction::class)->execute($agent->workspace, 5);
-
-    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn());
-
-    expect(MessageLimit::query()->where('workspace_id', $agent->workspace_id)->value('messages_used'))->toBe(0);
-});
-
-it('never counts a staff preview message against a chatter limit with the same id', function (): void {
-    // The staff account and a chatter share an integer id, so reading the
-    // session's user_id as a chatter id would count against the chatter.
-    $owner = User::factory()->workspace()->create(['id' => sharedStaffAndChatterId()]);
-    $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
-    $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $owner->id]);
-    app(SetMessageLimitAction::class)->execute($chatter, 5);
-    app(SetMessageLimitAction::class)->execute($owner->workspace(), 5);
-
-    $sessionExternalId = (string) Str::uuid();
-    Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id, 'user_id' => $owner->id]);
-
-    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn(['external_session_id' => $sessionExternalId]));
-
     expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(0)
-        ->and(MessageLimit::query()->where('workspace_id', $owner->workspace()->id)->value('messages_used'))->toBe(0);
+        ->and(MessageLimit::query()->where('workspace_id', $agent->workspace_id)->value('messages_used'))->toBe(0);
 });
 
 it('names the chatter of a chatter session to analytics', function (): void {

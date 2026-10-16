@@ -58,6 +58,9 @@ class SendVisitorHandoffMessageAction
                 model: $data->model ?? $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
                 message: $data->content,
                 sent_at: now(),
+                // A signed-in chatter's relayed message still counts against
+                // their monthly limit; the session knows who is talking.
+                chatter_id: $session->chatter_id,
                 ip_address: $data->ipAddress,
                 user_agent: $data->userAgent,
                 referrer_url: $data->referrerUrl,

@@ -200,7 +200,7 @@ class AgentMcpServer extends Model implements AttachableToAgents
 
     /**
      * Catalog tools this server advertises, drawn from the shared
-     * connector_tools table through the mcp_server_tool pivot — only for
+     * connector_tools table through the connector_tool_mcp_server pivot — only for
      * servers with `uses_central_catalog` true. The pivot carries this
      * workspace's per-tool `permission` and invocation counters.
      *
@@ -208,7 +208,7 @@ class AgentMcpServer extends Model implements AttachableToAgents
      */
     public function connectorTools(): BelongsToMany
     {
-        return $this->belongsToMany(ConnectorTool::class, 'mcp_server_tool', 'mcp_server_id', 'connector_tool_id')
+        return $this->belongsToMany(ConnectorTool::class, 'connector_tool_mcp_server', 'mcp_server_id', 'connector_tool_id')
             ->using(McpServerTool::class)
             ->withPivot('permission', 'invocation_count', 'last_invoked_at');
     }

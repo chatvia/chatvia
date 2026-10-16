@@ -50,7 +50,7 @@ class UpdateMcpInvocationCounters implements ShouldQueue
         // No-ops silently when the membership/catalog hasn't synced the tool yet,
         // so a stale catalog can never break the dispatch path.
         if ($event->connectorSlug !== null) {
-            DB::table('mcp_server_tool')
+            DB::table('connector_tool_mcp_server')
                 ->where('mcp_server_id', $event->serverId)
                 ->whereIn('connector_tool_id', function ($query) use ($event): void {
                     $query->select('id')

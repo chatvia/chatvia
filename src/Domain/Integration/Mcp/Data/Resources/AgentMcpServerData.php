@@ -3,13 +3,15 @@
 namespace Domain\Integration\Mcp\Data\Resources;
 
 use Carbon\CarbonInterface;
+use Domain\Integration\Mcp\Enums\McpAuthType;
+use Domain\Integration\Mcp\Enums\McpTransport;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * A workspace MCP server as the Connectors pages show it — never its
- * credentials. Enum columns go out as their string values.
+ * credentials.
  */
 #[TypeScript]
 class AgentMcpServerData extends Data
@@ -21,8 +23,8 @@ class AgentMcpServerData extends Data
         public ?string $connector_slug,
         public ?string $description,
         public string $url,
-        public string $transport,
-        public string $auth_type,
+        public McpTransport $transport,
+        public McpAuthType $auth_type,
         public int $timeout_ms,
         public bool $is_enabled,
         public int $catalog_tools_count,
@@ -42,8 +44,8 @@ class AgentMcpServerData extends Data
             connector_slug: $server->connector_slug,
             description: $server->description,
             url: $server->url,
-            transport: $server->transport->value,
-            auth_type: $server->auth_type->value,
+            transport: $server->transport,
+            auth_type: $server->auth_type,
             timeout_ms: $server->timeout_ms,
             is_enabled: $server->is_enabled,
             catalog_tools_count: $server->catalog_tools_count,

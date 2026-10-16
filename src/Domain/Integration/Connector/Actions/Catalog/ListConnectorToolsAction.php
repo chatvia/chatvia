@@ -16,7 +16,7 @@ use Spatie\LaravelData\DataCollection;
  * the last catalog refresh.
  *
  * Preset/builtin servers read the shared `connector_tools` catalog through the
- * `mcp_server_tool` membership (permission from the membership, `id` is the
+ * `connector_tool_mcp_server` membership (permission from the membership, `id` is the
  * connector_tools.id the permission endpoint round-trips). Custom servers read
  * their own `mcp_tools` rows.
  */

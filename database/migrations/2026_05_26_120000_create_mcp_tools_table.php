@@ -76,7 +76,7 @@ return new class extends Migration
         // search ranks them by exact distance (an approximate index over every
         // workspace's rows would only add work and miss some).
 
-        Schema::create('mcp_server_tool', function (Blueprint $table) {
+        Schema::create('connector_tool_mcp_server', function (Blueprint $table) {
             $table->foreignId('mcp_server_id')
                 ->constrained('mcp_servers')
                 ->cascadeOnDelete();
@@ -96,7 +96,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('mcp_server_tool');
+        Schema::dropIfExists('connector_tool_mcp_server');
         Schema::dropIfExists('mcp_tools');
         Schema::dropIfExists('connector_tools');
     }

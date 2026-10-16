@@ -70,7 +70,7 @@ class AgentMcpServerFactory extends Factory
 
     /**
      * A catalog connector at its canonical URL (Notion, Stripe, …): its tools
-     * come from the shared `connector_tools` catalog through `mcp_server_tool`.
+     * come from the shared `connector_tools` catalog through `connector_tool_mcp_server`.
      */
     public function preset(string $connectorSlug = 'notion'): static
     {

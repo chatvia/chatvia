@@ -63,13 +63,13 @@ class ConnectorTool extends Model
 
     /**
      * The per-workspace servers that advertise this catalog tool, through the
-     * mcp_server_tool pivot (carrying each workspace's permission + counters).
+     * connector_tool_mcp_server pivot (carrying each workspace's permission + counters).
      *
      * @return BelongsToMany<AgentMcpServer, $this, McpServerTool>
      */
     public function servers(): BelongsToMany
     {
-        return $this->belongsToMany(AgentMcpServer::class, 'mcp_server_tool', 'connector_tool_id', 'mcp_server_id')
+        return $this->belongsToMany(AgentMcpServer::class, 'connector_tool_mcp_server', 'connector_tool_id', 'mcp_server_id')
             ->using(McpServerTool::class)
             ->withPivot('permission', 'invocation_count', 'last_invoked_at');
     }

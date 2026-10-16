@@ -111,7 +111,7 @@ class BuiltinToolRouter
             $sql = <<<SQL
 SELECT ct.name, ct.description, ct.input_schema, s.url
 FROM connector_tools ct
-INNER JOIN mcp_server_tool mst ON mst.connector_tool_id = ct.id
+INNER JOIN connector_tool_mcp_server mst ON mst.connector_tool_id = ct.id
 INNER JOIN mcp_servers s ON s.id = mst.mcp_server_id
 WHERE s.workspace_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
   AND mst.permission != 'blocked' AND ct.search_text IS NOT NULL
@@ -132,7 +132,7 @@ SQL;
 WITH scoped AS (
     SELECT ct.id, ct.name, ct.description, ct.input_schema, s.url, ct.embedding, ct.search_text
     FROM connector_tools ct
-    INNER JOIN mcp_server_tool mst ON mst.connector_tool_id = ct.id
+    INNER JOIN connector_tool_mcp_server mst ON mst.connector_tool_id = ct.id
     INNER JOIN mcp_servers s ON s.id = mst.mcp_server_id
     WHERE s.workspace_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
       AND mst.permission != 'blocked'
@@ -191,7 +191,7 @@ SQL;
         return DB::select(<<<SQL
 SELECT ct.name, ct.description, ct.input_schema, s.url
 FROM connector_tools ct
-INNER JOIN mcp_server_tool mst ON mst.connector_tool_id = ct.id
+INNER JOIN connector_tool_mcp_server mst ON mst.connector_tool_id = ct.id
 INNER JOIN mcp_servers s ON s.id = mst.mcp_server_id
 WHERE s.workspace_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
   AND mst.permission != 'blocked'

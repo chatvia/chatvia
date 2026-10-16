@@ -18,7 +18,7 @@ use Mockery\MockInterface;
 /**
  * The preset/builtin path stores each connector's tool definitions + embeddings
  * ONCE in the shared `connector_tools` catalog (keyed by connector_slug), with a
- * thin per-workspace `mcp_server_tool` membership carrying that workspace's
+ * thin per-workspace `connector_tool_mcp_server` membership carrying that workspace's
  * permission. No matter how many workspaces connect "weather", the catalog holds
  * one row set.
  *

@@ -1,14 +1,14 @@
 /**
  * Listens on the signed-in person's own channel for notifications: a new or
  * gathered one updates the bell and every open list (and may alert the
- * desktop or play a sound), and reads made in another tab clear them here.
+ * desktop or play a sound), and reads or a "Clear all" made in another tab
+ * show here too.
  * Mount it once per page; the bell does.
  */
-import type { SharedData } from '@/types';
-import { useEcho } from '@laravel/echo-vue';
 import { usePage } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
 import { alertNewNotification, claimAlertLeadership } from './notificationAlerts';
-import { notificationPushed, notificationsRead, type UserNotification } from './notificationStore';
+import { notificationPushed, notificationsCleared, notificationsRead, type UserNotification } from './notificationStore';
 import { useNotificationText } from './useNotificationText';
 
 interface PushedPayload {
@@ -22,7 +22,7 @@ interface ReadPayload {
 }
 
 export function useNotificationStream(): void {
-    const page = usePage<SharedData>();
+    const page = usePage();
     const userId = page.props.auth?.user?.id;
     if (!userId) return;
 
@@ -38,5 +38,9 @@ export function useNotificationStream(): void {
 
     useEcho<ReadPayload>(channel, '.UserNotificationsRead', (event) => {
         notificationsRead(event.ids, event.unread);
+    });
+
+    useEcho(channel, '.UserNotificationsCleared', () => {
+        notificationsCleared();
     });
 }

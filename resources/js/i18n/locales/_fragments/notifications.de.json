@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Benachrichtigungen",
+        "open": "Benachrichtigungen öffnen",
+        "open_with_count": "Benachrichtigungen öffnen ({count} ungelesen) | Benachrichtigungen öffnen ({count} ungelesen)",
+        "unread": "Ungelesen",
+        "unread_count": "{count} neu | {count} neu",
+        "mark_read": "Als gelesen markieren",
+        "mark_all_read": "Alle als gelesen markieren",
+        "clear_all": "Alle löschen",
+        "settings": "Benachrichtigungseinstellungen",
+        "view_all": "Alle Benachrichtigungen ansehen",
+        "page_description": "Übergaben, Trainingsergebnisse, Leads und Warnungen der letzten Tage.",
+        "empty_title": "Alles erledigt",
+        "empty_body": "Übergaben, Trainingsergebnisse, Leads und Warnungen erscheinen hier.",
+        "empty_unread": "Keine ungelesenen Benachrichtigungen",
+        "filter_all": "Alle",
+        "filter_unread": "Ungelesen",
+        "load_more": "Mehr laden",
+        "load_failed": "Benachrichtigungen konnten nicht geladen werden. Bitte versuche es erneut.",
+        "guards": {
+            "prompt_injection": "Jemand hat versucht, die Anweisungen des Agenten zu ändern (Prompt-Injection).",
+            "prompt_leak": "Eine Antwort, die die Anweisungen des Agenten gezeigt hätte, wurde gestoppt."
+        },
+        "security_changes": {
+            "api_key_created": "Ein neues API-Token wurde erstellt",
+            "policy_changed": "Die Sicherheitseinstellungen des Workspace wurden geändert",
+            "ip_allowlist_changed": "Die IP-Zulassungsliste wurde geändert",
+            "retention_changed": "Die Datenaufbewahrung wurde geändert",
+            "webhook_disabled": "Der Audit-Webhook wurde ausgeschaltet"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Ein Besucher möchte mit einer Person sprechen",
+                "body": "Öffne den Chat mit {agent}, um zu übernehmen."
+            },
+            "source_trained": {
+                "title": "{subject} ist fertig trainiert | {count} Quellen sind fertig trainiert",
+                "body": "{agent} kann jetzt damit antworten. | {agent} kann jetzt damit antworten. Zuletzt: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Training fehlgeschlagen: {subject}",
+                "body": "Öffne die Quellen von {agent}, um den Grund zu sehen und es erneut zu versuchen."
+            },
+            "lead_captured": {
+                "title": "Neuer Lead aus {subject} | {count} neue Leads aus {subject}",
+                "body": "Ein Besucher hat das Formular bei {agent} ausgefüllt."
+            },
+            "attack_blocked": {
+                "title": "Angriff auf {agent} blockiert | {count} Angriffe auf {agent} blockiert"
+            },
+            "guardrail_skipped": {
+                "title": "Eine Sicherheitsprüfung lief nicht bei {agent} | Eine Sicherheitsprüfung lief {count}-mal nicht bei {agent}",
+                "body": "Nachrichten gingen ohne sie durch. Prüfe den Guardrail-Dienst."
+            },
+            "security_settings_changed": {
+                "by": "Geändert von {actor}.",
+                "automatic": "Automatisch geändert. Details stehen im Audit-Log."
+            },
+            "new_device_sign_in": {
+                "title": "Neue Anmeldung bei deinem Konto",
+                "body": "Warst du das nicht, ändere jetzt dein Passwort.",
+                "body_device": "Von {subject}. Warst du das nicht, ändere jetzt dein Passwort."
+            },
+            "message_limit_warning": {
+                "title": "Dein Workspace hat 80 % seiner Nachrichten verbraucht",
+                "body": "Das Limit liegt bei {subject} Nachrichten im Monat."
+            },
+            "message_limit_reached": {
+                "title": "Dein Workspace hat sein Nachrichtenlimit erreicht",
+                "body": "Agenten antworten erst im nächsten Monat wieder. Das Limit liegt bei {subject} Nachrichten im Monat."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} weist Nachrichten ab",
+                "body": "Das Limit von {detail} Nachrichten pro Minute ist erreicht."
+            },
+            "eval_run_finished": {
+                "title": "Eval-Lauf bei {agent} beendet",
+                "body": "{subject} Fälle bestanden.",
+                "title_failed": "Eval-Lauf bei {agent} abgebrochen",
+                "body_failed": "Öffne den Lauf, um zu sehen, was passiert ist."
+            },
+            "data_export_ready": {
+                "title": "Dein Datenexport ist fertig",
+                "body": "Lade ihn innerhalb von 24 Stunden herunter."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Benachrichtigungen"
+        },
+        "notifications": {
+            "title": "Benachrichtigungen",
+            "heading": "Benachrichtigungen",
+            "description": "Wähle, was dich erreicht und wie.",
+            "category": "Kategorie",
+            "hint": "Desktop-Hinweise und Töne brauchen die Glocke. Bei mehreren offenen Dashboard-Tabs meldet sich nur einer.",
+            "switches": {
+                "bell": "Glocke",
+                "desktop": "Desktop",
+                "sound": "Ton"
+            },
+            "browser": {
+                "title": "Desktop-Hinweise in diesem Browser",
+                "granted": "Erlaubt. Hinweise erscheinen, wenn das Dashboard nicht im Vordergrund ist.",
+                "denied": "Blockiert. Erlaube Benachrichtigungen für diese Seite in den Browser-Einstellungen.",
+                "default": "Noch nicht erlaubt. Erlaube sie, um Desktop-Hinweise zu bekommen.",
+                "unsupported": "Dieser Browser kann keine Desktop-Hinweise zeigen.",
+                "allow": "In diesem Browser erlauben",
+                "test_sound": "Testton abspielen"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Übergaben",
+                    "description": "Ein Besucher möchte mit einer Person sprechen."
+                },
+                "security": {
+                    "label": "Sicherheit",
+                    "description": "Blockierte Angriffe, Sicherheitsprüfungen, die nicht liefen, neue Anmeldungen und Sicherheitsänderungen."
+                },
+                "training": {
+                    "label": "Training",
+                    "description": "Dateien, Texte und Websites, deren Training fertig ist oder fehlschlägt."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "Ein Besucher füllt eines deiner Formulare aus."
+                },
+                "usage": {
+                    "label": "Nutzung",
+                    "description": "Nachrichtenlimits und Ratenlimits."
+                },
+                "reports": {
+                    "label": "Berichte",
+                    "description": "Fertige Eval-Läufe und Datenexporte."
+                }
+            }
+        }
+    }
+}

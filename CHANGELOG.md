@@ -114,6 +114,29 @@ theme.
   installs now write logs to a file per day in `storage/logs` (the newest 14
   are kept) as well as to the container output.
 
+### Notification center
+
+- **A bell in the dashboard header** shows a red badge with the number of
+  unread notifications, and the browser tab shows it too ("(3) Agents").
+  Its list opens what each notification is about, with "Mark all as read"
+  and "Clear all"; a full page lists them all, with an Unread tab.
+- Notifications arrive live, without reloading the page, and reads in one tab
+  clear the badge in the others.
+- What sends one: a visitor asking for a person (to the people who can take
+  over; it is marked read for everyone once someone does), a file, text or
+  website that finished training or failed, a new lead, a blocked prompt
+  injection or prompt leak, a safety check that could not run, security
+  changes (a new API token, security policy, IP allowlist, retention, the
+  audit webhook turning off), a sign-in from a new device, 80% and 100% of
+  the monthly message limit, an agent's rate limit turning messages away, a
+  finished eval run and a ready data export. Repeats gather into one line
+  while unread ("5 sources finished training").
+- **Account → Notifications**: each person chooses, per category, whether it
+  rings the bell, shows a desktop alert and plays a sound. Desktop alerts and
+  sounds come from one open tab only.
+- Notifications are kept 7 days and deleted every night. Admins can change
+  the number of days in **Settings → Workspaces → Notifications**.
+
 ### Voice conversations
 
 - **Visitors can talk with an agent out loud** in the hosted chat and the chat

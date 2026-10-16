@@ -428,5 +428,6 @@
     "The team at :name turned off your access to chat with their assistants.": "Teamet på :name har stängt av din åtkomst till att chatta med deras assistenter.",
     "This happens when messages try to make an assistant break its rules or show its instructions.": "Det händer när meddelanden försöker få en assistent att bryta mot sina regler eller visa sina instruktioner.",
     "If you think this is a mistake, please contact :name.": "Om du tror att detta är ett misstag, kontakta :name.",
-    "You can block the person who sent them from the guardrails activity.": "Du kan blockera personen som skickade dem från aktiviteten under skyddsräckena."
+    "You can block the person who sent them from the guardrails activity.": "Du kan blockera personen som skickade dem från aktiviteten under skyddsräckena.",
+    "Notification settings saved.": "Aviseringsinställningarna har sparats."
 }

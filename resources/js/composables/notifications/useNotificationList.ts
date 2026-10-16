@@ -1,12 +1,19 @@
 /**
  * One list of notifications (the bell's popover, the Notifications page):
- * its rows and next-page cursor, loading, marking read, and live updates
+ * its rows and next-page cursor, loading, marking read, clearing, and live updates
  * from the shared store. A list may start from a page the server already
  * rendered.
  */
-import { fetchNotifications, markAllNotificationsRead, markNotificationRead, type NotificationFeed, type NotificationFilter } from '@/api/notifications';
+import {
+    clearNotifications,
+    fetchNotifications,
+    markAllNotificationsRead,
+    markNotificationRead,
+    type NotificationFeed,
+    type NotificationFilter,
+} from '@/api/notifications';
 import { onScopeDispose, ref, toValue, type MaybeRefOrGetter } from 'vue';
-import { onNotificationChange, setUnreadCount, unreadCount, type UserNotification } from './notificationStore';
+import { notificationsCleared, onNotificationChange, setUnreadCount, unreadCount, type UserNotification } from './notificationStore';
 
 export function useNotificationList(filter: MaybeRefOrGetter<NotificationFilter>, initial?: NotificationFeed) {
     const items = ref<UserNotification[]>(initial?.notifications ?? []);
@@ -77,6 +84,18 @@ export function useNotificationList(filter: MaybeRefOrGetter<NotificationFilter>
         }
     }
 
+    async function clearAll(): Promise<void> {
+        const previous = items.value;
+        notificationsCleared();
+        try {
+            await clearNotifications();
+        } catch {
+            // Put the list back: nothing was deleted.
+            items.value = previous;
+            setUnreadCount(previous.filter((item) => !item.read).length);
+        }
+    }
+
     const stopListening = onNotificationChange({
         pushed(notification) {
             if (!loaded.value) return;
@@ -85,9 +104,13 @@ export function useNotificationList(filter: MaybeRefOrGetter<NotificationFilter>
             items.value = [notification, ...items.value.filter((item) => item.id !== notification.id)];
         },
         read: markLocallyRead,
+        cleared() {
+            items.value = [];
+            nextCursor.value = null;
+        },
     });
 
     onScopeDispose(stopListening);
 
-    return { items, nextCursor, loaded, loading, failed, load, loadMore, markRead, markAllRead };
+    return { items, nextCursor, loaded, loading, failed, load, loadMore, markRead, markAllRead, clearAll };
 }

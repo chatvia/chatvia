@@ -428,5 +428,6 @@
     "The team at :name turned off your access to chat with their assistants.": "Das Team von :name hat Ihren Zugang zum Chat mit seinen Assistenten deaktiviert.",
     "This happens when messages try to make an assistant break its rules or show its instructions.": "Das passiert, wenn Nachrichten versuchen, einen Assistenten dazu zu bringen, seine Regeln zu brechen oder seine Anweisungen zu zeigen.",
     "If you think this is a mistake, please contact :name.": "Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an :name.",
-    "You can block the person who sent them from the guardrails activity.": "Sie können die Person, die sie gesendet hat, in der Aktivität der Leitplanken sperren."
+    "You can block the person who sent them from the guardrails activity.": "Sie können die Person, die sie gesendet hat, in der Aktivität der Leitplanken sperren.",
+    "Notification settings saved.": "Benachrichtigungseinstellungen gespeichert."
 }

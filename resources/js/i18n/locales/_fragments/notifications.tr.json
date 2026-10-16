@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Bildirimler",
+        "open": "Bildirimleri aç",
+        "open_with_count": "Bildirimleri aç ({count} okunmamış) | Bildirimleri aç ({count} okunmamış)",
+        "unread": "Okunmamış",
+        "unread_count": "{count} yeni | {count} yeni",
+        "mark_read": "Okundu olarak işaretle",
+        "mark_all_read": "Tümünü okundu yap",
+        "clear_all": "Tümünü temizle",
+        "settings": "Bildirim ayarları",
+        "view_all": "Tüm bildirimleri gör",
+        "page_description": "Son günlerin devir talepleri, eğitim sonuçları, potansiyel müşterileri ve uyarıları.",
+        "empty_title": "Her şeyi gördünüz",
+        "empty_body": "Devir talepleri, eğitim sonuçları, potansiyel müşteriler ve uyarılar burada görünür.",
+        "empty_unread": "Okunmamış bildirim yok",
+        "filter_all": "Tümü",
+        "filter_unread": "Okunmamış",
+        "load_more": "Daha fazla yükle",
+        "load_failed": "Bildirimler yüklenemedi. Lütfen tekrar deneyin.",
+        "guards": {
+            "prompt_injection": "Biri ajanın talimatlarını değiştirmeye çalıştı (prompt injection).",
+            "prompt_leak": "Ajanın talimatlarını gösterecek bir yanıt durduruldu."
+        },
+        "security_changes": {
+            "api_key_created": "Yeni bir API anahtarı oluşturuldu",
+            "policy_changed": "Çalışma alanının güvenlik ayarları değiştirildi",
+            "ip_allowlist_changed": "İzin verilen IP listesi değiştirildi",
+            "retention_changed": "Veri saklama süresi değiştirildi",
+            "webhook_disabled": "Denetim webhook'u kapatıldı"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Bir ziyaretçi bir kişiyle konuşmak istiyor",
+                "body": "Devralmak için {agent} ile sohbeti açın."
+            },
+            "source_trained": {
+                "title": "{subject} eğitimi tamamlandı | {count} kaynağın eğitimi tamamlandı",
+                "body": "{agent} artık bununla yanıt verebilir. | {agent} artık bunlarla yanıt verebilir. En son: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Eğitim başarısız: {subject}",
+                "body": "Nedenini görmek ve yeniden denemek için {agent} kaynaklarını açın."
+            },
+            "lead_captured": {
+                "title": "{subject} formundan yeni potansiyel müşteri | {subject} formundan {count} yeni potansiyel müşteri",
+                "body": "Bir ziyaretçi {agent} üzerindeki formu doldurdu."
+            },
+            "attack_blocked": {
+                "title": "{agent} üzerinde bir saldırı engellendi | {agent} üzerinde {count} saldırı engellendi"
+            },
+            "guardrail_skipped": {
+                "title": "{agent} üzerinde bir güvenlik kontrolü çalışamadı | {agent} üzerinde bir güvenlik kontrolü {count} kez çalışamadı",
+                "body": "Mesajlar onsuz geçti. Guardrail hizmetini kontrol edin."
+            },
+            "security_settings_changed": {
+                "by": "Değiştiren: {actor}.",
+                "automatic": "Otomatik olarak değişti. Ayrıntılar için denetim günlüğünü açın."
+            },
+            "new_device_sign_in": {
+                "title": "Hesabınıza yeni giriş",
+                "body": "Bu siz değilseniz şifrenizi hemen değiştirin.",
+                "body_device": "{subject} üzerinden. Bu siz değilseniz şifrenizi hemen değiştirin."
+            },
+            "message_limit_warning": {
+                "title": "Çalışma alanınız mesajlarının %80'ini kullandı",
+                "body": "Sınır ayda {subject} mesaj."
+            },
+            "message_limit_reached": {
+                "title": "Çalışma alanınız mesaj sınırına ulaştı",
+                "body": "Ajanlar gelecek aya kadar yanıt vermeyecek. Sınır ayda {subject} mesaj."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} mesajları geri çeviriyor",
+                "body": "Dakikada {detail} mesaj sınırına ulaştı."
+            },
+            "eval_run_finished": {
+                "title": "{agent} değerlendirmesi bitti",
+                "body": "{subject} vaka geçti.",
+                "title_failed": "{agent} değerlendirmesi durdu",
+                "body_failed": "Ne olduğunu görmek için çalıştırmayı açın."
+            },
+            "data_export_ready": {
+                "title": "Veri dışa aktarımınız hazır",
+                "body": "24 saat içinde indirin."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Bildirimler"
+        },
+        "notifications": {
+            "title": "Bildirimler",
+            "heading": "Bildirimler",
+            "description": "Size neyin ve nasıl ulaşacağını seçin.",
+            "category": "Kategori",
+            "hint": "Masaüstü uyarıları ve sesler zil gerektirir. Birden çok panel sekmesi açıksa yalnızca biri uyarır.",
+            "switches": {
+                "bell": "Zil",
+                "desktop": "Masaüstü",
+                "sound": "Ses"
+            },
+            "browser": {
+                "title": "Bu tarayıcıda masaüstü uyarıları",
+                "granted": "İzin verildi. Panel önde değilken uyarılar görünür.",
+                "denied": "Engellendi. Tarayıcı ayarlarından bu site için bildirimlere izin verin.",
+                "default": "Henüz izin verilmedi. Masaüstü uyarıları almak için izin verin.",
+                "unsupported": "Bu tarayıcı masaüstü uyarısı gösteremiyor.",
+                "allow": "Bu tarayıcıda izin ver",
+                "test_sound": "Test sesini çal"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Devir talepleri",
+                    "description": "Bir ziyaretçi bir kişiyle konuşmak istiyor."
+                },
+                "security": {
+                    "label": "Güvenlik",
+                    "description": "Engellenen saldırılar, çalışamayan güvenlik kontrolleri, yeni girişler ve güvenlik değişiklikleri."
+                },
+                "training": {
+                    "label": "Eğitim",
+                    "description": "Eğitimi biten ya da başarısız olan dosyalar, metinler ve web siteleri."
+                },
+                "leads": {
+                    "label": "Potansiyel müşteriler",
+                    "description": "Bir ziyaretçi formlarınızdan birini dolduruyor."
+                },
+                "usage": {
+                    "label": "Kullanım",
+                    "description": "Mesaj sınırları ve hız sınırları."
+                },
+                "reports": {
+                    "label": "Raporlar",
+                    "description": "Biten değerlendirmeler ve veri dışa aktarımları."
+                }
+            }
+        }
+    }
+}

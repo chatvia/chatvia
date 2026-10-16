@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Notifications",
+        "open": "Open notifications",
+        "open_with_count": "Open notifications ({count} unread) | Open notifications ({count} unread)",
+        "unread": "Unread",
+        "unread_count": "{count} new | {count} new",
+        "mark_read": "Mark as read",
+        "mark_all_read": "Mark all as read",
+        "clear_all": "Clear all",
+        "settings": "Notification settings",
+        "view_all": "View all notifications",
+        "page_description": "Handoffs, training results, leads and alerts from the last few days.",
+        "empty_title": "You are all caught up",
+        "empty_body": "Handoffs, training results, leads and alerts will show up here.",
+        "empty_unread": "No unread notifications",
+        "filter_all": "All",
+        "filter_unread": "Unread",
+        "load_more": "Load more",
+        "load_failed": "Notifications could not be loaded. Please try again.",
+        "guards": {
+            "prompt_injection": "Someone tried to change the agent's instructions (prompt injection).",
+            "prompt_leak": "An answer that would have shown the agent's instructions was stopped."
+        },
+        "security_changes": {
+            "api_key_created": "A new API token was created",
+            "policy_changed": "The workspace security settings were changed",
+            "ip_allowlist_changed": "The IP allowlist was changed",
+            "retention_changed": "Data retention was changed",
+            "webhook_disabled": "The audit webhook was turned off"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "A visitor wants to talk to a person",
+                "body": "Open the chat with {agent} to take over."
+            },
+            "source_trained": {
+                "title": "{subject} finished training | {count} sources finished training",
+                "body": "{agent} can now answer from it. | {agent} can now answer from them. The latest: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Training failed: {subject}",
+                "body": "Open the sources of {agent} to see why and try again."
+            },
+            "lead_captured": {
+                "title": "New lead from {subject} | {count} new leads from {subject}",
+                "body": "A visitor filled in the form on {agent}."
+            },
+            "attack_blocked": {
+                "title": "Attack blocked on {agent} | {count} attacks blocked on {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "A safety check could not run on {agent} | A safety check could not run {count} times on {agent}",
+                "body": "Messages went through without it. Check the guardrail service."
+            },
+            "security_settings_changed": {
+                "by": "Changed by {actor}.",
+                "automatic": "Changed automatically. Open the audit log for details."
+            },
+            "new_device_sign_in": {
+                "title": "New sign-in to your account",
+                "body": "If this was not you, change your password now.",
+                "body_device": "From {subject}. If this was not you, change your password now."
+            },
+            "message_limit_warning": {
+                "title": "Your workspace used 80% of its messages",
+                "body": "The limit is {subject} messages a month."
+            },
+            "message_limit_reached": {
+                "title": "Your workspace reached its message limit",
+                "body": "Agents stop replying until next month. The limit is {subject} messages a month."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} is turning messages away",
+                "body": "It reached its limit of {detail} messages a minute."
+            },
+            "eval_run_finished": {
+                "title": "Eval run finished on {agent}",
+                "body": "{subject} cases passed.",
+                "title_failed": "Eval run stopped on {agent}",
+                "body_failed": "Open the run to see what happened."
+            },
+            "data_export_ready": {
+                "title": "Your data export is ready",
+                "body": "Download it within 24 hours."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Notifications"
+        },
+        "notifications": {
+            "title": "Notifications",
+            "heading": "Notifications",
+            "description": "Choose what reaches you, and how.",
+            "category": "Category",
+            "hint": "Desktop alerts and sounds need the bell. With several dashboard tabs open, only one of them alerts.",
+            "switches": {
+                "bell": "Bell",
+                "desktop": "Desktop",
+                "sound": "Sound"
+            },
+            "browser": {
+                "title": "Desktop alerts in this browser",
+                "granted": "Allowed. Alerts show when the dashboard is not in front.",
+                "denied": "Blocked. Allow notifications for this site in your browser settings.",
+                "default": "Not allowed yet. Allow them to get desktop alerts.",
+                "unsupported": "This browser cannot show desktop alerts.",
+                "allow": "Allow in this browser",
+                "test_sound": "Play test sound"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Handoffs",
+                    "description": "A visitor asks to talk to a person."
+                },
+                "security": {
+                    "label": "Security",
+                    "description": "Blocked attacks, safety checks that could not run, new sign-ins and security changes."
+                },
+                "training": {
+                    "label": "Training",
+                    "description": "Files, texts and websites that finish training, or fail."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "A visitor fills in one of your forms."
+                },
+                "usage": {
+                    "label": "Usage",
+                    "description": "Message limits and rate limits."
+                },
+                "reports": {
+                    "label": "Reports",
+                    "description": "Finished eval runs and data exports."
+                }
+            }
+        }
+    }
+}

@@ -3326,7 +3326,8 @@
             "passkeys": "Passkey",
             "social": "Tài khoản mạng xã hội",
             "data_export": "Tải xuống dữ liệu của tôi",
-            "delete": "Xóa tài khoản"
+            "delete": "Xóa tài khoản",
+            "notifications": "Thông báo"
         },
         "profile": {
             "title": "Cài đặt hồ sơ",
@@ -3466,6 +3467,53 @@
             "password_dialog_description": "Nhập mật khẩu của bạn để tiếp tục. Chúng tôi sẽ gửi email cho bạn một liên kết xác nhận để hoàn tất việc xóa tài khoản.",
             "password_placeholder": "Mật khẩu",
             "send_confirmation": "Gửi email xác nhận"
+        },
+        "notifications": {
+            "title": "Thông báo",
+            "heading": "Thông báo",
+            "description": "Chọn những gì đến với bạn, và theo cách nào.",
+            "category": "Danh mục",
+            "hint": "Cảnh báo trên màn hình và âm thanh cần bật chuông. Khi mở nhiều tab bảng điều khiển, chỉ một tab báo.",
+            "switches": {
+                "bell": "Chuông",
+                "desktop": "Màn hình",
+                "sound": "Âm thanh"
+            },
+            "browser": {
+                "title": "Cảnh báo trên màn hình trong trình duyệt này",
+                "granted": "Đã cho phép. Cảnh báo hiện khi bảng điều khiển không ở phía trước.",
+                "denied": "Đã chặn. Hãy cho phép thông báo của trang này trong cài đặt trình duyệt.",
+                "default": "Chưa cho phép. Hãy cho phép để nhận cảnh báo trên màn hình.",
+                "unsupported": "Trình duyệt này không hiển thị được cảnh báo trên màn hình.",
+                "allow": "Cho phép trong trình duyệt này",
+                "test_sound": "Phát âm thanh thử"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Chuyển cho người",
+                    "description": "Một khách truy cập muốn nói chuyện với người thật."
+                },
+                "security": {
+                    "label": "Bảo mật",
+                    "description": "Tấn công bị chặn, kiểm tra an toàn không chạy được, đăng nhập mới và thay đổi bảo mật."
+                },
+                "training": {
+                    "label": "Huấn luyện",
+                    "description": "Tệp, văn bản và trang web huấn luyện xong hoặc thất bại."
+                },
+                "leads": {
+                    "label": "Khách hàng tiềm năng",
+                    "description": "Một khách truy cập điền một biểu mẫu của bạn."
+                },
+                "usage": {
+                    "label": "Sử dụng",
+                    "description": "Giới hạn tin nhắn và giới hạn tốc độ."
+                },
+                "reports": {
+                    "label": "Báo cáo",
+                    "description": "Đánh giá đã xong và bản xuất dữ liệu."
+                }
+            }
         }
     },
     "theme": {
@@ -4003,5 +4051,92 @@
             "failed": "Thất bại",
             "cancelled": "Đã dừng"
         }
+    },
+    "notifications": {
+        "title": "Thông báo",
+        "open": "Mở thông báo",
+        "open_with_count": "Mở thông báo ({count} chưa đọc) | Mở thông báo ({count} chưa đọc)",
+        "unread": "Chưa đọc",
+        "unread_count": "{count} mới | {count} mới",
+        "mark_read": "Đánh dấu đã đọc",
+        "mark_all_read": "Đánh dấu tất cả đã đọc",
+        "settings": "Cài đặt thông báo",
+        "view_all": "Xem tất cả thông báo",
+        "page_description": "Yêu cầu chuyển cho người, kết quả huấn luyện, khách hàng tiềm năng và cảnh báo trong vài ngày qua.",
+        "empty_title": "Bạn đã xem hết",
+        "empty_body": "Yêu cầu chuyển cho người, kết quả huấn luyện, khách hàng tiềm năng và cảnh báo sẽ hiện ở đây.",
+        "empty_unread": "Không có thông báo chưa đọc",
+        "filter_all": "Tất cả",
+        "filter_unread": "Chưa đọc",
+        "load_more": "Tải thêm",
+        "load_failed": "Không tải được thông báo. Vui lòng thử lại.",
+        "guards": {
+            "prompt_injection": "Có người cố thay đổi hướng dẫn của agent (prompt injection).",
+            "prompt_leak": "Đã chặn một câu trả lời có thể làm lộ hướng dẫn của agent."
+        },
+        "security_changes": {
+            "api_key_created": "Một token API mới đã được tạo",
+            "policy_changed": "Cài đặt bảo mật của workspace đã thay đổi",
+            "ip_allowlist_changed": "Danh sách IP được phép đã thay đổi",
+            "retention_changed": "Thời gian lưu dữ liệu đã thay đổi",
+            "webhook_disabled": "Webhook kiểm toán đã bị tắt"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Một khách truy cập muốn nói chuyện với người thật",
+                "body": "Mở cuộc trò chuyện với {agent} để tiếp nhận."
+            },
+            "source_trained": {
+                "title": "{subject} đã huấn luyện xong | {count} nguồn đã huấn luyện xong",
+                "body": "{agent} giờ có thể trả lời từ nguồn này. | {agent} giờ có thể trả lời từ các nguồn này. Mới nhất: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Huấn luyện thất bại: {subject}",
+                "body": "Mở các nguồn của {agent} để xem lý do và thử lại."
+            },
+            "lead_captured": {
+                "title": "Khách hàng tiềm năng mới từ {subject} | {count} khách hàng tiềm năng mới từ {subject}",
+                "body": "Một khách truy cập đã điền biểu mẫu trên {agent}."
+            },
+            "attack_blocked": {
+                "title": "Đã chặn tấn công vào {agent} | Đã chặn {count} cuộc tấn công vào {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Một bước kiểm tra an toàn không chạy được trên {agent} | Một bước kiểm tra an toàn không chạy được {count} lần trên {agent}",
+                "body": "Tin nhắn đã đi qua mà không có nó. Hãy kiểm tra dịch vụ guardrail."
+            },
+            "security_settings_changed": {
+                "by": "Người thay đổi: {actor}.",
+                "automatic": "Đã tự động thay đổi. Mở nhật ký kiểm toán để xem chi tiết."
+            },
+            "new_device_sign_in": {
+                "title": "Có đăng nhập mới vào tài khoản của bạn",
+                "body": "Nếu không phải bạn, hãy đổi mật khẩu ngay.",
+                "body_device": "Từ {subject}. Nếu không phải bạn, hãy đổi mật khẩu ngay."
+            },
+            "message_limit_warning": {
+                "title": "Workspace của bạn đã dùng 80% số tin nhắn",
+                "body": "Giới hạn là {subject} tin nhắn mỗi tháng."
+            },
+            "message_limit_reached": {
+                "title": "Workspace của bạn đã chạm giới hạn tin nhắn",
+                "body": "Các agent sẽ ngừng trả lời đến tháng sau. Giới hạn là {subject} tin nhắn mỗi tháng."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} đang từ chối tin nhắn",
+                "body": "Đã chạm giới hạn {detail} tin nhắn mỗi phút."
+            },
+            "eval_run_finished": {
+                "title": "Đánh giá {agent} đã xong",
+                "body": "{subject} trường hợp đạt.",
+                "title_failed": "Đánh giá {agent} đã dừng",
+                "body_failed": "Mở lần chạy để xem chuyện gì đã xảy ra."
+            },
+            "data_export_ready": {
+                "title": "Bản xuất dữ liệu của bạn đã sẵn sàng",
+                "body": "Hãy tải xuống trong vòng 24 giờ."
+            }
+        },
+        "clear_all": "Xóa tất cả"
     }
 }

@@ -428,5 +428,6 @@
     "The team at :name turned off your access to chat with their assistants.": ":name-tiimi poisti pääsysi keskustella heidän avustajiensa kanssa.",
     "This happens when messages try to make an assistant break its rules or show its instructions.": "Näin käy, kun viestit yrittävät saada avustajan rikkomaan sääntöjään tai näyttämään ohjeensa.",
     "If you think this is a mistake, please contact :name.": "Jos uskot tämän olevan virhe, ota yhteyttä: :name.",
-    "You can block the person who sent them from the guardrails activity.": "Voit estää ne lähettäneen henkilön turvarajojen toiminnasta."
+    "You can block the person who sent them from the guardrails activity.": "Voit estää ne lähettäneen henkilön turvarajojen toiminnasta.",
+    "Notification settings saved.": "Ilmoitusasetukset tallennettu."
 }

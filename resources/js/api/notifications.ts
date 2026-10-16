@@ -4,7 +4,7 @@
  * other tabs arrive over Reverb (see `useNotificationStream`).
  */
 import notifications from '@/routes/notifications';
-import { get, patch, post } from './http';
+import { del, get, patch, post } from './http';
 
 export type NotificationFeed = App.Http.Resources.Notification.NotificationFeedResourceData;
 export type NotificationFilter = Domain.Notification.Enums.NotificationFilter;
@@ -19,4 +19,8 @@ export function markNotificationRead(id: string): Promise<void> {
 
 export function markAllNotificationsRead(): Promise<void> {
     return post(notifications.readAll.url());
+}
+
+export function clearNotifications(): Promise<void> {
+    return del(notifications.clear.url());
 }

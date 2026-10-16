@@ -6,19 +6,26 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import {
-    desktopAlertsSupported,
-    desktopPermission,
-    playChime,
-    requestDesktopPermission,
-} from '@/composables/notifications/notificationAlerts';
+import { desktopAlertsSupported, desktopPermission, playChime, requestDesktopPermission } from '@/composables/notifications/notificationAlerts';
 import type { NotificationPreferences } from '@/composables/notifications/notificationStore';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
 import account from '@/routes/account';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
-import { Bell, BellRing, Gauge, GraduationCap, Headset, Monitor, ShieldAlert, UserPlus, Volume2, FileBarChart, type LucideIcon } from 'lucide-vue-next';
+import {
+    Bell,
+    BellRing,
+    Gauge,
+    GraduationCap,
+    Headset,
+    Monitor,
+    ShieldAlert,
+    UserPlus,
+    Volume2,
+    FileBarChart,
+    type LucideIcon,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -41,12 +48,42 @@ interface CategoryRow {
 }
 
 const categories: CategoryRow[] = [
-    { key: 'handoffs', icon: Headset, label: t('account.notifications.categories.handoffs.label'), description: t('account.notifications.categories.handoffs.description') },
-    { key: 'security', icon: ShieldAlert, label: t('account.notifications.categories.security.label'), description: t('account.notifications.categories.security.description') },
-    { key: 'training', icon: GraduationCap, label: t('account.notifications.categories.training.label'), description: t('account.notifications.categories.training.description') },
-    { key: 'leads', icon: UserPlus, label: t('account.notifications.categories.leads.label'), description: t('account.notifications.categories.leads.description') },
-    { key: 'usage', icon: Gauge, label: t('account.notifications.categories.usage.label'), description: t('account.notifications.categories.usage.description') },
-    { key: 'reports', icon: FileBarChart, label: t('account.notifications.categories.reports.label'), description: t('account.notifications.categories.reports.description') },
+    {
+        key: 'handoffs',
+        icon: Headset,
+        label: t('account.notifications.categories.handoffs.label'),
+        description: t('account.notifications.categories.handoffs.description'),
+    },
+    {
+        key: 'security',
+        icon: ShieldAlert,
+        label: t('account.notifications.categories.security.label'),
+        description: t('account.notifications.categories.security.description'),
+    },
+    {
+        key: 'training',
+        icon: GraduationCap,
+        label: t('account.notifications.categories.training.label'),
+        description: t('account.notifications.categories.training.description'),
+    },
+    {
+        key: 'leads',
+        icon: UserPlus,
+        label: t('account.notifications.categories.leads.label'),
+        description: t('account.notifications.categories.leads.description'),
+    },
+    {
+        key: 'usage',
+        icon: Gauge,
+        label: t('account.notifications.categories.usage.label'),
+        description: t('account.notifications.categories.usage.description'),
+    },
+    {
+        key: 'reports',
+        icon: FileBarChart,
+        label: t('account.notifications.categories.reports.label'),
+        description: t('account.notifications.categories.reports.description'),
+    },
 ];
 
 const switches: { key: Switch; icon: LucideIcon; label: string }[] = [
@@ -123,7 +160,9 @@ async function allowDesktop(): Promise<void> {
                 <!-- Per category: bell, desktop alert, sound -->
                 <form class="space-y-4" @submit.prevent="save">
                     <div class="overflow-hidden rounded-lg border">
-                        <div class="bg-muted/40 text-muted-foreground hidden grid-cols-[1fr_repeat(3,5.5rem)] items-center gap-2 border-b px-5 py-2.5 text-xs font-medium sm:grid">
+                        <div
+                            class="bg-muted/40 text-muted-foreground hidden grid-cols-[1fr_repeat(3,5.5rem)] items-center gap-2 border-b px-5 py-2.5 text-xs font-medium sm:grid"
+                        >
                             <span>{{ t('account.notifications.category') }}</span>
                             <span v-for="item in switches" :key="item.key" class="flex items-center justify-center gap-1">
                                 <component :is="item.icon" class="size-3.5" />
@@ -143,11 +182,7 @@ async function allowDesktop(): Promise<void> {
                                     <p class="text-muted-foreground text-xs">{{ category.description }}</p>
                                 </div>
                             </div>
-                            <label
-                                v-for="item in switches"
-                                :key="item.key"
-                                class="flex items-center gap-2 ps-7 text-xs sm:justify-center sm:ps-0"
-                            >
+                            <label v-for="item in switches" :key="item.key" class="flex items-center gap-2 ps-7 text-xs sm:justify-center sm:ps-0">
                                 <Switch
                                     :model-value="form[category.key][item.key]"
                                     :disabled="item.key !== 'bell' && !form[category.key].bell"

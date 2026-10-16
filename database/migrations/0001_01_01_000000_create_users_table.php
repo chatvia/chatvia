@@ -46,6 +46,10 @@ return new class extends Migration
 
             $table->string('locale', 5)->nullable();
 
+            // Which notifications ring the bell, show a desktop alert or play
+            // a sound, per category. Null keeps the defaults.
+            $table->jsonb('notification_preferences')->nullable();
+
             $table->timestamps();
         });
 

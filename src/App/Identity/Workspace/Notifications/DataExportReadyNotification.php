@@ -3,15 +3,20 @@
 namespace App\Identity\Workspace\Notifications;
 
 use App\Identity\Workspace\Models\DataExport;
+use App\Identity\Workspace\Models\User;
+use Domain\Notification\Data\NotificationContentData;
+use Domain\Notification\Data\NotificationMessageData;
+use Domain\Notification\Enums\NotificationKind;
+use Domain\Notification\Notifications\InboxNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
 /**
- * Email (and broadcast) that a data export is ready to download.
+ * Email (and broadcast) that a data export is ready to download. It also
+ * lands in the person's notification center, opening the data export page.
  */
-class DataExportReadyNotification extends Notification
+class DataExportReadyNotification extends InboxNotification
 {
     use Queueable;
 
@@ -19,12 +24,24 @@ class DataExportReadyNotification extends Notification
         private readonly DataExport $export,
     ) {}
 
+    public function kind(): NotificationKind
+    {
+        return NotificationKind::DataExportReady;
+    }
+
     /**
      * @return array<int, string>
      */
-    public function via(object $notifiable): array
+    protected function alsoVia(object $notifiable): array
     {
         return ['mail', 'broadcast'];
+    }
+
+    public function toInbox(User $notifiable): NotificationMessageData
+    {
+        return $this->message(new NotificationContentData(
+            url: route('account.data-export.edit', absolute: false),
+        ));
     }
 
     public function toMail(object $notifiable): MailMessage

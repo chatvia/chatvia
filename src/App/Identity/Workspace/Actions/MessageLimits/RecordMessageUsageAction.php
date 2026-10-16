@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Workspace\Actions\MessageLimits;
 
+use App\Identity\Workspace\Events\MessageLimitThresholdReached;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Services\MessageAllowance;
 
@@ -15,7 +16,9 @@ use App\Identity\Workspace\Services\MessageAllowance;
  * The count and the month rollover are one UPDATE … RETURNING: the database
  * decides from the stored period, so two replies at once never both restart
  * the month or lose a count, and the returned values tell whether this
- * message reached the limit.
+ * message reached the limit. For a workspace, the one message that lands on
+ * 80% of the limit, and the one that lands on the limit, also tell the owner
+ * ({@see MessageLimitThresholdReached}).
  */
 class RecordMessageUsageAction
 {
@@ -52,6 +55,28 @@ class RecordMessageUsageAction
         // reaches it drops the cache so the next turn is refused.
         if ($limit->reached()) {
             $this->allowance->forgetLimit($limit);
+        }
+
+        $this->announceThreshold($limit);
+    }
+
+    private function announceThreshold(MessageLimit $limit): void
+    {
+        $used = (int) $limit->messages_used;
+        $monthly = (int) $limit->monthly_limit;
+
+        if ($limit->workspace_id === null || $monthly <= 0) {
+            return;
+        }
+
+        $percent = match ($used) {
+            $monthly => 100,
+            (int) ceil($monthly * 0.8) => 80,
+            default => null,
+        };
+
+        if ($percent !== null) {
+            MessageLimitThresholdReached::dispatch($limit, $percent);
         }
     }
 }

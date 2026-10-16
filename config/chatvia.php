@@ -579,6 +579,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    |
+    | The dashboard's notification center keeps a notification this many
+    | days after its last activity, read or not; `app:prune-notifications`
+    | deletes older ones every night. Set in the admin panel (Settings →
+    | Workspaces).
+    |
+    */
+
+    'notifications' => [
+        'retention_days' => 7,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | SIEM Webhook
     |--------------------------------------------------------------------------
     |

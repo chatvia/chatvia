@@ -31,6 +31,7 @@ it('schedules every recurring command from routes/console.php', function (string
     ['app:anonymize-chat-sessions', '50 3 * * *'],
     ['app:prune-leads', '5 4 * * *'],
     ['app:prune-workspace-analytics', '50 4 * * *'],
+    ['app:prune-notifications', '55 4 * * *'],
     ['queue:prune-batches', '0 5 * * *'],
     ['queue:prune-failed', '5 5 * * *'],
     ['sanctum:prune-expired', '10 5 * * *'],
@@ -47,7 +48,7 @@ it('checks the license daily in the 6 o\'clock hour, at a minute of the install\
 });
 
 it('schedules nothing the tests above do not name', function (): void {
-    expect(app(Schedule::class)->events())->toHaveCount(25);
+    expect(app(Schedule::class)->events())->toHaveCount(26);
 });
 
 it('prunes the Spectra log after the days kept', function (): void {

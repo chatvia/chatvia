@@ -7,6 +7,7 @@ use App\Http\Controllers\Settings\Account\ConnectSocialAccountController;
 use App\Http\Controllers\Settings\Account\DataExportController;
 use App\Http\Controllers\Settings\Account\DeleteAccountController;
 use App\Http\Controllers\Settings\Account\DownloadDataExportController;
+use App\Http\Controllers\Settings\Account\NotificationPreferencesController;
 use App\Http\Controllers\Settings\Account\PasskeyController;
 use App\Http\Controllers\Settings\Account\PasswordController;
 use App\Http\Controllers\Settings\Account\PreferencesController;
@@ -70,5 +71,9 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // Date & time preference — its form lives on the Profile page (merged from
         // the former standalone Preferences page), so only the write endpoint remains.
         Route::patch('preferences', [PreferencesController::class, 'update'])->name('preferences.update');
+
+        // Which notifications ring the bell, show a desktop alert or play a sound.
+        Route::get('notifications', [NotificationPreferencesController::class, 'edit'])->name('notifications.edit');
+        Route::patch('notifications', [NotificationPreferencesController::class, 'update'])->name('notifications.update');
     });
 });

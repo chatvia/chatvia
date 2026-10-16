@@ -8,6 +8,9 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\DashboardStatsController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesDownload;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesListController;
+use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Notification\NotificationFeedController;
+use App\Http\Controllers\Notification\ReadAllNotificationsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'])->group(function (): void {
@@ -22,4 +25,11 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
     Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');
     Route::get('my/knowledge-base/download/{sourceFile}', KnowledgeFilesDownload::class)->name('knowledge-base.download');
+
+    // The notification center: the full page, the bell's feed, and marking
+    // notifications read. Each person only ever reaches their own.
+    Route::get('my/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('my/notifications/feed', NotificationFeedController::class)->name('notifications.feed');
+    Route::post('my/notifications/read-all', ReadAllNotificationsController::class)->name('notifications.read-all');
+    Route::patch('my/notifications/{notification}', [NotificationController::class, 'update'])->name('notifications.update');
 });

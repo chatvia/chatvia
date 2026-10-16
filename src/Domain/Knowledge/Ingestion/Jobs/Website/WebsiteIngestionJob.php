@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Ingestion\Jobs\Website;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Ingestion\Actions\Website\StartWebsiteIngestionAction;
+use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -36,11 +37,15 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
 
-    public function __construct(public SourceWebsite $website, public Agent $agent) {}
+    public function __construct(
+        public SourceWebsite $website,
+        public Agent $agent,
+        public TrainingTrigger $trigger = TrainingTrigger::Manual,
+    ) {}
 
     public function handle(StartWebsiteIngestionAction $action): void
     {
-        $action->execute($this->website, $this->agent, $this->job->getJobId());
+        $action->execute($this->website, $this->agent, $this->job->getJobId(), $this->trigger);
     }
 
     public function failed(Throwable $e): void

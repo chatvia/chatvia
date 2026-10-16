@@ -4,6 +4,8 @@ namespace Domain\Knowledge\Ingestion\Actions\Website;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
+use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
+use Domain\Knowledge\Ingestion\Events\SourceTrained;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
@@ -23,6 +25,8 @@ use RuntimeException;
  * in the website's storage folder (the document the summary step reads; the
  * previous document of a retrain is deleted), queues the summary when
  * enhancement is on, and pushes the final state to the Web sources page.
+ * When a person started the run, the people who train websites on the agent
+ * are told it is done; a scheduled refresh finishes quietly.
  *
  * `expected_chunks` starts as the number of URLs (a progress placeholder) and
  * each page adds its real chunk count, so the URL count is subtracted here.
@@ -32,7 +36,7 @@ class CompleteWebsiteIngestionAction
     /** Chunks read per query while the document is written. */
     private const int CHUNKS_PER_READ = 500;
 
-    public function execute(SourceWebsite $website, Agent $agent): void
+    public function execute(SourceWebsite $website, Agent $agent, TrainingTrigger $trigger = TrainingTrigger::Manual): void
     {
         DB::transaction(function () use ($website): void {
             $locked = SourceWebsite::query()->whereKey($website->id)->lockForUpdate()->first();
@@ -62,6 +66,10 @@ class CompleteWebsiteIngestionAction
 
         WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
         WebsiteCrawlStarted::dispatch($website, $agent->external_id);
+
+        if ($trigger === TrainingTrigger::Manual) {
+            SourceTrained::dispatch($website, $agent->external_id);
+        }
     }
 
     /**

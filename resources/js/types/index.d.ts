@@ -55,6 +55,10 @@ export interface SharedData extends PageProps {
     tenant: string;
     permissions: Record<number, string[]>;
     currentTeam: CurrentTeam | null;
+    // The notification bell: unread count and the person's switches for
+    // desktop alerts and sound (null when nobody is signed in). Read through
+    // useNotificationCenter(); live updates arrive over Reverb.
+    notifications: Domain.Notification.Data.NotificationSummaryData | null;
     // Persisted UI language for the signed-in user (`auto` follows the browser).
     locale?: string;
     // The install's default language (Settings → Platform), for `auto` when

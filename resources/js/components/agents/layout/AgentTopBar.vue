@@ -4,6 +4,7 @@
  * agent name), the mobile sidebar toggle, and the theme / user menu
  * on large screens.
  */
+import NotificationBell from '@/components/notifications/NotificationBell.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import UserMenu from '@/components/UserMenu.vue';
@@ -43,6 +44,7 @@ const { t } = useI18n();
 
                 <!-- End: theme and user menu -->
                 <div class="flex items-center gap-3">
+                    <NotificationBell />
                     <div class="hidden items-center gap-2 lg:flex">
                         <ThemeSwitcher />
                         <UserMenu />

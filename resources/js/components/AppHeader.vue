@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import NotificationBell from '@/components/notifications/NotificationBell.vue';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -219,6 +220,7 @@ const rightNavItems = computed<NavItem[]>(() => [
                             </template>
                         </div>
                     </div>
+                    <NotificationBell />
                     <ThemeSwitcher />
                     <DropdownMenu>
                         <DropdownMenuTrigger :as-child="true">

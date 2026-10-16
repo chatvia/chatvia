@@ -7,7 +7,7 @@ import { useSocialProviders } from '@/composables/useSocialProviders';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import account from '@/routes/account';
 import { Link } from '@inertiajs/vue3';
-import { Download, Fingerprint, Lock, Share2, Smartphone, Trash2, User, type LucideIcon } from 'lucide-vue-next';
+import { Bell, Download, Fingerprint, Lock, Share2, Smartphone, Trash2, User, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -35,6 +35,7 @@ const { hasAny: hasAnySocialProvider } = useSocialProviders();
 
 const allItems: NavItem[] = [
     { title: 'account.nav.profile', name: 'account.profile.edit', href: account.profile.edit.url(), icon: User },
+    { title: 'account.nav.notifications', name: 'account.notifications.edit', href: account.notifications.edit.url(), icon: Bell },
     { title: 'account.nav.password', name: 'account.password.edit', href: account.password.edit.url(), icon: Lock },
     { title: 'account.nav.two_factor', name: 'account.two-factor.edit', href: account.twoFactor.edit.url(), icon: Smartphone },
     { title: 'account.nav.passkeys', name: 'account.passkeys.edit', href: account.passkeys.edit.url(), icon: Fingerprint },

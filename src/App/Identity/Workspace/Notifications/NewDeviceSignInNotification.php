@@ -2,18 +2,24 @@
 
 namespace App\Identity\Workspace\Notifications;
 
+use App\Identity\Workspace\Models\User;
+use Domain\Analytics\Services\UserAgentParser;
+use Domain\Notification\Data\NotificationContentData;
+use Domain\Notification\Data\NotificationMessageData;
+use Domain\Notification\Enums\NotificationKind;
+use Domain\Notification\Notifications\InboxNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
 /**
  * Heads-up email sent the first time we see a user sign in from a given
  * (IP, User-Agent) combination. The link points at /settings/password so the
- * recipient can lock the account down if it wasn't them.
+ * recipient can lock the account down if it wasn't them. It also lands in the
+ * person's notification center, naming the browser and system.
  */
-class NewDeviceSignInNotification extends Notification implements ShouldQueue
+class NewDeviceSignInNotification extends InboxNotification implements ShouldQueue
 {
     use Queueable;
 
@@ -23,12 +29,28 @@ class NewDeviceSignInNotification extends Notification implements ShouldQueue
         public Carbon $signedInAt,
     ) {}
 
+    public function kind(): NotificationKind
+    {
+        return NotificationKind::NewDeviceSignIn;
+    }
+
     /**
      * @return array<int, string>
      */
-    public function via(object $notifiable): array
+    protected function alsoVia(object $notifiable): array
     {
         return ['mail'];
+    }
+
+    public function toInbox(User $notifiable): NotificationMessageData
+    {
+        $device = app(UserAgentParser::class)->detect($this->userAgent);
+        $name = implode(' · ', array_filter([$device->browser, $device->os]));
+
+        return $this->message(new NotificationContentData(
+            url: route('account.password.edit', absolute: false),
+            subject: $name !== '' ? $name : null,
+        ));
     }
 
     public function toMail(object $notifiable): MailMessage

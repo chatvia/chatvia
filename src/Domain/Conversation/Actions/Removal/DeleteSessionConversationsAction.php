@@ -12,9 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Erases every conversation of one visitor session (the hosted chat's
- * "delete all"): deletes their uploaded files, wipes the message text and its
- * search copy, soft-deletes the conversations, and empties the session's live
- * memory.
+ * "delete all"): deletes their uploaded files, wipes the message text,
+ * soft-deletes the conversations, and empties the session's live memory.
  */
 class DeleteSessionConversationsAction
 {
@@ -40,8 +39,8 @@ class DeleteSessionConversationsAction
 
     /**
      * The bulk updates below skip model events, so the per-row cascades are
-     * run here by hand: files are deleted one by one (each delete removes the
-     * stored object), and the BM25 copy is cleared next to the text.
+     * run here by hand: files are deleted one by one, as each delete removes
+     * the stored object.
      */
     private function erase(int $sessionId, ?string $deletedBy): void
     {

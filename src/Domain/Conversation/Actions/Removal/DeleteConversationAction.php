@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * Erases one conversation: wipes the text of its messages (and their search
- * copy), records who deleted it, and soft-deletes it — which also deletes its
- * uploaded files. The conversation then leaves the live memory and the
+ * Erases one conversation: wipes the text of its messages, records who
+ * deleted it, and soft-deletes it — which also deletes its uploaded files.
+ * The conversation then leaves the live memory and the
  * visitor's list. A conversation that is already gone (a repeated request, or
  * the prune got there first) is only forgotten by the memory.
  *

@@ -202,7 +202,7 @@ const dismissDialog = () => {
                         </DialogTitle>
                         <DialogDescription>
                             <i18n-t keypath="workspace.api_keys.generate_dialog.description" tag="span">
-                                <template #example><code>production-backend</code></template>
+                                <template #example><code>production</code></template>
                             </i18n-t>
                         </DialogDescription>
                     </DialogHeader>
@@ -213,7 +213,7 @@ const dismissDialog = () => {
                             <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                 <Tag class="size-4" />
                             </div>
-                            <Input id="name" v-model="form.name" placeholder="production-backend" autocomplete="off" required class="ps-9" />
+                            <Input id="name" v-model="form.name" placeholder="production" autocomplete="off" required class="ps-9" />
                         </div>
                         <InputError :message="form.errors.name" />
                     </form>

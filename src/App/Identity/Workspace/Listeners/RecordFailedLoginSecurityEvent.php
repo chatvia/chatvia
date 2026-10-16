@@ -5,6 +5,7 @@ namespace App\Identity\Workspace\Listeners;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class RecordFailedLoginSecurityEvent
             workspaceId: $user->workspace()->id,
             actor: SecurityActorData::forUser($user, $this->request->ip(), $this->request->userAgent()),
             metadata: ['email' => $email],
-            outcome: 'failure',
+            outcome: SecurityAuditOutcome::Failure,
         ));
     }
 }

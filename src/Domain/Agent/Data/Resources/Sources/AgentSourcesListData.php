@@ -3,6 +3,7 @@
 namespace Domain\Agent\Data\Resources\Sources;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
@@ -19,7 +20,7 @@ class AgentSourcesListData extends Data
     public function __construct(
         public int $id,
         public string $filename,
-        public string $filetype,
+        public KnowledgeFileType $filetype,
         public string $length,
         public array $agents = [],
     ) {}

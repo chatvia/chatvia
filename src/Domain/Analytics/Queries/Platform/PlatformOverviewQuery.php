@@ -8,6 +8,7 @@ use Domain\Analytics\Data\Platform\CountTrendData;
 use Domain\Analytics\Data\Platform\PlatformOverviewData;
 use Domain\Analytics\Data\Platform\PlatformScopeData;
 use Domain\Analytics\Services\Period;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -79,7 +80,7 @@ class PlatformOverviewQuery extends PlatformAnalyticsQuery
     private function leads(PlatformScopeData $scope): int
     {
         return DB::table('form_submissions')
-            ->where('status', 'submitted')
+            ->where('status', FormSubmissionStatus::Submitted->value)
             ->whereBetween('created_at', [$scope->period->start, $scope->period->end])
             ->when(! $scope->isWholePlatform(), fn ($query) => $query->whereIn('agent_id', $this->agents($scope)->select('id')))
             ->count();

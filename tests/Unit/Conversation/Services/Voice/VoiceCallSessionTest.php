@@ -8,6 +8,7 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Turn\KnowledgeLookupData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Voice\VoiceCallData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Jobs\StoreMessageJob;
@@ -64,7 +65,7 @@ beforeEach(function (): void {
         provider_call_id: 'rtc_test',
         agent_id: $this->agent->id,
         workspace_id: (int) $this->agent->workspace_id,
-        surface: 'hosted_chat',
+        surface: ConversationSource::HostedChat,
         session_id: $session->external_id,
         conversation_id: $this->conversation->external_id,
         model: 'gpt-realtime-2.1',

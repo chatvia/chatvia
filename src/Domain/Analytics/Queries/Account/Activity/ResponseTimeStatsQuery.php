@@ -8,6 +8,7 @@ use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
 use Domain\Analytics\Services\Period;
+use Domain\Conversation\Enums\MessageRole;
 
 /**
  * AI reply latency: average, median, p95 and slowest reply, plus the average
@@ -28,7 +29,7 @@ class ResponseTimeStatsQuery extends AccountAnalyticsQuery
         $rawPeriod = $this->rawEventPeriod($scope);
 
         $distribution = $this->messageEvents($scope, $rawPeriod)
-            ->where('role', 'assistant')
+            ->where('role', MessageRole::Assistant->value)
             ->whereNotNull('response_time_ms')
             ->selectRaw('PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY response_time_ms) p50_ms, PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY response_time_ms) p95_ms, MAX(response_time_ms) max_ms')
             ->first();
@@ -68,7 +69,7 @@ class ResponseTimeStatsQuery extends AccountAnalyticsQuery
              FROM ({$firstMessagePerConversation}) u
              JOIN ({$firstMessagePerConversation}) a ON a.conversation_external_id = u.conversation_external_id
              WHERE a.occurred_at > u.occurred_at",
-            [...$bindings('user'), ...$bindings('assistant')],
+            [...$bindings(MessageRole::User->value), ...$bindings(MessageRole::Assistant->value)],
         );
 
         return $row->avg_first ?? null;

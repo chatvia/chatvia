@@ -8,6 +8,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -153,7 +154,7 @@ it('runs an auto-approved webhook tool mid-stream and persists the assistant rep
     $audit = AgentActivity::where('agent_id', $agent->id)->get();
     expect($audit)->toHaveCount(1)
         ->and($audit[0]->tool_name)->toBe('get_order_status')
-        ->and($audit[0]->outcome)->toBe('auto')
+        ->and($audit[0]->outcome)->toBe(ToolCallOutcome::Auto)
         ->and((bool) $audit[0]->is_gated)->toBeFalse()
         ->and((bool) $audit[0]->is_error)->toBeFalse();
 

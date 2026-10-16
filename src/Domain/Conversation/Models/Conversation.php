@@ -6,6 +6,8 @@ use App\Identity\Workspace\Models\User;
 use Carbon\CarbonInterface;
 use Database\Factories\ConversationFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
@@ -29,7 +31,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
-use Support\Casts\EncryptedTolerant;
 use Support\Concerns\HasExternalId;
 use Support\Localization\Language\Models\Language;
 
@@ -50,8 +51,8 @@ use Support\Localization\Language\Models\Language;
  * @property ConversationSource $source
  * @property bool $is_visible
  * @property string|null $title
- * @property string|null $sentiment
- * @property string|null $tone
+ * @property Sentiment|null $sentiment
+ * @property Tone|null $tone
  * @property Carbon|null $analyzed_at
  * @property int $analysis_attempts end-of-life analysis runs that reached the model (see QueuePendingConversationAnalysisAction)
  * @property int|null $handoff_user_id
@@ -186,8 +187,10 @@ class Conversation extends Model
     protected function casts(): array
     {
         return [
-            'title' => EncryptedTolerant::class,
+            'title' => 'encrypted',
             'source' => ConversationSource::class,
+            'sentiment' => Sentiment::class,
+            'tone' => Tone::class,
             'handoff_status' => HandoffStatus::class,
             'handoff_at' => 'datetime',
             'last_activity_at' => 'datetime',

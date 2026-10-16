@@ -9,6 +9,7 @@ use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Events\MessagePosted;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Conversation;
@@ -57,7 +58,7 @@ it('adds the message to the conversation and broadcasts it with the visitor sess
         ->and($history[0]['id'])->toBe($messageId)
         ->and($history[0]['content'])->toBe('Still there?');
 
-    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload->source === SendVisitorHandoffMessageAction::SOURCE);
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload->source === MessageOrigin::Handoff->value);
     Event::assertDispatched(MessagePosted::class, fn (MessagePosted $event): bool => $event->role === 'user'
         && $event->senderId === $session->external_id
         && $event->senderName === 'Visitor');

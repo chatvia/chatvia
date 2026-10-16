@@ -4,6 +4,7 @@ namespace Domain\Integration\Tool\Registry;
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\McpServerLookup;
 use Domain\Integration\Tool\Data\ToolDisplayData;
 use Domain\Integration\Tool\Data\ToolName;
@@ -50,7 +51,7 @@ class ToolDisplayResolver
             // First-party builtins (forms, charts, leads) are internal plumbing —
             // the client hides their activity indicator. Read straight off the
             // connector preset's server_category.
-            isBuiltin: ($preset['server_category'] ?? null) === 'builtin',
+            isBuiltin: ($preset['server_category'] ?? null) === McpServerCategory::Builtin->value,
             iconUrl: $this->iconUrlForPreset($preset),
             brandColor: $preset['brand_color'] ?? null,
         );

@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Models;
 
+use Domain\Evaluation\Enums\ScorerType;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ use Support\Concerns\HasExternalId;
  * updated_at), mirroring AgentActivity.
  *
  * @property string $external_id
+ * @property ScorerType $scorer_type
  * @property bool $has_passed
  * @property float|null $score
  */
@@ -34,6 +36,7 @@ class EvalResult extends Model
     protected function casts(): array
     {
         return [
+            'scorer_type' => ScorerType::class,
             'has_passed' => 'boolean',
             'score' => 'float',
             'sources_used' => 'array',

@@ -5,6 +5,7 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Actions\Sources\AgentSourceAnalyzeFileAction;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\FileAnalyzer;
 use Illuminate\Http\UploadedFile;
 use Support\Exceptions\DomainValidationException;
@@ -25,7 +26,7 @@ it('describes a new file', function (): void {
 
     expect($result->length)->toBe(3)
         ->and($result->mime_type)->toBe('text/plain')
-        ->and($result->filetype)->toBe('text')
+        ->and($result->filetype)->toBe(KnowledgeFileType::Text)
         ->and($result->is_audio_file)->toBeFalse()
         ->and($result->is_video_file)->toBeFalse();
 });

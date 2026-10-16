@@ -2,6 +2,8 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Conversations;
 
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
@@ -34,8 +36,8 @@ class ChatLogConversationData extends Data
         public ?string $locale,
         /** @var string[] */
         public array $topics,
-        public ?string $sentiment,
-        public ?string $tone,
+        public ?Sentiment $sentiment,
+        public ?Tone $tone,
     ) {}
 
     public static function fromConversation(Conversation $conversation, ?string $excerpt = null): self

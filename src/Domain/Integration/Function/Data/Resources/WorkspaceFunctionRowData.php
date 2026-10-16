@@ -3,6 +3,7 @@
 namespace Domain\Integration\Function\Data\Resources;
 
 use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 
@@ -21,8 +22,8 @@ class WorkspaceFunctionRowData extends Data
         /** The JSON Schema, pretty-printed for the editor. */
         public string $parameters_schema,
         public string $webhook_url,
-        public string $webhook_method,
-        public string $auth_type,
+        public FunctionWebhookMethod $webhook_method,
+        public FunctionAuthType $auth_type,
         public string $auth_header_name,
         public bool $has_auth_value,
         public bool $is_enabled,
@@ -40,8 +41,8 @@ class WorkspaceFunctionRowData extends Data
             description: $function->description,
             parameters_schema: (string) json_encode($function->parameters_schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
             webhook_url: $function->webhook_url,
-            webhook_method: $function->webhook_method->value,
-            auth_type: $function->auth_type->value,
+            webhook_method: $function->webhook_method,
+            auth_type: $function->auth_type,
             auth_header_name: $function->auth_type === FunctionAuthType::Header ? (string) ($function->auth_config['name'] ?? '') : '',
             has_auth_value: $function->auth_config !== null,
             is_enabled: $function->is_enabled,

@@ -113,8 +113,8 @@ class AnalyzeConversationAction
     {
         $updates = [
             'analyzed_at' => now(),
-            'sentiment' => $analysis->sentiment->value,
-            'tone' => $analysis->tone->value,
+            'sentiment' => $analysis->sentiment,
+            'tone' => $analysis->tone,
         ];
 
         if ($languageId = $this->resolveLanguageId($analysis->language)) {

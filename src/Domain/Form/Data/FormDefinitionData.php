@@ -2,6 +2,7 @@
 
 namespace Domain\Form\Data;
 
+use Domain\Form\Enums\FormType;
 use Domain\Form\Models\FormDefinition;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -19,7 +20,7 @@ class FormDefinitionData extends Data
         public string $name,
         // Visitor-facing blurb shown under the title in the rendered form.
         public ?string $subtitle,
-        public string $form_type,
+        public FormType $form_type,
         /** @var array<int, array<string, mixed>> */
         public array $schema,
         /** @var array<string, string>|null */
@@ -40,7 +41,7 @@ class FormDefinitionData extends Data
             slug: $form->slug,
             name: $form->name,
             subtitle: $form->subtitle,
-            form_type: $form->form_type->value,
+            form_type: $form->form_type,
             schema: $form->schema,
             lead_field_map: $form->lead_field_map,
             success_message: $form->success_message,

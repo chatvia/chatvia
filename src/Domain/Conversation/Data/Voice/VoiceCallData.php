@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Data\Voice;
 
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Jobs\JoinVoiceCallJob;
 use Spatie\LaravelData\Data;
 
@@ -24,7 +25,7 @@ class VoiceCallData extends Data
         public string $provider_call_id,
         public int $agent_id,
         public int $workspace_id,
-        public string $surface,
+        public ConversationSource $surface,
         public string $session_id,
         public string $conversation_id,
         public string $model,
@@ -53,7 +54,7 @@ class VoiceCallData extends Data
             provider_call_id: $providerCallId,
             agent_id: (int) $caller->agent->id,
             workspace_id: (int) $caller->agent->workspace_id,
-            surface: $caller->surface->value,
+            surface: $caller->surface,
             session_id: $caller->sessionId,
             conversation_id: $caller->conversationId,
             model: $model,

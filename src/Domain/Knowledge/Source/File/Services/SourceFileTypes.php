@@ -78,22 +78,21 @@ final class SourceFileTypes
     }
 
     /**
-     * The category stored as `filetype`: by extension for documents, and by
+     * The type stored as `filetype`: by extension for documents, and by
      * MIME type for everything else (audio and video).
      *
      * @throws RuntimeException when the MIME type is not a known category
      */
-    public static function category(UploadedFile|string $file): string
+    public static function category(UploadedFile|string $file): KnowledgeFileType
     {
         return match (file_extension($file)) {
-            'pdf' => 'pdf',
-            'doc', 'docx', 'rtf' => 'word',
-            'ppt', 'pptx' => 'presentation',
-            'xlsx', 'csv' => 'spreadsheet',
-            'txt' => 'text',
-            'md', 'markdown' => 'markdown',
-            'jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp' => 'image',
-            'epub', 'fb2' => 'document',
+            'pdf' => KnowledgeFileType::Pdf,
+            'doc', 'docx', 'rtf' => KnowledgeFileType::Word,
+            'ppt', 'pptx' => KnowledgeFileType::Presentation,
+            'xlsx', 'csv' => KnowledgeFileType::Spreadsheet,
+            'txt', 'md', 'markdown' => KnowledgeFileType::Text,
+            'jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp' => KnowledgeFileType::Image,
+            'epub', 'fb2' => KnowledgeFileType::Ebook,
             default => self::categoryOfMimeType(
                 (string) ($file instanceof UploadedFile ? $file->getMimeType() : File::mimeType($file)),
             ),
@@ -101,13 +100,16 @@ final class SourceFileTypes
     }
 
     /**
-     * The category for a MIME type (see {@see MimeType::category()}).
+     * The type for a MIME type (see {@see MimeType::category()}).
      *
      * @throws RuntimeException when the MIME type is not a known category
      */
-    public static function categoryOfMimeType(string $mimeType): string
+    public static function categoryOfMimeType(string $mimeType): KnowledgeFileType
     {
-        return MimeType::category($mimeType)
+        $slug = MimeType::category($mimeType)
+            ?? throw new RuntimeException('Unsupported mime type');
+
+        return KnowledgeFileType::tryFrom($slug)
             ?? throw new RuntimeException('Unsupported mime type');
     }
 }

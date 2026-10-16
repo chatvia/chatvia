@@ -8,6 +8,7 @@ use Domain\Guardrail\Enums\GuardAlert;
 use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -52,7 +53,7 @@ class RecordGuardrailAttack implements ShouldQueue
                 'tool' => $event->detail['tool'] ?? null,
                 'conversation_id' => $event->conversationExternalId,
             ]),
-            outcome: 'denied',
+            outcome: SecurityAuditOutcome::Denied,
         ));
     }
 }

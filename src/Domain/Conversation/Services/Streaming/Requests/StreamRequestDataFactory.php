@@ -10,6 +10,7 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Data\Voice\VoiceCallerData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -108,7 +109,7 @@ class StreamRequestDataFactory
             // only), when the agent shows it.
             streamSources: $agent->showsSources(),
             streamLanguage: false,
-            source: $isPlayground ? 'playground' : null,
+            source: $isPlayground ? MessageOrigin::Playground->value : null,
             ipAddress: $request->ip(),
             country: $request->country(),
             userAgent: $request->userAgent(),
@@ -214,7 +215,7 @@ class StreamRequestDataFactory
             chatterExternalId: $account instanceof Chatter ? $account->external_id : null,
             actorUserId: $account instanceof User ? $account->id : null,
             actorName: $account?->name,
-            source: $isPlayground ? 'playground' : null,
+            source: $isPlayground ? MessageOrigin::Playground->value : null,
             ipAddress: $request->ip(),
             country: $request->country(),
             userAgent: $request->userAgent(),

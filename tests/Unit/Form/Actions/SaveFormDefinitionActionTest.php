@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Form\Actions\SaveFormDefinitionAction;
 use Domain\Form\Data\FormDefinitionData;
+use Domain\Form\Enums\FormType;
 use Domain\Form\Models\FormDefinition;
 
 beforeEach(function (): void {
@@ -17,7 +18,7 @@ function sfdLeadFormData(string $name = 'Get a quote'): FormDefinitionData
         slug: null,
         name: $name,
         subtitle: null,
-        form_type: 'lead',
+        form_type: FormType::Lead,
         schema: [
             ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true],
         ],
@@ -51,7 +52,7 @@ it('updates an existing definition and keeps its slug', function (): void {
 
     $updated = app(SaveFormDefinitionAction::class)->execute(
         $this->agent,
-        new FormDefinitionData(null, null, 'Contact renamed', null, 'qualification', [
+        new FormDefinitionData(null, null, 'Contact renamed', null, FormType::Qualification, [
             ['key' => 'company', 'label' => 'Company', 'type' => 'text', 'required' => false],
         ], null, null, null, false),
         $form,

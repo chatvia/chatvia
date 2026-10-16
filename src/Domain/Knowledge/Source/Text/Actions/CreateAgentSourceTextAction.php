@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Source\Text\Actions;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -47,6 +48,7 @@ class CreateAgentSourceTextAction
         $sourceText = new SourceText([
             'workspace_id' => $agent->workspace_id,
             'external_id' => (string) Str::uuid7(),
+            'status' => SourceStatus::Pending,
         ]);
 
         $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid()->toString().'.txt';

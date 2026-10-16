@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Source\Qa\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class CreateQaFromMessageReviseAction
             $message = Message::query()
                 ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
                 ->where('id', $messageId)
-                ->where('role', 'assistant')
+                ->where('role', MessageRole::Assistant)
                 ->firstOrFail();
 
             $qa = AgentQuestionAnswer::query()->create([

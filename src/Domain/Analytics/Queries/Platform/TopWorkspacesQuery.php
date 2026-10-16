@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Analytics\Queries\Platform;
 
+use App\Identity\Workspace\Enums\WorkspaceRole;
 use Domain\Analytics\Data\Platform\PlatformScopeData;
 use Domain\Analytics\Data\Platform\TopWorkspaceData;
 use Illuminate\Database\Query\JoinClause;
@@ -34,7 +35,7 @@ class TopWorkspacesQuery extends PlatformAnalyticsQuery
         // Names live on the main DB; resolve them in PHP so this works even
         // when analytics runs on a separate connection.
         $workspaces = $this->workspaceAccounts()
-            ->leftJoin('workspace_user as wu', fn (JoinClause $join): JoinClause => $join->on('wu.workspace_id', '=', 'workspaces.id')->where('wu.role', 'owner'))
+            ->leftJoin('workspace_user as wu', fn (JoinClause $join): JoinClause => $join->on('wu.workspace_id', '=', 'workspaces.id')->where('wu.role', WorkspaceRole::Owner->value))
             ->leftJoin('users as owner', 'owner.id', '=', 'wu.user_id')
             ->whereIn('workspaces.id', $ids)
             ->get(['workspaces.id', 'workspaces.name', 'owner.email'])

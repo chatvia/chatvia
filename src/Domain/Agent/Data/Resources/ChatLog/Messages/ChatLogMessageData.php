@@ -2,6 +2,9 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Messages;
 
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -23,8 +26,8 @@ class ChatLogMessageData extends Data
         public string $chat_conversation_id,
         public string $content,
         public string $role,
-        public ?string $sentiment,
-        public ?string $tone,
+        public ?Sentiment $sentiment,
+        public ?Tone $tone,
         public ?string $feedback,
         public ?bool $is_response_from_qa,
         public ?int $response_time_ms,
@@ -35,7 +38,7 @@ class ChatLogMessageData extends Data
         public string $created_at,
         public ?int $agent_question_answer_id,
         public ?array $artifacts = null,
-        public ?string $source = null,
+        public ?MessageOrigin $source = null,
         public ?string $read_at = null,
         public ?float $confidence_score = null,
         // Spoken in a voice call (`metadata.voice` on the reply).

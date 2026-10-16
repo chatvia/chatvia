@@ -2,6 +2,8 @@
 
 use Domain\Agent\Actions\ChatLog\BuildConversationPulseAction;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseMessageData;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
@@ -62,15 +64,15 @@ it('charts only visitor messages and summarises an improving, resolved conversat
     expect($summary->trend)->toBe('improving')
         ->and($summary->resolution)->toBeTrue()
         ->and($summary->avg_sentiment)->toBe(0.0)
-        ->and($summary->started_as?->tone)->toBe('frustrated')
-        ->and($summary->ended_as?->sentiment)->toBe('neutral')
+        ->and($summary->started_as?->tone)->toBe(Tone::Frustrated)
+        ->and($summary->ended_as?->sentiment)->toBe(Sentiment::Neutral)
         ->and($summary->peak_negative?->index)->toBe(1)
         ->and($summary->peak_positive?->index)->toBe(2);
 
     expect($pulse->conversation->id)->toBe($conversation->external_id)
         ->and($pulse->conversation->total_messages)->toBe(5)
         ->and($pulse->conversation->user_messages)->toBe(3)
-        ->and($pulse->conversation->tone)->toBe('satisfied');
+        ->and($pulse->conversation->tone)->toBe(Tone::Satisfied);
 });
 
 it('reports a declining conversation that never recovered', function (): void {
@@ -85,8 +87,8 @@ it('reports a declining conversation that never recovered', function (): void {
     expect($summary->trend)->toBe('declining')
         ->and($summary->resolution)->toBeFalse()
         ->and($summary->avg_sentiment)->toBe(0.25)
-        ->and($summary->peak_negative?->tone)->toBe('urgent')
-        ->and($summary->peak_positive?->tone)->toBe('satisfied');
+        ->and($summary->peak_negative?->tone)->toBe(Tone::Urgent)
+        ->and($summary->peak_positive?->tone)->toBe(Tone::Satisfied);
 });
 
 it('keeps a small mood change as stable and leaves peaks empty without them', function (): void {

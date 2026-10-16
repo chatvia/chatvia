@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Function\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * How Chatvia authenticates a function's outbound webhook call.
  */
+#[TypeScript]
 enum FunctionAuthType: string
 {
     case None = 'none';

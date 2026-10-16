@@ -16,7 +16,7 @@ class WidgetHandoffStatusData extends Data
 {
     public function __construct(
         public string $conversation_id,
-        public string $handoff_status,
+        public HandoffStatus $handoff_status,
         public bool $is_human_controlled,
         public ?string $admin_name,
     ) {}
@@ -26,7 +26,7 @@ class WidgetHandoffStatusData extends Data
     {
         return new self(
             conversation_id: $conversationId,
-            handoff_status: HandoffStatus::Ai->value,
+            handoff_status: HandoffStatus::Ai,
             is_human_controlled: false,
             admin_name: null,
         );
@@ -39,7 +39,7 @@ class WidgetHandoffStatusData extends Data
 
         return new self(
             conversation_id: $conversationId,
-            handoff_status: ($conversation->handoff_status ?? HandoffStatus::Ai)->value,
+            handoff_status: $conversation->handoff_status ?? HandoffStatus::Ai,
             is_human_controlled: $handedOff,
             admin_name: $handedOff ? $conversation->handoffUser?->name : null,
         );

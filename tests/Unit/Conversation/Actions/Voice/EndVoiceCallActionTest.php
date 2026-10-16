@@ -3,6 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Voice\EndVoiceCallAction;
 use Domain\Conversation\Data\Voice\VoiceCallData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -26,7 +27,7 @@ beforeEach(function (): void {
         provider_call_id: 'rtc_abc123',
         agent_id: $this->agent->id,
         workspace_id: (int) $this->agent->workspace_id,
-        surface: 'hosted_chat',
+        surface: ConversationSource::HostedChat,
         session_id: (string) Str::uuid(),
         conversation_id: (string) Str::uuid(),
         model: 'gpt-realtime-2.1',

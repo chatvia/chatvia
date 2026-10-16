@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Api\V1\Conversation;
 
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Data;
 
@@ -22,7 +23,7 @@ class ConversationMessageData extends Data
          * Who wrote the message: `user` (the visitor), `assistant` (the AI
          * agent) or `agent` (a human operator who took over the chat).
          */
-        public ?string $role,
+        public MessageRole $role,
         /**
          * The message text.
          */
@@ -37,7 +38,7 @@ class ConversationMessageData extends Data
     {
         return new self(
             id: $message->external_id,
-            role: $message->role->value,
+            role: $message->role,
             content: $message->content,
             created_at: $message->created_at?->toIso8601String(),
         );

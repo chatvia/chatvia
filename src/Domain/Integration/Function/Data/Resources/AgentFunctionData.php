@@ -3,6 +3,8 @@
 namespace Domain\Integration\Function\Data\Resources;
 
 use Carbon\CarbonInterface;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -23,11 +25,11 @@ class AgentFunctionData extends Data
         /** @var array<string, mixed> */
         public array $parameters_schema,
         public string $webhook_url,
-        public string $webhook_method,
+        public FunctionWebhookMethod $webhook_method,
         /** @var array<int, string> */
         public array $webhook_header_names,
         public bool $has_webhook_headers,
-        public string $auth_type,
+        public FunctionAuthType $auth_type,
         public int $timeout_ms,
         public int $max_response_bytes,
         public bool $is_enabled,
@@ -48,10 +50,10 @@ class AgentFunctionData extends Data
             description: $function->description,
             parameters_schema: self::schemaToArray($function->parameters_schema),
             webhook_url: $function->webhook_url,
-            webhook_method: $function->webhook_method->value,
+            webhook_method: $function->webhook_method,
             webhook_header_names: $headerNames,
             has_webhook_headers: $headerNames !== [],
-            auth_type: $function->auth_type->value,
+            auth_type: $function->auth_type,
             timeout_ms: $function->timeout_ms,
             max_response_bytes: $function->max_response_bytes,
             is_enabled: $function->is_enabled,

@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Voice\VoiceCallData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Voice\VoiceTurnFactory;
 use Illuminate\Support\Str;
 
@@ -16,7 +17,7 @@ function voiceTurnFactoryCall(Agent $agent): VoiceCallData
         provider_call_id: 'rtc_test',
         agent_id: $agent->id,
         workspace_id: (int) $agent->workspace_id,
-        surface: 'hosted_chat',
+        surface: ConversationSource::HostedChat,
         session_id: 'session-1',
         conversation_id: 'conversation-1',
         model: 'gpt-realtime-2.1',

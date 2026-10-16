@@ -4,7 +4,6 @@ namespace Domain\Form\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Form\Data\FormDefinitionData;
-use Domain\Form\Enums\FormType;
 use Domain\Form\Models\FormDefinition;
 use Illuminate\Support\Str;
 
@@ -19,7 +18,7 @@ class SaveFormDefinitionAction
         $attributes = [
             'name' => $data->name,
             'subtitle' => $data->subtitle,
-            'form_type' => FormType::from($data->form_type),
+            'form_type' => $data->form_type,
             'schema' => array_values($data->schema),
             'lead_field_map' => $data->lead_field_map ?: null,
             'success_message' => $data->success_message,

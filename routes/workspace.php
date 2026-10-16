@@ -90,14 +90,14 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         Route::middleware('team.permission:account.functions,404')->group(function (): void {
             Route::get('functions', [FunctionController::class, 'edit'])->name('functions.edit');
             Route::post('functions', [FunctionController::class, 'store'])->name('functions.store');
-            Route::patch('functions/{external_id}', [FunctionController::class, 'update'])->name('functions.update');
-            Route::post('functions/{external_id}/toggle', ToggleFunctionController::class)->name('functions.toggle');
-            Route::delete('functions/{external_id}', [FunctionController::class, 'destroy'])->name('functions.destroy');
+            Route::patch('functions/{function}', [FunctionController::class, 'update'])->name('functions.update');
+            Route::post('functions/{function}/toggle', ToggleFunctionController::class)->name('functions.toggle');
+            Route::delete('functions/{function}', [FunctionController::class, 'destroy'])->name('functions.destroy');
 
             // Manage which agents use a function (from the Functions sheet).
-            Route::get('functions/{external_id}/agents', [FunctionAgentController::class, 'index'])->name('functions.agents.index');
-            Route::post('functions/{external_id}/agents/{agent}', [FunctionAgentController::class, 'store'])->name('functions.agents.attach');
-            Route::delete('functions/{external_id}/agents/{agent}', [FunctionAgentController::class, 'destroy'])->name('functions.agents.detach');
+            Route::get('functions/{function}/agents', [FunctionAgentController::class, 'index'])->name('functions.agents.index');
+            Route::post('functions/{function}/agents/{agent}', [FunctionAgentController::class, 'store'])->name('functions.agents.attach');
+            Route::delete('functions/{function}/agents/{agent}', [FunctionAgentController::class, 'destroy'])->name('functions.agents.detach');
         });
 
         Route::middleware('team.permission:account.api_keys,404')->group(function (): void {
@@ -114,8 +114,8 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         Route::get('prompts', [PromptController::class, 'edit'])->name('prompts.edit');
         Route::get('prompts/list', [PromptController::class, 'index'])->name('prompts.list');
         Route::post('prompts', [PromptController::class, 'store'])->name('prompts.store');
-        Route::patch('prompts/{external_id}', [PromptController::class, 'update'])->name('prompts.update');
-        Route::delete('prompts/{external_id}', [PromptController::class, 'destroy'])->name('prompts.destroy');
+        Route::patch('prompts/{prompt}', [PromptController::class, 'update'])->name('prompts.update');
+        Route::delete('prompts/{prompt}', [PromptController::class, 'destroy'])->name('prompts.destroy');
     });
 
     // People — workspace-level chat members (chatters): list, fetch the agents one
@@ -174,8 +174,8 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
         // Team members
         Route::post('my/teams/{team}/invite', TeamInviteMemberController::class)->name('teams.invite');
-        Route::delete('my/teams/{team}/invitations/{invitationId}', TeamCancelInvitationController::class)->name('teams.cancel-invitation');
-        Route::post('my/teams/{team}/invitations/{invitationId}/resend', TeamResendInvitationController::class)->name('teams.resend-invitation');
+        Route::delete('my/teams/{team}/invitations/{invitation}', TeamCancelInvitationController::class)->scopeBindings()->name('teams.cancel-invitation');
+        Route::post('my/teams/{team}/invitations/{invitation}/resend', TeamResendInvitationController::class)->scopeBindings()->name('teams.resend-invitation');
         Route::put('my/teams/{team}/members/{member}', TeamUpdateMemberRoleController::class)->name('teams.update-member');
         Route::delete('my/teams/{team}/members/{member}', TeamRemoveMemberController::class)->name('teams.remove-member');
 
@@ -187,8 +187,8 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // Team roles
         Route::get('my/teams/{team}/roles/create', TeamRoleCreateShowController::class)->name('teams.roles.create');
         Route::post('my/teams/{team}/roles', TeamRoleStoreController::class)->name('teams.create-role');
-        Route::get('my/teams/{team}/roles/{roleId}/edit', TeamRoleEditShowController::class)->name('teams.roles.edit');
-        Route::put('my/teams/{team}/roles/{roleId}', TeamRoleUpdateController::class)->name('teams.update-role');
-        Route::delete('my/teams/{team}/roles/{roleId}', TeamRoleDeleteController::class)->name('teams.delete-role');
+        Route::get('my/teams/{team}/roles/{role:external_id}/edit', TeamRoleEditShowController::class)->name('teams.roles.edit');
+        Route::put('my/teams/{team}/roles/{role:external_id}', TeamRoleUpdateController::class)->name('teams.update-role');
+        Route::delete('my/teams/{team}/roles/{role:external_id}', TeamRoleDeleteController::class)->name('teams.delete-role');
     });
 });

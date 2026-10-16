@@ -40,12 +40,12 @@ describe('teammates work on the workspace owner\'s functions', function (): void
             ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('functions', 1)->where('functions.0.id', $fn->external_id));
 
         $this->actingAs($member)
-            ->post(route('integrations.functions.toggle', ['external_id' => $fn->external_id]))
+            ->post(route('integrations.functions.toggle', ['function' => $fn->external_id]))
             ->assertRedirect();
         expect($fn->fresh()->is_enabled)->toBeFalse();
 
         $this->actingAs($member)
-            ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), functionFormPayload([
+            ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), functionFormPayload([
                 'description' => 'Edited by a teammate',
             ]))
             ->assertRedirect()
@@ -72,7 +72,7 @@ describe('function names are unique per workspace', function (): void {
         $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         $this->actingAs($member)
-            ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), functionFormPayload([
+            ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), functionFormPayload([
                 'internal_name' => 'taken_name',
             ]))
             ->assertSessionHasErrors('internal_name');
@@ -130,7 +130,7 @@ describe('the approval gate follows the HTTP verb on every path', function (): v
         $fn = AgentFunction::factory()->forOwner($this->owner)->create(['webhook_method' => 'GET', 'requires_approval' => false]);
 
         $this->actingAs($this->owner)
-            ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), functionFormPayload([
+            ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), functionFormPayload([
                 'webhook_method' => 'POST',
             ]))
             ->assertSessionHasNoErrors();

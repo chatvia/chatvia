@@ -48,7 +48,7 @@ it('refuses to delete a role a member still holds with a field error', function 
 
     $this->actingAs($owner)
         ->from('/previous')
-        ->delete(route('teams.delete-role', ['team' => $team, 'roleId' => $role->id]))
+        ->delete(route('teams.delete-role', ['team' => $team, 'role' => $role->external_id]))
         ->assertRedirect('/previous')
         ->assertSessionHasErrors(['role' => 'Cannot delete this role. 1 member(s) are assigned to it.']);
 

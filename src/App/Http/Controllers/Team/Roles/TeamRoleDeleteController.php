@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Team\Roles;
 
 use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,12 +18,10 @@ class TeamRoleDeleteController
     public function __invoke(
         Request $request,
         Team $team,
-        int $roleId,
+        Role $role,
         DeleteTeamRoleAction $delete,
     ): RedirectResponse {
         abort_if($request->user()->cannot('update', $team), 403, __('Only the team owner can delete roles.'));
-
-        $role = $team->roles()->findOrFail($roleId);
 
         abort_if($role->isProtected(), 403, __('Cannot delete the owner role.'));
 

@@ -45,7 +45,7 @@ it('updates basic fields', function (): void {
     $fn = fnsFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'description' => 'Brand new description',
             'webhook_method' => 'GET',
         ]))
@@ -63,7 +63,7 @@ it('keeps the existing secret when auth_value is left blank', function (): void 
     ]);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'description' => 'Edited without touching the token',
             'auth_type' => 'bearer',
             'auth_value' => '',
@@ -82,7 +82,7 @@ it('replaces the secret when a new auth_value is provided', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'auth_type' => 'bearer',
             'auth_value' => 'new-token',
         ]))
@@ -95,7 +95,7 @@ it('requires a credential when switching to an auth type with no stored secret',
     $fn = fnsFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'auth_type' => 'bearer',
             'auth_value' => '',
         ]))
@@ -107,7 +107,7 @@ it('rejects a duplicate name from another function', function (): void {
     $fn = fnsFunction($this->user, ['internal_name' => 'editable_fn']);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'internal_name' => 'existing_fn',
         ]))
         ->assertSessionHasErrors('internal_name');
@@ -118,7 +118,7 @@ it('hides a function of another workspace from an update', function (): void {
     $fn = fnsFunction($other);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload())
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload())
         ->assertNotFound();
 });
 
@@ -126,7 +126,7 @@ it('toggles the enabled flag', function (): void {
     $fn = fnsFunction($this->user, ['is_enabled' => true]);
 
     $this->actingAs($this->user)
-        ->post(route('integrations.functions.toggle', ['external_id' => $fn->external_id]))
+        ->post(route('integrations.functions.toggle', ['function' => $fn->external_id]))
         ->assertRedirect();
 
     expect($fn->fresh()->is_enabled)->toBeFalse();
@@ -162,7 +162,7 @@ it('rejects an edited schema with an invalid property name', function (): void {
     $fn = fnsFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'parameters_schema' => json_encode(['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]]),
         ]))
         ->assertSessionHasErrors('parameters_schema');
@@ -173,7 +173,7 @@ it('saves other fields when a stored schema that fails the shape rules is sent b
     $fn = fnsFunction($this->user, ['parameters_schema' => $stored]);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
+        ->patch(route('integrations.functions.update', ['function' => $fn->external_id]), fnsUpdatePayload([
             'description' => 'Edited without touching the schema',
             'parameters_schema' => json_encode($stored, JSON_PRETTY_PRINT),
         ]))
@@ -191,7 +191,7 @@ it('takes a deleted function out of its agents\' cached tool pool', function ():
     expect($names())->toContain('doomed_fn');
 
     $this->actingAs($agent->workspace->owner)
-        ->delete(route('integrations.functions.destroy', ['external_id' => $function->external_id]))
+        ->delete(route('integrations.functions.destroy', ['function' => $function->external_id]))
         ->assertRedirect();
 
     expect(AgentFunction::query()->whereKey($function->id)->exists())->toBeFalse()

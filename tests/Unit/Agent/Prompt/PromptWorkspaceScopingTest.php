@@ -7,7 +7,6 @@ use Domain\Agent\Prompt\Actions\UpdatePromptAction;
 use Domain\Agent\Prompt\Data\CreatePromptData;
 use Domain\Agent\Prompt\Data\UpdatePromptData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -33,30 +32,20 @@ it('stores a prompt a teammate creates on the shared workspace', function (): vo
     expect($prompt->workspace_id)->toBe($owner->workspace()->id);
 });
 
-it('lets a teammate update a prompt owned by their workspace', function (): void {
+it('updates a workspace prompt in place', function (): void {
     $owner = User::factory()->create();
-    $teammate = User::factory()->employee($owner)->create();
     $prompt = workspacePrompt($owner);
 
+    // Workspace scoping lives on the route (`{prompt}` binding +
+    // `workspace.scope`), so the Action just applies the edit.
     $updated = app(UpdatePromptAction::class)->execute(
-        $teammate,
-        $prompt->external_id,
+        $prompt,
         new UpdatePromptData(name: 'Renamed', prompt: 'New body'),
     );
 
     expect($updated->is($prompt))->toBeTrue()
         ->and($prompt->fresh()->name)->toBe('Renamed')
         ->and($prompt->fresh()->workspace_id)->toBe($owner->workspace()->id);
-});
-
-it('does not let a user update another workspace\'s prompt', function (): void {
-    $prompt = workspacePrompt(User::factory()->create());
-
-    expect(fn () => app(UpdatePromptAction::class)->execute(
-        User::factory()->create(),
-        $prompt->external_id,
-        new UpdatePromptData(name: 'Hijack', prompt: 'x'),
-    ))->toThrow(ModelNotFoundException::class);
 });
 
 it('resolves a workspace prompt id for the owner and for a teammate', function (): void {

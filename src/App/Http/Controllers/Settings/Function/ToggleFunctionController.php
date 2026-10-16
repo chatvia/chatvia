@@ -4,21 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Settings\Function;
 
-use App\Identity\Workspace\Models\User;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
- * Flip a workspace function's on/off switch.
+ * Flip a workspace function's on/off switch. The route binds `{function}`;
+ * `workspace.scope` 404s another workspace's.
  */
 class ToggleFunctionController
 {
-    public function __invoke(Request $request, string $external_id): RedirectResponse
+    public function __invoke(AgentFunction $function): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        $user->workspace()->functions()->where('external_id', $external_id)->firstOrFail()->toggleEnabled();
+        $function->toggleEnabled();
 
         return back();
     }

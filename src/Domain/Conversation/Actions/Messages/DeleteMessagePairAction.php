@@ -22,11 +22,13 @@ class DeleteMessagePairAction
     public function execute(ChatScopeData $scope, string $messageId): void
     {
         $memory = $this->memory->withScope($scope);
-        $messages = $memory->getMessagesForConversation();
+        // The cached form, not the display copy: the messages that stay keep
+        // the text meant for the model (message_for_llm).
+        $messages = $memory->cachedMessages();
         $removedIds = [];
 
         foreach ($messages as $index => $message) {
-            if ($message['id'] !== $messageId) {
+            if (($message['id'] ?? null) !== $messageId) {
                 continue;
             }
 

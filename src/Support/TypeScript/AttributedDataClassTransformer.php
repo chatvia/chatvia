@@ -2,6 +2,7 @@
 
 namespace Support\TypeScript;
 
+use Override;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use Spatie\LaravelData\Attributes\Hidden;
 use Spatie\LaravelTypeScriptTransformer\LaravelData\Transformers\DataClassTransformer;
@@ -28,19 +29,19 @@ use Spatie\TypeScriptTransformer\TypeScriptNodes\TypeScriptProperty;
  */
 final class AttributedDataClassTransformer extends DataClassTransformer
 {
-    #[\Override]
+    #[Override]
     protected function shouldTransform(PhpClassNode $phpClassNode): bool
     {
         return parent::shouldTransform($phpClassNode)
             && $phpClassNode->getAttributes(TypeScript::class) !== [];
     }
 
-    #[\Override]
+    #[Override]
     protected function classPropertyProcessors(): array
     {
         $dropDataHidden = new class implements ClassPropertyProcessor
         {
-            #[\Override]
+            #[Override]
             public function execute(PhpPropertyNode $phpPropertyNode, ?TypeNode $annotation, TypeScriptProperty $property): ?TypeScriptProperty
             {
                 return $phpPropertyNode->getAttributes(Hidden::class) === [] ? $property : null;

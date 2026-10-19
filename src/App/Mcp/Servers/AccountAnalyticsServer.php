@@ -25,6 +25,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Tool;
+use Override;
 
 /**
  * INTERNAL, owner-scoped analytics server. Unlike the other built-in servers
@@ -67,7 +68,7 @@ class AccountAnalyticsServer extends Server
     /**
      * @var array<int, class-string<Tool>>
      */
-    #[\Override]
+    #[Override]
     protected array $tools = [
         GetAccountOverviewTool::class,
         GetMessageStatsTool::class,
@@ -89,12 +90,12 @@ class AccountAnalyticsServer extends Server
     /**
      * @var array<int, class-string<Server\Resource>>
      */
-    #[\Override]
+    #[Override]
     protected array $resources = [];
 
     /**
      * @var array<int, class-string<Prompt>>
      */
-    #[\Override]
+    #[Override]
     protected array $prompts = [];
 }

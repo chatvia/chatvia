@@ -64,10 +64,8 @@ final class CursorPage
             return null;
         }
 
-        foreach ($columns as $column => $kind) {
-            if (! self::isOfKind($parameters[$column], $kind)) {
-                return null;
-            }
+        if (array_any($columns, fn($kind, $column) => !self::isOfKind($parameters[$column], $kind))) {
+            return null;
         }
 
         return $cursor;

@@ -145,7 +145,8 @@ if (! function_exists('prompt')) {
      * `prompts::` view namespace. Pass variables as the second argument; use
      * {!! $var !!} in the prompt file so text isn't HTML-escaped.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
+     * @throws Throwable
      */
     function prompt(string $name, array $data = []): string
     {

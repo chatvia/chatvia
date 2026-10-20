@@ -89,12 +89,17 @@ it('stores a new transcript in the source folder', function (): void {
     $agent->files()->attach($sourceFile->id);
     Storage::put($sourceFile->filepath, 'ID3-binary-audio-bytes');
 
-    $this->mock(AudioCompressor::class)->shouldReceive('process')->andReturnUsing(fn (string $path): string => $path);
+    $this->mock(AudioCompressor::class)->shouldNotReceive('process');
     app()->instance(Transcriber::class, new class implements Transcriber
     {
         public function transcribe(string $filePath): string
         {
             return 'Hello from a new transcript.';
+        }
+
+        public function takesAsIs(string $extension, int $bytes): bool
+        {
+            return true;
         }
 
         public function isEnabled(): bool

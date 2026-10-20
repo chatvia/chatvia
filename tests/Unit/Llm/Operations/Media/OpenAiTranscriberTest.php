@@ -24,3 +24,22 @@ it('sends the audio to the OpenAI transcription endpoint with the configured mod
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.openai.test/v1/audio/transcriptions'
         && $request->hasHeader('Authorization', 'Bearer openai-key'));
 });
+
+it('names the upload by its format, so OpenAI reads it as it is', function (): void {
+    Http::fake(['*' => Http::response(['text' => 'hi'])]);
+
+    app(OpenAiTranscriber::class)->transcribe(create_temp_file('note.WEBM', 'fake-audio'));
+
+    Http::assertSent(fn (Request $request): bool => collect($request->data())
+        ->contains(fn (array $part): bool => ($part['name'] ?? null) === 'file' && ($part['filename'] ?? null) === 'audio.webm'));
+});
+
+it('takes the formats OpenAI reads, up to 25 MB, as they are', function (): void {
+    $transcriber = app(OpenAiTranscriber::class);
+
+    expect($transcriber->takesAsIs('webm', 1_000_000))->toBeTrue()
+        ->and($transcriber->takesAsIs('m4a', 25 * 1024 * 1024))->toBeTrue()
+        ->and($transcriber->takesAsIs('mp3', 25 * 1024 * 1024 + 1))->toBeFalse()
+        ->and($transcriber->takesAsIs('mov', 1_000))->toBeFalse()
+        ->and($transcriber->takesAsIs('mp3', 0))->toBeFalse();
+});

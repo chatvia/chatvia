@@ -172,14 +172,17 @@ final class SettingsConfig
     }
 
     /**
-     * The mailer, the Socialite drivers and the PDF driver (the WeasyPrint
-     * path) keep the config they were built with. A queue worker builds them
-     * once, so drop them after a change.
+     * The mailer, the Socialite drivers and the PDF drivers (the WeasyPrint
+     * path, the Cloudflare and Gotenberg keys) keep the config they were
+     * built with. A queue worker builds them once, so drop them after a
+     * change.
      */
     private function forgetResolvedClients(): void
     {
         if ($this->container instanceof IlluminateContainer) {
             $this->container->forgetInstance('laravel-pdf.driver.weasyprint');
+            $this->container->forgetInstance('laravel-pdf.driver.cloudflare');
+            $this->container->forgetInstance('laravel-pdf.driver.gotenberg');
             $this->container->forgetInstance(PdfDriver::class);
         }
 

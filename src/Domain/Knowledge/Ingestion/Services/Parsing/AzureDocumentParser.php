@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Ingestion\Services\Parsing;
 
-use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Document\Conversion\ReaderImage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
@@ -42,7 +42,7 @@ class AzureDocumentParser implements DocumentParser
         private readonly AzureDocumentIntelligence $azure,
         private readonly LocalDocumentParser $local,
         private readonly ReaderImage $images,
-        private readonly PdfInfo $pdfInfo,
+        private readonly PdfInspector $pdfInspector,
     ) {}
 
     public function parse(string $filePath, string $storageDirectory): Collection
@@ -100,7 +100,7 @@ class AzureDocumentParser implements DocumentParser
     private function ensureAllPagesRead(string $path, Collection $pages): void
     {
         try {
-            $total = $this->pdfInfo->getInfo($path)->length;
+            $total = $this->pdfInspector->getInfo($path)->length;
         } catch (Throwable) {
             return;
         }

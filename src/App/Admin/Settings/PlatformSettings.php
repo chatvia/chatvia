@@ -92,6 +92,27 @@ class PlatformSettings extends AdminSettings
     #[ConfigKey('laravel-pdf.weasyprint.binary')]
     public ?string $weasyprint_path = null;
 
+    // What makes PDFs (chat exports, the PDF of an office file for its
+    // summary): the weasyprint program above, or a Chromium service for a
+    // host that cannot install programs (PdfMaker).
+    #[ConfigKey('laravel-pdf.driver')]
+    public ?string $pdf_maker = null;
+
+    #[ConfigKey('laravel-pdf.cloudflare.account_id')]
+    public ?string $pdf_cloudflare_account_id = null;
+
+    #[ConfigKey('laravel-pdf.cloudflare.api_token'), ShouldBeEncrypted]
+    public ?string $pdf_cloudflare_token = null;
+
+    #[ConfigKey('laravel-pdf.gotenberg.url')]
+    public ?string $pdf_gotenberg_url = null;
+
+    #[ConfigKey('laravel-pdf.gotenberg.username')]
+    public ?string $pdf_gotenberg_username = null;
+
+    #[ConfigKey('laravel-pdf.gotenberg.password'), ShouldBeEncrypted]
+    public ?string $pdf_gotenberg_password = null;
+
     // The Logs page reads and clears the install's log files, so it stays
     // out of the panel until an admin turns it on.
     #[ConfigKey('chatvia.admin.logs_page_enabled')]

@@ -72,3 +72,18 @@ it('defaults to the generic endpoint, not one Scaleway project\'s', function ():
 
     expect($default[1] ?? null)->toBe('https://api.scaleway.ai/v1');
 });
+
+it('takes only MP3 and WAV as they are, and names the upload by its format', function (): void {
+    Http::fake(['*' => Http::response(['text' => 'hi'])]);
+    $transcriber = app(ScalewayTranscriber::class);
+
+    $transcriber->transcribe(create_temp_file('note.wav', 'fake-audio'));
+
+    expect($transcriber->takesAsIs('wav', 1_000))->toBeTrue()
+        ->and($transcriber->takesAsIs('mp3', 25 * 1024 * 1024))->toBeTrue()
+        ->and($transcriber->takesAsIs('webm', 1_000))->toBeFalse()
+        ->and($transcriber->takesAsIs('mp3', 25 * 1024 * 1024 + 1))->toBeFalse();
+
+    Http::assertSent(fn (Request $request): bool => collect($request->data())
+        ->contains(fn (array $part): bool => ($part['name'] ?? null) === 'file' && ($part['filename'] ?? null) === 'audio.wav'));
+});

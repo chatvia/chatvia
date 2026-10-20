@@ -14,6 +14,6 @@ class AgentKnowledgeFilesAnalyzeController
 {
     public function __invoke(AnalyzeKnowledgeFileRequest $request, AgentSourceAnalyzeFileAction $action): KnowledgeAnalyzeResourceData
     {
-        return $action->execute($request->file('file'), $request->user());
+        return $action->execute($request->file('file'));
     }
 }

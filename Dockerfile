@@ -116,7 +116,7 @@ FROM php AS app
 
 # - postgresql-client-18: pg_dump for the scheduled backup must match the
 #   PostgreSQL 18 server, so it comes from the PostgreSQL apt repository.
-# - poppler (PDF), pandoc (Word, ODT, RTF, EPUB, FB2), catdoc (old .doc and
+# - poppler (PDF), pandoc (Word, ODT, RTF, EPUB), catdoc (old .doc and
 #   .ppt) and ffmpeg (audio, video): file sources are read with them. PPTX
 #   and XLSX are read in PHP.
 # - Python and Pango for WeasyPrint (installed below), which makes the PDF

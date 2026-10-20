@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    {{-- The PDF maker may be a browser (Cloudflare, Gotenberg): it may load
+         nothing, so a link in a message cannot make it fetch an address.
+         WeasyPrint gets the same rule from config/laravel-pdf.php. --}}
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Conversation Export</title>
     <style>
-        {{-- The PDF is laid out by WeasyPrint on the server, so the font is
-             embedded instead of fetched from a font CDN. --}}
+        {{-- The PDF maker may load nothing, so the font is embedded instead
+             of fetched from a font CDN. --}}
         @font-face {
             font-family: 'Inter';
             font-style: normal;

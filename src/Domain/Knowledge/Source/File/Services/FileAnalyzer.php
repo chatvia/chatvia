@@ -2,14 +2,15 @@
 
 namespace Domain\Knowledge\Source\File\Services;
 
+use Domain\Knowledge\Document\Contracts\PdfInspector;
+use Domain\Knowledge\Document\Conversion\EbookText;
 use Domain\Knowledge\Document\Conversion\OfficeText;
-use Domain\Knowledge\Document\Conversion\Pandoc;
-use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use LogicException;
+use Support\Exceptions\DomainValidationException;
 use Throwable;
 
 /**
@@ -18,25 +19,22 @@ use Throwable;
  * `source_files.length`. The document parser returns the true page count only
  * during ingestion, so this is a pre-flight estimate:
  *
- *   - PDF            → pdfinfo (exact)
+ *   - PDF            → pdfinfo, or the PHP reader without it (exact)
  *   - Office/text    → OfficeText pages (slides and sheets exact; other
  *                      formats estimated, one page per ~3000 characters)
  *   - Images         → 1 page
- *   - Ebooks (Pandoc) → extract text, ~500 words per page (estimate)
+ *   - Ebooks         → EbookText, one page per ~3000 characters (estimate)
  *   - Audio/Video    → duration in minutes
  */
 class FileAnalyzer
 {
-    /** Average words per page used to estimate page count from extracted text. */
-    private const int WORDS_PER_PAGE = 500;
-
     /** Rough bytes per page when a document cannot be read at all. */
     private const int BYTES_PER_PAGE = 3000;
 
     public function __construct(
         private readonly AudioDurationExtractor $audioDuration,
-        private readonly PdfInfo $pdfInfo,
-        private readonly Pandoc $pandoc,
+        private readonly PdfInspector $pdfInspector,
+        private readonly EbookText $ebookText,
         private readonly OfficeText $officeText,
     ) {}
 
@@ -46,6 +44,7 @@ class FileAnalyzer
      *                                  (PHP keeps uploads in extensionless temp files)
      *
      * @throws LogicException when the type is neither a supported document nor media
+     * @throws DomainValidationException when a PDF cannot be read
      */
     public function analyze(string $path, ?string $extension = null): FileAnalysisData
     {
@@ -53,12 +52,25 @@ class FileAnalyzer
 
         return match (true) {
             is_audio_file($path), is_video_file($path) => new FileAnalysisData(length: $this->audioDuration->getDurationInMinutes($path)),
-            $extension === 'pdf', is_pdf_file($path) => $this->pdfInfo->getInfo($path),
+            $extension === 'pdf', is_pdf_file($path) => $this->analyzePdf($path),
             in_array($extension, config('mimes.ocr.image'), true) => new FileAnalysisData(length: 1),
             in_array($extension, config('mimes.ocr.office'), true) => $this->analyzeOfficeFile($path, $extension),
-            in_array($extension, config('mimes.ocr.pandoc'), true) => new FileAnalysisData(length: $this->estimateEbookPages($path, $extension)),
+            in_array($extension, config('mimes.ocr.ebook'), true) => new FileAnalysisData(length: $this->estimateEbookPages($path, $extension)),
             default => throw new LogicException('Invalid file type!'),
         };
+    }
+
+    /**
+     * The page count of a PDF. One that cannot be read is refused on the
+     * `file` field rather than failing the upload with a server error.
+     */
+    private function analyzePdf(string $path): FileAnalysisData
+    {
+        try {
+            return $this->pdfInspector->getInfo($path);
+        } catch (Throwable) {
+            throw new DomainValidationException('file', __('We couldn\'t read this PDF. Please try a different file.'));
+        }
     }
 
     /**
@@ -82,15 +94,20 @@ class FileAnalyzer
         }
     }
 
+    /**
+     * Pages of about OfficeText::CHARS_PER_PAGE characters, as for office
+     * text. Characters, not words, so a book in a script without spaces
+     * (Chinese, Japanese) or outside ASCII (Russian) is counted too.
+     */
     private function estimateEbookPages(string $path, string $extension): int
     {
         try {
-            $words = str_word_count($this->pandoc->toText($path, $extension));
+            $characters = mb_strlen($this->ebookText->toMarkdown($path, $extension));
 
-            return max(1, (int) ceil($words / self::WORDS_PER_PAGE));
+            return max(1, (int) ceil($characters / OfficeText::CHARS_PER_PAGE));
         } catch (Throwable) {
-            // Best-effort: Pandoc can't always parse a corrupt or malformed
-            // ebook. Fall back to a rough size-based estimate so the upload
+            // Best-effort: a corrupt or malformed ebook cannot always be
+            // read. Fall back to a rough size-based estimate so the upload
             // still proceeds; ingestion reports the true count later.
             return $this->estimatePagesFromSize($path);
         }

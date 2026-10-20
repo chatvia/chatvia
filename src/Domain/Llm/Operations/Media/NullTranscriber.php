@@ -18,6 +18,11 @@ class NullTranscriber implements Transcriber
         throw new TranscriptionNotConfiguredException;
     }
 
+    public function takesAsIs(string $extension, int $bytes): bool
+    {
+        return false;
+    }
+
     public function isEnabled(): bool
     {
         return false;

@@ -62,6 +62,19 @@ class OfficeText
     }
 
     /**
+     * The program that reads the format (its `services.bin` key), or null
+     * when the app reads it itself.
+     */
+    public function programFor(string $extension): ?string
+    {
+        return match (self::READERS[strtolower($extension)] ?? null) {
+            'pandoc' => 'pandoc',
+            'catdoc' => $this->catDoc->programFor($extension),
+            default => null,
+        };
+    }
+
+    /**
      * The file's text, page by page. A file with no text gives one empty page.
      *
      * @return list<string>

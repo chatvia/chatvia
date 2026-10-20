@@ -1,151 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Ingestion\Services\Media;
 
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Re-encodes audio (or a video's sound track, extracted first) with ffmpeg
- * into a small low-bitrate file (MP3 at 32 kbit/s by default), so long
- * recordings stay under the transcription service's upload limit.
+ * Re-encodes the sound of an audio or video file with ffmpeg into a small
+ * MP3 (mono, 16 kHz, 32 kbit/s by default), so long recordings stay under the
+ * speech-to-text service's upload limit. ffmpeg reads any container, so one
+ * pass also takes the sound out of a video. Used through
+ * {@see TranscriptionAudio}, which skips it for a file the service takes as
+ * it is.
  */
 class AudioCompressor
 {
-    private const array SUPPORTED_INPUTS = [
-        'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm',
-    ];
-
-    private function ffmpegPath(): string
+    /**
+     * Writes the MP3 to a temporary file and returns its path. The caller
+     * deletes it.
+     */
+    public function process(string $input, int $bitrate = 32): string
     {
-        return config('services.bin.ffmpeg');
-    }
-
-    public function process(
-        string $input,
-        string $codec = 'mp3',
-        int $bitrate = 32
-    ): string {
-
         if (! is_file($input)) {
             throw new RuntimeException("Input file not found: {$input}");
         }
 
-        $ext = strtolower(pathinfo($input, PATHINFO_EXTENSION));
-
-        if (! in_array($ext, self::SUPPORTED_INPUTS, true)) {
-            throw new InvalidArgumentException(
-                "Unsupported input format '{$ext}'. Allowed: ".implode(', ', self::SUPPORTED_INPUTS)
-            );
-        }
-
-        // If input is video (e.g., MP4 / WebM), extract audio first
-        $workingInput = $input;
-        if (in_array($ext, ['mp4', 'webm'], true)) {
-            $workingInput = $this->extractAudio($input);
-        }
-
-        // Generate output file extension based on codec
-        $outputExt = match ($codec) {
-            'opus' => 'opus',
-            'wav' => 'wav',
-            default => 'mp3',
-        };
-
-        $output = create_temp_dir('/audio-compression').'/'.Str::uuid().".{$outputExt}";
-
-        // Compress result to desired output format
-        $this->compress($workingInput, $output, $codec, $bitrate);
-
-        // If we created an intermediate audio file, delete it
-        if ($workingInput !== $input && file_exists($workingInput)) {
-            unlink($workingInput);
-        }
-
-        return $output;
-    }
-
-    /**
-     * Extract audio track from video input as a temporary WAV
-     */
-    private function extractAudio(string $input): string
-    {
-        $temp = create_temp_dir('/audio-compression').'/'.uniqid('', true).'.wav';
+        $output = create_temp_dir('/audio-compression').'/'.Str::uuid().'.mp3';
 
         $result = Process::run([
-            $this->ffmpegPath(),
+            (string) config('services.bin.ffmpeg'),
+            '-v', 'error',
             '-i', $input,
             '-vn',
             '-ac', '1',
             '-ar', '16000',
-            '-c:a', 'pcm_s16le',
-            $temp,
+            '-b:a', "{$bitrate}k",
             '-y',
+            $output,
         ]);
 
         if ($result->failed()) {
-            throw new RuntimeException(
-                "Failed to extract audio:\n".$result->errorOutput()
-            );
+            @unlink($output);
+
+            throw new RuntimeException("Compression failed:\n".$result->errorOutput());
         }
 
-        return $temp;
-    }
-
-    /**
-     * Compress audio to final format for Whisper
-     */
-    private function compress(
-        string $input,
-        string $output,
-        string $codec,
-        int $bitrate
-    ): void {
-
-        $codec = strtolower($codec);
-
-        $args = match ($codec) {
-            'opus' => [
-                $this->ffmpegPath(),
-                '-i', $input,
-                '-ac', '1',
-                '-ar', '16000',
-                '-c:a', 'libopus',
-                '-b:a', "{$bitrate}k",
-                $output,
-                '-y',
-            ],
-            'mp3' => [
-                $this->ffmpegPath(),
-                '-i', $input,
-                '-ac', '1',
-                '-ar', '16000',
-                '-b:a', "{$bitrate}k",
-                $output,
-                '-y',
-            ],
-            'wav' => [
-                $this->ffmpegPath(),
-                '-i', $input,
-                '-ac', '1',
-                '-ar', '16000',
-                '-c:a', 'pcm_s16le',
-                $output,
-                '-y',
-            ],
-            default => throw new InvalidArgumentException(
-                "Unsupported codec '{$codec}'. Use: opus, mp3, wav."
-            )
-        };
-
-        $result = Process::run($args);
-
-        if ($result->failed()) {
-            throw new RuntimeException(
-                "Compression failed:\n".$result->errorOutput()
-            );
-        }
+        return $output;
     }
 }

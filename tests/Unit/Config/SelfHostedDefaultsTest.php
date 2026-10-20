@@ -122,6 +122,19 @@ it('resolves helper binaries from PATH by default, never from .env', function ()
     ])->and(configFileWith('laravel-pdf.php', ['WEASYPRINT_BIN_PATH' => '/bin/sh'])['weasyprint']['binary'])->toBe('weasyprint');
 });
 
+it('reads no PDF service keys from .env: the admin panel sets them', function (): void {
+    $pdf = configFileWith('laravel-pdf.php', [
+        'LARAVEL_PDF_DRIVER' => 'gotenberg',
+        'CLOUDFLARE_API_TOKEN' => 'token-from-env',
+        'CLOUDFLARE_ACCOUNT_ID' => 'account-from-env',
+        'GOTENBERG_URL' => 'http://gotenberg:3000',
+    ]);
+
+    expect($pdf['driver'])->toBe('weasyprint')
+        ->and($pdf['cloudflare'])->toBe(['api_token' => null, 'account_id' => null])
+        ->and($pdf['gotenberg'])->toBe(['url' => null, 'username' => null, 'password' => null]);
+});
+
 it('ships no Reverb credentials of its own: the one app reads them from env', function (): void {
     $set = configFileWith('reverb.php', [
         'REVERB_APP_KEY' => 'key-from-env',

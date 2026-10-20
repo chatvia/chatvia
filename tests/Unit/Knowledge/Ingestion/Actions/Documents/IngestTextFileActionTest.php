@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Document\Conversion\Pandoc;
+use Domain\Knowledge\Document\Conversion\EbookText;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestTextFileAction;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
@@ -31,11 +31,15 @@ function itfFakeSplitter(array $chunks): TextSplitter
         /** @var list<ContentKind> */
         public array $kinds = [];
 
+        /** @var list<string> */
+        public array $texts = [];
+
         public function __construct(private readonly array $chunks) {}
 
         public function split(string $text, ContentKind $kind): array
         {
             $this->kinds[] = $kind;
+            $this->texts[] = $text;
 
             return $this->chunks;
         }
@@ -47,9 +51,9 @@ function itfFakeSplitter(array $chunks): TextSplitter
     };
 }
 
-function itfFakePandoc(string $markdown): Pandoc
+function itfFakeEbookText(string $markdown): EbookText
 {
-    return new class($markdown) extends Pandoc
+    return new class($markdown) extends EbookText
     {
         public function __construct(private readonly string $markdown) {}
 
@@ -60,9 +64,9 @@ function itfFakePandoc(string $markdown): Pandoc
     };
 }
 
-function itfAction(TextSplitter $splitter, ?Pandoc $pandoc = null): IngestTextFileAction
+function itfAction(TextSplitter $splitter, ?EbookText $ebookText = null): IngestTextFileAction
 {
-    return app()->make(IngestTextFileAction::class, ['splitter' => $splitter, 'pandoc' => $pandoc ?? itfFakePandoc('')]);
+    return app()->make(IngestTextFileAction::class, ['splitter' => $splitter, 'ebookText' => $ebookText ?? itfFakeEbookText('')]);
 }
 
 it('is idempotent: an already-ingested SourceFile returns immediately', function (): void {
@@ -125,7 +129,7 @@ it('fans real chunks out through a Bus batch named with the SourceFile id', func
         ->and($sourceFile->fresh()->parser)->toBe('fixed');
 });
 
-it('extracts ebook (.epub/.fb2) text via Pandoc before chunking', function (): void {
+it('reads ebook (.epub/.fb2) text as Markdown before chunking', function (): void {
     Bus::fake();
     Storage::fake();
 
@@ -134,13 +138,13 @@ it('extracts ebook (.epub/.fb2) text via Pandoc before chunking', function (): v
         'status' => 'uploaded',
         'filename' => 'book.epub',
     ]);
-    // Raw ebook bytes — the Pandoc collaborator is faked, so the action never
-    // reads them; it routes through toMarkdown() instead of getContent().
+    // Raw ebook bytes — the EbookText collaborator is faked, so the action
+    // never reads them; it routes through toMarkdown() instead of getContent().
     Storage::put($sourceFile->filepath, 'epub-bytes');
     $agent->files()->attach($sourceFile->id);
 
-    $pandoc = itfFakePandoc("# Chapter 1\n\nThe book body.");
-    itfAction(itfFakeSplitter(['# Chapter 1', 'The book body.']), $pandoc)
+    $ebookText = itfFakeEbookText("# Chapter 1\n\nThe book body.");
+    itfAction(itfFakeSplitter(['# Chapter 1', 'The book body.']), $ebookText)
         ->execute($sourceFile, $agent);
 
     Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
@@ -159,7 +163,7 @@ it('splits Markdown files and ebooks as Markdown, and .txt files as plain text',
     $agent->files()->attach($sourceFile->id);
 
     $splitter = itfFakeSplitter(['Some text.']);
-    itfAction($splitter, itfFakePandoc('# Some text.'))->execute($sourceFile, $agent);
+    itfAction($splitter, itfFakeEbookText('# Some text.'))->execute($sourceFile, $agent);
 
     expect($splitter->kinds)->toBe([$kind]);
 })->with([
@@ -168,6 +172,25 @@ it('splits Markdown files and ebooks as Markdown, and .txt files as plain text',
     'markdown' => ['notes.markdown', ContentKind::Markdown],
     'epub' => ['book.epub', ContentKind::Markdown],
 ]);
+
+it('reads a windows-1251 FB2 book itself on a server without pandoc', function (): void {
+    Bus::fake();
+    Storage::fake();
+    config(['services.bin.pandoc' => '/nowhere/pandoc']);
+
+    $agent = Agent::factory()->create();
+    $sourceFile = AgentFileFactory::new()->create(['status' => 'uploaded', 'filename' => 'book.fb2']);
+    $xml = '<?xml version="1.0" encoding="windows-1251"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0">'
+        .'<body><section><title><p>Глава 1</p></title><p>Весной мы сажаем картофель.</p></section></body></FictionBook>';
+    Storage::put($sourceFile->filepath, mb_convert_encoding($xml, 'Windows-1251', 'UTF-8'));
+    $agent->files()->attach($sourceFile->id);
+
+    $splitter = itfFakeSplitter(['Глава 1']);
+    app()->make(IngestTextFileAction::class, ['splitter' => $splitter])->execute($sourceFile, $agent);
+
+    expect($splitter->texts)->toBe(["## Глава 1\n\nВесной мы сажаем картофель."])
+        ->and($splitter->kinds)->toBe([ContentKind::Markdown]);
+});
 
 it('splits with the built-in splitter and records its name', function (): void {
     Bus::fake();

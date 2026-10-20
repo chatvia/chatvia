@@ -151,7 +151,7 @@ class SourceFile extends Model implements ChunkableContract
     /**
      * Raw-text formats (.txt, .md) are already chunk-ready, so they're split
      * directly rather than paying the cost/latency of the document parser.
-     * PDF, Office, and images go through the parser; ebooks take the Pandoc path below.
+     * PDF, Office, and images go through the parser; ebooks take the path below.
      */
     public function isDirectChunkable(): bool
     {
@@ -159,13 +159,13 @@ class SourceFile extends Model implements ChunkableContract
     }
 
     /**
-     * EPUB / FictionBook are structured text, not scanned documents — Pandoc
-     * extracts their markdown directly, so they ride the direct-chunk text
-     * pipeline (no document parser, no PDF).
+     * EPUB / FictionBook are structured text, not scanned documents — they
+     * are read as Markdown directly (EbookText), so they ride the
+     * direct-chunk text pipeline (no document parser, no PDF).
      */
     public function isEbook(): bool
     {
-        return in_array($this->extension(), config('mimes.ocr.pandoc'), true);
+        return in_array($this->extension(), config('mimes.ocr.ebook'), true);
     }
 
     /** How the text splitter splits a text file: Markdown and ebooks (read as Markdown) by their structure, .txt as plain text. */

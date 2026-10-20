@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Rules;
 
 use Closure;
-use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
 
@@ -23,8 +23,8 @@ final readonly class UnlockedPdf implements ValidationRule
             return;
         }
 
-        // Resolved per use: PdfInfo is final, so tests swap a stand-in.
-        if (app(PdfInfo::class)->isLocked($value->getPathname())) {
+        // Resolved per use: pdfinfo or the PHP reader, whichever this server has.
+        if (app(PdfInspector::class)->isLocked($value->getPathname())) {
             $fail(__('This PDF is locked with a password. Remove the password and upload it again.'));
         }
     }

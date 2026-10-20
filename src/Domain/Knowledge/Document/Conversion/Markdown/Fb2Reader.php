@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Domain\Knowledge\Document\Conversion\EbookText;
 use DOMElement;
 use DOMNode;
 use DOMText;
@@ -11,8 +12,8 @@ use RuntimeException;
 
 /**
  * Reads a FictionBook ebook (.fb2) as GitHub Markdown with no pandoc on the
- * server. A prototype: the pandoc comparison eval measures it before it is
- * used for uploads.
+ * server. Uploads always use it, even with pandoc installed: pandoc garbles
+ * windows-1251 books and drops FB2 tables ({@see EbookText}).
  *
  * FictionBook is one XML file. The main body's sections become headings by
  * depth (the body title is the top heading), with paragraphs, subtitles,

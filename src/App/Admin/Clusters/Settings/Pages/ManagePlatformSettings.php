@@ -6,7 +6,10 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Settings\Data\ConnectionCheckData;
 use App\Admin\Settings\HorizonWorkers;
+use App\Admin\Settings\PdfMaker;
+use App\Admin\Settings\PdfMakerCheck;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
@@ -15,10 +18,12 @@ use App\Admin\StaffTool;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
@@ -26,9 +31,9 @@ use Illuminate\Support\Facades\Artisan;
 
 /**
  * Install-wide options: default language, the chat widget, the tracking
- * code, visitor location, alerts, whether Pulse and Spectra record, the
- * number of queue workers, where the programs that read files are, and the
- * panel's Logs page.
+ * code, visitor location, alerts, whether Pulse and Spectra record, what
+ * makes PDFs, the number of queue workers, where the programs that read
+ * files are, and the panel's Logs page.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -47,6 +52,25 @@ class ManagePlatformSettings extends AdminSettingsPage
     private const string RESTARTING = 'Queue restarting';
 
     private const string RESTART_NEEDED = 'Restart needed';
+
+    /** The settings of each PDF maker, as the card asks for them. */
+    private const array PDF_MAKER_SETTINGS = [
+        'cloudflare' => ['pdf_cloudflare_account_id', 'pdf_cloudflare_token'],
+        'gotenberg' => ['pdf_gotenberg_url', 'pdf_gotenberg_username', 'pdf_gotenberg_password'],
+    ];
+
+    /** The settings a PDF maker cannot work without. */
+    private const array PDF_MAKER_REQUIRED = [
+        'cloudflare' => ['pdf_cloudflare_account_id', 'pdf_cloudflare_token'],
+        'gotenberg' => ['pdf_gotenberg_url'],
+    ];
+
+    /** How the card's summary names a missing setting. */
+    private const array PDF_MAKER_LABELS = [
+        'pdf_cloudflare_account_id' => 'Account ID',
+        'pdf_cloudflare_token' => 'API token',
+        'pdf_gotenberg_url' => 'Address',
+    ];
 
     /** The .env switch that leaves a tool out of the install, by its recording setting. */
     private const array TOOL_SWITCHES = [
@@ -71,7 +95,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, tracking code, visitor location, Pulse, Spectra, queue workers, programs and logs.';
+        return 'Language, widget, tracking code, visitor location, Pulse, Spectra, PDF maker, queue workers, programs and logs.';
     }
 
     /**
@@ -99,6 +123,11 @@ class ManagePlatformSettings extends AdminSettingsPage
     public static function overviewGroup(): string
     {
         return 'Platform and brand';
+    }
+
+    protected function showsValueInUse(string $property): bool
+    {
+        return $property === 'pdf_maker';
     }
 
     protected function cards(): array
@@ -140,6 +169,21 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->integer('spectra_retention_days', 'Keep AI calls for (days)', help: 'Older calls are removed every night.', min: 1, max: 3650),
             ])->summary(fn (): string => $this->recordingSummary('spectra_enabled'))
                 ->console($this->toolUrl(StaffTool::Spectra), 'Open Spectra'),
+            SettingsCard::make('pdf_maker', 'PDF maker', 'What makes PDFs: chat exports, and the PDF of an office file for its summary.', Heroicon::OutlinedDocumentArrowDown, fn (): array => [
+                $this->pdfMakerChoice(),
+                $this->pdfMakerField(PdfMaker::Cloudflare, $this->text('pdf_cloudflare_account_id', 'Account ID', help: 'On the right of the home page of your Cloudflare dashboard.'), required: true),
+                $this->pdfMakerField(PdfMaker::Cloudflare, $this->secret('pdf_cloudflare_token', 'API token', help: 'A token with the "Browser Rendering: Edit" permission.', required: false)
+                    ->hintAction(Action::make('getKey_pdf_cloudflare')
+                        ->label('Get a token')
+                        ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                        ->iconPosition('after')
+                        ->url((string) PdfMaker::Cloudflare->keysUrl(), shouldOpenInNewTab: true)), required: true),
+                $this->pdfMakerField(PdfMaker::Gotenberg, $this->url('pdf_gotenberg_url', 'Address', help: 'Such as http://gotenberg:3000.'), required: true),
+                $this->pdfMakerField(PdfMaker::Gotenberg, $this->text('pdf_gotenberg_username', 'Username', help: 'Only when your Gotenberg server asks for one.'), required: false),
+                $this->pdfMakerField(PdfMaker::Gotenberg, $this->secret('pdf_gotenberg_password', 'Password', required: false), required: false),
+            ])->properties('pdf_maker', ...array_merge(...array_values(self::PDF_MAKER_SETTINGS)))
+                ->summary(fn (): string => $this->pdfMakerSummary())
+                ->tone(fn (): string => $this->pdfMakerMissing() === [] ? 'gray' : 'warning'),
             SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Save, then restart the queue.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 $this->integer('chat_workers', 'Chat', help: 'Replies on messaging channels, e-mails and other short jobs.', min: 2, max: 200),
                 $this->integer('ingestion_workers', 'Files and websites', help: 'Reading knowledge sources, then exports.', min: 1, max: 200),
@@ -150,10 +194,12 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->summary(fn (): string => sprintf('Up to %d workers', array_sum($this->savedWorkers())).(($state = $this->horizonState()) !== null ? " · {$state}" : ''))
                 ->tone(fn (): string => in_array($this->horizonState(), [self::NOT_RUNNING, self::RESTART_NEEDED], true) ? 'warning' : 'gray')
                 ->advanced(),
-            SettingsCard::make('programs', 'Programs', 'The programs on this server that read files and make PDFs. Enter a full path for a program that is not found.', Heroicon::OutlinedCommandLine, fn (): array => array_map(
+            SettingsCard::make('programs', 'Programs', 'The programs on this server that read files and make PDFs. Without some of them the app does the work itself. Enter a full path for a program that is not found.', Heroicon::OutlinedCommandLine, fn (): array => array_map(
                 $this->programField(...),
                 ServerProgram::cases(),
-            ))->summary(fn (): string => $this->programsSummary())->advanced(),
+            ))->summary(fn (): string => $this->programsSummary())
+                ->tone(fn (): string => $this->programsLosingWork() === [] ? 'gray' : 'warning')
+                ->advanced(),
             SettingsCard::make('development', __('Development'), __('Tools for finding problems in this install.'), Heroicon::OutlinedCodeBracket, fn (): array => [
                 $this->toggle('logs_page_enabled', __('Logs page'),
                     help: __('Shows Logs in the sidebar, where admins read and clear the log files of this install. Off hides the page and blocks its address.')),
@@ -282,9 +328,21 @@ class ManagePlatformSettings extends AdminSettingsPage
                     $fail("There is no program at {$path} on this server, or it cannot be run.");
                 }
             })
-            ->hint(fn (): string => $this->programPath($program) !== null ? 'Found' : 'Not found')
-            ->hintIcon(fn (): Heroicon => $this->programPath($program) !== null ? Heroicon::OutlinedCheckCircle : Heroicon::OutlinedExclamationTriangle)
-            ->hintColor(fn (): string => $this->programPath($program) !== null ? 'success' : 'warning')
+            ->hint(fn (): string => match ($this->programState($program)) {
+                'found' => 'Found',
+                'not_needed' => 'Not found · not needed',
+                default => 'Not found',
+            })
+            ->hintIcon(fn (): Heroicon => match ($this->programState($program)) {
+                'found' => Heroicon::OutlinedCheckCircle,
+                'not_needed' => Heroicon::OutlinedInformationCircle,
+                default => Heroicon::OutlinedExclamationTriangle,
+            })
+            ->hintColor(fn (): string => match ($this->programState($program)) {
+                'found' => 'success',
+                'not_needed' => 'gray',
+                default => 'warning',
+            })
             ->hintAction($this->detectAction($program));
     }
 
@@ -310,12 +368,41 @@ class ManagePlatformSettings extends AdminSettingsPage
             });
     }
 
-    /** What the program is for, then where it was found. */
+    /** What the program is for, then where it was found, or what stops working without it. */
     private function programHelp(ServerProgram $program): string
     {
         $found = $this->programPath($program);
 
-        return $program->purpose().' '.($found !== null ? "Runs {$found}." : 'Click Detect, or enter its full path.');
+        if ($found !== null) {
+            return $program->purpose()." Runs {$found}.";
+        }
+
+        $loss = $program->lossWhenMissing();
+
+        return $program->purpose().' '.($loss !== null ? "Now: {$loss} " : '').'Click Detect, or enter its full path.';
+    }
+
+    /**
+     * 'found', 'not_needed' (not found, and nothing stops working without
+     * it), or 'missing'.
+     */
+    private function programState(ServerProgram $program): string
+    {
+        return match (true) {
+            $this->programPath($program) !== null => 'found',
+            $program->lossWhenMissing() === null => 'not_needed',
+            default => 'missing',
+        };
+    }
+
+    /**
+     * The programs that are not found and whose absence stops something.
+     *
+     * @return list<ServerProgram>
+     */
+    private function programsLosingWork(): array
+    {
+        return array_values(array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => $this->programState($program) === 'missing'));
     }
 
     /** The file this server runs for the program's path in use, or null when there is none. */
@@ -326,11 +413,137 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     private function programsSummary(): string
     {
-        $missing = array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => $this->programPath($program) === null);
+        $names = fn (array $programs): string => implode(', ', array_map(fn (ServerProgram $program): string => $program->value, $programs));
+        $missing = $this->programsLosingWork();
+        $notNeeded = array_values(array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => $this->programState($program) === 'not_needed'));
 
-        return $missing === []
-            ? 'All found'
-            : 'Not found: '.implode(', ', array_map(fn (ServerProgram $program): string => $program->value, $missing));
+        return match (true) {
+            $missing === [] && $notNeeded === [] => 'All found',
+            $missing === [] => 'Not found, not needed: '.$names($notNeeded),
+            $notNeeded === [] => 'Not found: '.$names($missing),
+            default => 'Not found: '.$names($missing).' · not needed: '.$names($notNeeded),
+        };
+    }
+
+    /**
+     * The maker choice. A new pick, or new values for it, is checked with a
+     * one-line PDF as it is saved, and refused when that fails; an unchanged
+     * one is not tried again.
+     */
+    private function pdfMakerChoice(): Select
+    {
+        $options = $this->pdfMakerOptions();
+
+        return $this->choice('pdf_maker', 'Make PDFs with', $options)
+            ->selectablePlaceholder(false)
+            ->helperText(fn (Get $get): ?string => PdfMaker::tryFrom((string) $get('pdf_maker'))?->description())
+            ->live()
+            ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                $maker = PdfMaker::tryFrom((string) $value);
+
+                // A value that is not offered fails the "in" rule.
+                if (! $maker instanceof PdfMaker) {
+                    return;
+                }
+
+                $picked = fn (string $property): mixed => filled($get($property)) ? $get($property) : $this->valueInUse($property);
+
+                // Unchanged, or still missing what it needs (the field says so).
+                if ($this->pdfMakerSetup($maker, $picked) === $this->pdfMakerSetup(PdfMaker::inUse(), $this->valueInUse(...))
+                    || array_any(self::PDF_MAKER_REQUIRED[$maker->value] ?? [], fn (string $property): bool => blank($picked($property)))) {
+                    return;
+                }
+
+                $result = $this->checkPdfMaker($maker, $picked);
+
+                if (! $result->connected) {
+                    $fail($result->message ?? "{$maker->label()} could not make a PDF.");
+                }
+            });
+    }
+
+    /** A setting of one maker, shown (and required) only while it is picked. A saved secret is not asked for again. */
+    private function pdfMakerField(PdfMaker $maker, TextInput $field, bool $required): TextInput
+    {
+        $property = $field->getName();
+
+        return $field
+            ->visible(fn (Get $get): bool => $get('pdf_maker') === $maker->value)
+            ->required(fn (Get $get): bool => $required
+                && $get('pdf_maker') === $maker->value
+                && (! PlatformSettings::isSecret($property) || ! $this->isSaved($property)));
+    }
+
+    /**
+     * Each maker by name; WeasyPrint marked found or not.
+     *
+     * @return array<string, string>
+     */
+    private function pdfMakerOptions(): array
+    {
+        return collect(PdfMaker::cases())->mapWithKeys(fn (PdfMaker $maker): array => [
+            $maker->value => $maker === PdfMaker::Weasyprint
+                ? $maker->label().($this->programPath(ServerProgram::Weasyprint) !== null ? ' (found)' : ' (not found)')
+                : $maker->label(),
+        ])->all();
+    }
+
+    /**
+     * What a maker uses, to tell whether a pick changed: the maker and its
+     * own settings.
+     *
+     * @param  Closure(string): mixed  $value  A setting's value, by property.
+     * @return list<string>
+     */
+    private function pdfMakerSetup(PdfMaker $maker, Closure $value): array
+    {
+        return [$maker->value, ...array_map(fn (string $property): string => (string) $value($property), self::PDF_MAKER_SETTINGS[$maker->value] ?? [])];
+    }
+
+    /**
+     * Makes a test PDF with a maker's values.
+     *
+     * @param  Closure(string): mixed  $value  A setting's value, by property.
+     */
+    private function checkPdfMaker(PdfMaker $maker, Closure $value): ConnectionCheckData
+    {
+        $check = app(PdfMakerCheck::class);
+
+        return match ($maker) {
+            PdfMaker::Weasyprint => $check->weasyprint((string) $this->valueInUse(ServerProgram::Weasyprint->property())),
+            PdfMaker::Cloudflare => $check->cloudflare((string) $value('pdf_cloudflare_account_id'), (string) $value('pdf_cloudflare_token')),
+            PdfMaker::Gotenberg => $check->gotenberg((string) $value('pdf_gotenberg_url'), (string) $value('pdf_gotenberg_username'), (string) $value('pdf_gotenberg_password')),
+        };
+    }
+
+    /**
+     * What the maker in use still lacks: the weasyprint program, or the
+     * service's required settings.
+     *
+     * @return list<string>
+     */
+    private function pdfMakerMissing(): array
+    {
+        return match (PdfMaker::inUse()) {
+            PdfMaker::Weasyprint => $this->programPath(ServerProgram::Weasyprint) === null ? ['the weasyprint program'] : [],
+            PdfMaker::Cloudflare, PdfMaker::Gotenberg => array_values(array_map(
+                fn (string $property): string => self::PDF_MAKER_LABELS[$property],
+                array_filter(self::PDF_MAKER_REQUIRED[PdfMaker::inUse()->value], fn (string $property): bool => blank($this->valueInUse($property))),
+            )),
+        };
+    }
+
+    private function pdfMakerSummary(): string
+    {
+        $maker = PdfMaker::inUse();
+        $missing = $this->pdfMakerMissing();
+
+        return match (true) {
+            $maker === PdfMaker::Weasyprint => $missing === [] ? 'WeasyPrint on this server' : 'WeasyPrint · not found on this server',
+            $missing !== [] => $maker->label().' · missing: '.implode(', ', $missing),
+            $maker === PdfMaker::Gotenberg => 'Gotenberg at '.$this->valueInUse('pdf_gotenberg_url'),
+            default => $maker->label(),
+        };
     }
 
     /** @return array<string, string> */

@@ -38,6 +38,12 @@ return new class extends SettingsMigration
             $group->add('ffmpeg_path');
             $group->add('ffprobe_path');
             $group->add('weasyprint_path');
+            $group->add('pdf_maker');
+            $group->add('pdf_cloudflare_account_id');
+            $group->addEncrypted('pdf_cloudflare_token');
+            $group->add('pdf_gotenberg_url');
+            $group->add('pdf_gotenberg_username');
+            $group->addEncrypted('pdf_gotenberg_password');
             $group->add('logs_page_enabled');
             $group->add('pulse_enabled');
             $group->add('spectra_enabled');

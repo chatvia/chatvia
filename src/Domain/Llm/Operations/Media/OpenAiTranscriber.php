@@ -11,20 +11,33 @@ use Illuminate\Support\Facades\Http;
  * Speech-to-text through OpenAI's `/audio/transcriptions` endpoint (Whisper,
  * `whisper-1` by default, set in `services.openai.transcription_model`), with
  * the OpenAI key and address of Settings → AI providers. OpenAI takes files of up to
- * 25 MB: the compressed audio (32 kbps) fits about an hour and a half.
+ * 25 MB in the formats below; anything else is first compressed to MP3
+ * (32 kbps fits about an hour and a half).
  */
 class OpenAiTranscriber implements Transcriber
 {
+    /** The formats OpenAI reads, by extension. */
+    private const array FORMATS = ['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'wav', 'webm'];
+
+    /** OpenAI refuses larger uploads. */
+    private const int MAX_BYTES = 25 * 1024 * 1024;
+
     public function transcribe(string $filePath): string
     {
+        // OpenAI tells the format by the file name.
         $response = Http::withToken((string) config('services.openai.api_key'))
             ->timeout(3600)
-            ->attach('file', (string) file_get_contents($filePath), 'audio.mp3')
+            ->attach('file', (string) file_get_contents($filePath), 'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)))
             ->post(rtrim((string) config('services.openai.api_endpoint'), '/').'/audio/transcriptions', [
                 'model' => $this->name(),
             ])->throw()->json();
 
         return str((string) ($response['text'] ?? ''))->trim()->toString();
+    }
+
+    public function takesAsIs(string $extension, int $bytes): bool
+    {
+        return in_array($extension, self::FORMATS, true) && $bytes > 0 && $bytes <= self::MAX_BYTES;
     }
 
     public function isEnabled(): bool

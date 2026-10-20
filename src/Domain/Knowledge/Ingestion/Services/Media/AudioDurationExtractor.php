@@ -2,12 +2,21 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Media;
 
+use getID3;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
+use Support\Executable;
+use Throwable;
 
 /**
- * Reads the duration of an audio or video file with ffprobe. The minutes are
- * the file's length in the sources UI.
+ * Reads the duration of an audio or video file. The minutes are the file's
+ * length in the sources UI, nothing more, so a file whose length cannot be
+ * read gets zero rather than being refused.
+ *
+ * ffprobe reads it when this server has it; otherwise getID3 reads it in
+ * PHP (from the headers, or the clusters of a WebM recording). A browser
+ * recording has no length in its header, so with ffprobe, ffmpeg decodes the
+ * whole stream to measure it.
  */
 class AudioDurationExtractor
 {
@@ -54,23 +63,19 @@ class AudioDurationExtractor
             );
         }
 
-        $duration = $this->probeContainerDuration($filePath);
+        $duration = Executable::exists($this->ffprobePath())
+            ? $this->probeContainerDuration($filePath)
+            : $this->headerDuration($filePath);
 
         // Browser MediaRecorder blobs (audio/webm, audio/mp4) are written as a live,
         // non-seekable stream, so the total duration is never stamped into the
         // container header and ffprobe reports "N/A". Fall back to decoding the
         // whole stream, which always yields a real duration.
-        if (! is_numeric($duration)) {
+        if (! is_numeric($duration) && Executable::exists($this->ffmpegPath())) {
             $duration = $this->decodeDuration($filePath);
         }
 
-        if (! is_numeric($duration)) {
-            throw new RuntimeException(
-                "Invalid duration value returned: {$duration}"
-            );
-        }
-
-        return (float) $duration;
+        return is_numeric($duration) ? max(0.0, (float) $duration) : 0.0;
     }
 
     /**
@@ -94,6 +99,20 @@ class AudioDurationExtractor
         }
 
         return trim($result->output());
+    }
+
+    /**
+     * Without ffprobe: the duration getID3 reads, or 'N/A' when it finds none.
+     */
+    private function headerDuration(string $filePath): string
+    {
+        try {
+            $seconds = new getID3()->analyze($filePath)['playtime_seconds'] ?? null;
+        } catch (Throwable) {
+            return 'N/A';
+        }
+
+        return is_numeric($seconds) && $seconds > 0 ? (string) $seconds : 'N/A';
     }
 
     /**

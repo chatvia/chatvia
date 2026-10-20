@@ -6,7 +6,7 @@
 # Development only. The production image is the Dockerfile at the root.
 FROM sail
 
-# poppler (PDF), pandoc (Word, ODT, RTF, EPUB, FB2), catdoc (old .doc and
+# poppler (PDF), pandoc (Word, ODT, RTF, EPUB), catdoc (old .doc and
 # .ppt), and Pango and fonts for WeasyPrint. ffmpeg and Python come with Sail.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

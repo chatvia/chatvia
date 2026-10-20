@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\UploadedFile;
@@ -12,7 +13,9 @@ use Inertia\Testing\AssertableInertia as Assert;
 /**
  * An admin chooses the file types workspaces may upload as knowledge
  * (Settings → Ingestion → File types). The upload endpoint refuses the others,
- * and the dashboard gets the accepted types with their extensions.
+ * and the files this server cannot read (a missing program, or a recording
+ * that needs ffmpeg), and the dashboard gets the accepted types with the
+ * extensions it can read. Ebooks need no program.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -88,3 +91,100 @@ it('says whether websites can be imported', function (): void {
         ->get(route('agents.sources.files', $this->agent))
         ->assertInertia(fn (Assert $page): Assert => $page->where('canImportWebsites', true));
 });
+
+it('refuses a file the workspace already uploaded', function (): void {
+    config(['chatvia.knowledge.file_types' => ['text']]);
+    $upload = fn () => $this->actingAs($this->owner)->postJson(route('agents.sources.files.upload', $this->agent), [
+        'file' => UploadedFile::fake()->createWithContent('opening-hours.txt', 'We open at nine.'),
+    ]);
+
+    $upload()->assertOk()->assertJsonPath('length', 1);
+    $upload()->assertStatus(422)->assertJsonPath('errors.file.0', 'You have already uploaded this file.');
+});
+
+it('refuses an old Word file at once, and leaves it out of the picker, when catdoc is not installed', function (): void {
+    config([
+        'chatvia.knowledge.file_types' => ['word'],
+        'services.bin.catdoc' => '/nowhere/catdoc',
+        'services.bin.pandoc' => '/bin/sh',
+    ]);
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.files.upload', $this->agent), [
+            'file' => UploadedFile::fake()->createWithContent('minutes.doc', "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1".str_repeat("\0", 512)),
+        ])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.file.0', 'This server can\'t read .doc files. Save the file as a PDF or .docx and upload it again.');
+
+    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->exists())->toBeFalse();
+
+    // Mistral OCR reads .docx itself; .rtf is read with pandoc, which is found.
+    $this->actingAs($this->owner)
+        ->get(route('agents.sources.files', $this->agent))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('knowledgeFileTypes.word', ['docx', 'rtf']));
+});
+
+it('offers ebooks and takes them on a server without pandoc, since the app reads them itself', function (): void {
+    config(['chatvia.knowledge.file_types' => ['ebook'], 'services.bin.pandoc' => '/nowhere/pandoc']);
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.sources.files', $this->agent))
+        ->assertInertia(fn (Assert $page): Assert => $page->where('knowledgeFileTypes.ebook', ['epub', 'fb2']));
+
+    $epub = create_temp_file('garden.epub', '');
+    $zip = new ZipArchive;
+    $zip->open($epub, ZipArchive::OVERWRITE);
+    $zip->addFromString('mimetype', 'application/epub+zip');
+    $zip->addFromString('META-INF/container.xml', '<?xml version="1.0"?><container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="content.opf"/></rootfiles></container>');
+    $zip->addFromString('content.opf', '<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf"><manifest><item id="c1" href="one.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="c1"/></spine></package>');
+    $zip->addFromString('one.xhtml', '<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>t</title></head><body><h1>Spring</h1><p>Plant potatoes.</p></body></html>');
+    $zip->close();
+    $fb2 = '<?xml version="1.0" encoding="utf-8"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><body><section><p>Sow peas in April.</p></section></body></FictionBook>';
+
+    foreach ([new UploadedFile($epub, 'garden.epub', 'application/epub+zip', null, true), UploadedFile::fake()->createWithContent('peas.fb2', $fb2)] as $file) {
+        $this->actingAs($this->owner)
+            ->postJson(route('agents.sources.files.upload', $this->agent), ['file' => $file])
+            ->assertOk()
+            ->assertJsonPath('length', 1);
+    }
+
+    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->pluck('filetype')->all())
+        ->toBe([KnowledgeFileType::Ebook, KnowledgeFileType::Ebook]);
+
+    @unlink($epub);
+});
+
+it('refuses a recording the speech service does not take as it is, on a server without ffmpeg', function (string $name, string $content, string $message): void {
+    config(['chatvia.knowledge.file_types' => ['audio'], 'services.bin.ffmpeg' => '/nowhere/ffmpeg']);
+    // Takes MP3 files up to 100 bytes as they are.
+    app()->instance(Transcriber::class, new class implements Transcriber
+    {
+        public function transcribe(string $filePath): string
+        {
+            return '';
+        }
+
+        public function takesAsIs(string $extension, int $bytes): bool
+        {
+            return $extension === 'mp3' && $bytes <= 100;
+        }
+
+        public function isEnabled(): bool
+        {
+            return true;
+        }
+
+        public function name(): string
+        {
+            return 'fake';
+        }
+    });
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.files.upload', $this->agent), ['file' => UploadedFile::fake()->createWithContent($name, $content)])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.file.0', $message);
+})->with([
+    'too large' => ['call.mp3', "ID3\x03\x00\x00\x00\x00\x00\x00".str_repeat("\xFF\xFB\x90\x00", 64), 'This recording is too large to turn into text on this server. Upload a shorter recording.'],
+    'another format' => ['call.wav', 'RIFF'.pack('V', 36).'WAVEfmt '.pack('V', 16).pack('vvVVvv', 1, 1, 16000, 32000, 2, 16).'data'.pack('V', 0), 'This server can\'t turn .wav files into text. Upload an MP3 file instead.'],
+]);

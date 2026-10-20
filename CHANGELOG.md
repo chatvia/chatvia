@@ -424,6 +424,11 @@ theme.
   PATH misses. A path must end in the program's own name, so the panel
   cannot be used to run another program. The `*_BIN_PATH` and
   `FFPROBE_PATH` variables are no longer read.
+- **EPUB and FB2 books need no pandoc.** Without pandoc, the app reads them
+  itself, so pandoc is needed only for RTF files. FB2 books are always read
+  by the app: pandoc garbles books saved in windows-1251 (common for Russian
+  books) and leaves out their tables. Their page count now comes from the
+  number of characters, so books in every language are counted.
 - `MAIL_URL` is no longer read. Set up e-mail in the admin panel
   (**Settings → Email**).
 - Sign-in buttons (Google, Microsoft, GitHub, Slack) only show for the

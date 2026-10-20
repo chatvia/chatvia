@@ -9,15 +9,16 @@ use RuntimeException;
 
 /**
  * Thin wrapper over the `pandoc` binary, used to extract text from structured
- * documents: the ebook formats (EPUB, FictionBook) and the word-processor
- * formats {@see OfficeText} reads with it (DOCX, ODT, RTF).
+ * documents: EPUB books when pandoc is installed ({@see EbookText}; the app
+ * reads them itself otherwise) and the word-processor formats
+ * {@see OfficeText} reads with it (DOCX, ODT, RTF). FictionBook stays
+ * readable here for the reader comparison eval; uploads read it in PHP.
  *
  * These are already text, so there's nothing to OCR: `toMarkdown()` feeds the
  * direct-chunk ingestion pipeline (titles preserved for the text splitter),
- * `toText()` feeds FileAnalyzer's word-count page estimate, and
- * `toGithubMarkdown()` gives office documents Markdown with pipe tables. We
- * never produce a PDF — there's no LaTeX/PDF engine installed. The reader is
- * passed explicitly via `--from` because the uploaded temp file carries no
+ * and `toGithubMarkdown()` gives office documents Markdown with pipe tables.
+ * We never produce a PDF — there's no LaTeX/PDF engine installed. The reader
+ * is passed explicitly via `--from` because the uploaded temp file carries no
  * extension for Pandoc to infer the input format from.
  */
 class Pandoc
@@ -38,11 +39,6 @@ class Pandoc
     public function __construct()
     {
         $this->binPath = config('services.bin.pandoc');
-    }
-
-    public function toText(string $path, string $extension): string
-    {
-        return $this->convert($path, $extension, 'plain');
     }
 
     public function toMarkdown(string $path, string $extension): string

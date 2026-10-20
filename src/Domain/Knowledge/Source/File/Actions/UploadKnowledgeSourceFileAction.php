@@ -3,11 +3,15 @@
 namespace Domain\Knowledge\Source\File\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Document\Conversion\ConversionPrograms;
+use Domain\Knowledge\Ingestion\Services\Media\TranscriptionAudio;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
+use Domain\Knowledge\Source\File\Exceptions\UnreadableSourceFileException;
 use Domain\Knowledge\Source\File\Exceptions\UnsupportedSourceFileException;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Services\FileAnalyzer;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\DB;
@@ -30,9 +34,12 @@ class UploadKnowledgeSourceFileAction
 {
     public function __construct(
         private readonly FileAnalyzer $analyzer,
+        private readonly ConversionPrograms $programs,
+        private readonly TranscriptionAudio $audio,
     ) {}
 
     /**
+     * @throws UnreadableSourceFileException when the type is on but this server cannot read this file
      * @throws UnsupportedSourceFileException when the knowledge base cannot ingest the file type
      */
     public function execute(
@@ -40,6 +47,8 @@ class UploadKnowledgeSourceFileAction
         UploadedSourceFileData $upload,
         SourceStatus $status = SourceStatus::Uploaded,
     ): SourceFile {
+        $this->ensureReadableHere($upload);
+
         if (! $upload->isSupported()) {
             throw new UnsupportedSourceFileException;
         }
@@ -76,6 +85,37 @@ class UploadKnowledgeSourceFileAction
             Storage::delete($path);
 
             throw $e;
+        }
+    }
+
+    /**
+     * Refuses a file of a type that is on, but that this server cannot read:
+     * a format whose program is missing, or a recording the speech-to-text
+     * service does not take as it is while there is no ffmpeg to compress it.
+     * The recording is judged by the format of its content, as it is stored.
+     */
+    private function ensureReadableHere(UploadedSourceFileData $upload): void
+    {
+        $extension = $upload->extension();
+
+        if (SourceFileTypes::isDocument($upload->originalName)) {
+            if (SourceFileTypes::category($upload->originalName)->isEnabled() && $this->programs->missingFor($extension) !== null) {
+                throw UnreadableSourceFileException::missingProgram($extension);
+            }
+
+            return;
+        }
+
+        if (! SourceFileTypes::isSupportedMedia($upload->mimeType)) {
+            return;
+        }
+
+        $format = (string) new File($upload->path)->guessExtension();
+
+        if (! $this->audio->canTranscribe($upload->path, $format)) {
+            throw $this->audio->readsFormat($format)
+                ? UnreadableSourceFileException::mediaTooLarge()
+                : UnreadableSourceFileException::mediaFormat($extension !== '' ? $extension : $format);
         }
     }
 }

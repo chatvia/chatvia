@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\File\Enums;
 
+use Domain\Knowledge\Document\Conversion\ConversionPrograms;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Llm\Contracts\Transcriber;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -99,5 +100,24 @@ enum KnowledgeFileType: string
             self::Audio => ['mp3', 'm4a', 'wav', 'ogg', 'webm', 'flac', 'aac', 'wma', 'amr', '3gp'],
             self::Video => ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv', 'qt', '3gp'],
         };
+    }
+
+    /**
+     * The extensions this server can read now: those whose program
+     * ({@see ConversionPrograms}) is installed, such as .doc only with
+     * catdoc. Audio and video keep them all: each recording is checked as
+     * it is uploaded, by its size too.
+     *
+     * @return list<string>
+     */
+    public function readableExtensions(): array
+    {
+        if ($this->isMedia()) {
+            return $this->extensions();
+        }
+
+        $programs = app(ConversionPrograms::class);
+
+        return array_values(array_filter($this->extensions(), fn (string $extension): bool => $programs->missingFor($extension) === null));
     }
 }

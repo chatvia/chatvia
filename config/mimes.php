@@ -104,13 +104,14 @@ return [
      *            from OfficeText (slides and sheets exact, other formats
      *            estimated). .txt/.md sit here for page counting but are
      *            chunked directly (FileAnalyzer skips the OCR step for them).
-     *   pandoc → structured-text ebooks (EPUB, FictionBook). No OCR and no PDF
-     *            engine is installed — Pandoc extracts their text for direct
-     *            chunking, and pages are estimated from the word count.
+     *   ebook  → structured-text ebooks (EPUB, FictionBook). No OCR: EbookText
+     *            reads them as Markdown for direct chunking (pandoc for EPUB
+     *            when installed, the built-in readers otherwise), and pages
+     *            are estimated from the length of the text.
      */
     'ocr' => [
         'image' => ['jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp'],
         'office' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xlsx', 'csv', 'rtf', 'txt', 'md', 'markdown'],
-        'pandoc' => ['epub', 'fb2'],
+        'ebook' => ['epub', 'fb2'],
     ],
 ];

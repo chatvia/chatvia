@@ -61,7 +61,7 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
         // GDPR Art. 15/20 — let the user request a copy of their personal data
         // and download it for 24 hours before it's pruned by
-        // `app:prune-expired-data-exports`.
+        // `chatvia:prune:data-exports`.
         Route::get('data-export', [DataExportController::class, 'edit'])->name('data-export.edit');
         Route::post('data-export', [DataExportController::class, 'store'])
             ->middleware('throttle:5,60,data-export')

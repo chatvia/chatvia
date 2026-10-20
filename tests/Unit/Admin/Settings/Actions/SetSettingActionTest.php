@@ -7,7 +7,7 @@ use App\Admin\Settings\WorkspaceSettings;
 
 /**
  * SetSettingAction: one admin-panel setting set by its `group.property` key,
- * as `app:setting` does, cast to the property type and copied into config.
+ * as `chatvia:settings:set` does, cast to the property type and copied into config.
  */
 it('saves a setting by its key and casts it to the property type', function (): void {
     $action = app(SetSettingAction::class);

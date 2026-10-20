@@ -11,7 +11,7 @@ use Spatie\LaravelSettings\Events\SavingSettings;
 
 /**
  * When the embedding service or its model changes (Settings → AI models, the
- * admin setup, `app:setting`), embeds everything stored as vectors again:
+ * admin setup, `chatvia:settings:set`), embeds everything stored as vectors again:
  * knowledge and tools. Search compares the question's vector with the stored
  * ones, and vectors of two models cannot be compared. A change of the model
  * of a service not in use changes nothing.

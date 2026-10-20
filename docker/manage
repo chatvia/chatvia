@@ -1636,7 +1636,7 @@ check_restored_version() {
 }
 
 # The embedding settings in .env must match the restored tables, or the app
-# refuses to start (app:check-embedding-storage).
+# refuses to start (chatvia:search:check-embedding-storage).
 use_restored_storage() {
     local storage=$RESTORED_STORAGE type size current_type current_size
     [ -n "$storage" ] || return 0
@@ -1731,7 +1731,7 @@ cmd_password() {
 set_password() {
     local options=(--stdin --no-interaction)
     if [ "$2" = 1 ]; then options+=(--disable-two-factor); fi
-    printf '%s\n' "$PASSWORD_INPUT" | compose exec -T app php artisan admin:reset-password "$1" "${options[@]}"
+    printf '%s\n' "$PASSWORD_INPUT" | compose exec -T app php artisan chatvia:admin:reset-password "$1" "${options[@]}"
 }
 
 cmd_admin() {
@@ -1791,7 +1791,7 @@ cmd_admin() {
 }
 
 create_admin() {
-    printf '%s\n' "$PASSWORD_INPUT" | compose exec -T app php artisan admin:create-user "$1" "$2" --stdin --no-interaction
+    printf '%s\n' "$PASSWORD_INPUT" | compose exec -T app php artisan chatvia:admin:create-user "$1" "$2" --stdin --no-interaction
 }
 
 cmd_psql() {
@@ -1823,7 +1823,7 @@ cmd_sync_tools() {
     check_docker
     need_running app
     run_step 'Adding the built-in tools to the tool catalog' \
-        compose exec -T app php artisan app:sync-builtin-mcp --no-interaction ||
+        compose exec -T app php artisan chatvia:mcp:sync-builtin --no-interaction ||
         die 'The built-in tools were not added.' \
             'They need your embedding provider: add its API key in the admin panel' \
             '(Settings → AI providers), then run this again.'

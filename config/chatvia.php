@@ -368,7 +368,7 @@ return [
     | How the database stores embeddings (EmbeddingStorage). Set these before
     | the first migration and never change them: the embedding columns and
     | their indexes are created with them, and `php artisan
-    | app:check-embedding-storage` stops a start whose values no longer
+    | chatvia:search:check-embedding-storage` stops a start whose values no longer
     | match the database.
     |
     | `type` "halfvec" takes 2 bytes per dimension, half the space of
@@ -458,7 +458,7 @@ return [
     | pg_textsearch when it is installed. `text_config` is the Postgres text
     | search configuration both drivers tokenize with; "simple" works for
     | every language (no stemming). After changing either, run `php artisan
-    | search:lexical-indexes` to rebuild the indexes.
+    | chatvia:search:lexical-indexes` to rebuild the indexes.
     |
     */
 
@@ -482,7 +482,7 @@ return [
     | model is stored as `unknown_country_code` or
     | `unknown_llm_external_name`.
     |
-    | `analysis`: app:analyze-conversations reads each conversation once,
+    | `analysis`: chatvia:analytics:analyze-conversations reads each conversation once,
     | `scan_age_hours` after it starts, and retries a run that saved nothing
     | up to `max_attempts` runs. A new topic shows once it comes up in
     | `min_occurrences` conversations, with at most `max_examples` examples.
@@ -583,7 +583,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The dashboard's notification center keeps a notification this many
-    | days after its last activity, read or not; `app:prune-notifications`
+    | days after its last activity, read or not; `chatvia:prune:notifications`
     | deletes older ones every night. Set in the admin panel (Settings →
     | Workspaces).
     |

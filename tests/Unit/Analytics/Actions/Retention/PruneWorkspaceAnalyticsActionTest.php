@@ -97,12 +97,12 @@ it('never uses a window below the configured floor', function (): void {
         ->and(pwaCounts($workspace))->each->toBe(1);
 });
 
-it('runs from the app:prune-workspace-analytics command', function (): void {
+it('runs from the chatvia:prune:workspace-analytics command', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
     pwaRetention($workspace, 30);
     pwaSeed($workspace, daysAgo: 45);
 
-    $this->artisan('app:prune-workspace-analytics', ['--batch' => 1])->assertSuccessful();
+    $this->artisan('chatvia:prune:workspace-analytics', ['--batch' => 1])->assertSuccessful();
 
     expect(pwaCounts($workspace))->each->toBe(0);
 });

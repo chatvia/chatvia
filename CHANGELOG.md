@@ -23,7 +23,7 @@ theme.
   (the default) uses pg_textsearch when it is installed and the built-in
   full-text search when it is not; `SEARCH_TEXT_CONFIG` picks the text search
   configuration (default `simple`, which works for every language). After
-  changing either, run `php artisan search:lexical-indexes`.
+  changing either, run `php artisan chatvia:search:lexical-indexes`.
 - The Postgres Docker image is now `ghcr.io/chatvia/postgres`
   (pgvector + pg_textsearch), replacing `tensorchord/vchord-suite`.
 - Embedding dimensions are capped at what the HNSW index accepts: 4000 for
@@ -364,7 +364,7 @@ theme.
 - **Spectra** logs every AI call at `/spectra`: the model, the tokens, the
   cost and the time it took, also for streamed replies. It opens for the
   same admins, and keeps its log in a database of its own
-  (`DB_SPECTRA_DATABASE`, by default `spectra`). `app:create-tool-databases`
+  (`DB_SPECTRA_DATABASE`, by default `spectra`). `chatvia:db:create-tool-databases`
   creates the Pulse and Spectra databases (it replaces
   `app:create-pulse-database`).
 - **Settings → Platform** turns Pulse and Spectra on and off. Pulse records
@@ -386,14 +386,14 @@ theme.
   (`shm_size`). The complete installation tunes the same way from the
   server's memory and processors, into PostgreSQL's `conf.d/chatvia.conf`.
 - **The queue workers size themselves to the machine.** `php artisan
-  app:tune-workers` reads the memory and processors (a container limit
+  chatvia:workers:tune` reads the memory and processors (a container limit
   counts) and saves a worker count per pool — chat, files and websites,
   analytics, audio and video, voice — as the Settings → Platform values,
   where you change them later. `--dry-run` only shows the numbers,
   `--restart` restarts a running Horizon so they apply. Both installers run
   it once at the end of an install, so a new install starts sized to its
   machine instead of the smallest server's defaults (in Docker:
-  `./manage artisan app:tune-workers --restart`).
+  `./manage artisan chatvia:workers:tune --restart`).
 - **Redis 8.** The Docker stack runs `redis:8.10-alpine`, and the complete
   installation takes the newest Redis from packages.redis.io when it carries
   that Ubuntu release (Ubuntu 26.04's own Redis 8 otherwise).
@@ -454,8 +454,8 @@ theme.
   emoji are never cut in two.
 - The **tokenizer** is a setting. It counts the chunk size when it is in
   tokens, and the size of every stored chunk.
-- `php artisan app:settings` lists the admin-panel settings (never secrets);
-  `php artisan app:setting group.property value` sets one, for installers
+- `php artisan chatvia:settings:list` lists the admin-panel settings (never secrets);
+  `php artisan chatvia:settings:set group.property value` sets one, for installers
   and scripts. An API key is read from standard input when the value is left
   out.
 - The embedding provider and its model are locked in the admin panel once a
@@ -479,7 +479,7 @@ theme.
   server or S3-compatible storage. Knowledge files follow it too: the default
   disk is always `private`, and `FILESYSTEM_DISK` is no longer read. With
   nothing set, files stay on the local disk.
-- `php artisan admin:create-user` creates an admin with its own workspace,
+- `php artisan chatvia:admin:create-user` creates an admin with its own workspace,
   the usual way to create the first account.
 - `.env.example` was rewritten: a fresh copy starts without paid services.
 - An installation guide in the documentation

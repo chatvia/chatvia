@@ -279,7 +279,7 @@ it).
 `EMBEDDING_VECTOR_TYPE` (`halfvec`, the default, or `vector`) and
 `EMBEDDING_DIMENSIONS` (default `1024`). The tables are created with these
 values, so you cannot change them later. The app stops with an error when they
-no longer match the database (`php artisan app:check-embedding-storage`).
+no longer match the database (`php artisan chatvia:search:check-embedding-storage`).
 
 Sign-up, the message limit of new workspaces and how long conversations are
 kept are set later in the admin panel (**Settings → Workspaces**), not in
@@ -288,7 +288,7 @@ kept are set later in the admin panel (**Settings → Workspaces**), not in
 ### 4. Create the database schema and demo data
 
 ```bash
-php artisan app:create-tool-databases
+php artisan chatvia:db:create-tool-databases
 php artisan migrate --seed
 php artisan storage:link
 ```
@@ -311,7 +311,7 @@ built-in tools (charts, forms, weather, currency, web search) to the tool
 catalog:
 
 ```bash
-php artisan app:sync-builtin-mcp
+php artisan chatvia:mcp:sync-builtin
 ```
 
 ## Running the app
@@ -381,14 +381,14 @@ file and CI do not use either.
    vendor/bin/sail artisan key:generate
    vendor/bin/sail npm ci
    vendor/bin/sail npm run shakomako:build
-   vendor/bin/sail artisan app:create-tool-databases
+   vendor/bin/sail artisan chatvia:db:create-tool-databases
    vendor/bin/sail artisan migrate --seed
    vendor/bin/sail artisan storage:link
    ```
 
    Set `BUILTIN_MCP_SECRET` in `.env`, run `vendor/bin/sail restart`, then
    add your API keys as in [step 5](#5-add-your-api-keys), with
-   `vendor/bin/sail artisan app:sync-builtin-mcp`.
+   `vendor/bin/sail artisan chatvia:mcp:sync-builtin`.
 
 5. Start Vite and open <http://localhost:8000>:
 
@@ -607,11 +607,11 @@ steps without Docker, done by hand. In short:
   Redis, Reverb and so on). Mail, storage, API keys and the AI services are
   set in the admin panel, under **Settings**.
 - Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
-- Run `php artisan app:create-tool-databases`, then
+- Run `php artisan chatvia:db:create-tool-databases`, then
   `php artisan migrate --seed --force` (in production the seeders load
   only the list of AI models, no demo data), create the first admin with
-  `php artisan admin:create-user <email> <name>`, add your API keys in the
-  admin panel, then run `php artisan app:sync-builtin-mcp`.
+  `php artisan chatvia:admin:create-user <email> <name>`, add your API keys in the
+  admin panel, then run `php artisan chatvia:mcp:sync-builtin`.
 - Set up e-mail in the admin panel (**Settings → Email**). People who sign up at `/register` must
   confirm their e-mail address before they can use the app, and invitations
   and sign-in links also go out by e-mail.

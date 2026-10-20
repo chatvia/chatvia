@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Bus;
  * discovery finds new and removed pages, then training scrapes every page and
  * re-embeds only those that changed. A website busy crawling or training is
  * left for the next run, and one no agent uses is skipped. Runs hourly
- * (`app:refresh-websites`).
+ * (`chatvia:knowledge:refresh-websites`).
  */
 class RefreshDueWebsitesAction
 {

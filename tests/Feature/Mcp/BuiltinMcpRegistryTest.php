@@ -14,7 +14,7 @@ use Tests\Support\Mcp\InternalMcp;
  * Provision + attach the opt-in charts connector to an agent the way a
  * workspace would: an account-level row sharing the central catalog, a
  * membership for each synced charts tool, and the agent pivot. Assumes
- * `app:sync-builtin-mcp` has already populated the shared `connector_tools`
+ * `chatvia:mcp:sync-builtin` has already populated the shared `connector_tools`
  * catalog for 'charts'.
  */
 function attachCharts(Agent $agent): AgentMcpServer
@@ -47,7 +47,7 @@ function attachCharts(Agent $agent): AgentMcpServer
 }
 
 it('catalogs the built-in servers as global rows and indexes their tools', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
 
     $globals = AgentMcpServer::query()->whereNull('workspace_id')->get();
     expect($globals)->toHaveCount(2);
@@ -68,14 +68,14 @@ it('catalogs the built-in servers as global rows and indexes their tools', funct
 });
 
 it('is idempotent — re-running keeps two global rows', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
 
     expect(AgentMcpServer::query()->whereNull('workspace_id')->count())->toBe(2);
 });
 
 it('routes a message-count question to the message stats tool, with its dispatch URL', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
 
     $result = app(BuiltinToolRouter::class)->route(
         'how many messages did I get this cycle',
@@ -95,7 +95,7 @@ it('routes a message-count question to the message stats tool, with its dispatch
 });
 
 it('does not make charts ambient — an unattached agent gets neither charts nor forms', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
 
     $agent = Agent::factory()->create(); // nothing attached
 
@@ -110,7 +110,7 @@ it('does not make charts ambient — an unattached agent gets neither charts nor
 });
 
 it('surfaces charts tools once the agent attaches the connector', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
 
     $agent = Agent::factory()->create();
     attachCharts($agent);
@@ -134,7 +134,7 @@ function registryBarChartCall(): array
 }
 
 it('403s an unattached agent on the charts route, allows it once attached', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
     $agent = Agent::factory()->create();
 
     $identity = ['X-Chatvia-Agent-Id' => $agent->external_id];
@@ -157,7 +157,7 @@ it('403s an unattached agent on the charts route, allows it once attached', func
 });
 
 it('authorizes the analytics chat (workspace mode) on the charts route', function (): void {
-    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+    $this->artisan('chatvia:mcp:sync-builtin')->assertSuccessful();
 
     // The owner "Ask your data" chat reaches /mcp/charts with a signed
     // workspace id and no agent.

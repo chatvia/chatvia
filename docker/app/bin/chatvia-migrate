@@ -41,14 +41,14 @@ done
 
 # Pulse (/pulse) and Spectra (/spectra) keep their data in databases of their
 # own, next to the app's.
-php artisan app:create-tool-databases --no-interaction
+php artisan chatvia:db:create-tool-databases --no-interaction
 
 php artisan migrate --force --no-interaction
 
 # EMBEDDING_VECTOR_TYPE and EMBEDDING_DIMENSIONS are chosen at install. When
 # they were changed afterwards this fails, so the app does not start with
 # settings that would break every search.
-php artisan app:check-embedding-storage --no-interaction
+php artisan chatvia:search:check-embedding-storage --no-interaction
 
 admin_email="${ADMIN_EMAIL:-admin@example.com}"
 admin_password="${ADMIN_PASSWORD:-}"
@@ -58,7 +58,7 @@ if [ -z "$admin_password" ]; then
     generated_password=true
 fi
 
-output=$(php artisan admin:create-user "$admin_email" "${ADMIN_NAME:-Admin}" "$admin_password" --if-no-admin --if-missing --no-interaction)
+output=$(php artisan chatvia:admin:create-user "$admin_email" "${ADMIN_NAME:-Admin}" "$admin_password" --if-no-admin --if-missing --no-interaction)
 echo "$output"
 
 if [ "$generated_password" = true ] && echo "$output" | grep -q 'created successfully'; then
@@ -79,14 +79,14 @@ fi
 # The tool catalog stores an embedding of each tool, so this needs the
 # embedding provider's API key (admin panel, Settings -> AI providers). On a
 # new install that key is not there yet: the stack still starts.
-if ! php artisan app:sync-builtin-mcp --no-interaction; then
+if ! php artisan chatvia:mcp:sync-builtin --no-interaction; then
     cat <<'EOF'
 
 The built-in tools (charts, forms, weather, currency, web search) are not in
 the tool catalog yet. Add your embedding provider's API key in the admin panel
 (Settings -> AI providers), then run:
 
-    docker compose exec app php artisan app:sync-builtin-mcp
+    docker compose exec app php artisan chatvia:mcp:sync-builtin
 
 EOF
 fi

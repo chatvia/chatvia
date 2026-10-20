@@ -308,7 +308,7 @@ class ViewWorkspace extends ViewRecord
     }
 
     /**
-     * For an owner who cannot get the reset email, like `admin:reset-password`
+     * For an owner who cannot get the reset email, like `chatvia:admin:reset-password`
      * on the command line. The old password stops working at once.
      */
     private function setPasswordAction(): Action

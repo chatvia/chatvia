@@ -7,7 +7,7 @@ use Laravel\Horizon\Contracts\MasterSupervisorRepository;
 use Laravel\Horizon\Contracts\SupervisorRepository;
 
 /**
- * app:tune-workers sizes the queue workers to this machine and saves them as
+ * chatvia:workers:tune sizes the queue workers to this machine and saves them as
  * the Settings → Platform values, for installers and scripts. The sizing
  * itself is in tests/Unit/Admin/Settings/WorkerSizingTest.php.
  */
@@ -26,7 +26,7 @@ function tuneWorkersHorizonNotRunning(): void
 it('saves the recommended worker numbers', function (): void {
     tuneWorkersHorizonNotRunning();
 
-    $this->artisan('app:tune-workers')
+    $this->artisan('chatvia:workers:tune')
         ->expectsOutputToContain('Saved.')
         ->assertSuccessful();
 
@@ -38,7 +38,7 @@ it('saves the recommended worker numbers', function (): void {
 it('saves nothing with --dry-run', function (): void {
     tuneWorkersHorizonNotRunning();
 
-    $this->artisan('app:tune-workers', ['--dry-run' => true])
+    $this->artisan('chatvia:workers:tune', ['--dry-run' => true])
         ->expectsOutputToContain('Nothing was saved (--dry-run).')
         ->assertSuccessful();
 

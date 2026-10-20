@@ -4,8 +4,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /*
- * app:create-tool-databases runs before the migrations (Docker's migrate
- * step, db:fresh): it creates the Pulse and Spectra databases when the server
+ * chatvia:db:create-tool-databases runs before the migrations (Docker's migrate
+ * step, chatvia:db:fresh): it creates the Pulse and Spectra databases when the server
  * does not have them, and leaves existing ones alone. The tests point the
  * `pulse` and `spectra` connections at the testing database (phpunit.xml).
  */
@@ -16,7 +16,7 @@ function ctdDatabaseExists(string $name): bool
 }
 
 it('leaves existing tool databases alone', function (): void {
-    $this->artisan('app:create-tool-databases')
+    $this->artisan('chatvia:db:create-tool-databases')
         ->expectsOutputToContain('The Pulse database "testing" is there.')
         ->expectsOutputToContain('The Spectra database "testing" is there.')
         ->assertSuccessful();
@@ -28,7 +28,7 @@ it('creates a tool database when the server does not have it', function (string 
     DB::purge($connection);
 
     try {
-        $this->artisan('app:create-tool-databases')
+        $this->artisan('chatvia:db:create-tool-databases')
             ->expectsOutputToContain("Created the {$tool} database \"{$name}\".")
             ->assertSuccessful();
 

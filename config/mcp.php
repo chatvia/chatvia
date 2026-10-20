@@ -13,7 +13,7 @@ return [
     | Built-in MCP registry
     |--------------------------------------------------------------------------
     |
-    | Chatvia's first-party MCP servers that `app:sync-builtin-mcp` catalogs as
+    | Chatvia's first-party MCP servers that `chatvia:mcp:sync-builtin` catalogs as
     | GLOBAL (user_id IS NULL) rows in `mcp_servers` and embeds into `mcp_tools`,
     | so the agent-less "Ask your data" chat can semantically route over them
     | (BuiltinToolRouter) instead of shipping every tool to the model each turn.

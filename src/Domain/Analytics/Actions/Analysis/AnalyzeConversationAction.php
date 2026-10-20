@@ -16,7 +16,7 @@ use Support\Localization\Language\Models\Language;
 
 /**
  * End-of-life conversation analysis. Run once per conversation by the scheduled
- * `app:analyze-conversations` pass (~6h after creation), it makes a SINGLE
+ * `chatvia:analytics:analyze-conversations` pass (~6h after creation), it makes a SINGLE
  * structured LLM call over the full transcript and records, in one shot:
  *  - language, tone and sentiment on the conversation
  *  - every existing topic that applies (multi-label) → conversation_topics rows

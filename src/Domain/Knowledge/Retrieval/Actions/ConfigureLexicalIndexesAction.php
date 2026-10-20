@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
  * (LexicalSearch): pg_textsearch `bm25` indexes, or GIN expression indexes for
  * the built-in full-text search. The index names are fixed — queries reference
  * them (`to_bm25query`) — so switching the driver or the text configuration
- * means re-running `php artisan search:lexical-indexes`. The create migrations
+ * means re-running `php artisan chatvia:search:lexical-indexes`. The create migrations
  * call this per table, after their table exists.
  */
 final readonly class ConfigureLexicalIndexesAction

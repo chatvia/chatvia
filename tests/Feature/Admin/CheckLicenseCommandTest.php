@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Tests\Support\LicenseKeys;
 
 /**
- * The daily license check from the command line (`app:check-license`): a key
+ * The daily license check from the command line (`chatvia:license:check`): a key
  * that chatvia.ai no longer has active for this domain is removed and the
  * credit shows again. The action's other answers are in
  * tests/Unit/Admin/Settings/CheckLicenseActionTest.php.
@@ -27,7 +27,7 @@ beforeEach(function (): void {
 it('removes a key that was deactivated at chatvia.ai', function (): void {
     Http::fake(['licenses.test/api/licenses/check' => Http::response(['active' => false])]);
 
-    $this->artisan('app:check-license')->assertSuccessful();
+    $this->artisan('chatvia:license:check')->assertSuccessful();
 
     expect(savedSetting(BrandSettings::class, 'license_key'))->toBeNull()
         ->and(app(BrandSettings::class)->powered_by_enabled)->toBeNull()

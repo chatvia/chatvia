@@ -14,6 +14,7 @@ use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\DocumentServiceCheck;
+use App\Admin\Settings\LlmTaskText;
 use App\Admin\Settings\RerankerCheck;
 use BackedEnum;
 use Closure;
@@ -99,14 +100,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private const string REINDEX_NOTE = 'Files are not read again: only the embeddings are made again.';
 
     /** The app's tasks on the "Models for app tasks" card, by when they run. */
-    private const array TASK_GROUPS = [
-        'During a chat (the reply waits for these)' => [LlmTask::FollowUp, LlmTask::ToolRouting, LlmTask::Guardrails],
-        'After a reply (in the background)' => [LlmTask::Titles, LlmTask::ConversationAnalysis],
-        'Agent setup' => [LlmTask::Starters, LlmTask::Translation, LlmTask::FormText, LlmTask::ChatAddress],
-        'Training sources' => [LlmTask::Enhancement, LlmTask::Tables, LlmTask::Images],
-        'Testing' => [LlmTask::EvalJudge],
-    ];
-
     #[\Override]
     protected static string $settings = AiSettings::class;
 
@@ -338,7 +331,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'Every task below without its own model uses this one: guardrails, follow-up questions, titles and other small jobs. A small, fast model suits them. Empty: the default model for new agents.'),
                 ...array_map(fn (string $group, array $tasks): Fieldset => Fieldset::make($group)
                     ->columns(1)
-                    ->schema(array_map($this->taskChoice(...), $tasks)), array_keys(self::TASK_GROUPS), self::TASK_GROUPS),
+                    ->schema(array_map($this->taskChoice(...), $tasks)), array_keys(LlmTaskText::GROUPS), LlmTaskText::GROUPS),
             ])->properties('task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTask::appTasks()))
                 ->summary(fn (): string => $this->tasksSummary())
                 ->advanced(),
@@ -642,24 +635,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** One task's model, with a "?" that says what uses it and which model fits. */
     private function taskChoice(LlmTask $task): Select
     {
-        [$label, $help] = match ($task) {
-            LlmTask::FollowUp => ['Follow-up questions', 'Turns a short follow-up, like "and the price?", into a full question for the search. Runs before the reply, so pick a small, fast model. Turned on in Settings → Knowledge → Follow-up questions.'],
-            LlmTask::ToolRouting => ['Tool picking', 'When an agent could change data with the tools of more than one connector, picks the connector a message is about. Runs before the reply, so pick a small, fast model.'],
-            LlmTask::Guardrails => ['Guardrails', 'Checks each message for prompt injection, off-topic questions and toxicity, when an agent has these checks on. Runs before the reply, so pick a small, fast model.'],
-            LlmTask::Titles => ['Conversation titles', 'Writes a short title for each conversation from its first messages.'],
-            LlmTask::ConversationAnalysis => ['Conversation analysis', 'Finds the topics, sentiment, tone and language of conversations, for Analytics. The model must be able to reply in a fixed JSON format.'],
-            LlmTask::Starters => ['Conversation starters', 'Suggests conversation starters for an agent, when asked in its setup.'],
-            LlmTask::Translation => ['Translating agent texts', 'Translates an agent\'s title, welcome message and message box hint into each language when they are saved.'],
-            LlmTask::FormText => ['Form descriptions', 'Rewrites the description of a form, when asked in the form editor.'],
-            LlmTask::ChatAddress => ['Hosted chat addresses', 'Suggests a short address for an agent\'s hosted chat (/chat/…).'],
-            LlmTask::Enhancement => ['AI enhancement', 'Writes a summary and the likely questions for each part of a file or web page while sources are trained. One call per part, so large files make many calls. Turned on in Settings → Knowledge → AI enhancement.'],
-            LlmTask::Tables => ['Tables', 'Turns the tables inside documents into plain text, so search can find what they say.'],
-            LlmTask::Images => ['Image descriptions', 'Describes the pictures inside documents, so search can find them. Needs a model that reads images.'],
-            LlmTask::EvalJudge => ['Evaluation judge', 'Scores an agent\'s answers in evaluations. A stronger model gives fairer scores.'],
-            LlmTask::Chat => throw new InvalidArgumentException('The chat model is "Default model for new agents".'),
-        };
-
-        return $this->withHelp($this->modelChoice($task->settingsProperty(), $label, unset: 'Same as the model for quick tasks'), $help);
+        return $this->withHelp($this->modelChoice($task->settingsProperty(), LlmTaskText::label($task), unset: 'Same as the model for quick tasks'), LlmTaskText::help($task));
     }
 
     /**

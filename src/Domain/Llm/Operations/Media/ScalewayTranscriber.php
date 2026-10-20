@@ -4,6 +4,7 @@ namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Providers\Scaleway;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -27,7 +28,7 @@ class ScalewayTranscriber implements Transcriber
             ->timeout(86000)
             ->attach(
                 'file',
-                (string) file_get_contents($filePath),
+                File::get($filePath),
                 'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)),
             )
             ->post(Scaleway::baseUrl().'/audio/transcriptions', [

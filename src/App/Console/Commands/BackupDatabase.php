@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
@@ -97,7 +98,7 @@ class BackupDatabase extends Command
             $this->info(sprintf('Backed up %s (%s) to %s:%s.', $db['database'] ?? '', $this->humanBytes($bytes), self::DISK, $remotePath));
             Log::info('Database backup uploaded.', ['path' => $remotePath, 'bytes' => $bytes]);
         } finally {
-            @unlink($tmpPath);
+            File::delete($tmpPath);
         }
 
         $this->prune($keep);

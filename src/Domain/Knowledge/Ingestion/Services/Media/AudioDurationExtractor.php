@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Services\Media;
 
 use getID3;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
 use Support\Executable;
@@ -44,7 +45,7 @@ class AudioDurationExtractor
      */
     public function getDurationInSeconds(string $filePath): float
     {
-        if (! is_file($filePath)) {
+        if (! File::isFile($filePath)) {
             throw new RuntimeException("File not found: {$filePath}");
         }
 

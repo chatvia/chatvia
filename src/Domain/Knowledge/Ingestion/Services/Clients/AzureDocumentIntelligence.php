@@ -10,6 +10,7 @@ use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 
@@ -39,7 +40,7 @@ class AzureDocumentIntelligence
         $started = $this->client()
             ->timeout(120)
             ->post($this->url("documentModels/{$model}:analyze").'&outputContentFormat=markdown', [
-                'base64Source' => base64_encode((string) file_get_contents($path)),
+                'base64Source' => base64_encode(File::get($path)),
             ]);
 
         // Azure says why it refused a file (too large for the free tier, a
@@ -77,7 +78,7 @@ class AzureDocumentIntelligence
             throw DocumentParsingException::failed('Azure Document Intelligence returned no operation to wait for.');
         }
 
-        $deadline = time() + self::MAX_WAIT_SECONDS;
+        $deadline = now()->addSeconds(self::MAX_WAIT_SECONDS);
 
         while (true) {
             $response = $this->client()->timeout(60)->get($operation)->throw();
@@ -87,7 +88,7 @@ class AzureDocumentIntelligence
                 return (array) $response->json();
             }
 
-            if ($status === 'failed' || time() >= $deadline) {
+            if ($status === 'failed' || now()->gte($deadline)) {
                 throw DocumentParsingException::failed(mb_substr((string) ($response->json('error.message') ?? 'Azure Document Intelligence did not finish.'), 0, 200));
             }
 

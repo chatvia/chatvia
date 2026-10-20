@@ -507,6 +507,119 @@ it('empty checks use filled()/blank(), not hand-written comparisons with an empt
     ]));
 });
 
+/**
+ * Local files, outside programs, waits, clocks and ids go through Laravel
+ * (.ai/rules/laravel-first.md): File, Process, Http, Sleep, now() and
+ * Str::uuid7() can be faked in tests, the plain functions cannot. Listed:
+ * files that still call one, with how many calls each may keep.
+ */
+const NATIVE_IO_CALL_ALLOWLIST = [
+    // Streams: written or read piece by piece, which File has no call for.
+    'src/App/Console/Commands/BackupDatabase.php' => 1,
+    'src/App/Identity/Workspace/Actions/DataExport/BuildDataExportArchiveAction.php' => 2,
+    'src/Domain/Form/Actions/ExportSubmissionsCsvAction.php' => 1,
+    'src/Domain/Knowledge/Ingestion/Actions/Website/CompleteWebsiteIngestionAction.php' => 1,
+    'src/Support/Json/JsonArrayFile.php' => 1,
+    'src/Domain/Knowledge/Document/Conversion/Markdown/CompoundFile.php' => 2,
+    // Reads only the first bytes of the file.
+    'src/Domain/Knowledge/Document/Conversion/BuiltinPdfInspector.php' => 1,
+    // Silences the warning a path outside open_basedir gives.
+    'src/Support/Executable.php' => 1,
+    // Not converted yet.
+    'src/Domain/Knowledge/Document/Conversion/Markdown/RtfReader.php' => 1,
+    'src/Domain/Knowledge/Ingestion/Services/Parsing/LocalDocumentParser.php' => 1,
+];
+
+/** The plain PHP functions the rule replaces; every `curl_*` function too. */
+const NATIVE_IO_FUNCTIONS = [
+    'file_get_contents', 'file_put_contents', 'fopen', 'unlink', 'mkdir', 'rmdir',
+    'is_file', 'file_exists', 'glob', 'exec', 'shell_exec', 'system', 'passthru',
+    'proc_open', 'sleep', 'usleep', 'time', 'strtotime', 'uniqid',
+];
+
+/**
+ * Line numbers in $code that call one of NATIVE_IO_FUNCTIONS: the name
+ * followed by `(`, but not a method (`->exec()`, `File::glob()`), a function
+ * or constant being declared, or a word in a comment or string.
+ *
+ * @return list<int>
+ */
+function conventionNativeIoCalls(string $code): array
+{
+    $tokens = array_values(array_filter(
+        PhpToken::tokenize($code),
+        fn (PhpToken $token): bool => ! $token->isIgnorable(),
+    ));
+    $lines = [];
+
+    foreach ($tokens as $i => $token) {
+        if (! $token->is([T_STRING, T_NAME_FULLY_QUALIFIED]) || ($tokens[$i + 1] ?? null)?->text !== '(') {
+            continue;
+        }
+
+        $name = strtolower(ltrim($token->text, '\\'));
+
+        if (! in_array($name, NATIVE_IO_FUNCTIONS, true) && ! str_starts_with($name, 'curl_')) {
+            continue;
+        }
+
+        if (($tokens[$i - 1] ?? null)?->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW, T_CONST])) {
+            continue;
+        }
+
+        $lines[] = $token->line;
+    }
+
+    return $lines;
+}
+
+it('local files, programs, waits and clocks go through Laravel, not plain PHP functions', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $found = [];
+
+    foreach (conventionPhpFiles('src') as $path) {
+        $lines = conventionNativeIoCalls((string) file_get_contents($path));
+
+        if ($lines !== []) {
+            $found[str_replace($root, '', $path)] = $lines;
+        }
+    }
+
+    ksort($found);
+
+    // Drift up: a new call, or one more in an allowlisted file.
+    $newOffenders = [];
+
+    foreach ($found as $file => $lines) {
+        if (count($lines) > (NATIVE_IO_CALL_ALLOWLIST[$file] ?? 0)) {
+            $newOffenders[] = $file.':'.implode(',', $lines);
+        }
+    }
+
+    expect($newOffenders)->toBe([], implode("\n", [
+        '',
+        'Plain PHP file/process/time call(s) — use File, Process, Http, Sleep, now() or Str::uuid7() (.ai/rules/laravel-first.md):',
+        ...array_map(fn (string $o): string => "  - {$o}", $newOffenders),
+        '',
+        'Or, where Laravel has no equivalent (a stream, a partial read), add the file to NATIVE_IO_CALL_ALLOWLIST in this file.',
+    ]));
+
+    // Drift down: an allowlisted call is gone, so the list must shrink too.
+    $nowClean = [];
+
+    foreach (NATIVE_IO_CALL_ALLOWLIST as $file => $allowed) {
+        if (count($found[$file] ?? []) < $allowed) {
+            $nowClean[] = $file;
+        }
+    }
+
+    expect($nowClean)->toBe([], implode("\n", [
+        '',
+        'Allowlisted file has fewer plain file/process/time calls — lower or remove its NATIVE_IO_CALL_ALLOWLIST entry:',
+        ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
 // --- Event wiring --------------------------------------------------------
 
 it('every listener is registered in a service provider', function (): void {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\Transcriber;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -27,7 +28,7 @@ class OpenAiTranscriber implements Transcriber
         // OpenAI tells the format by the file name.
         $response = Http::withToken((string) config('services.openai.api_key'))
             ->timeout(3600)
-            ->attach('file', (string) file_get_contents($filePath), 'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)))
+            ->attach('file', File::get($filePath), 'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)))
             ->post(rtrim((string) config('services.openai.api_endpoint'), '/').'/audio/transcriptions', [
                 'model' => $this->name(),
             ])->throw()->json();

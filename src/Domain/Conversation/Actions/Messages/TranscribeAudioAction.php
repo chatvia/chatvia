@@ -7,6 +7,7 @@ namespace Domain\Conversation\Actions\Messages;
 use Domain\Knowledge\Ingestion\Services\Media\TranscriptionAudio;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Exceptions\TranscriptionNotConfiguredException;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 /**
@@ -36,14 +37,12 @@ class TranscribeAudioAction
 
         $workingCopy = create_temp_dir('/transcription').'/'.Str::uuid().'.'.$extension;
 
-        copy($audioPath, $workingCopy);
+        File::copy($audioPath, $workingCopy);
 
         try {
             return $this->audio->withPrepared($workingCopy, $this->transcriber->transcribe(...));
         } finally {
-            if (file_exists($workingCopy)) {
-                @unlink($workingCopy);
-            }
+            File::delete($workingCopy);
         }
     }
 }

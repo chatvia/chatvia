@@ -714,6 +714,17 @@ declare namespace Domain {
                 is_active: boolean;
                 submissions_count: number;
             };
+            export type FormPreviewAppearanceData = {
+                title: string | null;
+                logo_url: string | null;
+                avatar_url: string | null;
+                color_theme: string;
+                color_shade: number;
+                theme: string;
+                composer_placeholder: string | null;
+                voice_input: boolean;
+                show_branding: boolean;
+            };
             export type SubmissionData = {
                 external_id: string;
                 values: Record<string, any>;

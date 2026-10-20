@@ -2290,7 +2290,14 @@
             "field_type_radio": "Yksi valinta",
             "field_type_checkbox": "Valintaruutu",
             "field_type_multicheckbox": "Monivalinta",
-            "field_type_date": "Päivämäärä"
+            "field_type_date": "Päivämäärä",
+            "preview_ai_label": "Tekoälyavustaja",
+            "preview_intro": "Toki! Täytä alla oleva lomake.",
+            "preview_required": "Tämä kenttä on pakollinen.",
+            "preview_show_form_again": "Näytä lomake uudelleen",
+            "preview_user_message": "Hei! Voitko auttaa minua?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Lomakkeet näkyvät vain chat-widgetissä ja komentopalkissa."
         },
         "submissions": {
             "page_title": "Lähetykset",

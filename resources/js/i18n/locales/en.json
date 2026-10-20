@@ -2290,7 +2290,14 @@
             "field_type_radio": "Single choice",
             "field_type_checkbox": "Checkbox",
             "field_type_multicheckbox": "Multiple choice",
-            "field_type_date": "Date"
+            "field_type_date": "Date",
+            "preview_ai_label": "AI assistant",
+            "preview_intro": "Sure! Please fill in the form below.",
+            "preview_required": "This field is required.",
+            "preview_show_form_again": "Show the form again",
+            "preview_user_message": "Hi! Can you help me?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Forms show only in the Chat Widget and the Command Bar."
         },
         "submissions": {
             "page_title": "Submissions",

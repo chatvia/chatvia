@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "AI-assistent",
+            "preview_intro": "Självklart! Fyll i formuläret nedan.",
+            "preview_required": "Det här fältet är obligatoriskt.",
+            "preview_show_form_again": "Visa formuläret igen",
+            "preview_user_message": "Hej! Kan du hjälpa mig?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Formulär visas bara i chattwidgeten och kommandofältet."
+        }
+    }
+}

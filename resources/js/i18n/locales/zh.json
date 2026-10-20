@@ -2290,7 +2290,14 @@
             "field_type_radio": "单选",
             "field_type_checkbox": "复选框",
             "field_type_multicheckbox": "多选",
-            "field_type_date": "日期"
+            "field_type_date": "日期",
+            "preview_ai_label": "AI 助手",
+            "preview_intro": "好的！请填写下面的表单。",
+            "preview_required": "此字段为必填项。",
+            "preview_show_form_again": "再次显示表单",
+            "preview_user_message": "你好！你能帮我吗？",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "表单仅在聊天小部件和命令栏中显示。"
         },
         "submissions": {
             "page_title": "提交记录",

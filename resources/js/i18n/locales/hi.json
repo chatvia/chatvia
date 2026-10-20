@@ -2290,7 +2290,14 @@
             "field_type_radio": "एकल विकल्प",
             "field_type_checkbox": "चेकबॉक्स",
             "field_type_multicheckbox": "एकाधिक विकल्प",
-            "field_type_date": "तारीख"
+            "field_type_date": "तारीख",
+            "preview_ai_label": "AI सहायक",
+            "preview_intro": "ज़रूर! कृपया नीचे दिया गया फ़ॉर्म भरें।",
+            "preview_required": "यह फ़ील्ड आवश्यक है।",
+            "preview_show_form_again": "फ़ॉर्म फिर से दिखाएँ",
+            "preview_user_message": "नमस्ते! क्या आप मेरी मदद कर सकते हैं?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "फ़ॉर्म केवल चैट विजेट और कमांड बार में दिखते हैं।"
         },
         "submissions": {
             "page_title": "सबमिशन",

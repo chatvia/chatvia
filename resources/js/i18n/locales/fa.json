@@ -2290,7 +2290,14 @@
             "field_type_radio": "تک‌گزینه‌ای",
             "field_type_checkbox": "چک‌باکس",
             "field_type_multicheckbox": "چندگزینه‌ای",
-            "field_type_date": "تاریخ"
+            "field_type_date": "تاریخ",
+            "preview_ai_label": "دستیار هوش مصنوعی",
+            "preview_intro": "حتماً! لطفاً فرم زیر را پر کنید.",
+            "preview_required": "این فیلد الزامی است.",
+            "preview_show_form_again": "نمایش دوباره فرم",
+            "preview_user_message": "سلام! می‌توانید به من کمک کنید؟",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "فرم‌ها فقط در ابزارک گفتگو و نوار فرمان نمایش داده می‌شوند."
         },
         "submissions": {
             "page_title": "ارسال‌ها",

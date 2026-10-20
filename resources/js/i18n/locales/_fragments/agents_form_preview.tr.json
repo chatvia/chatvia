@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "Yapay zekâ asistanı",
+            "preview_intro": "Elbette! Lütfen aşağıdaki formu doldurun.",
+            "preview_required": "Bu alan zorunludur.",
+            "preview_show_form_again": "Formu yeniden göster",
+            "preview_user_message": "Merhaba! Bana yardımcı olabilir misiniz?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Formlar yalnızca Sohbet Widget'ında ve Komut Çubuğu'nda görünür."
+        }
+    }
+}

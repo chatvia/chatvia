@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "Assistente de IA",
+            "preview_intro": "Claro! Preencha o formulário abaixo.",
+            "preview_required": "Este campo é obrigatório.",
+            "preview_show_form_again": "Mostrar o formulário novamente",
+            "preview_user_message": "Olá! Pode me ajudar?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Os formulários aparecem apenas no widget de chat e na barra de comandos."
+        }
+    }
+}

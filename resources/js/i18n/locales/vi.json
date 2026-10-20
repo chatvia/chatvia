@@ -2290,7 +2290,14 @@
             "field_type_radio": "Một lựa chọn",
             "field_type_checkbox": "Hộp kiểm",
             "field_type_multicheckbox": "Nhiều lựa chọn",
-            "field_type_date": "Ngày"
+            "field_type_date": "Ngày",
+            "preview_ai_label": "Trợ lý AI",
+            "preview_intro": "Chắc chắn rồi! Vui lòng điền vào biểu mẫu bên dưới.",
+            "preview_required": "Trường này là bắt buộc.",
+            "preview_show_form_again": "Hiển thị lại biểu mẫu",
+            "preview_user_message": "Xin chào! Bạn có thể giúp tôi không?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Biểu mẫu chỉ hiển thị trong Tiện ích trò chuyện và Thanh lệnh."
         },
         "submissions": {
             "page_title": "Lượt gửi",

@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "ИИ-ассистент",
+            "preview_intro": "Конечно! Пожалуйста, заполните форму ниже.",
+            "preview_required": "Это поле обязательно.",
+            "preview_show_form_again": "Показать форму снова",
+            "preview_user_message": "Здравствуйте! Можете мне помочь?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Формы показываются только в чат-виджете и командной строке."
+        }
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "KI-Assistent",
+            "preview_intro": "Gern! Bitte füllen Sie das Formular unten aus.",
+            "preview_required": "Dieses Feld ist erforderlich.",
+            "preview_show_form_again": "Formular erneut anzeigen",
+            "preview_user_message": "Hallo! Können Sie mir helfen?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Formulare werden nur im Chat-Widget und in der Befehlsleiste angezeigt."
+        }
+    }
+}

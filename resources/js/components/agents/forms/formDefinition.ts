@@ -1,11 +1,9 @@
 /**
  * Types and pure helpers for the agent's form builder: the form and field
  * shapes the Forms page edits, the allowed form and field types, the
- * "value|label" option list format, the live preview schema and the payload
+ * "value|label" option list format, the fields the live preview shows and the payload
  * sent when a form is saved.
  */
-import type { FormKitSchemaDefinition } from '@formkit/core';
-
 // Type aliases (not interfaces) where a shape ends up in Inertia visit data,
 // which needs an index signature.
 export type FormFieldOption = {
@@ -106,33 +104,9 @@ export function optionsText(field: FormField): string {
     return (field.options ?? []).map((option) => (option.label === option.value ? option.value : `${option.value}|${option.label}`)).join('\n');
 }
 
-const FORMKIT_INPUTS: Record<string, string> = {
-    text: 'text',
-    email: 'email',
-    tel: 'tel',
-    number: 'number',
-    textarea: 'textarea',
-    select: 'select',
-    radio: 'radio',
-    checkbox: 'checkbox',
-    multicheckbox: 'checkbox',
-    date: 'date',
-};
-
-/** The FormKit schema for the live preview (mirrors the server-side FormSchemaBuilder). */
-export function previewSchema(form: FormDefinition): FormKitSchemaDefinition {
-    const nodes = form.schema
-        .filter((field) => field.label && field.key)
-        .map((field) => {
-            const node: Record<string, unknown> = { $formkit: FORMKIT_INPUTS[field.type] ?? 'text', name: field.key, label: field.label };
-            if (field.placeholder) node.placeholder = field.placeholder;
-            if (OPTION_TYPES.includes(field.type)) node.options = field.options ?? [];
-            if (field.type === 'multicheckbox') node.multiple = true;
-            if (field.required) node.validation = 'required';
-            return node;
-        });
-
-    return nodes as unknown as FormKitSchemaDefinition;
+/** The fields the live preview can show: those with both a label and a key. */
+export function previewFields(form: FormDefinition): FormField[] {
+    return form.schema.filter((field) => field.label && field.key);
 }
 
 export type FormSavePayload = {

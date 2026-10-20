@@ -2,13 +2,18 @@
 
 declare(strict_types=1);
 
+use App\Admin\Settings\ServerProgram;
+use App\Admin\Settings\ServerProgramFinder;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\Migrations\SettingsBlueprint;
 use Spatie\LaravelSettings\Migrations\SettingsMigration;
 
 /**
- * The rows of App\Admin\Settings\PlatformSettings, all empty: an empty value
- * keeps its config default until an admin saves one.
+ * The rows of App\Admin\Settings\PlatformSettings, empty (an empty value
+ * keeps its config default until an admin saves one) except the program
+ * paths: each holds the full path `which` finds on this server, as the Detect
+ * button would, so the queue worker runs the same file even when its PATH
+ * misses the folder. A program that is not found stays empty.
  */
 return new class extends SettingsMigration
 {
@@ -30,14 +35,14 @@ return new class extends SettingsMigration
             $group->add('analytics_workers');
             $group->add('media_workers');
             $group->add('voice_workers');
-            $group->add('pdfinfo_path');
-            $group->add('pdftotext_path');
-            $group->add('pandoc_path');
-            $group->add('catdoc_path');
-            $group->add('catppt_path');
-            $group->add('ffmpeg_path');
-            $group->add('ffprobe_path');
-            $group->add('weasyprint_path');
+
+            $programs = app(ServerProgramFinder::class);
+
+            foreach (ServerProgram::cases() as $program) {
+                // An install must not stop over a server without `which`.
+                $group->add($program->property(), rescue(fn (): ?string => $programs->detect($program), report: false));
+            }
+
             $group->add('pdf_maker');
             $group->add('pdf_cloudflare_account_id');
             $group->addEncrypted('pdf_cloudflare_token');

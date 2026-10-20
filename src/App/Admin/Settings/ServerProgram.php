@@ -45,9 +45,9 @@ enum ServerProgram: string
         return match ($this) {
             self::Pdfinfo => 'Counts the pages of PDF files and finds locked ones. Without it, the app does this itself. Part of poppler.',
             self::Pdftotext => 'Only a backup: the document reader (Mistral OCR or Azure) reads PDF files. This program reads a PDF only if it is trained again after the reader is turned off. Part of poppler.',
-            self::Pandoc => 'Reads RTF files, which no document reader reads. Without it, .rtf files cannot be uploaded. It also reads EPUB books and counts the pages of Word (.docx) files. Without it, the app reads EPUB books itself, and the page count is an estimate.',
-            self::Catdoc => 'Reads old Word files (.doc). Mistral OCR and Azure do not read them, so without it, .doc files cannot be uploaded.',
-            self::Catppt => 'Reads old PowerPoint files (.ppt). Mistral OCR and Azure do not read them, so without it, .ppt files cannot be uploaded. Part of catdoc.',
+            self::Pandoc => 'Reads EPUB books and Word (.docx) files. Without it, the app reads them itself. It is also a backup for RTF files, which the app reads itself.',
+            self::Catdoc => 'Only a backup: the app reads old Word files (.doc) itself. This program reads one only if the app cannot.',
+            self::Catppt => 'Only a backup: the app reads old PowerPoint files (.ppt) itself. This program reads one only if the app cannot. Part of catdoc.',
             self::Ffmpeg => 'Compresses audio and video for speech to text, when a file is too large for the service or in a format it does not take. Needed only when speech to text is on.',
             self::Ffprobe => 'Measures how long audio and video files are. Without it, the app does this itself. Part of ffmpeg.',
             self::Weasyprint => 'Makes PDFs (chat exports, and the PDF of an office file for its summary) when it is the PDF maker. Not needed with Cloudflare or Gotenberg.',
@@ -62,13 +62,22 @@ enum ServerProgram: string
     public function lossWhenMissing(): ?string
     {
         return match ($this) {
-            self::Pdfinfo, self::Ffprobe => null,
+            self::Pdfinfo, self::Ffprobe, self::Pandoc, self::Catdoc, self::Catppt => null,
             self::Pdftotext => app(DocumentReaders::class)->available() ? null : __('PDF files cannot be trained again while no document reader is on. Install it, or turn on Mistral OCR or Azure.'),
-            self::Pandoc => __('.rtf files cannot be uploaded.'),
-            self::Catdoc => __('.doc files cannot be uploaded.'),
-            self::Catppt => __('.ppt files cannot be uploaded.'),
             self::Ffmpeg => app(Transcriber::class)->isEnabled() ? __('Recordings over 25 MB, or in a format the speech-to-text service does not take, cannot be turned into text.') : null,
             self::Weasyprint => PdfMaker::inUse() === PdfMaker::Weasyprint ? __('Chat PDF exports and summaries of office files fail. Install it, or pick Cloudflare or Gotenberg as the PDF maker.') : null,
+        };
+    }
+
+    /**
+     * Whether the app does the program's work itself when it is not found,
+     * so a missing one costs nothing whatever the settings.
+     */
+    public function hasBuiltinFallback(): bool
+    {
+        return match ($this) {
+            self::Pdfinfo, self::Ffprobe, self::Pandoc, self::Catdoc, self::Catppt => true,
+            self::Pdftotext, self::Ffmpeg, self::Weasyprint => false,
         };
     }
 

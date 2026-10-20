@@ -92,6 +92,30 @@ final class MarkdownText
     }
 
     /**
+     * A table as blocks: a pipe table, or, for a one-column table (almost
+     * always a box drawn around text), each line of it as a paragraph.
+     *
+     * @param  list<list<string>>  $rows
+     * @return list<array{0: string, 1: string}>
+     */
+    public static function tableBlocks(array $rows): array
+    {
+        if (max([0, ...array_map(count(...), $rows)]) > 1) {
+            return [[self::BLOCK, self::table($rows)]];
+        }
+
+        $blocks = [];
+
+        foreach (explode("\n", implode("\n", array_merge(...[[], ...$rows]))) as $line) {
+            if (filled($line)) {
+                $blocks[] = [self::BLOCK, self::paragraph(trim($line))];
+            }
+        }
+
+        return $blocks;
+    }
+
+    /**
      * Joins blocks: the items of one list one line apart, everything else
      * a blank line apart.
      *

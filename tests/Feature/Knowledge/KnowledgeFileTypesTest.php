@@ -9,13 +9,15 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\OldOffice\PowerPointBinaryFile;
+use Tests\Support\OldOffice\WordBinaryFile;
 
 /**
  * An admin chooses the file types workspaces may upload as knowledge
  * (Settings → Ingestion → File types). The upload endpoint refuses the others,
- * and the files this server cannot read (a missing program, or a recording
- * that needs ffmpeg), and the dashboard gets the accepted types with the
- * extensions it can read. Ebooks need no program.
+ * and the files this server cannot read (a recording that needs ffmpeg), and
+ * the dashboard gets the accepted types with the extensions it can read.
+ * Documents and ebooks need no program.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -102,26 +104,40 @@ it('refuses a file the workspace already uploaded', function (): void {
     $upload()->assertStatus(422)->assertJsonPath('errors.file.0', 'You have already uploaded this file.');
 });
 
-it('refuses an old Word file at once, and leaves it out of the picker, when catdoc is not installed', function (): void {
+it('offers and takes old Word, RTF and PowerPoint files on a server without catdoc, catppt or pandoc', function (): void {
     config([
-        'chatvia.knowledge.file_types' => ['word'],
+        'chatvia.knowledge.file_types' => ['word', 'presentation'],
         'services.bin.catdoc' => '/nowhere/catdoc',
-        'services.bin.pandoc' => '/bin/sh',
+        'services.bin.catppt' => '/nowhere/catppt',
+        'services.bin.pandoc' => '/nowhere/pandoc',
     ]);
 
-    $this->actingAs($this->owner)
-        ->postJson(route('agents.sources.files.upload', $this->agent), [
-            'file' => UploadedFile::fake()->createWithContent('minutes.doc', "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1".str_repeat("\0", 512)),
-        ])
-        ->assertStatus(422)
-        ->assertJsonPath('errors.file.0', 'This server can\'t read .doc files. Save the file as a PDF or .docx and upload it again.');
-
-    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->exists())->toBeFalse();
-
-    // Mistral OCR reads .docx itself; .rtf is read with pandoc, which is found.
+    // The app reads them itself; Mistral OCR reads .docx and .pptx.
     $this->actingAs($this->owner)
         ->get(route('agents.sources.files', $this->agent))
-        ->assertInertia(fn (Assert $page): Assert => $page->where('knowledgeFileTypes.word', ['docx', 'rtf']));
+        ->assertInertia(fn (Assert $page): Assert => $page
+            ->where('knowledgeFileTypes.word', ['doc', 'docx', 'rtf'])
+            ->where('knowledgeFileTypes.presentation', ['ppt', 'pptx']));
+
+    $doc = new WordBinaryFile()->paragraph('Minutes of the board meeting.')->save();
+    $ppt = new PowerPointBinaryFile()->slide(['Welcome'])->slide(['Prices'])->save();
+
+    foreach ([
+        [new UploadedFile($doc, 'minutes.doc', 'application/msword', null, true), 1],
+        [new UploadedFile($ppt, 'deck.ppt', 'application/vnd.ms-powerpoint', null, true), 2],
+        [UploadedFile::fake()->createWithContent('letter.rtf', '{\\rtf1\\ansi\\pard Dear visitor,\\par}'), 1],
+    ] as [$file, $pages]) {
+        $this->actingAs($this->owner)
+            ->postJson(route('agents.sources.files.upload', $this->agent), ['file' => $file])
+            ->assertOk()
+            ->assertJsonPath('length', $pages);
+    }
+
+    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->pluck('filetype')->all())
+        ->toBe([KnowledgeFileType::Word, KnowledgeFileType::Presentation, KnowledgeFileType::Word]);
+
+    @unlink($doc);
+    @unlink($ppt);
 });
 
 it('offers ebooks and takes them on a server without pandoc, since the app reads them itself', function (): void {

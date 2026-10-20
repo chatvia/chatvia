@@ -9,10 +9,11 @@ use RuntimeException;
 
 /**
  * Thin wrapper over the `pandoc` binary, used to extract text from structured
- * documents: EPUB books when pandoc is installed ({@see EbookText}; the app
- * reads them itself otherwise) and the word-processor formats
- * {@see OfficeText} reads with it (DOCX, ODT, RTF). FictionBook stays
- * readable here for the reader comparison eval; uploads read it in PHP.
+ * documents when pandoc is installed: EPUB books ({@see EbookText}) and
+ * DOCX and ODT files ({@see OfficeText}); the app reads them itself
+ * otherwise. For RTF it is only a backup, for a file the app's reader cannot
+ * read. FictionBook stays readable here for the reader comparison eval;
+ * uploads read it in PHP.
  *
  * These are already text, so there's nothing to OCR: `toMarkdown()` feeds the
  * direct-chunk ingestion pipeline (titles preserved for the text splitter),

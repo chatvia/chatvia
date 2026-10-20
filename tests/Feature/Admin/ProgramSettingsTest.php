@@ -100,22 +100,22 @@ it('shows whether this server finds each program', function (): void {
 });
 
 it('marks a program the app can do without as not needed, and one it cannot as missing', function (): void {
-    // pdfinfo has a built-in fallback; catdoc does not.
-    app(PlatformSettings::class)->fill(['pdfinfo_path' => '/nowhere/pdfinfo', 'catdoc_path' => '/nowhere/catdoc'])->save();
+    // pdfinfo has a built-in fallback; with no document reader on, pdftotext has none.
+    config(['chatvia.ai.document_parser' => 'none']);
+    app(PlatformSettings::class)->fill(['pdfinfo_path' => '/nowhere/pdfinfo', 'pdftotext_path' => '/nowhere/pdftotext'])->save();
 
     Livewire::actingAs($this->admin, 'admin')->test(ManagePlatformSettings::class)
         ->assertSee('Not found · not needed')
-        ->assertSee('Now: .doc files cannot be uploaded.')
-        ->assertSee('Not found: catdoc');
+        ->assertSee('Now: PDF files cannot be trained again while no document reader is on.')
+        ->assertSee('Not found: pdftotext');
 });
 
-it('says a missing pandoc costs only RTF files, since the app reads the ebooks itself', function (): void {
-    app(PlatformSettings::class)->fill(['pandoc_path' => '/nowhere/pandoc'])->save();
+it('says missing pandoc, catdoc and catppt cost nothing, since the app reads every document format itself', function (): void {
+    app(PlatformSettings::class)->fill(['pandoc_path' => '/nowhere/pandoc', 'catdoc_path' => '/nowhere/catdoc', 'catppt_path' => '/nowhere/catppt'])->save();
 
     Livewire::actingAs($this->admin, 'admin')->test(ManagePlatformSettings::class)
-        ->assertSee('Now: .rtf files cannot be uploaded.')
-        ->assertDontSee('.epub')
-        ->assertDontSee('.fb2');
+        ->assertSee('Not found · not needed')
+        ->assertDontSee('cannot be uploaded');
 });
 
 it('says what each missing program stops, with the settings in use', function (): void {
@@ -126,8 +126,10 @@ it('says what each missing program stops, with the settings in use', function ()
         // Speech to text is off; another maker makes PDFs.
         ->and(ServerProgram::Ffmpeg->lossWhenMissing())->toBeNull()
         ->and(ServerProgram::Weasyprint->lossWhenMissing())->toBeNull()
-        // The app reads EPUB and FB2 books itself.
-        ->and(ServerProgram::Pandoc->lossWhenMissing())->toBe('.rtf files cannot be uploaded.');
+        // The app reads every document format itself.
+        ->and(ServerProgram::Pandoc->lossWhenMissing())->toBeNull()
+        ->and(ServerProgram::Catdoc->lossWhenMissing())->toBeNull()
+        ->and(ServerProgram::Catppt->lossWhenMissing())->toBeNull();
 
     config(['chatvia.ai.transcriber' => 'scaleway', 'services.scalewayai.api_key' => 'key', 'laravel-pdf.driver' => 'weasyprint']);
 

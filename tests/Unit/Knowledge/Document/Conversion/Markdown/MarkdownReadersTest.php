@@ -1,6 +1,8 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\MarkdownReaders;
+use Tests\Support\OldOffice\PowerPointBinaryFile;
+use Tests\Support\OldOffice\WordBinaryFile;
 
 /**
  * The built-in readers by file extension.
@@ -12,8 +14,11 @@ it('knows which formats it reads', function (): void {
         ->and($readers->supports('odt'))->toBeTrue()
         ->and($readers->supports('epub'))->toBeTrue()
         ->and($readers->supports('fb2'))->toBeTrue()
-        ->and($readers->supports('rtf'))->toBeFalse()
-        ->and(fn (): string => $readers->toMarkdown(__FILE__, 'rtf'))->toThrow(InvalidArgumentException::class);
+        ->and($readers->supports('RTF'))->toBeTrue()
+        ->and($readers->supports('doc'))->toBeTrue()
+        ->and($readers->supports('ppt'))->toBeTrue()
+        ->and($readers->supports('pptx'))->toBeFalse()
+        ->and(fn (): string => $readers->toMarkdown(__FILE__, 'pptx'))->toThrow(InvalidArgumentException::class);
 });
 
 it('reads a file with the reader for its extension', function (): void {
@@ -22,4 +27,15 @@ it('reads a file with the reader for its extension', function (): void {
     expect(new MarkdownReaders()->toMarkdown($path, 'FB2'))->toBe('Hello.');
 
     @unlink($path);
+});
+
+it('reads an old Word file and gives an old presentation slide by slide', function (): void {
+    $document = new WordBinaryFile()->paragraph('Hello from Word 97.')->save();
+    $deck = new PowerPointBinaryFile()->slide(['One'])->slide(['Two'])->save();
+
+    expect(new MarkdownReaders()->toMarkdown($document, 'DOC'))->toBe('Hello from Word 97.')
+        ->and(new MarkdownReaders()->slides($deck))->toBe(['One', 'Two']);
+
+    @unlink($document);
+    @unlink($deck);
 });

@@ -431,6 +431,7 @@ final readonly class ServiceChecks
         $checks = array_map(fn (ServerProgram $program): ServiceCheckData => match (true) {
             ! in_array($program, $missing, true) => new ServiceCheckData($program->value, __('Found')),
             isset($losses[$program->value]) => new ServiceCheckData($program->value, __('Not found'), CheckMark::Info, __('Optional'), $losses[$program->value]),
+            $program->hasBuiltinFallback() => new ServiceCheckData($program->value, __('Not found'), CheckMark::Skipped, __('Built-in used')),
             default => new ServiceCheckData($program->value, __('Not found'), CheckMark::Skipped, __('Not needed now')),
         }, [...$losing, ...array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => ! in_array($program, $losing, true))]);
 
@@ -447,7 +448,22 @@ final readonly class ServiceChecks
         }
 
         if ($missing !== []) {
-            return new ServiceStatusData(ServiceState::Running, __('Every program needed is found.'), hint: __('Not found: :list. Nothing needs them now.', ['list' => $names($missing)]), checks: $checks);
+            // Why each missing one costs nothing: the app does its work
+            // itself, or the settings in use do not run it.
+            $builtin = array_values(array_filter($missing, fn (ServerProgram $program): bool => $program->hasBuiltinFallback()));
+            $unused = array_values(array_filter($missing, fn (ServerProgram $program): bool => ! $program->hasBuiltinFallback()));
+
+            $hint = match (true) {
+                $unused === [] => __('Not found: :list. The app does this work itself.', ['list' => $names($builtin)]),
+                $builtin === [] => __('Not found: :list. Not used with the current settings.', ['list' => $names($unused)]),
+                default => __('Not found: :list. The app does the work of :builtin itself, and the current settings do not use :unused.', [
+                    'list' => $names($missing),
+                    'builtin' => $names($builtin),
+                    'unused' => $names($unused),
+                ]),
+            };
+
+            return new ServiceStatusData(ServiceState::Running, __('Every program needed is found.'), hint: $hint, checks: $checks);
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Every program is found.'), checks: $checks);

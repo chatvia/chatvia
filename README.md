@@ -131,12 +131,11 @@ explains how to work on it.
 - **System tools** for some file types. They are all optional: without one,
   the app does its work itself, or refuses only the files it cannot read. So
   ChatVia.ai also runs on a host that does not let you install programs:
-  - [pandoc](https://pandoc.org/): RTF files, EPUB books, and the page count of Word (`.docx`) files.
-    Without it, RTF files cannot be uploaded. The app reads EPUB books itself.
-  - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): old Word (`.doc`)
-    and PowerPoint (`.ppt`) files. The document readers (Mistral OCR, Azure) do not read them, so
-    without catdoc they cannot be uploaded. PowerPoint (`.pptx`) and Excel (`.xlsx`) files need no
-    extra program.
+  - [pandoc](https://pandoc.org/): EPUB books and Word (`.docx`) files. Without it, the app reads
+    them itself. The app reads RTF files itself; pandoc is only a backup for them.
+  - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): only a backup
+    for old Word (`.doc`) and PowerPoint (`.ppt`) files, which the app reads itself. PowerPoint
+    (`.pptx`) and Excel (`.xlsx`) files need no extra program either.
   - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files. `pdfinfo`
     counts their pages and finds locked ones; without it, the app does this itself. `pdftotext` is
     only a backup: the document reader reads PDF files.

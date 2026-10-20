@@ -9,12 +9,11 @@ use Support\Executable;
 
 /**
  * Which program a document format needs on this server, and whether it is
- * missing: pandoc for RTF (and DOCX when no document reader reads it),
- * catdoc and catppt for the old Word and PowerPoint files, unless the
- * document reader in use reads the format itself. The ebooks need none: the
- * app reads them itself when pandoc is missing ({@see EbookText}). A file
- * whose program is missing could be uploaded but never trained, so the
- * upload refuses it and the picker leaves it out.
+ * missing, unless the document reader in use reads the format itself. A
+ * file whose program is missing could be uploaded but never trained, so the
+ * upload refuses it and the picker leaves it out. No format needs one now:
+ * the app reads every format itself ({@see OfficeText}, {@see EbookText}),
+ * and pandoc, catdoc and catppt are used only when they are installed.
  */
 final class ConversionPrograms
 {

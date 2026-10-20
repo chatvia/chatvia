@@ -225,18 +225,18 @@ it('warns when email goes to the log, and finds an SMTP server that does not ans
 });
 
 it('names the programs that are not found, and stays running as they are optional', function (): void {
-    config(['services.bin.catdoc' => '/no/such/folder/catdoc']);
+    config(['services.bin.pdftotext' => '/no/such/folder/pdftotext', 'chatvia.ai.document_parser' => 'none']);
 
     $status = app(ServiceChecks::class)->check(Service::Programs);
-    $catdoc = collect($status->checks)->firstWhere('label', 'catdoc');
+    $pdftotext = collect($status->checks)->firstWhere('label', 'pdftotext');
 
     expect($status->state)->toBe(ServiceState::Running)
         ->and($status->summary)->toBe('Some file types cannot be read.')
-        ->and($status->hint)->toContain('catdoc')
+        ->and($status->hint)->toContain('pdftotext')
         ->and($status->hint)->toContain('Programs are optional.')
-        ->and($catdoc->mark)->toBe(CheckMark::Info)
-        ->and($catdoc->tag)->toBe('Optional')
-        ->and($catdoc->note)->toBe('.doc files cannot be uploaded.');
+        ->and($pdftotext->mark)->toBe(CheckMark::Info)
+        ->and($pdftotext->tag)->toBe('Optional')
+        ->and($pdftotext->note)->toStartWith('PDF files cannot be trained again');
 });
 
 it('says a missing PDF maker costs PDFs, not file types', function (): void {
@@ -262,9 +262,9 @@ it('shows what a missing program costs under its line', function (): void {
     $programs = [
         'state' => 'running',
         'summary' => 'Some file types cannot be read.',
-        'hint' => 'Not found: pandoc. Programs are optional.',
+        'hint' => 'Not found: ffmpeg. Programs are optional.',
         'checks' => [
-            ['label' => 'pandoc', 'value' => 'Not found', 'mark' => 'info', 'tag' => 'Optional', 'note' => '.rtf files cannot be uploaded.'],
+            ['label' => 'ffmpeg', 'value' => 'Not found', 'mark' => 'info', 'tag' => 'Optional', 'note' => 'Recordings over 25 MB cannot be turned into text.'],
             ['label' => 'pdfinfo', 'value' => 'Not found', 'mark' => 'skipped', 'tag' => 'Not needed now'],
         ],
     ];
@@ -272,19 +272,37 @@ it('shows what a missing program costs under its line', function (): void {
     Livewire::actingAs($this->admin, 'admin')->test(Status::class)
         ->set('checkedAt', now()->toIso8601String())
         ->set('services', ['programs' => $programs])
-        ->assertSeeInOrder(['cv-check--noted', 'pandoc', 'Optional', 'Not found', 'cv-check__note', '.rtf files cannot be uploaded.'], false)
-        ->assertSeeInOrder(['Programs are optional.', 'pandoc', '.rtf files cannot be uploaded.']);
+        ->assertSeeInOrder(['cv-check--noted', 'ffmpeg', 'Optional', 'Not found', 'cv-check__note', 'Recordings over 25 MB cannot be turned into text.'], false)
+        ->assertSeeInOrder(['Programs are optional.', 'ffmpeg', 'Recordings over 25 MB cannot be turned into text.']);
 });
 
-it('stays running when only programs the app can do without are not found', function (): void {
+it('says the app does the work itself when only programs it can replace are not found', function (): void {
     // Found: any program file will do.
-    foreach (['pdftotext', 'pandoc', 'catdoc', 'catppt', 'ffmpeg'] as $program) {
+    foreach (['pdftotext', 'ffmpeg'] as $program) {
+        config(["services.bin.{$program}" => '/bin/sh']);
+    }
+
+    config(['laravel-pdf.weasyprint.binary' => '/bin/sh']);
+
+    // The app reads every document format itself, so these cost nothing.
+    foreach (['pdfinfo', 'pandoc', 'catdoc', 'catppt', 'ffprobe'] as $program) {
+        config(["services.bin.{$program}" => "/no/such/folder/{$program}"]);
+    }
+
+    $status = app(ServiceChecks::class)->check(Service::Programs);
+
+    expect($status->state)->toBe(ServiceState::Running)
+        ->and($status->summary)->toBe('Every program needed is found.')
+        ->and($status->hint)->toBe('Not found: pdfinfo, pandoc, catdoc, catppt, ffprobe. The app does this work itself.')
+        ->and(collect($status->checks)->firstWhere('label', 'catdoc')->tag)->toBe('Built-in used');
+});
+
+it('says the settings do not use a missing program', function (): void {
+    foreach (['pdfinfo', 'pdftotext', 'pandoc', 'catdoc', 'catppt', 'ffmpeg', 'ffprobe'] as $program) {
         config(["services.bin.{$program}" => '/bin/sh']);
     }
 
     config([
-        'services.bin.pdfinfo' => '/no/such/folder/pdfinfo',
-        'services.bin.ffprobe' => '/no/such/folder/ffprobe',
         'laravel-pdf.weasyprint.binary' => '/no/such/folder/weasyprint',
         'laravel-pdf.driver' => 'cloudflare',
     ]);
@@ -292,7 +310,29 @@ it('stays running when only programs the app can do without are not found', func
     $status = app(ServiceChecks::class)->check(Service::Programs);
 
     expect($status->state)->toBe(ServiceState::Running)
-        ->and($status->hint)->toBe('Not found: pdfinfo, ffprobe, weasyprint. Nothing needs them now.');
+        ->and($status->hint)->toBe('Not found: weasyprint. Not used with the current settings.')
+        ->and(collect($status->checks)->firstWhere('label', 'weasyprint')->tag)->toBe('Not needed now');
+});
+
+it('tells apart programs the app replaces from programs the settings do not use', function (): void {
+    foreach (['pdftotext', 'ffmpeg'] as $program) {
+        config(["services.bin.{$program}" => '/bin/sh']);
+    }
+
+    foreach (['pdfinfo', 'pandoc', 'catdoc', 'catppt', 'ffprobe'] as $program) {
+        config(["services.bin.{$program}" => "/no/such/folder/{$program}"]);
+    }
+
+    config([
+        'laravel-pdf.weasyprint.binary' => '/no/such/folder/weasyprint',
+        'laravel-pdf.driver' => 'cloudflare',
+    ]);
+
+    $status = app(ServiceChecks::class)->check(Service::Programs);
+
+    expect($status->state)->toBe(ServiceState::Running)
+        ->and($status->summary)->toBe('Every program needed is found.')
+        ->and($status->hint)->toBe('Not found: pdfinfo, pandoc, catdoc, catppt, ffprobe, weasyprint. The app does the work of pdfinfo, pandoc, catdoc, catppt, ffprobe itself, and the current settings do not use weasyprint.');
 });
 
 it('is off while Pulse is turned off', function (): void {

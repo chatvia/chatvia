@@ -2481,6 +2481,68 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
+/* A service's tile takes its product's colour: the logo of PostgreSQL,
+ * Redis, Horizon or Pulse on a light wash of it, or an icon in it. */
+.cv-service__icon--tinted {
+    padding: 0.5rem;
+    background-color: color-mix(in oklab, var(--cv-service-tone) 12%, var(--cv-card));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cv-service-tone) 22%, transparent);
+    color: var(--cv-service-tone);
+
+    & .fi-icon {
+        width: 1.375rem;
+        height: 1.375rem;
+    }
+}
+
+.cv-service__logo {
+    width: 1.375rem;
+    height: 1.375rem;
+    object-fit: contain;
+}
+
+.cv-service[data-service='database'] {
+    --cv-service-tone: #336791;
+}
+
+.cv-service[data-service='redis'] {
+    --cv-service-tone: #d82c20;
+}
+
+.cv-service[data-service='queue'] {
+    --cv-service-tone: #7746ec;
+}
+
+.cv-service[data-service='scheduler'] {
+    --cv-service-tone: #d97706;
+}
+
+.cv-service[data-service='realtime'] {
+    --cv-service-tone: #c026d3;
+}
+
+.cv-service[data-service='server_monitor'] {
+    --cv-service-tone: #7a5af8;
+}
+
+.cv-service[data-service='storage'] {
+    --cv-service-tone: #0284c7;
+}
+
+.cv-service[data-service='email'] {
+    --cv-service-tone: #e11d48;
+}
+
+.cv-service[data-service='programs'] {
+    --cv-service-tone: #0d9488;
+}
+
+.dark .cv-service__icon--tinted {
+    background-color: color-mix(in oklab, var(--cv-service-tone) 20%, var(--cv-card));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cv-service-tone) 35%, transparent);
+    color: color-mix(in oklab, var(--cv-service-tone) 70%, white);
+}
+
 .cv-service__name {
     flex: 1;
     min-width: 0;
@@ -2504,6 +2566,40 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
 .cv-service__summary {
     color: var(--cv-text);
+}
+
+/* On a card the description keeps to one line, so the check lines of the
+ * cards in a row start at the same height. */
+.cv-service__description--line {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* What to do about a service, at the top of its dialog. */
+.cv-status-hint {
+    --cv-tone: var(--cv-text-subtle);
+
+    margin-bottom: 1rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--cv-radius-control);
+    background-color: color-mix(in oklab, var(--cv-tone) 10%, transparent);
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--cv-text);
+    text-wrap: pretty;
+}
+
+.cv-status-hint--success {
+    --cv-tone: var(--success-500);
+}
+
+.cv-status-hint--warning {
+    --cv-tone: var(--warning-500);
+}
+
+.cv-status-hint--danger {
+    --cv-tone: var(--danger-500);
 }
 
 /* The state as a badge with a dot. */
@@ -2540,13 +2636,6 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     animation: cv-status-blink 1s ease-in-out infinite;
 }
 
-.cv-status-facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    margin-top: auto;
-}
-
 .cv-status-fact {
     display: inline-flex;
     align-items: center;
@@ -2559,6 +2648,118 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     white-space: nowrap;
     color: var(--cv-text-muted);
     font-variant-numeric: tabular-nums;
+}
+
+/* A service card's details, a line each: a mark (green check, amber
+ * look, red cross, grey cross for what is not needed, grey "i" for a
+ * plain count), what was checked, and what was found at the end. */
+.cv-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--cv-border);
+}
+
+.cv-check {
+    --cv-tone: var(--cv-text-subtle);
+
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+.cv-check--passed {
+    --cv-tone: var(--success-500);
+}
+
+.cv-check--warning {
+    --cv-tone: var(--warning-500);
+}
+
+.cv-check--failed {
+    --cv-tone: var(--danger-500);
+}
+
+.cv-check__mark {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--cv-tone);
+}
+
+.cv-check__label {
+    color: var(--cv-text);
+    white-space: nowrap;
+}
+
+.cv-check__tag {
+    flex: none;
+    padding: 0 0.375rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    font-size: 0.6875rem;
+    line-height: 1.125rem;
+    white-space: nowrap;
+    color: var(--cv-text-muted);
+}
+
+.cv-check__value {
+    min-width: 0;
+    margin-inline-start: auto;
+    overflow: hidden;
+    text-align: end;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--cv-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.cv-check--warning .cv-check__value,
+.cv-check--failed .cv-check__value {
+    color: color-mix(in oklab, var(--cv-tone) 80%, var(--cv-text));
+}
+
+/* A line with a note wraps it below, lined up with the label. */
+.cv-check--noted {
+    flex-wrap: wrap;
+    row-gap: 0;
+}
+
+.cv-check__note {
+    flex-basis: 100%;
+    padding-inline-start: 1.5rem;
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    color: var(--cv-text-muted);
+    text-wrap: pretty;
+}
+
+/* "Show all", under a card's lines when it has more than it shows. */
+.cv-checks__more {
+    margin-top: -0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--primary-600);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.dark .cv-checks__more {
+    color: var(--primary-400);
+}
+
+/* In the dialog the lines need no rule above them. */
+.fi-modal .cv-checks {
+    padding-top: 0;
+    border-top: 0;
 }
 
 /* A line that waits for its check. */

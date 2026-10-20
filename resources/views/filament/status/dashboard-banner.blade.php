@@ -45,7 +45,7 @@
                             <li class="cv-status-issue" data-state="{{ $status->state->value }}">
                                 @include('filament.status.state', ['status' => $status, 'label' => $status->state->label()])
                                 <span class="cv-status-issue__name">{{ $label }}</span>
-                                <span class="cv-status-issue__summary">{{ $status->summary }}</span>
+                                <span class="cv-status-issue__summary">{{ trim($status->summary.' '.$status->hint) }}</span>
                             </li>
                         @endforeach
                     </ul>

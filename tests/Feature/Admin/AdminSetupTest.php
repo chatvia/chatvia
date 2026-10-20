@@ -357,6 +357,21 @@ it('stops on Finish when the embedding model returns another vector size', funct
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
 });
 
+it('stays on the step and scrolls to the reranker when its test question fails', function (): void {
+    // Registered first, so it answers before the working fake below.
+    Http::fake(['openrouter.ai/api/v1/rerank' => Http::response(['error' => ['message' => 'No endpoints found']], 404)]);
+    setupFakeOpenRouter($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(2)
+        ->goToNextWizardStep()
+        ->assertHasFormErrors(['openrouter_rerank_model'])
+        ->assertDispatched('form-validation-error')
+        ->assertWizardCurrentStep(2);
+});
+
 it('starts the reranker on OpenRouter with the key of the first step, from its live list', function (): void {
     setupFakeOpenRouter($this->dimensions);
 

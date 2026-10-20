@@ -81,6 +81,21 @@ it('adds the model for quick tasks and gives the large tasks the default model',
         ->and(savedSetting(AiSettings::class, 'guardrails_model'))->toBeNull();
 });
 
+it('describes images with the model that reads them, and turns image descriptions off without one', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData([
+        'visionModel' => new RemoteModelData(id: 'mistral-small-3.2-24b-instruct-2506', name: 'Mistral Small', features: ['vision' => true]),
+    ]));
+
+    expect(savedSetting(AiSettings::class, 'images_model'))->toBe('mistral-small-3.2-24b-instruct-2506')
+        // On is the default, so it stays unsaved.
+        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeNull();
+
+    saveSettings(PlatformSettings::class, ['setup_status' => null]);
+    app(CompleteSetupAction::class)->execute(completeSetupData());
+
+    expect(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
+});
+
 it('leaves the task models unset without a model for quick tasks', function (): void {
     app(CompleteSetupAction::class)->execute(completeSetupData());
 

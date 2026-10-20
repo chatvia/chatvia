@@ -1638,8 +1638,9 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     pointer-events: none;
 }
 
-/* Logos and icons wait in grey, and take their colour on hover and once
- * chosen. A logo keeps a light tile in dark mode, so dark marks stay seen. */
+/* Logos keep their own colours; icons wait in grey and take the primary
+ * colour once chosen. A logo keeps a light tile in dark mode, so dark marks
+ * stay seen. */
 .cv-choice__icon {
     display: grid;
     flex: none;
@@ -1663,11 +1664,6 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
     & img.fi-icon {
         object-fit: contain;
-        filter: grayscale(1);
-        opacity: 0.7;
-        transition:
-            filter 180ms ease,
-            opacity 180ms ease;
     }
 }
 
@@ -1678,12 +1674,6 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 .dark .cv-choice__icon--logo {
     background-color: oklch(0.96 0 0);
     box-shadow: none;
-}
-
-.cv-choice:hover .cv-choice__icon img.fi-icon,
-.cv-choice:has(.cv-choice__input:checked) .cv-choice__icon img.fi-icon {
-    filter: none;
-    opacity: 1;
 }
 
 .cv-choice:has(.cv-choice__input:checked) .cv-choice__icon {

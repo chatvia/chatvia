@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "매핑된 필드는 리드의 세부 정보를 채워 리드 목록, 중복 감지, CSV 내보내기를 지원합니다. 태그하지 않고 답변만 수집하려면 “—”로 두세요.",
             "subtitle": "설명",
             "subtitle_placeholder": "예: 회사에 대해 알려 주시면 연락드리겠습니다.",
-            "subtitle_hint": "양식 제목 아래에 방문자에게 표시됩니다."
+            "subtitle_hint": "양식 제목 아래에 방문자에게 표시됩니다.",
+            "field_type_text": "짧은 텍스트",
+            "field_type_email": "이메일",
+            "field_type_tel": "전화",
+            "field_type_number": "숫자",
+            "field_type_textarea": "긴 텍스트",
+            "field_type_select": "드롭다운",
+            "field_type_radio": "단일 선택",
+            "field_type_checkbox": "체크박스",
+            "field_type_multicheckbox": "다중 선택",
+            "field_type_date": "날짜"
         },
         "submissions": {
             "page_title": "제출 내역",

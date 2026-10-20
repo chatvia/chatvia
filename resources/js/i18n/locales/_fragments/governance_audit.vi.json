@@ -1,7 +1,7 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "không được cung cấp",
+            "outcome_not_offered": "Không được cung cấp",
             "detail_spoken_approval": "Phê duyệt bằng lời nói"
         }
     }

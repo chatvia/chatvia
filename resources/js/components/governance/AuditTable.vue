@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDateFormat } from '@/composables/useDateFormat';
@@ -38,9 +40,12 @@ const props = withDefaults(defineProps<Props>(), { showAgent: false, agents: () 
 
 const { formatDate } = useDateFormat();
 
-const outcome = ref<string>(props.filters.outcome ?? '');
-const connector = ref<string>(props.filters.connector ?? '');
-const agentId = ref<string>(props.filters.agent_id ? String(props.filters.agent_id) : '');
+// A select item can't hold an empty value, so "no filter" is this sentinel.
+const ALL = 'all';
+
+const outcome = ref<string>(props.filters.outcome ?? ALL);
+const connector = ref<string>(props.filters.connector ?? ALL);
+const agentId = ref<string>(props.filters.agent_id ? String(props.filters.agent_id) : ALL);
 
 const outcomeVariant = (value: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (value) {
@@ -67,9 +72,9 @@ const applyFilters = (): void => {
     router.get(
         props.url,
         {
-            outcome: outcome.value || undefined,
-            connector: connector.value || undefined,
-            agent_id: agentId.value || undefined,
+            outcome: outcome.value === ALL ? undefined : outcome.value,
+            connector: connector.value === ALL ? undefined : connector.value,
+            agent_id: agentId.value === ALL ? undefined : agentId.value,
         },
         { preserveScroll: true, preserveState: true, replace: true },
     );
@@ -140,43 +145,43 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
     <div class="space-y-4">
         <!-- Filters -->
         <div class="flex flex-wrap items-end gap-3">
-            <div class="flex flex-col gap-1">
-                <label class="text-muted-foreground text-xs font-medium" for="filter-outcome">{{ t('shared.audit_table.filter_outcome') }}</label>
-                <select
-                    id="filter-outcome"
-                    v-model="outcome"
-                    class="border-input bg-background h-9 rounded-md border px-3 text-sm"
-                    @change="applyFilters"
-                >
-                    <option value="">{{ t('shared.audit_table.all_outcomes') }}</option>
-                    <option v-for="o in outcomes" :key="o" :value="o">{{ outcomeLabel(o) }}</option>
-                </select>
+            <div class="flex flex-col gap-1.5">
+                <Label class="text-muted-foreground text-xs" for="filter-outcome">{{ t('shared.audit_table.filter_outcome') }}</Label>
+                <Select v-model="outcome" @update:model-value="applyFilters">
+                    <SelectTrigger id="filter-outcome" class="min-w-40">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem :value="ALL">{{ t('shared.audit_table.all_outcomes') }}</SelectItem>
+                        <SelectItem v-for="o in outcomes" :key="o" :value="o">{{ outcomeLabel(o) }}</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
-            <div class="flex flex-col gap-1">
-                <label class="text-muted-foreground text-xs font-medium" for="filter-connector">{{ t('shared.audit_table.filter_connector') }}</label>
-                <select
-                    id="filter-connector"
-                    v-model="connector"
-                    class="border-input bg-background h-9 rounded-md border px-3 text-sm"
-                    @change="applyFilters"
-                >
-                    <option value="">{{ t('shared.audit_table.all_connectors') }}</option>
-                    <option v-for="c in connectors" :key="c.slug" :value="c.slug">{{ c.name }}</option>
-                </select>
+            <div class="flex flex-col gap-1.5">
+                <Label class="text-muted-foreground text-xs" for="filter-connector">{{ t('shared.audit_table.filter_connector') }}</Label>
+                <Select v-model="connector" @update:model-value="applyFilters">
+                    <SelectTrigger id="filter-connector" class="min-w-40">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem :value="ALL">{{ t('shared.audit_table.all_connectors') }}</SelectItem>
+                        <SelectItem v-for="c in connectors" :key="c.slug" :value="c.slug">{{ c.name }}</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
-            <div v-if="showAgent" class="flex flex-col gap-1">
-                <label class="text-muted-foreground text-xs font-medium" for="filter-agent">{{ t('shared.audit_table.filter_agent') }}</label>
-                <select
-                    id="filter-agent"
-                    v-model="agentId"
-                    class="border-input bg-background h-9 rounded-md border px-3 text-sm"
-                    @change="applyFilters"
-                >
-                    <option value="">{{ t('shared.audit_table.all_agents') }}</option>
-                    <option v-for="a in agents" :key="a.id" :value="String(a.id)">{{ a.name }}</option>
-                </select>
+            <div v-if="showAgent" class="flex flex-col gap-1.5">
+                <Label class="text-muted-foreground text-xs" for="filter-agent">{{ t('shared.audit_table.filter_agent') }}</Label>
+                <Select v-model="agentId" @update:model-value="applyFilters">
+                    <SelectTrigger id="filter-agent" class="min-w-40">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem :value="ALL">{{ t('shared.audit_table.all_agents') }}</SelectItem>
+                        <SelectItem v-for="a in agents" :key="a.id" :value="String(a.id)">{{ a.name }}</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
         </div>
 

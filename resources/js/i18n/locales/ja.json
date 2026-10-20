@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "マッピングされた項目はリードの詳細情報を埋め、リード一覧、重複検出、CSV エクスポートを支えます。タグ付けせずに回答だけを取得したい場合は「—」のままにしてください。",
             "subtitle": "説明",
             "subtitle_placeholder": "例：貴社について教えてください。折り返しご連絡いたします。",
-            "subtitle_hint": "フォームのタイトルの下に、訪問者向けに表示されます。"
+            "subtitle_hint": "フォームのタイトルの下に、訪問者向けに表示されます。",
+            "field_type_text": "短いテキスト",
+            "field_type_email": "メール",
+            "field_type_tel": "電話",
+            "field_type_number": "数値",
+            "field_type_textarea": "長いテキスト",
+            "field_type_select": "ドロップダウン",
+            "field_type_radio": "単一選択",
+            "field_type_checkbox": "チェックボックス",
+            "field_type_multicheckbox": "複数選択",
+            "field_type_date": "日付"
         },
         "submissions": {
             "page_title": "送信内容",

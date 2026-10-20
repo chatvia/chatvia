@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Kısa metin",
+            "field_type_email": "E-posta",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Sayı",
+            "field_type_textarea": "Uzun metin",
+            "field_type_select": "Açılır liste",
+            "field_type_radio": "Tek seçim",
+            "field_type_checkbox": "Onay kutusu",
+            "field_type_multicheckbox": "Çoklu seçim",
+            "field_type_date": "Tarih"
+        }
+    }
+}

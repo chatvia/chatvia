@@ -8,6 +8,7 @@
 import type { SurfaceSettings } from '@/components/agents/deploy/installSnippets';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { update as updateSettings } from '@/routes/agents/settings';
 import { useForm } from '@inertiajs/vue3';
 import { Globe, Save } from 'lucide-vue-next';
@@ -60,12 +61,12 @@ function saveSites(): void {
             <div class="text-muted-foreground pointer-events-none absolute start-0 top-0 flex items-center ps-3 pt-2.5">
                 <Globe class="size-4" />
             </div>
-            <textarea
+            <Textarea
                 id="deploy-widget-sites"
                 v-model="sitesText"
                 rows="4"
                 dir="ltr"
-                class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-2 ps-9 pe-3 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none"
+                class="min-h-24 ps-9"
                 :placeholder="t('agents.setup.behavior.allowed_sites_placeholder')"
             />
         </div>

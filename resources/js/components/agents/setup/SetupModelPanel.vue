@@ -3,6 +3,7 @@
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 import { useI18n } from 'vue-i18n';
 
@@ -63,14 +64,14 @@ const { form, isSaving, save } = model;
                 <span class="font-medium">{{ t('agents.setup.temperature') }}</span>
                 <span class="text-muted-foreground tabular-nums">{{ form.temperature.toFixed(1) }}</span>
             </div>
-            <input
-                v-model.number="form.temperature"
-                type="range"
-                min="0"
-                max="2"
-                step="0.1"
+            <Slider
+                :model-value="[form.temperature]"
+                :min="0"
+                :max="2"
+                :step="0.1"
                 :disabled="locked"
-                class="accent-primary h-2 w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                :aria-label="t('agents.setup.temperature')"
+                @update:model-value="(value) => value && (form.temperature = value[0])"
             />
             <div class="text-muted-foreground flex justify-between text-xs">
                 <span>{{ t('agents.setup.temperature_precise') }}</span>

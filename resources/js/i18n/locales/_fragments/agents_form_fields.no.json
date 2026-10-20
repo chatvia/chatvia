@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Kort tekst",
+            "field_type_email": "E-post",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Tall",
+            "field_type_textarea": "Lang tekst",
+            "field_type_select": "Nedtrekksmeny",
+            "field_type_radio": "Enkeltvalg",
+            "field_type_checkbox": "Avkrysningsboks",
+            "field_type_multicheckbox": "Flervalg",
+            "field_type_date": "Dato"
+        }
+    }
+}

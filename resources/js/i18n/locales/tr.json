@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Eşlenen alanlar, potansiyel müşterinin ayrıntılarını doldurur — potansiyel müşteri listesini, yinelenen kayıt tespitini ve CSV dışa aktarımını besler. Yanıtı etiketlemeden yakalamak için “—” olarak bırakın.",
             "subtitle": "Açıklama",
             "subtitle_placeholder": "ör. Bize şirketinizden bahsedin, sizinle iletişime geçelim.",
-            "subtitle_hint": "Ziyaretçiye form başlığının altında gösterilir."
+            "subtitle_hint": "Ziyaretçiye form başlığının altında gösterilir.",
+            "field_type_text": "Kısa metin",
+            "field_type_email": "E-posta",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Sayı",
+            "field_type_textarea": "Uzun metin",
+            "field_type_select": "Açılır liste",
+            "field_type_radio": "Tek seçim",
+            "field_type_checkbox": "Onay kutusu",
+            "field_type_multicheckbox": "Çoklu seçim",
+            "field_type_date": "Tarih"
         },
         "submissions": {
             "page_title": "Gönderimler",
@@ -3827,7 +3837,7 @@
             "outcome_approved": "onaylandı",
             "outcome_denied": "reddedildi",
             "outcome_rate_limited": "hız sınırlandı",
-            "outcome_not_offered": "sunulmadı",
+            "outcome_not_offered": "Sunulmadı",
             "detail_spoken_approval": "Sözlü onay"
         },
         "attach_file": {

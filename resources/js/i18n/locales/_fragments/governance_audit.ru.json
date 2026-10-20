@@ -1,7 +1,7 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "не предложен",
+            "outcome_not_offered": "Не предложен",
             "detail_spoken_approval": "Устное подтверждение"
         }
     }

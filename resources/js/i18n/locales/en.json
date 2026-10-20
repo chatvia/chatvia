@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Mapped fields fill the lead’s details — powering the leads list, duplicate detection, and CSV export. Leave it as “—” to capture the answer without tagging it.",
             "subtitle": "Description",
             "subtitle_placeholder": "e.g. Tell us about your company and we'll get in touch.",
-            "subtitle_hint": "Shown to the visitor under the form title."
+            "subtitle_hint": "Shown to the visitor under the form title.",
+            "field_type_text": "Short text",
+            "field_type_email": "Email",
+            "field_type_tel": "Phone",
+            "field_type_number": "Number",
+            "field_type_textarea": "Long text",
+            "field_type_select": "Dropdown",
+            "field_type_radio": "Single choice",
+            "field_type_checkbox": "Checkbox",
+            "field_type_multicheckbox": "Multiple choice",
+            "field_type_date": "Date"
         },
         "submissions": {
             "page_title": "Submissions",
@@ -3823,11 +3833,11 @@
             "detail_result": "Result",
             "detail_conversation": "Conversation:",
             "detail_trace": "Trace:",
-            "outcome_auto": "auto",
-            "outcome_approved": "approved",
-            "outcome_denied": "denied",
-            "outcome_rate_limited": "rate limited",
-            "outcome_not_offered": "not offered",
+            "outcome_auto": "Auto",
+            "outcome_approved": "Approved",
+            "outcome_denied": "Denied",
+            "outcome_rate_limited": "Rate limited",
+            "outcome_not_offered": "Not offered",
             "detail_spoken_approval": "Spoken approval"
         },
         "attach_file": {

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Короткий текст",
+            "field_type_email": "Эл. почта",
+            "field_type_tel": "Телефон",
+            "field_type_number": "Число",
+            "field_type_textarea": "Длинный текст",
+            "field_type_select": "Выпадающий список",
+            "field_type_radio": "Один вариант",
+            "field_type_checkbox": "Флажок",
+            "field_type_multicheckbox": "Несколько вариантов",
+            "field_type_date": "Дата"
+        }
+    }
+}

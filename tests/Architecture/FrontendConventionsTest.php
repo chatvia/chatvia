@@ -91,6 +91,30 @@ it('leaves no console.log debug output in the frontend', function () use ($front
     expect($frontendOffenders('/console\.log\(/', $codeSamples))->toBe([]);
 });
 
+it('builds form controls on the shared ui components', function () use ($frontendOffenders, $frontendRoot): void {
+    // Native <select>, checkbox, radio, range and <textarea> controls take the
+    // browser's look, so they differ from the rest of the dashboard and from
+    // one OS to the next. Use Select, Checkbox, RadioGroup, Slider and Textarea
+    // from components/ui instead.
+    $custom = [
+        'components/agents/ColorPicker.vue',          // the shade slider paints the theme's color ramp
+        'components/agents/forms/FormPreview.vue',    // copies the chat widget's own form controls
+        'components/common/JsonCodeEditor.vue',       // a transparent textarea over the highlighted code
+        'pages/AnalyticsChat.vue',                    // the chat composer's borderless textarea
+    ];
+
+    foreach ($custom as $file) {
+        expect(is_file($frontendRoot.'/'.$file))->toBeTrue("resources/js/{$file} does not exist; update the allowlist");
+    }
+
+    $offenders = array_values(array_filter(
+        $frontendOffenders('/<select\b|<textarea\b|type="(checkbox|radio|range)"/', $custom),
+        fn (string $file): bool => ! str_starts_with($file, 'components/ui/'),
+    ));
+
+    expect($offenders)->toBe([]);
+});
+
 it('reads localStorage through safeStorage on the boot and hosted-chat paths', function () use ($frontendSource): void {
     // The hosted chat can run in an iframe where touching localStorage throws;
     // at boot that would stop the whole app from mounting.

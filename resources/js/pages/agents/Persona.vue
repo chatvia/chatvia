@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AgentLayout from '@/layouts/AgentLayout.vue';
@@ -192,13 +193,14 @@ const hasFormErrors = computed(() => {
                                             {{ t('agents.persona.no_prompts_suffix') }}
                                         </div>
                                         <template v-else>
-                                            <select
-                                                v-model="form.prompt_id"
-                                                class="border-input bg-background h-9 w-full max-w-sm rounded-md border px-3 text-sm"
-                                            >
-                                                <option :value="null" disabled>{{ t('agents.persona.select_prompt') }}</option>
-                                                <option v-for="p in prompts" :key="p.id" :value="p.id">{{ p.name }}</option>
-                                            </select>
+                                            <Select v-model="form.prompt_id">
+                                                <SelectTrigger class="w-full max-w-sm" :aria-invalid="!!form.errors.prompt_id">
+                                                    <SelectValue :placeholder="t('agents.persona.select_prompt')" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem v-for="p in prompts" :key="p.id" :value="p.id">{{ p.name }}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                             <div v-if="selectedPrompt" class="bg-muted/40 max-h-72 overflow-y-auto rounded-md border p-4">
                                                 <p class="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
                                                     {{ selectedPrompt.name }}

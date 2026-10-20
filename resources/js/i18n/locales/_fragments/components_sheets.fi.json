@@ -114,10 +114,10 @@
             "detail_result": "Tulos",
             "detail_conversation": "Keskustelu:",
             "detail_trace": "Jäljitys:",
-            "outcome_auto": "automaattinen",
-            "outcome_approved": "hyväksytty",
-            "outcome_denied": "hylätty",
-            "outcome_rate_limited": "nopeusrajoitettu"
+            "outcome_auto": "Automaattinen",
+            "outcome_approved": "Hyväksytty",
+            "outcome_denied": "Hylätty",
+            "outcome_rate_limited": "Nopeusrajoitettu"
         },
         "attach_file": {
             "title": "Valitse jo koulutetuista tiedostoista",

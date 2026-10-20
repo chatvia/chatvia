@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Kort text",
+            "field_type_email": "E-post",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Nummer",
+            "field_type_textarea": "Lång text",
+            "field_type_select": "Rullgardinsmeny",
+            "field_type_radio": "Enkelval",
+            "field_type_checkbox": "Kryssruta",
+            "field_type_multicheckbox": "Flerval",
+            "field_type_date": "Datum"
+        }
+    }
+}

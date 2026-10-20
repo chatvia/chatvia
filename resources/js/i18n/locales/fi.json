@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Yhdistetyt kentät täyttävät liidin tiedot — ne tukevat liidilistaa, kaksoiskappaleiden tunnistusta ja CSV-vientiä. Jätä asetukseksi “—”, jos haluat kerätä vastauksen merkitsemättä sitä.",
             "subtitle": "Kuvaus",
             "subtitle_placeholder": "esim. Kerro meille yrityksestäsi, niin otamme yhteyttä.",
-            "subtitle_hint": "Näytetään kävijälle lomakkeen otsikon alla."
+            "subtitle_hint": "Näytetään kävijälle lomakkeen otsikon alla.",
+            "field_type_text": "Lyhyt teksti",
+            "field_type_email": "Sähköposti",
+            "field_type_tel": "Puhelin",
+            "field_type_number": "Numero",
+            "field_type_textarea": "Pitkä teksti",
+            "field_type_select": "Pudotusvalikko",
+            "field_type_radio": "Yksi valinta",
+            "field_type_checkbox": "Valintaruutu",
+            "field_type_multicheckbox": "Monivalinta",
+            "field_type_date": "Päivämäärä"
         },
         "submissions": {
             "page_title": "Lähetykset",
@@ -3823,11 +3833,11 @@
             "detail_result": "Tulos",
             "detail_conversation": "Keskustelu:",
             "detail_trace": "Jäljitys:",
-            "outcome_auto": "automaattinen",
-            "outcome_approved": "hyväksytty",
-            "outcome_denied": "hylätty",
-            "outcome_rate_limited": "nopeusrajoitettu",
-            "outcome_not_offered": "ei tarjottu",
+            "outcome_auto": "Automaattinen",
+            "outcome_approved": "Hyväksytty",
+            "outcome_denied": "Hylätty",
+            "outcome_rate_limited": "Nopeusrajoitettu",
+            "outcome_not_offered": "Ei tarjottu",
             "detail_spoken_approval": "Suullinen hyväksyntä"
         },
         "attach_file": {

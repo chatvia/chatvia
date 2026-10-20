@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Các trường được ánh xạ sẽ điền vào chi tiết của khách hàng tiềm năng — hỗ trợ danh sách khách hàng tiềm năng, phát hiện trùng lặp và xuất CSV. Để là “—” để thu thập câu trả lời mà không gắn thẻ.",
             "subtitle": "Mô tả",
             "subtitle_placeholder": "ví dụ: Hãy cho chúng tôi biết về công ty của bạn, chúng tôi sẽ liên hệ lại.",
-            "subtitle_hint": "Hiển thị cho khách truy cập bên dưới tiêu đề biểu mẫu."
+            "subtitle_hint": "Hiển thị cho khách truy cập bên dưới tiêu đề biểu mẫu.",
+            "field_type_text": "Văn bản ngắn",
+            "field_type_email": "Email",
+            "field_type_tel": "Điện thoại",
+            "field_type_number": "Số",
+            "field_type_textarea": "Văn bản dài",
+            "field_type_select": "Danh sách thả xuống",
+            "field_type_radio": "Một lựa chọn",
+            "field_type_checkbox": "Hộp kiểm",
+            "field_type_multicheckbox": "Nhiều lựa chọn",
+            "field_type_date": "Ngày"
         },
         "submissions": {
             "page_title": "Lượt gửi",
@@ -3827,7 +3837,7 @@
             "outcome_approved": "đã duyệt",
             "outcome_denied": "bị từ chối",
             "outcome_rate_limited": "bị giới hạn tần suất",
-            "outcome_not_offered": "không được cung cấp",
+            "outcome_not_offered": "Không được cung cấp",
             "detail_spoken_approval": "Phê duyệt bằng lời nói"
         },
         "attach_file": {

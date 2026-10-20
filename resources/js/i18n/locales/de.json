@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Zugeordnete Felder füllen die Details des Leads – sie speisen die Lead-Liste, die Dublettenerkennung und den CSV-Export. Lassen Sie es auf „—“, um die Antwort ohne Zuordnung zu erfassen.",
             "subtitle": "Beschreibung",
             "subtitle_placeholder": "z. B. Erzählen Sie uns von Ihrem Unternehmen, und wir melden uns bei Ihnen.",
-            "subtitle_hint": "Wird dem Besucher unter dem Formulartitel angezeigt."
+            "subtitle_hint": "Wird dem Besucher unter dem Formulartitel angezeigt.",
+            "field_type_text": "Kurzer Text",
+            "field_type_email": "E-Mail",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Zahl",
+            "field_type_textarea": "Langer Text",
+            "field_type_select": "Dropdown",
+            "field_type_radio": "Einfachauswahl",
+            "field_type_checkbox": "Kontrollkästchen",
+            "field_type_multicheckbox": "Mehrfachauswahl",
+            "field_type_date": "Datum"
         },
         "submissions": {
             "page_title": "Einsendungen",
@@ -3823,11 +3833,11 @@
             "detail_result": "Ergebnis",
             "detail_conversation": "Konversation:",
             "detail_trace": "Ablaufverfolgung:",
-            "outcome_auto": "automatisch",
-            "outcome_approved": "genehmigt",
-            "outcome_denied": "abgelehnt",
-            "outcome_rate_limited": "ratenlimitiert",
-            "outcome_not_offered": "nicht angeboten",
+            "outcome_auto": "Automatisch",
+            "outcome_approved": "Genehmigt",
+            "outcome_denied": "Abgelehnt",
+            "outcome_rate_limited": "Ratenlimitiert",
+            "outcome_not_offered": "Nicht angeboten",
             "detail_spoken_approval": "Mündliche Zustimmung"
         },
         "attach_file": {

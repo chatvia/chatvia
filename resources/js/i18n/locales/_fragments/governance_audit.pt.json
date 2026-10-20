@@ -1,7 +1,7 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "não oferecida",
+            "outcome_not_offered": "Não oferecida",
             "detail_spoken_approval": "Aprovação verbal"
         }
     }

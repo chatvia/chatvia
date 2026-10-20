@@ -114,10 +114,10 @@
             "detail_result": "Wynik",
             "detail_conversation": "Rozmowa:",
             "detail_trace": "Ślad:",
-            "outcome_auto": "automatyczny",
-            "outcome_approved": "zatwierdzony",
-            "outcome_denied": "odrzucony",
-            "outcome_rate_limited": "limit żądań"
+            "outcome_auto": "Automatyczny",
+            "outcome_approved": "Zatwierdzony",
+            "outcome_denied": "Odrzucony",
+            "outcome_rate_limited": "Limit żądań"
         },
         "attach_file": {
             "title": "Wybierz z już wytrenowanych plików",

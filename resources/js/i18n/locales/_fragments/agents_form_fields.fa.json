@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "متن کوتاه",
+            "field_type_email": "ایمیل",
+            "field_type_tel": "تلفن",
+            "field_type_number": "عدد",
+            "field_type_textarea": "متن بلند",
+            "field_type_select": "فهرست کشویی",
+            "field_type_radio": "تک‌گزینه‌ای",
+            "field_type_checkbox": "چک‌باکس",
+            "field_type_multicheckbox": "چندگزینه‌ای",
+            "field_type_date": "تاریخ"
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Texto corto",
+            "field_type_email": "Correo electrónico",
+            "field_type_tel": "Teléfono",
+            "field_type_number": "Número",
+            "field_type_textarea": "Texto largo",
+            "field_type_select": "Lista desplegable",
+            "field_type_radio": "Opción única",
+            "field_type_checkbox": "Casilla",
+            "field_type_multicheckbox": "Opción múltiple",
+            "field_type_date": "Fecha"
+        }
+    }
+}

@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "تملأ الحقول المعيَّنة بيانات العميل المحتمل — مما يشغّل قائمة العملاء المحتملين وكشف التكرار والتصدير إلى CSV. اتركه على ”—“ لالتقاط الإجابة دون وضع علامة عليها.",
             "subtitle": "الوصف",
             "subtitle_placeholder": "مثال: أخبرنا عن شركتك وسنتواصل معك.",
-            "subtitle_hint": "يظهر للزائر أسفل عنوان النموذج."
+            "subtitle_hint": "يظهر للزائر أسفل عنوان النموذج.",
+            "field_type_text": "نص قصير",
+            "field_type_email": "البريد الإلكتروني",
+            "field_type_tel": "الهاتف",
+            "field_type_number": "رقم",
+            "field_type_textarea": "نص طويل",
+            "field_type_select": "قائمة منسدلة",
+            "field_type_radio": "اختيار واحد",
+            "field_type_checkbox": "مربع اختيار",
+            "field_type_multicheckbox": "اختيارات متعددة",
+            "field_type_date": "تاريخ"
         },
         "submissions": {
             "page_title": "الإرساليات",

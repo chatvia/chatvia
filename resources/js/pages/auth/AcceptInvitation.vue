@@ -4,6 +4,7 @@
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
@@ -105,12 +106,7 @@ const submit = () => {
                         <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Mail class="h-5 w-5" />
                         </div>
-                        <input
-                            type="email"
-                            :value="invitation.email"
-                            disabled
-                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 ps-10 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
-                        />
+                        <Input type="email" :model-value="invitation.email" disabled class="bg-muted h-12 ps-10 text-base" />
                     </div>
                     <p class="text-muted-foreground text-xs">{{ t('auth.accept_invitation.email_hint') }}</p>
                 </div>
@@ -168,13 +164,7 @@ const submit = () => {
                 <div v-if="!userExists" class="space-y-3">
                     <div class="flex items-start gap-3">
                         <div class="flex h-5 items-center">
-                            <input
-                                id="policy"
-                                type="checkbox"
-                                v-model="form.policy"
-                                class="text-primary bg-background border-border focus:ring-primary h-4 w-4 rounded focus:ring-2 focus:ring-offset-0"
-                                :tabindex="4"
-                            />
+                            <Checkbox id="policy" v-model="form.policy" :aria-invalid="!!form.errors.policy" :tabindex="4" />
                         </div>
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
@@ -187,13 +177,7 @@ const submit = () => {
 
                     <div class="flex items-start gap-3">
                         <div class="flex h-5 items-center">
-                            <input
-                                id="terms"
-                                type="checkbox"
-                                v-model="form.terms"
-                                class="text-primary bg-background border-border focus:ring-primary h-4 w-4 rounded focus:ring-2 focus:ring-offset-0"
-                                :tabindex="5"
-                            />
+                            <Checkbox id="terms" v-model="form.terms" :aria-invalid="!!form.errors.terms" :tabindex="5" />
                         </div>
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">

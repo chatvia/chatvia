@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Knyttede felter udfylder lead'ets oplysninger – og driver lead-listen, dublettregistrering og CSV-eksport. Lad det stå som “—” for at indsamle svaret uden at markere det.",
             "subtitle": "Beskrivelse",
             "subtitle_placeholder": "f.eks. Fortæl os om din virksomhed, så kontakter vi dig.",
-            "subtitle_hint": "Vises for den besøgende under formularens titel."
+            "subtitle_hint": "Vises for den besøgende under formularens titel.",
+            "field_type_text": "Kort tekst",
+            "field_type_email": "E-mail",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Tal",
+            "field_type_textarea": "Lang tekst",
+            "field_type_select": "Rullemenu",
+            "field_type_radio": "Enkeltvalg",
+            "field_type_checkbox": "Afkrydsningsfelt",
+            "field_type_multicheckbox": "Flere valg",
+            "field_type_date": "Dato"
         },
         "submissions": {
             "page_title": "Indsendelser",
@@ -3823,11 +3833,11 @@
             "detail_result": "Resultat",
             "detail_conversation": "Samtale:",
             "detail_trace": "Spor:",
-            "outcome_auto": "auto",
-            "outcome_approved": "godkendt",
-            "outcome_denied": "afvist",
-            "outcome_rate_limited": "hastighedsbegrænset",
-            "outcome_not_offered": "ikke tilbudt",
+            "outcome_auto": "Auto",
+            "outcome_approved": "Godkendt",
+            "outcome_denied": "Afvist",
+            "outcome_rate_limited": "Hastighedsbegrænset",
+            "outcome_not_offered": "Ikke tilbudt",
             "detail_spoken_approval": "Mundtlig godkendelse"
         },
         "attach_file": {

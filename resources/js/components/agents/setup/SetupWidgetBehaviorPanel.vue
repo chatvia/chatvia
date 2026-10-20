@@ -10,6 +10,7 @@ import SetupSectionHeading from '@/components/agents/setup/SetupSectionHeading.v
 import SetupSwitchRow from '@/components/agents/setup/SetupSwitchRow.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { languageOptions, useBehaviorOptions } from '@/composables/agents/setup/useSetupBehavior';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 import { Clock, Globe, Languages, MapPin, Maximize2, Palette } from 'lucide-vue-next';
@@ -97,12 +98,12 @@ const languageChoices = computed(() => languageOptions(props.availableLanguages)
                     <div class="text-muted-foreground pointer-events-none absolute start-0 top-0 flex items-center ps-3 pt-2.5">
                         <Globe class="h-4 w-4" />
                     </div>
-                    <textarea
+                    <Textarea
                         id="widget-sites"
                         v-model="sitesText"
                         rows="4"
                         :disabled="locked"
-                        class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-2 ps-9 pe-3 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        class="min-h-24 ps-9"
                         :placeholder="t('agents.setup.behavior.allowed_sites_placeholder')"
                     />
                 </div>

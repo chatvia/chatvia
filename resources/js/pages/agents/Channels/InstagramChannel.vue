@@ -3,6 +3,7 @@
 // full-page hop to Facebook consent → our callback drops the IG-linked accounts
 // into `pick` → the workspace selects one here.
 import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { redirect as redirectToInstagram, select as selectInstagramAccount } from '@/routes/agents/channels/instagram';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle, Plug } from 'lucide-vue-next';
@@ -63,20 +64,20 @@ const selectAccount = () => {
             <!-- Account picker — the IG accounts Facebook handed back after consent -->
             <template v-if="instagram.pick && instagram.pick.length">
                 <p class="text-sm font-medium">{{ t('agents.channels.setup.instagram.pick_title') }}</p>
-                <div class="space-y-2">
+                <RadioGroup v-model="selectForm.ig_id" class="gap-2">
                     <label
                         v-for="igAccount in instagram.pick"
                         :key="igAccount.ig_id"
                         class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition"
                         :class="selectForm.ig_id === igAccount.ig_id ? 'border-foreground/40 bg-muted/50' : ''"
                     >
-                        <input v-model="selectForm.ig_id" type="radio" :value="igAccount.ig_id" class="accent-foreground size-4" />
+                        <RadioGroupItem :value="igAccount.ig_id" />
                         <span class="min-w-0">
                             <span class="block truncate text-sm font-medium">@{{ igAccount.ig_username }}</span>
                             <span class="text-muted-foreground block truncate text-xs">{{ igAccount.page_name }}</span>
                         </span>
                     </label>
-                </div>
+                </RadioGroup>
                 <div class="border-t pt-5">
                     <Button class="w-full" :disabled="!selectForm.ig_id || selectForm.processing" @click="selectAccount">
                         <LoaderCircle v-if="selectForm.processing" class="me-2 size-4 animate-spin" />

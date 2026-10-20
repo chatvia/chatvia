@@ -114,10 +114,10 @@
             "detail_result": "Resultat",
             "detail_conversation": "Samtale:",
             "detail_trace": "Spor:",
-            "outcome_auto": "auto",
-            "outcome_approved": "godkendt",
-            "outcome_denied": "afvist",
-            "outcome_rate_limited": "hastighedsbegrænset"
+            "outcome_auto": "Auto",
+            "outcome_approved": "Godkendt",
+            "outcome_denied": "Afvist",
+            "outcome_rate_limited": "Hastighedsbegrænset"
         },
         "attach_file": {
             "title": "Vælg fra allerede trænede filer",

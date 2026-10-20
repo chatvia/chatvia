@@ -97,12 +97,7 @@ const submit = () => {
                         <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Mail class="h-5 w-5" />
                         </div>
-                        <input
-                            type="email"
-                            :value="email"
-                            disabled
-                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 ps-10 text-base focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
-                        />
+                        <Input type="email" :model-value="email" disabled class="bg-muted h-12 ps-10 text-base" />
                     </div>
                     <p class="text-muted-foreground text-xs">{{ t('auth.accept_agent_invitation.email_hint') }}</p>
                     <InputError :message="form.errors.email" />

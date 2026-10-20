@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Kopplade fält fyller i leadens uppgifter — och driver leadlistan, dubblettidentifiering och CSV-export. Lämna det som ”—” för att fånga svaret utan att märka det.",
             "subtitle": "Beskrivning",
             "subtitle_placeholder": "t.ex. Berätta om ditt företag så hör vi av oss.",
-            "subtitle_hint": "Visas för besökaren under formulärets titel."
+            "subtitle_hint": "Visas för besökaren under formulärets titel.",
+            "field_type_text": "Kort text",
+            "field_type_email": "E-post",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Nummer",
+            "field_type_textarea": "Lång text",
+            "field_type_select": "Rullgardinsmeny",
+            "field_type_radio": "Enkelval",
+            "field_type_checkbox": "Kryssruta",
+            "field_type_multicheckbox": "Flerval",
+            "field_type_date": "Datum"
         },
         "submissions": {
             "page_title": "Inskick",
@@ -3823,11 +3833,11 @@
             "detail_result": "Resultat",
             "detail_conversation": "Konversation:",
             "detail_trace": "Spårning:",
-            "outcome_auto": "automatisk",
-            "outcome_approved": "godkänd",
-            "outcome_denied": "nekad",
-            "outcome_rate_limited": "hastighetsbegränsad",
-            "outcome_not_offered": "inte erbjuden",
+            "outcome_auto": "Automatisk",
+            "outcome_approved": "Godkänd",
+            "outcome_denied": "Nekad",
+            "outcome_rate_limited": "Hastighetsbegränsad",
+            "outcome_not_offered": "Inte erbjuden",
             "detail_spoken_approval": "Muntligt godkännande"
         },
         "attach_file": {

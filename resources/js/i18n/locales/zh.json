@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "已映射的字段会填充线索的详细信息——为线索列表、重复检测和 CSV 导出提供支持。保留为“—”即可记录答案而不进行标记。",
             "subtitle": "描述",
             "subtitle_placeholder": "例如：请介绍一下您的公司，我们会与您联系。",
-            "subtitle_hint": "显示在表单标题下方，供访客查看。"
+            "subtitle_hint": "显示在表单标题下方，供访客查看。",
+            "field_type_text": "短文本",
+            "field_type_email": "电子邮件",
+            "field_type_tel": "电话",
+            "field_type_number": "数字",
+            "field_type_textarea": "长文本",
+            "field_type_select": "下拉列表",
+            "field_type_radio": "单选",
+            "field_type_checkbox": "复选框",
+            "field_type_multicheckbox": "多选",
+            "field_type_date": "日期"
         },
         "submissions": {
             "page_title": "提交记录",

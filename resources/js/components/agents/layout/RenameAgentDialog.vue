@@ -5,6 +5,8 @@
  */
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { rename } from '@/routes/agents';
 import type { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
@@ -67,50 +69,45 @@ function renameAgent(): void {
             </DialogHeader>
 
             <div class="space-y-4">
-                <div>
-                    <label for="new-agent-name" class="text-foreground mb-2 block text-sm font-medium">
-                        {{ t('agents.nav.rename_dialog.name_label') }}
-                    </label>
-                    <input
+                <div class="grid gap-2">
+                    <Label for="new-agent-name">{{ t('agents.nav.rename_dialog.name_label') }}</Label>
+                    <Input
                         id="new-agent-name"
                         v-model="renameForm.name"
                         type="text"
-                        class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
-                        :class="{ 'border-red-500': renameForm.errors.name }"
+                        :aria-invalid="!!renameForm.errors.name"
                         :placeholder="t('agents.nav.rename_dialog.name_placeholder')"
                         @keyup.enter="renameAgent"
                     />
-                    <p v-if="renameForm.errors.name" class="mt-1 text-xs text-red-500">
+                    <p v-if="renameForm.errors.name" class="text-destructive text-xs">
                         {{ renameForm.errors.name }}
                     </p>
                 </div>
 
-                <div>
-                    <label for="slug" class="text-foreground mb-2 block text-sm font-medium">
-                        {{ t('agents.nav.rename_dialog.slug_label') }}
-                    </label>
+                <div class="grid gap-2">
+                    <Label for="slug">{{ t('agents.nav.rename_dialog.slug_label') }}</Label>
                     <div class="flex">
                         <span
-                            class="bg-muted border-input text-muted-foreground inline-flex max-w-[60%] items-center truncate rounded-s-md border border-e-0 px-3 py-2 text-sm"
+                            class="bg-muted border-input text-muted-foreground inline-flex h-9 max-w-[60%] items-center truncate rounded-s-md border border-e-0 px-3 text-sm"
                             dir="ltr"
                         >
                             {{ page.props.chatBaseUrl }}/
                         </span>
-                        <input
+                        <Input
                             id="slug"
                             v-model="renameForm.slug"
                             type="text"
                             dir="ltr"
-                            class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring min-w-0 flex-1 rounded-e-md border px-3 py-2 text-sm focus:z-10 focus:ring-2 focus:outline-none"
-                            :class="{ 'border-red-500': renameForm.errors.slug }"
+                            class="min-w-0 flex-1 rounded-s-none focus-visible:z-10"
+                            :aria-invalid="!!renameForm.errors.slug"
                             :placeholder="t('agents.nav.rename_dialog.slug_placeholder')"
                             @keyup.enter="renameAgent"
                         />
                     </div>
-                    <p v-if="renameForm.errors.slug" class="mt-1 text-xs text-red-500">
+                    <p v-if="renameForm.errors.slug" class="text-destructive text-xs">
                         {{ renameForm.errors.slug }}
                     </p>
-                    <p v-else class="text-muted-foreground mt-1 text-xs">{{ t('agents.nav.rename_dialog.slug_hint') }}</p>
+                    <p v-else class="text-muted-foreground text-xs">{{ t('agents.nav.rename_dialog.slug_hint') }}</p>
                 </div>
             </div>
 

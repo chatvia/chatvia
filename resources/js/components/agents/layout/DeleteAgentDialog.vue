@@ -13,6 +13,8 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { deleteMethod as deleteAgentRoute } from '@/routes/agents';
 import { router } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
@@ -63,22 +65,16 @@ function deleteAgent(): void {
             </AlertDialogHeader>
 
             <div class="space-y-4">
-                <div>
-                    <label for="agent-name-confirmation" class="text-foreground mb-2 block text-sm font-medium">
-                        {{ t('agents.nav.delete_dialog.confirm_label', { name: agentName }) }}
-                    </label>
-                    <input
+                <div class="grid gap-2">
+                    <Label for="agent-name-confirmation">{{ t('agents.nav.delete_dialog.confirm_label', { name: agentName }) }}</Label>
+                    <Input
                         id="agent-name-confirmation"
                         v-model="nameConfirmation"
                         type="text"
-                        class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
                         :placeholder="t('agents.nav.delete_dialog.confirm_placeholder')"
-                        :class="{
-                            'border-red-500 focus:ring-red-500': nameConfirmation && !canDelete,
-                            'border-green-500 focus:ring-green-500': canDelete,
-                        }"
+                        :aria-invalid="!!nameConfirmation && !canDelete"
                     />
-                    <p v-if="nameConfirmation && !canDelete" class="mt-1 text-sm text-red-500">
+                    <p v-if="nameConfirmation && !canDelete" class="text-destructive text-sm">
                         {{ t('agents.nav.delete_dialog.name_mismatch') }}
                     </p>
                 </div>

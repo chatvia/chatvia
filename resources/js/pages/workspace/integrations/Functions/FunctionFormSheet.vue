@@ -12,6 +12,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -268,19 +269,20 @@ const keepSecretHint = computed(() => isEdit.value && props.func?.has_auth_value
                             </div>
                             <div class="grid gap-2">
                                 <Label for="webhook_method">{{ t('workspace.functions.form.method') }}</Label>
-                                <div class="relative">
-                                    <Send class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                    <select
-                                        id="webhook_method"
-                                        v-model="form.webhook_method"
-                                        class="border-input bg-background h-9 w-full rounded-md border ps-9 pe-3 text-sm"
-                                    >
-                                        <option value="POST">POST</option>
-                                        <option value="GET">GET</option>
-                                        <option value="PATCH">PATCH</option>
-                                        <option value="DELETE">DELETE</option>
-                                    </select>
-                                </div>
+                                <Select v-model="form.webhook_method">
+                                    <SelectTrigger id="webhook_method" class="w-full">
+                                        <span class="flex min-w-0 items-center gap-2">
+                                            <Send class="text-muted-foreground size-4" />
+                                            <SelectValue />
+                                        </span>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="POST">POST</SelectItem>
+                                        <SelectItem value="GET">GET</SelectItem>
+                                        <SelectItem value="PATCH">PATCH</SelectItem>
+                                        <SelectItem value="DELETE">DELETE</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

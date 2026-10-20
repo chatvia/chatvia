@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "छोटा टेक्स्ट",
+            "field_type_email": "ईमेल",
+            "field_type_tel": "फ़ोन",
+            "field_type_number": "संख्या",
+            "field_type_textarea": "लंबा टेक्स्ट",
+            "field_type_select": "ड्रॉपडाउन",
+            "field_type_radio": "एकल विकल्प",
+            "field_type_checkbox": "चेकबॉक्स",
+            "field_type_multicheckbox": "एकाधिक विकल्प",
+            "field_type_date": "तारीख"
+        }
+    }
+}

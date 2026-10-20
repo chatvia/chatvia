@@ -187,7 +187,8 @@ const formatRole = (role: string) =>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             v-if="!team.is_owner"
-                                            class="text-destructive focus:text-destructive cursor-pointer"
+                                            variant="destructive"
+                                            class="cursor-pointer"
                                             @select="teamToLeave = team"
                                         >
                                             <LogOut class="me-2 h-4 w-4" />
@@ -195,7 +196,8 @@ const formatRole = (role: string) =>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             v-if="canDeleteTeam(team)"
-                                            class="text-destructive focus:text-destructive cursor-pointer"
+                                            variant="destructive"
+                                            class="cursor-pointer"
                                             @select="openDelete(team)"
                                         >
                                             <Trash2 class="me-2 h-4 w-4" />

@@ -93,6 +93,7 @@ function setupFakeOpenRouter(int $dimensions): void
     Http::fake([
         'openrouter.ai/api/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $dimensions, 0.1)]]]),
         'openrouter.ai/api/v1/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]]),
+        'openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]),
         'openrouter.ai/api/v1/models' => Http::response(['data' => [
             [
                 'id' => 'meta-llama/llama-4-maverick',
@@ -197,7 +198,7 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
         'architecture' => ['input_modalities' => ['text', 'image'], 'output_modalities' => ['text']],
         'supported_parameters' => $tools ? ['tools'] : ['temperature'],
     ];
-    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
         $model('meta-llama/llama-4-maverick'),
         $model('openai/gpt-oss-120b'),
         $model('qwen/qwen3.7-plus', tools: false),
@@ -217,6 +218,20 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
             'default_model' => 'openai/gpt-6.1-sol',
             'quick_task_model' => 'openai/gpt-6-luna',
         ]);
+});
+
+it('stops on the first step when OpenRouter refuses the key, although its model list is public', function (): void {
+    Http::fake([
+        'openrouter.ai/api/v1/key' => Http::response(['error' => ['message' => 'User not found.', 'code' => 401]], 401),
+        'openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
+    ]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-wrong'])
+        ->goToNextWizardStep()
+        ->assertHasFormErrors(['api_key' => 'OpenRouter refused the API key. Check that you copied all of it.'])
+        ->assertDispatched('form-validation-error')
+        ->assertWizardCurrentStep(1);
 });
 
 it('stops on the first step when the provider refuses the key', function (): void {

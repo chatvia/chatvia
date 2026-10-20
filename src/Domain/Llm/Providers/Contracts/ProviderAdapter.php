@@ -11,6 +11,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 
 /**
@@ -61,6 +62,12 @@ interface ProviderAdapter
      * @throws ConnectionException|RequestException
      */
     public function models(LlmProvider $provider): Collection;
+
+    /**
+     * Whether a failed call's reply means the key was refused: 401 or 403
+     * for most providers. Some answer a wrong key otherwise (Gemini: 400).
+     */
+    public function refusesKey(Response $response): bool;
 
     /**
      * The AI provider account whose key (and address) rows of this kind call

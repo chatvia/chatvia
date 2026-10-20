@@ -47,7 +47,7 @@ function modelsPage(User $admin): Testable
 function modelsFakeOpenRouter(): void
 {
     connectAiProviders(AiProvider::OpenRouter);
-    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
         [
             'id' => 'meta-llama/llama-4-maverick',
             'name' => 'Llama 4 Maverick',
@@ -66,7 +66,7 @@ function modelsFakeOpenRouter(): void
 }
 
 it('uses the recommended model for quick tasks of the default model\'s provider', function (): void {
-    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
         ['id' => 'openai/gpt-6-luna', 'name' => 'GPT-6 Luna', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
     ]])]);
     $chat = testLlm('meta-llama/llama-4-maverick', LlmProviderKind::OpenRouter);

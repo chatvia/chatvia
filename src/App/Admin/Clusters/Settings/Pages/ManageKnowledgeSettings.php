@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
-use App\Admin\Clusters\Settings\Concerns\BuildsChunkingCards;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\KnowledgeSettings;
 use BackedEnum;
@@ -28,15 +27,13 @@ use Illuminate\Support\HtmlString;
 /**
  * What agents learn from, and how they search it. Everyday cards: the file
  * types people may upload, website import (Firecrawl), the AI enhancement
- * of chunks, search (keyword search and how many results), and follow-up
- * questions. Under Advanced: how text is split into chunks, a preview of
- * the splitting, and the fine-tuning of search (mode, token budget, the
- * relevance check and its minimum scores).
+ * of chunks, search (hybrid search and how many results), and follow-up
+ * questions. Under Advanced: the fine-tuning of search (mode, token budget,
+ * the relevance check and its minimum scores). How text is split into
+ * chunks has its own page (ManageSplittingSettings).
  */
 class ManageKnowledgeSettings extends AdminSettingsPage
 {
-    use BuildsChunkingCards;
-
     /** The label of each KnowledgeFileType, in the order the list shows them. */
     private const array FILE_TYPES = [
         'pdf' => 'PDF',
@@ -101,7 +98,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
 
     protected function showsValueInUse(string $property): bool
     {
-        return in_array($property, ['file_types', 'chunk_unit'], true);
+        return $property === 'file_types';
     }
 
     protected function cards(): array
@@ -141,11 +138,11 @@ class ManageKnowledgeSettings extends AdminSettingsPage
                 $this->shown($this->valueInUse('enhance_text_chunks')),
             )),
             SettingsCard::make('search', 'Search', 'How agents find the parts of their sources that answer a question.', Heroicon::OutlinedMagnifyingGlass, fn (): array => [
-                $this->toggle('hybrid_search', 'Keyword search',
-                    help: 'Also search by words, not only by meaning. Finds names, codes and rare words better. You can change this at any time.'),
+                $this->toggle('hybrid_search', 'Hybrid search',
+                    help: 'Search by meaning and by keywords together. Finds names, codes and rare words better. Off searches by meaning only. You can change this at any time.'),
                 $this->integer('max_chunks', 'Results per question', help: 'How many parts of the sources an agent gets for one question.', min: 1, max: 20),
             ])->summary(fn (): string => sprintf(
-                'Keyword search %s · %s results per question',
+                'Hybrid search %s · %s results per question',
                 $this->shown($this->valueInUse('hybrid_search')),
                 $this->shown($this->valueInUse('max_chunks')),
             )),
@@ -153,15 +150,6 @@ class ManageKnowledgeSettings extends AdminSettingsPage
                 $this->toggle('query_rewriter', 'Understand follow-up questions',
                     help: 'An AI step turns a follow-up ("and the price?") into a full question from the chat before it, only for the search. One model call per follow-up. The model is set in Settings → AI models → Models for app tasks.'),
             ])->summary(fn (): string => 'Understand follow-up questions '.$this->shown($this->valueInUse('query_rewriter'))),
-            SettingsCard::make('splitting', 'Splitting', 'How texts are cut into chunks (small parts). The defaults suit most agents.', Heroicon::OutlinedScissors, fn (): array => $this->splittingFields())
-                ->properties('chunk_unit', 'chunk_size', 'chunk_overlap', 'markdown_strategy', 'text_strategy', 'transcript_strategy', 'tokenizer')
-                ->summary(fn (): string => $this->sizeSummary())
-                ->advanced(),
-            SettingsCard::make('try_it', 'Try splitting', 'Split a sample, or your own text, with the options above. Nothing is saved.', Heroicon::OutlinedBeaker, fn (): array => [
-                $this->previewSection(),
-            ])->properties()
-                ->summary(fn (): string => 'Test the options before you save')
-                ->advanced(),
             SettingsCard::make('search_tuning', 'Search fine-tuning', 'Search speed, how much text an agent gets, and the minimum scores.', Heroicon::OutlinedAdjustmentsHorizontal, fn (): array => [
                 $this->choice('search_mode', 'Search mode', self::SEARCH_MODES,
                     help: sprintf('Only for agents with more than %s parts in their sources. Smaller ones are always searched in full.', number_format((int) config('chatvia.vector.search.exact_max_chunks')))),

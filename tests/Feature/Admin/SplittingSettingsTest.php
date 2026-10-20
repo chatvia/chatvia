@@ -1,6 +1,6 @@
 <?php
 
-use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
+use App\Admin\Clusters\Settings\Pages\ManageSplittingSettings;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
@@ -14,10 +14,10 @@ use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
 /**
- * The Chunking page of the admin panel: the chunk size and its unit, how
- * each kind of content is split (with a preview of the unsaved options), and,
- * under Advanced, the strategy for each kind and the tokenizer. Splitting
- * runs in-process: the page calls no outside service.
+ * The Splitting page of the admin panel: the chunk size and its unit, the
+ * strategy for each kind of content and the tokenizer, with a preview of the
+ * unsaved options. Splitting runs in-process: the page calls no outside
+ * service.
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
@@ -27,7 +27,7 @@ beforeEach(function (): void {
 
 function chunkingPage(User $admin): Testable
 {
-    return Livewire::actingAs($admin, 'admin')->test(ManageKnowledgeSettings::class);
+    return Livewire::actingAs($admin, 'admin')->test(ManageSplittingSettings::class);
 }
 
 function chunkingPreviewAction(): TestAction
@@ -35,12 +35,11 @@ function chunkingPreviewAction(): TestAction
     return TestAction::make('runPreview')->schemaComponent('preview-actions', schema: 'form');
 }
 
-it('shows the splitting options and the preview under Advanced', function (): void {
+it('shows the splitting options and the preview on their own page', function (): void {
     $this->actingAs($this->admin, 'admin')
-        ->get(ManageKnowledgeSettings::getUrl())
+        ->get(ManageSplittingSettings::getUrl())
         ->assertOk()
         ->assertSeeInOrder([
-            'Advanced',
             'Splitting', 'Up to 400 tokens · no overlap',
             'Measure in', 'Chunk size', 'Overlap',
             'Markdown', 'Web pages, Markdown files and ebooks',

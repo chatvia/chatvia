@@ -9,7 +9,7 @@ use Yethee\Tiktoken\EncoderProvider;
 
 /**
  * The built-in tokenizer: counts the tokens of a text with the encoding
- * chosen in the admin panel (`chatvia.ai.tokenizer`, Settings → Knowledge),
+ * chosen in the admin panel (`chatvia.ai.tokenizer`, Settings → Splitting),
  * cl100k by default. It counts the stored size of every chunk, measures
  * chunks when they are sized in tokens, and estimates prices when a provider
  * reports no usage.

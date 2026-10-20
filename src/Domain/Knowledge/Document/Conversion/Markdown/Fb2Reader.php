@@ -8,6 +8,7 @@ use Domain\Knowledge\Document\Conversion\EbookText;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use Illuminate\Support\Facades\File;
 use RuntimeException;
 
 /**
@@ -43,7 +44,7 @@ final class Fb2Reader
             throw new RuntimeException('The FictionBook file is missing or too large to read.');
         }
 
-        $book = ZipPackage::parseXml((string) file_get_contents($path))?->documentElement;
+        $book = ZipPackage::parseXml(File::get($path))?->documentElement;
 
         if (! $book instanceof DOMElement) {
             throw new RuntimeException('The FictionBook file is not well-formed XML.');

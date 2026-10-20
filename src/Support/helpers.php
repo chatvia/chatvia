@@ -9,6 +9,7 @@
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Support\MimeType;
 
 if (! function_exists('create_temp_dir')) {
@@ -25,7 +26,12 @@ if (! function_exists('create_temp_dir')) {
     {
         $path = sys_get_temp_dir().$append;
 
-        if (! is_dir($path) && ! mkdir($path, 0755, true) && ! is_dir($path)) {
+        if (! File::isDirectory($path)) {
+            // Quiet, so a folder another worker made meanwhile is no error.
+            File::makeDirectory($path, 0755, true, true);
+        }
+
+        if (! File::isDirectory($path)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
         }
 
@@ -54,9 +60,9 @@ if (! function_exists('create_temp_file')) {
      */
     function create_temp_file(string $filename, string $content): string
     {
-        $tempFile = create_temp_dir().'/'.uniqid('', true).'.'.File::extension($filename);
+        $tempFile = create_temp_dir().'/'.Str::uuid7().'.'.File::extension($filename);
 
-        file_put_contents($tempFile, $content);
+        File::put($tempFile, $content);
 
         return $tempFile;
     }
@@ -145,7 +151,8 @@ if (! function_exists('prompt')) {
      * `prompts::` view namespace. Pass variables as the second argument; use
      * {!! $var !!} in the prompt file so text isn't HTML-escaped.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     function prompt(string $name, array $data = []): string

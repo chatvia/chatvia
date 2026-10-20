@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Ingestion\Services\Media;
 
 use Closure;
 use Domain\Llm\Contracts\Transcriber;
+use Illuminate\Support\Facades\File;
 use Support\Executable;
 
 /**
@@ -66,7 +67,7 @@ class TranscriptionAudio
         try {
             return $use($compressed);
         } finally {
-            @unlink($compressed);
+            File::delete($compressed);
         }
     }
 }

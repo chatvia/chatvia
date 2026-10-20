@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Document\Concerns;
 use Closure;
 use Domain\Knowledge\Document\Conversion\OfficePdf;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Illuminate\Support\Facades\File as LocalFiles;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -39,7 +40,7 @@ trait HasStorageFile
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $tempPath = sys_get_temp_dir().'/storage_file_'.Str::uuid()->toString().($extension !== '' ? '.'.$extension : '');
 
-        file_put_contents($tempPath, $data);
+        LocalFiles::put($tempPath, $data);
 
         return new File($tempPath);
     }
@@ -75,7 +76,7 @@ trait HasStorageFile
         try {
             return $callback($file);
         } finally {
-            @unlink($file->getPathname());
+            LocalFiles::delete($file->getPathname());
         }
     }
 
@@ -123,9 +124,9 @@ trait HasStorageFile
         $pdfPath = ($root !== '' ? $root : 'tmp').'/tmp/'.Str::uuid()->toString().'.pdf';
 
         try {
-            Storage::put($pdfPath, (string) file_get_contents($localPdf));
+            Storage::put($pdfPath, LocalFiles::get($localPdf));
         } finally {
-            @unlink($localPdf);
+            LocalFiles::delete($localPdf);
         }
 
         try {

@@ -10,6 +10,7 @@ use Domain\Knowledge\Ingestion\Services\Clients\MistralOcr;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 
 /**
  * Document parser backed by Mistral's hosted OCR: reads PDFs, Word,
@@ -40,7 +41,7 @@ class MistralDocumentParser implements DocumentParser
             try {
                 return $this->ocr->fromFile($png);
             } finally {
-                @unlink($png);
+                File::delete($png);
             }
         }
 

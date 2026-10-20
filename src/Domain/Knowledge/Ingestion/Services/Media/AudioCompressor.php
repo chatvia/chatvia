@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Ingestion\Services\Media;
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -24,7 +25,7 @@ class AudioCompressor
      */
     public function process(string $input, int $bitrate = 32): string
     {
-        if (! is_file($input)) {
+        if (! File::isFile($input)) {
             throw new RuntimeException("Input file not found: {$input}");
         }
 
@@ -43,7 +44,7 @@ class AudioCompressor
         ]);
 
         if ($result->failed()) {
-            @unlink($output);
+            File::delete($output);
 
             throw new RuntimeException("Compression failed:\n".$result->errorOutput());
         }

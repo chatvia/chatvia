@@ -33,6 +33,7 @@ use Filament\Support\Enums\Size;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -472,7 +473,7 @@ abstract class AdminSettingsPage extends Page
     {
         $file = resource_path('help/settings/'.static::getSlug().'/'.($card->helpFile ?? $card->key).'.md');
 
-        return is_file($file) ? str_replace('{title}', $card->title, (string) file_get_contents($file)) : null;
+        return File::isFile($file) ? str_replace('{title}', $card->title, File::get($file)) : null;
     }
 
     /**

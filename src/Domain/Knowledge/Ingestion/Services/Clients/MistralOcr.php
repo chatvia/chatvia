@@ -10,6 +10,7 @@ use Domain\Llm\Services\ProviderAdapters;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use Symfony\Component\Mime\MimeTypes;
 
@@ -46,7 +47,7 @@ class MistralOcr
      */
     public function fromFile(string $file): Collection
     {
-        if (! file_exists($file)) {
+        if (! File::exists($file)) {
             throw new InvalidArgumentException('File does not exist');
         }
 
@@ -72,7 +73,7 @@ class MistralOcr
                 'model' => (string) config('services.mistral.ocr_model'),
                 'document' => [
                     'type' => 'image_url',
-                    'image_url' => 'data:image/png;base64,'.base64_encode((string) file_get_contents(resource_path('checks/document-reader.png'))),
+                    'image_url' => 'data:image/png;base64,'.base64_encode(File::get(resource_path('checks/document-reader.png'))),
                 ],
             ]);
     }
@@ -134,6 +135,6 @@ class MistralOcr
     {
         $mimeType = MimeTypes::getDefault()->getMimeTypes(file_extension($file))[0] ?? 'application/octet-stream';
 
-        return 'data:'.$mimeType.';base64,'.base64_encode((string) file_get_contents($file));
+        return 'data:'.$mimeType.';base64,'.base64_encode(File::get($file));
     }
 }

@@ -22,6 +22,7 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -98,7 +99,12 @@ class BuildDataExportArchiveAction
         $absoluteZipPath = $localDisk->path($zipRelativePath);
         $absoluteZipDir = dirname($absoluteZipPath);
 
-        if (! is_dir($absoluteZipDir) && ! mkdir($absoluteZipDir, 0755, true) && ! is_dir($absoluteZipDir)) {
+        if (! File::isDirectory($absoluteZipDir)) {
+            // Quiet, so a folder another worker made meanwhile is no error.
+            File::makeDirectory($absoluteZipDir, 0755, true, true);
+        }
+
+        if (! File::isDirectory($absoluteZipDir)) {
             throw new RuntimeException("Unable to create export directory: {$absoluteZipDir}");
         }
 

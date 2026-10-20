@@ -13,6 +13,7 @@ use Domain\Knowledge\Ingestion\Services\Clients\AzureDocumentIntelligence;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use Throwable;
 
@@ -47,7 +48,7 @@ class AzureDocumentParser implements DocumentParser
 
     public function parse(string $filePath, string $storageDirectory): Collection
     {
-        if (! is_file($filePath)) {
+        if (! File::isFile($filePath)) {
             throw new InvalidArgumentException('File does not exist');
         }
 
@@ -90,7 +91,7 @@ class AzureDocumentParser implements DocumentParser
         try {
             return $this->azure->analyze($png);
         } finally {
-            @unlink($png);
+            File::delete($png);
         }
     }
 

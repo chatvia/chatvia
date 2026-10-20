@@ -128,7 +128,7 @@ final class PdfEncryption
             throw new RuntimeException("PDF file is not readable: {$path}");
         }
 
-        return (string) file_get_contents($path);
+        return File::get($path);
     }
 
     /**

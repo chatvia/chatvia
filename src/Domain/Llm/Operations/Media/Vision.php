@@ -7,6 +7,7 @@ use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Facades\File;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
@@ -32,7 +33,7 @@ class Vision
      */
     public function describeImage(string $image): ?string
     {
-        if (file_exists($image)) {
+        if (File::exists($image)) {
             $image = Image::decodePath($image)->encode(new JpegEncoder)->toDataUri()->toString();
         }
 

@@ -40,7 +40,7 @@ class CrawlWebsiteAction
 
     public function execute(SourceWebsite $website, CrawlerData $data, Agent $agent, ?string $internalJobId = null): void
     {
-        $startedAt = time();
+        $startedAt = now();
 
         $links = $this->firecrawl->map(
             $this->crawler->rootUrl($data->url),
@@ -60,7 +60,7 @@ class CrawlWebsiteAction
 
             $website->update([
                 'status' => SourceStatus::Crawled,
-                'took_in_seconds' => max(1, time() - $startedAt),
+                'took_in_seconds' => max(1, (int) $startedAt->diffInSeconds(now())),
                 'internal_ingestion_job_id' => $internalJobId,
             ]);
         });

@@ -7,7 +7,7 @@ namespace Domain\Integration\Function\Enums;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * HTTP method Chatvia uses when calling a function's webhook. The values are
+ * HTTP method ChatVia.ai uses when calling a function's webhook. The values are
  * stored in `functions.webhook_method` and shown in the public API.
  */
 #[TypeScript]

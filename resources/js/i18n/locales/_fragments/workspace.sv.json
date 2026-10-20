@@ -42,7 +42,7 @@
         "functions": {
             "breadcrumb": "Funktioner",
             "title": "Funktioner",
-            "description": "Webhook-baserade verktyg som LLM:en kan anropa. Definiera en gång och bifoga till valfri agent. Vid anrop skickar Chatvia parametrarna till din webhook och vidarebefordrar svaret tillbaka till modellen.",
+            "description": "Webhook-baserade verktyg som LLM:en kan anropa. Definiera en gång och bifoga till valfri agent. Vid anrop skickar ChatVia.ai parametrarna till din webhook och vidarebefordrar svaret tillbaka till modellen.",
             "add": "Lägg till funktion",
             "search_placeholder": "Sök funktioner",
             "empty": "Inga funktioner än. Klicka på \"Lägg till funktion\" för att skapa din första.",
@@ -108,10 +108,10 @@
             "breadcrumb": "API-nycklar",
             "title": "API-nycklar",
             "description": "Kontonycklar för {api_link} — skapa och hantera agenter, kunskapsbaser, MCP-servrar och funktioner.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Generera nyckel",
             "empty_title": "Inga API-nycklar än",
-            "empty_description": "Generera en för att börja använda Chatvia API.",
+            "empty_description": "Generera en för att börja använda ChatVia.ai API.",
             "never": "Aldrig",
             "revoke_aria": "Återkalla nyckel",
             "table": {
@@ -311,7 +311,11 @@
                 "anonymize": "Anonymisera besökare efter (dagar)",
                 "anonymize_help": "Rensa besökaruppgifter från chattar som är äldre än så här många dagar — namn, e-post, telefon, IP-adress, fullständig webbläsarsträng, plats och sidlänkar. Meddelanden och enhetstyp behålls. Upp till {max} dagar.",
                 "keep_forever": "Behåll för alltid",
-                "never": "Aldrig"
+                "never": "Aldrig",
+                "help": "Hur länge ChatVia.ai behåller din data innan den raderas automatiskt. Korta ner dessa för efterlevnad — lämna ett fält tomt för att använda standardvärdet."
+            },
+            "siem": {
+                "help": "Vidarebefordra varje säkerhetshändelse till ditt SIEM i realtid, signerad så att du kan verifiera att den kom från ChatVia.ai."
             }
         }
     }

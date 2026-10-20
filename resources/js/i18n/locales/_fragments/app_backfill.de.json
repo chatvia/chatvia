@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "Verbinden Sie Ihre WhatsApp Business-Nummer, damit dieser Agent auf WhatsApp-Nachrichten antworten kann – Sie melden sich mit Facebook an und richten alles in einem Schritt ein.",
                     "connect_facebook": "Mit Facebook verbinden",
-                    "not_configured": "WhatsApp ist auf dieser Chatvia-Instanz noch nicht eingerichtet. Bitte wenden Sie sich an den Support.",
+                    "not_configured": "WhatsApp ist auf dieser ChatVia.ai-Instanz noch nicht eingerichtet. Bitte wenden Sie sich an den Support.",
                     "finish_number": "Fügen Sie im Popup eine Telefonnummer zu Ihrem WhatsApp Business Account hinzu und versuchen Sie es dann erneut.",
                     "connect_failed": "Wir konnten Ihr WhatsApp-Konto nicht von Facebook abrufen. Bitte versuchen Sie erneut, die Verbindung herzustellen."
                 },

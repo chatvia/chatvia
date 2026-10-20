@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "Bu asistanın WhatsApp mesajlarını yanıtlayabilmesi için WhatsApp Business numaranızı bağlayın — Facebook ile giriş yapacak ve tek adımda kuracaksınız.",
                     "connect_facebook": "Facebook ile bağlan",
-                    "not_configured": "WhatsApp bu Chatvia örneğinde henüz kurulmadı. Lütfen destekle iletişime geçin.",
+                    "not_configured": "WhatsApp bu ChatVia.ai örneğinde henüz kurulmadı. Lütfen destekle iletişime geçin.",
                     "finish_number": "Açılır pencerede WhatsApp Business Account hesabınıza bir telefon numarası ekleyin, ardından tekrar deneyin.",
                     "connect_failed": "WhatsApp hesabınızı Facebook'tan okuyamadık. Lütfen tekrar bağlanmayı deneyin."
                 },

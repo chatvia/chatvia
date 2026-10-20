@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "Kết nối số WhatsApp Business của bạn để trợ lý AI này có thể trả lời các tin nhắn WhatsApp — bạn sẽ đăng nhập bằng Facebook và thiết lập trong một bước.",
                     "connect_facebook": "Kết nối với Facebook",
-                    "not_configured": "WhatsApp chưa được thiết lập trên phiên bản Chatvia này. Vui lòng liên hệ bộ phận hỗ trợ.",
+                    "not_configured": "WhatsApp chưa được thiết lập trên phiên bản ChatVia.ai này. Vui lòng liên hệ bộ phận hỗ trợ.",
                     "finish_number": "Thêm một số điện thoại vào WhatsApp Business Account của bạn trong cửa sổ bật lên, sau đó thử lại.",
                     "connect_failed": "Chúng tôi không thể đọc tài khoản WhatsApp của bạn từ Facebook. Vui lòng thử kết nối lại."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "Trường này là bắt buộc.",
             "preview_show_form_again": "Hiển thị lại biểu mẫu",
             "preview_user_message": "Xin chào! Bạn có thể giúp tôi không?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Biểu mẫu chỉ hiển thị trong Tiện ích trò chuyện và Thanh lệnh."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "Người dùng nào hoạt động tích cực nhất của tôi?",
         "starter_busiest_channel": "Kênh nào bận rộn nhất?",
         "starter_leads": "Tôi đã thu thập được bao nhiêu khách hàng tiềm năng trong chu kỳ này?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "Hỏi về tài khoản của bạn bằng ngôn ngữ tự nhiên — tin nhắn, người dùng, kênh, khách hàng tiềm năng và nhiều hơn nữa. Biểu đồ được hiển thị trực tiếp.",
         "composer_placeholder": "Hỏi về tài khoản của bạn…",
         "disclaimer": "Câu trả lời đến từ dữ liệu phân tích trực tiếp của bạn. Cuộc trò chuyện này không được lưu."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "Hàm",
             "title": "Hàm",
-            "description": "Các công cụ dựa trên webhook mà LLM có thể gọi. Định nghĩa một lần, đính kèm vào bất kỳ trợ lý AI nào của bạn. Khi được gọi, Chatvia gửi POST các tham số đến webhook của bạn và chuyển phản hồi về cho mô hình.",
+            "description": "Các công cụ dựa trên webhook mà LLM có thể gọi. Định nghĩa một lần, đính kèm vào bất kỳ trợ lý AI nào của bạn. Khi được gọi, ChatVia.ai gửi POST các tham số đến webhook của bạn và chuyển phản hồi về cho mô hình.",
             "add": "Thêm hàm",
             "search_placeholder": "Tìm hàm",
             "empty": "Chưa có hàm nào. Nhấp \"Thêm hàm\" để tạo hàm đầu tiên của bạn.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "Khóa API",
             "title": "Khóa API",
             "description": "Khóa tài khoản cho {api_link} — tạo và quản lý trợ lý AI, kiến thức, máy chủ MCP và hàm.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Tạo khóa",
             "empty_title": "Chưa có khóa API nào",
-            "empty_description": "Tạo một khóa để bắt đầu sử dụng Chatvia API.",
+            "empty_description": "Tạo một khóa để bắt đầu sử dụng ChatVia.ai API.",
             "never": "Không bao giờ",
             "revoke_aria": "Thu hồi khóa",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "Lưu giữ dữ liệu",
-                "help": "Khoảng thời gian Chatvia giữ dữ liệu của bạn trước khi tự động xóa. Rút ngắn để tuân thủ quy định — để trống một trường để dùng giá trị mặc định.",
+                "help": "Khoảng thời gian ChatVia.ai giữ dữ liệu của bạn trước khi tự động xóa. Rút ngắn để tuân thủ quy định — để trống một trường để dùng giá trị mặc định.",
                 "conversations": "Lịch sử cuộc trò chuyện (ngày)",
                 "conversations_help": "Lịch sử trò chuyện sẽ bị xóa sau số ngày này. Tối đa {max} ngày.",
                 "audit": "Nhật ký kiểm tra bảo mật (ngày)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "Webhook SIEM",
-                "help": "Chuyển tiếp mọi sự kiện bảo mật đến SIEM của bạn theo thời gian thực, được ký để bạn có thể xác minh nó đến từ Chatvia.",
+                "help": "Chuyển tiếp mọi sự kiện bảo mật đến SIEM của bạn theo thời gian thực, được ký để bạn có thể xác minh nó đến từ ChatVia.ai.",
                 "url": "URL điểm cuối",
                 "secret": "Khóa ký",
                 "secret_placeholder": "Để trống để giữ khóa hiện tại",

@@ -1,6 +1,6 @@
-# Contributing to Chatvia
+# Contributing to ChatVia.ai
 
-Thank you for your interest in Chatvia. Bug reports, fixes, documentation and
+Thank you for your interest in ChatVia.ai. Bug reports, fixes, documentation and
 new features are all welcome. This guide explains how to set up the project,
 how to check your change, and how to send it.
 

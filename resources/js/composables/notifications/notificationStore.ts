@@ -59,9 +59,9 @@ export function notificationsCleared(): void {
     listeners.forEach((listener) => listener.cleared?.());
 }
 
-// The tab title carries the unread count ("(3) Agents - Chatvia"). Inertia
+// The tab title carries the unread count ("(3) Agents - ChatVia.ai"). Inertia
 // sets the title per page through pageTitle(); a change of count rewrites it.
-const APP_NAME = 'Chatvia';
+const APP_NAME = 'ChatVia.ai';
 let baseTitle: string | null = null;
 
 function withUnreadCount(title: string): string {

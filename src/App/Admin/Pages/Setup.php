@@ -209,7 +209,7 @@ class Setup extends SimplePage
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
-            'from_name' => 'Chatvia',
+            'from_name' => 'ChatVia.ai',
         ]);
     }
 
@@ -221,12 +221,12 @@ class Setup extends SimplePage
 
     public function getTitle(): string|Htmlable
     {
-        return 'Set up Chatvia';
+        return 'Set up ChatVia.ai';
     }
 
     public function getHeading(): string|Htmlable
     {
-        return 'Welcome to Chatvia';
+        return 'Welcome to ChatVia.ai';
     }
 
     public function getSubheading(): string|Htmlable|null
@@ -325,7 +325,7 @@ class Setup extends SimplePage
 
         Notification::make()
             ->success()
-            ->title('Chatvia is ready')
+            ->title('ChatVia.ai is ready')
             ->body("New agents answer with {$model->descriptive_name}.")
             ->send();
 
@@ -614,7 +614,7 @@ class Setup extends SimplePage
                                 'Settings → Knowledge' => 'Search, the AI enhancement of sources, follow-up questions, and the file types people can upload.',
                                 'Settings → Splitting' => 'How texts are split into chunks.',
                                 'Settings → AI models' => 'More chat models, and a model for each app task.',
-                                'Settings → Branding' => 'The "Powered by Chatvia" credit under hosted chats and widgets.',
+                                'Settings → Branding' => 'The "Powered by ChatVia.ai" credit under hosted chats and widgets.',
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
                                 'Settings → Sign-in' => 'Sign-in with other accounts.',
                                 'Settings → Security' => 'The bot check on public forms, guardrails, tool call limits and the security log.',
@@ -1021,7 +1021,7 @@ class Setup extends SimplePage
             ->requiresConfirmation()
             ->modalIcon(Heroicon::OutlinedExclamationTriangle)
             ->modalIconColor('danger')
-            ->modalHeading('Chatvia does not work without these')
+            ->modalHeading('ChatVia.ai does not work without these')
             ->modalDescription(fn (): string => sprintf(
                 'Still missing: %s. Until they are set up, agents cannot answer, sources cannot be trained and search does not work. You can finish the setup later from Settings.',
                 implode(', ', app(SetupRequirements::class)->missing()) ?: 'nothing',

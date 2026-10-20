@@ -42,7 +42,7 @@
         "functions": {
             "breadcrumb": "Funkcje",
             "title": "Funkcje",
-            "description": "Narzędzia oparte na webhookach, które LLM może wywoływać. Zdefiniuj raz, dołącz do dowolnego agenta. Po wywołaniu Chatvia wysyła parametry POST do Twojego webhooka i przekazuje odpowiedź z powrotem do modelu.",
+            "description": "Narzędzia oparte na webhookach, które LLM może wywoływać. Zdefiniuj raz, dołącz do dowolnego agenta. Po wywołaniu ChatVia.ai wysyła parametry POST do Twojego webhooka i przekazuje odpowiedź z powrotem do modelu.",
             "add": "Dodaj funkcję",
             "search_placeholder": "Szukaj funkcji",
             "empty": "Brak funkcji. Kliknij „Dodaj funkcję\", aby utworzyć pierwszą.",
@@ -108,10 +108,10 @@
             "breadcrumb": "Klucze API",
             "title": "Klucze API",
             "description": "Klucze konta dla {api_link} — twórz agentów, zasoby wiedzy, serwery MCP i funkcje oraz zarządzaj nimi.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Generuj klucz",
             "empty_title": "Brak kluczy API",
-            "empty_description": "Wygeneruj klucz, aby rozpocząć korzystanie z Chatvia API.",
+            "empty_description": "Wygeneruj klucz, aby rozpocząć korzystanie z ChatVia.ai API.",
             "never": "Nigdy",
             "revoke_aria": "Unieważnij klucz",
             "table": {
@@ -311,7 +311,11 @@
                 "anonymize": "Anonimizuj odwiedzających po (dniach)",
                 "anonymize_help": "Usuwa dane odwiedzających z czatów starszych niż tyle dni — imię, e-mail, telefon, adres IP, pełny ciąg przeglądarki, lokalizację i linki do stron. Wiadomości i typ urządzenia zostają zachowane. Maksymalnie {max} dni.",
                 "keep_forever": "Przechowuj zawsze",
-                "never": "Nigdy"
+                "never": "Nigdy",
+                "help": "Jak długo ChatVia.ai przechowuje Twoje dane, zanim usunie je automatycznie. Skróć te okresy, aby spełnić wymogi zgodności — pozostaw pole puste, aby użyć wartości domyślnej."
+            },
+            "siem": {
+                "help": "Przekazuj każde zdarzenie bezpieczeństwa do Twojego SIEM w czasie rzeczywistym, podpisane, abyś mógł zweryfikować, że pochodzi z ChatVia.ai."
             }
         }
     }

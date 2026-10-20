@@ -5,6 +5,6 @@
     </span>
     <h2 class="cv-setup-complete__title">Complete</h2>
     <p class="cv-setup-complete__text">
-        Everything Chatvia needs is set. Check your choices, then press <strong>Finish setup</strong> to save them.
+        Everything ChatVia.ai needs is set. Check your choices, then press <strong>Finish setup</strong> to save them.
     </p>
 </div>

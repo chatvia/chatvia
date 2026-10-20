@@ -1,4 +1,4 @@
-Controls the small "Powered by Chatvia" line under hosted chats and chat widgets.
+Controls the small "Powered by ChatVia.ai" line under hosted chats and chat widgets.
 
 - **Show the credit**: When on, the line shows under every agent. You can turn it off only with a valid license key. Without one, the line shows even when the switch is off.
 - **License key**: The key you get by email when you buy a license at chatvia.ai. A key costs $399, one time, and never expires.

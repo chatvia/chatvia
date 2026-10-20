@@ -45,7 +45,7 @@ final readonly class LicenseActivation
 
             return is_string($activated) && $this->license->allowsHidingCredit($activated)
                 ? new LicenseActivationData(key: $activated)
-                : new LicenseActivationData(message: 'chatvia.ai answered, but this install could not check the activated key. Update Chatvia and try again.');
+                : new LicenseActivationData(message: 'chatvia.ai answered, but this install could not check the activated key. Update ChatVia.ai and try again.');
         }
 
         $message = $response->json('message');

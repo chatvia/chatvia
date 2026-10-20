@@ -5,7 +5,7 @@ import { usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 /**
- * The small "Powered by Chatvia" credit under the hosted chat, linked to
+ * The small "Powered by ChatVia.ai" credit under the hosted chat, linked to
  * chatvia.ai. It is hidden only when the install hides it with a license
  * (`config('chatvia.powered_by')`, shared as `poweredBy`).
  */
@@ -23,7 +23,7 @@ const page = usePage<SharedData>();
         >
             <!-- Decorative: the label next to it already names the product. -->
             <AppLogoIcon aria-hidden="true" class="h-3.5 w-3.5" />
-            {{ t('chat.powered_by', { label: 'Chatvia' }) }}
+            {{ t('chat.powered_by', { label: 'ChatVia.ai' }) }}
         </a>
     </div>
 </template>

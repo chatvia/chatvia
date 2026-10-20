@@ -24,7 +24,7 @@
                 "whatsapp": {
                     "oauth_intro": "Yhdistä WhatsApp Business -numerosi, jotta tämä agentti voi vastata WhatsApp-viesteihin — kirjaudut sisään Facebookilla ja teet käyttöönoton yhdellä kertaa.",
                     "connect_facebook": "Yhdistä Facebookilla",
-                    "not_configured": "WhatsAppia ei ole vielä otettu käyttöön tässä Chatvia-ympäristössä. Ota yhteyttä tukeen.",
+                    "not_configured": "WhatsAppia ei ole vielä otettu käyttöön tässä ChatVia.ai-ympäristössä. Ota yhteyttä tukeen.",
                     "finish_number": "Lisää puhelinnumero WhatsApp Business Account -tilillesi ponnahdusikkunassa ja yritä sitten uudelleen.",
                     "connect_failed": "Emme onnistuneet lukemaan WhatsApp-tiliäsi Facebookista. Yritä yhdistämistä uudelleen."
                 },

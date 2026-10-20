@@ -9,8 +9,19 @@
                 "anonymize": "방문자 익명화 시점 (일)",
                 "anonymize_help": "이 일수보다 오래된 채팅에서 방문자 정보를 지웁니다 — 이름, 이메일, 전화번호, IP 주소, 전체 브라우저 문자열, 위치, 페이지 링크. 메시지와 기기 유형은 유지됩니다. 최대 {max}일입니다.",
                 "keep_forever": "영구 보관",
-                "never": "안 함"
+                "never": "안 함",
+                "help": "ChatVia.ai가 데이터를 자동으로 삭제하기 전까지 보관하는 기간입니다. 규정 준수를 위해 이 값을 줄이세요 — 기본값을 사용하려면 필드를 비워 두세요."
+            },
+            "siem": {
+                "help": "모든 보안 이벤트를 실시간으로 SIEM에 전달하며, ChatVia.ai에서 전송되었음을 확인할 수 있도록 서명됩니다."
             }
+        },
+        "functions": {
+            "description": "LLM이 호출할 수 있는 Webhook 기반 도구입니다. 한 번 정의하면 어떤 에이전트에든 연결할 수 있습니다. 호출되면 ChatVia.ai가 매개변수를 Webhook으로 POST하고 응답을 모델에 다시 전달합니다."
+        },
+        "api_keys": {
+            "api_link": "ChatVia.ai API",
+            "empty_description": "하나를 생성해 ChatVia.ai API를 사용하기 시작하세요."
         }
     }
 }

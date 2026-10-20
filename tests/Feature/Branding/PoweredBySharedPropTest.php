@@ -4,7 +4,7 @@ use Domain\Agent\Models\Agent;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
- * The hosted chat shares whether the "Powered by Chatvia" credit shows
+ * The hosted chat shares whether the "Powered by ChatVia.ai" credit shows
  * (`chatvia.powered_by`, Settings → Branding).
  */
 it('shares the powered-by switch with the hosted chat', function (bool $shown): void {

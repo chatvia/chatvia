@@ -64,7 +64,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('Chatvia Admin')
+            ->brandName('ChatVia.ai Admin')
             ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('filament.brand'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/favicons/favicon.svg'))
@@ -77,7 +77,7 @@ class AdminPanelProvider extends PanelProvider
                 AppAuthentication::make()
                     ->recoverable(),
             ])
-            // The look of the Chatvia dashboard: its colours, its own copy of
+            // The look of the ChatVia.ai dashboard: its colours, its own copy of
             // Inter and the theme's styles. No top bar: search and the user
             // menu sit in the sidebar, beside the page.
             ->colors(PanelColors::all())

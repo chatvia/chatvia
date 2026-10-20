@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "Tilslut dit WhatsApp Business-nummer, så denne agent kan svare på WhatsApp-beskeder – du logger ind med Facebook og sætter det op i ét trin.",
                     "connect_facebook": "Tilslut med Facebook",
-                    "not_configured": "WhatsApp er ikke sat op på denne Chatvia-instans endnu. Kontakt venligst support.",
+                    "not_configured": "WhatsApp er ikke sat op på denne ChatVia.ai-instans endnu. Kontakt venligst support.",
                     "finish_number": "Tilføj et telefonnummer til din WhatsApp Business Account i popup-vinduet, og prøv derefter igen.",
                     "connect_failed": "Vi kunne ikke læse din WhatsApp-konto fra Facebook. Prøv venligst at tilslutte igen."
                 },

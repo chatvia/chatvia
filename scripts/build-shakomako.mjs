@@ -82,7 +82,7 @@ if (process.env.SHAKOMAKO_PATH) {
 
     // The widget build reads .env, and its settings end up in the bundle.
     if (existsSync(path.join(source, '.env'))) {
-        console.warn(`Warning: this build uses ${path.join(source, '.env')}. A Chatvia server needs a build without settings.`);
+        console.warn(`Warning: this build uses ${path.join(source, '.env')}. A ChatVia.ai server needs a build without settings.`);
     }
 } else {
     const version = release();

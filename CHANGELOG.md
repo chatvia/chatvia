@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Chatvia are documented in this file.
+All notable changes to ChatVia.ai are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -18,7 +18,7 @@ theme.
   actively maintained [pg_textsearch](https://github.com/timescale/pg_textsearch)
   (true BM25 ranking; bundled in the Docker image and installed by the Ubuntu
   installer), and PostgreSQL's built-in full-text search as the fallback.
-- **Chatvia now runs on managed PostgreSQL** (for example RDS or Cloud SQL):
+- **ChatVia.ai now runs on managed PostgreSQL** (for example RDS or Cloud SQL):
   only the pgvector extension is required. `SEARCH_LEXICAL_DRIVER=auto`
   (the default) uses pg_textsearch when it is installed and the built-in
   full-text search when it is not; `SEARCH_TEXT_CONFIG` picks the text search
@@ -281,7 +281,7 @@ theme.
 
 ### Open source
 
-- Chatvia is open source under the [MIT License](LICENSE).
+- ChatVia.ai is open source under the [MIT License](LICENSE).
 - Community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
   issue templates and a pull request template.
 - New `ARCHITECTURE.md`: how the code is organised, the conventions and the
@@ -442,7 +442,7 @@ theme.
 - Settings opens on an overview of tiles, one per topic; each topic shows
   its cards (a service or a group of options), technical ones last under
   **Advanced**.
-- Text is split into chunks inside Chatvia; no separate service is needed.
+- Text is split into chunks inside ChatVia.ai; no separate service is needed.
   **Settings → Knowledge** holds the chunk size and overlap, measured
   in tokens or in characters, the strategy for each kind of content
   (Markdown, text and transcripts), all under **Advanced**, and a **Try
@@ -471,7 +471,7 @@ theme.
   whole-PDF reading. Each one uses the first connected provider that can do
   it, and "off" when none is. Keys are set in the admin panel (**Settings →
   AI providers**), services and models in **Settings → AI models**.
-- Chatvia stops with a clear error when the embedding model does not return
+- ChatVia.ai stops with a clear error when the embedding model does not return
   the stored vector size (`EMBEDDING_DIMENSIONS`, 1024 by default).
 - API keys and OAuth apps for outside services are managed in the admin panel
   under **Settings** and stored encrypted.

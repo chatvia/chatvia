@@ -231,7 +231,7 @@ note() {
 # The app's logo in half blocks, for the command list.
 banner() {
     local name tagline
-    name=$(bold 'Chatvia')
+    name=$(bold 'ChatVia.ai')
     tagline=$(dim 'manage your install')
     say ''
     if [ "$UNICODE" = 1 ]; then
@@ -869,7 +869,7 @@ valid_service() {
 
 need_running() {
     if ! is_running "$1"; then
-        die 'Chatvia is not running.' 'Start it first: ./manage start'
+        die 'ChatVia.ai is not running.' 'Start it first: ./manage start'
     fi
 }
 
@@ -1264,17 +1264,17 @@ cmd_start() {
     intro 'Start' "$(pretty_path "$DIR")"
     check_docker
     lock
-    run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans ||
+    run_step 'Starting ChatVia.ai (the database is updated first)' compose up -d --remove-orphans ||
         start_failed
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
-    outro "Chatvia is running at $(accent "$(app_url)")"
+    outro "ChatVia.ai is running at $(accent "$(app_url)")"
 }
 
 start_failed() {
     section 'Database setup log'
     compose logs --no-color --tail 30 migrate 2>&1 | quote >&2 || true
-    die 'Chatvia did not start.' 'See why: ./manage status, then ./manage logs'
+    die 'ChatVia.ai did not start.' 'See why: ./manage status, then ./manage logs'
 }
 
 cmd_stop() {
@@ -1282,7 +1282,7 @@ cmd_stop() {
     intro 'Stop' "$(pretty_path "$DIR")"
     check_docker
     lock
-    run_step 'Stopping Chatvia' compose down || die 'Chatvia did not stop.'
+    run_step 'Stopping ChatVia.ai' compose down || die 'ChatVia.ai did not stop.'
     outro "Stopped. Your data is kept. Start again: $(accent './manage start')"
 }
 
@@ -1301,11 +1301,11 @@ cmd_restart() {
         outro 'Restarted.'
         return
     fi
-    run_step 'Stopping Chatvia' compose down || die 'Chatvia did not stop.'
-    run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans || start_failed
+    run_step 'Stopping ChatVia.ai' compose down || die 'ChatVia.ai did not stop.'
+    run_step 'Starting ChatVia.ai (the database is updated first)' compose up -d --remove-orphans || start_failed
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
-    outro "Chatvia is running at $(accent "$(app_url)")"
+    outro "ChatVia.ai is running at $(accent "$(app_url)")"
 }
 
 cmd_status() {
@@ -1331,7 +1331,7 @@ cmd_status() {
     else
         kv_to backups 'Backups' "${C_YELLOW}none yet$C_RESET  $(dim '(./manage backup)')"
     fi
-    note "$(bold 'Chatvia')" "$address" "$version" "$folder" "$backups"
+    note "$(bold 'ChatVia.ai')" "$address" "$version" "$folder" "$backups"
 
     section 'Services'
     for service in $SERVICES; do
@@ -1485,7 +1485,7 @@ cmd_restore() {
         created=${created%Z}
         version=$(backup_value "$file" VERSION)
     else
-        die "$(pretty_path "$file") is not a Chatvia backup." 'Use a file from ./manage backup, or a pg_dump file (custom format).'
+        die "$(pretty_path "$file") is not a ChatVia.ai backup." 'Use a file from ./manage backup, or a pg_dump file (custom format).'
     fi
 
     local row_file row_made row_holds row_now
@@ -1518,7 +1518,7 @@ cmd_restore() {
     restore_backup "$file" "$kind" "$holds"
 
     ok "$(bold 'Restored.')"
-    outro "Chatvia is running at $(accent "$(app_url)")"
+    outro "ChatVia.ai is running at $(accent "$(app_url)")"
 }
 
 # restore_backup FILE KIND HOLDS: restores the database next to the current
@@ -1542,7 +1542,7 @@ restore_backup() {
         # A plain dump: take them from the current database.
         dump_extras '' >"$extras" || die 'Could not read the settings of the current database.'
     fi
-    run_step 'Restoring the database next to the current one (Chatvia keeps running)' \
+    run_step 'Restoring the database next to the current one (ChatVia.ai keeps running)' \
         restore_database "$file" "$kind" "$restore_db" "$extras" ||
         die 'The restore failed. Your current data was not touched.'
 
@@ -1550,7 +1550,7 @@ restore_backup() {
     RESTORED_STORAGE=$(embedding_storage_in "$restore_db" 2>>"$LOG") || RESTORED_STORAGE=''
 
     # shellcheck disable=SC2086 # a list of service names
-    run_step 'Stopping Chatvia' compose stop $DATABASE_USERS || die 'Chatvia did not stop.'
+    run_step 'Stopping ChatVia.ai' compose stop $DATABASE_USERS || die 'ChatVia.ai did not stop.'
     # From here on the restored database is the one to keep, even when the
     # switch fails half way.
     RESTORE_DB=''
@@ -1585,7 +1585,7 @@ restore_backup() {
             run_step 'Emptying Redis: queues, cache and sign-ins' compose exec -T redis redis-cli FLUSHALL || true
             ;;
     esac
-    run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans || start_failed
+    run_step 'Starting ChatVia.ai (the database is updated first)' compose up -d --remove-orphans || start_failed
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
 }
@@ -1627,7 +1627,7 @@ check_restored_version() {
     restored=$(latest_migration_in "$1" 2>>"$LOG") || restored=''
     known=$(latest_migration_known 2>>"$LOG") || known=''
     if [ -z "$restored" ] || [ -z "$known" ] || [[ ! $restored > $known ]]; then return 0; fi
-    warn 'This backup comes from a newer version of Chatvia than this one.'
+    warn 'This backup comes from a newer version of ChatVia.ai than this one.'
     info "$(dim "Upgrade first (./manage upgrade), then restore it.")"
     if [ "$INTERACTIVE" = 0 ] || ! confirm 'Restore it anyway?' n; then
         drop_restore_database "$1"
@@ -1873,9 +1873,9 @@ cmd_upgrade() {
         target=$FOUND_VERSION
         if [ "$target" = "$current" ]; then
             if [ -z "$spec" ]; then
-                outro "Chatvia $current is the newest version. Nothing to do."
+                outro "ChatVia.ai $current is the newest version. Nothing to do."
             else
-                outro "Chatvia $current is already installed. Nothing to do."
+                outro "ChatVia.ai $current is already installed. Nothing to do."
             fi
             return
         fi
@@ -1920,7 +1920,7 @@ cmd_upgrade() {
     fi
 
     intro 'Versions'
-    info "$(printf '%-12s' Chatvia)$(version_change "$app_before" "$(service_image app)")"
+    info "$(printf '%-12s' ChatVia.ai)$(version_change "$app_before" "$(service_image app)")"
     remove_old_images "$current"
     outro "$(dim 'Something wrong? Go back: ./manage rollback')"
 }
@@ -1987,7 +1987,7 @@ upgrade_failed() {
     local current=$1 target=$2
     intro 'Upgrade' "$(pretty_path "$DIR")"
     if [ "$(env_value CHATVIA_VERSION)" != "$target" ]; then
-        die "The upgrade stopped before it changed anything.${current:+ Chatvia $current still runs.}"
+        die "The upgrade stopped before it changed anything.${current:+ ChatVia.ai $current still runs.}"
     fi
     warn "Version $target did not start."
     if [ -z "$BACKUP_FILE" ] || ! is_exact_version "$current"; then
@@ -1996,12 +1996,12 @@ upgrade_failed() {
     fi
     info "The backup made just before the upgrade holds your data from version $current."
     if ! confirm "Go back to $current with that backup?" y; then
-        die "Chatvia stays on version $target, which did not start." 'See why: ./manage logs migrate' \
+        die "ChatVia.ai stays on version $target, which did not start." 'See why: ./manage logs migrate' \
             "Go back later: ./manage rollback ${BACKUP_FILE##*/}"
     fi
     do_rollback "$BACKUP_FILE" "$current" "$BACKUP_HOLDS"
     ok "$(bold "Back on version $current.")"
-    outro "Chatvia is running at $(accent "$(app_url)"). The upgrade failed: see $(pretty_path "$DIR")/install.log"
+    outro "ChatVia.ai is running at $(accent "$(app_url)"). The upgrade failed: see $(pretty_path "$DIR")/install.log"
     exit 1
 }
 
@@ -2034,7 +2034,7 @@ cmd_rollback() {
     holds=$(backup_value "$file" HOLDS)
     created=$(backup_value "$file" CREATED)
     if ! is_exact_version "$version"; then
-        die "$(pretty_path "$file") does not say which version of Chatvia made it." \
+        die "$(pretty_path "$file") does not say which version of ChatVia.ai made it." \
             "Restore it on the version you run: ./manage restore ${file##*/}"
     fi
     if [ "$version" = "$current" ]; then
@@ -2068,7 +2068,7 @@ cmd_rollback() {
     fi
     do_rollback "$file" "$version" "$holds"
     ok "$(bold "Back on version $version.")"
-    outro "Chatvia is running at $(accent "$(app_url)")"
+    outro "ChatVia.ai is running at $(accent "$(app_url)")"
 }
 
 # rollback_backup CURRENT: the newest backup made before an upgrade, from a
@@ -2631,7 +2631,7 @@ apply_postgres_settings() {
         case $libraries in *",$library,"*) ;; *) missing="$missing $library" ;; esac
     done
     if [ -n "$missing" ]; then
-        die "shared_preload_libraries misses what Chatvia's search needs:$missing" \
+        die "shared_preload_libraries misses what ChatVia.ai's search needs:$missing" \
             'Put them back, then run ./manage postgres apply. PostgreSQL still runs with its old settings.'
     fi
     ok 'The settings file is valid'
@@ -2641,7 +2641,7 @@ apply_postgres_settings() {
         return
     fi
     if ! postgres_uses_file; then
-        if is_running app; then info "$(dim 'Chatvia pauses for a few seconds while PostgreSQL restarts.')"; fi
+        if is_running app; then info "$(dim 'ChatVia.ai pauses for a few seconds while PostgreSQL restarts.')"; fi
         run_step 'Restarting PostgreSQL with the settings file' compose up -d --no-deps --wait postgres ||
             postgres_start_failed
         postgres_uses_file || die 'PostgreSQL does not read postgres/postgresql.conf.' \
@@ -2658,7 +2658,7 @@ apply_postgres_settings() {
         return
     fi
     warn "These need a restart of PostgreSQL: $(bold "$pending")"
-    if ! confirm 'Restart PostgreSQL now? Chatvia pauses for a few seconds.' y; then
+    if ! confirm 'Restart PostgreSQL now? ChatVia.ai pauses for a few seconds.' y; then
         info "$(dim 'They apply on the next restart: ./manage restart postgres')"
         return
     fi
@@ -2686,7 +2686,7 @@ cmd_uninstall() {
     need_terminal 'Uninstalling deletes all data, so it asks first.'
     check_docker
     lock
-    warn "$(bold 'This deletes Chatvia and ALL its data:') the database, the uploaded files,"
+    warn "$(bold 'This deletes ChatVia.ai and ALL its data:') the database, the uploaded files,"
     info 'the app key, and the settings files in this folder.'
     info "$(dim "Backups in $(pretty_path "$(backup_dir)") are kept.")"
 
@@ -2711,7 +2711,7 @@ cmd_uninstall() {
     rm -f "${DIR:?}/manage" "$LOG"
     unlock
     rmdir "$DIR" 2>/dev/null || true
-    outro 'Chatvia is uninstalled.'
+    outro 'ChatVia.ai is uninstalled.'
 }
 
 no_options() {
@@ -2731,10 +2731,10 @@ no_options() {
 usage() {
     banner
     intro 'Commands' "$(pretty_path "$DIR")"
-    help_section 'Run Chatvia'
-    help_row 'start' 'Start Chatvia'
-    help_row 'stop' 'Stop Chatvia (your data is kept)'
-    help_row 'restart [SERVICE]' 'Restart Chatvia, or one service'
+    help_section 'Run ChatVia.ai'
+    help_row 'start' 'Start ChatVia.ai'
+    help_row 'stop' 'Stop ChatVia.ai (your data is kept)'
+    help_row 'restart [SERVICE]' 'Restart ChatVia.ai, or one service'
     help_row 'status' 'Show the services, the version and the address'
     help_row 'logs [SERVICE]' 'Follow the logs (Ctrl-C to stop)'
     help_row 'upgrade' 'Back up, then upgrade to the newest version'
@@ -2756,7 +2756,7 @@ usage() {
     help_row 'artisan ARGS' 'Run an Artisan command in the app'
     help_row 'shell' 'Open a shell in the app container'
     help_row 'sync-tools' 'Add the built-in tools to the tool catalog'
-    help_row 'uninstall' 'Delete Chatvia and all its data'
+    help_row 'uninstall' 'Delete ChatVia.ai and all its data'
     block text
     info "$(dim './manage help COMMAND shows the options of a command.')"
     outro "$(dim "Guide: $CHATVIA_DOCS")"
@@ -2774,10 +2774,10 @@ command_help() {
     local name=$1
     intro "./manage $name" "$(pretty_path "$DIR")"
     case $name in
-        start) info 'Starts Chatvia. The database is updated first, then the app.' ;;
+        start) info 'Starts ChatVia.ai. The database is updated first, then the app.' ;;
         stop) info 'Stops every container. Your data stays in its Docker volumes.' ;;
         restart)
-            info 'Without a service: stops and starts Chatvia, so changes to .env apply.'
+            info 'Without a service: stops and starts ChatVia.ai, so changes to .env apply.'
             info "With services: recreates only them. Services: $SERVICES"
             ;;
         status) info 'Shows whether the app answers, its version, and the health of each service.' ;;
@@ -2846,7 +2846,7 @@ command_help() {
             info "It shows every change and asks first. Its lines are marked"
             info "$(dim '# set by Chatvia tune'); a new run replaces them and never your own edits."
             ;;
-        psql) info 'Opens psql on the Chatvia database. Arguments go to psql, like -c "SELECT 1".' ;;
+        psql) info 'Opens psql on the ChatVia.ai database. Arguments go to psql, like -c "SELECT 1".' ;;
         artisan) info 'Runs php artisan in the app container, like ./manage artisan about.' ;;
         shell) info 'Opens a shell in the app container.' ;;
         sync-tools) info 'Adds the built-in tools (charts, forms, weather, ...) to the tool catalog.' ;;
@@ -2894,7 +2894,7 @@ main() {
 
     DIR=${CHATVIA_DIR:-$(script_dir)}
     if [ ! -f "$DIR/compose.yaml" ]; then
-        die "There is no Chatvia install in $(pretty_path "$DIR") (no compose.yaml)." \
+        die "There is no ChatVia.ai install in $(pretty_path "$DIR") (no compose.yaml)." \
             'Run this from the install folder, or set CHATVIA_DIR.'
     fi
 

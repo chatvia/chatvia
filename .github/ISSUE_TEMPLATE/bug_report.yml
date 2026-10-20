@@ -41,7 +41,7 @@ body:
     id: area
     attributes:
       label: Area
-      description: Which part of Chatvia is affected?
+      description: Which part of ChatVia.ai is affected?
       options:
         - Dashboard / agent setup
         - Knowledge base (sources, ingestion, search)

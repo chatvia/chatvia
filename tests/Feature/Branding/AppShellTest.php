@@ -25,7 +25,7 @@ it('serves the app shell with self-hosted fonts and the product name only', func
     $this->get('/login')
         ->assertOk()
         ->assertSee('fonts/inter/inter.css', false)
-        ->assertSee('<meta property="og:site_name" content="Chatvia" />', false)
+        ->assertSee('<meta property="og:site_name" content="ChatVia.ai" />', false)
         ->assertSee('images/favicons/favicon.svg', false)
         ->assertDontSee('fonts.googleapis.com', false)
         ->assertDontSee('fonts.gstatic.com', false)

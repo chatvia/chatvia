@@ -9,8 +9,19 @@
                 "anonymize": "Anonimkan pengunjung setelah (hari)",
                 "anonymize_help": "Hapus detail pengunjung dari chat yang lebih lama dari sekian hari ini — nama, email, telepon, alamat IP, string browser lengkap, lokasi, dan tautan halaman. Pesan dan jenis perangkat tetap disimpan. Hingga {max} hari.",
                 "keep_forever": "Simpan selamanya",
-                "never": "Tidak pernah"
+                "never": "Tidak pernah",
+                "help": "Berapa lama ChatVia.ai menyimpan data Anda sebelum menghapusnya secara otomatis. Persingkat ini untuk kepatuhan — biarkan kolom kosong untuk memakai nilai bawaan."
+            },
+            "siem": {
+                "help": "Teruskan setiap peristiwa keamanan ke SIEM Anda secara real-time, ditandatangani agar Anda dapat memverifikasi bahwa peristiwa itu berasal dari ChatVia.ai."
             }
+        },
+        "functions": {
+            "description": "Alat berbasis Webhook yang dapat dipanggil LLM. Tentukan sekali, lampirkan ke agen mana pun milik Anda. Saat dipanggil, ChatVia.ai mengirim POST parameter ke Webhook Anda dan meneruskan responsnya kembali ke model."
+        },
+        "api_keys": {
+            "api_link": "ChatVia.ai API",
+            "empty_description": "Buat satu untuk mulai menggunakan ChatVia.ai API."
         }
     }
 }

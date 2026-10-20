@@ -9,8 +9,19 @@
                 "anonymize": "Ẩn danh khách truy cập sau (ngày)",
                 "anonymize_help": "Xóa thông tin khách truy cập khỏi các cuộc trò chuyện cũ hơn số ngày này — tên, email, số điện thoại, địa chỉ IP, chuỗi trình duyệt đầy đủ, vị trí và liên kết trang. Tin nhắn và loại thiết bị được giữ lại. Tối đa {max} ngày.",
                 "keep_forever": "Giữ vĩnh viễn",
-                "never": "Không bao giờ"
+                "never": "Không bao giờ",
+                "help": "Khoảng thời gian ChatVia.ai giữ dữ liệu của bạn trước khi tự động xóa. Rút ngắn để tuân thủ quy định — để trống một trường để dùng giá trị mặc định."
+            },
+            "siem": {
+                "help": "Chuyển tiếp mọi sự kiện bảo mật đến SIEM của bạn theo thời gian thực, được ký để bạn có thể xác minh nó đến từ ChatVia.ai."
             }
+        },
+        "functions": {
+            "description": "Các công cụ dựa trên webhook mà LLM có thể gọi. Định nghĩa một lần, đính kèm vào bất kỳ trợ lý AI nào của bạn. Khi được gọi, ChatVia.ai gửi POST các tham số đến webhook của bạn và chuyển phản hồi về cho mô hình."
+        },
+        "api_keys": {
+            "api_link": "ChatVia.ai API",
+            "empty_description": "Tạo một khóa để bắt đầu sử dụng ChatVia.ai API."
         }
     }
 }

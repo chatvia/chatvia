@@ -42,7 +42,7 @@
         "functions": {
             "breadcrumb": "Funktiot",
             "title": "Funktiot",
-            "description": "Webhook-pohjaiset työkalut, joita LLM voi kutsua. Määritä kerran ja liitä mihin tahansa agenttiisi. Kutsuttaessa Chatvia lähettää parametrit webhookillesi POST-pyyntönä ja välittää vastauksen takaisin mallille.",
+            "description": "Webhook-pohjaiset työkalut, joita LLM voi kutsua. Määritä kerran ja liitä mihin tahansa agenttiisi. Kutsuttaessa ChatVia.ai lähettää parametrit webhookillesi POST-pyyntönä ja välittää vastauksen takaisin mallille.",
             "add": "Lisää funktio",
             "search_placeholder": "Hae funktioita",
             "empty": "Ei vielä funktioita. Napsauta \"Lisää funktio\" luodaksesi ensimmäisen.",
@@ -108,10 +108,10 @@
             "breadcrumb": "API-avaimet",
             "title": "API-avaimet",
             "description": "Tilinavaimet {api_link}-rajapintaa varten — luo ja hallinnoi agentteja, tietokantoja, MCP-palvelimia ja funktioita.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Luo avain",
             "empty_title": "Ei vielä API-avaimia",
-            "empty_description": "Luo avain aloittaaksesi Chatvia API:n käytön.",
+            "empty_description": "Luo avain aloittaaksesi ChatVia.ai API:n käytön.",
             "never": "Ei koskaan",
             "revoke_aria": "Peruuta avain",
             "table": {
@@ -311,7 +311,11 @@
                 "anonymize": "Anonymisoi kävijät (päivän kuluttua)",
                 "anonymize_help": "Poista kävijän tiedot keskusteluista, jotka ovat vanhempia kuin näin monta päivää — nimi, sähköposti, puhelin, IP-osoite, koko selainmerkkijono, sijainti ja sivulinkit. Viestit ja laitetyyppi säilytetään. Enintään {max} päivää.",
                 "keep_forever": "Säilytä aina",
-                "never": "Ei koskaan"
+                "never": "Ei koskaan",
+                "help": "Kuinka kauan ChatVia.ai säilyttää tietojasi ennen niiden automaattista poistamista. Lyhennä näitä vaatimustenmukaisuuden vuoksi — jätä kenttä tyhjäksi käyttääksesi oletusarvoa."
+            },
+            "siem": {
+                "help": "Välitä jokainen suojaustapahtuma SIEM-järjestelmääsi reaaliajassa, allekirjoitettuna, jotta voit varmistaa sen tulleen ChatVia.ai:lta."
             }
         }
     }

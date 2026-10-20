@@ -4,9 +4,9 @@
 <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicons/favicon.svg') }}" />
 <link rel="shortcut icon" href="{{ asset('images/favicons/favicon.ico') }}" />
 <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicons/apple-touch-icon.png') }}" />
-<meta name="apple-mobile-web-app-title" content="Chatvia" />
+<meta name="apple-mobile-web-app-title" content="ChatVia.ai" />
 <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}" />
 
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="Chatvia" />
-<meta property="og:title" content="Chatvia" />
+<meta property="og:site_name" content="ChatVia.ai" />
+<meta property="og:title" content="ChatVia.ai" />

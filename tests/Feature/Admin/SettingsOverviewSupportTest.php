@@ -20,7 +20,7 @@ it('asks an install without a license for support', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get(SettingsOverview::getUrl())
         ->assertOk()
-        ->assertSee('Support Chatvia')
+        ->assertSee('Support ChatVia.ai')
         ->assertSee('Buy a license')
         ->assertSee('Hire me')
         ->assertSee('https://mayahi.net/services')
@@ -37,5 +37,5 @@ it('thanks an install with an active license', function (): void {
         ->assertOk()
         ->assertSee('Thank you for your support')
         ->assertSee('licensed to Acme Ltd')
-        ->assertDontSee('Support Chatvia');
+        ->assertDontSee('Support ChatVia.ai');
 });

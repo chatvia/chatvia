@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "Hubungkan nomor WhatsApp Business Anda agar agen ini dapat membalas pesan WhatsApp — Anda akan masuk dengan Facebook dan menyiapkannya dalam satu langkah.",
                     "connect_facebook": "Hubungkan dengan Facebook",
-                    "not_configured": "WhatsApp belum disiapkan pada instansi Chatvia ini. Silakan hubungi dukungan.",
+                    "not_configured": "WhatsApp belum disiapkan pada instansi ChatVia.ai ini. Silakan hubungi dukungan.",
                     "finish_number": "Tambahkan nomor telepon ke WhatsApp Business Account Anda di popup, lalu coba lagi.",
                     "connect_failed": "Kami tidak dapat membaca akun WhatsApp Anda dari Facebook. Silakan coba hubungkan lagi."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "Kolom ini wajib diisi.",
             "preview_show_form_again": "Tampilkan formulir lagi",
             "preview_user_message": "Halo! Bisakah Anda membantu saya?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formulir hanya tampil di Widget Chat dan Bilah Perintah."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "Siapa pengguna saya yang paling aktif?",
         "starter_busiest_channel": "Saluran mana yang paling sibuk?",
         "starter_leads": "Berapa banyak prospek yang saya tangkap pada siklus ini?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "Tanyakan tentang akun Anda dengan bahasa sehari-hari — pesan, pengguna, saluran, prospek, dan lainnya. Bagan ditampilkan langsung di dalam.",
         "composer_placeholder": "Tanyakan tentang akun Anda…",
         "disclaimer": "Jawaban berasal dari analitik langsung Anda. Obrolan ini tidak disimpan."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "Fungsi",
             "title": "Fungsi",
-            "description": "Alat berbasis Webhook yang dapat dipanggil LLM. Tentukan sekali, lampirkan ke agen mana pun milik Anda. Saat dipanggil, Chatvia mengirim POST parameter ke Webhook Anda dan meneruskan responsnya kembali ke model.",
+            "description": "Alat berbasis Webhook yang dapat dipanggil LLM. Tentukan sekali, lampirkan ke agen mana pun milik Anda. Saat dipanggil, ChatVia.ai mengirim POST parameter ke Webhook Anda dan meneruskan responsnya kembali ke model.",
             "add": "Tambah fungsi",
             "search_placeholder": "Cari fungsi",
             "empty": "Belum ada fungsi. Klik \"Tambah fungsi\" untuk membuat yang pertama.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "Kunci API",
             "title": "Kunci API",
             "description": "Kunci akun untuk {api_link} — buat dan kelola agen, pengetahuan, server MCP, dan fungsi.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Buat kunci",
             "empty_title": "Belum ada kunci API",
-            "empty_description": "Buat satu untuk mulai menggunakan Chatvia API.",
+            "empty_description": "Buat satu untuk mulai menggunakan ChatVia.ai API.",
             "never": "Tidak pernah",
             "revoke_aria": "Cabut kunci",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "Retensi data",
-                "help": "Berapa lama Chatvia menyimpan data Anda sebelum menghapusnya secara otomatis. Persingkat ini untuk kepatuhan — biarkan kolom kosong untuk memakai nilai bawaan.",
+                "help": "Berapa lama ChatVia.ai menyimpan data Anda sebelum menghapusnya secara otomatis. Persingkat ini untuk kepatuhan — biarkan kolom kosong untuk memakai nilai bawaan.",
                 "conversations": "Riwayat percakapan (hari)",
                 "conversations_help": "Riwayat chat dihapus setelah sekian hari ini. Hingga {max} hari.",
                 "audit": "Log audit keamanan (hari)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "Webhook SIEM",
-                "help": "Teruskan setiap peristiwa keamanan ke SIEM Anda secara real-time, ditandatangani agar Anda dapat memverifikasi bahwa peristiwa itu berasal dari Chatvia.",
+                "help": "Teruskan setiap peristiwa keamanan ke SIEM Anda secara real-time, ditandatangani agar Anda dapat memverifikasi bahwa peristiwa itu berasal dari ChatVia.ai.",
                 "url": "URL endpoint",
                 "secret": "Secret penandatanganan",
                 "secret_placeholder": "Biarkan kosong untuk mempertahankan secret saat ini",

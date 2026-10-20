@@ -1,6 +1,6 @@
-# Chatvia architecture
+# ChatVia.ai architecture
 
-This guide explains how the Chatvia code is organised and why. Read it before
+This guide explains how the ChatVia.ai code is organised and why. Read it before
 you make a bigger change. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set
 up the project, run the checks and send a pull request.
 
@@ -26,7 +26,7 @@ tests in `tests/Architecture/`, so CI tells you when a change breaks one.
 
 ## 1. The big picture
 
-Chatvia is a Laravel 13 application (PHP 8.5) with an Inertia + Vue 3 +
+ChatVia.ai is a Laravel 13 application (PHP 8.5) with an Inertia + Vue 3 +
 TypeScript frontend. Workspaces build AI agents, give them knowledge and tools,
 and put them in front of people on a hosted chat page, an embeddable widget, a
 command bar, messaging apps and a REST API.
@@ -225,7 +225,7 @@ agent's custom domain redirects to its chat (`RedirectCustomDomainToChat`).
 
 ### `App\Mcp`: built-in MCP servers
 
-Chatvia offers some tools of its own (charts, inline forms, weather, currency,
+ChatVia.ai offers some tools of its own (charts, inline forms, weather, currency,
 web search, account analytics) as Laravel MCP servers in `App\Mcp\Servers`,
 with their tools in `App\Mcp\Tools\{Analytics,Charts,Currency,Forms,Perplexity,Weather}`.
 They are routed in `routes/ai.php` under `/mcp/*` and added to agents like any
@@ -233,7 +233,7 @@ other connector (`config/connectors.php`).
 
 - They are transport adapters, like controllers: validate the input, call a
   Domain Action, query or service, and map the result to the MCP response.
-- `VerifyInternalMcpRequest` accepts only calls signed by Chatvia itself
+- `VerifyInternalMcpRequest` accepts only calls signed by ChatVia.ai itself
   (`BUILTIN_MCP_SECRET`) and resolves the caller once into an
   `McpCallerContext`, which tools receive by injection. Tools never read the
   `X-Chatvia-*` headers themselves.
@@ -246,7 +246,7 @@ other connector (`config/connectors.php`).
 
 ### No public website
 
-Chatvia has no landing, pricing, blog or legal pages. `/` (route `home`,
+ChatVia.ai has no landing, pricing, blog or legal pages. `/` (route `home`,
 `HomeController`) sends guests to the login form and signed-in users to their
 dashboard.
 
@@ -315,7 +315,7 @@ for every surface, and keeps the chat log.
 
 A visitor can talk with the agent out loud in the hosted chat and the chat
 widget (the OpenAI Realtime API, speech to speech). The audio never passes
-through Chatvia:
+through ChatVia.ai:
 
 1. The browser posts its WebRTC offer (`chat.voice.store` / `widget.voice.store`).
    `StartVoiceCallAction` checks the gates, takes a slot (`VoiceCallSlots`),
@@ -376,7 +376,7 @@ Tools that an agent can call.
 | `Integration\Function` | Webhook tools (`AgentFunction` model), `HttpToolDispatcher`, `FunctionSchemaValidator`. |
 | `Integration\Mcp` | MCP servers and their tools (`AgentMcpServer`, `McpTool`, the shared `ConnectorTool` catalog), the `McpClient`, per-tool permissions. |
 | `Integration\Connector` | Catalog connectors that sign in with OAuth: the OAuth flow (PKCE, token refresh), catalog sync, per-workspace OAuth clients (for example Salesforce). |
-| `Integration\Builtin` | Clients for the outside services behind Chatvia's built-in tools: weather, currency, Perplexity web search. |
+| `Integration\Builtin` | Clients for the outside services behind ChatVia.ai's built-in tools: weather, currency, Perplexity web search. |
 
 ### Llm
 
@@ -889,7 +889,7 @@ can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
 `VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`
 (error reports must work before the database loads), `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
-install), `TRUSTED_PROXIES`, and `CHATVIA_URI` (Chatvia's own site,
+install), `TRUSTED_PROXIES`, and `CHATVIA_URI` (ChatVia.ai's own site,
 chatvia.ai by default, the base of the `chatvia.license.*` URLs: where license
 keys are sold and activated; set it only to test against a local copy of the
 site). The license public key stays fixed in
@@ -1006,7 +1006,7 @@ Switches for a self-hosted install:
 | Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
-| Branding (admin panel, **Settings → Branding**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `chatvia:license:check` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
+| Branding (admin panel, **Settings → Branding**) | Shows or hides the "Powered by ChatVia.ai" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `chatvia:license:check` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: <https://chatvia.ai/docs/guide/installation>.

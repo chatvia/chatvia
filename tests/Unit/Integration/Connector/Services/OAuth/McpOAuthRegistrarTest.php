@@ -51,7 +51,7 @@ it('stores registration secrets only in the encrypted columns', function (): voi
     expect($raw)->not->toContain('dcr-secret')->not->toContain('dcr-rat');
 });
 
-it('registers the client as Chatvia', function (): void {
+it('registers the client as ChatVia.ai', function (): void {
     Http::fake([
         'auth.example.test/register' => Http::response(['client_id' => 'dcr-client'], 201),
     ]);
@@ -59,7 +59,7 @@ it('registers the client as Chatvia', function (): void {
     app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata());
 
     Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://auth.example.test/register'
-        && $request['client_name'] === 'Chatvia');
+        && $request['client_name'] === 'ChatVia.ai');
 });
 
 it('reuses the client already registered with the authorization server', function (): void {
@@ -87,7 +87,7 @@ it('stores nothing when the registration is rejected or returns no client id', f
     expect(ConnectorOAuthClient::query()->count())->toBe(0);
 })->with([
     'rejected' => ['invalid_redirect_uri', 400, 'Dynamic client registration was rejected (400)'],
-    'no client id' => [['client_name' => 'Chatvia'], 201, 'Dynamic client registration returned no client_id.'],
+    'no client id' => [['client_name' => 'ChatVia.ai'], 201, 'Dynamic client registration returned no client_id.'],
 ]);
 
 /**

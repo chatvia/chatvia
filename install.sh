@@ -294,7 +294,7 @@ note() {
 # The website, the license and the author sit beside the logo's foot.
 banner() {
     local name tagline site author
-    name=$(bold 'Chatvia')
+    name=$(bold 'ChatVia.ai')
     tagline=$(dim 'AI agents on your own server')
     author=$(dim 'Created and maintained by Ahmad Mayahi')
     say ''
@@ -837,7 +837,7 @@ folder_status() {
         new) STATUS="${C_DIM}new folder$C_RESET" ;;
         empty) STATUS="${C_DIM}empty folder$C_RESET" ;;
         used) STATUS="${C_DIM}has other files$C_RESET" ;;
-        installed) STATUS="$C_ACCENT$S_ARROW Chatvia is here: upgrade it$C_RESET" ;;
+        installed) STATUS="$C_ACCENT$S_ARROW ChatVia.ai is here: upgrade it$C_RESET" ;;
         unfinished) STATUS="$C_ACCENT$S_ARROW unfinished install: finish it$C_RESET" ;;
         foreign) STATUS="${C_YELLOW}another project is here$C_RESET" ;;
         file) STATUS="${C_YELLOW}this is a file$C_RESET" ;;
@@ -1049,7 +1049,7 @@ install_docker_linux() {
     info "It can be installed with Docker's official script (get.docker.com)."
     info 'This needs administrator rights (sudo).'
     if ! confirm 'Install Docker now?' y; then
-        die 'Chatvia needs Docker.' 'Install it from https://docs.docker.com/engine/install/ and run this again.'
+        die 'ChatVia.ai needs Docker.' 'Install it from https://docs.docker.com/engine/install/ and run this again.'
     fi
     [ "$DRY_RUN" = 1 ] && { info "$(dim 'Would run get.docker.com with sudo. (dry run)')"; return; }
 
@@ -1080,7 +1080,7 @@ install_docker_macos() {
     case $CHOICE in
         0) cask=orbstack ;;
         1) cask=docker ;;
-        *) die 'Chatvia needs Docker. Install it and run this again.' ;;
+        *) die 'ChatVia.ai needs Docker. Install it and run this again.' ;;
     esac
     # In the foreground: Homebrew may ask for your password.
     info "$(dim "Running: brew install --cask $cask")"
@@ -1149,7 +1149,7 @@ check_docker() {
         die 'Docker Compose is missing.' 'Install the Docker Compose plugin: https://docs.docker.com/compose/install/'
     fi
     if ! version_at_least "$version" "$MIN_COMPOSE_VERSION"; then
-        die "Docker Compose $version is too old: Chatvia needs $MIN_COMPOSE_VERSION or newer." \
+        die "Docker Compose $version is too old: ChatVia.ai needs $MIN_COMPOSE_VERSION or newer." \
             'Update Docker (or the Compose plugin) and run this again.'
     fi
 
@@ -1211,13 +1211,13 @@ resolve_version() {
     local ref version what="version $CHATVIA_VERSION"
     ref=$(image_ref)
     if [ "$CHATVIA_VERSION" = latest ]; then what='the newest version'; fi
-    run_step "Downloading $what of Chatvia" docker_cmd pull "$ref" ||
+    run_step "Downloading $what of ChatVia.ai" docker_cmd pull "$ref" ||
         die "Could not download $ref." 'Check the version and the internet connection.'
     version=$(image_version "$ref") ||
         die "The image $ref does not say which version it is." 'Name the version instead, like --version 1.4.2.'
     CHATVIA_VERSION=$version
     APP_PULLED=1
-    ok "Chatvia $(bold "$version")"
+    ok "ChatVia.ai $(bold "$version")"
 }
 
 compose_url() {
@@ -1401,9 +1401,9 @@ check_existing_data() {
     local volumes
     volumes=$(docker_cmd volume ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT" 2>/dev/null) || volumes=''
     if [ -n "$volumes" ]; then
-        die 'Chatvia data already exists on this computer, probably from an install in another folder.' \
+        die 'ChatVia.ai data already exists on this computer, probably from an install in another folder.' \
             'Run this installer from that folder (--dir) to upgrade it.' \
-            'To start over, delete that data first (this removes all Chatvia data):' \
+            'To start over, delete that data first (this removes all ChatVia.ai data):' \
             "docker volume rm \$(docker volume ls -q --filter label=com.docker.compose.project=$COMPOSE_PROJECT)"
     fi
 }
@@ -1416,7 +1416,7 @@ do_install() {
     collect_settings
 
     show_summary
-    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Install Chatvia with these settings?' y; then
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Install ChatVia.ai with these settings?' y; then
         outro 'Nothing was changed.'
         exit 0
     fi
@@ -1438,7 +1438,7 @@ do_install() {
     if [ "$APP_PULLED" = 1 ]; then
         get_image 'Downloading the database and Redis'
     else
-        get_image 'Downloading Chatvia (a few minutes the first time)'
+        get_image 'Downloading ChatVia.ai (a few minutes the first time)'
     fi
     start_and_finish
 }
@@ -1448,7 +1448,7 @@ do_install() {
 start_and_finish() {
     export_postgres_settings
     if ! run_step 'Setting up the database and the admin account, then starting' start_chatvia; then
-        setup_failed 'Chatvia did not start.'
+        setup_failed 'ChatVia.ai did not start.'
     fi
     read_setup_result
     remove_setup_container
@@ -1469,7 +1469,7 @@ do_resume() {
     warn "An earlier install in $(bold "$(pretty_path "$INSTALL_DIR")") did not finish."
     if [ "$INTERACTIVE" = 1 ]; then
         choose 'What do you want to do?' \
-            'Finish it  — start Chatvia again with the saved settings' \
+            'Finish it  — start ChatVia.ai again with the saved settings' \
             'Nothing, exit'
         if [ "$CHOICE" != 0 ]; then
             outro 'Nothing was changed.'
@@ -1503,7 +1503,7 @@ do_resume() {
     fi
     [ -f "$INSTALL_DIR/compose.yaml" ] || run_step 'Downloading compose.yaml' download_compose
     [ -f "$INSTALL_DIR/manage" ] || run_step 'Downloading the manage tool' download_manage
-    get_image 'Downloading Chatvia'
+    get_image 'Downloading ChatVia.ai'
     start_and_finish
 }
 
@@ -1537,7 +1537,7 @@ collect_settings() {
     ask APP_PORT 'Port on this computer' --default "$default_port" \
         --check valid_port --status port_status
 
-    choose 'Where will people open Chatvia?' \
+    choose 'Where will people open ChatVia.ai?' \
         "On this computer only  — http://localhost:$APP_PORT" \
         'On my own domain or IP address  — your proxy handles HTTPS'
     if [ "$CHOICE" = 0 ]; then
@@ -1603,7 +1603,7 @@ ask_setup() {
 
     local hint='latest, or a version number like 1.2.0'
     if [ "$MODE" = complete ]; then hint="$hint, or a branch like main (not a release)"; fi
-    ask CHATVIA_VERSION 'Chatvia version' --default "$CHATVIA_VERSION" --hint "$hint"
+    ask CHATVIA_VERSION 'ChatVia.ai version' --default "$CHATVIA_VERSION" --hint "$hint"
 }
 
 show_summary() {
@@ -1682,7 +1682,7 @@ show_finish() {
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
     else
-        title=$(bold 'Chatvia is running')
+        title=$(bold 'ChatVia.ai is running')
     fi
 
     kv_to open 'Open the app' "$(accent "$APP_URL")"
@@ -1769,7 +1769,7 @@ switch_version() {
 }
 
 do_upgrade() {
-    ok "Chatvia is installed in $(bold "$(pretty_path "$INSTALL_DIR")")"
+    ok "ChatVia.ai is installed in $(bold "$(pretty_path "$INSTALL_DIR")")"
     info "$(dim 'The first-install questions only run once. Your data and settings are kept.')"
 
     if [ "$UPGRADE" = 0 ]; then
@@ -1840,7 +1840,7 @@ do_upgrade() {
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs app"
 
-    ok "$(bold "Chatvia $CHATVIA_VERSION is running.")"
+    ok "$(bold "ChatVia.ai $CHATVIA_VERSION is running.")"
     outro "Open $(accent "$APP_URL")"
 }
 
@@ -1861,7 +1861,7 @@ choose_mode() {
     elif [ "$INTERACTIVE" = 0 ]; then
         MODE=docker
     else
-        choose 'How do you want to install Chatvia?' \
+        choose 'How do you want to install ChatVia.ai?' \
             'With Docker  — everything in containers, easy to move and remove' \
             "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU)"
         if [ "$CHOICE" = 0 ]; then MODE=docker; else MODE=complete; fi
@@ -2163,7 +2163,7 @@ native_install() {
     native_check_fresh
     native_collect_settings
     native_show_summary
-    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Install Chatvia on this server with these settings?' y; then
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Install ChatVia.ai on this server with these settings?' y; then
         outro 'Nothing was changed.'
         exit 0
     fi
@@ -2172,14 +2172,14 @@ native_install() {
 }
 
 native_warning() {
-    warn "$(bold 'The complete installation sets up this whole server for Chatvia.')"
+    warn "$(bold 'The complete installation sets up this whole server for ChatVia.ai.')"
     info 'It installs PostgreSQL, Redis, PHP, nginx, Node.js, Supervisor (for'
     info 'Horizon, Reverb and Pulse), cron (for the scheduler), Certbot and'
-    info 'Deployer, changes their settings for Chatvia, takes over ports 80 and'
+    info 'Deployer, changes their settings for ChatVia.ai, takes over ports 80 and'
     info '443, and turns on the firewall. Other sites, databases and programs on'
     info 'this server may stop working, and none of it is easy to undo.'
     info "$(bold 'We strongly recommend a fresh server or VPS with nothing else on it.')"
-    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Is this a fresh server that Chatvia can have to itself?' n; then
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Is this a fresh server that ChatVia.ai can have to itself?' n; then
         outro 'Nothing was changed. On a server that runs other things, install with Docker.'
         exit 0
     fi
@@ -2215,7 +2215,7 @@ native_check_fresh() {
     fi
     warn "$(bold 'This server does not look fresh:')"
     for item in "${found[@]}"; do info "- $item"; done
-    info 'The installer changes their settings for Chatvia.'
+    info 'The installer changes their settings for ChatVia.ai.'
     if [ "$FORCE" = 1 ]; then return; fi
     if [ "$INTERACTIVE" = 0 ]; then
         die 'Use a fresh server, or pass --force to install anyway.'
@@ -2256,7 +2256,7 @@ native_collect_settings() {
     else
         ask_admin
         ask DOMAIN 'Domain name or IP address' --default "${CHATVIA_DOMAIN:-}" --placeholder 'chat.example.com' \
-            --hint "Where people open Chatvia. Point the domain's DNS record at this server${SERVER_IP:+ ($SERVER_IP)} first." \
+            --hint "Where people open ChatVia.ai. Point the domain's DNS record at this server${SERVER_IP:+ ($SERVER_IP)} first." \
             --check valid_host
         DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
         HTTPS=no
@@ -2272,7 +2272,7 @@ native_collect_settings() {
         SWAP=no
         if needs_swap; then
             info "This server has $(awk -v kb="$(meminfo_kb MemTotal)" 'BEGIN { printf "%.1f GB", kb / 1048576 }') of memory and no swap."
-            if confirm 'Add 4 GB of swap, so building Chatvia does not run out of memory?' y; then SWAP=yes; fi
+            if confirm 'Add 4 GB of swap, so building ChatVia.ai does not run out of memory?' y; then SWAP=yes; fi
         fi
         ask_setup
     fi
@@ -2300,7 +2300,7 @@ native_check_dns() {
     fi
     info "Add an A record for it that points at ${SERVER_IP:-this server}, unless a proxy or CDN is in front."
     if [ "$HTTPS" = yes ]; then
-        info 'Without it, the HTTPS certificate fails, and Chatvia runs on HTTP until you'
+        info 'Without it, the HTTPS certificate fails, and ChatVia.ai runs on HTTP until you'
         info 'get one (run this installer again then).'
         if [ "$INTERACTIVE" = 1 ] && ! confirm 'Try to get the certificate anyway?' y; then HTTPS=no; fi
     fi
@@ -2406,7 +2406,7 @@ native_run_steps() {
     run_step 'Creating the database' native_setup_database || native_failed
     run_step 'Setting up Redis' native_configure_redis || native_failed
     run_step 'Installing Deployer' native_install_deployer || native_failed
-    run_step "Deploying Chatvia $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
+    run_step "Deploying ChatVia.ai $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
     run_step 'Sizing the queue workers to this server' native_tune_workers || native_failed
     run_step 'Starting Horizon, Reverb and Pulse' native_configure_supervisor || native_failed
     run_step 'Starting the scheduler' native_configure_cron || native_failed
@@ -2439,7 +2439,7 @@ native_https() {
     else
         HTTPS=pending
         APP_URL="http://$DOMAIN"
-        warn 'No HTTPS certificate yet, so Chatvia runs on HTTP for now.'
+        warn 'No HTTPS certificate yet, so ChatVia.ai runs on HTTP for now.'
         info "Once $DOMAIN points at this server, run this installer again to get it."
     fi
     if [ "$DRY_RUN" = 0 ]; then
@@ -3257,7 +3257,7 @@ native_show_finish() {
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
     else
-        title=$(bold 'Chatvia is running')
+        title=$(bold 'ChatVia.ai is running')
     fi
 
     kv_to open 'Open the app' "$(accent "$APP_URL")"
@@ -3344,7 +3344,7 @@ native_upgrade() {
     native_load_settings
     local installed new
     installed=$(native_version_text)
-    ok "Chatvia $(bold "$installed") is installed on this server $(dim '(complete installation)')"
+    ok "ChatVia.ai $(bold "$installed") is installed on this server $(dim '(complete installation)')"
     info "$(dim 'The install questions only run once. Your data and settings are kept.')"
 
     if [ "$HTTPS" = pending ]; then native_retry_https; fi
@@ -3372,7 +3372,7 @@ native_upgrade() {
     new=$(native_version_text)
     if [ -n "$old_release" ] && [ -n "$CHATVIA_RELEASE" ]; then
         if [ "$old_release" = "$CHATVIA_RELEASE" ] && [ "$VERSION_GIVEN" = 0 ]; then
-            outro "Chatvia $old_release is the newest version. Nothing to do."
+            outro "ChatVia.ai $old_release is the newest version. Nothing to do."
             return
         fi
         if ! version_at_least "${CHATVIA_RELEASE#v}" "${old_release#v}"; then
@@ -3385,8 +3385,8 @@ native_upgrade() {
     native_refresh_deploy_file
     run_step 'Backing up the database' native_backup ||
         die 'The backup failed, so nothing was upgraded.' "See why: $LOG"
-    run_step "Deploying Chatvia $new" native_upgrade_deploy ||
-        die "The upgrade stopped. Chatvia $installed still runs: Deployer switches only when every step worked." \
+    run_step "Deploying ChatVia.ai $new" native_upgrade_deploy ||
+        die "The upgrade stopped. ChatVia.ai $installed still runs: Deployer switches only when every step worked." \
             "See why: $LOG"
     if [ "$DRY_RUN" = 0 ]; then
         conf_set CHATVIA_RELEASE "$CHATVIA_RELEASE"
@@ -3396,8 +3396,8 @@ native_upgrade() {
         die 'The web app did not answer within 2 minutes.' \
             "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log"
     run_step 'Checking that every part runs' native_check_parts ||
-        die 'Chatvia runs, but not every part of it.' "See why: $LOG"
-    ok "$(bold "Chatvia $new is running.")"
+        die 'ChatVia.ai runs, but not every part of it.' "See why: $LOG"
+    ok "$(bold "ChatVia.ai $new is running.")"
     outro "Open $(accent "$APP_URL")"
 }
 
@@ -3429,12 +3429,12 @@ native_retry_https() {
     warn "$DOMAIN has no HTTPS certificate yet."
     if [ "$INTERACTIVE" = 1 ] && ! confirm "Get it now? $DOMAIN must point at this server." y; then return; fi
     if ! run_step "Getting an HTTPS certificate for $DOMAIN" native_get_certificate; then
-        warn 'Still no certificate. Chatvia keeps running on HTTP.'
+        warn 'Still no certificate. ChatVia.ai keeps running on HTTP.'
         return
     fi
     HTTPS=yes
     APP_URL="https://$DOMAIN"
-    run_step 'Switching Chatvia to HTTPS' native_switch_to_https ||
+    run_step 'Switching ChatVia.ai to HTTPS' native_switch_to_https ||
         die 'Could not switch to HTTPS.' "See why: $LOG"
 }
 
@@ -3565,7 +3565,7 @@ main() {
     INSTALL_DIR=${CHATVIA_DIR:-$HOME/chatvia}
     if [ "$INTERACTIVE" = 1 ] && [ -z "${CHATVIA_DIR:-}" ]; then
         ask INSTALL_DIR 'Install folder' --default "$(pretty_path "$INSTALL_DIR")" \
-            --hint 'Your Chatvia settings and backups are kept here.' \
+            --hint 'Your ChatVia.ai settings and backups are kept here.' \
             --check check_folder --status folder_status --complete complete_folder
     fi
     INSTALL_DIR=$(resolve_dir "$INSTALL_DIR")

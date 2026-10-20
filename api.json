@@ -1,7 +1,7 @@
 {
     "openapi": "3.1.2",
     "info": {
-        "title": "Chatvia API",
+        "title": "ChatVia.ai API",
         "version": "1.0.0",
         "description": "Every request carries your bearer token in the `Authorization` header.\n\n## Pagination\n\nEvery list endpoint returns one page of items, newest first:\n\n```json\n{\n  \"data\": [\"\u2026\"],\n  \"next_cursor\": \"eyJpZCI6MTg2LCJfcG9pbnRzVG9OZXh0SXRlbXMiOnRydWV9\"\n}\n```\n\nTo get the next page, send the `next_cursor` of the response back as the\n`cursor` query parameter. Leave `cursor` out for the first page. On the\nlast page `next_cursor` is `null`: stop there.\n\n`per_page` sets how many items a page holds, from 1 to 100 (25 when left\nout). A value outside that range is brought into range, not rejected.\n\nA cursor marks a fixed place in the list, not a page number. Pages stay\nstable \u2014 items created or deleted while you page through never shift\nwhat you get \u2014 and a late page costs the server no more than the first.\nThat is also why there are no page numbers and no total count.\n\nTreat the cursor as an opaque string: send back exactly the\n`next_cursor` you received, and never build or edit one. A cursor the\nendpoint did not hand out starts the list again at the first page.\n\n## Chatting with an agent\n\nOpen a conversation with `POST /v1/agents/{id}/conversations`, then\nsend each message with `POST \u2026/conversations/{id}/messages`. By\ndefault the reply comes back as one JSON response once it is\nfinished. Add `stream: true` to the body (or send an\n`Accept: text/event-stream` header) to receive it as server-sent\nevents instead.\n\nSend a `request_id` of your own with each message to make it safe\nto retry: resending the same value within a few minutes replays the\nfinished reply instead of generating \u2014 and counting \u2014 a new one.\n\nTool calls that need a person's approval are not available over the\nAPI; the agent simply does not see those tools.\n\n## Streaming\n\nWith streaming on, the response is a `text/event-stream`. Each\nframe is one `data:` line of JSON:\n\n```\ndata: {\"v\":1,\"seq\":3,\"id\":\"<message id>\",\"type\":\"delta\",\"data\":{\"text\":\"Hel\"}}\n```\n\n`seq` counts up from 0 and `id` is the reply message's id. `type`\ntells you what `data` holds:\n\n| type | data | meaning |\n|---|---|---|\n| `start` | `user_message_id`, `request_id`, `replayed` | the turn began |\n| `delta` | `text` | the next piece of the reply \u2014 append it |\n| `replace` | `text` | a safety check rewrote the reply \u2014 replace everything received so far |\n| `sources` | `sources` | the knowledge sources the reply cited |\n| `tool` | `phase`, `name`, \u2026 | the agent is using a tool |\n| `meta` | `key`, `value` | extra signals, such as a handoff to a human |\n| `error` | `code`, `message`, `retryable` | the turn failed \u2014 see the codes below |\n| `done` | `reason`, `response_time_ms` | the last frame; `reason` is `complete` or `error` |\n\nThe error codes, in both modes: `message_limit_reached` and\n`chatter_message_limit_reached` (the monthly cap), `rate_limited`\n(try again in a minute), `upstream_unavailable` (the AI provider;\nretry), `access_blocked`, and `internal`. The JSON mode answers an\nerror that happened before any text with the matching HTTP status\n(403, 429, 502 or 500); a turn that failed after text began is a\n200 with `done_reason: \"error\"` and the partial text, which is\nalready stored \u2014 retry with a new message, not a repeat."
     },
@@ -4551,7 +4551,7 @@
             },
             "FunctionAuthType": {
                 "type": "string",
-                "description": "How Chatvia authenticates a function's outbound webhook call.\n",
+                "description": "How ChatVia.ai authenticates a function's outbound webhook call.\n",
                 "enum": [
                     "none",
                     "bearer",
@@ -4567,7 +4567,7 @@
             },
             "FunctionWebhookMethod": {
                 "type": "string",
-                "description": "HTTP method Chatvia uses when calling a function's webhook. The values are stored in `functions.webhook_method` and shown in the public API.\n",
+                "description": "HTTP method ChatVia.ai uses when calling a function's webhook. The values are stored in `functions.webhook_method` and shown in the public API.\n",
                 "enum": [
                     "POST",
                     "GET",

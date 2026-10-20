@@ -350,7 +350,7 @@ class Setup extends SimplePage
                     ->visible(fn (Get $get): bool => $this->needsEmbeddingService($get('provider')))
                     ->schema($this->embeddingServiceFields()),
             ])
-            ->afterValidation(fn () => $this->checkConnection());
+            ->afterValidation(fn () => $this->showingErrors($this->checkConnection(...)));
     }
 
     private function modelsStep(): Step
@@ -378,10 +378,10 @@ class Setup extends SimplePage
                     ->icon(Heroicon::OutlinedBarsArrowDown)
                     ->schema($this->rerankerFields()),
             ])
-            ->afterValidation(function (): void {
+            ->afterValidation(fn () => $this->showingErrors(function (): void {
                 $this->checkModels();
                 $this->checkReranker();
-            });
+            }));
     }
 
     private function documentsStep(): Step
@@ -420,10 +420,10 @@ class Setup extends SimplePage
                             ->visible(fn (Get $get): bool => $get('document_reader') === AiProvider::Azure->value && ! $this->usesSavedKey('document_reader', $get)),
                     ]),
             ])
-            ->afterValidation(function (): void {
+            ->afterValidation(fn () => $this->showingErrors(function (): void {
                 $this->checkReader();
                 $this->confirmNoReader();
-            });
+            }));
     }
 
     private function websitesStep(): Step
@@ -461,7 +461,7 @@ class Setup extends SimplePage
                             ->visible(fn (Get $get): bool => $get('website_import') === self::FIRECRAWL),
                     ]),
             ])
-            ->afterValidation(fn () => $this->checkFirecrawl());
+            ->afterValidation(fn () => $this->showingErrors($this->checkFirecrawl(...)));
     }
 
     private function speechStep(): Step
@@ -492,7 +492,7 @@ class Setup extends SimplePage
                         $this->serviceKeyField('transcription_api_key', 'transcriber', 'getSpeechKey'),
                     ]),
             ])
-            ->afterValidation(fn () => $this->checkTranscriber());
+            ->afterValidation(fn () => $this->showingErrors($this->checkTranscriber(...)));
     }
 
     private function storageStep(): Step
@@ -546,7 +546,7 @@ class Setup extends SimplePage
                             ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
                     ]),
             ])
-            ->afterValidation(fn () => $this->checkStorage());
+            ->afterValidation(fn () => $this->showingErrors($this->checkStorage(...)));
     }
 
     private function emailStep(): Step
@@ -1066,6 +1066,22 @@ class Setup extends SimplePage
             if (! $result->keyAccepted()) {
                 throw ValidationException::withMessages(['data.embedding_api_key' => $result->message($embedding->account()->label())]);
             }
+        }
+    }
+
+    /**
+     * Runs a step's checks. A check that fails marks its field, often far
+     * down the step; Filament scrolls to such a field only for its own
+     * rules, so the same event is sent here, or Next seems to do nothing.
+     */
+    private function showingErrors(Closure $checks): void
+    {
+        try {
+            $checks();
+        } catch (ValidationException $exception) {
+            $this->dispatch('form-validation-error', livewireId: $this->getId());
+
+            throw $exception;
         }
     }
 

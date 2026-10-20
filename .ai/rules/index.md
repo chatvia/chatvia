@@ -14,6 +14,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | composer.json, package.json | .ai/rules/dependencies.md |
 | src/**/Enums/**, src/**/ValueObjects/**, src/Support/Casts/** | .ai/rules/enums.md |
 | src/**/Jobs/**, src/**/Listeners/**, src/**/Events/**, src/Domain/**/Middleware/**, config/horizon.php, config/queue.php | .ai/rules/jobs.md |
+| src/**/*.php, tests/**, database/**, config/**, routes/** | .ai/rules/laravel-first.md |
 | database/migrations/**, database/settings/** | .ai/rules/migrations.md |
 | src/**/Models/**, src/**/QueryBuilders/**, src/**/Queries/**, src/**/Observers/**, src/Support/Concerns/** | .ai/rules/models.md |
 | src/App/Http/Requests/**, src/App/Http/Rules/**, src/App/Rules/**, src/Domain/**/Rules/** | .ai/rules/requests.md |

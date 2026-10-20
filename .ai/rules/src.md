@@ -11,7 +11,7 @@ Keep `is_string()` only when the value can really be another type (raw request i
 Exceptions: streamed text deltas (a lone space or newline is real output, so compare with `''`), and values where an empty array is real data (`filled([])` is false).
 
 ## Choose boring code over clever code
-Prefer an early return, `if` or `match` to nested ternaries, and drop the `else` after a `return`. More lines for more clarity is a good trade. Reach for the framework helper first: `abort_if()` / `abort_unless()`, `findOrFail()`, `Cache::remember()`, `Str`, `Arr`, collections.
+Prefer an early return, `if` or `match` to nested ternaries, and drop the `else` after a `return`. More lines for more clarity is a good trade. Reach for the framework helper first: `abort_if()` / `abort_unless()`, `findOrFail()`, `Cache::remember()`, and `Str`, `Arr`, collections, `File`, `Process`, `Http` as `.ai/rules/laravel-first.md` lists.
 
 ## Build only what is needed now
 Add an interface, factory, manager or wrapper class only for a second real implementation, a test fake, or a context boundary. A class that wraps one call is noise: no `GetAgentsAction` around `Agent::query()->active()->get()`. A well-named scope called from a controller is already clean.

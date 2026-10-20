@@ -40,7 +40,7 @@ command bar, messaging apps and a REST API.
 | WebSockets | `php artisan reverb:start` | Live updates: ingestion progress, handoff messages, typing, eval progress. |
 | Scheduler | `php artisan schedule:run` (cron, every minute) | Pruning, analysis, usage caches, backups (see `routes/console.php`). |
 | Server stats | `php artisan pulse:check` | CPU, memory, disk and Reverb connections for Pulse's Servers card. |
-| PostgreSQL 18 | | All data, plus vector search (pgvector HNSW) and keyword search (`pg_textsearch` BM25, or the built-in full-text search on databases that cannot preload it — `LexicalSearch` picks per install). Pulse (`/pulse`) and Spectra (`/spectra`) each keep their data in a database of their own (the `pulse` and `spectra` connections, `DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`), which `app:create-tool-databases` creates. |
+| PostgreSQL 18 | | All data, plus vector search (pgvector HNSW) and keyword search (`pg_textsearch` BM25, or the built-in full-text search on databases that cannot preload it — `LexicalSearch` picks per install). Pulse (`/pulse`) and Spectra (`/spectra`) each keep their data in a database of their own (the `pulse` and `spectra` connections, `DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`), which `chatvia:db:create-tool-databases` creates. |
 | Redis | | Queues, cache, rate limits, the live chat memory, login sessions (their own database). |
 
 ### Repository map
@@ -241,7 +241,7 @@ other connector (`config/connectors.php`).
   LLM and the chat UI. Snapshot tests in `tests/Feature/Mcp/` pin them. Tool
   names come from the class name and are stored in the database, so never
   rename a tool class.
-- After you add or change a built-in tool, run `php artisan app:sync-builtin-mcp`.
+- After you add or change a built-in tool, run `php artisan chatvia:mcp:sync-builtin`.
   It writes the tools into the shared catalog and embeds them for tool search.
 
 ### No public website
@@ -504,7 +504,7 @@ settings (`my/account/notifications`).
   The frontend store (`composables/notifications`) updates the badge, the tab
   title and open lists. Desktop alerts and the chime play in one tab only
   (a Web Locks lock), for the categories the person switched on.
-- **Retention.** `app:prune-notifications` deletes rows with no activity for
+- **Retention.** `chatvia:prune:notifications` deletes rows with no activity for
   `chatvia.notifications.retention_days` (7 by default; admin Settings →
   Workspaces → Notifications), every night.
 
@@ -980,7 +980,7 @@ How it works:
   costs one model call per chunk; Off embeds the plain text.
 - **Website refresh.** A website can refresh on its own
   (`source_websites.refresh_interval`: off, daily, weekly, monthly). The
-  hourly `app:refresh-websites` runs `RefreshDueWebsitesAction`, which crawls
+  hourly `chatvia:knowledge:refresh-websites` runs `RefreshDueWebsitesAction`, which crawls
   again with the options the website was added with, then trains; pages that
   did not change keep their chunks (checksum).
 - **Relevance check.** `KnowledgeBase` keeps only what answers the question:
@@ -996,8 +996,8 @@ How it works:
   gates tools the same way. The results then fit `max_context_tokens`, and
   each source is named for the model and the chat clients (`SourceLabeler`);
   the sources of every answer are stored (`chat_message_sources`).
-- **Command line.** `php artisan app:settings` lists the values (never
-  secrets), `php artisan app:setting group.property value` sets one.
+- **Command line.** `php artisan chatvia:settings:list` lists the values (never
+  secrets), `php artisan chatvia:settings:set group.property value` sets one.
 
 Switches for a self-hosted install:
 
@@ -1006,7 +1006,7 @@ Switches for a self-hosted install:
 | Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
-| Branding (admin panel, **Settings → Branding**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `app:check-license` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
+| Branding (admin panel, **Settings → Branding**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `chatvia:license:check` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: <https://chatvia.ai/docs/guide/installation>.

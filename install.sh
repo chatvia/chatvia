@@ -1348,7 +1348,7 @@ start_chatvia() {
 # (Settings → Platform in the admin panel changes them later). Horizon picks
 # the numbers up through its restart command in Redis.
 tune_docker_workers() {
-    compose exec -T app php artisan app:tune-workers --restart --no-interaction
+    compose exec -T app php artisan chatvia:workers:tune --restart --no-interaction
 }
 
 # Whether this start made the admin account (the setup log says so), read
@@ -1459,7 +1459,7 @@ start_and_finish() {
             'Then run this installer again to finish.'
     fi
     run_step 'Sizing the queue workers to this machine' tune_docker_workers ||
-        warn "The workers kept their defaults. Size them later: $(accent './manage artisan app:tune-workers --restart')"
+        warn "The workers kept their defaults. Size them later: $(accent './manage artisan chatvia:workers:tune --restart')"
     mark_finished
 
     show_finish
@@ -3025,15 +3025,15 @@ task('chatvia:widget:publish', function () {
 });
 
 desc('Creates the Pulse and Spectra databases when they are missing');
-task('chatvia:tool-databases', artisan('app:create-tool-databases'));
+task('chatvia:tool-databases', artisan('chatvia:db:create-tool-databases'));
 
 desc('Checks that the embedding settings still match the database');
-task('chatvia:check-embeddings', artisan('app:check-embedding-storage'));
+task('chatvia:check-embeddings', artisan('chatvia:search:check-embedding-storage'));
 
 desc('Adds the built-in tools to the tool catalog');
 task('chatvia:sync-tools', function () {
     // Needs the embedding provider's API key, which a new install has not got yet.
-    if (! test('{{bin/php}} {{release_path}}/artisan app:sync-builtin-mcp --no-interaction')) {
+    if (! test('{{bin/php}} {{release_path}}/artisan chatvia:mcp:sync-builtin --no-interaction')) {
         warning('The built-in tools were not updated. Add your embedding API key in the admin panel, then deploy again.');
     }
 });
@@ -3156,13 +3156,13 @@ native_configure_cron() {
 # (Settings → Platform changes them later). Horizon reads the numbers when
 # it starts, and Supervisor starts it in the next step.
 native_tune_workers() {
-    as_chatvia "$NATIVE_ROOT/current" php artisan app:tune-workers --no-interaction
+    as_chatvia "$NATIVE_ROOT/current" php artisan chatvia:workers:tune --no-interaction
 }
 
 # The password goes through stdin, never the command line.
 native_create_admin() {
     printf '%s' "$ADMIN_PASS" | as_chatvia "$NATIVE_ROOT/current" \
-        php artisan admin:create-user "$ADMIN_EMAIL" Admin --stdin --if-no-admin --if-missing --no-interaction
+        php artisan chatvia:admin:create-user "$ADMIN_EMAIL" Admin --stdin --if-no-admin --if-missing --no-interaction
 }
 
 # Whether the step above made the account, or it was there already (made by
@@ -3283,7 +3283,7 @@ native_show_finish() {
     info "$((n + 1)). Follow the short setup there: your AI provider and its API key,"
     info '   the models, and email.'
     info "$((n + 2)). Then add the built-in tools, like charts, forms and web search:"
-    info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan app:sync-builtin-mcp"
+    info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan chatvia:mcp:sync-builtin"
 
     section 'Running on this server'
     info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"

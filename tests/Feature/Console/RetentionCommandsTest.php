@@ -14,37 +14,37 @@ use Illuminate\Support\Facades\Storage;
  * past its workspace's window. What the Actions keep and remove is tested
  * next to them in tests/Unit.
  */
-it('anonymizes old visitor sessions with app:anonymize-chat-sessions', function (): void {
+it('anonymizes old visitor sessions with chatvia:privacy:anonymize-sessions', function (): void {
     $agent = Agent::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['anonymize_after_days' => 30]);
     $session = Session::factory()->create(['agent_id' => $agent->id, 'email' => 'dana@example.com']);
     DB::table('chat_sessions')->where('id', $session->id)->update(['created_at' => now()->subDays(60), 'updated_at' => now()->subDays(60)]);
 
-    $this->artisan('app:anonymize-chat-sessions', ['--batch' => 1])->assertSuccessful();
+    $this->artisan('chatvia:privacy:anonymize-sessions', ['--batch' => 1])->assertSuccessful();
 
     expect(DB::table('chat_sessions')->where('id', $session->id)->first())
         ->anonymized_at->not->toBeNull()
         ->email->toBeNull();
 });
 
-it('deletes stale uploads that joined no conversation with app:prune-chat-attachments', function (): void {
+it('deletes stale uploads that joined no conversation with chatvia:prune:attachments', function (): void {
     Storage::fake(Attachment::DISK);
     Storage::disk(Attachment::DISK)->put('users/x/agents/y/attachments/doc.pdf', 'pdf');
     $upload = Attachment::create(['workspace_id' => Agent::factory()->create()->workspace_id, 'filepath' => 'users/x/agents/y/attachments/doc.pdf', 'filename' => 'doc.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 3]);
     DB::table('chat_attachments')->where('id', $upload->id)->update(['created_at' => now()->subDays(31)]);
 
-    $this->artisan('app:prune-chat-attachments')->assertSuccessful();
+    $this->artisan('chatvia:prune:attachments')->assertSuccessful();
 
     expect(Attachment::query()->find($upload->id))->toBeNull();
     Storage::disk(Attachment::DISK)->assertMissing('users/x/agents/y/attachments/doc.pdf');
 });
 
-it('deletes leads past the workspace\'s window with app:prune-leads', function (): void {
+it('deletes leads past the workspace\'s window with chatvia:prune:leads', function (): void {
     $agent = Agent::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_leads_days' => 30]);
     $lead = FormSubmission::factory()->forDefinition(FormDefinition::factory()->forAgent($agent)->create())->submitted()->create(['submitted_at' => now()->subDays(60)]);
 
-    $this->artisan('app:prune-leads', ['--batch' => 1])->assertSuccessful();
+    $this->artisan('chatvia:prune:leads', ['--batch' => 1])->assertSuccessful();
 
     expect(FormSubmission::query()->whereKey($lead->id)->exists())->toBeFalse();
 });

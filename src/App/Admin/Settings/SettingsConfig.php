@@ -66,7 +66,7 @@ final class SettingsConfig
         }
 
         // Hiding the credit needs a license key for this install's domain,
-        // however the switch was turned off (panel, app:setting or config).
+        // however the switch was turned off (panel, chatvia:settings:set or config).
         $credit = 'chatvia.powered_by';
 
         if (($values[$credit] ?? $this->config->get($credit)) !== true

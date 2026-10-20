@@ -8,7 +8,7 @@ use App\Admin\Settings\Data\WorkerCountsData;
 
 /**
  * Recommends how many queue workers of each kind fit a server, for
- * `php artisan app:tune-workers` and the installers. The numbers in
+ * `php artisan chatvia:workers:tune` and the installers. The numbers in
  * config/horizon.php fit a 4 GB server and are the floor; everything scales
  * up from there. The workers get a quarter of the machine's memory (the web
  * app, PostgreSQL and Redis share the rest), or most of the container's own

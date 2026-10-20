@@ -11,7 +11,7 @@ use Domain\Knowledge\Embedding\Exceptions\InvalidEmbeddingStorageException;
  * How the database stores embeddings: the pgvector type and the size of every
  * embedding column (`chatvia.embeddings`). An install chooses them once,
  * before its first migration, because the columns and their indexes are
- * created with them. `app:check-embedding-storage` stops a start whose
+ * created with them. `chatvia:search:check-embedding-storage` stops a start whose
  * settings no longer match the database.
  */
 final class EmbeddingStorage

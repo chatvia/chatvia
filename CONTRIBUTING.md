@@ -26,7 +26,7 @@ docker compose up -d          # PostgreSQL (with the search extensions), Redis, 
 composer install
 npm ci
 cp .env.example .env && php artisan key:generate
-php artisan app:create-tool-databases   # Pulse's and Spectra's databases, when missing
+php artisan chatvia:db:create-tool-databases   # Pulse's and Spectra's databases, when missing
 php artisan migrate --seed
 composer dev                  # app server, queue worker, logs and Vite
 ```
@@ -245,7 +245,7 @@ then tag the widget release: every build takes the newest release.
 - Keyword search goes through `LexicalSearch` (never inline BM25 or
   full-text SQL): it writes the driver's SQL, and
   `ConfigureLexicalIndexesAction` keeps the indexes in the driver's shape
-  (`php artisan search:lexical-indexes` after changing the driver or
+  (`php artisan chatvia:search:lexical-indexes` after changing the driver or
   `SEARCH_TEXT_CONFIG`).
 - Key workspace data to the **workspace** (`$agent->workspace_id`,
   `$user->workspace()->id`), not to the person who is acting.

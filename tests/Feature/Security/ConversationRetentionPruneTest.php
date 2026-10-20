@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
-| Conversation retention override (app:prune-expired-conversations)
+| Conversation retention override (chatvia:prune:conversations)
 |--------------------------------------------------------------------------
 |
 | A workspace can SHORTEN chat retention below the install's retention
@@ -36,7 +36,7 @@ it('prunes conversations idle past a workspace retention override', function ():
     $old = crpAgedConversation($agent, daysIdle: 30);
     $recent = crpAgedConversation($agent, daysIdle: 1);
 
-    $this->artisan('app:prune-expired-conversations')->assertSuccessful();
+    $this->artisan('chatvia:prune:conversations')->assertSuccessful();
 
     expect($old->fresh()->trashed())->toBeTrue()
         ->and($recent->fresh()->trashed())->toBeFalse();
@@ -50,7 +50,7 @@ it('clamps an override longer than the install\'s retention down to it', functio
     // Idle 120 days: past the install's 90, well under the override's 9999.
     $conversation = crpAgedConversation($agent, daysIdle: 120);
 
-    $this->artisan('app:prune-expired-conversations')->assertSuccessful();
+    $this->artisan('chatvia:prune:conversations')->assertSuccessful();
 
     // Pruned because the override is clamped to the install's retention, not trusted verbatim.
     expect($conversation->fresh()->trashed())->toBeTrue();
@@ -61,7 +61,7 @@ it('leaves conversations untouched when the workspace has no override', function
     // No policy override and no expires_at — age alone must not prune it.
     $conversation = crpAgedConversation($agent, daysIdle: 400);
 
-    $this->artisan('app:prune-expired-conversations')->assertSuccessful();
+    $this->artisan('chatvia:prune:conversations')->assertSuccessful();
 
     expect($conversation->fresh()->trashed())->toBeFalse();
 });

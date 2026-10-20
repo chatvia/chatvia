@@ -111,7 +111,7 @@ return [
         'auth_strategy' => 'none',
         // First-party builtin, opt-in per agent like `leads`: the workspace
         // connects it once (no token), then enables it per agent. The global
-        // (user_id IS NULL) row synced by app:sync-builtin-mcp is NOT ambient
+        // (user_id IS NULL) row synced by chatvia:mcp:sync-builtin is NOT ambient
         // for agents — it exists only to back the owner analytics "Ask your
         // data" chat's chart rendering and to seed the shared tool catalog.
         'server_category' => 'builtin',

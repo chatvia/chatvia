@@ -114,7 +114,7 @@ return [
 
         // Pulse's own database (config/pulse.php): the same server and user
         // as the app, another database. `migrate` creates its tables there, and
-        // app:create-tool-databases creates the database itself when missing.
+        // chatvia:db:create-tool-databases creates the database itself when missing.
         'pulse' => [
             'driver' => 'pgsql',
             'url' => env('DB_PULSE_URL'),

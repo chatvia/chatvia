@@ -54,6 +54,6 @@ final readonly class SetSettingAction
             }
         }
 
-        throw new InvalidArgumentException("Unknown setting [{$key}]. Run `php artisan app:settings` to list them.");
+        throw new InvalidArgumentException("Unknown setting [{$key}]. Run `php artisan chatvia:settings:list` to list them.");
     }
 }

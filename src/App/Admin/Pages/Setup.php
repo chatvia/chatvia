@@ -1785,7 +1785,7 @@ class Setup extends SimplePage
 
     /**
      * An embedding column as the database has it, or null before the first
-     * migration. Every one has the same type: `app:check-embedding-storage`
+     * migration. Every one has the same type: `chatvia:search:check-embedding-storage`
      * stops a start otherwise.
      */
     private function storedColumn(): ?EmbeddingColumnData

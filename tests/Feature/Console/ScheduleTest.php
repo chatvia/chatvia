@@ -17,33 +17,33 @@ it('schedules every recurring command from routes/console.php', function (string
     expect(scheduleExpressionOf($command))->toBe($expression);
 })->with([
     ['horizon:snapshot', '*/5 * * * *'],
-    ['app:prune-expired-data-exports', '15 0 * * *'],
-    ['app:prune-chat-attachments', '0 3 * * *'],
-    ['app:prune-expired-conversations', '30 3 * * *'],
-    ['app:prune-tool-approvals', '45 3 * * *'],
-    ['app:prune-expired-forms', '*/10 * * * *'],
-    ['app:prune-agent-activity', '0 4 * * *'],
-    ['app:prune-guardrail-events', '15 4 * * *'],
-    ['app:prune-expired-visitor-blocks', '20 4 * * *'],
-    ['app:prune-security-audit-log', '25 4 * * *'],
-    ['app:prune-analytics-events', '45 4 * * *'],
-    ['app:refresh-websites', '20 * * * *'],
-    ['app:anonymize-chat-sessions', '50 3 * * *'],
-    ['app:prune-leads', '5 4 * * *'],
-    ['app:prune-workspace-analytics', '50 4 * * *'],
-    ['app:prune-notifications', '55 4 * * *'],
+    ['chatvia:prune:data-exports', '15 0 * * *'],
+    ['chatvia:prune:attachments', '0 3 * * *'],
+    ['chatvia:prune:conversations', '30 3 * * *'],
+    ['chatvia:prune:tool-approvals', '45 3 * * *'],
+    ['chatvia:prune:forms', '*/10 * * * *'],
+    ['chatvia:prune:agent-activity', '0 4 * * *'],
+    ['chatvia:prune:guardrail-events', '15 4 * * *'],
+    ['chatvia:prune:visitor-blocks', '20 4 * * *'],
+    ['chatvia:prune:security-audit-log', '25 4 * * *'],
+    ['chatvia:prune:analytics-events', '45 4 * * *'],
+    ['chatvia:knowledge:refresh-websites', '20 * * * *'],
+    ['chatvia:privacy:anonymize-sessions', '50 3 * * *'],
+    ['chatvia:prune:leads', '5 4 * * *'],
+    ['chatvia:prune:workspace-analytics', '50 4 * * *'],
+    ['chatvia:prune:notifications', '55 4 * * *'],
     ['queue:prune-batches', '0 5 * * *'],
     ['queue:prune-failed', '5 5 * * *'],
     ['sanctum:prune-expired', '10 5 * * *'],
     ['model:prune', '15 5 * * *'],
     ['spectra:prune', '20 5 * * *'],
     ['cache:prune-stale-tags chat', '0 * * * *'],
-    ['app:analyze-conversations', '0 * * * *'],
-    ['app:backup-database', '0 1,13 * * *'],
+    ['chatvia:analytics:analyze-conversations', '0 * * * *'],
+    ['chatvia:db:backup', '0 1,13 * * *'],
 ]);
 
 it('checks the license daily in the 6 o\'clock hour, at a minute of the install\'s own', function (): void {
-    expect(scheduleExpressionOf('app:check-license'))->toMatch('/^[1-5]?[0-9] 6 \* \* \*$/');
+    expect(scheduleExpressionOf('chatvia:license:check'))->toMatch('/^[1-5]?[0-9] 6 \* \* \*$/');
 });
 
 it('schedules nothing the tests above do not name', function (): void {

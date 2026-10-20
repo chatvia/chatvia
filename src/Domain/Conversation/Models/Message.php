@@ -24,7 +24,7 @@ use Support\Concerns\HasExternalId;
 /**
  * One message of a conversation in the chat log: a visitor message, an AI
  * reply, or a human operator's reply during a handoff (see MessageRole). Holds
- * what analytics read back: usage, cost, timing, confidence and feedback.
+ * what analytics read back: usage, timing, confidence and feedback.
  *
  * @property int $id
  * @property string $external_id
@@ -47,7 +47,6 @@ use Support\Concerns\HasExternalId;
  * @property int|null $response_time_ms
  * @property int|null $prompt_tokens
  * @property int|null $completion_tokens
- * @property int|null $cost_in_micro_cents
  * @property bool|null $is_usage_counted
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -67,7 +66,6 @@ use Support\Concerns\HasExternalId;
  * @method static MessageQueryBuilder<static>|Message whereCompletionTokens($value)
  * @method static MessageQueryBuilder<static>|Message whereConfidenceScore($value)
  * @method static MessageQueryBuilder<static>|Message whereContent($value)
- * @method static MessageQueryBuilder<static>|Message whereCostInMicroCents($value)
  * @method static MessageQueryBuilder<static>|Message whereCreatedAt($value)
  * @method static MessageQueryBuilder<static>|Message whereExternalId($value)
  * @method static MessageQueryBuilder<static>|Message whereFeedback($value)
@@ -111,7 +109,6 @@ use Support\Concerns\HasExternalId;
     'response_time_ms',
     'prompt_tokens',
     'completion_tokens',
-    'cost_in_micro_cents',
     'is_usage_counted',
     'read_at',
     'created_at',
@@ -139,7 +136,6 @@ class Message extends Model
             'response_time_ms' => 'integer',
             'prompt_tokens' => 'integer',
             'completion_tokens' => 'integer',
-            'cost_in_micro_cents' => 'integer',
         ];
     }
 

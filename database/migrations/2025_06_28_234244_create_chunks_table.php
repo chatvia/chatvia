@@ -25,7 +25,6 @@ return new class extends Migration
             $table->text('summary')->nullable();
             $table->boolean('is_enhanced')->default(false);
             $table->string('chunked_using_model')->nullable();
-            $table->unsignedBigInteger('cost_in_micro_cents')->default(0);
             $table->unsignedInteger('tokens');
 
             $table->embedding('embedding');

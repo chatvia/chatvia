@@ -6,14 +6,11 @@ use Domain\Knowledge\Ingestion\Data\Chunking\ChunkEnhancementData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Data\Chat\ChatUsageData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
-use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
-use Domain\Llm\Services\TikToken;
 
 /**
  * Asks the AI enhancement model (LlmTask::Enhancement) for a summary of one page
@@ -27,7 +24,6 @@ class Chunker
 {
     public function __construct(
         private readonly StructuredCompletion $completion,
-        private readonly CostCalculator $costCalculator,
         private readonly TaskModels $models,
     ) {}
 
@@ -59,23 +55,10 @@ class Chunker
 
         $data = $reply->requireData();
 
-        // Bill from the provider's own token counts; estimate only when the
-        // response carries no usage block.
-        $usage = $reply->response->usage ?? ChatUsageData::fromUsage([
-            'prompt_tokens' => TikToken::countTokens($systemPrompt.$userPrompt),
-            'completion_tokens' => TikToken::countTokens($reply->response->content),
-        ]);
-
         return new ChunkEnhancementData(
             summary: (string) ($data['summary'] ?? ''),
             questions: array_values(array_filter((array) ($data['questions'] ?? []), is_string(...))),
             model: $model->external_name,
-            cost: $this->costCalculator->costInCentsFromUsage(
-                usage: $usage,
-                // The model's catalog prices when the admin set them.
-                pricePerInputMilToken: $model->inputPriceDollarsPerMilTokens() ?? (float) config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
-                pricePerOutputMilToken: $model->outputPriceDollarsPerMilTokens() ?? (float) config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
-            ),
         );
     }
 

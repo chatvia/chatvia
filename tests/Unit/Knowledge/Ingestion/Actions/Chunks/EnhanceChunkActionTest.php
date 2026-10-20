@@ -42,7 +42,6 @@ it('prepends the summary to the text to embed and returns the questions', functi
     expect($enhanced->summary)->toBe('A page about oceans.')
         ->and($enhanced->embeddingText)->toBe("A page about oceans.\n\nThe Pacific is the largest ocean.")
         ->and($enhanced->questions)->toBe("Which ocean is largest?\nHow deep is it?")
-        ->and($enhanced->costInCents)->toBeGreaterThan(0.0)
         ->and($enhanced->metadata)->toBeNull();
 
     Http::assertSentCount(1);

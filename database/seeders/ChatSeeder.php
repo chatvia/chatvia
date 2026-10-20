@@ -362,7 +362,6 @@ class ChatSeeder extends Seeder
                         'response_time_ms' => $responseMs,
                         'prompt_tokens' => $promptTokens,
                         'completion_tokens' => $completionTokens,
-                        'cost_in_micro_cents' => $isAssistant ? fake()->numberBetween(100, 200_000) : null,
                         'sentiment' => $messageData['sentiment'] ?? ($isAssistant ? 'neutral' : fake()->randomElement(['positive', 'neutral', 'negative'])),
                         'tone' => $messageData['tone'] ?? null,
                         'is_response_from_qa' => $isAssistant ? fake()->boolean(85) : null,

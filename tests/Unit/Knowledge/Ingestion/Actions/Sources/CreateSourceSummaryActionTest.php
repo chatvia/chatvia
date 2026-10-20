@@ -8,11 +8,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * The summary chunk's stored cost must come from the token counts the provider
- * reports for the analysis and summary calls (the prompt holds the whole
- * document), priced from config — not from the prompt text counted as output
- * at hard-coded prices. The PDF goes inside the request, so the model reads
- * the document even when it could not open a link to this site.
+ * The summary chunk (chunk_index 0) comes from one analysis call and one
+ * summary call. The PDF goes inside the request, so the model reads the
+ * document even when it could not open a link to this site.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -20,13 +18,10 @@ beforeEach(function (): void {
     config([
         'services.mistral.api_key' => 'test-key',
         'services.mistral.base_url' => 'https://mistral.test/v1',
-        'chatvia.ai.pricing.summary_input_per_million_tokens' => 2.0,
-        'chatvia.ai.pricing.summary_output_per_million_tokens' => 8.0,
-        'chatvia.ai.pricing.embedding_per_million_tokens' => 0.0,
     ]);
 });
 
-it('prices the summary chunk from the provider usage of both calls', function (): void {
+it('stores the summary chunk with the analysis questions and metadata', function (): void {
     Http::fake(function (Request $request) {
         if (isset($request['response_format'])) {
             return Http::response([
@@ -44,13 +39,11 @@ it('prices the summary chunk from the provider usage of both calls', function ()
                     'language' => 'en',
                     'confidence_score' => 0.9,
                 ])]]],
-                'usage' => ['prompt_tokens' => 10_000, 'completion_tokens' => 500],
             ]);
         }
 
         return Http::response([
             'choices' => [['message' => ['content' => 'A short summary of the manual.']]],
-            'usage' => ['prompt_tokens' => 10_000, 'completion_tokens' => 300],
         ]);
     });
 
@@ -62,10 +55,11 @@ it('prices the summary chunk from the provider usage of both calls', function ()
 
     $chunk = app(CreateSourceSummaryAction::class)->execute($source);
 
-    // Analysis: 10,000 × 2.0 + 500 × 8.0 per 1M tokens = 2.4 cents.
-    // Summary:  10,000 × 2.0 + 300 × 8.0 per 1M tokens = 2.24 cents.
-    expect($chunk->cost_in_micro_cents)->toBe(4_640_000)
-        ->and($chunk->chunk)->toBe('A short summary of the manual.');
+    expect($chunk->chunk)->toBe('A short summary of the manual.')
+        ->and($chunk->chunk_index)->toBe(0)
+        ->and($chunk->questions)->toBe("q1\nq2\nq3\nq4\nq5")
+        ->and($chunk->metadata['key_topics'] ?? null)->toBe(['setup'])
+        ->and($source->fresh()->document_classification)->toBe('user_manual');
 });
 
 it('skips the summary, without any LLM call, when no LLM can read PDF documents', function (): void {

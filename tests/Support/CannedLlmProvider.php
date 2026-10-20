@@ -15,8 +15,8 @@ use RuntimeException;
  * An LLM client with scripted answers, so a test needs no HTTP fake for the
  * model. completion() answers with the given text, or fails like a provider
  * that is down when no text is given; stream() returns an empty response; the
- * cost lookup returns the given usage. Every request is kept, so a test can
- * check what was sent. Pass it to LlmChat::using(), FakeLlmProviders or
+ * generation lookup returns the given record. Every request is kept, so a test
+ * can check what was sent. Pass it to LlmChat::using(), FakeLlmProviders or
  * bindFakeLlmProvider().
  */
 final class CannedLlmProvider implements LlmProviderInterface
@@ -28,12 +28,12 @@ final class CannedLlmProvider implements LlmProviderInterface
     public array $streamSettings = [];
 
     /**
-     * @param  array<string, mixed>|null  $generationCost
+     * @param  array<string, mixed>|null  $generation
      */
     public function __construct(
         private readonly ?string $answer = null,
-        private readonly bool $tracksCost = false,
-        private readonly ?array $generationCost = null,
+        private readonly bool $looksUpGenerations = false,
+        private readonly ?array $generation = null,
     ) {}
 
     /** completion() answers with this assistant text. */
@@ -49,13 +49,13 @@ final class CannedLlmProvider implements LlmProviderInterface
     }
 
     /**
-     * The provider tracks cost and reports this record for any generation.
+     * The provider can look up generations and reports this record for any one.
      *
-     * @param  array<string, mixed>|null  $generationCost
+     * @param  array<string, mixed>|null  $generation
      */
-    public static function costing(?array $generationCost): self
+    public static function withGeneration(?array $generation): self
     {
-        return new self(tracksCost: true, generationCost: $generationCost);
+        return new self(looksUpGenerations: true, generation: $generation);
     }
 
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface
@@ -88,9 +88,9 @@ final class CannedLlmProvider implements LlmProviderInterface
         return [];
     }
 
-    public function getGenerationCost(string $generationId): ?array
+    public function getGeneration(string $generationId): ?array
     {
-        return $this->generationCost;
+        return $this->generation;
     }
 
     public function getCompletionEndpoint(): string
@@ -98,8 +98,8 @@ final class CannedLlmProvider implements LlmProviderInterface
         return '';
     }
 
-    public function supportsCostTracking(): bool
+    public function supportsGenerationLookup(): bool
     {
-        return $this->tracksCost;
+        return $this->looksUpGenerations;
     }
 }

@@ -7,8 +7,6 @@
         "context_window": 250000,
         "icon": "qwen.svg",
         "location": "eu",
-        "input_price_per_1m_tokens_in_micro_cents": 75000000,
-        "output_price_per_1m_tokens_in_micro_cents": 225000000,
         "reasoning": true,
         "provider": "scaleway"
     }

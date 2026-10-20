@@ -43,7 +43,6 @@ class ChunkFactory extends Factory
             'search_text' => fn (array $attributes): string => (string) $attributes['chunk'],
             // Unique per source, so two chunks with the same text never collide.
             'checksum' => fn (): string => hash('sha256', (string) Str::uuid7()),
-            'cost_in_micro_cents' => 0,
         ];
     }
 

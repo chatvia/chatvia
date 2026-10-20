@@ -44,13 +44,13 @@ interface LlmProviderInterface
     public function headers(): array;
 
     /**
-     * Get generation cost data.
-     * Returns null if the provider doesn't support cost tracking.
+     * Look up one generation after the fact, for its token counts when the
+     * stream reported none. Returns null if the provider has no such lookup.
      *
      * @param  string  $generationId  The generation ID
-     * @return array<string, mixed>|null The provider's generation record (`tokens_prompt`, `tokens_completion`, `total_cost`, ...) or null if not supported
+     * @return array<string, mixed>|null The provider's generation record (`tokens_prompt`, `tokens_completion`, ...) or null if not supported
      */
-    public function getGenerationCost(string $generationId): ?array;
+    public function getGeneration(string $generationId): ?array;
 
     /**
      * Get the completion endpoint URL.
@@ -60,9 +60,9 @@ interface LlmProviderInterface
     public function getCompletionEndpoint(): string;
 
     /**
-     * Check if the provider supports cost tracking.
+     * Check if the provider can look up a generation by its id.
      *
-     * @return bool True if cost tracking is supported
+     * @return bool True if getGeneration() is supported
      */
-    public function supportsCostTracking(): bool;
+    public function supportsGenerationLookup(): bool;
 }

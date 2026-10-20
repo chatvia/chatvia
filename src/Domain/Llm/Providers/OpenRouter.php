@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Chat completions through OpenRouter: models from many providers with one
- * key. OpenRouter also reports the exact cost of each generation.
+ * key. OpenRouter can also look up a generation's token counts afterwards.
  */
 class OpenRouter extends AbstractLlmProvider
 {
@@ -29,12 +29,12 @@ class OpenRouter extends AbstractLlmProvider
 
     /**
      * Fetch generation data from OpenRouter.
-     * Returns the raw data object with tokens_prompt, tokens_completion, total_cost, etc.
+     * Returns the raw data object with tokens_prompt, tokens_completion, etc.
      *
      * @param  string  $generationId  The generation ID
      * @return array<string, mixed>|null The generation data or null on failure
      */
-    public function getGenerationCost(string $generationId): ?array
+    public function getGeneration(string $generationId): ?array
     {
         try {
             $response = Http::withHeaders([
@@ -56,11 +56,11 @@ class OpenRouter extends AbstractLlmProvider
     }
 
     /**
-     * Check if the provider supports cost tracking.
+     * Check if the provider can look up a generation by its id.
      *
      * @return bool True for OpenRouter
      */
-    public function supportsCostTracking(): bool
+    public function supportsGenerationLookup(): bool
     {
         return true;
     }

@@ -39,7 +39,6 @@ function slChunk(Model $source, int $workspaceId): void
         'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
         'search_text' => 'A chunk.',
         'checksum' => md5(uniqid()),
-        'cost_in_micro_cents' => 0,
     ]);
 }
 

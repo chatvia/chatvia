@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Ingestion\Services;
 
-use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
 use Domain\Knowledge\Ingestion\Data\Analysis\ContentAnalysisData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
@@ -31,7 +30,7 @@ class ContentAnalyzer
      * @throws DocumentLlmUnavailableException
      * @throws InvalidStructuredReplyException when the reply holds no JSON
      */
-    public function analyze(string $documentUrl): AnalyzedDocumentData
+    public function analyze(string $documentUrl): ContentAnalysisData
     {
         $reply = $this->completion->using($this->documentLlm->provider())->send(new ChatRequestData(
             model: $this->documentLlm->model((string) config('chatvia.ai.models.analysis')),
@@ -45,10 +44,7 @@ class ContentAnalyzer
             responseSchema: new ResponseSchemaData('document_analysis', $this->fileAnalysisSchema()),
         ));
 
-        return new AnalyzedDocumentData(
-            analysis: ContentAnalysisData::from($reply->requireData()),
-            usage: $reply->response->usage,
-        );
+        return ContentAnalysisData::from($reply->requireData());
     }
 
     /**

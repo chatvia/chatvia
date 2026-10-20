@@ -68,52 +68,7 @@
 
         <div class="cv-status-grid">
             @foreach ($services as [$service, $status])
-                <article class="cv-service" data-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
-                    <div class="cv-service__head">
-                        <span class="cv-service__icon cv-service__icon--tinted">
-                            @if ($service->logo() !== null)
-                                <img src="{{ $service->logo() }}" alt="" class="cv-service__logo" />
-                            @else
-                                <x-filament::icon :icon="$service->icon()" />
-                            @endif
-                        </span>
-
-                        <div class="cv-service__name">
-                            <h3 class="cv-service__title">{{ $service->label() }}</h3>
-                            <p class="cv-service__description cv-service__description--line">{{ $service->description() }}</p>
-                        </div>
-
-                        @include('filament.status.state', ['status' => $status, 'label' => $status?->state->label()])
-                    </div>
-
-                    @if ($status === null)
-                        <span class="cv-skeleton" aria-hidden="true"></span>
-                    @else
-                        @if ($status->checks !== [])
-                            @include('filament.status.checks', ['checks' => $status->cardChecks()])
-                        @endif
-
-                        @if (count($status->checks) > \App\Admin\Status\Data\ServiceStatusData::CARD_CHECKS || $status->hint !== null)
-                            <x-filament::modal width="md" :heading="$service->label()" :description="$status->summary">
-                                <x-slot name="trigger">
-                                    <button type="button" class="cv-checks__more">
-                                        {{ count($status->checks) > \App\Admin\Status\Data\ServiceStatusData::CARD_CHECKS
-                                            ? __('Show all :count', ['count' => count($status->checks)])
-                                            : __('Details') }}
-                                    </button>
-                                </x-slot>
-
-                                @if ($status->hint !== null)
-                                    <p @class(['cv-status-hint', 'cv-status-hint--'.$status->state->tone()])>{{ $status->hint }}</p>
-                                @endif
-
-                                @if ($status->checks !== [])
-                                    @include('filament.status.checks', ['checks' => $status->checks])
-                                @endif
-                            </x-filament::modal>
-                        @endif
-                    @endif
-                </article>
+                @include('filament.status.service-card', ['service' => $service, 'status' => $status])
             @endforeach
         </div>
     </section>

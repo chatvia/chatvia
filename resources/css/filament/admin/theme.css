@@ -1579,6 +1579,37 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     font-size: 0.8125em;
 }
 
+/* The setup's first step: the server checks, with "Check again" beside their headline. */
+.cv-setup-server {
+    display: grid;
+    gap: 1rem;
+}
+
+.cv-setup-server__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.cv-setup-server__headline {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cv-text);
+}
+
+/* A service row: its state, then "Details" for the fix and every line. */
+.cv-status-row--service {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.cv-status-row__details {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 4.5rem;
+}
+
 /* -------------------------------------------------------------------------
  * Chatvia views: choice cards ({@see \App\Admin\Forms\CardRadio})
  * ---------------------------------------------------------------------- */
@@ -1865,6 +1896,20 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
         grid-template-columns: 13rem minmax(0, 1fr);
         column-gap: 1.5rem;
     }
+}
+
+.cv-setup-tasks {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.cv-setup-tasks__heading {
+    margin: 0 0 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cv-text-subtle);
 }
 
 /* -------------------------------------------------------------------------
@@ -2572,39 +2617,39 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     object-fit: contain;
 }
 
-.cv-service[data-service='database'] {
+:is(.cv-service, .cv-status-row)[data-service='database'] {
     --cv-service-tone: #336791;
 }
 
-.cv-service[data-service='redis'] {
+:is(.cv-service, .cv-status-row)[data-service='redis'] {
     --cv-service-tone: #d82c20;
 }
 
-.cv-service[data-service='queue'] {
+:is(.cv-service, .cv-status-row)[data-service='queue'] {
     --cv-service-tone: #7746ec;
 }
 
-.cv-service[data-service='scheduler'] {
+:is(.cv-service, .cv-status-row)[data-service='scheduler'] {
     --cv-service-tone: #d97706;
 }
 
-.cv-service[data-service='realtime'] {
+:is(.cv-service, .cv-status-row)[data-service='realtime'] {
     --cv-service-tone: #c026d3;
 }
 
-.cv-service[data-service='server_monitor'] {
+:is(.cv-service, .cv-status-row)[data-service='server_monitor'] {
     --cv-service-tone: #7a5af8;
 }
 
-.cv-service[data-service='storage'] {
+:is(.cv-service, .cv-status-row)[data-service='storage'] {
     --cv-service-tone: #0284c7;
 }
 
-.cv-service[data-service='email'] {
+:is(.cv-service, .cv-status-row)[data-service='email'] {
     --cv-service-tone: #e11d48;
 }
 
-.cv-service[data-service='programs'] {
+:is(.cv-service, .cv-status-row)[data-service='programs'] {
     --cv-service-tone: #0d9488;
 }
 
@@ -2908,7 +2953,8 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
         grid-column: 3;
     }
 
-    .cv-status-row__providers {
+    .cv-status-row__providers,
+    .cv-status-row__details {
         grid-column: 2 / -1;
         justify-content: flex-start;
     }

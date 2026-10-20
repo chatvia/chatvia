@@ -16,6 +16,7 @@ use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\FirecrawlCheck;
+use App\Admin\Settings\LlmTaskText;
 use App\Admin\Settings\MailField;
 use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\MailSettings;
@@ -25,6 +26,11 @@ use App\Admin\Settings\SetupRequirements;
 use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageCheck;
 use App\Admin\Settings\StorageSettings;
+use App\Admin\Settings\TaskModelPreset;
+use App\Admin\Status\Data\ServiceStatusData;
+use App\Admin\Status\Service;
+use App\Admin\Status\ServiceChecks;
+use App\Admin\Status\ServiceState;
 use Closure;
 use Domain\Knowledge\Embedding\Data\EmbeddingColumnData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
@@ -36,11 +42,15 @@ use Domain\Knowledge\Embedding\Services\EmbeddingCheck;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\OpenRouterEmbeddingModels;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Retrieval\Actions\EnablePgTextsearchAction;
+use Domain\Knowledge\Retrieval\Enums\PgTextsearchState;
+use Domain\Knowledge\Retrieval\Services\PgTextsearchSupport;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ModelListing;
@@ -70,39 +80,51 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Exceptions\Halt;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View as ViewContract;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The setup of a new install: everything the app needs to work, in five
- * steps. Each key is checked before the next step and saved once.
+ * The setup of a new install: everything the app needs to work, step by
+ * step. Each key is checked before the next step and saved once.
  *
- * 1. Connect AI: a provider and its key (its model list checks it). When it
- *    makes no embeddings of the size the database stores (Groq, a server of
- *    your own), an embedding service and its key too.
- * 2. Models: the chat models agents can use (one or more, one of them the
+ * 1. Server: the services ChatVia.ai runs on (database, Redis, queue,
+ *    scheduler, live updates), checked live as on the Status page, and
+ *    keyword search: pg_textsearch is recommended, with why and how to get
+ *    it, and turned on here when the database has it loaded. Next with a
+ *    service down asks first ({@see serverDownAction()}); nothing is saved.
+ * 2. Connect AI: a provider and its key (its model list checks it).
+ * 3. Models: the chat models agents can use (one or more, one of them the
  *    default for new agents; the provider's recommended ones are picked,
  *    {@see ModelPresets}), the model for quick tasks (guardrails, follow-up
  *    questions, titles…: a small one when the provider has one, else
- *    the chat model), the embedding model (picked from
- *    OpenRouter's list there), checked with a test embedding, and the
+ *    the chat model), the model for image descriptions (one that reads
+ *    images; with none, image descriptions are off), the embedding service
+ *    (it starts on the provider's own when that fits; any other may be
+ *    picked, with its key) and model (picked from OpenRouter's list there),
+ *    checked with a test embedding, and the
  *    reranker: OpenRouter (its live list of rerankers), Cohere, a server
  *    of your own or none, checked with a test question.
- * 3. Documents: Mistral OCR, Azure Document Intelligence or none (the
+ * 4. Documents: Mistral OCR, Azure Document Intelligence or none (the
  *    default). Without a reader, PDF, Word, slides and images cannot be
  *    uploaded.
- * 4. Websites: Firecrawl or none (the default). Without it, websites cannot
+ * 5. Websites: Firecrawl or none (the default). Without it, websites cannot
  *    be added as knowledge.
- * 5. Speech to text: Scaleway AI, OpenAI or none (the default). Without it,
+ * 6. Speech to text: Scaleway AI, OpenAI or none (the default). Without it,
  *    audio and video files cannot be uploaded and voice messages stay
  *    audio.
- * 6. Storage: this server (the default) or S3-compatible storage (checked
+ * 7. Voice conversations: OpenAI's Realtime API or none (the default).
+ *    It needs an OpenAI key even when agents answer with another provider;
+ *    each agent still turns calls on in its own setup.
+ * 8. Storage: this server (the default) or S3-compatible storage (checked
  *    with a test file).
- * 7. Mailer: none (the default) or a mail service. Without one nobody
+ * 9. Mailer: none (the default) or a mail service. Without one nobody
  *    receives sign-up, password or invitation emails.
- * 8. Final: "Complete", the choices made, and where the rest (chunking,
+ * 10. Final: "Complete", the choices made, and where the rest (chunking,
  *    search…), which keeps its default values, is changed.
  *
  * Each step starts on the safe choice ("Not now", "This server") unless
@@ -136,11 +158,18 @@ class Setup extends SimplePage
      */
     private const array KEY_FIELDS = [
         'provider' => ['api_key', 'Connect AI'],
-        'embedding_provider' => ['embedding_api_key', 'Connect AI'],
+        'embedding_provider' => ['embedding_api_key', 'Models'],
         'reranker' => ['rerank_api_key', 'Models'],
         'document_reader' => ['document_api_key', 'Documents'],
         'transcriber' => ['transcription_api_key', 'Speech to text'],
+        'voice' => ['voice_api_key', 'Voice conversations'],
     ];
+
+    /** The label of the server step, which Next leaves once a service down is confirmed. */
+    private const string SERVER_STEP = 'Server';
+
+    /** The services the server step checks: what runs beside the web server. Storage and email have steps of their own. */
+    private const array SERVER_SERVICES = [Service::Database, Service::Redis, Service::Queue, Service::Scheduler, Service::Realtime];
 
     /** The label of the documents step, which Next leaves once "Not now" is confirmed. */
     private const string DOCUMENTS_STEP = 'Documents';
@@ -157,6 +186,9 @@ class Setup extends SimplePage
     /** @var array<string, string> The models the chosen provider lists: id => label. */
     public array $models = [];
 
+    /** Whether the list has a recommended model that reads images ({@see ModelPresets::visionModel()}). */
+    public bool $listsVisionModel = false;
+
     /** How reading the model list went ({@see ModelListStatus}), or null before it was read. */
     public ?string $listStatus = null;
 
@@ -172,8 +204,17 @@ class Setup extends SimplePage
     /** The reranker, model, key and address last checked, so Finish does not check them again. */
     public ?string $rerankerCheckedFor = null;
 
+    /** @var array<string, array<string, mixed>> The server step's checks, by {@see Service} value. */
+    public array $server = [];
+
+    /** Whether the admin agreed to go on with a service down, so Next does not warn again. */
+    public bool $serverDownConfirmed = false;
+
     /** Whether the admin agreed to go on without a document reader, so Next does not warn again. */
     public bool $noReaderConfirmed = false;
+
+    /** How ready pg_textsearch is, read once per request. */
+    private ?PgTextsearchState $pgTextsearch = null;
 
     /** The embedding columns as the database has them, read once per request. */
     private ?EmbeddingColumnData $storedColumn = null;
@@ -198,6 +239,7 @@ class Setup extends SimplePage
             'embedding_model' => $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null,
             'chat_models' => [],
             'quick_task_model' => null,
+            'vision_model' => null,
             'reranker' => $this->suggestedReranker($provider),
             'openrouter_rerank_model' => config('chatvia.ai.rerank.openrouter_model') ?: RerankModelCatalog::DEFAULT_OPENROUTER,
             'cohere_rerank_model' => config('services.cohere.rerank_model') ?: array_key_first(RerankModelCatalog::COHERE),
@@ -206,6 +248,7 @@ class Setup extends SimplePage
             'document_reader' => $this->suggestedReader($provider),
             'website_import' => filled(config('services.firecrawl.key')) ? self::FIRECRAWL : self::NOT_NOW,
             'transcriber' => in_array(app(AiSettings::class)->transcriber, $this->speechOptions(), true) ? app(AiSettings::class)->transcriber : self::NOT_NOW,
+            'voice' => in_array(app(AiSettings::class)->voice, $this->voiceOptions(), true) ? app(AiSettings::class)->voice : self::NOT_NOW,
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
@@ -252,11 +295,13 @@ class Setup extends SimplePage
     {
         return $schema->components([
             Wizard::make([
+                $this->serverStep(),
                 $this->connectStep(),
                 $this->modelsStep(),
                 $this->documentsStep(),
                 $this->websitesStep(),
                 $this->speechStep(),
+                $this->voiceStep(),
                 $this->storageStep(),
                 $this->emailStep(),
                 $this->finalStep(),
@@ -281,20 +326,23 @@ class Setup extends SimplePage
         $this->checkReranker();
         $this->checkReader();
         $this->checkFirecrawl();
-        $this->checkTranscriber();
+        $this->checkServiceKey('transcriber', 'transcription_api_key');
+        $this->checkServiceKey('voice', 'voice_api_key');
         $this->checkStorage();
 
         $account = $this->account($state);
         $embedding = $this->embeddingProvider($state);
         $reader = AiProvider::tryFrom((string) ($state['document_reader'] ?? ''));
         $transcriber = AiProvider::tryFrom((string) ($state['transcriber'] ?? ''));
+        $voice = AiProvider::tryFrom((string) ($state['voice'] ?? ''));
 
         $model = app(CompleteSetupAction::class)->execute(new SetupData(
             chatKind: $this->chatKind($state),
             apiKey: $this->filled($state, 'api_key'),
             chatModels: $this->chosenModels($state),
             defaultModel: (string) ($state['default_model'] ?? $this->chosenModels($state)[0]->id),
-            quickTaskModel: $this->quickTaskModel($state),
+            quickTaskModel: $this->listedChoice($state, 'quick_task_model'),
+            visionModel: $this->listedChoice($state, 'vision_model'),
             server: $account instanceof AiProvider ? null : new CustomLlmServerData(
                 name: (string) $state['server_name'],
                 baseUrl: (string) $state['server_url'],
@@ -302,7 +350,7 @@ class Setup extends SimplePage
             ),
             embeddingProvider: $embedding,
             embeddingModel: $this->filled($state, 'embedding_model'),
-            embeddingApiKey: $embedding instanceof EmbeddingProvider && $embedding->account() !== $account ? $this->filled($state, 'embedding_api_key') : null,
+            embeddingApiKey: $embedding instanceof EmbeddingProvider && ! $this->reusesEarlierKey('embedding_provider', $state) ? $this->filled($state, 'embedding_api_key') : null,
             reranker: $this->rerankerData($state),
             documentReader: $reader,
             documentApiKey: $reader instanceof AiProvider && ! $this->reusesEarlierKey('document_reader', $state) ? $this->filled($state, 'document_api_key') : null,
@@ -310,6 +358,8 @@ class Setup extends SimplePage
             firecrawlApiKey: ($state['website_import'] ?? null) === self::FIRECRAWL ? $this->filled($state, 'firecrawl_api_key') : null,
             transcriber: $transcriber,
             transcriptionApiKey: $transcriber instanceof AiProvider && ! $this->reusesEarlierKey('transcriber', $state) ? $this->filled($state, 'transcription_api_key') : null,
+            voice: $voice,
+            voiceApiKey: $voice instanceof AiProvider && ! $this->reusesEarlierKey('voice', $state) ? $this->filled($state, 'voice_api_key') : null,
             storage: $this->storageData($state),
             mail: new MailSetupData(
                 provider: MailProvider::from((string) $state['mailer']),
@@ -334,6 +384,33 @@ class Setup extends SimplePage
 
     // --- Steps ---------------------------------------------------------------
 
+    private function serverStep(): Step
+    {
+        return Step::make(self::SERVER_STEP)
+            ->description('What ChatVia.ai runs on')
+            ->icon(Heroicon::OutlinedServerStack)
+            ->schema([
+                Section::make('Services')
+                    ->description('ChatVia.ai needs these running beside the web server. Each one is checked live, as on the Status page.')
+                    ->icon(Heroicon::OutlinedServerStack)
+                    ->schema([
+                        View::make('filament.setup.server')->viewData(fn (): array => [
+                            'services' => array_map(fn (Service $service): array => [
+                                $service,
+                                isset($this->server[$service->value]) ? ServiceStatusData::from($this->server[$service->value]) : null,
+                            ], self::SERVER_SERVICES),
+                            'checked' => $this->server !== [],
+                            'headline' => $this->serverHeadline(),
+                        ]),
+                    ]),
+                Section::make('Keyword search')
+                    ->description('Agents find answers in two ways: by meaning, and by the words of the question. Both run in the database.')
+                    ->icon(Heroicon::OutlinedMagnifyingGlass)
+                    ->schema([$this->keywordSearchCallout()]),
+            ])
+            ->afterValidation(fn () => $this->confirmServer());
+    }
+
     private function connectStep(): Step
     {
         return Step::make('Connect AI')
@@ -344,11 +421,6 @@ class Setup extends SimplePage
                     ->description('Choose the main AI provider. Your agents use its models to answer.')
                     ->icon(Heroicon::OutlinedSparkles)
                     ->schema($this->providerFields()),
-                Section::make('Embeddings')
-                    ->description(fn (Get $get): string => $this->noEmbeddingsReason($get('provider')).' Pick a service that does, with its key.')
-                    ->icon(Heroicon::OutlinedCubeTransparent)
-                    ->visible(fn (Get $get): bool => $this->needsEmbeddingService($get('provider')))
-                    ->schema($this->embeddingServiceFields()),
             ])
             ->afterValidation(fn () => $this->showingErrors($this->checkConnection(...)));
     }
@@ -372,7 +444,7 @@ class Setup extends SimplePage
                 Section::make('Embeddings')
                     ->description(fn (Get $get): string => $this->embeddingDescription($get))
                     ->icon(Heroicon::OutlinedCubeTransparent)
-                    ->schema($this->embeddingModelFields()),
+                    ->schema([...$this->embeddingServiceFields(), ...$this->embeddingModelFields()]),
                 Section::make('Reranker')
                     ->description('Scores what search finds, and your tools, against each question, so agents use only the relevant ones.')
                     ->icon(Heroicon::OutlinedBarsArrowDown)
@@ -387,7 +459,7 @@ class Setup extends SimplePage
     private function documentsStep(): Step
     {
         return Step::make(self::DOCUMENTS_STEP)
-            ->description('Reading PDFs and Word')
+            ->description('PDFs, Office files and images')
             ->icon(Heroicon::OutlinedDocumentText)
             ->schema([
                 Section::make('Document reader')
@@ -492,7 +564,38 @@ class Setup extends SimplePage
                         $this->serviceKeyField('transcription_api_key', 'transcriber', 'getSpeechKey'),
                     ]),
             ])
-            ->afterValidation(fn () => $this->showingErrors($this->checkTranscriber(...)));
+            ->afterValidation(fn () => $this->showingErrors(fn () => $this->checkServiceKey('transcriber', 'transcription_api_key')));
+    }
+
+    private function voiceStep(): Step
+    {
+        $services = array_map(AiProvider::from(...), $this->voiceOptions());
+
+        return Step::make('Voice conversations')
+            ->description('Live calls with agents')
+            ->icon(Heroicon::OutlinedPhone)
+            ->schema([
+                Section::make('Voice conversations')
+                    ->description('Visitors can talk with an agent in a live call, in the hosted chat and the chat widget. The agent listens, answers out loud and uses its tools. This uses the OpenAI Realtime API, so it needs an OpenAI key, also when your agents answer with another provider.')
+                    ->icon(Heroicon::OutlinedPhone)
+                    ->schema([
+                        Radio::make('voice')
+                            ->hiddenLabel()
+                            ->options([
+                                ...collect($services)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "{$service->label()} Realtime"])->all(),
+                                self::NOT_NOW => 'Not now',
+                            ])
+                            ->descriptions([
+                                ...collect($services)->mapWithKeys(fn (AiProvider $service): array => [$service->value => 'Each agent still turns calls on in its own setup. A call costs much more than a typed chat.'])->all(),
+                                self::NOT_NOW => 'Visitors chat by typing. The call button is hidden. You can turn calls on later in Settings → AI models.',
+                            ])
+                            ->required()
+                            ->live(),
+                        $this->keyCallout('voice'),
+                        $this->serviceKeyField('voice_api_key', 'voice', 'getVoiceKey'),
+                    ]),
+            ])
+            ->afterValidation(fn () => $this->showingErrors(fn () => $this->checkServiceKey('voice', 'voice_api_key')));
     }
 
     private function storageStep(): Step
@@ -646,6 +749,9 @@ class Setup extends SimplePage
             'Model for quick tasks' => filled($get('quick_task_model')) && $this->models !== []
                 ? ($this->models[$get('quick_task_model')] ?? (string) $get('quick_task_model'))
                 : 'Same as the chat model',
+            'Image descriptions' => filled($get('vision_model')) && $this->models !== []
+                ? ($this->models[$get('vision_model')] ?? (string) $get('vision_model'))
+                : 'Off',
             'Embeddings' => $embedding instanceof EmbeddingProvider
                 ? $embedding->label().(filled($get('embedding_model')) ? " · {$get('embedding_model')}" : '')
                 : 'Already set up',
@@ -653,6 +759,7 @@ class Setup extends SimplePage
             'Documents' => AiProvider::tryFrom((string) $get('document_reader'))?->label() ?? 'Not now',
             'Websites' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
             'Speech to text' => AiProvider::tryFrom((string) $get('transcriber'))?->label() ?? 'Not now',
+            'Voice conversations' => ($voice = AiProvider::tryFrom((string) $get('voice'))) instanceof AiProvider ? "{$voice->label()} Realtime" : 'Not now',
             'Storage' => $get('storage_driver') === 's3' ? 'S3-compatible storage' : 'This server',
             'Mailer' => ! $mailer instanceof MailProvider || $mailer === MailProvider::Log ? 'Not now' : $mailer->label(),
         ];
@@ -716,8 +823,11 @@ class Setup extends SimplePage
     }
 
     /**
-     * The embedding service, when the chosen provider makes none of the
-     * stored size: picked here with its key, which Next checks.
+     * The embedding service, as cards like the reranker's: every service
+     * that returns the stored vector size. It starts on the AI provider's
+     * own when that fits, and any other may be picked, with its key (asked
+     * only when no earlier step has it and none is saved). Once sources are
+     * trained it stays as it is ({@see embeddingModelFields()}).
      *
      * @return list<Component>
      */
@@ -726,16 +836,16 @@ class Setup extends SimplePage
         $fitting = EmbeddingProvider::fitting();
 
         return [
-            Select::make('embedding_provider')
-                ->label('Embedding service')
-                ->options(collect($fitting)->mapWithKeys(fn (EmbeddingProvider $provider): array => [$provider->value => $provider->label()])->all())
-                ->in(array_map(fn (EmbeddingProvider $provider): string => $provider->value, $fitting))
-                ->native(false)
-                ->selectablePlaceholder(false)
-                ->helperText("Embeddings turn your documents, and each question, into vectors, so agents find the right part. These services return the {$this->storedDimensions()}-dimension vectors your database stores.")
-                ->required(fn (Get $get): bool => $this->needsEmbeddingService($get('provider')))
+            CardRadio::make('embedding_provider')
+                ->hiddenLabel()
+                ->options(collect($fitting)->mapWithKeys(fn (EmbeddingProvider $service): array => [$service->value => $service->label()])->all())
+                ->descriptions(collect($fitting)->mapWithKeys(fn (EmbeddingProvider $service): array => [$service->value => 'Model: '.config($service->modelConfig()).'.'])->all())
+                ->icons(collect($fitting)->mapWithKeys(fn (EmbeddingProvider $service): array => [$service->value => AiProviderIcon::of($service->account())])->all())
+                ->in(array_map(fn (EmbeddingProvider $service): string => $service->value, $fitting))
+                ->required(fn (): bool => ! $this->trained())
+                ->visible(fn (): bool => ! $this->trained())
                 ->live()
-                ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('embedding_model', ($provider = EmbeddingProvider::tryFrom((string) $state)) instanceof EmbeddingProvider ? config($provider->modelConfig()) : null)),
+                ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('embedding_model', ($service = EmbeddingProvider::tryFrom((string) $state)) instanceof EmbeddingProvider ? config($service->modelConfig()) : null)),
             $this->keyCallout('embedding_provider'),
             $this->serviceKeyField('embedding_api_key', 'embedding_provider', 'getEmbeddingKey'),
         ];
@@ -874,23 +984,27 @@ class Setup extends SimplePage
         };
     }
 
-    /** Why the chosen provider cannot make the embeddings: none at all, or none of the stored size. */
-    private function noEmbeddingsReason(mixed $provider): string
-    {
-        $account = AiProvider::tryFrom((string) $provider);
-
-        return $account?->can(AiCapability::Embeddings)
-            ? "{$account->label()} cannot make the {$this->storedDimensions()}-dimension embeddings your database stores."
-            : ucfirst($this->providerLabel($provider)).' does not make embeddings.';
-    }
-
-    /** What the embeddings do, and which service and key make them. */
+    /**
+     * What the embeddings do, that their service can differ from the AI
+     * provider, and why it must when the provider makes none of the stored
+     * size.
+     */
     private function embeddingDescription(Get $get): string
     {
-        $provider = $this->embeddingProvider($get);
+        $does = 'Embeddings turn your documents, and each question, into vectors, so agents find the right part.';
 
-        return 'Embeddings turn your documents, and each question, into vectors, so agents find the right part.'
-            .($provider instanceof EmbeddingProvider ? " Made with {$provider->label()}, with your {$provider->account()->label()} key." : '');
+        if ($this->trained()) {
+            return $does;
+        }
+
+        $account = AiProvider::tryFrom((string) $get('provider'));
+
+        return match (true) {
+            ! $account instanceof AiProvider => "{$does} Your own server does not make them here, so pick a service that does.",
+            ! $account->can(AiCapability::Embeddings) => "{$does} {$account->label()} does not make them, so pick a service that does.",
+            ! EmbeddingProvider::fittingFor($account) instanceof EmbeddingProvider => "{$does} {$account->label()} cannot make the {$this->storedDimensions()}-dimension vectors your database stores, so pick a service that does.",
+            default => "{$does} {$account->label()} makes them with the same key, or pick another service.",
+        };
     }
 
     /**
@@ -932,8 +1046,22 @@ class Setup extends SimplePage
                 ->in(fn (): array => array_keys($this->models))
                 ->searchable()
                 ->placeholder('Same as the chat model')
-                ->helperText('Guardrails, follow-up questions, titles and other small jobs run around each reply. A small, fast model keeps replies quick and cheap.')
+                ->helperText(fn (): Htmlable => $this->quickTasksHelp())
                 ->visible(fn (): bool => $this->models !== []),
+            Select::make('vision_model')
+                ->label('Model for image descriptions')
+                ->options(fn (): array => $this->models)
+                ->in(fn (): array => array_keys($this->models))
+                ->searchable()
+                ->placeholder('Off')
+                ->live()
+                ->helperText(fn (Get $get): string => $this->visionHelp($get))
+                ->visible(fn (): bool => $this->models !== []),
+            Callout::make('Image descriptions are off')
+                ->description('Pictures inside PDF files and other documents are not described, so search cannot find what they show. The text of your documents is still read. Add a model that reads images later in Settings → AI models, then turn on Settings → Knowledge → AI enhancement → Describe images.')
+                ->icon(Heroicon::OutlinedPhoto)
+                ->info()
+                ->visible(fn (): bool => $this->models === []),
             TextInput::make('chat_model_id')
                 ->label('Model')
                 ->placeholder('For example llama3.1:8b')
@@ -980,6 +1108,69 @@ class Setup extends SimplePage
      * The way out, in the action bar: skip the setup (with its warning), or,
      * when a skipped setup was opened again from Settings, back to the panel.
      */
+    /** One line over the server cards: checking, all running, or how many need work. */
+    private function serverHeadline(): string
+    {
+        if ($this->server === []) {
+            return 'Checking each service…';
+        }
+
+        $states = array_map(fn (array $result): ServiceState => ServiceStatusData::from($result)->state, $this->server);
+        $down = count(array_filter($states, fn (ServiceState $state): bool => $state === ServiceState::Down));
+        $warnings = count(array_filter($states, fn (ServiceState $state): bool => $state === ServiceState::Warning));
+
+        return match (true) {
+            $down === 1 => 'One service is down. Fix it, then check again.',
+            $down > 1 => "{$down} services are down. Fix them, then check again.",
+            $warnings === 1 => 'Everything answers. One service needs a look.',
+            $warnings > 1 => "Everything answers. {$warnings} services need a look.",
+            default => 'Everything runs.',
+        };
+    }
+
+    /**
+     * What keyword search runs on, and what to do to get pg_textsearch:
+     * install it, load it when PostgreSQL starts, or turn it on here.
+     */
+    private function keywordSearchCallout(): Callout
+    {
+        $why = 'pg_textsearch ranks the words with BM25, the method search engines use: rare words such as product names, codes and error messages count more than common ones, and a long document does not win just for being long. Without it, ChatVia.ai uses the built-in search of PostgreSQL. That works, but ranks less well, most of all without a reranker.';
+        $load = "Add it to <code>shared_preload_libraries</code> in <code>postgresql.conf</code> (<code>shared_preload_libraries = 'pg_textsearch'</code>), restart PostgreSQL, then press <strong>Check again</strong>.";
+
+        return Callout::make(fn (): string => match ($this->pgTextsearchState()) {
+            PgTextsearchState::Active => 'pg_textsearch is on',
+            PgTextsearchState::SwitchedOff => 'pg_textsearch is installed, but not used',
+            PgTextsearchState::ReadyToEnable => 'Turn on pg_textsearch',
+            PgTextsearchState::NotPreloaded => 'Load pg_textsearch when PostgreSQL starts',
+            PgTextsearchState::NotInstalled => 'Install pg_textsearch (recommended)',
+        })
+            ->description(fn (): HtmlString => new HtmlString(match ($this->pgTextsearchState()) {
+                PgTextsearchState::Active => 'Keyword search ranks with BM25. Nothing to do here.',
+                PgTextsearchState::SwitchedOff => 'The <code>SEARCH_LEXICAL_DRIVER</code> setting in <code>.env</code> keeps the built-in search. Remove it, then run <code>php artisan chatvia:search:lexical-indexes</code>. '.e($why),
+                PgTextsearchState::ReadyToEnable => e($why).' The database has it loaded: turn it on here. This also rebuilds the search indexes.',
+                PgTextsearchState::NotPreloaded => e($why).' It is installed on the database server, but PostgreSQL does not load it. '.$load,
+                PgTextsearchState::NotInstalled => e($why).' Install it from its <a href="https://github.com/timescale/pg_textsearch/releases" target="_blank" rel="noopener" class="underline">releases page</a> (the Docker setup and <code>install.sh</code> include it). '.$load.' A managed cloud database often cannot load it: then go on, the built-in search works.',
+            }))
+            ->icon(fn (): Heroicon => $this->pgTextsearchState() === PgTextsearchState::Active ? Heroicon::OutlinedCheckCircle : Heroicon::OutlinedLightBulb)
+            ->status(fn (): string => match ($this->pgTextsearchState()) {
+                PgTextsearchState::Active => 'success',
+                PgTextsearchState::SwitchedOff => 'info',
+                default => 'warning',
+            })
+            ->actions([
+                Action::make('enablePgTextsearch')
+                    ->label('Turn on pg_textsearch')
+                    ->icon(Heroicon::OutlinedBolt)
+                    ->visible(fn (): bool => $this->pgTextsearchState() === PgTextsearchState::ReadyToEnable)
+                    ->action(fn () => $this->enablePgTextsearch()),
+            ]);
+    }
+
+    private function pgTextsearchState(): PgTextsearchState
+    {
+        return $this->pgTextsearch ??= app(PgTextsearchSupport::class)->state();
+    }
+
     private function wayOutLink(): Htmlable
     {
         return new HtmlString(Blade::render(<<<'BLADE'
@@ -989,6 +1180,45 @@ class Setup extends SimplePage
                 <x-filament::link tag="button" type="button" color="gray" size="sm" wire:click="mountAction('skip')">Skip the setup for now</x-filament::link>
             @endif
             BLADE, ['skipped' => SetupStatus::current() === SetupStatus::Skipped, 'url' => Filament::getUrl()]));
+    }
+
+    /**
+     * The quick tasks' help under their model: each named task, and "other
+     * small jobs", opens {@see quickTasksAction()} to say what it is.
+     */
+    private function quickTasksHelp(): Htmlable
+    {
+        return new HtmlString(Blade::render(<<<'BLADE'
+            <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'guardrails' })">Guardrails</x-filament::link>,
+            <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'follow_up' })">follow-up questions</x-filament::link>,
+            <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'titles' })">titles</x-filament::link>
+            and <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks')">other small jobs</x-filament::link>
+            run around each reply. A small, fast model keeps replies quick and cheap.
+            BLADE));
+    }
+
+    /**
+     * Says what a quick task is: one task when its name was clicked, else
+     * every job the model for quick tasks does, by when it runs.
+     */
+    public function quickTasksAction(): Action
+    {
+        $task = fn (array $arguments): ?LlmTask => ($task = LlmTask::tryFrom((string) ($arguments['task'] ?? ''))) instanceof LlmTask && TaskModelPreset::isQuickTask($task) ? $task : null;
+
+        return Action::make('quickTasks')
+            ->modalHeading(fn (array $arguments): string => ($picked = $task($arguments)) instanceof LlmTask ? LlmTaskText::label($picked) : 'Quick tasks')
+            ->modalDescription(fn (array $arguments): string => ($picked = $task($arguments)) instanceof LlmTask
+                ? LlmTaskText::help($picked).' The model for quick tasks does it.'
+                : 'Small AI jobs the app does on its own: around each reply, while you set up agents and while sources are trained. The model for quick tasks does all of them. Later, in Settings → AI models, you can give any of them a model of its own.')
+            ->modalContent(fn (array $arguments): ?ViewContract => $task($arguments) instanceof LlmTask ? null : view('filament.setup.quick-tasks', [
+                'groups' => array_map(
+                    fn (array $tasks): array => collect($tasks)->mapWithKeys(fn (LlmTask $task): array => [LlmTaskText::label($task) => LlmTaskText::help($task)])->all(),
+                    LlmTaskText::quickTaskGroups(),
+                ),
+            ]))
+            ->modalWidth(fn (array $arguments): Width => $task($arguments) instanceof LlmTask ? Width::Medium : Width::TwoExtraLarge)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close');
     }
 
     /**
@@ -1009,7 +1239,32 @@ class Setup extends SimplePage
             ->color('warning')
             ->action(function (): void {
                 $this->noReaderConfirmed = true;
-                $this->leaveDocumentsStep();
+                $this->leaveStep(self::DOCUMENTS_STEP);
+            });
+    }
+
+    /**
+     * Asked when Next leaves the server step with a service down: ChatVia.ai
+     * does not work fully without it, but it can be fixed later. Going on
+     * moves the wizard to the next step.
+     */
+    public function serverDownAction(): Action
+    {
+        return Action::make('serverDown')
+            ->requiresConfirmation()
+            ->modalIcon(Heroicon::OutlinedExclamationTriangle)
+            ->modalIconColor('danger')
+            ->modalHeading('Continue with a service down?')
+            ->modalDescription(fn (): string => sprintf(
+                'Down: %s. ChatVia.ai does not work fully while a service is down: agents may not answer, and sources are not trained. You can fix it later: the Status page checks every service at any time.',
+                implode(', ', array_map(fn (Service $service): string => $service->label(), $this->servicesDown())),
+            ))
+            ->modalSubmitActionLabel('Continue anyway')
+            ->modalCancelActionLabel('Fix it first')
+            ->color('danger')
+            ->action(function (): void {
+                $this->serverDownConfirmed = true;
+                $this->leaveStep(self::SERVER_STEP);
             });
     }
 
@@ -1038,6 +1293,62 @@ class Setup extends SimplePage
 
     // --- Checks ----------------------------------------------------------------
 
+    /** The server step's cards: checked when the step opens, and on "Check again". */
+    public function checkServer(ServiceChecks $checks): void
+    {
+        $this->server = collect(self::SERVER_SERVICES)
+            ->mapWithKeys(fn (Service $service): array => [$service->value => $checks->check($service)->toArray()])
+            ->all();
+        $this->serverDownConfirmed = false;
+    }
+
+    /** Stops Next on the server step while a service is down, until the admin agrees ({@see serverDownAction()}). */
+    private function confirmServer(): void
+    {
+        if ($this->server === []) {
+            $this->checkServer(app(ServiceChecks::class));
+        }
+
+        if ($this->servicesDown() === [] || $this->serverDownConfirmed) {
+            return;
+        }
+
+        $this->mountAction('serverDown');
+
+        throw new Halt;
+    }
+
+    /** @return list<Service> */
+    private function servicesDown(): array
+    {
+        return array_values(array_filter(
+            self::SERVER_SERVICES,
+            fn (Service $service): bool => isset($this->server[$service->value])
+                && ServiceStatusData::from($this->server[$service->value])->state === ServiceState::Down,
+        ));
+    }
+
+    /** Creates the extension and rebuilds the keyword indexes; the database's own error when it cannot. */
+    private function enablePgTextsearch(): void
+    {
+        try {
+            app(EnablePgTextsearchAction::class)->execute();
+        } catch (QueryException $exception) {
+            Notification::make()
+                ->danger()
+                ->title('pg_textsearch could not be turned on')
+                ->body(Str::limit($exception->getPrevious()?->getMessage() ?? $exception->getMessage(), 300))
+                ->persistent()
+                ->send();
+
+            return;
+        }
+
+        $this->pgTextsearch = null;
+
+        Notification::make()->success()->title('pg_textsearch is on')->body('Keyword search now ranks with BM25.')->send();
+    }
+
     /**
      * The first step's check: read the model list with the key typed (or
      * saved), and, when embeddings need their own service, check that
@@ -1056,16 +1367,6 @@ class Setup extends SimplePage
             $field = ! $this->account($state) instanceof AiProvider && $this->listStatus === ModelListStatus::Unreachable->value ? 'data.server_url' : 'data.api_key';
 
             throw ValidationException::withMessages([$field => $this->listMessage]);
-        }
-
-        $embedding = $this->embeddingProvider($state);
-
-        if ($this->needsEmbeddingService($state['provider'] ?? null) && $embedding instanceof EmbeddingProvider && filled($state['embedding_api_key'] ?? null)) {
-            $result = app(EmbeddingCheck::class)->check($embedding, apiKey: (string) $state['embedding_api_key']);
-
-            if (! $result->keyAccepted()) {
-                throw ValidationException::withMessages(['data.embedding_api_key' => $result->message($embedding->account()->label())]);
-            }
         }
     }
 
@@ -1105,8 +1406,8 @@ class Setup extends SimplePage
             return;
         }
 
-        $sameAccount = $provider->account() === $this->account($state);
-        $key = $sameAccount ? ($state['api_key'] ?? null) : ($state['embedding_api_key'] ?? null);
+        $keyField = $this->earlierKeyField('embedding_provider', $state) ?? 'embedding_api_key';
+        $key = $state[$keyField] ?? null;
         $model = filled($state['embedding_model'] ?? null) ? (string) $state['embedding_model'] : null;
         $fingerprint = hash('sha256', implode("\n", [$provider->value, (string) $model, (string) $key]));
 
@@ -1117,11 +1418,7 @@ class Setup extends SimplePage
         $result = app(EmbeddingCheck::class)->check($provider, $model, filled($key) ? (string) $key : null, $this->storedDimensions());
 
         if (! $result->ok()) {
-            $field = match (true) {
-                $result->status !== EmbeddingCheckStatus::KeyRefused => 'data.embedding_model',
-                $sameAccount => 'data.api_key',
-                default => 'data.embedding_api_key',
-            };
+            $field = $result->status === EmbeddingCheckStatus::KeyRefused ? "data.{$keyField}" : 'data.embedding_model';
 
             throw ValidationException::withMessages([$field => $result->message($provider->label(), $this->storedDimensions())]);
         }
@@ -1215,8 +1512,8 @@ class Setup extends SimplePage
         throw new Halt;
     }
 
-    /** Moves the wizard on from the documents step, as Next does. */
-    private function leaveDocumentsStep(): void
+    /** Moves the wizard on from the step with this label, as Next does. */
+    private function leaveStep(string $label): void
     {
         $wizard = $this->form->getComponent(fn (mixed $component): bool => $component instanceof Wizard, withActions: false);
 
@@ -1225,7 +1522,7 @@ class Setup extends SimplePage
         }
 
         $steps = array_values(array_filter($wizard->getChildSchema()->getComponents(), fn (mixed $component): bool => $component instanceof Step));
-        $index = array_find_key($steps, fn (Step $step): bool => $step->getLabel() === self::DOCUMENTS_STEP);
+        $index = array_find_key($steps, fn (Step $step): bool => $step->getLabel() === $label);
 
         if (is_int($index)) {
             $wizard->nextStep($index);
@@ -1248,18 +1545,22 @@ class Setup extends SimplePage
         }
     }
 
-    /** The speech step's check: the service accepts its key, typed here or in the first step. */
-    private function checkTranscriber(): void
+    /**
+     * The check of a step that picks an AI provider's service (speech to
+     * text, voice): its key works, the one typed here or in an earlier step,
+     * or the saved one.
+     */
+    private function checkServiceKey(string $choice, string $keyField): void
     {
         $state = $this->form->getRawState();
-        $service = AiProvider::tryFrom((string) ($state['transcriber'] ?? ''));
+        $service = AiProvider::tryFrom((string) ($state[$choice] ?? ''));
 
         if (! $service instanceof AiProvider) {
             return;
         }
 
-        $earlier = $this->earlierKeyField('transcriber', $state);
-        $key = $state[$earlier ?? 'transcription_api_key'] ?? null;
+        $earlier = $this->earlierKeyField($choice, $state);
+        $key = $state[$earlier ?? $keyField] ?? null;
 
         // Nothing new typed, and the saved key was checked when it was saved.
         if (blank($key) && $service->isConnected()) {
@@ -1269,7 +1570,7 @@ class Setup extends SimplePage
         $check = app(AiProviderCheck::class)->check($service, filled($key) ? (string) $key : null);
 
         if (! $check->connected) {
-            throw ValidationException::withMessages(['data.'.($earlier ?? 'transcription_api_key') => $check->message]);
+            throw ValidationException::withMessages(['data.'.($earlier ?? $keyField) => $check->message]);
         }
     }
 
@@ -1333,6 +1634,13 @@ class Setup extends SimplePage
         if (blank($this->data['quick_task_model'] ?? null)) {
             $this->data['quick_task_model'] = $presets->quickTaskModel($account, $list->models)?->id;
         }
+
+        $vision = $presets->visionModel($account, $list->models);
+        $this->listsVisionModel = $vision instanceof RemoteModelData;
+
+        if (blank($this->data['vision_model'] ?? null)) {
+            $this->data['vision_model'] = $vision?->id;
+        }
     }
 
     // --- Helpers -------------------------------------------------------------
@@ -1354,16 +1662,36 @@ class Setup extends SimplePage
     }
 
     /**
-     * The model chosen for quick tasks, as the list described it; none
-     * when the provider lists no models (they use the chat model).
+     * A model picked in one of the lists (quick tasks, image descriptions),
+     * as the list described it; none when nothing is picked or the provider
+     * lists no models.
      *
      * @param  array<string, mixed>  $state
      */
-    private function quickTaskModel(array $state): ?RemoteModelData
+    private function listedChoice(array $state, string $field): ?RemoteModelData
     {
-        $id = trim((string) ($state['quick_task_model'] ?? ''));
+        $id = trim((string) ($state[$field] ?? ''));
 
         return $id === '' || $this->models === [] ? null : $this->listedModel($id) ?? new RemoteModelData($id, $id);
+    }
+
+    /**
+     * The help under "Model for image descriptions": what it does, and, when
+     * nothing is picked, that image descriptions stay off and why.
+     */
+    private function visionHelp(Get $get): string
+    {
+        $does = 'Describes the pictures inside PDF files and other documents, so search can find what they show. Needs a model that reads images.';
+
+        if (filled($get('vision_model'))) {
+            return $does;
+        }
+
+        $why = $this->listsVisionModel
+            ? 'With none picked, image descriptions are off.'
+            : 'None of the recommended models of this provider reads images, so image descriptions are off.';
+
+        return "{$does} {$why} The text of your documents is still read.";
     }
 
     /**
@@ -1526,7 +1854,7 @@ class Setup extends SimplePage
         $value = fn (string $key): mixed => $state instanceof Get ? $state($key) : ($state[$key] ?? null);
 
         return $choice === 'embedding_provider'
-            ? ($this->needsEmbeddingService($value('provider')) ? $this->embeddingProvider($state)?->account() : null)
+            ? $this->embeddingProvider($state)?->account()
             : AiProvider::tryFrom((string) $value($choice));
     }
 
@@ -1644,17 +1972,24 @@ class Setup extends SimplePage
         ));
     }
 
-    /** Whether embeddings need a service of their own: the provider makes none of the stored size. */
-    private function needsEmbeddingService(mixed $provider): bool
+    /**
+     * The voice conversation services: the providers that hold live calls,
+     * as option values.
+     *
+     * @return list<string>
+     */
+    private function voiceOptions(): array
     {
-        $account = AiProvider::tryFrom((string) $provider);
-
-        return ! $this->trained() && (! $account instanceof AiProvider || ! EmbeddingProvider::fittingFor($account) instanceof EmbeddingProvider);
+        return array_values(array_map(
+            fn (AiProvider $provider): string => $provider->value,
+            array_filter(AiProvider::cases(), fn (AiProvider $provider): bool => $provider->can(AiCapability::Voice)),
+        ));
     }
 
     /**
-     * The embedding service the setup saves: the provider's own when it
-     * fits, else the one picked; null once sources are trained (it stays).
+     * The embedding service picked in the Models step (it starts on the AI
+     * provider's own when that fits); null once sources are trained (it
+     * stays).
      *
      * @param  Get|array<string, mixed>  $state
      */
@@ -1664,11 +1999,7 @@ class Setup extends SimplePage
             return null;
         }
 
-        $value = fn (string $key): mixed => $state instanceof Get ? $state($key) : ($state[$key] ?? null);
-        $account = AiProvider::tryFrom((string) $value('provider'));
-        $own = $account instanceof AiProvider ? EmbeddingProvider::fittingFor($account) : null;
-
-        return $own ?? EmbeddingProvider::tryFrom((string) $value('embedding_provider'));
+        return EmbeddingProvider::tryFrom((string) ($state instanceof Get ? $state('embedding_provider') : ($state['embedding_provider'] ?? null)));
     }
 
     /**
@@ -1708,6 +2039,8 @@ class Setup extends SimplePage
         $this->data['chat_models'] = [];
         $this->data['default_model'] = null;
         $this->data['quick_task_model'] = null;
+        $this->data['vision_model'] = null;
+        $this->listsVisionModel = false;
     }
 
     /** What the provider's list said about a model, while it is cached. */

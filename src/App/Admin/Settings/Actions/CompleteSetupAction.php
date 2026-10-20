@@ -34,9 +34,10 @@ use InvalidArgumentException;
  * Saves the admin setup of a new install in one go: each key once in
  * Settings → AI providers (for everything that provider does), the chat
  * models agents can use with the default one, the model for quick tasks
- * with the task models it brings ({@see TaskModelPreset}), the embedding service and
+ * with the task models it brings ({@see TaskModelPreset}), the model for
+ * image descriptions (none turns image descriptions off), the embedding service and
  * model, the reranker, the document reader, the Firecrawl key, speech to
- * text, where files are kept, and how email is sent. A service left at "Not now" is turned
+ * text, voice conversations, where files are kept, and how email is sent. A service left at "Not now" is turned
  * off, so "Automatic" does not turn it on. Agents made before any model
  * was added (the demo data) get the default model. Then the setup is
  * marked done. A value that still equals its default
@@ -83,10 +84,13 @@ final readonly class CompleteSetupAction
             $this->assignModel->execute($default);
 
             $quick = $data->quickTaskModel instanceof RemoteModelData ? $this->addModel->execute($provider, $data->quickTaskModel) : null;
+            $vision = $data->visionModel instanceof RemoteModelData ? $this->addModel->execute($provider, $data->visionModel) : null;
 
-            foreach (TaskModelPreset::values($default, $quick) as $property => $value) {
+            foreach (TaskModelPreset::values($default, $quick, $vision) as $property => $value) {
                 $this->set($this->ai, $property, $value);
             }
+
+            $this->set($this->knowledge, 'describe_images', $vision instanceof Llm);
 
             if ($data->embeddingProvider instanceof EmbeddingProvider) {
                 $this->set($this->ai, 'embedding_provider', $data->embeddingProvider->value);
@@ -115,6 +119,13 @@ final readonly class CompleteSetupAction
                 $this->set($this->ai, 'transcriber', $data->transcriber->value);
             } else {
                 $this->set($this->ai, 'transcriber', 'none');
+            }
+
+            if ($data->voice instanceof AiProvider) {
+                $this->saveKey($data->voice, $data->voiceApiKey);
+                $this->set($this->ai, 'voice', $data->voice->value);
+            } else {
+                $this->set($this->ai, 'voice', 'none');
             }
 
             if (filled($data->firecrawlApiKey)) {

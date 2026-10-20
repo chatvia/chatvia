@@ -940,10 +940,17 @@ How it works:
   technical fields (an address, a rate) in a closed "Advanced" part
   (`advancedFields()`).
 - **Setup.** A new install opens on the setup wizard (`App\Admin\Pages\Setup`,
-  its steps listed on the left): AI provider and key, chat models and the
-  model for quick tasks (the provider's recommended ones picked), the
+  its steps listed on the left): first the server (the database, Redis,
+  Horizon, the scheduler and Reverb, checked live with the Status page's
+  `ServiceChecks`, and keyword search: pg_textsearch is recommended with
+  why and how, and turned on there with `EnablePgTextsearchAction` when the
+  database has it loaded; Next with a service down asks first), then AI
+  provider and key, chat models and the
+  model for quick tasks and the model for image descriptions (the
+  provider's recommended ones picked), the
   embedding model and the reranker, document reader, website import (Firecrawl), speech to
-  text, storage, mailer, and a final step with the choices made and where
+  text, voice conversations (the OpenAI Realtime API, off by default),
+  storage, mailer, and a final step with the choices made and where
   the defaults are changed. Each key is checked before the next step; the
   optional services start on "Not now", which turns them off. Every panel page leads there (`RequireSetup`) until
   `chatvia.admin.setup_status` (`SetupStatus`) is `completed` or `skipped`.

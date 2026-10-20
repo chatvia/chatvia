@@ -87,7 +87,12 @@ theme.
 - **PDFs locked with a password** are refused at upload (knowledge files,
   the API and chat attachments) with that reason; no reader can open them.
 - The **setup** of a new install is its own page, with every step listed on
-  the left. It asks for everything the app needs: the AI provider and its
+  the left. Its first step checks the server: the database, Redis, the
+  queue (Horizon), the scheduler and live updates (Reverb), each with what
+  to do when it does not run, and keyword search. pg_textsearch is
+  recommended there, with why it ranks better and how to install and load
+  it; when the database has it loaded, one button turns it on and rebuilds
+  the search indexes. It then asks for everything the app needs: the AI provider and its
   key, one or more chat models and the default, the embedding model (checked
   with a test request; with OpenRouter, picked from its embedding models,
   OpenAI text-embedding-3-small by default, with the same key), the document

@@ -4,7 +4,7 @@ namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
 use Domain\Knowledge\Document\Conversion\OfficePdf;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
+use Domain\Knowledge\Ingestion\Data\Analysis\ContentAnalysisData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Domain\Knowledge\Ingestion\Services\ContentAnalyzer;
@@ -13,7 +13,6 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Operations\Documents\Summarizer;
-use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +28,6 @@ class CreateSourceSummaryAction
     public function __construct(
         private readonly ContentAnalyzer $contentAnalyzer,
         private readonly Summarizer $summarizer,
-        private readonly CostCalculator $costCalculator,
         private readonly DocumentLlm $documentLlm,
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly OfficePdf $officePdf,
@@ -41,11 +39,11 @@ class CreateSourceSummaryAction
             return null;
         }
 
-        [$analyzed, $summary] = $this->readDocument($source);
+        [$analysis, $summary] = $this->readDocument($source);
 
         $summaryText = $summary->content;
         $plainSummary = ChunkEmbeddingText::forSummary($summaryText);
-        $questions = implode("\n", $analyzed->analysis->questions);
+        $questions = implode("\n", $analysis->questions);
 
         return Chunk::query()->create([
             'workspace_id' => $source->workspace_id,
@@ -57,13 +55,10 @@ class CreateSourceSummaryAction
             'questions' => $questions !== '' ? $questions : null,
             'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
             'chunked_using_model' => config('chatvia.ai.models.summary'),
-            'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
-                $this->llmCost($analyzed, $summary) + $this->embeddingCost($plainSummary) + $this->embeddingCost($questions),
-            ),
             'tokens' => TikToken::countTokens($summaryText),
             'embedding' => $this->embeddings->embed($plainSummary, true),
             'search_text' => $plainSummary,
-            'metadata' => $analyzed->analysis->metadata->toArray(),
+            'metadata' => $analysis->metadata->toArray(),
             'checksum' => hash('xxh128', $summaryText),
         ]);
     }
@@ -76,7 +71,7 @@ class CreateSourceSummaryAction
      * calls are done, and never touches a stored original PDF. The detected
      * language and type are saved on the source.
      *
-     * @return array{0: AnalyzedDocumentData, 1: ChatResponseData}
+     * @return array{0: ContentAnalysisData, 1: ChatResponseData}
      */
     private function readDocument(SourceFile|SourceText|SourceWebsite $source): array
     {
@@ -85,41 +80,14 @@ class CreateSourceSummaryAction
                 Storage::get($pdfPath) ?? throw new RuntimeException("File not found in storage: {$pdfPath}"),
             );
 
-            $analyzed = $this->contentAnalyzer->analyze($pdfUrl);
+            $analysis = $this->contentAnalyzer->analyze($pdfUrl);
 
             $source->update([
-                'language' => $analyzed->analysis->language,
-                'document_classification' => $analyzed->analysis->document_type,
+                'language' => $analysis->language,
+                'document_classification' => $analysis->document_type,
             ]);
 
-            return [$analyzed, $this->summarizer->summarize($pdfUrl, $analyzed->analysis->language)];
+            return [$analysis, $this->summarizer->summarize($pdfUrl, $analysis->language)];
         });
-    }
-
-    /**
-     * Both calls are priced from the token counts the provider reports (the
-     * prompt holds the whole document).
-     */
-    private function llmCost(AnalyzedDocumentData $analyzed, ChatResponseData $summary): float
-    {
-        $inputPrice = (float) config('chatvia.ai.pricing.summary_input_per_million_tokens', 2.0);
-        $outputPrice = (float) config('chatvia.ai.pricing.summary_output_per_million_tokens', 8.0);
-
-        return $this->costCalculator->costInCentsFromUsage($analyzed->usage, $inputPrice, $outputPrice)
-            + $this->costCalculator->costInCentsFromUsage($summary->usage, $inputPrice, $outputPrice);
-    }
-
-    private function embeddingCost(string $text): float
-    {
-        if ($text === '') {
-            return 0.0;
-        }
-
-        return $this->costCalculator->calculateCostInCents(
-            $text,
-            '',
-            (float) config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10),
-            0.0,
-        );
     }
 }

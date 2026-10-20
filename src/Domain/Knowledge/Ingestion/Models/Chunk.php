@@ -37,7 +37,6 @@ use Support\Concerns\HasExternalId;
  * @property string|null $summary
  * @property string|null $questions
  * @property HalfVector|null $questions_embedding
- * @property int $cost_in_micro_cents
  * @property int $tokens
  * @property HalfVector $embedding
  * @property string $search_text
@@ -62,7 +61,6 @@ use Support\Concerns\HasExternalId;
  * @method static ChunkQueryBuilder<static>|Chunk whereChunkableId($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereChunkableType($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereChunkedUsingModel($value)
- * @method static ChunkQueryBuilder<static>|Chunk whereCostInCents($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereCreatedAt($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbedding($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereEmbeddingModel($value)

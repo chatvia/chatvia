@@ -9,7 +9,6 @@ use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -127,7 +126,6 @@ class CreateSourceChunksAction
                 'summary' => $enhancement?->summary,
                 'is_enhanced' => $enhancement !== null,
                 'chunked_using_model' => $enhancement?->model,
-                'cost_in_micro_cents' => CostCalculator::centsToMicroCents($enhancement->costInCents ?? 0.0),
                 'tokens' => $tokens[$position],
                 'embedding' => $this->vectorLiteral($vectors[$position]),
                 'search_text' => $embeddingTexts[$position],

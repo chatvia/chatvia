@@ -80,7 +80,7 @@ final class ScriptedLlmProvider implements LlmProviderInterface
         return [];
     }
 
-    public function getGenerationCost(string $generationId): ?array
+    public function getGeneration(string $generationId): ?array
     {
         return null;
     }
@@ -90,7 +90,7 @@ final class ScriptedLlmProvider implements LlmProviderInterface
         return 'https://fake.test/v1/chat/completions';
     }
 
-    public function supportsCostTracking(): bool
+    public function supportsGenerationLookup(): bool
     {
         return false;
     }

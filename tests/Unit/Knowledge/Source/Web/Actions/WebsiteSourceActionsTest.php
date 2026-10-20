@@ -234,7 +234,6 @@ it('writes a large website document in chunk_index order, batch after batch', fu
         'embedding' => $vector,
         'search_text' => "Part {$i}",
         'checksum' => "part-{$i}",
-        'cost_in_micro_cents' => 0,
     ])->all());
 
     app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);

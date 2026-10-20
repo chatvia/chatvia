@@ -149,7 +149,6 @@ return new class extends Migration
             $table->unsignedMediumInteger('response_time_ms')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();
             $table->unsignedInteger('completion_tokens')->nullable();
-            $table->unsignedBigInteger('cost_in_micro_cents')->nullable();
 
             $table->boolean('is_usage_counted')->nullable();
 

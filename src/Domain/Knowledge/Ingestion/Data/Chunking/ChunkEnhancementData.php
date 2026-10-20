@@ -8,8 +8,8 @@ use Spatie\LaravelData\Data;
 
 /**
  * What the chunker LLM wrote about one page: a short summary that puts the page
- * in context, the questions the page answers, the model that wrote them (its
- * provider model id) and the cost of that call in cents.
+ * in context, the questions the page answers and the model that wrote them
+ * (its provider model id).
  */
 final class ChunkEnhancementData extends Data
 {
@@ -20,6 +20,5 @@ final class ChunkEnhancementData extends Data
         public string $summary,
         public array $questions,
         public string $model,
-        public float $cost,
     ) {}
 }

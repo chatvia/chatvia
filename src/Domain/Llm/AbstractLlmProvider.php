@@ -131,22 +131,22 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     }
 
     /**
-     * Default implementation: no cost tracking support.
+     * Default implementation: no generation lookup.
      *
      * @param  string  $generationId  The generation ID
      * @return array<string, mixed>|null Always returns null
      */
-    public function getGenerationCost(string $generationId): ?array
+    public function getGeneration(string $generationId): ?array
     {
         return null;
     }
 
     /**
-     * Default implementation: no cost tracking support.
+     * Default implementation: no generation lookup.
      *
      * @return bool False by default
      */
-    public function supportsCostTracking(): bool
+    public function supportsGenerationLookup(): bool
     {
         return false;
     }

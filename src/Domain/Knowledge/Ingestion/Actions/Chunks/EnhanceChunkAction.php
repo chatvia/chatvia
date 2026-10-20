@@ -7,7 +7,6 @@ use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
 use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Knowledge\Ingestion\Services\Enhancement\PageVisualsDescriber;
-use Domain\Llm\Operations\Pricing\CostCalculator;
 
 /**
  * Turns a page into a "contextual" chunk before it is stored, for every
@@ -27,7 +26,6 @@ class EnhanceChunkAction
     public function __construct(
         private readonly Chunker $chunker,
         private readonly PageVisualsDescriber $visuals,
-        private readonly CostCalculator $costCalculator,
     ) {}
 
     public function execute(EnhanceChunkData $data): EnhancedChunkData
@@ -47,21 +45,6 @@ class EnhanceChunkAction
             questions: $questions !== '' ? $questions : null,
             model: $enhancement->model,
             metadata: $visuals?->toMetadata(),
-            costInCents: $enhancement->cost + $this->embeddingCost($embeddingText) + $this->embeddingCost($questions),
-        );
-    }
-
-    private function embeddingCost(string $text): float
-    {
-        if ($text === '') {
-            return 0.0;
-        }
-
-        return $this->costCalculator->calculateCostInCents(
-            $text,
-            '',
-            (float) config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10),
-            0.0,
         );
     }
 }

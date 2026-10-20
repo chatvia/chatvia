@@ -19,8 +19,6 @@ final class RemoteModelData extends Data
         public string $id,
         public string $name,
         public ?int $contextWindow = null,
-        public ?float $inputPricePerMillion = null,
-        public ?float $outputPricePerMillion = null,
         public array $features = [],
     ) {}
 }

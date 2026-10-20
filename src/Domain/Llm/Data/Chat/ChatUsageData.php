@@ -6,7 +6,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * The token counts a provider reports for one completion (its `usage` block).
- * This is what the provider bills, so costs are computed from it.
+ * This is what the provider bills.
  */
 final class ChatUsageData extends Data
 {

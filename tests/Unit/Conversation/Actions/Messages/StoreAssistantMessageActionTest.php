@@ -72,14 +72,12 @@ beforeEach(function (): void {
     Bus::fake();
 });
 
-it('computes microcent cost from total_cost dollars (sub-cent precision boundary)', function (): void {
-    // 0.00000123 dollars × 100_000_000 microcents/dollar = 123 microcents.
+it('takes the token counts from the provider generation lookup', function (): void {
     $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create(['external_name' => 'gpt-test-cost']);
-    $provider = CannedLlmProvider::costing([
+    $llm = Llm::factory()->create(['external_name' => 'gpt-test-lookup']);
+    $provider = CannedLlmProvider::withGeneration([
         'tokens_prompt' => 42,
         'tokens_completion' => 17,
-        'total_cost' => 0.00000123,
     ]);
 
     $turn = assistantTurn($llm, seedUserTurn($agent));
@@ -89,7 +87,6 @@ it('computes microcent cost from total_cost dollars (sub-cent precision boundary
         ->and($message->llm_id)->toBe($llm->id)
         ->and($message->prompt_tokens)->toBe(42)
         ->and($message->completion_tokens)->toBe(17)
-        ->and($message->cost_in_micro_cents)->toBe(123)
         ->and($message->generation_id)->toBe($turn->generation_id)
         ->and($message->trace_id)->toBe($turn->trace_id)
         ->and($message->response_time_ms)->toBe(1234);
@@ -99,47 +96,25 @@ it('computes microcent cost from total_cost dollars (sub-cent precision boundary
         && $event->promptTokens === 42);
 });
 
-it('rounds microcent cost half-up at the integer boundary', function (): void {
+it('leaves the tokens null when the provider has no generation lookup', function (): void {
     $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create(['external_name' => 'gpt-rounding-test']);
-
-    foreach ([
-        ['dollars' => 0.00000123456, 'expected' => 123],
-        ['dollars' => 0.00000123567, 'expected' => 124],
-    ] as $case) {
-        $provider = CannedLlmProvider::costing([
-            'tokens_prompt' => 1,
-            'tokens_completion' => 1,
-            'total_cost' => $case['dollars'],
-        ]);
-
-        $message = storeAssistantAction($provider)->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
-
-        expect($message->cost_in_micro_cents)->toBe($case['expected']);
-    }
-});
-
-it('leaves cost and tokens null when the provider does not support cost tracking', function (): void {
-    $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create(['external_name' => 'gpt-no-cost-tracking']);
+    $llm = Llm::factory()->create(['external_name' => 'gpt-no-lookup']);
 
     $message = storeAssistantAction(new CannedLlmProvider)
         ->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
 
-    expect($message->cost_in_micro_cents)->toBeNull()
-        ->and($message->prompt_tokens)->toBeNull()
+    expect($message->prompt_tokens)->toBeNull()
         ->and($message->completion_tokens)->toBeNull();
 });
 
-it('prefers inline stream usage over the provider cost lookup', function (): void {
+it('prefers inline stream usage over the provider generation lookup', function (): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create(['external_name' => 'gpt-inline-usage']);
 
     // The provider WOULD return different numbers if asked.
-    $provider = CannedLlmProvider::costing([
+    $provider = CannedLlmProvider::withGeneration([
         'tokens_prompt' => 999,
         'tokens_completion' => 999,
-        'total_cost' => 1.23,
     ]);
 
     $message = storeAssistantAction($provider)->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
@@ -148,9 +123,7 @@ it('prefers inline stream usage over the provider cost lookup', function (): voi
     ]));
 
     expect($message->prompt_tokens)->toBe(1200)
-        ->and($message->completion_tokens)->toBe(300)
-        // inline usage carries no dollar cost
-        ->and($message->cost_in_micro_cents)->toBeNull();
+        ->and($message->completion_tokens)->toBe(300);
 });
 
 it('keeps tool artifacts and tool names in the message metadata', function (): void {

@@ -62,7 +62,6 @@ it('stores a visitor message and announces it to analytics', function (): void {
         ->and($message->content)->toBe($turn->message)
         ->and($message->external_id)->toBe($turn->external_message_id)
         ->and($message->llm_id)->toBeNull()
-        ->and($message->cost_in_micro_cents)->toBeNull()
         ->and($message->prompt_tokens)->toBeNull()
         ->and($message->completion_tokens)->toBeNull();
 

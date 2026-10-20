@@ -195,8 +195,6 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
             id: $model->id,
             name: $model->name,
             contextWindow: $model->contextWindow ?? $known['context'] ?? null,
-            inputPricePerMillion: $model->inputPricePerMillion,
-            outputPricePerMillion: $model->outputPricePerMillion,
             features: $model->features + array_filter(
                 ['vision' => $known['vision'] ?? null, 'function_calling' => $known['function_calling'] ?? null],
                 is_bool(...),

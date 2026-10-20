@@ -15,7 +15,6 @@ use Domain\Conversation\Models\MessageSource;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\DB;
 
@@ -60,10 +59,9 @@ class StoreAssistantMessageAction
 
     /**
      * The reply's usage, best source first:
-     *  1. inline usage from the stream — the provider-agnostic billed count
-     *     (it carries no cost, so cost stays null);
-     *  2. a post-hoc lookup by generation id — tokens and dollar cost, for
-     *     providers that support it (one extra HTTP round trip);
+     *  1. inline usage from the stream — the provider-agnostic billed count;
+     *  2. a post-hoc lookup by generation id, for providers that support it
+     *     (one extra HTTP round trip);
      *  3. nothing — the token log then falls back to an estimate.
      */
     private function resolveUsage(AssistantTurnData $turn): ReplyUsageData
@@ -74,12 +72,9 @@ class StoreAssistantMessageAction
 
         $lookup = $turn->generation_id ? $this->generationLookup($turn->model, $turn->generation_id) : null;
 
-        $costInDollars = $lookup['total_cost'] ?? null;
-
         return new ReplyUsageData(
             promptTokens: $lookup['tokens_prompt'] ?? null,
             completionTokens: $lookup['tokens_completion'] ?? null,
-            costInMicroCents: $costInDollars !== null ? CostCalculator::dollarsToMicroCents((float) $costInDollars) : null,
         );
     }
 
@@ -100,7 +95,6 @@ class StoreAssistantMessageAction
             'trace_id' => $turn->trace_id,
             'prompt_tokens' => $usage->promptTokens,
             'completion_tokens' => $usage->completionTokens,
-            'cost_in_micro_cents' => $usage->costInMicroCents,
             'confidence_score' => $turn->confidence_score,
             'is_response_from_qa' => $turn->is_response_from_qa,
             'agent_question_answer_id' => $turn->agent_question_answer_id,
@@ -156,7 +150,7 @@ class StoreAssistantMessageAction
     }
 
     /**
-     * The provider's record of one generation (tokens and cost), when the
+     * The provider's record of one generation (its token counts), when the
      * reply's model has a provider that keeps one.
      *
      * @return array<string, mixed>|null
@@ -175,6 +169,6 @@ class StoreAssistantMessageAction
             return null;
         }
 
-        return $provider->supportsCostTracking() ? $provider->getGenerationCost($generationId) : null;
+        return $provider->supportsGenerationLookup() ? $provider->getGeneration($generationId) : null;
     }
 }

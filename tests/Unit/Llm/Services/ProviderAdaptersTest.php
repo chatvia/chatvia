@@ -77,8 +77,6 @@ it('reads names, context, prices and features from OpenRouter', function (): voi
             id: 'mistralai/mistral-small',
             name: 'Mistral Small',
             contextWindow: 128_000,
-            inputPricePerMillion: 0.1,
-            outputPricePerMillion: 0.3,
             features: ['vision' => false, 'function_calling' => true],
         ));
 });

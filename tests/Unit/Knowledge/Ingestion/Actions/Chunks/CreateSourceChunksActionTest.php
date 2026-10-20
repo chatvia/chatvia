@@ -141,7 +141,6 @@ it('enhances a page before storing it, so the chunk row is written once', functi
         ->and($chunk->summary)->toBe('A page about oceans.')
         ->and($chunk->questions)->toBe("Which ocean is largest?\nHow deep is it?")
         ->and($chunk->questions_embedding)->not->toBeNull()
-        ->and($chunk->cost_in_micro_cents)->toBeGreaterThan(0)
         ->and($chunk->chunk)->toBe('The Pacific is the largest ocean.')
         // The summary is embedded with the page; the questions get their own vector.
         ->and($embeddings->texts)->toBe([

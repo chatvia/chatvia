@@ -154,7 +154,7 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
         ->and($exportedConversations[0])->not->toHaveKeys(['workspace_id', 'analysis_attempts'])
         ->and($exportedMessages)->toHaveCount(10)
         ->and($exportedMessages[0])->toHaveKey('content')
-        ->and($exportedMessages[0])->not->toHaveKeys(['workspace_id', 'cost_in_micro_cents', 'generation_id'])
+        ->and($exportedMessages[0])->not->toHaveKeys(['workspace_id', 'generation_id'])
         ->and($agents)->toHaveCount(1)
         ->and($agents[0]['external_id'])->toBe($agent->external_id)
         ->and($agents[0])->not->toHaveKey('auth_secret')

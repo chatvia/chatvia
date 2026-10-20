@@ -287,12 +287,10 @@ return [
     |
     | `query.rewriter` turns a follow-up ("and the price?") into a full
     | question for the knowledge search: one Fast-model call per follow-up.
-    | `pricing` holds the per-million-token prices of the stored ingestion
-    | cost: embeddings, source summaries, and the chunk step's model when
-    | its catalog entry has no price. `chunker.enhance` adds an AI step
-    | per chunk (a summary and likely questions, then a new embedding) for
-    | files and web pages, and a summary of the whole source; it finds far
-    | more of the right passages and costs one Smart-model call per chunk.
+    | `chunker.enhance` adds an AI step per chunk (a summary and likely
+    | questions, then a new embedding) for files and web pages, and a
+    | summary of the whole source; it finds far more of the right passages
+    | and costs one Smart-model call per chunk.
     | `chunker.enhance_text` does the same for text sources.
     |
     */
@@ -354,14 +352,6 @@ return [
             'rewriter' => [
                 'enabled' => true,
             ],
-        ],
-
-        'pricing' => [
-            'chunker_input_per_million_tokens' => 0.90,
-            'chunker_output_per_million_tokens' => 0.90,
-            'embedding_per_million_tokens' => 0.10,
-            'summary_input_per_million_tokens' => 2.0,
-            'summary_output_per_million_tokens' => 8.0,
         ],
 
         'chunker' => [

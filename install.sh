@@ -30,6 +30,8 @@
 #   --yes               no questions: use the options and the defaults
 #   --upgrade           upgrade an existing install without asking
 #   --dry-run           show what would happen and change nothing
+#   --count-install     send the anonymous install count  CHATVIA_COUNT_INSTALL=yes
+#   --no-count-install  do not send it, without asking    CHATVIA_COUNT_INSTALL=no
 #   -h, --help          show this help
 #
 # Only with Docker:
@@ -57,6 +59,7 @@
 #   CHATVIA_REPO                  complete: the Git repository to deploy
 #   CHATVIA_SWAP                  complete: yes or no to add swap (else: when memory is low)
 #   CHATVIA_INSTALLER_URL         complete: where to download this installer to run it with sudo
+#   CHATVIA_COUNT_URL             where to send the install count
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -74,6 +77,7 @@ readonly DEFAULT_PORT=8899
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 readonly INSTALLER_URL="https://chatvia.ai/install.sh"
+readonly INSTALL_COUNT_URL="https://chatvia.ai/api/installs"
 
 # The complete installation. The pg_textsearch version matches the one the
 # Docker install's Postgres image (docker/postgres/Dockerfile) carries.
@@ -1634,6 +1638,44 @@ offer_browser() {
     fi
 }
 
+# install_os: macos, or the distribution's ID from /etc/os-release (ubuntu,
+# debian…), or linux when it has none.
+install_os() {
+    if [ "$OS" = macos ]; then
+        printf macos
+        return
+    fi
+    local id
+    id=$(sed -n 's/^ID=//p' /etc/os-release 2>/dev/null | tr -d '"' | head -n 1) || id=''
+    case $id in
+        '' | *[!a-z0-9._-]*) printf linux ;;
+        *) printf '%s' "$id" ;;
+    esac
+}
+
+# One anonymous count for chatvia.ai, so the project knows how many people
+# install it: the install type and the operating system, nothing else (no
+# ID, no address, no version). Only after a first install finishes, never on
+# an upgrade, and only with a yes: --yes alone never sends it. A failed send
+# is ignored.
+count_install() {
+    [ "$DRY_RUN" = 0 ] || return 0
+    case ${CHATVIA_COUNT_INSTALL:-} in
+        yes | true | 1) ;;
+        no | false | 0) return 0 ;;
+        *)
+            [ "$INTERACTIVE" = 1 ] || return 0
+            info "$(dim 'Help us count installs: this sends only how you installed (Docker or')"
+            info "$(dim "complete) and the operating system ($(install_os)). No address or ID.")"
+            confirm 'Send an anonymous install count to chatvia.ai?' n || return 0
+            ;;
+    esac
+    curl -fsS -o /dev/null --max-time 5 -X POST \
+        -H 'Content-Type: application/json' -H 'Accept: application/json' \
+        --data "{\"mode\":\"$MODE\",\"os\":\"$(install_os)\"}" \
+        "${CHATVIA_COUNT_URL:-$INSTALL_COUNT_URL}" >/dev/null 2>&1 || true
+}
+
 show_finish() {
     local folder title open admin email password saved='' n=1
     folder=$(pretty_path "$INSTALL_DIR")
@@ -1676,6 +1718,7 @@ show_finish() {
     info "./manage postgres edit   $(dim 'tune PostgreSQL (postgres/postgresql.conf)')"
     info "./manage                 $(dim 'every command')"
 
+    count_install
     offer_browser
     outro "$(dim "Guide: $CHATVIA_DOCS")"
 }
@@ -3264,6 +3307,7 @@ native_show_finish() {
     info "Backups      $(dim 'the database, twice a day, to the storage set in the admin panel')"
     info "Install log  $NATIVE_LOG"
 
+    count_install
     offer_browser
     outro "$(dim "Guide: $NATIVE_DOCS")"
 }
@@ -3434,6 +3478,8 @@ parse_args() {
             --upgrade) UPGRADE=1 ;;
             --no-start) NO_START=1 ;;
             --dry-run) DRY_RUN=1 ;;
+            --count-install) CHATVIA_COUNT_INSTALL=yes ;;
+            --no-count-install) CHATVIA_COUNT_INSTALL=no ;;
             -h | --help) usage; exit 0 ;;
             *) die "Unknown option: $1" 'See --help.' ;;
         esac

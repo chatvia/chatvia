@@ -51,7 +51,7 @@ class ManageSecuritySettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Bot check, guardrails, tool-call limits, the audit log and security headers.';
+        return 'Turnstile (bot check), guardrails, tool-call limits, the audit log and security headers.';
     }
 
     public static function overviewGroup(): string
@@ -69,14 +69,14 @@ class ManageSecuritySettings extends AdminSettingsPage
     {
         return $this->unfinishedStatus()
             ?? (filled($this->valueInUse('turnstile_site_key')) && filled($this->valueInUse('turnstile_secret_key'))
-                ? ['Bot check on', 'success']
-                : ['Bot check off', 'gray']);
+                ? ['Turnstile on', 'success']
+                : ['Turnstile off', 'gray']);
     }
 
     protected function cards(): array
     {
         return [
-            SettingsCard::make('turnstile', 'Bot check', 'Cloudflare Turnstile stops bots on the public forms, mostly without a puzzle for people.', Heroicon::OutlinedShieldCheck, fn (): array => [
+            SettingsCard::make('turnstile', 'Turnstile (Bot check)', 'Cloudflare Turnstile stops bots on the public forms, mostly without a puzzle for people.', Heroicon::OutlinedShieldCheck, fn (): array => [
                 $this->text('turnstile_site_key', 'Site key', required: true),
                 $this->secret('turnstile_secret_key', 'Secret key'),
                 $this->toggle('turnstile_sign_up', 'Check sign-up', help: 'Creating a workspace account.'),

@@ -124,7 +124,7 @@ it('marks a page of optional services that has none set up as optional', functio
     $this->actingAs($this->admin, 'admin')
         ->get(SettingsOverview::getUrl())
         ->assertSeeInOrder(['Sign-in', 'Optional'])
-        ->assertSee(['Sign-up open', 'Bot check off', 'Not sending email yet'])
+        ->assertSee(['Sign-up open', 'Turnstile off', 'Not sending email yet'])
         ->assertDontSee('of 4 set up');
 });
 

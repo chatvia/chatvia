@@ -4,23 +4,34 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion;
 
+use Domain\Knowledge\Document\Conversion\Markdown\MarkdownReaders;
 use DOMDocument;
 use DOMElement;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use RuntimeException;
+use Support\Executable;
+use Throwable;
 use ZipArchive;
 
 /**
  * Reads the text of office and plain-text files as pages, with no office
- * suite on the server:
+ * suite and no other program needed on the server:
  *
- *  - DOCX, ODT, RTF  → pandoc, as Markdown (headings, lists and tables kept)
- *  - PPTX            → one page per slide, read straight from the file
+ *  - DOCX, ODT       → pandoc when it is installed, otherwise the built-in
+ *                      readers, as Markdown (headings, lists and tables kept)
+ *  - RTF, DOC        → the built-in readers, as Markdown; pandoc and catdoc
+ *                      are only a backup for a file they cannot read
+ *  - PPT, PPTX       → one page per slide, read straight from the file
+ *                      (catppt is a backup for a .ppt the reader cannot read)
  *  - XLSX            → one page per sheet, as a Markdown table (PhpSpreadsheet)
- *  - DOC, PPT        → catdoc / catppt (the old binary formats)
  *  - TXT, MD, CSV    → the file itself
+ *
+ * For RTF, DOC and PPT the built-in readers go first: compared on sample
+ * files (tests/Eval/DocumentReaderEvalTest.php) they kept every word the
+ * programs found, while pandoc drops the footnotes and tables of RTF files,
+ * and catdoc and catppt can show text that a later save replaced.
  *
  * Slides and sheets are real pages. The other formats have no pages of their
  * own, so their text is cut into pages of about {@see CHARS_PER_PAGE}
@@ -38,11 +49,11 @@ class OfficeText
 
     /** Extension → how its text is read. */
     private const array READERS = [
-        'docx' => 'pandoc',
-        'odt' => 'pandoc',
-        'rtf' => 'pandoc',
-        'doc' => 'catdoc',
-        'ppt' => 'catdoc',
+        'docx' => 'document',
+        'odt' => 'document',
+        'rtf' => 'document',
+        'doc' => 'document',
+        'ppt' => 'old-slides',
         'pptx' => 'slides',
         'xlsx' => 'sheets',
         'txt' => 'plain',
@@ -51,9 +62,16 @@ class OfficeText
         'csv' => 'plain',
     ];
 
+    /** The program that can also read each format (its `services.bin` key). */
+    private const array PROGRAMS = ['docx' => 'pandoc', 'odt' => 'pandoc', 'rtf' => 'pandoc', 'doc' => 'catdoc', 'ppt' => 'catppt'];
+
+    /** The formats read by their program first when it is installed; the others by the built-in reader first. */
+    private const array PROGRAM_FIRST = ['docx', 'odt'];
+
     public function __construct(
         private readonly Pandoc $pandoc,
         private readonly CatDoc $catDoc,
+        private readonly MarkdownReaders $readers,
     ) {}
 
     public function supports(string $extension): bool
@@ -62,16 +80,13 @@ class OfficeText
     }
 
     /**
-     * The program that reads the format (its `services.bin` key), or null
-     * when the app reads it itself.
+     * The program a format needs on this server, or null. None does: every
+     * format has a built-in reader, and pandoc, catdoc and catppt are used
+     * only when they are installed.
      */
     public function programFor(string $extension): ?string
     {
-        return match (self::READERS[strtolower($extension)] ?? null) {
-            'pandoc' => 'pandoc',
-            'catdoc' => $this->catDoc->programFor($extension),
-            default => null,
-        };
+        return null;
     }
 
     /**
@@ -88,8 +103,8 @@ class OfficeText
         }
 
         $pages = match (self::READERS[$extension] ?? null) {
-            'pandoc' => $this->paginate($this->withoutImages($this->pandoc->toGithubMarkdown($path, $extension))),
-            'catdoc' => $this->paginate($this->catDoc->toText($path, $extension)),
+            'document' => $this->paginate($this->withoutImages($this->documentText($path, $extension))),
+            'old-slides' => $this->oldSlides($path),
             'slides' => $this->slides($path),
             'sheets' => $this->sheets($path),
             'plain' => $this->paginate($this->plainText($path)),
@@ -97,6 +112,75 @@ class OfficeText
         };
 
         return $pages === [] ? [''] : $pages;
+    }
+
+    /**
+     * A word-processor file's text. DOCX and ODT: pandoc when it is
+     * installed, otherwise the built-in reader. RTF and DOC: the built-in
+     * reader, with the program as a backup for a file it cannot read.
+     */
+    private function documentText(string $path, string $extension): string
+    {
+        if (in_array($extension, self::PROGRAM_FIRST, true) && $this->installed($extension)) {
+            return $this->programText($path, $extension);
+        }
+
+        try {
+            return $this->readers->toMarkdown($path, $extension);
+        } catch (Throwable $e) {
+            return $this->backup($e, $extension, fn (): string => $this->programText($path, $extension));
+        }
+    }
+
+    /**
+     * An old PowerPoint file's text, one page per slide; when catppt reads
+     * it as a backup, the text has no slide breaks and is cut into pages.
+     *
+     * @return list<string>
+     */
+    private function oldSlides(string $path): array
+    {
+        try {
+            return $this->readers->slides($path);
+        } catch (Throwable $e) {
+            return $this->backup($e, 'ppt', fn (): array => $this->paginate($this->programText($path, 'ppt')));
+        }
+    }
+
+    /**
+     * Reads a file the built-in reader could not read with the format's
+     * program, when it is installed and is only the backup. When the
+     * program cannot read it either, the reader's error stands: it says
+     * why, such as a password.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $read
+     * @return T
+     */
+    private function backup(Throwable $error, string $extension, callable $read): mixed
+    {
+        if (in_array($extension, self::PROGRAM_FIRST, true) || ! $this->installed($extension)) {
+            throw $error;
+        }
+
+        try {
+            return $read();
+        } catch (Throwable) {
+            throw $error;
+        }
+    }
+
+    private function programText(string $path, string $extension): string
+    {
+        return self::PROGRAMS[$extension] === 'pandoc'
+            ? $this->pandoc->toGithubMarkdown($path, $extension)
+            : $this->catDoc->toText($path, $extension);
+    }
+
+    private function installed(string $extension): bool
+    {
+        return Executable::exists((string) config('services.bin.'.self::PROGRAMS[$extension]));
     }
 
     /**

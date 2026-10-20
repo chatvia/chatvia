@@ -2,8 +2,8 @@ The app runs some programs on this server to read uploaded files and to make PDF
 
 - **pdfinfo** (poppler) — PDF files: it counts their pages and finds locked ones. Without it, the app does this itself.
 - **pdftotext** (poppler) — Only a backup. The document reader (Mistral OCR or Azure, in Settings → AI models) reads PDF files. pdftotext reads a PDF only if it is trained again after the reader is turned off.
-- **pandoc** — RTF files. No document reader reads them, so without pandoc they cannot be uploaded. It also reads EPUB books and counts the pages of Word (.docx) files. Without it, the app reads EPUB books itself, and the page count is an estimate. FB2 books are always read by the app itself.
-- **catdoc** and **catppt** — Old Word (.doc) and PowerPoint (.ppt) files. Mistral OCR and Azure do not read them, so without these programs they cannot be uploaded.
+- **pandoc** — EPUB books and Word (.docx) files. Without it, the app reads them itself. RTF files are read by the app; pandoc reads one only if the app cannot. FB2 books are always read by the app itself.
+- **catdoc** and **catppt** — Only a backup. The app reads old Word (.doc) and PowerPoint (.ppt) files itself; these programs read one only if the app cannot.
 - **ffmpeg** — Makes audio and video small enough for speech to text, or turns them into a format the service takes. Recordings the service takes as they are (for example an MP3 under 25 MB) need no ffmpeg. Needed only when speech to text is on.
 - **ffprobe** — Measures how long audio and video files are. Without it, the app does this itself.
 - **weasyprint** — Chat exports as PDF, and summaries of office files, when it is the **PDF maker** (the card above). With Cloudflare or Gotenberg as the PDF maker, it is not needed.

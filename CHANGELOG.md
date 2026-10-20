@@ -431,10 +431,18 @@ theme.
   cannot be used to run another program. The `*_BIN_PATH` and
   `FFPROBE_PATH` variables are no longer read.
 - **EPUB and FB2 books need no pandoc.** Without pandoc, the app reads them
-  itself, so pandoc is needed only for RTF files. FB2 books are always read
-  by the app: pandoc garbles books saved in windows-1251 (common for Russian
-  books) and leaves out their tables. Their page count now comes from the
-  number of characters, so books in every language are counted.
+  itself. FB2 books are always read by the app: pandoc garbles books saved in
+  windows-1251 (common for Russian books) and leaves out their tables. Their
+  page count now comes from the number of characters, so books in every
+  language are counted.
+- **No document format needs a program.** The app reads RTF files, old Word
+  files (`.doc`, back to Word 6) and old PowerPoint files (`.ppt`) itself,
+  and Word (`.docx`) files when pandoc is missing, with their headings,
+  lists, tables and footnotes. pandoc, catdoc and catppt are now only a
+  backup for RTF, `.doc` and `.ppt` files: on sample files the app kept every
+  word they found, while pandoc left out the footnotes and tables of RTF
+  files, and catdoc and catppt could show text that a later save of the file
+  had replaced.
 - `MAIL_URL` is no longer read. Set up e-mail in the admin panel
   (**Settings → Email**).
 - Sign-in buttons (Google, Microsoft, GitHub, Slack) only show for the

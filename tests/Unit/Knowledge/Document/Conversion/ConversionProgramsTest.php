@@ -5,38 +5,27 @@ use Domain\Llm\Enums\AiProvider;
 
 /**
  * ConversionPrograms names the program a document format needs on this
- * server (pandoc, catdoc, catppt), unless the document reader in use reads
- * the format itself, and says when it is missing. The ebooks need none.
+ * server and says when it is missing, unless the document reader in use
+ * reads the format itself. None needs one: the app reads every format
+ * itself, and pandoc, catdoc and catppt only help when they are installed.
  */
 beforeEach(function (): void {
     config([
         'services.bin.pandoc' => '/nowhere/pandoc',
         'services.bin.catdoc' => '/nowhere/catdoc',
-        'services.bin.catppt' => '/bin/sh',
+        'services.bin.catppt' => '/nowhere/catppt',
     ]);
 });
 
-it('names the missing program of each format the app reads with one', function (): void {
+it('needs no program for any format, with or without a document reader', function (string $extension): void {
     config(['chatvia.ai.document_parser' => 'none']);
     $programs = app(ConversionPrograms::class);
 
-    expect($programs->missingFor('rtf'))->toBe('pandoc')
-        ->and($programs->missingFor('docx'))->toBe('pandoc')
-        ->and($programs->missingFor('doc'))->toBe('catdoc')
-        // catppt is found.
-        ->and($programs->missingFor('ppt'))->toBeNull()
-        ->and($programs->programFor('ppt'))->toBe('catppt');
-});
+    expect($programs->programFor($extension))->toBeNull()
+        ->and($programs->missingFor($extension))->toBeNull();
 
-it('needs no program for a format the app reads in PHP', function (string $extension): void {
-    expect(app(ConversionPrograms::class)->programFor($extension))->toBeNull();
-})->with(['pptx', 'xlsx', 'csv', 'txt', 'md', 'pdf', 'png', 'EPUB', 'fb2']);
-
-it('needs no program for a format the document reader reads itself', function (): void {
     connectAiProviders(AiProvider::Mistral);
     config(['chatvia.ai.document_parser' => 'mistral']);
-    $programs = app(ConversionPrograms::class);
 
-    expect($programs->missingFor('docx'))->toBeNull()
-        ->and($programs->missingFor('rtf'))->toBe('pandoc');
-});
+    expect(app(ConversionPrograms::class)->missingFor($extension))->toBeNull();
+})->with(['rtf', 'doc', 'ppt', 'docx', 'odt', 'pptx', 'xlsx', 'csv', 'txt', 'md', 'pdf', 'png', 'EPUB', 'fb2']);

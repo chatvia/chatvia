@@ -12,7 +12,8 @@ use RuntimeException;
 /**
  * Reads the text of the old binary Office formats (Word 97–2003 `.doc`,
  * PowerPoint 97–2003 `.ppt`) with `catdoc` and `catppt` from the small catdoc
- * package. The newer formats (`.docx`, `.pptx`) are read without it; see
+ * package. Only a backup: the app reads these formats itself and runs the
+ * programs, when installed, for a file its readers cannot read; see
  * {@see OfficeText}.
  */
 class CatDoc
@@ -28,12 +29,6 @@ class CatDoc
     public function supports(string $extension): bool
     {
         return array_key_exists(strtolower($extension), self::PROGRAMS);
-    }
-
-    /** The program that reads the format (`catdoc` or `catppt`), or null when neither does. */
-    public function programFor(string $extension): ?string
-    {
-        return self::PROGRAMS[strtolower($extension)] ?? null;
     }
 
     public function toText(string $path, string $extension): string

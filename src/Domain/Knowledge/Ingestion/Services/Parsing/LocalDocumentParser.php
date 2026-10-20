@@ -15,8 +15,9 @@ use InvalidArgumentException;
 /**
  * Document parser that runs on the server with no outside service. PDFs are
  * read with poppler's `pdftotext`; office and plain-text files are read by
- * {@see OfficeText} (pandoc, PhpSpreadsheet, catdoc), which also gives their
- * pages — the same count the upload check uses.
+ * {@see OfficeText} (its built-in readers and PhpSpreadsheet, with pandoc
+ * when installed), which also gives their pages — the same count the upload
+ * check uses.
  *
  * It only reads the text layer: it cannot read scanned pages or images, and it
  * does not pull out the images inside a document.

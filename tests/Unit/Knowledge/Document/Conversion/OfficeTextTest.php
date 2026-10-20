@@ -4,12 +4,16 @@ use Domain\Knowledge\Document\Conversion\OfficeText;
 use Illuminate\Support\Facades\Process;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Tests\Support\OldOffice\CompoundFileWriter;
+use Tests\Support\OldOffice\PowerPointBinaryFile;
+use Tests\Support\OldOffice\WordBinaryFile;
 
 /**
- * Office and plain-text files are read without an office suite: slides and
- * sheets become their own pages, other text is cut into pages of about
- * OfficeText::CHARS_PER_PAGE characters. The pandoc and catdoc tests need
- * those programs and skip cleanly when they are not installed.
+ * Office and plain-text files are read without an office suite or any other
+ * program: slides and sheets become their own pages, other text is cut into
+ * pages of about OfficeText::CHARS_PER_PAGE characters. pandoc reads DOCX and
+ * ODT when it is installed (that test skips without it); catdoc, catppt and
+ * pandoc are a backup for the old formats and RTF, faked here.
  */
 
 /**
@@ -116,6 +120,59 @@ it('reads a Word document as Markdown without image references', function (): vo
     @unlink($markdown);
     @unlink($docx);
 });
+
+it('reads old Word, PowerPoint and RTF files itself, with no program installed', function (): void {
+    config(['services.bin.pandoc' => '/nowhere/pandoc', 'services.bin.catdoc' => '/nowhere/catdoc', 'services.bin.catppt' => '/nowhere/catppt']);
+    $doc = new WordBinaryFile()->paragraph('Refunds', 1)->paragraph('We refund within 14 days.')->save();
+    $ppt = new PowerPointBinaryFile()->slide(['Welcome'], ['Agenda'])->slide(['Prices'])->save();
+    $rtf = create_temp_file('letter.rtf', '{\\rtf1\\ansi\\pard Dear visitor,\\par\\pard thank you.\\par}');
+
+    expect(app(OfficeText::class)->pages($doc, 'doc'))->toBe(["# Refunds\n\nWe refund within 14 days."])
+        ->and(app(OfficeText::class)->pages($ppt, 'PPT'))->toBe(["Welcome\nAgenda", 'Prices'])
+        ->and(app(OfficeText::class)->pages($rtf, 'rtf'))->toBe(["Dear visitor,\n\nthank you."]);
+
+    @unlink($doc);
+    @unlink($ppt);
+    @unlink($rtf);
+});
+
+it('reads a Word (.docx) file itself when pandoc is not installed', function (): void {
+    config(['services.bin.pandoc' => '/nowhere/pandoc']);
+    $docx = create_temp_file('policy.docx', '');
+    $zip = new ZipArchive;
+    $zip->open($docx, ZipArchive::OVERWRITE);
+    $zip->addFromString('word/document.xml', '<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Refunds take 14 days.</w:t></w:r></w:p></w:body></w:document>');
+    $zip->close();
+
+    expect(app(OfficeText::class)->pages($docx, 'docx'))->toBe(['Refunds take 14 days.']);
+
+    @unlink($docx);
+});
+
+it('reads a file its built-in reader cannot read with the installed program, as a backup', function (): void {
+    config(['services.bin.catdoc' => '/bin/sh', 'services.bin.catppt' => '/bin/sh']);
+    Process::fake(['*' => Process::result(output: "Text the program found.\n\nSecond paragraph.")]);
+    $unreadable = create_temp_file('old.doc', CompoundFileWriter::write(['Unknown' => 'no Word or PowerPoint stream']));
+
+    expect(array_map(trim(...), app(OfficeText::class)->pages($unreadable, 'doc')))->toBe(["Text the program found.\n\nSecond paragraph."])
+        ->and(array_map(trim(...), app(OfficeText::class)->pages($unreadable, 'ppt')))->toBe(["Text the program found.\n\nSecond paragraph."]);
+
+    @unlink($unreadable);
+});
+
+it('gives the built-in reader\'s error when the backup program cannot read the file either', function (): void {
+    config(['services.bin.catdoc' => '/bin/sh']);
+    Process::fake(['*' => Process::result(errorOutput: 'File is encrypted', exitCode: 1)]);
+    $locked = new WordBinaryFile()->paragraph('Secret.')->encrypted()->save();
+
+    expect(fn () => app(OfficeText::class)->pages($locked, 'doc'))->toThrow(RuntimeException::class, 'password protected');
+
+    @unlink($locked);
+});
+
+it('needs no program for any format', function (string $extension): void {
+    expect(app(OfficeText::class)->programFor($extension))->toBeNull();
+})->with(['docx', 'odt', 'rtf', 'doc', 'ppt', 'pptx', 'xlsx', 'txt']);
 
 it('knows which formats it reads', function (): void {
     $text = app(OfficeText::class);

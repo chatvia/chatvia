@@ -25,6 +25,16 @@ it('writes pipe tables with the first row as the header', function (): void {
         ->and(MarkdownText::table([['', '']]))->toBe('');
 });
 
+it('reads a one-column table as paragraphs and a wider one as a pipe table', function (): void {
+    expect(MarkdownText::tableBlocks([['A note'], ["in a box\n# not a heading"]]))->toBe([
+        [MarkdownText::BLOCK, 'A note'],
+        [MarkdownText::BLOCK, 'in a box'],
+        [MarkdownText::BLOCK, '\\# not a heading'],
+    ])->and(MarkdownText::tableBlocks([['Plan', 'Price'], ['Pro']]))
+        ->toBe([[MarkdownText::BLOCK, "| Plan | Price |\n| --- | --- |\n| Pro |  |"]])
+        ->and(MarkdownText::tableBlocks([]))->toBe([]);
+});
+
 it('joins list items by one line and other blocks by a blank line', function (): void {
     expect(MarkdownText::join([
         [MarkdownText::BLOCK, 'Intro'],

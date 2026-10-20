@@ -79,16 +79,17 @@ it('maps audio and video MIME types to their category and rejects unknown ones',
         ->toThrow(RuntimeException::class, 'Unsupported mime type');
 });
 
-it('leaves out the formats whose program this server lacks', function (): void {
-    config(['services.bin.catdoc' => '/nowhere/catdoc', 'services.bin.pandoc' => '/nowhere/pandoc']);
+it('keeps every document format on a server without pandoc, catdoc or catppt', function (): void {
+    config(['services.bin.catdoc' => '/nowhere/catdoc', 'services.bin.catppt' => '/nowhere/catppt', 'services.bin.pandoc' => '/nowhere/pandoc']);
 
-    expect(SourceFileTypes::isSupported('minutes.doc'))->toBeFalse()
-        ->and(SourceFileTypes::isSupported('letter.rtf'))->toBeFalse()
-        // The app reads the ebooks itself.
+    // The app reads them all itself.
+    expect(SourceFileTypes::isSupported('minutes.doc'))->toBeTrue()
+        ->and(SourceFileTypes::isSupported('letter.rtf'))->toBeTrue()
+        ->and(SourceFileTypes::isSupported('slides.ppt'))->toBeTrue()
         ->and(SourceFileTypes::isSupported('book.epub'))->toBeTrue()
         ->and(SourceFileTypes::isSupported('book.fb2'))->toBeTrue()
         ->and(SourceFileTypes::isSupported('report.docx'))->toBeTrue()
-        ->and(SourceFileTypes::isSupported('slides.ppt'))->toBeTrue()
-        ->and(KnowledgeFileType::Word->readableExtensions())->toBe(['docx'])
+        ->and(KnowledgeFileType::Word->readableExtensions())->toBe(['doc', 'docx', 'rtf'])
+        ->and(KnowledgeFileType::Presentation->readableExtensions())->toBe(['ppt', 'pptx'])
         ->and(KnowledgeFileType::Audio->readableExtensions())->toBe(KnowledgeFileType::Audio->extensions());
 });

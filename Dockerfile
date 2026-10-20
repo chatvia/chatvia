@@ -116,9 +116,9 @@ FROM php AS app
 
 # - postgresql-client-18: pg_dump for the scheduled backup must match the
 #   PostgreSQL 18 server, so it comes from the PostgreSQL apt repository.
-# - poppler (PDF), pandoc (Word, ODT, RTF, EPUB), catdoc (old .doc and
-#   .ppt) and ffmpeg (audio, video): file sources are read with them. PPTX
-#   and XLSX are read in PHP.
+# - poppler (PDF), pandoc (Word, ODT, EPUB), catdoc (a backup for old .doc
+#   and .ppt files) and ffmpeg (audio, video): file sources are read with
+#   them. RTF, DOC, PPT, PPTX and XLSX are read in PHP.
 # - Python and Pango for WeasyPrint (installed below), which makes the PDF
 #   when a visitor exports a chat. The Noto fonts (incl. CJK) give it every
 #   script the dashboard languages use.

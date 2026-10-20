@@ -45,6 +45,7 @@
         "laravel/wayfinder": "^0.1.20",
         "league/commonmark": "^2.7",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "league/html-to-markdown": "^5.2.3",
         "pgvector/pgvector": "^0.2.2",
         "phpoffice/phpspreadsheet": "^5.10",
         "platformcommunity/flysystem-bunnycdn": "^3.3",

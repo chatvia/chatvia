@@ -44,6 +44,12 @@ final class LexicalSearch
         return $this->resolved = $this->detect();
     }
 
+    /** Reads the driver again on next use, after the extension was created. */
+    public function forget(): void
+    {
+        $this->resolved = null;
+    }
+
     /** The text search configuration both drivers tokenize with. */
     public function textConfig(): string
     {

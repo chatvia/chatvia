@@ -2957,6 +2957,30 @@ task('chatvia:build', function () {
     run('npm run shakomako:build');
 });
 
+desc('Keeps every chat widget version online, in a folder all releases share');
+task('chatvia:widget', function () {
+    run('mkdir -p {{deploy_path}}/shared/shakomako');
+    // A page that loaded an older widget still loads files from that
+    // version's folder, so the versions of earlier releases stay. A folder
+    // that is already there holds the same build and is skipped.
+    run('for dir in {{current_path}}/public/shakomako/*/ {{release_path}}/public/shakomako/*/; do [ -d "$dir" ] || continue; version=$(basename "$dir"); [ -e "{{deploy_path}}/shared/shakomako/$version" ] || cp -R "${dir%/}" "{{deploy_path}}/shared/shakomako/$version"; done');
+    // embed.js and version.json pick the version that loads. They stay with
+    // the release until it goes live (chatvia:widget:publish).
+    run('mv {{release_path}}/public/shakomako {{release_path}}/.shakomako');
+    run('{{bin/symlink}} {{deploy_path}}/shared/shakomako {{release_path}}/public/shakomako');
+});
+
+desc('Makes the chat widget load the version of the release that runs');
+task('chatvia:widget:publish', function () {
+    // A release from before chatvia:widget serves its own public/shakomako.
+    if (! test('[ -d {{current_path}}/.shakomako ]')) {
+        return;
+    }
+
+    // Copied, then renamed, so nginx never serves a half-written file.
+    run('cd {{current_path}}/.shakomako && for file in *; do [ -f "$file" ] || continue; cp "$file" "{{deploy_path}}/shared/shakomako/.$file.tmp" && mv -f "{{deploy_path}}/shared/shakomako/.$file.tmp" "{{deploy_path}}/shared/shakomako/$file"; done');
+});
+
 desc('Creates the Pulse and Spectra databases when they are missing');
 task('chatvia:tool-databases', artisan('app:create-tool-databases'));
 
@@ -2973,9 +2997,12 @@ task('chatvia:sync-tools', function () {
 
 after('deploy:shared', 'chatvia:storage');
 after('deploy:vendors', 'chatvia:build');
+after('chatvia:build', 'chatvia:widget');
 before('artisan:migrate', 'chatvia:tool-databases');
 after('artisan:migrate', 'chatvia:check-embeddings');
 after('chatvia:check-embeddings', 'chatvia:sync-tools');
+after('deploy:symlink', 'chatvia:widget:publish');
+after('rollback', 'chatvia:widget:publish');
 after('deploy:failed', 'deploy:unlock');
 EOF
 }

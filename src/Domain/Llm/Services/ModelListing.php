@@ -23,12 +23,12 @@ final readonly class ModelListing
 
     public function list(LlmProvider $provider): ModelListData
     {
-        try {
-            $models = $this->adapters->for($provider->kind)->models($provider);
-        } catch (RequestException $e) {
-            $status = $e->response->status();
+        $adapter = $this->adapters->for($provider->kind);
 
-            return new ModelListData(in_array($status, [401, 403], true) ? ModelListStatus::KeyRefused : ModelListStatus::Failed, httpStatus: $status);
+        try {
+            $models = $adapter->models($provider);
+        } catch (RequestException $e) {
+            return new ModelListData($adapter->refusesKey($e->response) ? ModelListStatus::KeyRefused : ModelListStatus::Failed, httpStatus: $e->response->status());
         } catch (ConnectionException) {
             return new ModelListData(ModelListStatus::Unreachable);
         }

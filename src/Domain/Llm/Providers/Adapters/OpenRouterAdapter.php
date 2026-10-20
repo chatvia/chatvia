@@ -9,11 +9,13 @@ use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\OpenRouter;
+use Illuminate\Support\Collection;
 
 /**
  * OpenRouter: models from many companies with one key. Its list says the
  * most of any provider: names, context, what each model takes in and puts
- * out, and whether it calls tools.
+ * out, and whether it calls tools. The list is public, so reading it first
+ * asks about the key (`/key`), which refuses a wrong one.
  */
 final class OpenRouterAdapter extends OpenAiCompatibleAdapter
 {
@@ -45,6 +47,17 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
     public function client(LlmProvider $provider): LlmProviderInterface
     {
         return new OpenRouter($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
+    }
+
+    public function models(LlmProvider $provider): Collection
+    {
+        $this->client($provider)
+            ->client()
+            ->timeout(20)
+            ->get($this->baseUrl($provider).'/key')
+            ->throw();
+
+        return parent::models($provider);
     }
 
     protected function isChatModel(array $row): bool

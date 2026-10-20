@@ -10,6 +10,7 @@ use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\OpenAiCompatible;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 
 /**
@@ -87,6 +88,11 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
             ->unique('id')
             ->sortBy(fn (RemoteModelData $model): string => strtolower($model->name))
             ->values();
+    }
+
+    public function refusesKey(Response $response): bool
+    {
+        return in_array($response->status(), [401, 403], true);
     }
 
     public function account(): ?AiProvider

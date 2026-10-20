@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Domain\Llm\Providers\Adapters;
 
 use Domain\Llm\Enums\LlmProviderKind;
+use Illuminate\Http\Client\Response;
 
 /**
  * Google Gemini through its OpenAI-compatible endpoint. Its list names models
- * `models/gemini-…`; chat calls take the name without that prefix.
+ * `models/gemini-…`; chat calls take the name without that prefix. A wrong
+ * key gets a 400 that says so, not a 401.
  */
 final class GeminiAdapter extends OpenAiCompatibleAdapter
 {
@@ -37,6 +39,12 @@ final class GeminiAdapter extends OpenAiCompatibleAdapter
     public function keysUrl(): string
     {
         return 'https://aistudio.google.com/apikey';
+    }
+
+    public function refusesKey(Response $response): bool
+    {
+        return parent::refusesKey($response)
+            || ($response->status() === 400 && str_contains(strtolower((string) $response->json('error.message', $response->json('0.error.message'))), 'api key'));
     }
 
     /** The account's address is the native API the embeddings call; chat stays on its OpenAI-style address. */

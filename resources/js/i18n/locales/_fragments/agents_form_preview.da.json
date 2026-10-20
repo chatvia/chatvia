@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "AI-assistent",
+            "preview_intro": "Selvfølgelig! Udfyld venligst formularen nedenfor.",
+            "preview_required": "Dette felt er påkrævet.",
+            "preview_show_form_again": "Vis formularen igen",
+            "preview_user_message": "Hej! Kan du hjælpe mig?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Formularer vises kun i chat-widgetten og kommandolinjen."
+        }
+    }
+}

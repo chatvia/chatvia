@@ -2290,7 +2290,14 @@
             "field_type_radio": "اختيار واحد",
             "field_type_checkbox": "مربع اختيار",
             "field_type_multicheckbox": "اختيارات متعددة",
-            "field_type_date": "تاريخ"
+            "field_type_date": "تاريخ",
+            "preview_ai_label": "مساعد ذكي",
+            "preview_intro": "بالتأكيد! يُرجى ملء النموذج أدناه.",
+            "preview_required": "هذا الحقل مطلوب.",
+            "preview_show_form_again": "عرض النموذج مرة أخرى",
+            "preview_user_message": "مرحبًا! هل يمكنك مساعدتي؟",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "تظهر النماذج فقط في أداة الدردشة وشريط الأوامر."
         },
         "submissions": {
             "page_title": "الإرساليات",

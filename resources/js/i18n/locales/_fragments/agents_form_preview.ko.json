@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "AI 어시스턴트",
+            "preview_intro": "물론이죠! 아래 양식을 작성해 주세요.",
+            "preview_required": "필수 입력 항목입니다.",
+            "preview_show_form_again": "양식 다시 보기",
+            "preview_user_message": "안녕하세요! 도와주실 수 있나요?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "양식은 채팅 위젯과 명령 바에서만 표시됩니다."
+        }
+    }
+}

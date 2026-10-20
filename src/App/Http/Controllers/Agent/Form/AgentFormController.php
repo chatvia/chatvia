@@ -9,8 +9,10 @@ use Domain\Form\Actions\DeleteFormDefinitionAction;
 use Domain\Form\Actions\EnableFormsCapabilityAction;
 use Domain\Form\Actions\SaveFormDefinitionAction;
 use Domain\Form\Data\FormDefinitionData;
+use Domain\Form\Data\FormPreviewAppearanceData;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
+use Domain\Llm\Contracts\Transcriber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -34,7 +36,7 @@ class AgentFormController
         'message' => 'Message',
     ];
 
-    public function index(Agent $agent): Response
+    public function index(Agent $agent, Transcriber $transcriber): Response
     {
         return Inertia::render('agents/Forms/index', [
             'agent' => AgentResourceData::fromModel($agent),
@@ -50,6 +52,7 @@ class AgentFormController
                 array_keys(self::LEAD_FIELDS),
                 self::LEAD_FIELDS,
             ),
+            'previewAppearance' => FormPreviewAppearanceData::fromAgent($agent, $transcriber->isEnabled()),
         ]);
     }
 

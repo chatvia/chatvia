@@ -2290,7 +2290,14 @@
             "field_type_radio": "単一選択",
             "field_type_checkbox": "チェックボックス",
             "field_type_multicheckbox": "複数選択",
-            "field_type_date": "日付"
+            "field_type_date": "日付",
+            "preview_ai_label": "AIアシスタント",
+            "preview_intro": "かしこまりました！下のフォームにご記入ください。",
+            "preview_required": "この項目は必須です。",
+            "preview_show_form_again": "フォームをもう一度表示",
+            "preview_user_message": "こんにちは！手伝ってもらえますか？",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "フォームはチャットウィジェットとコマンドバーにのみ表示されます。"
         },
         "submissions": {
             "page_title": "送信内容",

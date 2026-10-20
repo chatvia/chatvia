@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "مساعد ذكي",
+            "preview_intro": "بالتأكيد! يُرجى ملء النموذج أدناه.",
+            "preview_required": "هذا الحقل مطلوب.",
+            "preview_show_form_again": "عرض النموذج مرة أخرى",
+            "preview_user_message": "مرحبًا! هل يمكنك مساعدتي؟",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "تظهر النماذج فقط في أداة الدردشة وشريط الأوامر."
+        }
+    }
+}

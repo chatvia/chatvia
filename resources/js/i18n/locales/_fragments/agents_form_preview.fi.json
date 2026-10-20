@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "forms": {
+            "preview_ai_label": "Tekoälyavustaja",
+            "preview_intro": "Toki! Täytä alla oleva lomake.",
+            "preview_required": "Tämä kenttä on pakollinen.",
+            "preview_show_form_again": "Näytä lomake uudelleen",
+            "preview_user_message": "Hei! Voitko auttaa minua?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Lomakkeet näkyvät vain chat-widgetissä ja komentopalkissa."
+        }
+    }
+}

@@ -2290,7 +2290,14 @@
             "field_type_radio": "Pilihan tunggal",
             "field_type_checkbox": "Kotak centang",
             "field_type_multicheckbox": "Pilihan ganda",
-            "field_type_date": "Tanggal"
+            "field_type_date": "Tanggal",
+            "preview_ai_label": "Asisten AI",
+            "preview_intro": "Tentu! Silakan isi formulir di bawah ini.",
+            "preview_required": "Kolom ini wajib diisi.",
+            "preview_show_form_again": "Tampilkan formulir lagi",
+            "preview_user_message": "Halo! Bisakah Anda membantu saya?",
+            "preview_powered_by": "Powered by Chatvia",
+            "surfaces_notice": "Formulir hanya tampil di Widget Chat dan Bilah Perintah."
         },
         "submissions": {
             "page_title": "Pengiriman",

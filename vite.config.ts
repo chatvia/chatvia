@@ -110,7 +110,9 @@ export default defineConfig({
             input: ['resources/js/app.ts', 'resources/css/filament/admin/theme.css'],
             refresh: true,
         }),
-        inertia(),
+        // SSR is off (INERTIA_SSR_ENABLED=false) and app.ts touches window/document
+        // at load, so stop the plugin from using it as a dev SSR entry.
+        inertia({ ssr: false }),
         tailwindcss(),
         vue({
             template: {

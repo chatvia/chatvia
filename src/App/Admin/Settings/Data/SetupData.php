@@ -15,7 +15,8 @@ use Spatie\LaravelData\Data;
 /**
  * What the admin setup of a new install collects: the chat provider (an
  * account's key, or a server of your own), the chat models agents can use
- * and the default one, the embedding service and model (with its account's
+ * and the default one, the model for quick tasks (null: they use the
+ * default chat model), the embedding service and model (with its account's
  * key when that is another account), the reranker, the document reader,
  * the Firecrawl key for website import, speech to text, where files are
  * kept, and how email is sent.
@@ -37,6 +38,7 @@ final class SetupData extends Data
         public array $chatModels,
         public string $defaultModel,
         public ?CustomLlmServerData $server = null,
+        public ?RemoteModelData $quickTaskModel = null,
         public ?EmbeddingProvider $embeddingProvider = null,
         public ?string $embeddingModel = null,
         public ?string $embeddingApiKey = null,

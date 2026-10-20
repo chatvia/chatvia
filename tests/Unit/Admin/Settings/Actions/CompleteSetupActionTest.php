@@ -67,6 +67,27 @@ it('saves the key once, adds the chat models with the default, and marks the set
         ->and($agent->fresh()->llm_id)->toBe($default->id);
 });
 
+it('adds the model for quick tasks and gives the large tasks the default model', function (): void {
+    $default = app(CompleteSetupAction::class)->execute(completeSetupData([
+        'quickTaskModel' => new RemoteModelData(id: 'qwen3.6-35b-a3b', name: 'Qwen3.6 35B'),
+    ]));
+
+    $quick = Llm::query()->where('internal_name', 'qwen3.6-35b-a3b')->sole();
+
+    expect($quick->llm_provider_id)->toBe($default->llm_provider_id)
+        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe($quick->external_name)
+        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe($default->external_name)
+        ->and(savedSetting(AiSettings::class, 'translation_model'))->toBe($default->external_name)
+        ->and(savedSetting(AiSettings::class, 'guardrails_model'))->toBeNull();
+});
+
+it('leaves the task models unset without a model for quick tasks', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData());
+
+    expect(savedSetting(AiSettings::class, 'task_model'))->toBeNull()
+        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBeNull();
+});
+
 it('makes the first model the default when the named one is not among them', function (): void {
     $default = app(CompleteSetupAction::class)->execute(completeSetupData(['defaultModel' => 'not-picked']));
 

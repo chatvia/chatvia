@@ -65,6 +65,31 @@ function modelsFakeOpenRouter(): void
     ]])]);
 }
 
+it('uses the recommended model for quick tasks of the default model\'s provider', function (): void {
+    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
+        ['id' => 'openai/gpt-6-luna', 'name' => 'GPT-6 Luna', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
+    ]])]);
+    $chat = testLlm('meta-llama/llama-4-maverick', LlmProviderKind::OpenRouter);
+    saveSettings(AiSettings::class, ['default_agent_model' => $chat->external_name, 'guardrails_model' => $chat->external_name]);
+    // Saving settings reloads the saved keys; connect after it.
+    connectAiProviders(AiProvider::OpenRouter);
+
+    modelsPage($this->admin)
+        ->callAction(TestAction::make('recommendedTaskModels')->schemaComponent('recommended-task-models', schema: 'form'))
+        ->assertNotified('GPT-6 Luna does the quick tasks now')
+        ->assertFormSet(['task_model' => 'openai/gpt-6-luna', 'guardrails_model' => null, 'eval_judge_model' => $chat->external_name]);
+
+    expect(savedSetting(AiSettings::class, 'task_model'))->toBe('openai/gpt-6-luna');
+});
+
+it('hides "Use the recommended models" for a server of your own', function (): void {
+    $chat = testLlm('llama3.1:8b');
+    saveSettings(AiSettings::class, ['default_agent_model' => $chat->external_name]);
+
+    modelsPage($this->admin)
+        ->assertSchemaComponentHidden('recommended-task-models', 'form');
+});
+
 it('adds a model from a connected provider\'s list', function (): void {
     modelsFakeOpenRouter();
 

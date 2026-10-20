@@ -21,6 +21,9 @@ use Domain\Llm\Services\TaskModels;
  *   Images.
  * - Testing: EvalJudge.
  *
+ * Each task needs a large or a small model ({@see tier()}): the setup gives
+ * the small ones the provider's model for quick tasks.
+ *
  * Each value names its config key and its admin setting, so a new case
  * needs both (see `settingsProperty()`).
  */
@@ -40,6 +43,21 @@ enum LlmTask: string
     case Tables = 'tables';
     case Images = 'images';
     case EvalJudge = 'eval_judge';
+
+    /**
+     * The size of model the task needs: large for what people read or a
+     * judgement (few calls), small for the short jobs around each reply and
+     * for training, where the calls are many.
+     */
+    public function tier(): ModelTier
+    {
+        return match ($this) {
+            self::Chat, self::EvalJudge, self::Translation => ModelTier::Large,
+            self::FollowUp, self::ToolRouting, self::Guardrails, self::Titles,
+            self::ConversationAnalysis, self::Starters, self::FormText,
+            self::ChatAddress, self::Enhancement, self::Tables, self::Images => ModelTier::Small,
+        };
+    }
 
     /** The config key that holds the task's model alias (`llms.external_name`). */
     public function configKey(): string

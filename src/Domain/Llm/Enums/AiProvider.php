@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Enums;
 
+use Domain\Llm\Services\ModelPresets;
+
 /**
  * An AI provider account: one API key (Settings → AI providers) that serves
  * everything the provider does here, chat models and the other services
@@ -168,21 +170,52 @@ enum AiProvider: string
     }
 
     /**
-     * Chat models the setup suggests for this provider, best first: open
-     * models that call tools well. The first one the provider lists is
-     * picked.
+     * The chat models the setup picks for the agents, as slots: one slot per
+     * model maker, each its ids best first. The first id the provider lists
+     * fills a slot ({@see ModelPresets}), so a model it no longer serves is
+     * passed over; the first slot gives the default for new agents. A provider with many makers (OpenRouter) gets a few,
+     * so agents can try them side by side.
+     *
+     * @return list<list<string>>
+     */
+    public function presetChatModels(): array
+    {
+        return match ($this) {
+            self::Scaleway => [
+                ['gpt-oss-120b', 'llama-3.3-70b-instruct'],
+                ['qwen3.5-397b-a17b', 'qwen3-235b-a22b-instruct-2507'],
+                ['mistral-medium-3.5-128b'],
+            ],
+            self::OpenRouter => [
+                ['openai/gpt-6.1-sol', 'openai/gpt-6-sol', 'openai/gpt-5.6-terra', 'openai/gpt-5-mini'],
+                ['qwen/qwen3.7-plus', 'qwen/qwen3.6-plus', 'qwen/qwen3.5-397b-a17b', 'qwen/qwen3-235b-a22b-2507'],
+                ['google/gemini-3.8-flash', 'google/gemini-3.6-flash', 'google/gemini-2.5-flash'],
+                ['openai/gpt-oss-120b'],
+            ],
+            self::OpenAi => [['gpt-6.1-sol', 'gpt-6-sol', 'gpt-5.6-terra', 'gpt-5-mini', 'gpt-4.1-mini']],
+            self::Mistral => [['mistral-medium-latest', 'mistral-small-latest']],
+            self::Google => [['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']],
+            self::Groq => [['openai/gpt-oss-120b', 'llama-3.3-70b-versatile']],
+            self::Cohere, self::Jina, self::Azure => [],
+        };
+    }
+
+    /**
+     * The model the setup picks for quick tasks (guardrails, follow-up
+     * questions, titles…), best first: small, fast and cheap. The first
+     * one the provider lists is picked.
      *
      * @return list<string>
      */
-    public function suggestedChatModels(): array
+    public function presetQuickTaskModels(): array
     {
         return match ($this) {
-            self::Scaleway => ['gpt-oss-120b', 'qwen3-235b-a22b-instruct-2507', 'llama-3.3-70b-instruct'],
-            self::OpenRouter => ['openai/gpt-oss-120b', 'qwen/qwen3-235b-a22b-2507', 'mistralai/mistral-medium-3.1'],
-            self::OpenAi => ['gpt-5-mini', 'gpt-4.1-mini'],
-            self::Mistral => ['mistral-medium-latest', 'mistral-small-latest'],
-            self::Google => ['gemini-2.5-flash'],
-            self::Groq => ['openai/gpt-oss-120b', 'llama-3.3-70b-versatile'],
+            self::Scaleway => ['qwen3.6-35b-a3b', 'mistral-small-3.2-24b-instruct-2506', 'gemma-4-26b-a4b-it'],
+            self::OpenRouter => ['openai/gpt-6-luna', 'openai/gpt-5.6-luna', 'qwen/qwen3.7-flash', 'openai/gpt-oss-20b'],
+            self::OpenAi => ['gpt-6-luna', 'gpt-5.6-luna', 'gpt-5-nano', 'gpt-4.1-nano'],
+            self::Mistral => ['mistral-small-latest', 'ministral-8b-latest'],
+            self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'],
+            self::Groq => ['openai/gpt-oss-20b'],
             self::Cohere, self::Jina, self::Azure => [],
         };
     }

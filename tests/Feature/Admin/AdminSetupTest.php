@@ -29,8 +29,9 @@ use Livewire\Livewire;
  * The admin setup of a new install: every panel page leads to it until it is
  * done or skipped. "Connect AI": a provider and its key, checked by reading
  * its model list; a provider that makes no embeddings of the stored size
- * also needs an embedding service and its key. "Models": the chat model, the
- * embedding model (OpenRouter's from its list) checked with a test
+ * also needs an embedding service and its key. "Models": the chat models
+ * and the model for quick tasks (the provider's recommended ones picked),
+ * the embedding model (OpenRouter's from its list) checked with a test
  * embedding, and the reranker checked with a test question. Each key is
  * saved once, in
  * Settings → AI providers ({@see CompleteSetupAction}).
@@ -178,11 +179,44 @@ it('checks the key with the provider\'s model list before the next step', functi
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(2)
         ->assertSee('Connected to Scaleway AI')
-        // The suggested model, from the provider's own suggestions.
-        ->assertFormSet(['chat_models' => ['gpt-oss-120b'], 'default_model' => 'gpt-oss-120b']);
+        // The recommended models the provider lists.
+        ->assertFormSet([
+            'chat_models' => ['gpt-oss-120b'],
+            'default_model' => 'gpt-oss-120b',
+            'quick_task_model' => 'mistral-small-3.2-24b-instruct-2506',
+        ]);
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/models')
         && $request->header('Authorization') === ['Bearer scw-test']);
+});
+
+it('picks a few OpenRouter chat models from different makers, and a small one for quick tasks', function (): void {
+    $model = fn (string $id, bool $tools = true): array => [
+        'id' => $id,
+        'name' => $id,
+        'architecture' => ['input_modalities' => ['text', 'image'], 'output_modalities' => ['text']],
+        'supported_parameters' => $tools ? ['tools'] : ['temperature'],
+    ];
+    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
+        $model('meta-llama/llama-4-maverick'),
+        $model('openai/gpt-oss-120b'),
+        $model('qwen/qwen3.7-plus', tools: false),
+        $model('qwen/qwen3.6-plus'),
+        $model('openai/gpt-6.1-sol'),
+        $model('openai/gpt-6-luna'),
+    ]])]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(2)
+        // One per maker, default first; a model that cannot call tools is
+        // passed over, and a maker with none listed (Google) is left out.
+        ->assertFormSet([
+            'chat_models' => ['openai/gpt-6.1-sol', 'qwen/qwen3.6-plus', 'openai/gpt-oss-120b'],
+            'default_model' => 'openai/gpt-6.1-sol',
+            'quick_task_model' => 'openai/gpt-6-luna',
+        ]);
 });
 
 it('stops on the first step when the provider refuses the key', function (): void {
@@ -224,6 +258,11 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->and(savedSetting(AiSettings::class, 'scaleway_embedding_model'))->toBeNull()
         ->and(savedSetting(PlatformSettings::class, 'setup_status'))->toBe('completed')
         ->and($model->isAvailable())->toBeTrue()
+        // The recommended small model does the quick tasks; the tasks that
+        // need a large model use the chat model (here the same one).
+        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe('mistral-small-3.2-24b-instruct-2506')
+        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe($model->external_name)
+        ->and(savedSetting(AiSettings::class, 'guardrails_model'))->toBeNull()
         // It gets the default model.
         ->and($agent->refresh()->llm_id)->toBe($model->id);
 
@@ -244,8 +283,9 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         ->goToNextWizardStep()
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(2)
-        // No suggestion is listed: the first model that calls tools is.
-        ->assertFormSet(['chat_models' => ['meta-llama/llama-4-maverick']])
+        // No recommended model is listed: the first model that calls tools
+        // is, and quick tasks use it too.
+        ->assertFormSet(['chat_models' => ['meta-llama/llama-4-maverick'], 'quick_task_model' => null])
         ->assertSee(['Made with OpenRouter, with your OpenRouter key.', 'OpenAI text-embedding-3-small — Good and cheap. The default.', 'BAAI: bge-m3'])
         ->assertDontSee('Text Embedding 3 Small (batch)')
         ->fillForm(['embedding_model' => 'qwen/qwen3-embedding-8b'])
@@ -744,6 +784,7 @@ it('ends on a final step with the choices made, and where the defaults are chang
             'Your choices',
             'AI provider', 'Scaleway AI',
             'Chat models', 'gpt-oss-120b, mistral-small-3.2-24b-instruct-2506 (default)',
+            'Model for quick tasks', 'mistral-small-3.2-24b-instruct-2506',
             'Embeddings', 'Qwen3 on Scaleway AI', config('services.scalewayai.embedding_model'),
             'Reranker', 'Not now',
             'Documents', 'Not now',
@@ -753,7 +794,7 @@ it('ends on a final step with the choices made, and where the defaults are chang
             'Mailer', 'Not now',
             'Default values',
             'Knowledge', 'How texts are split into chunks',
-            'AI models', 'More chat models, and the models for app tasks',
+            'AI models', 'More chat models, and a model for each app task',
         ])
         ->call('complete')
         ->assertHasNoFormErrors();

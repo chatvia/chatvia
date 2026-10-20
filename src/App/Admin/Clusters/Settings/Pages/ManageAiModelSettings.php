@@ -6,6 +6,7 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Settings\Actions\ApplyRecommendedTaskModelsAction;
 use App\Admin\Settings\Actions\ReindexEmbeddingsAction;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
 use App\Admin\Settings\AiProviderCheck;
@@ -43,12 +44,14 @@ use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ModelListing;
+use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Fieldset;
@@ -71,8 +74,10 @@ use InvalidArgumentException;
  * (added from a provider's list, removed with their agents moved to another
  * model) and the default for new agents; the embedding service; the
  * reranker; document reading; speech to text; voice. The models behind the
- * app's own tasks ({@see LlmTask}) are a closed card of their own: one model
- * for every task, and one per task, grouped by when the task runs.
+ * app's own tasks ({@see LlmTask}) are a closed card of their own: the model
+ * for quick tasks, and one per task, grouped by when the task runs. "Use the
+ * recommended models" sets them from the chat provider's preset
+ * ({@see ApplyRecommendedTaskModelsAction}).
  *
  * The embedding service and its model decide the stored vectors, and a
  * service that cannot return the stored vector size is refused. Once
@@ -328,8 +333,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     help: 'Writes down what the visitor says, for the chat log: gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
-                $this->withHelp($this->modelChoice('task_model', 'Model for app tasks'),
-                    'Every task below without its own model uses this one. A small, fast model suits most of them. Empty: the default model for new agents.'),
+                Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),
+                $this->withHelp($this->modelChoice('task_model', 'Model for quick tasks'),
+                    'Every task below without its own model uses this one: guardrails, follow-up questions, titles and other small jobs. A small, fast model suits them. Empty: the default model for new agents.'),
                 ...array_map(fn (string $group, array $tasks): Fieldset => Fieldset::make($group)
                     ->columns(1)
                     ->schema(array_map($this->taskChoice(...), $tasks)), array_keys(self::TASK_GROUPS), self::TASK_GROUPS),
@@ -653,7 +659,74 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             LlmTask::Chat => throw new InvalidArgumentException('The chat model is "Default model for new agents".'),
         };
 
-        return $this->withHelp($this->modelChoice($task->settingsProperty(), $label, unset: 'Same as the model for app tasks'), $help);
+        return $this->withHelp($this->modelChoice($task->settingsProperty(), $label, unset: 'Same as the model for quick tasks'), $help);
+    }
+
+    /**
+     * Sets the task models from the preset of the default model's provider:
+     * its small model for quick tasks, the default model for the tasks that
+     * need a large one. Hidden when that provider has no preset (a server of
+     * your own). Its list is read as the modal opens, to name the model.
+     */
+    private function recommendedTaskModelsAction(): Action
+    {
+        return Action::make('recommendedTaskModels')
+            ->label('Use the recommended models')
+            ->icon(Heroicon::OutlinedSparkles)
+            ->color('gray')
+            ->visible(fn (): bool => $this->presetAccount() instanceof AiProvider)
+            ->requiresConfirmation()
+            ->modalIcon(Heroicon::OutlinedSparkles)
+            ->modalHeading('Use the recommended models?')
+            ->modalDescription(function (): string {
+                $small = $this->recommendedQuickTaskModel();
+
+                return $small instanceof RemoteModelData
+                    ? "Picks {$small->name} for quick tasks, and the default model for the evaluation judge and translations. The models you set for single tasks are cleared."
+                    : "{$this->presetAccount()?->label()} lists none of the recommended models for quick tasks now.";
+            })
+            ->modalSubmitActionLabel('Use these models')
+            ->action(function (): void {
+                $account = $this->presetAccount();
+                $small = $this->recommendedQuickTaskModel();
+                $chat = $this->defaultChatModel();
+
+                if (! $account instanceof AiProvider || ! $small instanceof RemoteModelData || ! $chat instanceof Llm) {
+                    Notification::make()->warning()->title('No recommended model is listed')->body('Pick the model for quick tasks below.')->send();
+
+                    return;
+                }
+
+                $model = app(ApplyRecommendedTaskModelsAction::class)->execute($chat->provider, $small, $chat);
+                $this->fillCards();
+
+                Notification::make()->success()->title("{$model->descriptive_name} does the quick tasks now")->send();
+            });
+    }
+
+    /** The default model for new agents, while it may be used. */
+    private function defaultChatModel(): ?Llm
+    {
+        return Llm::available()->firstWhere('external_name', $this->valueInUse('default_agent_model'));
+    }
+
+    /** The account of the default model, when it has a model for quick tasks to recommend. */
+    private function presetAccount(): ?AiProvider
+    {
+        $kind = $this->defaultChatModel()?->provider->kind;
+        $account = $kind instanceof LlmProviderKind ? AiProvider::forChatKind($kind) : null;
+
+        return $account?->presetQuickTaskModels() !== [] ? $account : null;
+    }
+
+    /** The first recommended model for quick tasks the account lists. */
+    private function recommendedQuickTaskModel(): ?RemoteModelData
+    {
+        $account = $this->presetAccount();
+
+        return $account instanceof AiProvider
+            ? app(ModelPresets::class)->quickTaskModel($account, $this->listOf("account:{$account->value}")->models ?? [])
+            : null;
     }
 
     /** The model every task uses, and how many tasks have their own. */

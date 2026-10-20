@@ -403,8 +403,14 @@ case and an adapter class. Every call goes to its model's provider:
 `LlmProviderInterface`). The app's own calls use a model per `LlmTask` (one
 case per call: follow-up rewriting, tool picking, guardrails, titles, image
 descriptions…), picked in Settings → AI models and resolved by `TaskModels`:
-the task's model, else the model for app tasks (`chatvia.ai.tasks.default`),
-else the chat model (`LlmTask::Chat`, the default for new agents).
+the task's model, else the model for quick tasks (`chatvia.ai.tasks.default`),
+else the chat model (`LlmTask::Chat`, the default for new agents). Each task
+needs a large or a small model (`LlmTask::tier()`, `ModelTier`). Each provider
+recommends chat models (`AiProvider::presetChatModels()`, one slot per model
+maker) and a small model for quick tasks (`presetQuickTaskModels()`);
+`ModelPresets` picks the first of each the provider lists now, and the setup
+and "Use the recommended models" write them into the settings
+(`TaskModelPreset`), so an update never changes an install's models.
 Callers use typed helpers: `LlmChat` (one completion), `StructuredCompletion`
 and `LlmJson` (JSON answers), `DocumentLlm` (a model that reads whole PDF
 files).
@@ -932,7 +938,8 @@ How it works:
   (`advancedFields()`).
 - **Setup.** A new install opens on the setup wizard (`App\Admin\Pages\Setup`,
   its steps listed on the left): AI provider and key, chat models and the
-  embedding model, document reader, website import (Firecrawl), speech to
+  model for quick tasks (the provider's recommended ones picked), the
+  embedding model and the reranker, document reader, website import (Firecrawl), speech to
   text, storage, mailer, and a final step with the choices made and where
   the defaults are changed. Each key is checked before the next step; the
   optional services start on "Not now", which turns them off. Every panel page leads there (`RequireSetup`) until

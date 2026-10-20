@@ -10,7 +10,7 @@ use Domain\Llm\Models\Llm;
 
 /**
  * The catalog model behind each {@see LlmTask}: the one picked for the task
- * in Settings → AI while it may be used, else the model for app tasks, else
+ * in Settings → AI while it may be used, else the model for quick tasks, else
  * the chat model, else the first model of the catalog that may be used.
  */
 class TaskModels

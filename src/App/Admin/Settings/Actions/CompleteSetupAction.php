@@ -17,6 +17,7 @@ use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageSettings;
+use App\Admin\Settings\TaskModelPreset;
 use Domain\Agent\Actions\Settings\AssignModelToAgentsWithoutOneAction;
 use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
@@ -32,7 +33,8 @@ use InvalidArgumentException;
 /**
  * Saves the admin setup of a new install in one go: each key once in
  * Settings → AI providers (for everything that provider does), the chat
- * models agents can use with the default one, the embedding service and
+ * models agents can use with the default one, the model for quick tasks
+ * with the task models it brings ({@see TaskModelPreset}), the embedding service and
  * model, the reranker, the document reader, the Firecrawl key, speech to
  * text, where files are kept, and how email is sent. A service left at "Not now" is turned
  * off, so "Automatic" does not turn it on. Agents made before any model
@@ -79,6 +81,12 @@ final readonly class CompleteSetupAction
             $default = array_find($models, fn (Llm $model): bool => $model->internal_name === $data->defaultModel) ?? $models[0];
             $this->ai->default_agent_model = $default->external_name;
             $this->assignModel->execute($default);
+
+            $quick = $data->quickTaskModel instanceof RemoteModelData ? $this->addModel->execute($provider, $data->quickTaskModel) : null;
+
+            foreach (TaskModelPreset::values($default, $quick) as $property => $value) {
+                $this->set($this->ai, $property, $value);
+            }
 
             if ($data->embeddingProvider instanceof EmbeddingProvider) {
                 $this->set($this->ai, 'embedding_provider', $data->embeddingProvider->value);

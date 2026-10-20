@@ -42,15 +42,31 @@ enum Service: string
     public function description(): string
     {
         return match ($this) {
-            self::Database => __('PostgreSQL: every agent, chat and source'),
-            self::Redis => __('Cache, sessions and the queue'),
-            self::Queue => __('Laravel Horizon runs the background jobs'),
-            self::Scheduler => __('Runs the tasks that repeat'),
-            self::Realtime => __('Laravel Reverb sends live updates'),
-            self::ServerMonitor => __('Laravel Pulse records how the app runs'),
-            self::Storage => __('Uploads, exports and pictures'),
-            self::Email => __('Sign-in links, invitations and alerts'),
-            self::Programs => __('Read files and make PDFs'),
+            self::Database => __('PostgreSQL'),
+            self::Redis => __('Chat memory and cache'),
+            self::Queue => __('Laravel Horizon'),
+            self::Scheduler => __('Repeating tasks'),
+            self::Realtime => __('Laravel Reverb'),
+            self::ServerMonitor => __('Laravel Pulse'),
+            self::Storage => __('Uploads and exports'),
+            self::Email => __('Outgoing email'),
+            self::Programs => __('File readers and PDFs'),
+        };
+    }
+
+    /**
+     * The logo of the product behind it (PostgreSQL, Redis, Laravel Horizon
+     * and Pulse), shown in place of its icon; null for a service with no
+     * product of its own.
+     */
+    public function logo(): ?string
+    {
+        return match ($this) {
+            self::Database => asset('images/logos/services/postgresql.svg'),
+            self::Redis => asset('images/logos/services/redis.svg'),
+            self::Queue => asset('images/logos/tools/horizon.svg'),
+            self::ServerMonitor => asset('images/logos/tools/pulse.svg'),
+            default => null,
         };
     }
 
@@ -60,12 +76,12 @@ enum Service: string
             self::Database => Heroicon::OutlinedCircleStack,
             self::Redis => Heroicon::OutlinedBolt,
             self::Queue => Heroicon::OutlinedQueueList,
-            self::Scheduler => Heroicon::OutlinedClock,
-            self::Realtime => Heroicon::OutlinedSignal,
+            self::Scheduler => Heroicon::Clock,
+            self::Realtime => Heroicon::Signal,
             self::ServerMonitor => Heroicon::OutlinedPresentationChartLine,
-            self::Storage => Heroicon::OutlinedArchiveBox,
-            self::Email => Heroicon::OutlinedEnvelope,
-            self::Programs => Heroicon::OutlinedCommandLine,
+            self::Storage => Heroicon::ArchiveBox,
+            self::Email => Heroicon::Envelope,
+            self::Programs => Heroicon::CommandLine,
         };
     }
 }

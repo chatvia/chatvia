@@ -7,6 +7,8 @@ use App\Admin\Pages\Tools;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Status\AiService;
 use App\Admin\Status\AiServiceChecks;
+use App\Admin\Status\CheckMark;
+use App\Admin\Status\Data\ServiceStatusData;
 use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
@@ -14,6 +16,7 @@ use App\Admin\Widgets\ServiceStatusBanner;
 use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -97,7 +100,72 @@ it('finds the database with the extensions the search needs', function (): void 
     $status = app(ServiceChecks::class)->check(Service::Database);
 
     expect($status->state)->toBe(ServiceState::Running)
-        ->and($status->facts[0])->toStartWith('PostgreSQL ');
+        ->and($status->checks[0]->value)->toStartWith('PostgreSQL ');
+});
+
+it('lists the database extensions with a check mark or a cross', function (): void {
+    $status = app(ServiceChecks::class)->check(Service::Database);
+    $checks = collect($status->checks)->keyBy('label');
+
+    expect($checks['vector']->mark)->toBe(CheckMark::Passed)
+        ->and($checks['pg_trgm']->mark)->toBe(CheckMark::Passed)
+        ->and($checks['pg_textsearch']->tag)->toBe('Optional')
+        ->and($checks['pg_textsearch']->mark)->toBeIn([CheckMark::Passed, CheckMark::Skipped]);
+
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', ['database' => [
+            'state' => 'down',
+            'summary' => 'Missing extensions: pg_trgm.',
+            'checks' => [
+                ['label' => 'vector', 'value' => '0.8.1', 'mark' => 'passed', 'tag' => null],
+                ['label' => 'pg_trgm', 'value' => 'Not installed', 'mark' => 'failed', 'tag' => null],
+                ['label' => 'pg_textsearch', 'value' => 'Not installed', 'mark' => 'skipped', 'tag' => 'Optional'],
+            ],
+        ]])
+        ->assertSeeInOrder(['cv-check--passed', 'vector', '0.8.1'], false)
+        ->assertSeeInOrder(['cv-check--failed', 'pg_trgm', 'Not installed'], false)
+        ->assertSeeInOrder(['cv-check--skipped', 'pg_textsearch', 'Optional', 'Not installed'], false);
+});
+
+it('gives every service card its check lines', function (): void {
+    Http::fake();
+    config(['mail.default' => 'log']);
+
+    foreach (Service::cases() as $service) {
+        expect(app(ServiceChecks::class)->check($service)->checks)->not->toBeEmpty();
+    }
+});
+
+it('shows four lines on a card, problems first, and the rest behind "Show all"', function (): void {
+    $line = fn (string $label, string $mark = 'passed'): array => ['label' => $label, 'value' => 'ok', 'mark' => $mark, 'tag' => null];
+    $programs = [
+        'state' => 'warning',
+        'summary' => 'Not found: catdoc.',
+        'checks' => [$line('pdfinfo'), $line('pdftotext'), $line('pandoc'), $line('ffmpeg'), $line('ffprobe'), $line('catdoc', 'warning')],
+    ];
+
+    expect(array_map(fn ($check): string => $check->label, ServiceStatusData::from($programs)->cardChecks()))
+        ->toBe(['catdoc', 'pdfinfo', 'pdftotext', 'pandoc']);
+
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', ['programs' => $programs, 'redis' => ['state' => 'running', 'summary' => 'Answers.', 'checks' => [$line('Version')]]])
+        ->assertSee('Show all 6')
+        ->assertDontSee('Show all 1');
+});
+
+it('opens the details of a card with a hint and few lines', function (): void {
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', ['queue' => [
+            'state' => 'down',
+            'summary' => 'Horizon is not running.',
+            'hint' => 'Start it with "php artisan horizon".',
+            'checks' => [['label' => 'Horizon', 'value' => 'Not running', 'mark' => 'failed', 'tag' => null]],
+        ]])
+        ->assertSeeInOrder(['Details', 'Horizon is not running.', 'Start it with'])
+        ->assertDontSee('Show all');
 });
 
 it('saves a file to each disk and reads it back', function (): void {
@@ -118,7 +186,8 @@ it('says when live updates do not go through Reverb, or Reverb does not answer',
     $status = app(ServiceChecks::class)->check(Service::Realtime);
 
     expect($status->state)->toBe(ServiceState::Down)
-        ->and($status->summary)->toContain('does not answer at http://127.0.0.1:1');
+        ->and($status->summary)->toBe('Reverb does not answer.')
+        ->and($status->checks[0]->value)->toBe('127.0.0.1:1');
 });
 
 it('finds Reverb running with no open channels, and says when it refuses the keys', function (): void {
@@ -135,11 +204,12 @@ it('finds Reverb running with no open channels, and says when it refuses the key
 
     $running = app(ServiceChecks::class)->check(Service::Realtime);
     expect($running->state)->toBe(ServiceState::Running)
-        ->and($running->facts)->toContain('0 open channels');
+        ->and(collect($running->checks)->firstWhere('label', 'Open channels')->value)->toBe('0');
 
     $refused = app(ServiceChecks::class)->check(Service::Realtime);
     expect($refused->state)->toBe(ServiceState::Down)
-        ->and($refused->summary)->toContain('refused the request (401)');
+        ->and($refused->summary)->toBe('Reverb refused the app keys.')
+        ->and(collect($refused->checks)->firstWhere('label', 'App keys')->value)->toBe('Refused (401)');
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'reverb.test')
         && str_contains($request->url(), '/apps/test-app-id/channels?')
@@ -154,13 +224,75 @@ it('warns when email goes to the log, and finds an SMTP server that does not ans
     expect(app(ServiceChecks::class)->check(Service::Email)->state)->toBe(ServiceState::Down);
 });
 
-it('names the programs that are not found', function (): void {
+it('names the programs that are not found, and stays running as they are optional', function (): void {
     config(['services.bin.catdoc' => '/no/such/folder/catdoc']);
 
     $status = app(ServiceChecks::class)->check(Service::Programs);
+    $catdoc = collect($status->checks)->firstWhere('label', 'catdoc');
 
-    expect($status->state)->toBe(ServiceState::Warning)
-        ->and($status->summary)->toContain('catdoc');
+    expect($status->state)->toBe(ServiceState::Running)
+        ->and($status->summary)->toBe('Some file types cannot be read.')
+        ->and($status->hint)->toContain('catdoc')
+        ->and($status->hint)->toContain('Programs are optional.')
+        ->and($catdoc->mark)->toBe(CheckMark::Info)
+        ->and($catdoc->tag)->toBe('Optional')
+        ->and($catdoc->note)->toBe('.doc files cannot be uploaded.');
+});
+
+it('says a missing PDF maker costs PDFs, not file types', function (): void {
+    foreach (['pdfinfo', 'pdftotext', 'pandoc', 'catdoc', 'catppt', 'ffmpeg', 'ffprobe'] as $program) {
+        config(["services.bin.{$program}" => '/bin/sh']);
+    }
+
+    config([
+        'laravel-pdf.weasyprint.binary' => '/no/such/folder/weasyprint',
+        'laravel-pdf.driver' => 'weasyprint',
+    ]);
+
+    $status = app(ServiceChecks::class)->check(Service::Programs);
+
+    expect($status->state)->toBe(ServiceState::Running)
+        ->and($status->summary)->toBe('Some features do not work.')
+        ->and($status->hint)->toStartWith('Not found: weasyprint. Programs are optional.')
+        ->and($status->checks[0]->label)->toBe('weasyprint')
+        ->and($status->checks[0]->note)->toContain('pick Cloudflare or Gotenberg');
+});
+
+it('shows what a missing program costs under its line', function (): void {
+    $programs = [
+        'state' => 'running',
+        'summary' => 'Some file types cannot be read.',
+        'hint' => 'Not found: pandoc. Programs are optional.',
+        'checks' => [
+            ['label' => 'pandoc', 'value' => 'Not found', 'mark' => 'info', 'tag' => 'Optional', 'note' => '.rtf files cannot be uploaded.'],
+            ['label' => 'pdfinfo', 'value' => 'Not found', 'mark' => 'skipped', 'tag' => 'Not needed now'],
+        ],
+    ];
+
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', ['programs' => $programs])
+        ->assertSeeInOrder(['cv-check--noted', 'pandoc', 'Optional', 'Not found', 'cv-check__note', '.rtf files cannot be uploaded.'], false)
+        ->assertSeeInOrder(['Programs are optional.', 'pandoc', '.rtf files cannot be uploaded.']);
+});
+
+it('stays running when only programs the app can do without are not found', function (): void {
+    // Found: any program file will do.
+    foreach (['pdftotext', 'pandoc', 'catdoc', 'catppt', 'ffmpeg'] as $program) {
+        config(["services.bin.{$program}" => '/bin/sh']);
+    }
+
+    config([
+        'services.bin.pdfinfo' => '/no/such/folder/pdfinfo',
+        'services.bin.ffprobe' => '/no/such/folder/ffprobe',
+        'laravel-pdf.weasyprint.binary' => '/no/such/folder/weasyprint',
+        'laravel-pdf.driver' => 'cloudflare',
+    ]);
+
+    $status = app(ServiceChecks::class)->check(Service::Programs);
+
+    expect($status->state)->toBe(ServiceState::Running)
+        ->and($status->hint)->toBe('Not found: pdfinfo, ffprobe, weasyprint. Nothing needs them now.');
 });
 
 it('is off while Pulse is turned off', function (): void {
@@ -193,7 +325,8 @@ it('reloads the saved settings from the Caches card', function (): void {
         ->call('reloadSettings')
         ->assertNotified('Settings reloaded');
 
-    expect(config('services.openrouter.api_key'))->toBe('sk-or-reloaded');
+    expect(config('services.openrouter.api_key'))->toBe('sk-or-reloaded')
+        ->and(Cache::has('settings.'.AiProviderSettings::cacheKey()))->toBeTrue();
 });
 
 /*

@@ -219,4 +219,25 @@ enum AiProvider: string
             self::Cohere, self::Jina, self::Azure => [],
         };
     }
+
+    /**
+     * The model the setup picks for image descriptions (the pictures inside
+     * PDF files and other documents), best first: small models that read
+     * images. The first one the provider lists is picked; with none, image
+     * descriptions stay off.
+     *
+     * @return list<string>
+     */
+    public function presetVisionModels(): array
+    {
+        return match ($this) {
+            self::Scaleway => ['qwen3.6-35b-a3b', 'mistral-small-3.2-24b-instruct-2506', 'gemma-4-26b-a4b-it'],
+            self::OpenRouter => ['openai/gpt-6-luna', 'google/gemini-3.5-flash-lite', 'qwen/qwen3.7-flash', 'openai/gpt-5.6-luna'],
+            self::OpenAi => ['gpt-6-luna', 'gpt-5.6-luna', 'gpt-5-nano', 'gpt-4.1-mini'],
+            self::Mistral => ['mistral-small-latest', 'mistral-medium-latest'],
+            self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'],
+            self::Groq => ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct'],
+            self::Cohere, self::Jina, self::Azure => [],
+        };
+    }
 }

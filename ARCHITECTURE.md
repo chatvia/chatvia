@@ -407,7 +407,10 @@ the task's model, else the model for quick tasks (`chatvia.ai.tasks.default`),
 else the chat model (`LlmTask::Chat`, the default for new agents). Each task
 needs a large or a small model (`LlmTask::tier()`, `ModelTier`). Each provider
 recommends chat models (`AiProvider::presetChatModels()`, one slot per model
-maker) and a small model for quick tasks (`presetQuickTaskModels()`);
+maker), a small model for quick tasks (`presetQuickTaskModels()`) and a
+model that reads images for image descriptions (`presetVisionModels()`;
+without one, `chatvia.ai.chunker.describe_images` is turned off and
+`PageVisualsDescriber` skips the pictures);
 `ModelPresets` picks the first of each the provider lists now, and the setup
 and "Use the recommended models" write them into the settings
 (`TaskModelPreset`), so an update never changes an install's models.

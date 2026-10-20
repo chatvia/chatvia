@@ -10,13 +10,16 @@ use Domain\Llm\Enums\AiProvider;
 /**
  * Picks the recommended models from what a provider lists: for each slot
  * of {@see AiProvider::presetChatModels()}, and from
- * {@see AiProvider::presetQuickTaskModels()}, the first id it lists, so a
- * model it no longer serves is passed over. A chat model the provider says
- * cannot call tools is passed over too; one it says nothing about is not.
+ * {@see AiProvider::presetQuickTaskModels()} and
+ * {@see AiProvider::presetVisionModels()}, the first id it lists, so a model
+ * it no longer serves is passed over. A model the provider says cannot do
+ * the job (call tools for chat, read images for image descriptions) is
+ * passed over too; one it says nothing about is not.
  *
  * With no chat preset listed, the chat model is the first one that calls
  * tools, else the first. With no quick-task preset listed there is none,
- * so those tasks keep using the chat model.
+ * so those tasks keep using the chat model. With no vision preset listed
+ * there is none either, and image descriptions are turned off.
  */
 class ModelPresets
 {
@@ -55,6 +58,26 @@ class ModelPresets
     public function quickTaskModel(?AiProvider $provider, array $listed): ?RemoteModelData
     {
         return $this->first($provider?->presetQuickTaskModels() ?? [], $this->byId($listed), needsTools: false);
+    }
+
+    /**
+     * The model for image descriptions: one that reads images.
+     *
+     * @param  list<RemoteModelData>  $listed  the provider's models, as it lists them
+     */
+    public function visionModel(?AiProvider $provider, array $listed): ?RemoteModelData
+    {
+        $byId = $this->byId($listed);
+
+        foreach ($provider?->presetVisionModels() ?? [] as $id) {
+            $model = $byId[$id] ?? null;
+
+            if ($model !== null && ($model->features['vision'] ?? null) !== false) {
+                return $model;
+            }
+        }
+
+        return null;
     }
 
     /**

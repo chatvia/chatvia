@@ -58,11 +58,21 @@ it('picks the first listed quick-task model, and none when no preset is listed',
         ->and($presets->quickTaskModel(null, [mpModel('llama3.1:8b')]))->toBeNull();
 });
 
-it('recommends chat and quick-task models for every provider with chat models', function (): void {
+it('picks the first listed model that reads images, and none when no preset is listed', function (): void {
+    $presets = app(ModelPresets::class);
+    $model = fn (string $id, ?bool $vision = null): RemoteModelData => new RemoteModelData($id, $id, features: $vision === null ? [] : ['vision' => $vision]);
+
+    expect($presets->visionModel(AiProvider::OpenRouter, [$model('openai/gpt-6-luna', vision: false), $model('google/gemini-3.5-flash-lite')])?->id)->toBe('google/gemini-3.5-flash-lite')
+        ->and($presets->visionModel(AiProvider::OpenRouter, [$model('openai/gpt-oss-120b', vision: false)]))->toBeNull()
+        ->and($presets->visionModel(null, [$model('llava', vision: true)]))->toBeNull();
+});
+
+it('recommends chat, quick-task and image models for every provider with chat models', function (): void {
     foreach (AiProvider::cases() as $provider) {
         $chats = $provider->can(AiCapability::Chat);
 
         expect($provider->presetChatModels() !== [])->toBe($chats, $provider->value)
-            ->and($provider->presetQuickTaskModels() !== [])->toBe($chats, $provider->value);
+            ->and($provider->presetQuickTaskModels() !== [])->toBe($chats, $provider->value)
+            ->and($provider->presetVisionModels() !== [])->toBe($chats, $provider->value);
     }
 });

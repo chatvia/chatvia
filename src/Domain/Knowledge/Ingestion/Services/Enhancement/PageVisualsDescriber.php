@@ -15,7 +15,9 @@ use Intervention\Image\Laravel\Facades\Image;
  * Describes the images and tables the document parser found on a page. Each
  * image is described by the vision model and, when it carries information,
  * saved as a JPEG in the given storage folder so the chat can show it later.
- * All tables of the page are described together in one call.
+ * With `chatvia.ai.chunker.describe_images` off (no model that reads images
+ * is set up), images are skipped. All tables of the page are described
+ * together in one call.
  */
 class PageVisualsDescriber
 {
@@ -32,7 +34,9 @@ class PageVisualsDescriber
         ));
 
         return new PageVisualsData(
-            imageDescriptions: $this->describeImages($page->imagesBase64, $imageDirectory),
+            imageDescriptions: filter_var(config('chatvia.ai.chunker.describe_images'), FILTER_VALIDATE_BOOL)
+                ? $this->describeImages($page->imagesBase64, $imageDirectory)
+                : [],
             tables: $tables,
             tableDescription: $page->tables !== [] ? $this->tables->describe($page->tables) : '',
         );

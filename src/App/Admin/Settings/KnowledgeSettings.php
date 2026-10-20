@@ -9,7 +9,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * What agents learn from, and how they search it (Settings → Knowledge): the
  * file types workspaces may upload, website import (Firecrawl), the AI
- * enhancement of chunks, and how agents search: hybrid search (keywords next
+ * enhancement of chunks (and whether it describes the pictures inside
+ * documents), and how agents search: hybrid search (keywords next
  * to meaning), the results an agent gets, follow-up questions, and the
  * minimum scores. Also how text is split into chunks (unit, size, overlap,
  * the strategy for each kind of content, the tokenizer), edited on its own
@@ -27,6 +28,9 @@ class KnowledgeSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.chunker.enhance_text')]
     public ?bool $enhance_text_chunks = null;
+
+    #[ConfigKey('chatvia.ai.chunker.describe_images')]
+    public ?bool $describe_images = null;
 
     #[ConfigKey('services.firecrawl.key'), ShouldBeEncrypted]
     public ?string $firecrawl_api_key = null;

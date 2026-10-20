@@ -132,10 +132,13 @@ class ManageKnowledgeSettings extends AdminSettingsPage
                     help: 'Adds a summary and likely questions to every chunk of uploaded files and crawled pages, and a summary of the whole source, so far more of the right passages are found. One model call per chunk while training: a 300-page PDF makes about 300 calls. The model is set in Settings → AI models → Models for app tasks.'),
                 $this->toggle('enhance_text_chunks', 'Enhance text sources',
                     help: 'The same step for pasted texts. They are short, so it costs little. With both off, training makes no model calls.'),
+                $this->toggle('describe_images', 'Describe images',
+                    help: 'While files are enhanced, describes the pictures inside PDF files and other documents, so search can find what they show. Needs a model that reads images: Settings → AI models → Models for app tasks → Image descriptions. The setup turns this off when your AI provider has no such model. Off: pictures are skipped, and the text is still read.'),
             ])->summary(fn (): string => sprintf(
-                'Files and pages %s · Texts %s',
+                'Files and pages %s · Texts %s · Images %s',
                 $this->shown($this->valueInUse('enhance_chunks')),
                 $this->shown($this->valueInUse('enhance_text_chunks')),
+                $this->shown($this->valueInUse('describe_images')),
             )),
             SettingsCard::make('search', 'Search', 'How agents find the parts of their sources that answer a question.', Heroicon::OutlinedMagnifyingGlass, fn (): array => [
                 $this->toggle('hybrid_search', 'Hybrid search',

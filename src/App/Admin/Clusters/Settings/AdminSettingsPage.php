@@ -377,7 +377,7 @@ abstract class AdminSettingsPage extends Page
             ->id($this->sectionId($card))
             ->description(fn (): string|HtmlString => $this->descriptionOf($card))
             ->icon($card->icon)
-            ->extraAttributes(['class' => 'cv-settings-card'.($card->advanced ? ' cv-settings-card--advanced' : '')])
+            ->extraAttributes(['class' => 'cv-settings-card '.IconTone::cssClass($card->icon).($card->advanced ? ' cv-settings-card--advanced' : '')])
             ->collapsible()
             ->collapsed($card->advanced)
             ->persistCollapsed(! $card->advanced)

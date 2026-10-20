@@ -66,7 +66,7 @@
                 <div class="cv-search__list">
                     @foreach ($hits as $hit)
                         <a href="{{ $hit->entry->url }}" class="cv-search-hit" wire:key="hit-{{ md5($hit->entry->url) }}">
-                            <span @class(['cv-search-hit__icon', 'cv-search-hit__icon--logo' => is_string($hit->entry->icon)])>
+                            <span @class(['cv-search-hit__icon', 'cv-search-hit__icon--logo' => is_string($hit->entry->icon), \App\Admin\Clusters\Settings\IconTone::cssClass($hit->entry->icon)])>
                                 <x-filament::icon :icon="$hit->entry->icon" />
                             </span>
 

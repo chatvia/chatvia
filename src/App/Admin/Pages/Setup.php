@@ -44,6 +44,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ModelListing;
+use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -82,7 +83,10 @@ use Illuminate\Validation\ValidationException;
  *    makes no embeddings of the size the database stores (Groq, a server of
  *    your own), an embedding service and its key too.
  * 2. Models: the chat models agents can use (one or more, one of them the
- *    default for new agents), the embedding model (picked from
+ *    default for new agents; the provider's recommended ones are picked,
+ *    {@see ModelPresets}), the model for quick tasks (guardrails, follow-up
+ *    questions, titles…: a small one when the provider has one, else
+ *    the chat model), the embedding model (picked from
  *    OpenRouter's list there), checked with a test embedding, and the
  *    reranker: OpenRouter (its live list of rerankers), Cohere, a server
  *    of your own or none, checked with a test question.
@@ -193,6 +197,7 @@ class Setup extends SimplePage
             'embedding_provider' => $embedding?->value,
             'embedding_model' => $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null,
             'chat_models' => [],
+            'quick_task_model' => null,
             'reranker' => $this->suggestedReranker($provider),
             'openrouter_rerank_model' => config('chatvia.ai.rerank.openrouter_model') ?: RerankModelCatalog::DEFAULT_OPENROUTER,
             'cohere_rerank_model' => config('services.cohere.rerank_model') ?: array_key_first(RerankModelCatalog::COHERE),
@@ -289,6 +294,7 @@ class Setup extends SimplePage
             apiKey: $this->filled($state, 'api_key'),
             chatModels: $this->chosenModels($state),
             defaultModel: (string) ($state['default_model'] ?? $this->chosenModels($state)[0]->id),
+            quickTaskModel: $this->quickTaskModel($state),
             server: $account instanceof AiProvider ? null : new CustomLlmServerData(
                 name: (string) $state['server_name'],
                 baseUrl: (string) $state['server_url'],
@@ -607,7 +613,7 @@ class Setup extends SimplePage
                             ->viewData(['rows' => [
                                 'Settings → Knowledge' => 'Search, the AI enhancement of sources, follow-up questions, and the file types people can upload.',
                                 'Settings → Splitting' => 'How texts are split into chunks.',
-                                'Settings → AI models' => 'More chat models, and the models for app tasks.',
+                                'Settings → AI models' => 'More chat models, and a model for each app task.',
                                 'Settings → Branding' => 'The "Powered by Chatvia" credit under hosted chats and widgets.',
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
                                 'Settings → Sign-in' => 'Sign-in with other accounts.',
@@ -637,6 +643,9 @@ class Setup extends SimplePage
         return [
             'AI provider' => $get('provider') === self::CUSTOM ? (string) $get('server_name') : $this->providerLabel($get('provider')),
             'Chat models' => $models,
+            'Model for quick tasks' => filled($get('quick_task_model')) && $this->models !== []
+                ? ($this->models[$get('quick_task_model')] ?? (string) $get('quick_task_model'))
+                : 'Same as the chat model',
             'Embeddings' => $embedding instanceof EmbeddingProvider
                 ? $embedding->label().(filled($get('embedding_model')) ? " · {$get('embedding_model')}" : '')
                 : 'Already set up',
@@ -902,7 +911,7 @@ class Setup extends SimplePage
                 ->searchable()
                 ->required(fn (): bool => $this->models !== [])
                 ->minItems(1)
-                ->helperText(fn (): string => count($this->models).' chat models. The suggested one calls tools well.')
+                ->helperText(fn (): string => count($this->models).' chat models. The suggested ones call tools well.')
                 ->visible(fn (): bool => $this->models !== [])
                 ->live()
                 ->afterStateUpdated(function (Get $get, Set $set, ?array $state): void {
@@ -917,6 +926,14 @@ class Setup extends SimplePage
                 ->selectablePlaceholder(false)
                 ->required(fn (): bool => $this->models !== [])
                 ->visible(fn (Get $get): bool => count((array) $get('chat_models')) > 1),
+            Select::make('quick_task_model')
+                ->label('Model for quick tasks')
+                ->options(fn (): array => $this->models)
+                ->in(fn (): array => array_keys($this->models))
+                ->searchable()
+                ->placeholder('Same as the chat model')
+                ->helperText('Guardrails, follow-up questions, titles and other small jobs run around each reply. A small, fast model keeps replies quick and cheap.')
+                ->visible(fn (): bool => $this->models !== []),
             TextInput::make('chat_model_id')
                 ->label('Model')
                 ->placeholder('For example llama3.1:8b')
@@ -1288,11 +1305,17 @@ class Setup extends SimplePage
             $model->id => $model->name === $model->id ? $model->id : "{$model->name} ({$model->id})",
         ])->all();
 
-        $suggested = $this->suggestedModel($list->models, $this->account($state));
+        $presets = app(ModelPresets::class);
+        $account = $this->account($state);
+        $suggested = array_map(fn (RemoteModelData $model): string => $model->id, $presets->chatModels($account, $list->models));
 
-        if ($suggested !== null && blank($this->data['chat_models'] ?? null)) {
-            $this->data['chat_models'] = [$suggested];
-            $this->data['default_model'] = $suggested;
+        if ($suggested !== [] && blank($this->data['chat_models'] ?? null)) {
+            $this->data['chat_models'] = $suggested;
+            $this->data['default_model'] = $suggested[0];
+        }
+
+        if (blank($this->data['quick_task_model'] ?? null)) {
+            $this->data['quick_task_model'] = $presets->quickTaskModel($account, $list->models)?->id;
         }
     }
 
@@ -1312,6 +1335,19 @@ class Setup extends SimplePage
             : array_filter([trim((string) ($state['chat_model_id'] ?? ''))], filled(...));
 
         return array_values(array_map(fn (string $id): RemoteModelData => $this->listedModel($id) ?? new RemoteModelData($id, $id), $ids));
+    }
+
+    /**
+     * The model chosen for quick tasks, as the list described it; none
+     * when the provider lists no models (they use the chat model).
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function quickTaskModel(array $state): ?RemoteModelData
+    {
+        $id = trim((string) ($state['quick_task_model'] ?? ''));
+
+        return $id === '' || $this->models === [] ? null : $this->listedModel($id) ?? new RemoteModelData($id, $id);
     }
 
     /**
@@ -1655,26 +1691,7 @@ class Setup extends SimplePage
         $this->listedFor = null;
         $this->data['chat_models'] = [];
         $this->data['default_model'] = null;
-    }
-
-    /**
-     * The suggested chat model: the provider's first suggestion it lists,
-     * else the first model that calls tools, else the first.
-     *
-     * @param  list<RemoteModelData>  $models
-     */
-    private function suggestedModel(array $models, ?AiProvider $account): ?string
-    {
-        $ids = array_map(fn (RemoteModelData $model): string => $model->id, $models);
-
-        foreach ($account?->suggestedChatModels() ?? [] as $suggestion) {
-            if (in_array($suggestion, $ids, true)) {
-                return $suggestion;
-            }
-        }
-
-        return array_find($models, fn (RemoteModelData $model): bool => ($model->features['function_calling'] ?? false) === true)?->id
-            ?? ($ids[0] ?? null);
+        $this->data['quick_task_model'] = null;
     }
 
     /** What the provider's list said about a model, while it is cached. */

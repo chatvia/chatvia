@@ -286,11 +286,11 @@ return [
     | last one needs function calling so tools still work in PDF chats.
     |
     | `query.rewriter` turns a follow-up ("and the price?") into a full
-    | question for the knowledge search: one Fast-model call per follow-up.
+    | question for the knowledge search: one quick-task model call per follow-up.
     | `chunker.enhance` adds an AI step per chunk (a summary and likely
     | questions, then a new embedding) for files and web pages, and a
     | summary of the whole source; it finds far more of the right passages
-    | and costs one Smart-model call per chunk.
+    | and costs one quick-task model call per chunk.
     | `chunker.enhance_text` does the same for text sources.
     |
     */

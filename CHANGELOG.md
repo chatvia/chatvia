@@ -343,6 +343,12 @@ theme.
   `/var/www/chatvia`. It warns that it takes over the whole server, checks
   at the end that every part runs, and runs again to upgrade (after a
   database backup, without downtime) or to finish an install that stopped.
+- **Deployer keeps older widget versions.** Every release's
+  `public/shakomako` links to `shared/shakomako`, which keeps the folder of
+  each widget version, so a page that loaded the widget before a deploy
+  still finds its files afterwards. `embed.js` and `version.json` switch to
+  the new version right after the new release goes live, and back on a
+  rollback.
 - `npm run shakomako:build` keeps its copy of the widget in
   `storage/framework/shakomako` instead of `node_modules/.cache`: Node does
   not run TypeScript files under `node_modules`, so the TypeScript widget

@@ -39,7 +39,7 @@ class WidgetSettingsData extends Data
         public ?bool $show_on_load,
         public ?int $show_on_load_delay,
         public WidgetSettingsBrandingData $branding,
-        // Whether the "Powered by Chatvia" badge should render: the install's
+        // Whether the "Powered by ChatVia.ai" badge should render: the install's
         // switch (Settings → Branding). The widget gates the footer on this (and
         // on branding.enabled, which is driven by the same value for
         // back-compat with cached bundles).

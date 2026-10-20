@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "chatvia/chatvia",
     "type": "project",
-    "description": "Chatvia: an AI chat-agent platform. Agents answer from your knowledge base (RAG), call tools over MCP, and talk to visitors on the web widget, hosted chat and messaging channels.",
+    "description": "ChatVia.ai: an AI chat-agent platform. Agents answer from your knowledge base (RAG), call tools over MCP, and talk to visitors on the web widget, hosted chat and messaging channels.",
     "keywords": [
         "laravel",
         "inertia",

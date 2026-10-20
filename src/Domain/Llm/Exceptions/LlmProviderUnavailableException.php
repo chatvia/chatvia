@@ -26,6 +26,6 @@ final class LlmProviderUnavailableException extends RuntimeException
 
     public static function unsupported(LlmProviderKind $kind): self
     {
-        return new self("Chatvia cannot call {$kind->value} providers yet.");
+        return new self("ChatVia.ai cannot call {$kind->value} providers yet.");
     }
 }

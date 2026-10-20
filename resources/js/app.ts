@@ -68,7 +68,7 @@ function defaultLocaleOf(pageProps: Record<string, unknown>): string | null {
 }
 
 createInertiaApp({
-    // "Page - Chatvia", led by the unread notification count when there is one.
+    // "Page - ChatVia.ai", led by the unread notification count when there is one.
     title: (title) => pageTitle(title),
     setup({ el, App, props, plugin }) {
         syncPageContext(props.initialPage.props);

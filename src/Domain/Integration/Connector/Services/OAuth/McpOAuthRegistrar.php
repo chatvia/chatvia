@@ -53,7 +53,7 @@ class McpOAuthRegistrar
 
         $payload = [
             // Shown to the user on the provider's consent screen.
-            'client_name' => 'Chatvia',
+            'client_name' => 'ChatVia.ai',
             'redirect_uris' => [$this->redirectUri()],
             'grant_types' => ['authorization_code', 'refresh_token'],
             'response_types' => ['code'],

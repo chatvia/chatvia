@@ -1,4 +1,4 @@
-# Local development for Chatvia. Two ways to use it (see README.md):
+# Local development for ChatVia.ai. Two ways to use it (see README.md):
 #
 # 1. Services only: PostgreSQL (with the vector and BM25 search extensions),
 #    Redis and Mailpit. The Laravel app, queue worker, Reverb and Vite run on
@@ -19,7 +19,7 @@
 # Each host port can be changed in your shell or in .env, for example
 # FORWARD_DB_PORT=5433 when port 5432 is already in use.
 #
-# Named chatvia-dev so it never mixes with a Docker install of Chatvia
+# Named chatvia-dev so it never mixes with a Docker install of ChatVia.ai
 # (docker/compose.yaml, named chatvia) on the same machine. Nothing here is
 # used by the production image or by CI.
 

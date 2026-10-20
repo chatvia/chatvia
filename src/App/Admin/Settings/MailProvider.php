@@ -46,7 +46,7 @@ enum MailProvider: string
             self::Postmark => 'Sends through the Postmark API with a server token.',
             self::Resend => 'Sends through the Resend API.',
             self::Cloudflare => 'Sends through Cloudflare\'s email API with an account ID and API token.',
-            self::Sendmail => 'The sendmail program of the server Chatvia runs on.',
+            self::Sendmail => 'The sendmail program of the server ChatVia.ai runs on.',
             self::Log => 'Emails are written to the log and nobody receives them. People cannot confirm a sign-up or accept an invitation.',
         };
     }

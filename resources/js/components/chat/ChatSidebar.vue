@@ -164,13 +164,13 @@ function logout() {
                     <img
                         v-if="appearance?.logo"
                         :src="appearance.logo"
-                        :alt="appearance?.chat_window_title || 'Chatvia'"
+                        :alt="appearance?.chat_window_title || 'ChatVia.ai'"
                         class="h-8 object-contain"
                     />
                     <template v-else>
                         <AppLogoIcon class="h-7 w-7" />
                         <span class="text-foreground text-sm font-semibold tracking-tight">
-                            {{ appearance?.chat_window_title || 'Chatvia' }}
+                            {{ appearance?.chat_window_title || 'ChatVia.ai' }}
                         </span>
                     </template>
                 </Link>

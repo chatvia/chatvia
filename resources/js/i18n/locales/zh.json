@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "连接你的 WhatsApp Business 号码，使该智能体能够回复 WhatsApp 消息——你将使用 Facebook 登录并一步完成设置。",
                     "connect_facebook": "使用 Facebook 连接",
-                    "not_configured": "此 Chatvia 实例尚未配置 WhatsApp。请联系支持团队。",
+                    "not_configured": "此 ChatVia.ai 实例尚未配置 WhatsApp。请联系支持团队。",
                     "finish_number": "请在弹出窗口中为你的 WhatsApp Business Account 添加一个电话号码，然后重试。",
                     "connect_failed": "我们无法从 Facebook 读取你的 WhatsApp 账户。请重新尝试连接。"
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "此字段为必填项。",
             "preview_show_form_again": "再次显示表单",
             "preview_user_message": "你好！你能帮我吗？",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "表单仅在聊天小部件和命令栏中显示。"
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "谁是我最活跃的用户？",
         "starter_busiest_channel": "哪个渠道最繁忙？",
         "starter_leads": "本周期我获取了多少条线索？",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "用自然语言询问你的账户——消息、用户、渠道、线索等。图表会内嵌显示。",
         "composer_placeholder": "询问你的账户…",
         "disclaimer": "答案来自你的实时分析数据。此对话不会被保存。"
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "函数",
             "title": "函数",
-            "description": "LLM 可调用的基于 Webhook 的工具。定义一次，即可附加到你的任意智能体。调用时，Chatvia 会将参数 POST 到你的 Webhook，并将响应转发回模型。",
+            "description": "LLM 可调用的基于 Webhook 的工具。定义一次，即可附加到你的任意智能体。调用时，ChatVia.ai 会将参数 POST 到你的 Webhook，并将响应转发回模型。",
             "add": "添加函数",
             "search_placeholder": "搜索函数",
             "empty": "暂无函数。点击“添加函数”创建你的第一个。",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "API 密钥",
             "title": "API 密钥",
             "description": "用于 {api_link} 的账户密钥——创建和管理智能体、知识、MCP 服务器和函数。",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "生成密钥",
             "empty_title": "暂无 API 密钥",
-            "empty_description": "生成一个以开始使用 Chatvia API。",
+            "empty_description": "生成一个以开始使用 ChatVia.ai API。",
             "never": "从不",
             "revoke_aria": "吊销密钥",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "数据保留",
-                "help": "Chatvia 在自动删除前保留您数据的时长。出于合规考虑可缩短这些时长 — 留空某字段以使用默认值。",
+                "help": "ChatVia.ai 在自动删除前保留您数据的时长。出于合规考虑可缩短这些时长 — 留空某字段以使用默认值。",
                 "conversations": "会话历史（天）",
                 "conversations_help": "聊天历史将在此天数后被删除。最多 {max} 天。",
                 "audit": "安全审计日志（天）",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "SIEM Webhook",
-                "help": "实时将每个安全事件转发到您的 SIEM，并经过签名，以便您验证其来自 Chatvia。",
+                "help": "实时将每个安全事件转发到您的 SIEM，并经过签名，以便您验证其来自 ChatVia.ai。",
                 "url": "端点 URL",
                 "secret": "签名密钥",
                 "secret_placeholder": "留空以保留当前密钥",

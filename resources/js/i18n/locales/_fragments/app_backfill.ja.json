@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "WhatsApp Business の電話番号を接続すると、このエージェントが WhatsApp のメッセージに返信できるようになります。Facebook でサインインすれば、ワンステップで設定できます。",
                     "connect_facebook": "Facebook で接続",
-                    "not_configured": "この Chatvia インスタンスでは WhatsApp がまだ設定されていません。サポートにお問い合わせください。",
+                    "not_configured": "この ChatVia.ai インスタンスでは WhatsApp がまだ設定されていません。サポートにお問い合わせください。",
                     "finish_number": "ポップアップで WhatsApp Business Account に電話番号を追加してから、もう一度お試しください。",
                     "connect_failed": "Facebook から WhatsApp アカウントを読み取れませんでした。もう一度接続してください。"
                 },

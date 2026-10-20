@@ -1,4 +1,4 @@
-# Chatvia: the whole stack in Docker. Web app, queue workers, scheduler,
+# ChatVia.ai: the whole stack in Docker. Web app, queue workers, scheduler,
 # WebSocket server, server stats, PostgreSQL (with the search extensions) and
 # Redis.
 #
@@ -21,7 +21,7 @@
 # the database name and password, and the first admin, are only read on the
 # first start. Everything else applies on the next `docker compose up -d`.
 #
-# This file is for running Chatvia. To work on the code, use the
+# This file is for running ChatVia.ai. To work on the code, use the
 # docker-compose.yml in the project root (database, Redis and Mailpit only).
 
 name: chatvia

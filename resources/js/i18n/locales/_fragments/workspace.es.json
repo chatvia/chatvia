@@ -42,7 +42,7 @@
         "functions": {
             "breadcrumb": "Funciones",
             "title": "Funciones",
-            "description": "Herramientas basadas en webhooks que el LLM puede invocar. Defínelas una vez y adjúntalas a cualquiera de tus agentes. Al invocarse, Chatvia envía los parámetros a tu webhook mediante POST y reenvía la respuesta al modelo.",
+            "description": "Herramientas basadas en webhooks que el LLM puede invocar. Defínelas una vez y adjúntalas a cualquiera de tus agentes. Al invocarse, ChatVia.ai envía los parámetros a tu webhook mediante POST y reenvía la respuesta al modelo.",
             "add": "Agregar función",
             "search_placeholder": "Buscar funciones",
             "empty": "Aún no hay funciones. Haz clic en \"Agregar función\" para crear la primera.",
@@ -108,10 +108,10 @@
             "breadcrumb": "Claves API",
             "title": "Claves API",
             "description": "Claves de cuenta para la {api_link} — crea y administra agentes, base de conocimiento, servidores MCP y funciones.",
-            "api_link": "API de Chatvia",
+            "api_link": "API de ChatVia.ai",
             "generate": "Generar clave",
             "empty_title": "Aún no hay claves API",
-            "empty_description": "Genera una para comenzar a usar la API de Chatvia.",
+            "empty_description": "Genera una para comenzar a usar la API de ChatVia.ai.",
             "never": "Nunca",
             "revoke_aria": "Revocar clave",
             "table": {
@@ -311,7 +311,11 @@
                 "anonymize": "Anonimizar visitantes tras (días)",
                 "anonymize_help": "Borra los datos del visitante en los chats con más de este número de días: nombre, correo electrónico, teléfono, dirección IP, cadena completa del navegador, ubicación y enlaces de página. Se conservan los mensajes y el tipo de dispositivo. Hasta {max} días.",
                 "keep_forever": "Conservar siempre",
-                "never": "Nunca"
+                "never": "Nunca",
+                "help": "Cuánto tiempo conserva ChatVia.ai tus datos antes de eliminarlos automáticamente. Acorta estos plazos por motivos de cumplimiento; deja un campo en blanco para usar el valor predeterminado."
+            },
+            "siem": {
+                "help": "Reenvía cada evento de seguridad a tu SIEM en tiempo real, firmado para que puedas verificar que proviene de ChatVia.ai."
             }
         }
     }

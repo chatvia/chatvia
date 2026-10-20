@@ -7,7 +7,7 @@ namespace Domain\Integration\Function\Enums;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * How Chatvia authenticates a function's outbound webhook call.
+ * How ChatVia.ai authenticates a function's outbound webhook call.
  */
 #[TypeScript]
 enum FunctionAuthType: string

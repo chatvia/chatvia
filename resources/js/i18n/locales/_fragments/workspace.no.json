@@ -42,7 +42,7 @@
         "functions": {
             "breadcrumb": "Funksjoner",
             "title": "Funksjoner",
-            "description": "Webhook-baserte verktøy som LLM-en kan kalle. Definer én gang, og legg til på hvilke som helst av agentene dine. Når den kalles, sender Chatvia parametrene til webhook-en din og videresender svaret tilbake til modellen.",
+            "description": "Webhook-baserte verktøy som LLM-en kan kalle. Definer én gang, og legg til på hvilke som helst av agentene dine. Når den kalles, sender ChatVia.ai parametrene til webhook-en din og videresender svaret tilbake til modellen.",
             "add": "Legg til funksjon",
             "search_placeholder": "Søk i funksjoner",
             "empty": "Ingen funksjoner ennå. Klikk «Legg til funksjon» for å opprette din første.",
@@ -108,10 +108,10 @@
             "breadcrumb": "API-nøkler",
             "title": "API-nøkler",
             "description": "Kontonøkler for {api_link} — opprett og administrer agenter, kunnskap, MCP-servere og funksjoner.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Generer nøkkel",
             "empty_title": "Ingen API-nøkler ennå",
-            "empty_description": "Generer én for å begynne å bruke Chatvia API.",
+            "empty_description": "Generer én for å begynne å bruke ChatVia.ai API.",
             "never": "Aldri",
             "revoke_aria": "Tilbakekall nøkkel",
             "table": {
@@ -311,7 +311,11 @@
                 "anonymize": "Anonymiser besøkende etter (dager)",
                 "anonymize_help": "Fjern opplysninger om besøkende fra chatter som er eldre enn så mange dager — navn, e-post, telefon, IP-adresse, full nettleserstreng, plassering og sidelenker. Meldinger og enhetstype beholdes. Opptil {max} dager.",
                 "keep_forever": "Behold for alltid",
-                "never": "Aldri"
+                "never": "Aldri",
+                "help": "Hvor lenge ChatVia.ai beholder dataene dine før de slettes automatisk. Forkort disse for samsvar — la et felt stå tomt for å bruke standardverdien."
+            },
+            "siem": {
+                "help": "Videresend alle sikkerhetshendelser til SIEM-en din i sanntid, signert slik at du kan bekrefte at de kom fra ChatVia.ai."
             }
         }
     }

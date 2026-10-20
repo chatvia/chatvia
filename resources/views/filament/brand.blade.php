@@ -1,5 +1,5 @@
 {{--
-    The admin panel's logo: the Chatvia mark on an ink tile (as in the
+    The admin panel's logo: the ChatVia.ai mark on an ink tile (as in the
     favicon), the brand name and an "Admin" tag. The mark uses the same paths
     as resources/js/components/AppLogoIcon.vue. Styled by the panel theme
     (resources/css/filament/admin/theme.css), so it follows dark mode.
@@ -12,6 +12,6 @@
             <circle cx="53" cy="30" r="6" />
         </svg>
     </span>
-    <span class="cv-brand__name">Chatvia</span>
+    <span class="cv-brand__name">ChatVia.ai</span>
     <span class="cv-brand__tag">Admin</span>
 </span>

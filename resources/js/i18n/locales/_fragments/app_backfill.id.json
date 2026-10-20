@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "Hubungkan nomor WhatsApp Business Anda agar agen ini dapat membalas pesan WhatsApp — Anda akan masuk dengan Facebook dan menyiapkannya dalam satu langkah.",
                     "connect_facebook": "Hubungkan dengan Facebook",
-                    "not_configured": "WhatsApp belum disiapkan pada instansi Chatvia ini. Silakan hubungi dukungan.",
+                    "not_configured": "WhatsApp belum disiapkan pada instansi ChatVia.ai ini. Silakan hubungi dukungan.",
                     "finish_number": "Tambahkan nomor telepon ke WhatsApp Business Account Anda di popup, lalu coba lagi.",
                     "connect_failed": "Kami tidak dapat membaca akun WhatsApp Anda dari Facebook. Silakan coba hubungkan lagi."
                 },

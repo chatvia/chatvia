@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "Connect your WhatsApp Business number so this agent can reply to WhatsApp messages — you'll sign in with Facebook and set it up in one step.",
                     "connect_facebook": "Connect with Facebook",
-                    "not_configured": "WhatsApp isn't set up on this Chatvia instance yet. Please contact support.",
+                    "not_configured": "WhatsApp isn't set up on this ChatVia.ai instance yet. Please contact support.",
                     "finish_number": "Add a phone number to your WhatsApp Business Account in the popup, then try again.",
                     "connect_failed": "We couldn't read your WhatsApp account from Facebook. Please try connecting again."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "This field is required.",
             "preview_show_form_again": "Show the form again",
             "preview_user_message": "Hi! Can you help me?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Forms show only in the Chat Widget and the Command Bar."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "Who's my most active user?",
         "starter_busiest_channel": "Which channel is busiest?",
         "starter_leads": "How many leads did I capture this cycle?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "Ask about your account in plain language — messages, users, channels, leads, and more. Charts render inline.",
         "composer_placeholder": "Ask about your account…",
         "disclaimer": "Answers come from your live analytics. This chat isn't saved."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "Functions",
             "title": "Functions",
-            "description": "Webhook-backed tools the LLM can call. Define once, attach to any of your agents. When invoked, Chatvia POSTs the parameters to your webhook and forwards the response back to the model.",
+            "description": "Webhook-backed tools the LLM can call. Define once, attach to any of your agents. When invoked, ChatVia.ai POSTs the parameters to your webhook and forwards the response back to the model.",
             "add": "Add function",
             "search_placeholder": "Search functions",
             "empty": "No functions yet. Click \"Add function\" to create your first one.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "API keys",
             "title": "API keys",
             "description": "Account keys for the {api_link} — create and manage agents, knowledge, MCP servers, and functions.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Generate key",
             "empty_title": "No API keys yet",
-            "empty_description": "Generate one to start using the Chatvia API.",
+            "empty_description": "Generate one to start using the ChatVia.ai API.",
             "never": "Never",
             "revoke_aria": "Revoke key",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "Data retention",
-                "help": "How long Chatvia keeps your data before deleting it automatically. Shorten these for compliance — leave a field blank to use the default.",
+                "help": "How long ChatVia.ai keeps your data before deleting it automatically. Shorten these for compliance — leave a field blank to use the default.",
                 "conversations": "Conversation history (days)",
                 "conversations_help": "Chat history is deleted after this many days. Up to {max} days.",
                 "audit": "Security audit log (days)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "SIEM webhook",
-                "help": "Forward every security event to your SIEM in real time, signed so you can verify it came from Chatvia.",
+                "help": "Forward every security event to your SIEM in real time, signed so you can verify it came from ChatVia.ai.",
                 "url": "Endpoint URL",
                 "secret": "Signing secret",
                 "secret_placeholder": "Leave blank to keep the current secret",

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/images/logo.svg" alt="Chatvia logo" width="96" height="96">
+  <img src="public/images/logo.svg" alt="ChatVia.ai logo" width="96" height="96">
 </p>
 
-<h1 align="center">Chatvia</h1>
+<h1 align="center">ChatVia.ai</h1>
 
 <p align="center">
   An open-source platform for AI chat agents that answer from your own knowledge base.
@@ -17,7 +17,7 @@
 
 ---
 
-Chatvia lets a team create AI agents, give them knowledge (files, web pages,
+ChatVia.ai lets a team create AI agents, give them knowledge (files, web pages,
 text and Q&A pairs), connect them to tools, and put them in
 front of people: on a hosted chat page, in a widget on any website, in a
 command bar, through messaging apps, or through a REST API. Answers come from
@@ -130,7 +130,7 @@ explains how to work on it.
 - **Redis** 7 or newer
 - **System tools** for some file types. They are all optional: without one,
   the app does its work itself, or refuses only the files it cannot read. So
-  Chatvia also runs on a host that does not let you install programs:
+  ChatVia.ai also runs on a host that does not let you install programs:
   - [pandoc](https://pandoc.org/): RTF files, EPUB books, and the page count of Word (`.docx`) files.
     Without it, RTF files cannot be uploaded. The app reads EPUB books itself.
   - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): old Word (`.doc`)
@@ -152,7 +152,7 @@ explains how to work on it.
   example Homebrew's `/opt/homebrew/bin` on a Mac), set its full path in the
   admin panel: **Settings → Platform → Programs**.
 
-**External AI services.** Chatvia calls AI models through OpenAI-compatible
+**External AI services.** ChatVia.ai calls AI models through OpenAI-compatible
 APIs. You need a chat provider and an embedding provider. The default
 configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
 and others) for chat and embeddings. Other chat providers: OpenRouter,
@@ -161,7 +161,7 @@ OpenRouter, OpenAI, Mistral and Google Gemini make embeddings with the same
 key.
 Reranking uses OpenRouter or Cohere. PDF, Word, slides and images are read by
 Mistral OCR or Azure Document Intelligence; without one of them, those files
-cannot be uploaded. Text is split into chunks inside Chatvia, by tokens or by
+cannot be uploaded. Text is split into chunks inside ChatVia.ai, by tokens or by
 characters (**Settings → Knowledge**). Website import uses Firecrawl. Each
 API key is entered once in the admin panel (**Settings → AI providers**), and
 the models in **Settings → AI models**, not in `.env`; see
@@ -516,7 +516,7 @@ SHAKOMAKO_VERSION=v3.0.0 npm run shakomako:build
 
 **Docker.** The `Dockerfile` has no default widget version, so you pass it in
 when you build the image. The release workflow (`.github/workflows/docker.yml`)
-does this for every Chatvia release, and shows the version in the job summary.
+does this for every ChatVia.ai release, and shows the version in the job summary.
 To build the image yourself:
 
 ```bash
@@ -554,7 +554,7 @@ without it.
    server must be ready before the release exists.
 2. In the widget repository, tag a release: `npm version X.Y.Z`, then
    `git push --follow-tags` (see its `VERSIONING.md`).
-3. Run `npm run shakomako:build` to use it on your machine. The next Chatvia
+3. Run `npm run shakomako:build` to use it on your machine. The next ChatVia.ai
    release image takes it by itself.
 
 ### Serve the widget
@@ -583,9 +583,9 @@ The installer asks a few questions and starts everything:
 curl -fsSL https://chatvia.ai/install.sh | bash
 ```
 
-On Linux it asks how to install Chatvia (macOS always uses Docker):
+On Linux it asks how to install ChatVia.ai (macOS always uses Docker):
 
-- **With Docker:** it checks Docker and runs Chatvia in containers. See
+- **With Docker:** it checks Docker and runs ChatVia.ai in containers. See
   [Run with Docker](https://chatvia.ai/docs/guide/installation/docker).
 - **Complete installation:** everything directly on a fresh Ubuntu 26.04
   LTS server, without Docker. It installs PostgreSQL 18 with the search
@@ -718,7 +718,7 @@ with systemd stands in for one:
    docker exec -it -e CHATVIA_REPO=/srv/chatvia.git chatvia-server bash /src/chatvia/install.sh --complete --version main --domain 127.0.0.1
    ```
 
-Chatvia then answers on <http://localhost:8088>. Run step 3's last command
+ChatVia.ai then answers on <http://localhost:8088>. Run step 3's last command
 again to test an upgrade; to deploy newer commits, clone them again first.
 Without a widget release, add `-e SHAKOMAKO_VERSION=main` to it. The frontend
 build needs about 3 GB of memory next to the running app: give Docker enough,
@@ -732,4 +732,4 @@ removes everything.
 - Found a security problem? Please report it privately; see
   [SECURITY.md](SECURITY.md).
 - Changes are listed in [CHANGELOG.md](CHANGELOG.md).
-- Chatvia is open-source software licensed under the [MIT License](LICENSE).
+- ChatVia.ai is open-source software licensed under the [MIT License](LICENSE).

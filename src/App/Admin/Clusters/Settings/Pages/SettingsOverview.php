@@ -117,7 +117,7 @@ class SettingsOverview extends Page
 
     /**
      * Asks the install to buy a license, which supports the developer and
-     * hides the "Powered by Chatvia" credit; thanks the install that has one.
+     * hides the "Powered by ChatVia.ai" credit; thanks the install that has one.
      */
     private function supportCallout(): Callout
     {
@@ -127,14 +127,14 @@ class SettingsOverview extends Page
 
         if ($license->allowsHidingCredit($key)) {
             return Callout::make('Thank you for your support')
-                ->description('Your license is active, licensed to '.$license->read($key)?->licensee.'. It helps me keep Chatvia free and open source.')
+                ->description('Your license is active, licensed to '.$license->read($key)?->licensee.'. It helps me keep ChatVia.ai free and open source.')
                 ->icon(Heroicon::OutlinedHeart)
                 ->success()
                 ->actions([$this->hireMeAction()]);
         }
 
-        return Callout::make('Support Chatvia')
-            ->description('Chatvia is free and open source. A license costs $399, one time. It supports my work on Chatvia and removes the "Powered by Chatvia" credit from your chats.')
+        return Callout::make('Support ChatVia.ai')
+            ->description('ChatVia.ai is free and open source. A license costs $399, one time. It supports my work on ChatVia.ai and removes the "Powered by ChatVia.ai" credit from your chats.')
             ->icon(Heroicon::OutlinedHeart)
             ->color('primary')
             ->extraAttributes(['class' => 'cv-link-dividers'])

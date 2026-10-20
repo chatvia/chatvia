@@ -1,6 +1,6 @@
 # Security Policy
 
-Thank you for helping keep Chatvia and its users safe.
+Thank you for helping keep ChatVia.ai and its users safe.
 
 ## Supported versions
 
@@ -16,7 +16,7 @@ releases and tags do not get security fixes.
 ## How to report a vulnerability
 
 **Please do not open a public issue, discussion or pull request for a security
-problem.** A public report puts every Chatvia installation at risk before a fix
+problem.** A public report puts every ChatVia.ai installation at risk before a fix
 is ready.
 
 Report it privately on GitHub instead:
@@ -57,5 +57,5 @@ spam, social engineering).
   disclosure date with you; our goal is to fix confirmed problems within 90
   days.
 
-Chatvia is maintained by a small team, so these times are goals, not promises.
+ChatVia.ai is maintained by a small team, so these times are goals, not promises.
 We take every report seriously.

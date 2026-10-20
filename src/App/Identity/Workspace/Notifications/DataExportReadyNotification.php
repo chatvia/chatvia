@@ -50,7 +50,7 @@ class DataExportReadyNotification extends InboxNotification
         $expiresAt = $this->export->expires_at?->toDayDateTimeString();
 
         return (new MailMessage)
-            ->subject(__('Your :app data export is ready', ['app' => 'Chatvia']))
+            ->subject(__('Your :app data export is ready', ['app' => 'ChatVia.ai']))
             ->greeting(__('Hi :name,', ['name' => $notifiable->name]))
             ->line(__('Your personal data export is ready to download.'))
             ->action(__('Download my data'), $downloadUrl)

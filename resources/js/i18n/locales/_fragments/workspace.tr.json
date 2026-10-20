@@ -9,8 +9,19 @@
                 "anonymize": "Ziyaretçileri anonimleştirme süresi (gün)",
                 "anonymize_help": "Bu kadar günden eski sohbetlerden ziyaretçi bilgilerini temizleyin — ad, e-posta, telefon, IP adresi, tam tarayıcı dizesi, konum ve sayfa bağlantıları. Mesajlar ve cihaz türü saklanır. En fazla {max} gün.",
                 "keep_forever": "Süresiz sakla",
-                "never": "Hiçbir zaman"
+                "never": "Hiçbir zaman",
+                "help": "ChatVia.ai'nin verilerinizi otomatik olarak silmeden önce ne kadar süre sakladığı. Uyumluluk için bunları kısaltın — varsayılanı kullanmak için bir alanı boş bırakın."
+            },
+            "siem": {
+                "help": "Her güvenlik olayını gerçek zamanlı olarak SIEM'inize iletin; ChatVia.ai'den geldiğini doğrulayabilmeniz için imzalanır."
             }
+        },
+        "functions": {
+            "description": "LLM'nin çağırabileceği Webhook tabanlı araçlar. Bir kez tanımlayın, asistanlarınızdan herhangi birine ekleyin. Çağrıldığında ChatVia.ai parametreleri Webhook'unuza POST eder ve yanıtı modele geri iletir."
+        },
+        "api_keys": {
+            "api_link": "ChatVia.ai API",
+            "empty_description": "ChatVia.ai API'sini kullanmaya başlamak için bir tane oluşturun."
         }
     }
 }

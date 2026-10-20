@@ -132,7 +132,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
         :enabledLanguages="enabledLanguages"
         :embedded="embedded"
     >
-        <Head title="Chatvia" />
+        <Head title="ChatVia.ai" />
         <template #content>
             <div class="relative flex h-full items-center justify-center px-4 py-8">
                 <div class="mx-auto -mt-8 w-full max-w-3xl">

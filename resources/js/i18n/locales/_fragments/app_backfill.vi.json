@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "Kết nối số WhatsApp Business của bạn để trợ lý AI này có thể trả lời các tin nhắn WhatsApp — bạn sẽ đăng nhập bằng Facebook và thiết lập trong một bước.",
                     "connect_facebook": "Kết nối với Facebook",
-                    "not_configured": "WhatsApp chưa được thiết lập trên phiên bản Chatvia này. Vui lòng liên hệ bộ phận hỗ trợ.",
+                    "not_configured": "WhatsApp chưa được thiết lập trên phiên bản ChatVia.ai này. Vui lòng liên hệ bộ phận hỗ trợ.",
                     "finish_number": "Thêm một số điện thoại vào WhatsApp Business Account của bạn trong cửa sổ bật lên, sau đó thử lại.",
                     "connect_failed": "Chúng tôi không thể đọc tài khoản WhatsApp của bạn từ Facebook. Vui lòng thử kết nối lại."
                 },

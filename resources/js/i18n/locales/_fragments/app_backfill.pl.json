@@ -24,7 +24,7 @@
                 "whatsapp": {
                     "oauth_intro": "Połącz swój numer WhatsApp Business, aby ten agent mógł odpowiadać na wiadomości WhatsApp — zalogujesz się przez Facebook i skonfigurujesz wszystko w jednym kroku.",
                     "connect_facebook": "Połącz przez Facebook",
-                    "not_configured": "WhatsApp nie jest jeszcze skonfigurowany w tej instancji Chatvia. Skontaktuj się z pomocą techniczną.",
+                    "not_configured": "WhatsApp nie jest jeszcze skonfigurowany w tej instancji ChatVia.ai. Skontaktuj się z pomocą techniczną.",
                     "finish_number": "Dodaj numer telefonu do swojego konta WhatsApp Business Account w wyskakującym oknie, a następnie spróbuj ponownie.",
                     "connect_failed": "Nie udało się odczytać Twojego konta WhatsApp z Facebooka. Spróbuj połączyć ponownie."
                 },

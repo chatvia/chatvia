@@ -152,7 +152,7 @@ class BuildWidgetSettingsAction
     {
         return new WidgetSettingsBrandingData(
             enabled: $enabled,
-            name: 'Powered by Chatvia',
+            name: 'Powered by ChatVia.ai',
             url: 'https://chatvia.ai',
             logo_url: asset('images/logo.svg'),
         );

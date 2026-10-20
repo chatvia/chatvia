@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "Bu asistanın WhatsApp mesajlarını yanıtlayabilmesi için WhatsApp Business numaranızı bağlayın — Facebook ile giriş yapacak ve tek adımda kuracaksınız.",
                     "connect_facebook": "Facebook ile bağlan",
-                    "not_configured": "WhatsApp bu Chatvia örneğinde henüz kurulmadı. Lütfen destekle iletişime geçin.",
+                    "not_configured": "WhatsApp bu ChatVia.ai örneğinde henüz kurulmadı. Lütfen destekle iletişime geçin.",
                     "finish_number": "Açılır pencerede WhatsApp Business Account hesabınıza bir telefon numarası ekleyin, ardından tekrar deneyin.",
                     "connect_failed": "WhatsApp hesabınızı Facebook'tan okuyamadık. Lütfen tekrar bağlanmayı deneyin."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "Bu alan zorunludur.",
             "preview_show_form_again": "Formu yeniden göster",
             "preview_user_message": "Merhaba! Bana yardımcı olabilir misiniz?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formlar yalnızca Sohbet Widget'ında ve Komut Çubuğu'nda görünür."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "En aktif kullanıcım kim?",
         "starter_busiest_channel": "Hangi kanal en yoğun?",
         "starter_leads": "Bu dönemde kaç potansiyel müşteri yakaladım?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "Hesabınız hakkında günlük dilde sorun — mesajlar, kullanıcılar, kanallar, potansiyel müşteriler ve daha fazlası. Grafikler satır içinde gösterilir.",
         "composer_placeholder": "Hesabınız hakkında sorun…",
         "disclaimer": "Yanıtlar canlı analitiğinizden gelir. Bu görüşme kaydedilmez."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "İşlevler",
             "title": "İşlevler",
-            "description": "LLM'nin çağırabileceği Webhook tabanlı araçlar. Bir kez tanımlayın, asistanlarınızdan herhangi birine ekleyin. Çağrıldığında Chatvia parametreleri Webhook'unuza POST eder ve yanıtı modele geri iletir.",
+            "description": "LLM'nin çağırabileceği Webhook tabanlı araçlar. Bir kez tanımlayın, asistanlarınızdan herhangi birine ekleyin. Çağrıldığında ChatVia.ai parametreleri Webhook'unuza POST eder ve yanıtı modele geri iletir.",
             "add": "İşlev ekle",
             "search_placeholder": "İşlevlerde ara",
             "empty": "Henüz işlev yok. İlkini oluşturmak için \"İşlev ekle\"ye tıklayın.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "API anahtarları",
             "title": "API anahtarları",
             "description": "{api_link} için hesap anahtarları — asistanlar, bilgi, MCP sunucuları ve işlevler oluşturun ve yönetin.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Anahtar oluştur",
             "empty_title": "Henüz API anahtarı yok",
-            "empty_description": "Chatvia API'sini kullanmaya başlamak için bir tane oluşturun.",
+            "empty_description": "ChatVia.ai API'sini kullanmaya başlamak için bir tane oluşturun.",
             "never": "Hiçbir zaman",
             "revoke_aria": "Anahtarı iptal et",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "Veri saklama",
-                "help": "Chatvia'nın verilerinizi otomatik olarak silmeden önce ne kadar süre sakladığı. Uyumluluk için bunları kısaltın — varsayılanı kullanmak için bir alanı boş bırakın.",
+                "help": "ChatVia.ai'nin verilerinizi otomatik olarak silmeden önce ne kadar süre sakladığı. Uyumluluk için bunları kısaltın — varsayılanı kullanmak için bir alanı boş bırakın.",
                 "conversations": "Görüşme geçmişi (gün)",
                 "conversations_help": "Sohbet geçmişi bu kadar gün sonra silinir. En fazla {max} gün.",
                 "audit": "Güvenlik denetim günlüğü (gün)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "SIEM Webhook",
-                "help": "Her güvenlik olayını gerçek zamanlı olarak SIEM'inize iletin; Chatvia'dan geldiğini doğrulayabilmeniz için imzalanır.",
+                "help": "Her güvenlik olayını gerçek zamanlı olarak SIEM'inize iletin; ChatVia.ai'den geldiğini doğrulayabilmeniz için imzalanır.",
                 "url": "Uç nokta URL",
                 "secret": "İmzalama gizli anahtarı",
                 "secret_placeholder": "Mevcut gizli anahtarı korumak için boş bırakın",

@@ -140,7 +140,7 @@ it('leads every panel page to the setup until it is done, then never again', fun
 it('warns that the app does not work before the setup is skipped', function (): void {
     setupPage($this->admin)
         ->mountAction('skip')
-        ->assertMountedActionModalSee(['Chatvia does not work without these', 'an AI provider for chat', 'an embedding service', 'agents cannot answer'])
+        ->assertMountedActionModalSee(['ChatVia.ai does not work without these', 'an AI provider for chat', 'an embedding service', 'agents cannot answer'])
         ->callMountedAction()
         ->assertRedirect(Filament::getUrl());
 

@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "이 에이전트가 WhatsApp 메시지에 답변할 수 있도록 WhatsApp Business 번호를 연결하세요 — Facebook으로 로그인하고 한 번에 설정합니다.",
                     "connect_facebook": "Facebook으로 연결",
-                    "not_configured": "이 Chatvia 인스턴스에는 아직 WhatsApp이 설정되지 않았습니다. 지원팀에 문의해 주세요.",
+                    "not_configured": "이 ChatVia.ai 인스턴스에는 아직 WhatsApp이 설정되지 않았습니다. 지원팀에 문의해 주세요.",
                     "finish_number": "팝업에서 WhatsApp Business Account에 전화번호를 추가한 다음 다시 시도하세요.",
                     "connect_failed": "Facebook에서 WhatsApp 계정을 읽을 수 없습니다. 다시 연결을 시도해 주세요."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "필수 입력 항목입니다.",
             "preview_show_form_again": "양식 다시 보기",
             "preview_user_message": "안녕하세요! 도와주실 수 있나요?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "양식은 채팅 위젯과 명령 바에서만 표시됩니다."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "가장 활발한 사용자는 누구인가요?",
         "starter_busiest_channel": "가장 바쁜 채널은 어디인가요?",
         "starter_leads": "이번 주기에 리드를 몇 명 확보했나요?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "메시지, 사용자, 채널, 리드 등 계정에 대해 일상 언어로 질문하세요. 차트가 인라인으로 표시됩니다.",
         "composer_placeholder": "계정에 대해 질문하세요…",
         "disclaimer": "답변은 실시간 분석 데이터에서 생성됩니다. 이 채팅은 저장되지 않습니다."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "함수",
             "title": "함수",
-            "description": "LLM이 호출할 수 있는 Webhook 기반 도구입니다. 한 번 정의하면 어떤 에이전트에든 연결할 수 있습니다. 호출되면 Chatvia가 매개변수를 Webhook으로 POST하고 응답을 모델에 다시 전달합니다.",
+            "description": "LLM이 호출할 수 있는 Webhook 기반 도구입니다. 한 번 정의하면 어떤 에이전트에든 연결할 수 있습니다. 호출되면 ChatVia.ai가 매개변수를 Webhook으로 POST하고 응답을 모델에 다시 전달합니다.",
             "add": "함수 추가",
             "search_placeholder": "함수 검색",
             "empty": "아직 함수가 없습니다. \"함수 추가\"를 클릭해 첫 번째 함수를 만드세요.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "API 키",
             "title": "API 키",
             "description": "{api_link}용 계정 키 — 에이전트, 지식, MCP 서버, 함수를 만들고 관리하세요.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "키 생성",
             "empty_title": "아직 API 키가 없습니다",
-            "empty_description": "하나를 생성해 Chatvia API를 사용하기 시작하세요.",
+            "empty_description": "하나를 생성해 ChatVia.ai API를 사용하기 시작하세요.",
             "never": "없음",
             "revoke_aria": "키 취소",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "데이터 보존",
-                "help": "Chatvia가 데이터를 자동으로 삭제하기 전까지 보관하는 기간입니다. 규정 준수를 위해 이 값을 줄이세요 — 기본값을 사용하려면 필드를 비워 두세요.",
+                "help": "ChatVia.ai가 데이터를 자동으로 삭제하기 전까지 보관하는 기간입니다. 규정 준수를 위해 이 값을 줄이세요 — 기본값을 사용하려면 필드를 비워 두세요.",
                 "conversations": "대화 기록 (일)",
                 "conversations_help": "채팅 기록은 이 일수가 지나면 삭제됩니다. 최대 {max}일입니다.",
                 "audit": "보안 감사 로그 (일)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "SIEM Webhook",
-                "help": "모든 보안 이벤트를 실시간으로 SIEM에 전달하며, Chatvia에서 전송되었음을 확인할 수 있도록 서명됩니다.",
+                "help": "모든 보안 이벤트를 실시간으로 SIEM에 전달하며, ChatVia.ai에서 전송되었음을 확인할 수 있도록 서명됩니다.",
                 "url": "엔드포인트 URL",
                 "secret": "서명 시크릿",
                 "secret_placeholder": "현재 시크릿을 유지하려면 비워 두세요",

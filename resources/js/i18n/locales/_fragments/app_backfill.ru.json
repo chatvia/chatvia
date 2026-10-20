@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "Подключите ваш номер WhatsApp Business, чтобы этот агент мог отвечать на сообщения в WhatsApp — вы войдёте через Facebook и настроите всё в один шаг.",
                     "connect_facebook": "Подключить через Facebook",
-                    "not_configured": "WhatsApp ещё не настроен на этом экземпляре Chatvia. Обратитесь в поддержку.",
+                    "not_configured": "WhatsApp ещё не настроен на этом экземпляре ChatVia.ai. Обратитесь в поддержку.",
                     "finish_number": "Добавьте номер телефона в свой WhatsApp Business Account во всплывающем окне, затем повторите попытку.",
                     "connect_failed": "Не удалось получить данные вашего аккаунта WhatsApp из Facebook. Попробуйте подключиться ещё раз."
                 },

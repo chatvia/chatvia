@@ -12,7 +12,7 @@ return [
     | Powered By Credit
     |--------------------------------------------------------------------------
     |
-    | Whether the "Powered by Chatvia" credit, linked to https://chatvia.ai,
+    | Whether the "Powered by ChatVia.ai" credit, linked to https://chatvia.ai,
     | shows under hosted chats and widgets. It is switched off in the admin
     | panel (Settings → Branding), and only with a license key (see License
     | below); the value here is the default.
@@ -38,7 +38,7 @@ return [
     | `public_key` checks the keys. It is fixed here, never in .env or the
     | admin panel, because whoever sets it could sign their own keys. While
     | it is empty, no key is valid. `buy_url`, `manage_url` and `api_url`
-    | are on Chatvia's own site: set CHATVIA_URI (no trailing slash) only to
+    | are on ChatVia.ai's own site: set CHATVIA_URI (no trailing slash) only to
     | test against a local copy of it.
     |
     */

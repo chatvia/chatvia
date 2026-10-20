@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "Conecta tu número de WhatsApp Business para que este agente pueda responder a los mensajes de WhatsApp: inicia sesión con Facebook y configúralo en un solo paso.",
                     "connect_facebook": "Conectar con Facebook",
-                    "not_configured": "WhatsApp aún no está configurado en esta instancia de Chatvia. Por favor, contacta con soporte.",
+                    "not_configured": "WhatsApp aún no está configurado en esta instancia de ChatVia.ai. Por favor, contacta con soporte.",
                     "finish_number": "Añade un número de teléfono a tu WhatsApp Business Account en la ventana emergente y vuelve a intentarlo.",
                     "connect_failed": "No pudimos leer tu cuenta de WhatsApp desde Facebook. Por favor, intenta conectar de nuevo."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "Este campo es obligatorio.",
             "preview_show_form_again": "Mostrar el formulario de nuevo",
             "preview_user_message": "¡Hola! ¿Me puedes ayudar?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Los formularios solo se muestran en el widget de chat y en la barra de comandos."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "¿Quién es mi usuario más activo?",
         "starter_busiest_channel": "¿Qué canal tiene más actividad?",
         "starter_leads": "¿Cuántos leads capturé en este ciclo?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "Pregunta sobre tu cuenta en lenguaje natural — mensajes, usuarios, canales, leads y más. Los gráficos se muestran en línea.",
         "composer_placeholder": "Pregunta sobre tu cuenta…",
         "disclaimer": "Las respuestas provienen de tus análisis en tiempo real. Esta conversación no se guarda."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "Funciones",
             "title": "Funciones",
-            "description": "Herramientas basadas en webhooks que el LLM puede invocar. Defínelas una vez y adjúntalas a cualquiera de tus agentes. Al invocarse, Chatvia envía los parámetros a tu webhook mediante POST y reenvía la respuesta al modelo.",
+            "description": "Herramientas basadas en webhooks que el LLM puede invocar. Defínelas una vez y adjúntalas a cualquiera de tus agentes. Al invocarse, ChatVia.ai envía los parámetros a tu webhook mediante POST y reenvía la respuesta al modelo.",
             "add": "Agregar función",
             "search_placeholder": "Buscar funciones",
             "empty": "Aún no hay funciones. Haz clic en \"Agregar función\" para crear la primera.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "Claves API",
             "title": "Claves API",
             "description": "Claves de cuenta para la {api_link} — crea y administra agentes, base de conocimiento, servidores MCP y funciones.",
-            "api_link": "API de Chatvia",
+            "api_link": "API de ChatVia.ai",
             "generate": "Generar clave",
             "empty_title": "Aún no hay claves API",
-            "empty_description": "Genera una para comenzar a usar la API de Chatvia.",
+            "empty_description": "Genera una para comenzar a usar la API de ChatVia.ai.",
             "never": "Nunca",
             "revoke_aria": "Revocar clave",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "Retención de datos",
-                "help": "Cuánto tiempo conserva Chatvia tus datos antes de eliminarlos automáticamente. Acorta estos plazos por motivos de cumplimiento; deja un campo en blanco para usar el valor predeterminado.",
+                "help": "Cuánto tiempo conserva ChatVia.ai tus datos antes de eliminarlos automáticamente. Acorta estos plazos por motivos de cumplimiento; deja un campo en blanco para usar el valor predeterminado.",
                 "conversations": "Historial de conversaciones (días)",
                 "conversations_help": "El historial de chat se elimina tras este número de días. Hasta {max} días.",
                 "audit": "Registro de auditoría de seguridad (días)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "Webhook SIEM",
-                "help": "Reenvía cada evento de seguridad a tu SIEM en tiempo real, firmado para que puedas verificar que proviene de Chatvia.",
+                "help": "Reenvía cada evento de seguridad a tu SIEM en tiempo real, firmado para que puedas verificar que proviene de ChatVia.ai.",
                 "url": "URL del endpoint",
                 "secret": "Secreto de firma",
                 "secret_placeholder": "Déjalo en blanco para mantener el secreto actual",

@@ -39,7 +39,7 @@ use Override;
 #[Name('Account Analytics')]
 #[Version('1.0.0')]
 #[Instructions(<<<'TXT'
-Answer the workspace owner's questions about their own Chatvia account in
+Answer the workspace owner's questions about their own ChatVia.ai account in
 numbers. Every tool takes a `period` (default "this_month") and returns both a
 short text answer and exact figures.
 

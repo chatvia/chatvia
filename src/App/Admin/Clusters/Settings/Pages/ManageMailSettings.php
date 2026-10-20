@@ -47,7 +47,7 @@ class ManageMailSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'How Chatvia sends email: SMTP, Amazon SES, Mailgun, Postmark, Resend and more.';
+        return 'How ChatVia.ai sends email: SMTP, Amazon SES, Mailgun, Postmark, Resend and more.';
     }
 
     public static function overviewGroup(): string

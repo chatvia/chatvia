@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "WhatsApp Business の電話番号を接続すると、このエージェントが WhatsApp のメッセージに返信できるようになります。Facebook でサインインすれば、ワンステップで設定できます。",
                     "connect_facebook": "Facebook で接続",
-                    "not_configured": "この Chatvia インスタンスでは WhatsApp がまだ設定されていません。サポートにお問い合わせください。",
+                    "not_configured": "この ChatVia.ai インスタンスでは WhatsApp がまだ設定されていません。サポートにお問い合わせください。",
                     "finish_number": "ポップアップで WhatsApp Business Account に電話番号を追加してから、もう一度お試しください。",
                     "connect_failed": "Facebook から WhatsApp アカウントを読み取れませんでした。もう一度接続してください。"
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "この項目は必須です。",
             "preview_show_form_again": "フォームをもう一度表示",
             "preview_user_message": "こんにちは！手伝ってもらえますか？",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "フォームはチャットウィジェットとコマンドバーにのみ表示されます。"
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "最もアクティブなユーザーは誰？",
         "starter_busiest_channel": "最も利用の多いチャネルは？",
         "starter_leads": "今回のサイクルで獲得したリード数は？",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "メッセージ、ユーザー、チャネル、リードなど、アカウントについて平易な言葉で質問できます。グラフはインラインで表示されます。",
         "composer_placeholder": "アカウントについて質問…",
         "disclaimer": "回答はライブ分析データに基づいています。このチャットは保存されません。"
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "関数",
             "title": "関数",
-            "description": "LLM が呼び出せる Webhook ベースのツールです。一度定義すれば、任意のエージェントに添付できます。呼び出されると、Chatvia がパラメータを Webhook に POST し、レスポンスをモデルに転送します。",
+            "description": "LLM が呼び出せる Webhook ベースのツールです。一度定義すれば、任意のエージェントに添付できます。呼び出されると、ChatVia.ai がパラメータを Webhook に POST し、レスポンスをモデルに転送します。",
             "add": "関数を追加",
             "search_placeholder": "関数を検索",
             "empty": "関数はまだありません。「関数を追加」をクリックして最初の関数を作成してください。",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "API キー",
             "title": "API キー",
             "description": "{api_link} 用のアカウントキーです — エージェント、ナレッジ、MCP サーバー、関数を作成・管理できます。",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "キーを生成",
             "empty_title": "API キーはまだありません",
-            "empty_description": "キーを生成して Chatvia API の利用を開始します。",
+            "empty_description": "キーを生成して ChatVia.ai API の利用を開始します。",
             "never": "なし",
             "revoke_aria": "キーを失効",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "データ保持",
-                "help": "Chatviaがデータを自動的に削除するまで保持する期間です。コンプライアンスのために短縮できます — フィールドを空白のままにするとデフォルトが使用されます。",
+                "help": "ChatVia.aiがデータを自動的に削除するまで保持する期間です。コンプライアンスのために短縮できます — フィールドを空白のままにするとデフォルトが使用されます。",
                 "conversations": "会話履歴（日数）",
                 "conversations_help": "チャット履歴はこの日数の経過後に削除されます。最大{max}日まで。",
                 "audit": "セキュリティ監査ログ（日数）",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "SIEM Webhook",
-                "help": "すべてのセキュリティイベントをリアルタイムでSIEMに転送します。署名付きのため、Chatviaから送信されたことを検証できます。",
+                "help": "すべてのセキュリティイベントをリアルタイムでSIEMに転送します。署名付きのため、ChatVia.aiから送信されたことを検証できます。",
                 "url": "エンドポイントURL",
                 "secret": "署名シークレット",
                 "secret_placeholder": "現在のシークレットを維持する場合は空白のまま",

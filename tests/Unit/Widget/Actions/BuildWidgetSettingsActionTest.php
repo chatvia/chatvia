@@ -92,7 +92,7 @@ it('builds the powered-by credit', function (): void {
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 
     expect($settings->branding->enabled)->toBeTrue()
-        ->and($settings->branding->name)->toBe('Powered by Chatvia')
+        ->and($settings->branding->name)->toBe('Powered by ChatVia.ai')
         ->and($settings->branding->url)->toBe('https://chatvia.ai')
         ->and($settings->chatvia_branding)->toBeTrue();
 });

@@ -286,7 +286,7 @@
                 "whatsapp": {
                     "oauth_intro": "Anslut ditt WhatsApp Business-nummer så att den här agenten kan svara på WhatsApp-meddelanden — du loggar in med Facebook och ställer in allt i ett steg.",
                     "connect_facebook": "Anslut med Facebook",
-                    "not_configured": "WhatsApp är inte konfigurerat på den här Chatvia-instansen ännu. Kontakta supporten.",
+                    "not_configured": "WhatsApp är inte konfigurerat på den här ChatVia.ai-instansen ännu. Kontakta supporten.",
                     "finish_number": "Lägg till ett telefonnummer i ditt WhatsApp Business Account i popup-fönstret och försök sedan igen.",
                     "connect_failed": "Vi kunde inte läsa ditt WhatsApp-konto från Facebook. Försök ansluta igen."
                 },
@@ -2296,7 +2296,7 @@
             "preview_required": "Det här fältet är obligatoriskt.",
             "preview_show_form_again": "Visa formuläret igen",
             "preview_user_message": "Hej! Kan du hjälpa mig?",
-            "preview_powered_by": "Powered by Chatvia",
+            "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formulär visas bara i chattwidgeten och kommandofältet."
         },
         "submissions": {
@@ -2888,7 +2888,7 @@
         "starter_active_user": "Vem är min mest aktiva användare?",
         "starter_busiest_channel": "Vilken kanal är mest aktiv?",
         "starter_leads": "Hur många leads samlade jag in den här perioden?",
-        "logo_alt": "Chatvia",
+        "logo_alt": "ChatVia.ai",
         "subtitle": "Ställ frågor om ditt konto på vanlig svenska — meddelanden, användare, kanaler, leads och mer. Diagram visas direkt i chatten.",
         "composer_placeholder": "Fråga om ditt konto…",
         "disclaimer": "Svaren hämtas från din live-analys. Den här chatten sparas inte."
@@ -2937,7 +2937,7 @@
         "functions": {
             "breadcrumb": "Funktioner",
             "title": "Funktioner",
-            "description": "Webhook-baserade verktyg som LLM:en kan anropa. Definiera en gång och bifoga till valfri agent. Vid anrop skickar Chatvia parametrarna till din webhook och vidarebefordrar svaret tillbaka till modellen.",
+            "description": "Webhook-baserade verktyg som LLM:en kan anropa. Definiera en gång och bifoga till valfri agent. Vid anrop skickar ChatVia.ai parametrarna till din webhook och vidarebefordrar svaret tillbaka till modellen.",
             "add": "Lägg till funktion",
             "search_placeholder": "Sök funktioner",
             "empty": "Inga funktioner än. Klicka på \"Lägg till funktion\" för att skapa din första.",
@@ -3004,10 +3004,10 @@
             "breadcrumb": "API-nycklar",
             "title": "API-nycklar",
             "description": "Kontonycklar för {api_link} — skapa och hantera agenter, kunskapsbaser, MCP-servrar och funktioner.",
-            "api_link": "Chatvia API",
+            "api_link": "ChatVia.ai API",
             "generate": "Generera nyckel",
             "empty_title": "Inga API-nycklar än",
-            "empty_description": "Generera en för att börja använda Chatvia API.",
+            "empty_description": "Generera en för att börja använda ChatVia.ai API.",
             "never": "Aldrig",
             "revoke_aria": "Återkalla nyckel",
             "table": {
@@ -3247,7 +3247,7 @@
             },
             "retention": {
                 "title": "Datalagring",
-                "help": "Hur länge Chatvia behåller din data innan den raderas automatiskt. Korta ner dessa för efterlevnad — lämna ett fält tomt för att använda standardvärdet.",
+                "help": "Hur länge ChatVia.ai behåller din data innan den raderas automatiskt. Korta ner dessa för efterlevnad — lämna ett fält tomt för att använda standardvärdet.",
                 "conversations": "Konversationshistorik (dagar)",
                 "conversations_help": "Chatthistorik raderas efter så här många dagar. Upp till {max} dagar.",
                 "audit": "Säkerhetsgranskningslogg (dagar)",
@@ -3264,7 +3264,7 @@
             },
             "siem": {
                 "title": "SIEM-webhook",
-                "help": "Vidarebefordra varje säkerhetshändelse till ditt SIEM i realtid, signerad så att du kan verifiera att den kom från Chatvia.",
+                "help": "Vidarebefordra varje säkerhetshändelse till ditt SIEM i realtid, signerad så att du kan verifiera att den kom från ChatVia.ai.",
                 "url": "Endpoint-URL",
                 "secret": "Signeringshemlighet",
                 "secret_placeholder": "Lämna tomt för att behålla den nuvarande hemligheten",

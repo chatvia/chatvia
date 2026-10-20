@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "이 에이전트가 WhatsApp 메시지에 답변할 수 있도록 WhatsApp Business 번호를 연결하세요 — Facebook으로 로그인하고 한 번에 설정합니다.",
                     "connect_facebook": "Facebook으로 연결",
-                    "not_configured": "이 Chatvia 인스턴스에는 아직 WhatsApp이 설정되지 않았습니다. 지원팀에 문의해 주세요.",
+                    "not_configured": "이 ChatVia.ai 인스턴스에는 아직 WhatsApp이 설정되지 않았습니다. 지원팀에 문의해 주세요.",
                     "finish_number": "팝업에서 WhatsApp Business Account에 전화번호를 추가한 다음 다시 시도하세요.",
                     "connect_failed": "Facebook에서 WhatsApp 계정을 읽을 수 없습니다. 다시 연결을 시도해 주세요."
                 },

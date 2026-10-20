@@ -25,7 +25,7 @@
                 "whatsapp": {
                     "oauth_intro": "شماره WhatsApp Business خود را متصل کنید تا این عامل بتواند به پیام‌های WhatsApp پاسخ دهد — با Facebook وارد می‌شوید و همه چیز را در یک مرحله تنظیم می‌کنید.",
                     "connect_facebook": "اتصال با Facebook",
-                    "not_configured": "WhatsApp هنوز روی این نمونه Chatvia تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید.",
+                    "not_configured": "WhatsApp هنوز روی این نمونه ChatVia.ai تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید.",
                     "finish_number": "در پنجره بازشو یک شماره تلفن به WhatsApp Business Account خود اضافه کنید و سپس دوباره تلاش کنید.",
                     "connect_failed": "نتوانستیم حساب WhatsApp شما را از Facebook بخوانیم. لطفاً دوباره برای اتصال تلاش کنید."
                 },

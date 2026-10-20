@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Support\License\LicenseKey;
 
 /**
- * Settings → Branding: the "Powered by Chatvia" credit, and a link to hire
+ * Settings → Branding: the "Powered by ChatVia.ai" credit, and a link to hire
  * the developer. Hiding the credit needs a license key activated for this
  * install's domain ({@see CreditLicense}): the page activates a new key at
  * chatvia.ai before it saves it ({@see LicenseActivation}), and does not
@@ -43,7 +43,7 @@ class ManageBrandSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'The "Powered by Chatvia" credit, and help from the developer.';
+        return 'The "Powered by ChatVia.ai" credit, and help from the developer.';
     }
 
     public static function overviewGroup(): string
@@ -84,17 +84,17 @@ class ManageBrandSettings extends AdminSettingsPage
                 $this->secret('license_key', 'License key', 'Paste the whole key from your email. Saving it activates the license at chatvia.ai.', required: false),
                 $this->licenseCallout(),
             ])->summary(fn (): string => $this->summary()),
-            SettingsCard::make('hire_me', 'Hire me', 'Custom features, setup and support from the developer of Chatvia.', Heroicon::OutlinedBriefcase, fn (): array => [
+            SettingsCard::make('hire_me', 'Hire me', 'Custom features, setup and support from the developer of ChatVia.ai.', Heroicon::OutlinedBriefcase, fn (): array => [
                 $this->hireMeCallout(),
             ])->summary(fn (): string => 'mayahi.net'),
         ];
     }
 
-    /** The developer's services, for installs that want help with Chatvia. */
+    /** The developer's services, for installs that want help with ChatVia.ai. */
     private function hireMeCallout(): Callout
     {
-        return Callout::make('Need help with Chatvia?')
-            ->description('I build Chatvia. I can add custom features, set it up on your servers, connect it to your own systems, and help your team run it.')
+        return Callout::make('Need help with ChatVia.ai?')
+            ->description('I build ChatVia.ai. I can add custom features, set it up on your servers, connect it to your own systems, and help your team run it.')
             ->icon(Heroicon::OutlinedSparkles)
             ->color('gray')
             ->actions([
@@ -109,7 +109,7 @@ class ManageBrandSettings extends AdminSettingsPage
     protected function forgetDescription(string $property, string $label): string
     {
         return $property === 'license_key'
-            ? 'The "Powered by Chatvia" credit shows again under every hosted chat and widget. The key is revoked at chatvia.ai, so you can use it on another install.'
+            ? 'The "Powered by ChatVia.ai" credit shows again under every hosted chat and widget. The key is revoked at chatvia.ai, so you can use it on another install.'
             : parent::forgetDescription($property, $label);
     }
 

@@ -7,7 +7,7 @@ namespace App\Admin\Settings;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
- * Whether the "Powered by Chatvia" credit shows under hosted chats and
+ * Whether the "Powered by ChatVia.ai" credit shows under hosted chats and
  * widgets, and the license key that allows hiding it ({@see CreditLicense}).
  */
 class BrandSettings extends AdminSettings

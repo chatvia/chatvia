@@ -1506,38 +1506,56 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
-/* A row of dots from each step down to the next: grey ahead, indigo once
- * the step is done, and moving gently down from the current step. */
+/* A thin rounded rail from each step down to the next, with a small gap
+ * at each mark: grey ahead, the brand colour once the step is done, and
+ * under the current step a fade from the brand colour into grey, with a
+ * soft light gliding down it. */
 @media (min-width: 48rem) {
     .cv-setup-wizard .fi-sc-wizard-header-step:not(:last-child)::after {
-        --cv-step-dot: var(--cv-border-strong);
-
         content: '';
         position: absolute;
-        inset-inline-start: calc(0.625rem + 0.875rem - 2px);
-        top: calc(0.5rem + 1.75rem + 0.125rem);
-        bottom: calc(-0.75rem + 0.125rem);
-        width: 4px;
-        background-image: radial-gradient(circle at center, var(--cv-step-dot) 1.5px, transparent 2px);
-        background-position: center 0;
-        background-repeat: repeat-y;
-        background-size: 4px 7px;
+        inset-inline-start: calc(0.625rem + 0.875rem - 1px);
+        top: calc(0.5rem + 1.75rem + 0.3125rem);
+        bottom: calc(-0.75rem + 0.3125rem);
+        width: 2px;
+        border-radius: 999px;
+        background-color: var(--cv-border);
+        transition: background-color 300ms ease;
     }
 
     .cv-setup-wizard .fi-sc-wizard-header-step.fi-completed:not(:last-child)::after {
-        --cv-step-dot: var(--cv-primary);
+        background-color: transparent;
+        background-image: linear-gradient(to bottom, var(--cv-primary), color-mix(in oklab, var(--cv-primary) 70%, var(--cv-card)));
     }
 
     .cv-setup-wizard .fi-sc-wizard-header-step.fi-active:not(:last-child)::after {
-        --cv-step-dot: color-mix(in oklab, var(--cv-primary) 55%, var(--cv-border-strong));
-
-        animation: cv-step-dots 1.4s linear infinite;
+        background-color: transparent;
+        background-image:
+            linear-gradient(to bottom, transparent, color-mix(in oklab, var(--cv-primary) 85%, white), transparent),
+            linear-gradient(to bottom, color-mix(in oklab, var(--cv-primary) 80%, var(--cv-card)), var(--cv-border) 85%);
+        background-repeat: no-repeat;
+        background-size:
+            100% 45%,
+            100% 100%;
+        background-position:
+            0 -120%,
+            0 0;
+        animation: cv-step-rail 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
     }
 }
 
-@keyframes cv-step-dots {
-    to {
-        background-position: center 7px;
+@keyframes cv-step-rail {
+    0% {
+        background-position:
+            0 -120%,
+            0 0;
+    }
+
+    70%,
+    100% {
+        background-position:
+            0 220%,
+            0 0;
     }
 }
 

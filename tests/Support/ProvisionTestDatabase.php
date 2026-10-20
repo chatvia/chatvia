@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\SetupStatus;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -58,12 +59,19 @@ class ProvisionTestDatabase
 
     /**
      * Most tests use the admin panel as an install that finished its setup;
-     * the setup's own tests clear the status first.
+     * the setup's own tests clear the status first. The program paths the
+     * migration detected are cleared too, so a test does not depend on what
+     * this machine has installed.
      */
     protected function markSetupCompleted(): void
     {
         $platform = app(PlatformSettings::class);
         $platform->setup_status = SetupStatus::Completed->value;
+
+        foreach (ServerProgram::cases() as $program) {
+            $platform->{$program->property()} = null;
+        }
+
         $platform->save();
     }
 

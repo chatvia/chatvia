@@ -68,6 +68,7 @@ use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Dispatch\RoutingToolDispatcher;
 use Domain\Knowledge\Document\Contracts\PdfInspector;
+use Domain\Knowledge\Document\Conversion\BuiltinPdfInspector;
 use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
@@ -127,6 +128,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Spatie\LaravelSettings\Events\SavingSettings;
+use Support\Executable;
 
 /**
  * Domain wiring: observers, DI bindings against contracts (AI providers,
@@ -161,9 +163,12 @@ class DomainServiceProvider extends ServiceProvider
         // to drive canned tool-call streams without a live upstream.
         $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
 
-        // PdfInfo shells out to poppler; the contract is the seam tests fake
-        // for consumers outside Knowledge (chat attachments, upload rules).
-        $this->app->bind(PdfInspector::class, PdfInfo::class);
+        // poppler's pdfinfo when this server has it, otherwise the PHP reader
+        // (hosts that cannot install programs). Decided per resolve, so a
+        // path saved in Settings → Platform → Programs applies at once.
+        $this->app->bind(PdfInspector::class, fn ($app): PdfInspector => Executable::exists((string) config('services.bin.pdfinfo'))
+            ? $app->make(PdfInfo::class)
+            : $app->make(BuiltinPdfInspector::class));
 
         $this->registerAiServices();
 

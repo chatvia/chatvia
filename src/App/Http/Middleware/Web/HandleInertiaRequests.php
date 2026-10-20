@@ -101,13 +101,14 @@ class HandleInertiaRequests extends Middleware
                 'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
             ] : [],
             // The knowledge file types this install accepts (Settings →
-            // Ingestion), each with its extensions, for the upload pages and
-            // the sources menu. An object even when empty.
+            // Ingestion), each with the extensions this server can read, for
+            // the upload pages and the sources menu. An object even when empty.
             // Whether websites can be imported as knowledge: the import
             // service is set up (Settings → Knowledge → Website import).
             'canImportWebsites' => $user && filled(config('services.firecrawl.key')),
             'knowledgeFileTypes' => $user ? (object) collect(KnowledgeFileType::enabled())
-                ->mapWithKeys(fn (KnowledgeFileType $type): array => [$type->value => $type->extensions()])
+                ->mapWithKeys(fn (KnowledgeFileType $type): array => [$type->value => $type->readableExtensions()])
+                ->filter()
                 ->all() : (object) [],
         ];
     }

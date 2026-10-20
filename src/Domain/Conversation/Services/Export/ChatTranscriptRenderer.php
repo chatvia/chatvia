@@ -40,7 +40,9 @@ class ChatTranscriptRenderer
     }
 
     /**
-     * The messages as the PDF view lays them out.
+     * The messages as the PDF view lays them out. An image that is not built
+     * in (a `data:` URL) becomes its alt text: the PDF maker loads nothing,
+     * so it would only show as a broken image.
      *
      * @param  list<MessageData>  $messages
      * @return list<array{role: string, html: string}>
@@ -49,7 +51,7 @@ class ChatTranscriptRenderer
     {
         return array_values(array_map(fn (MessageData $message): array => [
             'role' => $message->role->value,
-            'html' => $this->html($message),
+            'html' => $this->withoutRemoteImages($this->html($message)),
         ], $messages));
     }
 
@@ -60,6 +62,19 @@ class ChatTranscriptRenderer
     private function html(MessageData $message): string
     {
         return $this->markdown->convert($message->content)->getContent();
+    }
+
+    private function withoutRemoteImages(string $html): string
+    {
+        return (string) preg_replace_callback('/<img\b[^>]*>/i', function (array $tag): string {
+            if (preg_match('/\ssrc\s*=\s*"\s*data:/i', $tag[0]) === 1) {
+                return $tag[0];
+            }
+
+            $alt = preg_match('/\salt\s*=\s*"([^"]*)"/i', $tag[0], $match) === 1 ? html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5) : '';
+
+            return e($alt);
+        }, $html);
     }
 
     /**

@@ -12,8 +12,10 @@ use Domain\Llm\Enums\AiProvider;
  * key off the file extension through SourceFileTypes.
  */
 beforeEach(function (): void {
-    // PDF, Word, slides and images need a document reader.
+    // PDF, Word, slides and images need a document reader; RTF and the old
+    // office files their programs (any program file will do).
     connectAiProviders(AiProvider::Mistral);
+    config(['services.bin.pandoc' => '/bin/sh', 'services.bin.catdoc' => '/bin/sh', 'services.bin.catppt' => '/bin/sh']);
 });
 
 it('accepts every document extension the ingestion reads while every type is on', function (): void {
@@ -75,4 +77,18 @@ it('maps audio and video MIME types to their category and rejects unknown ones',
         ->and(SourceFileTypes::categoryOfMimeType('video/mp4'))->toBe(KnowledgeFileType::Video)
         ->and(fn (): string => SourceFileTypes::categoryOfMimeType('application/x-unknown'))
         ->toThrow(RuntimeException::class, 'Unsupported mime type');
+});
+
+it('leaves out the formats whose program this server lacks', function (): void {
+    config(['services.bin.catdoc' => '/nowhere/catdoc', 'services.bin.pandoc' => '/nowhere/pandoc']);
+
+    expect(SourceFileTypes::isSupported('minutes.doc'))->toBeFalse()
+        ->and(SourceFileTypes::isSupported('letter.rtf'))->toBeFalse()
+        // The app reads the ebooks itself.
+        ->and(SourceFileTypes::isSupported('book.epub'))->toBeTrue()
+        ->and(SourceFileTypes::isSupported('book.fb2'))->toBeTrue()
+        ->and(SourceFileTypes::isSupported('report.docx'))->toBeTrue()
+        ->and(SourceFileTypes::isSupported('slides.ppt'))->toBeTrue()
+        ->and(KnowledgeFileType::Word->readableExtensions())->toBe(['docx'])
+        ->and(KnowledgeFileType::Audio->readableExtensions())->toBe(KnowledgeFileType::Audio->extensions());
 });

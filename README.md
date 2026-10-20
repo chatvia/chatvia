@@ -128,18 +128,25 @@ explains how to work on it.
   (`SEARCH_LEXICAL_DRIVER=auto` picks this up). The easiest way is the
   `ghcr.io/chatvia/postgres` Docker image (see below).
 - **Redis** 7 or newer
-- **System tools** for some file types. You only need the ones for the
-  features you use:
-  - [pandoc](https://pandoc.org/): EPUB, FB2 and RTF files, and the page count of Word (`.docx`) files
+- **System tools** for some file types. They are all optional: without one,
+  the app does its work itself, or refuses only the files it cannot read. So
+  Chatvia also runs on a host that does not let you install programs:
+  - [pandoc](https://pandoc.org/): RTF files, EPUB books, and the page count of Word (`.docx`) files.
+    Without it, RTF files cannot be uploaded. The app reads EPUB books itself.
   - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): old Word (`.doc`)
-    and PowerPoint (`.ppt`) files. The document readers (Mistral OCR, Azure) do not read them.
-    PowerPoint (`.pptx`) and Excel (`.xlsx`) files need no extra program.
+    and PowerPoint (`.ppt`) files. The document readers (Mistral OCR, Azure) do not read them, so
+    without catdoc they cannot be uploaded. PowerPoint (`.pptx`) and Excel (`.xlsx`) files need no
+    extra program.
   - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files. `pdfinfo`
-    counts their pages. `pdftotext` is only a backup: the document reader reads PDF files.
-  - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): audio, video and hosted-chat voice notes,
-    when speech to text is on
+    counts their pages and finds locked ones; without it, the app does this itself. `pdftotext` is
+    only a backup: the document reader reads PDF files.
+  - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): makes audio and video small enough for
+    speech to text. Without it, only recordings the speech-to-text service takes as they are (such
+    as an MP3 under 25 MB) can be uploaded. Without `ffprobe`, the app measures recordings itself.
   - [WeasyPrint](https://weasyprint.org/) (`weasyprint`): exporting a chat as PDF, and summaries
-    of office files
+    of office files. Without it, pick Cloudflare Browser Rendering or a
+    [Gotenberg](https://gotenberg.dev/) server as the PDF maker in the admin panel
+    (Settings → Platform → PDF maker).
 
   If a tool is not on the `PATH` of the web server or the queue worker (for
   example Homebrew's `/opt/homebrew/bin` on a Mac), set its full path in the

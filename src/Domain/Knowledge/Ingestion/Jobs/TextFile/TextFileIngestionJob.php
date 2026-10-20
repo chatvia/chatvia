@@ -18,7 +18,7 @@ use Illuminate\Queue\Attributes\UniqueFor;
 use Throwable;
 
 /**
- * Splits a text file (.txt, .md, or an ebook read by Pandoc) and starts its
+ * Splits a text file (.txt, .md, or an ebook read as Markdown) and starts its
  * chunk batch, without the document parser. See {@see IngestTextFileAction}.
  */
 #[Queue('ingestion.text')]

@@ -1,7 +1,7 @@
 <?php
 
+use Domain\Knowledge\Document\Conversion\EbookText;
 use Domain\Knowledge\Document\Conversion\OfficeText;
-use Domain\Knowledge\Document\Conversion\Pandoc;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Domain\Knowledge\Source\File\Services\FileAnalyzer;
 use Mockery\MockInterface;
@@ -9,7 +9,7 @@ use Mockery\MockInterface;
 /**
  * FileAnalyzer routes a file to a "length" (pages or minutes) at upload time:
  * images count as one page, office files and ebooks are counted
- * from their text (OfficeText and Pandoc are mocked here), and a file that
+ * from their text (OfficeText and EbookText are mocked here), and a file that
  * cannot be read is estimated from its size so the upload still goes on. A
  * genuinely unsupported type is rejected.
  */
@@ -60,11 +60,12 @@ it('counts the pages of an office file, or estimates them from its size when it 
     'unreadable' => [false, 3],
 ]);
 
-it('counts an ebook in pages of 500 words, or estimates it from its size when Pandoc fails', function (bool $readable, int $pages): void {
+it('counts an ebook in pages of 3,000 characters, or estimates it from its size when it cannot be read', function (bool $readable, int $pages): void {
+    // 7,000 bytes: three pages by size.
     $path = create_temp_file('book.epub', str_repeat('x', 7000));
-    $this->mock(Pandoc::class, function (MockInterface $mock) use ($path, $readable): void {
-        $expectation = $mock->shouldReceive('toText')->once()->with($path, 'epub');
-        $readable ? $expectation->andReturn(str_repeat('word ', 1600)) : $expectation->andThrow(new RuntimeException('malformed ebook'));
+    $this->mock(EbookText::class, function (MockInterface $mock) use ($path, $readable): void {
+        $expectation = $mock->shouldReceive('toMarkdown')->once()->with($path, 'epub');
+        $readable ? $expectation->andReturn(str_repeat('word ', 2000)) : $expectation->andThrow(new RuntimeException('malformed ebook'));
     });
 
     expect(app(FileAnalyzer::class)->analyze($path)->length)->toBe($pages);
@@ -74,3 +75,13 @@ it('counts an ebook in pages of 500 words, or estimates it from its size when Pa
     'readable' => [true, 4],
     'unreadable' => [false, 3],
 ]);
+
+it('counts a book in a script outside ASCII by its characters', function (): void {
+    // 6,000 Cyrillic characters: about 12,000 bytes, but two pages of text.
+    $path = create_temp_file('book.fb2', '<?xml version="1.0" encoding="utf-8"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><body><section><p>'
+        .str_repeat('Весной ', 857).'</p></section></body></FictionBook>');
+
+    expect(app(FileAnalyzer::class)->analyze($path)->length)->toBe(2);
+
+    @unlink($path);
+});

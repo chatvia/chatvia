@@ -8,7 +8,7 @@ use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
-use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
+use Domain\Knowledge\Ingestion\Services\Media\TranscriptionAudio;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
@@ -19,8 +19,9 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\File\File;
 
 /**
- * Ingest an audio or video file: compress the audio, transcribe it with the
- * configured Transcriber, then split the transcript with the text splitter
+ * Ingest an audio or video file: transcribe it with the configured
+ * Transcriber (compressed first when it does not take the file as it is,
+ * {@see TranscriptionAudio}), then split the transcript with the text splitter
  * (whole sentences by default) and chunk the parts in one batch.
  *
  * Transcription is the slow and paid step, so it is done once: the transcript
@@ -30,7 +31,7 @@ use Symfony\Component\HttpFoundation\File\File;
 class IngestMediaAction
 {
     public function __construct(
-        private readonly AudioCompressor $audioCompressor,
+        private readonly TranscriptionAudio $audio,
         private readonly TextSplitter $splitter,
         private readonly Transcriber $transcriber,
         private readonly DispatchSourceIngestionBatchAction $dispatchBatch,
@@ -66,8 +67,8 @@ class IngestMediaAction
     }
 
     /**
-     * The stored transcript on a retry; otherwise download, compress and
-     * transcribe the audio (cached by checksum) and store the transcript in
+     * The stored transcript on a retry; otherwise download (and compress if
+     * needed) and transcribe the audio (cached by checksum) and store the transcript in
      * the source's own folder.
      */
     private function transcript(SourceFile $sourceFile): string
@@ -81,7 +82,7 @@ class IngestMediaAction
             'ingestion:media:transcription:'.md5($this->transcriber->name()).':file:'.$sourceFile->checksum,
             now()->addMonth(),
             fn (): string => $sourceFile->withLocalFile(
-                fn (File $file): string => $this->transcriber->transcribe($this->audioCompressor->process($file->getPathname())),
+                fn (File $file): string => $this->audio->withPrepared($file->getPathname(), $this->transcriber->transcribe(...)),
             ),
         );
 

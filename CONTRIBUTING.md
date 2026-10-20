@@ -32,8 +32,9 @@ composer dev                  # app server, queue worker, logs and Vite
 ```
 
 You need PHP 8.5, Composer 2 and Node 22. The system tools listed in the
-README (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) are only needed for the
-features that use them.
+README (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) are optional: without
+one, the app does its work itself or refuses only the files it cannot read.
+Tests of a tool skip when it is not installed.
 
 With only Docker on your machine, use Laravel Sail instead: it runs the app,
 the queue worker, the scheduler, Reverb and Pulse's server stats in

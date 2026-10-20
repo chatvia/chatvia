@@ -3,7 +3,7 @@
 namespace App\Http\Rules;
 
 use Closure;
-use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
 use Throwable;
@@ -15,7 +15,7 @@ use Throwable;
  * exceeds `agent.files.upload.max_pdf_pages`.
  *
  * Non-PDF values are skipped (the `mimes`/`mimetypes` rules own that check). A
- * PDF that `pdfinfo` can't read fails closed with a generic message rather than
+ * PDF that cannot be read fails closed with a generic message rather than
  * bubbling a 500.
  */
 final readonly class MaxPdfPages implements ValidationRule
@@ -31,12 +31,12 @@ final readonly class MaxPdfPages implements ValidationRule
         }
 
         try {
-            // Resolved per use: PdfInfo is final, so tests swap a stand-in
-            // into the container instead of passing one in.
-            $pages = app(PdfInfo::class)->getInfo($value->getPathname())->length;
+            // Resolved per use: pdfinfo or the PHP reader, whichever this
+            // server has; tests swap a stand-in into the container.
+            $pages = app(PdfInspector::class)->getInfo($value->getPathname())->length;
         } catch (Throwable) {
             // A locked PDF gets its own reason from UnlockedPdf.
-            if (! app(PdfInfo::class)->isLocked($value->getPathname())) {
+            if (! app(PdfInspector::class)->isLocked($value->getPathname())) {
                 $fail(__('We couldn\'t read this PDF. Please try a different file.'));
             }
 

@@ -14,11 +14,18 @@ use Domain\Llm\Exceptions\TranscriptionNotConfiguredException;
 interface Transcriber
 {
     /**
-     * @param  string  $filePath  Local path of an audio file (MP3 after compression).
+     * @param  string  $filePath  Local path of an audio or video file whose extension names its format:
+     *                            one the service {@see takesAsIs()}, or an MP3 made for it.
      *
      * @throws TranscriptionNotConfiguredException When no speech-to-text service is set up.
      */
     public function transcribe(string $filePath): string;
+
+    /**
+     * Whether the service takes a file of this format (its extension, lower
+     * case) and size as it is, so it needs no ffmpeg to re-encode it first.
+     */
+    public function takesAsIs(string $extension, int $bytes): bool;
 
     /** Whether a speech-to-text service is set up (Settings → AI models). */
     public function isEnabled(): bool;

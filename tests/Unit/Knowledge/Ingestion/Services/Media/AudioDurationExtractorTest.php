@@ -84,3 +84,39 @@ it('rounds the duration up to whole minutes', function (): void {
 
     unlink($file);
 });
+
+it('reads the duration from the headers in PHP when ffprobe is not installed', function (string $extension): void {
+    $file = adeAudioFixture(3, $extension);
+    config(['services.bin.ffprobe' => '/nowhere/ffprobe']);
+
+    expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
+
+    unlink($file);
+})->with(['mp3', 'm4a', 'wav', 'ogg']);
+
+it('still measures a header-less recording with ffmpeg when ffprobe is not installed', function (): void {
+    $file = adeAudioFixture(3, 'webm', headerless: true);
+    config(['services.bin.ffprobe' => '/nowhere/ffprobe']);
+
+    expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
+
+    unlink($file);
+});
+
+it('measures a header-less recording in PHP when neither ffprobe nor ffmpeg is installed', function (): void {
+    $file = adeAudioFixture(3, 'webm', headerless: true);
+    config(['services.bin.ffprobe' => '/nowhere/ffprobe', 'services.bin.ffmpeg' => '/nowhere/ffmpeg']);
+
+    expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
+
+    unlink($file);
+});
+
+it('gives zero for audio whose length nothing can read', function (): void {
+    // A WAV header with no sound after it.
+    $format = pack('vvVVvv', 1, 1, 16000, 32000, 2, 16);
+    $file = create_temp_file('empty.wav', 'RIFF'.pack('V', 36).'WAVEfmt '.pack('V', 16).$format.'data'.pack('V', 0));
+    config(['services.bin.ffprobe' => '/nowhere/ffprobe', 'services.bin.ffmpeg' => '/nowhere/ffmpeg']);
+
+    expect(app(AudioDurationExtractor::class)->getDurationInMinutes($file))->toBe(0);
+});

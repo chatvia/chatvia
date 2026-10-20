@@ -12,14 +12,15 @@ use Spatie\LaravelPdf\FakePdfBuilder;
 
 /**
  * A hosted-chat visitor downloads a conversation (or one message of it) as
- * PDF, Markdown or text. The PDF is laid out by WeasyPrint (no browser on the
- * server).
+ * PDF, Markdown or text. The PDF is laid out by the PDF maker of Settings →
+ * Platform (WeasyPrint on the server, or a browser service), which may load
+ * nothing.
  */
 beforeEach(function (): void {
     config(['chatvia.ai.query.rewriter.enabled' => false]);
     Bus::fake();
 
-    $agent = Agent::factory()->create(['is_public' => true]);
+    $agent = $this->agent = Agent::factory()->create(['is_public' => true]);
     $this->base = "/chat/{$agent->slug}";
     $this->conversationId = $this->postJson("{$this->base}/conversations/create", ['message' => 'Show me **bold** text'])->json('id');
 
@@ -80,4 +81,23 @@ it('answers 404 for a message the conversation does not have', function (): void
 
 it('lets WeasyPrint load only data: URLs, so a link in a message cannot make the server fetch it', function (): void {
     expect(config('laravel-pdf.weasyprint.allowed-protocols'))->toBe('data');
+});
+
+it('keeps every PDF maker from loading anything a message links to', function (): void {
+    Pdf::fake();
+    app(ChatMemory::class)
+        ->withScope(app(HostedChatSession::class)->scope($this->agent, $this->conversationId))
+        ->appendMessage(new MessageData(id: 'answer-2', role: MessageRole::Assistant, content: 'See ![the chart](http://169.254.169.254/latest/chart.png) and ![a dot](data:image/png;base64,iVBORw0KGgo=).', type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
+
+    $this->get("{$this->base}/conversations/{$this->conversationId}/export?type=pdf")->assertOk();
+
+    // A browser maker obeys the page's policy; a remote image is left out.
+    Pdf::assertRespondedWithPdf(function (FakePdfBuilder $pdf): bool {
+        $html = $pdf->getHtml();
+
+        return str_contains($html, '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; font-src data:; style-src \'unsafe-inline\'">')
+            && ! str_contains($html, '169.254.169.254')
+            && str_contains($html, 'the chart')
+            && str_contains($html, '<img src="data:image/png;base64,iVBORw0KGgo="');
+    });
 });

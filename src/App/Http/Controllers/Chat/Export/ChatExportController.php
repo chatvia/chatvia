@@ -39,8 +39,10 @@ readonly class ChatExportController
         $filename = Str::slug($this->memory->getConversationById($conversationId)?->title ?? '');
 
         return match ($request->exportFormat()) {
-            // Laid out by WeasyPrint (config/laravel-pdf.php), which may load only
-            // data: URLs, so a link in a message cannot make the server fetch it.
+            // Made by the PDF maker of Settings → Platform, which may load only
+            // data: URLs (WeasyPrint's allowed-protocols, the view's
+            // Content-Security-Policy for a browser), so a link in a message
+            // cannot make the server fetch it.
             ChatExportFormat::Pdf => Pdf::view('chat.export.pdf', ['messages' => $this->renderer->toPdfMessages($messages)])
                 ->download($filename.'.pdf'),
             ChatExportFormat::Markdown => $this->download($this->renderer->toMarkdown($messages), $filename.'.md'),

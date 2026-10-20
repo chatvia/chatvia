@@ -30,6 +30,12 @@ class CatDoc
         return array_key_exists(strtolower($extension), self::PROGRAMS);
     }
 
+    /** The program that reads the format (`catdoc` or `catppt`), or null when neither does. */
+    public function programFor(string $extension): ?string
+    {
+        return self::PROGRAMS[strtolower($extension)] ?? null;
+    }
+
     public function toText(string $path, string $extension): string
     {
         $program = self::PROGRAMS[strtolower($extension)] ?? null;

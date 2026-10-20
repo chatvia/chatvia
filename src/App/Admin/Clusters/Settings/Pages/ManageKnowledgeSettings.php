@@ -9,6 +9,7 @@ use App\Admin\Clusters\Settings\Concerns\BuildsChunkingCards;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\KnowledgeSettings;
 use BackedEnum;
+use Domain\Knowledge\Document\Conversion\ConversionPrograms;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
@@ -222,9 +223,27 @@ class ManageKnowledgeSettings extends AdminSettingsPage
             ? self::READERS[$driver]
             : 'the app');
 
-        return $groups->count() === 1
+        $readBy = $groups->count() === 1
             ? 'Read by '.$groups->keys()->first()
             : $groups->map(fn (Collection $extensions, string $reader): string => '.'.implode(', .', $extensions->all()).' by '.$reader)->join(' · ');
+
+        return $readBy.$this->missingPrograms($type);
+    }
+
+    /**
+     * The formats of the type this server cannot read, because their program
+     * is not installed (Settings → Platform → Programs), such as
+     * " · .doc needs catdoc, which is not found". Empty when there are none.
+     */
+    private function missingPrograms(KnowledgeFileType $type): string
+    {
+        $programs = app(ConversionPrograms::class);
+
+        return collect($type->extensions())
+            ->groupBy(fn (string $extension): string => (string) $programs->missingFor($extension))
+            ->except('')
+            ->map(fn (Collection $extensions, string $program): string => ' · .'.implode(', .', $extensions->all())." needs {$program}, which is not found")
+            ->join('');
     }
 
     /** The speech to text service in use, with "Automatic" resolved; null when off. */

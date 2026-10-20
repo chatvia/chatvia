@@ -99,6 +99,42 @@ it('shows whether this server finds each program', function (): void {
         ->assertSee("Runs {$this->folder}/pdfinfo.");
 });
 
+it('marks a program the app can do without as not needed, and one it cannot as missing', function (): void {
+    // pdfinfo has a built-in fallback; catdoc does not.
+    app(PlatformSettings::class)->fill(['pdfinfo_path' => '/nowhere/pdfinfo', 'catdoc_path' => '/nowhere/catdoc'])->save();
+
+    Livewire::actingAs($this->admin, 'admin')->test(ManagePlatformSettings::class)
+        ->assertSee('Not found · not needed')
+        ->assertSee('Now: .doc files cannot be uploaded.')
+        ->assertSee('Not found: catdoc');
+});
+
+it('says a missing pandoc costs only RTF files, since the app reads the ebooks itself', function (): void {
+    app(PlatformSettings::class)->fill(['pandoc_path' => '/nowhere/pandoc'])->save();
+
+    Livewire::actingAs($this->admin, 'admin')->test(ManagePlatformSettings::class)
+        ->assertSee('Now: .rtf files cannot be uploaded.')
+        ->assertDontSee('.epub')
+        ->assertDontSee('.fb2');
+});
+
+it('says what each missing program stops, with the settings in use', function (): void {
+    config(['chatvia.ai.transcriber' => 'none', 'laravel-pdf.driver' => 'gotenberg']);
+
+    expect(ServerProgram::Pdfinfo->lossWhenMissing())->toBeNull()
+        ->and(ServerProgram::Ffprobe->lossWhenMissing())->toBeNull()
+        // Speech to text is off; another maker makes PDFs.
+        ->and(ServerProgram::Ffmpeg->lossWhenMissing())->toBeNull()
+        ->and(ServerProgram::Weasyprint->lossWhenMissing())->toBeNull()
+        // The app reads EPUB and FB2 books itself.
+        ->and(ServerProgram::Pandoc->lossWhenMissing())->toBe('.rtf files cannot be uploaded.');
+
+    config(['chatvia.ai.transcriber' => 'scaleway', 'services.scalewayai.api_key' => 'key', 'laravel-pdf.driver' => 'weasyprint']);
+
+    expect(ServerProgram::Ffmpeg->lossWhenMissing())->toContain('Recordings over 25 MB')
+        ->and(ServerProgram::Weasyprint->lossWhenMissing())->toContain('Chat PDF exports');
+});
+
 it('detects a program with which and puts its path in the field', function (): void {
     Process::fake(['*which*pdfinfo*' => Process::result(output: "{$this->folder}/pdfinfo\n")]);
 

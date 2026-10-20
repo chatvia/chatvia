@@ -364,7 +364,7 @@ The knowledge base behind the agents' answers (RAG).
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
 | `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. The re-index after a change of the embedding model (`StartEmbeddingReindexAction`: one job batch that embeds the stored chunk text and Q&A questions again, then rebuilds partitioned vector indexes; progress in `EmbeddingReindexStatus`). |
 | `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + keyword in one SQL query), `LexicalSearch` (the keyword driver: pg_textsearch or built-in full-text search), `KnowledgeBase` (embed, search, relevance check, context budget), `SourceLabeler` (names each chunk's source), retrieval stats. |
-| `Knowledge\Document` | File conversion tools (`OfficeText`, `OfficePdf`, `Pandoc`, `CatDoc`, `PdfInfo`) and `HasStorageFile` for models whose file is in storage. |
+| `Knowledge\Document` | File conversion tools (`OfficeText`, `EbookText` (EPUB and FB2 as Markdown; the built-in readers in `Conversion\Markdown` when pandoc is missing, and always for FB2), `OfficePdf`, `Pandoc`, `CatDoc`, `PdfInfo`, and `BuiltinPdfInspector` + `PdfEncryption` for a server without pdfinfo), `ConversionPrograms` (which program a format needs, and whether it is missing) and `HasStorageFile` for models whose file is in storage. |
 
 ### Integration
 
@@ -891,7 +891,13 @@ site). The license public key stays fixed in
 WeasyPrint…) are in **Settings → Platform → Programs** (`ServerProgram`). The
 panel accepts only a program's own name or a full path that ends in it and
 leads to a program on the server, so a stolen admin login cannot make the
-server run another command. Some config/*.php keys
+server run another command. Every program is optional, for hosts that cannot
+install them: `Support\Executable` finds one at runtime; without pdfinfo the
+`PdfInspector` binding is the PHP reader, without ffprobe getID3 measures
+media, without ffmpeg `TranscriptionAudio` sends only what the speech-to-text
+service takes as it is, a PDF maker other than WeasyPrint (Cloudflare,
+Gotenberg; Settings → Platform → PDF maker) makes PDFs, and the upload refuses
+a format whose program is missing (`UnreadableSourceFileException`). Some config/*.php keys
 behind a setting still read `env()`, as an optional preset (Docker and Sail
 use a few, for example `MAIL_HOST` for Mailpit); a value saved in the admin
 panel always wins.

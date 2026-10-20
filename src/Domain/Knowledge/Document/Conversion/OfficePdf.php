@@ -10,10 +10,16 @@ use Spatie\LaravelPdf\Facades\Pdf;
  * A PDF of an office or plain-text file's text, for the document AI
  * (summaries, chat with a file), which reads only PDFs. It carries the text,
  * not the original layout: each page from {@see OfficeText} becomes a PDF page,
- * laid out by WeasyPrint (config/laravel-pdf.php).
+ * laid out by the PDF maker of Settings → Platform (config/laravel-pdf.php).
  */
 class OfficePdf
 {
+    /**
+     * The PDF maker may be a browser (Cloudflare, Gotenberg): it may load
+     * nothing. The page only holds escaped text, so this is a second guard.
+     */
+    private const string CONTENT_SECURITY_POLICY = "default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'";
+
     /** Plain text on A4; pre-wrap keeps the line breaks of tables and lists. */
     private const string STYLE = <<<'CSS'
         @page { size: A4; margin: 2cm; }
@@ -48,7 +54,9 @@ class OfficePdf
             $pages,
         );
 
-        $html = '<!doctype html><html><head><meta charset="utf-8"><style>'.self::STYLE.'</style></head><body>'
+        $html = '<!doctype html><html><head><meta charset="utf-8">'
+            .'<meta http-equiv="Content-Security-Policy" content="'.self::CONTENT_SECURITY_POLICY.'">'
+            .'<style>'.self::STYLE.'</style></head><body>'
             .implode('', $sections)
             .'</body></html>';
 

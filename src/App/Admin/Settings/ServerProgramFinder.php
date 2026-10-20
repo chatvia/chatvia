@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use Illuminate\Support\Facades\Process;
+use Support\Executable;
 
 /**
  * Finds the programs of Settings → Platform → Programs on this server, for
@@ -40,17 +41,7 @@ final readonly class ServerProgramFinder
      */
     public function find(string $path): ?string
     {
-        if (str_starts_with($path, '/')) {
-            return $this->isProgram($path) ? $path : null;
-        }
-
-        foreach (explode(PATH_SEPARATOR, (string) getenv('PATH')) as $folder) {
-            if ($folder !== '' && $this->isProgram("{$folder}/{$path}")) {
-                return "{$folder}/{$path}";
-            }
-        }
-
-        return null;
+        return Executable::find($path);
     }
 
     /**
@@ -68,13 +59,8 @@ final readonly class ServerProgramFinder
 
         $path = trim((string) strtok($result->output(), "\n"));
 
-        return $result->successful() && $program->acceptsPath($path) && $path !== $program->value && $this->isProgram($path)
+        return $result->successful() && $program->acceptsPath($path) && $path !== $program->value && Executable::exists($path)
             ? $path
             : null;
-    }
-
-    private function isProgram(string $path): bool
-    {
-        return @is_file($path) && @is_executable($path);
     }
 }

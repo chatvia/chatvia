@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Domain\Knowledge\Document\Conversion\EbookText;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
@@ -13,9 +14,8 @@ use League\HTMLToMarkdown\HtmlConverter;
 use RuntimeException;
 
 /**
- * Reads an EPUB ebook as GitHub Markdown with no pandoc on the server. A
- * prototype: the pandoc comparison eval measures it before it is used for
- * uploads.
+ * Reads an EPUB ebook as GitHub Markdown with no pandoc on the server.
+ * Uploads use it when pandoc is not installed ({@see EbookText}).
  *
  * It follows the book's spine (the reading order in its OPF package file)
  * and converts each chapter's XHTML with league/html-to-markdown. Before

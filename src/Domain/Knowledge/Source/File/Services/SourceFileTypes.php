@@ -44,7 +44,8 @@ final class SourceFileTypes
 
     /**
      * The document extensions this install accepts: those of the document
-     * types an admin turned on.
+     * types an admin turned on, that this server can read
+     * ({@see KnowledgeFileType::readableExtensions()}).
      *
      * @return list<string>
      */
@@ -53,7 +54,7 @@ final class SourceFileTypes
         $documents = array_filter(KnowledgeFileType::enabled(), fn (KnowledgeFileType $type): bool => ! $type->isMedia());
 
         return array_values(array_unique(array_merge([], ...array_map(
-            fn (KnowledgeFileType $type): array => $type->extensions(),
+            fn (KnowledgeFileType $type): array => $type->readableExtensions(),
             array_values($documents),
         ))));
     }

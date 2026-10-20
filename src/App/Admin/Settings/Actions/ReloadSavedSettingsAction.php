@@ -38,7 +38,14 @@ final readonly class ReloadSavedSettingsAction
             $this->container->forgetInstance($class);
         }
 
-        // Reads every class from the database, which caches it again.
+        // Reads every class from the database.
         $this->config->apply();
+
+        // The package caches settings it loads from the database, but its
+        // per-request config of each class still says "loaded from cache"
+        // from the read before the clear, so it skips that. Cache them here.
+        foreach ($this->config->classes() as $class) {
+            $this->caches->build($class::repository())->put($this->container->make($class));
+        }
     }
 }

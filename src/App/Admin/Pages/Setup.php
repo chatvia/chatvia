@@ -341,7 +341,7 @@ class Setup extends SimplePage
             ->icon(Heroicon::OutlinedKey)
             ->schema([
                 Section::make('AI provider')
-                    ->description('The AI model is the brain of your agents. For each question it gets the matching parts of your data and writes the answer.')
+                    ->description('Choose the main AI provider. Your agents use its models to answer.')
                     ->icon(Heroicon::OutlinedSparkles)
                     ->schema($this->providerFields()),
                 Section::make('Embeddings')

@@ -77,7 +77,7 @@ it('uses the recommended model for quick tasks of the default model\'s provider'
     modelsPage($this->admin)
         ->callAction(TestAction::make('recommendedTaskModels')->schemaComponent('recommended-task-models', schema: 'form'))
         ->assertNotified('GPT-6 Luna does the quick tasks now')
-        ->assertFormSet(['task_model' => 'openai/gpt-6-luna', 'guardrails_model' => null, 'eval_judge_model' => $chat->external_name]);
+        ->assertFormSet(['task_model' => 'openai/gpt-6-luna', 'guardrails_model' => null, 'eval_judge_model' => $chat->external_name, 'images_model' => 'openai/gpt-6-luna']);
 
     expect(savedSetting(AiSettings::class, 'task_model'))->toBe('openai/gpt-6-luna');
 });

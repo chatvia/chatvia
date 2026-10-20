@@ -2,6 +2,7 @@
 
 use App\Admin\Settings\Actions\ApplyRecommendedTaskModelsAction;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\KnowledgeSettings;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
@@ -25,5 +26,22 @@ it('adds the small model and gives the tasks the preset\'s models', function ():
         ->and(Llm::query()->whereKey($small->id)->value('is_enabled'))->toBeTrue()
         ->and(savedSetting(AiSettings::class, 'task_model'))->toBe($small->external_name)
         ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe($chat->external_name)
-        ->and(savedSetting(AiSettings::class, 'titles_model'))->toBeNull();
+        ->and(savedSetting(AiSettings::class, 'titles_model'))->toBeNull()
+        // No model that reads images: image descriptions go off.
+        ->and(savedSetting(AiSettings::class, 'images_model'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
+});
+
+it('describes images with the recommended model that reads them', function (): void {
+    $chat = testLlm('openai/gpt-6.1-sol', LlmProviderKind::OpenRouter);
+
+    app(ApplyRecommendedTaskModelsAction::class)->execute(
+        $chat->provider,
+        new RemoteModelData('openai/gpt-oss-20b', 'gpt-oss-20b'),
+        $chat,
+        new RemoteModelData('google/gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite', features: ['vision' => true]),
+    );
+
+    expect(savedSetting(AiSettings::class, 'images_model'))->toBe('google/gemini-3.5-flash-lite')
+        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeNull();
 });

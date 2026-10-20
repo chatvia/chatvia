@@ -292,6 +292,9 @@ return [
     | summary of the whole source; it finds far more of the right passages
     | and costs one quick-task model call per chunk.
     | `chunker.enhance_text` does the same for text sources.
+    | `chunker.describe_images` lets that step describe the pictures inside
+    | documents with the Image descriptions model; the setup turns it off
+    | when no model that reads images is set up.
     |
     */
 
@@ -357,6 +360,7 @@ return [
         'chunker' => [
             'enhance' => true,
             'enhance_text' => true,
+            'describe_images' => true,
         ],
     ],
 

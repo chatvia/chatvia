@@ -7,7 +7,7 @@ use Domain\Llm\Models\Llm;
 /**
  * TaskModelPreset: the small model does every quick task, the tasks that
  * need a large model get the chat model, and image descriptions get the
- * chat model only when the small one cannot read images.
+ * model that reads images, or none.
  */
 function tmpModel(string $alias, ?bool $vision = null): Llm
 {
@@ -25,11 +25,12 @@ it('gives quick tasks the small model and large tasks the chat model', function 
         ->and(array_keys($values))->toBe(['task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTask::appTasks())]);
 });
 
-it('describes images with the chat model when only it reads images', function (): void {
-    expect(TaskModelPreset::values(tmpModel('big', vision: true), tmpModel('small', vision: false))['images_model'])->toBe('big')
-        ->and(TaskModelPreset::values(tmpModel('big', vision: false), tmpModel('small', vision: false))['images_model'])->toBeNull();
+it('describes images with the model that reads images, and with none without one', function (): void {
+    expect(TaskModelPreset::values(tmpModel('big'), tmpModel('small'), tmpModel('eyes'))['images_model'])->toBe('eyes')
+        ->and(TaskModelPreset::values(tmpModel('big'), null, tmpModel('eyes'))['images_model'])->toBe('eyes')
+        ->and(TaskModelPreset::values(tmpModel('big'), tmpModel('small'))['images_model'])->toBeNull();
 });
 
-it('sets nothing without a small model', function (): void {
+it('sets nothing without a small model or a model that reads images', function (): void {
     expect(array_filter(TaskModelPreset::values(tmpModel('big'), null)))->toBe([]);
 });

@@ -13,38 +13,36 @@ use Domain\Llm\Models\Llm;
  * Models for app tasks), for the setup and for "Use the recommended
  * models": the small model is the model for quick tasks (`task_model`);
  * the tasks that need a large model ({@see LlmTask::tier()}) get the chat
- * model; image descriptions get the chat model when only it reads images.
- * Every other task has no model of its own, so it uses the shared one.
+ * model; image descriptions get the model that reads images. Every other
+ * task has no model of its own, so it uses the shared one.
  *
- * Without a small model nothing is set: every task uses the chat model.
+ * Without a small model, quick tasks use the chat model. Without a model
+ * that reads images, image descriptions have none (the caller turns them
+ * off).
  */
 final class TaskModelPreset
 {
     /**
      * @return array<string, ?string> AiSettings property => model alias
      */
-    public static function values(Llm $chat, ?Llm $small): array
+    public static function values(Llm $chat, ?Llm $small, ?Llm $vision = null): array
     {
         $values = ['task_model' => $small?->external_name];
 
         foreach (LlmTask::appTasks() as $task) {
-            $values[$task->settingsProperty()] = $small instanceof Llm ? self::own($task, $chat, $small) : null;
+            $values[$task->settingsProperty()] = match (true) {
+                $task === LlmTask::Images => $vision?->external_name,
+                $small instanceof Llm && $task->tier() === ModelTier::Large => $chat->external_name,
+                default => null,
+            };
         }
 
         return $values;
     }
 
-    /** The task's own model, or null when the shared small one suits it. */
-    private static function own(LlmTask $task, Llm $chat, Llm $small): ?string
+    /** Whether the preset leaves the task to the model for quick tasks. */
+    public static function isQuickTask(LlmTask $task): bool
     {
-        if ($task->tier() === ModelTier::Large) {
-            return $chat->external_name;
-        }
-
-        if ($task === LlmTask::Images && ($small->features['vision'] ?? null) === false && ($chat->features['vision'] ?? null) !== false) {
-            return $chat->external_name;
-        }
-
-        return null;
+        return $task !== LlmTask::Chat && $task !== LlmTask::Images && $task->tier() === ModelTier::Small;
     }
 }

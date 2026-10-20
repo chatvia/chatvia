@@ -665,7 +665,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /**
      * Sets the task models from the preset of the default model's provider:
      * its small model for quick tasks, the default model for the tasks that
-     * need a large one. Hidden when that provider has no preset (a server of
+     * need a large one, and a model that reads images for image
+     * descriptions (with none, image descriptions are turned off). Hidden when that provider has no preset (a server of
      * your own). Its list is read as the modal opens, to name the model.
      */
     private function recommendedTaskModelsAction(): Action
@@ -680,10 +681,17 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->modalHeading('Use the recommended models?')
             ->modalDescription(function (): string {
                 $small = $this->recommendedQuickTaskModel();
+                $vision = $this->recommendedVisionModel();
 
-                return $small instanceof RemoteModelData
-                    ? "Picks {$small->name} for quick tasks, and the default model for the evaluation judge and translations. The models you set for single tasks are cleared."
-                    : "{$this->presetAccount()?->label()} lists none of the recommended models for quick tasks now.";
+                if (! $small instanceof RemoteModelData) {
+                    return "{$this->presetAccount()?->label()} lists none of the recommended models for quick tasks now.";
+                }
+
+                return "Picks {$small->name} for quick tasks, and the default model for the evaluation judge and translations. "
+                    .($vision instanceof RemoteModelData
+                        ? "{$vision->name} describes the pictures inside documents. "
+                        : 'None of its models reads images, so image descriptions are turned off. ')
+                    .'The models you set for single tasks are cleared.';
             })
             ->modalSubmitActionLabel('Use these models')
             ->action(function (): void {
@@ -697,7 +705,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     return;
                 }
 
-                $model = app(ApplyRecommendedTaskModelsAction::class)->execute($chat->provider, $small, $chat);
+                $model = app(ApplyRecommendedTaskModelsAction::class)->execute($chat->provider, $small, $chat, $this->recommendedVisionModel());
                 $this->fillCards();
 
                 Notification::make()->success()->title("{$model->descriptive_name} does the quick tasks now")->send();
@@ -726,6 +734,16 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
         return $account instanceof AiProvider
             ? app(ModelPresets::class)->quickTaskModel($account, $this->listOf("account:{$account->value}")->models ?? [])
+            : null;
+    }
+
+    /** The first recommended model for image descriptions the account lists. */
+    private function recommendedVisionModel(): ?RemoteModelData
+    {
+        $account = $this->presetAccount();
+
+        return $account instanceof AiProvider
+            ? app(ModelPresets::class)->visionModel($account, $this->listOf("account:{$account->value}")->models ?? [])
             : null;
     }
 

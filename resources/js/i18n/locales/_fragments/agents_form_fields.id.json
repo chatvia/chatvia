@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Teks pendek",
+            "field_type_email": "Email",
+            "field_type_tel": "Telepon",
+            "field_type_number": "Angka",
+            "field_type_textarea": "Teks panjang",
+            "field_type_select": "Dropdown",
+            "field_type_radio": "Pilihan tunggal",
+            "field_type_checkbox": "Kotak centang",
+            "field_type_multicheckbox": "Pilihan ganda",
+            "field_type_date": "Tanggal"
+        }
+    }
+}

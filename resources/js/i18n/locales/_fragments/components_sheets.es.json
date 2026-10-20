@@ -114,10 +114,10 @@
             "detail_result": "Resultado",
             "detail_conversation": "Conversación:",
             "detail_trace": "Traza:",
-            "outcome_auto": "automático",
-            "outcome_approved": "aprobado",
-            "outcome_denied": "denegado",
-            "outcome_rate_limited": "límite de tasa alcanzado"
+            "outcome_auto": "Automático",
+            "outcome_approved": "Aprobado",
+            "outcome_denied": "Denegado",
+            "outcome_rate_limited": "Límite de tasa alcanzado"
         },
         "attach_file": {
             "title": "Elegir entre archivos ya entrenados",

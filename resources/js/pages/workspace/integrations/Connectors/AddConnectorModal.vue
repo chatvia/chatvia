@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { AgentMcpServer } from '@/types/connector';
 import { LoaderCircle } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -115,25 +116,13 @@ async function submit(): Promise<void> {
 
                 <div class="space-y-2">
                     <Label>{{ t('workspace.connectors.add_modal.authentication') }}</Label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <label
-                            v-for="opt in ['oauth', 'token', 'none'] as Strategy[]"
-                            :key="opt"
-                            class="flex cursor-pointer items-center justify-center rounded-md border p-2 text-sm capitalize"
-                            :class="
-                                strategy === opt ? 'border-primary bg-primary/5 text-primary' : 'hover:border-foreground/30 text-muted-foreground'
-                            "
-                        >
-                            <input v-model="strategy" type="radio" :value="opt" class="sr-only" />
-                            {{
-                                opt === 'oauth'
-                                    ? t('workspace.connectors.add_modal.strategy_oauth')
-                                    : opt === 'token'
-                                      ? t('workspace.connectors.add_modal.strategy_token')
-                                      : t('workspace.connectors.add_modal.strategy_none')
-                            }}
-                        </label>
-                    </div>
+                    <Tabs v-model="strategy">
+                        <TabsList class="grid w-full grid-cols-3">
+                            <TabsTrigger value="oauth" :disabled="saving">{{ t('workspace.connectors.add_modal.strategy_oauth') }}</TabsTrigger>
+                            <TabsTrigger value="token" :disabled="saving">{{ t('workspace.connectors.add_modal.strategy_token') }}</TabsTrigger>
+                            <TabsTrigger value="none" :disabled="saving">{{ t('workspace.connectors.add_modal.strategy_none') }}</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
                     <p class="text-muted-foreground text-xs">
                         <span v-if="strategy === 'oauth'">{{ t('workspace.connectors.add_modal.hint_oauth') }}</span>
                         <span v-else-if="strategy === 'token'">{{ t('workspace.connectors.add_modal.hint_token') }}</span>

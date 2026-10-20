@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "短文本",
+            "field_type_email": "电子邮件",
+            "field_type_tel": "电话",
+            "field_type_number": "数字",
+            "field_type_textarea": "长文本",
+            "field_type_select": "下拉列表",
+            "field_type_radio": "单选",
+            "field_type_checkbox": "复选框",
+            "field_type_multicheckbox": "多选",
+            "field_type_date": "日期"
+        }
+    }
+}

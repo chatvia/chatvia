@@ -114,10 +114,10 @@
             "detail_result": "Ergebnis",
             "detail_conversation": "Konversation:",
             "detail_trace": "Ablaufverfolgung:",
-            "outcome_auto": "automatisch",
-            "outcome_approved": "genehmigt",
-            "outcome_denied": "abgelehnt",
-            "outcome_rate_limited": "ratenlimitiert"
+            "outcome_auto": "Automatisch",
+            "outcome_approved": "Genehmigt",
+            "outcome_denied": "Abgelehnt",
+            "outcome_rate_limited": "Ratenlimitiert"
         },
         "attach_file": {
             "title": "Aus bereits trainierten Dateien auswählen",

@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Zmapowane pola wypełniają dane leada — zasilając listę leadów, wykrywanie duplikatów i eksport do CSV. Pozostaw „—”, aby zapisać odpowiedź bez jej oznaczania.",
             "subtitle": "Opis",
             "subtitle_placeholder": "np. Opowiedz nam o swojej firmie, a skontaktujemy się z Tobą.",
-            "subtitle_hint": "Wyświetlany odwiedzającemu pod tytułem formularza."
+            "subtitle_hint": "Wyświetlany odwiedzającemu pod tytułem formularza.",
+            "field_type_text": "Krótki tekst",
+            "field_type_email": "E-mail",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Liczba",
+            "field_type_textarea": "Długi tekst",
+            "field_type_select": "Lista rozwijana",
+            "field_type_radio": "Jeden wybór",
+            "field_type_checkbox": "Pole wyboru",
+            "field_type_multicheckbox": "Wielokrotny wybór",
+            "field_type_date": "Data"
         },
         "submissions": {
             "page_title": "Zgłoszenia",
@@ -3823,11 +3833,11 @@
             "detail_result": "Wynik",
             "detail_conversation": "Rozmowa:",
             "detail_trace": "Ślad:",
-            "outcome_auto": "automatyczny",
-            "outcome_approved": "zatwierdzony",
-            "outcome_denied": "odrzucony",
-            "outcome_rate_limited": "limit żądań",
-            "outcome_not_offered": "nieoferowane",
+            "outcome_auto": "Automatyczny",
+            "outcome_approved": "Zatwierdzony",
+            "outcome_denied": "Odrzucony",
+            "outcome_rate_limited": "Limit żądań",
+            "outcome_not_offered": "Nieoferowane",
             "detail_spoken_approval": "Zgoda ustna"
         },
         "attach_file": {

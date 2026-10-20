@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "मैप किए गए फ़ील्ड लीड के विवरण भरते हैं — लीड सूची, डुप्लिकेट पहचान, और CSV एक्सपोर्ट को सक्षम करते हैं। उत्तर को बिना टैग किए कैप्चर करने के लिए इसे “—” पर ही छोड़ दें।",
             "subtitle": "विवरण",
             "subtitle_placeholder": "उदा. हमें अपनी कंपनी के बारे में बताएं और हम आपसे संपर्क करेंगे।",
-            "subtitle_hint": "विज़िटर को फ़ॉर्म शीर्षक के नीचे दिखाया जाता है।"
+            "subtitle_hint": "विज़िटर को फ़ॉर्म शीर्षक के नीचे दिखाया जाता है।",
+            "field_type_text": "छोटा टेक्स्ट",
+            "field_type_email": "ईमेल",
+            "field_type_tel": "फ़ोन",
+            "field_type_number": "संख्या",
+            "field_type_textarea": "लंबा टेक्स्ट",
+            "field_type_select": "ड्रॉपडाउन",
+            "field_type_radio": "एकल विकल्प",
+            "field_type_checkbox": "चेकबॉक्स",
+            "field_type_multicheckbox": "एकाधिक विकल्प",
+            "field_type_date": "तारीख"
         },
         "submissions": {
             "page_title": "सबमिशन",

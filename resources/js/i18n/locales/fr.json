@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Les champs associés renseignent les détails du prospect — alimentant la liste des prospects, la détection des doublons et l'export CSV. Laissez « — » pour capturer la réponse sans l'étiqueter.",
             "subtitle": "Description",
             "subtitle_placeholder": "ex. Parlez-nous de votre entreprise et nous vous recontacterons.",
-            "subtitle_hint": "Affichée au visiteur sous le titre du formulaire."
+            "subtitle_hint": "Affichée au visiteur sous le titre du formulaire.",
+            "field_type_text": "Texte court",
+            "field_type_email": "E-mail",
+            "field_type_tel": "Téléphone",
+            "field_type_number": "Nombre",
+            "field_type_textarea": "Texte long",
+            "field_type_select": "Liste déroulante",
+            "field_type_radio": "Choix unique",
+            "field_type_checkbox": "Case à cocher",
+            "field_type_multicheckbox": "Choix multiple",
+            "field_type_date": "Date"
         },
         "submissions": {
             "page_title": "Soumissions",
@@ -3823,11 +3833,11 @@
             "detail_result": "Résultat",
             "detail_conversation": "Conversation :",
             "detail_trace": "Trace :",
-            "outcome_auto": "automatique",
-            "outcome_approved": "approuvé",
-            "outcome_denied": "refusé",
-            "outcome_rate_limited": "limité en débit",
-            "outcome_not_offered": "non proposé",
+            "outcome_auto": "Automatique",
+            "outcome_approved": "Approuvé",
+            "outcome_denied": "Refusé",
+            "outcome_rate_limited": "Limité en débit",
+            "outcome_not_offered": "Non proposé",
             "detail_spoken_approval": "Approbation orale"
         },
         "attach_file": {

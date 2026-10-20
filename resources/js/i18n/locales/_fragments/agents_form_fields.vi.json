@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Văn bản ngắn",
+            "field_type_email": "Email",
+            "field_type_tel": "Điện thoại",
+            "field_type_number": "Số",
+            "field_type_textarea": "Văn bản dài",
+            "field_type_select": "Danh sách thả xuống",
+            "field_type_radio": "Một lựa chọn",
+            "field_type_checkbox": "Hộp kiểm",
+            "field_type_multicheckbox": "Nhiều lựa chọn",
+            "field_type_date": "Ngày"
+        }
+    }
+}

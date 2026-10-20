@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "Lyhyt teksti",
+            "field_type_email": "Sähköposti",
+            "field_type_tel": "Puhelin",
+            "field_type_number": "Numero",
+            "field_type_textarea": "Pitkä teksti",
+            "field_type_select": "Pudotusvalikko",
+            "field_type_radio": "Yksi valinta",
+            "field_type_checkbox": "Valintaruutu",
+            "field_type_multicheckbox": "Monivalinta",
+            "field_type_date": "Päivämäärä"
+        }
+    }
+}

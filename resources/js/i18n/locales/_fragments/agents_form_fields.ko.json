@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "짧은 텍스트",
+            "field_type_email": "이메일",
+            "field_type_tel": "전화",
+            "field_type_number": "숫자",
+            "field_type_textarea": "긴 텍스트",
+            "field_type_select": "드롭다운",
+            "field_type_radio": "단일 선택",
+            "field_type_checkbox": "체크박스",
+            "field_type_multicheckbox": "다중 선택",
+            "field_type_date": "날짜"
+        }
+    }
+}

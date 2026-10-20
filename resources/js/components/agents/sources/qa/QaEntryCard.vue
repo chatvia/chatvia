@@ -104,7 +104,7 @@ const statusText = computed(() => {
                                     <Edit3 class="me-2 h-4 w-4" />
                                     {{ t('agents.sources.qa.edit_action') }}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem class="text-red-600" @click="emit('delete')">
+                                <DropdownMenuItem variant="destructive" @click="emit('delete')">
                                     <Trash2 class="me-2 h-4 w-4" />
                                     {{ t('agents.sources.common.delete') }}
                                 </DropdownMenuItem>

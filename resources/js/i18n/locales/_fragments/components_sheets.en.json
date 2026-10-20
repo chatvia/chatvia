@@ -116,10 +116,10 @@
             "detail_result": "Result",
             "detail_conversation": "Conversation:",
             "detail_trace": "Trace:",
-            "outcome_auto": "auto",
-            "outcome_approved": "approved",
-            "outcome_denied": "denied",
-            "outcome_rate_limited": "rate limited"
+            "outcome_auto": "Auto",
+            "outcome_approved": "Approved",
+            "outcome_denied": "Denied",
+            "outcome_rate_limited": "Rate limited"
         },
         "attach_file": {
             "title": "Choose from Already Trained Files",

@@ -8,9 +8,12 @@ import { FIELD_TYPES, type FormField, type LeadField, OPTION_TYPES, optionsText,
 import HelpPopover from '@/components/common/HelpPopover.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useFieldTypeLabel } from '@/composables/agents/forms/useFieldTypeLabel';
 import { Trash2 } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 defineProps<{
@@ -26,6 +29,17 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { fieldTypeLabel } = useFieldTypeLabel();
+
+// A select item can't hold an empty value, so "not mapped" is this sentinel.
+const UNMAPPED = '__none';
+
+const leadField = computed<string>({
+    get: () => field.value.leadField ?? UNMAPPED,
+    set: (value) => {
+        field.value.leadField = value === UNMAPPED ? undefined : value;
+    },
+});
 
 function setOptions(text: string): void {
     field.value.options = parseOptions(text);
@@ -36,9 +50,14 @@ function setOptions(text: string): void {
     <div class="space-y-2 rounded-md border p-3">
         <div class="flex items-center gap-2">
             <Input v-model="field.label" :placeholder="t('agents.forms.field_label')" class="flex-1" @blur="emit('labelBlur')" />
-            <select v-model="field.type" class="border-input bg-background h-9 rounded-md border px-2 text-sm">
-                <option v-for="type in FIELD_TYPES" :key="type" :value="type">{{ type }}</option>
-            </select>
+            <Select v-model="field.type">
+                <SelectTrigger class="w-40">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem v-for="type in FIELD_TYPES" :key="type" :value="type">{{ fieldTypeLabel(type) }}</SelectItem>
+                </SelectContent>
+            </Select>
             <Button variant="ghost" size="icon" :aria-label="t('common.remove')" @click="emit('remove')"><Trash2 class="h-4 w-4" /></Button>
         </div>
 
@@ -47,7 +66,7 @@ function setOptions(text: string): void {
                 <Switch :model-value="field.required" @update:model-value="(value) => (field.required = value)" />
                 {{ t('agents.forms.required') }}
             </label>
-            <label v-if="leadBound" class="flex items-center gap-2 text-sm">
+            <div v-if="leadBound" class="flex items-center gap-2 text-sm">
                 <span class="flex items-center gap-1.5">
                     {{ t('agents.forms.maps_to') }}
                     <HelpPopover
@@ -56,11 +75,16 @@ function setOptions(text: string): void {
                         :paragraphs="[t('agents.forms.maps_to_help_1'), t('agents.forms.maps_to_help_2')]"
                     />
                 </span>
-                <select v-model="field.leadField" class="border-input bg-background h-8 rounded-md border px-2 text-sm">
-                    <option :value="undefined">—</option>
-                    <option v-for="leadField in leadFields" :key="leadField.key" :value="leadField.key">{{ leadField.label }}</option>
-                </select>
-            </label>
+                <Select v-model="leadField">
+                    <SelectTrigger size="sm" class="min-w-32" :aria-label="t('agents.forms.maps_to')">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem :value="UNMAPPED">—</SelectItem>
+                        <SelectItem v-for="option in leadFields" :key="option.key" :value="option.key">{{ option.label }}</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
 
         <Textarea

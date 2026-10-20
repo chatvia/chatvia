@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "forms": {
+            "field_type_text": "短いテキスト",
+            "field_type_email": "メール",
+            "field_type_tel": "電話",
+            "field_type_number": "数値",
+            "field_type_textarea": "長いテキスト",
+            "field_type_select": "ドロップダウン",
+            "field_type_radio": "単一選択",
+            "field_type_checkbox": "チェックボックス",
+            "field_type_multicheckbox": "複数選択",
+            "field_type_date": "日付"
+        }
+    }
+}

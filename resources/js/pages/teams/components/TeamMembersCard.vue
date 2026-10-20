@@ -88,11 +88,11 @@ const { t } = useI18n();
                                         {{ t('teams.show.members.change_role') }}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem class="text-destructive focus:text-destructive" @click="emit('remove', member)">
+                                    <DropdownMenuItem variant="destructive" @click="emit('remove', member)">
                                         <Trash2 class="me-2 size-4" />
                                         {{ t('teams.show.members.remove') }}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem class="text-destructive focus:text-destructive" @click="emit('deleteFromWorkspace', member)">
+                                    <DropdownMenuItem variant="destructive" @click="emit('deleteFromWorkspace', member)">
                                         <UserX class="me-2 size-4" />
                                         {{ t('teams.show.members.delete_from_workspace') }}
                                     </DropdownMenuItem>

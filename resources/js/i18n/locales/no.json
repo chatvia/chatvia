@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Tilordnede felter fyller ut lead-ens detaljer — og driver lead-listen, gjenkjenning av duplikater og CSV-eksport. La det stå som «—» for å fange opp svaret uten å merke det.",
             "subtitle": "Beskrivelse",
             "subtitle_placeholder": "f.eks. Fortell oss om bedriften din, så tar vi kontakt.",
-            "subtitle_hint": "Vises for den besøkende under skjematittelen."
+            "subtitle_hint": "Vises for den besøkende under skjematittelen.",
+            "field_type_text": "Kort tekst",
+            "field_type_email": "E-post",
+            "field_type_tel": "Telefon",
+            "field_type_number": "Tall",
+            "field_type_textarea": "Lang tekst",
+            "field_type_select": "Nedtrekksmeny",
+            "field_type_radio": "Enkeltvalg",
+            "field_type_checkbox": "Avkrysningsboks",
+            "field_type_multicheckbox": "Flervalg",
+            "field_type_date": "Dato"
         },
         "submissions": {
             "page_title": "Innsendinger",
@@ -3823,11 +3833,11 @@
             "detail_result": "Resultat",
             "detail_conversation": "Samtale:",
             "detail_trace": "Sporing:",
-            "outcome_auto": "automatisk",
-            "outcome_approved": "godkjent",
-            "outcome_denied": "avvist",
-            "outcome_rate_limited": "hastighetsbegrenset",
-            "outcome_not_offered": "ikke tilbudt",
+            "outcome_auto": "Automatisk",
+            "outcome_approved": "Godkjent",
+            "outcome_denied": "Avvist",
+            "outcome_rate_limited": "Hastighetsbegrenset",
+            "outcome_not_offered": "Ikke tilbudt",
             "detail_spoken_approval": "Muntlig godkjenning"
         },
         "attach_file": {

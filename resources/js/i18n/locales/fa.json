@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "فیلدهای نگاشت‌شده اطلاعات سرنخ را پر می‌کنند — و فهرست سرنخ‌ها، تشخیص موارد تکراری و خروجی CSV را تأمین می‌کنند. برای ثبت پاسخ بدون برچسب‌گذاری، آن را روی «—» بگذارید.",
             "subtitle": "توضیحات",
             "subtitle_placeholder": "مثلاً درباره شرکت خود به ما بگویید تا با شما تماس بگیریم.",
-            "subtitle_hint": "زیر عنوان فرم به بازدیدکننده نمایش داده می‌شود."
+            "subtitle_hint": "زیر عنوان فرم به بازدیدکننده نمایش داده می‌شود.",
+            "field_type_text": "متن کوتاه",
+            "field_type_email": "ایمیل",
+            "field_type_tel": "تلفن",
+            "field_type_number": "عدد",
+            "field_type_textarea": "متن بلند",
+            "field_type_select": "فهرست کشویی",
+            "field_type_radio": "تک‌گزینه‌ای",
+            "field_type_checkbox": "چک‌باکس",
+            "field_type_multicheckbox": "چندگزینه‌ای",
+            "field_type_date": "تاریخ"
         },
         "submissions": {
             "page_title": "ارسال‌ها",

@@ -149,7 +149,7 @@ function closeDeleteDialog() {
                                     <span>{{ t('sidebar.rename_conversation') }}</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem class="text-destructive focus:text-destructive cursor-pointer" @click="askToDelete(chat.id)">
+                                <DropdownMenuItem variant="destructive" class="cursor-pointer" @click="askToDelete(chat.id)">
                                     <Trash2 class="me-2 h-4 w-4" />
                                     <span>{{ t('common.delete') }}</span>
                                 </DropdownMenuItem>

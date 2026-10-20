@@ -10,6 +10,7 @@ import { FORM_TYPES, type FormDefinition, type FormField, isLeadBoundType, type 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormTypeLabel } from '@/composables/agents/forms/useFormTypeLabel';
@@ -77,9 +78,14 @@ function onLabelBlur(field: FormField): void {
 
             <div class="space-y-1.5">
                 <label class="text-sm font-medium">{{ t('agents.forms.form_type') }}</label>
-                <select v-model="form.form_type" class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm">
-                    <option v-for="formType in FORM_TYPES" :key="formType" :value="formType">{{ formTypeLabel(formType) }}</option>
-                </select>
+                <Select v-model="form.form_type">
+                    <SelectTrigger class="w-full">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem v-for="formType in FORM_TYPES" :key="formType" :value="formType">{{ formTypeLabel(formType) }}</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
             <div class="space-y-1.5">

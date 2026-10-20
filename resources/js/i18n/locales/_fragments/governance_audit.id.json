@@ -1,7 +1,7 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "tidak ditawarkan",
+            "outcome_not_offered": "Tidak ditawarkan",
             "detail_spoken_approval": "Persetujuan lisan"
         }
     }

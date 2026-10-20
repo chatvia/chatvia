@@ -114,10 +114,10 @@
             "detail_result": "Resultado",
             "detail_conversation": "Conversa:",
             "detail_trace": "Rastreio:",
-            "outcome_auto": "automático",
-            "outcome_approved": "aprovado",
-            "outcome_denied": "recusado",
-            "outcome_rate_limited": "limite de taxa atingido"
+            "outcome_auto": "Automático",
+            "outcome_approved": "Aprovado",
+            "outcome_denied": "Recusado",
+            "outcome_rate_limited": "Limite de taxa atingido"
         },
         "attach_file": {
             "title": "Escolher de Ficheiros Já Treinados",

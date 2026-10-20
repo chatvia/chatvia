@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Connector } from '@/types/connector';
 import { ExternalLink, LoaderCircle } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -160,14 +161,14 @@ async function submit(): Promise<void> {
                 <!-- Server -->
                 <div class="space-y-1.5">
                     <Label for="sf-server">{{ t('workspace.connectors.salesforce.mcp_server') }}</Label>
-                    <select
-                        id="sf-server"
-                        v-model="server"
-                        :disabled="saving"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
-                    >
-                        <option v-for="s in SERVERS" :key="s.value" :value="s.value">{{ s.label }}</option>
-                    </select>
+                    <Select v-model="server" :disabled="saving">
+                        <SelectTrigger id="sf-server" class="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="s in SERVERS" :key="s.value" :value="s.value">{{ s.label }}</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <!-- My Domain (optional) -->

@@ -8,6 +8,7 @@
 import InputError from '@/components/InputError.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Key, KeyRound, Lock, Shield } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import type { FunctionAuthType } from './FunctionFormSheet.vue';
@@ -28,15 +29,20 @@ const { t } = useI18n();
 <template>
     <div class="grid gap-2">
         <Label for="auth_type">{{ t('workspace.functions.form.auth') }}</Label>
-        <div class="relative">
-            <Shield class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-            <select id="auth_type" v-model="authType" class="border-input bg-background h-9 w-full rounded-md border ps-9 pe-3 text-sm">
-                <option value="none">{{ t('workspace.functions.form.auth_none') }}</option>
-                <option value="bearer">{{ t('workspace.functions.form.auth_bearer') }}</option>
-                <option value="header">{{ t('workspace.functions.form.auth_header') }}</option>
-                <option value="hmac">{{ t('workspace.functions.form.auth_hmac') }}</option>
-            </select>
-        </div>
+        <Select v-model="authType">
+            <SelectTrigger id="auth_type" class="w-full">
+                <span class="flex min-w-0 items-center gap-2">
+                    <Shield class="text-muted-foreground size-4" />
+                    <SelectValue />
+                </span>
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="none">{{ t('workspace.functions.form.auth_none') }}</SelectItem>
+                <SelectItem value="bearer">{{ t('workspace.functions.form.auth_bearer') }}</SelectItem>
+                <SelectItem value="header">{{ t('workspace.functions.form.auth_header') }}</SelectItem>
+                <SelectItem value="hmac">{{ t('workspace.functions.form.auth_hmac') }}</SelectItem>
+            </SelectContent>
+        </Select>
 
         <div v-if="authType === 'bearer'" class="mt-2 grid gap-2">
             <Label for="auth_value">{{ t('workspace.functions.form.bearer_token') }}</Label>

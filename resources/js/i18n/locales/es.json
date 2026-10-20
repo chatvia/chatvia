@@ -2280,7 +2280,17 @@
             "maps_to_help_2": "Los campos asignados completan los datos del lead, lo que alimenta la lista de leads, la detección de duplicados y la exportación a CSV. Déjalo como «—» para capturar la respuesta sin etiquetarla.",
             "subtitle": "Descripción",
             "subtitle_placeholder": "p. ej. Cuéntanos sobre tu empresa y nos pondremos en contacto contigo.",
-            "subtitle_hint": "Se muestra al visitante debajo del título del formulario."
+            "subtitle_hint": "Se muestra al visitante debajo del título del formulario.",
+            "field_type_text": "Texto corto",
+            "field_type_email": "Correo electrónico",
+            "field_type_tel": "Teléfono",
+            "field_type_number": "Número",
+            "field_type_textarea": "Texto largo",
+            "field_type_select": "Lista desplegable",
+            "field_type_radio": "Opción única",
+            "field_type_checkbox": "Casilla",
+            "field_type_multicheckbox": "Opción múltiple",
+            "field_type_date": "Fecha"
         },
         "submissions": {
             "page_title": "Envíos",
@@ -3823,11 +3833,11 @@
             "detail_result": "Resultado",
             "detail_conversation": "Conversación:",
             "detail_trace": "Traza:",
-            "outcome_auto": "automático",
-            "outcome_approved": "aprobado",
-            "outcome_denied": "denegado",
-            "outcome_rate_limited": "límite de tasa alcanzado",
-            "outcome_not_offered": "no ofrecida",
+            "outcome_auto": "Automático",
+            "outcome_approved": "Aprobado",
+            "outcome_denied": "Denegado",
+            "outcome_rate_limited": "Límite de tasa alcanzado",
+            "outcome_not_offered": "No ofrecida",
             "detail_spoken_approval": "Aprobación verbal"
         },
         "attach_file": {

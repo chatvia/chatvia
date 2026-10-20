@@ -114,10 +114,10 @@
             "detail_result": "Résultat",
             "detail_conversation": "Conversation :",
             "detail_trace": "Trace :",
-            "outcome_auto": "automatique",
-            "outcome_approved": "approuvé",
-            "outcome_denied": "refusé",
-            "outcome_rate_limited": "limité en débit"
+            "outcome_auto": "Automatique",
+            "outcome_approved": "Approuvé",
+            "outcome_denied": "Refusé",
+            "outcome_rate_limited": "Limité en débit"
         },
         "attach_file": {
             "title": "Choisir parmi les fichiers déjà entraînés",

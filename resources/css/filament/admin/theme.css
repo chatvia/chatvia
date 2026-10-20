@@ -2003,7 +2003,6 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
     & img.fi-icon {
         object-fit: contain;
-        filter: grayscale(1);
     }
 }
 
@@ -2167,19 +2166,83 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 /*
- * A service logo on a Settings card is made grey to match the icons. Dark
- * mode inverts it, and the filter inverts its tile too, so the tile is given
- * the inverse of the dark tile's colours (--cv-chip and --cv-border on a card).
+ * Settings icons sit on a tile in their own colour, like the Status page:
+ * the tone class (IconTone) sets --cv-icon-tone, and the tile is a light
+ * wash of it with the icon in it. A service logo keeps its own colours on a
+ * light tile, which stays light in dark mode so dark logos still show.
  */
-.cv-settings-card > .fi-section:not(.fi-compact) > .fi-section-header > img.fi-icon {
-    object-fit: contain;
-    filter: grayscale(1);
+.cv-tone-slate {
+    --cv-icon-tone: #64748b;
 }
 
-.dark .cv-settings-card > .fi-section:not(.fi-compact) > .fi-section-header > img.fi-icon {
-    background-color: #dadada;
-    box-shadow: inset 0 0 0 1px #cacaca;
-    filter: grayscale(1) invert(1);
+.cv-tone-violet {
+    --cv-icon-tone: #7c3aed;
+}
+
+.cv-tone-sky {
+    --cv-icon-tone: #0284c7;
+}
+
+.cv-tone-amber {
+    --cv-icon-tone: #d97706;
+}
+
+.cv-tone-rose {
+    --cv-icon-tone: #e11d48;
+}
+
+.cv-tone-emerald {
+    --cv-icon-tone: #059669;
+}
+
+.cv-tone-indigo {
+    --cv-icon-tone: #4f46e5;
+}
+
+.cv-tone-teal {
+    --cv-icon-tone: #0d9488;
+}
+
+.cv-tone-orange {
+    --cv-icon-tone: #ea580c;
+}
+
+.cv-tone-fuchsia {
+    --cv-icon-tone: #c026d3;
+}
+
+.cv-settings-card > .fi-section:not(.fi-compact) > .fi-section-header > .fi-icon:not(.fi-color),
+.cv-tile__icon,
+.cv-search-hit__icon {
+    background-color: color-mix(in oklab, var(--cv-icon-tone, var(--cv-text-muted)) 12%, var(--cv-card));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cv-icon-tone, var(--cv-text-muted)) 22%, transparent);
+    color: var(--cv-icon-tone, var(--cv-nav-text));
+}
+
+.dark .cv-settings-card > .fi-section:not(.fi-compact) > .fi-section-header > .fi-icon:not(.fi-color),
+.dark .cv-tile__icon,
+.dark .cv-search-hit__icon {
+    background-color: color-mix(in oklab, var(--cv-icon-tone, var(--cv-text-muted)) 20%, var(--cv-card));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cv-icon-tone, var(--cv-text-muted)) 35%, transparent);
+    color: color-mix(in oklab, var(--cv-icon-tone, var(--cv-nav-text)) 70%, white);
+}
+
+.cv-settings-card > .fi-section:not(.fi-compact) > .fi-section-header > img.fi-icon {
+    object-fit: contain;
+}
+
+.cv-settings-card.cv-tone-logo > .fi-section:not(.fi-compact) > .fi-section-header > img.fi-icon,
+.cv-tile__icon.cv-tone-logo,
+.cv-search-hit__icon.cv-tone-logo {
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.dark .cv-settings-card.cv-tone-logo > .fi-section:not(.fi-compact) > .fi-section-header > img.fi-icon,
+.dark .cv-tile__icon.cv-tone-logo,
+.dark .cv-search-hit__icon.cv-tone-logo {
+    background-color: oklch(0.96 0 0);
+    box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3171,29 +3234,22 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     flex: none;
     width: 1rem;
     height: 1rem;
-    color: var(--cv-text-subtle);
-    transition: color 150ms ease;
+    color: var(--cv-icon-tone, var(--cv-text-subtle));
 }
 
-.cv-outline__link:hover .cv-outline__icon,
-.cv-outline__link--active .cv-outline__icon {
-    color: var(--cv-text);
+.dark .cv-outline__icon {
+    color: color-mix(in oklab, var(--cv-icon-tone, var(--cv-text-subtle)) 70%, white);
 }
 
+/* A logo keeps its colours; in dark mode it sits on a small light square. */
 .cv-outline__icon--logo {
     object-fit: contain;
-    filter: grayscale(1);
-    opacity: 0.75;
-    transition: opacity 150ms ease;
 }
 
 .dark .cv-outline__icon--logo {
-    filter: grayscale(1) invert(1);
-}
-
-.cv-outline__link:hover .cv-outline__icon--logo,
-.cv-outline__link--active .cv-outline__icon--logo {
-    opacity: 1;
+    padding: 1px;
+    border-radius: 3px;
+    background-color: oklch(0.96 0 0);
 }
 
 /* A service's status, at the end of its link. */

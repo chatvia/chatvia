@@ -77,7 +77,7 @@
                 >
                     <x-filament::icon
                         :icon="$item['icon']"
-                        @class(['cv-outline__icon', 'cv-outline__icon--logo' => is_string($item['icon'])])
+                        @class(['cv-outline__icon', 'cv-outline__icon--logo' => is_string($item['icon']), \App\Admin\Clusters\Settings\IconTone::cssClass($item['icon'])])
                         aria-hidden="true"
                     />
                     <span class="cv-outline__title">{{ $item['title'] }}</span>

@@ -6,7 +6,7 @@
 
     @var array{key: string, title: string, description: string, icon: mixed, status: ?string, tone: string, href: string} $tile
 --}}
-<span class="cv-tile__icon">
+<span class="cv-tile__icon {{ \App\Admin\Clusters\Settings\IconTone::cssClass($tile['icon']) }}">
     <x-filament::icon :icon="$tile['icon']" />
 </span>
 

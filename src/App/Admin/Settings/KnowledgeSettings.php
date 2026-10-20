@@ -9,10 +9,11 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * What agents learn from, and how they search it (Settings → Knowledge): the
  * file types workspaces may upload, website import (Firecrawl), the AI
- * enhancement of chunks, how text is split into chunks (unit, size,
- * overlap, the strategy for each kind of content, the tokenizer), and how
- * agents search: keyword search next to meaning, the results an agent
- * gets, follow-up questions, and the minimum scores. A blank value keeps the
+ * enhancement of chunks, and how agents search: hybrid search (keywords next
+ * to meaning), the results an agent gets, follow-up questions, and the
+ * minimum scores. Also how text is split into chunks (unit, size, overlap,
+ * the strategy for each kind of content, the tokenizer), edited on its own
+ * page, Settings → Splitting. A blank value keeps the
  * default from config.
  */
 class KnowledgeSettings extends AdminSettings

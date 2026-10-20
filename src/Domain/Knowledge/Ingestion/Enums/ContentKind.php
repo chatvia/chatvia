@@ -11,8 +11,8 @@ namespace Domain\Knowledge\Ingestion\Enums;
  * transcript is one long run of sentences. Documents read page by page (PDF,
  * Word, slides, images) are not split: each page is one chunk.
  *
- * The strategy for each kind is set in the admin panel (Settings → Knowledge,
- * Advanced); a strategy that does not suit the kind falls back to the
+ * The strategy for each kind is set in the admin panel (Settings →
+ * Splitting); a strategy that does not suit the kind falls back to the
  * kind's default.
  */
 enum ContentKind: string

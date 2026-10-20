@@ -869,7 +869,7 @@ unless a row names another page, its setting is on **Settings → AI models**.
 | Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `openrouter`, `cohere`, `custom` (a self-hosted `/rerank` server), `none` (a basic similarity check instead) | `chatvia.ai.reranker`, `chatvia.ai.rerank.*` |
 | Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |
-| Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Knowledge) |
+| Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Splitting) |
 | Speech to text | `Transcriber` | `scaleway`, `openai`, `none` | `chatvia.ai.transcriber` |
 | Voice calls | `RealtimeCalls` | `openai` (the Realtime API), `none` (the voice button is hidden) | `chatvia.ai.voice`, `services.openai.realtime_*`, `chatvia.voice.*` |
 | Summaries and PDF chat (whole PDFs) | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
@@ -963,7 +963,7 @@ How it works:
   (PDF, office files, images) make one chunk per page; a page longer than the
   chunk size is split as Text, and every part keeps the page number
   (`PageData::partsOf()`). Token counts (`chunks.tokens`) use the built-in
-  `TikToken` with the tokenizer set in Settings → Knowledge
+  `TikToken` with the tokenizer set in Settings → Splitting
   (`chatvia.ai.tokenizer`).
 - **Chunk enrichment.** On by default (Settings → Knowledge,
   `chatvia.ai.chunker.enhance`): before embedding, the AI enhancement model

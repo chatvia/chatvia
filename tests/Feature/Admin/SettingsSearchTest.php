@@ -3,7 +3,7 @@
 use App\Admin\AdminGlobalSearchProvider;
 use App\Admin\Clusters\Settings\Data\SettingsSearchHitData;
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
-use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
+use App\Admin\Clusters\Settings\Pages\ManageSplittingSettings;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Clusters\Settings\SettingsSearch;
 use App\Identity\Workspace\Models\User;
@@ -71,8 +71,8 @@ it('shows the finds in place of the tiles on the overview, and says when there a
         ->assertSee('Access and security')
         ->set('search', 'chunk size')
         ->assertDontSee('Access and security')
-        ->assertSee(['1 result', 'Settings › Knowledge'])
-        ->assertSeeHtml(['<mark>Chunk</mark> <mark>size</mark>', ManageKnowledgeSettings::getUrl().'#knowledge-splitting'])
+        ->assertSee(['1 result', 'Settings › Splitting'])
+        ->assertSeeHtml(['<mark>Chunk</mark> <mark>size</mark>', ManageSplittingSettings::getUrl().'#splitting-splitting'])
         ->set('search', 'qqqq')
         ->assertSee('Nothing in Settings matches “qqqq”');
 });

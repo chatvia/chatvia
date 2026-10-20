@@ -16,7 +16,7 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\SentenceSeparator;
 
 /**
  * The text splitter: splits each kind of content with the strategy, chunk
- * size, overlap and unit set in the admin panel (Settings → Knowledge). It
+ * size, overlap and unit set in the admin panel (Settings → Splitting). It
  * runs in-process, with no outside service.
  */
 class BuiltinTextSplitter implements TextSplitter

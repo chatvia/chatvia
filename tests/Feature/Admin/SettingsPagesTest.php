@@ -67,7 +67,7 @@ it('shows every settings page, and the overview links to each one', function ():
     }
 
     expect(collect(SettingsCluster::getClusteredComponents())->map(fn (string $page): string => $page::getSlug())->sort()->values()->all())
-        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'overview', 'platform', 'security', 'sign-in', 'storage', 'workspaces']);
+        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'overview', 'platform', 'security', 'sign-in', 'splitting', 'storage', 'workspaces']);
 });
 
 it('shows a card for every service, with its status', function (): void {
@@ -95,7 +95,7 @@ it('groups the overview tiles by topic', function (): void {
         ->get(SettingsOverview::getUrl())
         ->assertSeeInOrder([
             'Access and security', 'Sign-in', 'Workspaces', 'Security',
-            'AI and knowledge', 'AI providers', 'AI models', 'Knowledge',
+            'AI and knowledge', 'AI providers', 'AI models', 'Knowledge', 'Splitting',
             'Connections', 'Channels', 'Connectors',
             'Platform and brand', 'Platform', 'Email', 'Storage', 'Branding',
         ]);
@@ -132,7 +132,8 @@ it('lists the advanced cards last, closed, under their own heading', function ()
     $this->actingAs($this->admin, 'admin')
         ->get(ManageKnowledgeSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['File types', 'Follow-up questions', 'Technical options. The defaults suit most installs.', 'knowledge-splitting', 'knowledge-try_it', 'knowledge-search_tuning'])
+        ->assertSeeInOrder(['File types', 'Follow-up questions', 'Technical options. The defaults suit most installs.', 'knowledge-search_tuning'])
+        ->assertDontSee('knowledge-splitting')
         ->assertSeeText('Save changes')
         ->assertDontSee('cv-outline__save');
 });

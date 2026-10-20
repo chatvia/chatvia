@@ -60,7 +60,7 @@ it('opens the explanation from the card\'s "?" button', function (): void {
         ->assertSee('What do these options do?')
         ->mountAction(TestAction::make('help_search')->schemaComponent('help-knowledge-search', schema: 'form'))
         ->assertActionMounted(TestAction::make('help_search')->schemaComponent('help-knowledge-search', schema: 'form'))
-        ->assertMountedActionModalSee('as well as by meaning');
+        ->assertMountedActionModalSee('by meaning and by keywords together');
 });
 
 it('fills in the name of the card in a shared explanation', function (): void {

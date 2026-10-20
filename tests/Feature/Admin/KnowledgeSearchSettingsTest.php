@@ -22,12 +22,12 @@ it('shows the everyday cards first, and the fine-tuning under Advanced', functio
         ->assertOk()
         ->assertSeeInOrder([
             'File types', 'Website import', 'AI enhancement',
-            'Search', 'Keyword search on · 5 results per question',
+            'Search', 'Hybrid search on · 5 results per question',
             'Follow-up questions', 'Understand follow-up questions on',
             'Technical options. The defaults suit most installs.',
-            'Splitting', 'Try splitting',
             'Search fine-tuning', 'Balanced · reranker, minimum 0.3',
-        ]);
+        ])
+        ->assertDontSee('Try splitting');
 });
 
 it('uses the basic similarity check while no reranker is set up', function (): void {

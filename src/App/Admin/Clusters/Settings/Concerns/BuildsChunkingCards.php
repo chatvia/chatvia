@@ -36,7 +36,7 @@ use InvalidArgumentException;
 use Throwable;
 
 /**
- * The splitting fields of Settings → Knowledge and the "Try splitting"
+ * The splitting fields of Settings → Splitting and the "Try splitting"
  * preview: the chunk size and its unit, the strategy for each kind of
  * content, the tokenizer, and a preview that splits a sample (or the
  * admin's own text) with the options on the page before they are saved.

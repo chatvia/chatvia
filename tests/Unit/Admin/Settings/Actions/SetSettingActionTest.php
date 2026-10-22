@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Admin\Settings\Actions\SetSettingAction;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\MailSettings;

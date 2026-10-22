@@ -28,7 +28,7 @@ class SecurityAuditLogQuery
             ->with('user:id,name,email,profile_image_path')
             ->orderByDesc('id')
             ->when($filters->outcome !== null, fn (Builder $query) => $query->where('outcome', $filters->outcome))
-            ->when($filters->category !== null, fn (Builder $query) => $this->whereCategory($query, (string) $filters->category))
+            ->when($filters->category !== null, fn (Builder $query): Builder => $this->whereCategory($query, $filters->category ?? ''))
             ->cursorPaginate($perPage);
     }
 

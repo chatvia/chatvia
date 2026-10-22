@@ -50,7 +50,7 @@ final readonly class HostedChatSession
     {
         $remembered = Session::get(self::SESSION_KEY.$agent->id);
 
-        if (is_string($remembered) && $this->sessions->isLive($agent, $remembered)) {
+        if (filled($remembered) && $this->sessions->isLive($agent, $remembered)) {
             return $remembered;
         }
 

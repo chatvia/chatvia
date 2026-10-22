@@ -17,7 +17,7 @@ function tembProvider(): EmbeddingsProviderInterface
         /** @var list<list<string>> The Spectra tags each call was sent with. */
         public array $tags = [];
 
-        public function embed(string $text, bool $returnAsText = false): string|array
+        public function embed(string $text, bool $returnAsText = false): array
         {
             return $this->record([0.1]);
         }
@@ -27,7 +27,7 @@ function tembProvider(): EmbeddingsProviderInterface
             return $this->record([[0.1]]);
         }
 
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
+        public function embedQuery(string $text, bool $returnAsText = false): array
         {
             return $this->record([0.2]);
         }

@@ -1043,7 +1043,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
      */
     private function embeddingModel(EmbeddingProvider $provider): Field
     {
-        $property = (string) AiSettings::propertyFor($provider->modelConfig());
+        $property = AiSettings::propertyFor($provider->modelConfig()) ?? '';
         $listed = $provider === EmbeddingProvider::OpenRouter;
         $field = $listed
             ? $this->choice($property, 'Model', app(OpenRouterEmbeddingModels::class)->options(app(EmbeddingStorage::class)->dimensions()))->searchable()->live()

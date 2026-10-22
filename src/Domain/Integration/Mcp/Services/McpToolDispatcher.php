@@ -39,7 +39,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
             return $this->error("Tool \"{$call->name->value}\" is not a recognized MCP tool.");
         }
 
-        $slug = (string) $call->name->serverSlug;
+        $slug = $call->name->serverSlug ?? '';
 
         // Attached to this agent (workspace-owned, enabled, on the pivot).
         // Shared per-request lookup: the display + approval steps already
@@ -167,10 +167,10 @@ class McpToolDispatcher implements ToolDispatcherInterface
             $agent->id,
             (int) $agent->workspace_id,
             (int) $server->id,
-            (string) $server->slug,
+            $server->slug,
             $toolName,
             $toolDescription,
-            (string) $server->name,
+            $server->name,
             $server->connector_slug,
             $error,
             now(),

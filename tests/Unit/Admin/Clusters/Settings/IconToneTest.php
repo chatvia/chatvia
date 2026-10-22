@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Admin\Clusters\Settings\IconTone;
 use Filament\Support\Icons\Heroicon;
 

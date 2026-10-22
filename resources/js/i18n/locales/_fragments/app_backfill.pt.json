@@ -94,7 +94,7 @@
             "field_label": "Etiqueta do campo",
             "required": "Obrigatório",
             "maps_to": "Associa a",
-            "options_placeholder": "Uma opção por linha. Utilize valor|etiqueta para valores separados.",
+            "options_placeholder": "Uma opção por linha. Utilize valor{'|'}etiqueta para valores separados.",
             "success_message": "Mensagem de sucesso",
             "success_placeholder": "Mostrada depois de o visitante submeter.",
             "active": "Ativo",

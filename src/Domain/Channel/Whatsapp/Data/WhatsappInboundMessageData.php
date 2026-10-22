@@ -108,6 +108,6 @@ final readonly class WhatsappInboundMessageData
 
         $text = $message['text']['body'] ?? null;
 
-        return is_string($text) && filled($text);
+        return filled($text);
     }
 }

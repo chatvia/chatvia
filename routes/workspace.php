@@ -61,13 +61,13 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         Route::middleware('team.permission:account.connectors,404')->group(function (): void {
             Route::get('connectors', [ConnectorController::class, 'edit'])->name('connectors.edit');
             Route::get('connectors/data', [ConnectorController::class, 'index'])->name('connectors.data');
-            Route::post('connectors/{slug}/connect', ConnectController::class)->name('connectors.connect');
+            Route::post('connectors/{slug}/connect', ConnectController::class)->middleware('throttle:10,1,connector-connect')->name('connectors.connect');
             Route::get('connectors/{slug}/oauth/start', OAuthStartController::class)->middleware('throttle:10,1,connector-oauth-start')->name('connectors.oauth.start');
             Route::post('connectors/salesforce/connect', SalesforceConnectController::class)->name('connectors.salesforce.connect');
-            Route::post('connectors/custom/add', CustomAddController::class)->name('connectors.custom.add');
+            Route::post('connectors/custom/add', CustomAddController::class)->middleware('throttle:10,1,connector-connect')->name('connectors.custom.add');
             Route::post('connectors/{slug}/enable', ToggleConnectorController::class)->name('connectors.enable');
             Route::delete('connectors/{slug}', [ConnectorController::class, 'destroy'])->name('connectors.destroy');
-            Route::post('connectors/{slug}/refresh', RefreshConnectorController::class)->name('connectors.refresh');
+            Route::post('connectors/{slug}/refresh', RefreshConnectorController::class)->middleware('throttle:10,1,connector-connect')->name('connectors.refresh');
             Route::get('connectors/{slug}/tools', ConnectorToolController::class)->name('connectors.tools');
 
             // Per-tool permission (allow / approval / blocked) — the tri-state shown
@@ -83,8 +83,8 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
             // Manage which agents use a connector (from the Connectors sheet).
             Route::get('connectors/{slug}/agents', [ConnectorAgentController::class, 'index'])->name('connectors.agents.index');
-            Route::post('connectors/{slug}/agents/{agent}', [ConnectorAgentController::class, 'store'])->name('connectors.agents.attach');
-            Route::delete('connectors/{slug}/agents/{agent}', [ConnectorAgentController::class, 'destroy'])->name('connectors.agents.detach');
+            Route::post('connectors/{slug}/agents/{agent}', [ConnectorAgentController::class, 'store'])->middleware('can.access.agent')->name('connectors.agents.attach');
+            Route::delete('connectors/{slug}/agents/{agent}', [ConnectorAgentController::class, 'destroy'])->middleware('can.access.agent')->name('connectors.agents.detach');
         });
 
         Route::middleware('team.permission:account.functions,404')->group(function (): void {
@@ -96,8 +96,8 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
             // Manage which agents use a function (from the Functions sheet).
             Route::get('functions/{function}/agents', [FunctionAgentController::class, 'index'])->name('functions.agents.index');
-            Route::post('functions/{function}/agents/{agent}', [FunctionAgentController::class, 'store'])->name('functions.agents.attach');
-            Route::delete('functions/{function}/agents/{agent}', [FunctionAgentController::class, 'destroy'])->name('functions.agents.detach');
+            Route::post('functions/{function}/agents/{agent}', [FunctionAgentController::class, 'store'])->middleware('can.access.agent')->name('functions.agents.attach');
+            Route::delete('functions/{function}/agents/{agent}', [FunctionAgentController::class, 'destroy'])->middleware('can.access.agent')->name('functions.agents.detach');
         });
 
         Route::middleware('team.permission:account.api_keys,404')->group(function (): void {
@@ -132,8 +132,8 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // Per-chatter agent grants — same shape as the Connectors/Functions agent
         // toggles, consumed by useAgentAttachments('chatter').
         Route::get('chatters/{chatter:external_id}/agents', [SettingsChatterAgentController::class, 'index'])->name('chatters.agents.index');
-        Route::post('chatters/{chatter:external_id}/agents/{agent}', [SettingsChatterAgentController::class, 'store'])->name('chatters.agents.attach');
-        Route::delete('chatters/{chatter:external_id}/agents/{agent}', [SettingsChatterAgentController::class, 'destroy'])->name('chatters.agents.detach');
+        Route::post('chatters/{chatter:external_id}/agents/{agent}', [SettingsChatterAgentController::class, 'store'])->middleware('can.access.agent')->name('chatters.agents.attach');
+        Route::delete('chatters/{chatter:external_id}/agents/{agent}', [SettingsChatterAgentController::class, 'destroy'])->middleware('can.access.agent')->name('chatters.agents.detach');
     });
 
     // Governance — the tool-call audit log (Governed MCP Gateway). Read-only;

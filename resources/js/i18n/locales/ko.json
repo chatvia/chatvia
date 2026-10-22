@@ -531,7 +531,8 @@
                 "sentiment_timeline": "감정 타임라인",
                 "message_details": "메시지 세부 정보",
                 "waiting": "대기 중…",
-                "trend_stable_label": "안정"
+                "trend_stable_label": "안정",
+                "trend_tooltip": "{first}와 {last}의 감정을 비교합니다."
             },
             "handoff": {
                 "visitor": "방문자",
@@ -2272,7 +2273,7 @@
             "field_label": "필드 레이블",
             "required": "필수",
             "maps_to": "매핑 대상",
-            "options_placeholder": "한 줄에 옵션 하나씩. 값과 레이블을 분리하려면 value|label 형식을 사용하세요.",
+            "options_placeholder": "한 줄에 옵션 하나씩. 값과 레이블을 분리하려면 value{'|'}label 형식을 사용하세요.",
             "success_message": "성공 메시지",
             "success_placeholder": "방문자가 제출한 후 표시됩니다.",
             "active": "활성",

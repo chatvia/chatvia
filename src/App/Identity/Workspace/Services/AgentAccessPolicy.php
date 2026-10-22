@@ -63,12 +63,24 @@ final readonly class AgentAccessPolicy
     /**
      * Every agent the user may chat with, for the chat agent switcher. Kept in
      * step with {@see canChat()} so the list never shows an agent the switch
-     * would then refuse. A workspace account lists its own agents only (staff
-     * included).
+     * would then refuse.
      *
      * @return Collection<int, Agent>
      */
     public function chattableAgents(User $user): Collection
+    {
+        return $this->manageableAgents($user);
+    }
+
+    /**
+     * Every agent the user may work on from the dashboard. Kept in step with
+     * {@see canManage()} so a "Manage agents" list never offers an agent the
+     * `can.access.agent` route would then refuse. A workspace account lists its
+     * own agents only (staff included).
+     *
+     * @return Collection<int, Agent>
+     */
+    public function manageableAgents(User $user): Collection
     {
         if ($user->isWorkspaceOwner()) {
             return $user->workspace()->agents()->get()->toBase();

@@ -4,12 +4,11 @@
  * a standalone workspace) passes every check; everyone else needs the code in
  * their team's permission list.
  */
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 export function useTeamPermissions() {
-    const page = usePage<SharedData>();
+    const page = usePage();
 
     const isOwner = computed(() => {
         const currentTeam = page.props.currentTeam;

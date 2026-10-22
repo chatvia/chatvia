@@ -26,16 +26,17 @@ class ReceiveSlackEventAction
 
     public function execute(AgentSlackApp $app, SlackEventData $event): void
     {
-        if ($event->eventId !== null
-            && ! $this->deliveries->firstDelivery("slack:event:{$app->id}:{$event->eventId}", now()->addDay())) {
-            return;
-        }
-
         if (! $this->shouldAnswer($app, $event)) {
             return;
         }
 
-        HandleSlackEventJob::dispatch($app, (string) $event->channelId, (string) $event->text, $event->threadTs);
+        $this->deliveries->once(
+            $event->eventId !== null ? "slack:event:{$app->id}:{$event->eventId}" : null,
+            now()->addDay(),
+            function () use ($app, $event): void {
+                HandleSlackEventJob::dispatch($app, $event->channelId ?? '', $event->text ?? '', $event->threadTs);
+            },
+        );
     }
 
     private function shouldAnswer(AgentSlackApp $app, SlackEventData $event): bool

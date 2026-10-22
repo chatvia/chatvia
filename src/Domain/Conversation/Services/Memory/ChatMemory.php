@@ -141,7 +141,7 @@ class ChatMemory
 
         if ($viewerMatches && $this->cache()->has($this->scope()->sessionId)) {
             return array_map(
-                static fn (array $conversation): ConversationData => ConversationData::from($conversation),
+                ConversationData::from(...),
                 array_values($cached['conversations'] ?? []),
             );
         }
@@ -283,7 +283,7 @@ class ChatMemory
         $conversationId = $this->conversationId();
 
         return array_map(
-            static fn (array $message): MessageData => MessageData::from($message),
+            MessageData::from(...),
             array_values($this->cache()->get($this->cache()->generateConversationKey($conversationId), [], $conversationId)),
         );
     }
@@ -336,7 +336,7 @@ class ChatMemory
 
         return array_map(
             static fn (array $sources): array => array_map(
-                static fn (array $source): SourceRefData => SourceRefData::from($source),
+                SourceRefData::from(...),
                 array_values($sources),
             ),
             $cached,

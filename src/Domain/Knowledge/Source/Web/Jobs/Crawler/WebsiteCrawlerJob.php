@@ -22,9 +22,11 @@ use Throwable;
  * Discovers a website's pages off the request path. See
  * {@see CrawlWebsiteAction}.
  */
+// The website-ingestion queue, on the long supervisor that crawls take.
 #[Queue('ingestion.website')]
-// Longer than a run, so a worker that dies mid-run cannot hold the lock for good.
-#[UniqueFor(3600)]
+// As long as retryUntil(), so a crawl waiting on the FireCrawl throttle is never
+// queued twice; the lock still expires, so a dead worker cannot hold it for good.
+#[UniqueFor(21600)]
 // Cap on genuine crawl failures; throttle releases don't count and are
 // bounded by retryUntil() instead.
 #[MaxExceptions(3)]

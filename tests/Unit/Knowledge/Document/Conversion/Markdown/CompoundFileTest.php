@@ -38,7 +38,7 @@ it('tells a compound file from any other file and refuses to open the other', fu
 
     expect(CompoundFile::isCompoundFile($compound))->toBeTrue()
         ->and(CompoundFile::isCompoundFile($other))->toBeFalse()
-        ->and(fn () => CompoundFile::open($other))->toThrow(RuntimeException::class, 'not an OLE compound file');
+        ->and(fn (): CompoundFile => CompoundFile::open($other))->toThrow(RuntimeException::class, 'not an OLE compound file');
 
     @unlink($compound);
     @unlink($other);
@@ -53,7 +53,7 @@ it('refuses a sector chain that loops instead of reading it forever', function (
     $path = cfbFile($bytes);
     $file = CompoundFile::open($path);
 
-    expect(fn () => $file->read('Big'))->toThrow(RuntimeException::class, 'broken sector chain');
+    expect(fn (): ?string => $file->read('Big'))->toThrow(RuntimeException::class, 'broken sector chain');
 
     $file->close();
     @unlink($path);

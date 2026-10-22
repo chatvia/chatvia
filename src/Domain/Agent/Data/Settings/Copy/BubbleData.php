@@ -24,6 +24,6 @@ class BubbleData extends Data
 
     public static function fromCopy(TranslatableText $copy): self
     {
-        return new self((string) $copy->base, $copy->translations, $copy->overrides);
+        return new self($copy->base ?? '', $copy->translations, $copy->overrides);
     }
 }

@@ -51,7 +51,7 @@ class AzureDocumentIntelligence
             ), 0, 300));
         }
 
-        $result = $this->wait((string) $started->header('Operation-Location'));
+        $result = $this->wait($started->header('Operation-Location'));
 
         return $this->pages((array) ($result['analyzeResult'] ?? []));
     }

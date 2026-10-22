@@ -57,7 +57,7 @@ class StartAgentWebsiteCrawlAction
             // Re-validate the upstream-controlled redirect target before adopting
             // it — a public seed must not 30x into an internal address. The
             // target is only stored here; FireCrawl does the actual crawl.
-            $location = (string) $response->header('Location');
+            $location = $response->header('Location');
             $this->safely(fn () => SafeUrl::assert($location));
             $data = new CrawlerData(
                 url: $location,

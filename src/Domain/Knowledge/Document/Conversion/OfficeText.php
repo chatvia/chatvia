@@ -226,7 +226,7 @@ class OfficeText
     /** A plain-text file as UTF-8; older Windows files are often Windows-1252. */
     private function plainText(string $path): string
     {
-        $text = (string) File::get($path);
+        $text = File::get($path);
 
         return mb_check_encoding($text, 'UTF-8') ? $text : mb_convert_encoding($text, 'UTF-8', 'Windows-1252');
     }

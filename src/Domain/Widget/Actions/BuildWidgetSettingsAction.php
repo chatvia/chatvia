@@ -223,7 +223,7 @@ class BuildWidgetSettingsAction
 
         foreach ($agent->normalizedBubbles() as $bubble) {
             $copy = TranslatableText::fromStored($bubble);
-            $text = (string) $copy->in($locale);
+            $text = $copy->in($locale) ?? '';
 
             if ($text === '') {
                 continue;

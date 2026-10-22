@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { manager } from '@/routes/agents';
-import type { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { Bot, Loader2, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -17,7 +16,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
 
-const page = usePage<SharedData>();
+const page = usePage();
 
 type Agent = AgentListItem;
 

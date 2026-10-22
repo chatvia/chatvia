@@ -221,6 +221,7 @@
                 "trend": "Trend",
                 "trend_first": "första meddelandet",
                 "trend_last": "sista meddelandet",
+                "trend_tooltip": "Jämför stämningen i {first} med {last}.",
                 "trend_improving": "Förbättras",
                 "trend_improving_hint": "— stämningen avslutades bättre än den började",
                 "trend_declining": "Försämras",

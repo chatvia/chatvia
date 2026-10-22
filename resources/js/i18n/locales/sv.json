@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Känslolägestidslinje",
                 "message_details": "Meddelandedetaljer",
                 "waiting": "Väntar…",
-                "trend_stable_label": "Stabil"
+                "trend_stable_label": "Stabil",
+                "trend_tooltip": "Jämför stämningen i {first} med {last}."
             },
             "handoff": {
                 "visitor": "Besökare",
@@ -2272,7 +2273,7 @@
             "field_label": "Fältetikett",
             "required": "Obligatoriskt",
             "maps_to": "Kopplas till",
-            "options_placeholder": "Ett alternativ per rad. Använd värde|etikett för separata värden.",
+            "options_placeholder": "Ett alternativ per rad. Använd värde{'|'}etikett för separata värden.",
             "success_message": "Bekräftelsemeddelande",
             "success_placeholder": "Visas efter att besökaren skickat in.",
             "active": "Aktivt",

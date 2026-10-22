@@ -19,7 +19,7 @@ class StaffUserProvider extends EloquentUserProvider
      */
     public function retrieveByCredentials(#[\SensitiveParameter] array $credentials)
     {
-        if (is_string($credentials['email'] ?? null)) {
+        if (filled($credentials['email'] ?? null) && ! is_array($credentials['email'])) {
             $credentials['email'] = Str::lower($credentials['email']);
         }
 

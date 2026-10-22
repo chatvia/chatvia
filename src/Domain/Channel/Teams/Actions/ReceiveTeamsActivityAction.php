@@ -35,12 +35,13 @@ class ReceiveTeamsActivityAction
 
         $activityId = $activity['id'] ?? null;
 
-        if (is_string($activityId)
-            && ! $this->deliveries->firstDelivery("msteams:activity:{$bot->id}:{$activityId}", now()->addDay())) {
-            return;
-        }
-
-        HandleTeamsActivityJob::dispatch($bot, $activity);
+        $this->deliveries->once(
+            filled($activityId) ? "msteams:activity:{$bot->id}:{$activityId}" : null,
+            now()->addDay(),
+            function () use ($bot, $activity): void {
+                HandleTeamsActivityJob::dispatch($bot, $activity);
+            },
+        );
     }
 
     /**
@@ -50,11 +51,11 @@ class ReceiveTeamsActivityAction
     {
         $text = $activity['text'] ?? null;
 
-        if (($activity['type'] ?? null) !== 'message' || ! is_string($text) || blank($text)) {
+        if (($activity['type'] ?? null) !== 'message' || blank($text)) {
             return false;
         }
 
-        if (! is_string($activity['conversation']['id'] ?? null) || ! is_string($activity['serviceUrl'] ?? null)) {
+        if (blank($activity['conversation']['id'] ?? null) || blank($activity['serviceUrl'] ?? null)) {
             return false;
         }
 

@@ -5,7 +5,6 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { store } from '@/routes/account/data-export';
-import type { SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { AlertTriangle, CheckCircle2, Download, Loader2, RefreshCw, ShieldCheck } from 'lucide-vue-next';
@@ -38,7 +37,7 @@ const submit = () => {
     });
 };
 
-const page = usePage<SharedData>();
+const page = usePage();
 const userId = computed<number | null>(() => page.props.auth?.user?.id ?? null);
 
 const now = ref<number>(Math.floor(performance.timeOrigin / 1000) + Math.floor(performance.now() / 1000));

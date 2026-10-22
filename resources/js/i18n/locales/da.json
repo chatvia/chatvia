@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Stemningsoversigt",
                 "message_details": "Beskeddetaljer",
                 "waiting": "Afventer…",
-                "trend_stable_label": "Stabil"
+                "trend_stable_label": "Stabil",
+                "trend_tooltip": "Sammenligner stemningen i {first} med {last}."
             },
             "handoff": {
                 "visitor": "Besøgende",
@@ -2272,7 +2273,7 @@
             "field_label": "Feltetiket",
             "required": "Påkrævet",
             "maps_to": "Knyttes til",
-            "options_placeholder": "Én mulighed pr. linje. Brug værdi|etiket for separate værdier.",
+            "options_placeholder": "Én mulighed pr. linje. Brug værdi{'|'}etiket for separate værdier.",
             "success_message": "Bekræftelsesbesked",
             "success_placeholder": "Vises, efter den besøgende har sendt formularen.",
             "active": "Aktiv",

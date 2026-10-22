@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { logs } from '@/routes/agents';
+import type { PageProps } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/vue3';
 import { Activity, Info, MessageSquare, Phone, RefreshCcw, Search, Tag, Trash2, UserCheck, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -30,7 +31,7 @@ import { useChatLog, type ChatLogTab } from './useChatLog';
 type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
 
 const { t } = useI18n();
-const page = usePage<{ handoffEnabled?: boolean; chatlogEnabled?: boolean }>();
+const page = usePage<PageProps & { handoffEnabled?: boolean; chatlogEnabled?: boolean }>();
 
 const {
     agent,

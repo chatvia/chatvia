@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Chronologie des sentiments",
                 "message_details": "Détails du message",
                 "waiting": "En attente…",
-                "trend_stable_label": "Stable"
+                "trend_stable_label": "Stable",
+                "trend_tooltip": "Compare l'humeur du {first} avec celle du {last}."
             },
             "handoff": {
                 "visitor": "Visiteur",
@@ -2272,7 +2273,7 @@
             "field_label": "Libellé du champ",
             "required": "Obligatoire",
             "maps_to": "Associé à",
-            "options_placeholder": "Une option par ligne. Utilisez valeur|libellé pour des valeurs distinctes.",
+            "options_placeholder": "Une option par ligne. Utilisez valeur{'|'}libellé pour des valeurs distinctes.",
             "success_message": "Message de confirmation",
             "success_placeholder": "Affiché après l'envoi par le visiteur.",
             "active": "Actif",

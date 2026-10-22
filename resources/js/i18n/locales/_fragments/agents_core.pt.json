@@ -221,6 +221,7 @@
                 "trend": "Tendência",
                 "trend_first": "primeira mensagem",
                 "trend_last": "última mensagem",
+                "trend_tooltip": "Compara o humor da {first} com o da {last}.",
                 "trend_improving": "A melhorar",
                 "trend_improving_hint": "— o humor terminou melhor do que começou",
                 "trend_declining": "A declinar",

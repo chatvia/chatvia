@@ -35,17 +35,17 @@ class ToolDisplayResolver
         $server = $this->servers->forWorkspace((int) $agent->workspace_id, $slug);
 
         $connectorSlug = $server?->getAttribute('connector_slug');
-        $preset = is_string($connectorSlug) ? Config::get('connectors.'.$connectorSlug) : null;
+        $preset = filled($connectorSlug) ? Config::get('connectors.'.$connectorSlug) : null;
 
         $serverName = $server?->getAttribute('name');
 
         return new ToolDisplayData(
             kind: ToolKind::Mcp,
-            label: $preset['name'] ?? (is_string($serverName) ? $serverName : $slug),
+            label: $preset['name'] ?? (filled($serverName) ? $serverName : $slug),
             // Per-connector transient activity phrase ("Preparing your form…").
             // The widget shows it verbatim and falls back to "Connecting to
             // {label}…" when absent (e.g. external presets without a phrase).
-            activityLabel: isset($preset['activity_label']) && is_string($preset['activity_label'])
+            activityLabel: filled($preset['activity_label'] ?? null)
                 ? $preset['activity_label']
                 : null,
             // First-party builtins (forms, charts, leads) are internal plumbing —

@@ -38,7 +38,7 @@ class AttachmentController
      */
     private function conversationId(UploadAttachmentRequest $request, Agent $agent, HostedChatSession $session): ?int
     {
-        $externalId = (string) ($request->header('X-CONVERSATION-ID') ?: self::PENDING_CONVERSATION);
+        $externalId = $request->header('X-CONVERSATION-ID') ?: self::PENDING_CONVERSATION;
 
         if ($externalId === self::PENDING_CONVERSATION) {
             return null;

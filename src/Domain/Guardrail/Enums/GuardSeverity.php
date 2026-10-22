@@ -2,11 +2,15 @@
 
 namespace Domain\Guardrail\Enums;
 
+use Illuminate\Support\Str;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * How serious a classifier finding is (prompt-injection risk, toxicity
  * severity). Stored in `guardrail_events.severity`. Medium and High block a
  * turn; Low is only flagged.
  */
+#[TypeScript]
 enum GuardSeverity: string
 {
     case None = 'none';
@@ -17,7 +21,7 @@ enum GuardSeverity: string
     /** A model answer outside the four levels counts as None. */
     public static function fromModel(mixed $value): self
     {
-        return is_string($value) ? (self::tryFrom(strtolower(trim($value))) ?? self::None) : self::None;
+        return filled($value) ? (self::tryFrom(Str::lower(Str::trim($value))) ?? self::None) : self::None;
     }
 
     public function blocks(): bool

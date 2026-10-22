@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Notification\Data\NotificationPreferencesData;
 use Domain\Notification\Enums\NotificationCategory;
 

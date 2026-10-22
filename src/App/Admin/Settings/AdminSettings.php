@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use Illuminate\Support\Str;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -114,10 +115,6 @@ abstract class AdminSettings extends Settings
             return array_values($items);
         }
 
-        if (is_string($value)) {
-            $value = trim($value);
-        }
-
         if (blank($value) || ! is_scalar($value)) {
             return null;
         }
@@ -126,7 +123,7 @@ abstract class AdminSettings extends Settings
             'bool' => filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE),
             'int' => filter_var($value, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
             'float' => is_numeric($value) ? (float) $value : null,
-            default => (string) $value,
+            default => Str::trim((string) $value),
         };
     }
 

@@ -6,13 +6,20 @@ use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
 use Domain\Integration\Tool\Jobs\ReembedToolVectorsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
 
 /**
  * Vectors of two embedding models cannot be compared, so a change of the
  * embedding service or model in use (from any place that saves the AI
- * settings) embeds everything again: knowledge and tools, in the queue.
+ * settings) embeds everything again: knowledge and tools, in the queue. The
+ * job is queued once the save is done (a deferred callback), so these tests
+ * run deferred callbacks at once.
  */
+beforeEach(function (): void {
+    $this->withoutDefer();
+});
+
 function reindexEmbeddingSettings(string $provider, string $openAiModel = 'text-embedding-3-small'): AiSettings
 {
     $settings = app(AiSettings::class);
@@ -23,7 +30,7 @@ function reindexEmbeddingSettings(string $provider, string $openAiModel = 'text-
     return $settings;
 }
 
-it('re-indexes everything after the response when the embedding model in use changes', function (): void {
+it('queues a re-index of everything when the embedding model in use changes', function (): void {
     Bus::fake();
     $settings = reindexEmbeddingSettings('openai');
     Bus::fake();
@@ -31,7 +38,7 @@ it('re-indexes everything after the response when the embedding model in use cha
     $settings->openai_embedding_model = 'text-embedding-3-large';
     $settings->save();
 
-    Bus::assertDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+    Bus::assertDispatched(ReindexEmbeddingsJob::class);
 });
 
 it('re-indexes when the embedding service changes', function (): void {
@@ -42,7 +49,17 @@ it('re-indexes when the embedding service changes', function (): void {
     $settings->embedding_provider = 'openrouter';
     $settings->save();
 
-    Bus::assertDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+    Bus::assertDispatched(ReindexEmbeddingsJob::class);
+});
+
+it('queues the re-index on the long ingestion queue', function (): void {
+    Queue::fake();
+    $settings = reindexEmbeddingSettings('openai');
+
+    $settings->openai_embedding_model = 'text-embedding-3-large';
+    $settings->save();
+
+    Queue::assertPushedOn('ingestion.chunks', ReindexEmbeddingsJob::class);
 });
 
 it('leaves the vectors alone when another service\'s model or another setting changes', function (): void {
@@ -54,7 +71,7 @@ it('leaves the vectors alone when another service\'s model or another setting ch
     $settings->history_messages = 12;
     $settings->save();
 
-    Bus::assertNotDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+    Bus::assertNotDispatched(ReindexEmbeddingsJob::class);
 });
 
 it('re-embeds the tools and queues the knowledge as one batch', function (): void {

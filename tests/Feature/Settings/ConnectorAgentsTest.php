@@ -95,3 +95,28 @@ it('answers 404 for another workspace\'s agent on attach and detach, and leaves 
     expect($this->server->agents()->whereKey($strangerAgent->id)->exists())->toBeFalse()
         ->and($strangerServer->agents()->whereKey($strangerAgent->id)->exists())->toBeTrue();
 });
+
+it('refuses a teammate an agent their team role does not reach', function (): void {
+    $outsideRole = makeTeamAgent($this->user, 'Billing Bot');
+    $teammate = teammateWithPermissions($this->user, ['account.connectors'], allAgents: false, agentExternalIds: [$this->agent->external_id]);
+
+    $this->actingAs($teammate)
+        ->postJson(route('integrations.connectors.agents.attach', [
+            'slug' => $this->server->slug,
+            'agent' => $outsideRole->external_id,
+        ]))
+        ->assertForbidden();
+
+    expect($this->server->agents()->whereKey($outsideRole->id)->exists())->toBeFalse();
+});
+
+it('lists only the agents the teammate may manage', function (): void {
+    makeTeamAgent($this->user, 'Billing Bot');
+    $teammate = teammateWithPermissions($this->user, ['account.connectors'], allAgents: false, agentExternalIds: [$this->agent->external_id]);
+
+    $this->actingAs($teammate)
+        ->getJson(route('integrations.connectors.agents.index', ['slug' => $this->server->slug]))
+        ->assertOk()
+        ->assertJsonCount(1, 'available')
+        ->assertJsonPath('available.0.id', $this->agent->external_id);
+});

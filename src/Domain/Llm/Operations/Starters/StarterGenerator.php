@@ -40,18 +40,18 @@ class StarterGenerator
 
         $reply = $this->completion->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Starters),
-            tag: AiCallTag::ConversationStarters,
             messages: [
                 ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
                 ChatMessageData::user(prompt('starters/content', [
                     'content' => Collection::make($content)->take(40)->implode("\n---\n"),
                 ])),
             ],
+            tag: AiCallTag::ConversationStarters,
             temperature: 0.7,
         ));
 
         return Collection::make($reply->data ?? [])
-            ->filter(fn (mixed $value): bool => is_string($value))
+            ->filter(fn (mixed $value): bool => filled($value))
             ->map(fn (string $value): string => trim($value))
             ->filter(fn (string $value): bool => $value !== '' && mb_strlen($value) <= self::MAX_LENGTH)
             ->unique()

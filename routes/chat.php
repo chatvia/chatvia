@@ -52,10 +52,10 @@ Route::get('chat-handoff/{agentSlug}', ChatHandoffController::class)
  * /chat/{agentSlug} (the agent's slug, or its external id for the permanent
  * and embed addresses). `chat.agent` resolves the agent first; the chat runs on
  * its own session and `chat` guard (UseHostedChatSession), apart from the
- * dashboard.
+ * dashboard. `throttle:chat` is the bulk per-IP ceiling, like `throttle:widgets`.
  */
 Route::prefix('chat/{agentSlug}')
-    ->middleware('chat.agent')
+    ->middleware(['chat.agent', 'throttle:chat'])
     ->group(function (): void {
         Route::get('appearance', ChatAppearanceController::class)->name('chat.appearance');
 

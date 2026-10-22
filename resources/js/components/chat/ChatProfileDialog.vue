@@ -25,7 +25,6 @@ import { Separator } from '@/components/ui/separator';
 import { getInitials } from '@/composables/useInitials';
 import { update as updateProfile } from '@/routes/chat/profile';
 import { destroy as destroyProfilePhoto } from '@/routes/chat/profile/photo';
-import type { SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { Loader2, Mail, Trash2, Upload, User } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -34,7 +33,7 @@ import { useI18n } from 'vue-i18n';
 const open = defineModel<boolean>('open', { required: true });
 
 const { t } = useI18n();
-const page = usePage<SharedData>();
+const page = usePage();
 const currentUser = computed(() => page.props.auth?.user ?? null);
 
 const profileForm = useForm({

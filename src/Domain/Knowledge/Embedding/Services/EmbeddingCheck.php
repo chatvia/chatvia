@@ -19,13 +19,13 @@ use Illuminate\Http\Client\RequestException;
  * the key, the model, and (when given) the vector size the database stores.
  * The call is tagged `service-check` in Spectra, apart from real traffic.
  */
-final class EmbeddingCheck
+final readonly class EmbeddingCheck
 {
     /** The text embedded to check a service. */
     private const string TEXT = 'How do I reset my password?';
 
     public function __construct(
-        private readonly AiCallTags $tags,
+        private AiCallTags $tags,
     ) {}
 
     public function check(EmbeddingProvider $provider, ?string $model = null, ?string $apiKey = null, ?int $dimensions = null): EmbeddingCheckData

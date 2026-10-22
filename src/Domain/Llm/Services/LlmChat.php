@@ -53,7 +53,7 @@ final readonly class LlmChat
     {
         $provider = $this->provider ?? $this->providers->for($request->model);
 
-        return $this->tags->during($request->tag, fn () => $provider->completionAsync($request->toPayload()))
+        return $this->tags->during($request->tag, fn (): PromiseInterface => $provider->completionAsync($request->toPayload()))
             ->then(static fn (Response $response): ChatResponseData => ChatResponseData::fromResponse((array) $response->json()));
     }
 }

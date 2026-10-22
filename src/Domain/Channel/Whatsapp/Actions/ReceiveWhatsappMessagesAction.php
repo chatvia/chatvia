@@ -36,12 +36,17 @@ class ReceiveWhatsappMessagesAction
 
             $number = $numbers[$message->phoneNumberId];
 
-            if (! $number instanceof AgentWhatsappNumber
-                || ! $this->deliveries->firstDelivery("whatsapp:mid:{$number->id}:{$message->messageId}", now()->addDays(7))) {
+            if (! $number instanceof AgentWhatsappNumber) {
                 continue;
             }
 
-            HandleWhatsappMessageJob::dispatch($number, $message->waId, $message->text, $message->messageId, $message->senderName);
+            $this->deliveries->once(
+                "whatsapp:mid:{$number->id}:{$message->messageId}",
+                now()->addDays(7),
+                function () use ($number, $message): void {
+                    HandleWhatsappMessageJob::dispatch($number, $message->waId, $message->text, $message->messageId, $message->senderName);
+                },
+            );
         }
     }
 

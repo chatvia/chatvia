@@ -93,7 +93,7 @@
             "field_label": "Etykieta pola",
             "required": "Wymagane",
             "maps_to": "Mapuje na",
-            "options_placeholder": "Jedna opcja w wierszu. Użyj wartość|etykieta dla osobnych wartości.",
+            "options_placeholder": "Jedna opcja w wierszu. Użyj wartość{'|'}etykieta dla osobnych wartości.",
             "success_message": "Komunikat o powodzeniu",
             "success_placeholder": "Wyświetlany po przesłaniu przez odwiedzającego.",
             "active": "Aktywny",

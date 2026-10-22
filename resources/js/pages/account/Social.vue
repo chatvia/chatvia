@@ -18,7 +18,7 @@ import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
 import { connect as connectSocial, disconnect as disconnectSocial } from '@/routes/account/social';
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, Link2, Link2Off, Share2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -40,7 +40,7 @@ defineProps<{
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: t('account.social.title'), href: '/my/account/social' }];
 
-const page = usePage<SharedData>();
+const page = usePage();
 const status = computed(() => page.props.flash?.success ?? undefined);
 const providerError = computed(() => page.props.errors?.provider);
 

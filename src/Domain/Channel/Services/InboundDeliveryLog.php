@@ -2,8 +2,10 @@
 
 namespace Domain\Channel\Services;
 
+use Closure;
 use DateTimeInterface;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 /**
  * Remembers which inbound webhook deliveries were already queued. Every
@@ -21,5 +23,31 @@ class InboundDeliveryLog
     public function firstDelivery(string $key, DateTimeInterface $until): bool
     {
         return Cache::add($key, true, $until);
+    }
+
+    /**
+     * Run `$dispatch` for the first delivery of `$key` only. When it throws
+     * (the queue is down), the claim is given back before the error goes on:
+     * the webhook then answers with an error, and the provider's retry must be
+     * queued, not dropped as a repeat. A null key (an event without an id)
+     * cannot be told apart from a repeat, so it always runs.
+     *
+     * @param  Closure(): void  $dispatch
+     */
+    public function once(?string $key, DateTimeInterface $until, Closure $dispatch): void
+    {
+        if ($key !== null && ! $this->firstDelivery($key, $until)) {
+            return;
+        }
+
+        try {
+            $dispatch();
+        } catch (Throwable $e) {
+            if ($key !== null) {
+                Cache::forget($key);
+            }
+
+            throw $e;
+        }
     }
 }

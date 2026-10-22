@@ -69,7 +69,7 @@ final class AiServiceChecks
         if ($failed !== []) {
             return new ServiceStatusData(
                 count($failed) === count($providers) ? ServiceState::Down : ServiceState::Warning,
-                (string) $this->provider($failed[0])->message,
+                $this->provider($failed[0])->message ?? '',
                 $names,
                 $values,
             );
@@ -92,7 +92,7 @@ final class AiServiceChecks
         $providers = [$service->account()->value];
 
         if (! $result->ok()) {
-            return new ServiceStatusData(ServiceState::Down, (string) $result->message($service->label()), $facts, $providers);
+            return new ServiceStatusData(ServiceState::Down, $result->message($service->label()) ?? '', $facts, $providers);
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Connected.'), [
@@ -136,7 +136,7 @@ final class AiServiceChecks
     private function fromCheck(ConnectionCheckData $check, array $facts, array $providers = []): ServiceStatusData
     {
         return match (true) {
-            ! $check->connected => new ServiceStatusData(ServiceState::Down, (string) $check->message, $facts, $providers),
+            ! $check->connected => new ServiceStatusData(ServiceState::Down, $check->message ?? '', $facts, $providers),
             $check->warning !== null => new ServiceStatusData(ServiceState::Warning, $check->warning, $facts, $providers),
             default => new ServiceStatusData(ServiceState::Running, __('Connected.'), $facts, $providers),
         };

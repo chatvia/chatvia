@@ -51,7 +51,7 @@ final readonly class WidgetAgent implements ContextualAttribute
     {
         $externalId = $request->header(WidgetHeaders::AGENT_ID);
 
-        if (! is_string($externalId)) {
+        if (blank($externalId)) {
             return null;
         }
 

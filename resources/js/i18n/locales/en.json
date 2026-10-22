@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Sentiment timeline",
                 "message_details": "Message details",
                 "waiting": "Pending…",
-                "trend_stable_label": "Stable"
+                "trend_stable_label": "Stable",
+                "trend_tooltip": "Compares the mood of the {first} with the {last}."
             },
             "handoff": {
                 "visitor": "Visitor",
@@ -2272,7 +2273,7 @@
             "field_label": "Field label",
             "required": "Required",
             "maps_to": "Maps to",
-            "options_placeholder": "One option per line. Use value|label for separate values.",
+            "options_placeholder": "One option per line. Use value{'|'}label for separate values.",
             "success_message": "Success message",
             "success_placeholder": "Shown after the visitor submits.",
             "active": "Active",

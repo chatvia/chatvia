@@ -43,14 +43,14 @@ final readonly class LicenseActivation
         if ($response->successful()) {
             $activated = $response->json('key');
 
-            return is_string($activated) && $this->license->allowsHidingCredit($activated)
+            return filled($activated) && $this->license->allowsHidingCredit($activated)
                 ? new LicenseActivationData(key: $activated)
                 : new LicenseActivationData(message: 'chatvia.ai answered, but this install could not check the activated key. Update ChatVia.ai and try again.');
         }
 
         $message = $response->json('message');
 
-        return new LicenseActivationData(message: $response->clientError() && is_string($message) && filled($message)
+        return new LicenseActivationData(message: $response->clientError() && filled($message)
             ? Str::limit($message, 300)
             : self::UNREACHABLE);
     }

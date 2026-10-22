@@ -261,18 +261,18 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');
 
-        Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.upload');
+        Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:120,1,knowledge-upload'])->name('sources.files.upload');
         Route::delete('sources/text/{text}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.delete');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.uploaded-files');
-        Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.process');
+        Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:20,1,knowledge-process'])->name('sources.files.process');
         Route::get('sources/files/{file}/summary', AgentFileSummaryController::class)->name('agent.files.summary');
 
         Route::get('sources/websites', [AgentWebsiteController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.index');
         Route::post('sources/websites', [AgentWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.store');
         Route::delete('sources/websites/{website}', [AgentWebsiteController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.websites.destroy');
         Route::patch('sources/websites/{website}', [AgentWebsiteController::class, 'update'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.update');
-        Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.train');
+        Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->middleware(['agent.permission:agent.sources.train.web', 'throttle:10,1,website-train'])->name('sources.websites.train');
 
         Route::get('sources/websites/{website}/links', [AgentWebsiteLinkController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.links.index');
         Route::delete('sources/websites/{website}/links/{link}', [AgentWebsiteLinkController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.websites.links.destroy');
@@ -389,7 +389,10 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');
         Route::get('logs/countries', ChatLogCountriesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.countries');
         Route::delete('logs/conversations/{conversation}', [ChatLogConversationsController::class, 'destroy'])->middleware('agent.permission:agent.chat.delete')->name('logs.delete-conversation');
-        Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->middleware('agent.permission:agent.chat.view')->name('logs.revise-answer');
+        // Revising an answer writes a Q&A entry, so it also needs the Q&A training permission.
+        Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)
+            ->middleware(['agent.permission:agent.chat.view', 'agent.permission:agent.sources.train.qa'])
+            ->name('logs.revise-answer');
 
         // Handoff (Admin Takeover) routes.
         Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('handoff.pending');
@@ -487,7 +490,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
     });
 
-    Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->name('agents.knowledge.files.analyze');
+    Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->middleware('throttle:120,1,knowledge-upload')->name('agents.knowledge.files.analyze');
 
     Route::get('generate-agent-slug', GenerateAgentSlugController::class)->name('generate-agent-slug');
 });

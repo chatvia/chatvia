@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/composables/useInitials';
 import { index as teamsIndex, switchMethod as switchTeamRoute } from '@/routes/teams';
-import type { Auth, SharedData } from '@/types';
+import type { Auth } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Check, ChevronsUpDown, Loader2, Plus, Settings } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -23,7 +23,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const page = usePage<SharedData>();
+const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
 const currentTeam = computed(() => page.props.currentTeam);
 // Teammates are blocked from the teams-management routes by the backend

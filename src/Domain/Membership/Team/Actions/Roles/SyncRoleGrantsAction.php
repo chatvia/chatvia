@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
+use Illuminate\Support\Facades\DB;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -20,8 +21,9 @@ use Support\Exceptions\DomainValidationException;
  * still see every agent. When the switch is on the explicit agent list is
  * cleared; when it is off every chosen agent must belong to the team.
  *
- * Callers run it inside their transaction, so a rejected agent list rolls back
- * the whole save.
+ * The permissions and the agent list change in one transaction, so a rejected
+ * agent list or a failed write never leaves half a role. Callers that also
+ * write the role itself wrap it in theirs, so the whole save rolls back.
  */
 class SyncRoleGrantsAction
 {
@@ -36,15 +38,17 @@ class SyncRoleGrantsAction
     {
         $agentIds = $data->allAgents ? [] : $this->teamAgentIds($data);
 
-        $this->syncPermissions->execute($role, $this->permissionCodes($data));
+        DB::transaction(function () use ($role, $data, $agentIds): void {
+            $this->syncPermissions->execute($role, $this->permissionCodes($data));
 
-        if ($data->allAgents) {
-            $role->agents()->detach();
+            if ($data->allAgents) {
+                $role->agents()->detach();
 
-            return;
-        }
+                return;
+            }
 
-        $role->agents()->sync($agentIds);
+            $role->agents()->sync($agentIds);
+        });
     }
 
     /**

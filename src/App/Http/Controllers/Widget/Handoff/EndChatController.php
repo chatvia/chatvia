@@ -28,7 +28,7 @@ readonly class EndChatController
         $sessionId = $this->widgetSessionId($request);
         $conversationId = $request->input('conversation_id');
 
-        if ($sessionId === null || ! is_string($conversationId) || blank($conversationId)) {
+        if ($sessionId === null || blank($conversationId) || is_array($conversationId)) {
             return response()->json(['error' => 'Missing required parameters'], JsonResponse::HTTP_BAD_REQUEST);
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Rules;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Str;
 
 /**
  * An agent's chat-address slug (`/chat/{slug}`): lowercase letters, digits and
@@ -21,7 +22,9 @@ final readonly class AgentSlug implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_string($value) || strlen($value) < 3 || strlen($value) > 63 || preg_match(self::PATTERN, $value) !== 1) {
+        $slug = is_scalar($value) ? (string) $value : '';
+
+        if (Str::length($slug) < 3 || Str::length($slug) > 63 || preg_match(self::PATTERN, $slug) !== 1) {
             $fail('validation.regex')->translate();
 
             return;

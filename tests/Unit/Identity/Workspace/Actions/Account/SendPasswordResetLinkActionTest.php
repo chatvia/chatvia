@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Actions\Account\SendPasswordResetLinkAction;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;

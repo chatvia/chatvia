@@ -50,7 +50,7 @@ final class MistralAdapter extends OpenAiCompatibleAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new Mistral($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
+        return new Mistral($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }
 
     protected function isChatModel(array $row): bool

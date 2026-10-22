@@ -47,7 +47,7 @@ final readonly class AiProviderCheck
         }
 
         if ($provider === AiProvider::Azure) {
-            return $this->checkAzure((string) $key, filled($baseUrl) ? $baseUrl : config((string) $provider->baseUrlConfig()));
+            return $this->checkAzure((string) $key, filled($baseUrl) ? $baseUrl : config($provider->baseUrlConfig() ?? ''));
         }
 
         $kind = $provider->chatKind();

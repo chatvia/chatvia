@@ -37,7 +37,7 @@ class ModelPresets
         foreach ($provider?->presetChatModels() ?? [] as $slot) {
             $model = $this->first($slot, $byId, needsTools: true);
 
-            if ($model !== null) {
+            if ($model instanceof RemoteModelData) {
                 $picked[$model->id] = $model;
             }
         }

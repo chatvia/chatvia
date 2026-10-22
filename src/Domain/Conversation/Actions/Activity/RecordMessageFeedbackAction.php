@@ -80,7 +80,7 @@ class RecordMessageFeedbackAction
             })
             ->first(['id', 'feedback']);
 
-        if ($message === null || $message->feedback === $value) {
+        if ($message === null || $message->feedback?->value === $value) {
             return;
         }
 

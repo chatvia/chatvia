@@ -44,7 +44,7 @@ final class ResponsesPayload
 
         $effort = $payload[AbstractLlmProvider::REASONING_EFFORT] ?? null;
 
-        if (is_string($effort)) {
+        if (filled($effort)) {
             $body['reasoning'] = ['effort' => $effort];
         }
 
@@ -92,7 +92,7 @@ final class ResponsesPayload
                 $items[] = [
                     'type' => 'function_call_output',
                     'call_id' => (string) ($message['tool_call_id'] ?? ''),
-                    'output' => is_string($content) ? $content : (string) json_encode($content),
+                    'output' => is_scalar($content) ? (string) $content : (string) json_encode($content),
                 ];
 
                 continue;

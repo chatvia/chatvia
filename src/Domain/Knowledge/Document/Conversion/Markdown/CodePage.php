@@ -29,7 +29,7 @@ final class CodePage
         }
 
         if (isset(self::MBSTRING[$codePage])) {
-            return (string) mb_convert_encoding($bytes, 'UTF-8', self::MBSTRING[$codePage]);
+            return mb_convert_encoding($bytes, 'UTF-8', self::MBSTRING[$codePage]);
         }
 
         if (in_array($codePage, self::ICONV, true) || $codePage === self::MAC_ROMAN) {
@@ -40,7 +40,7 @@ final class CodePage
             }
         }
 
-        return (string) mb_convert_encoding($bytes, 'UTF-8', 'CP1252');
+        return mb_convert_encoding($bytes, 'UTF-8', 'CP1252');
     }
 
     /**

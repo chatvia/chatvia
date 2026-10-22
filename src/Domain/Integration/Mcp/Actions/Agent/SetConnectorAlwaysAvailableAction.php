@@ -17,7 +17,7 @@ class SetConnectorAlwaysAvailableAction
     public function execute(Agent $agent, AgentMcpServer $server, SetConnectorAlwaysAvailableData $data): void
     {
         if (! $agent->mcpServers()->whereKey($server->id)->exists()) {
-            throw ConnectorNotAttachedException::toAgent((string) $server->slug, $agent->id);
+            throw ConnectorNotAttachedException::toAgent($server->slug, $agent->id);
         }
 
         $agent->mcpServers()->updateExistingPivot($server->id, ['always_available' => $data->always_available]);

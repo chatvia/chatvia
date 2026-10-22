@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Sentiment-tidslinje",
                 "message_details": "Meldingsdetaljer",
                 "waiting": "Venter…",
-                "trend_stable_label": "Stabil"
+                "trend_stable_label": "Stabil",
+                "trend_tooltip": "Sammenligner stemningen i {first} med {last}."
             },
             "handoff": {
                 "visitor": "Besøkende",
@@ -2272,7 +2273,7 @@
             "field_label": "Feltetikett",
             "required": "Påkrevd",
             "maps_to": "Tilordnes til",
-            "options_placeholder": "Ett alternativ per linje. Bruk verdi|etikett for separate verdier.",
+            "options_placeholder": "Ett alternativ per linje. Bruk verdi{'|'}etikett for separate verdier.",
             "success_message": "Suksessmelding",
             "success_placeholder": "Vises etter at den besøkende har sendt inn.",
             "active": "Aktiv",

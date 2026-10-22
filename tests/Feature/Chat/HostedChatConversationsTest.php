@@ -2,6 +2,7 @@
 
 use App\Http\Chat\HostedChatSession;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\MessageFeedback;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -89,7 +90,7 @@ it('records the visitor\'s rating of a reply in their conversation', function ()
     $this->patchJson("{$this->base}/messages/feedback", ['conversation_id' => $id, 'message_id' => $reply->external_id, 'feedback' => 'positive'])
         ->assertOk();
 
-    expect($reply->fresh()->feedback)->toBe('positive');
+    expect($reply->fresh()->feedback)->toBe(MessageFeedback::Positive);
 });
 
 it('does not let another visitor rate, delete or erase the visitor\'s messages and conversations', function (): void {

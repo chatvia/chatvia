@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
-use App\Http\Controllers\Concerns\ResolvesAccountAgent;
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Actions\Assignment\ListToolAgentAssignmentAction;
 use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
@@ -11,30 +11,30 @@ use Illuminate\Http\Request;
 
 /**
  * Manage which of the workspace's agents use a given connector (MCP server):
- * list every agent split into attached vs available, attach one, detach one.
- * Each call answers with the updated split.
+ * list the agents the viewer may manage, split into attached vs available,
+ * attach one, detach one. Each call answers with the updated split. The
+ * attach and detach routes carry `can.access.agent`, so a teammate can only
+ * wire a connector to an agent their team role reaches.
  */
 class ConnectorAgentController
 {
-    use ResolvesAccountAgent;
-
     public function index(Request $request, string $slug, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
     {
         return $list->execute($request->user(), $this->server($request, $slug));
     }
 
-    public function store(Request $request, string $slug, string $agent, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
+    public function store(Request $request, string $slug, Agent $agent, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
     {
         $server = $this->server($request, $slug);
-        $this->resolveAccountAgent($request, $agent)->attachConnector($server);
+        $agent->attachConnector($server);
 
         return $list->execute($request->user(), $server);
     }
 
-    public function destroy(Request $request, string $slug, string $agent, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
+    public function destroy(Request $request, string $slug, Agent $agent, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
     {
         $server = $this->server($request, $slug);
-        $this->resolveAccountAgent($request, $agent)->detachConnector($server);
+        $agent->detachConnector($server);
 
         return $list->execute($request->user(), $server);
     }

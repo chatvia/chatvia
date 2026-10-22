@@ -5,6 +5,7 @@ namespace Domain\Conversation\Actions\Tools;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Listeners\RecordToolCallAudit;
 use Domain\Conversation\Models\AgentActivity;
+use Illuminate\Support\Str;
 use Support\Text\Utf8;
 
 /**
@@ -100,7 +101,7 @@ class RecordToolCallAuditAction
         $keys = array_map(strtolower(...), (array) config('chatvia.governance.redact_keys', []));
 
         foreach ($data as $key => $value) {
-            if (is_string($key) && in_array(strtolower($key), $keys, true)) {
+            if (in_array(Str::lower((string) $key), $keys, true)) {
                 $data[$key] = '[redacted]';
             } elseif (is_array($value)) {
                 $data[$key] = $this->redact($value);

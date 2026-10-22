@@ -37,10 +37,10 @@ class Tables
     {
         return $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Tables),
-            tag: AiCallTag::TableDescription,
             messages: [
                 ChatMessageData::user(prompt('tables/describe', ['tables' => implode("\n\n", $tables)])),
             ],
+            tag: AiCallTag::TableDescription,
             temperature: 0.0,
             maxTokens: self::MAX_TOKENS,
         ))->content;

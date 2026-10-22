@@ -88,11 +88,11 @@ function setupServerStep(User $admin): Testable
 function setupServicesRunning(array $states = []): array
 {
     return collect([Service::Database, Service::Redis, Service::Queue, Service::Scheduler, Service::Realtime])
-        ->mapWithKeys(fn (Service $service): array => [$service->value => (new ServiceStatusData(
+        ->mapWithKeys(fn (Service $service): array => [$service->value => new ServiceStatusData(
             $states[$service->value] ?? ServiceState::Running,
             ($states[$service->value] ?? ServiceState::Running) === ServiceState::Down ? 'Horizon is not running.' : 'Answers.',
             hint: 'Start it with "php artisan horizon".',
-        ))->toArray()])
+        )->toArray()])
         ->all();
 }
 

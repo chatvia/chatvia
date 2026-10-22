@@ -12,6 +12,7 @@ use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -71,7 +72,6 @@ class QueryRewriter
         try {
             $reply = $this->chat->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::FollowUp),
-                tag: AiCallTag::FollowUpRewrite,
                 messages: [
                     ChatMessageData::system(prompt('knowledge/rewrite-query')),
                     ChatMessageData::user(prompt('knowledge/rewrite-query-user', [
@@ -79,6 +79,7 @@ class QueryRewriter
                         'message' => $message,
                     ])),
                 ],
+                tag: AiCallTag::FollowUpRewrite,
                 temperature: 0.0,
             ));
         } catch (Throwable $e) {
@@ -101,7 +102,7 @@ class QueryRewriter
         $lines = [];
 
         foreach (array_slice($history, -self::HISTORY_MESSAGES) as $entry) {
-            $content = is_string($entry['content'] ?? null) ? trim((string) preg_replace('/\s+/u', ' ', $entry['content'])) : '';
+            $content = filled($entry['content'] ?? null) ? Str::squish($entry['content']) : '';
 
             if ($content === '' || ! in_array($entry['role'] ?? null, ['user', 'assistant', 'agent'], true)) {
                 continue;

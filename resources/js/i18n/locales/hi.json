@@ -531,7 +531,8 @@
                 "sentiment_timeline": "भावना टाइमलाइन",
                 "message_details": "संदेश विवरण",
                 "waiting": "लंबित…",
-                "trend_stable_label": "स्थिर"
+                "trend_stable_label": "स्थिर",
+                "trend_tooltip": "{first} और {last} के मूड की तुलना करता है।"
             },
             "handoff": {
                 "visitor": "विज़िटर",
@@ -2272,7 +2273,7 @@
             "field_label": "फ़ील्ड लेबल",
             "required": "आवश्यक",
             "maps_to": "मैप करता है",
-            "options_placeholder": "प्रति पंक्ति एक विकल्प। अलग मानों के लिए value|label उपयोग करें।",
+            "options_placeholder": "प्रति पंक्ति एक विकल्प। अलग मानों के लिए value{'|'}label उपयोग करें।",
             "success_message": "सफलता संदेश",
             "success_placeholder": "विज़िटर के सबमिट करने के बाद दिखाया जाता है।",
             "active": "सक्रिय",

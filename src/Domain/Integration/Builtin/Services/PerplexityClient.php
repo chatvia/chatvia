@@ -9,6 +9,7 @@ use Domain\Integration\Builtin\Data\Perplexity\PerplexitySandboxRunData;
 use Domain\Integration\Builtin\Data\Perplexity\PerplexitySonarRequestData;
 use Domain\Integration\Builtin\Exceptions\PerplexityException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Perplexity's two answer APIs, called with the workspace's own API key (the
@@ -161,7 +162,7 @@ class PerplexityClient
                     }
                     $citations->add((string) ($result['url'] ?? ''), (string) ($result['title'] ?? ''));
                     foreach ((array) ($result['sources'] ?? []) as $source) {
-                        if (is_string($source)) {
+                        if (Str::isUrl($source)) {
                             $citations->add($source);
                         }
                     }

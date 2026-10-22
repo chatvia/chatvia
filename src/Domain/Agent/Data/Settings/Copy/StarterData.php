@@ -27,6 +27,6 @@ class StarterData extends Data
 
     public static function fromCopy(string $id, ?string $icon, TranslatableText $copy): self
     {
-        return new self($id, (string) $copy->base, $icon, $copy->translations, $copy->overrides);
+        return new self($id, $copy->base ?? '', $icon, $copy->translations, $copy->overrides);
     }
 }

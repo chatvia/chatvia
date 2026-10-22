@@ -38,7 +38,7 @@ class UpdateWidgetBubblesRequest extends FormRequest
         return new UpdateBubblesData(
             bubbles: array_values(array_map(static fn (array $bubble): BubbleData => new BubbleData(
                 text: (string) $bubble['text'],
-                overrides: array_filter((array) ($bubble['overrides'] ?? []), is_string(...)),
+                overrides: array_filter((array) ($bubble['overrides'] ?? []), filled(...)),
             ), (array) ($this->validated('bubbles') ?? []))),
         );
     }

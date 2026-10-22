@@ -33,7 +33,7 @@ class JsonTurnResponder
 
     private function status(?string $code): int
     {
-        return match (ErrorCode::tryFrom((string) $code)) {
+        return match (ErrorCode::tryFrom($code ?? '')) {
             ErrorCode::AccessBlocked => 403,
             ErrorCode::MessageLimitReached,
             ErrorCode::ChatterMessageLimitReached,

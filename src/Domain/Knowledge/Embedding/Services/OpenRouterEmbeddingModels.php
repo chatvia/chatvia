@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Embedding\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -84,7 +85,7 @@ final class OpenRouterEmbeddingModels
                     ->json('data');
 
                 return collect(is_array($models) ? $models : [])
-                    ->filter(static fn (mixed $model): bool => is_array($model) && is_string($model['id'] ?? null) && ! str_ends_with($model['id'], ':batch'))
+                    ->filter(static fn (mixed $model): bool => is_array($model) && filled($model['id'] ?? null) && ! Str::endsWith($model['id'], ':batch'))
                     ->mapWithKeys(static fn (array $model): array => [$model['id'] => (string) ($model['name'] ?? $model['id'])])
                     ->all();
             });

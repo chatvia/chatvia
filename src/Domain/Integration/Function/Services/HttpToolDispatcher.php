@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
 use Support\Http\WebhookSignature;
@@ -136,7 +137,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
                 return $this->error($error);
             }
 
-            $truncated = mb_substr((string) $response->body(), 0, $function->max_response_bytes);
+            $truncated = Str::substr($response->body(), 0, $function->max_response_bytes);
 
             $this->record($function, $agent);
             Log::info('Tool dispatched', [
@@ -254,7 +255,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             $agent->id,
             (int) $agent->workspace_id,
             $function->id,
-            (string) ($function->display_name ?: $function->internal_name),
+            $function->display_name ?: $function->internal_name,
             $function->description,
             $now,
         );

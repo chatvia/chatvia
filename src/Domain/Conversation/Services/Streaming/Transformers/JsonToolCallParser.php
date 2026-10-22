@@ -95,15 +95,15 @@ final class JsonToolCallParser
             $name = $item['function']['name'] ?? null;
             $arguments = $item['function']['arguments'] ?? null;
 
-            if (is_string($arguments)) {
-                $arguments = self::decode($arguments);
+            if (is_scalar($arguments)) {
+                $arguments = self::decode((string) $arguments);
             }
         } else {
             $name = $item['name'] ?? null;
             $arguments = $item['parameters'] ?? $item['arguments'] ?? $item['input'] ?? [];
         }
 
-        if (! is_string($name) || blank($name)) {
+        if (blank($name)) {
             return null;
         }
 

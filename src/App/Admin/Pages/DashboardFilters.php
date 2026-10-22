@@ -83,7 +83,7 @@ final class DashboardFilters
     /** A `Y-m-d` date from the date picker, or null. */
     private static function date(mixed $value): ?string
     {
-        return is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}/', $value) === 1
+        return filled($value) && preg_match('/^\d{4}-\d{2}-\d{2}/', $value) === 1
             ? substr($value, 0, 10)
             : null;
     }

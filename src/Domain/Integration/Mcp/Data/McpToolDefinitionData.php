@@ -30,7 +30,7 @@ final readonly class McpToolDefinitionData
      */
     public static function fromArray(mixed $tool): ?self
     {
-        if (! is_array($tool) || ! isset($tool['name']) || ! is_string($tool['name']) || blank($tool['name'])) {
+        if (! is_array($tool) || blank($tool['name'] ?? null)) {
             return null;
         }
 

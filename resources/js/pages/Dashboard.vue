@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLocaleDate } from '@/composables/useLocaleDate';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import { Activity, Bot, MessageSquare, MessagesSquare, Plus } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -56,7 +56,7 @@ const dashboardData = ref<DashboardView>({
 // Activity period tab
 const activityPeriod = ref<'week' | 'month'>('week');
 
-const page = usePage<SharedData>();
+const page = usePage();
 const loading = ref(true);
 
 // Modal state

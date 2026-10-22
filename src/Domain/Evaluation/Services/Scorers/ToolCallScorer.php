@@ -5,6 +5,7 @@ namespace Domain\Evaluation\Services\Scorers;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
+use Illuminate\Support\Str;
 
 /**
  * Grades the agent's INTENDED tool call — never executing it. The eval runner
@@ -42,7 +43,7 @@ class ToolCallScorer implements ScorerInterface
         $match = $this->findCall($result->toolCalls, $expectedTool);
 
         if ($match === null) {
-            $called = implode(', ', array_map(static fn (array $c): string => (string) ($c['name'] ?? ''), $result->toolCalls));
+            $called = implode(', ', array_map(static fn (array $c): string => $c['name'] ?? '', $result->toolCalls));
 
             return ScoreResultData::fail(0.0, "Expected the agent to call \"{$expectedTool}\", but it called: {$called}.");
         }
@@ -53,7 +54,7 @@ class ToolCallScorer implements ScorerInterface
             return ScoreResultData::pass(1.0, "Agent called \"{$expectedTool}\".");
         }
 
-        $actualArgs = json_decode((string) ($match['arguments'] ?? ''), true);
+        $actualArgs = json_decode($match['arguments'] ?? '', true);
 
         if (! is_array($actualArgs)) {
             return ScoreResultData::fail(0.0, "Agent called \"{$expectedTool}\" but its arguments were not valid JSON.");
@@ -79,7 +80,7 @@ class ToolCallScorer implements ScorerInterface
     private function findCall(array $calls, string $expectedTool): ?array
     {
         foreach ($calls as $call) {
-            $name = (string) ($call['name'] ?? '');
+            $name = $call['name'] ?? '';
 
             if ($name === $expectedTool || str_ends_with($name, '__'.$expectedTool)) {
                 return $call;
@@ -99,9 +100,8 @@ class ToolCallScorer implements ScorerInterface
     {
         $raw = $case->scorer_config['arguments'] ?? null;
 
-        if (is_string($raw)) {
-            $raw = trim($raw);
-            $raw = $raw === '' ? null : json_decode($raw, true);
+        if (is_scalar($raw)) {
+            $raw = blank($raw) ? null : json_decode(Str::trim((string) $raw), true);
         }
 
         return is_array($raw) ? $raw : [];

@@ -58,7 +58,7 @@ class SourceData extends Data
     {
         return match (true) {
             $source instanceof SourceFile => new self(
-                id: (string) $source->external_id,
+                id: $source->external_id,
                 kind: 'file',
                 name: $source->filename,
                 mime_type: $source->mime_type,
@@ -68,7 +68,7 @@ class SourceData extends Data
                 created_at: $source->created_at,
             ),
             $source instanceof SourceText => new self(
-                id: (string) $source->external_id,
+                id: $source->external_id,
                 kind: 'text',
                 name: str($source->excerpt)->limit(60)->toString(),
                 mime_type: null,
@@ -78,7 +78,7 @@ class SourceData extends Data
                 created_at: $source->created_at,
             ),
             default => new self(
-                id: (string) $source->external_id,
+                id: $source->external_id,
                 kind: 'url',
                 name: $source->url,
                 mime_type: null,

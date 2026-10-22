@@ -48,7 +48,7 @@ final readonly class TeamsActivityData
     {
         $text = $activity['text'] ?? '';
 
-        if (! is_string($text)) {
+        if (blank($text)) {
             return '';
         }
 
@@ -57,7 +57,7 @@ final readonly class TeamsActivityData
         foreach ((array) ($activity['entities'] ?? []) as $entity) {
             if (($entity['type'] ?? null) === 'mention'
                 && ($entity['mentioned']['id'] ?? null) === $recipientId
-                && is_string($entity['text'] ?? null)) {
+                && filled($entity['text'] ?? null)) {
                 $text = str_replace($entity['text'], '', $text);
             }
         }

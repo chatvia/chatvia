@@ -7,6 +7,7 @@ use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 use Throwable;
 
@@ -78,7 +79,7 @@ class McpOAuthRegistrar
         if ($response->failed()) {
             throw new McpOAuthException(
                 "Dynamic client registration was rejected ({$response->status()}): ".
-                mb_substr((string) $response->body(), 0, 200)
+                Str::substr($response->body(), 0, 200)
             );
         }
 
@@ -107,7 +108,7 @@ class McpOAuthRegistrar
     {
         return new ConnectorOAuthClient()->forceFill([
             'auth_server_url' => $metadata->authServerUrl,
-            'client_id' => (string) $connector->oauthClientId,
+            'client_id' => $connector->oauthClientId ?? '',
             'client_secret' => $connector->oauthClientSecret,
             'registration_access_token' => null,
             'registration_client_uri' => null,

@@ -102,6 +102,8 @@ class DeliverSecurityWebhookAction
     {
         return [
             'event' => $event->action,
+            // The same on every retry, so the receiver can drop a repeat.
+            'delivery_id' => $event->deliveryId,
             'outcome' => $event->outcome,
             'workspace_id' => $event->workspaceId,
             'timestamp' => now()->toIso8601String(),

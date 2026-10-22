@@ -28,7 +28,7 @@ final readonly class CheckLicenseAction
     {
         $key = $this->settings->license_key;
 
-        if (! $this->license->allowsHidingCredit($key) || $this->activation->isActive((string) $key) !== false) {
+        if (! $this->license->allowsHidingCredit($key) || $this->activation->isActive($key ?? '') !== false) {
             return false;
         }
 

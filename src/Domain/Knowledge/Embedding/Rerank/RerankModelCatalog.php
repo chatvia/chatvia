@@ -96,7 +96,7 @@ final class RerankModelCatalog
                     ->json('data');
 
                 return collect(is_array($models) ? $models : [])
-                    ->filter(static fn (mixed $model): bool => is_array($model) && is_string($model['id'] ?? null))
+                    ->filter(static fn (mixed $model): bool => is_array($model) && filled($model['id'] ?? null))
                     ->mapWithKeys(static fn (array $model): array => [$model['id'] => (string) ($model['name'] ?? $model['id'])])
                     ->all();
             });

@@ -57,6 +57,6 @@ class CursorPageRequest extends FormRequest
     {
         $cursor = $this->query('cursor');
 
-        return is_string($cursor) && filled($cursor) ? $cursor : null;
+        return filled($cursor) && ! is_array($cursor) ? $cursor : null;
     }
 }

@@ -180,7 +180,7 @@ final class DocxReader
             $ilvl = $this->attribute($this->child($numbering, 'ilvl'), 'val');
 
             $this->styles[$this->attribute($style, 'styleId') ?? ''] = [
-                'name' => (string) $this->attribute($this->child($style, 'name'), 'val'),
+                'name' => $this->attribute($this->child($style, 'name'), 'val') ?? '',
                 'basedOn' => $this->attribute($this->child($style, 'basedOn'), 'val'),
                 'outline' => $outline === null ? null : (int) $outline,
                 'numId' => $this->attribute($this->child($numbering, 'numId'), 'val'),
@@ -219,7 +219,7 @@ final class DocxReader
             }
 
             $this->nums[$this->attribute($num, 'numId') ?? ''] = [
-                'abstract' => (string) $this->attribute($this->child($num, 'abstractNumId'), 'val'),
+                'abstract' => $this->attribute($this->child($num, 'abstractNumId'), 'val') ?? '',
                 'starts' => $starts,
             ];
         }
@@ -347,7 +347,7 @@ final class DocxReader
     /** A symbol-font character; the private-use ones (Wingdings, Symbol) carry no text. */
     private function symbol(DOMElement $symbol): string
     {
-        $code = hexdec((string) $this->attribute($symbol, 'char'));
+        $code = hexdec($this->attribute($symbol, 'char') ?? '');
 
         return is_int($code) && $code > 31 && ($code < 0xE000 || $code > 0xF8FF) ? mb_chr($code, 'UTF-8') : '';
     }
@@ -465,7 +465,7 @@ final class DocxReader
         }
 
         // Without a styles part the id is all there is ("Heading1").
-        return $this->styles === [] && preg_match('/^heading([1-9])$/i', (string) $style, $match) === 1 ? (int) $match[1] : null;
+        return $this->styles === [] && preg_match('/^heading([1-9])$/i', $style ?? '', $match) === 1 ? (int) $match[1] : null;
     }
 
     /**

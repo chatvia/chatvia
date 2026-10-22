@@ -7,6 +7,7 @@ use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 use Throwable;
 
@@ -83,7 +84,7 @@ class McpOAuthDiscoverer
         }
 
         $origin = rtrim($this->originOf($mcpUrl), '/');
-        $path = rtrim((string) (parse_url($mcpUrl, PHP_URL_PATH) ?: ''), '/');
+        $path = Str::rtrim(parse_url($mcpUrl, PHP_URL_PATH) ?: '', '/');
 
         if ($path !== '') {
             $candidates[] = $origin.'/.well-known/oauth-protected-resource'.$path;
@@ -129,13 +130,13 @@ class McpOAuthDiscoverer
                 continue;
             }
 
-            if (isset($body['resource']) && is_string($body['resource']) && ! $this->resourceMatches($body['resource'], $mcpUrl)) {
+            if (filled($body['resource'] ?? null) && ! $this->resourceMatches($body['resource'], $mcpUrl)) {
                 $lastError = 'The server\'s OAuth metadata describes a different address, so it cannot be trusted for this connection.';
 
                 continue;
             }
 
-            $servers = array_values(array_filter($body['authorization_servers'], is_string(...)));
+            $servers = array_values(array_filter($body['authorization_servers'], filled(...)));
             if ($servers !== []) {
                 return $servers;
             }
@@ -264,8 +265,8 @@ class McpOAuthDiscoverer
     private function fallbackFromConnector(string $authServerUrl, ConnectorData $connector): OAuthServerMetadata
     {
         return OAuthServerMetadata::fromArray($authServerUrl, [
-            'authorization_endpoint' => (string) $connector->oauthAuthorizationEndpoint,
-            'token_endpoint' => (string) $connector->oauthTokenEndpoint,
+            'authorization_endpoint' => $connector->oauthAuthorizationEndpoint ?? '',
+            'token_endpoint' => $connector->oauthTokenEndpoint ?? '',
             'code_challenge_methods_supported' => ['S256'],
         ]);
     }

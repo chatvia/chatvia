@@ -17,6 +17,7 @@ use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\RealtimeConnection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * The server's side of one live voice call, joined over the provider's
@@ -285,7 +286,7 @@ final class VoiceCallSession implements RealtimeCallHandler
 
         $responseId = array_search($turn, $this->responses, true);
 
-        if (is_string($responseId)) {
+        if ($responseId !== false) {
             $this->send(['type' => 'response.cancel', 'response_id' => $responseId]);
         }
 
@@ -555,8 +556,8 @@ final class VoiceCallSession implements RealtimeCallHandler
         foreach ($calls as $call) {
             $arguments = json_decode($call['arguments'], true);
 
-            if ($call['name'] === VoiceToolCatalog::KNOWLEDGE_TOOL && is_array($arguments) && is_string($arguments['query'] ?? null) && filled(trim($arguments['query']))) {
-                return trim($arguments['query']);
+            if ($call['name'] === VoiceToolCatalog::KNOWLEDGE_TOOL && is_array($arguments) && filled($arguments['query'] ?? null)) {
+                return Str::trim($arguments['query']);
             }
         }
 

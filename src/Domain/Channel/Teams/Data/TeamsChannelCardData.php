@@ -24,9 +24,9 @@ class TeamsChannelCardData extends Data
     public static function fromBot(?AgentTeamsBot $bot): self
     {
         return new self(
-            connected: $bot !== null,
+            connected: $bot instanceof AgentTeamsBot,
             app_id: $bot?->app_id,
-            webhook_url: $bot !== null ? route('msteams.webhook', ['secret' => $bot->webhook_secret]) : null,
+            webhook_url: $bot instanceof AgentTeamsBot ? route('msteams.webhook', ['secret' => $bot->webhook_secret]) : null,
             enabled: (bool) $bot?->is_enabled,
         );
     }

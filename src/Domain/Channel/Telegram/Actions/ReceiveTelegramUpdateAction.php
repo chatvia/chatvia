@@ -21,15 +21,16 @@ class ReceiveTelegramUpdateAction
 
     public function execute(AgentTelegramBot $bot, TelegramUpdateData $update): void
     {
-        if ($update->updateId !== null
-            && ! $this->deliveries->firstDelivery("telegram:update:{$bot->id}:{$update->updateId}", now()->addDay())) {
-            return;
-        }
-
         if (blank($update->text) || $update->chatId === null) {
             return;
         }
 
-        HandleTelegramUpdateJob::dispatch($bot, $update->chatId, $update->text, $update->sender->toArray());
+        $this->deliveries->once(
+            $update->updateId !== null ? "telegram:update:{$bot->id}:{$update->updateId}" : null,
+            now()->addDay(),
+            function () use ($bot, $update): void {
+                HandleTelegramUpdateJob::dispatch($bot, $update->chatId, $update->text, $update->sender->toArray());
+            },
+        );
     }
 }

@@ -93,7 +93,7 @@
             "field_label": "Etiqueta del campo",
             "required": "Obligatorio",
             "maps_to": "Asignar a",
-            "options_placeholder": "Una opción por línea. Usa valor|etiqueta para separar valores y etiquetas.",
+            "options_placeholder": "Una opción por línea. Usa valor{'|'}etiqueta para separar valores y etiquetas.",
             "success_message": "Mensaje de éxito",
             "success_placeholder": "Se muestra después de que el visitante envía el formulario.",
             "active": "Activo",

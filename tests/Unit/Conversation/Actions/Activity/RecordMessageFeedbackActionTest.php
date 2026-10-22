@@ -55,7 +55,7 @@ it('records the rating once when the message is in the live memory', function ()
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Positive);
 
-    expect(Message::where('external_id', $messageId)->value('feedback'))->toBe('positive')
+    expect(Message::query()->where('external_id', $messageId)->value('feedback'))->toBe(MessageFeedback::Positive)
         ->and($memory->getMessageById($messageId)?->feedback)->toBe('positive');
 
     // The live path already wrote the row, so the database path sees the
@@ -71,7 +71,7 @@ it('still records the rating when the live memory is cold', function (): void {
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative);
 
-    expect(Message::where('external_id', $messageId)->value('feedback'))->toBe('negative');
+    expect(Message::query()->where('external_id', $messageId)->value('feedback'))->toBe(MessageFeedback::Negative);
 
     Event::assertDispatchedTimes(FeedbackGiven::class, 1);
     Event::assertDispatched(FeedbackGiven::class, fn (FeedbackGiven $event): bool => $event->feedback === 'negative'
@@ -86,11 +86,11 @@ it('still records the rating when the live memory is cold', function (): void {
 it('clears a rating with null', function (): void {
     $scope = feedbackScope();
     $messageId = (string) Str::uuid();
-    feedbackMessage($scope, $messageId)->update(['feedback' => 'positive']);
+    feedbackMessage($scope, $messageId)->update(['feedback' => MessageFeedback::Positive]);
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, null);
 
-    expect(Message::where('external_id', $messageId)->value('feedback'))->toBeNull();
+    expect(Message::query()->where('external_id', $messageId)->value('feedback'))->toBeNull();
 });
 
 it('cannot rate a message of a conversation outside the scope', function (): void {
@@ -108,6 +108,6 @@ it('cannot rate a message of a conversation outside the scope', function (): voi
         MessageFeedback::Negative,
     );
 
-    expect(Message::where('external_id', $messageId)->value('feedback'))->toBeNull();
+    expect(Message::query()->where('external_id', $messageId)->value('feedback'))->toBeNull();
     Event::assertNotDispatched(FeedbackGiven::class);
 });

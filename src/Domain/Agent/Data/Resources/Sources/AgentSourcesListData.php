@@ -7,11 +7,13 @@ use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * A trained knowledge source with the agents it is attached to, for the
  * "link an existing source" picker.
  */
+#[TypeScript]
 class AgentSourcesListData extends Data
 {
     /**

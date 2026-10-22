@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * Where a guard ran in the turn: on the visitor's message (input), on a
  * retrieved RAG source chunk (source), on what a tool or MCP server returned
  * (tool), or on the agent's answer (output).
  */
+#[TypeScript]
 enum GuardStage: string
 {
     case Input = 'input';

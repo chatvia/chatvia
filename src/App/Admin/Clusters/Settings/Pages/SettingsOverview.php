@@ -123,7 +123,7 @@ class SettingsOverview extends Page
     {
         $license = app(CreditLicense::class);
         $key = config('chatvia.license.key');
-        $key = is_string($key) ? $key : null;
+        $key = filled($key) ? $key : null;
 
         if ($license->allowsHidingCredit($key)) {
             return Callout::make('Thank you for your support')

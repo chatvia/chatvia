@@ -4,7 +4,6 @@ namespace Domain\Form\Listeners;
 
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\RecordCrmDeliveryFailureAction;
-use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Events\FormSubmitted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\Attributes\Backoff;
@@ -60,7 +59,7 @@ class PushSubmissionToCrm implements ShouldQueue
             $this->sender->send(
                 url: (string) $url,
                 event: 'form.submitted',
-                payload: $this->payload($agent, $event->submission),
+                payload: $this->payload($agent, $event),
                 secret: (string) $secret,
             );
         } catch (UnsafeUrlException $e) {
@@ -99,10 +98,14 @@ class PushSubmissionToCrm implements ShouldQueue
     /**
      * @return array<string, mixed>
      */
-    private function payload(Agent $agent, CapturedSubmissionData $submission): array
+    private function payload(Agent $agent, FormSubmitted $event): array
     {
+        $submission = $event->submission;
+
         return [
             'event' => 'form.submitted',
+            // The same on every retry, so the receiver can drop a repeat.
+            'delivery_id' => $event->deliveryId,
             'form' => $submission->formSlug,
             'form_type' => $submission->formType->value,
             'source' => $submission->source,

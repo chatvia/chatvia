@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { rename } from '@/routes/agents';
-import type { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import { watch } from 'vue';
@@ -24,7 +23,7 @@ const props = defineProps<{
 const open = defineModel<boolean>('open', { required: true });
 
 const { t } = useI18n();
-const page = usePage<SharedData>();
+const page = usePage();
 
 const renameForm = useForm({
     name: '',

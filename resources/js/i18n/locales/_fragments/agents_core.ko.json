@@ -8,6 +8,9 @@
                 "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다.",
                 "trace": "트레이스",
                 "trace_help": "이 답변 뒤의 모든 AI 호출을 Spectra에서 보기"
+            },
+            "pulse": {
+                "trend_tooltip": "{first}와 {last}의 감정을 비교합니다."
             }
         },
         "security": {

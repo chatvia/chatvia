@@ -9,6 +9,7 @@ use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
 /**
@@ -165,11 +166,11 @@ class UpdateSecurityPolicyAction
         }
 
         $parts = parse_url($url);
-        if (! is_array($parts) || strtolower((string) ($parts['scheme'] ?? '')) !== 'https' || empty($parts['host'])) {
+        if (! is_array($parts) || Str::lower($parts['scheme'] ?? '') !== 'https' || empty($parts['host'])) {
             throw UnsafeWebhookUrlException::for('The webhook URL must be a valid https URL.');
         }
 
-        $host = trim((string) $parts['host'], '[]');
+        $host = Str::trim($parts['host'], '[]');
 
         if (strtolower($host) === 'localhost') {
             throw UnsafeWebhookUrlException::for('The webhook URL must not point to an internal address.');

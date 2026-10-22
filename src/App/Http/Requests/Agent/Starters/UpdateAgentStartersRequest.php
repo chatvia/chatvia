@@ -41,7 +41,7 @@ class UpdateAgentStartersRequest extends FormRequest
                 id: $starter['id'] ?? null,
                 text: (string) $starter['text'],
                 icon: $starter['icon'] ?? null,
-                overrides: array_filter((array) ($starter['overrides'] ?? []), is_string(...)),
+                overrides: array_filter((array) ($starter['overrides'] ?? []), filled(...)),
             ), (array) ($this->validated('starters') ?? []))),
         );
     }

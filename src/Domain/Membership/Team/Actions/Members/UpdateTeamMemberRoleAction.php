@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Membership\Team\Actions\Members;
 
 use App\Identity\Workspace\Models\User;

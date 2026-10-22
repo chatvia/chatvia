@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\Cursor;
+use Illuminate\Support\Arr;
 
 /**
  * Keyset ("cursor") pages for list endpoints. A page never uses OFFSET, so a
@@ -96,15 +97,18 @@ final class CursorPage
             return null;
         }
 
-        return $cursor;
+        // A `string` column takes any scalar, handed on as a string, so a
+        // number in a hand-edited cursor is compared as text, never as a
+        // number against a text column.
+        return new Cursor(Arr::map($parameters, fn (mixed $value, string $column): mixed => $columns[$column] === 'string' ? (string) $value : $value));
     }
 
     private static function isOfKind(mixed $value, string $kind): bool
     {
         return match ($kind) {
             'int' => is_int($value),
-            'string' => is_string($value),
-            'timestamp' => is_string($value) && self::isTimestamp($value),
+            'string' => is_scalar($value),
+            'timestamp' => is_scalar($value) && self::isTimestamp((string) $value),
             default => false,
         };
     }

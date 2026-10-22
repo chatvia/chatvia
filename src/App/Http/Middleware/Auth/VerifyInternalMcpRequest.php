@@ -85,7 +85,7 @@ class VerifyInternalMcpRequest
     {
         $method = $request->json('method');
 
-        return is_string($method) ? $method : null;
+        return filled($method) ? $method : null;
     }
 
     private function agentHasConnectorEnabled(Request $request, ?Agent $agent): bool

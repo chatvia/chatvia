@@ -120,23 +120,52 @@ class RateLimitServiceProvider extends ServiceProvider
             ];
         });
 
+        // Bulk gate for every /chat/{agentSlug}/* call, like `widgets` for the
+        // widget: one per-IP ceiling, however many sessions an IP opens. A
+        // little above the widget's, as the hosted chat is a whole app.
+        RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(120)->by('chat|ip|'.$request->ip()));
+
         // Hosted-chat LLM-cost endpoints (stream, transcription, regenerate,
         // attachment upload). Keyed by the authenticated chatter, IP fallback.
-        RateLimiter::for('chat-stream', function (Request $request) {
-            // Chatters and staff have separate id sequences, so the key
-            // carries the account kind (`chatter:5` / `user:5`).
-            $account = $request->user();
-            $key = $account instanceof Model ? $account->getMorphClass().':'.$account->getKey() : $request->ip();
+        // Both are forgeable for a public agent (new sessions, many IPs), so a
+        // ceiling per server-resolved agent is stacked on top, with the
+        // widget's numbers (see `widget-stream`).
+        RateLimiter::for('chat-stream', function (Request $request): array {
+            $limits = [Limit::perMinute(30)->by('chat-stream|account|'.$this->chatAccountKey($request))];
+            $agent = HostedChatAgent::from($request);
 
-            return Limit::perMinute(30)->by('chat-stream|'.$key);
+            if ($agent instanceof Agent) {
+                $limits[] = Limit::perMinute((int) config('chatvia.widget.stream_per_agent_per_minute', 120))
+                    ->by('chat-stream|agent|'.$agent->id);
+                $limits[] = Limit::perHour((int) config('chatvia.widget.stream_per_agent_per_hour', 1500))
+                    ->by('chat-stream|agent-hour|'.$agent->id);
+            }
+
+            return $limits;
         });
 
         // Starting a hosted-chat voice call (see `widget-voice`).
-        RateLimiter::for('chat-voice', function (Request $request) {
-            $account = $request->user();
-            $key = $account instanceof Model ? $account->getMorphClass().':'.$account->getKey() : $request->ip();
+        RateLimiter::for('chat-voice', function (Request $request): array {
+            $limits = [Limit::perMinute(5)->by('chat-voice|account|'.$this->chatAccountKey($request))];
+            $agent = HostedChatAgent::from($request);
 
-            return Limit::perMinute(5)->by('chat-voice|'.$key);
+            if ($agent instanceof Agent) {
+                $limits[] = Limit::perMinute(30)->by('chat-voice|agent|'.$agent->id);
+            }
+
+            return $limits;
         });
+    }
+
+    /**
+     * The hosted-chat caller: the signed-in chatter or staff member, or the IP.
+     * Chatters and staff have separate id sequences, so the key carries the
+     * account kind (`chatter:5` / `user:5`).
+     */
+    private function chatAccountKey(Request $request): string
+    {
+        $account = $request->user();
+
+        return $account instanceof Model ? "{$account->getMorphClass()}:{$account->getKey()}" : (string) $request->ip();
     }
 }

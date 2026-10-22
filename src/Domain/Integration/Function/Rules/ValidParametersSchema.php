@@ -20,7 +20,7 @@ class ValidParametersSchema implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $schema = is_string($value) ? json_decode($value, true) : $value;
+        $schema = is_scalar($value) ? json_decode((string) $value, true) : $value;
 
         if (! is_array($schema)) {
             $fail('parameters_schema must be valid JSON describing the parameters.');

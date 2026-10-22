@@ -65,7 +65,7 @@ final class PowerPointBinaryFile
             $old = strlen($stream);
             $stream .= $this->slideContainer([], $this->earlierFirstSlide);
             $directory = strlen($stream);
-            $stream .= self::atom(0x1772, pack('V', 2 | (1 << 20)).pack('V', $old));
+            $stream .= $this->atom(0x1772, pack('V', 2 | (1 << 20)).pack('V', $old));
             $lastEdit = strlen($stream);
             $stream .= $this->userEdit(0, $directory);
         }
@@ -88,11 +88,11 @@ final class PowerPointBinaryFile
         }
 
         $directory = strlen($stream);
-        $stream .= self::atom(0x1772, pack('V', 1 | (count($entries) << 20)).pack('V*', ...$entries));
+        $stream .= $this->atom(0x1772, pack('V', 1 | (count($entries) << 20)).pack('V*', ...$entries));
         $currentEdit = strlen($stream);
         $stream .= $this->userEdit($lastEdit, $directory);
 
-        $currentUser = self::atom(0x0FF6, pack('VVVvvCCv', 0x14, $this->encrypted ? self::ENCRYPTED_TOKEN : self::PLAIN_TOKEN, $currentEdit, 4, 0x03F4, 3, 0, 0).'test');
+        $currentUser = $this->atom(0x0FF6, pack('VVVvvCCv', 0x14, $this->encrypted ? self::ENCRYPTED_TOKEN : self::PLAIN_TOKEN, $currentEdit, 4, 0x03F4, 3, 0, 0).'test');
 
         $path = (string) tempnam(sys_get_temp_dir(), 'ppt');
         file_put_contents($path, CompoundFileWriter::write([
@@ -108,19 +108,19 @@ final class PowerPointBinaryFile
         $list = '';
 
         foreach ($this->slides as $index => $slide) {
-            $list .= self::atom(0x03F3, pack('VVVVV', $index + 2, 0, count($slide['placeholders']), 256 + $index, 0));
+            $list .= $this->atom(0x03F3, pack('VVVVV', $index + 2, 0, count($slide['placeholders']), 256 + $index, 0));
 
             foreach ($slide['placeholders'] as $number => $text) {
-                $list .= self::atom(0x0F9F, pack('V', $number === 0 ? 0 : 1)).self::text($text);
+                $list .= $this->atom(0x0F9F, pack('V', $number === 0 ? 0 : 1)).$this->text($text);
             }
         }
 
-        $masters = self::atom(0x03F3, pack('VVVVV', 99, 0, 1, 0x80000000, 0))
-            .self::atom(0x0F9F, pack('V', 0)).self::text('Click to edit Master title style');
+        $masters = $this->atom(0x03F3, pack('VVVVV', 99, 0, 1, 0x80000000, 0))
+            .$this->atom(0x0F9F, pack('V', 0)).$this->text('Click to edit Master title style');
 
-        return self::container(0x03E8, self::atom(0x03E9, str_repeat("\0", 40))
-            .self::container(0x0FF0, $masters, 1)
-            .self::container(0x0FF0, $list));
+        return $this->container(0x03E8, $this->atom(0x03E9, str_repeat("\0", 40))
+            .$this->container(0x0FF0, $masters, 1)
+            .$this->container(0x0FF0, $list));
     }
 
     /**
@@ -132,39 +132,39 @@ final class PowerPointBinaryFile
         $shapes = '';
 
         foreach (array_keys($placeholders) as $number) {
-            $shapes .= self::container(0xF004, self::atom(0xF00A, str_repeat("\0", 8)).self::container(0xF00D, self::atom(0x0F9E, pack('V', $number))));
+            $shapes .= $this->container(0xF004, $this->atom(0xF00A, str_repeat("\0", 8)).$this->container(0xF00D, $this->atom(0x0F9E, pack('V', $number))));
         }
 
         foreach ($boxes as $text) {
-            $shapes .= self::container(0xF004, self::atom(0xF00A, str_repeat("\0", 8)).self::container(0xF00D, self::atom(0x0F9F, pack('V', 4)).self::text($text)));
+            $shapes .= $this->container(0xF004, $this->atom(0xF00A, str_repeat("\0", 8)).$this->container(0xF00D, $this->atom(0x0F9F, pack('V', 4)).$this->text($text)));
         }
 
-        $drawing = self::container(0x040C, self::container(0xF002, self::container(0xF003, $shapes)));
+        $drawing = $this->container(0x040C, $this->container(0xF002, $this->container(0xF003, $shapes)));
 
-        return self::container(0x03EE, self::atom(0x03EF, str_repeat("\0", 24)).$drawing);
+        return $this->container(0x03EE, $this->atom(0x03EF, str_repeat("\0", 24)).$drawing);
     }
 
     private function userEdit(int $lastEdit, int $directory): string
     {
-        return self::atom(0x0FF5, pack('VvCCVVVVvv', 256, 0, 0, 3, $lastEdit, $directory, 1, 100, 1, 0));
+        return $this->atom(0x0FF5, pack('VvCCVVVVvv', 256, 0, 0, 3, $lastEdit, $directory, 1, 100, 1, 0));
     }
 
     /** One byte per character for Latin-1 text, as PowerPoint stores it; UTF-16 otherwise. */
-    private static function text(string $text): string
+    private function text(string $text): string
     {
         $latin1 = @iconv('UTF-8', 'ISO-8859-1', $text);
 
         return $latin1 !== false && $latin1 !== ''
-            ? self::atom(0x0FA8, $latin1)
-            : self::atom(0x0FA0, (string) mb_convert_encoding($text, 'UTF-16LE', 'UTF-8'));
+            ? $this->atom(0x0FA8, $latin1)
+            : $this->atom(0x0FA0, mb_convert_encoding($text, 'UTF-16LE', 'UTF-8'));
     }
 
-    private static function container(int $type, string $children, int $instance = 0): string
+    private function container(int $type, string $children, int $instance = 0): string
     {
         return pack('vvV', ($instance << 4) | 0x0F, $type, strlen($children)).$children;
     }
 
-    private static function atom(int $type, string $body, int $instance = 0): string
+    private function atom(int $type, string $body, int $instance = 0): string
     {
         return pack('vvV', $instance << 4, $type, strlen($body)).$body;
     }

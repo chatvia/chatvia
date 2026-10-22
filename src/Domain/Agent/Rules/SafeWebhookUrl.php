@@ -20,14 +20,14 @@ class SafeWebhookUrl implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_string($value) || blank($value)) {
+        if (! is_scalar($value) || blank($value)) {
             $fail('The :attribute must be a valid URL.');
 
             return;
         }
 
         try {
-            SafeUrl::assert($value);
+            SafeUrl::assert((string) $value);
         } catch (UnsafeUrlException $e) {
             $fail($e->getMessage());
         }

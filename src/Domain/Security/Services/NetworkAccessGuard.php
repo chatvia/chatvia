@@ -79,8 +79,8 @@ class NetworkAccessGuard
         $key = "security:geoip:{$ip}";
 
         $cached = Cache::get($key);
-        if (is_string($cached)) {
-            return $cached !== '' ? $cached : null;
+        if ($cached !== null) {
+            return filled($cached) ? $cached : null;
         }
 
         $country = $this->geolocation->countryCode($ip);

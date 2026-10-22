@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Oś czasu nastroju",
                 "message_details": "Szczegóły wiadomości",
                 "waiting": "Oczekiwanie…",
-                "trend_stable_label": "Stabilny"
+                "trend_stable_label": "Stabilny",
+                "trend_tooltip": "Porównuje nastrój: {first} i {last}."
             },
             "handoff": {
                 "visitor": "Odwiedzający",
@@ -2272,7 +2273,7 @@
             "field_label": "Etykieta pola",
             "required": "Wymagane",
             "maps_to": "Mapuje na",
-            "options_placeholder": "Jedna opcja w wierszu. Użyj wartość|etykieta dla osobnych wartości.",
+            "options_placeholder": "Jedna opcja w wierszu. Użyj wartość{'|'}etykieta dla osobnych wartości.",
             "success_message": "Komunikat o powodzeniu",
             "success_placeholder": "Wyświetlany po przesłaniu przez odwiedzającego.",
             "active": "Aktywny",

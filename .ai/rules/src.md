@@ -7,7 +7,10 @@ paths:
 
 ## Use filled() / blank() for empty checks
 Check for an empty value with Laravel's `filled()` / `blank()` (on a request: `$request->filled('key')`, then `string()` / `integer()`). Never write `is_string($x) && $x !== ''`, `$x !== null && $x !== ''`, `$x === null || $x === ''` or `trim($x) === ''`.
-Keep `is_string()` only when the value can really be another type (raw request input before validation, outside JSON, LLM output, a validation rule's `mixed $value`), and pair it with `filled()`: `is_string($x) && filled($x)`. For a header use `$request->headers->get()` (typed `?string`), not `header()`.
+Never write `is_string()`, not even paired with `filled()` (`ConventionsTest` fails on one). Check the value with `filled()` / `blank()` alone. Tell a string-or-array value apart with `is_array()` (or `Arr::wrap()`), compare a `string|false` result (`base64_decode()`, `openssl_*`, `putFile()`) with `false`, and in a validation rule's `mixed $value` take `is_scalar($value)` before casting it. For request input, read it typed (`$request->string('key')`); for a header use `$request->headers->get()` (typed `?string`), not `header()`.
+
+## Cast only what is not a string yet
+Don't `(string)` a value that is already a string. For a `?string`, say what null becomes: `$app->redirectUri() ?? ''` (and `$x ??= ''`), not `(string) $app->redirectUri()`. Keep `(string)` for a real conversion: an int, a `mixed` value from outside JSON, an enum's `->value` going into a string.
 Exceptions: streamed text deltas (a lone space or newline is real output, so compare with `''`), and values where an empty array is real data (`filled([])` is false).
 
 ## Choose boring code over clever code

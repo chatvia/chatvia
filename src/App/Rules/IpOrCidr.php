@@ -13,7 +13,7 @@ class IpOrCidr implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_string($value) || ! $this->isIpOrCidr($value)) {
+        if (! is_scalar($value) || ! $this->isIpOrCidr((string) $value)) {
             $fail(__('Each entry must be a valid IP address or CIDR range.'));
         }
     }

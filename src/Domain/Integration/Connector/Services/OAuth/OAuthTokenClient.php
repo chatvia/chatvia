@@ -8,6 +8,7 @@ use Domain\Integration\Connector\Enums\OAuthGrant;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 use Throwable;
 
@@ -80,7 +81,7 @@ class OAuthTokenClient
         if ($response->failed()) {
             throw new McpOAuthException($grant->rejectedMessage(
                 $response->status(),
-                mb_substr((string) $response->body(), 0, self::ERROR_BODY_LENGTH),
+                Str::substr($response->body(), 0, self::ERROR_BODY_LENGTH),
             ));
         }
 

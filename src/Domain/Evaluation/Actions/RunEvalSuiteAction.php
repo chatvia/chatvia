@@ -73,8 +73,8 @@ class RunEvalSuiteAction
         $batch = Bus::batch($cases->map(fn (EvalCase $case): ScoreEvalCaseJob => new ScoreEvalCaseJob($run, $case))->all())
             ->name('Eval Run #'.$run->id.' — '.$agent->name)
             ->onQueue((string) config('chatvia.evals.queue', 'analytics'))
-            ->finally(function (Batch $batch) use ($runId): void {
-                $run = EvalRun::find($runId);
+            ->finally(static function (Batch $batch) use ($runId): void {
+                $run = EvalRun::query()->find($runId);
 
                 if ($run !== null) {
                     app(FinalizeEvalRunAction::class)->execute($run, $batch->cancelled());

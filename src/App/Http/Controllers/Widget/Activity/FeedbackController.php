@@ -27,8 +27,8 @@ class FeedbackController
         FindWidgetConversationAction $findConversation,
         RecordMessageFeedbackAction $recordFeedback,
     ): JsonResponse|WidgetAckData {
-        $sessionId = (string) $this->widgetSessionId($request);
-        $conversationId = (string) $this->widgetConversationId($request);
+        $sessionId = $this->widgetSessionId($request) ?? '';
+        $conversationId = $this->widgetConversationId($request) ?? '';
 
         if (! $findConversation->execute($conversationId, $sessionId, $agent, $this->widgetViewer($request)) instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found.'], JsonResponse::HTTP_NOT_FOUND);

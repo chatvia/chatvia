@@ -405,15 +405,10 @@ it('form requests scope exists/unique rules to the workspace', function (): void
 /**
  * Empty checks use Laravel's filled()/blank() (.ai/rules/src.md): writing out
  * `is_string($x) && $x !== ''` or `$x !== null && $x !== ''` repeats what the
- * helpers already say. A value that can really be another type keeps its
- * is_string() guard, paired with filled(). Listed: files where filled() is
- * wrong, with how many hand-written checks each may keep.
+ * helpers already say. Listed: files where filled() is wrong, with how many
+ * hand-written checks each may keep.
  */
 const HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST = [
-    // A whitespace-only stream delta (" ", "\n") is real output; filled() drops it.
-    'src/Domain/Analytics/Services/Chat/AnalyticsChatRunner.php' => 1,
-    // The answer's and the thinking's deltas.
-    'src/Domain/Conversation/Services/Streaming/Transformers/OpenAiCompatibleTransformer.php' => 2,
     // An empty list (e.g. no sites) is a real setting value; filled([]) is false.
     'src/App/Http/Requests/Agent/Settings/UpdateAgentSettingsRequest.php' => 1,
 ];
@@ -485,7 +480,7 @@ it('empty checks use filled()/blank(), not hand-written comparisons with an empt
 
     expect($newOffenders)->toBe([], implode("\n", [
         '',
-        'Hand-written empty check(s) — use filled()/blank() (keep is_string() only for values that can be another type):',
+        'Hand-written empty check(s) — use filled()/blank():',
         ...array_map(fn (string $o): string => "  - {$o}", $newOffenders),
         '',
         'Or, where filled() is really wrong, add the file to HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST in this file.',
@@ -504,6 +499,66 @@ it('empty checks use filled()/blank(), not hand-written comparisons with an empt
         '',
         'Allowlisted file has fewer hand-written empty checks — lower or remove its HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST entry:',
         ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
+/**
+ * Line numbers in $code that call is_string(), or pass it as a callable
+ * (`is_string(...)`), but not a method of that name or a word in a comment.
+ *
+ * @return list<int>
+ */
+function conventionIsStringCalls(string $code): array
+{
+    $tokens = array_values(array_filter(
+        PhpToken::tokenize($code),
+        fn (PhpToken $token): bool => ! $token->isIgnorable(),
+    ));
+    $lines = [];
+
+    foreach ($tokens as $i => $token) {
+        if (! $token->is([T_STRING, T_NAME_FULLY_QUALIFIED]) || strtolower(ltrim($token->text, '\\')) !== 'is_string') {
+            continue;
+        }
+
+        if (($tokens[$i + 1] ?? null)?->text !== '(' || ($tokens[$i - 1] ?? null)?->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION])) {
+            continue;
+        }
+
+        $lines[] = $token->line;
+    }
+
+    return $lines;
+}
+
+/**
+ * No is_string() anywhere (.ai/rules/src.md): an empty check is filled() or
+ * blank(), a string-or-array value is told apart with is_array(), and a
+ * `string|false` result is compared with false. No allowlist: there is no
+ * case left that needs it.
+ */
+it('checks values with filled()/blank(), never is_string()', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
+
+    foreach (['src', 'tests', 'config', 'routes', 'database', 'bootstrap'] as $dir) {
+        foreach (conventionPhpFiles($dir) as $path) {
+            if (str_contains($path, DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR)) {
+                continue;
+            }
+
+            $lines = conventionIsStringCalls((string) file_get_contents($path));
+
+            if ($lines !== []) {
+                $offenders[] = str_replace($root, '', $path).':'.implode(',', $lines);
+            }
+        }
+    }
+
+    expect($offenders)->toBe([], implode("\n", [
+        '',
+        'is_string() — check the value with filled()/blank(), or is_array() for string-or-array:',
+        ...array_map(fn (string $o): string => "  - {$o}", $offenders),
     ]));
 });
 

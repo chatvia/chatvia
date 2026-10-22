@@ -94,7 +94,7 @@
             "field_label": "Feltetiket",
             "required": "Påkrævet",
             "maps_to": "Knyttes til",
-            "options_placeholder": "Én mulighed pr. linje. Brug værdi|etiket for separate værdier.",
+            "options_placeholder": "Én mulighed pr. linje. Brug værdi{'|'}etiket for separate værdier.",
             "success_message": "Bekræftelsesbesked",
             "success_placeholder": "Vises, efter den besøgende har sendt formularen.",
             "active": "Aktiv",

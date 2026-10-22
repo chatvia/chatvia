@@ -85,7 +85,7 @@ final class SettingsConfig
         }
 
         // The translator took its locale from config when it was built.
-        if ($this->container instanceof Application && is_string($values['app.locale'] ?? null)) {
+        if ($this->container instanceof Application && filled($values['app.locale'] ?? null)) {
             $this->container->setLocale($values['app.locale']);
         }
 

@@ -37,7 +37,7 @@ final readonly class SlackEventData
             eventId: $eventId,
             type: isset($event['type']) ? (string) $event['type'] : null,
             channelId: isset($event['channel']) ? (string) $event['channel'] : null,
-            text: is_string($event['text'] ?? null) ? $event['text'] : null,
+            text: filled($event['text'] ?? null) ? $event['text'] : null,
             threadTs: isset($event['thread_ts']) ? (string) $event['thread_ts'] : null,
             userId: isset($event['user']) ? (string) $event['user'] : null,
             channelType: isset($event['channel_type']) ? (string) $event['channel_type'] : null,

@@ -92,7 +92,7 @@ class ListKnowledgeQuestionCandidatesAction
                 $question = trim($line);
 
                 if ($question !== '' && mb_strlen($question) <= self::MAX_QUESTION_LENGTH) {
-                    $questions[] = [EvalQuestionSource::Qa, $qa->id, $question, (string) $qa->title];
+                    $questions[] = [EvalQuestionSource::Qa, $qa->id, $question, $qa->title];
                 }
             }
         }

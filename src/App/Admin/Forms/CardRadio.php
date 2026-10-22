@@ -111,7 +111,7 @@ class CardRadio extends Radio
                     <input type="radio" <?= $inputAttributes->toHtml() ?> />
 
                     <?php if (isset($icons[$value])) { ?>
-                        <span class="cv-choice__icon<?= is_string($icons[$value]) ? ' cv-choice__icon--logo' : '' ?>">
+                        <span class="cv-choice__icon<?= $icons[$value] instanceof Heroicon ? '' : ' cv-choice__icon--logo' ?>">
                             <?= generate_icon_html($icons[$value], size: IconSize::Large)?->toHtml() ?>
                         </span>
                     <?php } ?>

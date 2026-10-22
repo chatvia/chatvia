@@ -36,7 +36,7 @@ class AuditLogRequest extends CursorPageRequest
     {
         $outcome = $this->validated('outcome');
 
-        return is_string($outcome) && filled($outcome) ? $outcome : null;
+        return filled($outcome) ? $outcome : null;
     }
 
     /** The connector-slug filter, or null for every connector. */
@@ -44,6 +44,6 @@ class AuditLogRequest extends CursorPageRequest
     {
         $connector = $this->validated('connector');
 
-        return is_string($connector) && filled($connector) ? $connector : null;
+        return filled($connector) ? $connector : null;
     }
 }

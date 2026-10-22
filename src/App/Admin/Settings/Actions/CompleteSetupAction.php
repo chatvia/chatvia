@@ -28,6 +28,7 @@ use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -96,7 +97,7 @@ final readonly class CompleteSetupAction
                 $this->set($this->ai, 'embedding_provider', $data->embeddingProvider->value);
 
                 if (filled($data->embeddingModel)) {
-                    $this->set($this->ai, (string) AiSettings::propertyFor($data->embeddingProvider->modelConfig()), $data->embeddingModel);
+                    $this->set($this->ai, AiSettings::propertyFor($data->embeddingProvider->modelConfig()) ?? '', $data->embeddingModel);
                 }
 
                 $this->saveKey($data->embeddingProvider->account(), $data->embeddingApiKey);
@@ -208,7 +209,7 @@ final readonly class CompleteSetupAction
             return;
         }
 
-        $this->set($this->ai, 'rerank_custom_url', rtrim(trim((string) $reranker->url), '/'));
+        $this->set($this->ai, 'rerank_custom_url', Str::rtrim(Str::trim($reranker->url ?? ''), '/'));
 
         if (filled($reranker->apiKey)) {
             $this->ai->rerank_custom_key = $reranker->apiKey;

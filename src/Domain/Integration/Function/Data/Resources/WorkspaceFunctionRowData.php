@@ -6,12 +6,14 @@ use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * One row of the Settings → Functions page. Credentials never leave the
  * server: the page only learns whether one is stored, plus the (non-secret)
  * custom header name so the edit form can prefill it.
  */
+#[TypeScript]
 class WorkspaceFunctionRowData extends Data
 {
     public function __construct(

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * The safety guards. PII is regex-based; injection, blocked topics and
  * toxicity are resolved by a single open-weight classifier call (injection in
  * knowledge and tool results by rules); a prompt leak is an answer that
  * repeats the system prompt's marker.
  */
+#[TypeScript]
 enum GuardType: string
 {
     case PromptInjection = 'prompt_injection';

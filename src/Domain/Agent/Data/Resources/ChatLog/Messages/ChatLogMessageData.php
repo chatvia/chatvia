@@ -58,7 +58,7 @@ class ChatLogMessageData extends Data
             role: $message->role->value,
             sentiment: $message->sentiment,
             tone: $message->tone,
-            feedback: $message->feedback,
+            feedback: $message->feedback?->value,
             is_response_from_qa: $message->is_response_from_qa,
             response_time_ms: $message->response_time_ms,
             prompt_tokens: $message->prompt_tokens,

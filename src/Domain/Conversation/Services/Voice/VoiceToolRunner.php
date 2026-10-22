@@ -187,7 +187,7 @@ final readonly class VoiceToolRunner
     private function searchKnowledge(VoiceTurn $turn, string $arguments): string
     {
         $decoded = json_decode($arguments, true);
-        $query = is_array($decoded) && is_string($decoded['query'] ?? null) ? trim($decoded['query']) : '';
+        $query = is_array($decoded) && filled($decoded['query'] ?? null) ? Str::trim($decoded['query']) : '';
 
         if (blank($query)) {
             return self::SMALL_TALK_RESULT;

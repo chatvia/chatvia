@@ -94,7 +94,7 @@
             "field_label": "필드 레이블",
             "required": "필수",
             "maps_to": "매핑 대상",
-            "options_placeholder": "한 줄에 옵션 하나씩. 값과 레이블을 분리하려면 value|label 형식을 사용하세요.",
+            "options_placeholder": "한 줄에 옵션 하나씩. 값과 레이블을 분리하려면 value{'|'}label 형식을 사용하세요.",
             "success_message": "성공 메시지",
             "success_placeholder": "방문자가 제출한 후 표시됩니다.",
             "active": "활성",

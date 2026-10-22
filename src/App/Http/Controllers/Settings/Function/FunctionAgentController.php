@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 
 /**
  * Manage which of the workspace's agents use a given webhook function: list
- * every agent split into attached vs available, attach one, detach one. Each
- * call answers with the updated split. The route binds `{function}` and
- * `{agent}`; `workspace.scope` 404s another workspace's.
+ * the agents the viewer may manage, split into attached vs available, attach
+ * one, detach one. Each call answers with the updated split. The route binds
+ * `{function}` and `{agent}`; `workspace.scope` 404s another workspace's, and
+ * `can.access.agent` on attach and detach refuses an agent outside the
+ * viewer's team role.
  */
 class FunctionAgentController
 {

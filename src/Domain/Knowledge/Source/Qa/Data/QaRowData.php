@@ -30,7 +30,7 @@ class QaRowData extends Data
 
     public static function fromModel(AgentQuestionAnswer $qa): self
     {
-        $questions = collect(explode("\n", (string) $qa->questions))
+        $questions = collect(explode("\n", $qa->questions))
             ->map(fn (string $question): string => trim($question))
             ->filter()
             ->values()

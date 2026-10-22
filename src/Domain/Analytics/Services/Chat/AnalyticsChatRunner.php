@@ -96,7 +96,7 @@ class AnalyticsChatRunner
             $assistantText = '';
             $pending = [];
 
-            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->name, $messages, $model->requestSettings([
+            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn (): ResponseInterface => $provider->stream($model->name, $messages, $model->requestSettings([
                 'temperature' => 0.2,
                 'tools' => $tools,
                 'tool_choice' => 'auto',
@@ -125,7 +125,7 @@ class AnalyticsChatRunner
         // anyway is left in $pending and never run.
         $assistantText = '';
         $pending = [];
-        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->name, $messages, $model->requestSettings([
+        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn (): ResponseInterface => $provider->stream($model->name, $messages, $model->requestSettings([
             'temperature' => 0.2,
             'tools' => $tools,
             'tool_choice' => 'none',
@@ -196,7 +196,7 @@ class AnalyticsChatRunner
         $delta = $chunk['choices'][0]['delta'] ?? [];
 
         // Not filled(): a whitespace-only delta (" ", "\n") is real output.
-        if (isset($delta['content']) && is_string($delta['content']) && $delta['content'] !== '') {
+        if (($delta['content'] ?? '') !== '') {
             $assistantText .= $delta['content'];
 
             yield StreamEvent::delta($assistantId, $delta['content']);

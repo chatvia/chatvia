@@ -16,6 +16,7 @@ use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -63,11 +64,11 @@ class GuardrailClassifier
         try {
             $reply = $this->completion->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::Guardrails),
-                tag: AiCallTag::Guardrails,
                 messages: [
                     ChatMessageData::system(trim(prompt('guardrails/classifier-system'))),
                     ChatMessageData::user($this->userPrompt($text, $options)),
                 ],
+                tag: AiCallTag::Guardrails,
                 temperature: 0,
                 responseSchema: new ResponseSchemaData('guardrail_check', $this->schema($options), strict: false),
             ));
@@ -106,7 +107,7 @@ class GuardrailClassifier
             toxic: (bool) ($data['toxic'] ?? false),
             toxicitySeverity: GuardSeverity::fromModel($data['toxicity_severity'] ?? null),
             toxicityCategories: $this->stringList($data['toxicity_categories'] ?? []),
-            reason: is_string($data['reason'] ?? null) ? trim($data['reason']) : null,
+            reason: filled($data['reason'] ?? null) ? Str::trim($data['reason']) : null,
             language: $this->language($data['language'] ?? null),
             matchedTopic: $this->topicNumber($data['matched_topic'] ?? 0, count($options->blockedTopics)),
         );
@@ -114,7 +115,7 @@ class GuardrailClassifier
 
     private function userPrompt(string $text, ClassifierOptionsData $options): string
     {
-        $scope = trim((string) $options->allowedScope);
+        $scope = Str::trim($options->allowedScope ?? '');
         $blocked = implode("\n", array_map(
             static fn (string $topic, int $index): string => ($index + 1).'. '.$topic,
             $options->blockedTopics,
@@ -140,7 +141,7 @@ class GuardrailClassifier
         $lines = [];
 
         foreach (array_slice($history, -self::HISTORY_MESSAGES) as $entry) {
-            $content = is_string($entry['content'] ?? null) ? trim((string) preg_replace('/\s+/u', ' ', $entry['content'])) : '';
+            $content = filled($entry['content'] ?? null) ? Str::squish($entry['content']) : '';
 
             if ($content === '' || ! in_array($entry['role'] ?? null, ['user', 'assistant', 'agent'], true)) {
                 continue;
@@ -169,7 +170,7 @@ class GuardrailClassifier
     /** A plausible ISO 639-1 code, lower-cased, or null. */
     private function language(mixed $value): ?string
     {
-        $code = is_string($value) ? strtolower(trim($value)) : '';
+        $code = filled($value) ? Str::lower(Str::trim($value)) : '';
 
         return preg_match('/^[a-z]{2}$/', $code) === 1 ? $code : null;
     }
@@ -231,7 +232,7 @@ class GuardrailClassifier
         }
 
         return array_values(array_filter(array_map(
-            fn (mixed $item): string => is_string($item) ? trim($item) : '',
+            fn (mixed $item): string => filled($item) ? Str::trim($item) : '',
             $value,
         ), fn (string $item): bool => $item !== ''));
     }

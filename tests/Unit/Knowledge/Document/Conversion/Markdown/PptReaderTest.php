@@ -60,6 +60,6 @@ it('refuses a password-protected file and a file that is not a presentation', fu
     $other = (string) tempnam(sys_get_temp_dir(), 'ppt');
     file_put_contents($other, CompoundFileWriter::write(['WordDocument' => 'not a presentation']));
 
-    expect(fn () => pptrSlides($locked))->toThrow(RuntimeException::class, 'password protected')
-        ->and(fn () => pptrSlides($other))->toThrow(RuntimeException::class, 'not a PowerPoint presentation');
+    expect(fn (): array => pptrSlides($locked))->toThrow(RuntimeException::class, 'password protected')
+        ->and(fn (): array => pptrSlides($other))->toThrow(RuntimeException::class, 'not a PowerPoint presentation');
 });

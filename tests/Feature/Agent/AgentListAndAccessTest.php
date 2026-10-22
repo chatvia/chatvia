@@ -3,6 +3,7 @@
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -51,6 +52,15 @@ it('lets only the team owner create an agent', function (): void {
         ->assertRedirect();
 
     expect($this->owner->workspace()->agents()->where('name', 'Fresh')->exists())->toBeTrue();
+});
+
+it('refuses an agent name longer than the column holds', function (): void {
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.store'), ['name' => Str::repeat('a', 256)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('name');
+
+    expect($this->owner->workspace()->agents()->count())->toBe(2);
 });
 
 it('gates the identity and rate-limit pages on agent.identity.manage', function (string $routeName): void {

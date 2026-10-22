@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Agent\Data\Settings\Copy;
 
 use Spatie\LaravelData\Data;

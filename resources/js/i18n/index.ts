@@ -1,3 +1,4 @@
+import { safeStorage } from '@/lib/safeStorage';
 import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 
@@ -88,24 +89,16 @@ export function normalizeLocale(input?: string | null): SupportedLocale {
 // page) is remembered client-side here and consulted before the browser default.
 const LOCALE_STORAGE_KEY = 'chatvia.locale';
 
+// Through safeStorage: in a storage-blocked iframe (the hosted chat embed)
+// even touching localStorage throws, and this runs at boot.
 function getStoredLocale(): SupportedLocale | null {
-    if (typeof localStorage === 'undefined') return null;
-    try {
-        const v = localStorage.getItem(LOCALE_STORAGE_KEY);
-        return v && (SUPPORTED_LOCALES as readonly string[]).includes(v) ? (v as SupportedLocale) : null;
-    } catch {
-        return null;
-    }
+    const v = safeStorage.get(LOCALE_STORAGE_KEY);
+    return v && (SUPPORTED_LOCALES as readonly string[]).includes(v) ? (v as SupportedLocale) : null;
 }
 
 /** Remember an explicit language choice so it survives navigation + login. */
 export function persistLocale(code: string): void {
-    if (typeof localStorage === 'undefined') return;
-    try {
-        localStorage.setItem(LOCALE_STORAGE_KEY, normalizeLocale(code));
-    } catch {
-        // Storage unavailable (private mode / quota) — choice stays in-memory only.
-    }
+    safeStorage.set(LOCALE_STORAGE_KEY, normalizeLocale(code));
 }
 
 /** The supported locale for a language code, or null when it has none. */

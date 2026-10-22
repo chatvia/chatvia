@@ -54,7 +54,7 @@ final readonly class RerankerCheck
 
             $detail = $exception->response->json('error.message') ?? $exception->response->json('message');
 
-            return new ConnectionCheckData(false, message: "{$name} could not rerank with this model (error {$status})".(is_string($detail) && filled($detail) ? ": {$detail}" : '.'));
+            return new ConnectionCheckData(false, message: "{$name} could not rerank with this model (error {$status})".(filled($detail) ? ": {$detail}" : '.'));
         } catch (RuntimeException $exception) {
             return new ConnectionCheckData(false, message: $exception->getMessage());
         }

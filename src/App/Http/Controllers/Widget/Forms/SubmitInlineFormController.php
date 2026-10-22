@@ -36,7 +36,7 @@ class SubmitInlineFormController
 
         $conversation = $findConversation->execute(
             (string) $formInstance->conversation?->external_id,
-            (string) $this->widgetSessionId($request),
+            $this->widgetSessionId($request) ?? '',
             $agent,
             $this->widgetViewer($request),
         );

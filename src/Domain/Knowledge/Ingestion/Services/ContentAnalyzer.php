@@ -35,13 +35,13 @@ class ContentAnalyzer
     {
         $reply = $this->completion->using($this->documentLlm->provider())->send(new ChatRequestData(
             model: $this->documentLlm->model((string) config('chatvia.ai.models.analysis')),
-            tag: AiCallTag::DocumentAnalysis,
             messages: [
                 ChatMessageData::userWithAttachment(prompt('summarization/system'), [
                     'type' => 'document_url',
                     'document_url' => $documentUrl,
                 ]),
             ],
+            tag: AiCallTag::DocumentAnalysis,
             maxTokens: 1024,
             responseSchema: new ResponseSchemaData('document_analysis', $this->fileAnalysisSchema()),
         ));

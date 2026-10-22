@@ -49,7 +49,7 @@ it('shows who is behind each abusive trigger and how often they tried', function
 
     $this->actingAs($this->owner)
         ->get(route('agents.guardrails', $this->agent->external_id))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('triggers.data.0.offender', null)
             ->where('triggers.data.1.offender.kind', 'visitor')
             ->where('triggers.data.1.offender.recent_attempts', 2)
@@ -63,7 +63,7 @@ it('filters the log by one visitor', function (): void {
 
     $this->actingAs($this->owner)
         ->get(route('agents.guardrails', ['agent' => $this->agent->external_id, 'visitor' => hash('sha256', 'visitor-2')]))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('triggers.total', 1)
             ->where('filters.visitor', hash('sha256', 'visitor-2')));
 });
@@ -83,7 +83,7 @@ it('blocks a visitor, lists the block on the Security page and unblocks it', fun
         ->and($block->expires_at->isFuture())->toBeTrue();
 
     $this->get(route('security.edit'))
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('blocked_visitors.0.external_id', $block->external_id)
             ->where('blocked_visitors.0.reason', 'Prompt hunting'));
 
@@ -150,7 +150,7 @@ it('shows the Blocked page and list to whoever can view the guardrails', functio
 
     $this->actingAs($viewer)
         ->get(route('agents.security.blocked', $this->agent->external_id))
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('agents/security/Blocked'));
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('agents/security/Blocked'));
     $this->actingAs($viewer)->getJson(route('agents.security.blocked.list', $this->agent->external_id))->assertOk();
 
     $this->actingAs($outsider)->get(route('agents.security.blocked', $this->agent->external_id))->assertForbidden();

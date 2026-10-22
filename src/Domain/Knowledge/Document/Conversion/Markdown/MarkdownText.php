@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Illuminate\Support\Arr;
+
 /**
  * Writes the GitHub Markdown blocks the built-in readers share: headings,
  * paragraphs, list items, pipe tables and the footnote list. Text is kept
@@ -106,7 +108,7 @@ final class MarkdownText
 
         $blocks = [];
 
-        foreach (explode("\n", implode("\n", array_merge(...[[], ...$rows]))) as $line) {
+        foreach (explode("\n", implode("\n", Arr::flatten($rows))) as $line) {
             if (filled($line)) {
                 $blocks[] = [self::BLOCK, self::paragraph(trim($line))];
             }

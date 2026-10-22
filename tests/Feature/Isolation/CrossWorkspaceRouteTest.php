@@ -75,7 +75,7 @@ function isolationSignedInRoutes(bool $api): array
 {
     return collect(Router::getRoutes()->getRoutes())
         ->filter(function (Route $route) use ($api): bool {
-            $middleware = collect($route->gatherMiddleware())->filter(fn (mixed $middleware): bool => is_string($middleware));
+            $middleware = collect($route->gatherMiddleware())->reject(fn (mixed $middleware): bool => $middleware instanceof Closure);
 
             return $route->getName() !== null
                 && str_starts_with($route->uri(), 'api/') === $api

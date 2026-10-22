@@ -17,6 +17,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
@@ -274,6 +275,15 @@ it('warns and asks before it changes the embedding model of stored documents, th
     Chunk::factory()->create();
     $before = savedSetting(AiSettings::class, 'openai_embedding_model');
     Bus::fake();
+    // The re-index is queued by a deferred callback, which Livewire's test
+    // requests (run without middleware) never invoke: run each one at once.
+    $this->app->bind(DeferredCallbackCollection::class, fn (): DeferredCallbackCollection => new class extends DeferredCallbackCollection
+    {
+        public function offsetSet(mixed $offset, mixed $value): void
+        {
+            $value();
+        }
+    });
 
     $page = modelsPage($this->admin)
         ->fillForm(['embedding_provider' => 'openai', 'openai_embedding_model' => 'text-embedding-3-large'])
@@ -283,13 +293,14 @@ it('warns and asks before it changes the embedding model of stored documents, th
         ->assertMountedActionModalSee(['Change the embedding model?', 'Saving starts this re-index in the background queue', 'Save and re-index']);
 
     expect(savedSetting(AiSettings::class, 'openai_embedding_model'))->toBe($before);
-    Bus::assertNotDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+    Bus::assertNotDispatched(ReindexEmbeddingsJob::class);
 
     $page->callMountedAction()->assertNotified('Settings saved. Re-index started');
 
     expect(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('openai')
         ->and(savedSetting(AiSettings::class, 'openai_embedding_model'))->toBe('text-embedding-3-large');
-    Bus::assertDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+
+    Bus::assertDispatched(ReindexEmbeddingsJob::class);
 });
 
 it('changes the embedding model without asking while nothing is stored as vectors', function (): void {

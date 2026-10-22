@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Retrieval\Services;
 use Domain\Knowledge\Retrieval\Enums\LexicalDriver;
 use Domain\Knowledge\Retrieval\Exceptions\InvalidLexicalSearchException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * The one place that knows how the lexical (keyword) channels of hybrid search
@@ -29,12 +30,12 @@ final class LexicalSearch
 
     public function driver(): LexicalDriver
     {
-        if ($this->resolved !== null) {
+        if ($this->resolved instanceof LexicalDriver) {
             return $this->resolved;
         }
 
         $value = config('chatvia.search.lexical_driver', 'auto');
-        $configured = is_string($value) ? strtolower(trim($value)) : '';
+        $configured = filled($value) ? Str::lower(Str::trim($value)) : '';
 
         if ($configured !== '' && $configured !== 'auto') {
             return $this->resolved = LexicalDriver::tryFrom($configured)
@@ -55,7 +56,7 @@ final class LexicalSearch
     {
         $value = config('chatvia.search.text_config', 'simple');
 
-        if (! is_string($value) || ! preg_match('/^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)?$/', $value)) {
+        if (blank($value) || ! preg_match('/^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)?$/', $value)) {
             throw InvalidLexicalSearchException::textConfig($value);
         }
 

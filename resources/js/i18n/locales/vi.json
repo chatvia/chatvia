@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Dòng thời gian cảm xúc",
                 "message_details": "Chi tiết tin nhắn",
                 "waiting": "Đang chờ…",
-                "trend_stable_label": "Ổn định"
+                "trend_stable_label": "Ổn định",
+                "trend_tooltip": "So sánh tâm trạng ở {first} với {last}."
             },
             "handoff": {
                 "visitor": "Khách truy cập",
@@ -2272,7 +2273,7 @@
             "field_label": "Nhãn trường",
             "required": "Bắt buộc",
             "maps_to": "Ánh xạ tới",
-            "options_placeholder": "Mỗi tùy chọn trên một dòng. Dùng giá_trị|nhãn để tách giá trị riêng.",
+            "options_placeholder": "Mỗi tùy chọn trên một dòng. Dùng giá_trị{'|'}nhãn để tách giá trị riêng.",
             "success_message": "Thông báo thành công",
             "success_placeholder": "Hiển thị sau khi khách truy cập gửi.",
             "active": "Hoạt động",

@@ -77,13 +77,17 @@ const locale = JSON.parse(await readFile(path.join(localesDir, 'en.json'), 'utf8
 const localeKeys = new Set(flattenKeys(locale));
 
 const used = new Set();
-const keyRe = /\bt\(\s*['"]([a-zA-Z0-9_.]+)['"]/g;
+// `t('key')` calls, and `<i18n-t keypath="key">` components, which render the
+// raw key when it is missing just the same.
+const keyRes = [/\bt\(\s*['"]([a-zA-Z0-9_.]+)['"]/g, /\bkeypath="([a-zA-Z0-9_.]+)"/g];
 
 for (const file of await walk(jsDir)) {
     const content = await readFile(file, 'utf8');
-    let m;
-    while ((m = keyRe.exec(content)) !== null) {
-        used.add(m[1]);
+    for (const keyRe of keyRes) {
+        let m;
+        while ((m = keyRe.exec(content)) !== null) {
+            used.add(m[1]);
+        }
     }
 }
 
@@ -125,6 +129,7 @@ for (const localeCode of localeCodes) {
     }
 }
 
-if (hasCompileErrors) {
+// A missing key renders as the raw key in the UI, so it fails the check too.
+if (hasCompileErrors || missing.length > 0) {
     process.exitCode = 1;
 }

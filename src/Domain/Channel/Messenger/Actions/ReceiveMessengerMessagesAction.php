@@ -40,12 +40,13 @@ class ReceiveMessengerMessagesAction
                 continue;
             }
 
-            if ($message->messageId !== null
-                && ! $this->deliveries->firstDelivery("messenger:mid:{$page->id}:{$message->messageId}", now()->addDays(2))) {
-                continue;
-            }
-
-            HandleMessengerMessageJob::dispatch($page, $message->senderId, $message->text);
+            $this->deliveries->once(
+                $message->messageId !== null ? "messenger:mid:{$page->id}:{$message->messageId}" : null,
+                now()->addDays(2),
+                function () use ($page, $message): void {
+                    HandleMessengerMessageJob::dispatch($page, $message->senderId, $message->text);
+                },
+            );
         }
     }
 

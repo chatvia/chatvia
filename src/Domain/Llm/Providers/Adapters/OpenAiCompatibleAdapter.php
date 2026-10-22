@@ -67,7 +67,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new OpenAiCompatible($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
+        return new OpenAiCompatible($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }
 
     public function models(LlmProvider $provider): Collection
@@ -81,7 +81,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
         $known = $this->knownModels();
 
         return collect((array) $response->json('data', []))
-            ->filter(fn (mixed $row): bool => is_array($row) && is_string($row['id'] ?? null))
+            ->filter(fn (mixed $row): bool => is_array($row) && filled($row['id'] ?? null))
             ->map(fn (array $row): array => ['row' => $row, 'known' => $known[$this->modelId($row)] ?? null])
             ->filter(fn (array $model): bool => $model['known']['chat'] ?? $this->isChatModel($model['row']))
             ->map(fn (array $model): RemoteModelData => $this->withKnown($this->toModel($model['row']), $model['known']))
@@ -169,7 +169,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
         return new RemoteModelData(
             id: $id,
-            name: is_string($row['name'] ?? null) && filled($row['name']) ? $row['name'] : $id,
+            name: filled($row['name'] ?? null) ? $row['name'] : $id,
         );
     }
 

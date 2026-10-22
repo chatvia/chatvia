@@ -214,13 +214,15 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
             Route::delete('forms/{form}', [FormController::class, 'destroy'])->middleware('agent.permission:agent.sources.train.connectors')->name('forms.destroy');
 
             // Leads: a form's captured submissions, and the CSV export —
-            // gated by the dashboard's agent.leads.* permissions.
+            // gated by the dashboard's agent.leads.* permissions. The export
+            // and eval runs share the dashboard's throttle prefix, so one
+            // person has one budget for both.
             Route::get('forms/{form}/submissions', [FormSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
-            Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware('agent.permission:agent.leads.export')->name('forms.submissions.export');
+            Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware(['agent.permission:agent.leads.export', 'throttle:10,1,submissions-export'])->name('forms.submissions.export');
 
             // Eval runs: trigger a suite run and poll it by id (CI use).
             Route::get('evals/runs', [EvalRunController::class, 'index'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.index');
-            Route::post('evals/runs', [EvalRunController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.store');
+            Route::post('evals/runs', [EvalRunController::class, 'store'])->middleware(['agent.permission:agent.evals.manage', 'throttle:6,1,eval-runs'])->name('evals.runs.store');
             Route::get('evals/runs/{run}', [EvalRunController::class, 'show'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.show');
 
             // Conversation topics — list, attach/create, rename, detach;

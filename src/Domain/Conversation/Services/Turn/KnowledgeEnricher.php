@@ -17,6 +17,7 @@ use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Services\QaMatcher;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Adds the agent's knowledge to a turn. A curated Q&A entry with a question
@@ -63,7 +64,7 @@ class KnowledgeEnricher
             return $context;
         }
 
-        $sources = $this->withoutInjectedSources($context, $this->retrieveSources($agent, $context->searchQuery ?? (string) $context->payload->message_for_llm));
+        $sources = $this->withoutInjectedSources($context, $this->retrieveSources($agent, $context->searchQuery ?? $context->payload->message_for_llm ?? ''));
         $context->setSources($sources);
 
         if ($sources->isEmpty()) {
@@ -212,7 +213,7 @@ class KnowledgeEnricher
         $enriched = new ChatContext(
             requestData: $context->requestData,
             payload: $context->payload->withMessageForLlm(
-                $this->referenceMaterial((string) $context->payload->message_for_llm, $sources),
+                $this->referenceMaterial($context->payload->message_for_llm ?? '', $sources),
             ),
             llmMessages: $context->llmMessages,
             userMessageId: $context->userMessageId,
@@ -279,7 +280,7 @@ class KnowledgeEnricher
                 // Always the main domain (not an agent's custom domain). The path
                 // carries an HMAC over (chunk, index), so the public image route
                 // only serves links the server minted.
-                'url' => rtrim((string) config('app.url'), '/').ChunkImageLink::path((string) $source->external_id, $index),
+                'url' => Str::rtrim((string) config('app.url'), '/').ChunkImageLink::path($source->external_id ?? '', $index),
             ];
         }
 

@@ -27,7 +27,7 @@ class DataExportController
         $export = $active->forUser($request->user());
 
         return Inertia::render('account/DataExport', [
-            'activeExport' => $export !== null ? DataExportResourceData::fromModel($export) : null,
+            'activeExport' => $export instanceof DataExport ? DataExportResourceData::fromModel($export) : null,
         ]);
     }
 

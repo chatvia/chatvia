@@ -221,6 +221,7 @@
                 "trend": "روند",
                 "trend_first": "اولین پیام",
                 "trend_last": "آخرین پیام",
+                "trend_tooltip": "حال‌وهوای {first} را با {last} مقایسه می‌کند.",
                 "trend_improving": "بهبودیابنده",
                 "trend_improving_hint": "— خلق‌وخو در پایان بهتر از ابتدا بود",
                 "trend_declining": "کاهشی",

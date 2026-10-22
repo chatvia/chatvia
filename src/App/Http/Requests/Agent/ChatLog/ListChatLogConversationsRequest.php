@@ -46,6 +46,6 @@ class ListChatLogConversationsRequest extends FormRequest
     {
         $value = $this->query($key);
 
-        return is_string($value) ? $value : null;
+        return filled($value) && ! is_array($value) ? $value : null;
     }
 }

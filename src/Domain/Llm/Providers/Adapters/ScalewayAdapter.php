@@ -93,7 +93,7 @@ final class ScalewayAdapter extends OpenAiCompatibleAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new Scaleway($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
+        return new Scaleway($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }
 
     protected function knownModels(): array

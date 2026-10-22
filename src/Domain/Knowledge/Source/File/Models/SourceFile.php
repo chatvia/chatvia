@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Support\Concerns\HasExternalId;
 use Support\MimeType;
 
@@ -145,7 +146,7 @@ class SourceFile extends Model implements ChunkableContract
 
     public function extension(): string
     {
-        return strtolower(pathinfo((string) $this->filename, PATHINFO_EXTENSION));
+        return Str::lower(pathinfo($this->filename, PATHINFO_EXTENSION));
     }
 
     /**

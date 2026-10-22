@@ -115,21 +115,11 @@ it('builds form controls on the shared ui components', function () use ($fronten
     expect($offenders)->toBe([]);
 });
 
-it('reads localStorage through safeStorage on the boot and hosted-chat paths', function () use ($frontendSource): void {
+it('reads localStorage only through safeStorage', function () use ($frontendOffenders): void {
     // The hosted chat can run in an iframe where touching localStorage throws;
-    // at boot that would stop the whole app from mounting.
-    $files = [
-        'utils/eventBus.ts',
-        'composables/useAppearance.ts',
-        'components/chat/ChatLayout.vue',
-        'components/chat/ChatSidebar.vue',
-        'components/chat/Header.vue',
-        'pages/chat/Chat.vue',
-    ];
-
-    foreach ($files as $file) {
-        expect($frontendSource($file))->not->toMatch('/\blocalStorage\.(getItem|setItem|removeItem)\(/', $file);
-    }
+    // at boot that would stop the whole app from mounting. Even `typeof
+    // localStorage` reads the global, so it throws there too.
+    expect($frontendOffenders('/\blocalStorage\s*\.|\btypeof\s+localStorage\b/', ['lib/safeStorage.ts', 'lib/safeStorage.test.ts']))->toBe([]);
 });
 
 it('uses one shared Echo connection', function () use ($frontendOffenders): void {

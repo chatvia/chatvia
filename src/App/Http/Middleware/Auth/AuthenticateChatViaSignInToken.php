@@ -35,7 +35,7 @@ class AuthenticateChatViaSignInToken
     {
         $token = $request->query('token');
 
-        if (! is_string($token) || blank($token)) {
+        if (blank($token) || is_array($token)) {
             return $next($request);
         }
 

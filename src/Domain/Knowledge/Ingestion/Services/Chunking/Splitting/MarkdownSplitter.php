@@ -226,7 +226,7 @@ final readonly class MarkdownSplitter
             return $this->splitter->split($section['source'], [PatternSeparator::words()]);
         }
 
-        $prefix = $this->prefix(array_values(array_filter([...$section['path'], $section['heading']], is_string(...))));
+        $prefix = $this->prefix(array_values(array_filter([...$section['path'], $section['heading']], filled(...))));
         $splitter = $this->splitter->withSize($this->splitter->size - $this->length($prefix));
         $pieces = [];
 

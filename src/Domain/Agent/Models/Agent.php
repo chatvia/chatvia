@@ -499,7 +499,7 @@ class Agent extends Model
     public function resolvedStartersForLocale(?string $locale): array
     {
         return array_map(static fn (array $starter): array => [
-            'text' => (string) TranslatableText::fromStored($starter)->in($locale),
+            'text' => TranslatableText::fromStored($starter)->in($locale) ?? '',
             'icon' => $starter['icon'] ?? null,
         ], $this->resolvedStarters());
     }
@@ -515,7 +515,7 @@ class Agent extends Model
         return array_values(array_map(static function (mixed $bubble): array {
             $copy = TranslatableText::fromStored($bubble);
 
-            return ['text' => (string) $copy->base, 'translations' => $copy->translations, 'overrides' => $copy->overrides];
+            return ['text' => $copy->base ?? '', 'translations' => $copy->translations, 'overrides' => $copy->overrides];
         }, (array) $this->settings('widget')->get('bubbles', [])));
     }
 
@@ -529,7 +529,7 @@ class Agent extends Model
     public function resolvedBubblesForLocale(?string $locale): array
     {
         $resolved = array_map(
-            static fn (mixed $bubble): string => (string) TranslatableText::fromStored($bubble)->in($locale),
+            static fn (mixed $bubble): string => TranslatableText::fromStored($bubble)->in($locale) ?? '',
             (array) $this->settings('widget')->get('bubbles', []),
         );
 
@@ -552,7 +552,7 @@ class Agent extends Model
 
         $codes = array_values(array_filter(
             (array) ($this->settings('appearance')->get('enabled_languages') ?? []),
-            is_string(...),
+            filled(...),
         ));
 
         if ($codes === []) {

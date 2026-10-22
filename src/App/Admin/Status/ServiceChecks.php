@@ -83,9 +83,9 @@ final readonly class ServiceChecks
                 Service::ModelDetails => $this->modelDetails(),
             };
         } catch (Throwable $e) {
-            return new ServiceStatusData(ServiceState::Down, __('Does not answer.'), hint: Str::limit($e->getMessage(), 200), checks: [
+            return new ServiceStatusData(ServiceState::Down, __('Does not answer.'), checks: [
                 new ServiceCheckData(__('Reachable'), __('No'), CheckMark::Failed),
-            ]);
+            ], hint: Str::limit($e->getMessage(), 200));
         }
     }
 
@@ -121,7 +121,7 @@ final readonly class ServiceChecks
         ];
 
         if ($missing !== []) {
-            return new ServiceStatusData(ServiceState::Down, __('Missing extensions: :list.', ['list' => implode(', ', $missing)]), hint: __('Install them on the database server, then run the migrations again.'), checks: $checks);
+            return new ServiceStatusData(ServiceState::Down, __('Missing extensions: :list.', ['list' => implode(', ', $missing)]), checks: $checks, hint: __('Install them on the database server, then run the migrations again.'));
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Every extension is installed.'), checks: $checks);
@@ -178,8 +178,8 @@ final readonly class ServiceChecks
             ];
 
             return $stopping
-                ? new ServiceStatusData(ServiceState::Warning, __('Horizon is restarting.'), hint: __('It starts again once its running jobs finish.'), checks: $checks)
-                : new ServiceStatusData(ServiceState::Down, __('Horizon is not running.'), hint: __('No background job runs. Start it with "php artisan horizon".'), checks: $checks);
+                ? new ServiceStatusData(ServiceState::Warning, __('Horizon is restarting.'), checks: $checks, hint: __('It starts again once its running jobs finish.'))
+                : new ServiceStatusData(ServiceState::Down, __('Horizon is not running.'), checks: $checks, hint: __('No background job runs. Start it with "php artisan horizon".'));
         }
 
         // Each supervisor counts its workers per queue.
@@ -195,7 +195,7 @@ final readonly class ServiceChecks
         ];
 
         if ($paused) {
-            return new ServiceStatusData(ServiceState::Warning, __('Horizon is paused.'), hint: __('Jobs wait until it goes on. Run "php artisan horizon:continue".'), checks: $checks);
+            return new ServiceStatusData(ServiceState::Warning, __('Horizon is paused.'), checks: $checks, hint: __('Jobs wait until it goes on. Run "php artisan horizon:continue".'));
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Runs the background jobs.'), checks: $checks);
@@ -208,10 +208,10 @@ final readonly class ServiceChecks
         $late = new ServiceCheckData(__('Counts as stopped after'), trans_choice(':count minute|:count minutes', self::SCHEDULER_LATE_MINUTES), CheckMark::Info);
 
         if (! $ranAt instanceof Carbon) {
-            return new ServiceStatusData(ServiceState::Warning, __('Has not run a task yet.'), hint: __('Run "php artisan schedule:work", or "schedule:run" every minute from cron.'), checks: [
+            return new ServiceStatusData(ServiceState::Warning, __('Has not run a task yet.'), checks: [
                 new ServiceCheckData(__('Last task'), __('Never'), CheckMark::Warning),
                 $late,
-            ]);
+            ], hint: __('Run "php artisan schedule:work", or "schedule:run" every minute from cron.'));
         }
 
         $stopped = $ranAt->lt(now()->subMinutes(self::SCHEDULER_LATE_MINUTES));
@@ -222,7 +222,7 @@ final readonly class ServiceChecks
         ];
 
         if ($stopped) {
-            return new ServiceStatusData(ServiceState::Down, __('No task for :time.', ['time' => $ranAt->diffForHumans(syntax: Carbon::DIFF_ABSOLUTE)]), hint: __('Run "php artisan schedule:work", or "schedule:run" every minute from cron.'), checks: $checks);
+            return new ServiceStatusData(ServiceState::Down, __('No task for :time.', ['time' => $ranAt->diffForHumans(syntax: Carbon::DIFF_ABSOLUTE)]), checks: $checks, hint: __('Run "php artisan schedule:work", or "schedule:run" every minute from cron.'));
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Runs the tasks on time.'), checks: $checks);
@@ -237,9 +237,9 @@ final readonly class ServiceChecks
         $driver = (string) config('broadcasting.default');
 
         if ($driver !== 'reverb') {
-            return new ServiceStatusData(ServiceState::Off, __('Not on Reverb.'), hint: __('Live updates go through ":driver".', ['driver' => $driver]), checks: [
+            return new ServiceStatusData(ServiceState::Off, __('Not on Reverb.'), checks: [
                 new ServiceCheckData(__('Driver'), Str::headline($driver), CheckMark::Skipped),
-            ]);
+            ], hint: __('Live updates go through ":driver".', ['driver' => $driver]));
         }
 
         $config = (array) config('broadcasting.connections.reverb');
@@ -256,17 +256,17 @@ final readonly class ServiceChecks
                 ->get($address.$path, Pusher::build_auth_query_params((string) $config['key'], (string) $config['secret'], 'GET', $path));
             $time = $this->millisecondsSince($started);
         } catch (ConnectionException) {
-            return new ServiceStatusData(ServiceState::Down, __('Reverb does not answer.'), hint: __('Start it with "php artisan reverb:start".'), checks: [
+            return new ServiceStatusData(ServiceState::Down, __('Reverb does not answer.'), checks: [
                 $addressCheck(CheckMark::Failed),
-            ]);
+            ], hint: __('Start it with "php artisan reverb:start".'));
         }
 
         if (! $response->successful()) {
-            return new ServiceStatusData(ServiceState::Down, __('Reverb refused the app keys.'), hint: __('Check REVERB_APP_ID, REVERB_APP_KEY and REVERB_APP_SECRET.'), checks: [
+            return new ServiceStatusData(ServiceState::Down, __('Reverb refused the app keys.'), checks: [
                 $addressCheck(CheckMark::Passed),
                 new ServiceCheckData(__('Response time'), __(':ms ms', ['ms' => $time])),
                 new ServiceCheckData(__('App keys'), __('Refused (:status)', ['status' => $response->status()]), CheckMark::Failed),
-            ]);
+            ], hint: __('Check REVERB_APP_ID, REVERB_APP_KEY and REVERB_APP_SECRET.'));
         }
 
         // No open channels come back as [], a list, not an object.
@@ -284,9 +284,9 @@ final readonly class ServiceChecks
     private function serverMonitor(): ServiceStatusData
     {
         if (! (bool) config('pulse.enabled')) {
-            return new ServiceStatusData(ServiceState::Off, __('Pulse is off.'), hint: __('Turn it on with PULSE_ENABLED.'), checks: [
+            return new ServiceStatusData(ServiceState::Off, __('Pulse is off.'), checks: [
                 new ServiceCheckData('Pulse', __('Off'), CheckMark::Skipped),
-            ]);
+            ], hint: __('Turn it on with PULSE_ENABLED.'));
         }
 
         $values = DB::connection(config('pulse.storage.database.connection'))->table('pulse_values')->where('type', 'system');
@@ -295,11 +295,11 @@ final readonly class ServiceChecks
         $recording = new ServiceCheckData('Pulse', __('Recording'));
 
         if (! is_numeric($last)) {
-            return new ServiceStatusData(ServiceState::Warning, __('No server stats yet.'), hint: __('No server has sent its CPU, memory and disk yet. Run "php artisan pulse:check".'), checks: [
+            return new ServiceStatusData(ServiceState::Warning, __('No server stats yet.'), checks: [
                 $recording,
                 new ServiceCheckData(__('Servers'), '0', CheckMark::Warning),
                 new ServiceCheckData(__('Last report'), __('Never'), CheckMark::Warning),
-            ]);
+            ], hint: __('No server has sent its CPU, memory and disk yet. Run "php artisan pulse:check".'));
         }
 
         $reportedAt = Carbon::createFromTimestamp((int) $last);
@@ -311,7 +311,7 @@ final readonly class ServiceChecks
         ];
 
         if ($stopped) {
-            return new ServiceStatusData(ServiceState::Warning, __('Server stats stopped.'), hint: __('Pulse records, but the server stats stopped. Is "php artisan pulse:check" running?'), checks: $checks);
+            return new ServiceStatusData(ServiceState::Warning, __('Server stats stopped.'), checks: $checks, hint: __('Pulse records, but the server stats stopped. Is "php artisan pulse:check" running?'));
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Records requests, jobs and stats.'), checks: $checks);
@@ -341,7 +341,7 @@ final readonly class ServiceChecks
             $checks[] = new ServiceCheckData($label, $where, $saved ? CheckMark::Passed : CheckMark::Failed);
 
             if (! $saved) {
-                return new ServiceStatusData(ServiceState::Down, __('The :disk disk failed.', ['disk' => $disk]), hint: __('It could not save a file and read it back.'), checks: $checks);
+                return new ServiceStatusData(ServiceState::Down, __('The :disk disk failed.', ['disk' => $disk]), checks: $checks, hint: __('It could not save a file and read it back.'));
             }
         }
 
@@ -369,30 +369,30 @@ final readonly class ServiceChecks
         $from = new ServiceCheckData(__('Sender'), filled($sender) ? $sender : __('Not set'), filled($sender) ? CheckMark::Passed : CheckMark::Warning);
 
         if (in_array($transport, ['log', 'array'], true)) {
-            return new ServiceStatusData(ServiceState::Warning, __('Emails go to the log.'), hint: __('They are not sent. Set up email in Settings → Email.'), checks: [
+            return new ServiceStatusData(ServiceState::Warning, __('Emails go to the log.'), checks: [
                 new ServiceCheckData(__('Mailer'), Str::headline($transport), CheckMark::Warning),
                 $from,
-            ]);
+            ], hint: __('They are not sent. Set up email in Settings → Email.'));
         }
 
         $mailerCheck = new ServiceCheckData(__('Mailer'), $transport === 'smtp' ? 'SMTP' : Str::headline($transport));
 
         if ($transport !== 'smtp') {
-            return new ServiceStatusData(ServiceState::Running, __('Sends with :service.', ['service' => Str::headline($transport)]), hint: __('It is not tested here, as that would send an email.'), checks: [
+            return new ServiceStatusData(ServiceState::Running, __('Sends with :service.', ['service' => Str::headline($transport)]), checks: [
                 $mailerCheck,
                 $from,
-            ]);
+            ], hint: __('It is not tested here, as that would send an email.'));
         }
 
         $address = ($config['host'] ?? '').':'.($config['port'] ?? 587);
         $socket = @stream_socket_client('tcp://'.$address, $code, $message, self::TIMEOUT_SECONDS);
 
         if ($socket === false) {
-            return new ServiceStatusData(ServiceState::Down, __('The mail server does not answer.'), hint: __('Check the server and port in Settings → Email.'), checks: [
+            return new ServiceStatusData(ServiceState::Down, __('The mail server does not answer.'), checks: [
                 $mailerCheck,
                 $from,
                 new ServiceCheckData(__('Mail server'), $address, CheckMark::Failed),
-            ]);
+            ], hint: __('Check the server and port in Settings → Email.'));
         }
 
         fclose($socket);
@@ -421,8 +421,7 @@ final readonly class ServiceChecks
 
         if ($listed === 0) {
             return new ServiceStatusData(ServiceState::Warning, __('Could not read models.dev.'),
-                hint: __('Models keep their "Reasons" switch until it can be read. It is tried again once a day.'),
-                checks: [new ServiceCheckData(__('Reachable'), __('No'), CheckMark::Failed)]);
+                checks: [new ServiceCheckData(__('Reachable'), __('No'), CheckMark::Failed)], hint: __('Models keep their "Reasons" switch until it can be read. It is tried again once a day.'));
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Model details loaded.'), checks: [
@@ -473,7 +472,7 @@ final readonly class ServiceChecks
                 ? __('Some file types cannot be read.')
                 : __('Some features do not work.');
 
-            return new ServiceStatusData(ServiceState::Running, $summary, hint: __('Not found: :list. Programs are optional. For each one, install it on the server, set its path in Settings → Platform → Programs, or leave it out and lose only what it does.', ['list' => $names($losing)]), checks: $checks);
+            return new ServiceStatusData(ServiceState::Running, $summary, checks: $checks, hint: __('Not found: :list. Programs are optional. For each one, install it on the server, set its path in Settings → Platform → Programs, or leave it out and lose only what it does.', ['list' => $names($losing)]));
         }
 
         if ($missing !== []) {
@@ -492,7 +491,7 @@ final readonly class ServiceChecks
                 ]),
             };
 
-            return new ServiceStatusData(ServiceState::Running, __('Every program needed is found.'), hint: $hint, checks: $checks);
+            return new ServiceStatusData(ServiceState::Running, __('Every program needed is found.'), checks: $checks, hint: $hint);
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Every program is found.'), checks: $checks);

@@ -6,6 +6,7 @@ use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
+use Illuminate\Support\Str;
 
 /**
  * Resolves Telegram slash commands (/start, /reset, /help and the agent's own
@@ -210,7 +211,7 @@ class TelegramCommandRouter
             return $value;
         }
 
-        $name = trim((string) $sender->firstName);
+        $name = Str::trim($sender->firstName ?? '');
 
         return str_replace('{name}', $name !== '' ? $name : ChannelLocale::text($bot->agent, 'there'), $value);
     }

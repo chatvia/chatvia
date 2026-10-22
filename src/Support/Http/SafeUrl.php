@@ -3,6 +3,7 @@
 namespace Support\Http;
 
 use Closure;
+use Illuminate\Support\Str;
 use Support\Exceptions\UnsafeUrlException;
 
 /**
@@ -99,12 +100,12 @@ final class SafeUrl
             throw new UnsafeUrlException('The URL is malformed.');
         }
 
-        $scheme = strtolower((string) $parts['scheme']);
+        $scheme = Str::lower($parts['scheme']);
         if (! in_array($scheme, ['http', 'https'], true)) {
             throw new UnsafeUrlException('Only http and https URLs are allowed.');
         }
 
-        $host = (string) $parts['host'];
+        $host = $parts['host'];
         if (str_contains($host, '..') || preg_match('/[\s<>"\\\\]/', $host)) {
             throw new UnsafeUrlException('The URL host is malformed.');
         }

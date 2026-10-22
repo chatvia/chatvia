@@ -184,7 +184,7 @@ it('ends the read with an error when the response fails', function (): void {
         respCreated().respEvent(['type' => 'response.failed', 'response' => ['id' => 'resp_0a2', 'status' => 'failed', 'error' => ['code' => 'server_error', 'message' => 'The server had an error.']]]),
     ));
 
-    expect(fn () => $stream->getContents())->toThrow(RuntimeException::class, 'The server had an error.');
+    expect(fn (): string => $stream->getContents())->toThrow(RuntimeException::class, 'The server had an error.');
 });
 
 it('passes each event on as soon as it arrives', function (): void {

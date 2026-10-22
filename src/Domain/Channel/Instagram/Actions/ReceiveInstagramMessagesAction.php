@@ -40,12 +40,13 @@ class ReceiveInstagramMessagesAction
                 continue;
             }
 
-            if ($message->messageId !== null
-                && ! $this->deliveries->firstDelivery("instagram:mid:{$account->id}:{$message->messageId}", now()->addDays(2))) {
-                continue;
-            }
-
-            HandleInstagramMessageJob::dispatch($account, $message->senderId, $message->text);
+            $this->deliveries->once(
+                $message->messageId !== null ? "instagram:mid:{$account->id}:{$message->messageId}" : null,
+                now()->addDays(2),
+                function () use ($account, $message): void {
+                    HandleInstagramMessageJob::dispatch($account, $message->senderId, $message->text);
+                },
+            );
         }
     }
 

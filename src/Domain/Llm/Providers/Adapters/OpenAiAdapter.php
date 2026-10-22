@@ -43,6 +43,6 @@ final class OpenAiAdapter extends OpenAiCompatibleAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new OpenAi($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
+        return new OpenAi($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }
 }

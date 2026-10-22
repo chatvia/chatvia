@@ -66,7 +66,7 @@ class BuiltinToolRouter
         $routes = [];
 
         foreach ($rows as $row) {
-            $schema = is_string($row->input_schema) ? json_decode($row->input_schema, true) : $row->input_schema;
+            $schema = is_scalar($row->input_schema) ? json_decode((string) $row->input_schema, true) : $row->input_schema;
 
             $definitions[] = [
                 'type' => 'function',

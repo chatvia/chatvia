@@ -34,14 +34,14 @@ class BeginConnectorOAuthAction
         return $this->redirect->start(new PendingOAuthState(
             userId: $user->id,
             connectorSlug: $connector->slug,
-            authServerUrl: (string) $client->auth_server_url,
+            authServerUrl: $client->auth_server_url,
             tokenEndpoint: $client->token_endpoint,
             clientId: $client->client_id,
             codeVerifier: Pkce::verifier(),
             mcpUrl: $connector->mcpUrl,
+            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
             clientSecret: $client->client_secret,
             scopes: $connector->oauthScopes,
-            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
         ), $client->authorization_endpoint);
     }
 

@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Linha cronológica do sentimento",
                 "message_details": "Detalhes da mensagem",
                 "waiting": "Pendente…",
-                "trend_stable_label": "Estável"
+                "trend_stable_label": "Estável",
+                "trend_tooltip": "Compara o humor da {first} com o da {last}."
             },
             "handoff": {
                 "visitor": "Visitante",
@@ -2272,7 +2273,7 @@
             "field_label": "Etiqueta do campo",
             "required": "Obrigatório",
             "maps_to": "Associa a",
-            "options_placeholder": "Uma opção por linha. Utilize valor|etiqueta para valores separados.",
+            "options_placeholder": "Uma opção por linha. Utilize valor{'|'}etiqueta para valores separados.",
             "success_message": "Mensagem de sucesso",
             "success_placeholder": "Mostrada depois de o visitante submeter.",
             "active": "Ativo",

@@ -7,6 +7,7 @@ use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Listeners\RecordSecurityEvent;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Support\Str;
 
 /**
  * The single parametric security-audit event. Rather than authoring one class
@@ -19,10 +20,15 @@ use Illuminate\Foundation\Events\Dispatchable;
  * tamper-evidence BEFORE redacting + size-capping for storage.
  *
  * Build it via {@see self::for()}, which denormalizes the {@see SecurityActorData}.
+ * `deliveryId` is fixed when the event is made and travels with the queued
+ * SIEM delivery, so every retry carries the same id and the receiver can drop
+ * a repeat.
  */
 final readonly class SecurityEventOccurred
 {
     use Dispatchable;
+
+    public string $deliveryId;
 
     public function __construct(
         public int $workspaceId,
@@ -37,7 +43,9 @@ final readonly class SecurityEventOccurred
         public ?string $targetLabel,
         public string $metadata,
         public string $outcome,
-    ) {}
+    ) {
+        $this->deliveryId = Str::uuid7()->toString();
+    }
 
     /**
      * @param  array<string, mixed>  $metadata

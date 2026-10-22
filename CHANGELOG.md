@@ -196,6 +196,27 @@ theme.
   Before, the Scaleway "reranker" only compared embeddings again. Without a
   reranker, a basic similarity check keeps greetings and off-topic questions
   from pulling in unrelated text. Each model has its own minimum score.
+- **Reasoning, with the thinking shown live.** An admin can let agents
+  reason (**Settings → AI models → Let agents reason**, off by default) and
+  marks which models reason (a new **Reasons** switch per model, read from
+  models.dev for the models it lists). Each agent then picks how hard its model thinks: Off,
+  Low, Medium or High (**Setup → Model**). Off by default. In the hosted
+  chat and the playground, the thinking streams in grey above the answer, in
+  a block the chatter can fold away. It is never saved, never shown while
+  answers are held for the guardrails, and never sent to the API or channels.
+  Thinking that a server puts inline as `<think>…</think>`
+  (LM Studio, Ollama) no longer leaks into the answer.
+- **OpenAI's newer models work.** Their API refuses `top_k`, `max_tokens`
+  and, for reasoning models, any temperature or top-p but the default; the
+  app now sends what each model takes.
+- **Each model's details come from models.dev**, an open list of AI models:
+  whether it reasons, how hard it can think, and whether it takes a
+  temperature. They are kept with each model you add, refreshed once a day,
+  on the setup's first page, and with **Refresh model details** in Settings →
+  AI models (switch: **Look up model details on models.dev**). Nothing is
+  guessed from a model's name any more. A model that is not asked to reason
+  (the app's own checks, or an agent at Off) thinks as little as it can, so
+  answers and guardrail checks start sooner.
 - Agents get up to 5 parts of their sources per question (was 3), within a
   token budget (**Settings → Knowledge**).
 - The text of a search result keeps its line breaks and the words inside

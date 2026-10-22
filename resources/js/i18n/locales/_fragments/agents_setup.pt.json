@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "URL da política de privacidade",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Exibido aos visitantes como “Ao conversar, você concorda com a nossa política de privacidade.” Deixe vazio para ocultar."
-            }
+            },
+            "reasoning_title": "Raciocínio",
+            "reasoning_description": "Quanto o modelo pensa antes de responder. Pensar mais ajuda nas perguntas difíceis, mas as respostas chegam mais devagar e custam mais. Os utilizadores veem o raciocínio a cinzento acima da resposta.",
+            "reasoning_off": "Desligado",
+            "reasoning_low": "Baixo",
+            "reasoning_medium": "Médio",
+            "reasoning_high": "Alto",
+            "reasoning_locked": "O seu administrador desligou o raciocínio para todos os agentes (painel de administração → Definições → Modelos de IA)."
         }
     }
 }

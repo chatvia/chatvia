@@ -81,5 +81,12 @@ it('carries the ids and the replay flag on the start event', function (): void {
 
 it('has a closed set of event types', function (): void {
     expect(array_column(EventType::cases(), 'value'))
-        ->toBe(['start', 'delta', 'meta', 'sources', 'tool', 'replace', 'error', 'done']);
+        ->toBe(['start', 'delta', 'reasoning', 'meta', 'sources', 'tool', 'replace', 'error', 'done']);
+});
+
+it('sends a piece of thinking as a reasoning event', function (): void {
+    $event = StreamEvent::reasoning('asst-1', 'Weighing it up.');
+
+    expect($event->type)->toBe(EventType::Reasoning)
+        ->and($event->data)->toBe(['text' => 'Weighing it up.']);
 });

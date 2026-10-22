@@ -147,6 +147,12 @@ return [
                 'presence_penalty' => 0.0,
                 'frequency_penalty' => 0.0,
             ],
+            // How hard the agent's model thinks before it answers
+            // (ReasoningEffort). Saved with the model (UpdateAgentLlmAction),
+            // used only while the admin lets agents reason.
+            'reasoning' => [
+                'effort' => 'off',
+            ],
             // Per-agent data & insight switches (Setup → Settings).
             //  - chatlog: master switch for persisting conversations, on by
             //    default. Off stops StoreMessageJob, so nothing is logged — and

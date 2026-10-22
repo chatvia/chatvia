@@ -47,7 +47,8 @@ class LlmSeeder extends Seeder
             $provider = app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::from($llm['provider'] ?? 'scaleway'));
 
             $llm['features'] = [];
-            $llm['is_reasoning'] = $llm['reasoning'] ?? false;
+            // Replaced by the models.dev entry once the catalog is read.
+            $llm['capabilities'] = ['reasoning' => $llm['reasoning'] ?? false];
             unset($llm['reasoning'], $llm['provider']);
 
             Llm::query()->updateOrCreate(

@@ -2003,7 +2003,14 @@
             "model_picker_description": "AI-modellen som den här agenten svarar med. En administratör väljer vilka modeller som finns i listan (adminpanelen → Settings → AI models).",
             "model_placeholder": "Välj en modell",
             "model_default": "Standard",
-            "model_empty": "Inga modeller ännu. En administratör lägger till dem i adminpanelen under Settings → AI models."
+            "model_empty": "Inga modeller ännu. En administratör lägger till dem i adminpanelen under Settings → AI models.",
+            "reasoning_title": "Resonemang",
+            "reasoning_description": "Hur mycket modellen tänker innan den svarar. Mer tänkande hjälper med svåra frågor, men svaren kommer långsammare och kostar mer. Chattare ser resonemanget i grått ovanför svaret.",
+            "reasoning_off": "Av",
+            "reasoning_low": "Låg",
+            "reasoning_medium": "Medel",
+            "reasoning_high": "Hög",
+            "reasoning_locked": "Din administratör har stängt av resonemang för alla agenter (adminpanelen → Inställningar → AI-modeller)."
         },
         "topics_index": {
             "title": "Ämnen",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Rensa alla"
+    },
+    "reasoning": {
+        "thinking": "Tänker…",
+        "done": "Resonemang",
+        "show": "Visa resonemang",
+        "hide": "Dölj resonemang"
     }
 }

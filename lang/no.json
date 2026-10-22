@@ -517,5 +517,12 @@
     "Every program needed is found.": "Alle nødvendige programmer er funnet.",
     "Details": "Detaljer",
     "Chat memory and cache": "Chatminne og hurtigbuffer",
-    "Outgoing email": "Utgående e-post"
+    "Outgoing email": "Utgående e-post",
+    "Model details": "Modelldetaljer",
+    "From models.dev": "Fra models.dev",
+    "Switched off in Settings → AI models.": "Slått av under Innstillinger → AI-modeller.",
+    "Could not read models.dev.": "Kunne ikke lese models.dev.",
+    "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Modellene beholder \"Reasons\"-bryteren sin til den kan leses. Det prøves igjen én gang om dagen.",
+    "Model details loaded.": "Modelldetaljer lastet.",
+    "Models listed": "Modeller på listen"
 }

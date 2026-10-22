@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\UpdateAgentLlmAction;
 use Domain\Agent\Data\Settings\UpdateAgentLlmData;
+use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -114,4 +115,20 @@ it('throws and changes nothing when the model external name is unknown', functio
     // setting row is touched.
     expect($this->agent->llm_id)->toBe($originalLlmId)
         ->and($this->agent->modelSettings()->where('group', 'llm_settings')->count())->toBe(0);
+});
+
+it('stores the reasoning effort in the reasoning group', function (): void {
+    Llm::factory()->create(['external_name' => 'qwen3-32b']);
+
+    app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
+        model_external_name: 'qwen3-32b',
+        temperature: 0.2,
+        top_k: 40,
+        top_p: 0.9,
+        presence_penalty: 0.1,
+        frequency_penalty: 0.3,
+        reasoning_effort: ReasoningEffort::Medium,
+    ));
+
+    expect($this->agent->modelSettings()->where('group', 'reasoning')->value('value'))->toBe('medium');
 });

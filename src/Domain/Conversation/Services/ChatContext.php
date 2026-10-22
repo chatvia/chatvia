@@ -115,6 +115,15 @@ class ChatContext
      */
     public ?string $guardHandoffMessage = null;
 
+    /**
+     * Whether the model's thinking is sent to the client as `reasoning`
+     * events this turn. Set by the tool loop before it calls the model
+     * ({@see ToolLoopSource}): only for a surface that shows it, an effort
+     * other than Off, and an answer that is not held for the guardrails.
+     * Thinking never goes into $streamedMessage either way.
+     */
+    public bool $showsReasoning = false;
+
     private readonly float $startTime;
 
     private ?float $endTime = null;

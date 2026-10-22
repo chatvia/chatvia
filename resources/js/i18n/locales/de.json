@@ -2003,7 +2003,14 @@
             "model_picker_description": "Das KI-Modell, mit dem dieser Agent antwortet. Ein Admin legt fest, welche Modelle in dieser Liste stehen (Admin-Bereich → Settings → AI models).",
             "model_placeholder": "Modell wählen",
             "model_default": "Standard",
-            "model_empty": "Noch keine Modelle. Ein Admin fügt sie im Admin-Bereich unter Settings → AI models hinzu."
+            "model_empty": "Noch keine Modelle. Ein Admin fügt sie im Admin-Bereich unter Settings → AI models hinzu.",
+            "reasoning_title": "Überlegungen",
+            "reasoning_description": "Wie gründlich das Modell nachdenkt, bevor es antwortet. Mehr Nachdenken hilft bei schwierigen Fragen, aber die Antworten kommen langsamer und kosten mehr. Chatter sehen die Überlegungen in Grau über der Antwort.",
+            "reasoning_off": "Aus",
+            "reasoning_low": "Niedrig",
+            "reasoning_medium": "Mittel",
+            "reasoning_high": "Hoch",
+            "reasoning_locked": "Dein Admin hat die Überlegungen für alle Agenten ausgeschaltet (Admin-Bereich → Einstellungen → KI-Modelle)."
         },
         "topics_index": {
             "title": "Themen",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Alle löschen"
+    },
+    "reasoning": {
+        "thinking": "Denkt nach…",
+        "done": "Überlegungen",
+        "show": "Überlegungen anzeigen",
+        "hide": "Überlegungen ausblenden"
     }
 }

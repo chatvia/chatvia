@@ -247,7 +247,14 @@
                 "appearance_privacy_url": "Privacy Policy URL",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Shown to visitors as “By chatting, you agree to our privacy policy.” Leave empty to hide."
-            }
+            },
+            "reasoning_title": "Reasoning",
+            "reasoning_description": "How hard the model thinks before it answers. More thinking helps with hard questions, but answers come slower and cost more. Chatters see the thinking in grey above the answer.",
+            "reasoning_off": "Off",
+            "reasoning_low": "Low",
+            "reasoning_medium": "Medium",
+            "reasoning_high": "High",
+            "reasoning_locked": "Your admin has turned reasoning off for all agents (admin panel → Settings → AI models)."
         }
     }
 }

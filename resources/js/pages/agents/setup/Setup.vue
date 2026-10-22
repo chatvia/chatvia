@@ -80,6 +80,9 @@ interface Props {
     defaultModel: string | null;
     llmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
     defaultLlmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
+    /** How hard the agent reasons (off, low, medium, high), and whether the admin lets agents reason at all. */
+    reasoningEffort: string | null;
+    reasoningAllowed: boolean;
 
     availableLanguages: Record<string, string>;
 
@@ -115,7 +118,7 @@ provideSetupContext({
     languages: useSetupLanguages(deps, appearance, () => props.availableLanguages),
     starters: useSetupStarters(deps, props.starters),
     bubbles: useSetupBubbles(deps, props.bubbles),
-    model: useSetupModel(deps, props.selectedModel, props.llmSettings),
+    model: useSetupModel(deps, props.selectedModel, props.llmSettings, props.reasoningEffort),
     branding: useSetupBranding(deps, appearance, () => props.appearanceSettings),
     behavior: useSetupBehavior(
         deps,
@@ -167,7 +170,12 @@ provideSetupContext({
                                     :has-knowledge-base="hasKnowledgeBase"
                                 />
                                 <SetupBubblesPanel v-if="activeSection === 'bubbles'" />
-                                <SetupModelPanel v-if="activeSection === 'model'" :catalog="catalog" :default-model="defaultModel" />
+                                <SetupModelPanel
+                                    v-if="activeSection === 'model'"
+                                    :catalog="catalog"
+                                    :default-model="defaultModel"
+                                    :reasoning-allowed="reasoningAllowed"
+                                />
                                 <SetupBrandingPanel v-if="activeSection === 'branding'" />
 
                                 <!-- Behavior swaps its fields with the surface tab. -->

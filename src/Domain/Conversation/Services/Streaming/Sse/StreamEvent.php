@@ -33,6 +33,11 @@ final readonly class StreamEvent
         return new self(EventType::Delta, $assistantMessageId, ['text' => $text]);
     }
 
+    public static function reasoning(string $assistantMessageId, string $text): self
+    {
+        return new self(EventType::Reasoning, $assistantMessageId, ['text' => $text]);
+    }
+
     public static function meta(string $assistantMessageId, string $key, mixed $value): self
     {
         return new self(EventType::Meta, $assistantMessageId, ['key' => $key, 'value' => $value]);

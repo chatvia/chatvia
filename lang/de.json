@@ -517,5 +517,12 @@
     "Every program needed is found.": "Alle nötigen Programme sind gefunden.",
     "Details": "Details",
     "Chat memory and cache": "Chat-Gedächtnis und Cache",
-    "Outgoing email": "Ausgehende E-Mails"
+    "Outgoing email": "Ausgehende E-Mails",
+    "Model details": "Modelldetails",
+    "From models.dev": "Von models.dev",
+    "Switched off in Settings → AI models.": "Ausgeschaltet unter Einstellungen → KI-Modelle.",
+    "Could not read models.dev.": "models.dev konnte nicht gelesen werden.",
+    "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Die Modelle behalten ihren Schalter „Reasons“, bis die Liste gelesen werden kann. Es wird einmal am Tag erneut versucht.",
+    "Model details loaded.": "Modelldetails geladen.",
+    "Models listed": "Gelistete Modelle"
 }

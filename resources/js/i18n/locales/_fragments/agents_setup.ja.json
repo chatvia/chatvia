@@ -16,7 +16,14 @@
             "model_placeholder": "モデルを選択",
             "model_default": "デフォルト",
             "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。",
-            "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。"
+            "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。",
+            "reasoning_title": "推論",
+            "reasoning_description": "モデルが答える前にどれだけ考えるかです。よく考えると難しい質問に強くなりますが、回答は遅くなり、費用も増えます。チャット利用者には、回答の上に推論がグレーで表示されます。",
+            "reasoning_off": "オフ",
+            "reasoning_low": "低",
+            "reasoning_medium": "中",
+            "reasoning_high": "高",
+            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。"
         }
     }
 }

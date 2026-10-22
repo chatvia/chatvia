@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
- * One assistant reply in the hosted chat: the rendered answer, a "still
- * working" indicator (dots or the tool-call stack), any tool calls awaiting
- * approval, and the action row (copy, feedback, delete, regenerate, sources).
+ * One assistant reply in the hosted chat: the model's thinking (when the
+ * agent reasons, live only), the rendered answer, a "still working"
+ * indicator (dots or the tool-call stack), any tool calls awaiting approval,
+ * and the action row (copy, feedback, delete, regenerate, sources).
  */
 import { deleteMessage as deleteMessageRequest, sendMessageFeedback, type MessageFeedbackValue } from '@/api/chat';
 import {
@@ -24,6 +25,7 @@ import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-vue
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AssistantMessageBody from './AssistantMessageBody.vue';
+import ReasoningBlock from './ReasoningBlock.vue';
 import SourcesDialog from './SourcesDialog.vue';
 import ToolApprovalCard from './ToolApprovalCard.vue';
 import ToolCallIndicator from './ToolCallIndicator.vue';
@@ -125,6 +127,11 @@ async function deleteMessage() {
 <template>
     <div class="flex w-full items-start">
         <div class="max-w-full min-w-0 flex-1">
+            <ReasoningBlock
+                v-if="message.reasoning"
+                :text="message.reasoning"
+                :thinking="(isStreaming ?? false) && !message.content"
+            />
             <AssistantMessageBody
                 :content="message.content ?? ''"
                 :artifacts="props.artifacts"
@@ -134,8 +141,9 @@ async function deleteMessage() {
             />
             <!-- Empty body: dots while the model thinks, or the branded tool-call
                  stack while it calls an MCP server or webhook. Hidden while an
-                 approval card is pending, since the card is the content then. -->
-            <div v-if="!message.content && !hasPendingApprovals" class="flex items-center gap-2 py-1">
+                 approval card is pending, since the card is the content then,
+                 and while its thinking streams, which shows it is working. -->
+            <div v-if="!message.content && !hasPendingApprovals && (isCallingExternal || !message.reasoning)" class="flex items-center gap-2 py-1">
                 <ToolCallIndicator v-if="isCallingExternal" :calls="activeCallList" label-class="text-sm" />
                 <WaitingIndicator v-else />
             </div>

@@ -175,6 +175,22 @@ function connectAiProviders(AiProvider ...$providers): void
 }
 
 /**
+ * A model's entry as the models.dev catalog lists it (what `llms.capabilities`
+ * keeps): its effort values, if any, and whether it takes a temperature.
+ *
+ * @param  list<string>|null  $efforts
+ * @return array<string, mixed>
+ */
+function modelsDevEntry(?array $efforts, ?bool $temperature = null, bool $reasoning = true): array
+{
+    return array_filter([
+        'reasoning' => $reasoning,
+        'reasoning_options' => $efforts !== null ? [['type' => 'effort', 'values' => $efforts]] : null,
+        'temperature' => $temperature,
+    ], static fn (mixed $value): bool => $value !== null);
+}
+
+/**
  * A catalog model on a new provider (an OpenAI-compatible test server unless
  * a kind is given). A provider with an account gets a test key in config, as
  * a connected one has.

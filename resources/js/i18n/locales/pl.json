@@ -2003,7 +2003,14 @@
             "model_picker_description": "Model AI, którym odpowiada ten agent. Administrator wybiera, które modele są na tej liście (panel administracyjny → Settings → AI models).",
             "model_placeholder": "Wybierz model",
             "model_default": "Domyślny",
-            "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models."
+            "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models.",
+            "reasoning_title": "Rozumowanie",
+            "reasoning_description": "Jak mocno model myśli, zanim odpowie. Więcej myślenia pomaga przy trudnych pytaniach, ale odpowiedzi przychodzą wolniej i kosztują więcej. Rozmówcy widzą rozumowanie na szaro nad odpowiedzią.",
+            "reasoning_off": "Wyłączone",
+            "reasoning_low": "Niskie",
+            "reasoning_medium": "Średnie",
+            "reasoning_high": "Wysokie",
+            "reasoning_locked": "Administrator wyłączył rozumowanie dla wszystkich agentów (panel administracyjny → Ustawienia → Modele AI)."
         },
         "topics_index": {
             "title": "Tematy",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Wyczyść wszystkie"
+    },
+    "reasoning": {
+        "thinking": "Myślę…",
+        "done": "Rozumowanie",
+        "show": "Pokaż rozumowanie",
+        "hide": "Ukryj rozumowanie"
     }
 }

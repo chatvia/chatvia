@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "URL til personvernerklæring",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Vises for besøkende som “Ved å chatte godtar du personvernerklæringen vår.” La feltet stå tomt for å skjule det."
-            }
+            },
+            "reasoning_title": "Resonnering",
+            "reasoning_description": "Hvor mye modellen tenker før den svarer. Mer tenking hjelper med vanskelige spørsmål, men svarene kommer saktere og koster mer. Chattere ser resonneringen i grått over svaret.",
+            "reasoning_off": "Av",
+            "reasoning_low": "Lav",
+            "reasoning_medium": "Middels",
+            "reasoning_high": "Høy",
+            "reasoning_locked": "Administratoren din har slått av resonnering for alle agenter (adminpanel → Innstillinger → AI-modeller)."
         }
     }
 }

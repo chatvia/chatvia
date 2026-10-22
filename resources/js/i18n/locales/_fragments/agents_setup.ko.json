@@ -16,7 +16,14 @@
             "model_placeholder": "모델 선택",
             "model_default": "기본값",
             "model_empty": "아직 모델이 없습니다. 관리자가 관리자 패널의 Settings → AI models에서 추가합니다.",
-            "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다."
+            "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",
+            "reasoning_title": "추론",
+            "reasoning_description": "모델이 답하기 전에 얼마나 깊이 생각할지 정합니다. 더 많이 생각하면 어려운 질문에 도움이 되지만, 답변이 느려지고 비용이 더 듭니다. 채팅 사용자는 답변 위에 회색으로 추론을 봅니다.",
+            "reasoning_off": "끄기",
+            "reasoning_low": "낮음",
+            "reasoning_medium": "보통",
+            "reasoning_high": "높음",
+            "reasoning_locked": "관리자가 모든 에이전트의 추론을 껐습니다(관리자 패널 → 설정 → AI 모델)."
         }
     }
 }

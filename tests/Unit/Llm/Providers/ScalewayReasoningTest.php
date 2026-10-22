@@ -1,62 +1,33 @@
 <?php
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Models\LlmProvider;
-use Domain\Llm\Services\LlmProviders;
+use Domain\Llm\Services\LlmChat;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Scaleway's Qwen3 models think by default, which adds several seconds before
- * the first answer token. This pipeline is RAG, so reasoning is defaulted OFF
- * (`reasoning_effort=none`) for qwen models only — unless the caller asks for
- * it. Other Scaleway models (analytics / guardrail instruct models) 400 on an
- * unknown `reasoning_effort` field, so they must never receive it. completion()
- * goes through the fakeable Http client and Scaleway::preparePayload(), which
- * stream() uses too.
+ * Scaleway's Qwen3 models think by default, which slows the app's own tasks;
+ * its instruct models answer 400 to a `reasoning_effort` field they do not
+ * know. Both follow from each model's facts, not its name: a model that
+ * lists `none` gets it, a model that lists no effort gets no field.
  */
-function srClient(LlmProviderKind $kind = LlmProviderKind::Scaleway): LlmProviderInterface
-{
-    return app(LlmProviders::class)->forProvider(LlmProvider::factory()->kind($kind)->make());
-}
-
 beforeEach(function (): void {
-    connectAiProviders();
-
-    Http::fake(['*' => Http::response([
-        'choices' => [['message' => ['content' => 'hi']]],
-    ])]);
+    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'hi']]]])]);
 });
 
-it('defaults reasoning_effort to none for Scaleway', function (): void {
-    srClient()->completion(['model' => 'qwen3.6-35b-a3b', 'messages' => []]);
+it('sends each Scaleway model the least effort it lists, or none', function (string $model, ?array $efforts, ?string $sent): void {
+    app(LlmChat::class)->send(new ChatRequestData(
+        testLlm($model, LlmProviderKind::Scaleway, ['capabilities' => $efforts !== null ? modelsDevEntry($efforts) : null]),
+        [ChatMessageData::user('Hi')],
+        AiCallTag::Guardrails,
+    ));
 
-    Http::assertSent(fn (Request $request): bool => ($request->data()['reasoning_effort'] ?? null) === 'none');
-});
-
-it('preserves an explicit reasoning_effort set by the caller', function (): void {
-    srClient()->completion([
-        'model' => 'qwen3.6-35b-a3b',
-        'messages' => [],
-        'reasoning_effort' => 'high',
-    ]);
-
-    Http::assertSent(fn (Request $request): bool => ($request->data()['reasoning_effort'] ?? null) === 'high');
-});
-
-it('never sends reasoning_effort to non-qwen Scaleway models', function (string $model): void {
-    // These instruct models answer 400 to an unknown reasoning_effort field.
-    srClient()->completion(['model' => $model, 'messages' => []]);
-
-    Http::assertSent(fn (Request $request): bool => ! array_key_exists('reasoning_effort', $request->data()));
+    Http::assertSent(fn (Request $request): bool => ($request->data()['reasoning_effort'] ?? null) === $sent);
 })->with([
-    'mistral-small-3.2-24b-instruct-2506',
-    'gpt-oss-120b',
+    'qwen thinks less' => ['qwen3.6-35b-a3b', ['none', 'low', 'medium', 'high'], 'none'],
+    'gpt-oss cannot stop thinking' => ['gpt-oss-120b', ['low', 'medium', 'high'], 'low'],
+    'an instruct model gets no field' => ['mistral-small-3.2-24b-instruct-2506', null, null],
 ]);
-
-it('leaves non-Scaleway providers untouched', function (): void {
-    srClient(LlmProviderKind::Mistral)->completion(['model' => 'mistral-small', 'messages' => []]);
-
-    Http::assertSent(fn (Request $request): bool => ! array_key_exists('reasoning_effort', $request->data()));
-});

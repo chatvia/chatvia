@@ -26,6 +26,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
@@ -596,6 +597,21 @@ class Agent extends Model
         return collect($this->settings('llm_settings')->all())
             ->map(fn (mixed $value, string $key): float|int => $key === 'top_k' ? (int) $value : (float) $value)
             ->all();
+    }
+
+    /**
+     * How hard the model reasons on this turn (the agent's own model unless
+     * another is named): the effort the agent picked, but Off while the admin
+     * does not let agents reason or the model does not reason
+     * ({@see ReasoningEffort}).
+     */
+    public function reasoningEffort(?Llm $model = null): ReasoningEffort
+    {
+        if (! (bool) config('chatvia.ai.reasoning.enabled') || ! (bool) ($model ?? $this->llm)?->reasons()) {
+            return ReasoningEffort::Off;
+        }
+
+        return ReasoningEffort::tryFrom((string) $this->settings('reasoning')->get('effort')) ?? ReasoningEffort::Off;
     }
 
     /**

@@ -12,6 +12,7 @@ use Domain\Llm\Providers\Adapters\OpenAiAdapter;
 use Domain\Llm\Providers\Adapters\OpenRouterAdapter;
 use Domain\Llm\Providers\Adapters\ScalewayAdapter;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
+use Domain\Llm\Services\ModelsDevCatalog;
 
 /**
  * The kinds of LLM provider an admin can connect (`llm_providers.kind`, also
@@ -51,5 +52,15 @@ enum LlmProviderKind: string
             self::Custom => CustomServerAdapter::class,
             self::Anthropic => null,
         };
+    }
+
+    /**
+     * This kind's provider in the models.dev catalog ({@see ModelsDevCatalog}),
+     * which names them as these values do; null for a server of your own,
+     * whose models are looked up among the catalog's general models.
+     */
+    public function catalogKey(): ?string
+    {
+        return $this === self::Custom ? null : $this->value;
     }
 }

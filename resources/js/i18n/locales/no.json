@@ -2003,7 +2003,14 @@
             "model_picker_description": "AI-modellen denne agenten svarer med. En administrator velger hvilke modeller som står på listen (adminpanelet → Settings → AI models).",
             "model_placeholder": "Velg en modell",
             "model_default": "Standard",
-            "model_empty": "Ingen modeller ennå. En administrator legger dem til i adminpanelet under Settings → AI models."
+            "model_empty": "Ingen modeller ennå. En administrator legger dem til i adminpanelet under Settings → AI models.",
+            "reasoning_title": "Resonnering",
+            "reasoning_description": "Hvor mye modellen tenker før den svarer. Mer tenking hjelper med vanskelige spørsmål, men svarene kommer saktere og koster mer. Chattere ser resonneringen i grått over svaret.",
+            "reasoning_off": "Av",
+            "reasoning_low": "Lav",
+            "reasoning_medium": "Middels",
+            "reasoning_high": "Høy",
+            "reasoning_locked": "Administratoren din har slått av resonnering for alle agenter (adminpanel → Innstillinger → AI-modeller)."
         },
         "topics_index": {
             "title": "Emner",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Fjern alle"
+    },
+    "reasoning": {
+        "thinking": "Tenker…",
+        "done": "Resonnering",
+        "show": "Vis resonnering",
+        "hide": "Skjul resonnering"
     }
 }

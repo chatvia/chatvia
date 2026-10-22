@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "URL der Datenschutzerklärung",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Wird Besuchern angezeigt als „Indem Sie chatten, stimmen Sie unserer Datenschutzerklärung zu.“ Leer lassen, um es auszublenden."
-            }
+            },
+            "reasoning_title": "Überlegungen",
+            "reasoning_description": "Wie gründlich das Modell nachdenkt, bevor es antwortet. Mehr Nachdenken hilft bei schwierigen Fragen, aber die Antworten kommen langsamer und kosten mehr. Chatter sehen die Überlegungen in Grau über der Antwort.",
+            "reasoning_off": "Aus",
+            "reasoning_low": "Niedrig",
+            "reasoning_medium": "Mittel",
+            "reasoning_high": "Hoch",
+            "reasoning_locked": "Dein Admin hat die Überlegungen für alle Agenten ausgeschaltet (Admin-Bereich → Einstellungen → KI-Modelle)."
         }
     }
 }

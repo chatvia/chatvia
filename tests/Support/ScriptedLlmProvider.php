@@ -18,6 +18,9 @@ use RuntimeException;
  */
 final class ScriptedLlmProvider implements LlmProviderInterface
 {
+    /** @var list<array<string, mixed>> the settings of each stream() call, in order */
+    public array $sentSettings = [];
+
     /** @var list<string> */
     private array $bodies;
 
@@ -60,6 +63,7 @@ final class ScriptedLlmProvider implements LlmProviderInterface
 
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface
     {
+        $this->sentSettings[] = $settings;
         $body = array_shift($this->bodies) ?? "data: [DONE]\n\n";
 
         return new PsrResponse(200, ['Content-Type' => 'text/event-stream'], $body);

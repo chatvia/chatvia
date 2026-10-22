@@ -517,5 +517,12 @@
     "Every program needed is found.": "Kaikki tarvittavat ohjelmat löytyivät.",
     "Details": "Tiedot",
     "Chat memory and cache": "Keskustelumuisti ja välimuisti",
-    "Outgoing email": "Lähtevä sähköposti"
+    "Outgoing email": "Lähtevä sähköposti",
+    "Model details": "Mallien tiedot",
+    "From models.dev": "Lähde: models.dev",
+    "Switched off in Settings → AI models.": "Pois päältä kohdassa Asetukset → Tekoälymallit.",
+    "Could not read models.dev.": "models.dev-palvelua ei voitu lukea.",
+    "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Mallit pitävät \"Reasons\"-kytkimensä, kunnes luettelo voidaan lukea. Uusi yritys kerran päivässä.",
+    "Model details loaded.": "Mallien tiedot ladattu.",
+    "Models listed": "Luettelon mallit"
 }

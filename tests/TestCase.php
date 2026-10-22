@@ -42,6 +42,10 @@ abstract class TestCase extends BaseTestCase
         // cover it switch it on themselves.
         config(['chatvia.ai.chunker.enhance' => false]);
 
+        // Adding a model reads the models.dev catalog; tests that cover it
+        // switch it on themselves.
+        config(['chatvia.ai.models_dev.enabled' => false]);
+
         // The seeded catalog is Scaleway AI's: its models can be used only
         // while that account has a key. Speech to text stays off, as it was
         // with no key; tests that cover it choose it themselves.

@@ -42,6 +42,8 @@ export interface Message {
     } | null;
     errorCode?: StreamErrorCode;
     errorRetryable?: boolean;
+    /** The model's thinking while this reply streamed. Live only: never stored, so gone after a reload. */
+    reasoning?: string;
 }
 
 /**

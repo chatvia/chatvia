@@ -236,3 +236,87 @@ it('streams JSON as text when it names no offered tool', function (): void {
     expect(oactDeltaTexts($events))->toBe([$payload])
         ->and($context->pendingToolCalls)->toBe([]);
 });
+
+/**
+ * Run the transformer with the turn showing (or not) the model's thinking.
+ *
+ * @param  list<string>  $bodyChunks
+ * @return array{0: list<StreamEvent>, 1: ChatContext}
+ */
+function oactTransformReasoning(array $bodyChunks, bool $shows = true): array
+{
+    $context = oactContext([]);
+    $context->showsReasoning = $shows;
+    $response = new Response(200, [], Utils::streamFor(implode('', $bodyChunks)));
+
+    return [iterator_to_array(new OpenAiCompatibleTransformer()->transform($response, $context), false), $context];
+}
+
+/**
+ * @param  list<StreamEvent>  $events
+ */
+function oactReasoningText(array $events): string
+{
+    return implode('', array_map(
+        static fn (StreamEvent $event): string => $event->data['text'],
+        array_filter($events, static fn (StreamEvent $event): bool => $event->type === EventType::Reasoning),
+    ));
+}
+
+it('sends the thinking in its own field as reasoning, never as the answer', function (string $field): void {
+    [$events, $context] = oactTransformReasoning([
+        oactChunk(['choices' => [['delta' => [$field => 'Let me ']]]]),
+        oactChunk(['choices' => [['delta' => [$field => 'think.']]]]),
+        oactChunk(['choices' => [['delta' => ['content' => 'The answer.']]]]),
+        "data: [DONE]\n",
+    ]);
+
+    expect(oactReasoningText($events))->toBe('Let me think.')
+        ->and(oactDeltaTexts($events))->toBe(['The answer.'])
+        ->and($context->streamedMessage)->toBe('The answer.');
+})->with(['reasoning_content', 'reasoning']);
+
+it('reads OpenRouter reasoning_details when the delta has no reasoning text', function (): void {
+    [$events] = oactTransformReasoning([
+        oactChunk(['choices' => [['delta' => ['reasoning_details' => [['type' => 'reasoning.summary', 'summary' => 'A summary.']]]]]]),
+        "data: [DONE]\n",
+    ]);
+
+    expect(oactReasoningText($events))->toBe('A summary.');
+});
+
+it('takes a leading inline think block out of the answer, even split over chunks', function (): void {
+    [$events, $context] = oactTransformReasoning([
+        oactChunk(['choices' => [['delta' => ['content' => "\n<thi"]]]]),
+        oactChunk(['choices' => [['delta' => ['content' => 'nk>Weighing it']]]]),
+        oactChunk(['choices' => [['delta' => ['content' => ' up.</th']]]]),
+        oactChunk(['choices' => [['delta' => ['content' => "ink>\n\nIt is 42."]]]]),
+        "data: [DONE]\n",
+    ]);
+
+    expect(oactReasoningText($events))->toBe('Weighing it up.')
+        ->and(implode('', oactDeltaTexts($events)))->toBe('It is 42.')
+        ->and($context->streamedMessage)->toBe('It is 42.');
+});
+
+it('keeps an answer that only starts like a think tag', function (): void {
+    [$events, $context] = oactTransformReasoning([
+        oactChunk(['choices' => [['delta' => ['content' => '<th']]]]),
+        oactChunk(['choices' => [['delta' => ['content' => 'ree> is not a tag']]]]),
+        "data: [DONE]\n",
+    ]);
+
+    expect(oactReasoningText($events))->toBe('')
+        ->and($context->streamedMessage)->toBe('<three> is not a tag');
+});
+
+it('drops the thinking when the turn does not show it', function (): void {
+    [$events, $context] = oactTransformReasoning([
+        oactChunk(['choices' => [['delta' => ['reasoning_content' => 'Hidden.']]]]),
+        oactChunk(['choices' => [['delta' => ['content' => '<think>Also hidden.</think>Shown.']]]]),
+        "data: [DONE]\n",
+    ], shows: false);
+
+    expect(array_filter($events, static fn (StreamEvent $event): bool => $event->type === EventType::Reasoning))->toBe([])
+        ->and($context->streamedMessage)->toBe('Shown.');
+});

@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "URL til privatlivspolitik",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Vises for besøgende som “Ved at chatte accepterer du vores privatlivspolitik.” Lad feltet stå tomt for at skjule det."
-            }
+            },
+            "reasoning_title": "Overvejelser",
+            "reasoning_description": "Hvor meget modellen tænker, før den svarer. Mere tænkning hjælper med svære spørgsmål, men svarene kommer langsommere og koster mere. Chattere ser tankerne i gråt over svaret.",
+            "reasoning_off": "Fra",
+            "reasoning_low": "Lav",
+            "reasoning_medium": "Middel",
+            "reasoning_high": "Høj",
+            "reasoning_locked": "Din administrator har slået overvejelser fra for alle agenter (adminpanel → Indstillinger → AI-modeller)."
         }
     }
 }

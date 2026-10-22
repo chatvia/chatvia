@@ -5,15 +5,18 @@ namespace App\Http\Requests\Agent\Crud;
 use Closure;
 use Domain\Agent\Data\Settings\UpdateAgentLlmData;
 use Domain\Agent\Models\Agent;
+use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Models\Llm;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
- * Validates the agent's model choice and its sampling settings (temperature,
- * top-k, top-p, presence and frequency penalty). The model must be one that
- * may be picked (it and its provider are on), or the agent's current one.
- * Agent access and the `agent.setup` permission are checked by the route
- * middleware.
+ * Validates the agent's model choice, its sampling settings (temperature,
+ * top-k, top-p, presence and frequency penalty) and its reasoning effort.
+ * The model must be one that may be picked (it and its provider are on), or
+ * the agent's current one. A new effort other than Off is refused while
+ * the admin does not let agents reason. Agent access and the `agent.setup`
+ * permission are checked by the route middleware.
  */
 class UpdateAgentLlmRequest extends FormRequest
 {
@@ -43,6 +46,15 @@ class UpdateAgentLlmRequest extends FormRequest
             'top_p' => ['required', 'numeric', 'min:0', 'max:1'],
             'presence_penalty' => ['required', 'numeric', 'min:-2', 'max:2'],
             'frequency_penalty' => ['required', 'numeric', 'min:-2', 'max:2'],
+            // While reasoning is off for the install, the effort can only be
+            // set to Off or kept as it is (it then waits, unused).
+            'reasoning_effort' => ['sometimes', Rule::enum(ReasoningEffort::class), function (string $attribute, mixed $value, Closure $fail) use ($agent): void {
+                $kept = $value === (string) $agent->settings('reasoning')->get('effort');
+
+                if ($value !== ReasoningEffort::Off->value && ! $kept && ! (bool) config('chatvia.ai.reasoning.enabled')) {
+                    $fail(__('Your admin has turned reasoning off.'));
+                }
+            }],
         ];
     }
 
@@ -55,6 +67,7 @@ class UpdateAgentLlmRequest extends FormRequest
             top_p: (float) $this->input('top_p'),
             presence_penalty: (float) $this->input('presence_penalty'),
             frequency_penalty: (float) $this->input('frequency_penalty'),
+            reasoning_effort: $this->enum('reasoning_effort', ReasoningEffort::class) ?? ReasoningEffort::Off,
         );
     }
 }

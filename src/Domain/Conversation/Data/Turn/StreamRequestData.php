@@ -46,6 +46,10 @@ class StreamRequestData extends Data
         public bool $saveUserMessageImmediately = false,
         public bool $streamSources = false,
         public bool $streamLanguage = false,
+        // The surface can show the model's thinking as it streams (Hosted
+        // Chat, widget, Command Bar). Off for the API, channels and evals:
+        // they never get `reasoning` events.
+        public bool $streamReasoning = false,
         public ?string $source = null,
         public ?string $ipAddress = null,
         // The visitor's ISO-3166 alpha-2 country (lowercase), resolved at request

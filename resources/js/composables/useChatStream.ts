@@ -174,6 +174,11 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
             case 'delta':
                 pacer.push(env.data.text, env.id);
                 return null;
+            case 'reasoning':
+                // Shown as it arrives: thinking comes before the answer, so
+                // it never waits on (or holds up) the answer's typing pace.
+                callbacks.onReasoning?.(env.data.text, env.id);
+                return null;
             case 'meta':
                 callbacks.onMeta?.(env.data.key, env.data.value, env.id);
                 return null;

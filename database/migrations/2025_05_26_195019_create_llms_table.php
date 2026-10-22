@@ -27,7 +27,13 @@ return new class extends Migration
             $table->unsignedInteger('context_window')->nullable();
             $table->jsonb('features')->default('{}');
             $table->enum('location', ['us', 'eu', 'cn'])->nullable();
-            $table->boolean('is_reasoning')->default(false);
+
+            // What the model can do, in the models.dev catalog's own words:
+            // `reasoning` (does it think), `reasoning_options` (its effort
+            // values), `temperature` (does it take sampling settings). From
+            // the catalog for a model it lists; for one it does not, only the
+            // `reasoning` the admin set. Null when nothing is known.
+            $table->jsonb('capabilities')->nullable();
 
             // A disabled model is hidden from the pickers; the agents that
             // already use it keep it.

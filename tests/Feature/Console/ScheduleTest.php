@@ -46,8 +46,12 @@ it('checks the license daily in the 6 o\'clock hour, at a minute of the install\
     expect(scheduleExpressionOf('chatvia:license:check'))->toMatch('/^[1-5]?[0-9] 6 \* \* \*$/');
 });
 
+it('syncs the models\' facts daily in the 5 o\'clock hour, at a minute of the install\'s own', function (): void {
+    expect(scheduleExpressionOf('chatvia:llm:sync-facts'))->toMatch('/^[1-5]?[0-9] 5 \* \* \*$/');
+});
+
 it('schedules nothing the tests above do not name', function (): void {
-    expect(app(Schedule::class)->events())->toHaveCount(25);
+    expect(app(Schedule::class)->events())->toHaveCount(26);
 });
 
 it('prunes the Spectra log after the days kept', function (): void {

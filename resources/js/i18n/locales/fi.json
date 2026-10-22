@@ -2003,7 +2003,14 @@
             "model_picker_description": "Tekoälymalli, jolla tämä agentti vastaa. Ylläpitäjä valitsee, mitkä mallit ovat tällä listalla (hallintapaneeli → Settings → AI models).",
             "model_placeholder": "Valitse malli",
             "model_default": "Oletus",
-            "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models."
+            "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models.",
+            "reasoning_title": "Päättely",
+            "reasoning_description": "Kuinka paljon malli miettii ennen vastaamista. Enemmän miettimistä auttaa vaikeissa kysymyksissä, mutta vastaukset tulevat hitaammin ja maksavat enemmän. Keskustelijat näkevät päättelyn harmaana vastauksen yläpuolella.",
+            "reasoning_off": "Pois",
+            "reasoning_low": "Matala",
+            "reasoning_medium": "Keskitaso",
+            "reasoning_high": "Korkea",
+            "reasoning_locked": "Ylläpitäjä on poistanut päättelyn käytöstä kaikilta agenteilta (hallintapaneeli → Asetukset → Tekoälymallit)."
         },
         "topics_index": {
             "title": "Aiheet",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Tyhjennä kaikki"
+    },
+    "reasoning": {
+        "thinking": "Mietitään…",
+        "done": "Päättely",
+        "show": "Näytä päättely",
+        "hide": "Piilota päättely"
     }
 }

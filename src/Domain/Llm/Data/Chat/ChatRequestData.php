@@ -32,6 +32,9 @@ final class ChatRequestData extends Data
     /**
      * The request body for an OpenAI-compatible `/chat/completions` endpoint.
      * Options that are not set are left out, so the provider default applies.
+     * It is fitted to the model's facts: a model that takes no temperature
+     * gets none, and a reasoning model thinks as little as it can (the app's
+     * own tasks need no thinking).
      *
      * @return array<string, mixed>
      */
@@ -54,6 +57,6 @@ final class ChatRequestData extends Data
             $payload['response_format'] = $this->responseSchema->toResponseFormat();
         }
 
-        return $payload;
+        return $this->model->requestSettings($payload);
     }
 }

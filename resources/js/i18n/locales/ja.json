@@ -2003,7 +2003,14 @@
             "model_picker_description": "このエージェントが回答に使うAIモデルです。このリストに載せるモデルは管理者が選びます（管理パネル → Settings → AI models）。",
             "model_placeholder": "モデルを選択",
             "model_default": "デフォルト",
-            "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。"
+            "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。",
+            "reasoning_title": "推論",
+            "reasoning_description": "モデルが答える前にどれだけ考えるかです。よく考えると難しい質問に強くなりますが、回答は遅くなり、費用も増えます。チャット利用者には、回答の上に推論がグレーで表示されます。",
+            "reasoning_off": "オフ",
+            "reasoning_low": "低",
+            "reasoning_medium": "中",
+            "reasoning_high": "高",
+            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。"
         },
         "topics_index": {
             "title": "トピック",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "すべて消去"
+    },
+    "reasoning": {
+        "thinking": "考え中…",
+        "done": "推論",
+        "show": "推論を表示",
+        "hide": "推論を隠す"
     }
 }

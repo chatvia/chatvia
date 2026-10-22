@@ -209,8 +209,8 @@ it('opens on the server step and checks the services ChatVia.ai runs on', functi
         ->assertWizardCurrentStep(1)
         ->assertSee(['Checking each service…', 'Keyword search'])
         ->call('checkServer')
-        ->assertSet('server', fn (array $server): bool => array_keys($server) === ['database', 'redis', 'queue', 'scheduler', 'realtime'])
-        ->assertSee(['Database', 'Redis', 'Queue', 'Scheduler', 'Live updates']);
+        ->assertSet('server', fn (array $server): bool => array_keys($server) === ['database', 'redis', 'queue', 'scheduler', 'realtime', 'model_details'])
+        ->assertSee(['Database', 'Redis', 'Queue', 'Scheduler', 'Live updates', 'Model details']);
 });
 
 it('says why pg_textsearch matters and what to do to get it', function (): void {

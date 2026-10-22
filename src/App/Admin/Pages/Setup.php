@@ -45,6 +45,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Actions\EnablePgTextsearchAction;
 use Domain\Knowledge\Retrieval\Enums\PgTextsearchState;
 use Domain\Knowledge\Retrieval\Services\PgTextsearchSupport;
+use Domain\Llm\Actions\Catalog\SyncLlmFactsAction;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
@@ -169,7 +170,7 @@ class Setup extends SimplePage
     private const string SERVER_STEP = 'Server';
 
     /** The services the server step checks: what runs beside the web server. Storage and email have steps of their own. */
-    private const array SERVER_SERVICES = [Service::Database, Service::Redis, Service::Queue, Service::Scheduler, Service::Realtime];
+    private const array SERVER_SERVICES = [Service::Database, Service::Redis, Service::Queue, Service::Scheduler, Service::Realtime, Service::ModelDetails];
 
     /** The label of the documents step, which Next leaves once "Not now" is confirmed. */
     private const string DOCUMENTS_STEP = 'Documents';
@@ -1293,9 +1294,15 @@ class Setup extends SimplePage
 
     // --- Checks ----------------------------------------------------------------
 
-    /** The server step's cards: checked when the step opens, and on "Check again". */
+    /**
+     * The server step's cards: checked when the step opens, and on "Check
+     * again". The models' facts are loaded from models.dev first, so the
+     * models added in the next steps already know how they reason.
+     */
     public function checkServer(ServiceChecks $checks): void
     {
+        rescue(fn () => app(SyncLlmFactsAction::class)->execute());
+
         $this->server = collect(self::SERVER_SERVICES)
             ->mapWithKeys(fn (Service $service): array => [$service->value => $checks->check($service)->toArray()])
             ->all();

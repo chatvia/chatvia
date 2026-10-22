@@ -63,7 +63,7 @@ class LlmFactory extends Factory
                 'vision' => fake()->boolean(70),
             ],
             'location' => fake()->randomElement(['us', 'eu', 'cn']),
-            'is_reasoning' => fake()->boolean(60),
+            'capabilities' => ['reasoning' => fake()->boolean(60)],
             'is_enabled' => true,
             'llm_provider_id' => LlmProvider::factory(),
         ];
@@ -82,7 +82,7 @@ class LlmFactory extends Factory
     public function withReasoning(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'is_reasoning' => true,
+            'capabilities' => ['reasoning' => true],
         ]);
     }
 

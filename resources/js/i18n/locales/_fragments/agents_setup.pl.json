@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "Adres URL polityki prywatności",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Wyświetlane odwiedzającym jako „Rozpoczynając czat, akceptujesz naszą politykę prywatności.” Pozostaw puste, aby ukryć."
-            }
+            },
+            "reasoning_title": "Rozumowanie",
+            "reasoning_description": "Jak mocno model myśli, zanim odpowie. Więcej myślenia pomaga przy trudnych pytaniach, ale odpowiedzi przychodzą wolniej i kosztują więcej. Rozmówcy widzą rozumowanie na szaro nad odpowiedzią.",
+            "reasoning_off": "Wyłączone",
+            "reasoning_low": "Niskie",
+            "reasoning_medium": "Średnie",
+            "reasoning_high": "Wysokie",
+            "reasoning_locked": "Administrator wyłączył rozumowanie dla wszystkich agentów (panel administracyjny → Ustawienia → Modele AI)."
         }
     }
 }

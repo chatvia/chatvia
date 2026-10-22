@@ -79,8 +79,8 @@ final readonly class CompleteSetupAction
             }
 
             $models = array_map(fn (RemoteModelData $model): Llm => $this->addModel->execute($provider, $model), $data->chatModels);
-            $default = array_find($models, fn (Llm $model): bool => $model->internal_name === $data->defaultModel) ?? $models[0];
-            $this->ai->default_agent_model = $default->external_name;
+            $default = array_find($models, fn (Llm $model): bool => $model->name === $data->defaultModel) ?? $models[0];
+            $this->ai->default_agent_model = (string) $default->id;
             $this->assignModel->execute($default);
 
             $quick = $data->quickTaskModel instanceof RemoteModelData ? $this->addModel->execute($provider, $data->quickTaskModel) : null;

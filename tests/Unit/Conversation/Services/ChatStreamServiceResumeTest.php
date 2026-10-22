@@ -96,7 +96,7 @@ it('claims the checkpoint and continues the turn on the agent model under the pa
         ->and(end($events)->data['reason'])->toBe('complete')
         ->and($checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Resolved)
         ->and($this->runner->appliedDecisions)->toBe([['call_1' => ToolApprovalDecision::Approve]])
-        ->and($this->runner->runs)->toBe([['model' => $this->llm->internal_name, 'start_iteration' => 3]]);
+        ->and($this->runner->runs)->toBe([['model' => $this->llm->name, 'start_iteration' => 3]]);
 });
 
 it('refuses a second submit of the same approval without running the tools again', function (): void {

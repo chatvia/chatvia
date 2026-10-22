@@ -17,7 +17,7 @@ class UpdateAgentLlmAction
 {
     public function execute(Agent $agent, UpdateAgentLlmData $data): void
     {
-        $llmId = Llm::query()->where('external_name', $data->model_external_name)->valueOrFail('id');
+        $llmId = Llm::query()->whereKey($data->model_id)->valueOrFail('id');
 
         DB::transaction(function () use ($agent, $data, $llmId): void {
             $agent->forceFill(['llm_id' => $llmId])->save();

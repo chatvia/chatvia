@@ -40,7 +40,7 @@ function seedUserTurn(Agent $agent, ?string $source = 'widget'): UserTurnData
         'external_session_id' => (string) Str::uuid(),
         'external_conversation_id' => (string) Str::uuid(),
         'external_message_id' => (string) Str::uuid(),
-        'model' => '',
+        'llm_id' => null,
         'message' => 'Hello, can you help me with my order?',
         'sent_at' => Carbon::parse('2026-06-05 10:00:00'),
         'source' => $source,
@@ -58,7 +58,7 @@ function assistantTurn(Llm $llm, UserTurnData $userTurn, array $overrides = []):
         'external_conversation_id' => $userTurn->external_conversation_id,
         'external_message_id' => (string) Str::uuid(),
         'message' => 'Sure — what is the order number?',
-        'model' => $llm->external_name,
+        'llm_id' => $llm->id,
         'sent_at' => Carbon::parse('2026-06-05 10:00:01'),
         'generation_id' => 'gen_'.Str::random(12),
         'trace_id' => (string) Str::uuid(),
@@ -74,7 +74,7 @@ beforeEach(function (): void {
 
 it('takes the token counts from the provider generation lookup', function (): void {
     $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create(['external_name' => 'gpt-test-lookup']);
+    $llm = Llm::factory()->create(['name' => 'gpt-test-lookup']);
     $provider = CannedLlmProvider::withGeneration([
         'tokens_prompt' => 42,
         'tokens_completion' => 17,
@@ -98,7 +98,7 @@ it('takes the token counts from the provider generation lookup', function (): vo
 
 it('leaves the tokens null when the provider has no generation lookup', function (): void {
     $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create(['external_name' => 'gpt-no-lookup']);
+    $llm = Llm::factory()->create(['name' => 'gpt-no-lookup']);
 
     $message = storeAssistantAction(new CannedLlmProvider)
         ->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
@@ -109,7 +109,7 @@ it('leaves the tokens null when the provider has no generation lookup', function
 
 it('prefers inline stream usage over the provider generation lookup', function (): void {
     $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create(['external_name' => 'gpt-inline-usage']);
+    $llm = Llm::factory()->create(['name' => 'gpt-inline-usage']);
 
     // The provider WOULD return different numbers if asked.
     $provider = CannedLlmProvider::withGeneration([

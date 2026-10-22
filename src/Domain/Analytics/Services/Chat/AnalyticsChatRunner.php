@@ -96,7 +96,7 @@ class AnalyticsChatRunner
             $assistantText = '';
             $pending = [];
 
-            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, $model->requestSettings([
+            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->name, $messages, $model->requestSettings([
                 'temperature' => 0.2,
                 'tools' => $tools,
                 'tool_choice' => 'auto',
@@ -125,7 +125,7 @@ class AnalyticsChatRunner
         // anyway is left in $pending and never run.
         $assistantText = '';
         $pending = [];
-        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, $model->requestSettings([
+        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->name, $messages, $model->requestSettings([
             'temperature' => 0.2,
             'tools' => $tools,
             'tool_choice' => 'none',

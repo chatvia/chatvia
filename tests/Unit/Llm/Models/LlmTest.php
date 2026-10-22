@@ -15,7 +15,7 @@ function llmWithEfforts(?array $efforts, ?bool $takesTemperature = null): Llm
     // Not listed on models.dev at all when nothing is known.
     $known = $efforts !== null || $takesTemperature !== null;
 
-    return new Llm(['internal_name' => 'model', 'capabilities' => $known ? modelsDevEntry($efforts, $takesTemperature) : null]);
+    return new Llm(['name' => 'model', 'capabilities' => $known ? modelsDevEntry($efforts, $takesTemperature) : null]);
 }
 
 it('sends the value the model takes for each effort', function (?array $efforts, ReasoningEffort $effort, ?string $value): void {

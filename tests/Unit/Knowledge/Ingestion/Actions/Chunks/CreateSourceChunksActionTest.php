@@ -121,7 +121,7 @@ it('skips pages the source holds and repeated pages without embedding them', fun
 it('enhances a page before storing it, so the chunk row is written once', function (): void {
     cscFakeChunker();
     $model = testLlm('enhance-model');
-    config(['chatvia.ai.tasks.enhancement' => $model->external_name]);
+    config(['chatvia.ai.tasks.enhancement' => (string) $model->id]);
     $embeddings = cscCountingEmbeddings();
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
@@ -137,7 +137,7 @@ it('enhances a page before storing it, so the chunk row is written once', functi
 
     expect($updates)->toBe(0)
         ->and($chunk->is_enhanced)->toBeTrue()
-        ->and($chunk->chunked_using_model)->toBe($model->external_name)
+        ->and($chunk->chunked_using_model)->toBe($model->name)
         ->and($chunk->summary)->toBe('A page about oceans.')
         ->and($chunk->questions)->toBe("Which ocean is largest?\nHow deep is it?")
         ->and($chunk->questions_embedding)->not->toBeNull()

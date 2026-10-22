@@ -63,12 +63,10 @@ final class MistralAdapter extends OpenAiCompatibleAdapter
     protected function toModel(array $row): RemoteModelData
     {
         $model = parent::toModel($row);
-        $context = $row['max_context_length'] ?? null;
 
         return new RemoteModelData(
             id: $model->id,
             name: $model->name,
-            contextWindow: is_numeric($context) ? (int) $context : $model->contextWindow,
             features: array_filter([
                 'vision' => $row['capabilities']['vision'] ?? null,
                 'function_calling' => $row['capabilities']['function_calling'] ?? null,

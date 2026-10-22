@@ -20,7 +20,7 @@ beforeEach(function (): void {
     $this->agent = createAgent($this->owner);
     $this->default = testLlm('default-model');
     $this->other = testLlm('other-model');
-    config(['chatvia.agent.default_model' => $this->default->external_name]);
+    config(['chatvia.agent.default_model' => (string) $this->default->id]);
 });
 
 it('lists the available models and preselects the default while the agent has none', function (): void {
@@ -30,15 +30,15 @@ it('lists the available models and preselects the default while the agent has no
         ->get(route('agents.setup', $this->agent->external_id))
         ->assertOk()
         ->assertInertia(fn (Assert $page): Assert => $page
-            ->where('selectedModel', $this->default->external_name)
-            ->where('defaultModel', $this->default->external_name)
-            ->where('catalog', fn (Collection $catalog): bool => $catalog->pluck('id')->contains($this->other->external_name)));
+            ->where('selectedModel', $this->default->id)
+            ->where('defaultModel', $this->default->id)
+            ->where('catalog', fn (Collection $catalog): bool => $catalog->pluck('id')->contains($this->other->id)));
 });
 
 it('saves the model and the temperature', function (): void {
     $this->actingAs($this->owner)
         ->patch(route('agents.llm.update', $this->agent->external_id), [
-            'model_external_name' => $this->other->external_name,
+            'model_id' => $this->other->id,
             'temperature' => 0.4,
             'top_k' => 0,
             'top_p' => 1,
@@ -58,14 +58,14 @@ it('refuses a model that is not available', function (): void {
 
     $this->actingAs($this->owner)
         ->patch(route('agents.llm.update', $this->agent->external_id), [
-            'model_external_name' => $this->other->external_name,
+            'model_id' => $this->other->id,
             'temperature' => 0.4,
             'top_k' => 0,
             'top_p' => 1,
             'presence_penalty' => 0,
             'frequency_penalty' => 0,
         ])
-        ->assertSessionHasErrors('model_external_name');
+        ->assertSessionHasErrors('model_id');
 });
 
 it('sends the generation settings as numbers, even when they are stored as text', function (): void {
@@ -84,10 +84,10 @@ it('sends the generation settings as numbers, even when they are stored as text'
 });
 
 /** Save the agent's model with this reasoning effort. */
-function ampSaveEffort(User $owner, string $agentId, string $model, string $effort): TestResponse
+function ampSaveEffort(User $owner, string $agentId, int $model, string $effort): TestResponse
 {
     return test()->actingAs($owner)->patch(route('agents.llm.update', $agentId), [
-        'model_external_name' => $model,
+        'model_id' => $model,
         'temperature' => 1,
         'top_k' => 0,
         'top_p' => 1,
@@ -100,7 +100,7 @@ function ampSaveEffort(User $owner, string $agentId, string $model, string $effo
 it('saves the reasoning effort while the admin lets agents reason', function (): void {
     config(['chatvia.ai.reasoning.enabled' => true]);
 
-    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'high')->assertSessionHasNoErrors();
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->id, 'high')->assertSessionHasNoErrors();
 
     expect($this->agent->fresh()->settings('reasoning')->get('effort'))->toBe('high');
 });
@@ -108,13 +108,13 @@ it('saves the reasoning effort while the admin lets agents reason', function ():
 it('refuses a new effort while the admin does not let agents reason, but keeps the one saved', function (): void {
     config(['chatvia.ai.reasoning.enabled' => false]);
 
-    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'medium')
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->id, 'medium')
         ->assertSessionHasErrors(['reasoning_effort' => 'Your admin has turned reasoning off.']);
 
     // Saved earlier, while reasoning was on: other settings still save.
     $this->agent->setSetting('effort', 'high', 'reasoning');
-    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'high')->assertSessionHasNoErrors();
-    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'off')->assertSessionHasNoErrors();
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->id, 'high')->assertSessionHasNoErrors();
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->id, 'off')->assertSessionHasNoErrors();
 });
 
 it('tells the setup page the effort and whether reasoning is allowed', function (): void {

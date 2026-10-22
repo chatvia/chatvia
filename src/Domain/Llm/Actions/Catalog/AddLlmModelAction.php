@@ -14,11 +14,10 @@ use Domain\Llm\Services\ModelsDevCatalog;
  * about it and its capabilities from the models.dev catalog (whether it
  * reasons, its effort values, whether it takes a temperature). For a model
  * the catalog does not list, whether it reasons comes from the provider's own
- * list (OpenRouter's), when it says. Its alias
- * (`external_name`, what agents and settings store) is the model's id, or
- * the id with the provider's number when another provider already has a
- * model by that id. Adding a model that is already there returns it, turned
- * on again when it was removed.
+ * list (OpenRouter's), when it says. The model keeps the provider's id for it
+ * as its name; agents and settings refer to it by its row id, so the same id
+ * may come from two providers. Adding a model that is already there returns
+ * it, turned on again when it was removed.
  */
 final readonly class AddLlmModelAction
 {
@@ -31,12 +30,8 @@ final readonly class AddLlmModelAction
         $listed = $model->features['reasoning'] ?? null;
 
         $llm = Llm::query()->firstOrCreate(
-            ['llm_provider_id' => $provider->id, 'internal_name' => $model->id],
+            ['llm_provider_id' => $provider->id, 'name' => $model->id],
             [
-                'external_name' => $this->alias($provider, $model->id),
-                'descriptive_name' => $model->name,
-                'context_window' => $model->contextWindow,
-                'features' => $model->features,
                 'capabilities' => $this->catalog->entry($provider->kind, $model->id)
                     ?? (is_bool($listed) ? ['reasoning' => $listed] : null),
             ],
@@ -47,10 +42,5 @@ final readonly class AddLlmModelAction
         }
 
         return $llm;
-    }
-
-    private function alias(LlmProvider $provider, string $id): string
-    {
-        return Llm::query()->where('external_name', $id)->exists() ? "{$id}-{$provider->id}" : $id;
     }
 }

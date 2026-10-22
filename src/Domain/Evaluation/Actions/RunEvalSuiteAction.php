@@ -51,7 +51,7 @@ class RunEvalSuiteAction
             // EvalRunProgressed broadcast below — fromModel() types them as int.
             'passed_count' => 0,
             'failed_count' => 0,
-            'model_snapshot' => $agent->llm?->internal_name,
+            'model_snapshot' => $agent->llm?->name,
             'triggered_by_user_id' => $triggeredBy?->id,
             'triggered_by_name' => $triggeredBy?->name,
             'started_at' => now(),

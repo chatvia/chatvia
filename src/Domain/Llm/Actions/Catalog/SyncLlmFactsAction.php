@@ -28,7 +28,7 @@ final readonly class SyncLlmFactsAction
         $notListed = 0;
 
         Llm::query()->with('provider')->where('is_enabled', true)->get()->each(function (Llm $llm) use (&$updated, &$notListed): void {
-            $entry = $this->catalog->entry($llm->provider->kind, $llm->internal_name);
+            $entry = $this->catalog->entry($llm->provider->kind, $llm->name);
 
             if ($entry === null) {
                 $notListed++;

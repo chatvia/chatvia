@@ -65,7 +65,7 @@ class StoreUserMessageAction
             'chat_conversation_id' => $conversation->id,
             'content' => $turn->message,
             'role' => MessageRole::User,
-            'llm_id' => $this->chatLog->llmId($turn->model),
+            'llm_id' => $turn->llm_id,
             'is_response_from_qa' => false,
             'source' => $turn->source,
             'has_llm_found_answer' => true,

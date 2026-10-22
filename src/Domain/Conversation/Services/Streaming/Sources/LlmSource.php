@@ -53,7 +53,7 @@ class LlmSource extends ToolLoopSource
 
     protected function modelName(ChatContext $context): string
     {
-        return $context->requestData->message->model->internal_name;
+        return $context->requestData->message->model->name;
     }
 
     protected function model(ChatContext $context): Llm

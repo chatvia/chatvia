@@ -32,7 +32,7 @@ function bmdSeedUserMessages(int $agentId, string $day, int $count): void
         'workspace_id' => DB::table('agents')->where('id', $agentId)->value('workspace_id'),
         'bucket_hour' => $day.' 10:00:00+00',
         'country_code' => '--',
-        'llm_external_name' => '',
+        'llm_id' => 0,
         'user_messages' => $count,
     ]);
 }

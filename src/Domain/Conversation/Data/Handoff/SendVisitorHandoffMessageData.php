@@ -16,7 +16,7 @@ class SendVisitorHandoffMessageData extends Data
     public function __construct(
         public Conversation $conversation,
         public string $content,
-        public ?string $model = null,
+        public ?int $llmId = null,
         public ?string $ipAddress = null,
         public ?string $userAgent = null,
         public ?string $referrerUrl = null,

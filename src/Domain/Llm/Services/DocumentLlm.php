@@ -45,11 +45,7 @@ final readonly class DocumentLlm
      */
     public function model(string $name): Llm
     {
-        return new Llm([
-            'internal_name' => $name,
-            'external_name' => $name,
-            'descriptive_name' => $name,
-        ])->setRelation('provider', $this->connection());
+        return new Llm(['name' => $name])->setRelation('provider', $this->connection());
     }
 
     /**

@@ -73,7 +73,7 @@ final class VoiceTurnFactory
             external_session_id: $request->externalSessionId,
             external_conversation_id: $request->conversationId,
             external_message_id: $messageId,
-            model: $request->message->model->external_name,
+            llm_id: $request->message->model->id,
             message: $text,
             sent_at: now(),
             message_for_llm: $text,
@@ -91,8 +91,7 @@ final class VoiceTurnFactory
     private function model(VoiceCallData $call): Llm
     {
         return new Llm()->forceFill([
-            'internal_name' => $call->model,
-            'external_name' => $call->model,
+            'name' => $call->model,
         ]);
     }
 }

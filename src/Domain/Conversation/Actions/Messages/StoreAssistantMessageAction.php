@@ -70,7 +70,7 @@ class StoreAssistantMessageAction
             return new ReplyUsageData($turn->prompt_tokens, $turn->completion_tokens);
         }
 
-        $lookup = $turn->generation_id ? $this->generationLookup($turn->model, $turn->generation_id) : null;
+        $lookup = $turn->generation_id ? $this->generationLookup($turn->llm_id, $turn->generation_id) : null;
 
         return new ReplyUsageData(
             promptTokens: $lookup['tokens_prompt'] ?? null,
@@ -89,7 +89,7 @@ class StoreAssistantMessageAction
             'chat_conversation_id' => $conversation->id,
             'content' => $turn->message,
             'role' => MessageRole::Assistant,
-            'llm_id' => $this->chatLog->llmId($turn->model),
+            'llm_id' => $turn->llm_id,
             'response_time_ms' => $turn->response_time_ms,
             'generation_id' => $turn->generation_id,
             'trace_id' => $turn->trace_id,
@@ -155,9 +155,9 @@ class StoreAssistantMessageAction
      *
      * @return array<string, mixed>|null
      */
-    private function generationLookup(string $model, string $generationId): ?array
+    private function generationLookup(?int $llmId, string $generationId): ?array
     {
-        $llm = Llm::catalog()->firstWhere('external_name', $model);
+        $llm = $llmId !== null ? Llm::catalog()->firstWhere('id', $llmId) : null;
 
         if (! $llm instanceof Llm) {
             return null;

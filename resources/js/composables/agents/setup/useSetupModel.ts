@@ -14,12 +14,12 @@ export type LlmSettings = { temperature: number; top_k: number; top_p: number; p
 
 export type ReasoningEffort = Domain.Llm.Enums.ReasoningEffort;
 
-export function useSetupModel({ agentId }: SetupSectionDeps, model: string | null, settings: LlmSettings, reasoningEffort: string | null) {
+export function useSetupModel({ agentId }: SetupSectionDeps, model: number | null, settings: LlmSettings, reasoningEffort: string | null) {
     const { t } = useI18n();
 
     // Numbers, whatever the stored settings hold, so the slider and toFixed() work.
     const form = useForm({
-        model_external_name: model ?? '',
+        model_id: model,
         temperature: Number(settings.temperature),
         top_k: Number(settings.top_k),
         top_p: Number(settings.top_p),

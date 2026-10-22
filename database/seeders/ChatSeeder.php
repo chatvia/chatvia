@@ -280,10 +280,10 @@ class ChatSeeder extends Seeder
             return;
         }
 
-        // Get LLM external_names for assistant messages — analytics uses these
-        // as the model dimension, so the chat-log rows and analytics rollups
-        // share the same model set.
-        $llms = Llm::query()->select('id', 'external_name')->get();
+        // The models for assistant messages: analytics uses their ids as the
+        // model dimension, so the chat-log rows and analytics rollups share
+        // the same model set.
+        $llms = Llm::query()->select('id')->get();
         if ($llms->isEmpty()) {
             $this->command->warn('No LLMs available — skipping chat seed.');
 
@@ -370,10 +370,6 @@ class ChatSeeder extends Seeder
                     ]);
                     $messagesCreated++;
 
-                    $modelExternalName = $llmId
-                        ? $llms->firstWhere('id', $llmId)?->external_name
-                        : null;
-
                     $messageSent->execute(MessageSentRecordData::fromEvent(new MessageSent(
                         agentId: $agent->id,
                         workspaceId: $agent->workspace_id,
@@ -382,7 +378,7 @@ class ChatSeeder extends Seeder
                         messageExternalId: (string) $message->external_id,
                         sessionExternalId: (string) $session->external_id,
                         role: $messageData['role'],
-                        llmExternalName: $modelExternalName,
+                        llmId: $llmId,
                         countryCode: $country['code'],
                         responseTimeMs: $responseMs,
                         promptTokens: $promptTokens,
@@ -399,7 +395,7 @@ class ChatSeeder extends Seeder
                             conversationExternalId: (string) $conversation->external_id,
                             messageExternalId: (string) $message->external_id,
                             feedback: $messageData['feedback'],
-                            llmExternalName: $modelExternalName,
+                            llmId: $llmId,
                             countryCode: $country['code'],
                             occurredAt: $messageTime->copy()->addSeconds(random_int(5, 60)),
                         )));

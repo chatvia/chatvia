@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('event_type', 40);
             $table->string('role', 20)->nullable();
             $table->string('feedback', 20)->nullable();
-            $table->string('llm_external_name', 64)->nullable();
+            $table->unsignedBigInteger('llm_id')->nullable();
             $table->string('country_code', 2)->nullable();
             $table->unsignedInteger('response_time_ms')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();

@@ -76,7 +76,6 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
         return new RemoteModelData(
             id: $model->id,
             name: $model->name,
-            contextWindow: $model->contextWindow,
             features: array_filter([
                 'vision' => is_array($inputs) ? in_array('image', $inputs, true) : null,
                 'function_calling' => is_array($parameters) ? in_array('tools', $parameters, true) : null,

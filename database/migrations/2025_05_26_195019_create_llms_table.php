@@ -14,19 +14,10 @@ return new class extends Migration
 
             $table->foreignId('llm_provider_id')->constrained('llm_providers')->cascadeOnDelete();
 
-            // The model's id at its provider (sent in every call), and the
-            // stable alias agents, settings and analytics refer to it by.
-            $table->string('internal_name');
-            $table->string('external_name')->unique();
-
-            $table->string('descriptive_name');
-            $table->text('description')->nullable();
-            $table->string('icon')->nullable();
-
-            // Null when the provider does not say.
-            $table->unsignedInteger('context_window')->nullable();
-            $table->jsonb('features')->default('{}');
-            $table->enum('location', ['us', 'eu', 'cn'])->nullable();
+            // The model's id at its provider, sent in every call. Agents,
+            // settings and messages refer to a model by its row id, so the
+            // same id may come from two providers.
+            $table->string('name');
 
             // What the model can do, in the models.dev catalog's own words:
             // `reasoning` (does it think), `reasoning_options` (its effort
@@ -41,7 +32,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['llm_provider_id', 'internal_name']);
+            $table->unique(['llm_provider_id', 'name']);
         });
 
         Llm::flushCatalogCache();

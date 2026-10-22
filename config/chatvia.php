@@ -495,9 +495,8 @@ return [
     | connection for a separate database). `queue` keeps analytics work off
     | the `messages` queue so it never slows a reply.
     |
-    | The hourly rollup keys cannot hold NULL, so an unknown country or
-    | model is stored as `unknown_country_code` or
-    | `unknown_llm_external_name`.
+    | The hourly rollup keys cannot hold NULL, so an unknown country is
+    | stored as `unknown_country_code` and an unknown model as 0.
     |
     | `analysis`: chatvia:analytics:analyze-conversations reads each conversation once,
     | `scan_age_hours` after it starts, and retries a run that saved nothing
@@ -512,7 +511,6 @@ return [
         'queue' => env('ANALYTICS_QUEUE', 'analytics'),
 
         'unknown_country_code' => '--',
-        'unknown_llm_external_name' => '',
 
         'analysis' => [
             'scan_age_hours' => env('ANALYSIS_SCAN_AGE_HOURS', 6),

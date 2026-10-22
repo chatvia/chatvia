@@ -92,7 +92,7 @@ class AgentsRelationManager extends RelationManager
                     ->badge()
                     ->formatStateUsing(fn (bool $state): string => $state ? 'Public' : 'Protected')
                     ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
-                TextColumn::make('llm.descriptive_name')
+                TextColumn::make('llm.name')
                     ->label('Model')
                     ->placeholder('—'),
                 TextColumn::make('answers_on')

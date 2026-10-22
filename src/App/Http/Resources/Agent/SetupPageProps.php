@@ -43,13 +43,13 @@ final readonly class SetupPageProps
         $agent->loadMissing(['llm', 'agentPrompt']);
 
         // Its own model, or the default one while it has none.
-        $selectedModel = $this->agentModel->for($agent)?->external_name;
+        $selectedModel = $this->agentModel->for($agent)?->id;
 
         // The models that may be picked, plus the agent's own even when it
         // was turned off since.
         $catalog = Llm::catalog()
-            ->filter(fn (Llm $model): bool => $model->isAvailable() || $model->external_name === $selectedModel)
-            ->map(fn (Llm $model): LlmModelData => LlmModelData::fromLlmModel($model, selected: $model->external_name === $selectedModel))
+            ->filter(fn (Llm $model): bool => $model->isAvailable() || $model->id === $selectedModel)
+            ->map(fn (Llm $model): LlmModelData => LlmModelData::fromLlmModel($model, selected: $model->id === $selectedModel))
             ->values()
             ->all();
 
@@ -101,7 +101,7 @@ final readonly class SetupPageProps
             // Single-model picker + hyperparameters.
             'catalog' => $catalog,
             'selectedModel' => $selectedModel,
-            'defaultModel' => $this->models->find(LlmTask::Chat)?->external_name,
+            'defaultModel' => $this->models->find(LlmTask::Chat)?->id,
             'llmSettings' => $agent->llmSettings(),
             'defaultLlmSettings' => config('model-settings.defaults.'.Agent::class.'.llm_settings'),
             // The effort the agent picked, and whether the admin lets agents

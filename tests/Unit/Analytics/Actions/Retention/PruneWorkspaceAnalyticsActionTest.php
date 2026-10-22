@@ -34,7 +34,7 @@ function pwaSeed(int $workspaceId, int $daysAgo, int $agentId = 920001): void
     $unique = random_int(1, PHP_INT_MAX);
 
     $db->table('analytics_events')->insert([...$base, 'event_type' => AnalyticsEventType::FeedbackGiven->value, 'message_external_id' => (string) Str::uuid(), 'occurred_at' => $at]);
-    $db->table('analytics_agent_hourly_rollups')->insert([...$base, 'bucket_hour' => $at, 'country_code' => '--', 'llm_external_name' => '']);
+    $db->table('analytics_agent_hourly_rollups')->insert([...$base, 'bucket_hour' => $at, 'country_code' => '--', 'llm_id' => 0]);
     $db->table('analytics_conversation_metrics')->insert([...$base, 'conversation_external_id' => (string) Str::uuid(), 'started_at' => $at]);
     $db->table('analytics_session_firsts')->insert([...$base, 'session_external_id' => (string) Str::uuid(), 'first_seen_at' => $at]);
     $db->table('analytics_agent_sentiment_daily')->insert([...$base, 'bucket_day' => $day, 'sentiment' => 'positive']);

@@ -19,14 +19,7 @@ use Illuminate\Support\Facades\Cache;
 /**
  * @property int $id
  * @property int $llm_provider_id
- * @property string $internal_name
- * @property string $external_name
- * @property string $descriptive_name
- * @property string|null $description
- * @property string|null $icon
- * @property int|null $context_window
- * @property array<string, bool> $features
- * @property string|null $location
+ * @property string $name
  * @property array<string, mixed>|null $capabilities
  * @property bool $is_enabled
  * @property-read LlmProvider $provider
@@ -37,16 +30,9 @@ use Illuminate\Support\Facades\Cache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereContextWindow($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereDescriptiveName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereExternalName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereFeatures($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIcon($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInternalName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLocation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLlmProviderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereUpdatedAt($value)
  *
@@ -57,7 +43,8 @@ use Illuminate\Support\Facades\Cache;
 ])]
 /**
  * A model in the LLM catalog: one model on one provider ({@see LlmProvider}),
- * with its names, context window and features. Its capabilities come from
+ * named as the provider names it (`name`, sent in every call); the app
+ * refers to it by its row id. Its capabilities come from
  * the models.dev catalog ({@see ModelsDevCatalog}): whether it reasons, the
  * effort values it takes and whether it takes a temperature, so the app
  * sends each model what it takes instead of guessing from its name. For a
@@ -79,9 +66,7 @@ class Llm extends Model
     protected function casts(): array
     {
         return [
-            'features' => 'json',
             'capabilities' => 'json',
-            'context_window' => 'integer',
             'is_enabled' => 'boolean',
         ];
     }
@@ -89,7 +74,6 @@ class Llm extends Model
     #[\Override]
     protected $attributes = [
         'is_enabled' => true,
-        'features' => '{}',
     ];
 
     /**
@@ -203,7 +187,18 @@ class Llm extends Model
      */
     public static function catalog(): Collection
     {
-        return Cache::rememberForever('llms.catalog', fn () => self::query()->get()->load('provider')->sortBy('descriptive_name')->values());
+        return Cache::rememberForever('llms.catalog', fn () => self::query()->get()->load('provider')->sortBy('name')->values());
+    }
+
+    /**
+     * The catalog model a setting names (it holds the model's id, as text),
+     * or null when it names none.
+     */
+    public static function fromSetting(mixed $value): ?self
+    {
+        $id = (int) $value;
+
+        return $id > 0 ? self::catalog()->firstWhere('id', $id) : null;
     }
 
     /**

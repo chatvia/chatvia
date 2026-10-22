@@ -20,9 +20,6 @@ use Illuminate\Support\Str;
  */
 class SendVisitorHandoffMessageAction
 {
-    /** Model label stored when the agent has no model configured. */
-    private const string UNKNOWN_MODEL = 'unknown';
-
     /** Sender name shown to the operator when the visitor is anonymous. */
     private const string ANONYMOUS_SENDER = 'Visitor';
 
@@ -53,7 +50,7 @@ class SendVisitorHandoffMessageAction
                 external_session_id: $session->external_id,
                 external_conversation_id: $conversation->external_id,
                 external_message_id: $messageId,
-                model: $data->model ?? $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
+                llm_id: $data->llmId ?? $agent->llm_id,
                 message: $data->content,
                 sent_at: now(),
                 // A signed-in chatter's relayed message still counts against

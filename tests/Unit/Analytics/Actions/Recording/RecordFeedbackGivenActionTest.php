@@ -29,7 +29,7 @@ function rfgGive(int $agentId, string $convId, string $msgId, ?string $feedback,
         conversationExternalId: $convId,
         messageExternalId: $msgId,
         feedback: $feedback,
-        llmExternalName: 'qwen3',
+        llmId: 7,
         countryCode: 'US',
         occurredAt: Carbon::parse('2026-06-01 10:00'),
     )));

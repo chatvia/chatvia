@@ -41,7 +41,7 @@ final class ChatRequestData extends Data
     public function toPayload(): array
     {
         $payload = [
-            'model' => $this->model->internal_name,
+            'model' => $this->model->name,
             'messages' => array_map(static fn (ChatMessageData $message): array => $message->toPayload(), $this->messages),
         ];
 

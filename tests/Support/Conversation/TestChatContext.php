@@ -53,7 +53,7 @@ final class TestChatContext
                 external_session_id: $requestData->externalSessionId,
                 external_conversation_id: $requestData->conversationId,
                 external_message_id: (string) Str::uuid(),
-                model: $llm->external_name,
+                llm_id: $llm->id,
                 message: $message,
                 sent_at: now(),
                 message_for_llm: $message,

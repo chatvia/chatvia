@@ -197,7 +197,7 @@ function modelsDevEntry(?array $efforts, ?bool $temperature = null, bool $reason
  *
  * @param  array<string, mixed>  $attributes
  */
-function testLlm(string $internalName = 'test-model', LlmProviderKind $kind = LlmProviderKind::Custom, array $attributes = []): Llm
+function testLlm(string $name = 'test-model', LlmProviderKind $kind = LlmProviderKind::Custom, array $attributes = []): Llm
 {
     if (($account = AiProvider::forChatKind($kind)) instanceof AiProvider) {
         connectAiProviders($account);
@@ -205,7 +205,7 @@ function testLlm(string $internalName = 'test-model', LlmProviderKind $kind = Ll
 
     return Llm::factory()
         ->for(LlmProvider::factory()->kind($kind), 'provider')
-        ->create(['internal_name' => $internalName, ...$attributes]);
+        ->create(['name' => $name, ...$attributes]);
 }
 
 /**
@@ -318,7 +318,7 @@ function analyticsRollup(Agent $agent, string $bucketHour, array $values = []): 
             'workspace_id' => $agent->workspace_id,
             'bucket_hour' => $bucketHour,
             'country_code' => '--',
-            'llm_external_name' => '',
+            'llm_id' => 0,
             ...$values,
         ]);
 }

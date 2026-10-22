@@ -34,8 +34,8 @@ class UpdateAgentLlmRequest extends FormRequest
         $agent = $this->route('agent');
 
         return [
-            'model_external_name' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail) use ($agent): void {
-                $model = Llm::catalog()->firstWhere('external_name', $value);
+            'model_id' => ['required', 'integer', function (string $attribute, mixed $value, Closure $fail) use ($agent): void {
+                $model = Llm::catalog()->firstWhere('id', (int) $value);
 
                 if (! $model instanceof Llm || (! $model->isAvailable() && $model->id !== $agent->llm_id)) {
                     $fail(__('Pick one of the available models.'));
@@ -61,7 +61,7 @@ class UpdateAgentLlmRequest extends FormRequest
     public function toData(): UpdateAgentLlmData
     {
         return new UpdateAgentLlmData(
-            model_external_name: $this->string('model_external_name')->toString(),
+            model_id: $this->integer('model_id'),
             temperature: (float) $this->input('temperature'),
             top_k: (int) $this->input('top_k'),
             top_p: (float) $this->input('top_p'),

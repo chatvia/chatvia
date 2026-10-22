@@ -116,7 +116,7 @@ it('says when a workspace has no message limit', function (): void {
 });
 
 it('lists the workspace\'s agents with model, channels, knowledge and traffic', function (): void {
-    $agent = createAgent($this->owner, ['name' => 'Acme Helper', 'is_public' => true, 'llm_id' => testLlm(attributes: ['descriptive_name' => 'Qwen3 Test'])->id]);
+    $agent = createAgent($this->owner, ['name' => 'Acme Helper', 'is_public' => true, 'llm_id' => testLlm('qwen3-test')->id]);
     $agent->setSetting(ConversationSource::Bar->value, false, 'surfaces');
     AgentTelegramBot::create([
         'agent_id' => $agent->id,
@@ -139,7 +139,7 @@ it('lists the workspace\'s agents with model, channels, knowledge and traffic', 
         ->assertOk()
         ->assertCanSeeTableRecords([$agent, $quiet])
         ->assertCanNotSeeTableRecords([$elsewhere])
-        ->assertTableColumnStateSet('llm.descriptive_name', 'Qwen3 Test', $agent)
+        ->assertTableColumnStateSet('llm.name', 'qwen3-test', $agent)
         ->assertTableColumnStateSet('answers_on', ['Hosted Chat', 'Chat Widget', 'Telegram'], $agent)
         ->assertTableColumnStateSet('sources_count', 2, $agent)
         ->assertTableColumnStateSet('messages_this_month', 22, $agent)

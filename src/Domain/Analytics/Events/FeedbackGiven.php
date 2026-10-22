@@ -27,7 +27,7 @@ class FeedbackGiven
         public readonly string $conversationExternalId,
         public readonly string $messageExternalId,
         public readonly ?string $feedback,
-        public readonly ?string $llmExternalName,
+        public readonly ?int $llmId,
         public readonly ?string $countryCode,
         public readonly DateTimeInterface $occurredAt,
     ) {}

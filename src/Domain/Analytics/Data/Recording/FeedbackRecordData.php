@@ -19,7 +19,7 @@ class FeedbackRecordData extends Data
         public string $conversationExternalId,
         public string $messageExternalId,
         public ?string $feedback,
-        public ?string $llmExternalName,
+        public ?int $llmId,
         public ?string $countryCode,
         public DateTimeInterface $occurredAt,
     ) {}
@@ -33,7 +33,7 @@ class FeedbackRecordData extends Data
             conversationExternalId: $event->conversationExternalId,
             messageExternalId: $event->messageExternalId,
             feedback: $event->feedback,
-            llmExternalName: $event->llmExternalName,
+            llmId: $event->llmId,
             countryCode: $event->countryCode,
             occurredAt: $event->occurredAt,
         );

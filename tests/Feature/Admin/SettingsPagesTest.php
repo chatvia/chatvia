@@ -413,17 +413,17 @@ it('picks the model of each app task from the models that may be used', function
     $off = testLlm('off-model', attributes: ['is_enabled' => false]);
 
     settingsPage($this->admin, ManageAiModelSettings::class)
-        ->fillForm([$property => $off->external_name])
+        ->fillForm([$property => (string) $off->id])
         ->call('save')
         ->assertHasFormErrors([$property]);
 
     settingsPage($this->admin, ManageAiModelSettings::class)
-        ->fillForm([$property => $picked->external_name])
+        ->fillForm([$property => (string) $picked->id])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(savedSetting(AiSettings::class, $property))->toBe($picked->external_name)
-        ->and(config($configKey))->toBe($picked->external_name);
+    expect(savedSetting(AiSettings::class, $property))->toBe((string) $picked->id)
+        ->and(config($configKey))->toBe((string) $picked->id);
 })->with([
     'the model for app tasks' => ['task_model', 'chatvia.ai.tasks.default'],
     'one task' => ['guardrails_model', 'chatvia.ai.tasks.guardrails'],

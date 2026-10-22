@@ -39,7 +39,7 @@ function paRollup(Agent $agent, string $bucketHour, array $values = []): void
             'workspace_id' => $agent->workspace_id,
             'bucket_hour' => $bucketHour,
             'country_code' => '--',
-            'llm_external_name' => '',
+            'llm_id' => 0,
         ], $values));
 }
 
@@ -252,7 +252,7 @@ it('ranks the busiest workspaces and agents, naming deleted ones as such', funct
     // Traffic from a workspace deleted since is still counted.
     DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => 999_999_001, 'workspace_id' => 999_999_002, 'bucket_hour' => '2031-03-12 10:00:00',
-        'country_code' => '--', 'llm_external_name' => '', 'user_messages' => 1, 'assistant_messages' => 0,
+        'country_code' => '--', 'llm_id' => 0, 'user_messages' => 1, 'assistant_messages' => 0,
     ]);
 
     $workspaces = app(TopWorkspacesQuery::class)->get(paScope());

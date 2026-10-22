@@ -160,7 +160,7 @@ function seedAnalyticsRollups(Workspace $workspace, Agent $alpha, Agent $beta, W
         'workspace_id' => $workspaceId,
         'bucket_hour' => $bucket,
         'country_code' => $country,
-        'llm_external_name' => 'qwen3',
+        'llm_id' => 0,
         'conversations_started' => $conversations,
         'user_messages' => $user,
         'assistant_messages' => $assistant,

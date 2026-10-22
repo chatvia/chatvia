@@ -134,7 +134,8 @@ it('saves the visitor\'s words before the reply, and counts the reply', function
     expect(array_column($messages, 'role'))->toBe([MessageRole::User, MessageRole::Assistant])
         ->and(array_column($messages, 'content'))->toBe(['When do you open?', 'We open at nine.'])
         ->and($messages[1]->metadata)->toBe(['voice' => true])
-        ->and($messages[1]->model)->toBe('gpt-realtime-2.1');
+        // The realtime model is not in the catalog.
+        ->and($messages[1]->llm_id)->toBeNull();
 
     Event::assertDispatchedTimes(AssistantReplyCompleted::class, 1);
     Queue::assertPushed(StoreMessageJob::class, 2);

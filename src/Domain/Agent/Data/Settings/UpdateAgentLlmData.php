@@ -8,13 +8,13 @@ use Domain\Llm\Enums\ReasoningEffort;
 use Spatie\LaravelData\Data;
 
 /**
- * The model an agent answers with (by its public name) and the generation
+ * The model an agent answers with (its catalog id) and the generation
  * settings to store with it, including how hard it reasons.
  */
 class UpdateAgentLlmData extends Data
 {
     public function __construct(
-        public string $model_external_name,
+        public int $model_id,
         public float $temperature,
         public int $top_k,
         public float $top_p,

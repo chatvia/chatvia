@@ -29,7 +29,8 @@ class AssistantTurnData extends Data
         public string $external_conversation_id,
         public string $external_message_id,
         public string $message,
-        public string $model,
+        // The catalog model that answered (llms.id), or null when unknown.
+        public ?int $llm_id,
         public Carbon $sent_at,
         public ?string $generation_id = null,
         // The Spectra trace that groups the turn's AI calls; null when Spectra

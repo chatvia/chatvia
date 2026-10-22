@@ -41,13 +41,7 @@ class TaskModels
 
     private function picked(string $configKey): ?Llm
     {
-        $alias = (string) config($configKey);
-
-        if ($alias === '') {
-            return null;
-        }
-
-        $model = Llm::catalog()->firstWhere('external_name', $alias);
+        $model = Llm::fromSetting(config($configKey));
 
         return $model?->isAvailable() ? $model : null;
     }

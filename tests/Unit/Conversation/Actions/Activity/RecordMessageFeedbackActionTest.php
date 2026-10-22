@@ -49,7 +49,7 @@ it('records the rating once when the message is in the live memory', function ()
         content: 'Hello!',
         type: MessageData::TYPE_TEXT,
         timestamp: now()->timestamp,
-        model: 'gpt-test',
+        llm_id: 7,
     ));
     feedbackMessage($scope, $messageId);
 
@@ -61,7 +61,7 @@ it('records the rating once when the message is in the live memory', function ()
     // The live path already wrote the row, so the database path sees the
     // rating unchanged and must not count it a second time.
     Event::assertDispatchedTimes(FeedbackGiven::class, 1);
-    Event::assertDispatched(FeedbackGiven::class, fn (FeedbackGiven $event): bool => $event->llmExternalName === 'gpt-test');
+    Event::assertDispatched(FeedbackGiven::class, fn (FeedbackGiven $event): bool => $event->llmId === 7);
 });
 
 it('still records the rating when the live memory is cold', function (): void {
@@ -79,8 +79,8 @@ it('still records the rating when the live memory is cold', function (): void {
         && $event->conversationExternalId === $scope->conversationId
         // Analytics rows are keyed by the agent's workspace.
         && $event->workspaceId === $scope->agent->workspace_id
-        // The model name lives only in the live memory.
-        && $event->llmExternalName === null);
+        // The model lives only in the live memory.
+        && $event->llmId === null);
 });
 
 it('clears a rating with null', function (): void {

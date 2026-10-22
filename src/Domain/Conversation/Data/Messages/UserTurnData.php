@@ -24,7 +24,8 @@ class UserTurnData extends Data
         public readonly string $external_session_id,
         public readonly string $external_conversation_id,
         public readonly string $external_message_id,
-        public readonly string $model,
+        // The catalog model the turn is for (llms.id), or null when unknown.
+        public readonly ?int $llm_id,
         public readonly string $message,
         public readonly Carbon $sent_at,
         public readonly ?string $message_for_llm = null,
@@ -54,7 +55,7 @@ class UserTurnData extends Data
             external_session_id: $this->external_session_id,
             external_conversation_id: $this->external_conversation_id,
             external_message_id: $this->external_message_id,
-            model: $this->model,
+            llm_id: $this->llm_id,
             message: $this->message,
             sent_at: $this->sent_at,
             message_for_llm: $messageForLlm,

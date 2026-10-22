@@ -23,21 +23,26 @@ use Domain\Llm\Models\Llm;
 final class TaskModelPreset
 {
     /**
-     * @return array<string, ?string> AiSettings property => model alias
+     * @return array<string, ?string> AiSettings property => model id, as text
      */
     public static function values(Llm $chat, ?Llm $small, ?Llm $vision = null): array
     {
-        $values = ['task_model' => $small?->external_name];
+        $values = ['task_model' => self::id($small)];
 
         foreach (LlmTask::appTasks() as $task) {
             $values[$task->settingsProperty()] = match (true) {
-                $task === LlmTask::Images => $vision?->external_name,
-                $small instanceof Llm && $task->tier() === ModelTier::Large => $chat->external_name,
+                $task === LlmTask::Images => self::id($vision),
+                $small instanceof Llm && $task->tier() === ModelTier::Large => self::id($chat),
                 default => null,
             };
         }
 
         return $values;
+    }
+
+    private static function id(?Llm $model): ?string
+    {
+        return $model instanceof Llm ? (string) $model->id : null;
     }
 
     /** Whether the preset leaves the task to the model for quick tasks. */

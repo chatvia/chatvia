@@ -18,7 +18,7 @@ type Llm = Domain.Llm.Data.LlmModelData;
 
 const props = defineProps<{
     catalog: Llm[];
-    defaultModel: string | null;
+    defaultModel: number | null;
     reasoningAllowed: boolean;
 }>();
 
@@ -36,7 +36,7 @@ const effortLabels = computed<Record<ReasoningEffort, string>>(() => ({
 }));
 
 /** Only a model marked as reasoning can be told how hard to think. */
-const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.model_external_name)?.is_reasoning ?? false);
+const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.model_id)?.is_reasoning ?? false);
 </script>
 
 <template>
@@ -52,7 +52,7 @@ const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.
             <p v-if="!catalog.length" class="text-muted-foreground rounded-md border border-dashed p-3 text-sm">
                 {{ t('agents.setup.model_empty') }}
             </p>
-            <Select v-else v-model="form.model_external_name" :disabled="locked">
+            <Select v-else v-model="form.model_id" :disabled="locked">
                 <SelectTrigger class="w-full" :aria-label="t('agents.setup.model_picker_title')">
                     <SelectValue :placeholder="t('agents.setup.model_placeholder')" />
                 </SelectTrigger>
@@ -60,6 +60,7 @@ const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.
                     <SelectItem v-for="llm in catalog" :key="llm.id" :value="llm.id">
                         <span class="flex items-center gap-2">
                             {{ llm.name }}
+                            <span class="text-muted-foreground text-xs">{{ llm.provider }}</span>
                             <Badge v-if="llm.id === defaultModel" variant="secondary" class="text-xs font-normal">
                                 {{ t('agents.setup.model_default') }}
                             </Badge>
@@ -67,8 +68,8 @@ const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.
                     </SelectItem>
                 </SelectContent>
             </Select>
-            <p v-if="form.errors.model_external_name" class="text-destructive text-sm">
-                {{ form.errors.model_external_name }}
+            <p v-if="form.errors.model_id" class="text-destructive text-sm">
+                {{ form.errors.model_id }}
             </p>
         </div>
 

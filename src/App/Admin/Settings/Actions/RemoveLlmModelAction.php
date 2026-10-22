@@ -34,7 +34,7 @@ final readonly class RemoveLlmModelAction
         }
 
         if (! $replacement instanceof Llm && Agent::query()->where('llm_id', $model->id)->exists()) {
-            throw new InvalidArgumentException("Agents answer with {$model->descriptive_name}: pick a model for them first.");
+            throw new InvalidArgumentException("Agents answer with {$model->name}: pick a model for them first.");
         }
 
         DB::transaction(function () use ($model, $replacement): void {
@@ -44,14 +44,14 @@ final readonly class RemoveLlmModelAction
 
             $model->update(['is_enabled' => false]);
 
-            if ($this->ai->default_agent_model === $model->external_name) {
-                $this->ai->default_agent_model = $replacement?->external_name;
+            if ($this->ai->default_agent_model === (string) $model->id) {
+                $this->ai->default_agent_model = $replacement instanceof Llm ? (string) $replacement->id : null;
             }
 
             $taskProperties = ['task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTask::appTasks())];
 
             foreach ($taskProperties as $property) {
-                if ($this->ai->{$property} === $model->external_name) {
+                if ($this->ai->{$property} === (string) $model->id) {
                     $this->ai->{$property} = null;
                 }
             }

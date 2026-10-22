@@ -229,7 +229,7 @@ readonly class ChatStreamService
             $this->sendVisitorMessage->execute(new SendVisitorHandoffMessageData(
                 conversation: $conversation,
                 content: $data->message->message,
-                model: $data->message->model->external_name,
+                llmId: $data->message->model->id,
                 ipAddress: $data->ipAddress,
                 userAgent: $data->userAgent,
                 referrerUrl: $data->referrerUrl,

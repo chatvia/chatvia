@@ -136,7 +136,7 @@ class EvalAgentRunner
             $this->runner->run(
                 context: $context,
                 provider: $this->providers->for($model),
-                modelName: $model->internal_name,
+                modelName: $model->name,
                 llmMessages: $llmMessages,
                 toolDefinitions: $toolDefinitions,
                 // The agent's own reasoning effort, so the eval measures

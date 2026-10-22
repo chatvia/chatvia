@@ -118,8 +118,8 @@ class PlatformSettings extends AdminSettings
     #[ConfigKey('chatvia.admin.logs_page_enabled')]
     public ?bool $logs_page_enabled = null;
 
-    // Whether Pulse and Spectra record (ToolRecording). Off for Spectra
-    // until an admin turns it on: it keeps what is sent to the AI.
+    // Whether Pulse and Spectra record (ToolRecording). Both record out of
+    // the box; an admin can switch either off.
     #[ConfigKey('chatvia.pulse.recording')]
     public ?bool $pulse_enabled = null;
 

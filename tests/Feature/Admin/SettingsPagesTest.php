@@ -261,17 +261,19 @@ it('keeps the tracking code as typed, and an empty box turns it off', function (
     expect(savedSetting(PlatformSettings::class, 'tracking_code'))->toBeNull();
 });
 
-it('turns Spectra on, and keeps only counts while prompts and replies are not saved', function (): void {
-    // phpunit.xml leaves Pulse out of the install, and Spectra in.
+it('keeps Spectra on, and keeps only counts while prompts and replies are not saved', function (): void {
+    // phpunit.xml leaves Pulse out of the install, and Spectra in. Spectra
+    // records out of the box, so its switch starts on.
     settingsPage($this->admin, ManagePlatformSettings::class)
         ->assertSee(['Off in .env', 'PULSE_ENABLED=false in .env', 'Open Spectra'])
         // A number left blank shows its default (30 days) as a placeholder.
-        ->assertSchemaStateSet(['spectra_enabled' => false, 'spectra_store_content' => true, 'spectra_retention_days' => null])
+        ->assertSchemaStateSet(['spectra_enabled' => true, 'spectra_store_content' => true, 'spectra_retention_days' => null])
         ->fillForm(['spectra_enabled' => true, 'spectra_store_content' => false, 'spectra_retention_days' => 7])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(savedSetting(PlatformSettings::class, 'spectra_enabled'))->toBeTrue()
+    // On is the default, so the switch stores nothing.
+    expect(savedSetting(PlatformSettings::class, 'spectra_enabled'))->toBeNull()
         ->and(config('spectra.enabled'))->toBeTrue()
         ->and(config('spectra.storage.store_prompts'))->toBeFalse()
         ->and(config('spectra.storage.store_responses'))->toBeFalse()

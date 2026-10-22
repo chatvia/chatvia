@@ -39,6 +39,8 @@ const props = defineProps<{
     userMessageId?: MessageId;
     isThinking?: boolean;
     isStreaming?: boolean;
+    /** The last row of the transcript: its actions stay visible, older replies show them on hover. */
+    isLatest?: boolean;
     isCallingExternal?: boolean;
     activeCalls?: ActiveToolCall[];
     hideFeedback?: boolean;
@@ -76,6 +78,10 @@ const isRegenerating = ref(false);
 
 const hasPendingApprovals = computed(() => (props.pendingApprovals?.length ?? 0) > 0);
 const activeCallList = computed(() => props.activeCalls ?? []);
+
+// On devices with a mouse, older replies keep their action row out of the way
+// until hovered or focused. A thumb already given stays in sight.
+const actionsAlwaysVisible = computed(() => props.isLatest || feedback.value !== null);
 
 /** Server ids only: the stub id 0 (and a missing id) cannot be acted on yet. */
 const persistedId = computed<MessageId | null>(() => (props.message.id === undefined || props.message.id === null ? null : props.message.id));
@@ -125,7 +131,7 @@ async function deleteMessage() {
 </script>
 
 <template>
-    <div class="flex w-full items-start">
+    <div class="group flex w-full items-start">
         <div class="max-w-full min-w-0 flex-1">
             <ReasoningBlock
                 v-if="message.reasoning"
@@ -168,7 +174,14 @@ async function deleteMessage() {
 
             <!-- Hidden while an approval is pending: feedback on a turn whose
                  tool call has not run yet would be misleading. -->
-            <div v-if="message.content && !hideFeedback && !hasPendingApprovals" class="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <div
+                v-if="message.content && !hideFeedback && !hasPendingApprovals"
+                class="mt-2 flex flex-wrap items-center justify-between gap-2"
+                :class="{
+                    'transition-opacity duration-150 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:hover)]:opacity-0':
+                        !actionsAlwaysVisible,
+                }"
+            >
                 <div class="flex items-center gap-0.5">
                     <Button
                         size="icon"

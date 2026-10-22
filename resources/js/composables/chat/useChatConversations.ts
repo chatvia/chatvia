@@ -6,16 +6,33 @@
 import { deleteAllConversations, deleteConversation, fetchConversations, renameConversation, searchConversations } from '@/api/chat';
 import type { ChatConversationSummary } from '@/types/chat';
 import { useChatEventBus } from '@/utils/eventBus';
+import { usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
+
+/**
+ * The last list loaded, per person and chat (path up to the agent slug). Each chat page
+ * mounts a new sidebar, so without it the list blanks to a loader on every
+ * conversation the visitor opens; with it the old list shows while the fresh
+ * one loads.
+ */
+const lastLoaded = new Map<string, ChatConversationSummary[]>();
 
 export function useChatConversations() {
     const bus = useChatEventBus();
-    const conversations = ref<ChatConversationSummary[]>([]);
-    const isLoading = ref(true);
+    const page = usePage();
+
+    // Keyed to the person too: another sign-in in the same tab never sees this list.
+    const chatKey = () => `${page.props.auth?.user?.id ?? 'guest'}:${window.location.pathname.split('/').slice(0, 3).join('/')}`;
+
+    const cached = lastLoaded.get(chatKey());
+    const conversations = ref<ChatConversationSummary[]>(cached ?? []);
+    const isLoading = ref(cached === undefined);
 
     async function load() {
-        isLoading.value = true;
-        conversations.value = await fetchConversations();
+        const key = chatKey();
+        const list = await fetchConversations();
+        lastLoaded.set(key, list);
+        conversations.value = list;
         isLoading.value = false;
     }
 
@@ -52,6 +69,7 @@ export function useChatConversations() {
     async function removeAll(): Promise<boolean> {
         try {
             await deleteAllConversations();
+            lastLoaded.delete(chatKey());
 
             return true;
         } catch {

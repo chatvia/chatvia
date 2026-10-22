@@ -139,7 +139,8 @@ async function onFileSelected(event: Event) {
 }
 
 function onEnter(event: KeyboardEvent) {
-    if (event.shiftKey) {
+    // An IME (e.g. Japanese, Chinese) uses Enter to confirm a word, not to send.
+    if (event.shiftKey || event.isComposing) {
         adjustTextareaHeight(event);
         return;
     }
@@ -148,8 +149,16 @@ function onEnter(event: KeyboardEvent) {
     sendMessage();
 }
 
+/** Esc in the composer stops the reply that is streaming. */
+function onEscape() {
+    if (props.isThinking) emit('stopStreaming');
+}
+
 // Waits for uploads and removals: a send during a removal would still carry the removed file.
+// The textarea stays usable while a reply streams, so the next message can be
+// typed; it is sent once the reply finished.
 function sendMessage() {
+    if (props.isThinking) return;
     if (!userInput.value.trim() && attachments.value.length === 0) return;
     if (isAttachmentBusy.value) return;
 
@@ -237,13 +246,14 @@ async function toggleRecording() {
                         ref="messageInput"
                         v-model="userInput"
                         @keydown.enter="onEnter"
+                        @keydown.esc="onEscape"
                         @input="adjustTextareaHeight"
                         @focus="isFocused = true"
                         @blur="isFocused = false"
                         :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
                         class="text-foreground placeholder:text-muted-foreground/50 max-h-[200px] min-h-[24px] flex-1 resize-none !border-0 !bg-transparent py-2 text-[15px] leading-relaxed !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
                         :class="showUploadButton ? 'px-1' : 'px-3'"
-                        :disabled="isThinking || disabled"
+                        :disabled="disabled"
                         rows="1"
                     />
 

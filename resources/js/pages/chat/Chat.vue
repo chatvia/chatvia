@@ -80,7 +80,8 @@ const bus = useChatEventBus();
 const { resolvedAppearance, maxFilesPerChat, canSendMessages } = useChatSurface(props);
 
 const messagesContainer = ref<HTMLElement | null>(null);
-const scroll = useChatScroll(messagesContainer);
+const transcriptContent = ref<HTMLElement | null>(null);
+const scroll = useChatScroll(messagesContainer, transcriptContent);
 const transcript = useChatMessages(props.conversation_id);
 const turn = useChatStreamTurn({ conversationId: props.conversation_id, transcript, scroll });
 const actions = useChatTurnActions({
@@ -92,7 +93,7 @@ const actions = useChatTurnActions({
 });
 
 const { messages } = transcript;
-const { showScrollToBottom } = scroll;
+const { showScrollToBottom, spacerHeight } = scroll;
 const { isStreaming, isMessageStreaming, liveAnnouncement, activeCalls, hasActiveCalls, approvals, stop: stopStreaming } = turn;
 const { resolvingApprovalIds, hasPendingApprovals } = approvals;
 const loadingMessages = ref(true);
@@ -121,6 +122,7 @@ function streamFirstReply() {
     const first = messages.value[0];
     const assistantIndex = messages.value.length;
     messages.value.push({ role: 'assistant', content: '', id: 0 });
+    void scroll.pinToTop(0);
 
     turn.startTurn({
         message: first.content,
@@ -139,9 +141,11 @@ onMounted(async () => {
         await transcript.load();
         loadingMessages.value = false;
 
-        if (messages.value.length === 1) streamFirstReply();
-
-        void nextTick(() => scroll.scrollToBottom());
+        if (messages.value.length === 1) {
+            streamFirstReply();
+        } else {
+            void nextTick(() => scroll.scrollToBottom());
+        }
         // Sources load after the transcript so they never delay the first paint.
         void transcript.loadSources();
     } catch {
@@ -167,54 +171,58 @@ onMounted(async () => {
                  completion state without announcing every token. -->
             <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ liveAnnouncement }}</div>
             <div class="relative flex h-full flex-col overflow-hidden">
-                <div
-                    id="messages-container"
-                    ref="messagesContainer"
-                    :class="['flex-1 overflow-x-hidden overflow-y-auto', { 'flex flex-col justify-between': messages.length === 0 }]"
-                >
-                    <ChatMessageList
-                        :messages="messages"
-                        :loading="loadingMessages"
-                        :expanded="isChatExpanded"
-                        :conversation-id="conversation_id"
-                        :avatar="appearance?.avatar"
-                        :is-message-streaming="isMessageStreaming"
-                        :has-active-calls="hasActiveCalls"
-                        :active-calls="activeCalls"
-                        :sources-for="transcript.sourcesFor"
-                        :artifacts-for="transcript.artifactsFor"
-                        :approvals-for="approvals.approvalsFor"
-                        :resolving-approval-ids="resolvingApprovalIds"
-                        @message-updated="actions.editInPlace"
-                        @message-edited="actions.editAndRegenerate"
-                        @message-deleted="actions.deleteMessage"
-                        @attachment-deleted="actions.deleteAttachment"
-                        @regenerate="actions.regenerate"
-                        @retry="actions.retry"
-                        @approve-tool="approvals.approve"
-                        @deny-tool="approvals.deny"
-                    />
+                <div id="messages-container" ref="messagesContainer" class="flex-1 overflow-x-hidden overflow-y-auto">
+                    <div ref="transcriptContent" :class="{ 'h-full': loadingMessages }">
+                        <ChatMessageList
+                            :messages="messages"
+                            :loading="loadingMessages"
+                            :expanded="isChatExpanded"
+                            :conversation-id="conversation_id"
+                            :avatar="appearance?.avatar"
+                            :is-message-streaming="isMessageStreaming"
+                            :has-active-calls="hasActiveCalls"
+                            :active-calls="activeCalls"
+                            :sources-for="transcript.sourcesFor"
+                            :artifacts-for="transcript.artifactsFor"
+                            :approvals-for="approvals.approvalsFor"
+                            :resolving-approval-ids="resolvingApprovalIds"
+                            @message-updated="actions.editInPlace"
+                            @message-edited="actions.editAndRegenerate"
+                            @message-deleted="actions.deleteMessage"
+                            @attachment-deleted="actions.deleteAttachment"
+                            @regenerate="actions.regenerate"
+                            @retry="actions.retry"
+                            @approve-tool="approvals.approve"
+                            @deny-tool="approvals.deny"
+                        />
 
-                    <!-- Breathing room under the last message -->
-                    <div class="pb-6"></div>
+                        <!-- Breathing room under the last message -->
+                        <div class="pb-6"></div>
+                    </div>
+
+                    <!-- Room under the latest turn, so a sent prompt can move to the top of the view. -->
+                    <div aria-hidden="true" :style="{ height: `${spacerHeight}px` }"></div>
                 </div>
 
-                <div class="pointer-events-none absolute start-0 end-0 bottom-36 z-10 flex justify-center">
-                    <Transition name="scale-fade">
-                        <button
-                            v-if="showScrollToBottom && messages.length > 0"
-                            class="bg-card text-foreground hover:bg-muted ring-border pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg ring-1 transition-colors"
-                            :aria-label="t('chat.scroll_to_bottom')"
-                            @click="scroll.scrollToBottom(true)"
-                        >
-                            <ChevronDown class="h-4 w-4" />
-                        </button>
-                    </Transition>
-                </div>
+                <!-- Sticky composer area. The fade above it lets the transcript
+                     run out softly instead of being cut off at its edge. -->
+                <div class="bg-background relative shrink-0 px-4 pt-2 pb-6 sm:px-6">
+                    <div class="from-background pointer-events-none absolute start-0 end-0 bottom-full h-8 bg-gradient-to-t to-transparent"></div>
 
-                <!-- Sticky composer area -->
-                <div class="bg-background shrink-0 px-4 pt-4 pb-6 sm:px-6">
-                    <div class="mx-auto transition-all duration-300" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
+                    <div class="relative mx-auto" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
+                        <div class="pointer-events-none absolute start-0 end-0 bottom-full z-10 mb-4 flex justify-center">
+                            <Transition name="scale-fade">
+                                <button
+                                    v-if="showScrollToBottom && messages.length > 0"
+                                    class="bg-card text-foreground hover:bg-muted ring-border pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg ring-1 transition-colors"
+                                    :aria-label="t('chat.scroll_to_bottom')"
+                                    @click="scroll.scrollToBottom(true)"
+                                >
+                                    <ChevronDown class="h-4 w-4" />
+                                </button>
+                            </Transition>
+                        </div>
+
                         <ChatComposer
                             :isThinking="isStreaming"
                             :placeholder="resolvedAppearance.composer_placeholder ?? undefined"

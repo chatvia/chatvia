@@ -251,7 +251,7 @@ export function useChatStreamTurn({ conversationId, transcript, scroll }: Stream
         if (target.isNewConversation) void nameConversationThenRefresh();
         clearNewConversationFlag();
 
-        if (target.autoScrollOnDone && scroll.isAutoScrollEnabled.value) {
+        if (target.autoScrollOnDone && scroll.isFollowing.value) {
             nextTick(() => scroll.scrollToBottom());
         }
     }

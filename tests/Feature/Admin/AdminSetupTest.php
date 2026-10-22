@@ -207,7 +207,7 @@ it('can be finished after a skip, from Settings', function (): void {
 it('opens on the server step and checks the services ChatVia.ai runs on', function (): void {
     setupServerStep($this->admin)
         ->assertWizardCurrentStep(1)
-        ->assertSee(['Checking each service…', 'Keyword search'])
+        ->assertSee('Checking each service…')
         ->call('checkServer')
         ->assertSet('server', fn (array $server): bool => array_keys($server) === ['database', 'redis', 'queue', 'scheduler', 'realtime', 'model_details'])
         ->assertSee(['Database', 'Redis', 'Queue', 'Scheduler', 'Live updates', 'Model details']);
@@ -219,7 +219,7 @@ it('says why pg_textsearch matters and what to do to get it', function (): void 
     $page = setupServerStep($this->admin)->set('server', setupServicesRunning())->assertSee('Everything runs.');
 
     match ($state) {
-        PgTextsearchState::Active => $page->assertSee('pg_textsearch is on'),
+        PgTextsearchState::Active => $page->assertDontSee(['Keyword search', 'pg_textsearch']),
         PgTextsearchState::NotInstalled => $page->assertSee(['Install pg_textsearch (recommended)', 'ranks the words with BM25', 'releases page', 'the built-in search works'])->assertDontSee('Turn on pg_textsearch'),
         PgTextsearchState::NotPreloaded => $page->assertSee(['Load pg_textsearch when PostgreSQL starts', 'shared_preload_libraries']),
         PgTextsearchState::ReadyToEnable => $page->assertSee('Turn on pg_textsearch'),
@@ -275,8 +275,10 @@ it('checks the key with the provider\'s model list before the next step', functi
             'chat_models' => ['gpt-oss-120b'],
             'default_model' => 'gpt-oss-120b',
             'quick_task_model' => 'mistral-small-3.2-24b-instruct-2506',
+            'describe_images' => true,
             'vision_model' => 'mistral-small-3.2-24b-instruct-2506',
-        ]);
+        ])
+        ->assertFormFieldVisible('vision_model');
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/models')
         && $request->header('Authorization') === ['Bearer scw-test']);
@@ -308,6 +310,7 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
             'chat_models' => ['openai/gpt-6.1-sol', 'qwen/qwen3.6-plus', 'openai/gpt-oss-120b'],
             'default_model' => 'openai/gpt-6.1-sol',
             'quick_task_model' => 'openai/gpt-6-luna',
+            'describe_images' => true,
             'vision_model' => 'openai/gpt-6-luna',
         ]);
 });
@@ -334,6 +337,34 @@ it('stops on the first step when the provider refuses the key', function (): voi
         ->goToWizardStep(3)
         ->assertHasFormErrors(['api_key'])
         ->assertWizardCurrentStep(2);
+});
+
+it('lets the admin turn image descriptions off, although a recommended model reads images', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->assertFormSet(['describe_images' => true])
+        ->fillForm(['describe_images' => false])
+        ->assertFormFieldHidden('vision_model')
+        ->assertSee('Off: pictures are not described.')
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse()
+        ->and(savedSetting(AiSettings::class, 'images_model'))->toBeNull();
+});
+
+it('asks for a model once image descriptions are turned on', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['vision_model' => null])
+        ->call('complete')
+        ->assertHasFormErrors(['vision_model' => 'required']);
 });
 
 it('saves the Scaleway key once, for chat and for embeddings', function (): void {
@@ -390,7 +421,8 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         ->assertWizardCurrentStep(3)
         // No recommended model is listed: the first model that calls tools
         // is, and quick tasks use it too.
-        ->assertFormSet(['chat_models' => ['meta-llama/llama-4-maverick'], 'quick_task_model' => null, 'vision_model' => null])
+        ->assertFormSet(['chat_models' => ['meta-llama/llama-4-maverick'], 'quick_task_model' => null, 'describe_images' => false, 'vision_model' => null])
+        ->assertFormFieldHidden('vision_model')
         ->assertSee('None of the recommended models of this provider reads images, so image descriptions are off.')
         ->assertSee(['OpenRouter makes them with the same key, or pick another service.', 'OpenAI text-embedding-3-small — Good and cheap. The default.', 'BAAI: bge-m3'])
         ->assertDontSee('Text Embedding 3 Small (batch)')

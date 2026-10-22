@@ -164,7 +164,10 @@ async function deleteMessage() {
                 </div>
             </div>
 
-            <div v-if="!isEditing" class="mt-1 flex items-center gap-0.5 pe-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <div
+                v-if="!isEditing"
+                class="mt-1 flex items-center gap-0.5 pe-1 transition-opacity duration-150 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:hover)]:opacity-0"
+            >
                 <Button
                     size="icon"
                     variant="ghost"

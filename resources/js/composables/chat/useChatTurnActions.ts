@@ -8,7 +8,6 @@ import { regenerateMessage, type RegeneratedTurn } from '@/api/chat';
 import type { ChatAttachment } from '@/types/chat';
 import { router } from '@inertiajs/vue3';
 import { isAxiosError } from 'axios';
-import { nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { chatPages } from './chatPages';
@@ -32,10 +31,7 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
 
     async function send(content: string, attachments: ChatAttachment[] = []) {
         const slots = transcript.appendTurn(content, attachments);
-        scroll.follow();
-
-        await nextTick();
-        scroll.scrollToBottom();
+        void scroll.pinToTop(slots.userIndex);
         turn.startTurn({ message: content, ...slots, attachments, isNewConversation: isNewConversationVisit() });
     }
 
@@ -58,7 +54,7 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
         reply.id = 0;
         transcript.forgetReplyExtras(previousAssistantId);
 
-        scroll.follow();
+        void scroll.pinToTop(userIndex);
         turn.startTurn({
             message: content,
             userIndex,
@@ -100,7 +96,7 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
     /**
      * Edit and regenerate share this flow: the server deletes the pair (and
      * returns the original timestamp), then a new reply streams into the same
-     * slots while the edited prompt stays in view.
+     * slots with the prompt moved to the top of the view.
      */
     async function reissue(userMessageId: MessageId, assistantMessageId: MessageId, overrideContent: string | null = null) {
         const result = await deletePairOnServer(userMessageId, assistantMessageId);
@@ -117,10 +113,7 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
         transcript.forgetReplyExtras(assistantMessageId);
         transcript.messages.value[userIndex] = { role: 'user', content, id: 0 };
         transcript.resetReply(assistantIndex);
-        scroll.hold();
-
-        await nextTick();
-        document.getElementById(`message-${userIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        void scroll.pinToTop(userIndex);
         turn.startTurn({
             message: content,
             userIndex,
@@ -140,11 +133,13 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
         if (prompt?.role !== 'user') return;
 
         transcript.resetReply(errorIndex);
-        scroll.follow();
+        void scroll.pinToTop(errorIndex - 1);
         turn.startTurn({ message: prompt.content, userIndex: errorIndex - 1, assistantIndex: errorIndex });
     }
 
     function deleteMessage(messageId: MessageId) {
+        // The rows shift, so the pinned index no longer points at the same turn.
+        scroll.unpin();
         if (transcript.removePair(messageId)) goToNewChat();
     }
 

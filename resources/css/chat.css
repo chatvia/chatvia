@@ -291,6 +291,21 @@ body,
     opacity: 0;
 }
 
+/* A new transcript row (sent prompt, reply, error card) fades in. */
+.chat-row-enter-active {
+    transition: opacity 0.25s ease-out;
+}
+
+.chat-row-enter-from {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-row-enter-active {
+        transition: none;
+    }
+}
+
 .scale-fade-enter-active,
 .scale-fade-leave-active {
     transition: all 0.2s ease;

@@ -13,9 +13,8 @@ import { useIsMobile } from '@/composables/useIsMobile';
 import { safeStorage } from '@/lib/safeStorage';
 import type { ChatAppearance, ChatDefaultTheme } from '@/types/chat';
 import { Head, router } from '@inertiajs/vue3';
-import { vOnClickOutside } from '@vueuse/components';
 import { onKeyStroke } from '@vueuse/core';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
@@ -50,46 +49,43 @@ const isMobileDevice = useIsMobile();
 
 const pageTitle = computed(() => props.appearance?.chat_window_title || t('shared.chat_title_fallback'));
 
-const isSidebarOpen = ref(false);
-
-// Desktop remembers the sidebar state; mobile always starts closed.
-watch(isSidebarOpen, (open) => {
-    if (!isMobileDevice.value) {
-        safeStorage.set(SIDEBAR_STORAGE_KEY, String(open));
-    }
-});
-
-function syncSidebarToViewport() {
-    isSidebarOpen.value = !isMobileDevice.value;
-}
-
-function restoreSidebarState() {
+/**
+ * Every chat page mounts its own layout, so the open state is settled before
+ * the first paint: starting closed and opening on mount would slide the
+ * sidebar in again on each conversation the visitor opens. Mobile always
+ * starts closed (a drawer); desktop remembers the last choice.
+ */
+function initialSidebarState(): boolean {
+    if (props.removeSidebar || isMobileDevice.value) return false;
     if (props.hideSidebarOnPageLoad) {
-        isSidebarOpen.value = false;
         safeStorage.set(SIDEBAR_STORAGE_KEY, 'false');
-        return;
+        return false;
     }
 
     const saved = safeStorage.get(SIDEBAR_STORAGE_KEY);
-    if (saved !== null) {
-        isSidebarOpen.value = saved === 'true';
-        return;
-    }
 
-    isSidebarOpen.value = !isMobileDevice.value;
-    safeStorage.set(SIDEBAR_STORAGE_KEY, String(isSidebarOpen.value));
+    return saved === null ? true : saved === 'true';
 }
 
-onMounted(() => {
-    if (!isMobileDevice.value && !props.removeSidebar) {
-        restoreSidebarState();
-    }
+const isSidebarOpen = ref(initialSidebarState());
 
-    window.addEventListener('resize', syncSidebarToViewport);
+// Transitions switch on after the first frame, so the initial state never animates.
+const isAnimated = ref(false);
+
+watch(isSidebarOpen, (open) => {
+    if (!isMobileDevice.value) safeStorage.set(SIDEBAR_STORAGE_KEY, String(open));
 });
 
-onUnmounted(() => {
-    window.removeEventListener('resize', syncSidebarToViewport);
+// Crossing the breakpoint (a narrowed window, a rotated tablet): the drawer
+// closes on mobile, and desktop gets back the visitor's last choice.
+watch(isMobileDevice, (mobile) => {
+    isSidebarOpen.value = mobile ? false : initialSidebarState();
+});
+
+onMounted(() => {
+    requestAnimationFrame(() => {
+        isAnimated.value = true;
+    });
 });
 
 async function deleteConversation(conversationId: string) {
@@ -99,12 +95,6 @@ async function deleteConversation(conversationId: string) {
         preserveScroll: false,
         replace: true,
     });
-}
-
-function closeSidebarOnMobile() {
-    if (isMobileDevice.value) {
-        isSidebarOpen.value = false;
-    }
 }
 
 function toggleSidebar() {
@@ -118,6 +108,11 @@ onKeyStroke('b', (e) => {
     e.preventDefault();
     toggleSidebar();
 });
+
+// Esc closes the mobile drawer, like the tap on its backdrop.
+onKeyStroke('Escape', () => {
+    if (isMobileDevice.value && isSidebarOpen.value) isSidebarOpen.value = false;
+});
 </script>
 
 <template>
@@ -127,29 +122,38 @@ onKeyStroke('b', (e) => {
          this, every toast.* call from ChatComposer/ChatSidebar renders nowhere. -->
     <Toaster position="top-center" :duration="5000" />
 
-    <div class="flex h-screen">
-        <!-- Mobile overlay -->
+    <div class="flex h-dvh">
+        <!-- Mobile backdrop: a tap outside the drawer closes it. -->
         <Transition name="fade">
             <div
                 v-if="!removeSidebar && isMobileDevice && isSidebarOpen"
-                class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+                class="fixed inset-0 z-30 bg-black/40"
+                aria-hidden="true"
                 @click="isSidebarOpen = false"
             ></div>
         </Transition>
 
-        <!-- Sidebar -->
-        <div
+        <!-- Sidebar: slides on its own layer; on desktop the main column's
+             margin moves with it on the same curve. -->
+        <aside
             v-if="!removeSidebar"
-            class="fixed start-0 top-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out"
-            :class="{ '-translate-x-full rtl:translate-x-full': !isSidebarOpen }"
-            v-on-click-outside="closeSidebarOnMobile"
+            class="fixed start-0 top-0 z-40 h-dvh w-64"
+            :class="[
+                { 'transition-[transform,visibility] duration-250 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none': isAnimated },
+                isSidebarOpen ? 'visible translate-x-0' : 'invisible -translate-x-full rtl:translate-x-full',
+                isMobileDevice && isSidebarOpen ? 'shadow-2xl' : '',
+            ]"
+            :inert="!isSidebarOpen"
         >
             <Sidebar :appearance="appearance" v-model:open="isSidebarOpen" :embedded="embedded" />
-        </div>
+        </aside>
 
         <div
-            class="flex h-screen flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
-            :class="{ 'md:ms-64': !removeSidebar && isSidebarOpen }"
+            class="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
+            :class="[
+                { 'transition-[margin] duration-250 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none': isAnimated },
+                { 'md:ms-64': !removeSidebar && isSidebarOpen },
+            ]"
         >
             <Header
                 class="w-full flex-shrink-0"

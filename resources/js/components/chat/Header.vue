@@ -95,21 +95,26 @@ function confirmDelete() {
             <div class="flex h-14 items-center justify-between px-4">
                 <div class="flex items-center gap-1">
                     <!-- Only shown once the sidebar is collapsed; the collapse
-                         control itself lives in the sidebar header. -->
-                    <Tooltip v-if="!removeSidebar && !isSidebarOpen">
-                        <TooltipTrigger as-child>
-                            <Button
-                                variant="ghost"
-                                @click="emit('toggleSidebar')"
-                                size="icon"
-                                class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
-                                :aria-label="t('header.toggle_sidebar')"
-                            >
-                                <PanelLeft class="h-[18px] w-[18px] rtl:scale-x-[-1]" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">{{ t('header.toggle_sidebar') }}</TooltipContent>
-                    </Tooltip>
+                         control itself lives in the sidebar header. It fades in
+                         as the sidebar slides away and leaves at once. -->
+                    <Transition name="sidebar-toggle">
+                        <div v-if="!removeSidebar && !isSidebarOpen" class="flex">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <Button
+                                        variant="ghost"
+                                        @click="emit('toggleSidebar')"
+                                        size="icon"
+                                        class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
+                                        :aria-label="t('header.toggle_sidebar')"
+                                    >
+                                        <PanelLeft class="h-[18px] w-[18px] rtl:scale-x-[-1]" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom">{{ t('header.toggle_sidebar') }}</TooltipContent>
+                            </Tooltip>
+                        </div>
+                    </Transition>
 
                     <Tooltip v-if="enableChatExpand">
                         <TooltipTrigger as-child>
@@ -177,6 +182,18 @@ function confirmDelete() {
 </template>
 
 <style scoped>
+.sidebar-toggle-enter-active {
+    transition: opacity 0.2s ease-out 0.1s;
+}
+.sidebar-toggle-enter-from {
+    opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-toggle-enter-active {
+        transition: none;
+    }
+}
+
 .slide-fade-enter-active {
     transition: all 0.2s ease-out;
 }

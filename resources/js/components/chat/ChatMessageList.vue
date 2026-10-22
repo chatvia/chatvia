@@ -9,6 +9,7 @@ import ChatErrorBubble from '@/components/chat/ChatErrorBubble.vue';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import type { ActiveToolCall, Message, MessageSource } from '@/types/chat';
 import type { ToolApprovalCall, ToolArtifact } from '@/types/stream';
+import { toRaw } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 type MessageId = string | number;
@@ -47,10 +48,26 @@ const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi', 'dv'];
 
 const isMessageRTL = (message: Message): boolean => !!message.language && RTL_LANGUAGES.includes(message.language);
 
+// A row keeps its key when the server assigns the message id at `start`, so
+// a streaming reply is not re-mounted (and faded in again) halfway through.
+const rowKeys = new WeakMap<Message, string>();
+let nextRowKey = 0;
+
+function rowKey(message: Message): string {
+    const raw = toRaw(message);
+    let key = rowKeys.get(raw);
+    if (!key) {
+        key = `row-${nextRowKey++}`;
+        rowKeys.set(raw, key);
+    }
+
+    return key;
+}
+
 // More space above a message when the speaker changes than between two from the same side.
 function rowClass(index: number, message: Message) {
     return [
-        'mx-auto px-4 transition-all duration-300 ease-in-out sm:px-8',
+        'mx-auto px-4 sm:px-8',
         props.expanded ? 'max-w-6xl' : 'max-w-3xl',
         index === 0 ? 'pt-6' : '',
         index > 0 && props.messages[index - 1].role !== message.role ? 'pt-6' : 'pt-3',
@@ -85,8 +102,9 @@ function promptIdBefore(index: number): MessageId | undefined {
         </div>
     </div>
 
-    <div v-else class="min-h-full">
-        <div v-for="(message, index) in messages" :id="`message-${index}`" :key="`message-${message.id || index}`" class="w-full">
+    <!-- Rows added after the transcript loaded fade in; the loaded ones do not. -->
+    <TransitionGroup v-else name="chat-row" tag="div" class="min-h-full">
+        <div v-for="(message, index) in messages" :id="`message-${index}`" :key="rowKey(message)" class="w-full">
             <div :class="rowClass(index, message)">
                 <UserChatBubble
                     v-if="message.role === 'user'"
@@ -110,6 +128,7 @@ function promptIdBefore(index: number): MessageId | undefined {
                     :hide-feedback="isMessageStreaming(message)"
                     :is-thinking="isMessageStreaming(message) && !message.content"
                     :is-streaming="isMessageStreaming(message)"
+                    :is-latest="index === messages.length - 1"
                     :is-calling-external="isMessageStreaming(message) && hasActiveCalls"
                     :active-calls="isMessageStreaming(message) ? activeCalls : []"
                     :avatar="avatar"
@@ -123,5 +142,5 @@ function promptIdBefore(index: number): MessageId | undefined {
                 />
             </div>
         </div>
-    </div>
+    </TransitionGroup>
 </template>

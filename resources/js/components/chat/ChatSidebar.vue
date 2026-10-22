@@ -3,7 +3,7 @@
  * Hosted chat sidebar: brand header with the collapse control, "New chat" and
  * ⌘K search, the conversation list, and a footer with "Clear all" and the
  * chatter's account menu (profile, agents, log out). The open state is a
- * v-model shared with ChatLayout and remembered per device on desktop.
+ * v-model owned by ChatLayout, which positions, animates and remembers it.
  */
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatAgentsDialog from '@/components/chat/ChatAgentsDialog.vue';
@@ -28,14 +28,13 @@ import { chatPages } from '@/composables/chat/chatPages';
 import { useChatConversations } from '@/composables/chat/useChatConversations';
 import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useIsMobile } from '@/composables/useIsMobile';
-import { safeStorage } from '@/lib/safeStorage';
 import chat from '@/routes/chat';
 import type { SharedData } from '@/types';
 import type { ChatAppearance } from '@/types/chat';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { onKeyStroke } from '@vueuse/core';
 import { Bot, Edit, LogOut, MoreVertical, PanelLeft, Search, Trash2, User } from 'lucide-vue-next';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = withDefaults(
@@ -52,8 +51,6 @@ const props = withDefaults(
 
 const isSidebarOpen = defineModel<boolean>('open', { default: false });
 const { params: routeParams } = useCurrentRoute();
-
-const SIDEBAR_STORAGE_KEY = 'sidebarOpen';
 
 const { t } = useI18n();
 const page = usePage<SharedData>();
@@ -74,21 +71,6 @@ const searchShortcutHint = computed(() =>
 
 const visitFresh = { preserveState: false, preserveScroll: false };
 
-onMounted(() => {
-    if (isMobileDevice.value) {
-        isSidebarOpen.value = false;
-        return;
-    }
-
-    const saved = safeStorage.get(SIDEBAR_STORAGE_KEY);
-    if (saved !== null) {
-        isSidebarOpen.value = saved === 'true';
-    } else {
-        isSidebarOpen.value = true;
-        safeStorage.set(SIDEBAR_STORAGE_KEY, 'true');
-    }
-});
-
 // Cmd/Ctrl+K opens the chat search anywhere in the surface.
 onKeyStroke(['k', 'K'], (event) => {
     if (!(event.metaKey || event.ctrlKey)) return;
@@ -98,14 +80,11 @@ onKeyStroke(['k', 'K'], (event) => {
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
-    safeStorage.set(SIDEBAR_STORAGE_KEY, String(isSidebarOpen.value));
 }
 
 /** On mobile the sidebar is a drawer: close it before navigating away. */
 function closeDrawerOnMobile() {
-    if (!isMobileDevice.value) return;
-    safeStorage.set(SIDEBAR_STORAGE_KEY, 'false');
-    isSidebarOpen.value = false;
+    if (isMobileDevice.value) isSidebarOpen.value = false;
 }
 
 function newConversation() {
@@ -141,23 +120,7 @@ function logout() {
 </script>
 
 <template>
-    <!-- Mobile backdrop -->
-    <Transition
-        name="backdrop"
-        enter-active-class="transition-opacity duration-300 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition-opacity duration-200 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-    >
-        <div v-show="isSidebarOpen && isMobileDevice" class="bg-background/80 fixed inset-0 z-40 backdrop-blur-sm" @click="toggleSidebar"></div>
-    </Transition>
-
-    <div
-        :class="[isMobileDevice ? 'sm:max-w-none' : 'relative', isSidebarOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full']"
-        class="bg-sidebar border-sidebar-border fixed start-0 top-0 z-40 h-screen w-64 border-e transition-transform duration-300 ease-out"
-    >
+    <div class="bg-sidebar border-sidebar-border h-full w-full border-e">
         <div class="flex h-full flex-col px-3 py-3">
             <div class="mb-2 flex items-center justify-between">
                 <Link :href="chat.home.url()" class="hover:bg-accent flex items-center gap-2 rounded-lg p-2 transition-colors">

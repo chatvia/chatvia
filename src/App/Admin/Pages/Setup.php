@@ -59,11 +59,13 @@ use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
 use Filament\Notifications\Notification;
 use Filament\Pages\SimplePage;
 use Filament\Schemas\Components\Callout;
@@ -186,6 +188,9 @@ class Setup extends SimplePage
 
     /** @var array<string, string> The models the chosen provider lists: id => label. */
     public array $models = [];
+
+    /** @var list<string> The provider's recommended chat models in the list ({@see ModelPresets::chatModels()}). */
+    public array $suggestedModels = [];
 
     /** Whether the list has a recommended model that reads images ({@see ModelPresets::visionModel()}). */
     public bool $listsVisionModel = false;
@@ -1020,22 +1025,21 @@ class Setup extends SimplePage
                 ->icon(Heroicon::OutlinedExclamationTriangle)
                 ->warning()
                 ->visible(fn (): bool => filled($this->listMessage)),
-            Select::make('chat_models')
+            ViewField::make('chat_models')
                 ->label('Models agents can use')
-                ->multiple()
-                ->options(fn (): array => $this->models)
-                ->in(fn (): array => array_keys($this->models))
-                ->searchable()
+                ->view('filament.setup.chat-models')
+                ->viewData(fn (Get $get): array => ['chosen' => collect((array) $get('chat_models'))
+                    ->mapWithKeys(fn (string $id): array => [$id => $this->modelName($id)])
+                    ->all()])
                 ->required(fn (): bool => $this->models !== [])
-                ->minItems(1)
-                ->helperText(fn (): string => count($this->models).' chat models. The suggested ones call tools well.')
-                ->visible(fn (): bool => $this->models !== [])
-                ->live()
-                ->afterStateUpdated(function (Get $get, Set $set, ?array $state): void {
-                    if (! in_array($get('default_model'), $state ?? [], true)) {
-                        $set('default_model', $state[0] ?? null);
+                ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                    if (collect((array) $value)->contains(fn (mixed $id): bool => ! array_key_exists((string) $id, $this->models))) {
+                        $fail('Pick the models from the provider\'s list.');
                     }
-                }),
+                })
+                ->validationMessages(['required' => 'Pick at least one model for your agents.'])
+                ->helperText(fn (): string => count($this->models).' chat models to choose from. The suggested ones call tools well.')
+                ->visible(fn (): bool => $this->models !== []),
             Select::make('default_model')
                 ->label('Default for new agents')
                 ->options(fn (Get $get): array => array_intersect_key($this->models, array_flip((array) $get('chat_models'))))
@@ -1220,6 +1224,50 @@ class Setup extends SimplePage
             ->modalWidth(fn (array $arguments): Width => $task($arguments) instanceof LlmTask ? Width::Medium : Width::TwoExtraLarge)
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Close');
+    }
+
+    /**
+     * Changes the chat models agents can use: every listed model with a box
+     * to tick, the chosen ones first, then the suggested ones, and a search
+     * over names and ids. Done keeps the choice (Cancel drops it); the
+     * default for new agents stays one of the chosen.
+     */
+    public function manageChatModelsAction(): Action
+    {
+        return Action::make('manageChatModels')
+            ->label('Manage models')
+            ->modalHeading('Models agents can use')
+            ->modalDescription('Tick the models your agents can pick from. Each agent uses one of them.')
+            ->modalWidth(Width::TwoExtraLarge)
+            ->fillForm(fn (): array => ['models' => (array) ($this->data['chat_models'] ?? [])])
+            ->schema([
+                CheckboxList::make('models')
+                    ->hiddenLabel()
+                    ->options(fn (): array => $this->modelChoices())
+                    ->descriptions(fn (): array => $this->modelChoiceDescriptions())
+                    ->searchable()
+                    ->searchPrompt('Search by name or id')
+                    ->noSearchResultsMessage('No model matches your search.')
+                    ->required()
+                    ->validationMessages(['required' => 'Pick at least one model for your agents.'])
+                    // A long list keeps its height while searching, so the dialog does not jump.
+                    ->extraAttributes(fn (): array => ['class' => count($this->models) > 8 ? 'cv-model-picker cv-model-picker--long' : 'cv-model-picker']),
+            ])
+            ->modalSubmitActionLabel('Done')
+            ->action(function (array $data): void {
+                $ticked = collect((array) ($data['models'] ?? []))
+                    ->map(fn (mixed $id): string => (string) $id)
+                    ->filter(fn (string $id): bool => array_key_exists($id, $this->models));
+
+                // The models chosen before keep their places; new ones follow.
+                $chosen = collect((array) ($this->data['chat_models'] ?? []))->intersect($ticked)->merge($ticked)->unique()->values()->all();
+
+                $this->data['chat_models'] = $chosen;
+
+                if (! in_array($this->data['default_model'] ?? null, $chosen, true)) {
+                    $this->data['default_model'] = $chosen[0] ?? null;
+                }
+            });
     }
 
     /**
@@ -1632,6 +1680,7 @@ class Setup extends SimplePage
         $presets = app(ModelPresets::class);
         $account = $this->account($state);
         $suggested = array_map(fn (RemoteModelData $model): string => $model->id, $presets->chatModels($account, $list->models));
+        $this->suggestedModels = $suggested;
 
         if ($suggested !== [] && blank($this->data['chat_models'] ?? null)) {
             $this->data['chat_models'] = $suggested;
@@ -2041,6 +2090,7 @@ class Setup extends SimplePage
     private function forgetList(): void
     {
         $this->models = [];
+        $this->suggestedModels = [];
         $this->listStatus = null;
         $this->listMessage = null;
         $this->listedFor = null;
@@ -2050,6 +2100,47 @@ class Setup extends SimplePage
         $this->data['vision_model'] = null;
         $this->data['describe_images'] = false;
         $this->listsVisionModel = false;
+    }
+
+    /** A listed model's name: its label without the id at its end. */
+    private function modelName(string $id): string
+    {
+        return Str::chopEnd($this->models[$id] ?? $id, " ({$id})");
+    }
+
+    /**
+     * The listed models for "Manage models", by name: the chosen ones first,
+     * then the suggested ones, then the rest as the provider lists them.
+     *
+     * @return array<string, string>
+     */
+    private function modelChoices(): array
+    {
+        $first = array_flip(array_values(array_unique([...(array) ($this->data['chat_models'] ?? []), ...$this->suggestedModels])));
+
+        return collect(array_keys($this->models))
+            ->map(fn (string|int $id): string => (string) $id)
+            ->sortBy(fn (string $id, int $position): int => $first[$id] ?? count($first) + $position)
+            ->mapWithKeys(fn (string $id): array => [$id => $this->modelName($id)])
+            ->all();
+    }
+
+    /**
+     * Under each model in "Manage models": its id, when its name differs,
+     * and whether it is suggested.
+     *
+     * @return array<string, string>
+     */
+    private function modelChoiceDescriptions(): array
+    {
+        return collect(array_keys($this->models))
+            ->map(fn (string|int $id): string => (string) $id)
+            ->mapWithKeys(fn (string $id): array => [$id => collect([
+                $this->modelName($id) === $id ? null : $id,
+                in_array($id, $this->suggestedModels, true) ? 'Suggested: calls tools well' : null,
+            ])->filter()->implode(' · ')])
+            ->filter()
+            ->all();
     }
 
     /** What the provider's list said about a model, while it is cached. */

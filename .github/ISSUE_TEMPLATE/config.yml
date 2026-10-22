@@ -1,7 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  # When the public repository URL is known, this can point straight to its
-  # form: https://github.com/<owner>/<repo>/security/advisories/new
   - name: Report a security vulnerability
-    url: https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
-    about: Do not open a public issue for security problems. Use "Report a vulnerability" in this repository's Security tab, as described in SECURITY.md.
+    url: https://github.com/chatvia/chatvia/security/advisories/new
+    about: Do not open a public issue for security problems. Report them privately, as described in SECURITY.md.

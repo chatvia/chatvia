@@ -6,6 +6,7 @@ body:
     attributes:
       value: |
         Thank you for the idea. Please search the existing issues first, in case someone already asked for it.
+        This project does not accept pull requests. Describe the feature here, and a maintainer will build it if it fits the project.
 
   - type: textarea
     id: problem
@@ -20,7 +21,7 @@ body:
     id: solution
     attributes:
       label: What would you like to happen?
-      description: Describe the feature or change you have in mind.
+      description: Describe the feature or change you have in mind. Screenshots or sketches help.
     validations:
       required: true
 
@@ -32,10 +33,10 @@ body:
     validations:
       required: false
 
-  - type: checkboxes
-    id: contribute
+  - type: textarea
+    id: approach
     attributes:
-      label: Contributing
-      options:
-        - label: I would like to work on this myself (please discuss the approach in this issue first).
-          required: false
+      label: Suggested approach
+      description: If you have an idea of how to build it (which part of the code, which settings), describe it here. A short code snippet is welcome.
+    validations:
+      required: false

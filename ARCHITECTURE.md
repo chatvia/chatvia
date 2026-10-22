@@ -1,8 +1,8 @@
 # ChatVia.ai architecture
 
 This guide explains how the ChatVia.ai code is organised and why. Read it before
-you make a bigger change. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set
-up the project, run the checks and send a pull request.
+you make a bigger change. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to report
+a bug or ask for a feature, set up the project and run the checks.
 
 Every rule in this guide matches the code today. Many rules are also checked by
 tests in `tests/Architecture/`, so CI tells you when a change breaks one.

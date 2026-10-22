@@ -121,7 +121,7 @@ jobs:
           php artisan key:generate --force
           php artisan key:generate --force --env=testing
 
-      # Every gate a contributor runs locally before a pull request: composer
+      # Every gate a maintainer runs locally before a push: composer
       # validate + audit, npm audit, Pint, Rector, PHPStan, Prettier, ESLint,
       # vue-tsc, Vitest, the i18n check and the Pest suite. It never changes files. The
       # test run installs the Postgres extensions, migrates and seeds the

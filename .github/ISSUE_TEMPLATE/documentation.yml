@@ -1,0 +1,32 @@
+name: Documentation
+description: Something in the documentation is wrong, missing or hard to follow.
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping us improve the documentation.
+        This project does not accept pull requests. Describe the problem here, and a maintainer will update the text.
+
+  - type: input
+    id: where
+    attributes:
+      label: Where?
+      description: The page, file or section, for example a link, `README.md#requirements` or a help page in the dashboard.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested text
+      description: How it should read, if you know.
+    validations:
+      required: false

@@ -1,21 +1,37 @@
 # Contributing to ChatVia.ai
 
-Thank you for your interest in ChatVia.ai. Bug reports, fixes, documentation and
-new features are all welcome. This guide explains how to set up the project,
-how to check your change, and how to send it.
+Thank you for your interest in ChatVia.ai. Bug reports, ideas for new features
+and notes on the documentation are all welcome, as **issues**.
 
 - Found a security problem? **Do not open an issue.** Follow [SECURITY.md](SECURITY.md).
 - Please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
-- Read [ARCHITECTURE.md](ARCHITECTURE.md) before a bigger change. It explains
-  how the code is organised, the conventions, and the words we use.
 
-## Before you start
+## We do not accept pull requests
 
-- **Small fixes** (typos, small bugs, docs): open a pull request directly.
-- **Bigger changes** (new features, new dependencies, schema changes, changes
-  to how a module works): open an issue first and describe your idea. This
-  saves you time if the change does not fit the project.
-- Search the existing issues and pull requests first, so you do not repeat work.
+A maintainer writes every change to ChatVia.ai. This keeps the code, the
+conventions and the license in one hand. Pull requests from outside the
+project are closed automatically, with a link back to the issue forms.
+
+You can still help a lot:
+
+- **Report a bug.** Use the *Bug report* form. Steps to reproduce, the version
+  and the logs make a fix much faster.
+- **Ask for a feature.** Use the *Feature request* form. Describe the problem
+  you want to solve, not only the solution you have in mind.
+- **Point out a documentation problem.** Use the *Documentation* form.
+- **Suggest a fix.** Each form has a field for it. If you know where the
+  problem is in the code, describe it there; a short code snippet or diff is
+  welcome.
+
+Search the [existing issues](https://github.com/chatvia/chatvia/issues) first,
+so you do not repeat a report. If someone already asked for the same thing, add
+a 👍 or a comment with your own case.
+
+The rest of this guide explains how to set up the project and check a change.
+It is for the maintainers, and for anyone who runs a changed copy of
+ChatVia.ai (the [MIT License](LICENSE) allows this). Read
+[ARCHITECTURE.md](ARCHITECTURE.md) before a bigger change. It explains how the
+code is organised, the conventions, and the words we use.
 
 ## Development setup
 
@@ -42,23 +58,17 @@ containers, with every system tool installed. See [Develop with Laravel Sail](RE
 
 ## Making a change
 
-1. Fork the repository and create a branch from `main`. Use a short, clear
-   name, for example `fix/widget-reconnect` or `feature/slack-threads`.
-2. Make your change. Keep each pull request focused on **one** thing.
-3. Add or update tests (see [Tests](#tests)).
-4. Run the checks (see [Checks](#checks)): `composer ci` while you work,
+1. Make the change. Keep each commit focused on **one** thing.
+2. Add or update tests (see [Tests](#tests)).
+3. Run the checks (see [Checks](#checks)): `composer ci` while you work,
    `composer ci:check` before you push.
-5. Add a line to the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md) when
+4. Add a line to the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md) when
    users or self-hosters will notice the change.
-6. Open a pull request against `main` and fill in the template. Explain
-   **what** changed and **why**. Link the issue if there is one.
+5. Go through the [change checklist](#change-checklist).
 
 Commit messages: a short summary in the imperative mood ("Add Slack thread
-replies", not "Added ..."), then a blank line and more detail if needed.
-
-A maintainer will review your pull request. Please be patient; we may ask for
-changes. By contributing, you agree that your work is released under the
-project's [MIT License](LICENSE).
+replies", not "Added ..."), then a blank line and more detail if needed. When
+the change comes from an issue, close it from the commit ("Closes #123").
 
 ## Checks
 
@@ -309,7 +319,7 @@ php artisan typescript:transform
 
 and commit the regenerated file. Do not edit it by hand.
 
-## Pull request checklist
+## Change checklist
 
 - [ ] `composer ci:check` passes on your machine.
 - [ ] You added or updated tests, and new Actions have a unit test.

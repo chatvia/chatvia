@@ -368,7 +368,7 @@ The knowledge base behind the agents' answers (RAG).
 |---|---|
 | `Knowledge\Source` | The source types: `File` (`SourceFile`), `Web` (`SourceWebsite` and its pages, `AgentWebsiteUrl`), `Text` (`SourceText`), `Qa` (`AgentQuestionAnswer`), `Youtube` (behind `FEATURE_YOUTUBE_SOURCES`). Sources belong to the workspace and are attached to agents through `agent_sources`. |
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
-| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. The re-index after a change of the embedding model (`StartEmbeddingReindexAction`: one job batch that embeds the stored chunk text and Q&A questions again, then rebuilds partitioned vector indexes; progress in `EmbeddingReindexStatus`). |
+| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`, `Voyage`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. The re-index after a change of the embedding model (`StartEmbeddingReindexAction`: one job batch that embeds the stored chunk text and Q&A questions again, then rebuilds partitioned vector indexes; progress in `EmbeddingReindexStatus`). |
 | `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + keyword in one SQL query), `LexicalSearch` (the keyword driver: pg_textsearch or built-in full-text search), `KnowledgeBase` (embed, search, relevance check, context budget), `SourceLabeler` (names each chunk's source), retrieval stats. |
 | `Knowledge\Document` | File conversion tools (`OfficeText` (office files; the built-in readers in `Conversion\Markdown` for RTF, DOC and PPT, and for DOCX and ODT when pandoc is missing), `EbookText` (EPUB and FB2 as Markdown; the built-in readers when pandoc is missing, and always for FB2), `OfficePdf`, `Pandoc`, `CatDoc` (only a backup for DOC and PPT), `PdfInfo`, and `BuiltinPdfInspector` + `PdfEncryption` for a server without pdfinfo), `ConversionPrograms` (which program a format needs, and whether it is missing; no format needs one now) and `HasStorageFile` for models whose file is in storage. |
 
@@ -388,8 +388,8 @@ Tools that an agent can call.
 
 Talking to language models. An admin enters each provider's key once
 (Settings → AI providers): an `AiProvider` account (Scaleway AI, OpenRouter,
-OpenAI, Mistral, Google Gemini, Groq, Cohere, Jina, Azure Document
-Intelligence), whose `capabilities()` say what it does here (chat,
+OpenAI, Mistral, Google Gemini, Groq, Cohere, Jina, Voyage AI, Azure
+Document Intelligence), whose `capabilities()` say what it does here (chat,
 embeddings, speech, documents, reranking). The key serves everything the
 provider does. Chat models are added in Settings → AI models to the catalog
 (`Llm`, `llms`: one model on one provider, named as the provider names it;
@@ -911,7 +911,7 @@ unless a row names another page, its setting is on **Settings → AI models**.
 | Step | Contract | Drivers | Config key (admin setting) |
 |---|---|---|---|
 | Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; tasks `chatvia.agent.default_model`, `chatvia.ai.tasks.*` |
-| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
+| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina`, `voyage` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `openrouter`, `cohere`, `custom` (a self-hosted `/rerank` server), `none` (a basic similarity check instead) | `chatvia.ai.reranker`, `chatvia.ai.rerank.*` |
 | Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |
 | Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Splitting) |

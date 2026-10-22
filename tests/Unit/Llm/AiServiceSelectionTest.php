@@ -12,6 +12,7 @@ use Domain\Knowledge\Embedding\OpenRouter as OpenRouterEmbeddings;
 use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\CompatibleReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
+use Domain\Knowledge\Embedding\Voyage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
@@ -78,7 +79,7 @@ it('keeps the hosted services when their keys are set, as in production', functi
         ->and(app(DocumentParser::class)->name())->toBe(config('services.mistral.ocr_model'))
         ->and(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class)
         ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class)
-        ->and(app(EmbeddingsProviderInterface::class))->toBeInstanceOf(Qwen3::class)
+        ->and(app(EmbeddingsProviderInterface::class)->provider())->toBeInstanceOf(Qwen3::class)
         ->and($documentLlm->isAvailable())->toBeTrue()
         ->and($documentLlm->provider())->toBeInstanceOf(Mistral::class)
         ->and($documentLlm->slug())->toBe('mistral');
@@ -224,6 +225,7 @@ it('fails fast when the embedding provider cannot return the size the database s
     'openai small stops at 1536' => ['openai', 2048],
     'openai small on openrouter stops at 1536' => ['openrouter', 2048],
     'gemini starts at 128' => ['google', 64],
+    'voyage has fixed sizes' => ['voyage', 1536],
 ]);
 
 it('asks the embedding provider for the size the database stores', function (string $provider, string $class, int $stored): void {
@@ -234,7 +236,7 @@ it('asks the embedding provider for the size the database stores', function (str
 
     $embeddings = app(EmbeddingsProviderInterface::class);
 
-    expect($embeddings)->toBeInstanceOf($class)
+    expect($embeddings->provider())->toBeInstanceOf($class)
         ->and($embeddings->getDimensions())->toBe($stored);
 })->with([
     'cohere 1536' => ['cohere', Cohere::class, 1536],
@@ -244,4 +246,5 @@ it('asks the embedding provider for the size the database stores', function (str
     'openai 1536' => ['openai', OpenAi::class, 1536],
     'openrouter 1536' => ['openrouter', OpenRouterEmbeddings::class, 1536],
     'gemini 768' => ['google', Gemini::class, 768],
+    'voyage 2048' => ['voyage', Voyage::class, 2048],
 ]);

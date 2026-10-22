@@ -1589,10 +1589,10 @@ ask_setup() {
 
     choose 'Vector size (dimensions)' \
         '1024  — works with every AI provider (recommended)' \
-        '512  — smaller and faster, a little less precise (Qwen3, OpenAI, Gemini, Cohere, Jina)' \
+        '512  — smaller and faster, a little less precise (Qwen3, OpenAI, Gemini, Cohere, Jina, Voyage AI)' \
         '768  — Qwen3, OpenAI, Gemini, Jina' \
         '1536  — more detail, more space (Qwen3, OpenAI, Gemini, Cohere)' \
-        '2048  — the most detail, the most space (Qwen3, Gemini, OpenAI large)'
+        '2048  — the most detail, the most space (Qwen3, Gemini, Voyage AI, OpenAI large)'
     case $CHOICE in
         0) EMBEDDING_DIMENSIONS=1024 ;;
         1) EMBEDDING_DIMENSIONS=512 ;;

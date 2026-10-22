@@ -120,6 +120,12 @@ return [
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
     ],
 
+    'voyage' => [
+        'api_key' => null,
+        'api_endpoint' => env('VOYAGE_API_ENDPOINT', 'https://api.voyageai.com/v1'),
+        'embedding_model' => env('VOYAGE_EMBEDDING_MODEL', 'voyage-4'),
+    ],
+
     // Embeddings, speech to text and voice conversations; OpenAI chat models
     // are added as a provider. The realtime_* keys are the voice calls
     // (Settings → AI models → Voice conversations): the speech-to-speech

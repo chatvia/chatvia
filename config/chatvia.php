@@ -279,8 +279,9 @@ return [
     | (null is 400 tokens or 1,600 characters), the overlap, and the strategy
     | for each kind of content (ContentKind, SplitStrategy).
     |
-    | `models`: the embedding provider ("qwen", "openai", "google",
-    | "cohere", "mistral" or "jina"; it must return `embeddings.dimensions`
+    | `models`: the embedding provider ("qwen", "openai", "openrouter",
+    | "google", "cohere", "mistral", "jina" or "voyage"; it must return
+    | `embeddings.dimensions`
     | dimensions), and the document_llm models (names of that provider, not
     | catalog models) for summaries, analysis and chat with PDF files. The
     | last one needs function calling so tools still work in PDF chats.

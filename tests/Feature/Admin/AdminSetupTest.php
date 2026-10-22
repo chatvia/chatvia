@@ -472,6 +472,26 @@ it('makes the embeddings with another provider than the chat, with its own key',
         ->and(savedSetting(AiProviderSettings::class, 'openrouter_api_key'))->toBe('sk-or-test');
 })->skip(fn (): bool => ! in_array(EmbeddingProvider::Jina, EmbeddingProvider::fitting(), true), 'Jina does not return the stored vector size.');
 
+it('makes the embeddings with Voyage AI, with its own key', function (): void {
+    setupFakeOpenRouter($this->dimensions);
+    Http::fake(['api.voyageai.com/*' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $this->dimensions, 0.1)]]])]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['embedding_provider' => 'voyage'])
+        ->assertFormFieldVisible('embedding_api_key')
+        ->fillForm(['embedding_api_key' => 'pa-test'])
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('voyage')
+        ->and(savedSetting(AiProviderSettings::class, 'voyage_api_key'))->toBe('pa-test');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.voyageai.com/v1/embeddings'
+        && $request->header('Authorization') === ['Bearer pa-test']);
+})->skip(fn (): bool => ! in_array(EmbeddingProvider::Voyage, EmbeddingProvider::fitting(), true), 'Voyage AI does not return the stored vector size.');
+
 it('stops on Finish when the embedding model returns another vector size', function (): void {
     setupFakeScaleway($this->dimensions + 8);
 

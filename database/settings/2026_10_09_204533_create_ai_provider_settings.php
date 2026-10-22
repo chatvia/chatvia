@@ -29,6 +29,8 @@ return new class extends SettingsMigration
             $group->add('cohere_api_endpoint');
             $group->addEncrypted('jina_api_key');
             $group->add('jina_api_endpoint');
+            $group->addEncrypted('voyage_api_key');
+            $group->add('voyage_api_endpoint');
             $group->addEncrypted('azure_api_key');
             $group->add('azure_endpoint');
         });

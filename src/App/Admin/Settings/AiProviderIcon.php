@@ -25,6 +25,7 @@ final class AiProviderIcon
             AiProvider::Groq => 'images/llms/groq.svg',
             AiProvider::Cohere => 'images/llms/cohere.svg',
             AiProvider::Jina => 'images/llms/jina.svg',
+            AiProvider::Voyage => 'images/llms/voyage.svg',
             AiProvider::Azure => 'images/llms/microsoft.svg',
         });
     }

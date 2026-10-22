@@ -240,6 +240,7 @@ class Setup extends SimplePage
             'embedding_model' => $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null,
             'chat_models' => [],
             'quick_task_model' => null,
+            'describe_images' => false,
             'vision_model' => null,
             'reranker' => $this->suggestedReranker($provider),
             'openrouter_rerank_model' => config('chatvia.ai.rerank.openrouter_model') ?: RerankModelCatalog::DEFAULT_OPENROUTER,
@@ -343,7 +344,7 @@ class Setup extends SimplePage
             chatModels: $this->chosenModels($state),
             defaultModel: (string) ($state['default_model'] ?? $this->chosenModels($state)[0]->id),
             quickTaskModel: $this->listedChoice($state, 'quick_task_model'),
-            visionModel: $this->listedChoice($state, 'vision_model'),
+            visionModel: (bool) ($state['describe_images'] ?? false) ? $this->listedChoice($state, 'vision_model') : null,
             server: $account instanceof AiProvider ? null : new CustomLlmServerData(
                 name: (string) $state['server_name'],
                 baseUrl: (string) $state['server_url'],
@@ -407,6 +408,7 @@ class Setup extends SimplePage
                 Section::make('Keyword search')
                     ->description('Agents find answers in two ways: by meaning, and by the words of the question. Both run in the database.')
                     ->icon(Heroicon::OutlinedMagnifyingGlass)
+                    ->visible(fn (): bool => $this->pgTextsearchState() !== PgTextsearchState::Active)
                     ->schema([$this->keywordSearchCallout()]),
             ])
             ->afterValidation(fn () => $this->confirmServer());
@@ -750,7 +752,7 @@ class Setup extends SimplePage
             'Model for quick tasks' => filled($get('quick_task_model')) && $this->models !== []
                 ? ($this->models[$get('quick_task_model')] ?? (string) $get('quick_task_model'))
                 : 'Same as the chat model',
-            'Image descriptions' => filled($get('vision_model')) && $this->models !== []
+            'Image descriptions' => (bool) $get('describe_images') && filled($get('vision_model')) && $this->models !== []
                 ? ($this->models[$get('vision_model')] ?? (string) $get('vision_model'))
                 : 'Off',
             'Embeddings' => $embedding instanceof EmbeddingProvider
@@ -1049,15 +1051,19 @@ class Setup extends SimplePage
                 ->placeholder('Same as the chat model')
                 ->helperText(fn (): Htmlable => $this->quickTasksHelp())
                 ->visible(fn (): bool => $this->models !== []),
+            Toggle::make('describe_images')
+                ->label('Describe images')
+                ->live()
+                ->helperText(fn (Get $get): string => $this->visionHelp($get))
+                ->visible(fn (): bool => $this->models !== []),
             Select::make('vision_model')
                 ->label('Model for image descriptions')
                 ->options(fn (): array => $this->models)
                 ->in(fn (): array => array_keys($this->models))
                 ->searchable()
-                ->placeholder('Off')
-                ->live()
-                ->helperText(fn (Get $get): string => $this->visionHelp($get))
-                ->visible(fn (): bool => $this->models !== []),
+                ->required()
+                ->helperText('A model that reads images.')
+                ->visible(fn (Get $get): bool => $this->models !== [] && (bool) $get('describe_images')),
             Callout::make('Image descriptions are off')
                 ->description('Pictures inside PDF files and other documents are not described, so search cannot find what they show. The text of your documents is still read. Add a model that reads images later in Settings → AI models, then turn on Settings → Knowledge → AI enhancement → Describe images.')
                 ->icon(Heroicon::OutlinedPhoto)
@@ -1130,8 +1136,8 @@ class Setup extends SimplePage
     }
 
     /**
-     * What keyword search runs on, and what to do to get pg_textsearch:
-     * install it, load it when PostgreSQL starts, or turn it on here.
+     * What to do to get pg_textsearch: install it, load it when PostgreSQL
+     * starts, or turn it on here. Once it is on, the section is hidden.
      */
     private function keywordSearchCallout(): Callout
     {
@@ -1139,25 +1145,19 @@ class Setup extends SimplePage
         $load = "Add it to <code>shared_preload_libraries</code> in <code>postgresql.conf</code> (<code>shared_preload_libraries = 'pg_textsearch'</code>), restart PostgreSQL, then press <strong>Check again</strong>.";
 
         return Callout::make(fn (): string => match ($this->pgTextsearchState()) {
-            PgTextsearchState::Active => 'pg_textsearch is on',
-            PgTextsearchState::SwitchedOff => 'pg_textsearch is installed, but not used',
+            PgTextsearchState::Active, PgTextsearchState::SwitchedOff => 'pg_textsearch is installed, but not used',
             PgTextsearchState::ReadyToEnable => 'Turn on pg_textsearch',
             PgTextsearchState::NotPreloaded => 'Load pg_textsearch when PostgreSQL starts',
             PgTextsearchState::NotInstalled => 'Install pg_textsearch (recommended)',
         })
             ->description(fn (): HtmlString => new HtmlString(match ($this->pgTextsearchState()) {
-                PgTextsearchState::Active => 'Keyword search ranks with BM25. Nothing to do here.',
-                PgTextsearchState::SwitchedOff => 'The <code>SEARCH_LEXICAL_DRIVER</code> setting in <code>.env</code> keeps the built-in search. Remove it, then run <code>php artisan chatvia:search:lexical-indexes</code>. '.e($why),
+                PgTextsearchState::Active, PgTextsearchState::SwitchedOff => 'The <code>SEARCH_LEXICAL_DRIVER</code> setting in <code>.env</code> keeps the built-in search. Remove it, then run <code>php artisan chatvia:search:lexical-indexes</code>. '.e($why),
                 PgTextsearchState::ReadyToEnable => e($why).' The database has it loaded: turn it on here. This also rebuilds the search indexes.',
                 PgTextsearchState::NotPreloaded => e($why).' It is installed on the database server, but PostgreSQL does not load it. '.$load,
                 PgTextsearchState::NotInstalled => e($why).' Install it from its <a href="https://github.com/timescale/pg_textsearch/releases" target="_blank" rel="noopener" class="underline">releases page</a> (the Docker setup and <code>install.sh</code> include it). '.$load.' A managed cloud database often cannot load it: then go on, the built-in search works.',
             }))
-            ->icon(fn (): Heroicon => $this->pgTextsearchState() === PgTextsearchState::Active ? Heroicon::OutlinedCheckCircle : Heroicon::OutlinedLightBulb)
-            ->status(fn (): string => match ($this->pgTextsearchState()) {
-                PgTextsearchState::Active => 'success',
-                PgTextsearchState::SwitchedOff => 'info',
-                default => 'warning',
-            })
+            ->icon(Heroicon::OutlinedLightBulb)
+            ->status(fn (): string => $this->pgTextsearchState() === PgTextsearchState::SwitchedOff ? 'info' : 'warning')
             ->actions([
                 Action::make('enablePgTextsearch')
                     ->label('Turn on pg_textsearch')
@@ -1192,9 +1192,9 @@ class Setup extends SimplePage
         return new HtmlString(Blade::render(<<<'BLADE'
             <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'guardrails' })">Guardrails</x-filament::link>,
             <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'follow_up' })">follow-up questions</x-filament::link>,
-            <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'titles' })">titles</x-filament::link>
-            and <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks')">other small jobs</x-filament::link>
-            run around each reply. A small, fast model keeps replies quick and cheap.
+            <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks', { task: 'titles' })">titles</x-filament::link> and
+            <x-filament::link tag="button" type="button" size="sm" wire:click="mountAction('quickTasks')">other small jobs</x-filament::link> run around each reply.
+            A small, fast model keeps replies quick and cheap.
             BLADE));
     }
 
@@ -1647,6 +1647,7 @@ class Setup extends SimplePage
 
         if (blank($this->data['vision_model'] ?? null)) {
             $this->data['vision_model'] = $vision?->id;
+            $this->data['describe_images'] = $vision instanceof RemoteModelData;
         }
     }
 
@@ -1683,19 +1684,19 @@ class Setup extends SimplePage
     }
 
     /**
-     * The help under "Model for image descriptions": what it does, and, when
-     * nothing is picked, that image descriptions stay off and why.
+     * The help under "Describe images": what it does, and, while it is off,
+     * why: the admin turned it off, or no recommended model reads images.
      */
     private function visionHelp(Get $get): string
     {
         $does = 'Describes the pictures inside PDF files and other documents, so search can find what they show. Needs a model that reads images.';
 
-        if (filled($get('vision_model'))) {
+        if ((bool) $get('describe_images')) {
             return $does;
         }
 
         $why = $this->listsVisionModel
-            ? 'With none picked, image descriptions are off.'
+            ? 'Off: pictures are not described.'
             : 'None of the recommended models of this provider reads images, so image descriptions are off.';
 
         return "{$does} {$why} The text of your documents is still read.";
@@ -2047,6 +2048,7 @@ class Setup extends SimplePage
         $this->data['default_model'] = null;
         $this->data['quick_task_model'] = null;
         $this->data['vision_model'] = null;
+        $this->data['describe_images'] = false;
         $this->listsVisionModel = false;
     }
 

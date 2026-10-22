@@ -49,10 +49,11 @@ final readonly class ServiceChecks
     private const int TIMEOUT_SECONDS = 3;
 
     /**
-     * The scheduler runs `horizon:snapshot` every five minutes
-     * (routes/console.php), so a snapshot older than this means it stopped.
+     * The scheduler wakes up every minute ({@see SchedulerHeartbeat}); this
+     * long without it means it stopped. One missed minute is allowed, for a
+     * busy server or a slow start.
      */
-    private const int SCHEDULER_LATE_MINUTES = 11;
+    private const int SCHEDULER_LATE_MINUTES = 3;
 
     /** `pulse:check` reports every 15 seconds; this long without one means it stopped. */
     private const int SERVER_STATS_LATE_SECONDS = 120;
@@ -200,20 +201,19 @@ final readonly class ServiceChecks
         return new ServiceStatusData(ServiceState::Running, __('Runs the background jobs.'), checks: $checks);
     }
 
-    /** When the scheduler last ran a task, from the snapshot Horizon takes on its schedule. */
+    /** When the scheduler last woke up ({@see SchedulerHeartbeat}). */
     private function scheduler(): ServiceStatusData
     {
-        $last = Redis::connection('horizon')->command('get', ['last_snapshot_at']);
+        $ranAt = SchedulerHeartbeat::lastRunAt();
         $late = new ServiceCheckData(__('Counts as stopped after'), trans_choice(':count minute|:count minutes', self::SCHEDULER_LATE_MINUTES), CheckMark::Info);
 
-        if (! is_numeric($last)) {
+        if (! $ranAt instanceof Carbon) {
             return new ServiceStatusData(ServiceState::Warning, __('Has not run a task yet.'), hint: __('Run "php artisan schedule:work", or "schedule:run" every minute from cron.'), checks: [
                 new ServiceCheckData(__('Last task'), __('Never'), CheckMark::Warning),
                 $late,
             ]);
         }
 
-        $ranAt = Carbon::createFromTimestamp((int) $last);
         $stopped = $ranAt->lt(now()->subMinutes(self::SCHEDULER_LATE_MINUTES));
         $checks = [
             new ServiceCheckData(__('Last task'), $ranAt->diffForHumans(), $stopped ? CheckMark::Failed : CheckMark::Passed),

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Admin\Settings\Listeners\ReindexForNewEmbeddingModel;
+use App\Admin\Status\Listeners\RecordSchedulerHeartbeat;
 use App\Identity\Chatter\Events\ChatterBlocked;
 use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
 use App\Identity\Chatter\Listeners\SendChatterBlockedEmail;
@@ -126,6 +127,7 @@ use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -323,6 +325,9 @@ class DomainServiceProvider extends ServiceProvider
     {
         Event::listen(Login::class, RecordKnownDevice::class);
         Event::listen(Login::class, RecordLastLogin::class);
+
+        // The Status page knows the scheduler runs from each start of schedule:run.
+        Event::listen(CommandStarting::class, RecordSchedulerHeartbeat::class);
 
         // A new embedding model (Settings → AI models) needs everything embedded again.
         Event::listen(SavingSettings::class, ReindexForNewEmbeddingModel::class);

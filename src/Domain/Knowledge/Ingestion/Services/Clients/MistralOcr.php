@@ -5,7 +5,9 @@ namespace Domain\Knowledge\Ingestion\Services\Clients;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\ProviderAdapters;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Http\Client\Response;
@@ -28,8 +30,10 @@ class MistralOcr
 
     private readonly string $baseUrl;
 
-    public function __construct(ProviderAdapters $adapters)
-    {
+    public function __construct(
+        ProviderAdapters $adapters,
+        private readonly AiCallTags $tags,
+    ) {
         // The Mistral account (Settings → AI providers), not a catalog model.
         $adapter = $adapters->for(LlmProviderKind::Mistral);
         $connection = $adapter->standalone();
@@ -66,7 +70,7 @@ class MistralOcr
      */
     public function check(): Response
     {
-        return $this->mistral
+        return $this->tags->during(AiCallTag::ServiceCheck, fn (): Response => $this->mistral
             ->client()
             ->timeout(30)
             ->post($this->baseUrl.'/ocr', [
@@ -75,7 +79,7 @@ class MistralOcr
                     'type' => 'image_url',
                     'image_url' => 'data:image/png;base64,'.base64_encode(File::get(resource_path('checks/document-reader.png'))),
                 ],
-            ]);
+            ]));
     }
 
     /**
@@ -84,7 +88,7 @@ class MistralOcr
      */
     private function read(array $document): Collection
     {
-        $response = $this->mistral
+        $response = $this->tags->during(AiCallTag::DocumentReading, fn (): Response => $this->mistral
             ->client()
             ->timeout(3600)
             ->post($this->baseUrl.'/ocr', [
@@ -92,7 +96,7 @@ class MistralOcr
                 'document' => $document,
                 'table_format' => 'markdown',
                 'include_image_base64' => true,
-            ])->throw();
+            ])->throw());
 
         // The file is sent: free its copy before the pages are decoded.
         unset($document);

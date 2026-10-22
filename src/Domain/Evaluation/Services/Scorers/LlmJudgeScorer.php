@@ -10,6 +10,7 @@ use Domain\Evaluation\Models\EvalCase;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
@@ -43,6 +44,7 @@ class LlmJudgeScorer implements ScorerInterface
         try {
             $data = $this->completion->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::EvalJudge),
+                tag: AiCallTag::EvaluationJudge,
                 messages: [
                     ChatMessageData::system(trim(prompt('evals/judge-system'))),
                     ChatMessageData::user($this->userPrompt($case, $criteria, $result->answer)),

@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
@@ -109,6 +110,7 @@ class ConnectorClassifier
 
         return new ChatRequestData(
             model: $this->models->model(LlmTask::ToolRouting),
+            tag: AiCallTag::ToolRouting,
             messages: [
                 ChatMessageData::system($this->systemPrompt()),
                 ChatMessageData::user($this->userPrompt($userMessage, $connectors)),

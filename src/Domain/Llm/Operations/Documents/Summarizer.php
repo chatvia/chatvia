@@ -7,6 +7,7 @@ namespace Domain\Llm\Operations\Documents;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatResponseData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmChat;
@@ -40,6 +41,7 @@ class Summarizer
 
         return $this->chat->using($this->documentLlm->provider())->send(new ChatRequestData(
             model: $this->documentLlm->model((string) config('chatvia.ai.models.summary')),
+            tag: AiCallTag::DocumentSummary,
             messages: [
                 ChatMessageData::userWithAttachment($prompt, [
                     'type' => 'document_url',

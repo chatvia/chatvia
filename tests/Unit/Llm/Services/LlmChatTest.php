@@ -4,6 +4,7 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
@@ -11,6 +12,7 @@ use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Spectra\Spectra;
 
 /**
  * The typed chat layer: a ChatRequestData becomes the provider's wire format
@@ -24,8 +26,8 @@ it('sends each request to the provider of its model, with its key', function ():
     $local = testLlm('qwen3:8b', LlmProviderKind::Custom);
     $local->provider->update(['base_url' => 'http://ollama.test:11434/v1', 'api_key' => null]);
 
-    app(LlmChat::class)->send(new ChatRequestData($groq, [ChatMessageData::user('Hi')]));
-    app(LlmChat::class)->send(new ChatRequestData($local->fresh(), [ChatMessageData::user('Hi')]));
+    app(LlmChat::class)->send(new ChatRequestData($groq, [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle));
+    app(LlmChat::class)->send(new ChatRequestData($local->fresh(), [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle));
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.groq.com/openai/v1/chat/completions'
         && $request['model'] === 'llama-3.3-70b'
@@ -40,10 +42,24 @@ it('refuses a model whose provider is turned off', function (): void {
     $model = testLlm();
     $model->provider->update(['is_enabled' => false]);
 
-    expect(fn (): ChatResponseData => app(LlmChat::class)->send(new ChatRequestData($model->fresh(), [ChatMessageData::user('Hi')])))
+    expect(fn (): ChatResponseData => app(LlmChat::class)->send(new ChatRequestData($model->fresh(), [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle)))
         ->toThrow(LlmProviderUnavailableException::class);
 
     Http::assertNothingSent();
+});
+
+it('sends the request with its tag in Spectra', function (): void {
+    config(['spectra.enabled' => true]);
+    $tags = null;
+    Http::fake(['*' => function () use (&$tags) {
+        $tags = app(Spectra::class)->startRequest('openai', 'gpt-test')->tags;
+
+        return Http::response(['choices' => [['message' => ['content' => 'ok']]]]);
+    }]);
+
+    app(LlmChat::class)->send(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::FollowUpRewrite));
+
+    expect($tags)->toBe(['follow-up-rewrite']);
 });
 
 it('sends only the options that are set', function (): void {
@@ -52,6 +68,7 @@ it('sends only the options that are set', function (): void {
     app(LlmChat::class)->send(new ChatRequestData(
         model: testLlm('mistral-small'),
         messages: [ChatMessageData::system('Be brief.'), ChatMessageData::user('Hi')],
+        tag: AiCallTag::ConversationTitle,
         maxTokens: 10,
         responseSchema: new ResponseSchemaData('answer', ['type' => 'object']),
     ));
@@ -81,7 +98,7 @@ it('reads the content, tool calls, usage and finish reason of a reply', function
         'usage' => ['prompt_tokens' => 12, 'completion_tokens' => 3],
     ])]);
 
-    $reply = app(LlmChat::class)->send(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')]));
+    $reply = app(LlmChat::class)->send(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle));
 
     expect($reply->content)->toBe('Part one. Part two.')
         ->and($reply->toolCalls)->toHaveCount(1)
@@ -98,7 +115,7 @@ it('decodes a structured reply and fails loudly only when asked to', function ()
         ->push(['choices' => [['message' => ['content' => 'no json here']]]])]);
 
     $completion = app(StructuredCompletion::class);
-    $request = new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')]);
+    $request = new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle);
 
     expect($completion->send($request)->data)->toBe(['ok' => true]);
 

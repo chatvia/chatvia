@@ -4,6 +4,7 @@ namespace Domain\Llm\Operations\Starters;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
@@ -39,6 +40,7 @@ class StarterGenerator
 
         $reply = $this->completion->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Starters),
+            tag: AiCallTag::ConversationStarters,
             messages: [
                 ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
                 ChatMessageData::user(prompt('starters/content', [

@@ -3,7 +3,9 @@
 namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Providers\Scaleway;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
@@ -21,10 +23,14 @@ class ScalewayTranscriber implements Transcriber
 
     private const int MAX_BYTES = 25 * 1024 * 1024;
 
+    public function __construct(
+        private readonly AiCallTags $tags,
+    ) {}
+
     public function transcribe(string $filePath): string
     {
         // The endpoint tells the format by the file name.
-        $response = Http::withToken((string) config('services.scalewayai.api_key'))
+        $response = $this->tags->during(AiCallTag::Transcription, fn (): mixed => Http::withToken((string) config('services.scalewayai.api_key'))
             ->timeout(86000)
             ->attach(
                 'file',
@@ -33,7 +39,7 @@ class ScalewayTranscriber implements Transcriber
             )
             ->post(Scaleway::baseUrl().'/audio/transcriptions', [
                 'model' => (string) config('services.scalewayai.transcription_model'),
-            ])->throw()->json();
+            ])->throw()->json());
 
         return str($response['text'])->trim()->toString();
     }

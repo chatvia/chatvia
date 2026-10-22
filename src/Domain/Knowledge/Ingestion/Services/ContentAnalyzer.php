@@ -8,6 +8,7 @@ use Domain\Knowledge\Ingestion\Data\Analysis\ContentAnalysisData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Services\DocumentLlm;
@@ -34,6 +35,7 @@ class ContentAnalyzer
     {
         $reply = $this->completion->using($this->documentLlm->provider())->send(new ChatRequestData(
             model: $this->documentLlm->model((string) config('chatvia.ai.models.analysis')),
+            tag: AiCallTag::DocumentAnalysis,
             messages: [
                 ChatMessageData::userWithAttachment(prompt('summarization/system'), [
                     'type' => 'document_url',

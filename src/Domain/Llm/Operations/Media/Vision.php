@@ -4,6 +4,7 @@ namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
@@ -39,6 +40,7 @@ class Vision
 
         $description = $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Images),
+            tag: AiCallTag::ImageDescription,
             messages: [
                 ChatMessageData::userWithAttachment(prompt('image/describe'), [
                     'type' => 'image_url',

@@ -6,6 +6,7 @@ namespace Domain\Llm\Operations\Documents;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
@@ -36,6 +37,7 @@ class Tables
     {
         return $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Tables),
+            tag: AiCallTag::TableDescription,
             messages: [
                 ChatMessageData::user(prompt('tables/describe', ['tables' => implode("\n\n", $tables)])),
             ],

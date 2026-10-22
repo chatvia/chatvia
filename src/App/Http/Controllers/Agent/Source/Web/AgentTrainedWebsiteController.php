@@ -26,6 +26,9 @@ class AgentTrainedWebsiteController
             ->where('status', SourceStatus::Completed)
             ->whereDoesntHave('agents', fn ($query) => $query->where('agents.id', $agent->id))
             ->with(['agents' => fn ($query) => $query->select('agents.id', 'agents.name')->where('agents.id', '!=', $agent->id)])
+            // Only the columns the picker shows; set before withCount, which
+            // adds the count to this list.
+            ->select(['id', 'url', 'created_at'])
             ->withCount('urls')
             ->get()
             ->map(fn (SourceWebsite $website): array => [

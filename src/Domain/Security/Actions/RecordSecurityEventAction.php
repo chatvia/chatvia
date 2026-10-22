@@ -18,12 +18,17 @@ use Support\Text\Utf8;
  * size-caps the payload so the audit can never become a PII/secret sink. The
  * causer name/email are already denormalized on the event, so the row stays
  * readable after the user is deleted.
+ *
+ * Metadata that fits and is a JSON object or list goes in the jsonb `metadata`
+ * column. Anything else (cut at the cap, or not JSON at all) goes in the text
+ * `metadata_preview` column instead, because a cut JSON string is no longer an
+ * array and the readers expect one.
  */
 class RecordSecurityEventAction
 {
     public function execute(SecurityEventOccurred $event): SecurityAuditLog
     {
-        [$metadata, $truncated] = $this->redactAndCap($event->metadata);
+        [$metadata, $preview, $truncated] = $this->redactAndCap($event->metadata);
 
         return SecurityAuditLog::create([
             'workspace_id' => $event->workspaceId,
@@ -37,6 +42,7 @@ class RecordSecurityEventAction
             'ip' => $event->ip,
             'user_agent' => $event->userAgent === null ? null : Str::limit($event->userAgent, 1024, ''),
             'metadata' => $metadata,
+            'metadata_preview' => $preview,
             'metadata_sha256' => hash('sha256', $event->metadata),
             'metadata_truncated' => $truncated,
             'outcome' => $event->outcome,
@@ -45,10 +51,10 @@ class RecordSecurityEventAction
 
     /**
      * Hash-safe redaction + size cap of the raw JSON metadata. Returns the
-     * stored value (decoded + redacted array when it fits, else a truncated
-     * string) and whether it was truncated.
+     * redacted array when it is JSON and fits, else null plus the (possibly
+     * cut) text for the preview column, and whether it was cut.
      *
-     * @return array{0: mixed, 1: bool}
+     * @return array{0: array<array-key, mixed>|null, 1: ?string, 2: bool}
      */
     private function redactAndCap(string $raw): array
     {
@@ -59,18 +65,22 @@ class RecordSecurityEventAction
             $redacted = $this->redact($decoded);
             $encoded = (string) json_encode($redacted);
             if (strlen($encoded) <= $max) {
-                return [$redacted, false];
+                return [$redacted, null, false];
             }
 
-            return [Utf8::truncateBytes($encoded, $max), true];
+            return [null, Utf8::truncateBytes($encoded, $max), true];
+        }
+
+        if ($raw === '') {
+            return [null, null, false];
         }
 
         if (strlen($raw) <= $max) {
-            return [$raw, false];
+            return [null, $raw, false];
         }
 
         // Cut on a character boundary so the stored text stays valid UTF-8.
-        return [Utf8::truncateBytes($raw, $max), true];
+        return [null, Utf8::truncateBytes($raw, $max), true];
     }
 
     /**

@@ -84,3 +84,18 @@ it('refuses an account that already powers another agent', function (): void {
 
     expect(AgentInstagramAccount::query()->where('agent_id', $other->id)->exists())->toBeFalse();
 });
+
+it('connects an account whose only other row belongs to a deleted agent', function (): void {
+    $action = new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard);
+    $deleted = Agent::factory()->create(['is_public' => true]);
+    $action->execute($deleted, instagramConnectData('EAAG-first'));
+    // What DeleteAgentAction leaves until the purge: a trashed agent and a switched-off row.
+    $deleted->delete();
+    AgentInstagramAccount::query()->where('agent_id', $deleted->id)->update(['is_enabled' => false]);
+
+    $other = Agent::factory()->create(['is_public' => true]);
+    $account = $action->execute($other, instagramConnectData('EAAG-second'));
+
+    expect($account->agent_id)->toBe($other->id)
+        ->and(AgentInstagramAccount::query()->where('ig_id', '17840012345')->where('is_enabled', true)->sole()->agent_id)->toBe($other->id);
+});

@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "未提供",
-            "detail_spoken_approval": "音声での承認"
+            "detail_spoken_approval": "音声での承認",
+            "detail_arguments_cut_off": "サイズの上限で切り詰められました。先頭部分のみ表示しています。"
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "サイズの上限で切り詰められました。先頭部分のみ表示しています。"
         }
     }
 }

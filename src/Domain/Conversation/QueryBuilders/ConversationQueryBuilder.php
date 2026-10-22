@@ -7,9 +7,11 @@ use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Enums\ConfidenceBand;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Cursor;
+use Illuminate\Support\Collection;
 
 /**
  * Query scopes for conversations: the chat-log filters and the lookups that
@@ -23,6 +25,9 @@ class ConversationQueryBuilder extends Builder
 {
     /** A visitor counts as online while their conversation was active this recently. */
     public const int ONLINE_WINDOW_MINUTES = 3;
+
+    /** The columns of the latest message {@see withLastMessage()} reads: what the lists show. */
+    private const array LAST_MESSAGE_COLUMNS = ['id', 'content', 'role', 'created_at'];
 
     /** @return self<TModel> */
     public function forAgent(int $agentId): self
@@ -71,6 +76,62 @@ class ConversationQueryBuilder extends Builder
         return $this->with(['session.country', 'topics']);
     }
 
+    /**
+     * Loads each conversation's latest message (text, role and time) as the
+     * `lastMessage` relation for a list. A LATERAL subquery reads one message
+     * per conversation, newest first, as a backward scan of the
+     * (chat_conversation_id, created_at, id) index. Eager-loading
+     * `lastMessage` (latestOfMany) would read every message of every listed
+     * conversation to find the newest.
+     *
+     * @return self<TModel>
+     */
+    public function withLastMessage(): self
+    {
+        if ($this->getQuery()->columns === null) {
+            $this->select($this->qualifyColumn('*'));
+        }
+
+        $latest = $this->getQuery()->newQuery()
+            ->from('chat_messages')
+            ->select(array_map(
+                static fn (string $column): string => "chat_messages.{$column} as last_message_{$column}",
+                self::LAST_MESSAGE_COLUMNS,
+            ))
+            ->whereColumn('chat_messages.chat_conversation_id', $this->qualifyColumn('id'))
+            ->orderByDesc('chat_messages.created_at')
+            ->orderByDesc('chat_messages.id')
+            ->limit(1);
+
+        return $this->leftJoinLateral($latest, 'last_message')
+            ->addSelect(array_map(static fn (string $column): string => "last_message.last_message_{$column}", self::LAST_MESSAGE_COLUMNS))
+            ->afterQuery(static function (Collection $results): void {
+                $results->whereInstanceOf(Conversation::class)
+                    ->each(static fn (Conversation $conversation) => self::moveLastMessageToRelation($conversation));
+            });
+    }
+
+    /**
+     * Turns the `last_message_*` columns of {@see withLastMessage()} into the
+     * `lastMessage` relation (null for a conversation without messages), and
+     * takes them off the conversation's own attributes.
+     */
+    private static function moveLastMessageToRelation(Conversation $conversation): void
+    {
+        $attributes = $conversation->getAttributes();
+        $message = [];
+
+        foreach (self::LAST_MESSAGE_COLUMNS as $column) {
+            $message[$column] = $attributes["last_message_{$column}"] ?? null;
+            unset($attributes["last_message_{$column}"]);
+        }
+
+        $conversation->setRawAttributes($attributes, true);
+        $conversation->setRelation('lastMessage', $message['id'] === null
+            ? null
+            : new Message()->newFromBuilder([...$message, 'chat_conversation_id' => $conversation->getKey()]));
+    }
+
     /** @return self<TModel> */
     public function filterByTopic(?string $topicId): self
     {
@@ -114,7 +175,9 @@ class ConversationQueryBuilder extends Builder
     {
         return $this->when($confidenceScore, function ($query) use ($confidenceScore): void {
             $query->whereHas('messages', function ($q) use ($confidenceScore): void {
-                $q->where('role', MessageRole::Assistant);
+                // The predicate of messages_confidence_idx, written out so the
+                // planner can use that index for the EXISTS.
+                $q->where('role', MessageRole::Assistant)->whereNotNull('confidence_score');
                 match (ConfidenceBand::tryFrom($confidenceScore)) {
                     ConfidenceBand::High => $q->where('confidence_score', '>=', ConfidenceBand::HIGH_FLOOR),
                     // The high floor itself is high, so a score is in one band only.

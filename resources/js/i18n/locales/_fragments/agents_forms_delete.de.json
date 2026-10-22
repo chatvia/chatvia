@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "forms": {
+            "delete_with_leads": "Dabei wird auch {count} Lead gelöscht. Diese Aktion kann nicht rückgängig gemacht werden. | Dabei werden auch {count} Leads gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
+        }
+    }
+}

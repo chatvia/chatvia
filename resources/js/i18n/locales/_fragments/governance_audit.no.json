@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Ikke tilbudt",
-            "detail_spoken_approval": "Muntlig godkjenning"
+            "detail_spoken_approval": "Muntlig godkjenning",
+            "detail_arguments_cut_off": "Kuttet ved størrelsesgrensen. Bare starten vises."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Kuttet ved størrelsesgrensen. Bare starten vises."
         }
     }
 }

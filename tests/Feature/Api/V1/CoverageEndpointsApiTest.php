@@ -50,6 +50,28 @@ describe('teams', function (): void {
             ->assertJsonValidationErrors(['team']);
     });
 
+    it('refuses a team that still has members or a trashed agent, with a field error', function (): void {
+        $staffed = app(CreateTeamAction::class)->execute(new CreateTeamData($this->owner->workspace(), 'Staffed'));
+        $member = User::factory()->employee($this->owner)->create();
+        $staffed->members()->attach($member->id, ['role_id' => $staffed->roles()->value('id')]);
+
+        $this->withToken($this->token)
+            ->deleteJson("/api/v1/teams/{$staffed->external_id}")
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['team' => __('You cannot delete a team that has members. Please remove its members first.')]);
+
+        $purging = app(CreateTeamAction::class)->execute(new CreateTeamData($this->owner->workspace(), 'Purging'));
+        createAgent($this->owner, ['team_id' => $purging->id])->delete();
+
+        $this->withToken($this->token)
+            ->deleteJson("/api/v1/teams/{$purging->external_id}")
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['team' => __('You cannot delete a team that has agents. Please delete or move all agents first.')]);
+
+        expect($staffed->fresh())->not->toBeNull()
+            ->and($purging->fresh())->not->toBeNull();
+    });
+
     it('deletes an empty role and refuses one that members still hold', function (): void {
         $team = ownerTeam($this->owner);
         $empty = $team->roles()->create(['name' => 'Ghost role']);

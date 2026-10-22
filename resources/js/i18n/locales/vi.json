@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Hiển thị lại biểu mẫu",
             "preview_user_message": "Xin chào! Bạn có thể giúp tôi không?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Biểu mẫu chỉ hiển thị trong Tiện ích trò chuyện và Thanh lệnh."
+            "surfaces_notice": "Biểu mẫu chỉ hiển thị trong Tiện ích trò chuyện và Thanh lệnh.",
+            "delete_with_leads": "Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác. | Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác."
         },
         "submissions": {
             "page_title": "Lượt gửi",
@@ -3321,7 +3322,8 @@
                 "outcome": "Kết quả",
                 "ip": "Địa chỉ IP",
                 "when": "Thời điểm"
-            }
+            },
+            "metadata_cut_off": "Đã bị cắt ở giới hạn kích thước. Chỉ hiển thị phần đầu."
         },
         "audit": {
             "title": "Kiểm tra",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "bị từ chối",
             "outcome_rate_limited": "bị giới hạn tần suất",
             "outcome_not_offered": "Không được cung cấp",
-            "detail_spoken_approval": "Phê duyệt bằng lời nói"
+            "detail_spoken_approval": "Phê duyệt bằng lời nói",
+            "detail_arguments_cut_off": "Đã bị cắt ở giới hạn kích thước. Chỉ hiển thị phần đầu."
         },
         "attach_file": {
             "title": "Chọn từ các tệp đã được huấn luyện",

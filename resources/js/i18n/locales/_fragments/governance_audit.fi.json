@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Ei tarjottu",
-            "detail_spoken_approval": "Suullinen hyväksyntä"
+            "detail_spoken_approval": "Suullinen hyväksyntä",
+            "detail_arguments_cut_off": "Katkaistu kokorajan kohdalta. Vain alku näytetään."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Katkaistu kokorajan kohdalta. Vain alku näytetään."
         }
     }
 }

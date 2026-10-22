@@ -133,3 +133,18 @@ it('filters the activity log by guard and outcome', function (): void {
             ->where('triggers.total', 1)
             ->where('triggers.data.0.guard_type', 'toxicity'));
 });
+
+it('filters the activity log by visitor and shows who it was', function (): void {
+    $visitor = str_repeat('a', 64);
+    $base = ['agent_id' => $this->agent->id, 'agent_name' => $this->agent->name, 'workspace_id' => $this->agent->workspace_id, 'stage' => 'input', 'guard_type' => 'pii', 'outcome' => 'redacted'];
+    GuardrailEvent::query()->create([...$base, 'visitor_key' => $visitor, 'user_id' => $this->owner->id, 'user_name' => $this->owner->name]);
+    GuardrailEvent::query()->create([...$base, 'visitor_key' => str_repeat('b', 64)]);
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.guardrails', ['agent' => $this->agent->external_id, 'visitor' => $visitor]))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('triggers.total', 1)
+            ->where('triggers.data.0.user_name', $this->owner->name)
+            ->where('triggers.data.0.avatar', null));
+});

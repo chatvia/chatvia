@@ -544,6 +544,38 @@ theme.
 - YouTube sources are hidden unless `FEATURE_YOUTUBE_SOURCES=true` (they are
   not finished).
 
+### Database
+
+- **Faster pages and chats on large installs.** A full review of the schema
+  and the queries it serves:
+  - New or reshaped indexes for the chat log, waiting handoffs, the API's
+    message pages, the chat log's confidence filter, the Q&A match on every
+    chat turn, the knowledge checks on an agent's Setup page, the website
+    refresh and the account analytics.
+  - Lists that show the first or latest message of each conversation now read
+    one message per conversation instead of all of them.
+  - Unused and duplicate indexes were removed, so every write costs less.
+- **Fewer writes on busy chats.** A widget page load and the widget's
+  heartbeat write at most once a minute, and never move a conversation in the
+  chat log. A new message still does.
+- **Permission checks no longer load every role of every workspace** on each
+  request.
+- **Large deletes run in batches**: a knowledge source's chunks, a website's
+  links, a form's leads, an agent's removal and a workspace's audit rows.
+  Deleting a form now says how many leads are deleted with it.
+- **Tables no longer grow without end.** New daily prunes remove devices not
+  seen for 180 days (`chatvia:prune:known-devices`), invitations 30 days after
+  they expire (`chatvia:prune:invitations`), expired password reset links, and
+  per-conversation analytics older than about 13 months. Expired data exports
+  are now deleted. A daily sweep (`chatvia:agent:purge-deleted`) finishes
+  removing deleted agents whose first attempt failed.
+- **Staff emails are stored in lowercase.** Sign-in, sign-up, password reset
+  and invitations ignore the case of what was typed, and two accounts can no
+  longer differ only in case.
+- **Migrations are dated on one timeline** from July 2025, in the same order
+  as before. A development database migrated before this change needs
+  `php artisan migrate:fresh --seed`.
+
 ### Architecture
 
 - The code follows three layers (`App`, `Domain`, `Support`) with rules that
@@ -614,6 +646,22 @@ theme.
   the admin panel (**Settings → Knowledge**; on by default, as before).
 - The default OAuth callback URLs (sign-in and the Meta channels) are built
   from `APP_URL`, so they stay https behind a proxy that ends TLS.
+- The tool-call and security audit pages failed to load when a recorded
+  payload had been cut to the size limit. The cut text is now shown, marked
+  as cut off.
+- Deleting a team that still had teammates failed with a server error. It is
+  now refused with a message, like a team that still has agents. A team
+  whose deleted agents are still being removed can no longer be deleted.
+- Two operators who took over the same chat at the same moment could both
+  succeed. The second one is now refused.
+- A Facebook Page or Instagram account could not be connected again while a
+  deleted agent that used it was still being removed.
+- Two sign-ins from a new device at the same moment could fail.
+- The security webhook's failure count could miss failures that happened at
+  the same time.
+- Using a knowledge source in an answer no longer changes its "updated" time.
+- The chat log's message pages could repeat or skip messages sent in the same
+  second.
 
 ### Tooling
 

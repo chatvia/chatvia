@@ -7,6 +7,7 @@ use App\Identity\Workspace\Exceptions\EmailAlreadyTakenException;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Creates a platform admin: access to the admin panel plus a normal workspace
@@ -25,7 +26,8 @@ class CreateAdminUserAction
      */
     public function execute(CreateAdminUserData $data): User
     {
-        if (User::query()->whereRaw('lower(email) = ?', [strtolower($data->email)])->exists()) {
+        // Stored lowercase (the User model lowers it), so this is a plain index match.
+        if (User::query()->where('email', Str::lower($data->email))->exists()) {
             throw EmailAlreadyTakenException::for($data->email);
         }
 

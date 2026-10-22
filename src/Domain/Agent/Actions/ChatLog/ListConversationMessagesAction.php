@@ -21,6 +21,9 @@ class ListConversationMessagesAction
             ->with('llm')
             ->orderBy('created_at')
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
+            // The last tiebreak makes the order total, so no message repeats
+            // or goes missing between two pages.
+            ->orderBy('id')
             ->paginate(50, page: $page);
 
         // The conversation's most recent SUBMITTED form (keyed by internal

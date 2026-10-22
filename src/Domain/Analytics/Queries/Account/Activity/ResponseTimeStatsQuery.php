@@ -4,17 +4,18 @@ namespace Domain\Analytics\Queries\Account\Activity;
 
 use Domain\Analytics\Data\Account\Activity\ResponseTimeStatsData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
-use Domain\Analytics\Services\Period;
 use Domain\Conversation\Enums\MessageRole;
 
 /**
  * AI reply latency: average, median, p95 and slowest reply, plus the average
  * time to the first reply of a conversation. The count and the average come
- * from the hourly rollup; the median, p95, slowest reply and first-reply time
- * need single messages, so they read the raw events the prune still keeps.
+ * from the hourly rollup and the first-reply time from the per-conversation
+ * metrics. The median, p95 and slowest reply need single messages, so they
+ * read the raw events the prune still keeps. That read uses only columns the
+ * (workspace_id, event_type, occurred_at) index carries, so Postgres can
+ * answer it from the index alone.
  */
 class ResponseTimeStatsQuery extends AccountAnalyticsQuery
 {
@@ -40,38 +41,21 @@ class ResponseTimeStatsQuery extends AccountAnalyticsQuery
             p50Ms: $this->roundOrNull($distribution->p50_ms, 0),
             p95Ms: $this->roundOrNull($distribution->p95_ms, 0),
             maxMs: $distribution->max_ms !== null ? (int) $distribution->max_ms : null,
-            avgFirstResponseSeconds: $this->roundOrNull($this->averageFirstResponseSeconds($scope, $rawPeriod), 1),
+            avgFirstResponseSeconds: $this->roundOrNull($this->averageFirstResponseSeconds($scope), 1),
         );
     }
 
     /**
-     * Per conversation: seconds from the first visitor message to the first
-     * AI reply after it, averaged.
+     * Per conversation started in the window: seconds from its first visitor
+     * message to its first AI reply after it, averaged. Read from the
+     * per-conversation metrics, which keep both times as messages arrive.
      */
-    private function averageFirstResponseSeconds(AnalyticsScopeData $scope, Period $period): int|float|string|null
+    private function averageFirstResponseSeconds(AnalyticsScopeData $scope): int|float|string|null
     {
-        $agentFilter = $scope->agentId !== null ? ' AND agent_id = ?' : '';
-        $firstMessagePerConversation = "SELECT conversation_external_id, MIN(occurred_at) occurred_at FROM analytics_events
-                   WHERE workspace_id = ? AND event_type = ? AND role = ? AND occurred_at BETWEEN ? AND ?{$agentFilter}
-                   GROUP BY conversation_external_id";
-
-        $bindings = fn (string $role): array => [
-            $scope->workspace->id,
-            AnalyticsEventType::MessageSent->value,
-            $role,
-            $period->start->toDateTimeString(),
-            $period->end->toDateTimeString(),
-            ...($scope->agentId !== null ? [$scope->agentId] : []),
-        ];
-
-        $row = $this->analytics()->selectOne(
-            "SELECT AVG(EXTRACT(EPOCH FROM (a.occurred_at - u.occurred_at))) avg_first
-             FROM ({$firstMessagePerConversation}) u
-             JOIN ({$firstMessagePerConversation}) a ON a.conversation_external_id = u.conversation_external_id
-             WHERE a.occurred_at > u.occurred_at",
-            [...$bindings(MessageRole::User->value), ...$bindings(MessageRole::Assistant->value)],
-        );
-
-        return $row->avg_first ?? null;
+        return $this->conversationMetrics($scope)
+            ->whereColumn('first_assistant_at', '>', 'first_user_at')
+            ->selectRaw('AVG(EXTRACT(EPOCH FROM (first_assistant_at - first_user_at))) avg_first')
+            ->first()
+            ?->avg_first;
     }
 }

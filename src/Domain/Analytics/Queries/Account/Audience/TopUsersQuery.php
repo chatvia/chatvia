@@ -21,10 +21,16 @@ class TopUsersQuery extends AccountAnalyticsQuery
 {
     use ReadsHourlyRollups;
 
+    /**
+     * @param  int  $limit  how many chatters to name; at least 1, since the
+     *                      distinct count is read from the first row
+     */
     public function get(AnalyticsScopeData $scope, int $limit): TopUsersData
     {
+        // One pass: the window count runs over the grouped rows before the
+        // LIMIT, so it is the number of distinct chatters in the range.
         $rows = $this->identifiedMessages($scope)
-            ->selectRaw('chatter_id, COUNT(*) messages')
+            ->selectRaw('chatter_id, COUNT(*) messages, COUNT(*) OVER () unique_users')
             ->groupBy('chatter_id')
             ->orderByDesc('messages')
             ->limit($limit)
@@ -41,7 +47,7 @@ class TopUsersQuery extends AccountAnalyticsQuery
                 email: $users[$row->chatter_id]->email ?? null,
                 messages: (int) $row->messages,
             ))->all(),
-            uniqueIdentifiedUsers: (int) $this->identifiedMessages($scope)->distinct()->count('chatter_id'),
+            uniqueIdentifiedUsers: (int) ($rows->first()->unique_users ?? 0),
             newVisitors: (int) $this->sessionFirsts($scope)->count(),
         );
     }

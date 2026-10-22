@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
             $table->string('name');
-            $table->string('email')->nullable()->unique();
+            $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->text('two_factor_secret')->nullable();
@@ -42,7 +43,7 @@ return new class extends Migration
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
 
-            $table->string('date_format')->nullable();
+            $table->enum('date_format', ['iso', 'dmy_slash', 'mdy_slash', 'dmy_dot', 'long'])->nullable();
 
             $table->string('locale', 5)->nullable();
 
@@ -52,6 +53,8 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        DB::statement('ALTER TABLE users ADD CONSTRAINT users_email_lowercase CHECK (email = lower(email))');
 
         Schema::create('password_reset_tokens', function (Blueprint $table): void {
             $table->string('email')->primary();

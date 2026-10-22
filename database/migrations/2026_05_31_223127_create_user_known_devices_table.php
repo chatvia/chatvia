@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'fingerprint_hash']);
+            $table->index('last_seen_at');
         });
     }
 

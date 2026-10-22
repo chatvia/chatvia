@@ -93,8 +93,10 @@ class HandleInertiaRequests extends Middleware
                 unread: $user->userNotifications()->unread()->count(),
                 preferences: $user->notificationPreferences(),
             ) : null,
-            'permissions' => $this->getTeamPermissions($request),
-            'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
+            // Lazy, like the props above: a partial reload that does not ask
+            // for them skips the team and permission queries.
+            'permissions' => fn (): array => $this->getTeamPermissions($request),
+            'currentTeam' => fn (): ?array => $user ? $this->getCurrentTeam($request) : null,
             // Install-wide switches for unfinished features (`chatvia.features`).
             // Frontend gates via `useFeature().hasFeature('youtube_sources')`.
             'features' => $user ? [

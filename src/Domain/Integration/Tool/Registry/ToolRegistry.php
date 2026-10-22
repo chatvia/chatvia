@@ -129,8 +129,10 @@ class ToolRegistry
      */
     private function compileCustomMcpTools(int $agentId): array
     {
+        // Only what a ToolEntry needs: the embedding and search text are
+        // large and only the ranked search reads them.
         $tools = McpTool::query()
-            ->select(['mcp_tools.*', 'mcp_servers.slug as server_slug'])
+            ->select(['mcp_tools.id', 'mcp_tools.name', 'mcp_tools.description', 'mcp_tools.input_schema', 'mcp_tools.scope', 'mcp_servers.slug as server_slug'])
             ->join('mcp_servers', 'mcp_servers.id', '=', 'mcp_tools.mcp_server_id')
             ->leftJoin('agent_mcp_server', function ($join) use ($agentId): void {
                 $join->on('agent_mcp_server.mcp_server_id', '=', 'mcp_servers.id')
@@ -205,7 +207,11 @@ class ToolRegistry
      */
     private function compileWebhookTools(int $agentId): array
     {
+        // Only what a ToolEntry needs, named per table: a bare `*` would also
+        // read the large embedding and search text, and the pivot's own
+        // invocation_count and last_invoked_at would overwrite the function's.
         $functions = AgentFunction::query()
+            ->select(['functions.id', 'functions.internal_name', 'functions.description', 'functions.parameters_schema', 'functions.webhook_method'])
             ->join('agent_function', function ($join) use ($agentId): void {
                 $join->on('agent_function.function_id', '=', 'functions.id')
                     ->where('agent_function.agent_id', $agentId);

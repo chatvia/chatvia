@@ -8,6 +8,7 @@ use App\Identity\Workspace\Data\Sessions\SendMagicLinkData;
 use App\Identity\Workspace\Events\MagicLinkRequested;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Illuminate\Support\Str;
 use MagicLink\MagicLink;
 
 /**
@@ -29,11 +30,12 @@ class SendMagicLinkAction
 
     public function execute(SendMagicLinkData $data, string $redirectUrl, ?Agent $agent = null): void
     {
-        $email = strtolower(trim($data->email));
+        $email = Str::lower(Str::trim($data->email));
 
+        // Staff emails are stored lowercase, so a plain match uses the unique index.
         $account = $agent instanceof Agent
-            ? $this->chatterFor($agent, $email) ?? User::query()->whereRaw('lower(email) = ?', [$email])->first()
-            : User::query()->whereRaw('lower(email) = ?', [$email])->first();
+            ? $this->chatterFor($agent, $email) ?? User::query()->where('email', $email)->first()
+            : User::query()->where('email', $email)->first();
 
         if ($account === null || $account->isDeactivated()) {
             return;

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -34,8 +35,9 @@ return new class extends Migration
 
             $table->unique(['workspace_id', 'url']);
             $table->index(['workspace_id', 'status']);
-            $table->index('refresh_interval');
         });
+
+        DB::statement("CREATE INDEX source_websites_refresh_due_idx ON source_websites (id) WHERE refresh_interval <> 'off'");
     }
 
     public function down(): void

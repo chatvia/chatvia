@@ -9,6 +9,7 @@ use Closure;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -25,6 +26,18 @@ class InviteTeamMemberRequest extends FormRequest
         $team = $this->route('team');
 
         return $team instanceof Team && $this->user()?->can('addTeamMember', $team);
+    }
+
+    /**
+     * Staff emails are stored lowercase. The typed address is lowered
+     * before the rules run, so the member and pending-invitation checks
+     * compare like with like.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => Str::lower($this->input('email'))]);
+        }
     }
 
     /**
@@ -100,7 +113,7 @@ class InviteTeamMemberRequest extends FormRequest
                 return;
             }
 
-            if ($team->invitations()->where('email', strtolower($value))->exists()) {
+            if ($team->invitations()->where('email', $value)->exists()) {
                 $fail(__('An invitation has already been sent to this email.'));
             }
         };

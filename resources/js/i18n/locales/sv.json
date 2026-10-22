@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Visa formuläret igen",
             "preview_user_message": "Hej! Kan du hjälpa mig?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Formulär visas bara i chattwidgeten och kommandofältet."
+            "surfaces_notice": "Formulär visas bara i chattwidgeten och kommandofältet.",
+            "delete_with_leads": "Detta raderar även {count} lead. Den här åtgärden kan inte ångras. | Detta raderar även {count} leads. Den här åtgärden kan inte ångras."
         },
         "submissions": {
             "page_title": "Inskick",
@@ -3321,7 +3322,8 @@
                 "outcome": "Utfall",
                 "ip": "IP-adress",
                 "when": "När"
-            }
+            },
+            "metadata_cut_off": "Avkortad vid storleksgränsen. Bara början visas."
         },
         "audit": {
             "title": "Granskning",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "Nekad",
             "outcome_rate_limited": "Hastighetsbegränsad",
             "outcome_not_offered": "Inte erbjuden",
-            "detail_spoken_approval": "Muntligt godkännande"
+            "detail_spoken_approval": "Muntligt godkännande",
+            "detail_arguments_cut_off": "Avkortad vid storleksgränsen. Bara början visas."
         },
         "attach_file": {
             "title": "Välj från redan tränade filer",

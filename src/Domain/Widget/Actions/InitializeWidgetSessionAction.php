@@ -4,6 +4,8 @@ namespace Domain\Widget\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
+use Domain\Conversation\Actions\Activity\TouchConversationActivityAction;
+use Domain\Conversation\Actions\Activity\TouchSessionActivityAction;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\ChatViewerData;
@@ -24,7 +26,10 @@ use Support\Http\SafeUrl;
  * the widget which ids to send from now on and whether either one is new.
  *
  * The writes share one transaction, so a failure never leaves a session
- * without its conversation.
+ * without its conversation. A resumed session and conversation get their
+ * activity time moved at most once a minute and keep their `updated_at`, so
+ * a plain page view neither rewrites the rows nor moves the conversation in
+ * the chat log.
  */
 class InitializeWidgetSessionAction
 {
@@ -35,6 +40,8 @@ class InitializeWidgetSessionAction
         private readonly WidgetVerification $widgetVerification,
         private readonly UserAgentParser $userAgentParser,
         private readonly StartConversationAction $startConversation,
+        private readonly TouchSessionActivityAction $touchSession,
+        private readonly TouchConversationActivityAction $touchConversation,
     ) {}
 
     public function execute(Agent $agent, WidgetSessionInitData $data, ?ChatViewerData $viewer = null): WidgetSessionInitResultData
@@ -75,7 +82,10 @@ class InitializeWidgetSessionAction
         }
 
         $session = $this->widgetVerification->verifySessionExternalId($data->existingSessionId, $agent, $viewer);
-        $session?->update(['last_activity_at' => now()]);
+
+        if ($session instanceof Session) {
+            $this->touchSession->execute($session);
+        }
 
         return $session;
     }
@@ -129,7 +139,7 @@ class InitializeWidgetSessionAction
             return null;
         }
 
-        $conversation->update(['last_activity_at' => now()]);
+        $this->touchConversation->execute($conversation);
 
         return $conversation;
     }

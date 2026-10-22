@@ -22,7 +22,7 @@ use Support\Concerns\HasExternalId;
  * config('team-permissions.roles'); custom roles derive it from their name.
  *
  * @property int $id
- * @property string|null $external_id
+ * @property string $external_id
  * @property int|null $team_id
  * @property string $name
  * @property string|null $code
@@ -74,12 +74,35 @@ class Role extends SpatieRole
     }
 
     /**
+     * Whether the role holds the permission. Reads only this role's own
+     * permissions (loaded once per model). Spatie's hasPermissionTo() would
+     * first load the cached list of every permission with every role of every
+     * workspace, since roles are per team. An unknown code is simply false.
+     */
+    public function grants(string $code): bool
+    {
+        return $this->loadMissing('permissions')->permissions->contains('name', $code);
+    }
+
+    /**
      * Whether the role grants every agent in the team, either because it is the
      * owner role or because it carries the all-agents meta-permission.
      */
     public function grantsAllAgents(): bool
     {
-        return $this->isOwnerRole() || $this->hasPermissionTo(Permission::ACCESS_ALL_AGENTS);
+        return $this->isOwnerRole() || $this->grants(Permission::ACCESS_ALL_AGENTS);
+    }
+
+    /**
+     * Whether the agent is on this role's own agent list (`agent_role`).
+     * Asked once per role and agent: the access middleware and the Gate both
+     * ask it in one request, on the same memoised role.
+     */
+    public function listsAgent(Agent $agent): bool
+    {
+        $agentId = $agent->id;
+
+        return once(fn (): bool => $this->agents()->whereKey($agentId)->exists());
     }
 
     /**

@@ -48,3 +48,31 @@ it('does nothing for a workspace without a policy', function (): void {
 
     expect(WorkspaceSecurityPolicy::query()->count())->toBe($before);
 });
+
+it('audits the switch-off once when failures land together', function (): void {
+    Event::fake([SecurityEventOccurred::class]);
+    $this->policy->forceFill(['webhook_failures' => 2])->save();
+
+    // The next three calls all start from a policy that was on; only the one
+    // whose update turns it off may audit it.
+    foreach (range(1, 3) as $ignored) {
+        app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->workspace()->id);
+    }
+
+    expect($this->policy->fresh()->webhook_failures)->toBe(5);
+    Event::assertDispatchedTimes(SecurityEventOccurred::class, 1);
+    Event::assertDispatched(
+        SecurityEventOccurred::class,
+        fn (SecurityEventOccurred $event): bool => json_decode($event->metadata, true) === ['reason' => 'max_failures', 'failures' => 3],
+    );
+});
+
+it('does not audit a webhook that was already off', function (): void {
+    Event::fake([SecurityEventOccurred::class]);
+    $this->policy->forceFill(['is_webhook_enabled' => false, 'webhook_failures' => 7])->save();
+
+    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->workspace()->id);
+
+    expect($this->policy->fresh()->webhook_failures)->toBe(8);
+    Event::assertNotDispatched(SecurityEventOccurred::class);
+});

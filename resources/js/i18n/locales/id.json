@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Tampilkan formulir lagi",
             "preview_user_message": "Halo! Bisakah Anda membantu saya?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Formulir hanya tampil di Widget Chat dan Bilah Perintah."
+            "surfaces_notice": "Formulir hanya tampil di Widget Chat dan Bilah Perintah.",
+            "delete_with_leads": "Ini juga menghapus {count} prospek. Tindakan ini tidak dapat dibatalkan. | Ini juga menghapus {count} prospek. Tindakan ini tidak dapat dibatalkan."
         },
         "submissions": {
             "page_title": "Pengiriman",
@@ -3321,7 +3322,8 @@
                 "outcome": "Hasil",
                 "ip": "Alamat IP",
                 "when": "Waktu"
-            }
+            },
+            "metadata_cut_off": "Dipotong pada batas ukuran. Hanya bagian awal yang ditampilkan."
         },
         "audit": {
             "title": "Audit",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "ditolak",
             "outcome_rate_limited": "dibatasi laju",
             "outcome_not_offered": "Tidak ditawarkan",
-            "detail_spoken_approval": "Persetujuan lisan"
+            "detail_spoken_approval": "Persetujuan lisan",
+            "detail_arguments_cut_off": "Dipotong pada batas ukuran. Hanya bagian awal yang ditampilkan."
         },
         "attach_file": {
             "title": "Pilih dari File yang Sudah Dilatih",

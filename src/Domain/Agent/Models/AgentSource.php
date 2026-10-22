@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\DB;
  * video) to an agent, with how often answers retrieved it. A source can be
  * shared by several agents of one workspace.
  *
- * @property int $id
  * @property int $agent_id
  * @property string $sourceable_type
  * @property int $sourceable_id
@@ -31,7 +30,6 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource whereAgentId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource whereLastRetrievedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource whereRetrievalCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentSource whereSourceableId($value)

@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 /**
  * Deletes a team. Only the owner may, and never their primary or only team,
- * nor a team that still has agents (DeleteTeamAction holds those guards,
+ * nor a team that still has agents or members (DeleteTeamAction holds those guards,
  * shared with the public API; a refusal redirects back with the field error).
  */
 class TeamDeleteController

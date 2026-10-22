@@ -28,6 +28,7 @@ beforeEach(function (): void {
 function connectedMcpServerFor(User $user, ?string $connectorSlug = null): AgentMcpServer
 {
     return $user->workspace()->mcpServers()->create([
+        'category' => $connectorSlug === null ? 'custom' : 'integration',
         'name' => 'Weather',
         'slug' => 'weather',
         'connector_slug' => $connectorSlug,

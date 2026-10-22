@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Không được cung cấp",
-            "detail_spoken_approval": "Phê duyệt bằng lời nói"
+            "detail_spoken_approval": "Phê duyệt bằng lời nói",
+            "detail_arguments_cut_off": "Đã bị cắt ở giới hạn kích thước. Chỉ hiển thị phần đầu."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Đã bị cắt ở giới hạn kích thước. Chỉ hiển thị phần đầu."
         }
     }
 }

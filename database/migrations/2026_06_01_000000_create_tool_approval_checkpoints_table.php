@@ -16,7 +16,7 @@ return new class extends Migration
 
             // The key to the agent pairs it with the workspace: a checkpoint
             // can never point at another workspace's agent.
-            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id');
             $table->foreignIdFor(Agent::class);
 
             $table->uuid('conversation_external_id');
@@ -38,7 +38,6 @@ return new class extends Migration
 
             $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
 
-            $table->index(['conversation_external_id', 'status']);
             $table->index('agent_id');
             $table->index('expires_at');
         });

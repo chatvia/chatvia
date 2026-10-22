@@ -33,7 +33,6 @@ return new class extends Migration
             $table->primary(['chat_message_id', 'rank']);
             $table->foreign(['workspace_id', 'chat_message_id'])->references(['workspace_id', 'id'])->on('chat_messages')->cascadeOnDelete();
             $table->index('chunk_id');
-            $table->index(['sourceable_type', 'sourceable_id']);
         });
     }
 

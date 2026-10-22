@@ -244,6 +244,7 @@
     "You are not allowed to resend invitations for this team.": "Du får inte skicka om inbjudningar för det här teamet.",
     "You can only add users you have invited.": "Du kan bara lägga till användare som du har bjudit in.",
     "You cannot delete a team that has agents. Please delete or move all agents first.": "Du kan inte radera ett team som har agenter. Radera eller flytta alla agenter först.",
+    "You cannot delete a team that has members. Please remove its members first.": "Du kan inte radera ett team som har medlemmar. Ta bort dess medlemmar först.",
     "You cannot delete your only team. Create another team first.": "Du kan inte radera ditt enda team. Skapa ett annat team först.",
     "You cannot delete your primary team.": "Du kan inte radera ditt huvudteam.",
     "You do not have access to this team.": "Du har inte åtkomst till det här teamet.",

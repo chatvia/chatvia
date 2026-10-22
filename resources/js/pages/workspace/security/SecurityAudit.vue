@@ -36,6 +36,9 @@ interface Row {
     ip: string | null;
     user_agent: string | null;
     metadata: Record<string, unknown> | null;
+    /** The metadata as text when it was cut at the size limit or was not JSON. */
+    metadata_preview: string | null;
+    metadata_truncated: boolean;
     integrity_verified: boolean;
 }
 
@@ -80,8 +83,11 @@ const openDetail = (row: Row) => {
     detailOpen.value = true;
 };
 
-const prettyMetadata = (metadata: unknown): string => {
-    if (!metadata || (typeof metadata === 'object' && Object.keys(metadata).length === 0)) return '—';
+const prettyMetadata = (row: Row): string => {
+    const metadata = row.metadata;
+    // Metadata cut at the size limit (or not JSON) arrives as preview text.
+    if (metadata === null) return row.metadata_preview || '—';
+    if (typeof metadata === 'object' && Object.keys(metadata).length === 0) return '—';
     try {
         return JSON.stringify(metadata, null, 2);
     } catch {
@@ -207,8 +213,11 @@ const prettyMetadata = (metadata: unknown): string => {
                     <div>
                         <p class="text-muted-foreground mb-1 text-xs uppercase">{{ t('workspace.security_audit.metadata') }}</p>
                         <pre class="bg-muted/40 max-h-60 overflow-y-auto rounded-md p-3 text-xs break-words whitespace-pre-wrap">{{
-                            prettyMetadata(selected.metadata)
+                            prettyMetadata(selected)
                         }}</pre>
+                        <p v-if="selected.metadata === null && selected.metadata_truncated" class="text-muted-foreground mt-1 text-xs">
+                            {{ t('workspace.security_audit.metadata_cut_off') }}
+                        </p>
                     </div>
                     <div v-if="selected.integrity_verified" class="text-muted-foreground flex items-center gap-1.5 text-xs">
                         <ShieldCheck class="size-3.5" /> {{ t('workspace.security_audit.integrity') }}

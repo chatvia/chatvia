@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Показать форму снова",
             "preview_user_message": "Здравствуйте! Можете мне помочь?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Формы показываются только в чат-виджете и командной строке."
+            "surfaces_notice": "Формы показываются только в чат-виджете и командной строке.",
+            "delete_with_leads": "Также будет удалён {count} лид. Это действие нельзя отменить. | Также будут удалены лиды: {count}. Это действие нельзя отменить."
         },
         "submissions": {
             "page_title": "Отправки",
@@ -3321,7 +3322,8 @@
                 "outcome": "Результат",
                 "ip": "IP-адрес",
                 "when": "Когда"
-            }
+            },
+            "metadata_cut_off": "Обрезано по пределу размера. Показано только начало."
         },
         "audit": {
             "title": "Аудит",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "отклонено",
             "outcome_rate_limited": "ограничено по частоте",
             "outcome_not_offered": "Не предложен",
-            "detail_spoken_approval": "Устное подтверждение"
+            "detail_spoken_approval": "Устное подтверждение",
+            "detail_arguments_cut_off": "Обрезано по пределу размера. Показано только начало."
         },
         "attach_file": {
             "title": "Выбрать из уже обученных файлов",

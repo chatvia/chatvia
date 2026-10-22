@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
@@ -66,6 +67,39 @@ describe('teams.destroy', function (): void {
             ->assertSessionHasNoErrors();
 
         expect($team->fresh())->toBeNull();
+    });
+
+    it('refuses a team that still has members, with a field error', function (): void {
+        $team = app(CreateTeamAction::class)->execute(
+            new CreateTeamData(workspace: $this->owner->workspace(), name: 'Staffed'),
+        );
+        $member = User::factory()->employee($this->owner)->create();
+        $team->members()->attach($member->id, ['role_id' => $team->roles()->value('id')]);
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->delete(route('teams.destroy', $team))
+            ->assertRedirect('/')
+            ->assertSessionHasErrors(['team' => __('You cannot delete a team that has members. Please remove its members first.')]);
+
+        expect($team->fresh())->not->toBeNull();
+    });
+
+    it('refuses a team whose agent is trashed and waiting for its purge', function (): void {
+        $team = app(CreateTeamAction::class)->execute(
+            new CreateTeamData(workspace: $this->owner->workspace(), name: 'Purging'),
+        );
+        $agent = createAgent($this->owner, ['team_id' => $team->id]);
+        $agent->delete();
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->delete(route('teams.destroy', $team))
+            ->assertRedirect('/')
+            ->assertSessionHasErrors(['team' => __('You cannot delete a team that has agents. Please delete or move all agents first.')]);
+
+        expect($team->fresh())->not->toBeNull()
+            ->and(Agent::withTrashed()->find($agent->id))->not->toBeNull();
     });
 });
 

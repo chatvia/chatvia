@@ -46,7 +46,7 @@ class TeamRoleData extends Data
                 ->reject(fn (string $name): bool => $name === Permission::ACCESS_ALL_AGENTS)
                 ->values()
                 ->toArray(),
-            all_agents: $role->hasPermissionTo(Permission::ACCESS_ALL_AGENTS),
+            all_agents: $role->grants(Permission::ACCESS_ALL_AGENTS),
             agent_ids: $role->agents()->pluck('agents.external_id')->toArray(),
         );
     }

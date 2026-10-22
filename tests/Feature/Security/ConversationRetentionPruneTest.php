@@ -1,10 +1,14 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,7 +25,8 @@ use Illuminate\Support\Facades\DB;
 function crpAgedConversation(Agent $agent, int $daysIdle): Conversation
 {
     $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id]);
+    // Visible: it had messages. A hidden one is swept by its short expires_at.
+    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
 
     // Push last activity into the past without tripping the updated_at touch.
     DB::table('chat_conversations')->where('id', $conversation->id)->update(['updated_at' => now()->subDays($daysIdle)]);
@@ -64,4 +69,33 @@ it('leaves conversations untouched when the workspace has no override', function
     $this->artisan('chatvia:prune:conversations')->assertSuccessful();
 
     expect($conversation->fresh()->trashed())->toBeFalse();
+});
+
+it('prunes the conversations of every agent of the workspace, and only of that workspace', function (): void {
+    $agent = Agent::factory()->create();
+    $sibling = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+    $stranger = Agent::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 5]);
+
+    $old = crpAgedConversation($agent, daysIdle: 30);
+    $siblingOld = crpAgedConversation($sibling, daysIdle: 30);
+    $strangerOld = crpAgedConversation($stranger, daysIdle: 30);
+
+    $this->artisan('chatvia:prune:conversations')->assertSuccessful();
+
+    expect($old->fresh()->trashed())->toBeTrue()
+        ->and($siblingOld->fresh()->trashed())->toBeTrue()
+        ->and($strangerOld->fresh()->trashed())->toBeFalse();
+});
+
+it('sweeps a hidden conversation of an overridden workspace by its own short horizon', function (): void {
+    $agent = Agent::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 1]);
+    $id = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid()), ConversationSource::Widget)->external_id;
+
+    $this->travel(Conversation::HIDDEN_LIFETIME_DAYS)->days();
+    $this->travel(1)->minutes();
+    $this->artisan('chatvia:prune:conversations')->assertSuccessful();
+
+    expect(Conversation::withTrashed()->where('external_id', $id)->sole()->trashed())->toBeTrue();
 });

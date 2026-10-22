@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Show the form again",
             "preview_user_message": "Hi! Can you help me?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Forms show only in the Chat Widget and the Command Bar."
+            "surfaces_notice": "Forms show only in the Chat Widget and the Command Bar.",
+            "delete_with_leads": "This also deletes {count} lead. This action cannot be undone. | This also deletes {count} leads. This action cannot be undone."
         },
         "submissions": {
             "page_title": "Submissions",
@@ -3321,7 +3322,8 @@
                 "outcome": "Outcome",
                 "ip": "IP address",
                 "when": "When"
-            }
+            },
+            "metadata_cut_off": "Cut off at the size limit. Only the start is shown."
         },
         "audit": {
             "title": "Audit",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "Denied",
             "outcome_rate_limited": "Rate limited",
             "outcome_not_offered": "Not offered",
-            "detail_spoken_approval": "Spoken approval"
+            "detail_spoken_approval": "Spoken approval",
+            "detail_arguments_cut_off": "Cut off at the size limit. Only the start is shown."
         },
         "attach_file": {
             "title": "Choose from Already Trained Files",

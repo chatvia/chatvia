@@ -78,3 +78,19 @@ it('refuses a Page that already powers another agent', function (): void {
 
     expect(AgentMessengerPage::query()->where('agent_id', $other->id)->exists())->toBeFalse();
 });
+
+it('connects a Page whose only other row belongs to a deleted agent', function (): void {
+    $action = new ConnectMessengerPageAction(new FakeMessengerClient, new ChannelConnectionGuard);
+    $deleted = Agent::factory()->create(['is_public' => true]);
+    $action->execute($deleted, new MetaPageData('1234567890', 'Acme Support', 'EAAG-first'));
+    // What DeleteAgentAction leaves until the purge: a trashed agent and a switched-off row.
+    $deleted->delete();
+    AgentMessengerPage::query()->where('agent_id', $deleted->id)->update(['is_enabled' => false]);
+
+    $other = Agent::factory()->create(['is_public' => true]);
+    $page = $action->execute($other, new MetaPageData('1234567890', 'Acme Support', 'EAAG-second'));
+
+    expect($page->agent_id)->toBe($other->id)
+        ->and($page->is_enabled)->toBeTrue()
+        ->and(AgentMessengerPage::query()->where('page_id', '1234567890')->where('is_enabled', true)->sole()->agent_id)->toBe($other->id);
+});

@@ -43,6 +43,34 @@ final class CursorPage
     }
 
     /**
+     * One page of `$query`, newest first by a timestamp column, the primary
+     * key breaking ties so the order is total. Use it when an index on
+     * (the query's equality filters…, `$column`, key) exists: the page is then
+     * one index range. The cursor's bound is also added as `$column <= ?`,
+     * which the planner can use as a range; it cannot use the paginator's own
+     * `$column < ? OR ($column = ? AND key < ?)`.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return CursorPaginator<int, TModel>
+     */
+    public static function newestFirstBy(Builder $query, string $column, int $perPage, ?string $cursor): CursorPaginator
+    {
+        $timestamp = $query->getModel()->qualifyColumn($column);
+        $key = $query->getModel()->getQualifiedKeyName();
+        $decoded = self::decode($cursor, [$timestamp => 'timestamp', $key => 'int']);
+
+        if ($decoded instanceof Cursor) {
+            $query->where($timestamp, '<=', $decoded->parameter($timestamp));
+        }
+
+        // An empty string, not null, means "first page": with null the
+        // paginator would read a `cursor` from the current request.
+        return $query->orderByDesc($timestamp)->orderByDesc($key)->cursorPaginate($perPage, cursor: $decoded ?? '');
+    }
+
+    /**
      * The decoded "next page" cursor, or null when it is missing or does not
      * carry exactly `$columns`, each with a value of its kind (`timestamp` is
      * a `Y-m-d H:i:s` string).
@@ -64,7 +92,7 @@ final class CursorPage
             return null;
         }
 
-        if (array_any($columns, fn($kind, $column) => !self::isOfKind($parameters[$column], $kind))) {
+        if (array_any($columns, fn (string $kind, $column): bool => ! self::isOfKind($parameters[$column], $kind))) {
             return null;
         }
 

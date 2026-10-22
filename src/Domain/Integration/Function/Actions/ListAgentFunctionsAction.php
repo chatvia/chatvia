@@ -17,7 +17,10 @@ class ListAgentFunctionsAction
     public function execute(Agent $agent): AgentFunctionsListResourceData
     {
         // Functions belong to the workspace owner, who also owns the agent.
+        // Only the columns a row shows: not the embedding, the search text or
+        // the encrypted credentials.
         $functions = AgentFunction::query()
+            ->select(['id', 'external_id', 'internal_name', 'display_name', 'description', 'webhook_url', 'webhook_method', 'is_enabled', 'last_error'])
             ->where('workspace_id', $agent->workspace_id)
             ->orderBy('internal_name')
             ->get();

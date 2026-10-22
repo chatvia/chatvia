@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Nieoferowane",
-            "detail_spoken_approval": "Zgoda ustna"
+            "detail_spoken_approval": "Zgoda ustna",
+            "detail_arguments_cut_off": "Przycięto na limicie rozmiaru. Widoczny jest tylko początek."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Przycięto na limicie rozmiaru. Widoczny jest tylko początek."
         }
     }
 }

@@ -34,7 +34,7 @@ use Support\MimeType;
  * one upload. Its chunks hold the searchable content.
  *
  * @property int $id
- * @property string|null $external_id
+ * @property string $external_id
  * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification

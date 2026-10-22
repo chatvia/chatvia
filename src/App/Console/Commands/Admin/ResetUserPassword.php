@@ -11,6 +11,7 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 /**
  * Sets a new password for an account from the command line, for someone who
@@ -26,7 +27,7 @@ class ResetUserPassword extends Command
     public function handle(UpdatePasswordAction $updatePassword, DisableTwoFactorAction $disableTwoFactor): int
     {
         $email = (string) $this->argument('email');
-        $user = User::query()->whereRaw('lower(email) = ?', [strtolower($email)])->first();
+        $user = User::query()->where('email', Str::lower($email))->first();
 
         if ($user === null) {
             $this->error("There is no account with the email {$email}.");

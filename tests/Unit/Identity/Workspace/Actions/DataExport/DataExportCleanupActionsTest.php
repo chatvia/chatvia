@@ -47,12 +47,34 @@ it('prunes expired exports and failed ones older than a week, keeping the rest',
     ]);
     $oldFailure->forceFill(['created_at' => now()->subDays(8)])->save();
 
+    $recentFailure = DataExport::query()->create([
+        'user_id' => $this->owner->id,
+        'download_token' => Str::random(64),
+        'status' => DataExportStatus::Failed,
+    ]);
+
     expect(app(PruneExpiredDataExportsAction::class)->execute())->toBe(2)
-        ->and($expired->fresh()->status)->toBe(DataExportStatus::Expired)
-        ->and($expired->fresh()->file_path)->toBeNull()
-        ->and($oldFailure->fresh()->status)->toBe(DataExportStatus::Expired)
-        ->and($current->fresh()->status)->toBe(DataExportStatus::Ready);
+        ->and(DataExport::query()->whereKey([$expired->id, $oldFailure->id])->exists())->toBeFalse()
+        ->and($current->fresh()->status)->toBe(DataExportStatus::Ready)
+        ->and($recentFailure->fresh()->status)->toBe(DataExportStatus::Failed);
 
     Storage::disk('local')->assertMissing('exports/expired.zip');
     Storage::disk('local')->assertExists('exports/current.zip');
+});
+
+it('finds nothing to prune on the next run', function (): void {
+    dataExportWithFile($this->owner, 'exports/expired.zip', ['expires_at' => now()->subHour()]);
+
+    $prune = app(PruneExpiredDataExportsAction::class);
+
+    expect($prune->execute())->toBe(1)
+        ->and($prune->execute())->toBe(0);
+});
+
+it('prunes an expired export whose file is already gone', function (): void {
+    $export = dataExportWithFile($this->owner, 'exports/gone.zip', ['expires_at' => now()->subHour()]);
+    Storage::disk('local')->delete('exports/gone.zip');
+
+    expect(app(PruneExpiredDataExportsAction::class)->execute())->toBe(1)
+        ->and(DataExport::query()->whereKey($export->id)->exists())->toBeFalse();
 });

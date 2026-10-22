@@ -95,6 +95,37 @@ it('TakeoverConversationAction returns false when the conversation is already wi
     Event::assertNotDispatched(HandedOff::class);
 });
 
+it('TakeoverConversationAction refuses the second of two operators who loaded the same waiting conversation', function (): void {
+    [$owner, $agent] = teamHandoffAgent();
+    $first = teammateWithPermissions($owner, []);
+    $second = teammateWithPermissions($owner, []);
+    $conversation = freshHandoffConversation('pending', agent: $agent);
+    // Both operators opened the conversation while it was still waiting.
+    $seenByFirst = Conversation::query()->findOrFail($conversation->id);
+    $seenBySecond = Conversation::query()->findOrFail($conversation->id);
+
+    $firstWon = app(TakeoverConversationAction::class)->execute($seenByFirst, $first);
+    $secondWon = app(TakeoverConversationAction::class)->execute($seenBySecond, $second);
+
+    expect($firstWon)->toBeTrue()
+        ->and($secondWon)->toBeFalse()
+        ->and($conversation->fresh()->handoff_user_id)->toBe($first->id)
+        ->and($seenByFirst->handoff_user_id)->toBe($first->id)
+        ->and($seenByFirst->isDirty())->toBeFalse();
+
+    Event::assertDispatchedTimes(HandedOff::class, 1);
+});
+
+it('TakeoverConversationAction lets the holder take the conversation over again', function (): void {
+    $conversation = freshHandoffConversation('pending');
+    $admin = $conversation->session->agent->workspace->owner;
+    $takeover = app(TakeoverConversationAction::class);
+
+    expect($takeover->execute($conversation, $admin))->toBeTrue()
+        ->and($takeover->execute(Conversation::query()->findOrFail($conversation->id), $admin))->toBeTrue()
+        ->and($conversation->fresh()->handoff_user_id)->toBe($admin->id);
+});
+
 it('TakeoverConversationAction returns false for an operator who cannot reach the agent', function (): void {
     [$owner, $agent] = teamHandoffAgent();
     $outsider = teammateWithPermissions($owner, [], allAgents: false);

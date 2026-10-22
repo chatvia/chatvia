@@ -32,7 +32,7 @@ class AgentSubmissionController
             'submissions' => SubmissionData::collect(
                 $form->submissions()
                     ->submitted()
-                    ->with('conversation')
+                    ->with('conversation:id,external_id')
                     ->latest('id')
                     ->limit(self::PAGE_LIMIT)
                     ->get(),

@@ -10,6 +10,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\WidgetHeaders;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Mockery\MockInterface;
 use Tests\Support\Widget\EmbeddedWidget;
@@ -207,6 +208,27 @@ it('stamps the activity time at most once a minute', function (): void {
     widgetHeartbeat($this->agent, $boot);
 
     expect(Conversation::query()->where('external_id', $boot['conversation_id'])->firstOrFail()->last_activity_at->equalTo($recent))->toBeTrue();
+});
+
+it('answers a second heartbeat within a minute without reading or writing the conversation', function (): void {
+    $boot = EmbeddedWidget::boot($this->agent);
+    Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()
+        ->update(['is_visible' => true, 'last_activity_at' => now()->subHour()]);
+    widgetHeartbeat($this->agent, $boot);
+
+    $stale = now()->subHour()->startOfSecond();
+    Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()->update(['last_activity_at' => $stale]);
+    $conversationQueries = 0;
+    DB::listen(function ($query) use (&$conversationQueries): void {
+        if (str_contains($query->sql, 'chat_conversations')) {
+            $conversationQueries++;
+        }
+    });
+
+    widgetHeartbeat($this->agent, $boot);
+
+    expect($conversationQueries)->toBe(0)
+        ->and(Conversation::query()->where('external_id', $boot['conversation_id'])->firstOrFail()->last_activity_at->equalTo($stale))->toBeTrue();
 });
 
 it('rejects feedback that names no message', function (): void {

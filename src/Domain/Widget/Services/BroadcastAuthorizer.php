@@ -81,6 +81,8 @@ readonly class BroadcastAuthorizer
                     $session->where('agent_id', $agent->id);
                 }
             })
+            // What displayName() reads, so naming the member costs no lazy loads.
+            ->with(['lead', 'session.chatter', 'session.user'])
             ->first();
     }
 

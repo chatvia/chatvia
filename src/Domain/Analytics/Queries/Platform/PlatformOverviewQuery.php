@@ -76,13 +76,17 @@ class PlatformOverviewQuery extends PlatformAnalyticsQuery
             ->count();
     }
 
-    /** Forms submitted in chats during the window. */
+    /**
+     * Forms submitted in chats during the window, by the time they were
+     * submitted. Both scopes match the partial index on (workspace_id,
+     * submitted_at) of submitted rows.
+     */
     private function leads(PlatformScopeData $scope): int
     {
         return DB::table('form_submissions')
+            ->when(! $scope->isWholePlatform(), fn ($query) => $query->where('workspace_id', $scope->workspaceId))
             ->where('status', FormSubmissionStatus::Submitted->value)
-            ->whereBetween('created_at', [$scope->period->start, $scope->period->end])
-            ->when(! $scope->isWholePlatform(), fn ($query) => $query->whereIn('agent_id', $this->agents($scope)->select('id')))
+            ->whereBetween('submitted_at', [$scope->period->start, $scope->period->end])
             ->count();
     }
 }

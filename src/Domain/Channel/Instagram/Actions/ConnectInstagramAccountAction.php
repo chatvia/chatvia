@@ -16,8 +16,8 @@ use Domain\Channel\Services\ChannelConnectionGuard;
  * persist it (encrypted) and best-effort subscribe the linked Page to its
  * `messages` webhook field — without that Meta never delivers the IG DMs to
  * Chatvia's app-level Callback URL. One account per agent (`agent_id` is
- * unique) and one agent per account (`ig_id` is unique); inbound events are
- * routed back to this row by `ig_id`. Throws {@see ChannelConnectException}
+ * unique) and one agent per account (`ig_id` is unique among enabled rows);
+ * inbound events are routed back to the enabled row by `ig_id`. Throws {@see ChannelConnectException}
  * when the agent is protected or the account already powers another agent.
  */
 class ConnectInstagramAccountAction

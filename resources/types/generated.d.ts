@@ -216,7 +216,7 @@ declare namespace Domain {
                             sentiment: Domain.Analytics.Enums.Sentiment | null;
                             tone: Domain.Analytics.Enums.Tone | null;
                             feedback: string | null;
-                            is_response_from_qa: boolean | null;
+                            is_response_from_qa: boolean;
                             response_time_ms: number | null;
                             prompt_tokens: number | null;
                             completion_tokens: number | null;
@@ -572,6 +572,8 @@ declare namespace Domain {
                     gated: boolean;
                     latency_ms: number | null;
                     arguments: Record<string, any> | null;
+                    arguments_preview: string | null;
+                    arguments_truncated: boolean;
                     result_text: string | null;
                     conversation_external_id: string | null;
                     decided_at: string | null;
@@ -1274,6 +1276,8 @@ declare namespace Domain {
                 ip: string | null;
                 user_agent: string | null;
                 metadata: Record<string, any> | null;
+                metadata_preview: string | null;
+                metadata_truncated: boolean;
                 integrity_verified: boolean;
             };
             export type WorkspaceSecurityPolicyData = {

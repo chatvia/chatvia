@@ -244,6 +244,7 @@
     "You are not allowed to resend invitations for this team.": "Du må ikke sende invitationer igen for dette team.",
     "You can only add users you have invited.": "Du kan kun tilføje brugere, du selv har inviteret.",
     "You cannot delete a team that has agents. Please delete or move all agents first.": "Du kan ikke slette et team, der har agenter. Slet eller flyt alle agenter først.",
+    "You cannot delete a team that has members. Please remove its members first.": "Du kan ikke slette et team, der har medlemmer. Fjern først dets medlemmer.",
     "You cannot delete your only team. Create another team first.": "Du kan ikke slette dit eneste team. Opret et andet team først.",
     "You cannot delete your primary team.": "Du kan ikke slette dit primære team.",
     "You do not have access to this team.": "Du har ikke adgang til dette team.",

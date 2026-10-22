@@ -44,11 +44,13 @@ class RenderInlineFormAction
     public function execute(Agent $agent, Conversation $conversation, string $requestedForm): RenderFormOutcomeData
     {
         // Oldest first, so the match and the slug hint don't depend on row order.
+        // Only the columns the match and the rendered form use: not the
+        // embedding or search text.
         $active = FormDefinition::query()
             ->forAgent($agent)
             ->where('is_active', true)
             ->orderBy('id')
-            ->get();
+            ->get(['id', 'agent_id', 'slug', 'name', 'subtitle', 'form_type', 'schema', 'success_message']);
 
         $definition = $this->match($active, $requestedForm);
 

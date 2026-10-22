@@ -31,7 +31,7 @@ use Support\Localization\Country\Models\Country;
  * @property int $id
  * @property string $external_id
  * @property int $workspace_id
- * @property int|null $agent_id
+ * @property int $agent_id
  * @property int|null $user_id
  * @property int|null $chatter_id
  * @property int|null $country_id

@@ -29,7 +29,7 @@ class ChatLogMessageData extends Data
         public ?Sentiment $sentiment,
         public ?Tone $tone,
         public ?string $feedback,
-        public ?bool $is_response_from_qa,
+        public bool $is_response_from_qa,
         public ?int $response_time_ms,
         public ?int $prompt_tokens,
         public ?int $completion_tokens,

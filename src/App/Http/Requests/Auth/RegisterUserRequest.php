@@ -7,6 +7,7 @@ use App\Http\Auth\BotCheckForm;
 use App\Identity\Workspace\Data\Account\RegisterUserData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 
 /**
@@ -22,13 +23,25 @@ class RegisterUserRequest extends FormRequest
     }
 
     /**
+     * Staff emails are stored lowercase. The typed address is lowered
+     * before the rules run, so the unique check refuses an address that
+     * differs only in case.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => Str::lower($this->input('email'))]);
+        }
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ...app(BotCheck::class)->rules(BotCheckForm::SignUp),
         ];

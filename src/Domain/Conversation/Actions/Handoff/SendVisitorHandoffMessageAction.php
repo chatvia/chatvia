@@ -35,6 +35,9 @@ class SendVisitorHandoffMessageAction
             return null;
         }
 
+        // Everything read below, displayName() included, in one go.
+        $conversation->loadMissing(['lead', 'session.agent', 'session.chatter', 'session.user']);
+
         $session = $conversation->session;
         $agent = $session?->agent;
 

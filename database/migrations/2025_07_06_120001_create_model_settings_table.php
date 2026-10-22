@@ -21,7 +21,6 @@ return new class extends Migration
 
             // One value per model, group and key: saves are upserts on it.
             $table->unique(['model_type', 'model_id', 'group', 'key']);
-            $table->index(['group', 'key']);
         });
     }
 

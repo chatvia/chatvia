@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Tidak ditawarkan",
-            "detail_spoken_approval": "Persetujuan lisan"
+            "detail_spoken_approval": "Persetujuan lisan",
+            "detail_arguments_cut_off": "Dipotong pada batas ukuran. Hanya bagian awal yang ditampilkan."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Dipotong pada batas ukuran. Hanya bagian awal yang ditampilkan."
         }
     }
 }

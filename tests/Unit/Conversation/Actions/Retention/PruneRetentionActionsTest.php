@@ -14,6 +14,8 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
+use Domain\Conversation\Services\Memory\ChatCache;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -142,6 +144,27 @@ it('sweeps a hidden conversation once its short life is over', function (): void
     app(PruneExpiredConversationsAction::class)->execute(chunk: 50, graceDays: 30);
 
     expect(Conversation::withTrashed()->find($conversation->id)->trashed())->toBeTrue();
+});
+
+it('clears the live memory of every conversation it expires, batch by batch', function (): void {
+    $expired = collect(range(1, 3))->map(fn (): Conversation => retentionConversation(['expires_at' => now()->subDay()]));
+    $live = retentionConversation(['expires_at' => now()->addDay()]);
+    $cache = Cache::driver('chat');
+    foreach ([...$expired, $live] as $conversation) {
+        $cache->tags(ChatCache::conversationTag($conversation->external_id))->put('messages', 'cached');
+    }
+
+    $result = app(PruneExpiredConversationsAction::class)->execute(chunk: 2, graceDays: 30);
+
+    expect($result->expired)->toBe(3);
+    foreach ($expired as $conversation) {
+        $trashed = Conversation::withTrashed()->findOrFail($conversation->id);
+
+        expect($cache->tags(ChatCache::conversationTag($conversation->external_id))->get('messages'))->toBeNull()
+            ->and($trashed->trashed())->toBeTrue()
+            ->and($trashed->updated_at->greaterThan(now()->subMinute()))->toBeTrue();
+    }
+    expect($cache->tags(ChatCache::conversationTag($live->external_id))->get('messages'))->toBe('cached');
 });
 
 it('removes the files of a conversation it expires', function (): void {

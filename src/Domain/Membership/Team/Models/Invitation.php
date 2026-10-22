@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * A pending invitation for an email address to join a team under a role. The
@@ -52,12 +53,13 @@ class Invitation extends Model
 
     /**
      * The account that already uses the invited email, if any. Emails are
-     * compared without case, the way sign-in compares them.
+     * compared without case, the way sign-in compares them: staff emails are
+     * stored lowercase, so the lowercased address is a plain index match.
      */
     public function existingAccount(): ?User
     {
         return User::query()
-            ->whereRaw('lower(email) = ?', [strtolower($this->email)])
+            ->where('email', Str::lower($this->email))
             ->first();
     }
 

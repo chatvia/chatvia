@@ -244,6 +244,7 @@
     "You are not allowed to resend invitations for this team.": "Sinulla ei ole oikeutta lähettää tämän tiimin kutsuja uudelleen.",
     "You can only add users you have invited.": "Voit lisätä vain käyttäjiä, jotka olet itse kutsunut.",
     "You cannot delete a team that has agents. Please delete or move all agents first.": "Et voi poistaa tiimiä, jossa on agentteja. Poista tai siirrä ensin kaikki agentit.",
+    "You cannot delete a team that has members. Please remove its members first.": "Et voi poistaa tiimiä, jossa on jäseniä. Poista ensin sen jäsenet.",
     "You cannot delete your only team. Create another team first.": "Et voi poistaa ainoaa tiimiäsi. Luo ensin toinen tiimi.",
     "You cannot delete your primary team.": "Et voi poistaa ensisijaista tiimiäsi.",
     "You do not have access to this team.": "Sinulla ei ole pääsyä tähän tiimiin.",

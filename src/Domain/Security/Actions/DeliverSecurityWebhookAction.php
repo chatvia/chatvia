@@ -18,9 +18,15 @@ use Support\Http\SignedWebhookSender;
  * {@see SendSecurityEventToSiem} retries; that listener's failed() handler
  * tracks consecutive failures and auto-disables a dead endpoint. An unsafe URL
  * throws {@see UnsafeUrlException}, which the listener fails without retrying.
+ *
+ * Each step reads the policy once: {@see wants()} when the event is queued,
+ * and {@see execute()} when the job sends it.
  */
 class DeliverSecurityWebhookAction
 {
+    /** How fresh a stored delivery time may be before a new one is written. */
+    private const int DELIVERED_AT_WRITE_SECONDS = 60;
+
     public function __construct(
         private readonly SignedWebhookSender $sender,
     ) {}
@@ -39,6 +45,22 @@ class DeliverSecurityWebhookAction
             payload: $this->payload($event),
             secret: (string) $policy->webhook_secret,
         );
+
+        $this->recordDelivery($policy);
+    }
+
+    /**
+     * Resets the failure counter and stamps the delivery time. A healthy
+     * endpoint gets many events, so the row is written only when there is a
+     * count to reset or the stored time is over a minute old.
+     */
+    private function recordDelivery(WorkspaceSecurityPolicy $policy): void
+    {
+        $lastDelivered = $policy->webhook_last_delivered_at;
+
+        if ($policy->webhook_failures === 0 && $lastDelivered?->greaterThan(now()->subSeconds(self::DELIVERED_AT_WRITE_SECONDS))) {
+            return;
+        }
 
         $policy->forceFill([
             'webhook_failures' => 0,

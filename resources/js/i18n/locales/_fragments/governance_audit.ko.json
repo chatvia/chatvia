@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "제공되지 않음",
-            "detail_spoken_approval": "음성 승인"
+            "detail_spoken_approval": "음성 승인",
+            "detail_arguments_cut_off": "크기 제한에서 잘렸습니다. 앞부분만 표시됩니다."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "크기 제한에서 잘렸습니다. 앞부분만 표시됩니다."
         }
     }
 }

@@ -8,6 +8,7 @@ use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Chunk relations and ingestion progress for a knowledge source model. Chunks
@@ -19,6 +20,9 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  */
 trait Chunkable
 {
+    /** Chunks per DELETE in {@see deleteChunks()} by default. */
+    private const int CHUNK_DELETE_BATCH = 2000;
+
     /**
      * Auto-registered by Eloquent for any model using this trait. Cascades chunk
      * deletion via the polymorphic key so the summary chunk (chunk_index=0) is
@@ -78,10 +82,22 @@ trait Chunkable
         return min($progress, 99);
     }
 
-    /** Deletes every chunk of this source, the summary chunk (index 0) included. */
-    public function deleteChunks(): void
+    /**
+     * Deletes every chunk of this source, the summary chunk (index 0) included,
+     * in batches. Each chunk's delete cascades to its `chunk_references` and
+     * clears it on the chat-message sources, so one statement for a big source
+     * would hold its locks and do all that work at once. Callers that delete
+     * the source in a transaction call this first, outside it; the `deleting`
+     * hook then finds little or nothing left.
+     */
+    public function deleteChunks(int $batchSize = self::CHUNK_DELETE_BATCH): void
     {
-        Chunk::query()->ofSource($this)->delete();
+        $table = new Chunk()->getTable();
+        $sql = "DELETE FROM {$table} WHERE id IN (SELECT id FROM {$table} WHERE chunkable_type = ? AND chunkable_id = ? LIMIT {$batchSize})";
+
+        do {
+            $deleted = DB::affectingStatement($sql, [$this->getMorphClass(), $this->getKey()]);
+        } while ($deleted > 0);
     }
 
     /** @return MorphOne<Chunk, $this> */

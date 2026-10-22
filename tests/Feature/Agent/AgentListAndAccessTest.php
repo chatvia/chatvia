@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
 
@@ -23,6 +24,18 @@ it('lists every team agent for the owner and only granted agents for a teammate'
         ->assertOk()
         ->assertJsonCount(1)
         ->assertJsonPath('0.external_id', $this->granted->external_id);
+});
+
+it('shows the workspace member count on every agent row', function (): void {
+    // The owner, one teammate and two chatters.
+    teammateWithPermissions($this->owner, []);
+    Chatter::factory()->count(2)->create(['workspace_id' => $this->owner->workspace()->id]);
+    Chatter::factory()->create(); // another workspace's chatter
+
+    $this->actingAs($this->owner)->getJson(route('agents.index'))
+        ->assertOk()
+        ->assertJsonPath('0.total_members', 4)
+        ->assertJsonPath('1.total_members', 4);
 });
 
 it('lets only the team owner create an agent', function (): void {

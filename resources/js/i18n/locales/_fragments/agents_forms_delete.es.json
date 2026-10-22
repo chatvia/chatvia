@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "forms": {
+            "delete_with_leads": "También se eliminará {count} lead. Esta acción no se puede deshacer. | También se eliminarán {count} leads. Esta acción no se puede deshacer."
+        }
+    }
+}

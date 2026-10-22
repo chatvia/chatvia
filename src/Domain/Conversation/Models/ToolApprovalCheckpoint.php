@@ -9,7 +9,6 @@ use Domain\Conversation\Enums\ToolApprovalStatus;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -41,7 +40,6 @@ use Support\Concerns\HasExternalId;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
-#[Table(name: 'tool_approval_checkpoints')]
 #[RouteKey('external_id')]
 class ToolApprovalCheckpoint extends Model
 {

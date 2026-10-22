@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "This month: 2👍 / 1👎 (66.7% positive). AI could not answer 25% of replies."
+            "text": "This month: 2👍 / 1👎 (66.7% positive). AI could not answer 11.1% of replies."
         }
     ],
     "isError": false,
@@ -21,9 +21,9 @@
             "neutral": 2,
             "negative": 1
         },
-        "ai_replies": 4,
+        "ai_replies": 9,
         "unanswered": 1,
-        "unanswered_rate_pct": 25,
+        "unanswered_rate_pct": 11.1,
         "avg_confidence": 0.7,
         "echarts_option": {
             "tooltip": {

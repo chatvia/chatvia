@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Formu yeniden göster",
             "preview_user_message": "Merhaba! Bana yardımcı olabilir misiniz?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Formlar yalnızca Sohbet Widget'ında ve Komut Çubuğu'nda görünür."
+            "surfaces_notice": "Formlar yalnızca Sohbet Widget'ında ve Komut Çubuğu'nda görünür.",
+            "delete_with_leads": "Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz. | Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz."
         },
         "submissions": {
             "page_title": "Gönderimler",
@@ -3321,7 +3322,8 @@
                 "outcome": "Sonuç",
                 "ip": "IP adresi",
                 "when": "Ne zaman"
-            }
+            },
+            "metadata_cut_off": "Boyut sınırında kesildi. Yalnızca başlangıç gösteriliyor."
         },
         "audit": {
             "title": "Denetim",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "reddedildi",
             "outcome_rate_limited": "hız sınırlandı",
             "outcome_not_offered": "Sunulmadı",
-            "detail_spoken_approval": "Sözlü onay"
+            "detail_spoken_approval": "Sözlü onay",
+            "detail_arguments_cut_off": "Boyut sınırında kesildi. Yalnızca başlangıç gösteriliyor."
         },
         "attach_file": {
             "title": "Zaten Eğitilmiş Dosyalardan Seç",

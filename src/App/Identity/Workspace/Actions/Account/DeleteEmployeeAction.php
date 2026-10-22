@@ -6,6 +6,9 @@ namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * Permanently delete a workspace teammate together with all of their personal
@@ -32,13 +35,27 @@ use Illuminate\Support\Facades\DB;
  *     teammate's HTTP `sessions` rows (no FK) have nothing to cascade them and
  *     would orphan; delete them explicitly.
  *
+ * Their own files (`users/{external_id}/…`: data export ZIPs, profile photo,
+ * settings images) have no row left to clean them, so the prefix is wiped on
+ * every disk such files live on once the rows are gone.
+ *
  * Callers must pass a teammate; owners and chatters are out of scope and must
  * be rejected before this Action.
  */
 class DeleteEmployeeAction
 {
+    /**
+     * The disks a person's own files can live on: data exports on `local`,
+     * the profile photo and settings images on the assets disk, and the
+     * default (`private`) disk, which is the S3 bucket when Settings → Storage
+     * picks one.
+     */
+    private const array OWN_FILE_DISKS = ['local', User::PROFILE_IMAGE_DISK, 'private'];
+
     public function execute(User $employee): void
     {
+        $storageRoot = $employee->storageRoot();
+
         DB::transaction(function () use ($employee): void {
             // 1. team_user is RESTRICT — clear the team pivot first.
             DB::table('team_user')->where('user_id', $employee->id)->delete();
@@ -50,5 +67,26 @@ class DeleteEmployeeAction
             // The rest cascades / nulls out via FK constraints.
             $employee->delete();
         });
+
+        $this->wipeOwnFiles($storageRoot);
+    }
+
+    /**
+     * Best-effort, disk by disk: the teammate is already gone, and a storage
+     * outage must not turn a finished delete into an error.
+     */
+    private function wipeOwnFiles(string $storageRoot): void
+    {
+        foreach (self::OWN_FILE_DISKS as $disk) {
+            try {
+                Storage::disk($disk)->deleteDirectory($storageRoot);
+            } catch (Throwable $e) {
+                Log::warning('Teammate deletion: failed to wipe their storage tree.', [
+                    'disk' => $disk,
+                    'prefix' => $storageRoot,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 }

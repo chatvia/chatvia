@@ -88,7 +88,8 @@ class CreateEvalCasesFromQuestionsAction
     /**
      * Chunks scoped to sources attached to this agent. Both sides of the
      * sourceable/chunkable comparison store morph aliases (`source_file`,
-     * ...), never FQCNs — same EXISTS as ChunkQueryBuilder::questionsForAgent.
+     * ...), never FQCNs. The lookup starts from the chunk ids, so the EXISTS
+     * stays cheap.
      *
      * @param  Collection<int, int>  $ids
      * @return Collection<int, Chunk>

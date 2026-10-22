@@ -12,6 +12,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * One row of the security audit viewer (Settings → Security). The live avatar
  * comes from the eager-loaded `user` relation when present; rows without a
  * user (or a deleted user) fall back to the denormalized name and e-mail.
+ * `metadata_preview` carries the text when the metadata was cut or was not JSON.
  */
 #[TypeScript]
 class SecurityAuditRowData extends Data
@@ -36,6 +37,8 @@ class SecurityAuditRowData extends Data
         public ?string $ip,
         public ?string $user_agent,
         public ?array $metadata,
+        public ?string $metadata_preview,
+        public bool $metadata_truncated,
         public bool $integrity_verified,
     ) {}
 
@@ -58,6 +61,8 @@ class SecurityAuditRowData extends Data
             ip: $row->ip,
             user_agent: $row->user_agent,
             metadata: $row->metadata,
+            metadata_preview: $row->metadata_preview,
+            metadata_truncated: $row->metadata_truncated,
             integrity_verified: $row->metadata_sha256 !== null,
         );
     }

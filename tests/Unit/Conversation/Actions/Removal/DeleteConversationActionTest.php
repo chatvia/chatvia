@@ -95,3 +95,13 @@ it('leaves a conversation of another session or agent alone', function (): void 
         ->and($row->trashed())->toBeFalse()
         ->and($row->deleted_by)->toBeNull();
 });
+
+it('records who deleted it', function (): void {
+    [$agent, $session, $conversation] = erasureSetup();
+
+    app(DeleteConversationAction::class)->execute(erasureScope($session, $agent, $conversation->external_id), 'admin');
+
+    $trashed = Conversation::withTrashed()->findOrFail($conversation->id);
+    expect($trashed->trashed())->toBeTrue()
+        ->and($trashed->deleted_by)->toBe('admin');
+});

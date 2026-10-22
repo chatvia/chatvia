@@ -41,6 +41,7 @@ return new class extends Migration
             $table->unsignedInteger('latency_ms')->nullable();
 
             $table->jsonb('arguments')->nullable();
+            $table->text('arguments_preview')->nullable();
             $table->string('arguments_sha256', 64)->nullable();
             $table->boolean('arguments_truncated')->default(false);
             $table->text('result_text')->nullable();

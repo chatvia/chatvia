@@ -32,6 +32,7 @@ return new class extends Migration
 
             $table->unique(['workspace_id', 'visitor_key']);
             $table->index(['workspace_id', 'id']);
+            $table->index('expires_at');
         });
 
         // Deleting the agent keeps the block and clears only the agent link

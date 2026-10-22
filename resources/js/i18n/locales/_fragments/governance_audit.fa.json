@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "ارائه‌نشده",
-            "detail_spoken_approval": "تأیید شفاهی"
+            "detail_spoken_approval": "تأیید شفاهی",
+            "detail_arguments_cut_off": "در حد اندازه بریده شد. فقط ابتدای آن نمایش داده می‌شود."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "در حد اندازه بریده شد. فقط ابتدای آن نمایش داده می‌شود."
         }
     }
 }

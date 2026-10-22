@@ -5,6 +5,7 @@ namespace App\Identity\Workspace\Actions\Social;
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
+use Illuminate\Support\Str;
 
 /**
  * Sign-in via an external OAuth identity. First tries an exact (provider,
@@ -49,7 +50,8 @@ class SocialLoginAction
             return null;
         }
 
-        $user = User::query()->where('email', $email)->first();
+        // Emails are stored lowercase; a provider may send any case.
+        $user = User::query()->where('email', Str::lower($email))->first();
 
         if (! $user) {
             return null;

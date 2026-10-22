@@ -9,15 +9,16 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Deletes a text source. Its chunks (summary included) are removed by the
- * Chunkable trait's `deleting` hook, in the same transaction.
+ * Deletes a text source. Its chunks (summary included) go first, in batches
+ * and outside the transaction; the Chunkable trait's `deleting` hook removes
+ * anything left inside it.
  */
 class DeleteAgentSourceTextAction
 {
     public function execute(Agent $agent, SourceText $text): void
     {
-        // Chunks (incl. summary) cleaned up by Chunkable::bootChunkable() via
-        // the deleting event.
+        $text->deleteChunks();
+
         DB::transaction(function () use ($agent, $text): void {
             $text->agents()->detach($agent->id);
             $text->delete();

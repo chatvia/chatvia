@@ -34,6 +34,10 @@ return new class extends Migration
             $table->unsignedBigInteger('response_ms_sum')->default(0);
             $table->unsignedInteger('response_ms_count')->default(0);
 
+            $table->unsignedInteger('unanswered_replies')->default(0);
+            $table->decimal('confidence_sum', 14, 2)->default(0);
+            $table->unsignedInteger('confidence_count')->default(0);
+
             $table->primary(['agent_id', 'bucket_hour', 'country_code', 'llm_id']);
             $table->index(['workspace_id', 'bucket_hour']);
         });

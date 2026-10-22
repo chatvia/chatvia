@@ -32,10 +32,14 @@ class AgentQuestionAnswerQueryBuilder extends Builder
             return null;
         }
 
+        // The hash condition is what `agent_qa_questions_agent_normalized_idx`
+        // (agent_id, md5(normalized)) serves; the text condition keeps a hash
+        // collision from matching.
         return $this->where('agent_id', $agentId)
             ->whereIn('id', AgentQuestionAnswerQuestion::query()
                 ->select('agent_question_answer_id')
                 ->where('agent_id', $agentId)
+                ->whereRaw('md5(normalized) = md5(?)', [$normalized])
                 ->where('normalized', $normalized))
             ->orderBy('id')
             ->first();

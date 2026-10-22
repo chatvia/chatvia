@@ -143,7 +143,6 @@ use Support\MimeType;
  * @method static AgentQueryBuilder<static>|Agent whereTeamId($value)
  * @method static AgentQueryBuilder<static>|Agent whereUpdatedAt($value)
  * @method static AgentQueryBuilder<static>|Agent whereWorkspaceId($value)
- * @method static AgentQueryBuilder<static>|Agent withTotalMembers()
  * @method static AgentQueryBuilder<static>|Agent withTrashed(bool $withTrashed = true)
  * @method static AgentQueryBuilder<static>|Agent withoutTrashed()
  *

@@ -91,6 +91,27 @@ it('lists each form with its submitted-submission count', function (): void {
             ->where('forms.0.submissions_count', 2));
 });
 
+it('deletes a form with its leads from the dashboard', function (): void {
+    $form = FormDefinition::factory()->forAgent($this->agent)->create(['name' => 'Contact']);
+    FormSubmission::factory()->forDefinition($form)->submitted()->count(2)->create();
+    $other = FormDefinition::factory()->forAgent($this->agent)->create(['name' => 'Booking']);
+    $kept = FormSubmission::factory()->forDefinition($other)->submitted()->create();
+
+    $this->actingAs($this->user)
+        ->get(route('agents.forms.index', $this->agent->external_id))
+        ->assertInertia(fn (Assert $page): AssertableInertia => $page
+            ->where('forms.0.name', 'Booking')
+            ->where('forms.0.submissions_count', 1)
+            ->where('forms.1.submissions_count', 2));
+
+    $this->actingAs($this->user)
+        ->delete(route('agents.forms.destroy', ['agent' => $this->agent->external_id, 'form' => $form->external_id]))
+        ->assertRedirect();
+
+    expect(FormSubmission::query()->where('form_definition_id', $form->id)->exists())->toBeFalse()
+        ->and(FormSubmission::query()->find($kept->id))->not->toBeNull();
+});
+
 it('still saves the form and reports the error when enabling Forms fails', function (): void {
     Exceptions::fake();
 

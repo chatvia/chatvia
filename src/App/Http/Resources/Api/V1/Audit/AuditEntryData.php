@@ -71,11 +71,21 @@ class AuditEntryData extends Data
          */
         public ?int $latency_ms,
         /**
-         * The call's arguments (possibly truncated at recording time).
+         * The call's arguments as JSON; null when they were over the size
+         * limit or were not JSON (see `arguments_preview`).
          *
          * @var array<string, mixed>|null
          */
         public ?array $arguments,
+        /**
+         * The arguments as text when they were over the size limit (the start
+         * of the text) or were not JSON; null otherwise.
+         */
+        public ?string $arguments_preview,
+        /**
+         * Whether the arguments were cut at the size limit.
+         */
+        public bool $arguments_truncated,
         /**
          * The tool's result text (possibly truncated at recording time).
          */
@@ -115,6 +125,8 @@ class AuditEntryData extends Data
             is_error: $activity->is_error,
             latency_ms: $activity->latency_ms,
             arguments: $activity->arguments,
+            arguments_preview: $activity->arguments_preview,
+            arguments_truncated: $activity->arguments_truncated,
             result_text: $activity->result_text,
             conversation_id: $activity->conversation_external_id,
             decided_at: $activity->decided_at,

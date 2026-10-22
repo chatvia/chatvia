@@ -17,6 +17,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['agent_id', 'email']);
+            $table->index('expires_at');
         });
     }
 

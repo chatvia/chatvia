@@ -5,6 +5,7 @@ namespace App\Http\Requests\Auth;
 use App\Http\Auth\BotCheck;
 use App\Http\Auth\BotCheckForm;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * The "forgot password" form: one email address.
@@ -14,6 +15,18 @@ class ForgotPasswordRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * Staff emails are stored lowercase. The typed address is lowered
+     * before the rules run, so the reset broker's own `email = ?` lookup
+     * finds the account.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => Str::lower($this->input('email'))]);
+        }
     }
 
     /**

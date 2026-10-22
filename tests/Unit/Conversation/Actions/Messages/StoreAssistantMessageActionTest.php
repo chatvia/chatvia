@@ -207,3 +207,19 @@ it('leaves titling to the hosted chat client', function (): void {
 
     Bus::assertNotDispatched(GenerateConversationTitleJob::class);
 });
+
+it('tells analytics whether the reply found an answer and how confident it was', function (): void {
+    $agent = Agent::factory()->create();
+    $llm = Llm::factory()->create(['name' => 'gpt-test-answer']);
+
+    storeAssistantAction(CannedLlmProvider::withGeneration([]))->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+        'prompt_tokens' => 10,
+        'completion_tokens' => 5,
+        'has_llm_found_answer' => false,
+        'confidence_score' => 0.42,
+    ]));
+
+    Event::assertDispatched(MessageSent::class, fn (MessageSent $event): bool => $event->role === 'assistant'
+        && $event->hasFoundAnswer === false
+        && $event->confidenceScore === 0.42);
+});

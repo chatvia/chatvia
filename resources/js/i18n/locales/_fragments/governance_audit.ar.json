@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "غير معروضة",
-            "detail_spoken_approval": "موافقة صوتية"
+            "detail_spoken_approval": "موافقة صوتية",
+            "detail_arguments_cut_off": "تم قطع النص عند حد الحجم. يظهر الجزء الأول فقط."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "تم قطع النص عند حد الحجم. يظهر الجزء الأول فقط."
         }
     }
 }

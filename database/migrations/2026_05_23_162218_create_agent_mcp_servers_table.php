@@ -19,7 +19,7 @@ return new class extends Migration
             // with the workspace.
             $table->foreignId('workspace_id')->nullable()->constrained()->cascadeOnDelete();
 
-            $table->enum('category', ['custom', 'integration', 'builtin', 'analytics'])->nullable()->index();
+            $table->enum('category', ['custom', 'integration', 'builtin', 'analytics']);
 
             $table->string('connector_slug', 40)->nullable()->index();
 

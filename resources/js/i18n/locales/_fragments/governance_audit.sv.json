@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Inte erbjuden",
-            "detail_spoken_approval": "Muntligt godkännande"
+            "detail_spoken_approval": "Muntligt godkännande",
+            "detail_arguments_cut_off": "Avkortad vid storleksgränsen. Bara början visas."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Avkortad vid storleksgränsen. Bara början visas."
         }
     }
 }

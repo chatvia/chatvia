@@ -21,9 +21,11 @@ class ProcessAgentUploadedFilesAction
 
     public function execute(Agent $agent): void
     {
+        // Keyset pages by id: starting ingestion moves a file out of the
+        // "uploaded" filter, so offset pages would skip files.
         $agent
             ->files()
             ->where('source_files.status', SourceStatus::Uploaded)
-            ->each(fn (SourceFile $sourceFile) => $this->startIngestion->execute($sourceFile, $agent));
+            ->eachById(fn (SourceFile $sourceFile) => $this->startIngestion->execute($sourceFile, $agent), column: 'source_files.id', alias: 'id');
     }
 }

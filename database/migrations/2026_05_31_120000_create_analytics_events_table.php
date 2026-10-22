@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('workspace_id');
 
             $table->unsignedBigInteger('chatter_id')->nullable();
-            $table->string('event_type', 40);
+            $table->enum('event_type', ['message_sent', 'feedback_given']);
             $table->string('role', 20)->nullable();
             $table->string('feedback', 20)->nullable();
             $table->unsignedBigInteger('llm_id')->nullable();
@@ -39,8 +39,11 @@ return new class extends Migration
             // The largest table: every index costs a write per event, so only
             // the ones the readers use (by agent or workspace, by event type).
             $table->index(['agent_id', 'event_type', 'occurred_at']);
-            $table->index(['workspace_id', 'event_type', 'occurred_at']);
         });
+
+        DB::connection($this->getConnection())->statement(
+            'CREATE INDEX analytics_events_workspace_id_event_type_occurred_at_index ON analytics_events (workspace_id, event_type, occurred_at) INCLUDE (agent_id, role, chatter_id, response_time_ms)'
+        );
 
         DB::connection($this->getConnection())->statement(
             "CREATE UNIQUE INDEX analytics_events_feedback_message_unique ON analytics_events (message_external_id) WHERE event_type = 'feedback_given'"

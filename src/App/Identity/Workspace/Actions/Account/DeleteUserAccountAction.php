@@ -19,14 +19,17 @@ use Throwable;
  * chatters and every agent, knowledge source, message limit, etc. that hangs
  * off it.
  *
- * The unbounded tables go first, in small batches outside any transaction: chunks, conversations (their messages and attachment rows go
- * by cascade), chat sessions and leads. The final transaction then only
- * touches small tables.
+ * The unbounded tables go first, in small batches outside any transaction:
+ * chunks, conversations (their messages and attachment rows go by cascade),
+ * chat sessions, leads and the three audit logs (tool calls, guardrail
+ * triggers, security events). The final transaction then only touches small
+ * tables.
  *
  * What the FK cascade can't do, handled explicitly here:
  *  - Files: the workspace's storage tree (knowledge files, chat attachments
  *    under `workspaces/{external_id}/agents/…/attachments`, settings images),
- *    each member's own tree and the chatters' photos are wiped by prefix.
+ *    each member's own tree (on the `local` disk too, where data exports
+ *    live) and the chatters' photos are wiped by prefix.
  *  - The workspace's Redis chat memory — cache, not DB ({@see self::flushChatMemoryCache()}).
  *  - `model_settings` rows of its agents and members (polymorphic, no FK).
  *  - Sanctum tokens (`personal_access_tokens`, polymorphic — no FK) and HTTP
@@ -37,6 +40,17 @@ use Throwable;
  */
 class DeleteUserAccountAction
 {
+    /** Audit logs keyed to the workspace, deleted in batches before the final transaction. */
+    private const array AUDIT_TABLES = ['agent_activities', 'guardrail_events', 'security_audit_logs'];
+
+    /**
+     * The disks a storage prefix is wiped on: the default disk (knowledge
+     * files, audio, chat attachments), the assets disk (profile photos,
+     * settings images, widget brand assets) and `local`, where data exports
+     * live even when the default disk is an S3 bucket.
+     */
+    private const array STORAGE_DISKS = ['private', 'assets', 'local'];
+
     /**
      * @param  int  $conversationBatch  conversations per DELETE; each one cascades all its messages
      * @param  int  $rowBatch  chunks, sessions or leads per DELETE
@@ -75,6 +89,16 @@ class DeleteUserAccountAction
             "DELETE FROM form_submissions WHERE id IN (SELECT id FROM form_submissions WHERE agent_id IN (SELECT id FROM agents WHERE workspace_id = ?) LIMIT {$this->rowBatch})",
             $workspace,
         );
+
+        // The audit logs would go with the workspace by cascade, but a busy
+        // workspace has many rows; each table has an index that starts with
+        // workspace_id.
+        foreach (self::AUDIT_TABLES as $table) {
+            $this->deleteInBatches(
+                "DELETE FROM {$table} WHERE id IN (SELECT id FROM {$table} WHERE workspace_id = ? LIMIT {$this->rowBatch})",
+                $workspace,
+            );
+        }
 
         // Capture every external id BEFORE the teardown so the storage trees
         // can be wiped once the rows are gone: the workspace's data lives under
@@ -188,12 +212,10 @@ class DeleteUserAccountAction
 
     /**
      * Wipe the workspace's storage tree (`workspaces/{external_id}/…`) and each
-     * member's own tree (`users/{external_id}/…`) on every bucket: the default
-     * disk (knowledge files, audio, websites, text, chunk images, chat
-     * attachments, data exports) and the assets disk
-     * (profile photos + widget brand assets). The FK cascade drops the rows
-     * without firing the per-file Eloquent observers, so without this the
-     * objects would leak. Best-effort — a teardown must not fail because remote
+     * member's own tree (`users/{external_id}/…`) on every disk in
+     * {@see self::STORAGE_DISKS}. The FK cascade drops the rows without firing
+     * the per-file Eloquent observers, so without this the objects would leak.
+     * Best-effort, disk by disk: a teardown must not fail because remote
      * storage is briefly unreachable.
      *
      * @param  array<int, string>  $memberExternalIds
@@ -203,14 +225,16 @@ class DeleteUserAccountAction
         $prefixes = ['workspaces/'.$workspaceExternalId, ...array_map(fn (string $id): string => 'users/'.$id, $memberExternalIds)];
 
         foreach ($prefixes as $prefix) {
-            try {
-                Storage::deleteDirectory($prefix);
-                Storage::disk('assets')->deleteDirectory($prefix);
-            } catch (Throwable $e) {
-                Log::warning('Account deletion: failed to wipe workspace storage tree.', [
-                    'prefix' => $prefix,
-                    'error' => $e->getMessage(),
-                ]);
+            foreach (self::STORAGE_DISKS as $disk) {
+                try {
+                    Storage::disk($disk)->deleteDirectory($prefix);
+                } catch (Throwable $e) {
+                    Log::warning('Account deletion: failed to wipe workspace storage tree.', [
+                        'disk' => $disk,
+                        'prefix' => $prefix,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Actions\Sessions\RecordKnownDeviceAction;
 use App\Identity\Workspace\Listeners\RecordKnownDevice;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserKnownDevice;
@@ -25,7 +26,7 @@ function rkdSignIn(User|Chatter $user, string $ip, string $userAgent): void
 {
     $request = Request::create('/login', 'POST', server: ['REMOTE_ADDR' => $ip, 'HTTP_USER_AGENT' => $userAgent]);
 
-    new RecordKnownDevice($request)->handle(new Login('web', $user, false));
+    new RecordKnownDevice($request, app(RecordKnownDeviceAction::class))->handle(new Login('web', $user, false));
 }
 
 it('stores the first device without sending an email', function (): void {

@@ -57,6 +57,31 @@ it('aggregates results and marks the run completed', function (): void {
         ->and($finalized->finished_at)->not->toBeNull();
 });
 
+it('matches the in-memory totals, skipping missing scores and tokens and other runs', function (): void {
+    $agent = Agent::factory()->create();
+    $run = runningRun($agent, 4);
+    $other = runningRun($agent, 1);
+
+    resultRow($run, true, 0.3333, 12);
+    resultRow($run, false, 0.1667, 7);
+    EvalResult::create(['run_id' => $run->id, 'case_name' => 'errored', 'scorer_type' => 'contains', 'has_passed' => false, 'score' => null, 'tokens' => null]);
+    resultRow($run, true, 0.9999, 1);
+    resultRow($other, true, 1.0, 500);
+
+    // What the action computed in PHP from the loaded rows before.
+    $rows = $run->results()->get();
+    $expectedAvg = round((float) $rows->avg('score'), 4);
+    $expectedTokens = (int) $rows->sum('tokens');
+
+    $finalized = (new FinalizeEvalRunAction)->execute($run->fresh());
+
+    expect($finalized->passed_count)->toBe(2)
+        ->and($finalized->failed_count)->toBe(2)
+        ->and((float) $finalized->avg_score)->toBe($expectedAvg)
+        ->and((int) $finalized->total_tokens)->toBe($expectedTokens)
+        ->and($expectedTokens)->toBe(20);
+});
+
 it('marks the run failed when the batch was cancelled', function (): void {
     $agent = Agent::factory()->create();
     $run = runningRun($agent);

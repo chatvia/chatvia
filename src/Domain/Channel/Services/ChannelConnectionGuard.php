@@ -28,11 +28,16 @@ class ChannelConnectionGuard
      * Refuse an account another agent already uses. Checked before any call
      * to the platform, so a refused connection costs nothing.
      *
+     * Only an enabled row holds an account, as in the partial unique index
+     * on the account id (`WHERE is_enabled`): the disabled row a deleted
+     * agent leaves behind neither receives messages nor blocks connecting
+     * the account again.
+     *
      * @param  Builder<covariant Model>  $sameAccount  the connection rows for this account
      */
     public function ensureAccountIsFree(Agent $agent, Builder $sameAccount): void
     {
-        if ($sameAccount->where('agent_id', '!=', $agent->id)->exists()) {
+        if ($sameAccount->where('is_enabled', true)->where('agent_id', '!=', $agent->id)->exists()) {
             throw ChannelConnectException::takenByAnotherAgent();
         }
     }

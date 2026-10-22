@@ -125,15 +125,19 @@ class ScoreEvalCaseAction
             return;
         }
 
-        $scored = $run->results()->get(['has_passed']);
-        $passed = $scored->where('has_passed', true)->count();
+        // Counted in SQL from the (run_id, has_passed) index, not by loading
+        // every result written so far after each case.
+        $tally = $run->results()->toBase()
+            ->selectRaw('count(*) AS total, count(*) FILTER (WHERE has_passed) AS passed')
+            ->first();
+        $passed = (int) $tally->passed;
 
         EvalCaseScored::dispatch(
             $result,
             $run->external_id,
             $agentExternalId,
             $passed,
-            $scored->count() - $passed,
+            (int) $tally->total - $passed,
         );
     }
 

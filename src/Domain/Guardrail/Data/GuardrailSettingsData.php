@@ -19,8 +19,16 @@ use Spatie\LaravelData\Data;
  *
  * Defaults for an agent that never saved the form: guards on, the default PII
  * filters (masked), injection and toxicity checks on and blocking, no topic
- * policy, nothing on the PII allowlist, the generic refusal message, answers
- * streamed as they are written, and no alert emails.
+ * policy, nothing on the PII allowlist, the generic refusal message, the
+ * agent's answers checked too, answers streamed as they are written, and no
+ * alert emails.
+ *
+ * `check_answers` decides whether the AI check (toxicity, topics) also reads
+ * each answer, one more model call per turn. Masking personal data and
+ * catching a leaked system prompt in answers need no model call, so they
+ * always run. `check_before_showing` holds answers back until that check
+ * passed; it counts only while answers are checked. The page shows the two
+ * as one choice: don't check, check while showing, check before showing.
  *
  * Each classifier guard has a mode (block, or monitor = log only) and, for
  * injection and toxicity, a sensitivity: injection blocks from a low-risk
@@ -57,6 +65,7 @@ class GuardrailSettingsData extends Data
         public GuardMode $toxicity_mode = GuardMode::Block,
         public GuardSensitivity $toxicity_sensitivity = GuardSensitivity::Medium,
         public GuardMode $topics_mode = GuardMode::Block,
+        public bool $check_answers = true,
         public bool $check_before_showing = false,
         public bool $alert_owner = false,
     ) {}
@@ -90,6 +99,7 @@ class GuardrailSettingsData extends Data
             toxicity_mode: GuardMode::tryFrom((string) $settings->get('toxicity_mode')) ?? GuardMode::Block,
             toxicity_sensitivity: GuardSensitivity::tryFrom((string) $settings->get('toxicity_sensitivity')) ?? GuardSensitivity::Medium,
             topics_mode: GuardMode::tryFrom((string) $settings->get('topics_mode')) ?? GuardMode::Block,
+            check_answers: (bool) $settings->get('check_answers', true),
             check_before_showing: (bool) $settings->get('check_before_showing', false),
             alert_owner: (bool) $settings->get('alert_owner', false),
         );
@@ -179,6 +189,7 @@ class GuardrailSettingsData extends Data
             'toxicity_mode' => $this->toxicity_mode->value,
             'toxicity_sensitivity' => $this->toxicity_sensitivity->value,
             'topics_mode' => $this->topics_mode->value,
+            'check_answers' => $this->check_answers,
             'check_before_showing' => $this->check_before_showing,
             'alert_owner' => $this->alert_owner,
         ];

@@ -93,8 +93,17 @@
             "mode": "Điều gì xảy ra",
             "sensitivity": "Độ nhạy",
             "mode_help": "Chỉ ghi nhật ký sẽ ghi lại những gì bộ bảo vệ phát hiện mà không chặn, để bạn kiểm tra trước khi ảnh hưởng đến khách truy cập.",
-            "check_before_showing": "Kiểm tra câu trả lời trước khi hiển thị",
-            "check_before_showing_help": "Khách truy cập chỉ thấy câu trả lời sau khi các bộ bảo vệ đã kiểm tra. Câu trả lời xuất hiện chậm hơn một chút và hiện ra cùng lúc.",
+            "answer_check": "Kiểm tra câu trả lời của trợ lý",
+            "answer_check_labels": {
+                "while_showing": "Trong khi hiển thị",
+                "before_showing": "Trước khi hiển thị",
+                "off": "Không kiểm tra"
+            },
+            "answer_check_help": {
+                "while_showing": "Câu trả lời hiện trực tiếp và được kiểm tra khi kết thúc. Câu trả lời không đạt sẽ được thay bằng thông báo từ chối.",
+                "before_showing": "Khách chỉ thấy câu trả lời sau khi nó đã qua bước kiểm tra. Câu trả lời hiện muộn hơn một chút, cùng lúc, và phần suy nghĩ của mô hình không được hiển thị.",
+                "off": "Câu trả lời hiện trực tiếp mà không qua kiểm tra AI, giúp bớt một lần gọi AI cho mỗi câu trả lời. Dữ liệu cá nhân trong câu trả lời vẫn được che."
+            },
             "alert_owner": "Gửi email cho tôi khi có tấn công",
             "alert_owner_help": "Nhận email khi trợ lý AI chặn một nỗ lực ghi đè hướng dẫn của nó, hoặc khi bước kiểm tra an toàn không chạy được. Tối đa một email mỗi giờ.",
             "test_title": "Thử một tin nhắn",

@@ -746,8 +746,6 @@
             "mode": "What happens",
             "sensitivity": "Sensitivity",
             "mode_help": "Log only records what a guard finds without blocking, so you can check it before it affects visitors.",
-            "check_before_showing": "Check answers before showing them",
-            "check_before_showing_help": "The visitor sees an answer only after the guards checked it. Answers appear a little later, all at once.",
             "alert_owner": "Email me about attacks",
             "alert_owner_help": "Get an email when the agent blocks an attempt to override its instructions, or when the safety check cannot run. At most one email per hour.",
             "test_title": "Test a message",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Manage in People",
                 "since": "Since {date}",
                 "no_chatters": "No blocked chatters."
+            },
+            "answer_check": "Check the agent's answers",
+            "answer_check_labels": {
+                "while_showing": "While showing them",
+                "before_showing": "Before showing them",
+                "off": "Don't check"
+            },
+            "answer_check_help": {
+                "while_showing": "Answers stream live and are checked when they end. An answer that fails is replaced with the refusal message.",
+                "before_showing": "The visitor sees an answer only after it passed the check. It appears a little later, all at once, and the model's thinking is not shown.",
+                "off": "Answers stream live without the AI check, which saves one AI call per answer. Personal data in answers is still masked."
             }
         },
         "persona": {

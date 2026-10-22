@@ -74,3 +74,15 @@ export function labelFor(t: (key: string) => string, map: Record<string, string>
 
     return map[value] ? t(map[value]) : value;
 }
+
+export const ANSWER_CHECK_LABELS: Record<string, string> = {
+    while_showing: 'agents.guardrails.answer_check_labels.while_showing',
+    before_showing: 'agents.guardrails.answer_check_labels.before_showing',
+    off: 'agents.guardrails.answer_check_labels.off',
+};
+
+export const ANSWER_CHECK_HELP: Record<string, string> = {
+    while_showing: 'agents.guardrails.answer_check_help.while_showing',
+    before_showing: 'agents.guardrails.answer_check_help.before_showing',
+    off: 'agents.guardrails.answer_check_help.off',
+};

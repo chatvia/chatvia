@@ -753,8 +753,6 @@
             "mode": "触发时的操作",
             "sensitivity": "灵敏度",
             "mode_help": "“仅记录”只记录防护项发现的内容而不阻止，方便你在影响访客之前先行检查。",
-            "check_before_showing": "先检查回答再显示",
-            "check_before_showing_help": "访客只会看到经防护项检查后的回答。回答会稍晚一些，并一次性显示。",
             "alert_owner": "遭受攻击时给我发邮件",
             "alert_owner_help": "当智能体阻止了试图覆盖其指令的行为，或安全检查无法运行时，你会收到一封邮件。每小时最多一封。",
             "test_title": "测试消息",
@@ -810,6 +808,17 @@
                 "manage_in_people": "在人员中管理",
                 "since": "自 {date} 起",
                 "no_chatters": "没有被屏蔽的用户。"
+            },
+            "answer_check": "检查智能体的回答",
+            "answer_check_labels": {
+                "while_showing": "显示时检查",
+                "before_showing": "显示前检查",
+                "off": "不检查"
+            },
+            "answer_check_help": {
+                "while_showing": "回答实时显示，并在结束时检查。未通过检查的回答会被替换为拒绝消息。",
+                "before_showing": "访客只会看到通过检查的回答。回答会稍晚一次性显示，且不显示模型的思考过程。",
+                "off": "回答实时显示，不做 AI 检查，每条回答少一次 AI 调用。回答中的个人数据仍会被遮盖。"
             }
         },
         "persona": {

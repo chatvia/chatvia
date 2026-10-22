@@ -103,8 +103,17 @@
             "mode": "Qué pasa",
             "sensitivity": "Sensibilidad",
             "mode_help": "«Solo registrar» anota lo que encuentra una protección sin bloquear, para que puedas revisarlo antes de que afecte a los visitantes.",
-            "check_before_showing": "Comprobar las respuestas antes de mostrarlas",
-            "check_before_showing_help": "El visitante ve una respuesta solo después de que las protecciones la revisen. Las respuestas aparecen un poco más tarde y de una vez.",
+            "answer_check": "Revisar las respuestas del agente",
+            "answer_check_labels": {
+                "while_showing": "Mientras se muestran",
+                "before_showing": "Antes de mostrarlas",
+                "off": "No revisar"
+            },
+            "answer_check_help": {
+                "while_showing": "Las respuestas se muestran en directo y se revisan al terminar. Una respuesta que no pasa la revisión se sustituye por el mensaje de rechazo.",
+                "before_showing": "El visitante ve una respuesta solo cuando ha pasado la revisión. Aparece un poco más tarde, de una vez, y no se muestra el razonamiento del modelo.",
+                "off": "Las respuestas se muestran en directo sin la revisión con IA, lo que ahorra una llamada de IA por respuesta. Los datos personales de las respuestas se siguen ocultando."
+            },
             "alert_owner": "Avisarme de ataques por correo",
             "alert_owner_help": "Recibe un correo cuando el agente bloquee un intento de saltarse sus instrucciones, o cuando la comprobación de seguridad no pueda ejecutarse. Como máximo un correo por hora.",
             "test_title": "Probar un mensaje",

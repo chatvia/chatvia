@@ -39,9 +39,9 @@ import AiCheckBadge from './AiCheckBadge.vue';
 import BlockedTopicsDialog from './BlockedTopicsDialog.vue';
 import GuardrailTestCard from './GuardrailTestCard.vue';
 import GuardrailTriggerLog from './GuardrailTriggerLog.vue';
-import { FILTER_LABELS, labelFor, MODE_LABELS, SENSITIVITY_LABELS } from './labels';
+import { ANSWER_CHECK_HELP, ANSWER_CHECK_LABELS, FILTER_LABELS, labelFor, MODE_LABELS, SENSITIVITY_LABELS } from './labels';
 import PiiFiltersDialog from './PiiFiltersDialog.vue';
-import type { GuardMode, GuardrailLogFilters, GuardrailTriggerPage, GuardSensitivity, GuardSettings, PiiFilterOption } from './types';
+import type { AnswerCheck, GuardMode, GuardrailLogFilters, GuardrailTriggerPage, GuardSensitivity, GuardSettings, PiiFilterOption } from './types';
 import { GUARDS, useGuardrailSettings } from './useGuardrailSettings';
 
 const { t } = useI18n();
@@ -68,7 +68,7 @@ const activeTab = ref<'config' | 'test' | 'activity' | 'blocked'>(
     props.filters.guard_type || props.filters.outcome || props.filters.visitor ? 'activity' : 'config',
 );
 
-const { form, save, toggle, piiEnabled, togglePii, selectedFilters } = useGuardrailSettings(props, canManage);
+const { form, save, toggle, answerCheck, piiEnabled, togglePii, selectedFilters } = useGuardrailSettings(props, canManage);
 
 // Underline tabs: one rule across the column with the active tab marked on it,
 // so the tabs read as part of the page, not as a control floating above it.
@@ -78,6 +78,7 @@ const TAB_CLASS =
 
 const MODES: GuardMode[] = ['block', 'monitor'];
 const SENSITIVITIES: GuardSensitivity[] = ['high', 'medium', 'low'];
+const ANSWER_CHECKS: AnswerCheck[] = ['while_showing', 'before_showing', 'off'];
 
 // The PII filters and blocked topics are shown as badges on the card; each
 // list is edited in its own dialog that commits on "Done".
@@ -319,19 +320,22 @@ const topicsOpen = ref(false);
                                         <p class="text-muted-foreground text-xs">{{ t('agents.guardrails.refusal_message_help') }}</p>
                                     </div>
 
-                                    <!-- Hold answers until checked -->
-                                    <div
-                                        class="flex items-start justify-between gap-4 pt-2"
-                                        :class="{ 'cursor-pointer': canManage }"
-                                        @click="toggle('check_before_showing')"
-                                    >
-                                        <div>
-                                            <Label class="pointer-events-none text-sm font-medium">{{
-                                                t('agents.guardrails.check_before_showing')
-                                            }}</Label>
-                                            <p class="text-muted-foreground text-sm">{{ t('agents.guardrails.check_before_showing_help') }}</p>
+                                    <!-- Whether answers get the AI check, and whether they wait for it -->
+                                    <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 pt-2">
+                                        <div class="min-w-0 flex-1">
+                                            <Label for="answer-check" class="text-sm font-medium">{{ t('agents.guardrails.answer_check') }}</Label>
+                                            <p class="text-muted-foreground text-sm">{{ t(ANSWER_CHECK_HELP[answerCheck]) }}</p>
                                         </div>
-                                        <Switch v-model="form.check_before_showing" :disabled="!canManage" class="pointer-events-none" />
+                                        <Select v-model="answerCheck" :disabled="!canManage">
+                                            <SelectTrigger id="answer-check" class="h-8 w-48">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem v-for="option in ANSWER_CHECKS" :key="option" :value="option">{{
+                                                    t(ANSWER_CHECK_LABELS[option])
+                                                }}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
                                     <!-- Alert emails -->

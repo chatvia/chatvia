@@ -74,11 +74,18 @@ class GuardrailService
 
     /**
      * Whether the agent's answers are held back until the output guards have
-     * checked them, instead of streaming as they are written.
+     * checked them, instead of streaming as they are written. Only while the
+     * answers get the AI check: masking alone is not worth the wait.
      */
     public function holdsAnswers(Agent $agent): bool
     {
-        return $this->enabledFor($agent) && GuardrailSettingsData::fromAgent($agent)->check_before_showing;
+        if (! $this->enabledFor($agent)) {
+            return false;
+        }
+
+        $settings = GuardrailSettingsData::fromAgent($agent);
+
+        return $settings->check_answers && $settings->check_before_showing;
     }
 
     /**
@@ -166,7 +173,9 @@ class GuardrailService
      * Guard the agent's answer before it is persisted/finalized. A leaked
      * system prompt is replaced; PII is redacted; a toxic or off-topic answer
      * is replaced with the refusal, in `$language` (the visitor's, when
-     * known). Returns the corrected text.
+     * known). The toxicity and topic checks need a model call, so they run
+     * only while the agent checks its answers (`check_answers`). Returns the
+     * corrected text.
      */
     public function inspectOutput(Agent $agent, string $text, ?string $language = null): GuardResultData
     {
@@ -198,7 +207,7 @@ class GuardrailService
 
         $options = $this->classifierOptions($settings, [], checkInjection: false);
 
-        if (! $options->any()) {
+        if (! $settings->check_answers || ! $options->any()) {
             return new GuardResultData(text: $pii->text, verdicts: $verdicts);
         }
 

@@ -49,6 +49,7 @@ function guardrailForm(array $overrides = []): array
         ]],
         'allowed_scope' => '',
         'refusal_message' => '',
+        'check_answers' => false,
         'check_before_showing' => true,
         'alert_owner' => true,
     ], $overrides);
@@ -71,8 +72,21 @@ it('saves the guardrail settings', function (): void {
         ->and($settings->injection_mode)->toBe(GuardMode::Monitor)
         ->and($settings->injection_sensitivity)->toBe(GuardSensitivity::Medium)
         ->and($settings->toxicity_sensitivity)->toBe(GuardSensitivity::Low)
+        ->and($settings->check_answers)->toBeFalse()
         ->and($settings->check_before_showing)->toBeTrue()
         ->and($settings->alert_owner)->toBeTrue();
+});
+
+it('keeps checking answers when the form leaves the switch out', function (): void {
+    $form = guardrailForm();
+    unset($form['check_answers']);
+
+    $this->actingAs($this->owner)
+        ->from(route('agents.guardrails', $this->agent->external_id))
+        ->post(route('agents.guardrails.update', $this->agent->external_id), $form)
+        ->assertSessionHasNoErrors();
+
+    expect(GuardrailSettingsData::fromAgent($this->agent->fresh())->check_answers)->toBeTrue();
 });
 
 it('refuses a custom pattern that does not compile or matches empty text', function (string $pattern): void {

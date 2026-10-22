@@ -103,8 +103,17 @@
             "mode": "Hvad der sker",
             "sensitivity": "Følsomhed",
             "mode_help": "\"Log kun\" registrerer, hvad en beskyttelse finder, uden at blokere, så du kan tjekke det, før det påvirker besøgende.",
-            "check_before_showing": "Tjek svar, før de vises",
-            "check_before_showing_help": "Den besøgende ser først et svar, når beskyttelserne har tjekket det. Svar vises lidt senere og på én gang.",
+            "answer_check": "Tjek agentens svar",
+            "answer_check_labels": {
+                "while_showing": "Mens de vises",
+                "before_showing": "Før de vises",
+                "off": "Tjek ikke"
+            },
+            "answer_check_help": {
+                "while_showing": "Svar vises løbende og tjekkes, når de er færdige. Et svar, der ikke består, erstattes af afvisningsbeskeden.",
+                "before_showing": "Den besøgende ser først et svar, når det har bestået tjekket. Det vises lidt senere, på én gang, og modellens tankegang vises ikke.",
+                "off": "Svar vises løbende uden AI-tjekket, hvilket sparer ét AI-kald pr. svar. Personlige data i svar skjules stadig."
+            },
             "alert_owner": "Send mig en e-mail om angreb",
             "alert_owner_help": "Få en e-mail, når agenten blokerer et forsøg på at omgå sine instruktioner, eller når sikkerhedstjekket ikke kan køre. Højst én e-mail i timen.",
             "test_title": "Test en besked",

@@ -25,6 +25,9 @@ export interface CustomPattern {
     action: PiiAction;
 }
 
+/** When the agent's answers are checked: not at all, while they stream, or before they show. */
+export type AnswerCheck = 'off' | 'while_showing' | 'before_showing';
+
 export interface GuardSettings {
     enabled: boolean;
     filters: string[];
@@ -43,6 +46,7 @@ export interface GuardSettings {
     allowed_scope: string;
     topics_mode: GuardMode;
     refusal_message: string;
+    check_answers: boolean;
     check_before_showing: boolean;
     alert_owner: boolean;
 }

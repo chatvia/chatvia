@@ -746,8 +746,6 @@
             "mode": "Was passiert",
             "sensitivity": "Empfindlichkeit",
             "mode_help": "„Nur protokollieren“ zeichnet auf, was eine Schutzregel findet, ohne zu blockieren. So können Sie es prüfen, bevor es Besucher betrifft.",
-            "check_before_showing": "Antworten vor dem Anzeigen prüfen",
-            "check_before_showing_help": "Der Besucher sieht eine Antwort erst, nachdem die Schutzregeln sie geprüft haben. Antworten erscheinen etwas später und auf einmal.",
             "alert_owner": "Mich per E-Mail über Angriffe informieren",
             "alert_owner_help": "Erhalten Sie eine E-Mail, wenn der Agent einen Versuch blockiert, seine Anweisungen zu umgehen, oder wenn die Sicherheitsprüfung nicht laufen kann. Höchstens eine E-Mail pro Stunde.",
             "test_title": "Nachricht testen",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Unter Personen verwalten",
                 "since": "Seit {date}",
                 "no_chatters": "Keine gesperrten Chatter."
+            },
+            "answer_check": "Antworten des Agenten prüfen",
+            "answer_check_labels": {
+                "while_showing": "Während der Anzeige",
+                "before_showing": "Vor der Anzeige",
+                "off": "Nicht prüfen"
+            },
+            "answer_check_help": {
+                "while_showing": "Antworten erscheinen live und werden am Ende geprüft. Eine Antwort, die durchfällt, wird durch die Ablehnungsnachricht ersetzt.",
+                "before_showing": "Der Besucher sieht eine Antwort erst, wenn sie die Prüfung bestanden hat. Sie erscheint etwas später, auf einmal, und das Nachdenken des Modells wird nicht gezeigt.",
+                "off": "Antworten erscheinen live ohne KI-Prüfung. Das spart einen KI-Aufruf pro Antwort. Persönliche Daten in Antworten werden weiterhin maskiert."
             }
         },
         "persona": {

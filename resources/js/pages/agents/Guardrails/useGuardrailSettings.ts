@@ -8,7 +8,7 @@ import { useForm } from '@inertiajs/vue3';
 import { computed, ref, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-import type { GuardSettings, PiiFilterOption } from './types';
+import type { AnswerCheck, GuardSettings, PiiFilterOption } from './types';
 
 interface Options {
     agent: { external_id: string };
@@ -63,6 +63,7 @@ function copy(settings: GuardSettings): GuardSettings {
         allowed_scope: settings.allowed_scope,
         topics_mode: settings.topics_mode,
         refusal_message: settings.refusal_message,
+        check_answers: settings.check_answers,
         check_before_showing: settings.check_before_showing,
         alert_owner: settings.alert_owner,
     };
@@ -105,9 +106,19 @@ export function useGuardrailSettings(props: Options, canManage: Ref<boolean>) {
 
     // Toggle a boolean field — bound to the whole row's click so the label and
     // description area are part of the hit target, not just the switch.
-    const toggle = (key: 'enabled' | 'injection' | 'toxicity' | 'check_before_showing' | 'alert_owner') => {
+    const toggle = (key: 'enabled' | 'injection' | 'toxicity' | 'alert_owner') => {
         if (canManage.value) form[key] = !form[key];
     };
+
+    // One choice on the page, two settings on the server: whether answers
+    // are checked at all, and whether they wait for the check.
+    const answerCheck = computed<AnswerCheck>({
+        get: () => (!form.check_answers ? 'off' : form.check_before_showing ? 'before_showing' : 'while_showing'),
+        set: (value) => {
+            form.check_answers = value !== 'off';
+            form.check_before_showing = value === 'before_showing';
+        },
+    });
 
     // Remember the last selection so toggling PII off then on restores it
     // (falling back to the server defaults on first enable).
@@ -126,5 +137,5 @@ export function useGuardrailSettings(props: Options, canManage: Ref<boolean>) {
 
     const selectedFilters = computed(() => props.availableFilters.filter((f) => form.filters.includes(f.key)));
 
-    return { form, save, toggle, piiEnabled, togglePii, selectedFilters };
+    return { form, save, toggle, answerCheck, piiEnabled, togglePii, selectedFilters };
 }

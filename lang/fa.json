@@ -244,6 +244,7 @@
     "You are not allowed to resend invitations for this team.": "شما اجازهٔ ارسال دوبارهٔ دعوت‌های این تیم را ندارید.",
     "You can only add users you have invited.": "فقط می‌توانید کاربرانی را اضافه کنید که خودتان دعوت کرده‌اید.",
     "You cannot delete a team that has agents. Please delete or move all agents first.": "تیمی را که عامل دارد نمی‌توانید حذف کنید. ابتدا همهٔ عامل‌ها را حذف یا منتقل کنید.",
+    "You cannot delete a team that has members. Please remove its members first.": "تیمی را که عضو دارد نمی‌توانید حذف کنید. ابتدا اعضای آن را حذف کنید.",
     "You cannot delete your only team. Create another team first.": "نمی‌توانید تنها تیم خود را حذف کنید. ابتدا تیم دیگری بسازید.",
     "You cannot delete your primary team.": "نمی‌توانید تیم اصلی خود را حذف کنید.",
     "You do not have access to this team.": "شما به این تیم دسترسی ندارید.",

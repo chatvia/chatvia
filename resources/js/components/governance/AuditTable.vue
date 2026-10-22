@@ -91,10 +91,16 @@ const openDetail = (row: AuditRow): void => {
     detailOpen.value = true;
 };
 
+// Arguments that were cut at the size limit (or were not JSON) arrive as
+// preview text instead of JSON.
+const argumentsAreJson = computed<boolean>(() => {
+    const args = selected.value?.arguments;
+    return args !== null && args !== undefined && typeof args === 'object';
+});
+
 const prettyArguments = computed<string>(() => {
     const args = selected.value?.arguments;
-    if (args === null || args === undefined) return '—';
-    if (typeof args === 'string') return args;
+    if (!argumentsAreJson.value) return selected.value?.arguments_preview || '—';
     try {
         return JSON.stringify(args, null, 2);
     } catch {
@@ -102,13 +108,14 @@ const prettyArguments = computed<string>(() => {
     }
 });
 
-// Syntax-highlight the arguments as JSON (or plaintext when they were truncated
-// to a raw string). Colors come from the shared highlight.css theme.
+// Syntax-highlight the arguments as JSON (or plaintext for the preview text).
+// Colors come from the shared highlight.css theme.
 const highlightedArguments = computed<string>(() => {
-    const args = selected.value?.arguments;
-    const language = args !== null && args !== undefined && typeof args === 'object' ? 'json' : 'plaintext';
+    const language = argumentsAreJson.value ? 'json' : 'plaintext';
     return hljs.highlight(prettyArguments.value, { language }).value;
 });
+
+const argumentsCutOff = computed<boolean>(() => !argumentsAreJson.value && !!selected.value?.arguments_truncated);
 
 // Tool results are usually markdown (the model emits headings, lists, bold).
 // Offer a rendered Preview (default) alongside the raw Markdown source.
@@ -286,7 +293,10 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                         <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.detail_arguments') }}</div>
                         <pre
                             class="bg-muted mt-1 rounded-md p-3 text-xs break-words whitespace-pre-wrap"
-                        ><code class="hljs language-json" v-html="highlightedArguments"></code></pre>
+                        ><code class="hljs" :class="argumentsAreJson ? 'language-json' : 'language-plaintext'" v-html="highlightedArguments"></code></pre>
+                        <p v-if="argumentsCutOff" class="text-muted-foreground mt-1 text-xs">
+                            {{ t('shared.audit_table.detail_arguments_cut_off') }}
+                        </p>
                     </div>
 
                     <div>

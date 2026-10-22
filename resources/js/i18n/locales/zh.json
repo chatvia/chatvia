@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "再次显示表单",
             "preview_user_message": "你好！你能帮我吗？",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "表单仅在聊天小部件和命令栏中显示。"
+            "surfaces_notice": "表单仅在聊天小部件和命令栏中显示。",
+            "delete_with_leads": "这也会删除 {count} 条线索。此操作无法撤销。 | 这也会删除 {count} 条线索。此操作无法撤销。"
         },
         "submissions": {
             "page_title": "提交记录",
@@ -3321,7 +3322,8 @@
                 "outcome": "结果",
                 "ip": "IP 地址",
                 "when": "时间"
-            }
+            },
+            "metadata_cut_off": "已在大小上限处截断。仅显示开头部分。"
         },
         "audit": {
             "title": "审计",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "已拒绝",
             "outcome_rate_limited": "已限流",
             "outcome_not_offered": "未提供",
-            "detail_spoken_approval": "口头批准"
+            "detail_spoken_approval": "口头批准",
+            "detail_arguments_cut_off": "已在大小上限处截断。仅显示开头部分。"
         },
         "attach_file": {
             "title": "从已训练的文件中选择",

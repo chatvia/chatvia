@@ -26,7 +26,7 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
 
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Agent::class)->nullable();
+            $table->foreignIdFor(Agent::class);
             // Who is chatting: a staff account (user_id) or a chatter
             // (chatter_id), never both; neither for an anonymous visitor.
             $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnDelete();
@@ -78,7 +78,7 @@ return new class extends Migration
             $table->foreignId('workspace_id');
             $table->foreignId('chat_session_id');
             $table->foreignId('agent_id');
-            $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Language::class)->nullable()->constrained()->nullOnDelete();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'api']);
             $table->boolean('is_visible')->default(false);
@@ -109,7 +109,7 @@ return new class extends Migration
             $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
             $table->unique(['workspace_id', 'id']);
 
-            $table->index(['chat_session_id', 'created_at']);
+            $table->index(['chat_session_id', 'id']);
 
             $table->index(['agent_id', 'created_at']);
         });
@@ -143,14 +143,12 @@ return new class extends Migration
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 
-            $table->boolean('is_response_from_qa')->nullable();
+            $table->boolean('is_response_from_qa')->default(false);
             $table->boolean('has_llm_found_answer')->nullable();
 
             $table->unsignedMediumInteger('response_time_ms')->nullable();
             $table->unsignedInteger('prompt_tokens')->nullable();
             $table->unsignedInteger('completion_tokens')->nullable();
-
-            $table->boolean('is_usage_counted')->nullable();
 
             $table->timestamps();
 
@@ -159,7 +157,7 @@ return new class extends Migration
             $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
             $table->unique(['workspace_id', 'id']);
 
-            $table->index(['chat_conversation_id', 'created_at']);
+            $table->index(['chat_conversation_id', 'created_at', 'id']);
         });
 
         Schema::create('chat_attachments', function (Blueprint $table): void {
@@ -189,6 +187,7 @@ return new class extends Migration
 
             $table->index(['chat_conversation_id', 'mime_type']);
             $table->index('chat_message_id');
+            $table->index('workspace_id');
         });
 
         $this->createPartialIndexes();
@@ -205,10 +204,12 @@ return new class extends Migration
         DB::statement('CREATE INDEX chat_sessions_chatter_idx ON chat_sessions (chatter_id, created_at) WHERE chatter_id IS NOT NULL');
         // The daily anonymize pass: a workspace's sessions not yet cleared.
         DB::statement('CREATE INDEX chat_sessions_to_anonymize_idx ON chat_sessions (workspace_id, created_at) WHERE anonymized_at IS NULL');
+        DB::statement('CREATE INDEX chat_sessions_created_brin ON chat_sessions USING brin (created_at)');
 
         DB::statement('CREATE INDEX messages_qa_idx ON chat_messages (agent_question_answer_id) WHERE agent_question_answer_id IS NOT NULL');
         // The chat log's feedback filter: does a conversation have a rated message.
         DB::statement('CREATE INDEX messages_feedback_idx ON chat_messages (chat_conversation_id, feedback) WHERE feedback IS NOT NULL');
+        DB::statement("CREATE INDEX messages_confidence_idx ON chat_messages (chat_conversation_id, confidence_score) WHERE role = 'assistant' AND confidence_score IS NOT NULL");
 
         DB::statement('CREATE INDEX conversations_handoff_user_idx ON chat_conversations (handoff_user_id) WHERE handoff_user_id IS NOT NULL');
         // An agent's waiting handoffs, newest activity first.
@@ -238,8 +239,10 @@ return new class extends Migration
             'chat_sessions_user_idx',
             'chat_sessions_chatter_idx',
             'chat_sessions_to_anonymize_idx',
+            'chat_sessions_created_brin',
             'messages_qa_idx',
             'messages_feedback_idx',
+            'messages_confidence_idx',
             'conversations_handoff_user_idx',
             'conversations_handoff_pending_idx',
             'conversations_agent_visible_idx',

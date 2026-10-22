@@ -82,3 +82,43 @@ it('unlinks a shared file from the agent and refuses its last link', function ()
         ->and($other->files()->whereKey($shared->id)->exists())->toBeTrue()
         ->and($this->agent->files()->whereKey($onlyHere->id)->exists())->toBeTrue();
 });
+
+it('removes several pages of the website in one call', function (): void {
+    $website = SourceWebsite::query()->create(['workspace_id' => $this->owner->workspace()->id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
+    $this->agent->websites()->attach($website->id);
+    $removed = $website->urls()->create(['url' => 'https://docs.example.test/a']);
+    $kept = $website->urls()->create(['url' => 'https://docs.example.test/b']);
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.websites.links.bulk-destroy', [$this->agent, $website]), ['link_ids' => [$removed->id, $removed->id]])
+        ->assertOk()
+        ->assertJsonPath('count', 1);
+
+    expect($website->urls()->pluck('id')->all())->toBe([$kept->id]);
+});
+
+it('refuses to remove a page of another website or too many pages at once', function (array $linkIds): void {
+    $website = SourceWebsite::query()->create(['workspace_id' => $this->owner->workspace()->id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
+    $this->agent->websites()->attach($website->id);
+    $own = $website->urls()->create(['url' => 'https://docs.example.test/a']);
+    $other = SourceWebsite::query()->create(['workspace_id' => $this->owner->workspace()->id, 'url' => 'https://other.example.test', 'status' => 'ingested']);
+    $foreign = $other->urls()->create(['url' => 'https://other.example.test/a']);
+
+    $ids = array_map(fn (string $id): int => match ($id) {
+        'own' => $own->id,
+        'foreign' => $foreign->id,
+        default => (int) $id,
+    }, $linkIds);
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.websites.links.bulk-destroy', [$this->agent, $website]), ['link_ids' => $ids])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('link_ids');
+
+    expect($website->urls()->whereKey($own->id)->exists())->toBeTrue()
+        ->and($other->urls()->whereKey($foreign->id)->exists())->toBeTrue();
+})->with([
+    'a page of another website' => [['own', 'foreign']],
+    'an unknown id' => [['own', '999999999']],
+    'more than 500 ids' => [['own', ...array_map(strval(...), range(1, 500))]],
+]);

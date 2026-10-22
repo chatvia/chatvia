@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "양식 다시 보기",
             "preview_user_message": "안녕하세요! 도와주실 수 있나요?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "양식은 채팅 위젯과 명령 바에서만 표시됩니다."
+            "surfaces_notice": "양식은 채팅 위젯과 명령 바에서만 표시됩니다.",
+            "delete_with_leads": "리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다. | 리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다."
         },
         "submissions": {
             "page_title": "제출 내역",
@@ -3321,7 +3322,8 @@
                 "outcome": "결과",
                 "ip": "IP 주소",
                 "when": "시점"
-            }
+            },
+            "metadata_cut_off": "크기 제한에서 잘렸습니다. 앞부분만 표시됩니다."
         },
         "audit": {
             "title": "감사",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "거부됨",
             "outcome_rate_limited": "속도 제한됨",
             "outcome_not_offered": "제공되지 않음",
-            "detail_spoken_approval": "음성 승인"
+            "detail_spoken_approval": "음성 승인",
+            "detail_arguments_cut_off": "크기 제한에서 잘렸습니다. 앞부분만 표시됩니다."
         },
         "attach_file": {
             "title": "이미 학습된 파일에서 선택",

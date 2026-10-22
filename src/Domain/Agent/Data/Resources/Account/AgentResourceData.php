@@ -4,7 +4,6 @@ namespace Domain\Agent\Data\Resources\Account;
 
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -59,10 +58,10 @@ class AgentResourceData extends Data
 
     /**
      * For the agents list: adds the all-time message total (from the analytics
-     * rollups) and the workspace member count (selected by
-     * {@see AgentQueryBuilder::withTotalMembers()}).
+     * rollups) and the workspace member count (teammates plus chatters, the
+     * same for every agent of the workspace, so counted once by the caller).
      */
-    public static function fromModelWithStats(Agent $agent, int $totalMessages): self
+    public static function fromModelWithStats(Agent $agent, int $totalMessages, int $totalMembers): self
     {
         return new self(
             id: $agent->id,
@@ -80,17 +79,18 @@ class AgentResourceData extends Data
             created_at: $agent->created_at,
             updated_at: $agent->updated_at,
             total_messages: $totalMessages,
-            total_members: (int) ($agent->total_members ?? 0),
+            total_members: $totalMembers,
         );
     }
 
     /**
      * @param  Collection<int, Agent>  $agents
      * @param  array<int, int>  $messageTotals  agent id → all-time messages
+     * @param  int  $totalMembers  the workspace's teammates plus its chatters
      * @return Collection<int, self>
      */
-    public static function listWithStats(Collection $agents, array $messageTotals): Collection
+    public static function listWithStats(Collection $agents, array $messageTotals, int $totalMembers): Collection
     {
-        return $agents->map(fn (Agent $agent): self => self::fromModelWithStats($agent, $messageTotals[$agent->id] ?? 0));
+        return $agents->map(fn (Agent $agent): self => self::fromModelWithStats($agent, $messageTotals[$agent->id] ?? 0, $totalMembers));
     }
 }

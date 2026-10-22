@@ -24,12 +24,15 @@ use Illuminate\Support\Carbon;
  *
  * `agent_id`/`user_id` are nullable FKs that null on delete, with denormalized
  * `agent_name`/`user_name` fallbacks, so a row stays readable after the agent
- * or user is removed.
+ * or user is removed. `arguments` holds JSON that fit the cap; when it did not
+ * (or was not JSON) it is null and `arguments_preview` holds the cut text.
  *
+ * @property int $id
  * @property int|null $agent_id
  * @property string $agent_name
  * @property int $workspace_id
  * @property int|null $user_id
+ * @property int|null $chatter_id
  * @property string|null $user_name
  * @property string|null $conversation_external_id
  * @property string $trace_id
@@ -40,10 +43,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $connector_slug
  * @property string|null $connector_name
  * @property ToolCallOutcome $outcome
- * @property bool $gated
+ * @property bool $is_gated
  * @property bool $is_error
  * @property int|null $latency_ms
  * @property array<string, mixed>|null $arguments
+ * @property string|null $arguments_preview
  * @property string|null $arguments_sha256
  * @property bool $arguments_truncated
  * @property string|null $result_text

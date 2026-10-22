@@ -36,6 +36,7 @@ return new class extends Migration
             // Target of the (workspace_id, chatter_id) keys on chat sessions and
             // agent grants; also serves lookups by workspace.
             $table->unique(['workspace_id', 'id']);
+            $table->index(['workspace_id', 'name', 'id']);
         });
 
         // One chatter per email inside a workspace, compared without case.

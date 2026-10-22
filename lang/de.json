@@ -244,6 +244,7 @@
     "You are not allowed to resend invitations for this team.": "Sie dürfen die Einladungen dieses Teams nicht erneut senden.",
     "You can only add users you have invited.": "Sie können nur Benutzer hinzufügen, die Sie eingeladen haben.",
     "You cannot delete a team that has agents. Please delete or move all agents first.": "Ein Team mit Agenten kann nicht gelöscht werden. Löschen oder verschieben Sie zuerst alle Agenten.",
+    "You cannot delete a team that has members. Please remove its members first.": "Ein Team mit Mitgliedern kann nicht gelöscht werden. Entfernen Sie zuerst seine Mitglieder.",
     "You cannot delete your only team. Create another team first.": "Sie können Ihr einziges Team nicht löschen. Erstellen Sie zuerst ein weiteres Team.",
     "You cannot delete your primary team.": "Sie können Ihr Hauptteam nicht löschen.",
     "You do not have access to this team.": "Sie haben keinen Zugriff auf dieses Team.",

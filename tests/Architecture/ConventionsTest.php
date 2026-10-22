@@ -372,7 +372,6 @@ it('Conversation/Session external_id lookups go through WidgetVerification', fun
  * record the route already checks.
  */
 const BARE_DATABASE_RULE_ALLOWLIST = [
-    'src/App/Http/Requests/Agent/Source/Web/BulkDestroyWebsiteLinksRequest.php', // URLs of the route's website
     'src/App/Http/Requests/Agent/UpdateAgentDomainRequest.php', // a custom chat domain is install-wide
     'src/App/Http/Requests/Auth/RegisterUserRequest.php', // an account email is install-wide
     'src/App/Http/Requests/Settings/Account/ProfileUpdateRequest.php', // an account email is install-wide

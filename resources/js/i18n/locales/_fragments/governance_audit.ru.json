@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Не предложен",
-            "detail_spoken_approval": "Устное подтверждение"
+            "detail_spoken_approval": "Устное подтверждение",
+            "detail_arguments_cut_off": "Обрезано по пределу размера. Показано только начало."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Обрезано по пределу размера. Показано только начало."
         }
     }
 }

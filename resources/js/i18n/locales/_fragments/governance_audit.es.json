@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "No ofrecida",
-            "detail_spoken_approval": "Aprobación verbal"
+            "detail_spoken_approval": "Aprobación verbal",
+            "detail_arguments_cut_off": "Recortado en el límite de tamaño. Solo se muestra el principio."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Recortado en el límite de tamaño. Solo se muestra el principio."
         }
     }
 }

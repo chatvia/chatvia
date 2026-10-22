@@ -25,7 +25,10 @@ class ListAttachableTextsForAgentAction
     {
         $currentIds = $agent->texts()->pluck('source_texts.id');
 
+        // Only what a row needs: the excerpt, and the checksum and path the
+        // word count is read with.
         return SourceText::query()
+            ->select(['id', 'excerpt', 'checksum', 'filepath'])
             // Texts belong to the workspace owner, not to the teammate viewing them.
             ->where('workspace_id', $user->workspace()->id)
             ->where('status', SourceStatus::Completed)

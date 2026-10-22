@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Identity\Chatter\Services;
 
 use App\Identity\Chatter\Models\Chatter;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -54,5 +55,20 @@ final class ChatterPasswordResetTokens
     public function delete(Chatter $chatter): void
     {
         DB::table(self::TABLE)->where('chatter_id', $chatter->id)->delete();
+    }
+
+    /**
+     * Delete every token that no longer works: past its lifetime, or with no
+     * creation time ({@see self::isValid()} refuses those).
+     *
+     * @return int how many tokens were deleted
+     */
+    public function deleteExpired(): int
+    {
+        return DB::table(self::TABLE)
+            ->where(fn (Builder $query): Builder => $query
+                ->whereNull('created_at')
+                ->orWhere('created_at', '<', Carbon::now()->subMinutes(self::EXPIRE_MINUTES)))
+            ->delete();
     }
 }

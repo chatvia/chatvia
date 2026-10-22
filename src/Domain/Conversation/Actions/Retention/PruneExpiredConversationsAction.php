@@ -2,14 +2,17 @@
 
 namespace Domain\Conversation\Actions\Retention;
 
+use Closure;
 use Domain\Conversation\Data\Retention\ConversationPruneResultData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\ConversationRetention;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -20,9 +23,9 @@ use Illuminate\Support\Facades\DB;
  * those soft-deleted longer than the grace window, so the chat tables really
  * shrink, and removes anonymous sessions left empty.
  *
- * The soft deletes go one by one through the model, never in bulk, so the
- * delete hook also removes their uploaded files and their live memory. Every
- * other step works in batches of `$chunk` rows, so one run never holds a huge
+ * The soft deletes do, a batch at a time, what the model's delete hook does
+ * for one row: they also remove the uploaded files and the live memory.
+ * Every step works in batches of `$chunk` rows, so one run never holds a huge
  * statement.
  */
 class PruneExpiredConversationsAction
@@ -41,8 +44,9 @@ class PruneExpiredConversationsAction
     {
         $clamped = $this->clampToRetention($chunk);
         $overridden = $this->pruneWorkspaceOverrides($chunk);
-        $expired = $this->deleteEach(
-            Conversation::query()->whereNotNull('expires_at')->where('expires_at', '<', now()),
+        // Served by conversations_expires_cleanup_idx.
+        $expired = $this->softDeleteInBatches(
+            fn (): Builder => Conversation::query()->whereNotNull('expires_at')->where('expires_at', '<', now()),
             $chunk,
         );
         $purgedSessionIds = $this->purgeTrashed($chunk, $graceDays);
@@ -96,6 +100,13 @@ class PruneExpiredConversationsAction
      * updated_at like the install's sliding window. The window is clamped to
      * the configured floor and to the install's CURRENT retention, so an
      * override saved before the admin lowered it never keeps data longer.
+     *
+     * Read agent by agent, so conversations_agent_visible_idx (agent_id,
+     * updated_at, id) serves each read. It covers visible conversations
+     * only, which is enough: a hidden one always carries an `expires_at` at
+     * most {@see Conversation::HIDDEN_LIFETIME_DAYS} after it started, which
+     * the floor (at least one day) never undercuts, so the expiry pass of
+     * this same run removes it.
      */
     private function pruneWorkspaceOverrides(int $chunk): int
     {
@@ -109,39 +120,81 @@ class PruneExpiredConversationsAction
         $deleted = 0;
 
         foreach ($overrides as $workspaceId => $days) {
-            $retentionDays = min(max($floor, (int) $days), $ceiling);
+            $idleSince = now()->subDays(min(max($floor, (int) $days), $ceiling));
 
-            $deleted += $this->deleteEach(
-                Conversation::query()
-                    ->where('workspace_id', $workspaceId)
-                    ->where('updated_at', '<', now()->subDays($retentionDays)),
-                $chunk,
-            );
+            // A base query, so the agents in the trash still count: their
+            // conversations stay until the agent is purged.
+            $agentIds = DB::table('agents')->where('workspace_id', $workspaceId)->pluck('id');
+
+            foreach ($agentIds as $agentId) {
+                $deleted += $this->softDeleteInBatches(
+                    fn (): Builder => Conversation::query()
+                        ->where('agent_id', $agentId)
+                        ->where('is_visible', true)
+                        ->where('updated_at', '<', $idleSince),
+                    $chunk,
+                );
+            }
         }
 
         return $deleted;
     }
 
     /**
-     * Soft-delete every live conversation the query matches, through the
-     * model so the delete hook runs.
+     * Soft-delete every live conversation the query matches, a batch at a
+     * time. A batch is "the next N" with no ORDER BY: a soft-deleted row
+     * leaves the partial indexes these queries use (`deleted_at IS NULL`), so
+     * each read finds rows not seen yet and the loop ends when none are left.
      *
-     * @param  Builder<Conversation>  $query
+     * Each batch does what the model's delete hook does for one row: the
+     * files go through their model (which removes the stored file), one
+     * UPDATE moves the rows to the trash (kept soft, so the chat log writer
+     * can bring an expired empty conversation back), and one flush clears
+     * their live memory.
+     *
+     * @param  Closure(): Builder<Conversation>  $matching
      */
-    private function deleteEach(Builder $query, int $chunk): int
+    private function softDeleteInBatches(Closure $matching, int $chunk): int
     {
         $deleted = 0;
 
-        $query->whereNull('deleted_at')
-            ->orderBy('id')
-            ->chunkById($chunk, function ($conversations) use (&$deleted): void {
-                foreach ($conversations as $conversation) {
-                    $conversation->delete();
-                    $deleted++;
-                }
-            });
+        do {
+            $batch = $matching()->limit($chunk)->toBase()->get(['id', 'external_id']);
+
+            if ($batch->isEmpty()) {
+                break;
+            }
+
+            $ids = $batch->pluck('id')->map(static fn ($id): int => (int) $id);
+
+            $this->deleteAttachments($ids);
+
+            $now = now();
+            $trashed = DB::table('chat_conversations')
+                ->whereRaw('id = ANY(?::bigint[])', ['{'.$ids->implode(',').'}'])
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => $now, 'updated_at' => $now]);
+
+            Cache::driver('chat')
+                ->tags($batch->map(static fn (object $row): string => ChatCache::conversationTag($row->external_id))->all())
+                ->flush();
+
+            $deleted += $trashed;
+        } while ($trashed > 0);
 
         return $deleted;
+    }
+
+    /**
+     * Delete the files of these conversations through their model, so each
+     * one's stored file goes with its row.
+     *
+     * @param  Collection<int, int>  $conversationIds
+     */
+    private function deleteAttachments(Collection $conversationIds): void
+    {
+        Attachment::query()->whereIn('chat_conversation_id', $conversationIds)->get()
+            ->each(static fn (Attachment $attachment) => $attachment->delete());
     }
 
     /**
@@ -172,8 +225,7 @@ class PruneExpiredConversationsAction
 
             $ids = $batch->pluck('id');
 
-            Attachment::query()->whereIn('chat_conversation_id', $ids)->get()
-                ->each(static fn (Attachment $attachment) => $attachment->delete());
+            $this->deleteAttachments($ids);
 
             $purged = DB::table('chat_conversations')->whereIn('id', $ids)->delete();
 
@@ -216,6 +268,7 @@ class PruneExpiredConversationsAction
         $deleted = 0;
 
         do {
+            // A plain range on created_at, which chat_sessions_created_brin serves.
             $batch = DB::table('chat_sessions')
                 ->whereIn('id', $this->anonymousSessionsWithoutConversations()
                     ->select('id')

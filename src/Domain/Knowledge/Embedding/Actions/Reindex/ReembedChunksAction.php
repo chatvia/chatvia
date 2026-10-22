@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Embedding\Actions\Reindex;
 
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Support\Facades\DB;
 
@@ -13,11 +14,13 @@ use Illuminate\Support\Facades\DB;
  * the chunk from the same text ingestion embedded (its stored `search_text`),
  * and its questions when it has them. One part of a re-index
  * ({@see StartEmbeddingReindexAction}). The text columns stay as they are.
+ * The new vectors are written with one UPDATE for the whole range.
  */
 class ReembedChunksAction
 {
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingStorage $storage,
     ) {}
 
     /**
@@ -38,14 +41,27 @@ class ReembedChunksAction
         $vectors = $this->embeddings->embedBatch($chunks->map(fn (Chunk $chunk): string => $chunk->search_text)->all());
         $questionVectors = $this->questionVectors($chunks->all());
 
-        DB::transaction(function () use ($chunks, $vectors, $questionVectors): void {
-            foreach ($chunks as $position => $chunk) {
-                Chunk::query()->whereKey($chunk->id)->toBase()->update([
-                    'embedding' => $this->literal($vectors[$position]),
-                    'questions_embedding' => isset($questionVectors[$chunk->id]) ? $this->literal($questionVectors[$chunk->id]) : null,
-                ]);
-            }
-        });
+        // Each value is cast to the column's type (the install's choice), so
+        // the VALUES list has the right column types, NULL included.
+        $cast = $this->storage->columnType();
+        $rows = [];
+        $bindings = [];
+
+        foreach ($chunks as $position => $chunk) {
+            $rows[] = "(?::bigint, ?::{$cast}, ?::{$cast})";
+            $bindings[] = $chunk->id;
+            $bindings[] = $this->literal($vectors[$position]);
+            $bindings[] = isset($questionVectors[$chunk->id]) ? $this->literal($questionVectors[$chunk->id]) : null;
+        }
+
+        $table = $chunks->first()->getTable();
+
+        DB::update(
+            "UPDATE {$table} AS t SET embedding = v.embedding, questions_embedding = v.questions_embedding
+             FROM (VALUES ".implode(', ', $rows).') AS v(id, embedding, questions_embedding)
+             WHERE t.id = v.id',
+            $bindings,
+        );
 
         return $chunks->count();
     }

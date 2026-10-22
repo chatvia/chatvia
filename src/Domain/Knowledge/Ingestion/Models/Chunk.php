@@ -3,7 +3,6 @@
 namespace Domain\Knowledge\Ingestion\Models;
 
 use Database\Factories\ChunkFactory;
-use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\QueryBuilders\ChunkQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -26,7 +25,7 @@ use Support\Concerns\HasExternalId;
  * `agent_sources`. Chunk index 0 is the source's summary chunk.
  *
  * @property int $id
- * @property string|null $external_id
+ * @property string $external_id
  * @property int $workspace_id
  * @property string $chunkable_type
  * @property int $chunkable_id
@@ -48,10 +47,8 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, ChunkReference> $references
  * @property-read int|null $references_count
  *
- * @method static ChunkQueryBuilder<static>|Chunk forAgent(Agent $agent)
  * @method static ChunkQueryBuilder<static>|Chunk ofSource(Model $source)
  * @method static ChunkQueryBuilder<static>|Chunk unreferenced()
- * @method static ChunkQueryBuilder<static>|Chunk withQuestions()
  * @method static ChunkQueryBuilder<static>|Chunk newModelQuery()
  * @method static ChunkQueryBuilder<static>|Chunk newQuery()
  * @method static ChunkQueryBuilder<static>|Chunk query()

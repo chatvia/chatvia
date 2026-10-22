@@ -39,7 +39,7 @@ use Support\Concerns\HasExternalId;
  * @property int $id
  * @property string $external_id
  * @property int|null $workspace_id
- * @property McpServerCategory|null $category
+ * @property McpServerCategory $category
  * @property string|null $connector_slug
  * @property bool $uses_central_catalog
  * @property string $name

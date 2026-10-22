@@ -6,6 +6,7 @@ use App\Identity\Workspace\Data\Account\UpdateProfileData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -16,6 +17,18 @@ class ProfileUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * Staff emails are stored lowercase. The typed address is lowered
+     * before the rules run, so the unique check also sees an address that
+     * differs only in case.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => Str::lower($this->input('email'))]);
+        }
     }
 
     /**
@@ -30,7 +43,6 @@ class ProfileUpdateRequest extends FormRequest
             'email' => [
                 'required',
                 'string',
-                'lowercase',
                 'email',
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),

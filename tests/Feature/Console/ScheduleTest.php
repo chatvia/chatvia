@@ -26,6 +26,9 @@ it('schedules every recurring command from routes/console.php', function (string
     ['chatvia:prune:guardrail-events', '15 4 * * *'],
     ['chatvia:prune:visitor-blocks', '20 4 * * *'],
     ['chatvia:prune:security-audit-log', '25 4 * * *'],
+    ['chatvia:prune:known-devices', '30 4 * * *'],
+    ['chatvia:prune:invitations', '35 4 * * *'],
+    ['chatvia:agent:purge-deleted', '40 4 * * *'],
     ['chatvia:prune:analytics-events', '45 4 * * *'],
     ['chatvia:knowledge:refresh-websites', '20 * * * *'],
     ['chatvia:privacy:anonymize-sessions', '50 3 * * *'],
@@ -36,6 +39,8 @@ it('schedules every recurring command from routes/console.php', function (string
     ['queue:prune-failed', '5 5 * * *'],
     ['sanctum:prune-expired', '10 5 * * *'],
     ['model:prune', '15 5 * * *'],
+    ['auth:clear-resets users', '25 5 * * *'],
+    ['chatvia:prune:chatter-password-resets', '30 5 * * *'],
     ['spectra:prune', '20 5 * * *'],
     ['cache:prune-stale-tags chat', '0 * * * *'],
     ['chatvia:analytics:analyze-conversations', '0 * * * *'],
@@ -51,7 +56,7 @@ it('syncs the models\' facts daily in the 5 o\'clock hour, at a minute of the in
 });
 
 it('schedules nothing the tests above do not name', function (): void {
-    expect(app(Schedule::class)->events())->toHaveCount(26);
+    expect(app(Schedule::class)->events())->toHaveCount(31);
 });
 
 it('prunes the Spectra log after the days kept', function (): void {

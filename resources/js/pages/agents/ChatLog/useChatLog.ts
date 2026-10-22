@@ -357,7 +357,7 @@ export function useChatLog() {
             sentiment: null,
             tone: null,
             feedback: null,
-            is_response_from_qa: null,
+            is_response_from_qa: false,
             response_time_ms: null,
             prompt_tokens: null,
             completion_tokens: null,

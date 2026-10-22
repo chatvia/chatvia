@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "पेश नहीं किया गया",
-            "detail_spoken_approval": "मौखिक स्वीकृति"
+            "detail_spoken_approval": "मौखिक स्वीकृति",
+            "detail_arguments_cut_off": "आकार सीमा पर काट दिया गया। केवल शुरुआत दिखाई गई है।"
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "आकार सीमा पर काट दिया गया। केवल शुरुआत दिखाई गई है।"
         }
     }
 }

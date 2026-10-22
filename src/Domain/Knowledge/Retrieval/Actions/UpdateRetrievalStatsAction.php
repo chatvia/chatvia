@@ -77,7 +77,10 @@ class UpdateRetrievalStatsAction
     }
 
     /**
-     * Every source model has both columns, so no schema lookup is needed.
+     * Every source model has both columns, so no schema lookup is needed. The
+     * source rows are updated through the base query: a retrieval is not an
+     * edit, so it must not move the source's `updated_at` (the dashboard shows
+     * it as the last change).
      *
      * @param  class-string<Model>  $class
      * @param  Collection<int, int>  $ids
@@ -89,7 +92,7 @@ class UpdateRetrievalStatsAction
             'last_retrieved_at' => now(),
         ];
 
-        $class::query()->whereIn('id', $ids)->update($bump);
+        $class::query()->whereIn('id', $ids)->toBase()->update($bump);
 
         AgentSource::query()
             ->where('agent_id', $agentId)

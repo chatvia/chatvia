@@ -144,11 +144,12 @@ it('redacts secret keys at any depth and in any case', function (): void {
         'user' => ['name' => 'Dana', 'Password' => '[redacted]'],
         'items' => [['api_key' => '[redacted]', 'sku' => 'A7']],
     ])
+        ->and($row->arguments_preview)->toBeNull()
         ->and($row->arguments_truncated)->toBeFalse()
         ->and($row->arguments_sha256)->toBe(hash('sha256', $raw));
 });
 
-it('caps oversized arguments after redacting them and flags the cut', function (): void {
+it('caps oversized arguments after redacting them, keeps the cut text as a preview and flags the cut', function (): void {
     config(['chatvia.governance.max_arg_bytes' => 40]);
     $agent = Agent::factory()->create();
     $raw = json_encode(['token' => 'secret123', 'note' => str_repeat('x', 200)]);
@@ -157,15 +158,17 @@ it('caps oversized arguments after redacting them and flags the cut', function (
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
 
-    expect($row->arguments)->toBeString()
-        ->and(strlen($row->arguments))->toBe(40)
-        ->and($row->arguments)->toStartWith('{"token":"[redacted]"')
-        ->and($row->arguments)->not->toContain('secret123')
+    // A cut JSON string is not an array, so the jsonb column stays empty.
+    expect($row->arguments)->toBeNull()
+        ->and($row->arguments_preview)->toBeString()
+        ->and(strlen((string) $row->arguments_preview))->toBe(40)
+        ->and($row->arguments_preview)->toStartWith('{"token":"[redacted]"')
+        ->and($row->arguments_preview)->not->toContain('secret123')
         ->and($row->arguments_truncated)->toBeTrue()
         ->and($row->arguments_sha256)->toBe(hash('sha256', $raw));
 });
 
-it('stores arguments that are not JSON as text, capped', function (): void {
+it('stores arguments that are not JSON as preview text, capped', function (): void {
     config(['chatvia.governance.max_arg_bytes' => 10]);
     $agent = Agent::factory()->create();
     $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id];
@@ -176,8 +179,8 @@ it('stores arguments that are not JSON as text, capped', function (): void {
     app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'arguments' => 'city=Copenhagen']));
     $long = AgentActivity::query()->latest('id')->first();
 
-    expect([$short->arguments, $short->arguments_truncated])->toBe(['city=Oslo', false])
-        ->and([$long->arguments, $long->arguments_truncated])->toBe(['city=Copen', true]);
+    expect([$short->arguments, $short->arguments_preview, $short->arguments_truncated])->toBe([null, 'city=Oslo', false])
+        ->and([$long->arguments, $long->arguments_preview, $long->arguments_truncated])->toBe([null, 'city=Copen', true]);
 });
 
 it('writes the audit row from the queued listener while the audit is on', function (): void {

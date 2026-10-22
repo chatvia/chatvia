@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
 /**
@@ -25,6 +26,7 @@ use Support\Concerns\HasExternalId;
  * per-agent Guardrails page. Denormalized `agent_name`/`user_name` keep a row
  * readable after the agent or visitor is deleted, exactly like `agent_activities`.
  *
+ * @property int $id
  * @property string $external_id
  * @property int|null $agent_id
  * @property string $agent_name
@@ -34,11 +36,16 @@ use Support\Concerns\HasExternalId;
  * @property string|null $user_name
  * @property string|null $visitor_key
  * @property string|null $conversation_external_id
+ * @property string|null $message_id
+ * @property string|null $trace_id
  * @property GuardStage $stage
  * @property GuardType $guard_type
  * @property GuardOutcome $outcome
  * @property GuardSeverity|null $severity
  * @property array<string, mixed>|null $detail
+ * @property string|null $snippet
+ * @property string|null $snippet_sha256
+ * @property Carbon $created_at
  */
 #[Guarded(['id'])]
 #[RouteKey('external_id')]

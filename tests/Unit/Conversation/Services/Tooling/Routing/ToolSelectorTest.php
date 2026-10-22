@@ -8,6 +8,7 @@ use Domain\Conversation\Services\Tooling\Routing\ApprovalToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\StickyToolResolver;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
@@ -29,6 +30,7 @@ function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpSe
         'name' => ucfirst($slug),
         'slug' => $slug,
         'url' => "https://example.test/mcp/{$slug}",
+        'category' => McpServerCategory::Custom,
         'transport' => 'streamable_http',
         'auth_type' => 'none',
         'is_enabled' => true,

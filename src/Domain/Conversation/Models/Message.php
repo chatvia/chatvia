@@ -42,12 +42,11 @@ use Support\Concerns\HasExternalId;
  * @property Sentiment|null $sentiment
  * @property Tone|null $tone
  * @property string|null $feedback
- * @property bool|null $is_response_from_qa
+ * @property bool $is_response_from_qa
  * @property bool|null $has_llm_found_answer
  * @property int|null $response_time_ms
  * @property int|null $prompt_tokens
  * @property int|null $completion_tokens
- * @property bool|null $is_usage_counted
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $read_at
@@ -72,7 +71,6 @@ use Support\Concerns\HasExternalId;
  * @method static MessageQueryBuilder<static>|Message whereGenerationId($value)
  * @method static MessageQueryBuilder<static>|Message whereId($value)
  * @method static MessageQueryBuilder<static>|Message whereIsResponseFromQa($value)
- * @method static MessageQueryBuilder<static>|Message whereIsUsageCounted($value)
  * @method static MessageQueryBuilder<static>|Message whereHasLlmFoundAnswer($value)
  * @method static MessageQueryBuilder<static>|Message whereLlmId($value)
  * @method static MessageQueryBuilder<static>|Message whereMetadata($value)
@@ -109,7 +107,6 @@ use Support\Concerns\HasExternalId;
     'response_time_ms',
     'prompt_tokens',
     'completion_tokens',
-    'is_usage_counted',
     'read_at',
     'created_at',
     'updated_at',
@@ -132,7 +129,6 @@ class Message extends Model
             'read_at' => 'datetime',
             'has_llm_found_answer' => 'boolean',
             'is_response_from_qa' => 'boolean',
-            'is_usage_counted' => 'boolean',
             'response_time_ms' => 'integer',
             'prompt_tokens' => 'integer',
             'completion_tokens' => 'integer',

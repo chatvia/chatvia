@@ -19,6 +19,7 @@ use Support\Concerns\HasExternalId;
  * one per line, and copied one per row into {@see AgentQuestionAnswerQuestion}.
  *
  * @property int $id
+ * @property string $external_id
  * @property int $agent_id
  * @property string $title
  * @property string $answer

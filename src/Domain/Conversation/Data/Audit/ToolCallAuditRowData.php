@@ -12,7 +12,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * One row of the Governed MCP Gateway audit log, shared by the account
  * (Settings → Governance) and per-agent Audit viewers. The live avatar comes
  * from the eager-loaded `user` relation when present; rows without a user (or
- * a deleted user) fall back to the denormalized name.
+ * a deleted user) fall back to the denormalized name. `arguments_preview`
+ * carries the text when the arguments were cut or were not JSON.
  */
 #[TypeScript]
 class ToolCallAuditRowData extends Data
@@ -39,6 +40,8 @@ class ToolCallAuditRowData extends Data
         public bool $gated,
         public ?int $latency_ms,
         public ?array $arguments,
+        public ?string $arguments_preview,
+        public bool $arguments_truncated,
         public ?string $result_text,
         public ?string $conversation_external_id,
         public ?string $decided_at,
@@ -66,6 +69,8 @@ class ToolCallAuditRowData extends Data
             gated: $activity->is_gated,
             latency_ms: $activity->latency_ms,
             arguments: $activity->arguments,
+            arguments_preview: $activity->arguments_preview,
+            arguments_truncated: $activity->arguments_truncated,
             result_text: $activity->result_text,
             conversation_external_id: $activity->conversation_external_id,
             decided_at: $activity->decided_at?->toIso8601String(),

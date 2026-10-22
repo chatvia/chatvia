@@ -4,15 +4,18 @@ namespace App\Identity\Workspace\Actions\DataExport;
 
 use App\Identity\Workspace\Enums\DataExportStatus;
 use App\Identity\Workspace\Models\DataExport;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Deletes the ZIP of every data export whose download window has passed (and
- * of failed exports older than a week) and marks the export expired. The row
- * is kept as a record that an export was made. Returns how many exports were
- * pruned.
+ * Deletes every data export whose download window has passed, and failed
+ * exports older than a week: first the ZIP, then the row. Nothing shows an
+ * export past that point (the export page lists only one being prepared, a
+ * failed one or a ready one that has not expired), so the row would only make
+ * every later run read it again. The two kinds are read apart, so the expiry
+ * read can use the `expires_at` index. Returns how many exports were pruned.
  */
 class PruneExpiredDataExportsAction
 {
@@ -22,29 +25,30 @@ class PruneExpiredDataExportsAction
     public function execute(): int
     {
         $disk = Storage::disk('local');
+
+        return $this->prune($disk, DataExport::query()->where('expires_at', '<', now()))
+            + $this->prune($disk, DataExport::query()
+                ->where('status', DataExportStatus::Failed)
+                ->where('created_at', '<', now()->subDays(self::FAILED_RETENTION_DAYS)));
+    }
+
+    /**
+     * @param  Builder<DataExport>  $exports
+     */
+    private function prune(Filesystem $disk, Builder $exports): int
+    {
         $pruned = 0;
 
-        DataExport::query()
-            ->where(fn (Builder $query) => $query
-                ->where('expires_at', '<', now())
-                ->orWhere(fn (Builder $failed) => $failed
-                    ->where('status', DataExportStatus::Failed)
-                    ->where('created_at', '<', now()->subDays(self::FAILED_RETENTION_DAYS))))
-            ->chunkById(100, function (Collection $exports) use ($disk, &$pruned): void {
-                foreach ($exports as $export) {
-                    if ($export->file_path && $disk->exists($export->file_path)) {
-                        $disk->delete($export->file_path);
-                    }
-
-                    $export->update([
-                        'status' => DataExportStatus::Expired,
-                        'file_path' => null,
-                        'file_size' => null,
-                    ]);
-
-                    $pruned++;
+        $exports->chunkById(100, function (Collection $batch) use ($disk, &$pruned): void {
+            foreach ($batch as $export) {
+                if ($export->file_path !== null) {
+                    $disk->delete($export->file_path);
                 }
-            });
+
+                $export->delete();
+                $pruned++;
+            }
+        });
 
         return $pruned;
     }

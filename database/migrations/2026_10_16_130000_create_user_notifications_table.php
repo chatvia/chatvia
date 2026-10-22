@@ -49,7 +49,7 @@ return new class extends Migration
         // The unread badge counts only unread rows.
         DB::statement('CREATE INDEX user_notifications_unread_idx ON user_notifications (user_id) WHERE read_at IS NULL');
         // At most one unread row per group, so gathering is one INSERT … ON CONFLICT.
-        DB::statement('CREATE UNIQUE INDEX user_notifications_open_group_unique ON user_notifications (user_id, group_key) WHERE read_at IS NULL AND group_key IS NOT NULL');
+        DB::statement('CREATE UNIQUE INDEX user_notifications_open_group_unique ON user_notifications (group_key, user_id) WHERE read_at IS NULL AND group_key IS NOT NULL');
     }
 
     public function down(): void

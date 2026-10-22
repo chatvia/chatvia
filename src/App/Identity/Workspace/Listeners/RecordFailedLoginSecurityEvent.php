@@ -9,6 +9,7 @@ use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Records a failed sign-in attempt — a real brute-force / credential-stuffing
@@ -31,7 +32,7 @@ class RecordFailedLoginSecurityEvent
 
         $user = $event->user instanceof User
             ? $event->user
-            : ($email !== null ? User::query()->where('email', $email)->first() : null);
+            : ($email !== null ? User::query()->where('email', Str::lower($email))->first() : null);
 
         if (! $user instanceof User) {
             return;

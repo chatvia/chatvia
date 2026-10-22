@@ -42,6 +42,8 @@ class SyncBuiltinConnectorsAction
 {
     private const int AGENT_CHUNK_SIZE = 500;
 
+    private const int SERVER_CHUNK_SIZE = 200;
+
     public function __construct(
         private readonly BuiltinToolDefinitions $definitions,
         private readonly ConnectorCatalog $catalog,
@@ -151,18 +153,28 @@ class SyncBuiltinConnectorsAction
     }
 
     /**
+     * Every server of the builtin, in id order, {@see SERVER_CHUNK_SIZE} at a
+     * time with one transaction per chunk, so an install with many workspaces
+     * never holds one long transaction or every server in memory. Only the
+     * columns the reconcile and its timestamp update touch are read: never the
+     * encrypted credentials.
+     *
      * @param  Collection<int, ConnectorTool>  $tools
      */
     private function reconcileEveryServer(string $slug, Collection $tools): void
     {
-        $servers = AgentMcpServer::query()->where('connector_slug', $slug)->get();
-
-        DB::transaction(function () use ($servers, $tools): void {
-            foreach ($servers as $server) {
-                $this->reconcileMemberships->execute($server, $tools);
-                $server->markCatalogSynced($tools->count());
-            }
-        });
+        AgentMcpServer::query()
+            ->select(['id', 'workspace_id', 'connector_slug', 'catalog_cached_at', 'catalog_tools_count', 'last_error'])
+            ->where('connector_slug', $slug)
+            ->chunkById(self::SERVER_CHUNK_SIZE, function (Collection $servers) use ($tools): void {
+                DB::transaction(function () use ($servers, $tools): void {
+                    foreach ($servers as $server) {
+                        /** @var AgentMcpServer $server */
+                        $this->reconcileMemberships->execute($server, $tools);
+                        $server->markCatalogSynced($tools->count());
+                    }
+                });
+            });
     }
 
     /**

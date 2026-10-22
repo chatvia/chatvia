@@ -48,6 +48,23 @@ class Country extends Model
     }
 
     /**
+     * The ISO code of the country with this id, or null. The table is small
+     * and never changes while the app runs, so it is read once per process:
+     * a hot path (every stored chat message) needs no query of its own.
+     */
+    public static function codeFor(?int $id): ?string
+    {
+        if ($id === null) {
+            return null;
+        }
+
+        /** @var array<int, string> $codes */
+        $codes = once(static fn (): array => static::query()->pluck('code', 'id')->all());
+
+        return $codes[$id] ?? null;
+    }
+
+    /**
      * Every country as a picker option, named and sorted in the app locale.
      *
      * @return list<CountryOptionData>

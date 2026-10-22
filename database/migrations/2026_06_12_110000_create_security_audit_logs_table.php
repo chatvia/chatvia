@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('user_agent', 1024)->nullable();
 
             $table->jsonb('metadata')->nullable();
+            $table->text('metadata_preview')->nullable();
             $table->string('metadata_sha256', 64)->nullable();
             $table->boolean('metadata_truncated')->default(false);
 

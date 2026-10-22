@@ -23,6 +23,8 @@ return new class extends Migration
             // AI calls; off unless staff grant it in the admin panel.
             $table->boolean('spectra_access')->default(false);
             $table->timestamps();
+
+            $table->index('created_at');
         });
     }
 

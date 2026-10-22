@@ -14,6 +14,7 @@ use Domain\Analytics\Data\Dashboard\KnowledgeSourcesStatsData;
 use Domain\Analytics\Data\Dashboard\MessagesPanelData;
 use Domain\Analytics\Data\Dashboard\MessagesTrendData;
 use Domain\Analytics\Data\Dashboard\TeamSizeData;
+use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsCache;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -32,12 +33,14 @@ use Illuminate\Support\Facades\DB;
  *
  * Activity numbers read the analytics rollups. They are sums over the
  * workspace's whole history, so they come from the short-lived analytics
- * cache ({@see AnalyticsCache}), keyed by the workspace and today's date. The
- * agent count, the knowledge sources, the team size and the message limit's
- * counter stay live: they change with what the viewer just did. With a
- * monthly message limit, the message panel reads the limit's counter, so it
- * matches what the limit enforces — including eval cases, which never reach
- * the analytics tables.
+ * cache ({@see AnalyticsCache}), keyed by the workspace, the viewer's team and
+ * today's date. The knowledge source counts (three joins through
+ * `agent_sources`) and the team size go in the same cached value, so a
+ * dashboard visit within the cache window runs none of them. The agent count
+ * and the message limit's counter stay live: they change with what the viewer
+ * just did. With a monthly message limit, the message panel reads the limit's
+ * counter, so it matches what the limit enforces, eval cases included, which
+ * never reach the analytics tables.
  */
 class GetDashboardStatsAction
 {
@@ -51,9 +54,10 @@ class GetDashboardStatsAction
         $workspace = $user->workspace();
         $agentIds = Agent::query()->where('workspace_id', $workspace->id)->pluck('id');
 
+        // The team size is per team, so each team of the workspace has its own value.
         $activity = $this->cache->remember(
-            AnalyticsCache::workspaceKey($workspace->id, 'dashboard', 'to-'.now()->toDateString()),
-            fn (): DashboardActivityData => $this->activity($workspace->id),
+            AnalyticsCache::workspaceKey($workspace->id, 'dashboard:team-'.($team?->id ?? 'none'), 'to-'.now()->toDateString()),
+            fn (): DashboardActivityData => $this->activity($workspace->id, $agentIds, $team),
         );
 
         return new DashboardStatsData(
@@ -61,14 +65,17 @@ class GetDashboardStatsAction
             messages: $this->messagesPanel($workspace, $team, $activity),
             conversations: $activity->conversations,
             active_sessions: $activity->activeSessions,
-            knowledge_sources: $this->knowledgeSources($agentIds),
-            team: new TeamSizeData(members: $team instanceof Team ? $team->members()->count() : 0),
+            knowledge_sources: $activity->knowledgeSources,
+            team: new TeamSizeData(members: $activity->teamMembers),
             weekly_usage: $activity->weeklyUsage,
             monthly_usage: $activity->monthlyUsage,
         );
     }
 
-    private function activity(int $workspaceId): DashboardActivityData
+    /**
+     * @param  Collection<int, int>  $agentIds
+     */
+    private function activity(int $workspaceId, Collection $agentIds, ?Team $team): DashboardActivityData
     {
         return new DashboardActivityData(
             conversations: (int) $this->rollup()->where('workspace_id', $workspaceId)->sum('conversations_started'),
@@ -77,18 +84,23 @@ class GetDashboardStatsAction
             monthlyUsage: $this->dailyReplies($workspaceId, 30, 'j'),
             repliesThisMonth: $this->assistantMessagesBetween($workspaceId, now()->startOfMonth(), null),
             repliesLastMonth: $this->assistantMessagesBetween($workspaceId, now()->subMonth()->startOfMonth(), now()->startOfMonth()),
+            knowledgeSources: $this->knowledgeSources($agentIds),
+            teamMembers: $team instanceof Team ? $team->members()->count() : 0,
         );
     }
 
     /**
      * Visitors seen in the last 24h, across all the workspace's agents. Read
      * from the analytics event stream by workspace id, so it does not depend
-     * on the agent rows still existing.
+     * on the agent rows still existing. Only messages carry a session (a
+     * feedback row has none), and naming the type lets the read use the
+     * (workspace_id, event_type, occurred_at) index.
      */
     private function activeSessions(int $workspaceId): int
     {
         return $this->analytics->table('analytics_events')
             ->where('workspace_id', $workspaceId)
+            ->where('event_type', AnalyticsEventType::MessageSent->value)
             ->where('occurred_at', '>=', now()->subDay())
             ->distinct()
             ->count('session_external_id');

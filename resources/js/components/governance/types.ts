@@ -23,6 +23,9 @@ export interface AuditRow {
     gated: boolean;
     latency_ms: number | null;
     arguments: unknown;
+    /** The arguments as text when they were cut at the size limit or were not JSON. */
+    arguments_preview: string | null;
+    arguments_truncated: boolean;
     result_text: string | null;
     conversation_external_id: string | null;
     /** What the visitor said when they approved out loud (a voice call's yes). */

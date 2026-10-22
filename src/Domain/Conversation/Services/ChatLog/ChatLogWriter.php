@@ -15,6 +15,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Support\Localization\Country\Models\Country;
 
 /**
  * The steps every message written to the chat log shares: find or create the
@@ -48,7 +49,7 @@ class ChatLogWriter
             ],
         );
 
-        $updates = $this->activityStamp($session->last_activity_at);
+        $updates = $this->isStale($session->last_activity_at) ? ['last_activity_at' => now()] : [];
 
         // Only fills a missing chatter — never reassigns an existing owner, and
         // never on a staff session (a session has at most one viewer).
@@ -68,13 +69,50 @@ class ChatLogWriter
      * (created when the conversation was started); when it does not, the
      * surface is derived from the message source — widget messages make a
      * widget conversation, everything else the Hosted Chat surface.
+     *
+     * A new message moves the conversation in the chat log, which is ordered
+     * by `updated_at`. The stamp is throttled on `updated_at` as well as
+     * `last_activity_at`: the widget heartbeat keeps `last_activity_at` fresh
+     * without touching `updated_at`, so a throttle on it alone would often
+     * leave the conversation where it was.
      */
     public function conversation(Session $session, string $conversationExternalId, ?string $messageSource): Conversation
     {
-        $this->reviveExpiredEmptyConversation($session, $conversationExternalId);
+        $conversation = $this->findOrCreateConversation($session, $conversationExternalId, $messageSource);
 
-        /** @var Conversation $conversation */
-        $conversation = Conversation::firstOrCreate(
+        $updates = $this->isStale($conversation->updated_at) || $this->isStale($conversation->last_activity_at)
+            ? ['last_activity_at' => now(), 'updated_at' => now()]
+            : [];
+
+        // The first message makes a hidden conversation visible and gives it
+        // the full retention window (it was started with a short one).
+        if (! $conversation->is_visible) {
+            $updates = [...$updates, ...Conversation::visibleAttributes()];
+        }
+
+        if ($updates !== []) {
+            $conversation->forceFill($updates)->save();
+        }
+
+        return $conversation;
+    }
+
+    /**
+     * One lookup that also sees a soft-deleted row, so the common case (the
+     * conversation exists) costs a single query.
+     */
+    private function findOrCreateConversation(Session $session, string $conversationExternalId, ?string $messageSource): Conversation
+    {
+        $conversation = Conversation::withTrashed()
+            ->where('external_id', $conversationExternalId)
+            ->where('chat_session_id', $session->id)
+            ->first();
+
+        if ($conversation instanceof Conversation && $conversation->trashed()) {
+            $this->reviveExpiredEmptyConversation($conversation);
+        }
+
+        return $conversation ?? Conversation::createOrFirst(
             ['external_id' => $conversationExternalId, 'chat_session_id' => $session->id],
             [
                 'workspace_id' => $session->workspace_id,
@@ -84,20 +122,6 @@ class ChatLogWriter
                     : ConversationSource::HostedChat,
             ],
         );
-
-        $updates = $this->activityStamp($conversation->last_activity_at);
-
-        // The first message makes a hidden conversation visible and gives it
-        // the full retention window (it was started with a short one).
-        if (! $conversation->is_visible) {
-            $updates = [...$updates, ...Conversation::visibleAttributes()];
-        }
-
-        if ($updates !== []) {
-            $conversation->update($updates);
-        }
-
-        return $conversation;
     }
 
     /**
@@ -107,19 +131,10 @@ class ChatLogWriter
      * conversation someone deleted, or one that had messages, stays gone: the
      * message is refused as not found rather than reusing its id.
      */
-    private function reviveExpiredEmptyConversation(Session $session, string $conversationExternalId): void
+    private function reviveExpiredEmptyConversation(Conversation $trashed): void
     {
-        $trashed = Conversation::onlyTrashed()
-            ->where('external_id', $conversationExternalId)
-            ->where('chat_session_id', $session->id)
-            ->first();
-
-        if (! $trashed instanceof Conversation) {
-            return;
-        }
-
         if ($trashed->is_visible || $trashed->deleted_by !== null) {
-            throw (new ModelNotFoundException)->setModel(Conversation::class, [$conversationExternalId]);
+            throw (new ModelNotFoundException)->setModel(Conversation::class, [$trashed->external_id]);
         }
 
         $trashed->restore();
@@ -129,6 +144,8 @@ class ChatLogWriter
      * Tell analytics a message was stored. The analytics side works out
      * whether it starts a conversation and buckets it by the session's
      * resolved country, so no separate "conversation started" event is needed.
+     * A reply also carries whether it found an answer and its confidence, so
+     * the satisfaction numbers read the rollup instead of the chat log.
      */
     public function announce(Agent $agent, Session $session, Message $message, UserTurnData|AssistantTurnData $turn): void
     {
@@ -141,11 +158,14 @@ class ChatLogWriter
             $turn->external_session_id,
             $message->role->value,
             $turn->llm_id,
-            $session->country?->code,
+            // From the cached country table: no query per stored message.
+            Country::codeFor($session->country_id),
             $message->response_time_ms,
             $message->prompt_tokens,
             $message->completion_tokens,
             $turn->sent_at,
+            $message->has_llm_found_answer,
+            $message->confidence_score,
         );
     }
 
@@ -170,15 +190,12 @@ class ChatLogWriter
     }
 
     /**
-     * Bump `last_activity_at` at most once a minute, so a quick exchange does
-     * not rewrite the session and conversation rows on every message.
-     *
-     * @return array<string, mixed>
+     * True when a stamp is missing or more than a minute old. The session and
+     * conversation stamps move at most once a minute, so a quick exchange does
+     * not rewrite the rows on every message.
      */
-    private function activityStamp(?CarbonInterface $lastActivityAt): array
+    private function isStale(?CarbonInterface $stamp): bool
     {
-        return ! $lastActivityAt instanceof CarbonInterface || $lastActivityAt->lt(now()->subMinute())
-            ? ['last_activity_at' => now()]
-            : [];
+        return ! $stamp instanceof CarbonInterface || $stamp->lt(now()->subMinute());
     }
 }

@@ -39,6 +39,7 @@ use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -64,9 +65,14 @@ use Support\Concerns\HasExternalId;
  * @property int $id
  * @property string $external_id
  * @property string $name
- * @property string $email
+ * @property string $email Always lowercase (a CHECK enforces it; the mutator lowers it).
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property string|null $two_factor_secret
+ * @property string|null $two_factor_recovery_codes
+ * @property Carbon|null $two_factor_confirmed_at
+ * @property string|null $app_authentication_secret
+ * @property array<int, string>|null $app_authentication_recovery_codes
  * @property bool $is_admin
  * @property string|null $remember_token
  * @property int|null $current_team_id
@@ -76,6 +82,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $deactivation_reason
  * @property Carbon|null $deactivated_at
  * @property DateFormat|null $date_format
+ * @property string|null $locale
  * @property array<string, mixed>|null $notification_preferences
  * @property Carbon|null $last_login_at
  * @property Carbon|null $created_at
@@ -241,6 +248,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return NotificationPreferencesData::fromStored(
             array_key_exists('notification_preferences', $this->attributes) ? $this->notification_preferences : null,
         );
+    }
+
+    /**
+     * Emails are stored lowercase (the `users_email_lowercase` CHECK holds
+     * it), so every lookup is a plain `email = ?` on the lowercased input
+     * and the unique index serves it, whatever case the person typed.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::set(fn (string $value): string => Str::lower($value));
     }
 
     /**

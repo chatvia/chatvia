@@ -18,6 +18,11 @@ use Support\Text\Utf8;
  * size-caps args + result so the audit can never become a PII/secret sink. The
  * agent/user names + connector are already denormalized on the event, so the
  * row stays readable after the agent or user is deleted.
+ *
+ * Arguments that fit and are a JSON object or list go in the jsonb `arguments`
+ * column. Anything else (cut at the cap, or not JSON at all) goes in the text
+ * `arguments_preview` column instead, because a cut JSON string is no longer
+ * an array and the readers expect one.
  */
 class RecordToolCallAuditAction
 {
@@ -26,7 +31,7 @@ class RecordToolCallAuditAction
 
     public function execute(ToolCallCompleted $event): void
     {
-        [$arguments, $argsTruncated] = $this->redactAndCapArguments($event->arguments);
+        [$arguments, $argumentsPreview, $argsTruncated] = $this->redactAndCapArguments($event->arguments);
         [$result, $resultTruncated] = $this->cap($event->resultText, (int) config('chatvia.governance.max_result_bytes', 8192));
 
         AgentActivity::create([
@@ -49,6 +54,7 @@ class RecordToolCallAuditAction
             'is_error' => $event->isError,
             'latency_ms' => $event->latencyMs,
             'arguments' => $arguments,
+            'arguments_preview' => $argumentsPreview,
             'arguments_sha256' => hash('sha256', $event->arguments),
             'arguments_truncated' => $argsTruncated,
             'result_text' => $result,
@@ -59,11 +65,11 @@ class RecordToolCallAuditAction
     }
 
     /**
-     * Hash-safe redaction + size cap of the raw JSON args. Returns the stored
-     * value (decoded + redacted array when it fits, else a truncated string) and
-     * whether it was truncated.
+     * Hash-safe redaction + size cap of the raw JSON args. Returns the
+     * redacted array when it is JSON and fits, else null plus the (possibly
+     * cut) text for the preview column, and whether it was cut.
      *
-     * @return array{0: mixed, 1: bool}
+     * @return array{0: array<array-key, mixed>|null, 1: ?string, 2: bool}
      */
     private function redactAndCapArguments(string $raw): array
     {
@@ -74,13 +80,15 @@ class RecordToolCallAuditAction
             $redacted = $this->redact($decoded);
             $encoded = (string) json_encode($redacted);
             if (strlen($encoded) <= $max) {
-                return [$redacted, false];
+                return [$redacted, null, false];
             }
 
-            return [Utf8::truncateBytes($encoded, $max), true];
+            return [null, Utf8::truncateBytes($encoded, $max), true];
         }
 
-        return $this->cap($raw, $max);
+        [$preview, $truncated] = $this->cap($raw === '' ? null : $raw, $max);
+
+        return [null, $preview, $truncated];
     }
 
     /**

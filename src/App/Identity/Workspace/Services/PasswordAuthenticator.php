@@ -5,6 +5,7 @@ namespace App\Identity\Workspace\Services;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Thin wrapper around the web auth guard so Actions can validate credentials
@@ -25,7 +26,7 @@ class PasswordAuthenticator
     public function validateCredentials(string $email, string $password): bool
     {
         return $this->guard->validate([
-            'email' => $email,
+            'email' => Str::lower($email),
             'password' => $password,
         ]);
     }
@@ -40,7 +41,8 @@ class PasswordAuthenticator
      */
     public function findUserByCredentials(string $email, string $password): ?User
     {
-        $user = User::query()->where('email', $email)->first();
+        // Emails are stored lowercase, so the typed case never matters.
+        $user = User::query()->where('email', Str::lower($email))->first();
         $hash = $user?->password;
 
         if (blank($hash)) {

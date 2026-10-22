@@ -7,10 +7,12 @@ namespace Domain\Analytics\Data\Dashboard;
 use Spatie\LaravelData\Data;
 
 /**
- * The dashboard home numbers that come from the analytics tables, for one
- * workspace up to today: all-time conversations, visitors of the last 24
+ * The dashboard home numbers that are cached, for one workspace up to today:
+ * from the analytics tables all-time conversations, visitors of the last 24
  * hours, AI replies per day for the last 7 and 30 days, and AI replies this
- * month and last month. Cached as one value by GetDashboardStatsAction.
+ * month and last month; from the main tables the knowledge sources attached
+ * to its agents and the size of the viewer's team. Cached as one value by
+ * GetDashboardStatsAction.
  */
 class DashboardActivityData extends Data
 {
@@ -27,5 +29,7 @@ class DashboardActivityData extends Data
         public array $monthlyUsage,
         public int $repliesThisMonth,
         public int $repliesLastMonth,
+        public KnowledgeSourcesStatsData $knowledgeSources,
+        public int $teamMembers,
     ) {}
 }

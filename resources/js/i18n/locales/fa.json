@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "نمایش دوباره فرم",
             "preview_user_message": "سلام! می‌توانید به من کمک کنید؟",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "فرم‌ها فقط در ابزارک گفتگو و نوار فرمان نمایش داده می‌شوند."
+            "surfaces_notice": "فرم‌ها فقط در ابزارک گفتگو و نوار فرمان نمایش داده می‌شوند.",
+            "delete_with_leads": "این کار {count} سرنخ را هم حذف می‌کند. این عمل قابل بازگشت نیست. | این کار {count} سرنخ را هم حذف می‌کند. این عمل قابل بازگشت نیست."
         },
         "submissions": {
             "page_title": "ارسال‌ها",
@@ -3321,7 +3322,8 @@
                 "outcome": "نتیجه",
                 "ip": "آدرس IP",
                 "when": "زمان"
-            }
+            },
+            "metadata_cut_off": "در حد اندازه بریده شد. فقط ابتدای آن نمایش داده می‌شود."
         },
         "audit": {
             "title": "ممیزی",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "رد شده",
             "outcome_rate_limited": "محدود شده",
             "outcome_not_offered": "ارائه‌نشده",
-            "detail_spoken_approval": "تأیید شفاهی"
+            "detail_spoken_approval": "تأیید شفاهی",
+            "detail_arguments_cut_off": "در حد اندازه بریده شد. فقط ابتدای آن نمایش داده می‌شود."
         },
         "attach_file": {
             "title": "انتخاب از فایل‌های آموزش‌دیده",

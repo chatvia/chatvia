@@ -17,7 +17,8 @@ use Illuminate\Database\Connection;
  *  2. the per-conversation metrics (start/end, first visitor and first AI
  *     message, message count, duration),
  *  3. the per-agent hourly rollup (messages, prompt/completion/total tokens,
- *     response time, and `conversations_started` exactly once per
+ *     response time, AI replies that found no answer, the replies'
+ *     confidence, and `conversations_started` exactly once per
  *     conversation),
  *  4. the first time this visitor session was seen.
  *
@@ -129,6 +130,7 @@ class RecordMessageSentAction
     private function incrementHourlyRollup(Connection $db, MessageSentRecordData $message, bool $startsConversation): void
     {
         $hasResponseTime = $message->responseTimeMs !== null && $message->isFromAssistant();
+        $confidence = $message->replyConfidence();
 
         $db->statement(<<<'SQL'
             INSERT INTO analytics_agent_hourly_rollups (
@@ -136,13 +138,15 @@ class RecordMessageSentAction
                 conversations_started,
                 user_messages, assistant_messages,
                 prompt_tokens, completion_tokens, total_tokens,
-                response_ms_sum, response_ms_count
+                response_ms_sum, response_ms_count,
+                unanswered_replies, confidence_sum, confidence_count
             ) VALUES (
                 ?, ?, date_trunc('hour', ?::timestamptz), ?, ?,
                 ?,
                 ?, ?,
                 ?, ?, ?,
-                ?, ?
+                ?, ?,
+                ?, ?, ?
             )
             ON CONFLICT (agent_id, bucket_hour, country_code, llm_id) DO UPDATE SET
                 conversations_started = analytics_agent_hourly_rollups.conversations_started + EXCLUDED.conversations_started,
@@ -152,7 +156,10 @@ class RecordMessageSentAction
                 completion_tokens     = analytics_agent_hourly_rollups.completion_tokens     + EXCLUDED.completion_tokens,
                 total_tokens          = analytics_agent_hourly_rollups.total_tokens          + EXCLUDED.total_tokens,
                 response_ms_sum       = analytics_agent_hourly_rollups.response_ms_sum       + EXCLUDED.response_ms_sum,
-                response_ms_count     = analytics_agent_hourly_rollups.response_ms_count     + EXCLUDED.response_ms_count
+                response_ms_count     = analytics_agent_hourly_rollups.response_ms_count     + EXCLUDED.response_ms_count,
+                unanswered_replies    = analytics_agent_hourly_rollups.unanswered_replies    + EXCLUDED.unanswered_replies,
+                confidence_sum        = analytics_agent_hourly_rollups.confidence_sum        + EXCLUDED.confidence_sum,
+                confidence_count      = analytics_agent_hourly_rollups.confidence_count      + EXCLUDED.confidence_count
         SQL, [
             $message->agentId,
             $message->workspaceId,
@@ -167,6 +174,9 @@ class RecordMessageSentAction
             $message->totalTokens(),
             $hasResponseTime ? (int) $message->responseTimeMs : 0,
             $hasResponseTime ? 1 : 0,
+            $message->isUnanswered() ? 1 : 0,
+            $confidence ?? 0,
+            $confidence !== null ? 1 : 0,
         ]);
     }
 

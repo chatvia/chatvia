@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Deletes a file source. A file that is still being ingested has its chunk
- * batch cancelled first, so no chunk is created for a deleted file. The
- * observer and the Chunkable trait remove the stored file and its chunks.
+ * batch cancelled first, so no chunk is created for a deleted file. Its
+ * chunks then go in batches, outside the transaction; the observer and the
+ * Chunkable trait remove the stored file and any chunk left.
  */
 class DeleteSourceFileFromAgentAction
 {
@@ -26,6 +27,8 @@ class DeleteSourceFileFromAgentAction
         if ($file->status === SourceStatus::Processing) {
             $this->cancelIngestion->execute($file);
         }
+
+        $file->deleteChunks();
 
         DB::transaction(function () use ($agent, $file): void {
             $file->agents()->detach($agent->id);

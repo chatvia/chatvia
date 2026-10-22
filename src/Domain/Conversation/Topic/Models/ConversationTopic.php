@@ -4,7 +4,6 @@ namespace Domain\Conversation\Topic\Models;
 
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,7 +23,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
-#[Table(name: 'conversation_topics')]
 #[WithoutTimestamps]
 class ConversationTopic extends Model
 {

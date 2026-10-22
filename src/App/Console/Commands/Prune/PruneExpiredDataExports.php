@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 /**
  * Scheduled clean-up of GDPR data-export ZIPs.
  */
-#[Description('Delete GDPR data-export ZIPs whose 24-hour download window has passed.')]
+#[Description('Delete GDPR data exports (the ZIP and the row) whose 24-hour download window has passed, and failed ones older than a week.')]
 #[Signature('chatvia:prune:data-exports')]
 class PruneExpiredDataExports extends Command
 {

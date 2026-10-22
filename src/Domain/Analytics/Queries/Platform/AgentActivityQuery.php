@@ -13,7 +13,8 @@ use Illuminate\Database\Query\Builder;
  * Traffic of the given agents over the window, and the last hour each had
  * any traffic, for the admin panel's list of a workspace's agents. The
  * caller passes the agents of one page of the list, so both reads stay on
- * the rollup's (agent_id, …) primary key.
+ * the rollup's (agent_id, …) primary key; the last hour reads one row per
+ * agent instead of its whole history.
  */
 class AgentActivityQuery extends PlatformAnalyticsQuery
 {
@@ -36,11 +37,17 @@ class AgentActivityQuery extends PlatformAnalyticsQuery
             ->get()
             ->keyBy('agent_id');
 
-        $lastActive = $this->analytics()->table('analytics_agent_hourly_rollups')
-            ->when(! $scope->isWholePlatform(), fn (Builder $query): Builder => $query->where('workspace_id', $scope->workspaceId))
-            ->whereIn('agent_id', $agentIds)
-            ->groupBy('agent_id')
-            ->selectRaw('agent_id, MAX(bucket_hour) last_active_at')
+        // Per agent, its newest rollup row: one short backward step on the
+        // (agent_id, bucket_hour, …) primary key, however long its history.
+        $lastActive = $this->analytics()->query()
+            ->fromRaw('unnest(?::bigint[]) AS a(agent_id)', ['{'.collect($agentIds)->implode(',').'}'])
+            ->select('a.agent_id')
+            ->selectSub(fn (Builder $query): Builder => $query->from('analytics_agent_hourly_rollups as r')
+                ->select('r.bucket_hour')
+                ->whereColumn('r.agent_id', 'a.agent_id')
+                ->when(! $scope->isWholePlatform(), fn (Builder $query): Builder => $query->where('r.workspace_id', $scope->workspaceId))
+                ->orderByDesc('r.bucket_hour')
+                ->limit(1), 'last_active_at')
             ->pluck('last_active_at', 'agent_id');
 
         return collect($agentIds)

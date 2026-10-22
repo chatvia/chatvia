@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Näytä lomake uudelleen",
             "preview_user_message": "Hei! Voitko auttaa minua?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Lomakkeet näkyvät vain chat-widgetissä ja komentopalkissa."
+            "surfaces_notice": "Lomakkeet näkyvät vain chat-widgetissä ja komentopalkissa.",
+            "delete_with_leads": "Tämä poistaa myös {count} liidin. Tätä toimintoa ei voi peruuttaa. | Tämä poistaa myös {count} liidiä. Tätä toimintoa ei voi peruuttaa."
         },
         "submissions": {
             "page_title": "Lähetykset",
@@ -3321,7 +3322,8 @@
                 "outcome": "Tulos",
                 "ip": "IP-osoite",
                 "when": "Aika"
-            }
+            },
+            "metadata_cut_off": "Katkaistu kokorajan kohdalta. Vain alku näytetään."
         },
         "audit": {
             "title": "Tarkastus",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "Hylätty",
             "outcome_rate_limited": "Nopeusrajoitettu",
             "outcome_not_offered": "Ei tarjottu",
-            "detail_spoken_approval": "Suullinen hyväksyntä"
+            "detail_spoken_approval": "Suullinen hyväksyntä",
+            "detail_arguments_cut_off": "Katkaistu kokorajan kohdalta. Vain alku näytetään."
         },
         "attach_file": {
             "title": "Valitse jo koulutetuista tiedostoista",

@@ -68,7 +68,7 @@ return new class extends Migration
             // FormSubmissionStatus; the values are stored, so the list only grows.
             $table->enum('status', ['pending', 'submitted', 'expired'])->default('pending');
 
-            $table->text('values')->nullable();
+            $table->jsonb('values')->nullable();
 
             $table->string('values_checksum', 64)->nullable();
 

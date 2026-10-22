@@ -150,3 +150,49 @@ it('counts this month\'s replies from the rollup when the workspace has no limit
     expect($stats['messages']['total'])->toBe(4)
         ->and($stats['messages']['limit'])->toBeNull();
 });
+
+it('counts only the sessions that sent a message as active', function (): void {
+    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
+
+    $owner = User::factory()->create();
+    $agent = createAgent($owner);
+
+    gdsEvent($agent, (string) Str::uuid(), now()->subHour());
+    // Feedback rows carry no session in practice; one that did is still no visit.
+    DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')->insert([
+        'agent_id' => $agent->id,
+        'workspace_id' => $agent->workspace_id,
+        'event_type' => 'feedback_given',
+        'feedback' => 'positive',
+        'message_external_id' => (string) Str::uuid(),
+        'session_external_id' => (string) Str::uuid(),
+        'occurred_at' => now()->subMinutes(30),
+    ]);
+
+    $stats = app(GetDashboardStatsAction::class)->execute($owner, null);
+
+    expect($stats->active_sessions)->toBe(1);
+});
+
+it('serves the team size from the cached value of the viewer\'s team', function (): void {
+    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
+
+    $owner = User::factory()->create();
+    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $role = $team->roles()->firstOrFail();
+
+    $first = app(GetDashboardStatsAction::class)->execute($owner, $team);
+
+    $team->members()->attach(User::factory()->employee($owner)->create()->id, ['role_id' => $role->id]);
+    $this->travel(4)->minutes();
+    $cached = app(GetDashboardStatsAction::class)->execute($owner, $team);
+
+    $this->travelTo(Carbon::parse('2026-06-16 09:00:00', 'UTC'));
+    $nextDay = app(GetDashboardStatsAction::class)->execute($owner, $team);
+
+    expect($first->team->members)->toBe(0)
+        ->and($cached->team->members)->toBe(0)
+        ->and($nextDay->team->members)->toBe(1)
+        // Without a team there is no team size, and no value shared with it.
+        ->and(app(GetDashboardStatsAction::class)->execute($owner, null)->team->members)->toBe(0);
+});

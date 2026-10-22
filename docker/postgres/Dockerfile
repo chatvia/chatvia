@@ -1,6 +1,6 @@
 # ChatVia.ai's PostgreSQL image: the official Postgres 18 image plus
 # the extensions the app installs (database/migrations/
-# 2025_06_28_000000_install_postgres_extensions.php):
+# 2025_07_12_120000_install_postgres_extensions.php):
 #   - vector (pgvector), from the PostgreSQL apt repository the official image
 #     already has set up;
 #   - pg_textsearch (Timescale) for BM25 keyword search, preloaded by the

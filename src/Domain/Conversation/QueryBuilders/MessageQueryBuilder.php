@@ -83,35 +83,40 @@ class MessageQueryBuilder extends Builder
     }
 
     /**
-     * First message excerpt per conversation, in one DISTINCT ON query.
-     * Returns a Collection keyed by chat_conversation_id with the trimmed
-     * plain-text excerpt as the value.
+     * First message excerpt per conversation, in one query: for each id, a
+     * LATERAL subquery reads the first message only (a forward scan of the
+     * (chat_conversation_id, created_at, id) index, one row per
+     * conversation). Returns a Collection keyed by chat_conversation_id with
+     * the trimmed plain-text excerpt as the value; a conversation without
+     * messages is left out.
      *
      * @param  iterable<int>  $conversationIds
      * @return Collection<int, string>
      */
     public function firstExcerptsForConversations(iterable $conversationIds, int $excerptLength = 80): Collection
     {
-        $ids = collect($conversationIds)->filter()->unique()->values();
+        $ids = collect($conversationIds)->filter()->map(static fn ($id): int => (int) $id)->unique()->values();
 
         if ($ids->isEmpty()) {
             return collect();
         }
 
-        // Hydrate via Eloquent so the excerpt goes through the model (stripTags
-        // below). DISTINCT ON + ORDER BY compile identically on the Eloquent
-        // builder under Postgres.
-        $rows = Message::query()
-            ->select(['chat_conversation_id', 'content'])
-            ->whereIn('chat_conversation_id', $ids)
-            ->orderBy('chat_conversation_id')
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->distinct('chat_conversation_id')
-            ->get();
+        $query = $this->getQuery()->newQuery();
 
-        return $rows->mapWithKeys(fn (Message $row): array => [
-            $row->chat_conversation_id => str($row->content ?? '')->stripTags()->limit($excerptLength)->value(),
-        ]);
+        $first = $query->newQuery()
+            ->from('chat_messages')
+            ->select('chat_messages.content')
+            ->whereColumn('chat_messages.chat_conversation_id', 'conversation.id')
+            ->orderBy('chat_messages.created_at')
+            ->orderBy('chat_messages.id')
+            ->limit(1);
+
+        return $query
+            ->fromRaw('unnest(?::bigint[]) as conversation(id)', ['{'.$ids->implode(',').'}'])
+            ->joinLateral($first, 'first_message')
+            ->get(['conversation.id', 'first_message.content'])
+            ->mapWithKeys(static fn (object $row): array => [
+                (int) $row->id => str($row->content ?? '')->stripTags()->limit($excerptLength)->value(),
+            ]);
     }
 }

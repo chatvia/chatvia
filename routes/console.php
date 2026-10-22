@@ -53,9 +53,18 @@ Schedule::command('chatvia:prune:visitor-blocks')->dailyAt('04:20')->withoutOver
 // Runs after the guardrail prune so the audit sweeps don't fight for workers.
 Schedule::command('chatvia:prune:security-audit-log')->dailyAt('04:25')->withoutOverlapping()->onOneServer();
 
-// Raw analytics-event retention: the rollup/metrics tables carry every
-// dashboard aggregate, so the raw firehose only needs to cover the window
-// where re-deriving (or debugging) per-event data is still useful.
+// Sign-in devices nobody used for 180 days (`user_known_devices`), and chatter
+// and team invitations 30 days after they expired. Fixed periods.
+Schedule::command('chatvia:prune:known-devices')->dailyAt('04:30')->withoutOverlapping()->onOneServer();
+Schedule::command('chatvia:prune:invitations')->dailyAt('04:35')->withoutOverlapping()->onOneServer();
+
+// Backstop for agent deletes whose purge failed every try: agents deleted more
+// than a day ago are queued for the purge again.
+Schedule::command('chatvia:agent:purge-deleted')->dailyAt('04:40')->withoutOverlapping()->onOneServer();
+
+// Raw analytics retention: the rollups carry every dashboard aggregate, so the
+// raw events, the per-conversation metrics and the session firsts only need to
+// cover the window where per-event data is still useful.
 Schedule::command('chatvia:prune:analytics-events')->dailyAt('04:45')->withoutOverlapping()->onOneServer();
 
 // Websites set to refresh on their own (daily, weekly, monthly) are crawled
@@ -97,6 +106,11 @@ Schedule::command('queue:prune-batches --hours=48 --unfinished=72 --cancelled=72
 Schedule::command('queue:prune-failed --hours=168')->dailyAt('05:05')->withoutOverlapping()->onOneServer();
 Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('05:10')->withoutOverlapping()->onOneServer();
 Schedule::command('model:prune', ['--model' => [MagicLink::class]])->dailyAt('05:15')->withoutOverlapping()->onOneServer();
+
+// Expired password reset tokens: the staff broker's table, then the chatters'
+// own table (chatters have no Laravel broker).
+Schedule::command('auth:clear-resets users')->dailyAt('05:25')->withoutOverlapping()->onOneServer();
+Schedule::command('chatvia:prune:chatter-password-resets')->dailyAt('05:30')->withoutOverlapping()->onOneServer();
 
 // Spectra's AI call log keeps the days set in Settings → Platform → Spectra.
 // It runs while Spectra does not record too, so an old log still empties.

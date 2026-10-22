@@ -26,6 +26,24 @@ beforeEach(function (): void {
     Event::fake([SourceRetrieved::class]);
 });
 
+it('leaves the source updated_at alone, since a retrieval is not an edit', function (): void {
+    $agent = Agent::factory()->create();
+    $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    $source->agents()->attach($agent->id);
+    $source->forceFill(['updated_at' => now()->subWeek()->startOfSecond()])->saveQuietly();
+    $updatedAt = $source->fresh()->updated_at;
+
+    $this->travel(1)->minutes();
+
+    app(UpdateRetrievalStatsAction::class)->execute(
+        results: [['chunkable_type' => $source->getMorphClass(), 'chunkable_id' => $source->id]],
+        agentId: $agent->id,
+    );
+
+    expect($source->fresh()->updated_at->equalTo($updatedAt))->toBeTrue()
+        ->and($source->fresh()->retrieval_count)->toBe(1);
+});
+
 it('increments the retrieval counter on the source and the agent_sources pivot', function (): void {
     $agent = Agent::factory()->create();
     $source = AgentFileFactory::new()->create([

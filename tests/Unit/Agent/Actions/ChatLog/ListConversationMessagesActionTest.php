@@ -41,6 +41,19 @@ it('returns the messages in order, a visitor message before a same-second reply'
         ->and($result->handoff->status)->toBe(HandoffStatus::Ai->value);
 });
 
+it('keeps same-second messages of one role in the order they were stored, across pages', function (): void {
+    $agent = Agent::factory()->create();
+    $conversation = chatLogConversation($agent);
+    $at = now()->subMinutes(5)->startOfSecond();
+    $stored = Message::factory()->count(60)->create(['chat_conversation_id' => $conversation->id, 'role' => 'user', 'created_at' => $at]);
+
+    $first = app(ListConversationMessagesAction::class)->execute($agent, $conversation, page: 1);
+    $second = app(ListConversationMessagesAction::class)->execute($agent, $conversation, page: 2);
+    $paged = collect([...$first->messages->items(), ...$second->messages->items()])->map(fn (ChatLogMessageData $m): string => $m->id)->all();
+
+    expect($paged)->toBe($stored->pluck('id')->map(fn (int $id): string => (string) $id)->all());
+});
+
 it('pages the messages fifty at a time', function (): void {
     $agent = Agent::factory()->create();
     $conversation = chatLogConversation($agent);

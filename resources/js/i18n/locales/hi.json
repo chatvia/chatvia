@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "फ़ॉर्म फिर से दिखाएँ",
             "preview_user_message": "नमस्ते! क्या आप मेरी मदद कर सकते हैं?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "फ़ॉर्म केवल चैट विजेट और कमांड बार में दिखते हैं।"
+            "surfaces_notice": "फ़ॉर्म केवल चैट विजेट और कमांड बार में दिखते हैं।",
+            "delete_with_leads": "इससे {count} लीड भी हट जाएगी। इस कार्रवाई को पूर्ववत नहीं किया जा सकता। | इससे {count} लीड भी हट जाएंगी। इस कार्रवाई को पूर्ववत नहीं किया जा सकता।"
         },
         "submissions": {
             "page_title": "सबमिशन",
@@ -3321,7 +3322,8 @@
                 "outcome": "परिणाम",
                 "ip": "IP पता",
                 "when": "कब"
-            }
+            },
+            "metadata_cut_off": "आकार सीमा पर काट दिया गया। केवल शुरुआत दिखाई गई है।"
         },
         "audit": {
             "title": "ऑडिट",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "अस्वीकृत",
             "outcome_rate_limited": "दर सीमित",
             "outcome_not_offered": "पेश नहीं किया गया",
-            "detail_spoken_approval": "मौखिक स्वीकृति"
+            "detail_spoken_approval": "मौखिक स्वीकृति",
+            "detail_arguments_cut_off": "आकार सीमा पर काट दिया गया। केवल शुरुआत दिखाई गई है।"
         },
         "attach_file": {
             "title": "पहले से प्रशिक्षित फ़ाइलों में से चुनें",

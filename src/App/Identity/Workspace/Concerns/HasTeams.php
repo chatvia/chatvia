@@ -102,7 +102,9 @@ trait HasTeams
                 return $this->currentTeam;
             }
 
-            return $this->ownedTeams()->oldest('teams.id')->first() ?? $this->memberTeams()->oldest('teams.id')->first();
+            // The primary team is memoised too, so the render's `is_primary`
+            // check reuses this query.
+            return $this->primaryTeam() ?? $this->memberTeams()->oldest('teams.id')->first();
         });
     }
 

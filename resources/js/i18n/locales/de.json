@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Formular erneut anzeigen",
             "preview_user_message": "Hallo! Können Sie mir helfen?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Formulare werden nur im Chat-Widget und in der Befehlsleiste angezeigt."
+            "surfaces_notice": "Formulare werden nur im Chat-Widget und in der Befehlsleiste angezeigt.",
+            "delete_with_leads": "Dabei wird auch {count} Lead gelöscht. Diese Aktion kann nicht rückgängig gemacht werden. | Dabei werden auch {count} Leads gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
         },
         "submissions": {
             "page_title": "Einsendungen",
@@ -3321,7 +3322,8 @@
                 "outcome": "Ergebnis",
                 "ip": "IP-Adresse",
                 "when": "Wann"
-            }
+            },
+            "metadata_cut_off": "An der Größengrenze abgeschnitten. Nur der Anfang wird angezeigt."
         },
         "audit": {
             "title": "Audit",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "Abgelehnt",
             "outcome_rate_limited": "Ratenlimitiert",
             "outcome_not_offered": "Nicht angeboten",
-            "detail_spoken_approval": "Mündliche Zustimmung"
+            "detail_spoken_approval": "Mündliche Zustimmung",
+            "detail_arguments_cut_off": "An der Größengrenze abgeschnitten. Nur der Anfang wird angezeigt."
         },
         "attach_file": {
             "title": "Aus bereits trainierten Dateien auswählen",

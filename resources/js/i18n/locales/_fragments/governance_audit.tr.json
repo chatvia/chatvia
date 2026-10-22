@@ -2,7 +2,13 @@
     "shared": {
         "audit_table": {
             "outcome_not_offered": "Sunulmadı",
-            "detail_spoken_approval": "Sözlü onay"
+            "detail_spoken_approval": "Sözlü onay",
+            "detail_arguments_cut_off": "Boyut sınırında kesildi. Yalnızca başlangıç gösteriliyor."
+        }
+    },
+    "workspace": {
+        "security_audit": {
+            "metadata_cut_off": "Boyut sınırında kesildi. Yalnızca başlangıç gösteriliyor."
         }
     }
 }

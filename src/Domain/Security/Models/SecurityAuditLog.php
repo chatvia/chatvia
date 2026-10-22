@@ -20,7 +20,8 @@ use Illuminate\Support\Carbon;
  *
  * `user_id` is a nullable FK that nulls on delete, with denormalized
  * `user_name`/`user_email` fallbacks, so a row stays attributable after the
- * actor is removed.
+ * actor is removed. `metadata` holds JSON that fit the cap; when it did not
+ * (or was not JSON) it is null and `metadata_preview` holds the cut text.
  *
  * @property int $id
  * @property int $workspace_id
@@ -34,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $ip
  * @property string|null $user_agent
  * @property array<string, mixed>|null $metadata
+ * @property string|null $metadata_preview
  * @property string|null $metadata_sha256
  * @property bool $metadata_truncated
  * @property SecurityAuditOutcome $outcome

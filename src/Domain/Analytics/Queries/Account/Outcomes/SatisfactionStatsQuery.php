@@ -7,14 +7,18 @@ use Domain\Analytics\Data\Account\Outcomes\SatisfactionStatsData;
 use Domain\Analytics\Data\Account\Outcomes\SentimentSplitData;
 use Domain\Analytics\Enums\Sentiment;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
-use Domain\Conversation\Enums\MessageRole;
+use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
 
 /**
  * Quality signals: thumbs up vs down, the sentiment split of messages, how
  * often the AI could not find an answer, and its average answer confidence.
+ * The AI reply figures come from the hourly rollup, which counts each reply
+ * when it is recorded, so they need no scan of the chat log.
  */
 class SatisfactionStatsQuery extends AccountAnalyticsQuery
 {
+    use ReadsHourlyRollups;
+
     public function get(AnalyticsScopeData $scope): SatisfactionStatsData
     {
         $feedback = $this->feedback($scope);
@@ -24,12 +28,8 @@ class SatisfactionStatsQuery extends AccountAnalyticsQuery
             ->selectRaw('sentiment, SUM(message_count) total')
             ->pluck('total', 'sentiment');
 
-        $answers = $this->liveConversations($scope)
-            ->join('chat_messages as m', 'm.chat_conversation_id', '=', 'c.id')
-            ->where('m.workspace_id', $scope->workspace->id)
-            ->where('m.role', MessageRole::Assistant->value)
-            ->whereBetween('m.created_at', [$scope->period->start, $scope->period->end])
-            ->selectRaw('COUNT(*) total, COUNT(*) FILTER (WHERE m.has_llm_found_answer = false) not_found, AVG(m.confidence_score) avg_confidence')
+        $answers = $this->rollupHours($scope)
+            ->selectRaw('COALESCE(SUM(assistant_messages), 0) total, COALESCE(SUM(unanswered_replies), 0) not_found, SUM(confidence_sum) / NULLIF(SUM(confidence_count), 0) avg_confidence')
             ->first();
 
         $aiReplies = (int) $answers->total;

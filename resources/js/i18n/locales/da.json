@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Vis formularen igen",
             "preview_user_message": "Hej! Kan du hjælpe mig?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Formularer vises kun i chat-widgetten og kommandolinjen."
+            "surfaces_notice": "Formularer vises kun i chat-widgetten og kommandolinjen.",
+            "delete_with_leads": "Dette sletter også {count} lead. Denne handling kan ikke fortrydes. | Dette sletter også {count} leads. Denne handling kan ikke fortrydes."
         },
         "submissions": {
             "page_title": "Indsendelser",
@@ -3321,7 +3322,8 @@
                 "outcome": "Resultat",
                 "ip": "IP-adresse",
                 "when": "Hvornår"
-            }
+            },
+            "metadata_cut_off": "Afskåret ved størrelsesgrænsen. Kun begyndelsen vises."
         },
         "audit": {
             "title": "Revision",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "Afvist",
             "outcome_rate_limited": "Hastighedsbegrænset",
             "outcome_not_offered": "Ikke tilbudt",
-            "detail_spoken_approval": "Mundtlig godkendelse"
+            "detail_spoken_approval": "Mundtlig godkendelse",
+            "detail_arguments_cut_off": "Afskåret ved størrelsesgrænsen. Kun begyndelsen vises."
         },
         "attach_file": {
             "title": "Vælg fra allerede trænede filer",

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('external_id', 20)->unique();
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Team::class)->index()->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Team::class)->index()->constrained()->noActionOnDelete();
             $table->string('name');
             $table->string('slug')->nullable()->unique();
             $table->string('domain')->nullable()->unique();

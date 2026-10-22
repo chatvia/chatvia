@@ -22,6 +22,7 @@ use Support\Concerns\HasExternalId;
  * the feature is behind the `youtube_sources` flag and rows stay pending.
  *
  * @property int $id
+ * @property string $external_id
  * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification
@@ -36,7 +37,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $internal_ingestion_job_id
  * @property string|null $internal_chunking_batch_id
  * @property string|null $external_parsing_job_id
- * @property string|null $metadata
+ * @property array<array-key, mixed>|null $metadata
  * @property SourceStatus $status
  * @property int $took_in_seconds
  * @property string|null $failure_reason
@@ -88,7 +89,6 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
     protected function casts(): array
     {
         return [
-            'duration' => 'integer',
             'length' => 'integer',
             'metadata' => 'array',
             'status' => SourceStatus::class,

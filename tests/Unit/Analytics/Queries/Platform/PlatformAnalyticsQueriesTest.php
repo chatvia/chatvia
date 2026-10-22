@@ -107,8 +107,10 @@ it('sums traffic, sign-ups, agents and leads across every workspace', function (
     paSessionFirst($globexBot, '2031-03-18 10:00:00');
     paSessionFirst($globexBot, '2031-02-18 10:00:00');
 
-    FormSubmission::factory()->forAgent($acmeBot)->create(['status' => FormSubmissionStatus::Submitted]);
+    FormSubmission::factory()->forAgent($acmeBot)->submitted()->create();
     FormSubmission::factory()->forAgent($acmeBot)->create(['status' => FormSubmissionStatus::Pending]);
+    // A lead counts in the window it was submitted in.
+    FormSubmission::factory()->forAgent($globexBot)->submitted()->create(['submitted_at' => '2031-02-27 10:00:00']);
 
     $overview = app(PlatformOverviewQuery::class)->get(paScope());
 
@@ -138,7 +140,7 @@ it('narrows every number to one workspace', function (): void {
     paRollup($acmeBot, '2031-03-10 10:00:00', ['user_messages' => 10, 'assistant_messages' => 20, 'conversations_started' => 3]);
     paRollup($globexBot, '2031-03-10 10:00:00', ['user_messages' => 5, 'assistant_messages' => 7, 'conversations_started' => 2]);
     paSessionFirst($globexBot, '2031-03-18 10:00:00');
-    FormSubmission::factory()->forAgent($globexBot)->create(['status' => FormSubmissionStatus::Submitted]);
+    FormSubmission::factory()->forAgent($globexBot)->submitted()->create();
 
     $overview = app(PlatformOverviewQuery::class)->get(paScope(workspaceId: $acme->workspace()->id));
 

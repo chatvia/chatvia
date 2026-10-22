@@ -7,6 +7,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
+use Illuminate\Support\Facades\DB;
 
 /**
  * InitializeWidgetSessionAction sits at the multi-tenant boundary: the widget
@@ -23,6 +24,8 @@ use Domain\Widget\Data\Session\WidgetSessionInitData;
  *    minted session; default 'en' when absent.
  *  - The visitor's referrer and page URLs are stored only when they are
  *    http(s), so an operator never opens a javascript: link.
+ *  - A reload moves the activity stamps at most once a minute and never
+ *    `updated_at`, so a page view does not move the chat log.
  */
 function iwsInitData(?string $existingSessionId = null, ?string $acceptLanguage = null): WidgetSessionInitData
 {
@@ -200,3 +203,54 @@ it('stores no referrer or page URL that is not http(s)', function (string $url):
     'ftp' => 'ftp://files.example/report.pdf',
     'no scheme' => 'shop.example/pricing',
 ]);
+
+/**
+ * Boots a visit, makes its conversation visible (as a first message does) and
+ * stamps both rows at the given times, for the reload tests below.
+ *
+ * @return array{0: Agent, 1: WidgetSessionInitData, 2: Conversation}
+ */
+function iwsUsedVisit(DateTimeInterface $lastActivityAt, DateTimeInterface $updatedAt): array
+{
+    $agent = Agent::factory()->create();
+    $first = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
+    $stamps = ['last_activity_at' => $lastActivityAt, 'updated_at' => $updatedAt];
+
+    DB::table('chat_sessions')->where('external_id', $first->session_id)->update($stamps);
+    DB::table('chat_conversations')->where('external_id', $first->conversation_id)->update(['is_visible' => true, ...$stamps]);
+
+    $reload = WidgetSessionInitData::from([
+        ...iwsInitData(existingSessionId: $first->session_id)->toArray(),
+        'existingConversationId' => $first->conversation_id,
+    ]);
+
+    return [$agent, $reload, Conversation::query()->where('external_id', $first->conversation_id)->sole()];
+}
+
+it('writes neither row on a reload within a minute', function (): void {
+    $recent = now()->subSeconds(20)->startOfSecond();
+    $updatedAt = now()->subHours(2)->startOfSecond();
+    [$agent, $reload, $conversation] = iwsUsedVisit($recent, $updatedAt);
+
+    app(InitializeWidgetSessionAction::class)->execute($agent, $reload);
+
+    $fresh = $conversation->fresh();
+    $session = $fresh->session;
+    expect($fresh->last_activity_at->equalTo($recent))->toBeTrue()
+        ->and($fresh->updated_at->equalTo($updatedAt))->toBeTrue()
+        ->and($session->last_activity_at->equalTo($recent))->toBeTrue()
+        ->and($session->updated_at->equalTo($updatedAt))->toBeTrue();
+});
+
+it('moves the activity stamps on a later reload but leaves updated_at alone', function (): void {
+    $updatedAt = now()->subHours(2)->startOfSecond();
+    [$agent, $reload, $conversation] = iwsUsedVisit(now()->subMinutes(10), $updatedAt);
+
+    app(InitializeWidgetSessionAction::class)->execute($agent, $reload);
+
+    $fresh = $conversation->fresh();
+    expect($fresh->last_activity_at->greaterThan(now()->subMinute()))->toBeTrue()
+        ->and($fresh->updated_at->equalTo($updatedAt))->toBeTrue()
+        ->and($fresh->session->last_activity_at->greaterThan(now()->subMinute()))->toBeTrue()
+        ->and($fresh->session->updated_at->equalTo($updatedAt))->toBeTrue();
+});

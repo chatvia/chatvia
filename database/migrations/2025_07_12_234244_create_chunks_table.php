@@ -42,7 +42,7 @@ return new class extends Migration
 
             $table->unique(['chunkable_type', 'chunkable_id', 'checksum']);
 
-            $table->index(['chunkable_type', 'chunkable_id', 'chunk_index'], 'chunks_page_idx');
+            $table->index(['chunkable_type', 'chunkable_id', 'chunk_index', 'id'], 'chunks_page_idx');
         });
 
         // The lexical (keyword) indexes, in the shape of the install's driver.

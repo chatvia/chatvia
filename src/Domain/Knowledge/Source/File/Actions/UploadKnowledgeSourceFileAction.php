@@ -53,6 +53,11 @@ class UploadKnowledgeSourceFileAction
             throw new UnsupportedSourceFileException;
         }
 
+        // Measuring runs outside programs on the upload; it happens before
+        // anything is stored or a transaction opens, so a slow or failing
+        // program never holds a database transaction or leaves a stored file.
+        $analysis = $this->analyzer->analyze($upload->path, $upload->extension());
+
         $sourceFile = new SourceFile([
             'workspace_id' => $agent->workspace_id,
             'external_id' => (string) Str::uuid7(),
@@ -62,9 +67,7 @@ class UploadKnowledgeSourceFileAction
         $path = Storage::putFile(KnowledgeStoragePath::forSource($sourceFile), new File($upload->path));
 
         try {
-            return DB::transaction(function () use ($sourceFile, $agent, $upload, $path, $status): SourceFile {
-                $analysis = $this->analyzer->analyze($upload->path, $upload->extension());
-
+            return DB::transaction(function () use ($sourceFile, $agent, $upload, $path, $status, $analysis): SourceFile {
                 $sourceFile->fill([
                     'filename' => $upload->originalName,
                     'filetype' => $upload->category(),

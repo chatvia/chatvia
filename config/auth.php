@@ -97,8 +97,11 @@ return [
     */
 
     'providers' => [
+        // Staff accounts. The `staff` driver (StaffUserProvider, registered in
+        // AuthServiceProvider) is Eloquent with the email lowered first, since
+        // staff emails are stored lowercase.
         'users' => [
-            'driver' => 'eloquent',
+            'driver' => 'staff',
             'model' => env('AUTH_MODEL', User::class),
         ],
         'chatters' => [

@@ -60,6 +60,23 @@ it('delivers to the policy URL with its secret and resets the failure counter', 
         ->and($policy->fresh()->webhook_last_delivered_at)->not->toBeNull();
 });
 
+it('skips the policy write after a success when nothing changed within the minute', function (): void {
+    Http::fake(['*' => Http::response('', 200)]);
+    $workspace = User::factory()->create();
+    $this->travelTo(now()->startOfMinute());
+    $policy = enableSiem($workspace, ['webhook_failures' => 0, 'webhook_last_delivered_at' => now()->subSeconds(10)]);
+    $stamped = $policy->fresh()->webhook_last_delivered_at;
+
+    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
+
+    expect($policy->fresh()->webhook_last_delivered_at?->equalTo($stamped))->toBeTrue();
+
+    $this->travel(2)->minutes();
+    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
+
+    expect($policy->fresh()->webhook_last_delivered_at?->greaterThan($stamped))->toBeTrue();
+});
+
 it('re-checks the stored URL at send time and refuses an internal target', function (): void {
     // A URL saved while it looked public must still be refused when it now
     // points inside, and the refusal does not count as a delivery.

@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "forms": {
+            "delete_with_leads": "This also deletes {count} lead. This action cannot be undone. | This also deletes {count} leads. This action cannot be undone."
+        }
+    }
+}

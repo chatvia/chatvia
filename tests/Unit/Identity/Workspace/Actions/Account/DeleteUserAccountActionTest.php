@@ -30,13 +30,15 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     // The teardown wipes workspaces/{external_id} and users/{external_id} on
-    // the default and assets disks; fake both so the assertions stay hermetic
-    // and never hit real S3 / CDN storage.
+    // the default, assets and local disks; fake them so the assertions stay
+    // hermetic and never hit real S3 / CDN storage.
     Storage::fake();
     Storage::fake('assets');
+    Storage::fake('local');
 });
 
 it('hard-deletes the user row and its workspace', function (): void {
@@ -143,6 +145,54 @@ it('wipes each member own storage tree and keeps those of other workspaces', fun
     Storage::disk('assets')->assertMissing($ownerPhoto);
     Storage::assertMissing($employeeExport);
     Storage::disk('assets')->assertExists($bystanderPhoto);
+});
+
+it('wipes the members\' data exports on the local disk', function (): void {
+    $owner = User::factory()->create();
+    $employee = User::factory()->employee($owner)->create();
+    $bystander = User::factory()->create();
+
+    $ownerExport = 'users/'.$owner->external_id.'/data-exports/owner.zip';
+    $employeeExport = 'users/'.$employee->external_id.'/data-exports/employee.zip';
+    $bystanderExport = 'users/'.$bystander->external_id.'/data-exports/bystander.zip';
+    foreach ([$ownerExport, $employeeExport, $bystanderExport] as $path) {
+        Storage::disk('local')->put($path, 'zip');
+    }
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    Storage::disk('local')->assertMissing($ownerExport);
+    Storage::disk('local')->assertMissing($employeeExport);
+    Storage::disk('local')->assertExists($bystanderExport);
+});
+
+it('deletes the workspace audit logs in batches before the final transaction', function (): void {
+    $agent = Agent::factory()->create();
+    $owner = $agent->workspace->owner;
+    $otherAgent = Agent::factory()->create();
+
+    foreach ([$agent, $agent, $agent, $otherAgent] as $i => $of) {
+        DB::table('agent_activities')->insert(['workspace_id' => $of->workspace_id, 'agent_id' => $of->id, 'agent_name' => $of->name, 'trace_id' => 'trace-'.$i, 'tool_call_id' => 'call-'.$i, 'tool_kind' => 'function', 'tool_name' => 'lookup', 'outcome' => 'auto']);
+        DB::table('guardrail_events')->insert(['external_id' => (string) Str::uuid7(), 'workspace_id' => $of->workspace_id, 'agent_id' => $of->id, 'agent_name' => $of->name, 'guard_type' => 'pii', 'stage' => 'input', 'outcome' => 'redacted']);
+        DB::table('security_audit_logs')->insert(['workspace_id' => $of->workspace_id, 'action' => 'login']);
+    }
+
+    $batches = 0;
+    DB::listen(function (QueryExecuted $query) use (&$batches): void {
+        if (preg_match('/^DELETE FROM (agent_activities|guardrail_events|security_audit_logs) WHERE id IN \(SELECT id FROM \1 WHERE workspace_id = \? LIMIT 2\)/', $query->sql) === 1) {
+            $batches++;
+        }
+    });
+
+    new DeleteUserAccountAction(conversationBatch: 2, rowBatch: 2)->execute($owner);
+
+    // Three rows per table in batches of 2: two batches, then one that finds nothing.
+    expect($batches)->toBe(9);
+
+    foreach (['agent_activities', 'guardrail_events', 'security_audit_logs'] as $table) {
+        expect(DB::table($table)->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse()
+            ->and(DB::table($table)->where('workspace_id', $otherAgent->workspace_id)->count())->toBe(1);
+    }
 });
 
 it('leaves other workspaces untouched while tearing one down', function (): void {

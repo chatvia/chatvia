@@ -87,7 +87,7 @@ class TeamController
      * Delete team
      *
      * Deletes the team. Your primary team, your only team, and a team that
-     * still has agents cannot be deleted (422).
+     * still has agents or members cannot be deleted (422).
      */
     public function destroy(Request $request, Team $team, DeleteTeamAction $deleteTeam): Response
     {

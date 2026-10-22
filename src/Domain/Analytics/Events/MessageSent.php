@@ -37,5 +37,9 @@ class MessageSent
         public readonly ?int $promptTokens,
         public readonly ?int $completionTokens,
         public readonly DateTimeInterface $occurredAt,
+        // For an AI reply: whether it found an answer (false = it could not,
+        // null = it could not be told) and its knowledge confidence, 0 to 1.
+        public readonly ?bool $hasFoundAnswer = null,
+        public readonly ?float $confidenceScore = null,
     ) {}
 }

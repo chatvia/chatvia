@@ -3,11 +3,13 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConfidenceBand;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Topic\Models\Topic;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The chat-log filters. filterByTopic matches through the conversation_topics
@@ -84,8 +86,44 @@ it('ignores an unknown confidence band and an empty one', function (): void {
     $unanswered = cqbConversation($agent);
 
     expect(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByConfidenceScore(null)))->toBe([$answered->id, $unanswered->id])
-        // An unknown band still needs an assistant answer, at any score.
+        // An unknown band still needs a scored assistant answer, at any score.
         ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByConfidenceScore('sky-high')))->toBe([$answered->id]);
+});
+
+it('writes the confidence filter as the partial index predicate', function (): void {
+    $sql = Conversation::query()->filterByConfidenceScore('high')->toSql();
+
+    expect($sql)->toContain('"role" = ?')
+        ->and($sql)->toContain('"confidence_score" is not null');
+});
+
+it('loads the latest message of each conversation through one query', function (): void {
+    $agent = Agent::factory()->create();
+    $chatty = cqbConversation($agent);
+    $at = now()->subMinutes(5)->startOfSecond();
+    Message::factory()->fromUser()->create(['chat_conversation_id' => $chatty->id, 'content' => 'first', 'created_at' => $at->copy()->subMinute()]);
+    // Two in the same second: the later stored one is the latest.
+    Message::factory()->fromUser()->create(['chat_conversation_id' => $chatty->id, 'content' => 'second', 'created_at' => $at]);
+    $latest = Message::factory()->fromAssistant()->create(['chat_conversation_id' => $chatty->id, 'content' => 'third', 'created_at' => $at]);
+    $silent = cqbConversation($agent);
+
+    $queries = 0;
+    DB::listen(function () use (&$queries): void {
+        $queries++;
+    });
+    $conversations = Conversation::query()->forAgent($agent->id)->withLastMessage()->orderBy('id')->get()->keyBy('id');
+
+    $last = $conversations[$chatty->id]->lastMessage;
+    expect($queries)->toBe(1)
+        ->and($last)->toBeInstanceOf(Message::class)
+        ->and($last->id)->toBe($latest->id)
+        ->and($last->content)->toBe('third')
+        ->and($last->role)->toBe(MessageRole::Assistant)
+        ->and($last->created_at->equalTo($at))->toBeTrue()
+        ->and($conversations[$silent->id]->lastMessage)->toBeNull()
+        ->and($conversations[$chatty->id]->getAttributes())->not->toHaveKey('last_message_content')
+        ->and($conversations[$chatty->id]->isDirty())->toBeFalse()
+        ->and($conversations[$chatty->id]->agent_id)->toBe($agent->id);
 });
 
 it('filters by the feedback on an assistant answer only', function (): void {

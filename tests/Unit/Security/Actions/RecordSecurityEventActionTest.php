@@ -43,6 +43,7 @@ it('writes one row with denormalized causer, redacted metadata + raw hash', func
         ->and($row->metadata['name'])->toBe('CLI key')
         ->and($row->metadata['secret'])->toBe('[redacted]')      // secret never stored
         ->and($row->metadata_sha256)->toBe(hash('sha256', $event->metadata))
+        ->and($row->metadata_preview)->toBeNull()
         ->and($row->metadata_truncated)->toBeFalse();
 });
 
@@ -57,9 +58,15 @@ it('caps oversized metadata and flags truncation, hashing the raw payload', func
         metadata: ['blob' => str_repeat('x', 200)],
     );
 
-    $row = app(RecordSecurityEventAction::class)->execute($event);
+    app(RecordSecurityEventAction::class)->execute($event);
+    $row = SecurityAuditLog::query()->latest('id')->firstOrFail();
 
+    // A cut JSON string is not an array, so the jsonb column stays empty and
+    // the cut text goes in the preview column.
     expect($row->metadata_truncated)->toBeTrue()
+        ->and($row->metadata)->toBeNull()
+        ->and(strlen((string) $row->metadata_preview))->toBe(20)
+        ->and($row->metadata_preview)->toStartWith('{"blob":"xxx')
         ->and($row->metadata_sha256)->toBe(hash('sha256', $event->metadata)); // hash over RAW, pre-cap
 });
 

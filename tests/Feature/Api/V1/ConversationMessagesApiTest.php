@@ -196,3 +196,21 @@ it('404s the message endpoints for a conversation of another agent', function ()
         ->postJson("/api/v1/agents/{$other->external_id}/conversations/{$id}/messages", ['message' => 'Hi'])
         ->assertNotFound();
 });
+
+it('pages the messages by the time they were sent, not by when they were stored', function (): void {
+    $conversation = Conversation::query()->where('external_id', cmaConversation())->sole();
+    $at = now()->subHour()->startOfSecond();
+    // Stored out of order: a message imported later carries an earlier time.
+    $newest = Message::factory()->create(['chat_conversation_id' => $conversation->id, 'created_at' => $at->copy()->addMinutes(2)]);
+    $oldest = Message::factory()->create(['chat_conversation_id' => $conversation->id, 'created_at' => $at]);
+    $sameSecondEarlier = Message::factory()->create(['chat_conversation_id' => $conversation->id, 'created_at' => $at->copy()->addMinute()]);
+    $sameSecondLater = Message::factory()->create(['chat_conversation_id' => $conversation->id, 'created_at' => $at->copy()->addMinute()]);
+    $uri = "{$this->base}/conversations/{$conversation->external_id}/messages";
+
+    $first = $this->withToken($this->token)->getJson($uri.'?per_page=2')->assertOk();
+    $second = $this->withToken($this->token)->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $first->json('next_cursor')]))->assertOk();
+
+    expect([...array_column($first->json('data'), 'id'), ...array_column($second->json('data'), 'id')])
+        ->toBe([$newest->external_id, $sameSecondLater->external_id, $sameSecondEarlier->external_id, $oldest->external_id])
+        ->and($second->json('next_cursor'))->toBeNull();
+});

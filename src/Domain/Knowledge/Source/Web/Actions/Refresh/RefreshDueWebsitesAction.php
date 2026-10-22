@@ -34,7 +34,11 @@ class RefreshDueWebsitesAction
         $started = 0;
 
         SourceWebsite::query()
-            ->where('refresh_interval', '!=', RefreshInterval::Off)
+            // Written exactly as the predicate of `source_websites_refresh_due_idx`
+            // (id) WHERE refresh_interval <> 'off', with the value inline, so
+            // the planner can match the partial index; the id pages below then
+            // read only the websites that refresh.
+            ->whereRaw("refresh_interval <> '".RefreshInterval::Off->value."'")
             ->whereIn('status', [SourceStatus::Completed, SourceStatus::Crawled, SourceStatus::Failed])
             ->chunkById(100, function ($websites) use ($now, &$started): void {
                 foreach ($websites as $website) {

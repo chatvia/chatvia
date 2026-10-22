@@ -32,18 +32,23 @@ class ConversationMessageController
     /**
      * List messages
      *
-     * The conversation's messages, newest first. The list is paged with a
-     * cursor: to get the next page, send the `next_cursor` of the response as
-     * `cursor`. On the last page `next_cursor` is null.
+     * The conversation's messages, newest first by the time they were sent.
+     * Of two messages sent in the same second, the one stored later comes
+     * first. The list is paged with a cursor: to get the next page, send the
+     * `next_cursor` of the response as `cursor`. On the last page
+     * `next_cursor` is null.
      *
      * @return array{data: list<ConversationMessageData>, next_cursor: string|null}
      */
     public function index(CursorPageRequest $request, Agent $agent, Conversation $conversation): array
     {
-        $page = CursorPage::newestFirst(
+        // Paged by (created_at, id), so the conversation's message index
+        // serves each page instead of sorting the whole conversation.
+        $page = CursorPage::newestFirstBy(
             Message::query()
                 ->forAgentConversation($agent->id, $conversation->id)
                 ->select(['id', 'external_id', 'role', 'content', 'created_at']),
+            'created_at',
             $request->perPage(),
             $request->cursor(),
         );
@@ -67,8 +72,8 @@ class ConversationMessageController
      * Resending the same `request_id` within a few minutes replays the
      * finished reply instead of generating (and counting) a new one.
      */
-    #[DocResponse(status: 200, mediaType: 'application/json', type: 'array{data: MessageTurnData}', description: 'The finished reply (default).')]
-    #[DocResponse(status: 200, mediaType: 'text/event-stream', type: 'string', description: 'With `stream: true` or `Accept: text/event-stream`: the reply as server-sent events.')]
+    #[DocResponse(status: 200, description: 'The finished reply (default).', mediaType: 'application/json', type: 'array{data: MessageTurnData}')]
+    #[DocResponse(status: 200, description: 'With `stream: true` or `Accept: text/event-stream`: the reply as server-sent events.', mediaType: 'text/event-stream', type: 'string')]
     public function store(
         SendApiMessageRequest $request,
         Agent $agent,

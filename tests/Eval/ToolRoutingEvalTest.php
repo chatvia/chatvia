@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -169,6 +170,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
                 'name' => $connector['name'],
                 'slug' => $slug,
                 'url' => "https://example.test/mcp/{$slug}",
+                'category' => $pool === 'preset' ? McpServerCategory::Integration : McpServerCategory::Custom,
                 'transport' => 'streamable_http',
                 'auth_type' => 'none',
                 'is_enabled' => true,

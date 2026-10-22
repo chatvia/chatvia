@@ -18,7 +18,8 @@ use Spatie\LaravelData\DataCollection;
  * Preset/builtin servers read the shared `connector_tools` catalog through the
  * `connector_tool_mcp_server` membership (permission from the membership, `id` is the
  * connector_tools.id the permission endpoint round-trips). Custom servers read
- * their own `mcp_tools` rows.
+ * their own `mcp_tools` rows. Only the columns the sheet shows are read, not
+ * the embedding or search text.
  */
 class ListConnectorToolsAction
 {
@@ -39,7 +40,8 @@ class ListConnectorToolsAction
      */
     private function presetRows(AgentMcpServer $server): Collection
     {
-        return $server->connectorTools()->orderBy('name')->get()
+        return $server->connectorTools()->orderBy('name')
+            ->get(['connector_tools.id', 'connector_tools.name', 'connector_tools.description', 'connector_tools.input_schema', 'connector_tools.scope'])
             ->map(fn (ConnectorTool $tool): ConnectorToolData => new ConnectorToolData(
                 id: $tool->id,
                 name: $server->toolPrefix().$tool->name,
@@ -56,7 +58,8 @@ class ListConnectorToolsAction
      */
     private function customRows(AgentMcpServer $server): Collection
     {
-        return $server->tools()->orderBy('name')->get()
+        return $server->tools()->orderBy('name')
+            ->get(['id', 'name', 'description', 'input_schema', 'scope', 'permission'])
             ->map(fn (McpTool $tool): ConnectorToolData => new ConnectorToolData(
                 id: $tool->id,
                 name: $server->toolPrefix().$tool->name,

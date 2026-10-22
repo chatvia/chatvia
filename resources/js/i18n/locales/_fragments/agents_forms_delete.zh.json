@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "forms": {
+            "delete_with_leads": "这也会删除 {count} 条线索。此操作无法撤销。 | 这也会删除 {count} 条线索。此操作无法撤销。"
+        }
+    }
+}

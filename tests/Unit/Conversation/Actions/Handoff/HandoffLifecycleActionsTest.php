@@ -6,6 +6,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Queries\PendingHandoffsQuery;
 use Illuminate\Database\Eloquent\Factories\Sequence;
@@ -155,4 +156,17 @@ it('PendingHandoffsQuery lists at most its limit and leaves out the oldest', fun
 
     expect($rows)->toHaveCount(PendingHandoffsQuery::LIMIT)
         ->and($rows->pluck('id'))->not->toContain($conversations->last()->id);
+});
+
+it('PendingHandoffsQuery carries the latest message of each conversation', function (): void {
+    $agent = Agent::factory()->create();
+    $waiting = newHandoffSession($agent, 'pending');
+    $quiet = newHandoffSession($agent, 'pending');
+    Message::factory()->fromUser()->create(['chat_conversation_id' => $waiting->id, 'content' => 'Hello?', 'created_at' => now()->subMinutes(2)]);
+    Message::factory()->fromUser()->create(['chat_conversation_id' => $waiting->id, 'content' => 'Anyone there?', 'created_at' => now()->subMinute()]);
+
+    $rows = app(PendingHandoffsQuery::class)->get($agent)->keyBy('id');
+
+    expect($rows[$waiting->id]->lastMessage?->content)->toBe('Anyone there?')
+        ->and($rows[$quiet->id]->lastMessage)->toBeNull();
 });

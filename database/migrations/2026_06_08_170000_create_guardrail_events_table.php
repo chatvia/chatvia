@@ -47,7 +47,6 @@ return new class extends Migration
 
             $table->index('user_id');
             $table->index('chatter_id');
-            $table->index(['workspace_id', 'created_at']);
             $table->index(['agent_id', 'id']);
             $table->index(['workspace_id', 'visitor_key', 'created_at']);
         });

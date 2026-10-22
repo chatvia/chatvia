@@ -2,7 +2,7 @@
 
 /**
  * DeleteEmployeeAction: removes one teammate and what the FK graph cannot
- * reach (tokens, HTTP sessions, team membership), keeps the workspace
+ * reach (tokens, HTTP sessions, team membership, their own files), keeps the workspace
  * resources the teammate created (they are keyed to the workspace), and
  * leaves the owner, other teammates and the workspace's chatters (a separate
  * table) alone.
@@ -18,6 +18,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 it('hard-deletes the employee while leaving the owner and sibling teammates intact', function (): void {
     $owner = User::factory()->create();
@@ -104,4 +105,34 @@ it('leaves the workspace chatters and their sessions alone, even one whose id eq
         ->and(Chatter::whereKey($twin->id)->exists())->toBeTrue()
         ->and(ChatSession::whereKey($chatterSession->id)->exists())->toBeTrue()
         ->and(ChatSession::whereKey($staffSession->id)->exists())->toBeFalse();
+});
+
+it('wipes the employee\'s own files on every disk and keeps everyone else\'s', function (): void {
+    Storage::fake('local');
+    Storage::fake('assets');
+    Storage::fake('private');
+
+    $owner = User::factory()->create();
+    $employee = User::factory()->employee($owner)->create();
+    $sibling = User::factory()->employee($owner)->create();
+
+    $export = $employee->storageRoot().'/data-exports/export.zip';
+    $photo = $employee->storageRoot().'/profile-photos/me.jpg';
+    $private = $employee->storageRoot().'/notes/file.txt';
+    $siblingPhoto = $sibling->storageRoot().'/profile-photos/me.jpg';
+    $workspaceFile = 'workspaces/'.$owner->workspace()->external_id.'/sources/files/handbook.pdf';
+
+    Storage::disk('local')->put($export, 'zip');
+    Storage::disk('assets')->put($photo, 'img');
+    Storage::disk('private')->put($private, 'txt');
+    Storage::disk('assets')->put($siblingPhoto, 'img');
+    Storage::disk('private')->put($workspaceFile, 'pdf');
+
+    app(DeleteEmployeeAction::class)->execute($employee);
+
+    Storage::disk('local')->assertMissing($export);
+    Storage::disk('assets')->assertMissing($photo);
+    Storage::disk('private')->assertMissing($private);
+    Storage::disk('assets')->assertExists($siblingPhoto);
+    Storage::disk('private')->assertExists($workspaceFile);
 });

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
  * Most metrics read the durable analytics tables (the same ones the Analytics
  * page uses) by `workspace_id`, so the counts survive deletion of the raw chat
  * rows. A few slices with no rollup (channel, leads, handoff, device) read the
- * live main-DB tables, scoped to the workspace's agent ids.
+ * live main-DB tables, scoped to the workspace.
  *
  * Message counts, tokens and reply times read the hourly rollup, by whole
  * hours (see ReadsHourlyRollups): raw events are pruned after about 13
@@ -112,13 +112,17 @@ abstract class AccountAnalyticsQuery
             ->whereNull('c.deleted_at');
     }
 
-    /** Leads — submitted forms — captured in the window. */
+    /**
+     * Leads (submitted forms) captured in the window, by the time they were
+     * submitted. The filter matches the partial index on (workspace_id,
+     * submitted_at) of submitted rows.
+     */
     protected function leadCount(AnalyticsScopeData $scope): int
     {
-        return DB::table('form_submissions')
-            ->whereIn('agent_id', $scope->agentIds)
+        return $this->forScopedAgent($scope, DB::table('form_submissions')
+            ->where('workspace_id', $scope->workspace->id)
             ->where('status', FormSubmissionStatus::Submitted->value)
-            ->whereBetween('created_at', [$scope->period->start, $scope->period->end])
+            ->whereBetween('submitted_at', [$scope->period->start, $scope->period->end]))
             ->count();
     }
 

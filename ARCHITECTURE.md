@@ -846,7 +846,28 @@ Scoping is explicit (no global scopes), with layers that catch a missed check:
   only move forward.
 - Do not set `protected $table` when Laravel's default name is right.
 - Pivot tables and pivot models have no timestamps.
-- Embeddings are `halfvec` with 1024 dimensions.
+- Embedding columns use `$table->embedding()`: the type (`halfvec` or
+  `vector`) and the dimensions are chosen at install (`EmbeddingStorage`).
+  Never write them out by hand.
+- Staff emails are stored in lowercase (`users_email_lowercase` CHECK), so the
+  plain unique index is also unique ignoring case. Look one up with
+  `email = Str::lower($input)`. Chatters keep the address as typed, with a
+  unique index on `(workspace_id, lower(email))`.
+- Every query that can grow with the data has an index that serves it. Name
+  that index when you add a filter or a sort. Use a partial index for a column
+  that is mostly NULL and for soft-deleted tables, put `id` last when pages
+  are keyed by `(time, id)`, and use BRIN for install-wide time ranges on
+  tables that only grow.
+- `chat_conversations` has many indexes, and `updated_at` and
+  `last_activity_at` are keys in them, so every update of a row rewrites
+  every index. Activity pings (a widget load, the heartbeat) write at most
+  once a minute and through the base query, so `updated_at` stays as it is.
+  Only a new message moves `updated_at`, which is the chat log's order.
+- Large deletes run in batches (`… WHERE id IN (SELECT id … LIMIT n)` in a
+  loop), outside the request's transaction. Never leave a cascade to an
+  unbounded child table: delete the large children first, then the parent.
+- Every table that grows without end has a daily prune in
+  `routes/console.php`, and the column the prune filters on is indexed.
 
 ### Comments and docblocks
 

@@ -13,7 +13,8 @@ use Support\Exceptions\DomainValidationException;
 |--------------------------------------------------------------------------
 |
 | The guards a workspace cannot lose, shared by the dashboard and the API:
-| the owner's primary team, their only team, and a team with agents stay.
+| the owner's primary team, their only team, a team with agents (trashed
+| ones too) and a team with members stay.
 */
 
 beforeEach(function (): void {
@@ -47,3 +48,20 @@ it('refuses a team that still has agents', function (): void {
 
     app(DeleteTeamAction::class)->execute($this->owner, $team);
 })->throws(DomainValidationException::class, 'has agents');
+
+it('refuses a team whose only agent is trashed and waiting for its purge', function (): void {
+    $team = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->owner->workspace(), name: 'Spare'));
+    createAgent($this->owner, ['team_id' => $team->id])->delete();
+
+    app(DeleteTeamAction::class)->execute($this->owner, $team);
+})->throws(DomainValidationException::class, 'has agents');
+
+it('refuses a team that still has members', function (): void {
+    $team = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->owner->workspace(), name: 'Spare'));
+    $member = User::factory()->employee($this->owner)->create();
+    $team->members()->attach($member->id, ['role_id' => $team->roles()->value('id')]);
+
+    expect(fn () => app(DeleteTeamAction::class)->execute($this->owner, $team))
+        ->toThrow(DomainValidationException::class, 'has members')
+        ->and($team->fresh())->not->toBeNull();
+});

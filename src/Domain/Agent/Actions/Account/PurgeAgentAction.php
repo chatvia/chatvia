@@ -24,14 +24,19 @@ use Throwable;
  * {@see PurgeAgentJob} after {@see DeleteAgentAction} soft-deleted the agent.
  *
  * The big tables go first, in small batches, each its own short statement:
- * conversations (their messages, attachment rows and topics go by cascade),
- * then sessions, then leads. Then the knowledge sources no other
+ * leads, then conversations (their messages, attachment rows and topics go
+ * by cascade), then sessions. Leads go before conversations because a
+ * conversation's delete would first set its leads' conversation to NULL,
+ * a wasted update per lead. Then the knowledge sources no other
  * live agent uses (deleted through their models, so their observers clean
  * chunks and wipe each source's own storage folder), the agent's settings
  * rows (`model_settings` has no foreign key), its chat memory in Redis and its
  * storage subtree (chat attachments). Knowledge files are never under the
- * agent's subtree, so a source another agent still uses keeps its files. The
- * final `forceDelete()` then only cascades small tables.
+ * agent's subtree, so a source another agent still uses keeps its files.
+ * Tool-call audit rows and guardrail events are kept for the workspace's
+ * records: their `agent_id` is cleared in batches too, because the foreign
+ * key's SET NULL would otherwise rewrite them all in the final statement.
+ * The final `forceDelete()` then only cascades small tables.
  *
  * Every step deletes only what is left, so running it again after a failure
  * is safe. The Redis flush and the storage wipe are best-effort: a short
@@ -43,9 +48,12 @@ class PurgeAgentAction
     /** @var list<class-string<Model>> */
     private const array SOURCE_TYPES = [SourceFile::class, SourceWebsite::class, SourceText::class, SourceYoutubeVideo::class];
 
+    /** Tables whose rows outlive the agent: the foreign key sets their `agent_id` to NULL. */
+    private const array DETACHED_TABLES = ['agent_activities', 'guardrail_events'];
+
     /**
      * @param  int  $conversationBatch  conversations per DELETE; each one cascades all its messages
-     * @param  int  $rowBatch  sessions or leads per DELETE
+     * @param  int  $rowBatch  sessions or leads per DELETE, audit or guardrail rows per UPDATE
      */
     public function __construct(
         private readonly int $conversationBatch = 500,
@@ -58,9 +66,9 @@ class PurgeAgentAction
             throw new LogicException('Only a deleted agent can be purged.');
         }
 
+        $this->deleteInBatches('form_submissions', $agent, $this->rowBatch);
         $this->deleteInBatches('chat_conversations', $agent, $this->conversationBatch);
         $this->deleteInBatches('chat_sessions', $agent, $this->rowBatch);
-        $this->deleteInBatches('form_submissions', $agent, $this->rowBatch);
 
         $this->deleteExclusiveSources($agent);
 
@@ -73,16 +81,20 @@ class PurgeAgentAction
 
         $this->wipeStorage($agent);
 
+        foreach (self::DETACHED_TABLES as $table) {
+            $this->detachInBatches($table, $agent);
+        }
+
         $agent->forceDelete();
     }
 
     /**
      * Delete the agent's rows of `$table` in batches until none are left. Each
      * DELETE runs on its own (no surrounding transaction), so locks and the
-     * cascade's work stay small. The three tables have an (agent_id,
-     * created_at) index, so each batch reads the next rows straight from it;
-     * no order is needed, as every row goes. The (workspace_id, agent_id)
-     * pair is the tables' foreign key to the agent.
+     * cascade's work stay small. The three tables have an index that starts
+     * with agent_id, so each batch reads the next rows straight from it; no
+     * order is needed, as every row goes. The (workspace_id, agent_id) pair
+     * is the tables' foreign key to the agent.
      */
     private function deleteInBatches(string $table, Agent $agent, int $batchSize): void
     {
@@ -91,6 +103,20 @@ class PurgeAgentAction
         do {
             $deleted = DB::affectingStatement($sql, [$agent->id, $agent->workspace_id]);
         } while ($deleted > 0);
+    }
+
+    /**
+     * Clear the agent on its rows of `$table` in batches, the same way the
+     * deletes above run, so the final delete has nothing left to set to NULL.
+     * Both tables have an (agent_id, id) index for the batch lookup.
+     */
+    private function detachInBatches(string $table, Agent $agent): void
+    {
+        $sql = "UPDATE {$table} SET agent_id = NULL WHERE id IN (SELECT id FROM {$table} WHERE agent_id = ? AND workspace_id = ? LIMIT {$this->rowBatch})";
+
+        do {
+            $updated = DB::affectingStatement($sql, [$agent->id, $agent->workspace_id]);
+        } while ($updated > 0);
     }
 
     /**

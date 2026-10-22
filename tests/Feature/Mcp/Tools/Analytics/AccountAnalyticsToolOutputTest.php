@@ -4,7 +4,6 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
-use Domain\Conversation\Topic\Models\Topic;
 use App\Mcp\Servers\AccountAnalyticsServer;
 use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
 use App\Mcp\Tools\Analytics\GetActivityPatternsTool;
@@ -27,6 +26,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Topic\Models\Topic;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
@@ -134,12 +134,14 @@ function seedAnalyticsEvents(Workspace $workspace, Agent $alpha, Agent $beta, Wo
         $event($other->id, $noise, 'feedback_given', 'noise', '2026-06-11 11:01:00', ['feedback' => 'negative']),
     ]);
 
+    // The first visitor message and first reply of each conversation, as the
+    // recorder keeps them for the events above.
     seededAnalyticsDb()->table('analytics_conversation_metrics')->insert([
-        ['conversation_external_id' => $conversations['one'], 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-10 09:15:00', 'ended_at' => '2026-06-10 09:20:01', 'message_count' => 4, 'duration_seconds' => 301],
-        ['conversation_external_id' => $conversations['two'], 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-12 14:00:00', 'ended_at' => '2026-06-12 14:00:05', 'message_count' => 2, 'duration_seconds' => 0],
-        ['conversation_external_id' => $conversations['three'], 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-14 20:10:00', 'ended_at' => '2026-06-14 20:10:03', 'message_count' => 2, 'duration_seconds' => 3],
-        ['conversation_external_id' => $conversations['old'], 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-05-20 10:00:00', 'ended_at' => '2026-05-20 10:00:02', 'message_count' => 2, 'duration_seconds' => 2],
-        ['conversation_external_id' => $conversations['noise'], 'agent_id' => $noise->id, 'workspace_id' => $other->id, 'started_at' => '2026-06-11 11:00:00', 'ended_at' => '2026-06-11 11:00:01', 'message_count' => 50, 'duration_seconds' => 999],
+        ['conversation_external_id' => $conversations['one'], 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-10 09:15:00', 'ended_at' => '2026-06-10 09:20:01', 'first_user_at' => '2026-06-10 09:15:00', 'first_assistant_at' => '2026-06-10 09:15:02', 'message_count' => 4, 'duration_seconds' => 301],
+        ['conversation_external_id' => $conversations['two'], 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-12 14:00:00', 'ended_at' => '2026-06-12 14:00:05', 'first_user_at' => '2026-06-12 14:00:00', 'first_assistant_at' => '2026-06-12 14:00:05', 'message_count' => 2, 'duration_seconds' => 0],
+        ['conversation_external_id' => $conversations['three'], 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-14 20:10:00', 'ended_at' => '2026-06-14 20:10:03', 'first_user_at' => '2026-06-14 20:10:00', 'first_assistant_at' => '2026-06-14 20:10:03', 'message_count' => 2, 'duration_seconds' => 3],
+        ['conversation_external_id' => $conversations['old'], 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-05-20 10:00:00', 'ended_at' => '2026-05-20 10:00:02', 'first_user_at' => '2026-05-20 10:00:00', 'first_assistant_at' => '2026-05-20 10:00:02', 'message_count' => 2, 'duration_seconds' => 2],
+        ['conversation_external_id' => $conversations['noise'], 'agent_id' => $noise->id, 'workspace_id' => $other->id, 'started_at' => '2026-06-11 11:00:00', 'ended_at' => '2026-06-11 11:00:01', 'first_user_at' => '2026-06-11 11:00:00', 'first_assistant_at' => '2026-06-11 11:00:01', 'message_count' => 50, 'duration_seconds' => 999],
     ]);
 
     seededAnalyticsDb()->table('analytics_session_firsts')->insert([
@@ -154,7 +156,8 @@ function seedAnalyticsEvents(Workspace $workspace, Agent $alpha, Agent $beta, Wo
 function seedAnalyticsRollups(Workspace $workspace, Agent $alpha, Agent $beta, Workspace $other, Agent $noise): void
 {
     // Tokens and reply times match the replies seeded in analytics_events for
-    // the same hour; the hours with no events behind them used no tokens.
+    // the same hour, and the answer figures the replies seeded in
+    // chat_messages; the hours with no events behind them have none.
     $hour = fn (int $workspaceId, Agent $agent, string $bucket, string $country, int $conversations, int $user, int $assistant, array $usage = []): array => [
         'agent_id' => $agent->id,
         'workspace_id' => $workspaceId,
@@ -169,16 +172,19 @@ function seedAnalyticsRollups(Workspace $workspace, Agent $alpha, Agent $beta, W
         'total_tokens' => ($usage['prompt'] ?? 0) + ($usage['completion'] ?? 0),
         'response_ms_sum' => $usage['response_ms'] ?? 0,
         'response_ms_count' => $usage['replies'] ?? 0,
+        'unanswered_replies' => $usage['unanswered'] ?? 0,
+        'confidence_sum' => $usage['confidence_sum'] ?? 0,
+        'confidence_count' => $usage['confidence_count'] ?? 0,
     ];
 
     seededAnalyticsDb()->table('analytics_agent_hourly_rollups')->insert([
-        $hour($workspace->id, $alpha, '2026-06-10 09:00:00', 'NO', 1, 2, 2, ['prompt' => 180, 'completion' => 90, 'response_ms' => 2100, 'replies' => 2]),
-        $hour($workspace->id, $alpha, '2026-06-12 14:00:00', 'DE', 2, 1, 1, ['prompt' => 120, 'completion' => 80, 'response_ms' => 800, 'replies' => 1]),
+        $hour($workspace->id, $alpha, '2026-06-10 09:00:00', 'NO', 1, 2, 2, ['prompt' => 180, 'completion' => 90, 'response_ms' => 2100, 'replies' => 2, 'confidence_sum' => 1.7, 'confidence_count' => 2]),
+        $hour($workspace->id, $alpha, '2026-06-12 14:00:00', 'DE', 2, 1, 1, ['prompt' => 120, 'completion' => 80, 'response_ms' => 800, 'replies' => 1, 'unanswered' => 1, 'confidence_sum' => 0.4, 'confidence_count' => 1]),
         $hour($workspace->id, $beta, '2026-06-14 20:00:00', 'US', 2, 1, 1, ['prompt' => 60, 'completion' => 30, 'response_ms' => 3000, 'replies' => 1]),
         $hour($workspace->id, $beta, '2026-06-14 21:00:00', '--', 3, 1, 1),
         $hour($workspace->id, $beta, '2026-06-08 09:00:00', 'DE', 2, 4, 4),
         $hour($workspace->id, $beta, '2026-05-20 10:00:00', 'NO', 1, 1, 1, ['prompt' => 10, 'completion' => 10, 'response_ms' => 1500, 'replies' => 1]),
-        $hour($other->id, $noise, '2026-06-11 11:00:00', 'US', 40, 40, 40, ['prompt' => 999, 'completion' => 999, 'response_ms' => 99, 'replies' => 1]),
+        $hour($other->id, $noise, '2026-06-11 11:00:00', 'US', 40, 40, 40, ['prompt' => 999, 'completion' => 999, 'response_ms' => 99, 'replies' => 1, 'unanswered' => 1, 'confidence_sum' => 0.1, 'confidence_count' => 1]),
     ]);
 
     $day = fn (int $workspaceId, Agent $agent, string $bucket, array $columns): array => [
@@ -276,12 +282,12 @@ function seedAnalyticsChats(Agent $alpha, Agent $beta, Agent $noise): void
     $reply($noiseConversation, false, 0.1, '2026-06-11 11:00:01');
 
     $form = FormDefinition::factory()->forAgent($alpha)->create(['slug' => 'contact-us', 'is_active' => true]);
-    FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $widget->id, 'created_at' => '2026-06-10 09:30:00']);
-    FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $hosted->id, 'created_at' => '2026-06-12 14:05:00']);
+    FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $widget->id, 'created_at' => '2026-06-10 09:30:00', 'submitted_at' => '2026-06-10 09:30:00']);
+    FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $hosted->id, 'created_at' => '2026-06-12 14:05:00', 'submitted_at' => '2026-06-12 14:05:00']);
     FormSubmission::factory()->forDefinition($form)->create(['status' => FormSubmissionStatus::Pending, 'chat_conversation_id' => $hosted->id, 'created_at' => '2026-06-12 14:06:00']);
 
     $betaForm = FormDefinition::factory()->forAgent($beta)->create(['slug' => 'callback', 'is_active' => true]);
-    FormSubmission::factory()->forDefinition($betaForm)->submitted()->create(['created_at' => '2026-05-21 08:05:00']);
+    FormSubmission::factory()->forDefinition($betaForm)->submitted()->create(['created_at' => '2026-05-21 08:05:00', 'submitted_at' => '2026-05-21 08:05:00']);
 }
 
 function seededAnalyticsDb(): Connection

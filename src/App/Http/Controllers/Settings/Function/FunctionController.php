@@ -27,7 +27,14 @@ class FunctionController
         $user = $request->user();
 
         // Functions belong to the workspace owner; teammates see the same list.
+        // Only the columns a row shows (`auth_config` only to tell whether a
+        // credential is stored): not the embedding, search text or secrets.
         $functions = $user->workspace()->functions()
+            ->select([
+                'functions.id', 'functions.external_id', 'functions.workspace_id', 'functions.internal_name', 'functions.display_name',
+                'functions.description', 'functions.parameters_schema', 'functions.webhook_url', 'functions.webhook_method',
+                'functions.auth_type', 'functions.auth_config', 'functions.is_enabled', 'functions.requires_approval', 'functions.created_at',
+            ])
             ->withCount('agents')
             ->latest()
             ->get();

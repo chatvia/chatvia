@@ -16,9 +16,10 @@ use Domain\Channel\Services\ChannelConnectionGuard;
  * persist it (encrypted) and best-effort subscribe the Page to its `messages`
  * webhook field — without that Meta never delivers events to Chatvia's
  * app-level Callback URL. One Page per agent (`agent_id` is unique) and one
- * agent per Page (`page_id` is unique); inbound events are routed back to this
- * row by `page_id`. Throws {@see ChannelConnectException} when the agent is
- * protected or the Page already powers another agent.
+ * agent per Page (`page_id` is unique among enabled rows); inbound events are
+ * routed back to the enabled row by `page_id`. Throws
+ * {@see ChannelConnectException} when the agent is protected or the Page
+ * already powers another agent.
  */
 class ConnectMessengerPageAction
 {

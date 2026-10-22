@@ -60,6 +60,7 @@ use Support\Localization\Language\Models\Language;
  * @property Carbon|null $handoff_at
  * @property Carbon|null $last_activity_at
  * @property Carbon|null $expires_at
+ * @property Carbon|null $cleared_at
  * @property string|null $deleted_by
  * @property Carbon|null $deleted_at
  * @property Carbon|null $created_at

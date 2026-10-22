@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "フォームをもう一度表示",
             "preview_user_message": "こんにちは！手伝ってもらえますか？",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "フォームはチャットウィジェットとコマンドバーにのみ表示されます。"
+            "surfaces_notice": "フォームはチャットウィジェットとコマンドバーにのみ表示されます。",
+            "delete_with_leads": "{count} 件のリードも削除されます。この操作は元に戻せません。 | {count} 件のリードも削除されます。この操作は元に戻せません。"
         },
         "submissions": {
             "page_title": "送信内容",
@@ -3321,7 +3322,8 @@
                 "outcome": "結果",
                 "ip": "IPアドレス",
                 "when": "日時"
-            }
+            },
+            "metadata_cut_off": "サイズの上限で切り詰められました。先頭部分のみ表示しています。"
         },
         "audit": {
             "title": "監査",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "拒否",
             "outcome_rate_limited": "レート制限",
             "outcome_not_offered": "未提供",
-            "detail_spoken_approval": "音声での承認"
+            "detail_spoken_approval": "音声での承認",
+            "detail_arguments_cut_off": "サイズの上限で切り詰められました。先頭部分のみ表示しています。"
         },
         "attach_file": {
             "title": "学習済みファイルから選択",

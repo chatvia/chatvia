@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "forms": {
+            "delete_with_leads": "Cela supprime aussi {count} prospect. Cette action est irréversible. | Cela supprime aussi {count} prospects. Cette action est irréversible."
+        }
+    }
+}

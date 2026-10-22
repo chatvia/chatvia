@@ -33,7 +33,7 @@ trait ResolvesTeamMembership
     {
         $role = $this->teamRole($team);
 
-        return $role !== null && $role->hasPermissionTo($permission);
+        return $role !== null && $role->grants($permission);
     }
 
     /**
@@ -51,8 +51,9 @@ trait ResolvesTeamMembership
      */
     public function primaryTeam(): ?Team
     {
-        // By id: teams made in the same second tie on created_at.
-        return $this->remember('primaryTeam', fn (): ?Team => $this->ownedTeams()->oldest('id')->first());
+        // By id: teams made in the same second tie on created_at. Also the
+        // fallback of currentOrPrimaryTeam(), so both share this one query.
+        return $this->remember('primaryTeam', fn (): ?Team => $this->ownedTeams()->oldest('teams.id')->first());
     }
 
     /**

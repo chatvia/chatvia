@@ -26,13 +26,22 @@ use Spatie\LaravelData\DataCollection;
  */
 class BuildConversationPulseAction
 {
+    /** Characters of each visitor message the timeline shows. */
+    private const int PREVIEW_LENGTH = 50;
+
     public function execute(Agent $agent, Conversation $conversation): ChatLogPulseResourceData
     {
-        $allMessages = $conversation->messages()
+        // Only the visitor's messages, and only the start of each text: the
+        // timeline shows a short preview. Reading twice its length leaves
+        // Str::limit (which counts display width) room to see whether the
+        // text needs cutting.
+        $userMessages = $conversation->messages()
+            ->where('role', MessageRole::User)
             ->orderBy('created_at')
-            ->get(['id', 'role', 'content', 'tone', 'sentiment', 'created_at']);
-
-        $userMessages = $allMessages->where('role', MessageRole::User)->values();
+            ->orderBy('id')
+            ->select(['tone', 'sentiment', 'created_at'])
+            ->selectRaw('left(content, ?) as content', [self::PREVIEW_LENGTH * 2])
+            ->get();
 
         $points = $userMessages
             ->map(fn (Message $message, int $index): ChatLogPulseMessageData => $this->point($message, $index));
@@ -44,7 +53,7 @@ class BuildConversationPulseAction
                 id: $conversation->external_id,
                 sentiment: $conversation->sentiment,
                 tone: $conversation->tone,
-                total_messages: $allMessages->count(),
+                total_messages: $conversation->messages()->count(),
                 user_messages: $userMessages->count(),
             ),
         );
@@ -57,7 +66,7 @@ class BuildConversationPulseAction
 
         return new ChatLogPulseMessageData(
             index: $index + 1,
-            content_preview: str($message->content)->limit(50)->toString(),
+            content_preview: str($message->content)->limit(self::PREVIEW_LENGTH)->toString(),
             tone: $message->tone,
             sentiment: $message->sentiment,
             // Prefer the tone signal when the LLM tagged tone; fall back to sentiment.

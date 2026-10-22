@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "عرض النموذج مرة أخرى",
             "preview_user_message": "مرحبًا! هل يمكنك مساعدتي؟",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "تظهر النماذج فقط في أداة الدردشة وشريط الأوامر."
+            "surfaces_notice": "تظهر النماذج فقط في أداة الدردشة وشريط الأوامر.",
+            "delete_with_leads": "سيُحذف أيضًا {count} عميل محتمل. لا يمكن التراجع عن هذا الإجراء. | سيُحذف أيضًا العملاء المحتملون: {count}. لا يمكن التراجع عن هذا الإجراء."
         },
         "submissions": {
             "page_title": "الإرساليات",
@@ -3321,7 +3322,8 @@
                 "outcome": "النتيجة",
                 "ip": "عنوان IP",
                 "when": "متى"
-            }
+            },
+            "metadata_cut_off": "تم قطع النص عند حد الحجم. يظهر الجزء الأول فقط."
         },
         "audit": {
             "title": "التدقيق",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "مرفوض",
             "outcome_rate_limited": "تجاوز الحد",
             "outcome_not_offered": "غير معروضة",
-            "detail_spoken_approval": "موافقة صوتية"
+            "detail_spoken_approval": "موافقة صوتية",
+            "detail_arguments_cut_off": "تم قطع النص عند حد الحجم. يظهر الجزء الأول فقط."
         },
         "attach_file": {
             "title": "اختر من الملفات المدربة مسبقًا",

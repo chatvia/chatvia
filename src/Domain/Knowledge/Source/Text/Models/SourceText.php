@@ -22,7 +22,7 @@ use Support\Concerns\HasExternalId;
  * state. Agents use it through the polymorphic `agent_sources` pivot.
  *
  * @property int $id
- * @property string|null $external_id
+ * @property string $external_id
  * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification

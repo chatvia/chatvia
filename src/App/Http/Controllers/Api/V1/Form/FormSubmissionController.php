@@ -31,7 +31,7 @@ class FormSubmissionController
      */
     public function index(CursorPageRequest $request, Agent $agent, FormDefinition $form): array
     {
-        $query = $form->submissions()->submitted()->with('conversation');
+        $query = $form->submissions()->submitted()->with('conversation:id,external_id');
 
         $page = CursorPage::newestFirst($query, $request->perPage(), $request->cursor());
 

@@ -2313,7 +2313,8 @@
             "preview_show_form_again": "Mostrar o formulário novamente",
             "preview_user_message": "Olá! Pode me ajudar?",
             "preview_powered_by": "Powered by ChatVia.ai",
-            "surfaces_notice": "Os formulários aparecem apenas no widget de chat e na barra de comandos."
+            "surfaces_notice": "Os formulários aparecem apenas no widget de chat e na barra de comandos.",
+            "delete_with_leads": "Isto também elimina {count} lead. Esta ação não pode ser anulada. | Isto também elimina {count} leads. Esta ação não pode ser anulada."
         },
         "submissions": {
             "page_title": "Submissões",
@@ -3321,7 +3322,8 @@
                 "outcome": "Resultado",
                 "ip": "Endereço IP",
                 "when": "Quando"
-            }
+            },
+            "metadata_cut_off": "Cortado no limite de tamanho. Só o início é mostrado."
         },
         "audit": {
             "title": "Auditoria",
@@ -3861,7 +3863,8 @@
             "outcome_denied": "Recusado",
             "outcome_rate_limited": "Limite de taxa atingido",
             "outcome_not_offered": "Não oferecida",
-            "detail_spoken_approval": "Aprovação verbal"
+            "detail_spoken_approval": "Aprovação verbal",
+            "detail_arguments_cut_off": "Cortado no limite de tamanho. Só o início é mostrado."
         },
         "attach_file": {
             "title": "Escolher de Ficheiros Já Treinados",

@@ -46,7 +46,7 @@ class TeamAgentAccess
             return true;
         }
 
-        return $role->agents()->where('agents.id', $agent->id)->exists();
+        return $role->listsAgent($agent);
     }
 
     /**

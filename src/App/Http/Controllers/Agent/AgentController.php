@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Requests\Agent\Crud\CreateAgentRequest;
 use App\Http\Requests\Agent\Crud\UpdateAgentRequest;
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Models\WorkspaceMembership;
 use Domain\Agent\Actions\Account\CreateAgentAction;
 use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Actions\Account\UpdateAgentAction;
@@ -45,11 +47,15 @@ class AgentController
         $agents = $visibility->query($request->user(), $team)
             ->where('team_id', $team->id)
             ->with(['agentPrompt:id,external_id'])
-            ->withTotalMembers()
             ->latest()
             ->get();
 
-        return AgentResourceData::listWithStats($agents, $messageTotals->get($team->workspace_id, $agents->modelKeys()));
+        // The member count is the workspace's, the same for every agent row:
+        // two index counts once, not two subqueries per agent.
+        $totalMembers = WorkspaceMembership::query()->where('workspace_id', $team->workspace_id)->count()
+            + Chatter::query()->where('workspace_id', $team->workspace_id)->count();
+
+        return AgentResourceData::listWithStats($agents, $messageTotals->get($team->workspace_id, $agents->modelKeys()), $totalMembers);
     }
 
     public function store(CreateAgentRequest $request, CreateAgentAction $createAgent): RedirectResponse

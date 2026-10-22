@@ -2,7 +2,8 @@
 /**
  * The list view of the agent's Forms page: every form with its type, field
  * count and submission count, plus "New form", "Edit" and delete. Delete asks
- * for confirmation first, because it also removes the form's submissions.
+ * for confirmation first, because it also removes the form's submissions:
+ * the dialog says how many leads go with it.
  */
 import type { FormDefinition } from '@/components/agents/forms/formDefinition';
 import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
@@ -12,7 +13,7 @@ import { useFormTypeLabel } from '@/composables/agents/forms/useFormTypeLabel';
 import { index as submissionsIndex } from '@/routes/agents/forms/submissions';
 import { Link } from '@inertiajs/vue3';
 import { FileText, Plus, Trash2 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 defineProps<{
@@ -30,6 +31,13 @@ const { t } = useI18n();
 const { formTypeLabel } = useFormTypeLabel();
 
 const pendingDelete = ref<FormDefinition | null>(null);
+
+// Only a form with leads gets the longer warning; otherwise the dialog keeps its default text.
+const deleteDescription = computed((): string | undefined => {
+    const count = pendingDelete.value?.submissions_count ?? 0;
+
+    return count > 0 ? t('agents.forms.delete_with_leads', { count }, count) : undefined;
+});
 
 function confirmDelete(): void {
     if (pendingDelete.value) emit('delete', pendingDelete.value);
@@ -73,5 +81,10 @@ function confirmDelete(): void {
         </CardContent>
     </Card>
 
-    <DeleteConfirmationDialog :open="pendingDelete !== null" @confirm="confirmDelete" @cancel="pendingDelete = null" />
+    <DeleteConfirmationDialog
+        :open="pendingDelete !== null"
+        :description="deleteDescription"
+        @confirm="confirmDelete"
+        @cancel="pendingDelete = null"
+    />
 </template>

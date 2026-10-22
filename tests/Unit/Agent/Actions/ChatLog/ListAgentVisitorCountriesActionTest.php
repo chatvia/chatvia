@@ -4,6 +4,7 @@ use Domain\Agent\Actions\ChatLog\ListAgentVisitorCountriesAction;
 use Domain\Agent\Data\Resources\ChatLog\Countries\ChatLogCountryData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Session;
+use Illuminate\Support\Facades\DB;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -33,4 +34,17 @@ it('returns no options for an agent without located visitors', function (): void
     Session::factory()->create(['agent_id' => $agent->id, 'country_id' => null]);
 
     expect(app(ListAgentVisitorCountriesAction::class)->execute($agent)->countries->toCollection())->toBeEmpty();
+});
+
+it('reads the countries without scanning the agent\'s sessions', function (): void {
+    $agent = Agent::factory()->create();
+    $queries = [];
+    DB::listen(function ($query) use (&$queries): void {
+        $queries[] = $query->sql;
+    });
+
+    app(ListAgentVisitorCountriesAction::class)->execute($agent);
+
+    expect($queries)->toHaveCount(1)
+        ->and($queries[0])->toStartWith('select "id", "code", "name" from "countries" where exists');
 });

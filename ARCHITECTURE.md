@@ -498,7 +498,11 @@ is found with regex filters (plus the owner's own patterns) and masked or, if
 the owner chose, the message is blocked (the business contacts and the agent's
 "never mask" list excepted); prompt injection, off-topic and toxic content are
 judged by one classifier call, which also sees the earlier messages and names
-the language for the refusal. Each guard blocks or only logs, with a
+the language for the refusal. That call and the follow-up rewrite go out at
+the same time (`inspectInputAsync()`, `QueryRewriter::rewriteAsync()` on the
+masked text, both through `LlmChat::sendAsync()` on one shared HTTP handler,
+`SharedHttpHandler`); a blocked message's rewrite is cancelled and never used.
+Each guard blocks or only logs, with a
 sensitivity for injection and toxicity. Knowledge chunks and tool results pass
 a rules check for injection (`InjectionPatternDetector`); answers are checked
 for topics, toxicity and a leaked system prompt (a marker the

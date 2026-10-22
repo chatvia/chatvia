@@ -12,6 +12,7 @@ use Domain\Guardrail\Services\Detectors\InjectionPatternDetector;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
 use Domain\Guardrail\Services\GuardrailClassifier;
 use Domain\Guardrail\Services\GuardrailService;
+use GuzzleHttp\Promise\Create;
 
 /**
  * The service is the policy brain: it reads the agent's settings and turns
@@ -42,7 +43,7 @@ function guardAgent(array $overrides = [], array $business = []): Agent
 function guardService(?ClassifierVerdictData $verdict = null): GuardrailService
 {
     $classifier = Mockery::mock(GuardrailClassifier::class);
-    $classifier->shouldReceive('classify')->andReturn($verdict ?? new ClassifierVerdictData);
+    $classifier->shouldReceive('classifyAsync')->andReturn(Create::promiseFor($verdict ?? new ClassifierVerdictData));
 
     return new GuardrailService(new PiiDetector, $classifier, new InjectionPatternDetector);
 }
@@ -68,7 +69,7 @@ it('needs both the global switch and the agent toggle on', function (bool $globa
 it('runs no guard at all while the global switch is off', function (): void {
     config(['chatvia.guardrails.enabled' => false]);
     $classifier = Mockery::mock(GuardrailClassifier::class);
-    $classifier->shouldNotReceive('classify');
+    $classifier->shouldNotReceive('classifyAsync');
     $service = new GuardrailService(new PiiDetector, $classifier, new InjectionPatternDetector);
     $agent = guardAgent();
 
@@ -91,7 +92,7 @@ it('redacts PII in the input without blocking', function (): void {
 it('masks PII for the stored record via redactPii without a classifier call', function (): void {
     // Strict classifier: redactPii must mask via regex only — no LLM call.
     $classifier = Mockery::mock(GuardrailClassifier::class);
-    $classifier->shouldNotReceive('classify');
+    $classifier->shouldNotReceive('classifyAsync');
     $service = new GuardrailService(new PiiDetector, $classifier, new InjectionPatternDetector);
 
     expect($service->redactPii(guardAgent(), 'Email me at a@b.com'))
@@ -156,7 +157,7 @@ it('replaces a toxic answer with the refusal', function (): void {
 
 it('skips the AI check on answers when the agent does not check them', function (): void {
     $classifier = Mockery::mock(GuardrailClassifier::class);
-    $classifier->shouldNotReceive('classify');
+    $classifier->shouldNotReceive('classifyAsync');
     $service = new GuardrailService(new PiiDetector, $classifier, new InjectionPatternDetector);
 
     $result = $service->inspectOutput(guardAgent(['check_answers' => false]), 'something toxic, mail billing@acme.com');
@@ -221,10 +222,10 @@ it('gives the classifier the earlier messages for context', function (): void {
     $history = [['role' => 'user', 'content' => 'Do you ship to Norway?'], ['role' => 'assistant', 'content' => 'Yes.']];
 
     $classifier = Mockery::mock(GuardrailClassifier::class);
-    $classifier->shouldReceive('classify')
+    $classifier->shouldReceive('classifyAsync')
         ->once()
         ->withArgs(fn (string $text, ClassifierOptionsData $options): bool => $text === 'and Sweden?' && $options->history === $history)
-        ->andReturn(new ClassifierVerdictData);
+        ->andReturn(Create::promiseFor(new ClassifierVerdictData));
 
     new GuardrailService(new PiiDetector, $classifier, new InjectionPatternDetector)
         ->inspectInput(guardAgent(), 'and Sweden?', $history);

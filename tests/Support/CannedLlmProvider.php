@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -81,6 +83,15 @@ final class CannedLlmProvider implements LlmProviderInterface
         $body = ['choices' => [['message' => ['content' => $this->answer]]]];
 
         return new Response(new PsrResponse(200, [], (string) json_encode($body)));
+    }
+
+    public function completionAsync(array $data): PromiseInterface
+    {
+        try {
+            return Create::promiseFor($this->completion($data));
+        } catch (RuntimeException $e) {
+            return Create::rejectionFor($e);
+        }
     }
 
     public function headers(): array

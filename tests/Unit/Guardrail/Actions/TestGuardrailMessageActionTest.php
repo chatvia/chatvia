@@ -8,6 +8,7 @@ use Domain\Guardrail\Data\GuardrailSettingsData;
 use Domain\Guardrail\Enums\TopicResponse;
 use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Services\GuardrailClassifier;
+use GuzzleHttp\Promise\Create;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -16,8 +17,8 @@ use Illuminate\Support\Facades\Event;
  */
 it('tests a message against unsaved settings without logging it', function (): void {
     Event::fake([GuardrailTriggered::class]);
-    $this->mock(GuardrailClassifier::class)->shouldReceive('classify')
-        ->andReturn(new ClassifierVerdictData(offTopic: true, language: 'en', matchedTopic: 1));
+    $this->mock(GuardrailClassifier::class)->shouldReceive('classifyAsync')
+        ->andReturn(Create::promiseFor(new ClassifierVerdictData(offTopic: true, language: 'en', matchedTopic: 1)));
 
     $agent = Agent::factory()->create();
     $settings = new GuardrailSettingsData(

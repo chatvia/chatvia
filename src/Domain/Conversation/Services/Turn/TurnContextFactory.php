@@ -20,6 +20,8 @@ use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Query\QueryRewriter;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Str;
 
 /**
@@ -51,16 +53,23 @@ class TurnContextFactory
             $memory->getLlmMessages(),
         );
 
-        // The guard runs first: a blocked turn needs no rewrite, and the
-        // rewrite reads the masked text, never a raw identifier. The guard's
-        // classifier also names the language, which a first message (no
-        // rewrite) or a blocked one would otherwise lack.
+        // The guard check and the rewrite are both small model calls, so they
+        // go out together. The rewrite reads the masked text (masking needs no
+        // model call), never a raw identifier. A blocked message's rewrite is
+        // dropped, so it never reaches the chat model. The guard's classifier
+        // also names the language, which a first message (no rewrite) or a
+        // blocked one would otherwise lack.
         $earlierTurns = $this->earlierTurns($history, $data);
-        $guard = $this->inspectInput($data, $earlierTurns);
-        $rewritten = ($guard->blocked
-            ? RewrittenQueryData::unchanged($guard->text)
-            : $this->queryRewriter->rewrite($guard->text, $earlierTurns)
-        )->orLanguage($guard->language);
+        $guarding = $this->inspectInput($data, $earlierTurns);
+        $rewriting = $this->queryRewriter->rewriteAsync($this->maskedMessage($data), $earlierTurns);
+        $guard = $guarding->wait();
+
+        if ($guard->blocked) {
+            $rewriting->cancel();
+        }
+
+        $rewritten = ($guard->blocked ? RewrittenQueryData::unchanged($guard->text) : $rewriting->wait())
+            ->orLanguage($guard->language);
         // A follow-up message is recorded now. The first message of a new
         // conversation was already recorded when the conversation was created,
         // so its existing id is reused — otherwise the `start` event would
@@ -166,16 +175,25 @@ class TurnContextFactory
     }
 
     /**
-     * Input guardrails. A turn that opts out of guards (evals) gets the
-     * message back untouched.
+     * Input guardrails, sent without waiting. A turn that opts out of guards
+     * (evals) gets the message back untouched.
      *
      * @param  list<array{role: string, content: mixed}>  $earlierTurns
+     * @return PromiseInterface resolving to GuardResultData
      */
-    private function inspectInput(StreamRequestData $data, array $earlierTurns): GuardResultData
+    private function inspectInput(StreamRequestData $data, array $earlierTurns): PromiseInterface
     {
         return $data->guardrailsEnabled
-            ? $this->guardrails->inspectInput($data->agent, $data->message->message, $earlierTurns)
-            : GuardResultData::clean($data->message->message);
+            ? $this->guardrails->inspectInputAsync($data->agent, $data->message->message, $earlierTurns)
+            : Create::promiseFor(GuardResultData::clean($data->message->message));
+    }
+
+    /** The message with personal data masked: the text the guard returns, ready before its AI check is. */
+    private function maskedMessage(StreamRequestData $data): string
+    {
+        return $data->guardrailsEnabled
+            ? $this->guardrails->redactPii($data->agent, $data->message->message)
+            : $data->message->message;
     }
 
     /**

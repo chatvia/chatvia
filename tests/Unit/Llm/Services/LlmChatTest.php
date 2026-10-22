@@ -11,6 +11,7 @@ use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Spectra\Spectra;
 
@@ -123,4 +124,31 @@ it('decodes a structured reply and fails loudly only when asked to', function ()
 
     expect($reply->data)->toBeNull()
         ->and(fn (): array => $reply->requireData())->toThrow(InvalidStructuredReplyException::class);
+});
+
+it('sends async requests at once, each with its tag, and reads the replies later', function (): void {
+    config(['spectra.enabled' => true]);
+    $tags = [];
+    Http::fake(['*' => function (Request $request) use (&$tags) {
+        $tags[] = app(Spectra::class)->startRequest('openai', 'gpt-test')->tags;
+
+        return Http::response(['choices' => [['message' => ['content' => 'reply '.count($tags)]]]]);
+    }]);
+
+    $chat = app(LlmChat::class);
+    $first = $chat->sendAsync(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::Guardrails));
+    $second = $chat->sendAsync(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::FollowUpRewrite));
+
+    // Both went out, each with its own tag, before either reply was read.
+    expect($tags)->toBe([['guardrails'], ['follow-up-rewrite']])
+        ->and($first->wait()->content)->toBe('reply 1')
+        ->and($second->wait()->content)->toBe('reply 2');
+});
+
+it('rejects an async request on an error status, as send() throws', function (): void {
+    Http::fake(['*' => Http::response('upstream error', 500)]);
+
+    $reply = app(LlmChat::class)->sendAsync(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::Guardrails));
+
+    expect(fn () => $reply->wait())->toThrow(RequestException::class);
 });

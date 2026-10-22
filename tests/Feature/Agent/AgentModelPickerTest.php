@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Collection;
+use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -81,3 +82,62 @@ it('sends the generation settings as numbers, even when they are stored as text'
         ->get(route('agents.setup', $this->agent->external_id))
         ->assertInertia(fn (Assert $page): Assert => $page->where('llmSettings.temperature', 0.7));
 });
+
+/** Save the agent's model with this reasoning effort. */
+function ampSaveEffort(User $owner, string $agentId, string $model, string $effort): TestResponse
+{
+    return test()->actingAs($owner)->patch(route('agents.llm.update', $agentId), [
+        'model_external_name' => $model,
+        'temperature' => 1,
+        'top_k' => 0,
+        'top_p' => 1,
+        'presence_penalty' => 0,
+        'frequency_penalty' => 0,
+        'reasoning_effort' => $effort,
+    ]);
+}
+
+it('saves the reasoning effort while the admin lets agents reason', function (): void {
+    config(['chatvia.ai.reasoning.enabled' => true]);
+
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'high')->assertSessionHasNoErrors();
+
+    expect($this->agent->fresh()->settings('reasoning')->get('effort'))->toBe('high');
+});
+
+it('refuses a new effort while the admin does not let agents reason, but keeps the one saved', function (): void {
+    config(['chatvia.ai.reasoning.enabled' => false]);
+
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'medium')
+        ->assertSessionHasErrors(['reasoning_effort' => 'Your admin has turned reasoning off.']);
+
+    // Saved earlier, while reasoning was on: other settings still save.
+    $this->agent->setSetting('effort', 'high', 'reasoning');
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'high')->assertSessionHasNoErrors();
+    ampSaveEffort($this->owner, $this->agent->external_id, $this->other->external_name, 'off')->assertSessionHasNoErrors();
+});
+
+it('tells the setup page the effort and whether reasoning is allowed', function (): void {
+    config(['chatvia.ai.reasoning.enabled' => true]);
+    $this->agent->setSetting('effort', 'low', 'reasoning');
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.setup', $this->agent->external_id))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page): Assert => $page
+            ->where('reasoningEffort', 'low')
+            ->where('reasoningAllowed', true));
+});
+
+it('makes the agent reason only with a reasoning model while the admin allows it', function (bool $allowed, bool $modelReasons, string $expected): void {
+    config(['chatvia.ai.reasoning.enabled' => $allowed]);
+    $this->other->update(['capabilities' => ['reasoning' => $modelReasons]]);
+    $this->agent->forceFill(['llm_id' => $this->other->id])->saveQuietly();
+    $this->agent->setSetting('effort', 'medium', 'reasoning');
+
+    expect($this->agent->fresh()->reasoningEffort()->value)->toBe($expected);
+})->with([
+    'allowed, reasoning model' => [true, true, 'medium'],
+    'not allowed' => [false, true, 'off'],
+    'model does not reason' => [true, false, 'off'],
+]);

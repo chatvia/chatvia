@@ -7,6 +7,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Providers\OpenAi;
 use Domain\Llm\Providers\OpenAiCompatible;
 use Domain\Llm\Providers\OpenRouter;
 use Domain\Llm\Providers\Scaleway;
@@ -51,7 +52,7 @@ it('builds each kind\'s chat client at its own or default address', function (Ll
         ->and(padAdapter($kind)->baseUrl($provider))->toBe($address);
 })->with([
     [LlmProviderKind::OpenRouter, OpenRouter::class, 'https://openrouter.ai/api/v1'],
-    [LlmProviderKind::OpenAi, OpenAiCompatible::class, 'https://api.openai.com/v1'],
+    [LlmProviderKind::OpenAi, OpenAi::class, 'https://api.openai.com/v1'],
     [LlmProviderKind::Google, OpenAiCompatible::class, 'https://generativelanguage.googleapis.com/v1beta/openai'],
     [LlmProviderKind::Groq, OpenAiCompatible::class, 'https://api.groq.com/openai/v1'],
     [LlmProviderKind::Mistral, Mistral::class, 'https://api.mistral.ai/v1'],
@@ -77,7 +78,7 @@ it('reads names, context, prices and features from OpenRouter', function (): voi
             id: 'mistralai/mistral-small',
             name: 'Mistral Small',
             contextWindow: 128_000,
-            features: ['vision' => false, 'function_calling' => true],
+            features: ['vision' => false, 'function_calling' => true, 'reasoning' => false],
         ));
 });
 

@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "URL till integritetspolicy",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Visas för besökare som “Genom att chatta godkänner du vår integritetspolicy.” Lämna tomt för att dölja."
-            }
+            },
+            "reasoning_title": "Resonemang",
+            "reasoning_description": "Hur mycket modellen tänker innan den svarar. Mer tänkande hjälper med svåra frågor, men svaren kommer långsammare och kostar mer. Chattare ser resonemanget i grått ovanför svaret.",
+            "reasoning_off": "Av",
+            "reasoning_low": "Låg",
+            "reasoning_medium": "Medel",
+            "reasoning_high": "Hög",
+            "reasoning_locked": "Din administratör har stängt av resonemang för alla agenter (adminpanelen → Inställningar → AI-modeller)."
         }
     }
 }

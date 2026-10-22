@@ -139,7 +139,9 @@ class EvalAgentRunner
                 modelName: $model->internal_name,
                 llmMessages: $llmMessages,
                 toolDefinitions: $toolDefinitions,
-                extraSettings: $agent->llmSettings(),
+                // The agent's own reasoning effort, so the eval measures
+                // what chatters get; its thinking is never shown here.
+                extraSettings: $model->requestSettings($agent->llmSettings(), $agent->reasoningEffort($model)),
                 startIteration: 0,
                 captureToolCallsOnly: true,
             ),

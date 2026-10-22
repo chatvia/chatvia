@@ -96,11 +96,11 @@ class AnalyticsChatRunner
             $assistantText = '';
             $pending = [];
 
-            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, [
+            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, $model->requestSettings([
                 'temperature' => 0.2,
                 'tools' => $tools,
                 'tool_choice' => 'auto',
-            ]));
+            ])));
 
             yield from $this->consume($response, $assistantId, $assistantText, $pending);
 
@@ -125,11 +125,11 @@ class AnalyticsChatRunner
         // anyway is left in $pending and never run.
         $assistantText = '';
         $pending = [];
-        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, [
+        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, $model->requestSettings([
             'temperature' => 0.2,
             'tools' => $tools,
             'tool_choice' => 'none',
-        ]));
+        ])));
 
         yield from $this->consume($response, $assistantId, $assistantText, $pending);
     }

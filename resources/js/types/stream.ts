@@ -5,7 +5,7 @@
  * `[DONE]` lines. Errors are first-class events, not text content.
  */
 
-export type StreamEventType = 'start' | 'delta' | 'meta' | 'sources' | 'tool' | 'replace' | 'error' | 'done';
+export type StreamEventType = 'start' | 'delta' | 'reasoning' | 'meta' | 'sources' | 'tool' | 'replace' | 'error' | 'done';
 
 export type StreamErrorCode =
     | 'message_limit_reached'
@@ -32,6 +32,11 @@ export interface StreamStartData {
 }
 
 export interface StreamDeltaData {
+    text: string;
+}
+
+/** A piece of the model's thinking, shown apart from the answer and never stored. */
+export interface StreamReasoningData {
     text: string;
 }
 
@@ -144,6 +149,7 @@ interface BaseEnvelope {
 export type StreamEnvelope =
     | (BaseEnvelope & { type: 'start'; data: StreamStartData })
     | (BaseEnvelope & { type: 'delta'; data: StreamDeltaData })
+    | (BaseEnvelope & { type: 'reasoning'; data: StreamReasoningData })
     | (BaseEnvelope & { type: 'meta'; data: StreamMetaData })
     | (BaseEnvelope & { type: 'sources'; data: StreamSourcesData })
     | (BaseEnvelope & { type: 'tool'; data: StreamToolData })
@@ -167,6 +173,7 @@ export interface StreamError {
 export interface StreamCallbacks {
     onStart?: (data: StreamStartData, id: string) => void;
     onDelta?: (text: string, id: string) => void;
+    onReasoning?: (text: string, id: string) => void;
     onMeta?: (key: string, value: unknown, id: string) => void;
     onSources?: (sources: unknown[], id: string) => void;
     onTool?: (data: StreamToolData, id: string) => void;

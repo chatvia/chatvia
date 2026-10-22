@@ -100,6 +100,12 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.agent.history_messages')]
     public ?int $history_messages = null;
 
+    #[ConfigKey('chatvia.ai.reasoning.enabled')]
+    public ?bool $allow_reasoning = null;
+
+    #[ConfigKey('chatvia.ai.models_dev.enabled')]
+    public ?bool $model_facts_lookup = null;
+
     #[ConfigKey('chatvia.ai.models.summary')]
     public ?string $summary_model = null;
 

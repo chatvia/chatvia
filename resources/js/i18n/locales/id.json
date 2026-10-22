@@ -2003,7 +2003,14 @@
             "model_picker_description": "Model AI yang dipakai agen ini untuk menjawab. Admin memilih model mana yang ada di daftar ini (panel admin → Settings → AI models).",
             "model_placeholder": "Pilih model",
             "model_default": "Bawaan",
-            "model_empty": "Belum ada model. Admin menambahkannya di panel admin, di Settings → AI models."
+            "model_empty": "Belum ada model. Admin menambahkannya di panel admin, di Settings → AI models.",
+            "reasoning_title": "Penalaran",
+            "reasoning_description": "Seberapa keras model berpikir sebelum menjawab. Berpikir lebih banyak membantu untuk pertanyaan sulit, tetapi jawaban datang lebih lambat dan biayanya lebih tinggi. Pengguna chat melihat penalaran berwarna abu-abu di atas jawaban.",
+            "reasoning_off": "Mati",
+            "reasoning_low": "Rendah",
+            "reasoning_medium": "Sedang",
+            "reasoning_high": "Tinggi",
+            "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI)."
         },
         "topics_index": {
             "title": "Topik",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Hapus semua"
+    },
+    "reasoning": {
+        "thinking": "Berpikir…",
+        "done": "Penalaran",
+        "show": "Tampilkan penalaran",
+        "hide": "Sembunyikan penalaran"
     }
 }

@@ -316,6 +316,19 @@ return [
             'eval_judge' => null,
         ],
 
+        // Whether agents may reason before they answer (Settings → AI models).
+        // Off: every agent is Off, whatever effort it picked.
+        'reasoning' => [
+            'enabled' => false,
+        ],
+
+        // Whether the app reads each model's facts (does it reason, which
+        // effort values, does it take a temperature) from the models.dev
+        // catalog (Settings → AI models). Off: the admin's switches decide.
+        'models_dev' => [
+            'enabled' => true,
+        ],
+
         'document_parser' => 'auto',
         'reranker' => 'auto',
         'rerank' => [

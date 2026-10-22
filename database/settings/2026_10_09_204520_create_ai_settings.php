@@ -41,6 +41,8 @@ return new class extends SettingsMigration
             $group->add('images_model');
             $group->add('eval_judge_model');
             $group->add('history_messages');
+            $group->add('allow_reasoning');
+            $group->add('model_facts_lookup');
             $group->add('summary_model');
             $group->add('analysis_model');
             $group->add('document_chat_model');

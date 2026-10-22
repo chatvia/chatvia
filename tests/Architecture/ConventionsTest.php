@@ -413,7 +413,8 @@ it('form requests scope exists/unique rules to the workspace', function (): void
 const HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST = [
     // A whitespace-only stream delta (" ", "\n") is real output; filled() drops it.
     'src/Domain/Analytics/Services/Chat/AnalyticsChatRunner.php' => 1,
-    'src/Domain/Conversation/Services/Streaming/Transformers/OpenAiCompatibleTransformer.php' => 1,
+    // The answer's and the thinking's deltas.
+    'src/Domain/Conversation/Services/Streaming/Transformers/OpenAiCompatibleTransformer.php' => 2,
     // An empty list (e.g. no sites) is a real setting value; filled([]) is false.
     'src/App/Http/Requests/Agent/Settings/UpdateAgentSettingsRequest.php' => 1,
 ];

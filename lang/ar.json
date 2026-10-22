@@ -517,5 +517,12 @@
     "Every program needed is found.": "كل البرامج المطلوبة موجودة.",
     "Details": "التفاصيل",
     "Chat memory and cache": "ذاكرة المحادثة والتخزين المؤقت",
-    "Outgoing email": "البريد الصادر"
+    "Outgoing email": "البريد الصادر",
+    "Model details": "تفاصيل النماذج",
+    "From models.dev": "من models.dev",
+    "Switched off in Settings → AI models.": "متوقف في الإعدادات ← نماذج الذكاء الاصطناعي.",
+    "Could not read models.dev.": "تعذّرت قراءة models.dev.",
+    "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "تحتفظ النماذج بمفتاح \"Reasons\" حتى تمكن قراءته. تُعاد المحاولة مرة يوميًا.",
+    "Model details loaded.": "تم تحميل تفاصيل النماذج.",
+    "Models listed": "النماذج المدرجة"
 }

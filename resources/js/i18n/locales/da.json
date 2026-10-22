@@ -2003,7 +2003,14 @@
             "model_picker_description": "Den AI-model, som denne agent svarer med. En administrator vælger, hvilke modeller der er på listen (adminpanelet → Settings → AI models).",
             "model_placeholder": "Vælg en model",
             "model_default": "Standard",
-            "model_empty": "Ingen modeller endnu. En administrator tilføjer dem i adminpanelet under Settings → AI models."
+            "model_empty": "Ingen modeller endnu. En administrator tilføjer dem i adminpanelet under Settings → AI models.",
+            "reasoning_title": "Overvejelser",
+            "reasoning_description": "Hvor meget modellen tænker, før den svarer. Mere tænkning hjælper med svære spørgsmål, men svarene kommer langsommere og koster mere. Chattere ser tankerne i gråt over svaret.",
+            "reasoning_off": "Fra",
+            "reasoning_low": "Lav",
+            "reasoning_medium": "Middel",
+            "reasoning_high": "Høj",
+            "reasoning_locked": "Din administrator har slået overvejelser fra for alle agenter (adminpanel → Indstillinger → AI-modeller)."
         },
         "topics_index": {
             "title": "Emner",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Ryd alle"
+    },
+    "reasoning": {
+        "thinking": "Tænker…",
+        "done": "Overvejelser",
+        "show": "Vis overvejelser",
+        "hide": "Skjul overvejelser"
     }
 }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Domain\Agent\Data\Settings;
 
+use Domain\Llm\Enums\ReasoningEffort;
 use Spatie\LaravelData\Data;
 
 /**
  * The model an agent answers with (by its public name) and the generation
- * settings to store with it.
+ * settings to store with it, including how hard it reasons.
  */
 class UpdateAgentLlmData extends Data
 {
@@ -19,5 +20,6 @@ class UpdateAgentLlmData extends Data
         public float $top_p,
         public float $presence_penalty,
         public float $frequency_penalty,
+        public ReasoningEffort $reasoning_effort = ReasoningEffort::Off,
     ) {}
 }

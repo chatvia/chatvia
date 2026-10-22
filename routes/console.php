@@ -70,6 +70,14 @@ Schedule::command('chatvia:license:check')
     ->withoutOverlapping()
     ->onOneServer();
 
+// Updates each model's facts (reasoning, effort values, temperature) from the
+// models.dev catalog, fetched only when it changed. Spread over the hour like
+// the license check.
+Schedule::command('chatvia:llm:sync-facts')
+    ->dailyAt(sprintf('05:%02d', crc32((string) config('app.url')) % 60))
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // Per-workspace retention (Settings → Security → Retention), only for the
 // workspaces that set a window. Visitor details are cleared after the
 // conversation prune has removed orphan sessions; the analytics sweep runs

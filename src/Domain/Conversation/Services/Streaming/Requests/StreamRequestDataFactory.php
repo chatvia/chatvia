@@ -64,6 +64,7 @@ class StreamRequestDataFactory
             // The sources list under each answer (labels and public links
             // only), when the agent shows it.
             streamSources: $agent->showsSources(),
+            streamReasoning: true,
             ipAddress: $request->ip(),
             country: $request->country(),
             userAgent: $request->userAgent(),
@@ -109,6 +110,7 @@ class StreamRequestDataFactory
             // only), when the agent shows it.
             streamSources: $agent->showsSources(),
             streamLanguage: false,
+            streamReasoning: true,
             source: $isPlayground ? MessageOrigin::Playground->value : null,
             ipAddress: $request->ip(),
             country: $request->country(),

@@ -64,7 +64,8 @@ class StreamedTurnCollector
                     break;
                 case EventType::Meta:
                 case EventType::Tool:
-                    // Tool progress and meta keys have no place in a folded reply.
+                case EventType::Reasoning:
+                    // Tool progress, meta keys and thinking have no place in a folded reply.
                     break;
             }
         }

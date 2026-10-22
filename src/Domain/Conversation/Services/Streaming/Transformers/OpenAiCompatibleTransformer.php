@@ -17,6 +17,12 @@ use RuntimeException;
  * and turns it into envelope events: text deltas, the generation id, and —
  * collected on the {@see ChatContext} — usage and tool calls.
  *
+ * A reasoning model's thinking comes in `delta.reasoning_content` or
+ * `delta.reasoning` (OpenRouter also in `delta.reasoning_details`), or
+ * inline in the reply as a leading `<think>…</think>` block. It never
+ * becomes part of the answer; it is sent as `reasoning` events only when the
+ * turn shows it ({@see ChatContext::$showsReasoning}), and dropped otherwise.
+ *
  * Some open-weight models (Qwen3, Gemma 3, gpt-oss on Chat Completions) write
  * a tool call as JSON in the reply text instead of in `tool_calls`. When
  * tools were offered, text that starts like JSON is held back and, at the
@@ -30,6 +36,10 @@ class OpenAiCompatibleTransformer implements StreamTransformer
     private const string DATA_PREFIX = 'data: ';
 
     private const string END_OF_STREAM = '[DONE]';
+
+    private const string THINK_OPEN = '<think>';
+
+    private const string THINK_CLOSE = '</think>';
 
     public function transform(ResponseInterface $upstream, ChatContext $context): Generator
     {
@@ -123,11 +133,16 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         }
 
         $delta = $chunk['choices'][0]['delta'] ?? [];
+
+        if (is_array($delta)) {
+            yield from $this->reasoning($context, $this->reasoningText($delta));
+        }
+
         $text = $delta['content'] ?? null;
 
         // Not filled(): a whitespace-only delta (" ", "\n") is real output.
         if (is_string($text) && $text !== '') {
-            yield from $this->handleText($context, $state, $text);
+            yield from $this->handleContent($context, $state, $text);
         }
 
         // Tool calls arrive as indexed pieces: the first carries the id and
@@ -140,6 +155,115 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                 }
             }
         }
+    }
+
+    /**
+     * The thinking in a delta's own field: `reasoning_content` (vLLM, LM
+     * Studio, DeepSeek), `reasoning` (OpenRouter, Groq), or else the text and
+     * summary parts of OpenRouter's `reasoning_details`.
+     *
+     * @param  array<array-key, mixed>  $delta
+     */
+    private function reasoningText(array $delta): string
+    {
+        foreach (['reasoning_content', 'reasoning'] as $key) {
+            if (is_string($delta[$key] ?? null) && $delta[$key] !== '') {
+                return $delta[$key];
+            }
+        }
+
+        $parts = is_array($delta['reasoning_details'] ?? null) ? $delta['reasoning_details'] : [];
+
+        return implode('', array_map(
+            fn (mixed $part): string => is_array($part) ? (string) ($part['text'] ?? $part['summary'] ?? '') : '',
+            $parts,
+        ));
+    }
+
+    /**
+     * A `reasoning` event for the client when the turn shows the thinking.
+     * Thinking never joins the streamed answer.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function reasoning(ChatContext $context, string $text): Generator
+    {
+        if ($text !== '' && $context->showsReasoning) {
+            yield StreamEvent::reasoning($context->assistantMessageId, $text);
+        }
+    }
+
+    /**
+     * Reply text, with a leading inline `<think>…</think>` block taken out
+     * as reasoning. A tag split over two chunks is held back until it is
+     * whole, so no part of it reaches the answer.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function handleContent(ChatContext $context, StreamReadState $state, string $text): Generator
+    {
+        if ($state->think === ThinkPhase::Done) {
+            yield from $this->handleText($context, $state, $text);
+
+            return;
+        }
+
+        $state->thinkBuffer .= $text;
+
+        if ($state->think === ThinkPhase::Undecided) {
+            $leading = ltrim($state->thinkBuffer);
+
+            if (str_starts_with($leading, self::THINK_OPEN)) {
+                $state->think = ThinkPhase::Thinking;
+                $state->thinkBuffer = substr($leading, strlen(self::THINK_OPEN));
+            } elseif ($leading === '' || str_starts_with(self::THINK_OPEN, $leading)) {
+                return;
+            } else {
+                $state->think = ThinkPhase::Done;
+                $held = $state->thinkBuffer;
+                $state->thinkBuffer = '';
+
+                yield from $this->handleText($context, $state, $held);
+
+                return;
+            }
+        }
+
+        $close = strpos($state->thinkBuffer, self::THINK_CLOSE);
+
+        if ($close === false) {
+            // Keep back what may be the start of the closing tag.
+            $keep = $this->partialTagLength($state->thinkBuffer, self::THINK_CLOSE);
+            $thought = substr($state->thinkBuffer, 0, strlen($state->thinkBuffer) - $keep);
+            $state->thinkBuffer = substr($state->thinkBuffer, strlen($thought));
+
+            yield from $this->reasoning($context, $thought);
+
+            return;
+        }
+
+        $state->think = ThinkPhase::Done;
+        $answer = ltrim(substr($state->thinkBuffer, $close + strlen(self::THINK_CLOSE)));
+        $thought = substr($state->thinkBuffer, 0, $close);
+        $state->thinkBuffer = '';
+
+        yield from $this->reasoning($context, $thought);
+
+        if ($answer !== '') {
+            yield from $this->handleText($context, $state, $answer);
+        }
+    }
+
+    /** How many of the text's last characters could begin the tag. */
+    private function partialTagLength(string $text, string $tag): int
+    {
+        for ($length = min(strlen($tag) - 1, strlen($text)); $length > 0; $length--) {
+            if (str_ends_with($text, substr($tag, 0, $length))) {
+                return $length;
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -199,6 +323,20 @@ class OpenAiCompatibleTransformer implements StreamTransformer
      */
     private function finalize(ChatContext $context, StreamReadState $state): Generator
     {
+        // A reply that was only the start of "<think>", or a block never
+        // closed: still text and thinking, in that order.
+        if ($state->thinkBuffer !== '') {
+            $rest = $state->thinkBuffer;
+            $state->thinkBuffer = '';
+
+            if ($state->think === ThinkPhase::Thinking) {
+                yield from $this->reasoning($context, $rest);
+            } else {
+                $state->think = ThinkPhase::Done;
+                yield from $this->handleText($context, $state, $rest);
+            }
+        }
+
         if ($state->mode !== ContentMode::HeldAsJson || $state->heldContent === '' || $context->pendingToolCalls !== []) {
             return;
         }

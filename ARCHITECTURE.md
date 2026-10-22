@@ -302,6 +302,12 @@ for every surface, and keeps the chat log.
 - **`Services\Streaming\`**: the answer sources (`LlmSource`, `PdfSource`,
   `QaSource`, `HandoffSource`, `GuardBlockSource`, `ReplaySource`), the parser
   for OpenAI-compatible streams, the SSE event types, request de-duplication.
+  A reasoning model's thinking (`delta.reasoning_content`, `delta.reasoning`,
+  OpenRouter's `reasoning_details`, or a leading inline `<think>` block) never
+  joins the answer: `OpenAiCompatibleTransformer` sends it as `reasoning`
+  events when `ChatContext::$showsReasoning` (a surface that shows it, an
+  effort other than Off, answers not held for the guardrails) and drops it
+  otherwise. It is never stored or replayed.
 - **`Services\Tooling\`**: `ToolLoopRunner` (stream, run tool calls, repeat),
   the approval store and per-turn tool selection.
 - **`Services\Memory\`**: `ChatMemory`, the live chat history in the cache
@@ -399,8 +405,26 @@ what it knows about models the list says little about).
 Nothing outside an adapter branches on the kind; adding a provider is an enum
 case and an adapter class. Every call goes to its model's provider:
 `LlmProviders::for($model)` asks the adapter for the client (`Scaleway`,
-`Mistral`, `OpenRouter`, or `OpenAiCompatible`; all implement
-`LlmProviderInterface`). The app's own calls use a model per `LlmTask` (one
+`Mistral`, `OpenRouter`, `OpenAi`, or `OpenAiCompatible`; all implement
+`LlmProviderInterface`). Model facts come from the models.dev catalog
+(`ModelsDevCatalog`: fetched when it changed, at most daily, never during a
+chat): each added model keeps its entry in `llms.capabilities` (whether it
+reasons, its `reasoning_options` effort values, whether it takes a
+temperature), filled by `AddLlmModelAction` and the daily
+`chatvia:llm:sync-facts` (`SyncLlmFactsAction`, also run on the setup's first
+page and by "Refresh model details"). Nothing is guessed from a model's name.
+Reasoning: the admin lets agents reason (`chatvia.ai.reasoning.enabled`, off
+by default) and `Llm::reasons()` (`capabilities.reasoning`: the catalog's
+for a model it lists, the admin's **Reasons** switch for one it does not)
+says which models agents may make think.
+Each agent picks a `ReasoningEffort` (the `reasoning` settings group);
+`Agent::reasoningEffort()` is Off unless both allow it. `Llm::requestSettings()`
+turns it into a value the model takes (`effortValue()`: Off is its least,
+`none` where it has it) and drops sampling for a model that takes no
+temperature; the tool loop, the app's own tasks (`ChatRequestData`), evals
+and the analytics chat all send that. Providers only move the value into
+their own field (OpenRouter's `reasoning` object); a model the catalog does
+not list gets no effort unless an agent asks for one. The app's own calls use a model per `LlmTask` (one
 case per call: follow-up rewriting, tool picking, guardrails, titles, image
 descriptions…), picked in Settings → AI models and resolved by `TaskModels`:
 the task's model, else the model for quick tasks (`chatvia.ai.tasks.default`),

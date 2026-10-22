@@ -2003,7 +2003,14 @@
             "model_picker_description": "Mô hình AI mà trợ lý AI này dùng để trả lời. Quản trị viên chọn những mô hình có trong danh sách này (trang quản trị → Settings → AI models).",
             "model_placeholder": "Chọn mô hình",
             "model_default": "Mặc định",
-            "model_empty": "Chưa có mô hình nào. Quản trị viên thêm chúng trong trang quản trị, tại Settings → AI models."
+            "model_empty": "Chưa có mô hình nào. Quản trị viên thêm chúng trong trang quản trị, tại Settings → AI models.",
+            "reasoning_title": "Lập luận",
+            "reasoning_description": "Mô hình suy nghĩ nhiều đến đâu trước khi trả lời. Suy nghĩ nhiều hơn giúp với câu hỏi khó, nhưng câu trả lời đến chậm hơn và tốn kém hơn. Người trò chuyện thấy phần lập luận màu xám phía trên câu trả lời.",
+            "reasoning_off": "Tắt",
+            "reasoning_low": "Thấp",
+            "reasoning_medium": "Trung bình",
+            "reasoning_high": "Cao",
+            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI)."
         },
         "topics_index": {
             "title": "Chủ đề",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Xóa tất cả"
+    },
+    "reasoning": {
+        "thinking": "Đang suy nghĩ…",
+        "done": "Lập luận",
+        "show": "Hiện lập luận",
+        "hide": "Ẩn lập luận"
     }
 }

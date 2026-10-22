@@ -2003,7 +2003,14 @@
             "model_picker_description": "The AI model this agent answers with. An admin chooses which models are on this list (admin panel → Settings → AI models).",
             "model_placeholder": "Choose a model",
             "model_default": "Default",
-            "model_empty": "No models yet. An admin adds them in the admin panel, under Settings → AI models."
+            "model_empty": "No models yet. An admin adds them in the admin panel, under Settings → AI models.",
+            "reasoning_title": "Reasoning",
+            "reasoning_description": "How hard the model thinks before it answers. More thinking helps with hard questions, but answers come slower and cost more. Chatters see the thinking in grey above the answer.",
+            "reasoning_off": "Off",
+            "reasoning_low": "Low",
+            "reasoning_medium": "Medium",
+            "reasoning_high": "High",
+            "reasoning_locked": "Your admin has turned reasoning off for all agents (admin panel → Settings → AI models)."
         },
         "topics_index": {
             "title": "Topics",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Clear all"
+    },
+    "reasoning": {
+        "thinking": "Thinking…",
+        "done": "Reasoning",
+        "show": "Show reasoning",
+        "hide": "Hide reasoning"
     }
 }

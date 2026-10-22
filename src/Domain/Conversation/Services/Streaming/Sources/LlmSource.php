@@ -11,6 +11,8 @@ use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\ReasoningEffort;
+use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
 use Generator;
 
@@ -52,6 +54,18 @@ class LlmSource extends ToolLoopSource
     protected function modelName(ChatContext $context): string
     {
         return $context->requestData->message->model->internal_name;
+    }
+
+    protected function model(ChatContext $context): Llm
+    {
+        return $context->requestData->message->model;
+    }
+
+    protected function reasoningEffort(ChatContext $context): ?ReasoningEffort
+    {
+        $model = $context->requestData->message->model;
+
+        return $model->reasons() ? $context->requestData->agent->reasoningEffort($model) : null;
     }
 
     protected function logLabel(): string

@@ -2003,7 +2003,14 @@
             "model_picker_description": "Bu asistanın yanıt verirken kullandığı AI modeli. Bu listede hangi modellerin olacağını bir yönetici seçer (yönetim paneli → Settings → AI models).",
             "model_placeholder": "Bir model seçin",
             "model_default": "Varsayılan",
-            "model_empty": "Henüz model yok. Bir yönetici bunları yönetim panelinde, Settings → AI models altında ekler."
+            "model_empty": "Henüz model yok. Bir yönetici bunları yönetim panelinde, Settings → AI models altında ekler.",
+            "reasoning_title": "Akıl yürütme",
+            "reasoning_description": "Modelin yanıt vermeden önce ne kadar düşüneceği. Daha çok düşünmek zor sorularda yardımcı olur, ancak yanıtlar daha yavaş gelir ve daha pahalıya mal olur. Sohbet edenler, akıl yürütmeyi yanıtın üstünde gri renkte görür.",
+            "reasoning_off": "Kapalı",
+            "reasoning_low": "Düşük",
+            "reasoning_medium": "Orta",
+            "reasoning_high": "Yüksek",
+            "reasoning_locked": "Yöneticiniz tüm ajanlar için akıl yürütmeyi kapattı (yönetim paneli → Ayarlar → Yapay zekâ modelleri)."
         },
         "topics_index": {
             "title": "Konular",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Tümünü temizle"
+    },
+    "reasoning": {
+        "thinking": "Düşünüyor…",
+        "done": "Akıl yürütme",
+        "show": "Akıl yürütmeyi göster",
+        "hide": "Akıl yürütmeyi gizle"
     }
 }

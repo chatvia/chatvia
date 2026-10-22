@@ -1031,6 +1031,9 @@ declare namespace Domain {
                 is_selected: boolean;
             };
         }
+        namespace Enums {
+            export type ReasoningEffort = 'off' | 'low' | 'medium' | 'high';
+        }
     }
     namespace Membership {
         namespace Agent {

@@ -2003,7 +2003,14 @@
             "model_picker_description": "此智能体用来回答的 AI 模型。由管理员决定这个列表中有哪些模型（管理面板 → Settings → AI models）。",
             "model_placeholder": "选择模型",
             "model_default": "默认",
-            "model_empty": "暂无模型。管理员可在管理面板的 Settings → AI models 中添加。"
+            "model_empty": "暂无模型。管理员可在管理面板的 Settings → AI models 中添加。",
+            "reasoning_title": "推理",
+            "reasoning_description": "模型在回答前思考的程度。思考得越多，越能处理难题，但回答会更慢，费用也更高。聊天用户会在回答上方看到灰色的推理过程。",
+            "reasoning_off": "关闭",
+            "reasoning_low": "低",
+            "reasoning_medium": "中",
+            "reasoning_high": "高",
+            "reasoning_locked": "管理员已为所有智能体关闭推理(管理面板 → 设置 → AI 模型)。"
         },
         "topics_index": {
             "title": "主题",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "全部清除"
+    },
+    "reasoning": {
+        "thinking": "正在思考…",
+        "done": "推理过程",
+        "show": "显示推理过程",
+        "hide": "隐藏推理过程"
     }
 }

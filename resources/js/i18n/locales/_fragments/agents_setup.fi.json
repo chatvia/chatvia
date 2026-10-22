@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "Tietosuojakäytännön URL-osoite",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Näytetään kävijöille muodossa “Keskustelemalla hyväksyt tietosuojakäytäntömme.” Jätä tyhjäksi piilottaaksesi."
-            }
+            },
+            "reasoning_title": "Päättely",
+            "reasoning_description": "Kuinka paljon malli miettii ennen vastaamista. Enemmän miettimistä auttaa vaikeissa kysymyksissä, mutta vastaukset tulevat hitaammin ja maksavat enemmän. Keskustelijat näkevät päättelyn harmaana vastauksen yläpuolella.",
+            "reasoning_off": "Pois",
+            "reasoning_low": "Matala",
+            "reasoning_medium": "Keskitaso",
+            "reasoning_high": "Korkea",
+            "reasoning_locked": "Ylläpitäjä on poistanut päättelyn käytöstä kaikilta agenteilta (hallintapaneeli → Asetukset → Tekoälymallit)."
         }
     }
 }

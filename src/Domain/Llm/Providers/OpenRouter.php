@@ -13,6 +13,26 @@ use Illuminate\Support\Facades\Log;
 class OpenRouter extends AbstractLlmProvider
 {
     /**
+     * OpenRouter takes the effort in its own `reasoning` object, the same for
+     * every model. The thinking is left out of the reply unless the turn
+     * shows it.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function preparePayload(array $payload): array
+    {
+        $effort = $payload[self::REASONING_EFFORT] ?? null;
+        unset($payload[self::REASONING_EFFORT]);
+
+        if (is_string($effort)) {
+            $payload['reasoning'] = ['effort' => $effort] + (($payload[self::SHOW_REASONING] ?? false) ? [] : ['exclude' => true]);
+        }
+
+        return $payload;
+    }
+
+    /**
      * Ask OpenRouter to route streamed chat to the fastest upstream host.
      *
      * @param  array<string, mixed>  $payload

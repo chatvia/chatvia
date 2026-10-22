@@ -104,6 +104,10 @@ final readonly class SetupPageProps
             'defaultModel' => $this->models->find(LlmTask::Chat)?->external_name,
             'llmSettings' => $agent->llmSettings(),
             'defaultLlmSettings' => config('model-settings.defaults.'.Agent::class.'.llm_settings'),
+            // The effort the agent picked, and whether the admin lets agents
+            // reason at all (else the picker is shown off and locked).
+            'reasoningEffort' => (string) $agent->settings('reasoning')->get('effort'),
+            'reasoningAllowed' => (bool) config('chatvia.ai.reasoning.enabled'),
 
             'availableLanguages' => config('chatvia.languages'),
 

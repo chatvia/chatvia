@@ -1,22 +1,42 @@
 <script setup lang="ts">
-/** Setup → Model: the model the agent answers with, from the ones an admin made available, and the answer temperature. */
+/**
+ * Setup → Model: the model the agent answers with, from the ones an admin
+ * made available, the answer temperature, and, for a model that reasons,
+ * how hard it thinks first. That last one is locked at Off while the admin
+ * does not let agents reason.
+ */
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
+import type { ReasoningEffort } from '@/composables/agents/setup/useSetupModel';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 type Llm = Domain.Llm.Data.LlmModelData;
 
-defineProps<{
+const props = defineProps<{
     catalog: Llm[];
     defaultModel: string | null;
+    reasoningAllowed: boolean;
 }>();
 
 const { t } = useI18n();
 const { locked, model } = useSetupContext();
 const { form, isSaving, save } = model;
+
+const EFFORTS: ReasoningEffort[] = ['off', 'low', 'medium', 'high'];
+
+const effortLabels = computed<Record<ReasoningEffort, string>>(() => ({
+    off: t('agents.setup.reasoning_off'),
+    low: t('agents.setup.reasoning_low'),
+    medium: t('agents.setup.reasoning_medium'),
+    high: t('agents.setup.reasoning_high'),
+}));
+
+/** Only a model marked as reasoning can be told how hard to think. */
+const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.model_external_name)?.is_reasoning ?? false);
 </script>
 
 <template>
@@ -80,6 +100,25 @@ const { form, isSaving, save } = model;
             </div>
             <p v-if="form.errors.temperature" class="text-destructive text-sm">
                 {{ form.errors.temperature }}
+            </p>
+        </div>
+
+        <div v-if="modelReasons" class="max-w-md space-y-2 border-t pt-6">
+            <h3 class="text-sm font-medium">{{ t('agents.setup.reasoning_title') }}</h3>
+            <p class="text-muted-foreground text-sm">{{ t('agents.setup.reasoning_description') }}</p>
+            <Select v-model="form.reasoning_effort" :disabled="locked || !reasoningAllowed">
+                <SelectTrigger class="w-full" :aria-label="t('agents.setup.reasoning_title')">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem v-for="effort in EFFORTS" :key="effort" :value="effort">
+                        {{ effortLabels[effort] }}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
+            <p v-if="!reasoningAllowed" class="text-muted-foreground text-sm">{{ t('agents.setup.reasoning_locked') }}</p>
+            <p v-if="form.errors.reasoning_effort" class="text-destructive text-sm">
+                {{ form.errors.reasoning_effort }}
             </p>
         </div>
 

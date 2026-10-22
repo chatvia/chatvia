@@ -1,7 +1,8 @@
 /**
  * The Model section: the model the agent answers with (one an admin made
- * available in the admin panel, Settings → AI models) and its answer
- * temperature. The other generation settings are sent back unchanged.
+ * available in the admin panel, Settings → AI models), its answer
+ * temperature, and how hard it reasons (only while the admin lets agents
+ * reason). The other generation settings are sent back unchanged.
  */
 import { update as updateLlm } from '@/routes/agents/llm';
 import { useForm } from '@inertiajs/vue3';
@@ -11,7 +12,9 @@ import { submitSetupForm, type SetupSectionDeps } from './submitSetupForm';
 
 export type LlmSettings = { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
 
-export function useSetupModel({ agentId }: SetupSectionDeps, model: string | null, settings: LlmSettings) {
+export type ReasoningEffort = Domain.Llm.Enums.ReasoningEffort;
+
+export function useSetupModel({ agentId }: SetupSectionDeps, model: string | null, settings: LlmSettings, reasoningEffort: string | null) {
     const { t } = useI18n();
 
     // Numbers, whatever the stored settings hold, so the slider and toFixed() work.
@@ -22,6 +25,7 @@ export function useSetupModel({ agentId }: SetupSectionDeps, model: string | nul
         top_p: Number(settings.top_p),
         presence_penalty: Number(settings.presence_penalty),
         frequency_penalty: Number(settings.frequency_penalty),
+        reasoning_effort: (reasoningEffort ?? 'off') as ReasoningEffort,
     });
     const isSaving = ref(false);
 

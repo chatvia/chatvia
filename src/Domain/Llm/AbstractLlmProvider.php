@@ -3,6 +3,7 @@
 namespace Domain\Llm;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\PendingRequest;
@@ -21,6 +22,20 @@ use Psr\Http\Message\ResponseInterface;
  */
 abstract class AbstractLlmProvider implements LlmProviderInterface
 {
+    /**
+     * The request key for how hard the model thinks: a value the model takes,
+     * chosen by the app from the model's facts ({@see Llm::effortValue()}).
+     * Each provider puts it in its own field in preparePayload().
+     */
+    public const string REASONING_EFFORT = 'reasoning_effort';
+
+    /**
+     * A setting no provider receives: the tool loop sets it when the turn
+     * shows the model's thinking, so a provider that must ask for the
+     * thinking on its own (OpenAI's summaries) asks only then.
+     */
+    public const string SHOW_REASONING = 'show_reasoning';
+
     /**
      * @param  string  $baseUrl  the provider's API address, from its adapter
      * @param  string  $apiKey  the key it calls with, from its adapter (empty for a server without one)
@@ -48,6 +63,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
         ], $settings);
 
         $json = $this->preparePayload($json);
+        unset($json[self::SHOW_REASONING]);
 
         // Force the upstream to emit a final chunk with token usage: the reply's
         // token counts come from it. Caller-provided stream_options keys win.

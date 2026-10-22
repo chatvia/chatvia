@@ -230,7 +230,14 @@
                 "appearance_privacy_url": "URL de la política de privacidad",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Se muestra a los visitantes como “Al chatear, aceptas nuestra política de privacidad.” Déjalo vacío para ocultarlo."
-            }
+            },
+            "reasoning_title": "Razonamiento",
+            "reasoning_description": "Cuánto piensa el modelo antes de responder. Pensar más ayuda con las preguntas difíciles, pero las respuestas llegan más despacio y cuestan más. Los usuarios ven el razonamiento en gris encima de la respuesta.",
+            "reasoning_off": "Desactivado",
+            "reasoning_low": "Bajo",
+            "reasoning_medium": "Medio",
+            "reasoning_high": "Alto",
+            "reasoning_locked": "Tu administrador ha desactivado el razonamiento para todos los agentes (panel de administración → Ajustes → Modelos de IA)."
         }
     }
 }

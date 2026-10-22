@@ -149,6 +149,12 @@ export function useChatStreamTurn({ conversationId, transcript, scroll }: Stream
                 reply.content += text;
                 scroll.scrollWhileStreaming();
             },
+            onReasoning: (text) => {
+                const reply = streamingReply();
+                if (!reply) return;
+                reply.reasoning = (reply.reasoning ?? '') + text;
+                scroll.scrollWhileStreaming();
+            },
             onReplace: (text) => {
                 // An output guardrail corrected the answer.
                 const reply = streamingReply();

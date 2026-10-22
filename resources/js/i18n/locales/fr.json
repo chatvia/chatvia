@@ -2003,7 +2003,14 @@
             "model_picker_description": "Le modèle d'IA avec lequel cet agent répond. Un administrateur choisit les modèles de cette liste (panneau d'administration → Settings → AI models).",
             "model_placeholder": "Choisir un modèle",
             "model_default": "Par défaut",
-            "model_empty": "Aucun modèle pour l'instant. Un administrateur les ajoute dans le panneau d'administration, sous Settings → AI models."
+            "model_empty": "Aucun modèle pour l'instant. Un administrateur les ajoute dans le panneau d'administration, sous Settings → AI models.",
+            "reasoning_title": "Raisonnement",
+            "reasoning_description": "À quel point le modèle réfléchit avant de répondre. Plus de réflexion aide pour les questions difficiles, mais les réponses arrivent plus lentement et coûtent plus cher. Les utilisateurs voient le raisonnement en gris au-dessus de la réponse.",
+            "reasoning_off": "Désactivé",
+            "reasoning_low": "Faible",
+            "reasoning_medium": "Moyen",
+            "reasoning_high": "Élevé",
+            "reasoning_locked": "Votre administrateur a désactivé le raisonnement pour tous les agents (panneau d'administration → Paramètres → Modèles d'IA)."
         },
         "topics_index": {
             "title": "Sujets",
@@ -4157,5 +4164,11 @@
             }
         },
         "clear_all": "Tout effacer"
+    },
+    "reasoning": {
+        "thinking": "Réflexion…",
+        "done": "Raisonnement",
+        "show": "Afficher le raisonnement",
+        "hide": "Masquer le raisonnement"
     }
 }

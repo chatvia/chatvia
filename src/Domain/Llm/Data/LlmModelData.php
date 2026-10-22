@@ -39,7 +39,7 @@ class LlmModelData extends Data
             context_window: $llm->context_window,
             features: $llm->features,
             location: $llm->location,
-            is_reasoning: $llm->is_reasoning,
+            is_reasoning: $llm->reasons(),
             is_selected: $selected,
         );
     }

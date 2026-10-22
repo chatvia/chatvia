@@ -14,14 +14,15 @@ class Mistral extends AbstractLlmProvider
 {
     /**
      * Mistral chat completions rejects `top_k` (error 3051), but the agent's
-     * stored llmSettings always include it.
+     * stored llmSettings always include it. It has no reasoning effort
+     * either: its reasoning models always think.
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
     protected function preparePayload(array $payload): array
     {
-        unset($payload['top_k']);
+        unset($payload['top_k'], $payload[self::REASONING_EFFORT]);
 
         return $payload;
     }

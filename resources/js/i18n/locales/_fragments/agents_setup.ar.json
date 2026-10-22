@@ -247,7 +247,14 @@
                 "appearance_privacy_url": "رابط سياسة الخصوصية",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "يظهر للزوار بصيغة «بالمحادثة، فإنك توافق على سياسة الخصوصية». اتركه فارغًا للإخفاء."
-            }
+            },
+            "reasoning_title": "التفكير",
+            "reasoning_description": "مدى تفكير النموذج قبل أن يجيب. التفكير الأكثر يساعد في الأسئلة الصعبة، لكن الإجابات تأتي أبطأ وتكلف أكثر. يرى المحادثون التفكير باللون الرمادي فوق الإجابة.",
+            "reasoning_off": "إيقاف",
+            "reasoning_low": "منخفض",
+            "reasoning_medium": "متوسط",
+            "reasoning_high": "مرتفع",
+            "reasoning_locked": "أوقف المسؤول التفكير لجميع الوكلاء (لوحة الإدارة ← الإعدادات ← نماذج الذكاء الاصطناعي)."
         }
     }
 }

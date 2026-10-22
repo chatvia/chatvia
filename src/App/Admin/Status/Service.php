@@ -22,6 +22,7 @@ enum Service: string
     case Storage = 'storage';
     case Email = 'email';
     case Programs = 'programs';
+    case ModelDetails = 'model_details';
 
     public function label(): string
     {
@@ -35,6 +36,7 @@ enum Service: string
             self::Storage => __('File storage'),
             self::Email => __('Email'),
             self::Programs => __('Programs'),
+            self::ModelDetails => __('Model details'),
         };
     }
 
@@ -51,6 +53,7 @@ enum Service: string
             self::Storage => __('Uploads and exports'),
             self::Email => __('Outgoing email'),
             self::Programs => __('File readers and PDFs'),
+            self::ModelDetails => __('From models.dev'),
         };
     }
 
@@ -82,6 +85,7 @@ enum Service: string
             self::Storage => Heroicon::ArchiveBox,
             self::Email => Heroicon::Envelope,
             self::Programs => Heroicon::CommandLine,
+            self::ModelDetails => Heroicon::OutlinedSparkles,
         };
     }
 }

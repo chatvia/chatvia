@@ -8,9 +8,10 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Set the agent's single LLM and its hyperparameters. The model lives as a
- * column on the agent itself (`llm_id`); the hyperparameters live in the
- * `llm_settings` settings group.
+ * Set the agent's single LLM, its hyperparameters and its reasoning effort.
+ * The model lives as a column on the agent itself (`llm_id`); the
+ * hyperparameters live in the `llm_settings` settings group, the effort in
+ * `reasoning`.
  */
 class UpdateAgentLlmAction
 {
@@ -26,6 +27,7 @@ class UpdateAgentLlmAction
             $agent->setSetting('top_p', $data->top_p, 'llm_settings');
             $agent->setSetting('presence_penalty', $data->presence_penalty, 'llm_settings');
             $agent->setSetting('frequency_penalty', $data->frequency_penalty, 'llm_settings');
+            $agent->setSetting('effort', $data->reasoning_effort->value, 'reasoning');
         });
     }
 }

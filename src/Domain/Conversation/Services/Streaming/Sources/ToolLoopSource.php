@@ -19,7 +19,10 @@ use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\ReasoningEffort;
+use Domain\Llm\Models\Llm;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
@@ -57,6 +60,26 @@ abstract class ToolLoopSource
 
     /** The provider-side model name for this turn. */
     abstract protected function modelName(ChatContext $context): string;
+
+    /**
+     * How hard the agent asked the model to reason this turn; null when the
+     * model does not reason. Sent as the value the model takes
+     * ({@see Llm::effortValue()}).
+     */
+    protected function reasoningEffort(ChatContext $context): ?ReasoningEffort
+    {
+        return null;
+    }
+
+    /**
+     * This turn's model in the catalog, when it has one: its facts decide
+     * the effort value and the sampling settings sent. Without one, the
+     * agent's settings go as they are and no effort is sent.
+     */
+    protected function model(ChatContext $context): ?Llm
+    {
+        return null;
+    }
 
     /** Short prefix for log lines, e.g. "Chat" or "PDF chat". */
     abstract protected function logLabel(): string;
@@ -197,19 +220,47 @@ abstract class ToolLoopSource
      */
     private function loopThenFinish(ChatContext $context, array $llmMessages, array $toolDefinitions, int $startIteration): Generator
     {
+        $effort = $this->reasoningEffort($context);
+
+        // The output guard never sees the thinking, so it is not shown while
+        // answers are held for it.
+        $context->showsReasoning = $effort instanceof ReasoningEffort
+            && ! $effort->isOff()
+            && $context->requestData->streamReasoning
+            && ! $this->holdsAnswer($context);
+
         $paused = yield from $this->held($context, $this->runner->run(
             context: $context,
             provider: $this->provider($context),
             modelName: $this->modelName($context),
             llmMessages: $llmMessages,
             toolDefinitions: $toolDefinitions,
-            extraSettings: $context->requestData->agent->llmSettings(),
+            extraSettings: $this->requestSettings($context, $effort),
             startIteration: $startIteration,
         ));
 
         if (! $paused) {
             yield from $this->finishTurn($context);
         }
+    }
+
+    /**
+     * The settings the tool loop sends: the agent's own, fitted to the model
+     * (its sampling and effort value), and whether the turn shows the
+     * thinking, for a provider that must ask for it.
+     *
+     * @return array<string, mixed>
+     */
+    private function requestSettings(ChatContext $context, ?ReasoningEffort $effort): array
+    {
+        $settings = $context->requestData->agent->llmSettings();
+        $model = $this->model($context);
+
+        if ($model instanceof Llm) {
+            $settings = $model->requestSettings($settings, $effort ?? ReasoningEffort::Off);
+        }
+
+        return $context->showsReasoning ? [...$settings, AbstractLlmProvider::SHOW_REASONING => true] : $settings;
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
 use App\Admin\Status\Data\ServiceCheckData;
 use App\Admin\Status\Data\ServiceStatusData;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,7 @@ final readonly class ServiceChecks
     public function __construct(
         private HorizonWorkers $horizon,
         private ServerProgramFinder $programs,
+        private ModelsDevCatalog $catalog,
     ) {}
 
     public function check(Service $service): ServiceStatusData
@@ -77,6 +79,7 @@ final readonly class ServiceChecks
                 Service::Storage => $this->storage(),
                 Service::Email => $this->email(),
                 Service::Programs => $this->programs(),
+                Service::ModelDetails => $this->modelDetails(),
             };
         } catch (Throwable $e) {
             return new ServiceStatusData(ServiceState::Down, __('Does not answer.'), hint: Str::limit($e->getMessage(), 200), checks: [
@@ -398,6 +401,32 @@ final readonly class ServiceChecks
             $mailerCheck,
             $from,
             new ServiceCheckData(__('Mail server'), $address),
+        ]);
+    }
+
+    /**
+     * The models.dev catalog each model's facts come from (does it reason,
+     * which effort values, does it take a temperature). Not reaching it
+     * needs a look, never more: models then keep their "Reasons" switch.
+     */
+    private function modelDetails(): ServiceStatusData
+    {
+        if (! filter_var(config('chatvia.ai.models_dev.enabled', true), FILTER_VALIDATE_BOOL)) {
+            return new ServiceStatusData(ServiceState::Off, __('Switched off in Settings → AI models.'), checks: [
+                new ServiceCheckData(__('Model details'), __('Off'), CheckMark::Skipped),
+            ]);
+        }
+
+        $listed = $this->catalog->listedModels();
+
+        if ($listed === 0) {
+            return new ServiceStatusData(ServiceState::Warning, __('Could not read models.dev.'),
+                hint: __('Models keep their "Reasons" switch until it can be read. It is tried again once a day.'),
+                checks: [new ServiceCheckData(__('Reachable'), __('No'), CheckMark::Failed)]);
+        }
+
+        return new ServiceStatusData(ServiceState::Running, __('Model details loaded.'), checks: [
+            new ServiceCheckData(__('Models listed'), Number::format($listed)),
         ]);
     }
 

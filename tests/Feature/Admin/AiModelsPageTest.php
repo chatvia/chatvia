@@ -102,8 +102,38 @@ it('adds a model from a connected provider\'s list', function (): void {
 
     expect($model->provider->kind)->toBe(LlmProviderKind::OpenRouter)
         ->and($model->provider->api_key)->toBeNull()
-        ->and($model->features)->toBe(['vision' => true, 'function_calling' => true])
+        ->and($model->features)->toEqual(['vision' => true, 'function_calling' => true, 'reasoning' => false])
+        ->and($model->reasons())->toBeFalse()
         ->and($model->isAvailable())->toBeTrue();
+});
+
+it('marks a model as reasoning when its provider says so', function (): void {
+    connectAiProviders(AiProvider::OpenRouter);
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [[
+        'id' => 'deepseek/deepseek-r1',
+        'name' => 'DeepSeek R1',
+        'supported_parameters' => ['tools', 'reasoning'],
+    ]]])]);
+
+    modelsPage($this->admin)
+        ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['deepseek/deepseek-r1']])
+        ->assertHasNoActionErrors();
+
+    expect(Llm::query()->where('internal_name', 'deepseek/deepseek-r1')->sole()->reasons())->toBeTrue();
+});
+
+it('lets the admin mark a model models.dev does not list as reasoning, and let agents reason', function (): void {
+    $model = Llm::factory()->create(['capabilities' => ['reasoning' => false]]);
+
+    modelsPage($this->admin)
+        ->assertTableColumnExists('reasons')
+        ->call('updateTableColumnState', 'reasons', (string) $model->getKey(), true)
+        ->fillForm(['allow_reasoning' => true])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($model->refresh()->reasons())->toBeTrue()
+        ->and(savedSetting(AiSettings::class, 'allow_reasoning'))->toBeTrue();
 });
 
 it('adds several models at once', function (): void {

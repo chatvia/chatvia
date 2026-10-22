@@ -12,6 +12,9 @@ enum EventType: string
 {
     case Start = 'start';
     case Delta = 'delta';
+    // A piece of the model's thinking, shown apart from the answer and never
+    // stored. Sent only to surfaces that show it, while the agent reasons.
+    case Reasoning = 'reasoning';
     case Meta = 'meta';
     case Sources = 'sources';
     case Tool = 'tool';

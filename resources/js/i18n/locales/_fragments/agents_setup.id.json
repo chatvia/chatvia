@@ -16,7 +16,14 @@
             "model_placeholder": "Pilih model",
             "model_default": "Bawaan",
             "model_empty": "Belum ada model. Admin menambahkannya di panel admin, di Settings → AI models.",
-            "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget."
+            "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",
+            "reasoning_title": "Penalaran",
+            "reasoning_description": "Seberapa keras model berpikir sebelum menjawab. Berpikir lebih banyak membantu untuk pertanyaan sulit, tetapi jawaban datang lebih lambat dan biayanya lebih tinggi. Pengguna chat melihat penalaran berwarna abu-abu di atas jawaban.",
+            "reasoning_off": "Mati",
+            "reasoning_low": "Rendah",
+            "reasoning_medium": "Sedang",
+            "reasoning_high": "Tinggi",
+            "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI)."
         }
     }
 }

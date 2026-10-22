@@ -33,6 +33,7 @@ use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
+use Domain\Llm\Actions\Catalog\SyncLlmFactsAction;
 use Domain\Llm\Data\Catalog\ModelListData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
@@ -46,6 +47,7 @@ use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
@@ -60,6 +62,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -240,6 +243,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'New agents answer with this model until they pick their own. The analytics assistant uses it too. Empty: the first model on the list.'),
                 $this->withHelp($this->integer('history_messages', 'Messages of history', min: 1, max: 50),
                     'How many recent messages of a conversation an agent reads each time it answers, in typed chats and voice calls. More helps with follow-up questions, but each answer costs more.'),
+                $this->toggle('allow_reasoning', 'Let agents reason',
+                    'Models marked "Reasons" can think before they answer. With this on, each agent picks how hard in its AI model settings: Off, Low, Medium or High. Every agent starts at Off. Chatters see the thinking in grey above the answer, and can fold it away. More thinking gives better answers to hard questions, but they come slower and cost more. OpenAI\'s own API sends a summary of the thinking, once OpenAI has verified your organization. With this off, every agent is at Off.'),
+                $this->toggle('model_facts_lookup', 'Look up model details on models.dev',
+                    'Each model\'s details come from models.dev, an open list of AI models: whether it reasons, how hard it can think, and whether it takes a temperature. The list is read when you add models and once a day, never during a chat. Agents at Off then think as little as their model allows, which makes answers faster. Turn this off on a server without internet access: the "Reasons" switch then decides alone.'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
                 $this->reindexCallout(),
@@ -365,13 +372,25 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ])))
                     ->badge()
                     ->color('gray'),
+                // The catalog decides for a model it lists; for any other
+                // model the admin says whether it reasons.
+                ToggleColumn::make('reasons')
+                    ->label('Reasons')
+                    ->getStateUsing(fn (Llm $record): bool => $record->reasons())
+                    ->updateStateUsing(fn (Llm $record, bool $state) => $record->update([
+                        'capabilities' => [...(array) $record->capabilities, 'reasoning' => $state],
+                    ]))
+                    ->disabled(fn (Llm $record): bool => $this->listedOnModelsDev($record))
+                    ->tooltip(fn (Llm $record): string => $this->listedOnModelsDev($record)
+                        ? 'From models.dev, which lists this model.'
+                        : 'The model thinks before it answers. Agents can set how hard only for these models.'),
                 TextColumn::make('context_window')
                     ->label('Context')
                     ->formatStateUsing(fn (?int $state): string => $state === null ? '' : Number::abbreviate($state).' tokens'),
                 TextColumn::make('agents_count')
                     ->label('Agents'),
             ])
-            ->headerActions([$this->addModelAction()])
+            ->headerActions([$this->refreshFactsAction(), $this->addModelAction()])
             ->recordActions([$this->removeModelAction()])
             ->emptyStateHeading('No models yet')
             ->emptyStateDescription('Connect a provider in AI providers, then add its models here.')
@@ -460,6 +479,33 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $data = $this->getMountedAction()?->getRawData() ?? [];
 
         return filled($data['models'] ?? null) || filled(trim((string) ($data['model_id'] ?? '')));
+    }
+
+    /** Whether models.dev lists the model, so its capabilities come from there. */
+    private function listedOnModelsDev(Llm $record): bool
+    {
+        return app(ModelsDevCatalog::class)->entry($record->provider->kind, $record->internal_name) !== null;
+    }
+
+    /**
+     * Reads each model's details from models.dev again now, instead of
+     * waiting for the daily sync. Shown while the lookup is on.
+     */
+    private function refreshFactsAction(): Action
+    {
+        return Action::make('refreshFacts')
+            ->label('Refresh model details')
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->color('gray')
+            ->visible(fn (): bool => filter_var(config('chatvia.ai.models_dev.enabled', true), FILTER_VALIDATE_BOOL))
+            ->action(function (): void {
+                $result = app(SyncLlmFactsAction::class)->execute();
+
+                Notification::make()->success()
+                    ->title('Model details refreshed')
+                    ->body("{$result->updated} updated. {$result->notListed} not listed on models.dev: their \"Reasons\" switch decides.")
+                    ->send();
+            });
     }
 
     private function removeModelAction(): Action

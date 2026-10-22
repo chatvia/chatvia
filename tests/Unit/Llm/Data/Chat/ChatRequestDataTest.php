@@ -18,14 +18,14 @@ function crdPayload(Llm $model): array
 }
 
 it('asks a reasoning model for its least thinking and no temperature', function (): void {
-    $payload = crdPayload(new Llm(['internal_name' => 'gpt-6-luna', 'capabilities' => modelsDevEntry(['none', 'low', 'medium'], temperature: false)]));
+    $payload = crdPayload(new Llm(['name' => 'gpt-6-luna', 'capabilities' => modelsDevEntry(['none', 'low', 'medium'], temperature: false)]));
 
     expect($payload['reasoning_effort'])->toBe('none')
         ->and($payload)->not->toHaveKey('temperature');
 });
 
 it('sends a model the catalog does not know as it is', function (): void {
-    $payload = crdPayload(new Llm(['internal_name' => 'my-server-model']));
+    $payload = crdPayload(new Llm(['name' => 'my-server-model']));
 
     expect($payload['temperature'])->toBe(0.0)
         ->and($payload)->not->toHaveKey('reasoning_effort');

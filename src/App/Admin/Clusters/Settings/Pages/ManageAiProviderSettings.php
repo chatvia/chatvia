@@ -337,7 +337,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
                     ->label('Model for these agents')
                     ->options(Llm::available()
                         ->reject(fn (Llm $llm): bool => $llm->llm_provider_id === $record->id)
-                        ->mapWithKeys(fn (Llm $llm): array => [$llm->id => "{$llm->descriptive_name} ({$llm->provider->name})"])
+                        ->mapWithKeys(fn (Llm $llm): array => [$llm->id => "{$llm->name} ({$llm->provider->name})"])
                         ->all())
                     ->required()
                     ->native(false),

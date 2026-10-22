@@ -150,7 +150,7 @@ it('adds, changes and removes a server of your own', function (): void {
     expect($server->fresh()->name)->toBe('Ollama')
         ->and($server->fresh()->api_key)->toBe('local-key');
 
-    $model = Llm::factory()->for($server, 'provider')->create(['internal_name' => 'llama3.1:8b']);
+    $model = Llm::factory()->for($server, 'provider')->create(['name' => 'llama3.1:8b']);
     $other = testLlm('other-model');
     $agent = createAgent($this->admin, ['llm_id' => $model->id]);
 

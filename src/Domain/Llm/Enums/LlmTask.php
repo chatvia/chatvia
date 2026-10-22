@@ -59,7 +59,7 @@ enum LlmTask: string
         };
     }
 
-    /** The config key that holds the task's model alias (`llms.external_name`). */
+    /** The config key that holds the task's model (its `llms.id`, as text). */
     public function configKey(): string
     {
         return match ($this) {

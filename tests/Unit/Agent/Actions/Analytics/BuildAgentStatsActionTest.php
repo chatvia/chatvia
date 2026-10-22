@@ -22,7 +22,7 @@ function basRollup(Agent $agent, string $hour, int $replies, int $conversations)
         'workspace_id' => $agent->workspace_id,
         'bucket_hour' => $hour,
         'country_code' => '--',
-        'llm_external_name' => 'test-model',
+        'llm_id' => 0,
         'user_messages' => $replies,
         'assistant_messages' => $replies,
         'conversations_started' => $conversations,

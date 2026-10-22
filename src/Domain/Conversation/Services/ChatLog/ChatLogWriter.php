@@ -14,7 +14,6 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
-use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -126,12 +125,6 @@ class ChatLogWriter
         $trashed->restore();
     }
 
-    /** The catalog id of the model a message names, or null when unknown. */
-    public function llmId(?string $model): ?int
-    {
-        return $model ? Llm::catalog()->firstWhere('external_name', $model)?->id : null;
-    }
-
     /**
      * Tell analytics a message was stored. The analytics side works out
      * whether it starts a conversation and buckets it by the session's
@@ -147,7 +140,7 @@ class ChatLogWriter
             $turn->external_message_id,
             $turn->external_session_id,
             $message->role->value,
-            $turn->model ?: null,
+            $turn->llm_id,
             $session->country?->code,
             $message->response_time_ms,
             $message->prompt_tokens,

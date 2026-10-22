@@ -31,7 +31,7 @@ class MessageSent
         public readonly string $messageExternalId,
         public readonly string $sessionExternalId,
         public readonly string $role,
-        public readonly ?string $llmExternalName,
+        public readonly ?int $llmId,
         public readonly ?string $countryCode,
         public readonly ?int $responseTimeMs,
         public readonly ?int $promptTokens,

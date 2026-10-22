@@ -392,8 +392,8 @@ OpenAI, Mistral, Google Gemini, Groq, Cohere, Jina, Azure Document
 Intelligence), whose `capabilities()` say what it does here (chat,
 embeddings, speech, documents, reranking). The key serves everything the
 provider does. Chat models are added in Settings → AI models to the catalog
-(`Llm`, `llms`: one model on one provider, with an alias in `external_name`
-that agents and settings store). Their provider row (`LlmProvider`,
+(`Llm`, `llms`: one model on one provider, named as the provider names it;
+agents, settings, messages and analytics refer to it by its id). Their provider row (`LlmProvider`,
 `llm_providers`) holds no key or address: it calls with its account's. Only
 a server of your own (`custom`, several allowed) keeps its address, key and
 headers on its row; a CHECK constraint keeps it that way. Each kind has one

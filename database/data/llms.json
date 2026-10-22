@@ -1,12 +1,6 @@
 [
     {
-        "internal_name": "qwen3.6-35b-a3b",
-        "external_name": "qwen3",
-        "descriptive_name": "Qwen3",
-        "description": "Qwen's flagship model. Exceptional performance across all tasks with massive context.",
-        "context_window": 250000,
-        "icon": "qwen.svg",
-        "location": "eu",
+        "name": "qwen3.6-35b-a3b",
         "reasoning": true,
         "provider": "scaleway"
     }

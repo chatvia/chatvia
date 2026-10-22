@@ -362,7 +362,6 @@ export function useChatLog() {
             prompt_tokens: null,
             completion_tokens: null,
             llm_name: null,
-            llm_icon: null,
             created_at: event.timestamp || new Date().toISOString(),
             agent_question_answer_id: null,
             artifacts: event.artifacts ?? null,

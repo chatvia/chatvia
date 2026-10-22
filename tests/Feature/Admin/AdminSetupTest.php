@@ -350,15 +350,14 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->assertHasNoFormErrors()
         ->assertRedirect(Filament::getUrl());
 
-    $model = Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->sole();
+    $model = Llm::query()->whereKey(savedSetting(AiSettings::class, 'default_agent_model'))->sole();
     $provider = $model->provider;
 
     expect($provider->kind)->toBe(LlmProviderKind::Scaleway)
         ->and(LlmProvider::query()->where('kind', LlmProviderKind::Scaleway)->count())->toBe(1)
         ->and($provider->api_key)->toBeNull()
         ->and($provider->base_url)->toBeNull()
-        ->and($model->internal_name)->toBe('mistral-small-3.2-24b-instruct-2506')
-        ->and($model->context_window)->toBe(128_000)
+        ->and($model->name)->toBe('mistral-small-3.2-24b-instruct-2506')
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-test')
         // The default embedding service and model stay unsaved.
         ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBeNull()
@@ -367,8 +366,8 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->and($model->isAvailable())->toBeTrue()
         // The recommended small model does the quick tasks; the tasks that
         // need a large model use the chat model (here the same one).
-        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe('mistral-small-3.2-24b-instruct-2506')
-        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe($model->external_name)
+        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe((string) $model->id)
+        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe((string) $model->id)
         ->and(savedSetting(AiSettings::class, 'guardrails_model'))->toBeNull()
         // It gets the default model.
         ->and($agent->refresh()->llm_id)->toBe($model->id);
@@ -399,11 +398,10 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    $model = Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->sole();
+    $model = Llm::query()->whereKey(savedSetting(AiSettings::class, 'default_agent_model'))->sole();
 
     expect($model->provider->kind)->toBe(LlmProviderKind::OpenRouter)
-        ->and($model->descriptive_name)->toBe('Llama 4 Maverick')
-        ->and($model->features)->toBe(['vision' => true, 'function_calling' => true])
+        ->and($model->name)->toBe('meta-llama/llama-4-maverick')
         ->and(savedSetting(AiProviderSettings::class, 'openrouter_api_key'))->toBe('sk-or-test')
         ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('openrouter')
         ->and(savedSetting(AiSettings::class, 'openrouter_embedding_model'))->toBe('qwen/qwen3-embedding-8b')
@@ -628,7 +626,7 @@ it('adds a server of your own and takes a typed model name when it lists none', 
     expect($server->name)->toBe('Office Ollama')
         ->and($server->base_url)->toBe('http://ollama.test:11434/v1')
         ->and($server->api_key)->toBeNull()
-        ->and($server->llms()->sole()->internal_name)->toBe('llama3.1:8b');
+        ->and($server->llms()->sole()->name)->toBe('llama3.1:8b');
 });
 
 it('keeps the embedding service once sources are trained', function (): void {
@@ -658,10 +656,10 @@ it('lets agents use several chat models, one of them the default', function (): 
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    $added = Llm::query()->whereIn('internal_name', ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506'])->where('is_enabled', true)->get();
+    $added = Llm::query()->whereIn('name', ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506'])->where('is_enabled', true)->get();
 
     expect($added)->toHaveCount(2)
-        ->and(Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->value('internal_name'))->toBe('mistral-small-3.2-24b-instruct-2506');
+        ->and(Llm::query()->whereKey(savedSetting(AiSettings::class, 'default_agent_model'))->value('name'))->toBe('mistral-small-3.2-24b-instruct-2506');
 });
 
 it('reads documents with Azure, with its key and endpoint checked', function (): void {

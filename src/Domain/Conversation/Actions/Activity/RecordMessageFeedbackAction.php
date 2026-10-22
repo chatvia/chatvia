@@ -58,7 +58,7 @@ class RecordMessageFeedbackAction
             Message::query()->where('external_id', $messageId)->update(['feedback' => $value]);
 
             if ($message->feedback !== $value) {
-                $this->announce($conversationId, $messageId, $value, $message->model);
+                $this->announce($conversationId, $messageId, $value, $message->llm_id);
             }
         }
 
@@ -93,7 +93,7 @@ class RecordMessageFeedbackAction
      * Fire FeedbackGiven with the analytics dimensions of the message. One
      * small join; ratings are rare.
      */
-    private function announce(string $conversationExternalId, string $messageExternalId, ?string $value, ?string $llmExternalName): void
+    private function announce(string $conversationExternalId, string $messageExternalId, ?string $value, ?int $llmId): void
     {
         $dimensions = DB::table('chat_messages as m')
             ->join('chat_conversations as c', 'c.id', '=', 'm.chat_conversation_id')
@@ -115,7 +115,7 @@ class RecordMessageFeedbackAction
             $conversationExternalId,
             $messageExternalId,
             $value,
-            $llmExternalName,
+            $llmId,
             $dimensions->country_code,
             now()->toDateTimeImmutable(),
         );

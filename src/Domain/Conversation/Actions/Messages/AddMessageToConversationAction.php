@@ -63,7 +63,7 @@ class AddMessageToConversationAction
             content: $turn->message,
             type: MessageData::TYPE_TEXT,
             timestamp: now()->timestamp,
-            model: $turn->model,
+            llm_id: $turn->llm_id,
             language: $turn->language,
             message_for_llm: $isUserTurn ? $turn->message_for_llm : null,
             has_llm_found_answer: $isUserTurn ? null : $turn->has_llm_found_answer,

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Http;
  * language.
  */
 beforeEach(function (): void {
-    config(['chatvia.ai.tasks.enhancement' => testLlm('smart-model')->external_name]);
+    config(['chatvia.ai.tasks.enhancement' => (string) testLlm('smart-model')->id]);
 });
 
 function chunkerResponse(?array $usage): array
@@ -44,7 +44,7 @@ it('returns the summary, questions and model of the enhancement call', function 
 
     expect($chunk->summary)->toBe('A page about oceans.')
         ->and($chunk->questions)->toBe(['q1', 'q2', 'q3', 'q4', 'q5'])
-        ->and($chunk->model)->toBe(config('chatvia.ai.tasks.enhancement'));
+        ->and($chunk->model)->toBe('smart-model');
 
     Http::assertSent(fn (Request $request): bool => $request['model'] === 'smart-model');
 });

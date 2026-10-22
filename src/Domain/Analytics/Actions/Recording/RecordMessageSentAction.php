@@ -60,7 +60,7 @@ class RecordMessageSentAction
             'chatter_id' => $message->chatterId,
             'event_type' => AnalyticsEventType::MessageSent->value,
             'role' => $message->role,
-            'llm_external_name' => $message->llmExternalName,
+            'llm_id' => $message->llmId,
             'country_code' => $message->countryCode,
             'response_time_ms' => $message->responseTimeMs,
             'prompt_tokens' => $message->promptTokens,
@@ -132,7 +132,7 @@ class RecordMessageSentAction
 
         $db->statement(<<<'SQL'
             INSERT INTO analytics_agent_hourly_rollups (
-                agent_id, workspace_id, bucket_hour, country_code, llm_external_name,
+                agent_id, workspace_id, bucket_hour, country_code, llm_id,
                 conversations_started,
                 user_messages, assistant_messages,
                 prompt_tokens, completion_tokens, total_tokens,
@@ -144,7 +144,7 @@ class RecordMessageSentAction
                 ?, ?, ?,
                 ?, ?
             )
-            ON CONFLICT (agent_id, bucket_hour, country_code, llm_external_name) DO UPDATE SET
+            ON CONFLICT (agent_id, bucket_hour, country_code, llm_id) DO UPDATE SET
                 conversations_started = analytics_agent_hourly_rollups.conversations_started + EXCLUDED.conversations_started,
                 user_messages         = analytics_agent_hourly_rollups.user_messages         + EXCLUDED.user_messages,
                 assistant_messages    = analytics_agent_hourly_rollups.assistant_messages    + EXCLUDED.assistant_messages,
@@ -158,7 +158,7 @@ class RecordMessageSentAction
             $message->workspaceId,
             $message->occurredAt,
             $message->countryCode ?? config('chatvia.analytics.unknown_country_code'),
-            $message->llmExternalName ?? config('chatvia.analytics.unknown_llm_external_name'),
+            $message->llmId ?? 0,
             $startsConversation ? 1 : 0,
             $message->isFromVisitor() ? 1 : 0,
             $message->isFromAssistant() ? 1 : 0,

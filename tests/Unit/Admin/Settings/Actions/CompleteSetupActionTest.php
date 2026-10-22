@@ -43,8 +43,8 @@ function completeSetupData(array $overrides = []): SetupData
         'chatKind' => LlmProviderKind::Scaleway,
         'apiKey' => 'scw-key',
         'chatModels' => [
-            new RemoteModelData(id: 'gpt-oss-120b', name: 'GPT OSS 120B', contextWindow: 128_000),
-            new RemoteModelData(id: 'mistral-small', name: 'Mistral Small', contextWindow: 32_000),
+            new RemoteModelData(id: 'gpt-oss-120b', name: 'GPT OSS 120B'),
+            new RemoteModelData(id: 'mistral-small', name: 'Mistral Small'),
         ],
         'defaultModel' => 'mistral-small',
         ...$overrides,
@@ -57,11 +57,11 @@ it('saves the key once, adds the chat models with the default, and marks the set
 
     $default = app(CompleteSetupAction::class)->execute(completeSetupData());
 
-    expect($default->internal_name)->toBe('mistral-small')
+    expect($default->name)->toBe('mistral-small')
         ->and($default->provider->kind)->toBe(LlmProviderKind::Scaleway)
-        ->and(Llm::query()->whereIn('internal_name', ['gpt-oss-120b', 'mistral-small'])->where('is_enabled', true)->count())->toBe(2)
+        ->and(Llm::query()->whereIn('name', ['gpt-oss-120b', 'mistral-small'])->where('is_enabled', true)->count())->toBe(2)
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-key')
-        ->and(savedSetting(AiSettings::class, 'default_agent_model'))->toBe($default->external_name)
+        ->and(savedSetting(AiSettings::class, 'default_agent_model'))->toBe((string) $default->id)
         ->and(savedSetting(PlatformSettings::class, 'setup_status'))->toBe('completed')
         // An agent made before any model was added gets the default one.
         ->and($agent->fresh()->llm_id)->toBe($default->id);
@@ -72,12 +72,12 @@ it('adds the model for quick tasks and gives the large tasks the default model',
         'quickTaskModel' => new RemoteModelData(id: 'qwen3.6-35b-a3b', name: 'Qwen3.6 35B'),
     ]));
 
-    $quick = Llm::query()->where('internal_name', 'qwen3.6-35b-a3b')->sole();
+    $quick = Llm::query()->where('name', 'qwen3.6-35b-a3b')->sole();
 
     expect($quick->llm_provider_id)->toBe($default->llm_provider_id)
-        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe($quick->external_name)
-        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe($default->external_name)
-        ->and(savedSetting(AiSettings::class, 'translation_model'))->toBe($default->external_name)
+        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe((string) $quick->id)
+        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe((string) $default->id)
+        ->and(savedSetting(AiSettings::class, 'translation_model'))->toBe((string) $default->id)
         ->and(savedSetting(AiSettings::class, 'guardrails_model'))->toBeNull();
 });
 
@@ -86,7 +86,7 @@ it('describes images with the model that reads them, and turns image description
         'visionModel' => new RemoteModelData(id: 'mistral-small-3.2-24b-instruct-2506', name: 'Mistral Small', features: ['vision' => true]),
     ]));
 
-    expect(savedSetting(AiSettings::class, 'images_model'))->toBe('mistral-small-3.2-24b-instruct-2506')
+    expect(savedSetting(AiSettings::class, 'images_model'))->toBe((string) Llm::query()->where('name', 'mistral-small-3.2-24b-instruct-2506')->value('id'))
         // On is the default, so it stays unsaved.
         ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeNull();
 
@@ -106,7 +106,7 @@ it('leaves the task models unset without a model for quick tasks', function (): 
 it('makes the first model the default when the named one is not among them', function (): void {
     $default = app(CompleteSetupAction::class)->execute(completeSetupData(['defaultModel' => 'not-picked']));
 
-    expect($default->internal_name)->toBe('gpt-oss-120b');
+    expect($default->name)->toBe('gpt-oss-120b');
 });
 
 it('turns the services left at "Not now" off and leaves the reranker, storage and mail as they are', function (): void {
@@ -192,5 +192,5 @@ it('refuses a server of your own without its address, and saves nothing', functi
         ->toThrow(InvalidArgumentException::class, 'A server of your own needs its address.');
 
     expect(savedSetting(PlatformSettings::class, 'setup_status'))->toBeNull()
-        ->and(Llm::query()->where('internal_name', 'gpt-oss-120b')->exists())->toBeFalse();
+        ->and(Llm::query()->where('name', 'gpt-oss-120b')->exists())->toBeFalse();
 });

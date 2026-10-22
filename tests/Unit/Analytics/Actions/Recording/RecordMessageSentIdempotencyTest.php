@@ -30,7 +30,7 @@ function rmsRecord(int $agentId, string $convId, string $msgId, string $sessionI
         messageExternalId: $msgId,
         sessionExternalId: $sessionId,
         role: 'assistant',
-        llmExternalName: 'qwen3',
+        llmId: 7,
         countryCode: 'DE',
         responseTimeMs: 850,
         promptTokens: 100,

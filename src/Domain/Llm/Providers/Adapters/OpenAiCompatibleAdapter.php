@@ -159,29 +159,26 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
     }
 
     /**
-     * One listed model, with the fields an OpenAI-style list may carry: a
-     * name, and the context size under one of its common names.
+     * One listed model, with its name when the list gives one.
      *
      * @param  array<string, mixed>  $row
      */
     protected function toModel(array $row): RemoteModelData
     {
         $id = $this->modelId($row);
-        $context = $row['context_length'] ?? $row['context_window'] ?? $row['max_model_len'] ?? null;
 
         return new RemoteModelData(
             id: $id,
             name: is_string($row['name'] ?? null) && filled($row['name']) ? $row['name'] : $id,
-            contextWindow: is_numeric($context) ? (int) $context : null,
         );
     }
 
     /**
      * What the adapter knows about models whose list says little, by id:
-     * `chat` (false for embedding or speech models), `context`, `vision`,
+     * `chat` (false for embedding or speech models), `vision`,
      * `function_calling`. Fills only what the list left empty.
      *
-     * @return array<string, array{chat?: bool, context?: int, vision?: bool, function_calling?: bool}>
+     * @return array<string, array{chat?: bool, vision?: bool, function_calling?: bool}>
      */
     protected function knownModels(): array
     {
@@ -189,7 +186,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
     }
 
     /**
-     * @param  array{chat?: bool, context?: int, vision?: bool, function_calling?: bool}|null  $known
+     * @param  array{chat?: bool, vision?: bool, function_calling?: bool}|null  $known
      */
     private function withKnown(RemoteModelData $model, ?array $known): RemoteModelData
     {
@@ -200,7 +197,6 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
         return new RemoteModelData(
             id: $model->id,
             name: $model->name,
-            contextWindow: $model->contextWindow ?? $known['context'] ?? null,
             features: $model->features + array_filter(
                 ['vision' => $known['vision'] ?? null, 'function_calling' => $known['function_calling'] ?? null],
                 is_bool(...),

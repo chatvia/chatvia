@@ -220,6 +220,11 @@ theme.
   guessed from a model's name any more. A model that is not asked to reason
   (the app's own checks, or an agent at Off) thinks as little as it can, so
   answers and guardrail checks start sooner.
+- **A model keeps only what is needed**: its provider, its name at that
+  provider, its details from models.dev and whether it is on. Agents,
+  settings, messages and analytics point at it by its id, so the same model
+  can come from two providers. Its description, icon, context size,
+  features and location are gone; the pickers show its name and provider.
 - Agents get up to 5 parts of their sources per question (was 3), within a
   token budget (**Settings → Knowledge**).
 - The text of a search result keeps its line breaks and the words inside

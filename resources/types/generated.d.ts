@@ -221,7 +221,6 @@ declare namespace Domain {
                             prompt_tokens: number | null;
                             completion_tokens: number | null;
                             llm_name: string | null;
-                            llm_icon: string | null;
                             created_at: string;
                             agent_question_answer_id: number | null;
                             artifacts:
@@ -1019,14 +1018,9 @@ declare namespace Domain {
     namespace Llm {
         namespace Data {
             export type LlmModelData = {
-                id: string;
-                internal_id: string;
+                id: number;
                 name: string;
-                description: string | null;
-                icon: string | null;
-                context_window: number | null;
-                features: Record<string, boolean>;
-                location: string | null;
+                provider: string;
                 is_reasoning: boolean;
                 is_selected: boolean;
             };

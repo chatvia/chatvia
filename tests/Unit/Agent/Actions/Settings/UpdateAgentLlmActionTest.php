@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * UpdateAgentLlmAction sets the agent's single model (the `llm_id` column,
- * resolved from the model's external_name) plus its five hyperparameters (stored
+ * by its catalog id) plus its five hyperparameters (stored
  * in the `llm_settings` settings group) — all inside one transaction. The model
- * is resolved with valueOrFail(), so an unknown external_name aborts before any
+ * is resolved with valueOrFail(), so an unknown model id aborts before any
  * write rather than pointing the agent at a non-existent model.
  */
 beforeEach(function (): void {
@@ -20,10 +20,10 @@ beforeEach(function (): void {
 });
 
 it('points the agent at the model resolved from its external name', function (): void {
-    $llm = Llm::factory()->create(['external_name' => 'qwen3-32b']);
+    $llm = Llm::factory()->create(['name' => 'qwen3-32b']);
 
     app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
-        model_external_name: 'qwen3-32b',
+        model_id: $llm->id,
         temperature: 0.2,
         top_k: 40,
         top_p: 0.9,
@@ -34,14 +34,14 @@ it('points the agent at the model resolved from its external name', function ():
     $this->agent->refresh();
 
     expect($this->agent->llm_id)->toBe($llm->id)
-        ->and($this->agent->llm->external_name)->toBe('qwen3-32b');
+        ->and($this->agent->llm->name)->toBe('qwen3-32b');
 });
 
 it('persists every hyperparameter into the llm_settings group', function (): void {
-    Llm::factory()->create(['external_name' => 'qwen3-32b']);
+    $llm = Llm::factory()->create(['name' => 'qwen3-32b']);
 
     app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
-        model_external_name: 'qwen3-32b',
+        model_id: $llm->id,
         temperature: 0.2,
         top_k: 40,
         top_p: 0.9,
@@ -68,11 +68,11 @@ it('persists every hyperparameter into the llm_settings group', function (): voi
 });
 
 it('overwrites a previously chosen model and its settings', function (): void {
-    Llm::factory()->create(['external_name' => 'qwen3-8b']);
-    $bigger = Llm::factory()->create(['external_name' => 'qwen3-72b']);
+    $small = Llm::factory()->create(['name' => 'qwen3-8b']);
+    $bigger = Llm::factory()->create(['name' => 'qwen3-72b']);
 
     app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
-        model_external_name: 'qwen3-8b',
+        model_id: $small->id,
         temperature: 1.0,
         top_k: 0,
         top_p: 1.0,
@@ -81,7 +81,7 @@ it('overwrites a previously chosen model and its settings', function (): void {
     ));
 
     app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
-        model_external_name: 'qwen3-72b',
+        model_id: $bigger->id,
         temperature: 0.5,
         top_k: 20,
         top_p: 0.8,
@@ -101,7 +101,7 @@ it('throws and changes nothing when the model external name is unknown', functio
     $originalLlmId = $this->agent->llm_id;
 
     expect(fn () => app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
-        model_external_name: 'model-that-does-not-exist',
+        model_id: 999_999,
         temperature: 0.2,
         top_k: 40,
         top_p: 0.9,
@@ -118,10 +118,10 @@ it('throws and changes nothing when the model external name is unknown', functio
 });
 
 it('stores the reasoning effort in the reasoning group', function (): void {
-    Llm::factory()->create(['external_name' => 'qwen3-32b']);
+    $llm = Llm::factory()->create(['name' => 'qwen3-32b']);
 
     app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
-        model_external_name: 'qwen3-32b',
+        model_id: $llm->id,
         temperature: 0.2,
         top_k: 40,
         top_p: 0.9,

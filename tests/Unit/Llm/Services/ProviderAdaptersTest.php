@@ -77,7 +77,6 @@ it('reads names, context, prices and features from OpenRouter', function (): voi
         ->and($models['mistralai/mistral-small'])->toEqual(new RemoteModelData(
             id: 'mistralai/mistral-small',
             name: 'Mistral Small',
-            contextWindow: 128_000,
             features: ['vision' => false, 'function_calling' => true, 'reasoning' => false],
         ));
 });
@@ -89,7 +88,6 @@ it('reads the capabilities Mistral reports and drops its embedding models', func
     ]);
 
     expect(array_keys($models))->toBe(['mistral-large-latest'])
-        ->and($models['mistral-large-latest']->contextWindow)->toBe(131_072)
         ->and($models['mistral-large-latest']->features)->toBe(['vision' => false, 'function_calling' => true]);
 });
 
@@ -102,9 +100,8 @@ it('fills in what Scaleway\'s bare list leaves out, and drops its non-chat model
     ]);
 
     expect(array_keys($models))->toBe(['a-model-scaleway-added-later', 'mistral-small-3.2-24b-instruct-2506'])
-        ->and($models['mistral-small-3.2-24b-instruct-2506']->contextWindow)->toBe(128_000)
         ->and($models['mistral-small-3.2-24b-instruct-2506']->features)->toBe(['vision' => true, 'function_calling' => true])
-        ->and($models['a-model-scaleway-added-later']->contextWindow)->toBeNull();
+        ->and($models['a-model-scaleway-added-later']->features)->toBe([]);
 });
 
 it('lists a Scaleway project at its own address', function (): void {
@@ -123,10 +120,6 @@ it('keeps only the chat models of a bare list, named as chat calls take them', f
     'openai drops speech' => [LlmProviderKind::OpenAi, [['id' => 'gpt-chat'], ['id' => 'whisper-1'], ['id' => 'tts-1']], ['gpt-chat']],
     'groq drops whisper' => [LlmProviderKind::Groq, [['id' => 'llama-3.3-70b-versatile', 'context_window' => 131_072], ['id' => 'whisper-large-v3-turbo']], ['llama-3.3-70b-versatile']],
 ]);
-
-it('reads the context size a vLLM server lists', function (): void {
-    expect(padListedModels(LlmProviderKind::Custom, [['id' => 'qwen3:8b', 'max_model_len' => 32_768]])['qwen3:8b']->contextWindow)->toBe(32_768);
-});
 
 it('fails on a refused key', function (): void {
     Http::fake(['*' => Http::response(['error' => 'unauthorized'], 401)]);
@@ -161,16 +154,16 @@ it('calls with the key and address of the provider\'s account', function (): voi
         ->and(padAdapter(LlmProviderKind::Custom)->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
 });
 
-it('adds a model to the catalog under a unique alias', function (): void {
+it('adds a model under its provider\'s id, once per provider', function (): void {
     $first = LlmProvider::factory()->create();
     $second = LlmProvider::factory()->create();
     $add = app(AddLlmModelAction::class);
 
-    $one = $add->execute($first, new RemoteModelData('shared-model', 'Shared model', contextWindow: 32_000));
+    $one = $add->execute($first, new RemoteModelData('shared-model', 'Shared model'));
     $two = $add->execute($second, new RemoteModelData('shared-model', 'Shared model'));
 
-    expect($one->external_name)->toBe('shared-model')
-        ->and($one->context_window)->toBe(32_000)
-        ->and($two->external_name)->toBe("shared-model-{$second->id}")
+    expect($one->name)->toBe('shared-model')
+        ->and($two->name)->toBe('shared-model')
+        ->and($two->is($one))->toBeFalse()
         ->and($add->execute($first, new RemoteModelData('shared-model', 'Renamed'))->is($one))->toBeTrue();
 });

@@ -46,13 +46,12 @@ class LlmSeeder extends Seeder
             // (Settings → AI providers).
             $provider = app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::from($llm['provider'] ?? 'scaleway'));
 
-            $llm['features'] = [];
             // Replaced by the models.dev entry once the catalog is read.
             $llm['capabilities'] = ['reasoning' => $llm['reasoning'] ?? false];
             unset($llm['reasoning'], $llm['provider']);
 
             Llm::query()->updateOrCreate(
-                ['llm_provider_id' => $provider->id, 'internal_name' => $llm['internal_name']],
+                ['llm_provider_id' => $provider->id, 'name' => $llm['name']],
                 $llm,
             );
         }

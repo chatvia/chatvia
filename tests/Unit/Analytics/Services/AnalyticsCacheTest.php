@@ -26,7 +26,7 @@ function acRollup(Agent $agent, string $bucketHour, array $values): void
             'workspace_id' => $agent->workspace_id,
             'bucket_hour' => $bucketHour,
             'country_code' => '--',
-            'llm_external_name' => '',
+            'llm_id' => 0,
             ...$values,
         ]);
 }

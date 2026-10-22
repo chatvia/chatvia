@@ -63,7 +63,7 @@ class AssistantReplyRecorder
             external_conversation_id: $request->conversationId,
             external_message_id: $context->assistantMessageId,
             message: $context->streamedMessage,
-            model: $request->message->model->external_name,
+            llm_id: $request->message->model->id,
             sent_at: now(),
             generation_id: $context->generationId,
             trace_id: $this->traceId(),

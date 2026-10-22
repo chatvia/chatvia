@@ -24,7 +24,6 @@ export interface Message {
     id?: string | number | null;
     content: string;
     role: 'user' | 'assistant' | 'error';
-    model?: string;
     language?: string | null;
     created_at?: string;
     updated_at?: string;

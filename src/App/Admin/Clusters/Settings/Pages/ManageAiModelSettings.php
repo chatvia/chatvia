@@ -69,7 +69,6 @@ use Filament\Tables\Table;
 use Illuminate\Bus\Batch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -354,24 +353,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ->with('provider')
                 ->where('is_enabled', true)
                 ->addSelect(['agents_count' => Agent::query()->selectRaw('count(*)')->whereColumn('agents.llm_id', 'llms.id')])
-                ->orderBy('descriptive_name'))
+                ->orderBy('name'))
             ->columns([
-                TextColumn::make('descriptive_name')
+                TextColumn::make('name')
                     ->label('Model')
-                    ->description(fn (Llm $model): string => $model->internal_name)
-                    ->suffix(fn (Llm $model): string => $model->external_name === $this->valueInUse('default_agent_model') ? ' · default' : ''),
+                    ->suffix(fn (Llm $model): string => (string) $model->id === (string) $this->valueInUse('default_agent_model') ? ' · default' : ''),
                 TextColumn::make('provider.name')
                     ->label('Provider')
                     ->description(fn (Llm $model): ?string => $model->provider->is_enabled && $model->provider->isConnected() ? null : 'Not connected')
                     ->color(fn (Llm $model): string => $model->provider->is_enabled && $model->provider->isConnected() ? 'gray' : 'warning'),
-                TextColumn::make('can')
-                    ->label('Can')
-                    ->state(fn (Llm $model): array => array_values(array_filter([
-                        ($model->features['function_calling'] ?? false) ? 'tools' : null,
-                        ($model->features['vision'] ?? false) ? 'images' : null,
-                    ])))
-                    ->badge()
-                    ->color('gray'),
                 // The catalog decides for a model it lists; for any other
                 // model the admin says whether it reasons.
                 ToggleColumn::make('reasons')
@@ -384,9 +374,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->tooltip(fn (Llm $record): string => $this->listedOnModelsDev($record)
                         ? 'From models.dev, which lists this model.'
                         : 'The model thinks before it answers. Agents can set how hard only for these models.'),
-                TextColumn::make('context_window')
-                    ->label('Context')
-                    ->formatStateUsing(fn (?int $state): string => $state === null ? '' : Number::abbreviate($state).' tokens'),
                 TextColumn::make('agents_count')
                     ->label('Agents'),
             ])
@@ -468,7 +455,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->map(fn (string $id): Llm => app(AddLlmModelAction::class)->execute($provider, $listed->get($id) ?? new RemoteModelData($id, $id)));
 
                 $added->count() === 1
-                    ? Notification::make()->success()->title("{$added->first()->descriptive_name} added")->body('Agents can pick it now.')->send()
+                    ? Notification::make()->success()->title("{$added->first()->name} added")->body('Agents can pick it now.')->send()
                     : Notification::make()->success()->title("{$added->count()} models added")->body('Agents can pick them now.')->send();
             });
     }
@@ -484,7 +471,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** Whether models.dev lists the model, so its capabilities come from there. */
     private function listedOnModelsDev(Llm $record): bool
     {
-        return app(ModelsDevCatalog::class)->entry($record->provider->kind, $record->internal_name) !== null;
+        return app(ModelsDevCatalog::class)->entry($record->provider->kind, $record->name) !== null;
     }
 
     /**
@@ -517,7 +504,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->disabled(fn (Llm $record): bool => $this->agentsUsing($record) > 0 && $this->replacements($record) === [])
             ->tooltip(fn (Llm $record): ?string => $this->agentsUsing($record) > 0 && $this->replacements($record) === [] ? 'Agents use it: add another model first.' : null)
             ->requiresConfirmation()
-            ->modalHeading(fn (Llm $record): string => "Remove {$record->descriptive_name}?")
+            ->modalHeading(fn (Llm $record): string => "Remove {$record->name}?")
             ->modalDescription(fn (Llm $record): string => ($agents = $this->agentsUsing($record)) > 0
                 ? "{$agents} ".Str::plural('agent', $agents).' answer with it. Pick the model they use from now on.'
                 : 'Agents can no longer pick it. You can add it again later.')
@@ -525,7 +512,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 Select::make('replacement')
                     ->label('Model for these agents')
                     ->options($this->replacements($record))
-                    ->default(fn (): ?int => Llm::available()->firstWhere('external_name', $this->valueInUse('default_agent_model'))?->getKey())
+                    ->default(fn (): ?int => $this->defaultChatModel()?->getKey())
                     ->required()
                     ->native(false),
             ])
@@ -534,7 +521,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 app(RemoveLlmModelAction::class)->execute($record, isset($data['replacement']) ? Llm::query()->find($data['replacement']) : null);
                 $this->fillCards();
 
-                Notification::make()->success()->title("{$record->descriptive_name} removed")->send();
+                Notification::make()->success()->title("{$record->name} removed")->send();
             });
     }
 
@@ -626,7 +613,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return Llm::query()
             ->where('is_enabled', true)
             ->whereHas('provider', fn (Builder $query) => $draft->exists ? $query->whereKey($draft->id) : $query->where('kind', $draft->kind))
-            ->pluck('internal_name')
+            ->pluck('name')
             ->all();
     }
 
@@ -644,7 +631,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         return Llm::available()
             ->reject(fn (Llm $other): bool => $other->is($model))
-            ->mapWithKeys(fn (Llm $other): array => [$other->id => "{$other->descriptive_name} ({$other->provider->name})"])
+            ->mapWithKeys(fn (Llm $other): array => [$other->id => "{$other->name} ({$other->provider->name})"])
             ->all();
     }
 
@@ -656,13 +643,13 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             return 'No models yet';
         }
 
-        $default = $this->catalogName($this->valueInUse('default_agent_model')) ?? Llm::available()->first()?->descriptive_name;
+        $default = $this->catalogName($this->valueInUse('default_agent_model')) ?? Llm::available()->first()?->name;
 
         return $count.' '.Str::plural('model', $count).' · default: '.$default;
     }
 
     /**
-     * A catalog model, by its alias, for one of the app's jobs. Unset uses
+     * A catalog model, by its id, for one of the app's jobs. Unset uses
      * the default model.
      */
     private function modelChoice(string $property, string $label, ?string $help = null, string $unset = 'Same as the default model'): Select
@@ -730,14 +717,16 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $model = app(ApplyRecommendedTaskModelsAction::class)->execute($chat->provider, $small, $chat, $this->recommendedVisionModel());
                 $this->fillCards();
 
-                Notification::make()->success()->title("{$model->descriptive_name} does the quick tasks now")->send();
+                Notification::make()->success()->title("{$model->name} does the quick tasks now")->send();
             });
     }
 
     /** The default model for new agents, while it may be used. */
     private function defaultChatModel(): ?Llm
     {
-        return Llm::available()->firstWhere('external_name', $this->valueInUse('default_agent_model'));
+        $model = Llm::fromSetting($this->valueInUse('default_agent_model'));
+
+        return $model?->isAvailable() ? $model : null;
     }
 
     /** The account of the default model, when it has a model for quick tasks to recommend. */
@@ -780,21 +769,21 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     }
 
     /**
-     * The models that may be picked, by provider: alias => name.
+     * The models that may be picked, by provider: id => name.
      *
-     * @return array<string, array<string, string>>
+     * @return array<string, array<int, string>>
      */
     private function catalogOptions(): array
     {
         return Llm::available()
             ->groupBy(fn (Llm $llm): string => $llm->provider->name)
-            ->map(fn ($models): array => $models->mapWithKeys(fn (Llm $llm): array => [$llm->external_name => $llm->descriptive_name])->all())
+            ->map(fn ($models): array => $models->mapWithKeys(fn (Llm $llm): array => [$llm->id => $llm->name])->all())
             ->all();
     }
 
-    private function catalogName(mixed $alias): ?string
+    private function catalogName(mixed $value): ?string
     {
-        return Llm::catalog()->firstWhere('external_name', (string) $alias)?->descriptive_name;
+        return Llm::fromSetting($value)?->name;
     }
 
     // --- Services ----------------------------------------------------------------

@@ -59,7 +59,7 @@ it('snapshots a running run and batches one job per active case', function (): v
 
     expect($run->status)->toBe(EvalRunStatus::Running)
         ->and($run->total_cases)->toBe(2)
-        ->and($run->model_snapshot)->toBe($agent->llm->internal_name);
+        ->and($run->model_snapshot)->toBe($agent->llm->name);
 
     Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->jobs->count() === 2
         && $batch->jobs->every(fn ($job): bool => $job instanceof ScoreEvalCaseJob));

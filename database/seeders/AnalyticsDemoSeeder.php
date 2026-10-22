@@ -75,11 +75,11 @@ class AnalyticsDemoSeeder extends Seeder
         }
 
         // Pull model dimensions from the actual llms table so the per-model
-        // analytics rows match real LLM names. Falls back to a constant if
-        // LlmSeeder hasn't run yet (allowing standalone db:seed --class).
-        $models = Llm::query()->pluck('external_name')->all();
+        // analytics rows match real models. Falls back to the unknown model
+        // (0) if LlmSeeder hasn't run yet (allowing standalone db:seed --class).
+        $models = Llm::query()->pluck('id')->all();
         if (empty($models)) {
-            $models = ['gpt-oss', 'qwen3'];
+            $models = [0];
         }
         $modelWeights = $this->weightAround($models);
 
@@ -187,7 +187,7 @@ class AnalyticsDemoSeeder extends Seeder
                         messageExternalId: $msgId,
                         sessionExternalId: $sessionId,
                         role: $isUser ? 'user' : 'assistant',
-                        llmExternalName: $modelUsed,
+                        llmId: $modelUsed,
                         countryCode: $country,
                         responseTimeMs: $responseMs,
                         promptTokens: $promptTokens,
@@ -219,7 +219,7 @@ class AnalyticsDemoSeeder extends Seeder
                             conversationExternalId: $convId,
                             messageExternalId: $msgId,
                             feedback: $feedback,
-                            llmExternalName: $modelUsed,
+                            llmId: $modelUsed,
                             countryCode: $country,
                             occurredAt: $cursor->copy()->addSeconds(random_int(5, 60)),
                         )));

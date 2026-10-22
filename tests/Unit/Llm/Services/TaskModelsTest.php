@@ -23,9 +23,9 @@ it('uses the model picked for the task', function (): void {
     $shared = testLlm('shared-model');
     $titles = testLlm('titles-model');
     config([
-        'chatvia.agent.default_model' => $chat->external_name,
-        TaskModels::SHARED_KEY => $shared->external_name,
-        'chatvia.ai.tasks.titles' => $titles->external_name,
+        'chatvia.agent.default_model' => (string) $chat->id,
+        TaskModels::SHARED_KEY => (string) $shared->id,
+        'chatvia.ai.tasks.titles' => (string) $titles->id,
     ]);
 
     expect(app(TaskModels::class)->model(LlmTask::Titles)->is($titles))->toBeTrue()
@@ -36,8 +36,8 @@ it('falls back to the model for app tasks when a task is unset', function (): vo
     $chat = testLlm('chat-model');
     $shared = testLlm('shared-model');
     config([
-        'chatvia.agent.default_model' => $chat->external_name,
-        TaskModels::SHARED_KEY => $shared->external_name,
+        'chatvia.agent.default_model' => (string) $chat->id,
+        TaskModels::SHARED_KEY => (string) $shared->id,
         'chatvia.ai.tasks.images' => null,
     ]);
 
@@ -48,7 +48,7 @@ it('falls back to the model for app tasks when a task is unset', function (): vo
 it('falls back to the chat model when neither the task nor app tasks have one', function (): void {
     $chat = testLlm('chat-model');
     testLlm('other-model');
-    config(['chatvia.agent.default_model' => $chat->external_name, TaskModels::SHARED_KEY => null, 'chatvia.ai.tasks.images' => null]);
+    config(['chatvia.agent.default_model' => (string) $chat->id, TaskModels::SHARED_KEY => null, 'chatvia.ai.tasks.images' => null]);
 
     expect(app(TaskModels::class)->model(LlmTask::Images)->is($chat))->toBeTrue();
 });
@@ -58,9 +58,9 @@ it('skips a picked model that is off, or whose provider is off', function (strin
     $shared = testLlm('shared-model');
     $guardrails = testLlm('guardrails-model');
     config([
-        'chatvia.agent.default_model' => $chat->external_name,
-        TaskModels::SHARED_KEY => $shared->external_name,
-        'chatvia.ai.tasks.guardrails' => $level === 'task' ? $guardrails->external_name : null,
+        'chatvia.agent.default_model' => (string) $chat->id,
+        TaskModels::SHARED_KEY => (string) $shared->id,
+        'chatvia.ai.tasks.guardrails' => $level === 'task' ? (string) $guardrails->id : null,
     ]);
 
     $off = $level === 'task' ? $guardrails : $shared;
@@ -70,17 +70,17 @@ it('skips a picked model that is off, or whose provider is off', function (strin
 })->with(['model', 'provider'])->with(['task', 'app tasks']);
 
 it('uses the first usable model when nothing is picked', function (): void {
-    testLlm('off-model', attributes: ['is_enabled' => false, 'descriptive_name' => 'A first']);
-    $usable = testLlm('usable-model', attributes: ['descriptive_name' => 'B second']);
+    testLlm('a-off-model', attributes: ['is_enabled' => false]);
+    $usable = testLlm('b-usable-model');
     config(['chatvia.agent.default_model' => null, TaskModels::SHARED_KEY => null]);
 
     expect(app(TaskModels::class)->model(LlmTask::Enhancement)->is($usable))->toBeTrue();
 });
 
 it('keeps the chat model out of the model for app tasks', function (): void {
-    $first = testLlm('first-model', attributes: ['descriptive_name' => 'A first']);
-    $shared = testLlm('shared-model', attributes: ['descriptive_name' => 'B shared']);
-    config(['chatvia.agent.default_model' => null, TaskModels::SHARED_KEY => $shared->external_name]);
+    $first = testLlm('a-first-model');
+    $shared = testLlm('b-shared-model');
+    config(['chatvia.agent.default_model' => null, TaskModels::SHARED_KEY => (string) $shared->id]);
 
     expect(app(TaskModels::class)->model(LlmTask::Chat)->is($first))->toBeTrue();
 });
@@ -93,9 +93,9 @@ it('says no model is set up when the catalog has none that may be used', functio
 });
 
 it('starts new agents on the chat model', function (): void {
-    testLlm('first-model', attributes: ['descriptive_name' => 'A first']);
-    $chat = testLlm('chat-model', attributes: ['descriptive_name' => 'B chat']);
-    config(['chatvia.agent.default_model' => $chat->external_name]);
+    testLlm('a-first-model');
+    $chat = testLlm('b-chat-model');
+    config(['chatvia.agent.default_model' => (string) $chat->id]);
 
     expect(Agent::factory()->create()->fresh()->llm_id)->toBe($chat->id);
 });

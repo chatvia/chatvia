@@ -53,7 +53,7 @@ function fakeChatService(?Closure $onInit = null): ChatService
                 'external_session_id' => $data->externalSessionId,
                 'external_conversation_id' => $data->conversationId,
                 'external_message_id' => 'eval-msg',
-                'model' => $data->message->model->internal_name,
+                'model' => $data->message->model->name,
                 'message' => $data->message->message,
                 'sent_at' => now(),
             ]);

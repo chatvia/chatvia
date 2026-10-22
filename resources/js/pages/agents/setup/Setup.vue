@@ -76,8 +76,8 @@ interface Props {
     voice: SetupVoiceOptions;
 
     catalog: Llm[];
-    selectedModel: string | null;
-    defaultModel: string | null;
+    selectedModel: number | null;
+    defaultModel: number | null;
     llmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
     defaultLlmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
     /** How hard the agent reasons (off, low, medium, high), and whether the admin lets agents reason at all. */

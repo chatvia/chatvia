@@ -70,21 +70,23 @@ it('uses the recommended model for quick tasks of the default model\'s provider'
         ['id' => 'openai/gpt-6-luna', 'name' => 'GPT-6 Luna', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
     ]])]);
     $chat = testLlm('meta-llama/llama-4-maverick', LlmProviderKind::OpenRouter);
-    saveSettings(AiSettings::class, ['default_agent_model' => $chat->external_name, 'guardrails_model' => $chat->external_name]);
+    saveSettings(AiSettings::class, ['default_agent_model' => (string) $chat->id, 'guardrails_model' => (string) $chat->id]);
     // Saving settings reloads the saved keys; connect after it.
     connectAiProviders(AiProvider::OpenRouter);
 
-    modelsPage($this->admin)
+    $page = modelsPage($this->admin)
         ->callAction(TestAction::make('recommendedTaskModels')->schemaComponent('recommended-task-models', schema: 'form'))
-        ->assertNotified('GPT-6 Luna does the quick tasks now')
-        ->assertFormSet(['task_model' => 'openai/gpt-6-luna', 'guardrails_model' => null, 'eval_judge_model' => $chat->external_name, 'images_model' => 'openai/gpt-6-luna']);
+        ->assertNotified('openai/gpt-6-luna does the quick tasks now');
+    $luna = (string) Llm::query()->where('name', 'openai/gpt-6-luna')->value('id');
 
-    expect(savedSetting(AiSettings::class, 'task_model'))->toBe('openai/gpt-6-luna');
+    $page->assertFormSet(['task_model' => $luna, 'guardrails_model' => null, 'eval_judge_model' => (string) $chat->id, 'images_model' => $luna]);
+
+    expect(savedSetting(AiSettings::class, 'task_model'))->toBe($luna);
 });
 
 it('hides "Use the recommended models" for a server of your own', function (): void {
     $chat = testLlm('llama3.1:8b');
-    saveSettings(AiSettings::class, ['default_agent_model' => $chat->external_name]);
+    saveSettings(AiSettings::class, ['default_agent_model' => (string) $chat->id]);
 
     modelsPage($this->admin)
         ->assertSchemaComponentHidden('recommended-task-models', 'form');
@@ -96,13 +98,12 @@ it('adds a model from a connected provider\'s list', function (): void {
     modelsPage($this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick']])
         ->assertHasNoActionErrors()
-        ->assertNotified('Llama 4 Maverick added');
+        ->assertNotified('meta-llama/llama-4-maverick added');
 
-    $model = Llm::query()->where('internal_name', 'meta-llama/llama-4-maverick')->sole();
+    $model = Llm::query()->where('name', 'meta-llama/llama-4-maverick')->sole();
 
     expect($model->provider->kind)->toBe(LlmProviderKind::OpenRouter)
         ->and($model->provider->api_key)->toBeNull()
-        ->and($model->features)->toEqual(['vision' => true, 'function_calling' => true, 'reasoning' => false])
         ->and($model->reasons())->toBeFalse()
         ->and($model->isAvailable())->toBeTrue();
 });
@@ -119,7 +120,7 @@ it('marks a model as reasoning when its provider says so', function (): void {
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['deepseek/deepseek-r1']])
         ->assertHasNoActionErrors();
 
-    expect(Llm::query()->where('internal_name', 'deepseek/deepseek-r1')->sole()->reasons())->toBeTrue();
+    expect(Llm::query()->where('name', 'deepseek/deepseek-r1')->sole()->reasons())->toBeTrue();
 });
 
 it('lets the admin mark a model models.dev does not list as reasoning, and let agents reason', function (): void {
@@ -144,8 +145,8 @@ it('adds several models at once', function (): void {
         ->assertHasNoActionErrors()
         ->assertNotified('2 models added');
 
-    expect(Llm::query()->whereIn('internal_name', ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b'])->pluck('descriptive_name')->sort()->values()->all())
-        ->toBe(['Llama 4 Maverick', 'Qwen3 235B']);
+    expect(Llm::query()->whereIn('name', ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b'])->pluck('name')->sort()->values()->all())
+        ->toBe(['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b']);
 });
 
 it('lists the first provider\'s models as soon as the form opens', function (): void {
@@ -192,7 +193,7 @@ it('takes a typed model name from a server that lists none', function (): void {
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => "server:{$server->id}", 'model_id' => 'llama3.1:8b'])
         ->assertHasNoActionErrors();
 
-    expect($server->llms()->sole()->internal_name)->toBe('llama3.1:8b');
+    expect($server->llms()->sole()->name)->toBe('llama3.1:8b');
 });
 
 it('removes a model, moving its agents and the tasks that used it', function (): void {
@@ -201,10 +202,10 @@ it('removes a model, moving its agents and the tasks that used it', function ():
     $agent = createAgent($this->admin, ['llm_id' => $old->id]);
 
     $settings = app(AiSettings::class);
-    $settings->default_agent_model = $old->external_name;
-    $settings->task_model = $old->external_name;
-    $settings->titles_model = $old->external_name;
-    $settings->images_model = $new->external_name;
+    $settings->default_agent_model = (string) $old->id;
+    $settings->task_model = (string) $old->id;
+    $settings->titles_model = (string) $old->id;
+    $settings->images_model = (string) $new->id;
     $settings->save();
 
     modelsPage($this->admin)
@@ -213,10 +214,10 @@ it('removes a model, moving its agents and the tasks that used it', function ():
 
     expect($agent->fresh()->llm_id)->toBe($new->id)
         ->and($old->fresh()->is_enabled)->toBeFalse()
-        ->and(savedSetting(AiSettings::class, 'default_agent_model'))->toBe($new->external_name)
+        ->and(savedSetting(AiSettings::class, 'default_agent_model'))->toBe((string) $new->id)
         ->and(savedSetting(AiSettings::class, 'task_model'))->toBeNull()
         ->and(savedSetting(AiSettings::class, 'titles_model'))->toBeNull()
-        ->and(savedSetting(AiSettings::class, 'images_model'))->toBe($new->external_name);
+        ->and(savedSetting(AiSettings::class, 'images_model'))->toBe((string) $new->id);
 });
 
 it('keeps the last model agents use', function (): void {

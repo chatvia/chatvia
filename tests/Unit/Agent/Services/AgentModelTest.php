@@ -10,7 +10,7 @@ use Domain\Agent\Services\AgentModel;
 beforeEach(function (): void {
     $this->agent = createAgent(User::factory()->create());
     $this->default = testLlm('default-model');
-    config(['chatvia.agent.default_model' => $this->default->external_name]);
+    config(['chatvia.agent.default_model' => (string) $this->default->id]);
 });
 
 it('answers with the agent\'s own model', function (): void {

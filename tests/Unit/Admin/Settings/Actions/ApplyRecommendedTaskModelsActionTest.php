@@ -13,7 +13,7 @@ use Domain\Llm\Models\Llm;
  */
 it('adds the small model and gives the tasks the preset\'s models', function (): void {
     $chat = testLlm('openai/gpt-6.1-sol', LlmProviderKind::OpenRouter);
-    saveSettings(AiSettings::class, ['titles_model' => $chat->external_name]);
+    saveSettings(AiSettings::class, ['titles_model' => (string) $chat->id]);
 
     $small = app(ApplyRecommendedTaskModelsAction::class)->execute(
         $chat->provider,
@@ -21,11 +21,11 @@ it('adds the small model and gives the tasks the preset\'s models', function ():
         $chat,
     );
 
-    expect($small->internal_name)->toBe('openai/gpt-6-luna')
+    expect($small->name)->toBe('openai/gpt-6-luna')
         ->and($small->llm_provider_id)->toBe($chat->llm_provider_id)
         ->and(Llm::query()->whereKey($small->id)->value('is_enabled'))->toBeTrue()
-        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe($small->external_name)
-        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe($chat->external_name)
+        ->and(savedSetting(AiSettings::class, 'task_model'))->toBe((string) $small->id)
+        ->and(savedSetting(AiSettings::class, 'eval_judge_model'))->toBe((string) $chat->id)
         ->and(savedSetting(AiSettings::class, 'titles_model'))->toBeNull()
         // No model that reads images: image descriptions go off.
         ->and(savedSetting(AiSettings::class, 'images_model'))->toBeNull()
@@ -42,6 +42,6 @@ it('describes images with the recommended model that reads them', function (): v
         new RemoteModelData('google/gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite', features: ['vision' => true]),
     );
 
-    expect(savedSetting(AiSettings::class, 'images_model'))->toBe('google/gemini-3.5-flash-lite')
+    expect(savedSetting(AiSettings::class, 'images_model'))->toBe((string) Llm::query()->where('name', 'google/gemini-3.5-flash-lite')->value('id'))
         ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeNull();
 });

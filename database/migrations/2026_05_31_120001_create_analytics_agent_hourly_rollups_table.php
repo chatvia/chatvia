@@ -21,7 +21,8 @@ return new class extends Migration
             $table->timestamp('bucket_hour');
 
             $table->string('country_code', 2);
-            $table->string('llm_external_name', 64);
+            // The model's llms.id; 0 when unknown (the key cannot hold NULL).
+            $table->unsignedBigInteger('llm_id');
 
             $table->unsignedInteger('conversations_started')->default(0);
             $table->unsignedInteger('user_messages')->default(0);
@@ -33,7 +34,7 @@ return new class extends Migration
             $table->unsignedBigInteger('response_ms_sum')->default(0);
             $table->unsignedInteger('response_ms_count')->default(0);
 
-            $table->primary(['agent_id', 'bucket_hour', 'country_code', 'llm_external_name']);
+            $table->primary(['agent_id', 'bucket_hour', 'country_code', 'llm_id']);
             $table->index(['workspace_id', 'bucket_hour']);
         });
 

@@ -22,7 +22,7 @@ it('adds the starter catalog to an install without providers', function (): void
     expect($provider->kind)->toBe(LlmProviderKind::Scaleway)
         ->and($provider->api_key)->toBeNull()
         ->and($provider->isConnected())->toBeTrue()
-        ->and(Llm::query()->pluck('internal_name')->sort()->values()->all())->toBe($starter->pluck('internal_name')->sort()->values()->all());
+        ->and(Llm::query()->pluck('name')->sort()->values()->all())->toBe($starter->pluck('name')->sort()->values()->all());
 });
 
 it('leaves a catalog an admin set up alone', function (): void {
@@ -32,5 +32,5 @@ it('leaves a catalog an admin set up alone', function (): void {
     $this->seed(LlmSeeder::class);
 
     expect(LlmProvider::query()->pluck('id')->all())->toBe([$own->llm_provider_id])
-        ->and(Llm::query()->pluck('internal_name')->all())->toBe(['my-model']);
+        ->and(Llm::query()->pluck('name')->all())->toBe(['my-model']);
 });

@@ -19,9 +19,6 @@ use Illuminate\Support\Str;
  */
 class CreateConversationAction
 {
-    /** Model label stored when the agent has no model configured. */
-    private const string UNKNOWN_MODEL = 'unknown';
-
     public function __construct(
         private readonly StartConversationAction $startConversation,
         private readonly AddMessageToConversationAction $addMessage,
@@ -49,7 +46,7 @@ class CreateConversationAction
             external_session_id: $data->scope->sessionId,
             external_conversation_id: $conversationId,
             external_message_id: Str::uuid7()->toString(),
-            model: $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
+            llm_id: $agent->llm_id,
             message: $masked,
             sent_at: now(),
             message_for_llm: $masked,

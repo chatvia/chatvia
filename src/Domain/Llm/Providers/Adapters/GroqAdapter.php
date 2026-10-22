@@ -7,9 +7,8 @@ namespace Domain\Llm\Providers\Adapters;
 use Domain\Llm\Enums\LlmProviderKind;
 
 /**
- * Groq's OpenAI-compatible API: open models with very fast answers. Its list
- * gives each model's context size (`context_window`); its speech models are
- * left out by id.
+ * Groq's OpenAI-compatible API: open models with very fast answers. Its
+ * speech models are left out by id.
  */
 final class GroqAdapter extends OpenAiCompatibleAdapter
 {

@@ -1,4 +1,4 @@
-# ChatVia.ai's PostgreSQL image: the official Postgres 18 image (Debian) plus
+# ChatVia.ai's PostgreSQL image: the official Postgres 18 image plus
 # the extensions the app installs (database/migrations/
 # 2025_06_28_000000_install_postgres_extensions.php):
 #   - vector (pgvector), from the PostgreSQL apt repository the official image
@@ -10,7 +10,11 @@
 # Published as ghcr.io/chatvia/postgres by .github/workflows/postgres-image.yml;
 # used by docker/compose.yaml, the dev stack (docker-compose.yml) and CI
 # (.github/workflows/tests.yml).
-FROM postgres:18
+#
+# The Debian release is pinned: a new one brings a new glibc, whose sort rules
+# make Postgres warn about a collation version mismatch on existing databases
+# until their text indexes are rebuilt.
+FROM postgres:18-trixie
 
 ARG PG_TEXTSEARCH_VERSION=1.5.1
 ARG TARGETARCH

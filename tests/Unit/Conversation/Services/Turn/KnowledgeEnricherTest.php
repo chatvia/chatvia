@@ -5,6 +5,7 @@ use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Turn\KnowledgeEnricher;
 use Domain\Guardrail\Events\GuardrailTriggered;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
@@ -14,6 +15,7 @@ use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\Conversation\TestChatContext;
+use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * Knowledge is attached to the LLM-facing message as numbered reference
@@ -159,6 +161,8 @@ it('answers from a Q&A entry when the message is one of its questions as a whole
 ]);
 
 it('does not answer from a Q&A entry for a word or phrase inside a question', function (string $message): void {
+    // Far apart in meaning, so only the whole-question rule could match.
+    app()->instance(EmbeddingsProviderInterface::class, FakeEmbeddingsProvider::directions(['What are your opening hours?' => [1.0, 0.0]]));
     $agent = Agent::factory()->create();
     app(CreateAgentQaAction::class)->execute($agent, new QaEntryData('Hours', ['What are your opening hours?'], 'We are open from nine to five.'));
 

@@ -726,8 +726,10 @@ removes everything.
 
 ## Contributing, security and license
 
-- Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md)
-  and our [Code of Conduct](CODE_OF_CONDUCT.md).
+- Bug reports and feature requests are welcome as
+  [issues](https://github.com/chatvia/chatvia/issues/new/choose). We do not
+  accept pull requests: a maintainer makes every change. See
+  [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md).
 - Found a security problem? Please report it privately; see
   [SECURITY.md](SECURITY.md).
 - Changes are listed in [CHANGELOG.md](CHANGELOG.md).

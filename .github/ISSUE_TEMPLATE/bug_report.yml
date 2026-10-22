@@ -8,6 +8,7 @@ body:
         Thank you for taking the time to report a bug.
         **Security problems:** do not report them here. See SECURITY.md.
         Please remove secrets (API keys, tokens, passwords) and personal data from logs and screenshots.
+        This project does not accept pull requests. A maintainer fixes the bug, so the more detail you give, the faster it goes.
 
   - type: textarea
     id: what-happened
@@ -50,8 +51,8 @@ body:
         - Tools (functions, MCP connectors)
         - Channels (Slack, Teams, Telegram, WhatsApp, ...)
         - Public API
-        - Billing
-        - Installation
+        - Admin panel (settings, AI providers)
+        - Installation / upgrade
         - Other
     validations:
       required: true
@@ -68,7 +69,7 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: PHP, PostgreSQL and Node versions, operating system, browser (for UI bugs), and how you run it (Docker services, Herd, a server, ...).
+      description: PHP, PostgreSQL and Node versions, operating system, browser (for UI bugs), and how you run it (Docker image, Sail, a server, ...).
       placeholder: |
         PHP 8.5.x, PostgreSQL 18 (ghcr.io/chatvia/postgres), Node 22
         macOS 15 / Ubuntu 24.04
@@ -82,5 +83,13 @@ body:
       label: Logs and screenshots
       description: Relevant lines from `storage/logs/laravel.log`, the browser console or the queue worker. Remove secrets first.
       render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggested-fix
+    attributes:
+      label: Suggested fix
+      description: If you know where the problem is or how to fix it, describe it here. A short code snippet or diff is welcome.
     validations:
       required: false

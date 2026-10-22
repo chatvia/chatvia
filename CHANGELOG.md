@@ -321,8 +321,10 @@ theme.
 ### Open source
 
 - ChatVia.ai is open source under the [MIT License](LICENSE).
-- Community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
-  issue templates and a pull request template.
+- Community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`
+  and issue forms (bug report, feature request, documentation). The project
+  does not accept pull requests: a workflow closes those from outside the
+  project and points to the issue forms.
 - New `ARCHITECTURE.md`: how the code is organised, the conventions and the
   glossary. The README was rewritten for new contributors and self-hosters.
 - The product name and links come from the admin panel (**Settings → Brand**). There

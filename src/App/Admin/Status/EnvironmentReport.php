@@ -57,7 +57,7 @@ final readonly class EnvironmentReport
 
         return [
             new EnvironmentFactData(__('Address'), (string) config('app.url')),
-            new EnvironmentFactData(__('Environment'), (string) $this->app->environment(), $this->app->isProduction() ? 'success' : 'gray'),
+            new EnvironmentFactData(__('Environment'), $this->app->environment(), $this->app->isProduction() ? 'success' : 'gray'),
             // Debug mode shows error details, with secrets, to anyone.
             new EnvironmentFactData(__('Debug mode'), $debug ? __('On') : __('Off'), $debug && $this->app->isProduction() ? 'danger' : null),
             new EnvironmentFactData(__('Maintenance mode'), $down ? __('On') : __('Off'), $down ? 'warning' : null),

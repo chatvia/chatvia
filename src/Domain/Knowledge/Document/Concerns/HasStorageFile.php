@@ -100,7 +100,7 @@ trait HasStorageFile
      */
     public function withPdf(OfficePdf $pdf, Closure $callback): mixed
     {
-        if (strtolower(pathinfo((string) $this->filepath, PATHINFO_EXTENSION)) === 'pdf') {
+        if (Str::lower(pathinfo($this->filepath, PATHINFO_EXTENSION)) === 'pdf') {
             return $callback($this->storedPath('filepath'));
         }
 

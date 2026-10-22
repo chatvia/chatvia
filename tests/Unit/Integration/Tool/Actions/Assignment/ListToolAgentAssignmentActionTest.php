@@ -6,9 +6,9 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Actions\Assignment\ListToolAgentAssignmentAction;
 
 /**
- * The "Manage agents" sheet splits every workspace agent into the ones that
- * use a tool source and the ones that could — the same for MCP servers and
- * webhook functions.
+ * The "Manage agents" sheet splits the agents the viewer may manage into the
+ * ones that use a tool source and the ones that could — the same for MCP
+ * servers and webhook functions.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -26,13 +26,23 @@ it('splits the workspace agents for an MCP server', function (): void {
         ->and(collect($result->available->toArray())->pluck('id')->all())->toBe([$this->sales->external_id]);
 });
 
-it('splits the workspace agents for a webhook function, also for a teammate', function (): void {
+it('splits the workspace agents for a webhook function, also for a teammate whose role reaches every agent', function (): void {
     $function = AgentFunction::factory()->forOwner($this->owner)->create();
     $this->sales->attachFunction($function);
-    $teammate = User::factory()->employee($this->owner)->create();
+    $teammate = teammateWithPermissions($this->owner, ['account.functions']);
 
     $result = app(ListToolAgentAssignmentAction::class)->execute($teammate, $function);
 
     expect(collect($result->attached->toArray())->pluck('id')->all())->toBe([$this->sales->external_id])
+        ->and(collect($result->available->toArray())->pluck('id')->all())->toBe([$this->support->external_id]);
+});
+
+it('leaves out the agents a teammate\'s role does not reach', function (): void {
+    $function = AgentFunction::factory()->forOwner($this->owner)->create();
+    $teammate = teammateWithPermissions($this->owner, ['account.functions'], allAgents: false, agentExternalIds: [$this->support->external_id]);
+
+    $result = app(ListToolAgentAssignmentAction::class)->execute($teammate, $function);
+
+    expect($result->attached->count())->toBe(0)
         ->and(collect($result->available->toArray())->pluck('id')->all())->toBe([$this->support->external_id]);
 });

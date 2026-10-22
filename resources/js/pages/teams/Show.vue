@@ -10,7 +10,7 @@ import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index as teamsIndex } from '@/routes/teams';
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type BreadcrumbItem } from '@/types';
 import EditMemberRoleDialog from './components/EditMemberRoleDialog.vue';
 import InviteMemberDialog from './components/InviteMemberDialog.vue';
 import PendingInvitationsCard from './components/PendingInvitationsCard.vue';
@@ -61,7 +61,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const page = usePage<SharedData>();
+const page = usePage();
 const currentUser = page.props.auth.user;
 
 const canManageMembers = computed(() => props.isOwner);

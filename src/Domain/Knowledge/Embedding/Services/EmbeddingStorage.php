@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Embedding\Services;
 
 use Domain\Knowledge\Embedding\Enums\VectorType;
 use Domain\Knowledge\Embedding\Exceptions\InvalidEmbeddingStorageException;
+use Illuminate\Support\Str;
 
 /**
  * How the database stores embeddings: the pgvector type and the size of every
@@ -20,7 +21,7 @@ final class EmbeddingStorage
     {
         $value = config('chatvia.embeddings.type');
 
-        return VectorType::tryFrom(is_string($value) ? strtolower(trim($value)) : '')
+        return VectorType::tryFrom(filled($value) ? Str::lower(Str::trim($value)) : '')
             ?? throw InvalidEmbeddingStorageException::type($value);
     }
 

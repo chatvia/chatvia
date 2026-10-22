@@ -222,6 +222,7 @@
                 "trend": "Trend",
                 "trend_first": "first message",
                 "trend_last": "last message",
+                "trend_tooltip": "Compares the mood of the {first} with the {last}.",
                 "trend_improving": "Improving",
                 "trend_improving_hint": "— mood ended better than it started",
                 "trend_declining": "Declining",

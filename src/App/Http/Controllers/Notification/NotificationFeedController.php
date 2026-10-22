@@ -24,7 +24,7 @@ class NotificationFeedController
         $cursor = $request->query('cursor');
 
         return NotificationFeedResourceData::fromPage(
-            $feed->page($user, $filter, is_string($cursor) ? $cursor : null),
+            $feed->page($user, $filter, filled($cursor) ? $cursor : null),
             $user->userNotifications()->unread()->count(),
         );
     }

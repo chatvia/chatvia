@@ -74,7 +74,7 @@ final readonly class ToolEntry
      */
     public static function decodeSchema(mixed $schema): array
     {
-        $decoded = is_string($schema) ? json_decode($schema, true) : $schema;
+        $decoded = is_scalar($schema) ? json_decode((string) $schema, true) : $schema;
 
         return is_array($decoded) ? $decoded : [];
     }
@@ -123,7 +123,7 @@ final readonly class ToolEntry
 
         $out = [];
         foreach ($value as $key => $child) {
-            if (is_string($key) && in_array($key, self::OBJECT_KEYS, true) && $child === []) {
+            if (in_array($key, self::OBJECT_KEYS, true) && $child === []) {
                 $out[$key] = new stdClass;
 
                 continue;

@@ -110,11 +110,11 @@ class ConnectorClassifier
 
         return new ChatRequestData(
             model: $this->models->model(LlmTask::ToolRouting),
-            tag: AiCallTag::ToolRouting,
             messages: [
                 ChatMessageData::system($this->systemPrompt()),
                 ChatMessageData::user($this->userPrompt($userMessage, $connectors)),
             ],
+            tag: AiCallTag::ToolRouting,
             temperature: 0.0,
             responseSchema: new ResponseSchemaData('connector_route', $schema, strict: false),
         );
@@ -165,7 +165,7 @@ class ConnectorClassifier
         $allowed = array_flip($reachable);
 
         return array_values(array_unique(array_filter(
-            array_map(static fn ($s): string => is_string($s) ? $s : '', $picked),
+            array_map(static fn ($s): string => filled($s) ? $s : '', $picked),
             static fn (string $s): bool => $s !== '' && isset($allowed[$s]),
         )));
     }

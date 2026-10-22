@@ -14,6 +14,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -44,11 +45,11 @@ class LlmJudgeScorer implements ScorerInterface
         try {
             $data = $this->completion->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::EvalJudge),
-                tag: AiCallTag::EvaluationJudge,
                 messages: [
                     ChatMessageData::system(trim(prompt('evals/judge-system'))),
                     ChatMessageData::user($this->userPrompt($case, $criteria, $result->answer)),
                 ],
+                tag: AiCallTag::EvaluationJudge,
                 temperature: 0,
                 responseSchema: new ResponseSchemaData('eval_verdict', $this->schema(), strict: false),
             ))->data;
@@ -61,7 +62,7 @@ class LlmJudgeScorer implements ScorerInterface
         }
 
         $pass = (bool) ($data['verdict'] ?? false);
-        $rationale = is_string($data['rationale'] ?? null) ? trim($data['rationale']) : null;
+        $rationale = filled($data['rationale'] ?? null) ? Str::trim($data['rationale']) : null;
 
         return new ScoreResultData($pass, $this->clampScore($data['score'] ?? null, $pass), $rationale !== '' ? $rationale : null);
     }
@@ -71,7 +72,7 @@ class LlmJudgeScorer implements ScorerInterface
         return rtrim(prompt('evals/judge-user', [
             'question' => $case->input,
             'criteria' => $criteria,
-            'reference' => trim((string) ($case->expected_output ?? '')),
+            'reference' => Str::trim($case->expected_output ?? ''),
             'answer' => $answer === '' ? '(the agent produced no answer)' : $answer,
         ]), "\n");
     }

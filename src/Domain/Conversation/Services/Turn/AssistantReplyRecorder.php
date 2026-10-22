@@ -98,7 +98,7 @@ class AssistantReplyRecorder
 
         $traceId = Context::getHidden(TraceContext::TRACE_ID);
 
-        return is_string($traceId) && filled($traceId) ? $traceId : null;
+        return filled($traceId) ? $traceId : null;
     }
 
     /**

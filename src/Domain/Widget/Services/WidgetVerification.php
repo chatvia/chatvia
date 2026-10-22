@@ -154,7 +154,7 @@ class WidgetVerification
         foreach (['always_allowed_origins', 'extra_allowed_origins'] as $key) {
             $value = config("chatvia.widget.{$key}", []);
 
-            array_push($configured, ...(is_string($value) ? explode(',', $value) : (array) $value));
+            array_push($configured, ...(is_array($value) ? $value : explode(',', (string) $value)));
         }
 
         $hosts = array_values(array_unique(array_filter(array_map(

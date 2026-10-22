@@ -15,7 +15,7 @@ function cliaRun(string $driver, string $table): void
 {
     config(['chatvia.search.lexical_driver' => $driver]);
 
-    (new ConfigureLexicalIndexesAction(new LexicalSearch))->execute($table);
+    new ConfigureLexicalIndexesAction(new LexicalSearch)->execute($table);
 }
 
 function cliaIndexDefinition(string $index): string

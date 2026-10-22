@@ -61,7 +61,7 @@ class AgentSlugGenerator
      */
     public static function clean(?string $reply): ?string
     {
-        $name = strtolower(trim((string) $reply, " \t\n\r\0\x0B\"'`"));
+        $name = Str::lower(Str::trim($reply ?? '', " \t\n\r\0\x0B\"'`"));
         $name = explode('.', $name)[0];
         $name = preg_replace('/\s+/', '-', $name) ?? '';
         $name = preg_replace('/[^a-z0-9-]/', '', $name) ?? '';
@@ -76,8 +76,8 @@ class AgentSlugGenerator
         try {
             return $this->chat->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::ChatAddress),
-                tag: AiCallTag::ChatAddress,
                 messages: [ChatMessageData::user(prompt('agent-slug/generate'))],
+                tag: AiCallTag::ChatAddress,
                 maxTokens: self::MAX_TOKENS,
             ))->content;
         } catch (Throwable $e) {

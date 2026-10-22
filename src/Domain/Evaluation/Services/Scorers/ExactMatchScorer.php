@@ -7,6 +7,7 @@ namespace Domain\Evaluation\Services\Scorers;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
+use Illuminate\Support\Str;
 
 /**
  * Passes only when the agent's answer equals `expected_output` exactly (both
@@ -16,7 +17,7 @@ class ExactMatchScorer implements ScorerInterface
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {
-        $expected = trim((string) ($case->expected_output ?? ''));
+        $expected = Str::trim($case->expected_output ?? '');
         $actual = $result->answer;
         $got = trim($actual);
 

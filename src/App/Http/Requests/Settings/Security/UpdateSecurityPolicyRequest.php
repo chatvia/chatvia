@@ -229,7 +229,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
     {
         $entries = array_map(fn (mixed $value): string => trim((string) $value), (array) $this->input($key, []));
 
-        return array_values(array_unique(array_filter($entries, fn (string $value): bool => filled($value))));
+        return array_values(array_unique(array_filter($entries, filled(...))));
     }
 
     private function blankToNull(mixed $value): ?string

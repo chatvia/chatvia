@@ -94,7 +94,7 @@
             "field_label": "Label kolom",
             "required": "Wajib diisi",
             "maps_to": "Dipetakan ke",
-            "options_placeholder": "Satu opsi per baris. Gunakan value|label untuk memisahkan nilai.",
+            "options_placeholder": "Satu opsi per baris. Gunakan value{'|'}label untuk memisahkan nilai.",
             "success_message": "Pesan keberhasilan",
             "success_placeholder": "Ditampilkan setelah pengunjung mengirim.",
             "active": "Aktif",

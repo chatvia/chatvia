@@ -94,7 +94,7 @@
             "field_label": "Nhãn trường",
             "required": "Bắt buộc",
             "maps_to": "Ánh xạ tới",
-            "options_placeholder": "Mỗi tùy chọn trên một dòng. Dùng giá_trị|nhãn để tách giá trị riêng.",
+            "options_placeholder": "Mỗi tùy chọn trên một dòng. Dùng giá_trị{'|'}nhãn để tách giá trị riêng.",
             "success_message": "Thông báo thành công",
             "success_placeholder": "Hiển thị sau khi khách truy cập gửi.",
             "active": "Hoạt động",

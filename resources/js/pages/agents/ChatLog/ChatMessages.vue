@@ -7,6 +7,7 @@
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { usePage } from '@inertiajs/vue3';
 import { Activity, AudioLines, LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -16,6 +17,10 @@ import { useChatLog } from './useChatLog';
 type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
 
 const { t } = useI18n();
+const { hasPermission } = useTeamPermissions();
+
+// Revising an answer writes a Q&A entry, which needs the Q&A training permission.
+const canReviseAnswer = computed(() => hasPermission('agent.sources.train.qa'));
 
 const emit = defineEmits<{
     (e: 'open-revise', message: Message): void;
@@ -264,7 +269,7 @@ function goToPage(offset: number) {
                                     ✓ {{ t('agents.chatlog.messages.revised') }}
                                 </span>
                                 <button
-                                    v-else
+                                    v-else-if="canReviseAnswer"
                                     class="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-0.5 transition-colors"
                                     @click="openReviseDialog(m)"
                                 >

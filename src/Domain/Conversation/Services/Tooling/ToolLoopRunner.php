@@ -27,6 +27,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 use Generator;
 use Illuminate\Support\Facades\Log;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * The provider-agnostic agentic loop. Streams an LLM completion, drains any
@@ -271,7 +272,7 @@ class ToolLoopRunner
      */
     private function streamCompletion(ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $settings): Generator
     {
-        $response = $this->tags->during(AiCallTag::ChatReply, fn () => $provider->stream($modelName, $llmMessages, $settings));
+        $response = $this->tags->during(AiCallTag::ChatReply, fn (): ResponseInterface => $provider->stream($modelName, $llmMessages, $settings));
 
         yield from $this->transformer->transform($response, $context);
     }

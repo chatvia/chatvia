@@ -109,7 +109,7 @@ class FunctionSchemaValidator
         $errors = [];
 
         foreach ($required as $i => $req) {
-            if (! is_string($req)) {
+            if (blank($req) || is_array($req)) {
                 $errors[] = "The parameters schema required[{$i}] must be a string.";
 
                 continue;
@@ -160,7 +160,7 @@ class FunctionSchemaValidator
         $errors = [];
 
         foreach ($types as $t) {
-            if (! is_string($t) || ! in_array($t, self::ALLOWED_PROPERTY_TYPES, true)) {
+            if (! in_array($t, self::ALLOWED_PROPERTY_TYPES, true)) {
                 $errors[] = "Property \"{$name}\" has unsupported type ".json_encode($t).'.';
             }
         }

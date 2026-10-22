@@ -307,7 +307,7 @@ class McpClient
             throw new McpException(sprintf(
                 'MCP server returned HTTP %d: %s',
                 $response->status(),
-                mb_substr((string) $response->body(), 0, self::ERROR_BODY_LENGTH),
+                Str::substr($response->body(), 0, self::ERROR_BODY_LENGTH),
             ), $response->status());
         }
 
@@ -387,7 +387,7 @@ class McpClient
      */
     private function decodeResponseBody(Response $response): ?array
     {
-        $contentType = strtolower((string) $response->header('Content-Type'));
+        $contentType = Str::lower($response->header('Content-Type'));
 
         if (! str_contains($contentType, 'text/event-stream')) {
             $decoded = $response->json();
@@ -396,7 +396,7 @@ class McpClient
         }
 
         $dataLines = [];
-        foreach (preg_split('/\r?\n/', (string) $response->body()) ?: [] as $line) {
+        foreach (preg_split('/\r?\n/', $response->body()) ?: [] as $line) {
             if (str_starts_with($line, 'data:')) {
                 $dataLines[] = ltrim(substr($line, 5));
             }

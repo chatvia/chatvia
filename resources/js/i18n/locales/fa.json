@@ -531,7 +531,8 @@
                 "sentiment_timeline": "جدول زمانی احساسات",
                 "message_details": "جزئیات پیام",
                 "waiting": "در انتظار…",
-                "trend_stable_label": "پایدار"
+                "trend_stable_label": "پایدار",
+                "trend_tooltip": "حال‌وهوای {first} را با {last} مقایسه می‌کند."
             },
             "handoff": {
                 "visitor": "بازدیدکننده",
@@ -2272,7 +2273,7 @@
             "field_label": "برچسب فیلد",
             "required": "الزامی",
             "maps_to": "نگاشت به",
-            "options_placeholder": "هر گزینه در یک خط. برای مقادیر جداگانه از value|label استفاده کنید.",
+            "options_placeholder": "هر گزینه در یک خط. برای مقادیر جداگانه از value{'|'}label استفاده کنید.",
             "success_message": "پیام موفقیت",
             "success_placeholder": "پس از ارسال توسط بازدیدکننده نمایش داده می‌شود.",
             "active": "فعال",

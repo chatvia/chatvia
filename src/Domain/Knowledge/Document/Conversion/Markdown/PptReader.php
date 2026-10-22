@@ -69,7 +69,7 @@ final class PptReader
         }
 
         try {
-            $persist = $this->persistDirectory((string) $currentUser);
+            $persist = $this->persistDirectory($currentUser ?? '');
 
             return $persist === null ? $this->slidesInStreamOrder() : $this->slidesInShowOrder(...$persist);
         } finally {
@@ -92,11 +92,11 @@ final class PptReader
      */
     private function persistDirectory(string $currentUser): ?array
     {
-        if (self::uint32($currentUser, 12) === self::ENCRYPTED_TOKEN) {
+        if ($this->uint32($currentUser, 12) === self::ENCRYPTED_TOKEN) {
             throw new RuntimeException('The PowerPoint presentation is password protected.');
         }
 
-        $offset = self::uint32($currentUser, 16);
+        $offset = $this->uint32($currentUser, 16);
         $directory = [];
         $document = null;
         $seen = [];
@@ -109,26 +109,26 @@ final class PptReader
                 break;
             }
 
-            $document ??= self::uint32($this->stream, $offset + 24);
-            $list = $this->header(self::uint32($this->stream, $offset + 20));
+            $document ??= $this->uint32($this->stream, $offset + 24);
+            $list = $this->header($this->uint32($this->stream, $offset + 20));
 
             if ($list !== null && $list['type'] === self::PERSIST_DIRECTORY) {
                 $position = $list['start'];
                 $end = $list['start'] + $list['length'];
 
                 while ($position + 4 <= $end) {
-                    $entry = self::uint32($this->stream, $position);
+                    $entry = $this->uint32($this->stream, $position);
                     $first = $entry & 0xFFFFF;
                     $count = $entry >> 20;
                     $position += 4;
 
                     for ($index = 0; $index < $count && $position + 4 <= $end; $index++, $position += 4) {
-                        $directory[$first + $index] ??= self::uint32($this->stream, $position);
+                        $directory[$first + $index] ??= $this->uint32($this->stream, $position);
                     }
                 }
             }
 
-            $offset = self::uint32($this->stream, $offset + 16);
+            $offset = $this->uint32($this->stream, $offset + 16);
         }
 
         return $document === null || ! isset($directory[$document]) ? null : [$directory, $document];
@@ -199,7 +199,7 @@ final class PptReader
 
             foreach ($this->records($list['start'], $list['start'] + $list['length']) as $record) {
                 if ($record['type'] === self::SLIDE_PERSIST) {
-                    $current = self::uint32($this->stream, $record['start']);
+                    $current = $this->uint32($this->stream, $record['start']);
                     $slides[$current] = [];
                 } elseif ($current !== null && $record['type'] === self::TEXT_HEADER) {
                     $slides[$current][] = '';
@@ -230,7 +230,7 @@ final class PptReader
 
             foreach ($box as $record) {
                 if ($record['type'] === self::OUTLINE_TEXT_REFERENCE) {
-                    $index = self::uint32($this->stream, $record['start']);
+                    $index = $this->uint32($this->stream, $record['start']);
                     $used[$index] = true;
                     $parts[] = $placeholders[$index] ?? '';
                 } else {
@@ -297,8 +297,8 @@ final class PptReader
         $bytes = substr($this->stream, $record['start'], $record['length']);
 
         $text = $record['type'] === self::TEXT_CHARS
-            ? (string) mb_convert_encoding(substr($bytes, 0, strlen($bytes) - strlen($bytes) % 2), 'UTF-8', 'UTF-16LE')
-            : (string) mb_convert_encoding($bytes, 'UTF-8', 'ISO-8859-1');
+            ? mb_convert_encoding(substr($bytes, 0, strlen($bytes) - strlen($bytes) % 2), 'UTF-8', 'UTF-16LE')
+            : mb_convert_encoding($bytes, 'UTF-8', 'ISO-8859-1');
 
         $text = str_replace(["\r", "\x0B", "\u{A0}"], ["\n", "\n", ' '], $text);
 
@@ -342,23 +342,23 @@ final class PptReader
             return null;
         }
 
-        $options = self::uint16($this->stream, $offset);
+        $options = $this->uint16($this->stream, $offset);
 
         return [
-            'type' => self::uint16($this->stream, $offset + 2),
+            'type' => $this->uint16($this->stream, $offset + 2),
             'instance' => $options >> 4,
             'version' => $options & 0x0F,
             'start' => $offset + 8,
-            'length' => min(self::uint32($this->stream, $offset + 4), strlen($this->stream) - $offset - 8),
+            'length' => min($this->uint32($this->stream, $offset + 4), strlen($this->stream) - $offset - 8),
         ];
     }
 
-    private static function uint16(string $bytes, int $offset): int
+    private function uint16(string $bytes, int $offset): int
     {
         return $offset >= 0 && strlen($bytes) >= $offset + 2 ? (int) unpack('v', $bytes, $offset)[1] : 0;
     }
 
-    private static function uint32(string $bytes, int $offset): int
+    private function uint32(string $bytes, int $offset): int
     {
         return $offset >= 0 && strlen($bytes) >= $offset + 4 ? (int) unpack('V', $bytes, $offset)[1] : 0;
     }

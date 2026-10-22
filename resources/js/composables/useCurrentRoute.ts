@@ -9,7 +9,6 @@
  * It reads the Inertia page props, so templates and computeds re-evaluate
  * after each visit.
  */
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -28,7 +27,7 @@ function escapeRegExp(value: string): string {
 }
 
 export function useCurrentRoute() {
-    const page = usePage<SharedData>();
+    const page = usePage();
 
     const name = computed<string | null>(() => page.props.route?.name ?? null);
     const params = computed<Record<string, string>>(() => page.props.route?.params ?? {});

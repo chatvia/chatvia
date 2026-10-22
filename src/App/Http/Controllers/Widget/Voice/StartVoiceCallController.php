@@ -45,7 +45,7 @@ readonly class StartVoiceCallController
             $this->factory->voiceForWidget(
                 $request,
                 $agent,
-                (string) $sessionId,
+                $sessionId ?? '',
                 $conversationId,
                 $request->attributes->getBoolean(EnsureWidgetIsAccessible::PLAYGROUND_ATTRIBUTE),
                 $this->widgetUser($request),

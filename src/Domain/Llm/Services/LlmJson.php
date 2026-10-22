@@ -2,6 +2,8 @@
 
 namespace Domain\Llm\Services;
 
+use Illuminate\Support\Str;
+
 /**
  * Tolerant JSON decoding for model replies. Models asked for JSON sometimes
  * wrap it in a Markdown code fence or add a sentence around it; this finds the
@@ -15,7 +17,7 @@ final class LlmJson
      */
     public static function decode(?string $reply): ?array
     {
-        $reply = self::withoutCodeFence(trim((string) $reply));
+        $reply = self::withoutCodeFence(Str::trim($reply ?? ''));
 
         if ($reply === '') {
             return null;

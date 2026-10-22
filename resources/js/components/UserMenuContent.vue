@@ -21,7 +21,7 @@ import governance from '@/routes/governance';
 import integrations from '@/routes/integrations';
 import library from '@/routes/library';
 import people from '@/routes/people';
-import type { SharedData, User } from '@/types';
+import type { User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Building2, Check, CircleUser, Languages, LogOut } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -34,7 +34,7 @@ interface Props {
 defineProps<Props>();
 
 const { t, locale } = useI18n();
-const page = usePage<SharedData>();
+const page = usePage();
 const { hasPermission } = useTeamPermissions();
 
 // Workspace administration is permission-gated. Point the entry at the first

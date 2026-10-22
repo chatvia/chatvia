@@ -295,6 +295,16 @@ declare namespace Domain {
                     }
                 }
                 namespace Sources {
+                    export type AgentSourcesListData = {
+                        id: number;
+                        filename: string;
+                        filetype: Domain.Knowledge.Source.File.Enums.KnowledgeFileType;
+                        length: string;
+                        agents: {
+                            id: number;
+                            name: string;
+                        }[];
+                    };
                     export type AgentSourcesStatsData = {
                         websites: number;
                         texts: number;
@@ -752,22 +762,29 @@ declare namespace Domain {
                 user_id: number | null;
                 user_name: string | null;
                 avatar: string | null;
-                stage: undefined;
-                guard_type: undefined;
+                stage: Domain.Guardrail.Enums.GuardStage;
+                guard_type: Domain.Guardrail.Enums.GuardType;
                 guard_label: string;
-                outcome: undefined;
-                severity: undefined | null;
+                outcome: Domain.Guardrail.Enums.GuardOutcome;
+                severity: Domain.Guardrail.Enums.GuardSeverity | null;
                 detail: Record<string, any> | null;
                 snippet: string | null;
                 trace_id: string | null;
                 conversation_external_id: string | null;
                 visitor_key: string | null;
-                offender: undefined | null;
+                offender: Domain.Guardrail.Data.GuardrailOffenderData | null;
             };
             export type GuardrailLogFiltersData = {
-                guard_type: undefined | null;
-                outcome: undefined | null;
+                guard_type: Domain.Guardrail.Enums.GuardType | null;
+                outcome: Domain.Guardrail.Enums.GuardOutcome | null;
                 visitor: string | null;
+            };
+            export type GuardrailOffenderData = {
+                kind: Domain.Guardrail.Enums.GuardrailOffenderKind;
+                blocked: boolean;
+                recent_attempts: number;
+                visitor_key: string | null;
+                chatter_external_id: string | null;
             };
             export type GuardrailTestResultData = {
                 blocked: boolean;
@@ -778,12 +795,19 @@ declare namespace Domain {
                 verdicts: Domain.Guardrail.Data.GuardrailTestVerdictData[];
             };
             export type GuardrailTestVerdictData = {
-                guard_type: undefined;
-                stage: undefined;
-                outcome: undefined;
-                severity: undefined | null;
+                guard_type: Domain.Guardrail.Enums.GuardType;
+                stage: Domain.Guardrail.Enums.GuardStage;
+                outcome: Domain.Guardrail.Enums.GuardOutcome;
+                severity: Domain.Guardrail.Enums.GuardSeverity | null;
                 detail: Record<string, any>;
             };
+        }
+        namespace Enums {
+            export type GuardOutcome = 'blocked' | 'redacted' | 'flagged' | 'skipped';
+            export type GuardSeverity = 'none' | 'low' | 'medium' | 'high';
+            export type GuardStage = 'input' | 'source' | 'tool' | 'output';
+            export type GuardType = 'prompt_injection' | 'pii' | 'blocked_topic' | 'toxicity' | 'prompt_leak';
+            export type GuardrailOffenderKind = 'chatter' | 'visitor';
         }
     }
     namespace Integration {
@@ -925,6 +949,22 @@ declare namespace Domain {
                     };
                     export type AgentFunctionsListResourceData = {
                         data: Domain.Integration.Function.Data.Resources.AgentFunctionRowData[];
+                    };
+                    export type WorkspaceFunctionRowData = {
+                        id: string;
+                        internal_name: string;
+                        display_name: string | null;
+                        description: string;
+                        parameters_schema: string;
+                        webhook_url: string;
+                        webhook_method: Domain.Integration.Function.Enums.FunctionWebhookMethod;
+                        auth_type: Domain.Integration.Function.Enums.FunctionAuthType;
+                        auth_header_name: string;
+                        has_auth_value: boolean;
+                        is_enabled: boolean;
+                        requires_approval: boolean;
+                        created_at: string | null;
+                        agents_count: number;
                     };
                 }
             }
@@ -1262,7 +1302,7 @@ declare namespace Domain {
             export type SecurityAuditRowData = {
                 id: number;
                 created_at: string | null;
-                action: undefined;
+                action: Domain.Security.Enums.SecurityAuditAction;
                 action_label: string;
                 category: string | null;
                 outcome: Domain.Security.Enums.SecurityAuditOutcome;
@@ -1300,6 +1340,35 @@ declare namespace Domain {
         namespace Enums {
             export type GeoMode = 'off' | 'allow' | 'deny';
             export type IpAllowlistMode = 'off' | 'dashboard' | 'dashboard_api';
+            export type SecurityAuditAction =
+                | 'auth.login'
+                | 'auth.login_failed'
+                | 'auth.logout'
+                | 'member.added'
+                | 'member.removed'
+                | 'member.role_changed'
+                | 'role.created'
+                | 'role.updated'
+                | 'role.deleted'
+                | 'agent.settings_changed'
+                | 'api_key.created'
+                | 'api_key.deleted'
+                | 'connector.attached'
+                | 'connector.detached'
+                | 'policy.changed'
+                | 'policy.ip_allowlist_changed'
+                | 'policy.retention_changed'
+                | 'policy.webhook_disabled'
+                | 'data.exported'
+                | 'data.deletion_requested'
+                | 'audit.exported'
+                | 'scim.user.provisioned'
+                | 'scim.user.deprovisioned'
+                | 'scim.group.changed'
+                | 'guardrail.attack_blocked'
+                | 'visitor.blocked'
+                | 'visitor.unblocked'
+                | 'chatter.blocked';
             export type SecurityAuditOutcome = 'success' | 'failure' | 'denied';
         }
     }

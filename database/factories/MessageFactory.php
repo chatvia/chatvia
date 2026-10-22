@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Domain\Conversation\Enums\MessageFeedback;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Llm\Models\Llm;
@@ -37,7 +38,7 @@ class MessageFactory extends Factory
             'role' => $role,
             'llm_id' => $role === 'assistant' ? $this->getRandomLlmId() : null,
             'confidence_score' => $role === 'assistant' ? fake()->optional(0.7)->randomFloat(4, 0.7, 1) : null,
-            'feedback' => fake()->optional(0.2)->randomElement(['positive', 'negative']),
+            'feedback' => fake()->optional(0.2)->randomElement(MessageFeedback::cases()),
             'response_time_ms' => $role === 'assistant' ? fake()->numberBetween(500, 5000) : null,
         ];
     }
@@ -84,7 +85,7 @@ class MessageFactory extends Factory
     public function withPositiveFeedback(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'feedback' => 'positive',
+            'feedback' => MessageFeedback::Positive,
         ]);
     }
 
@@ -94,7 +95,7 @@ class MessageFactory extends Factory
     public function withNegativeFeedback(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'feedback' => 'negative',
+            'feedback' => MessageFeedback::Negative,
         ]);
     }
 

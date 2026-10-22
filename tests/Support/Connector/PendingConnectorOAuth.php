@@ -28,9 +28,9 @@ final class PendingConnectorOAuth
             clientId: 'client-123',
             codeVerifier: 'verifier',
             mcpUrl: 'https://mcp.example.test/rpc',
+            sessionBindingHash: PendingOAuthState::hashBinding($binding),
             customName: $connectorSlug === null ? 'My server' : null,
             customSlug: $connectorSlug === null ? 'my_server' : null,
-            sessionBindingHash: PendingOAuthState::hashBinding($binding),
         );
 
         cache()->put('oauth:mcp:state:'.$state, $pending->seal(), 600);

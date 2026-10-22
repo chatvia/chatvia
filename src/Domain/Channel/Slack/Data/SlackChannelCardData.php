@@ -24,9 +24,9 @@ class SlackChannelCardData extends Data
     public static function fromApp(?AgentSlackApp $app): self
     {
         return new self(
-            connected: $app !== null,
+            connected: $app instanceof AgentSlackApp,
             team_name: $app?->team_name,
-            webhook_url: $app !== null ? route('slack.webhook', ['secret' => $app->webhook_secret]) : null,
+            webhook_url: $app instanceof AgentSlackApp ? route('slack.webhook', ['secret' => $app->webhook_secret]) : null,
             enabled: (bool) $app?->is_enabled,
         );
     }

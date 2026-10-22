@@ -38,12 +38,12 @@ final class CacheCipher
         }
 
         // Legacy plaintext entry written before encryption was enabled.
-        if (! is_string($stored)) {
+        if (! is_scalar($stored)) {
             return $stored;
         }
 
         try {
-            return Crypt::decrypt($stored);
+            return Crypt::decrypt((string) $stored);
         } catch (DecryptException) {
             return $default;
         }

@@ -33,7 +33,7 @@ final class ChatResponseData extends Data
             content: self::text($message['content'] ?? null),
             toolCalls: self::toolCalls($message['tool_calls'] ?? null),
             usage: ChatUsageData::fromUsage(is_array($body['usage'] ?? null) ? $body['usage'] : null),
-            finishReason: is_string($choice['finish_reason'] ?? null) ? $choice['finish_reason'] : null,
+            finishReason: filled($choice['finish_reason'] ?? null) ? $choice['finish_reason'] : null,
         );
     }
 
@@ -43,16 +43,12 @@ final class ChatResponseData extends Data
      */
     private static function text(mixed $content): string
     {
-        if (is_string($content)) {
-            return $content;
-        }
-
         if (! is_array($content)) {
-            return '';
+            return is_scalar($content) ? (string) $content : '';
         }
 
         $texts = array_map(
-            static fn (mixed $part): string => is_array($part) && is_string($part['text'] ?? null) ? $part['text'] : '',
+            static fn (mixed $part): string => is_array($part) && filled($part['text'] ?? null) ? $part['text'] : '',
             $content,
         );
 
@@ -73,7 +69,7 @@ final class ChatResponseData extends Data
         foreach ($toolCalls as $call) {
             $name = $call['function']['name'] ?? null;
 
-            if (! is_string($name) || blank($name)) {
+            if (blank($name)) {
                 continue;
             }
 
@@ -82,7 +78,7 @@ final class ChatResponseData extends Data
             $calls[] = new ChatToolCallData(
                 id: (string) ($call['id'] ?? ''),
                 name: $name,
-                arguments: is_string($arguments) ? $arguments : (string) json_encode($arguments),
+                arguments: is_scalar($arguments) ? (string) $arguments : (string) json_encode($arguments),
             );
         }
 

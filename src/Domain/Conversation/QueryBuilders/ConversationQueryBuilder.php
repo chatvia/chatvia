@@ -273,7 +273,7 @@ class ConversationQueryBuilder extends Builder
         $parameters = $cursor->toArray();
         $updatedAt = $parameters['updated_at'] ?? null;
 
-        return is_int($parameters['id'] ?? null) && is_string($updatedAt) && $this->isTimestamp($updatedAt) ? $cursor : null;
+        return is_int($parameters['id'] ?? null) && is_scalar($updatedAt) && $this->isTimestamp((string) $updatedAt) ? $cursor : null;
     }
 
     /** True for a `Y-m-d H:i:s` string that names a real moment (no overflowing fields). */

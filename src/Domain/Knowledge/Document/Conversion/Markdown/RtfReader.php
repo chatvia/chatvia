@@ -490,7 +490,7 @@ final class RtfReader
      */
     private function state(): array
     {
-        return $this->groups[array_key_last($this->groups)];
+        return array_last($this->groups);
     }
 
     private function emit(string $text): void
@@ -518,6 +518,14 @@ final class RtfReader
     {
         $value = $value < 0 ? $value + 0x10000 : $value;
 
+        // A broken file can name a value no character has; mb_chr() would
+        // answer false for it, so it is dropped like a lone surrogate.
+        if ($value < 0 || $value > 0x10FFFF) {
+            $this->pendingSurrogate = 0;
+
+            return;
+        }
+
         if ($value >= 0xD800 && $value <= 0xDBFF) {
             $this->flushBytes();
             $this->pendingSurrogate = $value;
@@ -527,7 +535,7 @@ final class RtfReader
 
         if ($value >= 0xDC00 && $value <= 0xDFFF) {
             if ($this->pendingSurrogate !== 0) {
-                $this->emit((string) mb_chr(0x10000 + (($this->pendingSurrogate - 0xD800) << 10) + ($value - 0xDC00), 'UTF-8'));
+                $this->emit(mb_chr(0x10000 + (($this->pendingSurrogate - 0xD800) << 10) + ($value - 0xDC00), 'UTF-8'));
             }
 
             $this->pendingSurrogate = 0;
@@ -536,7 +544,7 @@ final class RtfReader
         }
 
         $this->pendingSurrogate = 0;
-        $this->emit(in_array($value, [0, 0xA0], true) ? ' ' : (string) mb_chr($value, 'UTF-8'));
+        $this->emit(in_array($value, [0, 0xA0], true) ? ' ' : mb_chr($value, 'UTF-8'));
     }
 
     /** Decodes the bytes gathered so far by the code page of the current font. */

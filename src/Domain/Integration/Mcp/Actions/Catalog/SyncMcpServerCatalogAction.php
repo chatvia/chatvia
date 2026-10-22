@@ -62,7 +62,7 @@ class SyncMcpServerCatalogAction
 
         $tools = array_values(array_filter(
             $this->fetchOrThrow($server),
-            fn (McpToolDefinitionData $tool): bool => $tool->fitsToolNameFor((string) $server->slug),
+            fn (McpToolDefinitionData $tool): bool => $tool->fitsToolNameFor($server->slug),
         ));
 
         return $shared

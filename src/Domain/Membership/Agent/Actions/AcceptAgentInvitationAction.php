@@ -43,7 +43,7 @@ class AcceptAgentInvitationAction
         $invitedEmail = $data->invitation->email;
 
         if ($data->kind === InvitationCredentialKind::Social) {
-            $socialEmail = (string) $data->socialEmail;
+            $socialEmail = $data->socialEmail ?? '';
             if (! hash_equals(strtolower($invitedEmail), strtolower($socialEmail))) {
                 throw new AgentChatterInvitationRejectedException(
                     'email',
@@ -66,7 +66,7 @@ class AcceptAgentInvitationAction
             ];
 
             if ($data->kind === InvitationCredentialKind::Password) {
-                $fields['password'] = Hash::make((string) $data->password);
+                $fields['password'] = Hash::make($data->password ?? '');
             }
 
             $chatter->forceFill($fields)->save();

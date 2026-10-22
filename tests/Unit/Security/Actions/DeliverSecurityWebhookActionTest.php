@@ -60,6 +60,21 @@ it('delivers to the policy URL with its secret and resets the failure counter', 
         ->and($policy->fresh()->webhook_last_delivered_at)->not->toBeNull();
 });
 
+it('sends the same delivery id when the queue retries the event', function (): void {
+    Http::fake(['*' => Http::response('', 200)]);
+    $workspace = User::factory()->create();
+    enableSiem($workspace);
+    $event = siemEvent($workspace->workspace()->id);
+
+    // A retry runs the delivery again on the event as the queue stored it.
+    app(DeliverSecurityWebhookAction::class)->execute($event);
+    app(DeliverSecurityWebhookAction::class)->execute(unserialize(serialize($event)));
+
+    $ids = Http::recorded()->map(fn (array $pair): mixed => $pair[0]->data()['delivery_id']);
+
+    expect($ids->all())->toBe([$event->deliveryId, $event->deliveryId]);
+});
+
 it('skips the policy write after a success when nothing changed within the minute', function (): void {
     Http::fake(['*' => Http::response('', 200)]);
     $workspace = User::factory()->create();

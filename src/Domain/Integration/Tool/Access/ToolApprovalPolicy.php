@@ -66,7 +66,7 @@ class ToolApprovalPolicy
             return false;
         }
 
-        $slug = (string) $tool->serverSlug;
+        $slug = $tool->serverSlug ?? '';
 
         // First-party builtin capabilities (charts, forms, leads) run directly —
         // they are safe, no-auth Chatvia tools and never gate on approval.

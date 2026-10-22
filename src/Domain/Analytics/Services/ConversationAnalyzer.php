@@ -49,11 +49,11 @@ class ConversationAnalyzer
 
         $data = $this->ask(new ChatRequestData(
             model: $this->models->model(LlmTask::ConversationAnalysis),
-            tag: AiCallTag::ConversationAnalysis,
             messages: [
                 ChatMessageData::system($this->conversationPrompt($topics, $this->pendingLabels($agent))),
                 ChatMessageData::user($transcript),
             ],
+            tag: AiCallTag::ConversationAnalysis,
             responseSchema: new ResponseSchemaData('conversation_analysis', $this->conversationSchema(), strict: false),
         ));
 
@@ -81,11 +81,11 @@ class ConversationAnalyzer
     {
         $data = $this->ask(new ChatRequestData(
             model: $this->models->model(LlmTask::ConversationAnalysis),
-            tag: AiCallTag::ConversationAnalysis,
             messages: [
                 ChatMessageData::system(trim(prompt('analytics/message-analysis'))),
                 ChatMessageData::user($text),
             ],
+            tag: AiCallTag::ConversationAnalysis,
             responseSchema: new ResponseSchemaData('message_analysis', $this->messageSchema(), strict: false),
         ));
 
@@ -257,7 +257,7 @@ class ConversationAnalyzer
         $existingNames = $topics->pluck('topic')->map(fn (mixed $name): string => mb_strtolower(trim((string) $name)))->all();
 
         return collect(is_array($labels) ? $labels : [])
-            ->filter(fn (mixed $label): bool => is_string($label) && filled($label))
+            ->filter(fn (mixed $label): bool => filled($label))
             ->map(fn (string $label): string => trim($label))
             ->reject(fn (string $label): bool => in_array(mb_strtolower($label), $existingNames, true))
             ->unique(fn (string $label): string => mb_strtolower($label))
@@ -267,7 +267,7 @@ class ConversationAnalyzer
 
     private function normalizeLanguage(mixed $language): ?string
     {
-        if (! is_string($language)) {
+        if (blank($language)) {
             return null;
         }
 

@@ -36,7 +36,7 @@ final readonly class AgentTextTranslator
         }
 
         $translated = $this->translator->translate(
-            array_map(static fn (TranslatableText $text): string => (string) $text->base, $texts),
+            array_map(static fn (TranslatableText $text): string => $text->base ?? '', $texts),
             $languages,
         );
 

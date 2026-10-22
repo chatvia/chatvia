@@ -48,7 +48,7 @@ final readonly class VoiceTurnRecorder
 
         $this->addMessage->execute(
             new ChatScopeData($request->agent, $request->externalSessionId, $request->conversationId),
-            $this->factory->userTurn($request, (string) $context->userMessageId, $guard->text),
+            $this->factory->userTurn($request, $context->userMessageId ?? '', $guard->text),
         );
         // The masked text is recorded, never the raw words.
         $this->guardrailRecorder->record($context, $guard->text, $guard);

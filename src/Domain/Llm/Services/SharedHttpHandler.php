@@ -18,7 +18,7 @@ use Psr\Http\Message\RequestInterface;
 final class SharedHttpHandler
 {
     /** @var (callable(RequestInterface, array<string, mixed>): PromiseInterface)|null */
-    private $handler = null;
+    private $handler;
 
     /**
      * @return callable(RequestInterface, array<string, mixed>): PromiseInterface

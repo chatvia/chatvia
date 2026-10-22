@@ -201,8 +201,8 @@ final class DocReader
     /** Checks the file header and finds the list of table-stream parts; returns the header flags. */
     private function readHeader(): int
     {
-        $ident = self::uint16($this->word, 0);
-        $flags = self::uint16($this->word, 0x0A);
+        $ident = $this->uint16($this->word, 0);
+        $flags = $this->uint16($this->word, 0x0A);
 
         if ($ident !== self::WORD_IDENT && $ident !== self::WORD_6_IDENT) {
             throw new RuntimeException('The file is not a Word document, or one older than Word 6.');
@@ -214,7 +214,7 @@ final class DocReader
 
         if ($ident === self::WORD_6_IDENT) {
             // A fixed header: the story lengths, then the table-stream parts up to the piece table.
-            $this->codePage = CodePage::forLanguage(self::uint16($this->word, 6));
+            $this->codePage = CodePage::forLanguage($this->uint16($this->word, 6));
             $this->storyLengthsOffset = 0x34;
             $this->partListOffset = 0x58;
             $this->partCount = self::PIECE_TABLE + 1;
@@ -222,15 +222,15 @@ final class DocReader
             return $flags;
         }
 
-        if (self::uint16($this->word, 2) < self::FIRST_WORD_97_VERSION) {
+        if ($this->uint16($this->word, 2) < self::FIRST_WORD_97_VERSION) {
             throw new RuntimeException('The Word document has an unknown header.');
         }
 
-        $longs = 34 + self::uint16($this->word, 32) * 2;
-        $partList = $longs + 2 + self::uint16($this->word, $longs) * 4;
+        $longs = 34 + $this->uint16($this->word, 32) * 2;
+        $partList = $longs + 2 + $this->uint16($this->word, $longs) * 4;
 
         $this->storyLengthsOffset = $longs + 2 + 12;
-        $this->partCount = self::uint16($this->word, $partList);
+        $this->partCount = $this->uint16($this->word, $partList);
         $this->partListOffset = $partList + 2;
 
         return $flags;
@@ -245,7 +245,7 @@ final class DocReader
      */
     private function storyLengths(): array
     {
-        return array_map(fn (int $index): int => self::uint32($this->word, $this->storyLengthsOffset + $index * 4), range(0, 7));
+        return array_map(fn (int $index): int => $this->uint32($this->word, $this->storyLengthsOffset + $index * 4), range(0, 7));
     }
 
     /** @return array{0: int, 1: int} the offset and length of a table-stream part */
@@ -257,7 +257,7 @@ final class DocReader
 
         $at = $this->partListOffset + $index * 8;
 
-        return [self::uint32($this->word, $at), self::uint32($this->word, $at + 4)];
+        return [$this->uint32($this->word, $at), $this->uint32($this->word, $at + 4)];
     }
 
     private function partBytes(int $index): string
@@ -274,7 +274,7 @@ final class DocReader
 
         if ($this->codePage !== null && ($clx === '' || ($flags & self::COMPLEX) === 0)) {
             // A Word 6 file saved in full keeps all its text in one run.
-            $this->pieces[] = ['cp' => 0, 'end' => array_sum($this->storyLengths()) + 1, 'fc' => self::uint32($this->word, 0x18), 'compressed' => true];
+            $this->pieces[] = ['cp' => 0, 'end' => array_sum($this->storyLengths()) + 1, 'fc' => $this->uint32($this->word, 0x18), 'compressed' => true];
 
             return;
         }
@@ -287,9 +287,9 @@ final class DocReader
             $type = ord($clx[$position]);
 
             if ($type === 1) {
-                $position += 3 + self::uint16($clx, $position + 1);
+                $position += 3 + $this->uint16($clx, $position + 1);
             } elseif ($type === 2) {
-                $table = substr($clx, $position + 5, self::uint32($clx, $position + 1));
+                $table = substr($clx, $position + 5, $this->uint32($clx, $position + 1));
 
                 break;
             } else {
@@ -304,7 +304,7 @@ final class DocReader
         [$positions, $descriptors] = $this->plc($table, 8);
 
         foreach ($descriptors as $index => $descriptor) {
-            $fc = self::uint32($descriptor, 2);
+            $fc = $this->uint32($descriptor, 2);
             $compressed = $this->codePage !== null || ($fc & 0x40000000) !== 0;
 
             $this->pieces[] = [
@@ -326,8 +326,8 @@ final class DocReader
                 $offset = ord($page[($count + 1) * 4 + $index * 13]) * 2;
 
                 $this->paragraphRuns[] = [
-                    self::uint32($page, $index * 4),
-                    self::uint32($page, ($index + 1) * 4),
+                    $this->uint32($page, $index * 4),
+                    $this->uint32($page, ($index + 1) * 4),
                     $this->paragraphProperties($page, $offset),
                 ];
             }
@@ -349,12 +349,12 @@ final class DocReader
 
         $size = ord($page[$offset]);
         $data = $size === 0 ? substr($page, $offset + 2, ord($page[$offset + 1]) * 2) : substr($page, $offset + 1, $size * 2 - 1);
-        $properties['style'] = self::uint16($data, 0);
+        $properties['style'] = $this->uint16($data, 0);
 
         foreach ($this->sprms(substr($data, 2)) as [$sprm, $operand]) {
             switch ($sprm) {
                 case 0x4600:
-                    $properties['style'] = self::uint16($operand, 0);
+                    $properties['style'] = $this->uint16($operand, 0);
                     break;
                 case 0x2416:
                     $properties['inTable'] = ord($operand) !== 0;
@@ -363,7 +363,7 @@ final class DocReader
                     $properties['rowEnd'] = ord($operand) !== 0;
                     break;
                 case 0x6649:
-                    $properties['depth'] = self::uint32($operand, 0);
+                    $properties['depth'] = $this->uint32($operand, 0);
                     break;
                 case 0x244C:
                     $properties['innerRowEnd'] = ord($operand) !== 0;
@@ -372,7 +372,7 @@ final class DocReader
                     $properties['outline'] = ord($operand);
                     break;
                 case 0x460B:
-                    $properties['list'] = self::uint16($operand, 0);
+                    $properties['list'] = $this->uint16($operand, 0);
                     break;
                 case 0x260A:
                     $properties['level'] = ord($operand);
@@ -398,7 +398,7 @@ final class DocReader
 
                 foreach ($this->sprms(substr($page, $offset + 1, ord($page[$offset]))) as [$sprm, $operand]) {
                     if ($sprm === 0x0800 && in_array(ord($operand), [1, 0x81], true)) {
-                        $this->deletions[] = [self::uint32($page, $index * 4), self::uint32($page, ($index + 1) * 4)];
+                        $this->deletions[] = [$this->uint32($page, $index * 4), $this->uint32($page, ($index + 1) * 4)];
                     }
                 }
             }
@@ -418,7 +418,7 @@ final class DocReader
         $pages = [];
 
         foreach ($this->plc($this->partBytes($part), 4)[1] as $entry) {
-            $page = substr($this->word, (self::uint32($entry, 0) & 0x3FFFFF) * 512, 512);
+            $page = substr($this->word, ($this->uint32($entry, 0) & 0x3FFFFF) * 512, 512);
 
             if (strlen($page) === 512) {
                 $pages[] = $page;
@@ -435,31 +435,31 @@ final class DocReader
     private function readStyles(): void
     {
         $sheet = $this->partBytes(self::STYLES);
-        $headerSize = self::uint16($sheet, 0);
-        $count = self::uint16($sheet, 2);
-        $baseSize = self::uint16($sheet, 4);
+        $headerSize = $this->uint16($sheet, 0);
+        $count = $this->uint16($sheet, 2);
+        $baseSize = $this->uint16($sheet, 4);
         $position = 2 + $headerSize;
 
         for ($index = 0; $index < $count && $position + 2 <= strlen($sheet); $index++) {
-            $size = self::uint16($sheet, $position);
+            $size = $this->uint16($sheet, $position);
             $style = substr($sheet, $position + 2, $size);
             $position += 2 + $size;
 
             // Only paragraph styles (kind 1) carry paragraph properties.
-            if ($size === 0 || (self::uint16($style, 2) & 0x0F) !== 1) {
+            if ($size === 0 || ($this->uint16($style, 2) & 0x0F) !== 1) {
                 continue;
             }
 
-            $nameLength = self::uint16($style, $baseSize);
-            $name = (string) mb_convert_encoding(substr($style, $baseSize + 2, $nameLength * 2), 'UTF-8', 'UTF-16LE');
+            $nameLength = $this->uint16($style, $baseSize);
+            $name = mb_convert_encoding(substr($style, $baseSize + 2, $nameLength * 2), 'UTF-8', 'UTF-16LE');
             $properties = $baseSize + 2 + ($nameLength + 1) * 2;
-            $definition = ['id' => self::uint16($style, 0) & 0x0FFF, 'base' => self::uint16($style, 2) >> 4, 'name' => $name, 'outline' => null, 'list' => null, 'level' => null];
+            $definition = ['id' => $this->uint16($style, 0) & 0x0FFF, 'base' => $this->uint16($style, 2) >> 4, 'name' => $name, 'outline' => null, 'list' => null, 'level' => null];
 
             // The paragraph properties: their size, the style number, the properties.
-            foreach ($this->sprms(substr($style, $properties + 4, self::uint16($style, $properties) - 2)) as [$sprm, $operand]) {
+            foreach ($this->sprms(substr($style, $properties + 4, $this->uint16($style, $properties) - 2)) as [$sprm, $operand]) {
                 match ($sprm) {
                     0x2640 => $definition['outline'] = ord($operand),
-                    0x460B => $definition['list'] = self::uint16($operand, 0),
+                    0x460B => $definition['list'] = $this->uint16($operand, 0),
                     0x260A => $definition['level'] = ord($operand),
                     default => null,
                 };
@@ -475,13 +475,13 @@ final class DocReader
         [$offset, $length] = $this->part(self::LISTS);
 
         if ($length >= 2) {
-            $count = max(0, self::int16($this->table, $offset));
+            $count = max(0, $this->int16($this->table, $offset));
             $position = $offset + 2 + $count * 28;
 
             for ($index = 0; $index < $count && $position < strlen($this->table); $index++) {
                 $definition = $offset + 2 + $index * 28;
-                $id = self::uint32($this->table, $definition);
-                $levels = (ord($this->table[$definition + 26] ?? "\0") & 1) === 1 ? 1 : 9;
+                $id = $this->uint32($this->table, $definition);
+                $levels = (ord(($this->table[$definition + 26] ?? "\0")[0]) & 1) === 1 ? 1 : 9;
 
                 for ($level = 0; $level < $levels; $level++) {
                     [$this->lists[$id][$level], $position] = $this->listLevel($position);
@@ -495,13 +495,13 @@ final class DocReader
             return;
         }
 
-        $count = min(self::uint32($this->table, $offset), intdiv($length, 16));
+        $count = min($this->uint32($this->table, $offset), intdiv($length, 16));
         $levelCounts = [];
 
         for ($index = 0; $index < $count; $index++) {
             $at = $offset + 4 + $index * 16;
-            $this->overrides[$index + 1] = ['list' => self::uint32($this->table, $at), 'starts' => [], 'formats' => []];
-            $levelCounts[$index + 1] = ord($this->table[$at + 12] ?? "\0");
+            $this->overrides[$index + 1] = ['list' => $this->uint32($this->table, $at), 'starts' => [], 'formats' => []];
+            $levelCounts[$index + 1] = ord(($this->table[$at + 12] ?? "\0")[0]);
         }
 
         $position = $offset + 4 + $count * 16;
@@ -510,8 +510,8 @@ final class DocReader
             $position += 4;
 
             for ($index = 0; $index < $levels && $position < strlen($this->table); $index++) {
-                $start = self::int32($this->table, $position);
-                $flags = self::uint32($this->table, $position + 4);
+                $start = $this->int32($this->table, $position);
+                $flags = $this->uint32($this->table, $position + 4);
                 $level = $flags & 0x0F;
                 $position += 8;
 
@@ -533,10 +533,10 @@ final class DocReader
      */
     private function listLevel(int $position): array
     {
-        $format = ord($this->table[$position + 4] ?? "\0");
-        $start = self::int32($this->table, $position);
-        $position += 28 + ord($this->table[$position + 24] ?? "\0") + ord($this->table[$position + 25] ?? "\0");
-        $position += 2 + self::uint16($this->table, $position) * 2;
+        $format = ord(($this->table[$position + 4] ?? "\0")[0]);
+        $start = $this->int32($this->table, $position);
+        $position += 28 + ord(($this->table[$position + 24] ?? "\0")[0]) + ord(($this->table[$position + 25] ?? "\0")[0]);
+        $position += 2 + $this->uint16($this->table, $position) * 2;
 
         return [['bullet' => in_array($format, [self::BULLET, self::NO_NUMBER], true), 'start' => $start], $position];
     }
@@ -596,8 +596,8 @@ final class DocReader
                     continue;
                 }
 
-                if ($code === self::PARAGRAPH_END || $code === self::CELL_END || $code === self::PAGE_BREAK) {
-                    $paragraphs[] = ['text' => self::utf8($units), 'end' => $code, 'notes' => $notes, 'properties' => $this->propertiesAt($fc)];
+                if (in_array($code, [self::PARAGRAPH_END, self::CELL_END, self::PAGE_BREAK], true)) {
+                    $paragraphs[] = ['text' => $this->utf8($units), 'end' => $code, 'notes' => $notes, 'properties' => $this->propertiesAt($fc)];
                     $units = $notes = [];
                 } elseif ($code === self::FIELD_BEGIN) {
                     $fields[] = true;
@@ -626,7 +626,7 @@ final class DocReader
         }
 
         if ($units !== []) {
-            $paragraphs[] = ['text' => self::utf8($units), 'end' => self::PARAGRAPH_END, 'notes' => $notes, 'properties' => self::PLAIN_PARAGRAPH];
+            $paragraphs[] = ['text' => $this->utf8($units), 'end' => self::PARAGRAPH_END, 'notes' => $notes, 'properties' => self::PLAIN_PARAGRAPH];
         }
 
         return $paragraphs;
@@ -645,7 +645,7 @@ final class DocReader
         }
 
         if ($this->codePage !== null) {
-            $utf16 = (string) mb_convert_encoding(CodePage::toUtf8($bytes, $this->codePage), 'UTF-16LE', 'UTF-8');
+            $utf16 = mb_convert_encoding(CodePage::toUtf8($bytes, $this->codePage), 'UTF-16LE', 'UTF-8');
 
             return $utf16 === '' ? [] : array_values((array) unpack('v*', $utf16));
         }
@@ -897,7 +897,7 @@ final class DocReader
         $length = strlen($list);
 
         while ($position + 2 <= $length) {
-            $sprm = self::uint16($list, $position);
+            $sprm = $this->uint16($list, $position);
             $position += 2;
 
             $size = match ($sprm >> 13) {
@@ -924,15 +924,15 @@ final class DocReader
     {
         // Table definitions give a two-byte size.
         if ($sprm === 0xD608 || $sprm === 0xD606) {
-            return self::uint16($list, $position) + 1;
+            return $this->uint16($list, $position) + 1;
         }
 
-        $size = ord($list[$position] ?? "\0");
+        $size = ord(($list[$position] ?? "\0")[0]);
 
         // Tab changes too long for a one-byte size are counted from their parts.
         if ($sprm === 0xC615 && $size === 255) {
-            $deleted = ord($list[$position + 1] ?? "\0");
-            $added = ord($list[$position + 2 + $deleted * 4] ?? "\0");
+            $deleted = ord(($list[$position + 1] ?? "\0")[0]);
+            $added = ord(($list[$position + 2 + $deleted * 4] ?? "\0")[0]);
 
             return 3 + $deleted * 4 + $added * 3;
         }
@@ -958,7 +958,7 @@ final class DocReader
         $items = [];
 
         for ($index = 0; $index <= $count; $index++) {
-            $positions[] = self::uint32($bytes, $index * 4);
+            $positions[] = $this->uint32($bytes, $index * 4);
         }
 
         for ($index = 0; $index < $count; $index++) {
@@ -971,7 +971,7 @@ final class DocReader
     /**
      * @param  list<int>  $units  UTF-16 code units
      */
-    private static function utf8(array $units): string
+    private function utf8(array $units): string
     {
         $bytes = '';
 
@@ -979,29 +979,29 @@ final class DocReader
             $bytes .= pack('v*', ...$chunk);
         }
 
-        return $bytes === '' ? '' : (string) mb_convert_encoding($bytes, 'UTF-8', 'UTF-16LE');
+        return $bytes === '' ? '' : mb_convert_encoding($bytes, 'UTF-8', 'UTF-16LE');
     }
 
-    private static function uint16(string $bytes, int $offset): int
+    private function uint16(string $bytes, int $offset): int
     {
         return $offset >= 0 && strlen($bytes) >= $offset + 2 ? (int) unpack('v', $bytes, $offset)[1] : 0;
     }
 
-    private static function int16(string $bytes, int $offset): int
+    private function int16(string $bytes, int $offset): int
     {
-        $value = self::uint16($bytes, $offset);
+        $value = $this->uint16($bytes, $offset);
 
         return $value >= 0x8000 ? $value - 0x10000 : $value;
     }
 
-    private static function uint32(string $bytes, int $offset): int
+    private function uint32(string $bytes, int $offset): int
     {
         return $offset >= 0 && strlen($bytes) >= $offset + 4 ? (int) unpack('V', $bytes, $offset)[1] : 0;
     }
 
-    private static function int32(string $bytes, int $offset): int
+    private function int32(string $bytes, int $offset): int
     {
-        $value = self::uint32($bytes, $offset);
+        $value = $this->uint32($bytes, $offset);
 
         return $value >= 0x80000000 ? $value - 0x100000000 : $value;
     }

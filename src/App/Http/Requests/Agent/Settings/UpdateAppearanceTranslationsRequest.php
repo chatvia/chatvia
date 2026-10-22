@@ -7,6 +7,7 @@ namespace App\Http\Requests\Agent\Settings;
 use Domain\Agent\Data\Settings\AppearanceOverridesData;
 use Domain\Agent\Services\AppearanceTextResolver;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * Validates the per-language appearance-text overrides edited in the Setup
@@ -41,7 +42,7 @@ class UpdateAppearanceTranslationsRequest extends FormRequest
 
         foreach (AppearanceTextResolver::KEYS as $key) {
             foreach ((array) ($overrides[$key] ?? []) as $locale => $value) {
-                $value = is_string($value) ? trim($value) : '';
+                $value = filled($value) ? Str::trim($value) : '';
 
                 if ($value !== '') {
                     $clean[$key][(string) $locale] = $value;

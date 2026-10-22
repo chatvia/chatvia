@@ -5,6 +5,7 @@ namespace App\Http\Requests\Agent\Source;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * Validate + shape the seed URL for an agent website crawl. The
@@ -78,7 +79,7 @@ class StartAgentWebsiteCrawlRequest extends FormRequest
             // and null when there is no path.
             $path = parse_url($input, PHP_URL_PATH);
 
-            return ltrim(is_string($path) ? $path : '', '/');
+            return Str::ltrim((string) $path, '/');
         }
 
         if (preg_match('/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\//', $input)) {

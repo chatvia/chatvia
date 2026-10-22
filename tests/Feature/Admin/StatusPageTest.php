@@ -8,6 +8,7 @@ use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Status\AiService;
 use App\Admin\Status\AiServiceChecks;
 use App\Admin\Status\CheckMark;
+use App\Admin\Status\Data\ServiceCheckData;
 use App\Admin\Status\Data\ServiceStatusData;
 use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
@@ -122,10 +123,7 @@ it('lists the database extensions with a check mark or a cross', function (): vo
                 ['label' => 'pg_trgm', 'value' => 'Not installed', 'mark' => 'failed', 'tag' => null],
                 ['label' => 'pg_textsearch', 'value' => 'Not installed', 'mark' => 'skipped', 'tag' => 'Optional'],
             ],
-        ]])
-        ->assertSeeInOrder(['cv-check--passed', 'vector', '0.8.1'], false)
-        ->assertSeeInOrder(['cv-check--failed', 'pg_trgm', 'Not installed'], false)
-        ->assertSeeInOrder(['cv-check--skipped', 'pg_textsearch', 'Optional', 'Not installed'], false);
+        ]])->assertSeeInOrder(['cv-check--passed', 'vector', '0.8.1'], false)->assertSeeHtmlInOrder(['cv-check--failed', 'pg_trgm', 'Not installed'])->assertSeeHtmlInOrder(['cv-check--skipped', 'pg_textsearch', 'Optional', 'Not installed']);
 });
 
 it('gives every service card its check lines', function (): void {
@@ -145,7 +143,7 @@ it('shows four lines on a card, problems first, and the rest behind "Show all"',
         'checks' => [$line('pdfinfo'), $line('pdftotext'), $line('pandoc'), $line('ffmpeg'), $line('ffprobe'), $line('catdoc', 'warning')],
     ];
 
-    expect(array_map(fn ($check): string => $check->label, ServiceStatusData::from($programs)->cardChecks()))
+    expect(array_map(fn (ServiceCheckData $check): string => $check->label, ServiceStatusData::from($programs)->cardChecks()))
         ->toBe(['catdoc', 'pdfinfo', 'pdftotext', 'pandoc']);
 
     Livewire::actingAs($this->admin, 'admin')->test(Status::class)

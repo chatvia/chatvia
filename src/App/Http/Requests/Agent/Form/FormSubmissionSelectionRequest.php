@@ -36,7 +36,7 @@ class FormSubmissionSelectionRequest extends FormRequest
     public function toData(): SubmissionSelectionData
     {
         return new SubmissionSelectionData(
-            ids: array_values(array_filter((array) $this->input('external_ids', []), is_string(...))),
+            ids: array_values(array_filter((array) $this->input('external_ids', []), filled(...))),
         );
     }
 }

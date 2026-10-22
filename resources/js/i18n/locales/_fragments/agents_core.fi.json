@@ -221,6 +221,7 @@
                 "trend": "Trendi",
                 "trend_first": "ensimmäinen viesti",
                 "trend_last": "viimeinen viesti",
+                "trend_tooltip": "Vertaa mielialaa: {first} ja {last}.",
                 "trend_improving": "Paraneva",
                 "trend_improving_hint": "— mieliala päättyi parempana kuin alkoi",
                 "trend_declining": "Laskeva",

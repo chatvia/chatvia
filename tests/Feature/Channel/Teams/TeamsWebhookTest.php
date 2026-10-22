@@ -35,8 +35,11 @@ beforeEach(function (): void {
     {
         public bool $valid = true;
 
-        /** @var array<string, mixed> the claims of the token, once verified */
-        public array $claims = [];
+        /**
+         * @var array<string, mixed> the claims of the token, once verified;
+         *                           every connector token names the activity's service URL
+         */
+        public array $claims = ['serviceurl' => 'https://smba.trafficmanager.net/emea/'];
 
         public ?string $checkedAppId = null;
 

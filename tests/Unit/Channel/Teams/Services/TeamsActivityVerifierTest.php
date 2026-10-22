@@ -25,21 +25,21 @@ beforeEach(function (): void {
 
     $b64url = fn (string $bin): string => rtrim(strtr(base64_encode($bin), '+/', '-_'), '=');
 
+    $this->publicJwk = [
+        'kty' => 'RSA',
+        'use' => 'sig',
+        'kid' => 'test-kid',
+        'n' => $b64url($details['rsa']['n']),
+        'e' => $b64url($details['rsa']['e']),
+    ];
+
     Http::fake([
         'https://login.botframework.com/v1/.well-known/openidconfiguration' => Http::response([
             'issuer' => 'https://api.botframework.com',
             'jwks_uri' => 'https://login.botframework.com/v1/.well-known/keys',
         ]),
         'https://login.botframework.com/v1/.well-known/keys' => Http::response([
-            'keys' => [
-                [
-                    'kty' => 'RSA',
-                    'use' => 'sig',
-                    'kid' => 'test-kid',
-                    'n' => $b64url($details['rsa']['n']),
-                    'e' => $b64url($details['rsa']['e']),
-                ],
-            ],
+            'keys' => [$this->publicJwk],
         ]),
     ]);
 });
@@ -93,7 +93,7 @@ it('rejects a token whose serviceurl claim does not match the activity', functio
         ->and($verifier->matchesServiceUrl($claims, $this->serviceUrl))->toBeFalse();
 });
 
-it('accepts a token without a serviceurl claim (claim is optional)', function (): void {
+it('refuses a token without a serviceurl claim, which every connector token carries', function (): void {
     $claims = ['iss' => 'https://api.botframework.com', 'aud' => $this->appId, 'exp' => time() + 600];
     $jwt = JWT::encode($claims, $this->privatePem, 'RS256', 'test-kid');
 
@@ -101,7 +101,35 @@ it('accepts a token without a serviceurl claim (claim is optional)', function ()
     $verified = $verifier->verify("Bearer {$jwt}", $this->appId);
 
     expect($verified)->not->toBeNull()
-        ->and($verifier->matchesServiceUrl($verified, $this->serviceUrl))->toBeTrue();
+        ->and($verifier->matchesServiceUrl($verified, $this->serviceUrl))->toBeFalse();
+});
+
+it('refuses a plain-http service URL even when the claim matches it', function (): void {
+    $serviceUrl = 'http://smba.trafficmanager.net/emea/';
+    $verifier = new TeamsActivityVerifier;
+    $verified = $verifier->verify('Bearer '.teamsConnectorJwt($this, ['serviceurl' => $serviceUrl]), $this->appId);
+
+    expect($verified)->not->toBeNull()
+        ->and($verifier->matchesServiceUrl($verified, $serviceUrl))->toBeFalse();
+});
+
+it('fetches the keys again when a token is signed with a key the cache does not hold', function (): void {
+    Cache::put('msteams:jwks', ['keys' => [[...$this->publicJwk, 'kid' => 'retired-kid']]], now()->addDay());
+
+    $claims = (new TeamsActivityVerifier)->verify('Bearer '.teamsConnectorJwt($this), $this->appId);
+
+    expect($claims)->not->toBeNull();
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://login.botframework.com/v1/.well-known/keys');
+});
+
+it('fetches the keys again at most once in ten minutes, so made-up key ids cannot force a fetch per request', function (): void {
+    Cache::put('msteams:jwks', ['keys' => [[...$this->publicJwk, 'kid' => 'retired-kid']]], now()->addDay());
+    Cache::put('msteams:jwks:refreshed', true, now()->addMinutes(10));
+
+    $claims = (new TeamsActivityVerifier)->verify('Bearer '.teamsConnectorJwt($this), $this->appId);
+
+    expect($claims)->toBeNull();
+    Http::assertNothingSent();
 });
 
 it('rejects a forged token signed with a different key', function (): void {

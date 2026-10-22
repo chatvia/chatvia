@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Clusters\Settings;
 
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 
 /**
  * The colour of an icon's tile in Settings (the overview tiles, the card
@@ -39,7 +40,7 @@ final class IconTone
      */
     public static function of(mixed $icon): string
     {
-        if (is_string($icon) && str_contains($icon, '/')) {
+        if (! $icon instanceof Heroicon && filled($icon) && Str::contains($icon, '/')) {
             return self::LOGO;
         }
 

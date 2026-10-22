@@ -25,18 +25,18 @@ final class ToolCallDeltas
         $index = (int) ($delta['index'] ?? 0);
         $current = $pending[$index] ?? ['id' => '', 'name' => '', 'arguments' => ''];
 
-        if (isset($delta['id']) && is_string($delta['id'])) {
+        if (filled($delta['id'] ?? null)) {
             $current['id'] = $delta['id'];
         }
 
         $function = $delta['function'] ?? null;
 
         if (is_array($function)) {
-            if (isset($function['name']) && is_string($function['name'])) {
+            if (filled($function['name'] ?? null)) {
                 $current['name'] = $function['name'];
             }
 
-            if (isset($function['arguments']) && is_string($function['arguments'])) {
+            if (($function['arguments'] ?? '') !== '' && ! is_array($function['arguments'])) {
                 $current['arguments'] .= $function['arguments'];
             }
         }

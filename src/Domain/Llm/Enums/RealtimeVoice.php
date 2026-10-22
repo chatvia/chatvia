@@ -50,6 +50,6 @@ enum RealtimeVoice: string
     /** An agent's voice setting, resolved: its own voice, else the default. */
     public static function forSetting(mixed $value): self
     {
-        return is_string($value) ? self::tryFrom($value) ?? self::configured() : self::configured();
+        return filled($value) ? self::tryFrom($value) ?? self::configured() : self::configured();
     }
 }

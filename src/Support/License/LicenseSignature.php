@@ -42,7 +42,7 @@ final class LicenseSignature
      */
     public static function verify(string $key, ?string $publicKey): ?LicenseKey
     {
-        $public = self::rawKey((string) $publicKey, SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES);
+        $public = self::rawKey($publicKey ?? '', SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES);
         $parts = explode('.', (string) preg_replace('/\s+/', '', $key));
 
         if ($public === null || count($parts) !== 3 || $parts[0] !== self::VERSION) {
@@ -56,7 +56,7 @@ final class LicenseSignature
             return null;
         }
 
-        $payload = json_decode((string) self::decode($parts[1]), true);
+        $payload = json_decode(self::decode($parts[1]) ?? '', true);
 
         return is_array($payload) ? LicenseKey::fromPayload($payload) : null;
     }
@@ -66,7 +66,7 @@ final class LicenseSignature
     {
         $raw = base64_decode(trim($key), true);
 
-        return is_string($raw) && strlen($raw) === $length ? $raw : null;
+        return $raw !== false && strlen($raw) === $length ? $raw : null;
     }
 
     private static function encode(string $bytes): string

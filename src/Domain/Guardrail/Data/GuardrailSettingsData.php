@@ -8,6 +8,7 @@ use Domain\Guardrail\Enums\GuardMode;
 use Domain\Guardrail\Enums\GuardSensitivity;
 use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Enums\PiiHandling;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -88,7 +89,7 @@ class GuardrailSettingsData extends Data
             allowed_scope: (string) $settings->get('allowed_scope', ''),
             refusal_message: (string) $settings->get('refusal_message', ''),
             allowlist: self::cleanList($settings->get('allowlist')),
-            refusal_translations: array_filter((array) ($settings->get('refusal_translations') ?? []), is_string(...)),
+            refusal_translations: array_filter((array) ($settings->get('refusal_translations') ?? []), filled(...)),
             pii_actions: array_filter((array) ($settings->get('pii_actions') ?? []), static fn (mixed $action): bool => PiiHandling::tryFrom((string) $action) !== null),
             custom_patterns: array_values(array_filter(array_map(
                 CustomPiiPatternData::fromStored(...),
@@ -140,7 +141,7 @@ class GuardrailSettingsData extends Data
 
     public function allowedScope(): ?string
     {
-        $scope = trim((string) $this->allowed_scope);
+        $scope = Str::trim($this->allowed_scope ?? '');
 
         return $scope !== '' ? $scope : null;
     }
@@ -158,13 +159,13 @@ class GuardrailSettingsData extends Data
      */
     public function refusalMessage(?string $language = null): string
     {
-        $message = trim((string) $this->refusal_message);
+        $message = Str::trim($this->refusal_message ?? '');
 
         if ($message === '') {
             return __('Sorry, I can’t help with that request.', locale: TranslatableText::normalizeLocale($language));
         }
 
-        return (string) new TranslatableText($message, $this->refusal_translations)->in($language);
+        return new TranslatableText($message, $this->refusal_translations)->in($language) ?? '';
     }
 
     /**
@@ -205,7 +206,7 @@ class GuardrailSettingsData extends Data
         }
 
         return array_values(array_filter(
-            array_map(fn (mixed $item): string => is_string($item) ? trim($item) : '', $value),
+            array_map(fn (mixed $item): string => filled($item) ? Str::trim($item) : '', $value),
             fn (string $item): bool => $item !== '',
         ));
     }

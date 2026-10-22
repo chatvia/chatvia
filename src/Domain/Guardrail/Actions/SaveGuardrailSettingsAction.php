@@ -10,6 +10,7 @@ use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Guardrail\Data\BlockedTopicData;
 use Domain\Guardrail\Data\GuardrailSettingsData;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -49,10 +50,10 @@ class SaveGuardrailSettingsAction
     {
         /** @var array<string, TranslatableText> $texts */
         $texts = [];
-        $refusal = trim((string) $settings->refusal_message);
+        $refusal = Str::trim($settings->refusal_message ?? '');
 
         if ($refusal !== '') {
-            $unchanged = trim((string) $previous->refusal_message) === $refusal;
+            $unchanged = Str::trim($previous->refusal_message ?? '') === $refusal;
             $texts['refusal'] = new TranslatableText($refusal, $unchanged ? $previous->refusal_translations : []);
         }
 

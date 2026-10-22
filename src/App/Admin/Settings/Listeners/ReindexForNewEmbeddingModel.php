@@ -17,7 +17,10 @@ use Spatie\LaravelSettings\Events\SavingSettings;
  * of a service not in use changes nothing.
  *
  * It runs while the settings are being saved, when the old values are still
- * known, and starts the work after the response, once the new values apply.
+ * known. The job is queued with `defer()`, after the response (or after the
+ * command), once the new values are stored, so a worker never picks it up
+ * while the old model is still saved. Named, so two saves in one request
+ * queue it once.
  */
 class ReindexForNewEmbeddingModel
 {
@@ -28,7 +31,7 @@ class ReindexForNewEmbeddingModel
         }
 
         if (AiSettings::embeddingFor($event->originalValues->all()) !== AiSettings::embeddingFor($event->properties->all())) {
-            ReindexEmbeddingsJob::dispatchAfterResponse();
+            defer(static fn () => ReindexEmbeddingsJob::dispatch(), 'reindex-embeddings');
         }
     }
 }

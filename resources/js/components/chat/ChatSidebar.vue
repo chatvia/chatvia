@@ -29,7 +29,6 @@ import { useChatConversations } from '@/composables/chat/useChatConversations';
 import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useIsMobile } from '@/composables/useIsMobile';
 import chat from '@/routes/chat';
-import type { SharedData } from '@/types';
 import type { ChatAppearance } from '@/types/chat';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { onKeyStroke } from '@vueuse/core';
@@ -53,7 +52,7 @@ const isSidebarOpen = defineModel<boolean>('open', { default: false });
 const { params: routeParams } = useCurrentRoute();
 
 const { t } = useI18n();
-const page = usePage<SharedData>();
+const page = usePage();
 const isMobileDevice = useIsMobile();
 const { conversations, isLoading: isLoadingConversations, search, rename, remove, removeAll } = useChatConversations();
 

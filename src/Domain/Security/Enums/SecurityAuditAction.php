@@ -6,6 +6,7 @@ namespace Domain\Security\Enums;
 
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Models\SecurityAuditLog;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * The discriminator for every {@see SecurityAuditLog}
@@ -15,6 +16,7 @@ use Domain\Security\Models\SecurityAuditLog;
  * `category()` groups actions for the audit-viewer filters; `label()` is the
  * human-readable description shown in the viewer and exported reports.
  */
+#[TypeScript]
 enum SecurityAuditAction: string
 {
     case AuthLogin = 'auth.login';

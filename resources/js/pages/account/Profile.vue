@@ -14,7 +14,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
 import { update as updateProfile } from '@/routes/account/profile';
 import { send as sendVerification } from '@/routes/verification';
-import { type BreadcrumbItem, type SharedData, type User } from '@/types';
+import { type BreadcrumbItem, type User } from '@/types';
 import { CheckCircle, Mail, Save, User as UserIcon } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import DateFormatCard, { type DateFormatOption } from './components/DateFormatCard.vue';
@@ -40,7 +40,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const page = usePage<SharedData>();
+const page = usePage();
 const user = computed(() => page.props.auth.user as User);
 
 const form = useForm({

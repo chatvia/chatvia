@@ -6,6 +6,7 @@ use Domain\Agent\Models\ModelSetting;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -146,7 +147,7 @@ trait HasSettings
     {
         $this->modelSettings()
             ->where('group', $group)
-            ->whereIn('key', is_string($keys) ? [$keys] : $keys)
+            ->whereIn('key', Arr::wrap($keys))
             ->delete();
 
         unset($this->resolvedSettingsCache[$group]);
@@ -212,7 +213,7 @@ trait HasSettings
         // putFile returns false on failure when a disk doesn't throw — never
         // overwrite the saved value with a non-path. (The assets disk has
         // throw => true, so this is defence in depth.)
-        if (! is_string($uploadedPath)) {
+        if ($uploadedPath === false) {
             throw new RuntimeException("Failed to upload the '{$key}' image to the assets disk.");
         }
 

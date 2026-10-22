@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Support\OldOffice;
 
+use Illuminate\Support\Arr;
+
 /**
  * Builds small Word documents in the binary format (.doc), for tests of the
  * built-in reader: Word 97 files with styles, lists, tables, footnotes,
@@ -70,7 +72,7 @@ final class WordBinaryFile
      */
     public function paragraph(string|array $runs, int $style = 0, string $sprms = '', string $end = "\r"): self
     {
-        $this->paragraphs[] = ['runs' => is_string($runs) ? [$runs] : $runs, 'end' => $end, 'style' => $style, 'sprms' => $sprms];
+        $this->paragraphs[] = ['runs' => Arr::wrap($runs), 'end' => $end, 'style' => $style, 'sprms' => $sprms];
 
         return $this;
     }
@@ -178,38 +180,38 @@ final class WordBinaryFile
         $starts = [];
 
         foreach ($this->paragraphs as $index => $paragraph) {
-            $starts[$index] = self::length($text);
+            $starts[$index] = $this->length($text);
 
             foreach ($paragraph['runs'] as $run) {
-                if (is_string($run)) {
+                if (! is_array($run)) {
                     $text .= $run;
                 } elseif (isset($run['deleted'])) {
-                    $deleted[] = [self::length($text), self::length($text) + self::length($run['deleted'])];
+                    $deleted[] = [$this->length($text), $this->length($text) + $this->length($run['deleted'])];
                     $text .= $run['deleted'];
                 } else {
-                    $references[] = self::length($text);
+                    $references[] = $this->length($text);
                     $notes[] = (string) $run['note'];
                     $text .= "\x02";
                 }
             }
 
-            $marks[$index] = self::length($text);
+            $marks[$index] = $this->length($text);
             $text .= $paragraph['end'];
         }
 
-        $bodyLength = self::length($text);
+        $bodyLength = $this->length($text);
         $noteStarts = [0];
 
         foreach ($notes as $note) {
             $text .= "\x02".$note."\r";
-            $noteStarts[] = self::length($text) - $bodyLength;
+            $noteStarts[] = $this->length($text) - $bodyLength;
         }
 
-        $noteLength = self::length($text) - $bodyLength;
+        $noteLength = $this->length($text) - $bodyLength;
         $text .= "\r";
 
         // Two pieces split between paragraphs, stored second one first with stale text between them.
-        $units = array_values((array) unpack('v*', (string) mb_convert_encoding($text, 'UTF-16LE', 'UTF-8')));
+        $units = array_values((array) unpack('v*', mb_convert_encoding($text, 'UTF-16LE', 'UTF-8')));
         $split = $starts[intdiv(count($starts), 2)] ?? 0;
         $first = array_slice($units, 0, $split);
         $second = array_slice($units, $split);
@@ -218,7 +220,7 @@ final class WordBinaryFile
         $word = str_repeat("\0", self::TEXT_START);
         $secondAt = strlen($word);
         $word .= pack('v*', ...$second);
-        $word .= (string) mb_convert_encoding(self::STALE, 'UTF-16LE', 'UTF-8');
+        $word .= mb_convert_encoding(self::STALE, 'UTF-16LE', 'UTF-8');
         $firstAt = strlen($word);
         $word .= $firstIsAscii ? pack('C*', ...$first) : pack('v*', ...$first);
 
@@ -361,7 +363,7 @@ final class WordBinaryFile
             }
 
             [$builtIn, $basedOn, $name, $sprms] = $this->styles[$number];
-            $utf16 = (string) mb_convert_encoding($name, 'UTF-16LE', 'UTF-8');
+            $utf16 = mb_convert_encoding($name, 'UTF-16LE', 'UTF-8');
             $paragraph = pack('v', $number).$sprms;
             $style = pack('vvvvv', $builtIn, 1 | ($basedOn << 4), 2 | ($number << 4), 0, 0)
                 .pack('v', intdiv(strlen($utf16), 2)).$utf16."\0\0"
@@ -416,8 +418,8 @@ final class WordBinaryFile
     }
 
     /** A length in UTF-16 code units, as Word counts characters. */
-    private static function length(string $text): int
+    private function length(string $text): int
     {
-        return intdiv(strlen((string) mb_convert_encoding($text, 'UTF-16LE', 'UTF-8')), 2);
+        return intdiv(strlen(mb_convert_encoding($text, 'UTF-16LE', 'UTF-8')), 2);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Qa\Services;
 
+use Illuminate\Support\Str;
 use Normalizer;
 
 /**
@@ -17,7 +18,7 @@ final class QuestionNormalizer
     public static function normalize(string $text): string
     {
         $decomposed = Normalizer::normalize($text, Normalizer::FORM_KD);
-        $text = mb_strtolower(is_string($decomposed) ? $decomposed : $text);
+        $text = Str::lower($decomposed === false ? $text : $decomposed);
 
         // Combining marks (accents, Arabic diacritics) and the Arabic tatweel.
         $text = (string) preg_replace('/[\p{Mn}\x{0640}]+/u', '', $text);

@@ -120,8 +120,8 @@ final class InternalMcpSignature
         string $body,
         array $identityHeaders,
     ): bool {
-        $timestamp = (string) $timestamp;
-        $signature = (string) $signature;
+        $timestamp ??= '';
+        $signature ??= '';
 
         if ($timestamp === '' || $signature === '' || ! ctype_digit($timestamp)) {
             return false;

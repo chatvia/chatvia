@@ -27,7 +27,7 @@ final readonly class TelegramUpdateData
         return new self(
             updateId: isset($payload['update_id']) ? (string) $payload['update_id'] : null,
             chatId: $chatId !== null ? (string) $chatId : null,
-            text: is_string($text) ? $text : null,
+            text: filled($text) ? $text : null,
             sender: TelegramSenderData::fromArray([
                 'first_name' => $message['from']['first_name'] ?? null,
                 'username' => $message['from']['username'] ?? null,

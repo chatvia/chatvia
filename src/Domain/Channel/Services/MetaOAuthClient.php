@@ -64,7 +64,7 @@ class MetaOAuthClient
     public function authorizeUrl(MetaApp $app, string $state, string $scopes): string
     {
         $appId = $app->appId();
-        $redirect = (string) $app->redirectUri();
+        $redirect = $app->redirectUri() ?? '';
         $configId = $app->configId();
         $usingConfig = $configId !== null;
 
@@ -104,7 +104,7 @@ class MetaOAuthClient
     {
         $appId = $app->appId();
         $appSecret = $app->appSecret();
-        $redirect = (string) $app->redirectUri();
+        $redirect = $app->redirectUri() ?? '';
 
         Log::debug('Meta OAuth: exchanging code for user token', [
             'has_app_id' => $appId !== '',
@@ -121,7 +121,7 @@ class MetaOAuthClient
 
         $shortToken = $short['access_token'] ?? null;
 
-        if (! is_string($shortToken)) {
+        if (blank($shortToken)) {
             Log::warning('Meta OAuth: code → short-lived token exchange returned no access_token (check app secret + redirect_uri match)');
 
             return null;
@@ -138,9 +138,9 @@ class MetaOAuthClient
 
         $longToken = $long['access_token'] ?? null;
 
-        Log::debug('Meta OAuth: short → long-lived token exchange', ['got_long_lived' => is_string($longToken)]);
+        Log::debug('Meta OAuth: short → long-lived token exchange', ['got_long_lived' => filled($longToken)]);
 
-        return is_string($longToken) ? $longToken : $shortToken;
+        return filled($longToken) ? $longToken : $shortToken;
     }
 
     /**
@@ -168,7 +168,7 @@ class MetaOAuthClient
 
         $token = $response['access_token'] ?? null;
 
-        if (! is_string($token)) {
+        if (blank($token)) {
             Log::warning('Meta OAuth: Embedded Signup code → token exchange returned no access_token (check app secret + that the code is unused)');
 
             return null;
@@ -211,7 +211,7 @@ class MetaOAuthClient
         foreach ((array) ($businesses['data'] ?? []) as $business) {
             $bizId = $business['id'] ?? null;
 
-            if (! is_string($bizId)) {
+            if (blank($bizId)) {
                 continue;
             }
 
@@ -261,16 +261,18 @@ class MetaOAuthClient
     private function collectPages(?array $response, array &$byId): void
     {
         foreach ((array) ($response['data'] ?? []) as $page) {
-            $id = $page['id'] ?? null;
-            $token = $page['access_token'] ?? null;
-
-            if (is_string($id) && is_string($token) && ! isset($byId[$id])) {
-                $byId[$id] = [
-                    'id' => $id,
-                    'name' => (string) ($page['name'] ?? $id),
-                    'access_token' => $token,
-                ];
+            if (blank($page['id'] ?? null) || blank($page['access_token'] ?? null)) {
+                continue;
             }
+
+            // Meta's JSON becomes the typed list here.
+            $id = (string) $page['id'];
+
+            $byId[$id] ??= [
+                'id' => $id,
+                'name' => (string) ($page['name'] ?? $id),
+                'access_token' => (string) $page['access_token'],
+            ];
         }
     }
 
@@ -295,11 +297,11 @@ class MetaOAuthClient
 
             Log::debug('Meta OAuth: resolved IG account for Page', [
                 'page_id' => $page->id,
-                'has_ig_account' => is_string($igId) && filled($igId),
-                'ig_id' => is_string($igId) ? $igId : null,
+                'has_ig_account' => filled($igId),
+                'ig_id' => filled($igId) ? $igId : null,
             ]);
 
-            if (! is_string($igId) || blank($igId)) {
+            if (blank($igId)) {
                 continue; // no IG professional account linked to this Page
             }
 
@@ -358,7 +360,7 @@ class MetaOAuthClient
         try {
             $response = $method === 'post'
                 ? Http::asForm()->post($url, $params)
-                : Http::withToken((string) $token)->get($url, $params);
+                : Http::withToken($token ?? '')->get($url, $params);
             $json = $response->json();
 
             if (! $response->successful() || ! is_array($json) || isset($json['error'])) {

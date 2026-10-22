@@ -40,13 +40,13 @@ class Vision
 
         $description = $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Images),
-            tag: AiCallTag::ImageDescription,
             messages: [
                 ChatMessageData::userWithAttachment(prompt('image/describe'), [
                     'type' => 'image_url',
                     'image_url' => ['url' => $image],
                 ]),
             ],
+            tag: AiCallTag::ImageDescription,
         ))->content;
 
         return $description === '' || str_contains($description, self::NO_INFO) ? null : $description;

@@ -8,6 +8,9 @@
                 "confidence_help": "表示智能体的知识与此问题的匹配程度，而非回答本身的质量。",
                 "trace": "追踪",
                 "trace_help": "在 Spectra 中查看此回复背后的所有 AI 调用"
+            },
+            "pulse": {
+                "trend_tooltip": "比较{first}和{last}的情绪。"
             }
         },
         "security": {

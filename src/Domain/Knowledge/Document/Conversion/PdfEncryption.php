@@ -143,7 +143,7 @@ final class PdfEncryption
         }
 
         $revision = (int) ($encrypt['R'] ?? 0);
-        $user = is_string($encrypt['U'] ?? null) ? $encrypt['U'] : '';
+        $user = filled($encrypt['U'] ?? null) ? $encrypt['U'] : '';
 
         if ($revision >= 2 && $revision <= 4) {
             return $this->rc4FileKey($encrypt, $revision, $user, $this->firstId($bytes));
@@ -160,10 +160,10 @@ final class PdfEncryption
         }
 
         // The file key is wrapped in /UE with a key made from the key salt.
-        $wrapped = is_string($encrypt['UE'] ?? null) ? $encrypt['UE'] : '';
+        $wrapped = filled($encrypt['UE'] ?? null) ? $encrypt['UE'] : '';
         $key = openssl_decrypt($wrapped, 'aes-256-cbc', $hash(substr($user, 40, 8)), OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, str_repeat("\0", 16));
 
-        return is_string($key) && strlen($key) === 32 ? $key : null;
+        return $key !== false && strlen($key) === 32 ? $key : null;
     }
 
     /**
@@ -181,7 +181,7 @@ final class PdfEncryption
             default => max(5, min(16, intdiv((int) ($encrypt['Length'] ?? 40), 8))),
         };
 
-        $owner = is_string($encrypt['O'] ?? null) ? $encrypt['O'] : '';
+        $owner = filled($encrypt['O'] ?? null) ? $encrypt['O'] : '';
         $input = self::PADDING.substr($owner, 0, 32).pack('V', (int) ($encrypt['P'] ?? 0) & 0xFFFFFFFF).$id;
 
         if ($revision >= 4 && ($encrypt['EncryptMetadata'] ?? true) === false) {
@@ -250,7 +250,7 @@ final class PdfEncryption
             return 'rc4';
         }
 
-        $filter = ltrim(is_string($encrypt['StmF'] ?? null) ? $encrypt['StmF'] : '/Identity', '/');
+        $filter = ltrim(filled($encrypt['StmF'] ?? null) ? $encrypt['StmF'] : '/Identity', '/');
         $filters = is_array($encrypt['CF'] ?? null) ? $encrypt['CF'] : [];
         $method = is_array($filters[$filter] ?? null) ? ($filters[$filter]['CFM'] ?? null) : null;
 
@@ -270,7 +270,7 @@ final class PdfEncryption
         }
 
         // The length may be an indirect object, written after the stream.
-        if (is_string($length) && preg_match('#^(\d+) (\d+) R$#', $length, $reference) === 1) {
+        if (filled($length) && ! is_int($length) && preg_match('#^(\d+) (\d+) R$#', $length, $reference) === 1) {
             $length = preg_match_all("#(?<![0-9]){$reference[1]}\s+{$reference[2]}\s+obj\s*(\d+)#", $bytes, $values) > 0 ? (int) end($values[1]) : null;
         }
 
@@ -312,7 +312,7 @@ final class PdfEncryption
 
         $inflated = @gzuncompress($data, self::MAX_STREAM_BYTES);
 
-        return is_string($inflated) ? $inflated : null;
+        return $inflated === false ? null : $inflated;
     }
 
     private function rc4(string $key, string $data): string
@@ -380,6 +380,6 @@ final class PdfEncryption
         [$match, $offset] = end($matches[0]);
         $ids = new PdfSyntax($bytes)->valueAt($offset + strlen($match) - 1);
 
-        return is_array($ids) && isset($ids[0]) && is_string($ids[0]) ? $ids[0] : '';
+        return is_array($ids) && filled($ids[0] ?? null) && ! is_array($ids[0]) ? $ids[0] : '';
     }
 }

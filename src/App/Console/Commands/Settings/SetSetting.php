@@ -48,7 +48,7 @@ class SetSetting extends Command
     {
         $value = $this->argument('value');
 
-        if (is_string($value)) {
+        if ($value !== null) {
             return $value;
         }
 

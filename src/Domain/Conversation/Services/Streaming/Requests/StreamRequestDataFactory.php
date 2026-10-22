@@ -258,8 +258,8 @@ class StreamRequestDataFactory
     {
         $raw = $request->input('attachments', []);
 
-        if (is_string($raw)) {
-            $decoded = json_decode($raw, true);
+        if (is_scalar($raw)) {
+            $decoded = json_decode((string) $raw, true);
             $raw = is_array($decoded) ? $decoded : [];
         }
         if (! is_array($raw)) {

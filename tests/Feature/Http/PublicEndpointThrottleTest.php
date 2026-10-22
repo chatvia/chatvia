@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 /**
  * Public, unauthenticated endpoints that cost money or CPU per call are rate
@@ -19,7 +20,7 @@ it('throttles guest sign-up', function (): void {
 it('rate limits every messaging-channel webhook route', function (string $routeName): void {
     $middleware = Route::getRoutes()->getByName($routeName)?->gatherMiddleware() ?? [];
 
-    expect(collect($middleware)->contains(fn (mixed $m): bool => is_string($m) && str_starts_with($m, 'throttle:')))
+    expect(collect($middleware)->contains(fn (mixed $m): bool => ! $m instanceof Closure && Str::startsWith($m, 'throttle:')))
         ->toBeTrue();
 })->with([
     'telegram.webhook',

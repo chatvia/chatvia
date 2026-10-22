@@ -348,13 +348,13 @@ class Setup extends SimplePage
             apiKey: $this->filled($state, 'api_key'),
             chatModels: $this->chosenModels($state),
             defaultModel: (string) ($state['default_model'] ?? $this->chosenModels($state)[0]->id),
-            quickTaskModel: $this->listedChoice($state, 'quick_task_model'),
-            visionModel: (bool) ($state['describe_images'] ?? false) ? $this->listedChoice($state, 'vision_model') : null,
             server: $account instanceof AiProvider ? null : new CustomLlmServerData(
                 name: (string) $state['server_name'],
                 baseUrl: (string) $state['server_url'],
                 apiKey: $this->filled($state, 'api_key'),
             ),
+            quickTaskModel: $this->listedChoice($state, 'quick_task_model'),
+            visionModel: (bool) ($state['describe_images'] ?? false) ? $this->listedChoice($state, 'vision_model') : null,
             embeddingProvider: $embedding,
             embeddingModel: $this->filled($state, 'embedding_model'),
             embeddingApiKey: $embedding instanceof EmbeddingProvider && ! $this->reusesEarlierKey('embedding_provider', $state) ? $this->filled($state, 'embedding_api_key') : null,
@@ -741,7 +741,7 @@ class Setup extends SimplePage
      */
     private function choices(Get $get): array
     {
-        $chosen = array_values(array_filter((array) $get('chat_models'), is_string(...)));
+        $chosen = array_values(array_filter((array) $get('chat_models'), filled(...)));
         $models = $chosen === []
             ? (string) $get('chat_model_id')
             : implode(', ', array_map(
@@ -789,11 +789,11 @@ class Setup extends SimplePage
                 ->live()
                 ->afterStateUpdated(function (Set $set, ?string $state): void {
                     $this->forgetList();
-                    $embedding = $this->suggestedEmbedding(AiProvider::tryFrom((string) $state));
+                    $embedding = $this->suggestedEmbedding(AiProvider::tryFrom($state ?? ''));
                     $set('embedding_provider', $embedding?->value);
                     $set('embedding_model', $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null);
-                    $set('document_reader', $this->suggestedReader(AiProvider::tryFrom((string) $state)));
-                    $set('reranker', $this->suggestedReranker(AiProvider::tryFrom((string) $state)));
+                    $set('document_reader', $this->suggestedReader(AiProvider::tryFrom($state ?? '')));
+                    $set('reranker', $this->suggestedReranker(AiProvider::tryFrom($state ?? '')));
                 }),
             TextInput::make('server_name')
                 ->label('Name')
@@ -853,7 +853,7 @@ class Setup extends SimplePage
                 ->required(fn (): bool => ! $this->trained())
                 ->visible(fn (): bool => ! $this->trained())
                 ->live()
-                ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('embedding_model', ($service = EmbeddingProvider::tryFrom((string) $state)) instanceof EmbeddingProvider ? config($service->modelConfig()) : null)),
+                ->afterStateUpdated(fn (Set $set, ?string $state): mixed => $set('embedding_model', ($service = EmbeddingProvider::tryFrom($state ?? '')) instanceof EmbeddingProvider ? config($service->modelConfig()) : null)),
             $this->keyCallout('embedding_provider'),
             $this->serviceKeyField('embedding_api_key', 'embedding_provider', 'getEmbeddingKey'),
         ];
@@ -1464,7 +1464,7 @@ class Setup extends SimplePage
         $keyField = $this->earlierKeyField('embedding_provider', $state) ?? 'embedding_api_key';
         $key = $state[$keyField] ?? null;
         $model = filled($state['embedding_model'] ?? null) ? (string) $state['embedding_model'] : null;
-        $fingerprint = hash('sha256', implode("\n", [$provider->value, (string) $model, (string) $key]));
+        $fingerprint = hash('sha256', implode("\n", [$provider->value, $model ?? '', (string) $key]));
 
         if ($this->embeddingCheckedFor === $fingerprint) {
             return;
@@ -1498,7 +1498,7 @@ class Setup extends SimplePage
         $earlier = $this->earlierKeyField('reranker', $state);
         $keyField = $chosen->driver === self::CUSTOM ? 'rerank_custom_key' : ($earlier ?? 'rerank_api_key');
         $reranker = new RerankerSetupData($chosen->driver, $chosen->model, $this->filled($state, $keyField), $chosen->url);
-        $fingerprint = hash('sha256', implode("\n", [$reranker->driver, (string) $reranker->model, (string) $reranker->apiKey, (string) $reranker->url]));
+        $fingerprint = hash('sha256', implode("\n", [$reranker->driver, $reranker->model ?? '', $reranker->apiKey ?? '', $reranker->url ?? '']));
 
         if ($this->rerankerCheckedFor === $fingerprint) {
             return;
@@ -2003,8 +2003,8 @@ class Setup extends SimplePage
             ->revealable()
             ->autocomplete('new-password')
             // Azure with its key saved but not its endpoint still shows the key, as optional.
-            ->required(fn (Get $get): bool => blank(config((string) $account($get)?->apiKeyConfig())))
-            ->placeholder(fn (Get $get): ?string => filled(config((string) $account($get)?->apiKeyConfig())) ? '•••••••• saved, leave blank to keep' : null)
+            ->required(fn (Get $get): bool => blank(config($account($get)?->apiKeyConfig() ?? '')))
+            ->placeholder(fn (Get $get): ?string => filled(config($account($get)?->apiKeyConfig() ?? '')) ? '•••••••• saved, leave blank to keep' : null)
             ->helperText('Stored encrypted. It is never shown again.')
             ->hintAction(fn (Get $get): ?Action => ($url = $account($get)?->keysUrl()) === null ? null : Action::make($linkAction)
                 ->label('Get a key')

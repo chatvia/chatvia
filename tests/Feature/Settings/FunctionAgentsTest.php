@@ -98,3 +98,28 @@ it('cannot attach to an agent owned by another account', function (): void {
         ]))
         ->assertNotFound();
 });
+
+it('refuses a teammate an agent their team role does not reach', function (): void {
+    $outsideRole = makeTeamAgent($this->user, 'Billing Bot');
+    $teammate = teammateWithPermissions($this->user, ['account.functions'], allAgents: false, agentExternalIds: [$this->agent->external_id]);
+
+    $this->actingAs($teammate)
+        ->postJson(route('integrations.functions.agents.attach', [
+            'function' => $this->function->external_id,
+            'agent' => $outsideRole->external_id,
+        ]))
+        ->assertForbidden();
+
+    expect($this->function->agents()->whereKey($outsideRole->id)->exists())->toBeFalse();
+});
+
+it('lists only the agents the teammate may manage', function (): void {
+    makeTeamAgent($this->user, 'Billing Bot');
+    $teammate = teammateWithPermissions($this->user, ['account.functions'], allAgents: false, agentExternalIds: [$this->agent->external_id]);
+
+    $this->actingAs($teammate)
+        ->getJson(route('integrations.functions.agents.index', ['function' => $this->function->external_id]))
+        ->assertOk()
+        ->assertJsonCount(1, 'available')
+        ->assertJsonPath('available.0.id', $this->agent->external_id);
+});

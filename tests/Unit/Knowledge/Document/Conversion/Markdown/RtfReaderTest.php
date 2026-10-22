@@ -30,6 +30,15 @@ it('reads paragraphs, escaped 8-bit characters and Unicode characters', function
     expect(rtfrRead($rtf))->toBe("Café prices\n\nBullet • and smile 😀\n\nDash—done\nnext line tab\n\nBraces { and } and a backslash \\");
 });
 
+it('drops a Unicode value no character has, instead of failing the file', function (): void {
+    $rtf = <<<'RTF'
+        {\rtf1\ansi\deff0{\fonttbl{\f0\fswiss Helvetica;}}
+        \pard\uc1 Before \u99999999?after and \u-99999?end\par}
+        RTF;
+
+    expect(rtfrRead($rtf))->toBe('Before after and end');
+});
+
 it('decodes 8-bit text in the code page of its font', function (): void {
     $rtf = <<<'RTF'
         {\rtf1\ansi\ansicpg1252{\fonttbl{\f0 Arial;}{\f1\fcharset204 Arial Cyr;}{\f2\fcharset128 MS Mincho;}}
@@ -113,5 +122,5 @@ it('keeps field results and leaves out field codes, hidden and deleted text, pic
 });
 
 it('refuses a file that is not RTF', function (): void {
-    expect(fn () => rtfrRead('Plain text, not RTF.'))->toThrow(RuntimeException::class, 'not an RTF document');
+    expect(fn (): string => rtfrRead('Plain text, not RTF.'))->toThrow(RuntimeException::class, 'not an RTF document');
 });

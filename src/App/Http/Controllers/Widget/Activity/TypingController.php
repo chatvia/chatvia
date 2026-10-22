@@ -28,7 +28,7 @@ class TypingController
     ): JsonResponse|WidgetAckData {
         $conversation = $findConversation->execute(
             $request->string('conversation_id')->toString(),
-            (string) $this->widgetSessionId($request),
+            $this->widgetSessionId($request) ?? '',
             $agent,
             $this->widgetViewer($request),
         );

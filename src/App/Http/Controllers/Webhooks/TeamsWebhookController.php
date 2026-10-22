@@ -47,7 +47,7 @@ class TeamsWebhookController
 
         // Defence in depth: a replayed token can't redirect replies — the
         // activity's serviceUrl must match the token's serviceurl claim.
-        if (! is_string($activity['serviceUrl'] ?? null) || ! $verifier->matchesServiceUrl($claims, $activity['serviceUrl'])) {
+        if (blank($activity['serviceUrl'] ?? null) || ! $verifier->matchesServiceUrl($claims, $activity['serviceUrl'])) {
             return $ok;
         }
 

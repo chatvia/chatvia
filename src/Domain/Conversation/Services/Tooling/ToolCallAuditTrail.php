@@ -49,7 +49,7 @@ class ToolCallAuditTrail
         ToolCallCompleted::dispatch(
             arguments: $call->arguments,
             agentId: (int) $agent->id,
-            agentName: (string) $agent->name,
+            agentName: $agent->name,
             workspaceId: (int) $agent->workspace_id,
             userId: $request->actorUserId,
             userName: $request->actorName,

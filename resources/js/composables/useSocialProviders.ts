@@ -1,4 +1,3 @@
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 
 export type SocialProviderName = 'google' | 'slack' | 'microsoft' | 'github';
@@ -8,7 +7,7 @@ export type SocialProviderName = 'google' | 'slack' | 'microsoft' | 'github';
  * Sign-in). A button for any other provider would end on an error page.
  */
 export function useSocialProviders() {
-    const page = usePage<SharedData>();
+    const page = usePage();
 
     const has = (provider: SocialProviderName): boolean => (page.props.socialProviders ?? []).includes(provider);
 

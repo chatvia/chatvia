@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Línea de tiempo del sentimiento",
                 "message_details": "Detalles del mensaje",
                 "waiting": "Pendiente…",
-                "trend_stable_label": "Estable"
+                "trend_stable_label": "Estable",
+                "trend_tooltip": "Compara el estado de ánimo del {first} con el del {last}."
             },
             "handoff": {
                 "visitor": "Visitante",
@@ -2272,7 +2273,7 @@
             "field_label": "Etiqueta del campo",
             "required": "Obligatorio",
             "maps_to": "Asignar a",
-            "options_placeholder": "Una opción por línea. Usa valor|etiqueta para separar valores y etiquetas.",
+            "options_placeholder": "Una opción por línea. Usa valor{'|'}etiqueta para separar valores y etiquetas.",
             "success_message": "Mensaje de éxito",
             "success_placeholder": "Se muestra después de que el visitante envía el formulario.",
             "active": "Activo",

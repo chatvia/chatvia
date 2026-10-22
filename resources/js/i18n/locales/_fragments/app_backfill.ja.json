@@ -94,7 +94,7 @@
             "field_label": "項目ラベル",
             "required": "必須",
             "maps_to": "マッピング先",
-            "options_placeholder": "1行に1つの選択肢を入力。値とラベルを分ける場合は value|label を使用します。",
+            "options_placeholder": "1行に1つの選択肢を入力。値とラベルを分ける場合は value{'|'}label を使用します。",
             "success_message": "完了メッセージ",
             "success_placeholder": "訪問者が送信した後に表示されます。",
             "active": "有効",

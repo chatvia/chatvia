@@ -3,7 +3,6 @@
  * time), formatted with dayjs: `useDateFormat()` inside components, the pure
  * `formatDateWith()` where an explicit format key is already known.
  */
-import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
 
@@ -53,7 +52,7 @@ export function formatDateWith(key: DateFormatKey, value: DateInput): string {
  * unset.
  */
 export function useDateFormat() {
-    const page = usePage<SharedData>();
+    const page = usePage();
 
     const key = (): DateFormatKey => (page.props.auth?.user?.date_format as DateFormatKey) || FALLBACK;
 

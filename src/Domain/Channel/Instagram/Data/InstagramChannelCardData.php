@@ -36,7 +36,7 @@ class InstagramChannelCardData extends Data
     {
         return new self(
             available: MetaApp::Instagram->isConfigured(),
-            connected: $account !== null,
+            connected: $account instanceof AgentInstagramAccount,
             username: $account?->username,
             enabled: (bool) $account?->is_enabled,
             pick: $pending === [] ? null : new DataCollection(InstagramAccountPickData::class, array_map(InstagramAccountPickData::fromArray(...), $pending)),

@@ -29,15 +29,15 @@ class BeginCustomConnectorOAuthAction
         return $this->redirect->start(new PendingOAuthState(
             userId: $data->user->id,
             connectorSlug: null,
-            authServerUrl: (string) $client->auth_server_url,
+            authServerUrl: $client->auth_server_url,
             tokenEndpoint: $client->token_endpoint,
             clientId: $client->client_id,
             codeVerifier: Pkce::verifier(),
             mcpUrl: $data->url,
+            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
             clientSecret: $client->client_secret,
             customName: $data->name,
             customSlug: AgentMcpServer::uniqueSlugFor($data->user->workspace(), $data->name),
-            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
         ), $client->authorization_endpoint);
     }
 }

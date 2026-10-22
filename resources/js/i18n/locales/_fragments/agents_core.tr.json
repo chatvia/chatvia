@@ -8,6 +8,9 @@
                 "confidence_help": "Asistanın bilgisinin bu soruyla ne kadar eşleştiğini gösterir — yanıtın ne kadar iyi olduğunu değil.",
                 "trace": "İzleme",
                 "trace_help": "Bu yanıtın arkasındaki tüm yapay zekâ çağrılarını Spectra'da görüntüleyin"
+            },
+            "pulse": {
+                "trend_tooltip": "{first} ile {last} arasındaki ruh hâlini karşılaştırır."
             }
         },
         "security": {

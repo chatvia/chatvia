@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
@@ -10,7 +9,7 @@ import { useI18n } from 'vue-i18n';
  * (`config('chatvia.powered_by')`, shared as `poweredBy`).
  */
 const { t } = useI18n();
-const page = usePage<SharedData>();
+const page = usePage();
 </script>
 
 <template>

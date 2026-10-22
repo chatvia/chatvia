@@ -45,7 +45,7 @@ final readonly class PdfMakerCheck
 
         $detail = $response->json('errors.0.message');
 
-        return $this->result($response, 'Cloudflare', is_string($detail) ? $detail : null);
+        return $this->result($response, 'Cloudflare', filled($detail) ? $detail : null);
     }
 
     public function gotenberg(string $url, ?string $username, ?string $password): ConnectionCheckData

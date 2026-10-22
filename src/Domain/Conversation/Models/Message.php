@@ -5,6 +5,7 @@ namespace Domain\Conversation\Models;
 use Database\Factories\MessageFactory;
 use Domain\Analytics\Enums\Sentiment;
 use Domain\Analytics\Enums\Tone;
+use Domain\Conversation\Enums\MessageFeedback;
 use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
@@ -41,7 +42,7 @@ use Support\Concerns\HasExternalId;
  * @property float|null $confidence_score
  * @property Sentiment|null $sentiment
  * @property Tone|null $tone
- * @property string|null $feedback
+ * @property MessageFeedback|null $feedback
  * @property bool $is_response_from_qa
  * @property bool|null $has_llm_found_answer
  * @property int|null $response_time_ms
@@ -124,6 +125,7 @@ class Message extends Model
             'source' => MessageOrigin::class,
             'sentiment' => Sentiment::class,
             'tone' => Tone::class,
+            'feedback' => MessageFeedback::class,
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',

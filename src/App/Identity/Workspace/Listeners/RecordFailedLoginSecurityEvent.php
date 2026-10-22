@@ -28,7 +28,7 @@ class RecordFailedLoginSecurityEvent
 
     public function handle(Failed $event): void
     {
-        $email = is_string($event->credentials['email'] ?? null) ? $event->credentials['email'] : null;
+        $email = filled($event->credentials['email'] ?? null) ? $event->credentials['email'] : null;
 
         $user = $event->user instanceof User
             ? $event->user

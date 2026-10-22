@@ -115,7 +115,7 @@ class ServiceStatusBanner extends Widget
         foreach ($cases as $service) {
             $status = isset($results[$service->value]) ? ServiceStatusData::from($results[$service->value]) : null;
 
-            if ($status !== null && in_array($status->state, [ServiceState::Down, ServiceState::Warning], true)) {
+            if ($status instanceof ServiceStatusData && in_array($status->state, [ServiceState::Down, ServiceState::Warning], true)) {
                 $issues[] = [$service->label(), $status];
             }
         }

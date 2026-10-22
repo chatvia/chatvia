@@ -119,7 +119,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
      */
     private function handleChunk(ChatContext $context, StreamReadState $state, array $chunk): Generator
     {
-        if (! $state->generationIdSeen && isset($chunk['id']) && is_string($chunk['id'])) {
+        if (! $state->generationIdSeen && filled($chunk['id'] ?? null)) {
             $state->generationIdSeen = true;
             $context->generationId = $chunk['id'];
 
@@ -141,7 +141,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         $text = $delta['content'] ?? null;
 
         // Not filled(): a whitespace-only delta (" ", "\n") is real output.
-        if (is_string($text) && $text !== '') {
+        if (($text ?? '') !== '') {
             yield from $this->handleContent($context, $state, $text);
         }
 
@@ -167,7 +167,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
     private function reasoningText(array $delta): string
     {
         foreach (['reasoning_content', 'reasoning'] as $key) {
-            if (is_string($delta[$key] ?? null) && $delta[$key] !== '') {
+            if (($delta[$key] ?? '') !== '') {
                 return $delta[$key];
             }
         }

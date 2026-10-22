@@ -93,7 +93,7 @@
             "field_label": "Kentän nimi",
             "required": "Pakollinen",
             "maps_to": "Yhdistyy kenttään",
-            "options_placeholder": "Yksi vaihtoehto riviä kohden. Käytä muotoa arvo|nimi erottaaksesi arvot.",
+            "options_placeholder": "Yksi vaihtoehto riviä kohden. Käytä muotoa arvo{'|'}nimi erottaaksesi arvot.",
             "success_message": "Onnistumisviesti",
             "success_placeholder": "Näytetään, kun kävijä lähettää lomakkeen.",
             "active": "Aktiivinen",

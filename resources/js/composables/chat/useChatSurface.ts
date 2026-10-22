@@ -8,6 +8,7 @@ import { useColorTheme } from '@/composables/useColorTheme';
 import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';
 import { resolveAppearanceText } from '@/lib/appearanceText';
 import type { ChatAppearance } from '@/types/chat';
+import type { PageProps } from '@inertiajs/core';
 import { usePage } from '@inertiajs/vue3';
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -24,7 +25,7 @@ interface ChatSurfaceSource {
 
 export function useChatSurface(source: ChatSurfaceSource) {
     const { locale: i18nLocale } = useI18n();
-    const page = usePage<{ maxFilesPerChat?: number; defaultLocale?: string }>();
+    const page = usePage<PageProps & { maxFilesPerChat?: number; defaultLocale?: string }>();
     const { applyColorTheme } = useColorTheme();
     const { canSendMessages } = useSendCapacity();
 

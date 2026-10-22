@@ -52,7 +52,7 @@ final class RetrievedChunkData extends Data
             chunk_index: (int) $row->chunk_index,
             chunkable_type: (string) $row->chunkable_type,
             chunkable_id: (int) $row->chunkable_id,
-            metadata: is_string($row->metadata) ? $row->metadata : null,
+            metadata: filled($row->metadata) ? $row->metadata : null,
             search_type: (string) $row->search_type,
             score: (float) $row->score,
             similarity: isset($row->similarity) ? (float) $row->similarity : null,
@@ -67,7 +67,7 @@ final class RetrievedChunkData extends Data
      */
     public function images(): array
     {
-        $metadata = json_decode((string) $this->metadata, true);
+        $metadata = json_decode($this->metadata ?? '', true);
 
         return is_array($metadata['images'] ?? null) ? $metadata['images'] : [];
     }

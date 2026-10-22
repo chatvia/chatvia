@@ -164,6 +164,6 @@ class ConnectorData extends Data
             return McpAuthType::None;
         }
 
-        return McpAuthType::tryFrom((string) $this->authType) ?? McpAuthType::Bearer;
+        return McpAuthType::tryFrom($this->authType ?? '') ?? McpAuthType::Bearer;
     }
 }

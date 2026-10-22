@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Duygu zaman çizelgesi",
                 "message_details": "Mesaj ayrıntıları",
                 "waiting": "Bekliyor…",
-                "trend_stable_label": "Sabit"
+                "trend_stable_label": "Sabit",
+                "trend_tooltip": "{first} ile {last} arasındaki ruh hâlini karşılaştırır."
             },
             "handoff": {
                 "visitor": "Ziyaretçi",
@@ -2272,7 +2273,7 @@
             "field_label": "Alan etiketi",
             "required": "Zorunlu",
             "maps_to": "Eşlenir",
-            "options_placeholder": "Her satıra bir seçenek. Ayrı değerler için değer|etiket kullanın.",
+            "options_placeholder": "Her satıra bir seçenek. Ayrı değerler için değer{'|'}etiket kullanın.",
             "success_message": "Başarı mesajı",
             "success_placeholder": "Ziyaretçi gönderdikten sonra gösterilir.",
             "active": "Aktif",

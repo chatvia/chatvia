@@ -28,6 +28,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 
 /**
  * Install-wide options: default language, the chat widget, the tracking
@@ -177,7 +178,7 @@ class ManagePlatformSettings extends AdminSettingsPage
                         ->label('Get a token')
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->iconPosition('after')
-                        ->url((string) PdfMaker::Cloudflare->keysUrl(), shouldOpenInNewTab: true)), required: true),
+                        ->url(PdfMaker::Cloudflare->keysUrl() ?? '', shouldOpenInNewTab: true)), required: true),
                 $this->pdfMakerField(PdfMaker::Gotenberg, $this->url('pdf_gotenberg_url', 'Address', help: 'Such as http://gotenberg:3000.'), required: true),
                 $this->pdfMakerField(PdfMaker::Gotenberg, $this->text('pdf_gotenberg_username', 'Username', help: 'Only when your Gotenberg server asks for one.'), required: false),
                 $this->pdfMakerField(PdfMaker::Gotenberg, $this->secret('pdf_gotenberg_password', 'Password', required: false), required: false),
@@ -316,7 +317,7 @@ class ManagePlatformSettings extends AdminSettingsPage
         return $this->text($program->property(), $program->value)
             ->helperText(fn (): string => $this->programHelp($program))
             ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail) use ($program): void {
-                $path = is_string($value) ? trim($value) : '';
+                $path = filled($value) ? Str::trim($value) : '';
 
                 if ($path === '' || $path === $program->value) {
                     return;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * What the guard did when it triggered. Only triggers are logged — a clean pass
  * produces no event.
@@ -14,6 +16,7 @@ namespace Domain\Guardrail\Enums;
  *  - Skipped:  the guard could not run (the safety model failed), so the text
  *              was let through unchecked. Logged so the owner can see it.
  */
+#[TypeScript]
 enum GuardOutcome: string
 {
     case Blocked = 'blocked';

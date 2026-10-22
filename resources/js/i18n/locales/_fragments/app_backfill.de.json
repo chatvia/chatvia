@@ -94,7 +94,7 @@
             "field_label": "Feldbezeichnung",
             "required": "Erforderlich",
             "maps_to": "Zugeordnet zu",
-            "options_placeholder": "Eine Option pro Zeile. Verwenden Sie Wert|Bezeichnung für separate Werte.",
+            "options_placeholder": "Eine Option pro Zeile. Verwenden Sie Wert{'|'}Bezeichnung für separate Werte.",
             "success_message": "Erfolgsmeldung",
             "success_placeholder": "Wird angezeigt, nachdem der Besucher abgesendet hat.",
             "active": "Aktiv",

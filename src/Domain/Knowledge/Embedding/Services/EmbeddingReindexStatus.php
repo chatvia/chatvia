@@ -33,7 +33,7 @@ final class EmbeddingReindexStatus
     {
         $id = Cache::get(self::KEY);
 
-        return is_string($id) ? Bus::findBatch($id) : null;
+        return filled($id) ? Bus::findBatch($id) : null;
     }
 
     /** The last re-index while it still runs. */

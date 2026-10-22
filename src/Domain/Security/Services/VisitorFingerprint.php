@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Security\Services;
 
+use Illuminate\Support\Str;
+
 /**
  * The fingerprint of an anonymous visitor: a keyed hash of their network
  * address and browser, made on the server (no script runs on the visitor's
@@ -27,12 +29,12 @@ final class VisitorFingerprint
             return null;
         }
 
-        return hash_hmac('sha256', 'visitor|'.$workspaceId.'|'.$network.'|'.trim((string) $userAgent), (string) config('app.key'));
+        return hash_hmac('sha256', 'visitor|'.$workspaceId.'|'.$network.'|'.Str::trim($userAgent ?? ''), (string) config('app.key'));
     }
 
     private function network(?string $ip): ?string
     {
-        $ip = filter_var(trim((string) $ip), FILTER_VALIDATE_IP);
+        $ip = filter_var(Str::trim($ip ?? ''), FILTER_VALIDATE_IP);
         $packed = $ip === false ? false : inet_pton($ip);
 
         if ($packed === false) {
@@ -41,7 +43,7 @@ final class VisitorFingerprint
 
         // IPv6: keep the first 64 bits. IPv4: the whole address.
         return strlen($packed) === 16
-            ? (string) inet_ntop(substr($packed, 0, 8).str_repeat("\0", 8)).'/64'
+            ? inet_ntop(substr($packed, 0, 8).str_repeat("\0", 8)).'/64'
             : (string) inet_ntop($packed);
     }
 }

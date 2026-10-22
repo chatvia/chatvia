@@ -41,13 +41,13 @@ class Summarizer
 
         return $this->chat->using($this->documentLlm->provider())->send(new ChatRequestData(
             model: $this->documentLlm->model((string) config('chatvia.ai.models.summary')),
-            tag: AiCallTag::DocumentSummary,
             messages: [
                 ChatMessageData::userWithAttachment($prompt, [
                     'type' => 'document_url',
                     'document_url' => $documentUrl,
                 ]),
             ],
+            tag: AiCallTag::DocumentSummary,
             maxTokens: 1024,
         ));
     }

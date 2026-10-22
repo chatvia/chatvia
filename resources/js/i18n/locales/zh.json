@@ -531,7 +531,8 @@
                 "sentiment_timeline": "情绪时间线",
                 "message_details": "消息详情",
                 "waiting": "处理中…",
-                "trend_stable_label": "稳定"
+                "trend_stable_label": "稳定",
+                "trend_tooltip": "比较{first}和{last}的情绪。"
             },
             "handoff": {
                 "visitor": "访客",
@@ -2272,7 +2273,7 @@
             "field_label": "字段标签",
             "required": "必填",
             "maps_to": "映射至",
-            "options_placeholder": "每行一个选项。使用 value|label 设置不同的值。",
+            "options_placeholder": "每行一个选项。使用 value{'|'}label 设置不同的值。",
             "success_message": "成功提示",
             "success_placeholder": "访客提交后显示。",
             "active": "已启用",

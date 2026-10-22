@@ -49,7 +49,7 @@ class ListApiAgentsRequest extends CursorPageRequest
 
                 $teamId = $this->query('team_id');
 
-                $this->team = is_string($teamId) && Str::isUuid($teamId)
+                $this->team = Str::isUuid($teamId)
                     ? $user->workspace()->teams()->where('external_id', $teamId)->first()
                     : null;
 

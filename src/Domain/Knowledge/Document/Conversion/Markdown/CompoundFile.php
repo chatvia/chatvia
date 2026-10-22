@@ -234,7 +234,7 @@ final class CompoundFile
             }
 
             $nameLength = min(64, max(0, $this->uint16($child, 0x40) - 2));
-            $name = (string) mb_convert_encoding(substr($child, 0, $nameLength), 'UTF-8', 'UTF-16LE');
+            $name = mb_convert_encoding(substr($child, 0, $nameLength), 'UTF-8', 'UTF-16LE');
 
             $this->streams[strtoupper($name)] = [
                 'start' => $this->uint32($child, 0x74),

@@ -7,6 +7,7 @@ use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -60,7 +61,7 @@ class TeamsClient
 
         $id = $response['id'] ?? null;
 
-        return is_string($id) ? $id : null;
+        return filled($id) ? $id : null;
     }
 
     /**
@@ -91,6 +92,12 @@ class TeamsClient
      */
     protected function call(AgentTeamsBot $bot, string $method, string $url, array $payload): ?array
     {
+        // The bot's token travels with every call, so it only ever goes over
+        // https (the webhook already refuses any other service URL).
+        if (! Str::startsWith($url, 'https://')) {
+            return null;
+        }
+
         $token = $this->token($bot);
 
         if ($token === null) {
@@ -125,7 +132,7 @@ class TeamsClient
         $key = "msteams:token:{$bot->id}";
         $cached = Cache::get($key);
 
-        if (is_string($cached)) {
+        if (filled($cached)) {
             return $cached;
         }
 
@@ -165,7 +172,7 @@ class TeamsClient
 
         $token = $response->json('access_token');
 
-        if ($response->failed() || ! is_string($token)) {
+        if ($response->failed() || blank($token)) {
             Log::warning('Teams token request rejected', ['status' => $response->status(), 'error' => $response->json('error')]);
 
             return null;

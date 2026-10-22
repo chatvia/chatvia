@@ -531,7 +531,8 @@
                 "sentiment_timeline": "Stimmungsverlauf",
                 "message_details": "Nachrichtendetails",
                 "waiting": "Ausstehend…",
-                "trend_stable_label": "Stabil"
+                "trend_stable_label": "Stabil",
+                "trend_tooltip": "Vergleicht die Stimmung der {first} mit der {last}."
             },
             "handoff": {
                 "visitor": "Besucher",
@@ -2272,7 +2273,7 @@
             "field_label": "Feldbezeichnung",
             "required": "Erforderlich",
             "maps_to": "Zugeordnet zu",
-            "options_placeholder": "Eine Option pro Zeile. Verwenden Sie Wert|Bezeichnung für separate Werte.",
+            "options_placeholder": "Eine Option pro Zeile. Verwenden Sie Wert{'|'}Bezeichnung für separate Werte.",
             "success_message": "Erfolgsmeldung",
             "success_placeholder": "Wird angezeigt, nachdem der Besucher abgesendet hat.",
             "active": "Aktiv",

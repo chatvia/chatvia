@@ -56,7 +56,7 @@ class SetMcpToolPermissionAction
             ->update(['permission' => $permission->value]);
 
         if ($updated === 0) {
-            throw McpToolNotFoundException::onServer($connectorToolId, (string) $server->slug);
+            throw McpToolNotFoundException::onServer($connectorToolId, $server->slug);
         }
     }
 
@@ -66,7 +66,7 @@ class SetMcpToolPermissionAction
         $tool = $server->tools()->whereKey($toolId)->first();
 
         if ($tool === null) {
-            throw McpToolNotFoundException::onServer($toolId, (string) $server->slug);
+            throw McpToolNotFoundException::onServer($toolId, $server->slug);
         }
 
         $tool->forceFill(['permission' => $permission])->save();

@@ -31,7 +31,7 @@ class StoreApiAgentRequest extends FormRequest
 
         $teamId = $this->input('team_id');
 
-        $team = is_string($teamId) && Str::isUuid($teamId)
+        $team = Str::isUuid($teamId)
             ? $user->workspace()->teams()->where('external_id', $teamId)->first()
             : null;
 

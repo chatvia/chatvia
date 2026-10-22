@@ -113,7 +113,7 @@ class UploadKnowledgeSourceFileAction
             return;
         }
 
-        $format = (string) new File($upload->path)->guessExtension();
+        $format = new File($upload->path)->guessExtension() ?? '';
 
         if (! $this->audio->canTranscribe($upload->path, $format)) {
             throw $this->audio->readsFormat($format)

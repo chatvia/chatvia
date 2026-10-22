@@ -26,7 +26,7 @@ class AgentSourceTextRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => ['required', 'min:500'],
+            'content' => ['required', 'string', 'min:500'],
         ];
     }
 

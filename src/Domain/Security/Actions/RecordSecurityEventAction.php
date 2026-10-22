@@ -92,7 +92,7 @@ class RecordSecurityEventAction
         $keys = array_map(strtolower(...), (array) config('chatvia.security_audit.redact_keys', []));
 
         foreach ($data as $key => $value) {
-            if (is_string($key) && in_array(strtolower($key), $keys, true)) {
+            if (in_array(Str::lower((string) $key), $keys, true)) {
                 $data[$key] = '[redacted]';
             } elseif (is_array($value)) {
                 $data[$key] = $this->redact($value);

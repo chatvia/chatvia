@@ -32,7 +32,7 @@ class WhatsappChannelCardData extends Data
     {
         return new self(
             available: MetaApp::Whatsapp->isConfigured(),
-            connected: $number !== null,
+            connected: $number instanceof AgentWhatsappNumber,
             display_phone_number: $number?->display_phone_number,
             verified_name: $number?->verified_name,
             enabled: (bool) $number?->is_enabled,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Admin\Settings\Actions\TuneWorkersAction;
 use App\Admin\Settings\Data\WorkerCountsData;
 use App\Admin\Settings\PlatformSettings;

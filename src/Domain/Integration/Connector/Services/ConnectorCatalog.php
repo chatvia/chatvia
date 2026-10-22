@@ -5,6 +5,7 @@ namespace Domain\Integration\Connector\Services;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Read-only access to the connector catalog. `config/connectors.php` (the
@@ -135,6 +136,6 @@ class ConnectorCatalog
         $canonical = $this->canonicalUrl($connectorSlug);
 
         return $canonical !== null
-            && rtrim((string) $url, '/') === rtrim($canonical, '/');
+            && Str::rtrim($url ?? '', '/') === Str::rtrim($canonical, '/');
     }
 }

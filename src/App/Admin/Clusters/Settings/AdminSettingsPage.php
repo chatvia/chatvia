@@ -491,7 +491,7 @@ abstract class AdminSettingsPage extends Page
             ->modalHeading($card->title)
             ->modalIcon(Heroicon::OutlinedLightBulb)
             ->modalContent(fn (): HtmlString => new HtmlString(
-                '<div class="fi-prose cv-settings-help">'.Str::markdown((string) $this->helpOf($card), ['html_input' => 'strip', 'allow_unsafe_links' => false]).'</div>'
+                '<div class="fi-prose cv-settings-help">'.Str::markdown($this->helpOf($card) ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]).'</div>'
             ))
             ->modalWidth(Width::Large)
             ->modalSubmitAction(false)
@@ -780,8 +780,8 @@ abstract class AdminSettingsPage extends Page
     {
         return $this->text($property, $label, $help)
             ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
-                $isPath = is_string($value) && preg_match('#^/(?!/)\S*$#', $value) === 1;
-                $isUrl = is_string($value) && preg_match('#^https?://#i', $value) === 1 && filter_var($value, FILTER_VALIDATE_URL) !== false;
+                $isPath = filled($value) && preg_match('#^/(?!/)\S*$#', $value) === 1;
+                $isUrl = filled($value) && preg_match('#^https?://#i', $value) === 1 && filter_var($value, FILTER_VALIDATE_URL) !== false;
 
                 if (! $isPath && ! $isUrl) {
                     $fail('Enter a path on this server that starts with "/", or a full address that starts with "https://".');

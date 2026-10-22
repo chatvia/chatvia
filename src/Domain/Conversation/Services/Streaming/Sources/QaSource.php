@@ -29,7 +29,7 @@ class QaSource
      */
     public function events(ChatContext $context): Generator
     {
-        $answer = (string) $context->qaMatch?->answer;
+        $answer = $context->qaMatch?->answer ?? '';
         $assistantId = $context->assistantMessageId;
 
         $context->appendStreamedMessage($answer);

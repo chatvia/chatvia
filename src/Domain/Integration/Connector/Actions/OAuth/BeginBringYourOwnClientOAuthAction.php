@@ -33,9 +33,9 @@ class BeginBringYourOwnClientOAuthAction
             clientId: $client->clientId,
             codeVerifier: Pkce::verifier(),
             mcpUrl: $client->mcpUrl,
+            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
             clientSecret: $client->clientSecret,
             scopes: $connector->oauthScopes,
-            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
         ), $client->authorizationEndpoint);
     }
 }

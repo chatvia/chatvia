@@ -8,6 +8,7 @@ use App\Admin\Settings\Data\ConnectionCheckData;
 use Domain\Knowledge\Ingestion\Services\Clients\MistralOcr;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Str;
 
 /**
  * Checks a service picked in Settings → AI models → Documents with a real
@@ -53,6 +54,6 @@ final readonly class DocumentServiceCheck
 
         $detail = $response->json('message') ?? $response->json('detail') ?? $response->json('error.message');
 
-        return new ConnectionCheckData(false, message: "Mistral OCR answered with an error ({$response->status()})".(is_string($detail) && filled($detail) ? ': '.mb_substr($detail, 0, 200) : '.'));
+        return new ConnectionCheckData(false, message: "Mistral OCR answered with an error ({$response->status()})".(filled($detail) ? ': '.Str::substr($detail, 0, 200) : '.'));
     }
 }

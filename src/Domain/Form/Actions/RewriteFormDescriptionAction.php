@@ -47,11 +47,11 @@ class RewriteFormDescriptionAction
 
         $content = $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::FormText),
-            tag: AiCallTag::FormDescription,
             messages: [
                 ChatMessageData::system(prompt('forms/rewrite-description')),
                 ChatMessageData::user($context),
             ],
+            tag: AiCallTag::FormDescription,
             temperature: 0.4,
             maxTokens: self::MAX_TOKENS,
         ))->content;

@@ -29,7 +29,7 @@ class TelegramChannelCardData extends Data
     public static function fromBot(?AgentTelegramBot $bot, array $commands): self
     {
         return new self(
-            connected: $bot !== null,
+            connected: $bot instanceof AgentTelegramBot,
             bot_username: $bot?->bot_username,
             enabled: (bool) $bot?->is_enabled,
             commands: new DataCollection(TelegramCommandRowData::class, array_map(TelegramCommandRowData::fromArray(...), $commands)),

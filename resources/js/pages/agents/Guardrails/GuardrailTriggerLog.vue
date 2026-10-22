@@ -135,7 +135,7 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
             <div>
                 <h2 class="text-base font-semibold">{{ t('agents.guardrails.recent_triggers') }}</h2>
                 <p class="text-muted-foreground text-sm">
-                    {{ t('agents.guardrails.triggers_logged', { total: triggers.total }) }}
+                    {{ t('agents.guardrails.triggers_logged', { total: triggers.total }, triggers.total) }}
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">

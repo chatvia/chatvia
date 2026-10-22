@@ -32,7 +32,7 @@ it('gives the model a generic message and logs the failure without the workspace
 
         return $message === 'Analytics tool call failed'
             && $context['tool'] === 'get-account-overview-tool'
-            && is_string($context['exception'])
+            && ! $context['exception'] instanceof Throwable && filled($context['exception'])
             && ! str_contains((string) $logged, $workspace->external_id)
             && ! str_contains((string) $logged, 'token=secret');
     })->once();

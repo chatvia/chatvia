@@ -22,7 +22,7 @@ class SetLocale
 
         $locale = $user?->locale;
 
-        if (is_string($locale) && array_key_exists($locale, config('chatvia.languages'))) {
+        if (filled($locale) && array_key_exists($locale, config('chatvia.languages'))) {
             App::setLocale($locale);
         }
 

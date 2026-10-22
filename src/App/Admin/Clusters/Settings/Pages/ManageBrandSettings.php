@@ -124,7 +124,7 @@ class ManageBrandSettings extends AdminSettingsPage
             return;
         }
 
-        if (is_string($previous) && $this->license()->read($previous) instanceof LicenseKey) {
+        if (filled($previous) && $this->license()->read($previous) instanceof LicenseKey) {
             app(LicenseActivation::class)->release($previous);
         }
 
@@ -218,7 +218,7 @@ class ManageBrandSettings extends AdminSettingsPage
     {
         $key = $this->valueInUse('license_key');
 
-        return is_string($key) ? $key : null;
+        return filled($key) ? $key : null;
     }
 
     private function license(): CreditLicense

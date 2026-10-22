@@ -64,7 +64,7 @@ final readonly class PendingOAuthState
      */
     public static function unseal(mixed $payload): ?self
     {
-        if (! is_string($payload)) {
+        if (blank($payload)) {
             return null;
         }
 

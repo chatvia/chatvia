@@ -52,7 +52,7 @@ readonly class StreamController
             $this->factory->forWidget(
                 $request,
                 $agent,
-                (string) $sessionId,
+                $sessionId ?? '',
                 $conversationId,
                 $isPlayground,
                 // The signed-in chatter on a protected agent (null for an

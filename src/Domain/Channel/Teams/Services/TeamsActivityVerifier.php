@@ -7,6 +7,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -30,12 +31,18 @@ class TeamsActivityVerifier
     /** Accept this much clock skew on exp/nbf (mirrors the HMAC channels' replay window). */
     private const int LEEWAY_SECONDS = 300;
 
+    private const int FETCH_TIMEOUT_SECONDS = 5;
+
+    private const string JWKS_CACHE_KEY = 'msteams:jwks';
+
+    private const string JWKS_REFRESHED_KEY = 'msteams:jwks:refreshed';
+
     /**
      * @return array<string, mixed>|null the verified token claims, or null when the request is not genuine
      */
     public function verify(?string $authorization, string $appId): ?array
     {
-        if (! is_string($authorization) || ! str_starts_with($authorization, 'Bearer ')) {
+        if (blank($authorization) || ! Str::startsWith($authorization, 'Bearer ')) {
             return null;
         }
 
@@ -46,7 +53,7 @@ class TeamsActivityVerifier
 
         try {
             JWT::$leeway = self::LEEWAY_SECONDS;
-            $claims = (array) JWT::decode(substr($authorization, 7), $this->signingKeys());
+            $claims = $this->decode(Str::after($authorization, 'Bearer '));
         } catch (Throwable) {
             return null;
         } finally {
@@ -61,33 +68,70 @@ class TeamsActivityVerifier
     }
 
     /**
-     * When the verified token carries a `serviceurl` claim it must match the
-     * activity's serviceUrl, so a replayed token can't redirect replies.
+     * The verified token's `serviceurl` claim must match the activity's
+     * serviceUrl, so a replayed token can't redirect replies. The Bot Framework
+     * requires the claim on every connector token, so a token without it is
+     * refused, and so is a service URL that is not https: the bot's token is
+     * sent there with every reply.
      *
      * @param  array<string, mixed>  $claims
      */
     public function matchesServiceUrl(array $claims, string $serviceUrl): bool
     {
-        if (! isset($claims['serviceurl'])) {
-            return true;
+        $claimed = $claims['serviceurl'] ?? null;
+
+        if (blank($claimed) || ! Str::startsWith($serviceUrl, 'https://')) {
+            return false;
         }
 
-        return rtrim((string) $claims['serviceurl'], '/') === rtrim($serviceUrl, '/');
+        return Str::rtrim((string) $claimed, '/') === Str::rtrim($serviceUrl, '/');
+    }
+
+    /**
+     * Decode against the cached keys. A token signed with a key the cache does
+     * not hold means Microsoft rotated its keys, so they are fetched again once.
+     * The refetch runs at most every ten minutes, so forged tokens with made-up
+     * key ids cannot turn every request into a call to Microsoft.
+     *
+     * @return array<string, mixed>
+     */
+    private function decode(string $jwt): array
+    {
+        $keys = $this->signingKeys();
+        $keyId = $this->keyId($jwt);
+
+        if ($keyId !== null && ! isset($keys[$keyId]) && Cache::add(self::JWKS_REFRESHED_KEY, true, now()->addMinutes(10))) {
+            Cache::forget(self::JWKS_CACHE_KEY);
+            $keys = $this->signingKeys();
+        }
+
+        return (array) JWT::decode($jwt, $keys);
+    }
+
+    /** The `kid` in the token's header, or null when the header can't be read. */
+    private function keyId(string $jwt): ?string
+    {
+        return rescue(function () use ($jwt): ?string {
+            $header = JWT::jsonDecode(JWT::urlsafeB64Decode(Str::before($jwt, '.')));
+
+            return filled($header->kid ?? null) ? (string) $header->kid : null;
+        }, null, report: false);
     }
 
     /**
      * The Bot Framework signing keys, resolved via OpenID discovery. The JWKS
      * rotates rarely; the raw document is cached for a day. A fetch failure
-     * throws — the caller treats that as "not verified".
+     * throws — the caller treats that as "not verified". Each fetch is short:
+     * it runs inside the webhook, which Microsoft gives 15 seconds.
      *
      * @return array<string, Key>
      */
     private function signingKeys(): array
     {
-        $jwks = Cache::remember('msteams:jwks', now()->addDay(), function (): array {
-            $metadata = Http::get(self::OPENID_CONFIGURATION)->throw()->json();
+        $jwks = Cache::remember(self::JWKS_CACHE_KEY, now()->addDay(), function (): array {
+            $metadata = Http::timeout(self::FETCH_TIMEOUT_SECONDS)->get(self::OPENID_CONFIGURATION)->throw()->json();
 
-            return Http::get($metadata['jwks_uri'])->throw()->json();
+            return Http::timeout(self::FETCH_TIMEOUT_SECONDS)->get($metadata['jwks_uri'])->throw()->json();
         });
 
         return JWK::parseKeySet($jwks, 'RS256');

@@ -6,6 +6,7 @@ namespace Domain\Guardrail\Data;
 
 use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Guardrail\Enums\TopicResponse;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -33,11 +34,11 @@ class BlockedTopicData extends Data
     /** Read a stored entry; a plain string is a topic with only a name. */
     public static function fromStored(mixed $stored): ?self
     {
-        if (is_string($stored)) {
-            return filled(trim($stored)) ? new self(trim($stored)) : null;
+        if (! is_array($stored)) {
+            return filled($stored) ? new self(Str::trim((string) $stored)) : null;
         }
 
-        if (! is_array($stored) || blank($stored['name'] ?? null)) {
+        if (blank($stored['name'] ?? null)) {
             return null;
         }
 
@@ -45,12 +46,12 @@ class BlockedTopicData extends Data
             name: trim((string) $stored['name']),
             description: filled($stored['description'] ?? null) ? trim((string) $stored['description']) : null,
             examples: array_values(array_filter(
-                array_map(static fn (mixed $example): string => is_string($example) ? trim($example) : '', (array) ($stored['examples'] ?? [])),
+                array_map(static fn (mixed $example): string => filled($example) ? Str::trim($example) : '', (array) ($stored['examples'] ?? [])),
                 filled(...),
             )),
             action: TopicResponse::tryFrom((string) ($stored['action'] ?? '')) ?? TopicResponse::Refuse,
             reply: filled($stored['reply'] ?? null) ? trim((string) $stored['reply']) : null,
-            reply_translations: array_filter((array) ($stored['reply_translations'] ?? []), is_string(...)),
+            reply_translations: array_filter((array) ($stored['reply_translations'] ?? []), filled(...)),
         );
     }
 

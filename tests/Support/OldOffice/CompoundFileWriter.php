@@ -40,7 +40,7 @@ final class CompoundFileWriter
         foreach ($small as $name => $bytes) {
             $count = max(1, (int) ceil(strlen($bytes) / self::MINI_SECTOR));
             $first = count($miniFat);
-            $miniStart[$name] = strlen($bytes) === 0 ? self::END_OF_CHAIN : $first;
+            $miniStart[$name] = (string) $bytes === '' ? self::END_OF_CHAIN : $first;
 
             for ($index = 0; $index < $count; $index++) {
                 $miniFat[] = $index === $count - 1 ? self::END_OF_CHAIN : $first + $index + 1;
@@ -106,7 +106,7 @@ final class CompoundFileWriter
 
     private static function entry(string $name, int $type, int $child, int $right, int $start, int $size): string
     {
-        $utf16 = (string) mb_convert_encoding($name, 'UTF-16LE', 'UTF-8');
+        $utf16 = mb_convert_encoding($name, 'UTF-16LE', 'UTF-8');
 
         return str_pad($utf16, 64, "\0")
             .pack('vCC', strlen($utf16) + 2, $type, 1)

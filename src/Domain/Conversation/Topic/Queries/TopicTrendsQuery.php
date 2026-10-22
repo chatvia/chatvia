@@ -43,7 +43,7 @@ class TopicTrendsQuery
             total_topics: new DataCollection(TopicSummaryData::class, array_map(
                 static fn (TopicTotalData $topic): TopicSummaryData => new TopicSummaryData(
                     id: $topic->topicId,
-                    name: (string) $topic->topicName,
+                    name: $topic->topicName ?? '',
                     count: $topic->count,
                 ),
                 $topTopics,
@@ -59,7 +59,7 @@ class TopicTrendsQuery
     private function dailyTrend(TopicTotalData $topic, array $days, Collection $countsByTopicAndDay): TopicTrendData
     {
         return new TopicTrendData(
-            topic_name: (string) $topic->topicName,
+            topic_name: $topic->topicName ?? '',
             counts: new DataCollection(TopicCountByDateData::class, array_map(
                 static fn (string $day): TopicCountByDateData => new TopicCountByDateData(
                     date: $day,

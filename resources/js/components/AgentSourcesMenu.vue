@@ -11,7 +11,6 @@ import type { AgentPageUrl } from '@/composables/agents/layout/useAgentNavigatio
 import { type KnowledgeFileType, useKnowledgeFileTypes } from '@/composables/agents/sources/files/useKnowledgeFileTypes';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import sources from '@/routes/agents/sources';
-import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { File, FileAudio, FileText, Globe, HelpCircle, Video } from 'lucide-vue-next';
 import { type Component, computed } from 'vue';
@@ -36,7 +35,7 @@ const props = withDefaults(
 const { hasPermission } = useTeamPermissions();
 const { isAccepted } = useKnowledgeFileTypes();
 const { t } = useI18n();
-const page = usePage<SharedData>();
+const page = usePage();
 
 // " (3)" suffix for a menu label, or nothing when the kind has no sources.
 const getSourceCount = (statsKey: string, stats: SourceCounts | null | undefined): string => {

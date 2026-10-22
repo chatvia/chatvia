@@ -40,7 +40,7 @@ final readonly class ServerResources
     {
         $meminfo = self::read('/proc/meminfo');
 
-        if (is_string($meminfo) && preg_match('/^MemTotal:\s+(\d+) kB/m', $meminfo, $matches) === 1) {
+        if (filled($meminfo) && preg_match('/^MemTotal:\s+(\d+) kB/m', $meminfo, $matches) === 1) {
             return (int) $matches[1] * 1024;
         }
 
@@ -61,7 +61,7 @@ final readonly class ServerResources
         foreach (['/sys/fs/cgroup/memory.max', '/sys/fs/cgroup/memory/memory.limit_in_bytes'] as $file) {
             $value = self::read($file);
 
-            if (! is_string($value)) {
+            if (blank($value)) {
                 continue;
             }
 
@@ -80,13 +80,13 @@ final readonly class ServerResources
         // A container's CPU quota, "200000 100000" = 2 processors; "max" is none.
         $quota = self::read('/sys/fs/cgroup/cpu.max');
 
-        if (is_string($quota) && preg_match('/^(\d+) (\d+)/', trim($quota), $matches) === 1) {
+        if (filled($quota) && preg_match('/^(\d+) (\d+)/', trim($quota), $matches) === 1) {
             return max(1, (int) ceil((int) $matches[1] / (int) $matches[2]));
         }
 
         $cpuinfo = self::read('/proc/cpuinfo');
 
-        if (is_string($cpuinfo) && ($count = preg_match_all('/^processor\s*:/m', $cpuinfo)) > 0) {
+        if (filled($cpuinfo) && ($count = preg_match_all('/^processor\s*:/m', $cpuinfo)) > 0) {
             return $count;
         }
 

@@ -531,7 +531,8 @@
                 "sentiment_timeline": "الخط الزمني للمشاعر",
                 "message_details": "تفاصيل الرسائل",
                 "waiting": "قيد الانتظار…",
-                "trend_stable_label": "مستقر"
+                "trend_stable_label": "مستقر",
+                "trend_tooltip": "يقارن المزاج في {first} مع {last}."
             },
             "handoff": {
                 "visitor": "زائر",
@@ -2272,7 +2273,7 @@
             "field_label": "تسمية الحقل",
             "required": "مطلوب",
             "maps_to": "يرتبط بـ",
-            "options_placeholder": "خيار واحد في كل سطر. استخدم value|label لقيم منفصلة.",
+            "options_placeholder": "خيار واحد في كل سطر. استخدم value{'|'}label لقيم منفصلة.",
             "success_message": "رسالة النجاح",
             "success_placeholder": "تظهر بعد إرسال الزائر.",
             "active": "مُفعّل",

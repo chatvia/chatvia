@@ -349,6 +349,6 @@ class AgentMcpServer extends Model implements AttachableToAgents
      */
     public function toolPrefix(): string
     {
-        return ToolName::mcpPrefix((string) $this->slug);
+        return ToolName::mcpPrefix($this->slug);
     }
 }

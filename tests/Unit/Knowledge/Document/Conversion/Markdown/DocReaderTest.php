@@ -130,6 +130,6 @@ it('refuses a password-protected file and a file that is not a Word document', f
     $other = (string) tempnam(sys_get_temp_dir(), 'doc');
     file_put_contents($other, CompoundFileWriter::write(['Workbook' => 'not a document']));
 
-    expect(fn () => docrRead($locked))->toThrow(RuntimeException::class, 'password protected')
-        ->and(fn () => docrRead($other))->toThrow(RuntimeException::class, 'not a Word document');
+    expect(fn (): string => docrRead($locked))->toThrow(RuntimeException::class, 'password protected')
+        ->and(fn (): string => docrRead($other))->toThrow(RuntimeException::class, 'not a Word document');
 });

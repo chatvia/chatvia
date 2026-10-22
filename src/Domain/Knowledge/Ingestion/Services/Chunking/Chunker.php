@@ -45,11 +45,11 @@ class Chunker
 
         $reply = $this->completion->send(new ChatRequestData(
             model: $model,
-            tag: AiCallTag::ChunkEnhancement,
             messages: [
                 ChatMessageData::system($systemPrompt),
                 ChatMessageData::user($userPrompt),
             ],
+            tag: AiCallTag::ChunkEnhancement,
             temperature: 0.0,
             maxTokens: 8096,
             responseSchema: new ResponseSchemaData('document_chunk', $this->documentChunkSchema()),
@@ -59,7 +59,7 @@ class Chunker
 
         return new ChunkEnhancementData(
             summary: (string) ($data['summary'] ?? ''),
-            questions: array_values(array_filter((array) ($data['questions'] ?? []), is_string(...))),
+            questions: array_values(array_filter((array) ($data['questions'] ?? []), filled(...))),
             model: $model->name,
         );
     }

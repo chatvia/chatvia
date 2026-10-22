@@ -8,6 +8,7 @@ use Domain\Form\Listeners\PushSubmissionToCrm;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\WebhookSignature;
 
@@ -56,12 +57,15 @@ it('posts the submission to the CRM webhook', function (): void {
     $agent = pstcAgentWithCrm();
     Http::fake([PSTC_URL => Http::response('', 200)]);
 
-    app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id));
+    $event = pstcEvent($agent->id);
+
+    app(PushSubmissionToCrm::class)->handle($event);
 
     Http::assertSent(fn (Request $request): bool => $request->url() === PSTC_URL
         && $request->method() === 'POST'
         && $request->data() === [
             'event' => 'form.submitted',
+            'delivery_id' => $event->deliveryId,
             'form' => 'book-a-demo',
             'form_type' => 'booking',
             'source' => 'form',
@@ -70,6 +74,21 @@ it('posts the submission to the CRM webhook', function (): void {
             'timestamp' => now()->toIso8601String(),
             'values' => ['email' => 'jane@example.com', 'seats' => 5],
         ]);
+});
+
+it('sends the same delivery id when the queue retries the event', function (): void {
+    $agent = pstcAgentWithCrm();
+    Http::fake([PSTC_URL => Http::response('', 200)]);
+    $event = pstcEvent($agent->id);
+
+    // A retry runs the listener again on the event as the queue stored it.
+    app(PushSubmissionToCrm::class)->handle($event);
+    app(PushSubmissionToCrm::class)->handle(unserialize(serialize($event)));
+
+    $ids = Http::recorded()->map(fn (array $pair): mixed => $pair[0]->data()['delivery_id']);
+
+    expect($ids->all())->toBe([$event->deliveryId, $event->deliveryId])
+        ->and(Str::isUuid($event->deliveryId))->toBeTrue();
 });
 
 it('signs the body it sends with the agent\'s webhook secret', function (): void {

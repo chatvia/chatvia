@@ -8,6 +8,9 @@
                 "confidence_help": "エージェントのナレッジがこの質問とどれだけ一致したかを示します。回答の良し悪しではありません。",
                 "trace": "トレース",
                 "trace_help": "この返信の背後にあるすべてのAI呼び出しをSpectraで表示"
+            },
+            "pulse": {
+                "trend_tooltip": "{first}と{last}の気分を比較します。"
             }
         },
         "security": {

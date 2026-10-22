@@ -2,6 +2,8 @@
 
 namespace Domain\Agent\ValueObjects;
 
+use Illuminate\Support\Str;
+
 /**
  * A piece of owner-written copy shown to visitors in their own language: a
  * conversation starter, a widget chat bubble, or an appearance string (chat
@@ -93,7 +95,7 @@ final readonly class TranslatableText
      */
     public static function normalizeLocale(?string $locale): ?string
     {
-        $locale = strtolower(trim((string) $locale));
+        $locale = Str::lower(Str::trim($locale ?? ''));
 
         if (in_array($locale, ['', 'auto', '*'], true)) {
             return null;
@@ -114,7 +116,8 @@ final readonly class TranslatableText
         $clean = [];
 
         foreach ((array) $map as $locale => $value) {
-            $value = is_string($value) ? trim($value) : '';
+            // A number is kept as its text; a list or other junk is dropped.
+            $value = is_scalar($value) ? Str::trim((string) $value) : '';
 
             if ($value !== '' && isset($languages[(string) $locale])) {
                 $clean[(string) $locale] = $value;

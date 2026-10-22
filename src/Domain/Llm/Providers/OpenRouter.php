@@ -25,7 +25,7 @@ class OpenRouter extends AbstractLlmProvider
         $effort = $payload[self::REASONING_EFFORT] ?? null;
         unset($payload[self::REASONING_EFFORT]);
 
-        if (is_string($effort)) {
+        if (filled($effort)) {
             $payload['reasoning'] = ['effort' => $effort] + (($payload[self::SHOW_REASONING] ?? false) ? [] : ['exclude' => true]);
         }
 

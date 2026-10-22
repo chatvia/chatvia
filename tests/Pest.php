@@ -241,7 +241,7 @@ function sharedStaffAndChatterId(): int
  */
 function jobSetting(object|string $job, string $attribute, string $property): mixed
 {
-    $job = is_string($job) ? new ReflectionClass($job)->newInstanceWithoutConstructor() : $job;
+    $job = is_object($job) ? $job : new ReflectionClass($job)->newInstanceWithoutConstructor();
 
     $reader = new class
     {

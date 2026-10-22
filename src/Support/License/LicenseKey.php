@@ -76,16 +76,16 @@ final readonly class LicenseKey
         $features = $payload['features'] ?? null;
         $issued = $payload['issued'] ?? null;
 
-        if (! is_string($id) || ! is_string($licensee) || ! is_string($issued) || ! is_array($domains) || ! is_array($features)) {
+        if (blank($id) || blank($licensee) || blank($issued) || ! is_array($domains) || ! is_array($features)) {
             return null;
         }
 
         return new self(
             id: $id,
             licensee: $licensee,
-            domains: array_values(array_filter($domains, is_string(...))),
+            domains: array_values(array_filter($domains, filled(...))),
             features: array_values(array_filter(array_map(
-                fn (mixed $feature): ?LicenseFeature => is_string($feature) ? LicenseFeature::tryFrom($feature) : null,
+                fn (mixed $feature): ?LicenseFeature => filled($feature) ? LicenseFeature::tryFrom($feature) : null,
                 $features,
             ))),
             issued: $issued,

@@ -28,7 +28,7 @@ class SocialAccountRowData extends Data
         return new self(
             provider: $provider->value,
             label: ucfirst($provider->value),
-            connected: $linked !== null,
+            connected: $linked instanceof UserSocial,
             connected_at: $linked?->created_at?->toIso8601String(),
         );
     }

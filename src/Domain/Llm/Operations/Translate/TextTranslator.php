@@ -39,7 +39,6 @@ class TextTranslator
 
         $reply = $this->completion->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Translation),
-            tag: AiCallTag::Translation,
             messages: [
                 ChatMessageData::system(prompt('translate/strings')),
                 ChatMessageData::user(json_encode(
@@ -47,6 +46,7 @@ class TextTranslator
                     JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
                 )),
             ],
+            tag: AiCallTag::Translation,
             temperature: 0.2,
         ));
 
@@ -75,7 +75,7 @@ class TextTranslator
             foreach ($localeKeys as $locale) {
                 $value = $byLocale[$locale] ?? null;
 
-                if (is_string($value) && filled($value)) {
+                if (filled($value)) {
                     $result[$field][$locale] = trim($value);
                 }
             }

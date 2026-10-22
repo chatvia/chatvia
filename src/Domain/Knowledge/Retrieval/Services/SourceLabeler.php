@@ -120,7 +120,7 @@ class SourceLabeler
 
             $site = $sites->get($chunk->chunkable_id);
 
-            return is_string($site) ? [$chunk->id => new SourceLabelData($site, SourceKind::Website, $site)] : [];
+            return filled($site) ? [$chunk->id => new SourceLabelData($site, SourceKind::Website, $site)] : [];
         })->all();
     }
 
@@ -153,7 +153,7 @@ class SourceLabeler
             $video = $videos->get($chunk->chunkable_id);
 
             return $video instanceof SourceYoutubeVideo
-                ? [$chunk->id => new SourceLabelData((string) ($video->title ?: $video->url), SourceKind::Video, $video->url)]
+                ? [$chunk->id => new SourceLabelData($video->title ?: $video->url, SourceKind::Video, $video->url)]
                 : [];
         })->all();
     }

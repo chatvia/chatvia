@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Agent\Prompt\Actions;
 
 use Domain\Agent\Prompt\Data\UpdatePromptData;

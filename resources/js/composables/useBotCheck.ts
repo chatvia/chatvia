@@ -1,4 +1,3 @@
-import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed, type ComputedRef } from 'vue';
 
@@ -13,7 +12,7 @@ export const BOT_CHECK_FIELD = 'cf-turnstile-response';
  * Security), and the site key it renders with: null when it does not.
  */
 export function useBotCheck(form: BotCheckForm): { siteKey: ComputedRef<string | null> } {
-    const page = usePage<SharedData>();
+    const page = usePage();
 
     return {
         siteKey: computed(() => {

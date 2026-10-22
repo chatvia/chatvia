@@ -29,7 +29,7 @@ class RegisterUserRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if (is_string($this->input('email'))) {
+        if (filled($this->input('email')) && ! is_array($this->input('email'))) {
             $this->merge(['email' => Str::lower($this->input('email'))]);
         }
     }

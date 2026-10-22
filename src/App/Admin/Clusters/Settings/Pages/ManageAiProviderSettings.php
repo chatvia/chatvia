@@ -110,7 +110,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         $warnings = [];
 
         foreach (AiProvider::cases() as $provider) {
-            $property = (string) AiProviderSettings::propertyFor($provider->apiKeyConfig());
+            $property = AiProviderSettings::propertyFor($provider->apiKeyConfig()) ?? '';
             $typed = $state[$property] ?? null;
 
             if (blank($typed)) {
@@ -235,7 +235,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
 
     private function providerCard(AiProvider $provider): SettingsCard
     {
-        $key = (string) AiProviderSettings::propertyFor($provider->apiKeyConfig());
+        $key = AiProviderSettings::propertyFor($provider->apiKeyConfig()) ?? '';
         $address = $provider->baseUrlConfig() !== null ? AiProviderSettings::propertyFor($provider->baseUrlConfig()) : null;
 
         $card = SettingsCard::make($provider->value, $provider->label(), $provider->description(), AiProviderIcon::of($provider), fn (): array => [

@@ -94,7 +94,7 @@
             "field_label": "फ़ील्ड लेबल",
             "required": "आवश्यक",
             "maps_to": "मैप करता है",
-            "options_placeholder": "प्रति पंक्ति एक विकल्प। अलग मानों के लिए value|label उपयोग करें।",
+            "options_placeholder": "प्रति पंक्ति एक विकल्प। अलग मानों के लिए value{'|'}label उपयोग करें।",
             "success_message": "सफलता संदेश",
             "success_placeholder": "विज़िटर के सबमिट करने के बाद दिखाया जाता है।",
             "active": "सक्रिय",

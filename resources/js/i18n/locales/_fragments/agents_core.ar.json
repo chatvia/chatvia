@@ -221,6 +221,7 @@
                 "trend": "الاتجاه",
                 "trend_first": "أول رسالة",
                 "trend_last": "آخر رسالة",
+                "trend_tooltip": "يقارن المزاج في {first} مع {last}.",
                 "trend_improving": "تحسّن",
                 "trend_improving_hint": "— انتهى المزاج أفضل مما بدأ",
                 "trend_declining": "تراجع",

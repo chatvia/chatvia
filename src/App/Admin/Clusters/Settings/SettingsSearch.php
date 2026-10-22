@@ -116,14 +116,14 @@ final class SettingsSearch
         foreach ($terms as $term) {
             $points = max(
                 $this->points($entry->title, $term, 8),
-                $this->points((string) $entry->page, $term, 2),
+                $this->points($entry->page ?? '', $term, 2),
                 $this->points($entry->description, $term, 1),
                 ...array_map(fn (string $option): int => $this->points($option, $term, 4), $entry->options),
             );
 
             if ($points > 0) {
                 $ownWords++;
-            } elseif (Str::contains((string) $entry->pageDescription, $term, ignoreCase: true)) {
+            } elseif (Str::contains($entry->pageDescription ?? '', $term, ignoreCase: true)) {
                 // What the page says it holds completes a section's match ("smtp port"), never makes one.
                 $points = 1;
             } else {

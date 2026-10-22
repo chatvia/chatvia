@@ -65,7 +65,9 @@ it('leaves Pulse alone when another setting is saved', function (): void {
 });
 
 it('turns Spectra on in a queue worker before its next job', function (): void {
+    // The worker booted while Spectra was switched off.
     bootedToolRecording();
+    saveSettings(PlatformSettings::class, ['spectra_enabled' => false]);
 
     // Another process saved the switch: this one has not seen it yet.
     DB::table('settings')->where('group', 'platform')->where('name', 'spectra_enabled')

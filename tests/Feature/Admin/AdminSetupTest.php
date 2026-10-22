@@ -270,10 +270,11 @@ it('checks the key with the provider\'s model list before the next step', functi
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(3)
         ->assertSee('Connected to Scaleway AI')
-        // The recommended models the provider lists.
+        // The recommended model the provider lists (gpt-oss-120b is not
+        // one), for chat, quick tasks and image descriptions.
         ->assertFormSet([
-            'chat_models' => ['gpt-oss-120b'],
-            'default_model' => 'gpt-oss-120b',
+            'chat_models' => ['mistral-small-3.2-24b-instruct-2506'],
+            'default_model' => 'mistral-small-3.2-24b-instruct-2506',
             'quick_task_model' => 'mistral-small-3.2-24b-instruct-2506',
             'describe_images' => true,
             'vision_model' => 'mistral-small-3.2-24b-instruct-2506',
@@ -294,10 +295,10 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
     Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
         $model('meta-llama/llama-4-maverick'),
         $model('openai/gpt-oss-120b'),
-        $model('qwen/qwen3.7-plus', tools: false),
-        $model('qwen/qwen3.6-plus'),
-        $model('openai/gpt-6.1-sol'),
-        $model('openai/gpt-6-luna'),
+        $model('qwen/qwen3-235b-a22b-2507', tools: false),
+        $model('qwen/qwen3-next-80b-a3b-instruct'),
+        $model('openai/gpt-4.1'),
+        $model('openai/gpt-4.1-mini'),
     ]])]);
 
     setupPage($this->admin)
@@ -305,13 +306,15 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
         ->goToWizardStep(3)
         ->assertWizardCurrentStep(3)
         // One per maker, default first; a model that cannot call tools is
-        // passed over, and a maker with none listed (Google) is left out.
+        // passed over for the next of its maker, a maker with none listed
+        // (Mistral) is left out, and a model that is no preset (gpt-oss-120b)
+        // is not picked.
         ->assertFormSet([
-            'chat_models' => ['openai/gpt-6.1-sol', 'qwen/qwen3.6-plus', 'openai/gpt-oss-120b'],
-            'default_model' => 'openai/gpt-6.1-sol',
-            'quick_task_model' => 'openai/gpt-6-luna',
+            'chat_models' => ['qwen/qwen3-next-80b-a3b-instruct', 'openai/gpt-4.1', 'meta-llama/llama-4-maverick'],
+            'default_model' => 'qwen/qwen3-next-80b-a3b-instruct',
+            'quick_task_model' => 'openai/gpt-4.1-mini',
             'describe_images' => true,
-            'vision_model' => 'openai/gpt-6-luna',
+            'vision_model' => 'openai/gpt-4.1-mini',
         ]);
 });
 

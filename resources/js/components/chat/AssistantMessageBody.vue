@@ -391,14 +391,7 @@ onMounted(() => {
             v-bind="ARTIFACT_RENDERERS[artifact.kind].toProps(artifact.data)"
             :message-id="artifact.kind === 'form' ? messageId : undefined"
         />
-        <div
-            v-if="content"
-            id="chat-ai-responses"
-            ref="bodyRef"
-            class="streaming-content"
-            :class="{ 'is-streaming': isStreaming }"
-            v-html="renderedHtml"
-        />
+        <div v-if="content" id="chat-ai-responses" ref="bodyRef" v-html="renderedHtml" />
     </div>
 </template>
 
@@ -419,38 +412,9 @@ onMounted(() => {
     }
 }
 
-/* Breathing caret — soft pulse rather than a hard blink. Inherits the
-   text color via currentColor (theme vars are full color functions, so
-   wrapping them in hsl() would be invalid). */
-.streaming-content.is-streaming::after {
-    content: '▋';
-    display: inline-block;
-    margin-inline-start: 2px;
-    color: currentColor;
-    transform-origin: bottom;
-    filter: blur(0);
-    animation: stream-cursor 1.1s ease-in-out infinite;
-}
-
-@keyframes stream-cursor {
-    0%,
-    100% {
-        opacity: 0.85;
-        transform: scaleY(1);
-    }
-    50% {
-        opacity: 0.15;
-        transform: scaleY(0.94);
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     :deep(.stream-fade) {
         animation: none;
-    }
-    .streaming-content.is-streaming::after {
-        animation: none;
-        opacity: 0.7;
     }
 }
 </style>

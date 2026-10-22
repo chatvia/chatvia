@@ -43,6 +43,7 @@ export function useChatScroll(container: Ref<HTMLElement | null>, content: Ref<H
     let followFrame: number | null = null;
     let jumpFrame: number | null = null;
     let touchStartY: number | null = null;
+    let lastScrollTop = 0;
     let resizeObserver: ResizeObserver | null = null;
 
     const showScrollToBottom = computed(() => {
@@ -173,9 +174,13 @@ export function useChatScroll(container: Ref<HTMLElement | null>, content: Ref<H
     }
 
     // Programmatic scrolling fires this too, so it never stops following;
-    // only the visitor's own input does (onUserScrollIntent).
+    // only the visitor's own input does (onUserScrollIntent). Only a move
+    // down resumes it, so a small scroll up from the bottom is never undone.
     function onScroll() {
-        if (!container.value || isPinning) return;
+        if (!container.value) return;
+        const movedDown = container.value.scrollTop > lastScrollTop;
+        lastScrollTop = container.value.scrollTop;
+        if (isPinning || !movedDown) return;
         if (distanceFromBottom(container.value) < BOTTOM_THRESHOLD_PX) follow();
     }
 

@@ -251,9 +251,8 @@ export function useChatStreamTurn({ conversationId, transcript, scroll }: Stream
         if (target.isNewConversation) void nameConversationThenRefresh();
         clearNewConversationFlag();
 
-        if (target.autoScrollOnDone && scroll.isFollowing.value) {
-            nextTick(() => scroll.scrollToBottom());
-        }
+        // The final render can add height (a closed code block, a table): glide to it.
+        if (target.autoScrollOnDone) nextTick(() => scroll.scrollWhileStreaming());
     }
 
     /**

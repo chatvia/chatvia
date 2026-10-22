@@ -297,8 +297,10 @@ theme.
   toxicity have a **sensitivity** setting (low, medium, high).
 - **Test a message** on the Guardrails page shows what a visitor would get
   with the settings on the page, before you save.
-- **Check answers before showing them**: the visitor sees the answer only
-  after the guards checked it (it then appears all at once).
+- **Check the agent's answers**: while showing them (the default; an
+  answer that fails is replaced), before showing them (the visitor sees an
+  answer only after it passed, all at once), or not at all (one AI call
+  less per answer; personal data in answers is still masked).
 - **Email alerts** about blocked attacks and checks that could not run (at
   most one an hour), and blocked attacks are written to the security audit
   log (and so to the SIEM webhook).

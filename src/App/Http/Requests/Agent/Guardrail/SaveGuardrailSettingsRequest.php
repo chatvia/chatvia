@@ -60,6 +60,7 @@ class SaveGuardrailSettingsRequest extends FormRequest
             'blocked_topics.*.reply' => ['nullable', 'string', 'max:500'],
             'allowed_scope' => ['nullable', 'string', 'max:2000'],
             'refusal_message' => ['nullable', 'string', 'max:500'],
+            'check_answers' => ['nullable', 'boolean'],
             'check_before_showing' => ['nullable', 'boolean'],
             'alert_owner' => ['nullable', 'boolean'],
         ];
@@ -96,6 +97,8 @@ class SaveGuardrailSettingsRequest extends FormRequest
             toxicity_mode: $this->enum('toxicity_mode', GuardMode::class) ?? GuardMode::Block,
             toxicity_sensitivity: $this->enum('toxicity_sensitivity', GuardSensitivity::class) ?? GuardSensitivity::Medium,
             topics_mode: $this->enum('topics_mode', GuardMode::class) ?? GuardMode::Block,
+            // Left out (an older form or client): answers stay checked.
+            check_answers: $this->boolean('check_answers', true),
             check_before_showing: $this->boolean('check_before_showing'),
             alert_owner: $this->boolean('alert_owner'),
         );

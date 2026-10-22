@@ -746,8 +746,6 @@
             "mode": "Action",
             "sensitivity": "Sensibilité",
             "mode_help": "« Journaliser seulement » enregistre ce qu’une protection trouve sans bloquer, pour que vous puissiez vérifier avant que cela touche les visiteurs.",
-            "check_before_showing": "Vérifier les réponses avant de les afficher",
-            "check_before_showing_help": "Le visiteur ne voit une réponse qu’après la vérification des protections. Les réponses apparaissent un peu plus tard, en une fois.",
             "alert_owner": "M’avertir des attaques par e-mail",
             "alert_owner_help": "Recevez un e-mail quand l’agent bloque une tentative de contourner ses instructions, ou quand la vérification de sécurité ne peut pas s’exécuter. Au plus un e-mail par heure.",
             "test_title": "Tester un message",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Gérer dans Personnes",
                 "since": "Depuis le {date}",
                 "no_chatters": "Aucun chatter bloqué."
+            },
+            "answer_check": "Vérifier les réponses de l'agent",
+            "answer_check_labels": {
+                "while_showing": "Pendant l'affichage",
+                "before_showing": "Avant l'affichage",
+                "off": "Ne pas vérifier"
+            },
+            "answer_check_help": {
+                "while_showing": "Les réponses s'affichent en direct et sont vérifiées à la fin. Une réponse refusée est remplacée par le message de refus.",
+                "before_showing": "Le visiteur ne voit une réponse qu'une fois la vérification passée. Elle apparaît un peu plus tard, d'un coup, et la réflexion du modèle n'est pas affichée.",
+                "off": "Les réponses s'affichent en direct sans la vérification par IA, ce qui économise un appel IA par réponse. Les données personnelles des réponses restent masquées."
             }
         },
         "persona": {

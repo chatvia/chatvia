@@ -753,8 +753,6 @@
             "mode": "Yang terjadi",
             "sensitivity": "Sensitivitas",
             "mode_help": "Catat saja merekam temuan pengaman tanpa memblokir, sehingga Anda dapat memeriksanya sebelum berdampak pada pengunjung.",
-            "check_before_showing": "Periksa jawaban sebelum ditampilkan",
-            "check_before_showing_help": "Pengunjung melihat jawaban hanya setelah pengaman memeriksanya. Jawaban muncul sedikit lebih lambat, sekaligus.",
             "alert_owner": "Kirimi saya email tentang serangan",
             "alert_owner_help": "Dapatkan email saat agen memblokir upaya untuk menimpa instruksinya, atau saat pemeriksaan keamanan tidak dapat berjalan. Paling banyak satu email per jam.",
             "test_title": "Uji pesan",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Kelola di Orang",
                 "since": "Sejak {date}",
                 "no_chatters": "Tidak ada chatter yang diblokir."
+            },
+            "answer_check": "Periksa jawaban agen",
+            "answer_check_labels": {
+                "while_showing": "Saat ditampilkan",
+                "before_showing": "Sebelum ditampilkan",
+                "off": "Jangan periksa"
+            },
+            "answer_check_help": {
+                "while_showing": "Jawaban tampil langsung dan diperiksa saat selesai. Jawaban yang gagal diganti dengan pesan penolakan.",
+                "before_showing": "Pengunjung baru melihat jawaban setelah lolos pemeriksaan. Jawaban muncul sedikit lebih lambat, sekaligus, dan pemikiran model tidak ditampilkan.",
+                "off": "Jawaban tampil langsung tanpa pemeriksaan AI, sehingga hemat satu panggilan AI per jawaban. Data pribadi dalam jawaban tetap disamarkan."
             }
         },
         "persona": {

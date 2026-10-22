@@ -103,8 +103,17 @@
             "mode": "O que acontece",
             "sensitivity": "Sensibilidade",
             "mode_help": "«Só registar» guarda o que uma proteção encontra sem bloquear, para poder verificar antes de afetar os visitantes.",
-            "check_before_showing": "Verificar as respostas antes de as mostrar",
-            "check_before_showing_help": "O visitante só vê uma resposta depois de as proteções a verificarem. As respostas aparecem um pouco mais tarde, de uma só vez.",
+            "answer_check": "Verificar as respostas do agente",
+            "answer_check_labels": {
+                "while_showing": "Enquanto são mostradas",
+                "before_showing": "Antes de mostrar",
+                "off": "Não verificar"
+            },
+            "answer_check_help": {
+                "while_showing": "As respostas aparecem ao vivo e são verificadas no fim. Uma resposta reprovada é substituída pela mensagem de recusa.",
+                "before_showing": "O visitante só vê uma resposta depois de ela passar na verificação. Ela aparece um pouco mais tarde, de uma vez, e o raciocínio do modelo não é mostrado.",
+                "off": "As respostas aparecem ao vivo sem a verificação por IA, o que poupa uma chamada de IA por resposta. Os dados pessoais nas respostas continuam ocultos."
+            },
             "alert_owner": "Avisar-me de ataques por email",
             "alert_owner_help": "Receba um email quando o agente bloquear uma tentativa de contornar as suas instruções, ou quando a verificação de segurança não puder correr. No máximo um email por hora.",
             "test_title": "Testar uma mensagem",

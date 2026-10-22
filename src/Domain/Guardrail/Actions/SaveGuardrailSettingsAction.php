@@ -93,6 +93,7 @@ class SaveGuardrailSettingsAction
             toxicity_mode: $settings->toxicity_mode,
             toxicity_sensitivity: $settings->toxicity_sensitivity,
             topics_mode: $settings->topics_mode,
+            check_answers: $settings->check_answers,
             check_before_showing: $settings->check_before_showing,
             alert_owner: $settings->alert_owner,
         );

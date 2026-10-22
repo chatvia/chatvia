@@ -753,8 +753,6 @@
             "mode": "Ne olur",
             "sensitivity": "Hassasiyet",
             "mode_help": "Yalnızca kaydet, korumanın bulduklarını engellemeden kaydeder; böylece ziyaretçileri etkilemeden önce kontrol edebilirsiniz.",
-            "check_before_showing": "Yanıtları göstermeden önce kontrol et",
-            "check_before_showing_help": "Ziyaretçi bir yanıtı ancak korumalar kontrol ettikten sonra görür. Yanıtlar biraz daha geç ve tek seferde görünür.",
             "alert_owner": "Saldırılar hakkında bana e-posta gönder",
             "alert_owner_help": "Asistan talimatlarını geçersiz kılma girişimini engellediğinde veya güvenlik kontrolü çalışamadığında e-posta alın. Saatte en fazla bir e-posta.",
             "test_title": "Bir mesajı test et",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Kişiler bölümünde yönet",
                 "since": "{date} tarihinden beri",
                 "no_chatters": "Engellenen kullanıcı yok."
+            },
+            "answer_check": "Ajanın yanıtlarını kontrol et",
+            "answer_check_labels": {
+                "while_showing": "Gösterilirken",
+                "before_showing": "Gösterilmeden önce",
+                "off": "Kontrol etme"
+            },
+            "answer_check_help": {
+                "while_showing": "Yanıtlar canlı gösterilir ve bittiğinde kontrol edilir. Kontrolü geçemeyen yanıt, ret mesajıyla değiştirilir.",
+                "before_showing": "Ziyaretçi bir yanıtı ancak kontrolü geçtikten sonra görür. Yanıt biraz daha geç ve tek seferde görünür; modelin düşünmesi gösterilmez.",
+                "off": "Yanıtlar yapay zekâ kontrolü olmadan canlı gösterilir, bu da yanıt başına bir yapay zekâ çağrısı kazandırır. Yanıtlardaki kişisel veriler yine gizlenir."
             }
         },
         "persona": {

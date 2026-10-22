@@ -746,8 +746,6 @@
             "mode": "Vad som händer",
             "sensitivity": "Känslighet",
             "mode_help": "”Logga bara” sparar vad ett skydd hittar utan att blockera, så att du kan kontrollera det innan det påverkar besökare.",
-            "check_before_showing": "Kontrollera svar innan de visas",
-            "check_before_showing_help": "Besökaren ser ett svar först när skydden har kontrollerat det. Svar visas lite senare och på en gång.",
             "alert_owner": "Mejla mig om attacker",
             "alert_owner_help": "Få ett mejl när agenten blockerar ett försök att kringgå sina instruktioner, eller när säkerhetskontrollen inte kan köras. Högst ett mejl i timmen.",
             "test_title": "Testa ett meddelande",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Hantera under Personer",
                 "since": "Sedan {date}",
                 "no_chatters": "Inga blockerade chattare."
+            },
+            "answer_check": "Kontrollera agentens svar",
+            "answer_check_labels": {
+                "while_showing": "Medan de visas",
+                "before_showing": "Innan de visas",
+                "off": "Kontrollera inte"
+            },
+            "answer_check_help": {
+                "while_showing": "Svaren visas direkt och kontrolleras när de är klara. Ett svar som inte godkänns ersätts med avvisningsmeddelandet.",
+                "before_showing": "Besökaren ser ett svar först när det har godkänts. Det visas lite senare, på en gång, och modellens tänkande visas inte.",
+                "off": "Svaren visas direkt utan AI-kontrollen, vilket sparar ett AI-anrop per svar. Personuppgifter i svar maskeras fortfarande."
             }
         },
         "persona": {

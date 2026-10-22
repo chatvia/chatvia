@@ -103,8 +103,17 @@
             "mode": "Mitä tapahtuu",
             "sensitivity": "Herkkyys",
             "mode_help": "”Vain kirjaus” tallentaa, mitä suojaus löytää, estämättä mitään, jotta voit tarkistaa sen ennen kuin se vaikuttaa kävijöihin.",
-            "check_before_showing": "Tarkista vastaukset ennen näyttämistä",
-            "check_before_showing_help": "Kävijä näkee vastauksen vasta, kun suojaukset ovat tarkistaneet sen. Vastaukset näkyvät hieman myöhemmin ja kerralla.",
+            "answer_check": "Tarkista agentin vastaukset",
+            "answer_check_labels": {
+                "while_showing": "Näyttämisen aikana",
+                "before_showing": "Ennen näyttämistä",
+                "off": "Älä tarkista"
+            },
+            "answer_check_help": {
+                "while_showing": "Vastaukset näkyvät heti ja tarkistetaan, kun ne valmistuvat. Tarkistuksessa hylätty vastaus korvataan hylkäysviestillä.",
+                "before_showing": "Vierailija näkee vastauksen vasta, kun se on läpäissyt tarkistuksen. Se näkyy hieman myöhemmin kerralla, eikä mallin ajattelua näytetä.",
+                "off": "Vastaukset näkyvät heti ilman tekoälytarkistusta, mikä säästää yhden tekoälykutsun vastausta kohden. Vastausten henkilötiedot peitetään silti."
+            },
             "alert_owner": "Ilmoita hyökkäyksistä sähköpostilla",
             "alert_owner_help": "Saat sähköpostin, kun agentti estää yrityksen ohittaa sen ohjeet tai kun turvatarkistus ei voi toimia. Enintään yksi sähköposti tunnissa.",
             "test_title": "Testaa viesti",

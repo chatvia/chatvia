@@ -103,8 +103,17 @@
             "mode": "Co się dzieje",
             "sensitivity": "Czułość",
             "mode_help": "„Tylko zapisuj” rejestruje, co znajdzie zabezpieczenie, bez blokowania, aby można było to sprawdzić, zanim wpłynie na odwiedzających.",
-            "check_before_showing": "Sprawdzaj odpowiedzi przed pokazaniem",
-            "check_before_showing_help": "Odwiedzający widzi odpowiedź dopiero po sprawdzeniu przez zabezpieczenia. Odpowiedzi pojawiają się nieco później i od razu w całości.",
+            "answer_check": "Sprawdzaj odpowiedzi agenta",
+            "answer_check_labels": {
+                "while_showing": "Podczas wyświetlania",
+                "before_showing": "Przed wyświetleniem",
+                "off": "Nie sprawdzaj"
+            },
+            "answer_check_help": {
+                "while_showing": "Odpowiedzi wyświetlają się na bieżąco i są sprawdzane po zakończeniu. Odpowiedź, która nie przejdzie kontroli, zostaje zastąpiona komunikatem odmowy.",
+                "before_showing": "Odwiedzający widzi odpowiedź dopiero po pozytywnej kontroli. Pojawia się nieco później, w całości, a rozumowanie modelu nie jest pokazywane.",
+                "off": "Odpowiedzi wyświetlają się na bieżąco bez kontroli AI, co oszczędza jedno wywołanie AI na odpowiedź. Dane osobowe w odpowiedziach są nadal maskowane."
+            },
             "alert_owner": "Powiadamiaj mnie e-mailem o atakach",
             "alert_owner_help": "Otrzymuj e-mail, gdy agent zablokuje próbę obejścia jego instrukcji lub gdy kontrola bezpieczeństwa nie może się uruchomić. Najwyżej jeden e-mail na godzinę.",
             "test_title": "Przetestuj wiadomość",

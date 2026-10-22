@@ -746,8 +746,6 @@
             "mode": "Hva som skjer",
             "sensitivity": "Følsomhet",
             "mode_help": "«Bare logg» registrerer hva en beskyttelse finner uten å blokkere, så du kan sjekke det før det påvirker besøkende.",
-            "check_before_showing": "Sjekk svar før de vises",
-            "check_before_showing_help": "Den besøkende ser et svar først etter at beskyttelsene har sjekket det. Svar vises litt senere, alt på en gang.",
             "alert_owner": "Send meg e-post om angrep",
             "alert_owner_help": "Få en e-post når agenten blokkerer et forsøk på å omgå instruksjonene sine, eller når sikkerhetssjekken ikke kan kjøre. Høyst én e-post i timen.",
             "test_title": "Test en melding",
@@ -810,6 +808,17 @@
                 "manage_in_people": "Administrer under Personer",
                 "since": "Siden {date}",
                 "no_chatters": "Ingen blokkerte chattere."
+            },
+            "answer_check": "Sjekk agentens svar",
+            "answer_check_labels": {
+                "while_showing": "Mens de vises",
+                "before_showing": "Før de vises",
+                "off": "Ikke sjekk"
+            },
+            "answer_check_help": {
+                "while_showing": "Svar vises fortløpende og sjekkes når de er ferdige. Et svar som ikke består, byttes ut med avvisningsmeldingen.",
+                "before_showing": "Besøkende ser et svar først når det har bestått sjekken. Det vises litt senere, på én gang, og modellens tenkning vises ikke.",
+                "off": "Svar vises fortløpende uten AI-sjekken, noe som sparer ett AI-kall per svar. Personopplysninger i svar skjules fortsatt."
             }
         },
         "persona": {

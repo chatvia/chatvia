@@ -714,6 +714,80 @@ it('lets agents use several chat models, one of them the default', function (): 
         ->and(Llm::query()->whereKey(savedSetting(AiSettings::class, 'default_agent_model'))->value('name'))->toBe('mistral-small-3.2-24b-instruct-2506');
 });
 
+it('changes the chat models in a list with boxes to tick, keeping the default one of them', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->assertFormSet(['chat_models' => ['mistral-small-3.2-24b-instruct-2506']])
+        // The suggested model shows as a badge, with the button that changes it.
+        ->assertSeeInOrder(['Models agents can use', 'mistral-small-3.2-24b-instruct-2506', 'Manage models'])
+        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506']])
+        ->assertHasNoActionErrors()
+        // The model chosen before keeps its place, and stays the default.
+        ->assertFormSet(['chat_models' => ['mistral-small-3.2-24b-instruct-2506', 'gpt-oss-120b'], 'default_model' => 'mistral-small-3.2-24b-instruct-2506'])
+        ->assertFormFieldVisible('default_model')
+        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b']])
+        // The default was taken out: the model left takes its place.
+        ->assertFormSet(['chat_models' => ['gpt-oss-120b'], 'default_model' => 'gpt-oss-120b'])
+        ->assertFormFieldHidden('default_model')
+        ->callAction('manageChatModels', data: ['models' => []])
+        ->assertHasActionErrors(['models' => 'required']);
+});
+
+it('lists the chosen chat models first, then the suggested ones, then the rest', function (): void {
+    Http::fake(['api.scaleway.ai/*/models' => Http::response(['data' => [
+        ['id' => 'gpt-oss-120b'],
+        ['id' => 'llama-3.3-70b-instruct'],
+        ['id' => 'mistral-small-3.2-24b-instruct-2506'],
+    ]])]);
+    setupFakeScaleway($this->dimensions);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->assertFormSet(['chat_models' => ['llama-3.3-70b-instruct', 'mistral-small-3.2-24b-instruct-2506']])
+        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506']])
+        ->mountAction('manageChatModels')
+        ->assertSchemaStateSet(['models' => ['mistral-small-3.2-24b-instruct-2506', 'gpt-oss-120b']], 'mountedActionSchema0');
+
+    $list = $page->instance()->getSchema('mountedActionSchema0')->getFlatFields()['models'];
+
+    expect(array_keys($list->getOptions()))->toBe(['mistral-small-3.2-24b-instruct-2506', 'gpt-oss-120b', 'llama-3.3-70b-instruct'])
+        ->and($list->getDescription('llama-3.3-70b-instruct'))->toBe('Suggested: calls tools well')
+        ->and($list->hasDescription('gpt-oss-120b'))->toBeFalse();
+});
+
+it('names each model in the list, with its id under the name', function (): void {
+    setupFakeOpenRouter($this->dimensions);
+
+    $list = setupPage($this->admin)
+        ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
+        ->goToWizardStep(3)
+        ->assertSee('Llama 4 Maverick')
+        ->mountAction('manageChatModels')
+        ->instance()
+        ->getSchema('mountedActionSchema0')
+        ->getFlatFields()['models'];
+
+    expect($list->getOptions())->toBe(['meta-llama/llama-4-maverick' => 'Llama 4 Maverick'])
+        ->and($list->getDescription('meta-llama/llama-4-maverick'))->toBe('meta-llama/llama-4-maverick · Suggested: calls tools well');
+});
+
+it('takes only chat models from the provider\'s list', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['chat_models' => ['gpt-oss-120b', 'made-up-model']])
+        ->call('complete')
+        ->assertHasFormErrors(['chat_models']);
+
+    expect(Llm::query()->where('name', 'made-up-model')->exists())->toBeFalse();
+});
+
 it('reads documents with Azure, with its key and endpoint checked', function (): void {
     setupFakeScaleway($this->dimensions);
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0]])]);

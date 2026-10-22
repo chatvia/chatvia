@@ -230,6 +230,93 @@ onUnmounted(() => {
 });
 
 const bodyRef = ref<HTMLElement>();
+
+/**
+ * Streaming fade, as in ChatGPT: each piece of text that arrives fades in on
+ * its own. The body is re-rendered from markdown as it streams, which would
+ * restart or cut short every fade, so the arrival time of each stretch of
+ * text is remembered by its position, and after every render the stretches
+ * still fading are wrapped again with a negative delay that resumes their
+ * fade where it was.
+ */
+const STREAM_FADE_MS = 500;
+
+interface FadingText {
+    start: number;
+    end: number;
+    arrivedAt: number;
+}
+
+let fadingText: FadingText[] = [];
+let renderedLength = 0;
+let hasStreamed = false;
+
+/** The body's text nodes in reading order, leaving out formulas (KaTeX lays out its own spans). */
+function textNodes(root: HTMLElement): Text[] {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: (node) => (node.parentElement?.closest('.katex') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    const nodes: Text[] = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+
+    return nodes;
+}
+
+function wrapFading(text: Text, delayMs: number) {
+    const span = document.createElement('span');
+    span.className = 'stream-fade';
+    span.style.animationDelay = `${-delayMs}ms`;
+    text.replaceWith(span);
+    span.appendChild(text);
+}
+
+function applyStreamFade() {
+    const root = bodyRef.value;
+    if (!root || !hasStreamed) return;
+
+    const nodes = textNodes(root);
+    const length = nodes.reduce((sum, node) => sum + node.data.length, 0);
+    const now = performance.now();
+
+    // Shorter than before: an output guardrail replaced the answer.
+    if (length < renderedLength) fadingText = [];
+    if (length > renderedLength) fadingText.push({ start: renderedLength, end: length, arrivedAt: now });
+    renderedLength = length;
+
+    fadingText = fadingText.filter((stretch) => now - stretch.arrivedAt < STREAM_FADE_MS);
+    if (fadingText.length === 0) return;
+
+    let offset = 0;
+    for (const node of nodes) {
+        const nodeStart = offset;
+        const nodeEnd = offset + node.data.length;
+        offset = nodeEnd;
+        if (node.data.trim() === '') continue;
+
+        // From the last stretch back, so the start of the node stays where it is.
+        for (let i = fadingText.length - 1; i >= 0; i--) {
+            const stretch = fadingText[i];
+            const from = Math.max(stretch.start, nodeStart) - nodeStart;
+            const to = Math.min(stretch.end, nodeEnd) - nodeStart;
+            if (from >= to) continue;
+
+            const fading = from > 0 ? node.splitText(from) : node;
+            if (to - from < fading.data.length) fading.splitText(to - from);
+            wrapFading(fading, now - stretch.arrivedAt);
+        }
+    }
+}
+
+watch(
+    () => props.isStreaming,
+    (streaming) => {
+        if (streaming) hasStreamed = true;
+    },
+    { immediate: true },
+);
+
+// Runs after v-html replaced the body, so it works on the fresh nodes.
+watch(renderedHtml, applyStreamFade, { flush: 'post' });
 const { t } = useI18n();
 const { copy } = useClipboard({ legacy: true });
 
@@ -316,54 +403,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* ---------------------------------------------------------------
- * Streaming reveal.
- *
- * These rules used to live (scoped) in AssistantChatBubble, but the
- * `.streaming-content` element is rendered HERE, in the child. Vue
- * scoped styles don't reach a child's inner elements, so the whole
- * fade treatment silently stopped applying after that refactor —
- * leaving a raw, instant typewriter. They belong with the element
- * they style, so the scope matches and the fade actually shows.
- *
- * Effect: a tall trailing gradient mask + sub-pixel blur fades freshly
- * arrived text in at the leading (bottom) edge as it streams, plus a
- * breathing caret. When `is-streaming` flips off the mask/blur
- * transition out (320ms) so the final tokens settle instead of popping.
- * --------------------------------------------------------------- */
-.streaming-content {
-    --stream-fade: 0px;
-    transition:
-        -webkit-mask-image 320ms ease-out,
-        mask-image 320ms ease-out,
-        filter 320ms ease-out;
+/* Streaming reveal: each newly arrived stretch of text fades in (see
+   applyStreamFade). The spans are added to v-html content, which carries no
+   scope attribute, hence :deep. */
+:deep(.stream-fade) {
+    animation: stream-fade-in 500ms ease-out both;
 }
 
-.streaming-content.is-streaming {
-    /* 96px ≈ 3 lines of body text; the multi-stop falloff approximates
-       an ease-out curve so the edge reads as "appearing" not "grey". */
-    --stream-fade: 96px;
-    -webkit-mask-image: linear-gradient(
-        to bottom,
-        #000 0,
-        #000 calc(100% - var(--stream-fade)),
-        rgba(0, 0, 0, 0.92) calc(100% - var(--stream-fade) * 0.78),
-        rgba(0, 0, 0, 0.72) calc(100% - var(--stream-fade) * 0.55),
-        rgba(0, 0, 0, 0.42) calc(100% - var(--stream-fade) * 0.32),
-        rgba(0, 0, 0, 0.18) calc(100% - var(--stream-fade) * 0.14),
-        transparent 100%
-    );
-    mask-image: linear-gradient(
-        to bottom,
-        #000 0,
-        #000 calc(100% - var(--stream-fade)),
-        rgba(0, 0, 0, 0.92) calc(100% - var(--stream-fade) * 0.78),
-        rgba(0, 0, 0, 0.72) calc(100% - var(--stream-fade) * 0.55),
-        rgba(0, 0, 0, 0.42) calc(100% - var(--stream-fade) * 0.32),
-        rgba(0, 0, 0, 0.18) calc(100% - var(--stream-fade) * 0.14),
-        transparent 100%
-    );
-    filter: blur(0.35px);
+@keyframes stream-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Breathing caret — soft pulse rather than a hard blink. Inherits the
@@ -392,10 +445,8 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .streaming-content.is-streaming {
-        -webkit-mask-image: none;
-        mask-image: none;
-        filter: none;
+    :deep(.stream-fade) {
+        animation: none;
     }
     .streaming-content.is-streaming::after {
         animation: none;

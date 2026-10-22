@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
@@ -23,15 +25,19 @@ class OpenAiTranscriber implements Transcriber
     /** OpenAI refuses larger uploads. */
     private const int MAX_BYTES = 25 * 1024 * 1024;
 
+    public function __construct(
+        private readonly AiCallTags $tags,
+    ) {}
+
     public function transcribe(string $filePath): string
     {
         // OpenAI tells the format by the file name.
-        $response = Http::withToken((string) config('services.openai.api_key'))
+        $response = $this->tags->during(AiCallTag::Transcription, fn (): mixed => Http::withToken((string) config('services.openai.api_key'))
             ->timeout(3600)
             ->attach('file', File::get($filePath), 'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)))
             ->post(rtrim((string) config('services.openai.api_endpoint'), '/').'/audio/transcriptions', [
                 'model' => $this->name(),
-            ])->throw()->json();
+            ])->throw()->json());
 
         return str((string) ($response['text'] ?? ''))->trim()->toString();
     }

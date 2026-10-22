@@ -12,7 +12,9 @@ use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
+use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\TaskModels;
 use Generator;
@@ -43,6 +45,7 @@ class AnalyticsChatRunner
         private readonly AnalyticsToolset $toolset,
         private readonly AnalyticsToolDispatcher $dispatcher,
         private readonly BuiltinToolRouter $router,
+        private readonly AiCallTags $tags,
     ) {}
 
     /**
@@ -93,11 +96,11 @@ class AnalyticsChatRunner
             $assistantText = '';
             $pending = [];
 
-            $response = $provider->stream($model->internal_name, $messages, [
+            $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, [
                 'temperature' => 0.2,
                 'tools' => $tools,
                 'tool_choice' => 'auto',
-            ]);
+            ]));
 
             yield from $this->consume($response, $assistantId, $assistantText, $pending);
 
@@ -122,11 +125,11 @@ class AnalyticsChatRunner
         // anyway is left in $pending and never run.
         $assistantText = '';
         $pending = [];
-        $response = $provider->stream($model->internal_name, $messages, [
+        $response = $this->tags->during(AiCallTag::AnalyticsAssistant, fn () => $provider->stream($model->internal_name, $messages, [
             'temperature' => 0.2,
             'tools' => $tools,
             'tool_choice' => 'none',
-        ]);
+        ]));
 
         yield from $this->consume($response, $assistantId, $assistantText, $pending);
     }

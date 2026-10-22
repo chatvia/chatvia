@@ -7,6 +7,7 @@ use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Services\StructuredCompletion;
@@ -44,6 +45,7 @@ class Chunker
 
         $reply = $this->completion->send(new ChatRequestData(
             model: $model,
+            tag: AiCallTag::ChunkEnhancement,
             messages: [
                 ChatMessageData::system($systemPrompt),
                 ChatMessageData::user($userPrompt),

@@ -11,7 +11,8 @@ use Domain\Llm\Data\Chat\ChatResponseData;
  * build a {@see ChatRequestData} and read a {@see ChatResponseData}; only this
  * class touches the provider's wire format. It works with any
  * {@see LlmProviderInterface}, so the provider's own payload rules and token
- * usage tracking still apply.
+ * usage tracking still apply. The call carries the request's tag in
+ * Spectra ({@see AiCallTags}).
  *
  * It sends to the provider of the request's model; `using()` returns a copy
  * bound to one provider instead, such as the document-reading LLM.
@@ -20,19 +21,20 @@ final readonly class LlmChat
 {
     public function __construct(
         private LlmProviders $providers,
+        private AiCallTags $tags,
         private ?LlmProviderInterface $provider = null,
     ) {}
 
     public function using(LlmProviderInterface $provider): self
     {
-        return new self($this->providers, $provider);
+        return new self($this->providers, $this->tags, $provider);
     }
 
     public function send(ChatRequestData $request): ChatResponseData
     {
         $provider = $this->provider ?? $this->providers->for($request->model);
 
-        $response = $provider->completion($request->toPayload())->throw();
+        $response = $this->tags->during($request->tag, fn () => $provider->completion($request->toPayload())->throw());
 
         return ChatResponseData::fromResponse((array) $response->json());
     }

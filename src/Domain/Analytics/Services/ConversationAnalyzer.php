@@ -13,6 +13,7 @@ use Domain\Conversation\Topic\Models\Topic;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
@@ -48,6 +49,7 @@ class ConversationAnalyzer
 
         $data = $this->ask(new ChatRequestData(
             model: $this->models->model(LlmTask::ConversationAnalysis),
+            tag: AiCallTag::ConversationAnalysis,
             messages: [
                 ChatMessageData::system($this->conversationPrompt($topics, $this->pendingLabels($agent))),
                 ChatMessageData::user($transcript),
@@ -79,6 +81,7 @@ class ConversationAnalyzer
     {
         $data = $this->ask(new ChatRequestData(
             model: $this->models->model(LlmTask::ConversationAnalysis),
+            tag: AiCallTag::ConversationAnalysis,
             messages: [
                 ChatMessageData::system(trim(prompt('analytics/message-analysis'))),
                 ChatMessageData::user($text),

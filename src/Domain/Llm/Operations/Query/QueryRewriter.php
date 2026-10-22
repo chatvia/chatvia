@@ -5,6 +5,7 @@ namespace Domain\Llm\Operations\Query;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Query\RewrittenQueryData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
@@ -47,6 +48,7 @@ class QueryRewriter
         try {
             $reply = $this->chat->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::FollowUp),
+                tag: AiCallTag::FollowUpRewrite,
                 messages: [
                     ChatMessageData::system(prompt('knowledge/rewrite-query')),
                     ChatMessageData::user(prompt('knowledge/rewrite-query-user', [

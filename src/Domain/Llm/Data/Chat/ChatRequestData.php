@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Data\Chat;
 
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Models\Llm;
 use Spatie\LaravelData\Data;
 
 /**
  * One non-streaming chat-completion request: the catalog model (whose
- * provider it goes to), the messages and the few sampling options the app
- * uses. Turned into the provider's wire format only at the edge, by
- * {@see self::toPayload()}.
+ * provider it goes to), the messages, what the call is for (the tag Spectra
+ * shows on it; required, so no call goes out untagged) and the few sampling
+ * options the app uses. Turned into the provider's wire format only at the
+ * edge, by {@see self::toPayload()}.
  */
 final class ChatRequestData extends Data
 {
@@ -21,6 +23,7 @@ final class ChatRequestData extends Data
     public function __construct(
         public Llm $model,
         public array $messages,
+        public AiCallTag $tag,
         public ?float $temperature = null,
         public ?int $maxTokens = null,
         public ?ResponseSchemaData $responseSchema = null,

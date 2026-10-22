@@ -8,6 +8,8 @@ use Closure;
 use Domain\Knowledge\Embedding\Data\EmbeddingCheckData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 
@@ -15,11 +17,16 @@ use Illuminate\Http\Client\RequestException;
  * Embeds a short text with an embedding service, as training a source will:
  * with a key and model typed but not saved yet, or the saved ones. It checks
  * the key, the model, and (when given) the vector size the database stores.
+ * The call is tagged `service-check` in Spectra, apart from real traffic.
  */
 final class EmbeddingCheck
 {
     /** The text embedded to check a service. */
     private const string TEXT = 'How do I reset my password?';
+
+    public function __construct(
+        private readonly AiCallTags $tags,
+    ) {}
 
     public function check(EmbeddingProvider $provider, ?string $model = null, ?string $apiKey = null, ?int $dimensions = null): EmbeddingCheckData
     {
@@ -29,7 +36,7 @@ final class EmbeddingCheck
         ], filled(...));
 
         try {
-            $returned = $this->withConfig($values, fn (): int => count((array) app($provider->providerClass())->embed(self::TEXT)));
+            $returned = $this->tags->during(AiCallTag::ServiceCheck, fn (): int => $this->withConfig($values, fn (): int => count((array) app($provider->providerClass())->embed(self::TEXT))));
         } catch (RequestException $e) {
             $status = $e->response->status();
 

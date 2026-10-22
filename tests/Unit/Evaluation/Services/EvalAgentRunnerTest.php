@@ -16,6 +16,7 @@ use Domain\Evaluation\Services\EvalAgentRunner;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Facades\Event;
@@ -94,7 +95,7 @@ function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $mo
         })();
     });
 
-    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class), $models ?? app(AgentModel::class));
+    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class), $models ?? app(AgentModel::class), new AiCallTags);
 }
 
 it('captures the answer without recording a reply or counting it against the message limit', function (): void {
@@ -216,7 +217,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
         },
     );
 
-    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class));
+    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class), new AiCallTags);
     $result = $evalRunner->run($agent, 'Please email support.');
 
     expect($captureFlag)->toBeTrue()

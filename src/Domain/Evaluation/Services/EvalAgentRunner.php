@@ -7,11 +7,14 @@ use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
+use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Data\AgentRunResultData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -40,6 +43,10 @@ use Throwable;
  *
  * A fresh, unique conversationId per run means no prior history, so
  * ChatService::initializeChatContext never persists the user message either.
+ *
+ * Every AI call of the run is tagged `evaluation` in Spectra, on top of its
+ * own tag (`chat-reply`, `search-embedding`…), so eval traffic is told apart
+ * from what chatters cause.
  */
 class EvalAgentRunner
 {
@@ -49,6 +56,7 @@ class EvalAgentRunner
         private readonly ToolSelector $toolSelector,
         private readonly LlmProviders $providers,
         private readonly AgentModel $models,
+        private readonly AiCallTags $tags,
     ) {}
 
     public function run(Agent $agent, string $input): AgentRunResultData
@@ -80,29 +88,7 @@ class EvalAgentRunner
         );
 
         try {
-            $context = $this->chatService->initializeChatContext($requestData);
-            $context = $this->chatService->enrichContextWithKnowledge($context);
-            $llmMessages = $this->chatService->prepareLlmMessages($context);
-
-            $toolDefinitions = $this->toolSelector->selectForTurn(
-                $agent,
-                $context->payload->message,
-                $context->requestData->conversationId,
-            );
-
-            iterator_to_array(
-                $this->runner->run(
-                    context: $context,
-                    provider: $this->providers->for($model),
-                    modelName: $model->internal_name,
-                    llmMessages: $llmMessages,
-                    toolDefinitions: $toolDefinitions,
-                    extraSettings: $agent->llmSettings(),
-                    startIteration: 0,
-                    captureToolCallsOnly: true,
-                ),
-                preserve_keys: false,
-            );
+            $context = $this->tags->during(AiCallTag::Evaluation, fn (): ChatContext => $this->runTurn($agent, $model, $requestData));
 
             return new AgentRunResultData(
                 answer: $context->streamedMessage,
@@ -128,6 +114,39 @@ class EvalAgentRunner
                 error: $e->getMessage(),
             );
         }
+    }
+
+    /**
+     * The turn as chatters get it (context, knowledge, tool loop), with tool
+     * calls captured instead of run.
+     */
+    private function runTurn(Agent $agent, Llm $model, StreamRequestData $requestData): ChatContext
+    {
+        $context = $this->chatService->initializeChatContext($requestData);
+        $context = $this->chatService->enrichContextWithKnowledge($context);
+        $llmMessages = $this->chatService->prepareLlmMessages($context);
+
+        $toolDefinitions = $this->toolSelector->selectForTurn(
+            $agent,
+            $context->payload->message,
+            $context->requestData->conversationId,
+        );
+
+        iterator_to_array(
+            $this->runner->run(
+                context: $context,
+                provider: $this->providers->for($model),
+                modelName: $model->internal_name,
+                llmMessages: $llmMessages,
+                toolDefinitions: $toolDefinitions,
+                extraSettings: $agent->llmSettings(),
+                startIteration: 0,
+                captureToolCallsOnly: true,
+            ),
+            preserve_keys: false,
+        );
+
+        return $context;
     }
 
     /**

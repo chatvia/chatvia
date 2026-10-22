@@ -27,6 +27,7 @@ use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\Event;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\CannedLlmProvider;
@@ -140,6 +141,7 @@ function tlrRunner(
         auditTrail: new ToolCallAuditTrail(app(ConnectorCatalog::class)),
         guardrails: app(GuardrailService::class),
         guardrailRecorder: app(GuardrailRecorder::class),
+        tags: new AiCallTags,
     );
 }
 

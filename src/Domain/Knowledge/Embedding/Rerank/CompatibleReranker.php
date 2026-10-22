@@ -6,6 +6,8 @@ namespace Domain\Knowledge\Embedding\Rerank;
 
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -15,7 +17,7 @@ use RuntimeException;
  * `{model, query, documents, top_n}` in, `results[{index, relevance_score}]`
  * out. The results are sorted here, best first, whatever order the server
  * sends. Built by {@see RerankerFactory} for the provider set in the admin
- * panel (Settings → AI models).
+ * panel (Settings → AI models). Its calls are tagged `rerank` in Spectra.
  */
 final readonly class CompatibleReranker implements Reranker
 {
@@ -29,6 +31,7 @@ final readonly class CompatibleReranker implements Reranker
         private bool $keyRequired = true,
         private array $extraPayload = [],
         private int $timeoutSeconds = 10,
+        private AiCallTags $tags = new AiCallTags,
     ) {}
 
     public function rerank(string $query, array $documents, ?int $topN = null): array
@@ -53,13 +56,13 @@ final readonly class CompatibleReranker implements Reranker
             $request = $request->withToken($this->apiKey);
         }
 
-        $results = $request->post($this->baseUrl.'/rerank', [
+        $results = $this->tags->during(AiCallTag::Rerank, fn () => $request->post($this->baseUrl.'/rerank', [
             'model' => $this->model,
             'query' => $query,
             'documents' => array_values($documents),
             'top_n' => $topN ?? count($documents),
             ...$this->extraPayload,
-        ])->throw()->json('results') ?? [];
+        ])->throw()->json('results')) ?? [];
 
         $ranked = array_map(
             RerankedDocumentData::fromResult(...),

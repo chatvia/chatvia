@@ -5,6 +5,7 @@ namespace Domain\Form\Actions;
 use Domain\Form\Data\RewriteFormDescriptionData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Domain\Llm\Services\LlmChat;
@@ -46,6 +47,7 @@ class RewriteFormDescriptionAction
 
         $content = $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::FormText),
+            tag: AiCallTag::FormDescription,
             messages: [
                 ChatMessageData::system(prompt('forms/rewrite-description')),
                 ChatMessageData::user($context),

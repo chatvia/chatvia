@@ -8,6 +8,7 @@ use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
@@ -52,6 +53,7 @@ class GuardrailClassifier
         try {
             $data = $this->completion->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::Guardrails),
+                tag: AiCallTag::Guardrails,
                 messages: [
                     ChatMessageData::system(trim(prompt('guardrails/classifier-system'))),
                     ChatMessageData::user($this->userPrompt($text, $options)),

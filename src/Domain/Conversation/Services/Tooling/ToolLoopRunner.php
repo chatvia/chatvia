@@ -23,6 +23,8 @@ use Domain\Integration\Tool\Enums\ToolAccessDecision;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Services\AiCallTags;
 use Generator;
 use Illuminate\Support\Facades\Log;
 
@@ -68,6 +70,7 @@ class ToolLoopRunner
         private readonly ToolCallAuditTrail $auditTrail,
         private readonly GuardrailService $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
+        private readonly AiCallTags $tags,
     ) {}
 
     /**
@@ -258,7 +261,9 @@ class ToolLoopRunner
     }
 
     /**
-     * Stream one completion through the transformer.
+     * Stream one completion through the transformer. Only the call that
+     * sends it is tagged: Spectra reads the tags then, not while the stream
+     * is read.
      *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<string, mixed>  $settings
@@ -266,7 +271,7 @@ class ToolLoopRunner
      */
     private function streamCompletion(ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $settings): Generator
     {
-        $response = $provider->stream($modelName, $llmMessages, $settings);
+        $response = $this->tags->during(AiCallTag::ChatReply, fn () => $provider->stream($modelName, $llmMessages, $settings));
 
         yield from $this->transformer->transform($response, $context);
     }

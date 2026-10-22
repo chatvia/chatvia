@@ -77,6 +77,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
 use Domain\Knowledge\Embedding\Rerank\RerankerFactory;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Embedding\TaggedEmbeddings;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Events\SourceTrained;
@@ -110,6 +111,7 @@ use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
 use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
+use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ProviderAdapters;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
@@ -206,7 +208,7 @@ class DomainServiceProvider extends ServiceProvider
                 throw EmbeddingDimensionsMismatchException::for($provider, $stored);
             }
 
-            return $provider;
+            return new TaggedEmbeddings($provider, $app->make(AiCallTags::class));
         });
 
         $this->app->bind(function ($app): Reranker {

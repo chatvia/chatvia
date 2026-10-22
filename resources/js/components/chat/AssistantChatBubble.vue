@@ -131,6 +131,7 @@ async function deleteMessage() {
                 v-if="message.reasoning"
                 :text="message.reasoning"
                 :thinking="(isStreaming ?? false) && !message.content"
+                :isRTL="isRTL ?? false"
             />
             <AssistantMessageBody
                 :content="message.content ?? ''"

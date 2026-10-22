@@ -21,6 +21,8 @@ use Domain\Guardrail\Enums\TopicResponse;
 use Domain\Guardrail\Services\Detectors\InjectionPatternDetector;
 use Domain\Guardrail\Services\Detectors\PiiAllowlist;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 
 /**
  * The guardrail engine: given an agent's per-agent settings, runs the enabled
@@ -114,11 +116,24 @@ class GuardrailService
      */
     public function inspectInput(Agent $agent, string $text, array $history = []): GuardResultData
     {
+        return $this->inspectInputAsync($agent, $text, $history)->wait();
+    }
+
+    /**
+     * {@see inspectInput()} without waiting for the AI check, so the turn's
+     * other calls can run at the same time. The personal data is masked
+     * before this returns; the promise always resolves.
+     *
+     * @param  list<array{role: string, content: mixed}>  $history
+     * @return PromiseInterface resolving to GuardResultData
+     */
+    public function inspectInputAsync(Agent $agent, string $text, array $history = []): PromiseInterface
+    {
         if (! $this->enabledFor($agent)) {
-            return GuardResultData::clean($text);
+            return Create::promiseFor(GuardResultData::clean($text));
         }
 
-        return $this->inspectInputWith($agent, GuardrailSettingsData::fromAgent($agent), $text, $history);
+        return $this->inspectInputWithAsync($agent, GuardrailSettingsData::fromAgent($agent), $text, $history);
     }
 
     /**
@@ -128,6 +143,15 @@ class GuardrailService
      * @param  list<array{role: string, content: mixed}>  $history
      */
     public function inspectInputWith(Agent $agent, GuardrailSettingsData $settings, string $text, array $history = []): GuardResultData
+    {
+        return $this->inspectInputWithAsync($agent, $settings, $text, $history)->wait();
+    }
+
+    /**
+     * @param  list<array{role: string, content: mixed}>  $history
+     * @return PromiseInterface resolving to GuardResultData
+     */
+    private function inspectInputWithAsync(Agent $agent, GuardrailSettingsData $settings, string $text, array $history): PromiseInterface
     {
         $verdicts = [];
         $piiBlocked = false;
@@ -143,7 +167,26 @@ class GuardrailService
         }
 
         $options = $this->classifierOptions($settings, $history, checkInjection: $settings->injection);
-        $classified = $options->any() ? $this->classifier->classify($pii->text, $options) : null;
+        $classified = $options->any() ? $this->classifier->classifyAsync($pii->text, $options) : Create::promiseFor(null);
+
+        return $classified->then(fn (?ClassifierVerdictData $classified): GuardResultData => $this->inputResult(
+            $settings, $options, $pii, $verdicts, $piiBlocked, $classified,
+        ));
+    }
+
+    /**
+     * The input verdict once the AI check (if any) answered.
+     *
+     * @param  list<GuardVerdictData>  $verdicts  what the PII check found
+     */
+    private function inputResult(
+        GuardrailSettingsData $settings,
+        ClassifierOptionsData $options,
+        PiiRedactionData $pii,
+        array $verdicts,
+        bool $piiBlocked,
+        ?ClassifierVerdictData $classified,
+    ): GuardResultData {
         $classifierVerdicts = $classified instanceof ClassifierVerdictData ? $this->classifierVerdicts($settings, $options, $classified, GuardStage::Input) : [];
         $language = $classified?->language;
 
@@ -211,7 +254,7 @@ class GuardrailService
             return new GuardResultData(text: $pii->text, verdicts: $verdicts);
         }
 
-        $classified = $this->classifier->classify($pii->text, $options);
+        $classified = $this->classifier->classifyAsync($pii->text, $options)->wait();
         $classifierVerdicts = $this->classifierVerdicts($settings, $options, $classified, GuardStage::Output);
         $verdicts = [...$verdicts, ...$classifierVerdicts];
 

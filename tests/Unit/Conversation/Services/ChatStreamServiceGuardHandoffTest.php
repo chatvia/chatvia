@@ -15,6 +15,7 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Models\Llm;
+use GuzzleHttp\Promise\Create;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 
@@ -47,12 +48,13 @@ function ghfConversation(ConversationSource $source): array
 function ghfStream(Agent $agent, Session $session, Conversation $conversation): array
 {
     $guardrails = Mockery::mock(GuardrailService::class);
-    $guardrails->shouldReceive('inspectInput')->andReturn(new GuardResultData(
+    $guardrails->shouldReceive('redactPii')->andReturnArg(1);
+    $guardrails->shouldReceive('inspectInputAsync')->andReturn(Create::promiseFor(new GuardResultData(
         'I want to cancel my contract',
         blocked: true,
         refusalMessage: 'Sorry, I can’t help with that request.',
         handoffMessage: 'Let me connect you with someone from our team.',
-    ));
+    )));
     app()->instance(GuardrailService::class, $guardrails);
 
     // As the widget endpoint builds the turn: the per-message request names

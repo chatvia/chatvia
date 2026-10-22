@@ -5,11 +5,15 @@ namespace Domain\Llm;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\SharedHttpHandler;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Promises\LazyPromise;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 /**
  * Base for the OpenAI-compatible chat providers: streaming through Guzzle,
@@ -93,6 +97,34 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             ->timeout(600)
             ->post($this->getCompletionEndpoint(), $data)
             ->throw();
+    }
+
+    /**
+     * Send a completion request on the shared handler ({@see SharedHttpHandler}),
+     * so it runs at the same time as the request's other async AI calls. It
+     * is sent at once, so the Spectra tags around this call apply to it.
+     *
+     * @param  array<string, mixed>  $data  The full request body
+     * @return PromiseInterface resolving to Response
+     */
+    public function completionAsync(array $data): PromiseInterface
+    {
+        /** @var LazyPromise $pending */
+        $pending = $this->client()
+            ->setHandler(app(SharedHttpHandler::class)->handler())
+            ->async()
+            ->timeout(600)
+            ->post($this->getCompletionEndpoint(), $this->preparePayload($data));
+
+        // Laravel resolves with an error response or the connection error
+        // itself; reject on both, as completion() throws.
+        return $pending->buildPromise()->then(static function (Response|Throwable $response): Response {
+            if ($response instanceof Throwable) {
+                throw $response;
+            }
+
+            return $response->throw();
+        });
     }
 
     /**

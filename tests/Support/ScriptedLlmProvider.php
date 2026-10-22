@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 use Illuminate\Http\Client\PendingRequest;
 use Psr\Http\Message\ResponseInterface;
@@ -77,6 +79,11 @@ final class ScriptedLlmProvider implements LlmProviderInterface
     public function completion(array $data): never
     {
         throw new RuntimeException('The scripted provider only streams.');
+    }
+
+    public function completionAsync(array $data): PromiseInterface
+    {
+        return Create::rejectionFor(new RuntimeException('The scripted provider only streams.'));
     }
 
     public function headers(): array

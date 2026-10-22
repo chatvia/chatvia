@@ -114,6 +114,7 @@ use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ProviderAdapters;
+use Domain\Llm\Services\SharedHttpHandler;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
@@ -235,6 +236,10 @@ class DomainServiceProvider extends ServiceProvider
         // Scoped: the auto driver asks the database for the pg_textsearch
         // extension once per request, not once per consumer.
         $this->app->scoped(LexicalSearch::class);
+
+        // Scoped: the AI calls one request or job sends at the same time share
+        // one HTTP handler, so they move forward together.
+        $this->app->scoped(SharedHttpHandler::class);
 
         $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none')) {
             'scaleway' => $app->make(ScalewayTranscriber::class),

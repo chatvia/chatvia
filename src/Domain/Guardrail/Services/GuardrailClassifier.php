@@ -8,10 +8,13 @@ use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Data\Chat\StructuredReplyData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -44,14 +47,21 @@ class GuardrailClassifier
         private readonly TaskModels $models,
     ) {}
 
-    public function classify(string $text, ClassifierOptionsData $options): ClassifierVerdictData
+    /**
+     * The verdict on the text, without waiting for it, so the call can run
+     * next to the turn's other calls. The promise always resolves: a failure
+     * gives the fail-open verdict.
+     *
+     * @return PromiseInterface resolving to ClassifierVerdictData
+     */
+    public function classifyAsync(string $text, ClassifierOptionsData $options): PromiseInterface
     {
         if (! $options->any() || blank($text)) {
-            return new ClassifierVerdictData;
+            return Create::promiseFor(new ClassifierVerdictData);
         }
 
         try {
-            $data = $this->completion->send(new ChatRequestData(
+            $reply = $this->completion->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::Guardrails),
                 tag: AiCallTag::Guardrails,
                 messages: [
@@ -60,13 +70,29 @@ class GuardrailClassifier
                 ],
                 temperature: 0,
                 responseSchema: new ResponseSchemaData('guardrail_check', $this->schema($options), strict: false),
-            ))->data;
+            ));
         } catch (Throwable $e) {
-            Log::warning('Guardrail classifier failed; failing open.', ['error' => $e->getMessage()]);
-
-            return ClassifierVerdictData::failOpen();
+            return Create::promiseFor($this->failedOpen($e));
         }
 
+        return $reply->then(
+            fn (StructuredReplyData $reply): ClassifierVerdictData => $this->verdict($reply->data, $options),
+            fn (Throwable $e): ClassifierVerdictData => $this->failedOpen($e),
+        );
+    }
+
+    private function failedOpen(Throwable $e): ClassifierVerdictData
+    {
+        Log::warning('Guardrail classifier failed; failing open.', ['error' => $e->getMessage()]);
+
+        return ClassifierVerdictData::failOpen();
+    }
+
+    /**
+     * @param  array<array-key, mixed>|null  $data  the decoded reply
+     */
+    private function verdict(?array $data, ClassifierOptionsData $options): ClassifierVerdictData
+    {
         if ($data === null) {
             Log::warning('Guardrail classifier returned no parseable verdict; failing open.');
 

@@ -11,6 +11,7 @@ use Domain\Guardrail\Enums\TopicResponse;
 use Domain\Guardrail\Models\GuardrailEvent;
 use Domain\Guardrail\Services\GuardrailClassifier;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use GuzzleHttp\Promise\Create;
 use Inertia\Testing\AssertableInertia;
 
 /**
@@ -99,8 +100,8 @@ it('refuses a custom pattern that does not compile or matches empty text', funct
 })->with(['unclosed group' => ['K-(\d+'], 'matches empty text' => ['\d*']]);
 
 it('tests a message with the form settings and returns what the visitor gets', function (): void {
-    $this->mock(GuardrailClassifier::class)->shouldReceive('classify')
-        ->andReturn(new ClassifierVerdictData(injection: true, injectionRisk: GuardSeverity::High, language: 'en'));
+    $this->mock(GuardrailClassifier::class)->shouldReceive('classifyAsync')
+        ->andReturn(Create::promiseFor(new ClassifierVerdictData(injection: true, injectionRisk: GuardSeverity::High, language: 'en')));
 
     $this->actingAs($this->owner)
         ->postJson(route('agents.guardrails.test', $this->agent->external_id), guardrailForm([

@@ -4,11 +4,14 @@ namespace Domain\Llm\Operations\Query;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Promise\PromiseInterface;
 use Throwable;
 
 /**
@@ -38,15 +41,35 @@ class QueryRewriter
      */
     public function rewrite(string $message, array $history): RewrittenQueryData
     {
+        return $this->rewriteAsync($message, $history)->wait();
+    }
+
+    /**
+     * {@see rewrite()} without waiting, so the call can run next to the turn's
+     * guardrail check. The promise always resolves: a failure keeps the
+     * message unchanged.
+     *
+     * @param  list<array{role: string, content: mixed}>  $history  the chat before the message, oldest first
+     * @return PromiseInterface resolving to RewrittenQueryData
+     */
+    public function rewriteAsync(string $message, array $history): PromiseInterface
+    {
         $conversation = $this->conversation($history);
 
         // A preset in .env may read "1" or "true".
         if ($conversation === '' || ! filter_var(config('chatvia.ai.query.rewriter.enabled'), FILTER_VALIDATE_BOOL)) {
-            return RewrittenQueryData::unchanged($message);
+            return Create::promiseFor(RewrittenQueryData::unchanged($message));
         }
 
+        // A failed rewrite must not fail the chat turn.
+        $unchanged = static function (Throwable $e) use ($message): RewrittenQueryData {
+            report($e);
+
+            return RewrittenQueryData::unchanged($message);
+        };
+
         try {
-            $reply = $this->chat->send(new ChatRequestData(
+            $reply = $this->chat->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::FollowUp),
                 tag: AiCallTag::FollowUpRewrite,
                 messages: [
@@ -59,13 +82,13 @@ class QueryRewriter
                 temperature: 0.0,
             ));
         } catch (Throwable $e) {
-            // A failed rewrite must not fail the chat turn.
-            report($e);
-
-            return RewrittenQueryData::unchanged($message);
+            return Create::promiseFor($unchanged($e));
         }
 
-        return $this->parse($reply->content, $message);
+        return $reply->then(
+            fn (ChatResponseData $reply): RewrittenQueryData => $this->parse($reply->content, $message),
+            $unchanged,
+        );
     }
 
     /**

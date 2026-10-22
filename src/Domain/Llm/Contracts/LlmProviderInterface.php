@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Contracts;
 
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Psr\Http\Message\ResponseInterface;
@@ -35,6 +36,17 @@ interface LlmProviderInterface
      * @return Response The response
      */
     public function completion(array $data);
+
+    /**
+     * Send a completion request without waiting for it, so other calls can
+     * run at the same time. The promise resolves to the response, or is
+     * rejected on an error status or a failed connection, as completion()
+     * would throw.
+     *
+     * @param  array<string, mixed>  $data  The full request body
+     * @return PromiseInterface resolving to Response
+     */
+    public function completionAsync(array $data): PromiseInterface;
 
     /**
      * Get the headers for API requests.

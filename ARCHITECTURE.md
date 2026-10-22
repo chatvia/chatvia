@@ -424,7 +424,15 @@ turns it into a value the model takes (`effortValue()`: Off is its least,
 temperature; the tool loop, the app's own tasks (`ChatRequestData`), evals
 and the analytics chat all send that. Providers only move the value into
 their own field (OpenRouter's `reasoning` object); a model the catalog does
-not list gets no effort unless an agent asks for one. The app's own calls use a model per `LlmTask` (one
+not list gets no effort unless an agent asks for one. A provider
+with a Responses API streams chat turns through it with the
+`Providers\Responses\StreamsThroughResponses` trait (today only `OpenAi`,
+whose Chat Completions API never sends the thinking): `ResponsesPayload`
+rewrites the request (full history each time, nothing stored, a summary of
+the thinking asked for when the turn shows it, `SHOW_REASONING`, and dropped
+if the provider refuses it) and `ResponsesStream` reads the reply back as a Chat Completions
+stream, so the transformer and the tool loop see no difference. Single calls
+(`completion()`) stay on Chat Completions. The app's own calls use a model per `LlmTask` (one
 case per call: follow-up rewriting, tool picking, guardrails, titles, image
 descriptions…), picked in Settings → AI models and resolved by `TaskModels`:
 the task's model, else the model for quick tasks (`chatvia.ai.tasks.default`),

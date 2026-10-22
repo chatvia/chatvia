@@ -204,11 +204,14 @@ theme.
   chat and the playground, the thinking streams in grey above the answer, in
   a block the chatter can fold away. It is never saved, never shown while
   answers are held for the guardrails, and never sent to the API or channels.
-  Thinking that a server puts inline as `<think>…</think>`
+  With OpenAI's own API, a summary of the thinking is shown (OpenAI may
+  leave it out on some answers, and sends none until the organization is
+  verified). Thinking that a server puts inline as `<think>…</think>`
   (LM Studio, Ollama) no longer leaks into the answer.
 - **OpenAI's newer models work.** Their API refuses `top_k`, `max_tokens`
   and, for reasoning models, any temperature or top-p but the default; the
-  app now sends what each model takes.
+  app now sends what each model takes. Chats with OpenAI models now use
+  OpenAI's Responses API.
 - **Each model's details come from models.dev**, an open list of AI models:
   whether it reasons, how hard it can think, and whether it takes a
   temperature. They are kept with each model you add, refreshed once a day,

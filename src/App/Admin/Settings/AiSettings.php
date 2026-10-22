@@ -136,6 +136,9 @@ class AiSettings extends AdminSettings
     #[ConfigKey('services.jina.embedding_model')]
     public ?string $jina_embedding_model = null;
 
+    #[ConfigKey('services.voyage.embedding_model')]
+    public ?string $voyage_embedding_model = null;
+
     #[ConfigKey('services.openai.embedding_model')]
     public ?string $openai_embedding_model = null;
 

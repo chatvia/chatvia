@@ -27,6 +27,7 @@ enum AiProvider: string
     case Groq = 'groq';
     case Cohere = 'cohere';
     case Jina = 'jina';
+    case Voyage = 'voyage';
     case Azure = 'azure';
 
     /**
@@ -43,6 +44,7 @@ enum AiProvider: string
             self::Groq => [AiCapability::Chat],
             self::Cohere => [AiCapability::Embeddings, AiCapability::Reranking],
             self::Jina => [AiCapability::Embeddings],
+            self::Voyage => [AiCapability::Embeddings],
             self::Azure => [AiCapability::Documents],
         };
     }
@@ -63,6 +65,7 @@ enum AiProvider: string
             self::Groq => 'Groq',
             self::Cohere => 'Cohere',
             self::Jina => 'Jina',
+            self::Voyage => 'Voyage AI',
             self::Azure => 'Azure Document Intelligence',
         };
     }
@@ -79,6 +82,7 @@ enum AiProvider: string
             self::Groq => 'Open models with very fast answers.',
             self::Cohere => 'Embeddings and reranking.',
             self::Jina => 'Embeddings.',
+            self::Voyage => 'Embeddings made for search.',
             self::Azure => 'Reads PDFs, Word, PowerPoint and images, with their tables. Needs the standard tier (S0): the free one reads 2 pages of each file.',
         };
     }
@@ -95,6 +99,7 @@ enum AiProvider: string
             self::Groq => 'services.groq.api_key',
             self::Cohere => 'services.cohere.api_key',
             self::Jina => 'services.jina.api_key',
+            self::Voyage => 'services.voyage.api_key',
             self::Azure => 'services.azure_document_intelligence.key',
         };
     }
@@ -109,6 +114,7 @@ enum AiProvider: string
             self::Google => 'services.gemini.api_endpoint',
             self::Cohere => 'services.cohere.api_endpoint',
             self::Jina => 'services.jina.api_endpoint',
+            self::Voyage => 'services.voyage.api_endpoint',
             self::Azure => 'services.azure_document_intelligence.endpoint',
             self::OpenRouter, self::Groq => null,
         };
@@ -126,6 +132,7 @@ enum AiProvider: string
             self::Groq => 'https://console.groq.com/keys',
             self::Cohere => 'https://dashboard.cohere.com/api-keys',
             self::Jina => 'https://jina.ai/api-dashboard/key-manager',
+            self::Voyage => 'https://dashboard.voyageai.com/organization/api-keys',
             self::Azure => 'https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/DocumentIntelligence',
         };
     }
@@ -140,7 +147,7 @@ enum AiProvider: string
             self::Mistral => LlmProviderKind::Mistral,
             self::Google => LlmProviderKind::Google,
             self::Groq => LlmProviderKind::Groq,
-            self::Cohere, self::Jina, self::Azure => null,
+            self::Cohere, self::Jina, self::Voyage, self::Azure => null,
         };
     }
 
@@ -196,7 +203,7 @@ enum AiProvider: string
             self::Mistral => [['mistral-medium-latest', 'mistral-small-latest']],
             self::Google => [['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']],
             self::Groq => [['openai/gpt-oss-120b', 'llama-3.3-70b-versatile']],
-            self::Cohere, self::Jina, self::Azure => [],
+            self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 
@@ -216,7 +223,7 @@ enum AiProvider: string
             self::Mistral => ['mistral-small-latest', 'ministral-8b-latest'],
             self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['openai/gpt-oss-20b'],
-            self::Cohere, self::Jina, self::Azure => [],
+            self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 
@@ -237,7 +244,7 @@ enum AiProvider: string
             self::Mistral => ['mistral-small-latest', 'mistral-medium-latest'],
             self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'],
             self::Groq => ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct'],
-            self::Cohere, self::Jina, self::Azure => [],
+            self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 }

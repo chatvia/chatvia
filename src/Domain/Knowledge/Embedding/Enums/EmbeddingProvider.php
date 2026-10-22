@@ -13,6 +13,7 @@ use Domain\Knowledge\Embedding\Mistral;
 use Domain\Knowledge\Embedding\OpenAi;
 use Domain\Knowledge\Embedding\OpenRouter;
 use Domain\Knowledge\Embedding\Qwen3;
+use Domain\Knowledge\Embedding\Voyage;
 use Domain\Llm\Enums\AiProvider;
 
 /**
@@ -30,6 +31,7 @@ enum EmbeddingProvider: string
     case Cohere = 'cohere';
     case Mistral = 'mistral';
     case Jina = 'jina';
+    case Voyage = 'voyage';
 
     /** The provider set in config (`chatvia.ai.models.embedding`), if it is a known one. */
     public static function configured(): ?self
@@ -48,7 +50,7 @@ enum EmbeddingProvider: string
         return match ($this) {
             self::Qwen => new RelevanceThresholdsData(knowledge: 0.35, toolRead: 0.35, toolWrite: 0.40),
             self::OpenAi, self::OpenRouter, self::Google,
-            self::Cohere, self::Mistral, self::Jina => null,
+            self::Cohere, self::Mistral, self::Jina, self::Voyage => null,
         };
     }
 
@@ -66,7 +68,7 @@ enum EmbeddingProvider: string
             // match at 0.64 (qa.php's sweep — 0.80 matched nothing at all).
             self::Qwen => 0.65,
             self::OpenAi, self::OpenRouter, self::Google,
-            self::Cohere, self::Mistral, self::Jina => null,
+            self::Cohere, self::Mistral, self::Jina, self::Voyage => null,
         };
     }
 
@@ -80,6 +82,7 @@ enum EmbeddingProvider: string
             self::Cohere => 'Cohere',
             self::Mistral => 'Mistral',
             self::Jina => 'Jina',
+            self::Voyage => 'Voyage AI',
         };
     }
 
@@ -94,6 +97,7 @@ enum EmbeddingProvider: string
             self::Cohere => AiProvider::Cohere,
             self::Mistral => AiProvider::Mistral,
             self::Jina => AiProvider::Jina,
+            self::Voyage => AiProvider::Voyage,
         };
     }
 
@@ -114,6 +118,7 @@ enum EmbeddingProvider: string
             self::Cohere => 'services.cohere.embedding_model',
             self::Mistral => 'services.mistral.embedding_model',
             self::Jina => 'services.jina.embedding_model',
+            self::Voyage => 'services.voyage.embedding_model',
         };
     }
 
@@ -156,6 +161,7 @@ enum EmbeddingProvider: string
             self::Cohere => Cohere::class,
             self::Mistral => Mistral::class,
             self::Jina => Jina::class,
+            self::Voyage => Voyage::class,
         };
     }
 }

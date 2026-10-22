@@ -34,7 +34,7 @@ theme.
 
 - **Each AI key is entered once**, on a new **Settings → AI providers** page:
   Scaleway AI, OpenRouter, OpenAI, Mistral, Google Gemini, Groq, Cohere,
-  Jina and Azure Document Intelligence, plus servers of your own
+  Jina, Voyage AI and Azure Document Intelligence, plus servers of your own
   (OpenAI-compatible). Each provider shows what it does here (chat,
   embeddings, speech to text, documents, reranking), with what it is used for
   marked. A key is checked before it is saved. Before, a chat key was saved
@@ -225,6 +225,9 @@ theme.
   settings, messages and analytics point at it by its id, so the same model
   can come from two providers. Its description, icon, context size,
   features and location are gone; the pickers show its name and provider.
+- **Voyage AI** can make the embeddings (voyage-4 by default; 256, 512,
+  1024 or 2048 dimensions). Documents and questions are sent with Voyage's
+  own `document` and `query` types, which Voyage tunes for search.
 - Agents get up to 5 parts of their sources per question (was 3), within a
   token budget (**Settings → Knowledge**).
 - The text of a search result keeps its line breaks and the words inside

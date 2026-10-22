@@ -53,6 +53,7 @@ return new class extends SettingsMigration
             $group->add('cohere_embedding_model');
             $group->add('cohere_rerank_model');
             $group->add('jina_embedding_model');
+            $group->add('voyage_embedding_model');
             $group->add('openai_embedding_model');
             $group->add('openai_transcription_model');
             $group->add('openai_realtime_model');

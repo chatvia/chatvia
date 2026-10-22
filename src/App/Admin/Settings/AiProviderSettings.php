@@ -57,6 +57,12 @@ class AiProviderSettings extends AdminSettings
     #[ConfigKey('services.jina.api_endpoint')]
     public ?string $jina_api_endpoint = null;
 
+    #[ConfigKey('services.voyage.api_key'), ShouldBeEncrypted]
+    public ?string $voyage_api_key = null;
+
+    #[ConfigKey('services.voyage.api_endpoint')]
+    public ?string $voyage_api_endpoint = null;
+
     #[ConfigKey('services.azure_document_intelligence.key'), ShouldBeEncrypted]
     public ?string $azure_api_key = null;
 

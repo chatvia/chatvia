@@ -524,5 +524,6 @@
     "Could not read models.dev.": "خواندن models.dev ممکن نشد.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "مدل‌ها کلید \"Reasons\" خود را نگه می‌دارند تا خواندن ممکن شود. روزی یک بار دوباره امتحان می‌شود.",
     "Model details loaded.": "جزئیات مدل‌ها بارگیری شد.",
-    "Models listed": "مدل‌های فهرست‌شده"
+    "Models listed": "مدل‌های فهرست‌شده",
+    "Your admin has turned reasoning off.": "مدیر شما استدلال را خاموش کرده است."
 }

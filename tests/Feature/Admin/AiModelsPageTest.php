@@ -67,7 +67,7 @@ function modelsFakeOpenRouter(): void
 
 it('uses the recommended model for quick tasks of the default model\'s provider', function (): void {
     Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
-        ['id' => 'openai/gpt-6-luna', 'name' => 'GPT-6 Luna', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
+        ['id' => 'openai/gpt-4.1-mini', 'name' => 'GPT-4.1 Mini', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
     ]])]);
     $chat = testLlm('meta-llama/llama-4-maverick', LlmProviderKind::OpenRouter);
     saveSettings(AiSettings::class, ['default_agent_model' => (string) $chat->id, 'guardrails_model' => (string) $chat->id]);
@@ -76,12 +76,12 @@ it('uses the recommended model for quick tasks of the default model\'s provider'
 
     $page = modelsPage($this->admin)
         ->callAction(TestAction::make('recommendedTaskModels')->schemaComponent('recommended-task-models', schema: 'form'))
-        ->assertNotified('openai/gpt-6-luna does the quick tasks now');
-    $luna = (string) Llm::query()->where('name', 'openai/gpt-6-luna')->value('id');
+        ->assertNotified('openai/gpt-4.1-mini does the quick tasks now');
+    $mini = (string) Llm::query()->where('name', 'openai/gpt-4.1-mini')->value('id');
 
-    $page->assertFormSet(['task_model' => $luna, 'guardrails_model' => null, 'eval_judge_model' => (string) $chat->id, 'images_model' => $luna]);
+    $page->assertFormSet(['task_model' => $mini, 'guardrails_model' => null, 'eval_judge_model' => (string) $chat->id, 'images_model' => $mini]);
 
-    expect(savedSetting(AiSettings::class, 'task_model'))->toBe($luna);
+    expect(savedSetting(AiSettings::class, 'task_model'))->toBe($mini);
 });
 
 it('hides "Use the recommended models" for a server of your own', function (): void {

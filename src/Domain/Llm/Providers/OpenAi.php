@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Providers\Responses\StreamsThroughResponses;
 
 /**
  * Chat completions through OpenAI's own API, which is stricter than the
@@ -13,9 +14,15 @@ use Domain\Llm\Models\Llm;
  * `max_tokens`. Which effort and sampling a model takes is decided by the
  * app from the model's facts ({@see Llm::requestSettings()}),
  * not here.
+ *
+ * Chat turns stream through its Responses API ({@see StreamsThroughResponses}),
+ * the only one of its APIs that sends a summary of a reasoning model's
+ * thinking. The app's own single calls use Chat Completions.
  */
 class OpenAi extends AbstractLlmProvider
 {
+    use StreamsThroughResponses;
+
     /**
      * The agent's stored llmSettings always include `top_k`, and the app's
      * own tasks cap replies with `max_tokens`, which every OpenAI chat model

@@ -27,17 +27,18 @@ function mpIds(array $models): array
 it('picks the first listed id of each chat slot, default first', function (): void {
     $listed = [
         mpModel('openai/gpt-oss-120b'),
+        mpModel('meta-llama/llama-3.3-70b-instruct'),
+        mpModel('openai/gpt-4.1-mini'),
         mpModel('qwen/qwen3-235b-a22b-2507'),
-        mpModel('openai/gpt-5.6-terra'),
-        mpModel('google/gemini-2.5-flash'),
+        mpModel('mistralai/mistral-large-2512'),
     ];
 
     expect(mpIds(app(ModelPresets::class)->chatModels(AiProvider::OpenRouter, $listed)))
-        ->toBe(['openai/gpt-5.6-terra', 'qwen/qwen3-235b-a22b-2507', 'google/gemini-2.5-flash', 'openai/gpt-oss-120b']);
+        ->toBe(['qwen/qwen3-235b-a22b-2507', 'openai/gpt-4.1-mini', 'mistralai/mistral-large-2512', 'meta-llama/llama-3.3-70b-instruct']);
 });
 
 it('passes over a chat model the provider says cannot call tools, but not one it says nothing about', function (): void {
-    $listed = [mpModel('gpt-oss-120b', tools: false), mpModel('llama-3.3-70b-instruct')];
+    $listed = [mpModel('qwen3-235b-a22b-instruct-2507', tools: false), mpModel('llama-3.3-70b-instruct')];
 
     expect(mpIds(app(ModelPresets::class)->chatModels(AiProvider::Scaleway, $listed)))->toBe(['llama-3.3-70b-instruct']);
 });
@@ -53,7 +54,7 @@ it('falls back to the first model that calls tools, else the first, when no pres
 it('picks the first listed quick-task model, and none when no preset is listed', function (): void {
     $presets = app(ModelPresets::class);
 
-    expect($presets->quickTaskModel(AiProvider::OpenAi, [mpModel('gpt-4.1-nano'), mpModel('gpt-5.6-luna')])?->id)->toBe('gpt-5.6-luna')
+    expect($presets->quickTaskModel(AiProvider::OpenAi, [mpModel('gpt-4.1-nano'), mpModel('gpt-4.1-mini')])?->id)->toBe('gpt-4.1-mini')
         ->and($presets->quickTaskModel(AiProvider::OpenAi, [mpModel('gpt-4o')]))->toBeNull()
         ->and($presets->quickTaskModel(null, [mpModel('llama3.1:8b')]))->toBeNull();
 });
@@ -62,7 +63,7 @@ it('picks the first listed model that reads images, and none when no preset is l
     $presets = app(ModelPresets::class);
     $model = fn (string $id, ?bool $vision = null): RemoteModelData => new RemoteModelData($id, $id, features: $vision === null ? [] : ['vision' => $vision]);
 
-    expect($presets->visionModel(AiProvider::OpenRouter, [$model('openai/gpt-6-luna', vision: false), $model('google/gemini-3.5-flash-lite')])?->id)->toBe('google/gemini-3.5-flash-lite')
+    expect($presets->visionModel(AiProvider::OpenRouter, [$model('qwen/qwen3-vl-30b-a3b-instruct', vision: false), $model('mistralai/mistral-small-3.2-24b-instruct')])?->id)->toBe('mistralai/mistral-small-3.2-24b-instruct')
         ->and($presets->visionModel(AiProvider::OpenRouter, [$model('openai/gpt-oss-120b', vision: false)]))->toBeNull()
         ->and($presets->visionModel(null, [$model('llava', vision: true)]))->toBeNull();
 });

@@ -524,5 +524,6 @@
     "Could not read models.dev.": "models.dev-palvelua ei voitu lukea.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Mallit pitävät \"Reasons\"-kytkimensä, kunnes luettelo voidaan lukea. Uusi yritys kerran päivässä.",
     "Model details loaded.": "Mallien tiedot ladattu.",
-    "Models listed": "Luettelon mallit"
+    "Models listed": "Luettelon mallit",
+    "Your admin has turned reasoning off.": "Ylläpitäjäsi on poistanut päättelyn käytöstä."
 }

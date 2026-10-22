@@ -524,5 +524,6 @@
     "Could not read models.dev.": "Kunne ikke lese models.dev.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Modellene beholder \"Reasons\"-bryteren sin til den kan leses. Det prøves igjen én gang om dagen.",
     "Model details loaded.": "Modelldetaljer lastet.",
-    "Models listed": "Modeller på listen"
+    "Models listed": "Modeller på listen",
+    "Your admin has turned reasoning off.": "Administratoren din har slått av resonnering."
 }

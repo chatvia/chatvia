@@ -524,5 +524,6 @@
     "Could not read models.dev.": "Impossible de lire models.dev.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Les modèles gardent leur interrupteur « Reasons » jusqu’à ce qu’il puisse être lu. Nouvel essai une fois par jour.",
     "Model details loaded.": "Détails des modèles chargés.",
-    "Models listed": "Modèles listés"
+    "Models listed": "Modèles listés",
+    "Your admin has turned reasoning off.": "Votre administrateur a désactivé le raisonnement."
 }

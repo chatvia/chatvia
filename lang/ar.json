@@ -524,5 +524,6 @@
     "Could not read models.dev.": "تعذّرت قراءة models.dev.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "تحتفظ النماذج بمفتاح \"Reasons\" حتى تمكن قراءته. تُعاد المحاولة مرة يوميًا.",
     "Model details loaded.": "تم تحميل تفاصيل النماذج.",
-    "Models listed": "النماذج المدرجة"
+    "Models listed": "النماذج المدرجة",
+    "Your admin has turned reasoning off.": "أوقف المسؤول الاستدلال."
 }

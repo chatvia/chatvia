@@ -2,6 +2,7 @@
 
 use Domain\Conversation\Actions\Activity\TouchConversationActivityAction;
 use Domain\Conversation\Models\Conversation;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The widget heartbeat stamp: moves last_activity_at forward without touching
@@ -9,7 +10,9 @@ use Domain\Conversation\Models\Conversation;
  */
 it('stamps a visible conversation without touching updated_at', function (): void {
     $conversation = Conversation::factory()->create(['is_visible' => true, 'last_activity_at' => null]);
-    $updatedAt = $conversation->updated_at;
+    // An hour back, so a touch now would show: the column keeps whole seconds.
+    $updatedAt = now()->subHour()->startOfSecond();
+    DB::table('chat_conversations')->where('id', $conversation->id)->update(['updated_at' => $updatedAt]);
 
     app(TouchConversationActivityAction::class)->execute($conversation);
 

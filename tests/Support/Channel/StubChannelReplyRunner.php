@@ -15,8 +15,9 @@ use Illuminate\Support\Carbon;
  * Stand-in for {@see ChannelReplyRunner} so channel tests never run the real
  * chat pipeline (RAG + LLM). Records the turn it was asked to run, reports the
  * given partial replies as progress — moving the app clock forward before
- * each, so throttled strategies push every one — and returns a canned reply
- * (or echoes the message when none is given).
+ * each, by a minute unless told otherwise, so throttled strategies push every
+ * one; a shorter step tests the throttle — and returns a canned reply (or
+ * echoes the message when none is given).
  */
 class StubChannelReplyRunner extends ChannelReplyRunner
 {

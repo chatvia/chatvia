@@ -220,7 +220,7 @@ it('writes a large website document in chunk_index order, batch after batch', fu
 
     $agent = Agent::factory()->create();
     $website = wsaWebsite($agent, 'ingesting');
-    $vector = '['.implode(',', array_fill(0, 1024, 0.1)).']';
+    $vector = embeddingVector();
 
     // Stored in reverse, so insertion order differs from page order.
     Chunk::query()->insert(collect(range(501, 1))->map(fn (int $i): array => [

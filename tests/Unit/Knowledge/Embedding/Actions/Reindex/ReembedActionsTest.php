@@ -38,7 +38,7 @@ function reembedProvider(): FakeEmbeddingsProvider
 /** A vector of the old model: 0.25 everywhere. */
 function reembedOldVector(): string
 {
-    return '['.implode(',', array_fill(0, 1024, 0.25)).']';
+    return embeddingVector(0.25);
 }
 
 function reembedChunk(SourceFile $file, string $text, ?string $questions = null, ?string $summary = null): Chunk
@@ -59,7 +59,7 @@ function reembedHasNewVector(string $table, string $column, int $id): bool
 {
     $type = app(EmbeddingStorage::class)->columnType();
 
-    return (bool) DB::scalar("SELECT {$column} = ?::{$type} FROM {$table} WHERE id = ?", ['['.implode(',', array_fill(0, 1024, 0.5)).']', $id]);
+    return (bool) DB::scalar("SELECT {$column} = ?::{$type} FROM {$table} WHERE id = ?", [embeddingVector(0.5), $id]);
 }
 
 it('embeds the chunks of a range again from their text and questions', function (): void {

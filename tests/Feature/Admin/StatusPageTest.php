@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Tests\Support\Admin\FakeRedisAndHorizon;
 
 /*
  * The admin panel's Status page: whether the services the install needs are
@@ -36,6 +37,7 @@ beforeEach(function (): void {
     Filament::setCurrentPanel('admin');
     Storage::fake('private');
     Storage::fake('public');
+    FakeRedisAndHorizon::bind();
 });
 
 it('opens with every service waiting for its check, and the environment', function (): void {
@@ -133,6 +135,16 @@ it('gives every service card its check lines', function (): void {
     foreach (Service::cases() as $service) {
         expect(app(ServiceChecks::class)->check($service)->checks)->not->toBeEmpty();
     }
+});
+
+it('reads Redis and the queue from what they answer', function (): void {
+    $redis = app(ServiceChecks::class)->check(Service::Redis);
+    $queue = app(ServiceChecks::class)->check(Service::Queue);
+
+    expect($redis->state)->toBe(ServiceState::Running)
+        ->and($redis->checks[0]->value)->toBe('Redis 7.4.0')
+        ->and($queue->state)->toBe(ServiceState::Down)
+        ->and($queue->summary)->toBe('Horizon is not running.');
 });
 
 it('shows four lines on a card, problems first, and the rest behind "Show all"', function (): void {

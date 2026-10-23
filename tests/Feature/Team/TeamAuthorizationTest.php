@@ -43,14 +43,18 @@ describe('teams.update', function (): void {
 });
 
 describe('teams.remove-member', function (): void {
-    it('lets the owner through the ownership gate', function (): void {
-        $member = User::factory()->employee($this->owner)->create();
+    it('lets the owner remove a member from the team', function (): void {
+        $team = $this->owner->primaryTeam();
+        $member = teammateWithPermissions($this->owner, ['agent.chat.view'], $team);
 
         $this->actingAs($this->owner)
             ->from('/')
-            ->delete(route('teams.remove-member', [$this->owner->primaryTeam(), $member]))
+            ->delete(route('teams.remove-member', [$team, $member]))
             ->assertRedirect()
             ->assertSessionHasNoErrors();
+
+        expect($team->members()->whereKey($member->id)->exists())->toBeFalse()
+            ->and($member->fresh())->not->toBeNull();
     });
 });
 

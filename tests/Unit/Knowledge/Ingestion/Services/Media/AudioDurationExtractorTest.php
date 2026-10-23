@@ -38,13 +38,11 @@ function adeAudioFixture(float $seconds, string $extension, bool $headerless = f
     return $path;
 }
 
-beforeEach(function (): void {
-    foreach (['ffmpeg', 'ffprobe'] as $bin) {
-        if (! programInstalled($bin)) {
-            $this->markTestSkipped("{$bin} binary not available");
-        }
-    }
-});
+/** Whether any of these programs is missing here, so a test that needs it skips. */
+function adeMissing(string ...$programs): bool
+{
+    return collect($programs)->contains(fn (string $program): bool => ! programInstalled($program));
+}
 
 it('reads the duration from a normal container header', function (): void {
     $file = adeAudioFixture(3, 'mp3');
@@ -54,7 +52,7 @@ it('reads the duration from a normal container header', function (): void {
     expect($seconds)->toBeGreaterThan(2.5)->toBeLessThan(3.6);
 
     unlink($file);
-});
+})->skip(fn (): bool => adeMissing('ffmpeg', 'ffprobe'), 'needs ffmpeg and ffprobe');
 
 it('recovers the duration of a header-less MediaRecorder webm where ffprobe returns N/A', function (): void {
     // A recorded voice note (audio/webm from MediaRecorder) has no duration in
@@ -75,7 +73,7 @@ it('recovers the duration of a header-less MediaRecorder webm where ffprobe retu
     expect($seconds)->toBeGreaterThan(2.5)->toBeLessThan(3.6);
 
     unlink($file);
-});
+})->skip(fn (): bool => adeMissing('ffmpeg', 'ffprobe'), 'needs ffmpeg and ffprobe');
 
 it('rounds the duration up to whole minutes', function (): void {
     $file = adeAudioFixture(3, 'webm', headerless: true);
@@ -83,7 +81,7 @@ it('rounds the duration up to whole minutes', function (): void {
     expect(app(AudioDurationExtractor::class)->getDurationInMinutes($file))->toBe(1);
 
     unlink($file);
-});
+})->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
 
 it('reads the duration from the headers in PHP when ffprobe is not installed', function (string $extension): void {
     $file = adeAudioFixture(3, $extension);
@@ -92,7 +90,7 @@ it('reads the duration from the headers in PHP when ffprobe is not installed', f
     expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
 
     unlink($file);
-})->with(['mp3', 'm4a', 'wav', 'ogg']);
+})->with(['mp3', 'm4a', 'wav', 'ogg'])->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
 
 it('still measures a header-less recording with ffmpeg when ffprobe is not installed', function (): void {
     $file = adeAudioFixture(3, 'webm', headerless: true);
@@ -101,7 +99,7 @@ it('still measures a header-less recording with ffmpeg when ffprobe is not insta
     expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
 
     unlink($file);
-});
+})->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
 
 it('measures a header-less recording in PHP when neither ffprobe nor ffmpeg is installed', function (): void {
     $file = adeAudioFixture(3, 'webm', headerless: true);
@@ -110,7 +108,7 @@ it('measures a header-less recording in PHP when neither ffprobe nor ffmpeg is i
     expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
 
     unlink($file);
-});
+})->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
 
 it('gives zero for audio whose length nothing can read', function (): void {
     // A WAV header with no sound after it.

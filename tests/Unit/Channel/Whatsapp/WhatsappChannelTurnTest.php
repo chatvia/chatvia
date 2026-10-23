@@ -6,6 +6,7 @@ use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Models\WhatsappChat;
 use Domain\Channel\Whatsapp\Services\WhatsappAdapter;
 use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
+use Illuminate\Support\Carbon;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Whatsapp\FakeWhatsappClient;
 
@@ -34,10 +35,13 @@ function whatsappTurnAdapter(FakeWhatsappClient $client, AgentWhatsappNumber $nu
     return new WhatsappAdapter($client, app(WhatsappChatResolver::class), $number, $waId, $wamid, $name);
 }
 
-it('resolves the chat, sends the agent reply, and stamps last_message_at', function (): void {
+it('sends the agent reply in the sender’s chat and stamps it when it replies', function (): void {
     $number = whatsappTurnNumber();
     $client = new FakeWhatsappClient;
     $runner = new StubChannelReplyRunner('Hello from the agent');
+    $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
+    app(WhatsappChatResolver::class)->resolve($number, '4915551234567', 'Sam');
+    $this->travelTo(Carbon::parse('2026-10-01 10:05:00'));
 
     $runner->handler()->execute(whatsappTurnAdapter($client, $number, '4915551234567', 'wamid.IN1', 'Sam'), 'hi there');
 
@@ -56,5 +60,5 @@ it('resolves the chat, sends the agent reply, and stamps last_message_at', funct
     $chat = WhatsappChat::query()->firstOrFail();
     expect($chat->wa_id)->toBe('4915551234567')
         ->and($chat->name)->toBe('Sam')
-        ->and($chat->last_message_at)->not->toBeNull();
+        ->and($chat->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
 });

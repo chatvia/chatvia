@@ -96,6 +96,40 @@ it('streams on an editable channel: a placeholder, the reply edited into it, and
         ->and($channel->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
 });
 
+it('skips a partial that comes sooner than the channel’s edit throttle allows', function (): void {
+    // Slack takes an edit every 1.5 seconds; these partials come a second apart.
+    app()->instance(ChannelReplyRunner::class, new StubChannelReplyRunner('Hello from the agent', ['Hel', 'Hello', 'Hello there'], secondsBetweenPartials: 1));
+    $app = hcmSlackApp();
+    $client = new FakeSlackClient;
+
+    app(HandleChannelMessageAction::class)->execute(new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, 'C123CHAN'), 'hi there');
+
+    expect(array_column($client->updates, 'markdown'))->toBe(['Hello', 'Hello from the agent']);
+});
+
+it('skips a partial whose text is the same as the one it pushed last', function (): void {
+    app()->instance(ChannelReplyRunner::class, new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello ', 'Hello there']));
+    $app = hcmSlackApp();
+    $client = new FakeSlackClient;
+
+    app(HandleChannelMessageAction::class)->execute(new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, 'C123CHAN'), 'hi there');
+
+    expect(array_column($client->updates, 'markdown'))->toBe(['Hello', 'Hello there', 'Hello from the agent']);
+});
+
+it('keeps "typing…" on while the agent works, showing it again only once the channel’s refresh is due', function (): void {
+    // Messenger clears the indicator after 15 seconds; progress comes every 10.
+    app()->instance(ChannelReplyRunner::class, new StubChannelReplyRunner('Hello from the agent', ['a', 'b', 'c'], secondsBetweenPartials: 10));
+    $page = hcmMessengerPage();
+    $client = new FakeMessengerClient;
+
+    app(HandleChannelMessageAction::class)->execute(new MessengerAdapter($client, new MessengerThreadResolver(app(StartConversationAction::class), $client), $page, '24680'), 'hi there');
+
+    // Once when the message lands, once 20 seconds in.
+    expect($client->typing)->toHaveCount(2)
+        ->and($client->sent)->toHaveCount(1);
+});
+
 it('runs no turn and leaves the chat unstamped when the placeholder cannot be posted', function (): void {
     $app = hcmSlackApp();
     $client = new FakeSlackClient;

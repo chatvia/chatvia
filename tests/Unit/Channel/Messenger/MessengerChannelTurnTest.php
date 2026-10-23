@@ -7,6 +7,7 @@ use Domain\Channel\Messenger\Models\MessengerThread;
 use Domain\Channel\Messenger\Services\MessengerAdapter;
 use Domain\Channel\Messenger\Services\MessengerThreadResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Illuminate\Support\Carbon;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Messenger\FakeMessengerClient;
 
@@ -34,10 +35,13 @@ function messengerTurnAdapter(FakeMessengerClient $client, AgentMessengerPage $p
     return new MessengerAdapter($client, new MessengerThreadResolver(app(StartConversationAction::class), $client), $page, $psid);
 }
 
-it('resolves the thread, sends the agent reply, and stamps last_message_at', function (): void {
+it('sends the agent reply in the sender’s thread and stamps it when it replies', function (): void {
     $page = messengerTurnPage();
     $client = new FakeMessengerClient;
     $runner = new StubChannelReplyRunner('Hello from the agent');
+    $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
+    new MessengerThreadResolver(app(StartConversationAction::class), $client)->resolve($page, '24680');
+    $this->travelTo(Carbon::parse('2026-10-01 10:05:00'));
 
     $runner->handler()->execute(messengerTurnAdapter($client, $page, '24680'), 'hi there');
 
@@ -57,5 +61,5 @@ it('resolves the thread, sends the agent reply, and stamps last_message_at', fun
 
     $thread = MessengerThread::query()->firstOrFail();
     expect($thread->psid)->toBe('24680')
-        ->and($thread->last_message_at)->not->toBeNull();
+        ->and($thread->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
 });

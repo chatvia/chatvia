@@ -8,6 +8,7 @@ use Domain\Channel\Teams\Models\TeamsChat;
 use Domain\Channel\Teams\Services\TeamsAdapter;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Teams\FakeTeamsClient;
@@ -67,6 +68,8 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
     $client = new FakeTeamsClient;
     $runner = new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
 
+    $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
+
     teamsHandle($client, $runner, $bot, teamsHandleActivity());
 
     // One placeholder post, then a partial edit per push + the final edit.
@@ -82,9 +85,10 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
 
     expect($runner->received())->toBe('hi there');
 
+    // Made at 10:00, stamped when the reply landed two partials (a minute each) later.
     $chat = TeamsChat::query()->firstOrFail();
     expect($chat->conversation_id)->toBe('a:1conversation')
-        ->and($chat->last_message_at)->not->toBeNull();
+        ->and($chat->last_message_at->toDateTimeString())->toBe('2026-10-01 10:02:00');
 });
 
 it('strips the bot’s own mention through the mention entity', function (): void {

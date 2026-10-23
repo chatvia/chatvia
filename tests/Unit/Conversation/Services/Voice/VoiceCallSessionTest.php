@@ -169,7 +169,7 @@ function giveAgentKnowledge(Agent $agent): void
         'chunk_index' => 1,
         'chunk' => 'We open at nine.',
         'tokens' => 4,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
+        'embedding' => embeddingVector(),
         'search_text' => 'We open at nine.',
         'checksum' => md5(uniqid()),
     ]);

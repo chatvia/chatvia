@@ -22,7 +22,9 @@ use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Llm\Enums\AiProvider;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\Eval\Support\MarkdownComparison;
 
 /**
@@ -359,13 +361,14 @@ function dreChunks(string $markdown, string $format): array
  */
 function dreRetrieval(string $folder, array $questions): string
 {
-    // Provider keys live in the admin settings, so a key given on the command line goes in here.
-    foreach (['SCALEWAYAI', 'COHERE', 'OPENROUTER', 'OPENAI', 'MISTRAL', 'JINA', 'GOOGLE'] as $provider) {
-        $key = $provider.'_API_KEY';
-        $config = 'services.'.strtolower($provider).'.api_key';
+    // Provider keys live in the admin settings, so a key given on the command
+    // line goes in here: SCALEWAYAI_API_KEY, GEMINI_API_KEY, VOYAGE_API_KEY…,
+    // named after each provider's config block.
+    foreach (AiProvider::cases() as $provider) {
+        $key = Str::upper(Str::between($provider->apiKeyConfig(), 'services.', '.')).'_API_KEY';
 
         if (filled(env($key))) {
-            config([$config => env($key)]);
+            config([$provider->apiKeyConfig() => env($key)]);
         }
     }
 

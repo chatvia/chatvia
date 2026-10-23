@@ -66,7 +66,7 @@ it('throws when no authorization server is advertised', function (): void {
     ]);
 
     expect(fn (): OAuthServerMetadata => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
-        ->toThrow(McpOAuthException::class);
+        ->toThrow(McpOAuthException::class, 'did not list authorization_servers');
 });
 
 it('rejects protected resource metadata for another address', function (): void {
@@ -116,8 +116,10 @@ it('rejects a sibling path on the same origin', function (): void {
         ]),
     ]);
 
+    // The message proves the resource check refused it: any later failure
+    // (such as the unfaked authorization server) is an McpOAuthException too.
     expect(fn (): OAuthServerMetadata => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
-        ->toThrow(McpOAuthException::class);
+        ->toThrow(McpOAuthException::class, 'different address');
 });
 
 it('keeps the last transport failure as the previous exception', function (): void {

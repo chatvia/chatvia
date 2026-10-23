@@ -10,6 +10,7 @@ use Domain\Evaluation\Models\EvalRun;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Pagination\Cursor;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
 
@@ -256,12 +257,15 @@ describe('forms CRUD', function (): void {
         $id = $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$this->agent->external_id}/forms", $body())
             ->json('data.id');
+        $form = FormDefinition::query()->where('external_id', $id)->firstOrFail();
+        FormSubmission::factory()->forDefinition($form)->submitted()->create();
 
         $this->withToken($this->token)
             ->deleteJson("/api/v1/agents/{$this->agent->external_id}/forms/{$id}")
             ->assertNoContent();
 
-        expect(FormDefinition::query()->where('external_id', $id)->exists())->toBeFalse();
+        expect($form->fresh())->toBeNull()
+            ->and(FormSubmission::query()->where('form_definition_id', $form->id)->exists())->toBeFalse();
     });
 });
 
@@ -421,4 +425,21 @@ describe('audit log', function (): void {
             ->assertJsonPath('data.0.trace_id', $first->trace_id)
             ->assertJsonPath('next_cursor', null);
     });
+
+    it('starts again at the first page for a cursor it did not hand out', function (string $log): void {
+        extAuditRow($this->agent);
+        $newest = extAuditRow($this->agent);
+        $uri = $log === 'agent' ? "/api/v1/agents/{$this->agent->external_id}/audit" : '/api/v1/audit';
+
+        // The column the log's own cursor carries.
+        $handedOut = Cursor::fromEncoded($this->withToken($this->token)->getJson($uri.'?per_page=1')->json('next_cursor'));
+        $column = array_key_first($handedOut->toArray());
+
+        foreach (['not-a-cursor', new Cursor(['other' => 1])->encode(), new Cursor([$column => 'abc'])->encode()] as $cursor) {
+            $this->withToken($this->token)
+                ->getJson($uri.'?'.http_build_query(['per_page' => 1, 'cursor' => $cursor]))
+                ->assertOk()
+                ->assertJsonPath('data.0.trace_id', $newest->trace_id);
+        }
+    })->with(['agent log' => 'agent', 'workspace log' => 'workspace']);
 });

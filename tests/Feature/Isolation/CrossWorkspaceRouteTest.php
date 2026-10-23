@@ -343,13 +343,14 @@ function isolationBody(Route $route, array $ofB): array
 
 /**
  * Every request of the sweep: for each record a route names, one request in
- * which that record is workspace A's and every other record is B's own.
- * Routes that name no record are left out; a parameter that is neither a
- * record nor a plain value is listed in $unknown instead.
+ * which that record is workspace A's and every other record is B's own, with
+ * A's record last so the sweep can check it is left as it was. Routes that
+ * name no record are left out; a parameter that is neither a record nor a
+ * plain value is listed in $unknown instead.
  *
  * @param  list<Route>  $routes
  * @param  list<string>  $unknown
- * @return list<array{0: string, 1: string, 2: string, 3: array<string, mixed>}>
+ * @return list<array{0: string, 1: string, 2: string, 3: array<string, mixed>, 4: Model}>
  */
 function isolationRequests(object $test, array $routes, array &$unknown): array
 {
@@ -383,7 +384,7 @@ function isolationRequests(object $test, array $routes, array &$unknown): array
             }
 
             $values = [...$ofB, $foreign => $ofA[$foreign]];
-            $requests[] = [isolationMethod($route), "{$route->uri()} (A's {{$foreign}})", route($route->getName(), isolationUrlValues($route, $values)), isolationBody($route, $ofB)];
+            $requests[] = [isolationMethod($route), "{$route->uri()} (A's {{$foreign}})", route($route->getName(), isolationUrlValues($route, $values)), isolationBody($route, $ofB), $ofA[$foreign]];
         }
     }
 
@@ -417,9 +418,10 @@ function isolationKnownLeaks(): array
 }
 
 /**
- * Sends each request once and lists every answer that is not a 404.
+ * Sends each request once and lists every answer that is not a 404, and every
+ * request after which the record of A it named was changed or gone.
  *
- * @param  list<array{0: string, 1: string, 2: string, 3: array<string, mixed>}>  $requests
+ * @param  list<array{0: string, 1: string, 2: string, 3: array<string, mixed>, 4: Model}>  $requests
  * @param  array<string, string>  $headers
  * @return list<string>
  */
@@ -427,9 +429,14 @@ function isolationLeaks(object $test, array $requests, array $headers = []): arr
 {
     $leaks = [];
 
-    foreach ($requests as [$method, $label, $url, $body]) {
+    foreach ($requests as [$method, $label, $url, $body, $recordOfA]) {
+        $before = $recordOfA->fresh()?->getAttributes();
         $response = $test->withHeaders($headers)->json($method, $url, $body);
         $status = $response->status();
+
+        if ($recordOfA->fresh()?->getAttributes() !== $before) {
+            $leaks[] = "{$method} {$label} → changed or deleted A's record";
+        }
 
         if ($status !== 404) {
             $error = $status >= 500 && $response->exception !== null

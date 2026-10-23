@@ -70,7 +70,7 @@ it('deletes every chunk of a source in batches, the summary included', function 
 
 it('deletes all chunks of a source bigger than one batch', function (): void {
     $file = AgentFileFactory::new()->create();
-    $vector = '['.implode(',', array_fill(0, 1024, 0.1)).']';
+    $vector = embeddingVector();
 
     DB::statement(
         'INSERT INTO chunks (workspace_id, chunkable_type, chunkable_id, chunk_index, chunk, tokens, embedding, search_text, checksum)

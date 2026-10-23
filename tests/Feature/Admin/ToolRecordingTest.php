@@ -26,10 +26,14 @@ function bootedToolRecording(bool $pulse = true, bool $spectra = true): ToolReco
     return $tools;
 }
 
-it('records Pulse and not Spectra while nothing is saved', function (): void {
+it('records both tools while their switches are as shipped', function (): void {
+    // config/chatvia.php ships both switches on; TestCase turns Spectra's off
+    // for every other test.
+    config(['chatvia.pulse.recording' => true, 'chatvia.spectra.recording' => true]);
+
     bootedToolRecording();
 
-    expect(config('spectra.enabled'))->toBeFalse();
+    expect(config('spectra.enabled'))->toBeTrue();
     Pulse::shouldHaveReceived('startRecording')->once();
 });
 

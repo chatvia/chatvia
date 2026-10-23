@@ -6,6 +6,7 @@ namespace Tests\Support;
 
 use Closure;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
 /**
  * Deterministic, offline stand-in for the real Qwen3 embeddings provider.
@@ -16,12 +17,12 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
  * tests are fast + deterministic; a test that needs specific vectors re-binds
  * one made with {@see constant()} or {@see directions()}.
  *
- * Every text it embeds is kept in {@see $texts}, in order.
+ * Every text it embeds is kept in {@see $texts}, in order. Its vectors have
+ * the size the install stores ({@see EmbeddingStorage}), so the suite runs on
+ * an install that picked another size too.
  */
 class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
 {
-    private const int DIMENSIONS = 1024;
-
     /** @var list<string> */
     public array $texts = [];
 
@@ -36,7 +37,7 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
     /** Every text gets the same vector: `$value` in every dimension. */
     public static function constant(float $value = 0.1, string $model = 'fake-embeddings'): self
     {
-        return new self(fn (string $text): array => array_fill(0, self::DIMENSIONS, $value), $model);
+        return new self(fn (string $text): array => array_fill(0, self::dimensions(), $value), $model);
     }
 
     /**
@@ -49,7 +50,7 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
      */
     public static function directions(array $directions, array $otherwise = [0.0, 1.0]): self
     {
-        return new self(fn (string $text): array => array_pad($directions[$text] ?? $otherwise, self::DIMENSIONS, 0.0), 'directions');
+        return new self(fn (string $text): array => array_pad($directions[$text] ?? $otherwise, self::dimensions(), 0.0), 'directions');
     }
 
     public function embed(string $text, bool $returnAsText = false): string|array
@@ -71,7 +72,7 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
 
     public function getDimensions(): int
     {
-        return self::DIMENSIONS;
+        return self::dimensions();
     }
 
     public function getModelName(): string
@@ -87,6 +88,11 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
         return $this->vectors instanceof Closure ? ($this->vectors)($text) : $this->textVaryingVector($text);
     }
 
+    private static function dimensions(): int
+    {
+        return app(EmbeddingStorage::class)->dimensions();
+    }
+
     /**
      * A deterministic, text-varying vector so distinct texts get distinct
      * (non-semantic) vectors — enough for retrieval-plumbing tests.
@@ -98,7 +104,7 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
         $seed = crc32($text);
         $vector = [];
 
-        for ($i = 0; $i < self::DIMENSIONS; $i++) {
+        for ($i = 0; $i < self::dimensions(); $i++) {
             $vector[] = ((($seed >> ($i % 31)) & 1) === 1) ? 0.04 : 0.01;
         }
 

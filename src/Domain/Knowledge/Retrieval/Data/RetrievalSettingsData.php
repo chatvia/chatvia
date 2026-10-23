@@ -42,7 +42,7 @@ final class RetrievalSettingsData extends Data
 
     /**
      * How many candidates the SQL returns: enough for the reranker to choose
-     * from (never fewer than the results asked for, Settings → Knowledge),
+     * from (never fewer than the results asked for, Settings → Search),
      * or twice the result count without one.
      */
     public function candidateLimit(): int

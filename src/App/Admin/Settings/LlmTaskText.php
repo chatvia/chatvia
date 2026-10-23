@@ -55,7 +55,7 @@ final class LlmTaskText
     private static function text(LlmTask $task): array
     {
         return match ($task) {
-            LlmTask::FollowUp => ['Follow-up questions', 'Turns a short follow-up, like "and the price?", into a full question for the search. Runs before the reply, so pick a small, fast model. Turned on in Settings → Knowledge → Follow-up questions.'],
+            LlmTask::FollowUp => ['Follow-up questions', 'Turns a short follow-up, like "and the price?", into a full question for the search. Runs before the reply, so pick a small, fast model. Turned on in Settings → Search → Follow-up questions.'],
             LlmTask::ToolRouting => ['Tool picking', 'When an agent could change data with the tools of more than one connector, picks the connector a message is about. Runs before the reply, so pick a small, fast model.'],
             LlmTask::Guardrails => ['Guardrails', 'Checks each message for prompt injection, off-topic questions and toxicity, when an agent has these checks on. Runs before the reply, so pick a small, fast model.'],
             LlmTask::Titles => ['Conversation titles', 'Writes a short title for each conversation from its first messages.'],

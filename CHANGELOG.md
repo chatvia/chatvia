@@ -118,10 +118,11 @@ theme.
   agent without a model answers with the default one (web chat, channels
   and evals), and the setup gives the default model to agents made before
   any model existed, such as the demo agents.
-- **Settings → Knowledge** replaces Ingestion, Chunking and Search: file
-  types, website import, AI enhancement, search and follow-up questions.
-  Splitting, the splitting preview and search fine-tuning sit under
-  **Advanced**.
+- **Settings → Knowledge**, **Splitting** and **Search** replace Ingestion,
+  Chunking and Search. Knowledge holds what agents learn from: file types,
+  website import and AI enhancement. Splitting holds the chunk options and
+  their preview. Search holds hybrid search, results per question and
+  follow-up questions, with the fine-tuning under **Advanced**.
 - Technical options on every page sit under a closed **Advanced** section:
   addresses, rate limits, queue workers, security headers, redirect URLs and
   the like. Each page has one **Save changes** button that stays in view.
@@ -229,12 +230,12 @@ theme.
   1024 or 2048 dimensions). Documents and questions are sent with Voyage's
   own `document` and `query` types, which Voyage tunes for search.
 - Agents get up to 5 parts of their sources per question (was 3), within a
-  token budget (**Settings → Knowledge**).
+  token budget (**Settings → Search**).
 - The text of a search result keeps its line breaks and the words inside
   HTML tags (before, `<span>Price: €10</span>` was removed completely).
 - Follow-up questions ("and how much is it?") are understood: an AI step
   writes the full question from the chat for the search, on by default
-  (**Settings → Knowledge**). The agent still answers what the person wrote.
+  (**Settings → Search**). The agent still answers what the person wrote.
 - A saved Q&A answer is used when the message is one of its questions as a
   whole (ignoring case and punctuation), or very close to one in meaning.
   Before, one word such as "price" could trigger it.

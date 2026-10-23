@@ -20,7 +20,10 @@ Prefer an early return, `if` or `match` to nested ternaries, and drop the `else`
 Add an interface, factory, manager or wrapper class only for a second real implementation, a test fake, or a context boundary. A class that wraps one call is noise: no `GetAgentsAction` around `Agent::query()->active()->get()`. A well-named scope called from a controller is already clean.
 
 ## Name things for what they hold and do
-Variables say what they hold (`$activeAgents`, not `$data`), with no abbreviations; plural for collections, singular for one item. Methods are camelCase and start with a verb. Methods and local variables that answer yes/no start with `is`, `has`, `can`, `should`, `supports` or `needs`. Constants are typed SCREAMING_SNAKE_CASE (`public const string PREFIX = '…';`); a class that only lists choices is an enum.
+Variables say what they hold (`$activeAgents`, not `$data`), with no abbreviations; plural for collections, singular for one item. Methods are camelCase and start with a verb. Methods and local variables that answer yes/no start with `is`, `has`, `can`, `should`, `supports` or `needs`. Constants are SCREAMING_SNAKE_CASE; a class that only lists choices is an enum.
+
+## Type every constant
+Every class, interface, trait and enum constant states its visibility and its type: `public const string PREFIX = 'cvh1.';`, `private const int MAX_RETRIES = 3;`, `protected const array KEYS = […];`. Never write a bare `const PREFIX = …` or an untyped `public const PREFIX = …`. An override of a framework constant takes a type too: `public const ?string UPDATED_AT = null;`.
 
 ## Inject your own classes; never new them
 Get Actions, services and clients from the container: method injection when one method uses it, constructor injection (promoted `private readonly`) when several do. `new` is only for data: DTOs, value objects, exceptions. Laravel facades (`DB`, `Cache`, `Http`, `Storage`, `Log`, `Bus`) are fine anywhere, because tests can fake them.

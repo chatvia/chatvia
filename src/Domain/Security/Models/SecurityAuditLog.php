@@ -46,7 +46,7 @@ use Illuminate\Support\Carbon;
 class SecurityAuditLog extends Model
 {
     /** Insert-only audit log. */
-    public const UPDATED_AT = null;
+    public const ?string UPDATED_AT = null;
 
     /**
      * @return BelongsTo<User, $this>

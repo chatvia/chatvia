@@ -54,7 +54,7 @@ class GuardrailEvent extends Model
     use HasExternalId;
 
     /** Insert-only audit log. */
-    public const UPDATED_AT = null;
+    public const ?string UPDATED_AT = null;
 
     /**
      * @return BelongsTo<Agent, $this>

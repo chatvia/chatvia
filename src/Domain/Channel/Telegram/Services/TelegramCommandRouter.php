@@ -26,7 +26,7 @@ use Illuminate\Support\Str;
 class TelegramCommandRouter
 {
     /** Built-in command names — always present, can't be deleted or renamed. */
-    public const RESERVED = ['start', 'reset', 'help'];
+    public const array RESERVED = ['start', 'reset', 'help'];
 
     /**
      * Code defaults for the built-ins (English source text), overlaid with the

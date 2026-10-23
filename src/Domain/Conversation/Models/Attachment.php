@@ -60,7 +60,7 @@ class Attachment extends Model
     use HasExternalId, HasStorageFile;
 
     /** The disk every chat attachment is stored on. */
-    public const DISK = 'private';
+    public const string DISK = 'private';
 
     /**
      * @return BelongsTo<Conversation, $this>

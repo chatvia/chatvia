@@ -25,7 +25,7 @@ use Domain\Conversation\Models\Message;
 class StickyToolResolver
 {
     /** How many recent assistant turns to scan. */
-    public const RECENT_TURNS = 5;
+    public const int RECENT_TURNS = 5;
 
     /**
      * @param  string  $conversationExternalId  UUID from `chat_conversations.external_id`

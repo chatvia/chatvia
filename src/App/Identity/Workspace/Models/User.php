@@ -150,7 +150,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     // Profile photos are public, small and read-heavy, so they live on the
     // CDN-backed `assets` disk (served via the pull zone) rather than the
     // Scaleway origin bucket.
-    public const PROFILE_IMAGE_DISK = 'assets';
+    public const string PROFILE_IMAGE_DISK = 'assets';
 
     /**
      * Per-request memo bucket — Inertia's share() lambda and the access checks

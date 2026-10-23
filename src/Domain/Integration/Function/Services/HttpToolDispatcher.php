@@ -32,9 +32,9 @@ use Throwable;
  */
 class HttpToolDispatcher implements ToolDispatcherInterface
 {
-    public const TIMESTAMP_HEADER = 'X-Chatvia-Timestamp';
+    public const string TIMESTAMP_HEADER = 'X-Chatvia-Timestamp';
 
-    public const SIGNATURE_HEADER = 'X-Chatvia-Signature';
+    public const string SIGNATURE_HEADER = 'X-Chatvia-Signature';
 
     public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
     {

@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
 class AppearanceTextResolver
 {
     /** The appearance keys that carry per-locale translations. */
-    public const KEYS = ['chat_window_title', 'welcome_message', 'composer_placeholder'];
+    public const array KEYS = ['chat_window_title', 'welcome_message', 'composer_placeholder'];
 
     /**
      * @param  Collection<string, mixed>|array<string, mixed>  $appearance

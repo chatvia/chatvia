@@ -44,6 +44,6 @@ it('knows when every enabled language is already translated', function (): void 
 });
 
 it('keeps only non-empty edits for enabled languages', function (): void {
-    expect(TranslatableText::onlyLanguages(['de' => ' Servus ', 'fr' => '', 'xx' => 'Nope', 'es' => 5], ['de' => 'German', 'fr' => 'French', 'es' => 'Spanish']))
+    expect(TranslatableText::onlyLanguages(['de' => ' Servus ', 'fr' => '', 'xx' => 'Nope', 'es' => ['Hola']], ['de' => 'German', 'fr' => 'French', 'es' => 'Spanish']))
         ->toBe(['de' => 'Servus']);
 });

@@ -36,7 +36,7 @@ class FormHybridSearch
     private const int RRF_K = 60;
 
     /** Most forms to ever name in one system prompt (the cap + the retrieval K). */
-    public const PROMPT_LIMIT = 8;
+    public const int PROMPT_LIMIT = 8;
 
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,

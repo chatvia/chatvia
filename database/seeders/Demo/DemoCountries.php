@@ -19,7 +19,7 @@ class DemoCountries
      * rough share weights. The numbers don't need to sum to 100 — pickCode()
      * normalizes against the total.
      */
-    public const WEIGHTS = [
+    public const array WEIGHTS = [
         'us' => 30, 'gb' => 12, 'in' => 10, 'de' => 8, 'br' => 6,
         'se' => 5, 'fr' => 4, 'nl' => 4, 'au' => 3, 'jp' => 3,
         'ca' => 3, 'es' => 3, 'it' => 3, 'mx' => 3, 'pl' => 3,

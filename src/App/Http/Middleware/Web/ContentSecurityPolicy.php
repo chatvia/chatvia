@@ -29,11 +29,11 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ContentSecurityPolicy
 {
-    public const MODE_OFF = 'off';
+    public const string MODE_OFF = 'off';
 
-    public const MODE_REPORT_ONLY = 'report-only';
+    public const string MODE_REPORT_ONLY = 'report-only';
 
-    public const MODE_ENFORCE = 'enforce';
+    public const string MODE_ENFORCE = 'enforce';
 
     public function handle(Request $request, Closure $next): Response
     {

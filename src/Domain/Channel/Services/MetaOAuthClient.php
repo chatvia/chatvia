@@ -38,7 +38,7 @@ class MetaOAuthClient
      * Portfolio — `/me/accounts` omits those (it only lists personally-managed
      * Pages), so without it a business customer's Page never comes back.
      */
-    public const MESSENGER_SCOPES = 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_metadata,business_management';
+    public const string MESSENGER_SCOPES = 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_metadata,business_management';
 
     /**
      * Instagram messaging via Facebook Login: read the IG professional account
@@ -47,14 +47,14 @@ class MetaOAuthClient
      * Login-for-Business config_id is used these come from the configuration;
      * this string is the classic-scope fallback.)
      */
-    public const INSTAGRAM_SCOPES = 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata,pages_read_engagement,business_management';
+    public const string INSTAGRAM_SCOPES = 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata,pages_read_engagement,business_management';
 
     /**
      * WhatsApp Cloud API via Embedded Signup: manage + message WhatsApp Business
      * Accounts, plus `business_management`. (Embedded Signup supplies the scopes
      * through its config_id; this string is the classic-scope fallback.)
      */
-    public const WHATSAPP_SCOPES = 'whatsapp_business_management,whatsapp_business_messaging,business_management';
+    public const string WHATSAPP_SCOPES = 'whatsapp_business_management,whatsapp_business_messaging,business_management';
 
     /**
      * Build the Facebook authorize URL for a channel's app. Uses the app's

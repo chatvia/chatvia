@@ -675,6 +675,56 @@ it('local files, programs, waits and clocks go through Laravel, not plain PHP fu
     ]));
 });
 
+/**
+ * Line numbers in $code of a class, interface, trait or enum constant with no
+ * type: `const` followed straight by the name and `=`. A constant outside any
+ * braces (a Pest file's `const`) can't take a type in PHP, so it is skipped.
+ *
+ * @return list<int>
+ */
+function conventionUntypedConstants(string $code): array
+{
+    $tokens = array_values(array_filter(
+        PhpToken::tokenize($code),
+        fn (PhpToken $token): bool => ! $token->isIgnorable(),
+    ));
+    $depth = 0;
+    $lines = [];
+
+    foreach ($tokens as $i => $token) {
+        if (in_array($token->text, ['{', '${'], true)) {
+            $depth++;
+        } elseif ($token->text === '}') {
+            $depth--;
+        }
+
+        if ($depth > 0 && $token->is(T_CONST) && ($tokens[$i + 2] ?? null)?->text === '=') {
+            $lines[] = $token->line;
+        }
+    }
+
+    return $lines;
+}
+
+it('class constants declare their type', function (): void {
+    // Rector types only private constants and those of final classes, so a
+    // public constant on an open class (a model, a service) would slip through.
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
+
+    foreach ([...conventionPhpFiles('src'), ...conventionPhpFiles('database')] as $path) {
+        foreach (conventionUntypedConstants((string) file_get_contents($path)) as $line) {
+            $offenders[] = str_replace($root, '', $path).':'.$line;
+        }
+    }
+
+    expect($offenders)->toBe([], implode("\n", [
+        '',
+        'Untyped constant(s): write `public const string NAME = …;` (.ai/rules/src.md):',
+        ...array_map(fn (string $o): string => "  - {$o}", $offenders),
+    ]));
+});
+
 // --- Event wiring --------------------------------------------------------
 
 it('every listener is registered in a service provider', function (): void {

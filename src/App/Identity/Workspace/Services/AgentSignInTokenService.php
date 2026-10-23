@@ -48,24 +48,24 @@ use Throwable;
  */
 class AgentSignInTokenService
 {
-    public const DEFAULT_TTL_SECONDS = 3600;
+    public const int DEFAULT_TTL_SECONDS = 3600;
 
-    public const MIN_TTL_SECONDS = 60;
+    public const int MIN_TTL_SECONDS = 60;
 
     // 24 hours. Long enough for a chat widget to stay signed in across a
     // workday and for the dashboard's Live Preview to keep a single cached
     // token without re-minting per request. Beyond that the embed script is
     // expected to refresh via a new mint on the customer's backend.
-    public const MAX_TTL_SECONDS = 86400;
+    public const int MAX_TTL_SECONDS = 86400;
 
-    public const CTX_PLAYGROUND = 'playground';
+    public const string CTX_PLAYGROUND = 'playground';
 
     /**
      * Scheme tag for the compact HMAC credential, used to disambiguate it from
      * a JWT in the same `data-auth` / `?token=` slot. A JWT always starts with
      * `eyJ` (the base64url of `{"`), so there's no ambiguity.
      */
-    public const HMAC_PREFIX = 'cvh1.';
+    public const string HMAC_PREFIX = 'cvh1.';
 
     private const string ALGORITHM = 'HS256';
 

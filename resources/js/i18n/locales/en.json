@@ -3342,7 +3342,9 @@
             "teams": "Teams",
             "documentation": "Documentation",
             "api": "API",
-            "nav_menu_sr": "Navigation Menu"
+            "nav_menu_sr": "Navigation Menu",
+            "inbox": "Inbox",
+            "inbox_waiting": "{count} chat waiting for a person | {count} chats waiting for a person"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Reasoning",
         "show": "Show reasoning",
         "hide": "Hide reasoning"
+    },
+    "inbox": {
+        "title": "Inbox",
+        "refresh": "Refresh",
+        "search_placeholder": "Search by name, email or agent",
+        "filters": {
+            "all": "All",
+            "waiting": "Waiting",
+            "mine": "Mine"
+        },
+        "anonymous_visitor": "Visitor",
+        "no_messages": "No messages yet",
+        "last_message_you": "You: {message}",
+        "load_failed": "Could not load the Inbox. Try again in a moment.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Nobody is chatting right now",
+            "all_hint": "People who chat with your agents show up here while they are online.",
+            "waiting": "Nobody is waiting for a person",
+            "mine": "You are not in any chat",
+            "no_match": "No chats match your search"
+        },
+        "status": {
+            "waiting": "Waiting",
+            "mine": "You",
+            "held_by": "With {name}"
+        },
+        "thread": {
+            "pick_title": "Pick a chat",
+            "pick_hint": "Choose someone on the list to read the chat and reply.",
+            "back": "Back to the list",
+            "give_back": "Give back to AI",
+            "open_in_chat_log": "Open in Chat Log",
+            "held_by_other": "{name} is replying in this chat.",
+            "a_colleague": "A colleague",
+            "widget_only": "Live replies work in the Chat Widget only. This chat is on {surface}.",
+            "cannot_join": "You can read this chat, but you cannot join it. Live chat is off for this agent, or your role cannot take over chats.",
+            "status_you": "You are replying",
+            "status_ai": "AI is replying",
+            "load_earlier": "Show earlier messages",
+            "send_takes_over": "When you send, you take over this chat from the AI.",
+            "send_takes_over_offline": "This person looks offline. If you send, you take over the chat and they see your reply when they come back.",
+            "reply_placeholder": "Reply to {name}…"
+        }
     }
 }

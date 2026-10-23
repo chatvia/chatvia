@@ -4,6 +4,7 @@
  * operator actions (take over, reply, return to AI). Server calls go through
  * `@/api/handoff`; presence uses the app-wide Echo connection from app.ts.
  */
+import type { ChatLogHandoffStatus, ChatLogMessage } from '@/api/chatLog';
 import {
     markHandoffMessagesRead,
     returnConversationToAi,
@@ -64,6 +65,45 @@ interface HandoffEvent {
     admin_id: string | number | null;
     admin_name: string | null;
     timestamp: string | null;
+}
+
+/** The server's handoff state of a conversation (with its messages) as the composable keeps it. */
+export function handoffStateFrom(status: ChatLogHandoffStatus): HandoffState {
+    return {
+        status: (status.status || 'ai') as HandoffState['status'],
+        adminId: status.admin_id || null,
+        adminName: status.admin_name || null,
+        handoffAt: status.handoff_at || null,
+    };
+}
+
+/**
+ * A pushed `.message` event as a chat-log message, so a live chat can append
+ * it without a refetch. Fields the event does not carry stay empty.
+ */
+export function handoffEventToMessage(event: HandoffMessageEvent): ChatLogMessage {
+    return {
+        id: event.id,
+        chat_conversation_id: event.chat_conversation_id ?? '',
+        content: event.content,
+        role: event.role,
+        sentiment: null,
+        tone: null,
+        feedback: null,
+        is_response_from_qa: false,
+        response_time_ms: null,
+        prompt_tokens: null,
+        completion_tokens: null,
+        llm_name: null,
+        created_at: event.timestamp || new Date().toISOString(),
+        agent_question_answer_id: null,
+        artifacts: event.artifacts ?? null,
+        source: null,
+        read_at: null,
+        confidence_score: null,
+        voice: false,
+        trace_id: null,
+    };
 }
 
 /** How long a "visitor is typing" signal lasts without a follow-up. */

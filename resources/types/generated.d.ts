@@ -44,6 +44,35 @@ declare namespace App {
                     count: number;
                 };
             }
+            namespace Inbox {
+                export type InboxAgentData = {
+                    id: string;
+                    name: string;
+                };
+                export type InboxConversationData = {
+                    conversation_id: string;
+                    agent: App.Http.Resources.Inbox.InboxAgentData;
+                    visitor_name: string | null;
+                    visitor_email: string | null;
+                    country: string | null;
+                    source: Domain.Conversation.Enums.ConversationSource;
+                    handoff_status: Domain.Conversation.Enums.HandoffStatus;
+                    held_by_me: boolean;
+                    holder_name: string | null;
+                    last_message: string | null;
+                    last_message_role: Domain.Conversation.Enums.MessageRole | null;
+                    last_activity_at: string | null;
+                    is_online: boolean;
+                    can_join: boolean;
+                };
+                export type InboxConversationsResourceData = {
+                    conversations: App.Http.Resources.Inbox.InboxConversationData[];
+                    waiting_count: number;
+                };
+                export type InboxWaitingCountData = {
+                    count: number;
+                };
+            }
             namespace Notification {
                 export type NotificationFeedResourceData = {
                     notifications: Domain.Notification.Data.UserNotificationData[];

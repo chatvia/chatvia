@@ -3342,7 +3342,9 @@
             "teams": "团队",
             "documentation": "文档",
             "api": "API",
-            "nav_menu_sr": "导航菜单"
+            "nav_menu_sr": "导航菜单",
+            "inbox": "收件箱",
+            "inbox_waiting": "{count} 个对话在等待人工 | {count} 个对话在等待人工"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "推理过程",
         "show": "显示推理过程",
         "hide": "隐藏推理过程"
+    },
+    "inbox": {
+        "title": "收件箱",
+        "refresh": "刷新",
+        "search_placeholder": "按姓名、邮箱或智能体搜索",
+        "filters": {
+            "all": "全部",
+            "waiting": "等待中",
+            "mine": "我的"
+        },
+        "anonymous_visitor": "访客",
+        "no_messages": "还没有消息",
+        "last_message_you": "你：{message}",
+        "load_failed": "无法加载收件箱，请稍后再试。",
+        "online": "在线",
+        "offline": "离线",
+        "empty": {
+            "all": "现在没有人在聊天",
+            "all_hint": "与你的智能体聊天的人在线时会显示在这里。",
+            "waiting": "没有人在等待人工",
+            "mine": "你没有参与任何对话",
+            "no_match": "没有符合搜索的对话"
+        },
+        "status": {
+            "waiting": "等待中",
+            "mine": "你",
+            "held_by": "由 {name} 处理"
+        },
+        "thread": {
+            "pick_title": "选择一个对话",
+            "pick_hint": "从列表中选择一个人，即可阅读对话并回复。",
+            "back": "返回列表",
+            "give_back": "交还给 AI",
+            "open_in_chat_log": "在对话日志中打开",
+            "held_by_other": "{name} 正在回复这个对话。",
+            "a_colleague": "一位同事",
+            "widget_only": "实时回复只在聊天小组件中可用。这个对话来自 {surface}。",
+            "cannot_join": "你可以阅读这个对话，但不能加入。这个智能体的实时聊天已关闭，或你的角色不能接管对话。",
+            "status_you": "你正在回复",
+            "status_ai": "AI 正在回复",
+            "load_earlier": "显示更早的消息",
+            "send_takes_over": "发送后，你会从 AI 手中接管这个对话。",
+            "send_takes_over_offline": "这个人似乎已离线。发送后你会接管对话，对方回来时会看到你的回复。",
+            "reply_placeholder": "回复 {name}…"
+        }
     }
 }

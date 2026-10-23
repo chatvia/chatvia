@@ -1,0 +1,53 @@
+{
+    "app": {
+        "header": {
+            "inbox": "受信箱",
+            "inbox_waiting": "{count} 件のチャットが担当者を待っています | {count} 件のチャットが担当者を待っています"
+        }
+    },
+    "inbox": {
+        "title": "受信箱",
+        "refresh": "更新",
+        "search_placeholder": "名前、メール、エージェントで検索",
+        "filters": {
+            "all": "すべて",
+            "waiting": "待機中",
+            "mine": "自分"
+        },
+        "anonymous_visitor": "訪問者",
+        "no_messages": "まだメッセージはありません",
+        "last_message_you": "あなた: {message}",
+        "load_failed": "受信箱を読み込めませんでした。少し待ってからもう一度お試しください。",
+        "online": "オンライン",
+        "offline": "オフライン",
+        "empty": {
+            "all": "今チャットしている人はいません",
+            "all_hint": "エージェントとチャットしている人は、オンラインの間ここに表示されます。",
+            "waiting": "担当者を待っている人はいません",
+            "mine": "参加中のチャットはありません",
+            "no_match": "検索に一致するチャットはありません"
+        },
+        "status": {
+            "waiting": "待機中",
+            "mine": "あなた",
+            "held_by": "{name} が対応中"
+        },
+        "thread": {
+            "pick_title": "チャットを選んでください",
+            "pick_hint": "リストから相手を選ぶと、チャットを読んで返信できます。",
+            "back": "リストに戻る",
+            "give_back": "AI に戻す",
+            "open_in_chat_log": "チャットログで開く",
+            "held_by_other": "{name} がこのチャットで返信しています。",
+            "a_colleague": "同僚",
+            "widget_only": "ライブ返信はチャットウィジェットでのみ使えます。このチャットは {surface} です。",
+            "cannot_join": "このチャットは読めますが参加できません。このエージェントのライブチャットがオフか、あなたのロールにチャットを引き継ぐ権限がありません。",
+            "status_you": "あなたが返信中",
+            "status_ai": "AI が返信中",
+            "load_earlier": "以前のメッセージを表示",
+            "send_takes_over": "送信すると、このチャットを AI から引き継ぎます。",
+            "send_takes_over_offline": "この人はオフラインのようです。送信するとチャットを引き継ぎ、相手は戻ったときに返信を見られます。",
+            "reply_placeholder": "{name} に返信…"
+        }
+    }
+}

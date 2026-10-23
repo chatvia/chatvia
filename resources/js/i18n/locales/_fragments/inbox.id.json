@@ -1,0 +1,53 @@
+{
+    "app": {
+        "header": {
+            "inbox": "Kotak masuk",
+            "inbox_waiting": "{count} obrolan menunggu seseorang | {count} obrolan menunggu seseorang"
+        }
+    },
+    "inbox": {
+        "title": "Kotak masuk",
+        "refresh": "Muat ulang",
+        "search_placeholder": "Cari berdasarkan nama, email, atau agen",
+        "filters": {
+            "all": "Semua",
+            "waiting": "Menunggu",
+            "mine": "Milik saya"
+        },
+        "anonymous_visitor": "Pengunjung",
+        "no_messages": "Belum ada pesan",
+        "last_message_you": "Anda: {message}",
+        "load_failed": "Kotak masuk tidak dapat dimuat. Coba lagi sebentar lagi.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Tidak ada yang mengobrol sekarang",
+            "all_hint": "Orang yang mengobrol dengan agen Anda muncul di sini selama mereka online.",
+            "waiting": "Tidak ada yang menunggu seseorang",
+            "mine": "Anda tidak sedang dalam obrolan",
+            "no_match": "Tidak ada obrolan yang cocok dengan pencarian Anda"
+        },
+        "status": {
+            "waiting": "Menunggu",
+            "mine": "Anda",
+            "held_by": "Dengan {name}"
+        },
+        "thread": {
+            "pick_title": "Pilih obrolan",
+            "pick_hint": "Pilih seseorang di daftar untuk membaca obrolan dan membalas.",
+            "back": "Kembali ke daftar",
+            "give_back": "Kembalikan ke AI",
+            "open_in_chat_log": "Buka di log obrolan",
+            "held_by_other": "{name} sedang membalas di obrolan ini.",
+            "a_colleague": "Seorang rekan",
+            "widget_only": "Balasan langsung hanya berfungsi di widget obrolan. Obrolan ini ada di {surface}.",
+            "cannot_join": "Anda bisa membaca obrolan ini, tetapi tidak bisa bergabung. Obrolan langsung dimatikan untuk agen ini, atau peran Anda tidak bisa mengambil alih obrolan.",
+            "status_you": "Anda sedang membalas",
+            "status_ai": "AI sedang membalas",
+            "load_earlier": "Tampilkan pesan sebelumnya",
+            "send_takes_over": "Saat mengirim, Anda mengambil alih obrolan ini dari AI.",
+            "send_takes_over_offline": "Orang ini tampaknya offline. Jika mengirim, Anda mengambil alih obrolan dan mereka akan melihat balasan Anda saat kembali.",
+            "reply_placeholder": "Balas {name}…"
+        }
+    }
+}

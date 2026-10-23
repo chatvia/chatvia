@@ -163,6 +163,21 @@ theme.
 - Notifications are kept 7 days and deleted every night. Admins can change
   the number of days in **Settings → Workspaces → Notifications**.
 
+### Inbox
+
+- **A new Inbox link in the dashboard header** lists everyone chatting with
+  the workspace's agents right now, across all agents: who is online, who is
+  waiting for a person (first in the list, with a red badge on the link),
+  and the chats you are in. It refreshes on its own.
+- Open a chat to read it and reply. Sending takes the chat over from the AI;
+  **Give back to AI** hands it back. Typing, read marks and new messages
+  show live.
+- Live replies work in the Chat Widget only. Chats on other surfaces open
+  read-only, with a note. A chat a colleague is in shows their name, and the
+  reply box stays locked.
+- The Inbox follows the Chat Log permissions: people see the agents whose
+  chats they may view, and reply where they may take over.
+
 ### Voice conversations
 
 - **Visitors can talk with an agent out loud** in the hosted chat and the chat

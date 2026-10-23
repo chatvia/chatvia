@@ -3342,7 +3342,9 @@
             "teams": "Team",
             "documentation": "Dokumentasjon",
             "api": "API",
-            "nav_menu_sr": "Navigasjonsmeny"
+            "nav_menu_sr": "Navigasjonsmeny",
+            "inbox": "Innboks",
+            "inbox_waiting": "{count} chat venter på en person | {count} chatter venter på en person"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Resonnering",
         "show": "Vis resonnering",
         "hide": "Skjul resonnering"
+    },
+    "inbox": {
+        "title": "Innboks",
+        "refresh": "Oppdater",
+        "search_placeholder": "Søk etter navn, e-post eller agent",
+        "filters": {
+            "all": "Alle",
+            "waiting": "Venter",
+            "mine": "Mine"
+        },
+        "anonymous_visitor": "Besøkende",
+        "no_messages": "Ingen meldinger ennå",
+        "last_message_you": "Du: {message}",
+        "load_failed": "Kunne ikke laste innboksen. Prøv igjen om litt.",
+        "online": "På nett",
+        "offline": "Frakoblet",
+        "empty": {
+            "all": "Ingen chatter akkurat nå",
+            "all_hint": "Folk som chatter med agentene dine, vises her mens de er på nett.",
+            "waiting": "Ingen venter på en person",
+            "mine": "Du er ikke i noen chat",
+            "no_match": "Ingen chatter passer til søket"
+        },
+        "status": {
+            "waiting": "Venter",
+            "mine": "Du",
+            "held_by": "Hos {name}"
+        },
+        "thread": {
+            "pick_title": "Velg en chat",
+            "pick_hint": "Velg en person i listen for å lese chatten og svare.",
+            "back": "Tilbake til listen",
+            "give_back": "Gi tilbake til AI",
+            "open_in_chat_log": "Åpne i chatloggen",
+            "held_by_other": "{name} svarer i denne chatten.",
+            "a_colleague": "En kollega",
+            "widget_only": "Direktesvar fungerer bare i chat-widgeten. Denne chatten er på {surface}.",
+            "cannot_join": "Du kan lese denne chatten, men ikke bli med. Direktechat er slått av for denne agenten, eller rollen din kan ikke ta over chatter.",
+            "status_you": "Du svarer",
+            "status_ai": "AI svarer",
+            "load_earlier": "Vis tidligere meldinger",
+            "send_takes_over": "Når du sender, tar du over chatten fra AI.",
+            "send_takes_over_offline": "Denne personen ser ut til å være frakoblet. Hvis du sender, tar du over chatten, og de ser svaret når de kommer tilbake.",
+            "reply_placeholder": "Svar {name}…"
+        }
     }
 }

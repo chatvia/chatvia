@@ -1,0 +1,53 @@
+{
+    "app": {
+        "header": {
+            "inbox": "Caixa de entrada",
+            "inbox_waiting": "{count} conversa aguarda uma pessoa | {count} conversas aguardam uma pessoa"
+        }
+    },
+    "inbox": {
+        "title": "Caixa de entrada",
+        "refresh": "Atualizar",
+        "search_placeholder": "Pesquisar por nome, e-mail ou agente",
+        "filters": {
+            "all": "Todas",
+            "waiting": "Aguardando",
+            "mine": "Minhas"
+        },
+        "anonymous_visitor": "Visitante",
+        "no_messages": "Ainda não há mensagens",
+        "last_message_you": "Você: {message}",
+        "load_failed": "Não foi possível carregar a caixa de entrada. Tente novamente em instantes.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Ninguém está conversando agora",
+            "all_hint": "Quem conversa com seus agentes aparece aqui enquanto está online.",
+            "waiting": "Ninguém está aguardando uma pessoa",
+            "mine": "Você não está em nenhuma conversa",
+            "no_match": "Nenhuma conversa corresponde à sua pesquisa"
+        },
+        "status": {
+            "waiting": "Aguardando",
+            "mine": "Você",
+            "held_by": "Com {name}"
+        },
+        "thread": {
+            "pick_title": "Escolha uma conversa",
+            "pick_hint": "Escolha alguém da lista para ler a conversa e responder.",
+            "back": "Voltar para a lista",
+            "give_back": "Devolver para a IA",
+            "open_in_chat_log": "Abrir no registro de conversas",
+            "held_by_other": "{name} está respondendo nesta conversa.",
+            "a_colleague": "Um colega",
+            "widget_only": "Respostas ao vivo funcionam apenas no widget de chat. Esta conversa está em {surface}.",
+            "cannot_join": "Você pode ler esta conversa, mas não pode entrar nela. O chat ao vivo está desligado para este agente ou sua função não pode assumir conversas.",
+            "status_you": "Você está respondendo",
+            "status_ai": "A IA está respondendo",
+            "load_earlier": "Mostrar mensagens anteriores",
+            "send_takes_over": "Ao enviar, você assume esta conversa no lugar da IA.",
+            "send_takes_over_offline": "Esta pessoa parece offline. Se você enviar, assume a conversa e ela verá sua resposta quando voltar.",
+            "reply_placeholder": "Responder a {name}…"
+        }
+    }
+}

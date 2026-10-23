@@ -3342,7 +3342,9 @@
             "teams": "Ekipler",
             "documentation": "Belgeler",
             "api": "API",
-            "nav_menu_sr": "Gezinme Menüsü"
+            "nav_menu_sr": "Gezinme Menüsü",
+            "inbox": "Gelen kutusu",
+            "inbox_waiting": "{count} sohbet bir kişiyi bekliyor | {count} sohbet bir kişiyi bekliyor"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Akıl yürütme",
         "show": "Akıl yürütmeyi göster",
         "hide": "Akıl yürütmeyi gizle"
+    },
+    "inbox": {
+        "title": "Gelen kutusu",
+        "refresh": "Yenile",
+        "search_placeholder": "Ad, e-posta veya ajana göre ara",
+        "filters": {
+            "all": "Tümü",
+            "waiting": "Bekleyen",
+            "mine": "Benim"
+        },
+        "anonymous_visitor": "Ziyaretçi",
+        "no_messages": "Henüz mesaj yok",
+        "last_message_you": "Siz: {message}",
+        "load_failed": "Gelen kutusu yüklenemedi. Biraz sonra tekrar deneyin.",
+        "online": "Çevrimiçi",
+        "offline": "Çevrimdışı",
+        "empty": {
+            "all": "Şu anda kimse sohbet etmiyor",
+            "all_hint": "Ajanlarınızla sohbet eden kişiler çevrimiçi oldukları sürece burada görünür.",
+            "waiting": "Bir kişiyi bekleyen yok",
+            "mine": "Hiçbir sohbette değilsiniz",
+            "no_match": "Aramanızla eşleşen sohbet yok"
+        },
+        "status": {
+            "waiting": "Bekliyor",
+            "mine": "Siz",
+            "held_by": "{name} ile"
+        },
+        "thread": {
+            "pick_title": "Bir sohbet seçin",
+            "pick_hint": "Sohbeti okumak ve yanıtlamak için listeden birini seçin.",
+            "back": "Listeye dön",
+            "give_back": "Yapay zekâya geri ver",
+            "open_in_chat_log": "Sohbet kaydında aç",
+            "held_by_other": "{name} bu sohbette yanıtlıyor.",
+            "a_colleague": "Bir ekip arkadaşı",
+            "widget_only": "Canlı yanıtlar yalnızca sohbet widget'ında çalışır. Bu sohbet {surface} üzerinde.",
+            "cannot_join": "Bu sohbeti okuyabilirsiniz ama katılamazsınız. Bu ajan için canlı sohbet kapalı ya da rolünüz sohbet devralamaz.",
+            "status_you": "Siz yanıtlıyorsunuz",
+            "status_ai": "Yapay zekâ yanıtlıyor",
+            "load_earlier": "Önceki mesajları göster",
+            "send_takes_over": "Gönderdiğinizde bu sohbeti yapay zekâdan devralırsınız.",
+            "send_takes_over_offline": "Bu kişi çevrimdışı görünüyor. Gönderirseniz sohbeti devralırsınız ve kişi döndüğünde yanıtınızı görür.",
+            "reply_placeholder": "{name} kişisine yanıt…"
+        }
     }
 }

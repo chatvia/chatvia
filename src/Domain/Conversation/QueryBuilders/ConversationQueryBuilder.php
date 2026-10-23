@@ -5,6 +5,7 @@ namespace Domain\Conversation\QueryBuilders;
 use DateTimeImmutable;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Enums\ConfidenceBand;
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -215,6 +216,27 @@ class ConversationQueryBuilder extends Builder
     {
         return $this->when($onlineOnly, function ($query): void {
             $query->where('last_activity_at', '>=', now()->subMinutes(self::ONLINE_WINDOW_MINUTES));
+        });
+    }
+
+    /**
+     * What the Inbox lists: the visitor was active inside the online window,
+     * the chat waits for a human (asked within the waiting window, so a
+     * request nobody answered does not stay forever), or this operator holds it.
+     *
+     * @return self<TModel>
+     */
+    public function inInboxOf(int $operatorId, int $waitingWindowHours): self
+    {
+        return $this->where(function ($query) use ($operatorId, $waitingWindowHours): void {
+            $query->where('last_activity_at', '>=', now()->subMinutes(self::ONLINE_WINDOW_MINUTES))
+                ->orWhere(function ($waiting) use ($waitingWindowHours): void {
+                    $waiting->where('handoff_status', HandoffStatus::Pending)
+                        ->where('last_activity_at', '>=', now()->subHours($waitingWindowHours));
+                })
+                ->orWhere(function ($held) use ($operatorId): void {
+                    $held->where('handoff_status', HandoffStatus::Human)->where('handoff_user_id', $operatorId);
+                });
         });
     }
 

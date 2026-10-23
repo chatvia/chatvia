@@ -25,6 +25,7 @@ return new class extends SettingsMigration
             $group->addEncrypted('gemini_api_key');
             $group->add('gemini_api_endpoint');
             $group->addEncrypted('groq_api_key');
+            $group->addEncrypted('anthropic_api_key');
             $group->addEncrypted('cohere_api_key');
             $group->add('cohere_api_endpoint');
             $group->addEncrypted('jina_api_key');

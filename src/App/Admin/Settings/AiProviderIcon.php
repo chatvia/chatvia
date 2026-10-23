@@ -23,6 +23,7 @@ final class AiProviderIcon
             AiProvider::Mistral => 'images/llms/mistral.svg',
             AiProvider::Google => 'images/llms/gemini.svg',
             AiProvider::Groq => 'images/llms/groq.svg',
+            AiProvider::Anthropic => 'images/llms/claude.svg',
             AiProvider::Cohere => 'images/llms/cohere.svg',
             AiProvider::Jina => 'images/llms/jina.svg',
             AiProvider::Voyage => 'images/llms/voyage.svg',

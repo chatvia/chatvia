@@ -2,6 +2,7 @@
 
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Providers\Anthropic;
 use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Providers\OpenAi;
 use Domain\Llm\Providers\OpenAiCompatible;
@@ -147,6 +148,7 @@ it('turns the reasoning effort into each provider\'s own field', function (strin
     'scaleway as given' => [Scaleway::class, 'qwen3.6-35b-a3b', 'none', ['reasoning_effort' => 'none'], []],
     'compatible as given' => [OpenAiCompatible::class, 'qwen3-8b', 'low', ['reasoning_effort' => 'low'], []],
     'mistral has none' => [Mistral::class, 'magistral-medium', 'high', [], ['reasoning_effort']],
+    'anthropic adaptive thinking' => [Anthropic::class, 'claude-sonnet-5-5', 'medium', ['output_config' => ['effort' => 'medium'], 'thinking' => ['type' => 'adaptive', 'display' => 'omitted']], ['reasoning_effort']],
 ]);
 
 /**
@@ -165,7 +167,7 @@ function hookOpenAiStream(?string $effort, array $responses = [], bool $show = f
     $settings = ['top_k' => 40, 'max_tokens' => 100]
         + ($effort !== null ? ['reasoning_effort' => $effort] : [])
         + ($show ? ['show_reasoning' => true] : []);
-    (string) hookClient(OpenAi::class)->stream('gpt-6.1-sol', [['role' => 'user', 'content' => 'hi']], $settings)->getBody();
+    hookClient(OpenAi::class)->stream('gpt-6.1-sol', [['role' => 'user', 'content' => 'hi']], $settings)->getBody();
 
     return $history;
 }

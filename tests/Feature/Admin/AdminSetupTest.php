@@ -252,7 +252,7 @@ it('starts on OpenRouter, lists the providers by name, and says what each provid
     setupPage($this->admin)
         ->assertWizardCurrentStep(2)
         ->assertFormSet(['provider' => 'openrouter', 'embedding_provider' => 'openrouter'])
-        ->assertSeeInOrder(['Google Gemini', 'Groq', 'Mistral', 'OpenAI', 'OpenRouter', 'Scaleway AI', 'Your own server'])
+        ->assertSeeInOrder(['Anthropic', 'Google Gemini', 'Groq', 'Mistral', 'OpenAI', 'OpenRouter', 'Scaleway AI', 'Your own server'])
         ->assertSee(['Open models hosted in Europe.', 'Your own server'])
         ->assertSeeHtml(['<span class="cv-chip">speech to text</span>', '<span class="cv-chip">reranking</span>', 'images/llms/gpt.svg'])
         // Embeddings are picked in the Models step, on the provider's own.

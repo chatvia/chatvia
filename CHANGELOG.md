@@ -33,8 +33,8 @@ theme.
 ### Admin panel: simpler AI setup and Settings
 
 - **Each AI key is entered once**, on a new **Settings → AI providers** page:
-  Scaleway AI, OpenRouter, OpenAI, Mistral, Google Gemini, Groq, Cohere,
-  Jina, Voyage AI and Azure Document Intelligence, plus servers of your own
+  Scaleway AI, OpenRouter, OpenAI, Anthropic, Mistral, Google Gemini, Groq,
+  Cohere, Jina, Voyage AI and Azure Document Intelligence, plus servers of your own
   (OpenAI-compatible). Each provider shows what it does here (chat,
   embeddings, speech to text, documents, reranking), with what it is used for
   marked. A key is checked before it is saved. Before, a chat key was saved
@@ -213,6 +213,11 @@ theme.
   and, for reasoning models, any temperature or top-p but the default; the
   app now sends what each model takes. Chats with OpenAI models now use
   OpenAI's Responses API.
+- **Anthropic is a new AI provider**: the Claude models, with one key.
+  Chats use Anthropic's own API, so tools, the thinking (shown when the
+  agent shows it) and prompt caching all work; a repeated system prompt and
+  tool list cost less on later turns. Anthropic makes no embeddings: you
+  need a second provider for them.
 - **Each model's details come from models.dev**, an open list of AI models:
   whether it reasons, how hard it can think, whether it takes a
   temperature, whether it can use tools and follow a JSON schema, and the

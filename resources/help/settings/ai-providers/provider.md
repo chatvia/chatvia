@@ -8,6 +8,6 @@ After you add a key:
 - Add the provider's chat models in **Settings → AI models**.
 - To use its other services (embeddings, reranking, documents, speech to text, voice), choose it in **Settings → AI models**. There, each list marks the providers that are connected.
 
-**Tip:** One provider is enough to start. Scaleway AI, OpenRouter, OpenAI, Mistral and Google Gemini also make embeddings; with Groq you need a second provider for them.
+**Tip:** One provider is enough to start. Scaleway AI, OpenRouter, OpenAI, Mistral and Google Gemini also make embeddings; with Groq or Anthropic you need a second provider for them.
 
 **Azure Document Intelligence:** use the standard tier (S0). The free tier (F0) reads only the first 2 pages of each file, and files up to 4 MB; the connection check warns when it sees one.

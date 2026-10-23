@@ -5,6 +5,7 @@ use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Providers\Anthropic;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Providers\OpenAi;
@@ -39,10 +40,9 @@ function padListedModels(LlmProviderKind $kind, array $rows): array
     return padAdapter($kind)->models(LlmProvider::factory()->kind($kind)->make())->keyBy('id')->all();
 }
 
-it('has an adapter for every kind but Anthropic, in picker order', function (): void {
+it('has an adapter for every kind, in picker order', function (): void {
     expect(array_map(fn (ProviderAdapter $adapter): string => $adapter->kind()->value, app(ProviderAdapters::class)->all()))
-        ->toBe(['openrouter', 'openai', 'google', 'mistral', 'groq', 'scaleway', 'custom'])
-        ->and(app(ProviderAdapters::class)->has(LlmProviderKind::Anthropic))->toBeFalse();
+        ->toBe(['openrouter', 'openai', 'anthropic', 'google', 'mistral', 'groq', 'scaleway', 'custom']);
 });
 
 it('builds each kind\'s chat client at its own or default address', function (LlmProviderKind $kind, string $client, string $address): void {
@@ -53,6 +53,7 @@ it('builds each kind\'s chat client at its own or default address', function (Ll
 })->with([
     [LlmProviderKind::OpenRouter, OpenRouter::class, 'https://openrouter.ai/api/v1'],
     [LlmProviderKind::OpenAi, OpenAi::class, 'https://api.openai.com/v1'],
+    [LlmProviderKind::Anthropic, Anthropic::class, 'https://api.anthropic.com/v1'],
     [LlmProviderKind::Google, OpenAiCompatible::class, 'https://generativelanguage.googleapis.com/v1beta/openai'],
     [LlmProviderKind::Groq, OpenAiCompatible::class, 'https://api.groq.com/openai/v1'],
     [LlmProviderKind::Mistral, Mistral::class, 'https://api.mistral.ai/v1'],
@@ -102,6 +103,27 @@ it('fills in what Scaleway\'s bare list leaves out, and drops its non-chat model
     expect(array_keys($models))->toBe(['a-model-scaleway-added-later', 'mistral-small-3.2-24b-instruct-2506'])
         ->and($models['mistral-small-3.2-24b-instruct-2506']->features)->toBe(['vision' => true, 'function_calling' => true])
         ->and($models['a-model-scaleway-added-later']->features)->toBe([]);
+});
+
+it('lists every Anthropic model on one page, by its display name, with its key header', function (): void {
+    config(['services.anthropic.api_key' => 'anthropic-key']);
+
+    $models = padListedModels(LlmProviderKind::Anthropic, [
+        ['type' => 'model', 'id' => 'claude-sonnet-5-5', 'display_name' => 'Claude Sonnet 5.5', 'created_at' => '2026-09-01T00:00:00Z'],
+        ['type' => 'model', 'id' => 'claude-haiku-5-5', 'display_name' => 'Claude Haiku 5.5'],
+    ]);
+
+    expect(array_keys($models))->toBe(['claude-haiku-5-5', 'claude-sonnet-5-5'])
+        ->and($models['claude-sonnet-5-5'])->toEqual(new RemoteModelData(
+            id: 'claude-sonnet-5-5',
+            name: 'Claude Sonnet 5.5',
+            features: ['vision' => true, 'function_calling' => true],
+        ));
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.anthropic.com/v1/models?limit=1000'
+        && $request->header('x-api-key') === ['anthropic-key']
+        && $request->header('anthropic-version') === ['2023-06-01']
+        && ! $request->hasHeader('Authorization'));
 });
 
 it('lists a Scaleway project at its own address', function (): void {

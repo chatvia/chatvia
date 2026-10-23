@@ -25,6 +25,7 @@ enum AiProvider: string
     case Mistral = 'mistral';
     case Google = 'google';
     case Groq = 'groq';
+    case Anthropic = 'anthropic';
     case Cohere = 'cohere';
     case Jina = 'jina';
     case Voyage = 'voyage';
@@ -42,6 +43,7 @@ enum AiProvider: string
             self::Mistral => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Documents],
             self::Google => [AiCapability::Chat, AiCapability::Embeddings],
             self::Groq => [AiCapability::Chat],
+            self::Anthropic => [AiCapability::Chat],
             self::Cohere => [AiCapability::Embeddings, AiCapability::Reranking],
             self::Jina => [AiCapability::Embeddings],
             self::Voyage => [AiCapability::Embeddings],
@@ -63,6 +65,7 @@ enum AiProvider: string
             self::Mistral => 'Mistral',
             self::Google => 'Google Gemini',
             self::Groq => 'Groq',
+            self::Anthropic => 'Anthropic',
             self::Cohere => 'Cohere',
             self::Jina => 'Jina',
             self::Voyage => 'Voyage AI',
@@ -80,6 +83,7 @@ enum AiProvider: string
             self::Mistral => 'Mistral\'s models, and reading of documents and PDFs.',
             self::Google => 'The Gemini models.',
             self::Groq => 'Open models with very fast answers.',
+            self::Anthropic => 'The Claude models.',
             self::Cohere => 'Embeddings and reranking.',
             self::Jina => 'Embeddings.',
             self::Voyage => 'Embeddings made for search.',
@@ -97,6 +101,7 @@ enum AiProvider: string
             self::Mistral => 'services.mistral.api_key',
             self::Google => 'services.gemini.api_key',
             self::Groq => 'services.groq.api_key',
+            self::Anthropic => 'services.anthropic.api_key',
             self::Cohere => 'services.cohere.api_key',
             self::Jina => 'services.jina.api_key',
             self::Voyage => 'services.voyage.api_key',
@@ -116,7 +121,7 @@ enum AiProvider: string
             self::Jina => 'services.jina.api_endpoint',
             self::Voyage => 'services.voyage.api_endpoint',
             self::Azure => 'services.azure_document_intelligence.endpoint',
-            self::OpenRouter, self::Groq => null,
+            self::OpenRouter, self::Groq, self::Anthropic => null,
         };
     }
 
@@ -130,6 +135,7 @@ enum AiProvider: string
             self::Mistral => 'https://console.mistral.ai/api-keys',
             self::Google => 'https://aistudio.google.com/apikey',
             self::Groq => 'https://console.groq.com/keys',
+            self::Anthropic => 'https://console.anthropic.com/settings/keys',
             self::Cohere => 'https://dashboard.cohere.com/api-keys',
             self::Jina => 'https://jina.ai/api-dashboard/key-manager',
             self::Voyage => 'https://dashboard.voyageai.com/organization/api-keys',
@@ -147,6 +153,7 @@ enum AiProvider: string
             self::Mistral => LlmProviderKind::Mistral,
             self::Google => LlmProviderKind::Google,
             self::Groq => LlmProviderKind::Groq,
+            self::Anthropic => LlmProviderKind::Anthropic,
             self::Cohere, self::Jina, self::Voyage, self::Azure => null,
         };
     }
@@ -161,7 +168,7 @@ enum AiProvider: string
     public function isConnected(): bool
     {
         return filled(config($this->apiKeyConfig()))
-            && (! $this->needsBaseUrl() || filled(config((string) $this->baseUrlConfig())));
+            && (! $this->needsBaseUrl() || filled(config($this->baseUrlConfig() ?? '')));
     }
 
     /** Whether the admin must give its address: each Azure resource has its own. */
@@ -210,6 +217,7 @@ enum AiProvider: string
             self::Mistral => [['mistral-large-2512', 'ministral-14b-2512']],
             self::Google => [['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']],
             self::Groq => [['openai/gpt-oss-120b', 'llama-3.3-70b-versatile']],
+            self::Anthropic => [['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6']],
             self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
@@ -231,6 +239,7 @@ enum AiProvider: string
             self::Mistral => ['ministral-8b-2512', 'ministral-8b-latest'],
             self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['openai/gpt-oss-20b'],
+            self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
             self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
@@ -252,6 +261,7 @@ enum AiProvider: string
             self::Mistral => ['ministral-14b-2512', 'mistral-large-2512'],
             self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'],
             self::Groq => ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct'],
+            self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
             self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }

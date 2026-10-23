@@ -66,9 +66,7 @@ class LlmProvider extends Model
      */
     public function isConnected(): bool
     {
-        $adapters = app(ProviderAdapters::class);
-
-        return $adapters->has($this->kind) && $adapters->for($this->kind)->isConnected($this);
+        return app(ProviderAdapters::class)->for($this->kind)->isConnected($this);
     }
 
     /**

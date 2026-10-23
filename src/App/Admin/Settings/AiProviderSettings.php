@@ -45,6 +45,9 @@ class AiProviderSettings extends AdminSettings
     #[ConfigKey('services.groq.api_key'), ShouldBeEncrypted]
     public ?string $groq_api_key = null;
 
+    #[ConfigKey('services.anthropic.api_key'), ShouldBeEncrypted]
+    public ?string $anthropic_api_key = null;
+
     #[ConfigKey('services.cohere.api_key'), ShouldBeEncrypted]
     public ?string $cohere_api_key = null;
 

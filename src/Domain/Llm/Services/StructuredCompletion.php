@@ -10,8 +10,9 @@ use GuzzleHttp\Promise\PromiseInterface;
 
 /**
  * Sends a chat completion whose reply should be JSON and decodes it with
- * {@see LlmJson}. Use it with a `responseSchema` on the request when the
- * provider supports one, or with a prompt that asks for JSON when it does not.
+ * {@see LlmJson}. Use it with a `responseSchema` on the request: a model the
+ * provider cannot hold to the schema is asked for it in the prompt instead
+ * ({@see ChatRequestData::toPayload()}).
  * The decoded value is null when the reply held no JSON; callers that need it
  * use {@see StructuredReplyData::requireData()}.
  */
@@ -28,7 +29,7 @@ final readonly class StructuredCompletion
 
     public function send(ChatRequestData $request): StructuredReplyData
     {
-        return self::decoded($this->chat->send($request));
+        return $this->decoded($this->chat->send($request));
     }
 
     /**
@@ -38,10 +39,10 @@ final readonly class StructuredCompletion
      */
     public function sendAsync(ChatRequestData $request): PromiseInterface
     {
-        return $this->chat->sendAsync($request)->then(self::decoded(...));
+        return $this->chat->sendAsync($request)->then($this->decoded(...));
     }
 
-    private static function decoded(ChatResponseData $response): StructuredReplyData
+    private function decoded(ChatResponseData $response): StructuredReplyData
     {
         return new StructuredReplyData(
             data: LlmJson::decode($response->content),

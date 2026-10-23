@@ -39,13 +39,18 @@ final readonly class DocumentLlm
 
     /**
      * A model of this provider by its name (`chatvia.ai.models.summary`, ...),
-     * for a request. It is not a catalog row.
+     * for a request. It is not a catalog row, but carries what models.dev
+     * says it takes, so a request to it is fitted as one to a catalog model
+     * ({@see Llm::requestSettings()}).
      *
      * @throws DocumentLlmUnavailableException
      */
     public function model(string $name): Llm
     {
-        return new Llm(['name' => $name])->setRelation('provider', $this->connection());
+        $connection = $this->connection();
+
+        return new Llm(['name' => $name, 'capabilities' => app(ModelsDevCatalog::class)->storedEntry($connection->kind, $name)])
+            ->setRelation('provider', $connection);
     }
 
     /**

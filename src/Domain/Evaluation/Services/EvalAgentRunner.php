@@ -126,11 +126,12 @@ class EvalAgentRunner
         $context = $this->chatService->enrichContextWithKnowledge($context);
         $llmMessages = $this->chatService->prepareLlmMessages($context);
 
-        $toolDefinitions = $this->toolSelector->selectForTurn(
+        // A model that cannot call tools answers without them, as in a chat.
+        $toolDefinitions = $model->callsTools() ? $this->toolSelector->selectForTurn(
             $agent,
             $context->payload->message,
             $context->requestData->conversationId,
-        );
+        ) : [];
 
         iterator_to_array(
             $this->runner->run(

@@ -10,6 +10,7 @@ use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Services\TikToken;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -22,6 +23,10 @@ use Illuminate\Support\Str;
  * so each chunk row is written once. `chunk_index` is the page number and is
  * only set here. Two jobs storing the same page at once are absorbed by the
  * unique (chunkable, checksum) index.
+ *
+ * A page held without its enhancement while the source asks for one is the
+ * exception: a chunk job that failed every try stores its pages plain, so a
+ * later run enhances those pages and updates their rows.
  */
 class CreateSourceChunksAction
 {
@@ -35,38 +40,51 @@ class CreateSourceChunksAction
      */
     public function execute(ChunkPagesData $data): Collection
     {
-        $pages = $this->newPages($data);
+        $pages = collect($data->group->pages)->unique(fn (PageData $page): string => $page->checksum);
+
+        // checksum => whether the stored row has its enhancement
+        $stored = Chunk::query()
+            ->ofSource($data->source)
+            ->whereIn('checksum', $pages->pluck('checksum')->all())
+            ->pluck('is_enhanced', 'checksum');
+
+        $pages = $pages->reject(fn (PageData $page): bool => $stored->has($page->checksum)
+            && ($stored[$page->checksum] || $data->enhancement === ChunkEnhancement::Off))->all();
 
         if ($pages === []) {
             return collect();
         }
 
         $enhanced = $this->enhancements($data, $pages);
-        $rows = $this->rows($data, $pages, $enhanced);
+        [$plain, $new] = collect($this->rows($data, $pages, $enhanced))
+            ->partition(fn (array $row): bool => $stored->has($row['checksum']));
+
+        $plain->each($this->addEnhancement(...));
 
         return Chunk::query()
             ->toBase()
-            ->insertOrIgnoreReturning($rows, ['id', 'checksum'])
+            ->insertOrIgnoreReturning($new->values()->all(), ['id', 'checksum'])
             ->mapWithKeys(fn (object $row): array => [(string) $row->checksum => (int) $row->id]);
     }
 
     /**
-     * The group's pages the source does not hold yet, once per checksum, keyed
-     * by their position in the group.
+     * Write a page's enhancement onto the row that holds it plain. A row
+     * another job enhanced in the meantime is left as it is.
      *
-     * @return array<int, PageData>
+     * @param  array<string, mixed>  $row  an insert row from {@see rows()}
      */
-    private function newPages(ChunkPagesData $data): array
+    private function addEnhancement(array $row): void
     {
-        $pages = collect($data->group->pages)->unique(fn (PageData $page): string => $page->checksum);
-
-        $stored = Chunk::query()
-            ->ofSource($data->source)
-            ->whereIn('checksum', $pages->pluck('checksum')->all())
-            ->pluck('checksum')
-            ->flip();
-
-        return $pages->reject(fn (PageData $page): bool => $stored->has($page->checksum))->all();
+        Chunk::query()
+            ->toBase()
+            ->where('chunkable_type', $row['chunkable_type'])
+            ->where('chunkable_id', $row['chunkable_id'])
+            ->where('checksum', $row['checksum'])
+            ->where('is_enhanced', false)
+            ->update(Arr::only($row, [
+                'summary', 'is_enhanced', 'chunked_using_model', 'embedding', 'search_text',
+                'questions', 'questions_embedding', 'metadata', 'updated_at',
+            ]));
     }
 
     /**

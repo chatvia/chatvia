@@ -19,7 +19,8 @@ use Tests\Support\FakeEmbeddingsProvider;
 /**
  * Stores pages of a source as chunks: one embedding request and one insert
  * per group, pages the source already holds are skipped before anything is
- * paid for, and an enhanced page is written once, with its enhancement.
+ * paid for (unless held plain while enhancement is on), and an enhanced page
+ * is written once, with its enhancement.
  */
 function cscPage(int $number, string $content): PageData
 {
@@ -167,13 +168,59 @@ it('gives a document page its neighbours as context, and a text page none', func
         ->and($prompts[1])->not->toContain('Neighbour page about tides.');
 });
 
-it('does not enhance a page the source already holds', function (): void {
+it('does not enhance a page the source already holds enhanced', function (): void {
+    cscFakeChunker();
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Stored enhanced.')], ChunkEnhancement::Text));
+
+    $rerun = app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Stored enhanced.')], ChunkEnhancement::Text));
+
+    expect($rerun)->toBeEmpty();
+
+    Http::assertSentCount(1);
+});
+
+it('enhances a page the source holds plain, on its own row', function (): void {
+    cscFakeChunker();
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'The Pacific is the largest ocean.')]));
+    $plain = $file->chunks()->sole();
+
+    $embeddings = cscCountingEmbeddings();
+
+    $created = app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'The Pacific is the largest ocean.')], ChunkEnhancement::Text));
+
+    $chunk = $file->chunks()->sole();
+
+    expect($created)->toBeEmpty()
+        ->and($chunk->id)->toBe($plain->id)
+        ->and($chunk->external_id)->toBe($plain->external_id)
+        ->and($chunk->is_enhanced)->toBeTrue()
+        ->and($chunk->summary)->toBe('A page about oceans.')
+        ->and($chunk->questions)->toBe("Which ocean is largest?\nHow deep is it?")
+        ->and($chunk->questions_embedding)->not->toBeNull()
+        ->and($embeddings->texts)->toBe([
+            "A page about oceans.\n\nThe Pacific is the largest ocean.",
+            "Which ocean is largest?\nHow deep is it?",
+        ]);
+
+    Http::assertSentCount(1);
+});
+
+it('leaves a page held plain as it is while enhancement is off', function (): void {
     cscFakeChunker();
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Stored plain.')]));
 
-    app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Stored plain.')], ChunkEnhancement::Text));
+    $embeddings = cscCountingEmbeddings();
+
+    app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Stored plain.')]));
+
+    expect($embeddings->texts)->toBe([])
+        ->and($file->chunks()->sole()->is_enhanced)->toBeFalse();
 
     Http::assertNothingSent();
 });

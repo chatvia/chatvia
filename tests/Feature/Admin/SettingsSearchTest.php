@@ -6,7 +6,6 @@ use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Clusters\Settings\Pages\ManageSplittingSettings;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Clusters\Settings\SettingsSearch;
-use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Filament\GlobalSearch\GlobalSearchResult;
 use Livewire\Livewire;
@@ -17,7 +16,7 @@ use Livewire\Livewire;
  * panel's own search. A find opens its page on its section.
  */
 beforeEach(function (): void {
-    $this->actingAs(User::factory()->admin()->create()->fresh(), 'admin');
+    $this->actingAs(adminUser(), 'admin');
     Filament::setCurrentPanel('admin');
 });
 

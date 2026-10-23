@@ -1,7 +1,6 @@
 <?php
 
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Workspace\Enums\DataExportStatus;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
@@ -10,7 +9,6 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Form\Models\FormDefinition;
@@ -151,24 +149,8 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'topic' => isolationTopic($agent),
         'chatter' => Chatter::factory()->grantedTo($agent)->create(),
         'form' => FormDefinition::factory()->forAgent($agent)->create(),
-        'run' => EvalRun::create([
-            'agent_id' => $agent->id,
-            'agent_name' => $agent->name,
-            'workspace_id' => $agent->workspace_id,
-            'status' => EvalRunStatus::Completed,
-            'total_cases' => 0,
-            'started_at' => now(),
-        ]),
-        'case' => EvalCase::create([
-            'agent_id' => $agent->id,
-            'agent_name' => $agent->name,
-            'workspace_id' => $agent->workspace_id,
-            'name' => 'Refunds',
-            'input' => 'How long do refunds take?',
-            'scorer_type' => 'contains',
-            'scorer_config' => ['value' => '5 days'],
-            'is_active' => true,
-        ]),
+        'run' => EvalRun::factory()->forAgent($agent)->completed()->create(),
+        'case' => EvalCase::factory()->forAgent($agent)->create(),
         'team' => $team(),
         'role', 'roleId' => $team()->roles()->oldest('id')->firstOrFail(),
         'invitation', 'invitationId' => $team()->invitations()->create([
@@ -176,17 +158,9 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
             'role_id' => $team()->roles()->oldest('id')->value('id'),
         ]),
         'member' => User::factory()->employee($owner)->create(),
-        'export' => DataExport::query()->create(['user_id' => $owner->id, 'status' => DataExportStatus::Ready, 'download_token' => Str::random(40), 'expires_at' => now()->addDay()]),
+        'export' => DataExport::factory()->ready()->create(['user_id' => $owner->id]),
         'tokenId' => $owner->createToken('account')->accessToken,
-        'event' => GuardrailEvent::create([
-            'agent_id' => $agent->id,
-            'agent_name' => $agent->name,
-            'workspace_id' => $agent->workspace_id,
-            'visitor_key' => hash('sha256', 'isolation-visitor'),
-            'stage' => 'input',
-            'guard_type' => 'prompt_injection',
-            'outcome' => 'blocked',
-        ]),
+        'event' => GuardrailEvent::factory()->forAgent($agent)->create(),
         'blockedVisitor' => BlockedVisitor::factory()->create(['workspace_id' => $agent->workspace_id]),
         // One person's own notification: anyone else, even in the same workspace, gets a 404.
         'notification' => UserNotification::factory()->create(['user_id' => $owner->id]),
@@ -230,14 +204,7 @@ function isolationFile(Agent $agent): Model
 
 function isolationWebsite(Agent $agent): SourceWebsite
 {
-    $website = SourceWebsite::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'url' => 'https://docs.example.test/'.Str::lower(Str::random(6)),
-        'status' => 'ingested',
-    ]);
-    $agent->websites()->attach($website->id);
-
-    return $website;
+    return SourceWebsite::factory()->attachedTo($agent)->ingested()->create();
 }
 
 function isolationLink(SourceWebsite $website): AgentWebsiteUrl
@@ -247,29 +214,12 @@ function isolationLink(SourceWebsite $website): AgentWebsiteUrl
 
 function isolationText(Agent $agent): SourceText
 {
-    $text = SourceText::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'filepath' => $agent->storageRoot().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
-        'excerpt' => 'Our refund policy',
-        'length' => 17,
-        'checksum' => md5(Str::uuid()->toString()),
-    ]);
-    $agent->texts()->attach($text->id);
-
-    return $text;
+    return SourceText::factory()->attachedTo($agent)->create();
 }
 
 function isolationYoutubeVideo(Agent $agent): SourceYoutubeVideo
 {
-    $video = SourceYoutubeVideo::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'url' => 'https://www.youtube.com/watch?v='.Str::random(11),
-        'length' => 0,
-        'status' => SourceStatus::Pending,
-    ]);
-    $agent->youtubeVideos()->attach($video->id);
-
-    return $video;
+    return SourceYoutubeVideo::factory()->attachedTo($agent)->create();
 }
 
 function isolationQuestionAnswer(Agent $agent): AgentQuestionAnswer
@@ -284,14 +234,7 @@ function isolationQuestionAnswer(Agent $agent): AgentQuestionAnswer
 
 function isolationTopic(Agent $agent): Topic
 {
-    $topic = Topic::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'topic' => 'Secret plans '.Str::random(6),
-        'description' => 'Only for workspace A',
-    ]);
-    $agent->topics()->attach($topic->id);
-
-    return $topic;
+    return Topic::factory()->attachedTo($agent)->create();
 }
 
 /**

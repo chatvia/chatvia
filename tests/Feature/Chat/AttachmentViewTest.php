@@ -3,7 +3,6 @@
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * A conversation's file opens only through the signed link the attachment
@@ -16,12 +15,10 @@ beforeEach(function (): void {
 
 function viewableAttachment(string $mimeType = 'application/pdf', string $filename = 'brochure.pdf'): Attachment
 {
-    $filepath = 'workspaces/ws/agents/agent/attachments/pending/'.Str::uuid().'.pdf';
-    Storage::disk(Attachment::DISK)->put($filepath, '%PDF-1.4 brochure');
-
-    return Attachment::create([
+    // A pending upload: not in a conversation yet.
+    return Attachment::factory()->stored('%PDF-1.4 brochure')->create([
+        'chat_conversation_id' => null,
         'workspace_id' => Workspace::factory()->create()->id,
-        'filepath' => $filepath,
         'filename' => $filename,
         'mime_type' => $mimeType,
         'size_bytes' => 17,

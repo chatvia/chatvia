@@ -14,7 +14,7 @@ use Livewire\Livewire;
  */
 beforeEach(function (): void {
     Filament::setCurrentPanel('admin');
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 
     $this->active = User::factory()->create(['name' => 'Active Owner'])->workspace();
     $this->active->update(['name' => 'Acme Active']);

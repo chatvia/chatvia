@@ -4,9 +4,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\AcceptInvitationData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
@@ -42,13 +40,7 @@ function atiTeamAndInvitation(string $invitedEmail = 'invitee@example.com'): arr
 
     $team = app(TeamService::class)->createDefaultTeam($owner);
 
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    $role = teamRole($team);
 
     /** @var Invitation $invitation */
     $invitation = $team->invitations()->create([

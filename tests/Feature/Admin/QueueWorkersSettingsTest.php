@@ -23,7 +23,7 @@ use Livewire\Livewire;
  * notification says why.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
 
     $settings = app(PlatformSettings::class);

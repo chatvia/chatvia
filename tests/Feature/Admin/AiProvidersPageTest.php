@@ -3,7 +3,6 @@
 use App\Admin\Clusters\Settings\Pages\ManageAiProviderSettings;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Settings\AiProviderSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
@@ -17,8 +16,6 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Livewire\Features\SupportTesting\Testable;
-use Livewire\Livewire;
 
 /**
  * Settings → AI providers: each provider's key is entered once and serves
@@ -27,7 +24,7 @@ use Livewire\Livewire;
  * are added, changed and removed in a table.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     app()->forgetInstance(Reranker::class);
 
     foreach (AiProvider::cases() as $provider) {
@@ -37,15 +34,10 @@ beforeEach(function (): void {
     config(['chatvia.ai.reranker' => 'auto']);
 });
 
-function providersPage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageAiProviderSettings::class);
-}
-
 it('stores each key once, and the chat models and the reranker use it', function (): void {
     Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b', 'architecture' => ['output_modalities' => ['text']]]]])]);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->fillForm(['openrouter_api_key' => 'sk-or-test'])
         ->call('save')
         ->assertHasNoFormErrors()
@@ -69,7 +61,7 @@ it('stores each key once, and the chat models and the reranker use it', function
 it('refuses a key the provider refuses, and saves nothing', function (): void {
     Http::fake(['api.scaleway.ai/*' => Http::response(['message' => 'Unauthorized'], 401)]);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->fillForm(['scaleway_api_key' => 'wrong-key'])
         ->call('save')
         ->assertHasFormErrors(['scaleway_api_key' => 'Scaleway AI refused the API key. Check that you copied all of it.']);
@@ -80,7 +72,7 @@ it('refuses a key the provider refuses, and saves nothing', function (): void {
 it('checks a provider without chat models with a test embedding', function (): void {
     Http::fake(['api.cohere.com/*' => Http::response(['message' => 'invalid api token'], 401)]);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->fillForm(['cohere_api_key' => 'wrong-key'])
         ->call('save')
         ->assertHasFormErrors(['cohere_api_key']);
@@ -89,7 +81,7 @@ it('checks a provider without chat models with a test embedding', function (): v
 it('saves a key it cannot check, with a warning', function (): void {
     Http::fake(fn () => throw new ConnectionException('Connection refused'));
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->fillForm(['groq_api_key' => 'gsk-test'])
         ->call('save')
         ->assertHasNoFormErrors()
@@ -102,7 +94,7 @@ it('marks what each provider is used for', function (): void {
     connectAiProviders(AiProvider::Scaleway);
     config(['chatvia.ai.models.embedding' => 'qwen', 'chatvia.ai.transcriber' => 'auto']);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->assertSeeHtml('<span class="cv-chip cv-chip--used" title="In use">embeddings</span>')
         ->assertSeeHtml('<span class="cv-chip cv-chip--used" title="In use">speech to text</span>')
         ->assertSeeHtml('<span class="cv-chip">reranking</span>');
@@ -116,7 +108,7 @@ it('says how many agents stop answering before a key is removed', function (): v
     $model = testLlm('gpt-oss-120b', LlmProviderKind::Scaleway);
     createAgent($this->admin, ['llm_id' => $model->id]);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->mountAction(TestAction::make('forget_scaleway_api_key')->schemaComponent('scaleway_api_key', schema: 'form'))
         ->assertMountedActionModalSee('1 agent answer with Scaleway AI models and stop answering until a key is added again.')
         ->callMountedAction();
@@ -127,7 +119,7 @@ it('says how many agents stop answering before a key is removed', function (): v
 it('adds, changes and removes a server of your own', function (): void {
     Http::fake(['llm.office.test/*' => Http::response(['data' => [['id' => 'llama3.1:8b']]])]);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->callAction(TestAction::make('addServer')->table(), data: [
             'name' => 'Office Ollama',
             'base_url' => 'https://llm.office.test/v1/',
@@ -143,7 +135,7 @@ it('adds, changes and removes a server of your own', function (): void {
         ->and($server->api_key)->toBe('local-key')
         ->and($server->headers)->toBe(['X-Team' => 'support']);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->callAction(TestAction::make('editServer')->table($server), data: ['name' => 'Ollama', 'base_url' => 'https://llm.office.test/v1', 'api_key' => ''])
         ->assertHasNoActionErrors();
 
@@ -154,7 +146,7 @@ it('adds, changes and removes a server of your own', function (): void {
     $other = testLlm('other-model');
     $agent = createAgent($this->admin, ['llm_id' => $model->id]);
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->callAction(TestAction::make('removeServer')->table($server), data: ['replacement' => $other->id])
         ->assertHasNoActionErrors();
 
@@ -166,7 +158,7 @@ it('adds, changes and removes a server of your own', function (): void {
 it('does not save a server it cannot reach', function (): void {
     Http::fake(fn () => throw new ConnectionException('Connection refused'));
 
-    providersPage($this->admin)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->callAction(TestAction::make('addServer')->table(), data: ['name' => 'Gone', 'base_url' => 'https://gone.test/v1'])
         ->assertNotified('The server was not saved');
 

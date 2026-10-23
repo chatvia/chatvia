@@ -2,10 +2,12 @@
 
 namespace Domain\Channel\Instagram\Models;
 
+use Database\Factories\AgentInstagramAccountFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Enums\MetaApp;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -31,7 +33,8 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class AgentInstagramAccount extends Model
 {
-    use HasExternalId;
+    /** @use HasFactory<AgentInstagramAccountFactory> */
+    use HasExternalId, HasFactory;
 
     /**
      * @return BelongsTo<Agent, $this>

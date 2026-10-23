@@ -11,7 +11,7 @@ use Livewire\Livewire;
  * the workspace page of the admin panel.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     $this->workspace = User::factory()->create()->workspace();
 });
 

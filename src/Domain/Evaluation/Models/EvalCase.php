@@ -2,12 +2,14 @@
 
 namespace Domain\Evaluation\Models;
 
+use Database\Factories\EvalCaseFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Enums\ScorerType;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Support\Concerns\HasExternalId;
@@ -27,7 +29,8 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class EvalCase extends Model
 {
-    use HasExternalId;
+    /** @use HasFactory<EvalCaseFactory> */
+    use HasExternalId, HasFactory;
 
     /** @return BelongsTo<Agent, $this> */
     public function agent(): BelongsTo

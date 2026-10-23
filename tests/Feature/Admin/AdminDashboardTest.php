@@ -25,7 +25,7 @@ use function Livewire\invade;
 beforeEach(function (): void {
     // A future month no seeded row falls in.
     $this->travelTo(Carbon::parse('2031-03-20 15:30:00', 'UTC'));
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     $this->acme = User::factory()->workspace()->create(['name' => 'Acme Corp', 'email' => 'owner@acme.test']);
     $this->bot = createAgent($this->acme, ['name' => 'Acme Helper']);
 

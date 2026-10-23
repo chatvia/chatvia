@@ -10,8 +10,7 @@ use Illuminate\Support\Str;
 
 /**
  * Builds an active lead-capture form ("Contact us") with name, email and
- * message fields. It reuses an existing agent when there is one, otherwise it
- * creates one.
+ * message fields, on a new agent unless {@see forAgent()} names one.
  *
  * @extends Factory<FormDefinition>
  */
@@ -26,7 +25,7 @@ class FormDefinitionFactory extends Factory
     public function definition(): array
     {
         return [
-            'agent_id' => Agent::inRandomOrder()->first()?->id ?? Agent::factory(),
+            'agent_id' => Agent::factory(),
             'name' => 'Contact us',
             'subtitle' => 'Tell us a bit about yourself and we will get back to you shortly.',
             'slug' => 'contact-'.Str::lower(Str::random(6)),

@@ -1,22 +1,14 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Support',
-        permissions: [],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    $this->role = teamRole($this->team, permissions: []);
 });
 
 it('deletes a role nobody holds', function (): void {

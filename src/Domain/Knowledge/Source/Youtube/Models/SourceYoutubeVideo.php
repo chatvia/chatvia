@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Source\Youtube\Models;
 
 use App\Identity\Workspace\Models\Workspace;
+use Database\Factories\SourceYoutubeVideoFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
@@ -11,6 +12,7 @@ use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -84,7 +86,8 @@ use Support\Concerns\HasExternalId;
 #[Guarded(['id'])]
 class SourceYoutubeVideo extends Model implements ChunkableContract
 {
-    use Chunkable, HasExternalId;
+    /** @use HasFactory<SourceYoutubeVideoFactory> */
+    use Chunkable, HasExternalId, HasFactory;
 
     protected function casts(): array
     {

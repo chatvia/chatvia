@@ -9,10 +9,8 @@
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 
@@ -25,13 +23,7 @@ beforeEach(function (): void {
 /** A permission-less, all-agents role on the user's primary team. */
 function rolesApiRole(User $user, string $name): Role
 {
-    return app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $user->primaryTeam(),
-        name: $name,
-        permissions: [],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    return teamRole($user->primaryTeam(), $name, permissions: []);
 }
 
 describe('GET /api/v1/teams', function (): void {

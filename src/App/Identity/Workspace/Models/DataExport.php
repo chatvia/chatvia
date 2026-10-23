@@ -3,7 +3,9 @@
 namespace App\Identity\Workspace\Models;
 
 use App\Identity\Workspace\Enums\DataExportStatus;
+use Database\Factories\DataExportFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -27,6 +29,9 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class DataExport extends Model
 {
+    /** @use HasFactory<DataExportFactory> */
+    use HasFactory;
+
     protected function casts(): array
     {
         return [

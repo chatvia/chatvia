@@ -2,13 +2,11 @@
 
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\AiSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Llm\Enums\AiProvider;
 use Filament\Forms\Components\Select;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Livewire\Features\SupportTesting\Testable;
-use Livewire\Livewire;
 
 /**
  * The Speech to text card of Settings → AI models: Scaleway AI Whisper,
@@ -18,7 +16,7 @@ use Livewire\Livewire;
  * is refused when the call fails.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 
     config([
         'chatvia.ai.transcriber' => 'auto',
@@ -26,11 +24,6 @@ beforeEach(function (): void {
         AiProvider::OpenAi->apiKeyConfig() => null,
     ]);
 });
-
-function speechPage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageAiModelSettings::class);
-}
 
 function speechField(Testable $page): Select
 {
@@ -53,7 +46,7 @@ function speechProviderCall(Request $request): bool
 it('shows the service in use, marked connected, with no Automatic', function (): void {
     connectAiProviders(AiProvider::Scaleway);
 
-    $field = speechField(speechPage($this->admin)->assertFormSet(['transcriber' => 'scaleway']));
+    $field = speechField(adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['transcriber' => 'scaleway']));
 
     expect($field->getOptions())->toBe([
         'scaleway' => 'Scaleway AI Whisper (connected)',
@@ -67,7 +60,7 @@ it('shows the service in use, marked connected, with no Automatic', function ():
 });
 
 it('shows Off when nothing is connected', function (): void {
-    speechPage($this->admin)->assertFormSet(['transcriber' => 'none']);
+    adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['transcriber' => 'none']);
 });
 
 it('checks the Scaleway AI key before it turns speech to text on', function (): void {
@@ -75,7 +68,7 @@ it('checks the Scaleway AI key before it turns speech to text on', function (): 
     config(['chatvia.ai.transcriber' => 'none']);
     Http::fake(['api.scaleway.ai/v1/models' => Http::response(['object' => 'list', 'data' => [['id' => 'whisper-large-v3', 'object' => 'model']]])]);
 
-    speechPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['transcriber' => 'scaleway'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -93,7 +86,7 @@ it('refuses OpenAI Whisper when OpenAI refuses the key', function (): void {
     config(['chatvia.ai.transcriber' => 'none']);
     Http::fake(['api.openai.com/v1/models' => Http::response(['error' => ['message' => 'Incorrect API key provided']], 401)]);
 
-    speechPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['transcriber' => 'openai'])
         ->call('save')
         ->assertHasFormErrors(['transcriber' => 'OpenAI refused the API key. Check that you copied all of it.']);
@@ -104,7 +97,7 @@ it('refuses OpenAI Whisper when OpenAI refuses the key', function (): void {
 it('refuses a service that is not connected', function (): void {
     Http::fake();
 
-    speechPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['transcriber' => 'openai'])
         ->call('save')
         ->assertHasFormErrors(['transcriber' => 'OpenAI is not connected. Add its key in AI providers first.']);
@@ -117,7 +110,7 @@ it('does not call the provider again when it is unchanged', function (): void {
     config(['chatvia.ai.transcriber' => 'openai']);
     Http::fake();
 
-    speechPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertFormSet(['transcriber' => 'openai'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -130,7 +123,7 @@ it('turns speech to text off without a call', function (): void {
     config(['chatvia.ai.transcriber' => 'scaleway']);
     Http::fake();
 
-    speechPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['transcriber' => 'none'])
         ->call('save')
         ->assertHasNoFormErrors();

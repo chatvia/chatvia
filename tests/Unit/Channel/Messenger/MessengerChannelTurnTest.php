@@ -19,15 +19,7 @@ use Tests\Support\Messenger\FakeMessengerClient;
  */
 function messengerTurnPage(): AgentMessengerPage
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentMessengerPage::create([
-        'agent_id' => $agent->id,
-        'page_access_token' => 'EAAG-secret-token',
-        'page_id' => '1234567890',
-        'page_name' => 'Acme Support',
-        'is_enabled' => true,
-    ]);
+    return AgentMessengerPage::factory()->create(['page_access_token' => 'EAAG-secret-token']);
 }
 
 function messengerTurnAdapter(FakeMessengerClient $client, AgentMessengerPage $page, string $psid): MessengerAdapter

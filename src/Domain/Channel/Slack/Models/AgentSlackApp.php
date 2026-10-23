@@ -2,9 +2,11 @@
 
 namespace Domain\Channel\Slack\Models;
 
+use Database\Factories\AgentSlackAppFactory;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -29,7 +31,8 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class AgentSlackApp extends Model
 {
-    use HasExternalId;
+    /** @use HasFactory<AgentSlackAppFactory> */
+    use HasExternalId, HasFactory;
 
     /**
      * @return BelongsTo<Agent, $this>

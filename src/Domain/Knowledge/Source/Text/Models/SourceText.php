@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\Text\Models;
 
+use Database\Factories\SourceTextFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
@@ -11,6 +12,7 @@ use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
@@ -76,7 +78,8 @@ use Support\Concerns\HasExternalId;
 #[Guarded(['id'])]
 class SourceText extends Model implements ChunkableContract
 {
-    use Chunkable, HasExternalId, HasStorageFile;
+    /** @use HasFactory<SourceTextFactory> */
+    use Chunkable, HasExternalId, HasFactory, HasStorageFile;
 
     /**
      * @return MorphToMany<Agent, $this, AgentSource>

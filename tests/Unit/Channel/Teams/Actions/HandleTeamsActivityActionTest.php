@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Teams\Actions\HandleTeamsActivityAction;
 use Domain\Channel\Teams\Data\TeamsActivityData;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
@@ -9,7 +8,6 @@ use Domain\Channel\Teams\Services\TeamsAdapter;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Teams\FakeTeamsClient;
 
@@ -21,16 +19,8 @@ use Tests\Support\Teams\FakeTeamsClient;
  */
 function teamsHandleBot(): AgentTeamsBot
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentTeamsBot::create([
-        'agent_id' => $agent->id,
-        'app_id' => 'f5e1f9d2-1111-2222-3333-444455556666',
-        'app_secret' => 'client-secret-value',
-        'tenant_id' => null,
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-    ]);
+    // The app id the activity's recipient names.
+    return AgentTeamsBot::factory()->create(['app_id' => 'f5e1f9d2-1111-2222-3333-444455556666']);
 }
 
 /**

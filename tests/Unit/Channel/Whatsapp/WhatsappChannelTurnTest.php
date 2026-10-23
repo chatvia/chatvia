@@ -19,15 +19,7 @@ use Tests\Support\Whatsapp\FakeWhatsappClient;
  */
 function whatsappTurnNumber(): AgentWhatsappNumber
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentWhatsappNumber::create([
-        'agent_id' => $agent->id,
-        'access_token' => 'EAAG-secret-token',
-        'phone_number_id' => '111222333444555',
-        'waba_id' => '999888777666555',
-        'is_enabled' => true,
-    ]);
+    return AgentWhatsappNumber::factory()->create(['access_token' => 'EAAG-secret-token', 'phone_number_id' => '111222333444555']);
 }
 
 function whatsappTurnAdapter(FakeWhatsappClient $client, AgentWhatsappNumber $number, string $waId, string $wamid, ?string $name = null): WhatsappAdapter

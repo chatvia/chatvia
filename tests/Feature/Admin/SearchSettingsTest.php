@@ -2,7 +2,6 @@
 
 use App\Admin\Clusters\Settings\Pages\ManageSearchSettings;
 use App\Admin\Settings\KnowledgeSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Livewire\Livewire;
@@ -12,7 +11,7 @@ use Livewire\Livewire;
  * Everyday cards first; the fine-tuning comes last, under Advanced, closed.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
 
 it('shows the everyday cards first, and the fine-tuning under Advanced', function (): void {

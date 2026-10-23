@@ -5,7 +5,6 @@ use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Pages\Dashboard;
 use App\Admin\Pages\Tools;
 use App\Admin\Settings\PlatformSettings;
-use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
@@ -24,7 +23,7 @@ function turnLogsPage(bool $on): void
 }
 
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     turnLogsPage(true);
 
     $this->logDir = storage_path('framework/testing/logs-'.uniqid());

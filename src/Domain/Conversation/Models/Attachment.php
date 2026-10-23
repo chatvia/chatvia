@@ -2,11 +2,13 @@
 
 namespace Domain\Conversation\Models;
 
+use Database\Factories\AttachmentFactory;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -57,7 +59,8 @@ use Throwable;
 #[RouteKey('external_id')]
 class Attachment extends Model
 {
-    use HasExternalId, HasStorageFile;
+    /** @use HasFactory<AttachmentFactory> */
+    use HasExternalId, HasFactory, HasStorageFile;
 
     /** The disk every chat attachment is stored on. */
     public const string DISK = 'private';

@@ -2,13 +2,10 @@
 
 use App\Admin\Clusters\Settings\Pages\ManageBrandSettings;
 use App\Admin\Settings\BrandSettings;
-use App\Identity\Workspace\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Livewire\Features\SupportTesting\Testable;
-use Livewire\Livewire;
 use Tests\Support\LicenseKeys;
 
 /**
@@ -17,7 +14,7 @@ use Tests\Support\LicenseKeys;
  * saved, and a removed key is freed there again.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 
     LicenseKeys::trust();
     config([
@@ -25,11 +22,6 @@ beforeEach(function (): void {
         'chatvia.license.api_url' => 'https://licenses.test/api/licenses',
     ]);
 });
-
-function brandPage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageBrandSettings::class);
-}
 
 function savedBrand(): BrandSettings
 {
@@ -41,7 +33,7 @@ function savedBrand(): BrandSettings
 it('activates a bought key for this domain, then lets the credit be hidden', function (): void {
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('chat.acme.com')])]);
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->assertFormFieldDisabled('powered_by_enabled')
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
         ->call('save')
@@ -64,7 +56,7 @@ it('activates a bought key for this domain, then lets the credit be hidden', fun
 it('shows why chatvia.ai refused the key and saves nothing', function (): void {
     Http::fake(['licenses.test/*' => Http::response(['message' => 'This key is already active on another domain.'], 409)]);
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
         ->call('save')
         ->assertHasFormErrors(['license_key' => 'This key is already active on another domain.']);
@@ -75,7 +67,7 @@ it('shows why chatvia.ai refused the key and saves nothing', function (): void {
 it('says so when chatvia.ai cannot be reached', function (): void {
     Http::fake(fn () => throw new ConnectionException('Connection refused'));
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
         ->call('save')
         ->assertHasFormErrors(['license_key' => 'chatvia.ai could not be reached to activate the key. Try again in a few minutes.']);
@@ -84,7 +76,7 @@ it('says so when chatvia.ai cannot be reached', function (): void {
 it('refuses text that is not a key without asking chatvia.ai', function (): void {
     Http::fake();
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->fillForm(['license_key' => 'not-a-license-key'])
         ->call('save')
         ->assertHasFormErrors(['license_key' => 'This is not a valid license key. Check that you copied all of it.']);
@@ -93,7 +85,7 @@ it('refuses text that is not a key without asking chatvia.ai', function (): void
 });
 
 it('greys out the switch and keeps the credit on without a license', function (): void {
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->assertFormFieldDisabled('powered_by_enabled')
         ->assertSee('Add a license key below to turn the credit off.')
         ->fillForm(['powered_by_enabled' => false])
@@ -110,7 +102,7 @@ it('shows the switch on, greyed out, when the saved license stopped working', fu
     $settings->license_key = LicenseKeys::activatedFor('chat.moved.com');
     $settings->save();
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->assertFormFieldDisabled('powered_by_enabled')
         ->assertSchemaStateSet(['powered_by_enabled' => true])
         ->assertSee('The license is not active here');
@@ -121,7 +113,7 @@ it('shows who the saved key is licensed to', function (): void {
     $settings->license_key = LicenseKeys::activatedFor('chat.acme.com');
     $settings->save();
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->assertSee('Licensed to Acme Ltd')
         ->assertSee('Manage license')
         ->assertDontSee('Buy a license')
@@ -129,7 +121,7 @@ it('shows who the saved key is licensed to', function (): void {
 });
 
 it('offers to buy or manage a license while there is none', function (): void {
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->assertSee('Hiding the credit needs a license')
         ->assertSee('A license costs $399, one time, and never expires.')
         ->assertSee('Buy a license')
@@ -146,7 +138,7 @@ it('frees a removed key at chatvia.ai and shows the credit again', function (): 
 
     expect(config('chatvia.powered_by'))->toBeFalse();
 
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->callAction(TestAction::make('forget_license_key')->schemaComponent('license_key', schema: 'form'));
 
     expect(savedBrand()->license_key)->toBeNull()
@@ -159,7 +151,7 @@ it('frees a removed key at chatvia.ai and shows the credit again', function (): 
 });
 
 it('offers the developer\'s services', function (): void {
-    brandPage($this->admin)
+    adminPage(ManageBrandSettings::class, $this->admin)
         ->assertSee('Hire me')
         ->assertSee('See my services')
         ->assertSee('https://mayahi.net/services');

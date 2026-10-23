@@ -29,14 +29,11 @@ class LlmFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->randomElement(['gpt-4.1-mini', 'claude-3-haiku', 'gemini-pro', 'llama-3-70b', 'qwen3-8b']);
-
-        // A model name is unique per provider, and the seeded catalog uses
-        // some of these, so the default gets a suffix. Tests that need a
-        // specific name set it.
+        // A model name is unique per provider, so the default gets a suffix.
+        // Tests that need a specific name set it.
         return [
-            'name' => $name.'-'.fake()->unique()->numerify('########'),
-            'capabilities' => ['reasoning' => fake()->boolean(60)],
+            'name' => 'test-model-'.fake()->unique()->numerify('########'),
+            'capabilities' => ['reasoning' => false],
             'is_enabled' => true,
             'llm_provider_id' => LlmProvider::factory(),
         ];

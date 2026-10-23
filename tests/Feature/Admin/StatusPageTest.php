@@ -14,7 +14,6 @@ use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
 use App\Admin\Widgets\ServiceStatusBanner;
-use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -33,7 +32,7 @@ use Tests\Support\Admin\FakeRedisAndHorizon;
  */
 
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
     Storage::fake('private');
     Storage::fake('public');

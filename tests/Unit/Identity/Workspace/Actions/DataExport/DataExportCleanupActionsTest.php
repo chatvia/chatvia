@@ -6,7 +6,6 @@ use App\Identity\Workspace\Enums\DataExportStatus;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     Storage::fake('local');
@@ -17,15 +16,7 @@ function dataExportWithFile(User $owner, string $path, array $attributes = []): 
 {
     Storage::disk('local')->put($path, 'zip-bytes');
 
-    return DataExport::query()->create([
-        'user_id' => $owner->id,
-        'download_token' => Str::random(64),
-        'status' => DataExportStatus::Ready,
-        'file_path' => $path,
-        'file_size' => 9,
-        'expires_at' => now()->addDay(),
-        ...$attributes,
-    ]);
+    return DataExport::factory()->ready($path)->create(['user_id' => $owner->id, ...$attributes]);
 }
 
 it('deletes the export file and its row', function (): void {
@@ -40,18 +31,10 @@ it('deletes the export file and its row', function (): void {
 it('prunes expired exports and failed ones older than a week, keeping the rest', function (): void {
     $expired = dataExportWithFile($this->owner, 'exports/expired.zip', ['expires_at' => now()->subHour()]);
     $current = dataExportWithFile($this->owner, 'exports/current.zip');
-    $oldFailure = DataExport::query()->create([
-        'user_id' => $this->owner->id,
-        'download_token' => Str::random(64),
-        'status' => DataExportStatus::Failed,
-    ]);
+    $oldFailure = DataExport::factory()->failed()->create(['user_id' => $this->owner->id]);
     $oldFailure->forceFill(['created_at' => now()->subDays(8)])->save();
 
-    $recentFailure = DataExport::query()->create([
-        'user_id' => $this->owner->id,
-        'download_token' => Str::random(64),
-        'status' => DataExportStatus::Failed,
-    ]);
+    $recentFailure = DataExport::factory()->failed()->create(['user_id' => $this->owner->id]);
 
     expect(app(PruneExpiredDataExportsAction::class)->execute())->toBe(2)
         ->and(DataExport::query()->whereKey([$expired->id, $oldFailure->id])->exists())->toBeFalse()

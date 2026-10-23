@@ -3,7 +3,9 @@
 namespace App\Identity\Workspace\Models;
 
 use App\Identity\Chatter\Models\Chatter;
+use Database\Factories\MessageLimitFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -32,6 +34,9 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class MessageLimit extends Model
 {
+    /** @use HasFactory<MessageLimitFactory> */
+    use HasFactory;
+
     /** Whether the count belongs to the current month. */
     public function isCurrentPeriod(): bool
     {

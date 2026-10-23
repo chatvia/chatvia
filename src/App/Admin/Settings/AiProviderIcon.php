@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use Domain\Llm\Enums\AiProvider;
+use Domain\Llm\Enums\LlmProviderKind;
 
 /**
- * The logo of an AI provider in the admin panel, in its own colours.
- * Settings → AI providers, the setup's provider cards and the Status page
+ * The logo of an AI provider, in its own colours. Settings → AI providers,
+ * the setup's provider cards, the Status page and an agent's model picker
  * all use it, so a provider looks the same in each.
  */
 final class AiProviderIcon
@@ -29,5 +30,13 @@ final class AiProviderIcon
             AiProvider::Voyage => 'images/llms/voyage.svg',
             AiProvider::Azure => 'images/llms/microsoft.svg',
         });
+    }
+
+    /** The URL of the logo of a chat provider kind, or null for a server of your own. */
+    public static function forKind(LlmProviderKind $kind): ?string
+    {
+        $provider = AiProvider::forChatKind($kind);
+
+        return $provider instanceof AiProvider ? self::of($provider) : null;
     }
 }

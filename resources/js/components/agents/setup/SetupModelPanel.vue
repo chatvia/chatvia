@@ -1,20 +1,24 @@
 <script setup lang="ts">
 /**
  * Setup → Model: the model the agent answers with, from the ones an admin
- * made available, the answer temperature, and, for a model that reasons,
- * how hard it thinks first. That last one is locked at Off while the admin
- * does not let agents reason.
+ * made available (grouped by the provider that serves them), the answer
+ * temperature, and, for a model that reasons, how hard it thinks first. That
+ * last one is locked at Off while the admin does not let agents reason.
  */
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 import type { ReasoningEffort } from '@/composables/agents/setup/useSetupModel';
+import { Server } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 type Llm = Domain.Llm.Data.LlmModelData;
+
+/** The models one provider serves, under its name and logo. */
+type ProviderGroup = { provider: string; icon: string | null; models: Llm[] };
 
 const props = defineProps<{
     catalog: Llm[];
@@ -35,8 +39,23 @@ const effortLabels = computed<Record<ReasoningEffort, string>>(() => ({
     high: t('agents.setup.reasoning_high'),
 }));
 
+/** The catalog by provider, in the catalog's order. */
+const groups = computed<ProviderGroup[]>(() => {
+    const byProvider = new Map<string, ProviderGroup>();
+
+    for (const llm of props.catalog) {
+        const group = byProvider.get(llm.provider) ?? { provider: llm.provider, icon: llm.provider_icon, models: [] };
+        group.models.push(llm);
+        byProvider.set(llm.provider, group);
+    }
+
+    return [...byProvider.values()];
+});
+
+const selectedModel = computed(() => props.catalog.find((llm) => llm.id === form.model_id));
+
 /** Only a model marked as reasoning can be told how hard to think. */
-const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.model_id)?.is_reasoning ?? false);
+const modelReasons = computed(() => selectedModel.value?.is_reasoning ?? false);
 </script>
 
 <template>
@@ -54,18 +73,31 @@ const modelReasons = computed(() => props.catalog.find((llm) => llm.id === form.
             </p>
             <Select v-else v-model="form.model_id" :disabled="locked">
                 <SelectTrigger class="w-full" :aria-label="t('agents.setup.model_picker_title')">
-                    <SelectValue :placeholder="t('agents.setup.model_placeholder')" />
+                    <SelectValue :placeholder="t('agents.setup.model_placeholder')">
+                        <span v-if="selectedModel" class="flex min-w-0 items-center gap-2">
+                            <img v-if="selectedModel.provider_icon" :src="selectedModel.provider_icon" alt="" class="size-4 shrink-0" />
+                            <Server v-else class="size-4 shrink-0" />
+                            <span class="truncate">{{ selectedModel.name }}</span>
+                        </span>
+                    </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem v-for="llm in catalog" :key="llm.id" :value="llm.id">
-                        <span class="flex items-center gap-2">
-                            {{ llm.name }}
-                            <span class="text-muted-foreground text-xs">{{ llm.provider }}</span>
-                            <Badge v-if="llm.id === defaultModel" variant="secondary" class="text-xs font-normal">
-                                {{ t('agents.setup.model_default') }}
-                            </Badge>
-                        </span>
-                    </SelectItem>
+                    <template v-for="(group, index) in groups" :key="group.provider">
+                        <SelectSeparator v-if="index > 0" />
+                        <SelectGroup>
+                            <SelectLabel class="text-muted-foreground flex items-center gap-2 text-xs">
+                                <img v-if="group.icon" :src="group.icon" alt="" class="size-4 shrink-0" />
+                                <Server v-else class="size-4 shrink-0" />
+                                {{ group.provider }}
+                            </SelectLabel>
+                            <SelectItem v-for="llm in group.models" :key="llm.id" :value="llm.id" class="ps-8">
+                                {{ llm.name }}
+                                <Badge v-if="llm.id === defaultModel" variant="secondary" class="text-xs font-normal">
+                                    {{ t('agents.setup.model_default') }}
+                                </Badge>
+                            </SelectItem>
+                        </SelectGroup>
+                    </template>
                 </SelectContent>
             </Select>
             <p v-if="form.errors.model_id" class="text-destructive text-sm">

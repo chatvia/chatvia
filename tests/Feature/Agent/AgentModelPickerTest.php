@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Collection;
 use Illuminate\Testing\TestResponse;
@@ -33,6 +34,17 @@ it('lists the available models and preselects the default while the agent has no
             ->where('selectedModel', $this->default->id)
             ->where('defaultModel', $this->default->id)
             ->where('catalog', fn (Collection $catalog): bool => $catalog->pluck('id')->contains($this->other->id)));
+});
+
+it('gives each model its provider logo, and none for a server of your own', function (): void {
+    $routed = testLlm('openai/gpt-test', LlmProviderKind::OpenRouter);
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.setup', $this->agent->external_id))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page): Assert => $page
+            ->where('catalog', fn (Collection $catalog): bool => $catalog->firstWhere('id', $routed->id)['provider_icon'] === asset('images/llms/openrouter.svg')
+                && $catalog->firstWhere('id', $this->other->id)['provider_icon'] === null));
 });
 
 it('saves the model and the temperature', function (): void {

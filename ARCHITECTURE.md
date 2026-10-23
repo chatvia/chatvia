@@ -317,6 +317,20 @@ for every surface, and keeps the chat log.
 - Actions by feature: `Conversations`, `Messages`, `Sessions`, `Handoff`,
   `Attachments`, `Activity`, `Removal`, `Retention`, `Tools`, `Voice`.
 
+#### Inbox
+
+The dashboard's Inbox (`/my/inbox`, `App\Http\Controllers\Inbox`) lists live
+chats across every agent a staff member may view: the visitor was active in
+the last few minutes (`ConversationQueryBuilder::ONLINE_WINDOW_MINUTES`), the
+chat waits for a person, or this person holds it
+(`Queries\InboxConversationsQuery`). `Services\Inbox\InboxAgents` picks the
+agents with the Chat Log's own rules (`agent.chat.view` to read,
+`agent.chat.takeover` and the agent's handoff switch to join). The Inbox adds
+no write routes: the page calls each chat's own `agents.logs.messages` and
+`agents.handoff.*` routes, so their middleware still guards every action. The
+list polls; the open chat is live on its `presence-chat.{id}` channel. The
+header badge refreshes when the notification center hears about a handoff.
+
 #### Voice calls
 
 A visitor can talk with the agent out loud in the hosted chat and the chat

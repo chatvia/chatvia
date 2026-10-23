@@ -276,6 +276,15 @@ class Agent extends Model
     }
 
     /**
+     * Whether staff may take over this agent's Chat Widget chats (Setup →
+     * Widget → Talk to a human). Defaults to on.
+     */
+    public function handoffEnabled(): bool
+    {
+        return (bool) $this->settings('widget')->get('handoff_enabled', true);
+    }
+
+    /**
      * @return BelongsTo<Workspace, $this>
      */
     public function workspace(): BelongsTo

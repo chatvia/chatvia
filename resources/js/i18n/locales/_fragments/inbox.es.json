@@ -1,0 +1,53 @@
+{
+    "app": {
+        "header": {
+            "inbox": "Bandeja de entrada",
+            "inbox_waiting": "{count} chat espera a una persona | {count} chats esperan a una persona"
+        }
+    },
+    "inbox": {
+        "title": "Bandeja de entrada",
+        "refresh": "Actualizar",
+        "search_placeholder": "Buscar por nombre, correo o agente",
+        "filters": {
+            "all": "Todos",
+            "waiting": "En espera",
+            "mine": "Míos"
+        },
+        "anonymous_visitor": "Visitante",
+        "no_messages": "Aún no hay mensajes",
+        "last_message_you": "Tú: {message}",
+        "load_failed": "No se pudo cargar la bandeja de entrada. Inténtalo de nuevo en un momento.",
+        "online": "En línea",
+        "offline": "Desconectado",
+        "empty": {
+            "all": "Nadie está chateando ahora",
+            "all_hint": "Las personas que chatean con tus agentes aparecen aquí mientras están en línea.",
+            "waiting": "Nadie espera a una persona",
+            "mine": "No estás en ningún chat",
+            "no_match": "Ningún chat coincide con tu búsqueda"
+        },
+        "status": {
+            "waiting": "En espera",
+            "mine": "Tú",
+            "held_by": "Con {name}"
+        },
+        "thread": {
+            "pick_title": "Elige un chat",
+            "pick_hint": "Elige a alguien de la lista para leer el chat y responder.",
+            "back": "Volver a la lista",
+            "give_back": "Devolver a la IA",
+            "open_in_chat_log": "Abrir en el registro de chats",
+            "held_by_other": "{name} está respondiendo en este chat.",
+            "a_colleague": "Un compañero",
+            "widget_only": "Las respuestas en vivo solo funcionan en el widget de chat. Este chat está en {surface}.",
+            "cannot_join": "Puedes leer este chat, pero no unirte. El chat en vivo está desactivado para este agente o tu rol no puede tomar chats.",
+            "status_you": "Estás respondiendo",
+            "status_ai": "La IA está respondiendo",
+            "load_earlier": "Mostrar mensajes anteriores",
+            "send_takes_over": "Al enviar, tomas este chat de la IA.",
+            "send_takes_over_offline": "Esta persona parece desconectada. Si envías, tomas el chat y verá tu respuesta cuando vuelva.",
+            "reply_placeholder": "Responder a {name}…"
+        }
+    }
+}

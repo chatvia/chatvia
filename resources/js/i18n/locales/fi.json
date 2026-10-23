@@ -3342,7 +3342,9 @@
             "teams": "Tiimit",
             "documentation": "Dokumentaatio",
             "api": "API",
-            "nav_menu_sr": "Navigointivalikko"
+            "nav_menu_sr": "Navigointivalikko",
+            "inbox": "Saapuneet",
+            "inbox_waiting": "{count} keskustelu odottaa ihmistä | {count} keskustelua odottaa ihmistä"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Päättely",
         "show": "Näytä päättely",
         "hide": "Piilota päättely"
+    },
+    "inbox": {
+        "title": "Saapuneet",
+        "refresh": "Päivitä",
+        "search_placeholder": "Hae nimellä, sähköpostilla tai agentilla",
+        "filters": {
+            "all": "Kaikki",
+            "waiting": "Odottaa",
+            "mine": "Omat"
+        },
+        "anonymous_visitor": "Vierailija",
+        "no_messages": "Ei vielä viestejä",
+        "last_message_you": "Sinä: {message}",
+        "load_failed": "Saapuneita ei voitu ladata. Yritä hetken päästä uudelleen.",
+        "online": "Paikalla",
+        "offline": "Poissa",
+        "empty": {
+            "all": "Kukaan ei keskustele juuri nyt",
+            "all_hint": "Agenttiesi kanssa keskustelevat ihmiset näkyvät täällä, kun he ovat paikalla.",
+            "waiting": "Kukaan ei odota ihmistä",
+            "mine": "Et ole missään keskustelussa",
+            "no_match": "Mikään keskustelu ei vastaa hakuasi"
+        },
+        "status": {
+            "waiting": "Odottaa",
+            "mine": "Sinä",
+            "held_by": "Käyttäjällä {name}"
+        },
+        "thread": {
+            "pick_title": "Valitse keskustelu",
+            "pick_hint": "Valitse joku listalta lukeaksesi keskustelun ja vastataksesi.",
+            "back": "Takaisin listaan",
+            "give_back": "Palauta tekoälylle",
+            "open_in_chat_log": "Avaa keskusteluhistoriassa",
+            "held_by_other": "{name} vastaa tässä keskustelussa.",
+            "a_colleague": "Kollega",
+            "widget_only": "Suorat vastaukset toimivat vain chat-widgetissä. Tämä keskustelu käydään kanavassa {surface}.",
+            "cannot_join": "Voit lukea tämän keskustelun, mutta et liittyä siihen. Live-chat on pois päältä tällä agentilla, tai roolisi ei voi ottaa keskusteluja hoitaakseen.",
+            "status_you": "Sinä vastaat",
+            "status_ai": "Tekoäly vastaa",
+            "load_earlier": "Näytä aiemmat viestit",
+            "send_takes_over": "Kun lähetät, otat keskustelun tekoälyltä.",
+            "send_takes_over_offline": "Henkilö näyttää olevan poissa. Jos lähetät, otat keskustelun ja hän näkee vastauksesi palatessaan.",
+            "reply_placeholder": "Vastaa: {name}…"
+        }
     }
 }

@@ -3342,7 +3342,9 @@
             "teams": "Teams",
             "documentation": "Dokumentation",
             "api": "API",
-            "nav_menu_sr": "Navigationsmenü"
+            "nav_menu_sr": "Navigationsmenü",
+            "inbox": "Posteingang",
+            "inbox_waiting": "{count} Chat wartet auf eine Person | {count} Chats warten auf eine Person"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Überlegungen",
         "show": "Überlegungen anzeigen",
         "hide": "Überlegungen ausblenden"
+    },
+    "inbox": {
+        "title": "Posteingang",
+        "refresh": "Aktualisieren",
+        "search_placeholder": "Nach Name, E-Mail oder Agent suchen",
+        "filters": {
+            "all": "Alle",
+            "waiting": "Wartend",
+            "mine": "Meine"
+        },
+        "anonymous_visitor": "Besucher",
+        "no_messages": "Noch keine Nachrichten",
+        "last_message_you": "Du: {message}",
+        "load_failed": "Der Posteingang konnte nicht geladen werden. Versuche es gleich noch einmal.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Gerade chattet niemand",
+            "all_hint": "Wer mit deinen Agenten chattet, erscheint hier, solange er online ist.",
+            "waiting": "Niemand wartet auf eine Person",
+            "mine": "Du bist in keinem Chat",
+            "no_match": "Keine Chats passen zu deiner Suche"
+        },
+        "status": {
+            "waiting": "Wartet",
+            "mine": "Du",
+            "held_by": "Bei {name}"
+        },
+        "thread": {
+            "pick_title": "Wähle einen Chat",
+            "pick_hint": "Wähle jemanden aus der Liste, um den Chat zu lesen und zu antworten.",
+            "back": "Zurück zur Liste",
+            "give_back": "An die KI zurückgeben",
+            "open_in_chat_log": "Im Chatprotokoll öffnen",
+            "held_by_other": "{name} antwortet in diesem Chat.",
+            "a_colleague": "Ein Kollege",
+            "widget_only": "Live-Antworten gehen nur im Chat-Widget. Dieser Chat läuft über {surface}.",
+            "cannot_join": "Du kannst diesen Chat lesen, aber nicht beitreten. Live-Chat ist für diesen Agenten aus, oder deine Rolle darf keine Chats übernehmen.",
+            "status_you": "Du antwortest",
+            "status_ai": "Die KI antwortet",
+            "load_earlier": "Frühere Nachrichten zeigen",
+            "send_takes_over": "Wenn du sendest, übernimmst du diesen Chat von der KI.",
+            "send_takes_over_offline": "Diese Person scheint offline zu sein. Wenn du sendest, übernimmst du den Chat, und sie sieht deine Antwort, wenn sie zurückkommt.",
+            "reply_placeholder": "Antwort an {name}…"
+        }
     }
 }

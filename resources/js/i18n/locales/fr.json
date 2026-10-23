@@ -3342,7 +3342,9 @@
             "teams": "Équipes",
             "documentation": "Documentation",
             "api": "API",
-            "nav_menu_sr": "Menu de navigation"
+            "nav_menu_sr": "Menu de navigation",
+            "inbox": "Boîte de réception",
+            "inbox_waiting": "{count} discussion attend une personne | {count} discussions attendent une personne"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Raisonnement",
         "show": "Afficher le raisonnement",
         "hide": "Masquer le raisonnement"
+    },
+    "inbox": {
+        "title": "Boîte de réception",
+        "refresh": "Actualiser",
+        "search_placeholder": "Rechercher par nom, e-mail ou agent",
+        "filters": {
+            "all": "Toutes",
+            "waiting": "En attente",
+            "mine": "Les miennes"
+        },
+        "anonymous_visitor": "Visiteur",
+        "no_messages": "Aucun message pour l'instant",
+        "last_message_you": "Vous : {message}",
+        "load_failed": "Impossible de charger la boîte de réception. Réessayez dans un instant.",
+        "online": "En ligne",
+        "offline": "Hors ligne",
+        "empty": {
+            "all": "Personne ne discute en ce moment",
+            "all_hint": "Les personnes qui discutent avec vos agents apparaissent ici tant qu'elles sont en ligne.",
+            "waiting": "Personne n'attend une personne",
+            "mine": "Vous n'êtes dans aucune discussion",
+            "no_match": "Aucune discussion ne correspond à votre recherche"
+        },
+        "status": {
+            "waiting": "En attente",
+            "mine": "Vous",
+            "held_by": "Avec {name}"
+        },
+        "thread": {
+            "pick_title": "Choisissez une discussion",
+            "pick_hint": "Choisissez quelqu'un dans la liste pour lire la discussion et répondre.",
+            "back": "Retour à la liste",
+            "give_back": "Rendre à l'IA",
+            "open_in_chat_log": "Ouvrir dans le journal des discussions",
+            "held_by_other": "{name} répond dans cette discussion.",
+            "a_colleague": "Un collègue",
+            "widget_only": "Les réponses en direct ne fonctionnent que dans le widget de chat. Cette discussion a lieu sur {surface}.",
+            "cannot_join": "Vous pouvez lire cette discussion, mais pas la rejoindre. Le chat en direct est désactivé pour cet agent, ou votre rôle ne peut pas reprendre de discussions.",
+            "status_you": "Vous répondez",
+            "status_ai": "L'IA répond",
+            "load_earlier": "Afficher les messages précédents",
+            "send_takes_over": "En envoyant, vous reprenez cette discussion à l'IA.",
+            "send_takes_over_offline": "Cette personne semble hors ligne. Si vous envoyez, vous reprenez la discussion et elle verra votre réponse à son retour.",
+            "reply_placeholder": "Répondre à {name}…"
+        }
     }
 }

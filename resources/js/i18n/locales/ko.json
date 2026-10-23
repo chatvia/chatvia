@@ -3342,7 +3342,9 @@
             "teams": "팀",
             "documentation": "문서",
             "api": "API",
-            "nav_menu_sr": "내비게이션 메뉴"
+            "nav_menu_sr": "내비게이션 메뉴",
+            "inbox": "받은 편지함",
+            "inbox_waiting": "{count}개의 채팅이 담당자를 기다립니다 | {count}개의 채팅이 담당자를 기다립니다"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "추론",
         "show": "추론 보기",
         "hide": "추론 숨기기"
+    },
+    "inbox": {
+        "title": "받은 편지함",
+        "refresh": "새로 고침",
+        "search_placeholder": "이름, 이메일 또는 에이전트로 검색",
+        "filters": {
+            "all": "전체",
+            "waiting": "대기 중",
+            "mine": "내 채팅"
+        },
+        "anonymous_visitor": "방문자",
+        "no_messages": "아직 메시지가 없습니다",
+        "last_message_you": "나: {message}",
+        "load_failed": "받은 편지함을 불러오지 못했습니다. 잠시 후 다시 시도하세요.",
+        "online": "온라인",
+        "offline": "오프라인",
+        "empty": {
+            "all": "지금 채팅 중인 사람이 없습니다",
+            "all_hint": "에이전트와 채팅하는 사람은 온라인인 동안 여기에 표시됩니다.",
+            "waiting": "담당자를 기다리는 사람이 없습니다",
+            "mine": "참여 중인 채팅이 없습니다",
+            "no_match": "검색과 일치하는 채팅이 없습니다"
+        },
+        "status": {
+            "waiting": "대기 중",
+            "mine": "나",
+            "held_by": "{name} 담당"
+        },
+        "thread": {
+            "pick_title": "채팅을 선택하세요",
+            "pick_hint": "목록에서 사람을 선택하면 채팅을 읽고 답장할 수 있습니다.",
+            "back": "목록으로 돌아가기",
+            "give_back": "AI에게 돌려주기",
+            "open_in_chat_log": "채팅 로그에서 열기",
+            "held_by_other": "{name}님이 이 채팅에서 답장하고 있습니다.",
+            "a_colleague": "동료",
+            "widget_only": "실시간 답장은 채팅 위젯에서만 됩니다. 이 채팅은 {surface}에서 진행됩니다.",
+            "cannot_join": "이 채팅을 읽을 수는 있지만 참여할 수는 없습니다. 이 에이전트의 실시간 채팅이 꺼져 있거나 역할에 채팅 인수 권한이 없습니다.",
+            "status_you": "내가 답장 중",
+            "status_ai": "AI가 답장 중",
+            "load_earlier": "이전 메시지 보기",
+            "send_takes_over": "보내면 이 채팅을 AI에게서 넘겨받습니다.",
+            "send_takes_over_offline": "이 사람은 오프라인인 것 같습니다. 보내면 채팅을 넘겨받고, 상대는 돌아왔을 때 답장을 봅니다.",
+            "reply_placeholder": "{name}님에게 답장…"
+        }
     }
 }

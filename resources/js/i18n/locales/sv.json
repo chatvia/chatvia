@@ -3342,7 +3342,9 @@
             "teams": "Team",
             "documentation": "Dokumentation",
             "api": "API",
-            "nav_menu_sr": "Navigeringsmeny"
+            "nav_menu_sr": "Navigeringsmeny",
+            "inbox": "Inkorg",
+            "inbox_waiting": "{count} chatt väntar på en person | {count} chattar väntar på en person"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Resonemang",
         "show": "Visa resonemang",
         "hide": "Dölj resonemang"
+    },
+    "inbox": {
+        "title": "Inkorg",
+        "refresh": "Uppdatera",
+        "search_placeholder": "Sök på namn, e-post eller agent",
+        "filters": {
+            "all": "Alla",
+            "waiting": "Väntar",
+            "mine": "Mina"
+        },
+        "anonymous_visitor": "Besökare",
+        "no_messages": "Inga meddelanden än",
+        "last_message_you": "Du: {message}",
+        "load_failed": "Inkorgen kunde inte läsas in. Försök igen om en stund.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Ingen chattar just nu",
+            "all_hint": "Personer som chattar med dina agenter visas här medan de är online.",
+            "waiting": "Ingen väntar på en person",
+            "mine": "Du är inte med i någon chatt",
+            "no_match": "Inga chattar matchar din sökning"
+        },
+        "status": {
+            "waiting": "Väntar",
+            "mine": "Du",
+            "held_by": "Hos {name}"
+        },
+        "thread": {
+            "pick_title": "Välj en chatt",
+            "pick_hint": "Välj någon i listan för att läsa chatten och svara.",
+            "back": "Tillbaka till listan",
+            "give_back": "Lämna tillbaka till AI",
+            "open_in_chat_log": "Öppna i chattloggen",
+            "held_by_other": "{name} svarar i den här chatten.",
+            "a_colleague": "En kollega",
+            "widget_only": "Direktsvar fungerar bara i chattwidgeten. Den här chatten sker på {surface}.",
+            "cannot_join": "Du kan läsa den här chatten men inte gå med. Livechatt är avstängd för den här agenten, eller så kan din roll inte ta över chattar.",
+            "status_you": "Du svarar",
+            "status_ai": "AI svarar",
+            "load_earlier": "Visa tidigare meddelanden",
+            "send_takes_over": "När du skickar tar du över chatten från AI.",
+            "send_takes_over_offline": "Personen verkar vara offline. Om du skickar tar du över chatten, och de ser ditt svar när de kommer tillbaka.",
+            "reply_placeholder": "Svara {name}…"
+        }
     }
 }

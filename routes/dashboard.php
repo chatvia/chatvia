@@ -6,6 +6,9 @@ use App\Http\Controllers\Analytics\AnalyticsChatController;
 use App\Http\Controllers\Analytics\AnalyticsChatStreamController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\DashboardStatsController;
+use App\Http\Controllers\Inbox\InboxController;
+use App\Http\Controllers\Inbox\InboxConversationController;
+use App\Http\Controllers\Inbox\InboxWaitingCountController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesDownload;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesListController;
 use App\Http\Controllers\Notification\ClearNotificationsController;
@@ -23,6 +26,13 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
     Route::post('my/ask/stream', AnalyticsChatStreamController::class)
         ->middleware('throttle:30,1,analytics-chat')
         ->name('analytics.chat.stream');
+
+    // The Inbox: who is chatting with the workspace's agents right now, across
+    // every agent the person may view. Replies go through the per-agent
+    // handoff routes, so their permission and tenancy checks still apply.
+    Route::get('my/inbox', [InboxController::class, 'index'])->name('inbox');
+    Route::get('my/inbox/conversations', [InboxConversationController::class, 'index'])->name('inbox.conversations');
+    Route::get('my/inbox/waiting-count', InboxWaitingCountController::class)->name('inbox.waiting-count');
 
     Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');
     Route::get('my/knowledge-base/download/{sourceFile}', KnowledgeFilesDownload::class)->name('knowledge-base.download');

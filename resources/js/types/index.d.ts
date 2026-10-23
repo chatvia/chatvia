@@ -21,6 +21,8 @@ export interface NavItem {
     href: string;
     icon?: LucideIcon;
     isActive?: boolean;
+    // A count drawn on the link (e.g. chats waiting in the Inbox); hidden at 0.
+    badge?: number;
 }
 
 export interface CurrentRoute {

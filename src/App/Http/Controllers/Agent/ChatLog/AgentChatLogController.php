@@ -23,7 +23,7 @@ class AgentChatLogController
             'agent' => AgentResourceData::fromModel($agent),
             'current_conversation_id' => $request->query('conversation_id'),
             'chatlogEnabled' => $agent->chatlogEnabled(),
-            'handoffEnabled' => (bool) ($agent->settings('widget')['handoff_enabled'] ?? true),
+            'handoffEnabled' => $agent->handoffEnabled(),
             // Where a reply's "trace" link points (Spectra's requests view,
             // filtered by trace id). Only for a viewer who may open /spectra —
             // an admin-panel session, or a workspace staff granted Spectra

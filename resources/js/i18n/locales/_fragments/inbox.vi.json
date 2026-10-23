@@ -1,0 +1,53 @@
+{
+    "app": {
+        "header": {
+            "inbox": "Hộp thư",
+            "inbox_waiting": "{count} cuộc trò chuyện đang chờ người | {count} cuộc trò chuyện đang chờ người"
+        }
+    },
+    "inbox": {
+        "title": "Hộp thư",
+        "refresh": "Làm mới",
+        "search_placeholder": "Tìm theo tên, email hoặc tác nhân",
+        "filters": {
+            "all": "Tất cả",
+            "waiting": "Đang chờ",
+            "mine": "Của tôi"
+        },
+        "anonymous_visitor": "Khách",
+        "no_messages": "Chưa có tin nhắn",
+        "last_message_you": "Bạn: {message}",
+        "load_failed": "Không tải được hộp thư. Hãy thử lại sau giây lát.",
+        "online": "Trực tuyến",
+        "offline": "Ngoại tuyến",
+        "empty": {
+            "all": "Hiện không có ai trò chuyện",
+            "all_hint": "Người trò chuyện với tác nhân của bạn sẽ hiện ở đây khi họ trực tuyến.",
+            "waiting": "Không có ai chờ người",
+            "mine": "Bạn không ở trong cuộc trò chuyện nào",
+            "no_match": "Không có cuộc trò chuyện nào khớp với tìm kiếm"
+        },
+        "status": {
+            "waiting": "Đang chờ",
+            "mine": "Bạn",
+            "held_by": "Với {name}"
+        },
+        "thread": {
+            "pick_title": "Chọn một cuộc trò chuyện",
+            "pick_hint": "Chọn một người trong danh sách để đọc và trả lời.",
+            "back": "Quay lại danh sách",
+            "give_back": "Trả lại cho AI",
+            "open_in_chat_log": "Mở trong nhật ký trò chuyện",
+            "held_by_other": "{name} đang trả lời trong cuộc trò chuyện này.",
+            "a_colleague": "Một đồng nghiệp",
+            "widget_only": "Trả lời trực tiếp chỉ hoạt động trong tiện ích trò chuyện. Cuộc trò chuyện này ở {surface}.",
+            "cannot_join": "Bạn có thể đọc cuộc trò chuyện này nhưng không thể tham gia. Trò chuyện trực tiếp đang tắt cho tác nhân này, hoặc vai trò của bạn không được tiếp quản.",
+            "status_you": "Bạn đang trả lời",
+            "status_ai": "AI đang trả lời",
+            "load_earlier": "Hiện tin nhắn trước",
+            "send_takes_over": "Khi gửi, bạn tiếp quản cuộc trò chuyện này từ AI.",
+            "send_takes_over_offline": "Người này có vẻ đang ngoại tuyến. Nếu gửi, bạn sẽ tiếp quản và họ sẽ thấy câu trả lời khi quay lại.",
+            "reply_placeholder": "Trả lời {name}…"
+        }
+    }
+}

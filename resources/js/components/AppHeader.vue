@@ -19,15 +19,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { apiDocsUrl } from '@/lib/apiDocs';
 import { getInitials } from '@/composables/useInitials';
+import { inboxWaitingCount, startInboxBadge } from '@/composables/inbox/inboxBadge';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
-import { dashboard } from '@/routes';
 import { index as agentsIndex } from '@/routes/agents';
+import { dashboard, inbox } from '@/routes';
 import { chat as askYourData } from '@/routes/analytics';
 import { index as teamsIndex } from '@/routes/teams';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BotMessageSquare, Code2, LayoutGrid, Menu, Sparkles, Users } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { BotMessageSquare, Code2, LayoutGrid, Menu, MessagesSquare, Sparkles, Users } from 'lucide-vue-next';
+import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -76,7 +77,18 @@ const activeItemStyles = computed(
 
 const isTeammate = computed(() => auth.value.is_workspace_owner !== true);
 
-const { isOwner } = useTeamPermissions();
+const { isOwner, hasPermission } = useTeamPermissions();
+
+// The Inbox reads chats, so it shows for anyone who may view an agent's chat log.
+const canUseInbox = computed(() => hasPermission('agent.chat.view'));
+
+onMounted(() => {
+    if (canUseInbox.value) startInboxBadge();
+});
+
+function badgeText(count: number): string {
+    return count > 99 ? '99+' : String(count);
+}
 
 const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
@@ -91,6 +103,15 @@ const mainNavItems = computed<NavItem[]>(() => {
             icon: BotMessageSquare,
         },
     ];
+
+    if (canUseInbox.value) {
+        items.push({
+            title: t('app.header.inbox'),
+            href: inbox.url(),
+            icon: MessagesSquare,
+            badge: inboxWaitingCount.value,
+        });
+    }
 
     // "Ask your data" is owner-only — it exposes whole-account numbers
     // (including identified users) and is gated server-side to the owner.
@@ -143,6 +164,12 @@ const rightNavItems = computed<NavItem[]>(() => [
                                     >
                                         <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
                                         {{ item.title }}
+                                        <span
+                                            v-if="item.badge"
+                                            class="ms-auto rounded-full bg-red-500 px-1.5 text-[10px] leading-4 font-semibold text-white"
+                                        >
+                                            {{ badgeText(item.badge) }}
+                                        </span>
                                     </Link>
                                     <!-- Teams Link -->
                                     <Link
@@ -186,6 +213,13 @@ const rightNavItems = computed<NavItem[]>(() => [
                                     >
                                         <component v-if="item.icon" :is="item.icon" class="me-2 h-4 w-4" />
                                         {{ item.title }}
+                                        <span
+                                            v-if="item.badge"
+                                            class="ring-background ms-1.5 rounded-full bg-red-500 px-1.5 text-[10px] leading-4 font-semibold text-white ring-2"
+                                            :aria-label="t('app.header.inbox_waiting', { count: item.badge }, item.badge)"
+                                        >
+                                            {{ badgeText(item.badge) }}
+                                        </span>
                                     </NavigationMenuLink>
                                 </Link>
                                 <div

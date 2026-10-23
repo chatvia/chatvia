@@ -3342,7 +3342,9 @@
             "teams": "Zespoły",
             "documentation": "Dokumentacja",
             "api": "API",
-            "nav_menu_sr": "Menu nawigacyjne"
+            "nav_menu_sr": "Menu nawigacyjne",
+            "inbox": "Skrzynka",
+            "inbox_waiting": "{count} czat czeka na osobę | {count} czatów czeka na osobę"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Rozumowanie",
         "show": "Pokaż rozumowanie",
         "hide": "Ukryj rozumowanie"
+    },
+    "inbox": {
+        "title": "Skrzynka",
+        "refresh": "Odśwież",
+        "search_placeholder": "Szukaj po nazwie, e-mailu lub agencie",
+        "filters": {
+            "all": "Wszystkie",
+            "waiting": "Czekające",
+            "mine": "Moje"
+        },
+        "anonymous_visitor": "Gość",
+        "no_messages": "Brak wiadomości",
+        "last_message_you": "Ty: {message}",
+        "load_failed": "Nie udało się wczytać skrzynki. Spróbuj ponownie za chwilę.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Nikt teraz nie czatuje",
+            "all_hint": "Osoby czatujące z Twoimi agentami pojawiają się tutaj, gdy są online.",
+            "waiting": "Nikt nie czeka na osobę",
+            "mine": "Nie uczestniczysz w żadnym czacie",
+            "no_match": "Żaden czat nie pasuje do wyszukiwania"
+        },
+        "status": {
+            "waiting": "Czeka",
+            "mine": "Ty",
+            "held_by": "U: {name}"
+        },
+        "thread": {
+            "pick_title": "Wybierz czat",
+            "pick_hint": "Wybierz kogoś z listy, aby przeczytać czat i odpowiedzieć.",
+            "back": "Wróć do listy",
+            "give_back": "Oddaj AI",
+            "open_in_chat_log": "Otwórz w dzienniku czatów",
+            "held_by_other": "{name} odpowiada w tym czacie.",
+            "a_colleague": "Współpracownik",
+            "widget_only": "Odpowiedzi na żywo działają tylko w widżecie czatu. Ten czat jest w: {surface}.",
+            "cannot_join": "Możesz czytać ten czat, ale nie możesz do niego dołączyć. Czat na żywo jest wyłączony dla tego agenta albo Twoja rola nie może przejmować czatów.",
+            "status_you": "Odpowiadasz",
+            "status_ai": "Odpowiada AI",
+            "load_earlier": "Pokaż wcześniejsze wiadomości",
+            "send_takes_over": "Wysyłając, przejmujesz ten czat od AI.",
+            "send_takes_over_offline": "Ta osoba wygląda na offline. Jeśli wyślesz, przejmiesz czat, a ona zobaczy odpowiedź po powrocie.",
+            "reply_placeholder": "Odpowiedz: {name}…"
+        }
     }
 }

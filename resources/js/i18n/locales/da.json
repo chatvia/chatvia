@@ -3342,7 +3342,9 @@
             "teams": "Teams",
             "documentation": "Dokumentation",
             "api": "API",
-            "nav_menu_sr": "Navigationsmenu"
+            "nav_menu_sr": "Navigationsmenu",
+            "inbox": "Indbakke",
+            "inbox_waiting": "{count} chat venter på en person | {count} chats venter på en person"
         }
     },
     "nav": {
@@ -4183,5 +4185,50 @@
         "done": "Overvejelser",
         "show": "Vis overvejelser",
         "hide": "Skjul overvejelser"
+    },
+    "inbox": {
+        "title": "Indbakke",
+        "refresh": "Opdater",
+        "search_placeholder": "Søg efter navn, e-mail eller agent",
+        "filters": {
+            "all": "Alle",
+            "waiting": "Venter",
+            "mine": "Mine"
+        },
+        "anonymous_visitor": "Besøgende",
+        "no_messages": "Ingen beskeder endnu",
+        "last_message_you": "Dig: {message}",
+        "load_failed": "Indbakken kunne ikke indlæses. Prøv igen om lidt.",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": {
+            "all": "Ingen chatter lige nu",
+            "all_hint": "Folk, der chatter med dine agenter, vises her, mens de er online.",
+            "waiting": "Ingen venter på en person",
+            "mine": "Du er ikke i nogen chat",
+            "no_match": "Ingen chats passer til din søgning"
+        },
+        "status": {
+            "waiting": "Venter",
+            "mine": "Dig",
+            "held_by": "Hos {name}"
+        },
+        "thread": {
+            "pick_title": "Vælg en chat",
+            "pick_hint": "Vælg en person på listen for at læse chatten og svare.",
+            "back": "Tilbage til listen",
+            "give_back": "Giv tilbage til AI",
+            "open_in_chat_log": "Åbn i chatloggen",
+            "held_by_other": "{name} svarer i denne chat.",
+            "a_colleague": "En kollega",
+            "widget_only": "Live-svar virker kun i chat-widgetten. Denne chat foregår på {surface}.",
+            "cannot_join": "Du kan læse denne chat, men ikke deltage. Live-chat er slået fra for denne agent, eller din rolle kan ikke overtage chats.",
+            "status_you": "Du svarer",
+            "status_ai": "AI svarer",
+            "load_earlier": "Vis tidligere beskeder",
+            "send_takes_over": "Når du sender, overtager du chatten fra AI.",
+            "send_takes_over_offline": "Denne person ser ud til at være offline. Hvis du sender, overtager du chatten, og personen ser dit svar, når de kommer tilbage.",
+            "reply_placeholder": "Svar {name}…"
+        }
     }
 }

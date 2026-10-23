@@ -14,7 +14,6 @@ import {
     type ChatLogConversation,
     type ChatLogConversationFilters,
     type ChatLogCountry,
-    type ChatLogHandoffStatus,
     type ChatLogLead,
     type ChatLogMessage,
     type ChatLogPulse,
@@ -23,7 +22,7 @@ import {
 } from '@/api/chatLog';
 import { errorMessage } from '@/api/http';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { useHandoff, type HandoffMessageEvent, type HandoffState } from '@/composables/useHandoff';
+import { handoffEventToMessage, handoffStateFrom, useHandoff, type HandoffMessageEvent } from '@/composables/useHandoff';
 import { useTimeAgo } from '@/composables/useTimeAgo';
 import { i18n } from '@/i18n';
 import { router, usePage } from '@inertiajs/vue3';
@@ -138,15 +137,6 @@ function buildFilters(cursor: string | null = null): ChatLogConversationFilters 
     }
 
     return filters;
-}
-
-function toHandoffState(status: ChatLogHandoffStatus): HandoffState {
-    return {
-        status: (status.status || 'ai') as HandoffState['status'],
-        adminId: status.admin_id || null,
-        adminName: status.admin_name || null,
-        handoffAt: status.handoff_at || null,
-    };
 }
 
 export function useChatLog() {
@@ -293,7 +283,7 @@ export function useChatLog() {
             lead.value = result.lead;
 
             if (result.handoff) {
-                handoff.handoffState.value = toHandoffState(result.handoff);
+                handoff.handoffState.value = handoffStateFrom(result.handoff);
                 // Opening a handed-off conversation marks the visitor's messages as read.
                 if (result.handoff.status === 'human') void handoff.markMessagesAsRead();
             }
@@ -349,28 +339,7 @@ export function useChatLog() {
         }
         if (messagesData.value.data.some((message) => message.id === event.id)) return;
 
-        messagesData.value.data.push({
-            id: event.id,
-            chat_conversation_id: event.chat_conversation_id ?? '',
-            content: event.content,
-            role: event.role,
-            sentiment: null,
-            tone: null,
-            feedback: null,
-            is_response_from_qa: false,
-            response_time_ms: null,
-            prompt_tokens: null,
-            completion_tokens: null,
-            llm_name: null,
-            created_at: event.timestamp || new Date().toISOString(),
-            agent_question_answer_id: null,
-            artifacts: event.artifacts ?? null,
-            source: null,
-            read_at: null,
-            confidence_score: null,
-            voice: false,
-            trace_id: null,
-        });
+        messagesData.value.data.push(handoffEventToMessage(event));
     }
 
     function selectConversation(conversationId: string, conversationData: ChatLogConversation) {

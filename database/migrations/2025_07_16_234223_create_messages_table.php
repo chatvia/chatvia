@@ -218,6 +218,9 @@ return new class extends Migration
         // The chat log: an agent's visible conversations, keyset-paged by
         // (updated_at, id).
         DB::statement('CREATE INDEX conversations_agent_visible_idx ON chat_conversations (agent_id, updated_at, id) WHERE is_visible = true AND deleted_at IS NULL');
+        // The Inbox: an agent's visible conversations by the visitor's latest
+        // activity (who is online now, who waited for a human today).
+        DB::statement('CREATE INDEX conversations_agent_live_idx ON chat_conversations (agent_id, last_activity_at) WHERE is_visible = true AND deleted_at IS NULL');
 
         DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
         // The trash purge, which finally removes soft-deleted conversations.
@@ -246,6 +249,7 @@ return new class extends Migration
             'conversations_handoff_user_idx',
             'conversations_handoff_pending_idx',
             'conversations_agent_visible_idx',
+            'conversations_agent_live_idx',
             'conversations_expires_cleanup_idx',
             'conversations_trashed_idx',
             'conversations_pending_analysis_idx',

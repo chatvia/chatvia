@@ -5,6 +5,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\DB;
 /** A unit vector at similarity `$similarity` to the query (axis 0), leaning on axis `$axis`. */
 function scopeTestVector(float $similarity, int $axis): array
 {
-    $vector = array_fill(0, 1024, 0.0);
+    $vector = array_fill(0, app(EmbeddingStorage::class)->dimensions(), 0.0);
     $vector[0] = $similarity;
     $vector[$axis] = sqrt(1 - $similarity ** 2);
 

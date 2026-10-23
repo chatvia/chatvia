@@ -56,18 +56,14 @@ describe('Forgot Password', function (): void {
         $response->assertSessionHasErrors('email');
     });
 
-    it('throttles password reset requests', function (): void {
-        $user = User::factory()->create(['email' => 'test@example.com']);
+    it('takes five reset requests a minute and refuses the sixth', function (): void {
+        User::factory()->create(['email' => 'test@example.com']);
 
-        // Make multiple requests
-        for ($i = 0; $i < 6; $i++) {
-            $this->post(route('password.email'), ['email' => 'test@example.com']);
+        foreach (range(1, 5) as $attempt) {
+            $this->post(route('password.email'), ['email' => 'test@example.com'])->assertRedirect();
         }
 
-        // Next request should be throttled
-        $response = $this->post(route('password.email'), ['email' => 'test@example.com']);
-
-        $response->assertStatus(429); // Too Many Requests
+        $this->post(route('password.email'), ['email' => 'test@example.com'])->assertStatus(429);
     });
 });
 

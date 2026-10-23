@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
@@ -61,19 +60,19 @@ it('returns grouped suggestions with capped examples', function (): void {
         ->and($titles)->toEqual(['Refund one', 'Refund two']);
 });
 
-it('does not leak another agent\'s suggestions or examples', function (): void {
+it('does not leak the suggestions or examples of another agent in the same workspace', function (): void {
     config(['chatvia.analytics.analysis.min_occurrences' => 1]);
 
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
 
-    $other = User::factory()->create();
-    $foreignAgent = createAgent($other);
+    // A sibling shares the workspace, so only the agent filter keeps it out.
+    $sibling = createAgent($owner, ['name' => 'Sibling']);
 
     ConversationTopic::create([
-        'workspace_id' => $foreignAgent->workspace_id,
-        'chat_conversation_id' => suggestedTopicsConversation($foreignAgent, 'Foreign')->id,
-        'suggested_label' => 'foreign-only',
+        'workspace_id' => $sibling->workspace_id,
+        'chat_conversation_id' => suggestedTopicsConversation($sibling, 'Sibling chat')->id,
+        'suggested_label' => 'sibling-only',
     ]);
 
     $response = $this->actingAs($owner)

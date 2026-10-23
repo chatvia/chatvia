@@ -73,8 +73,9 @@ it('marks one notification read', function (): void {
     expect($notification->fresh()->read_at)->not->toBeNull();
 });
 
-it('answers 404 for someone else\'s notification and leaves it unread', function (): void {
-    $theirs = UserNotification::factory()->create();
+it('answers 404 for a teammate\'s notification and leaves it unread', function (): void {
+    // Same workspace, so the workspace scope alone would let it through.
+    $theirs = UserNotification::factory()->for(User::factory()->employee($this->owner)->create())->create();
 
     $this->actingAs($this->owner)->patchJson('/my/notifications/'.$theirs->external_id)->assertNotFound();
 

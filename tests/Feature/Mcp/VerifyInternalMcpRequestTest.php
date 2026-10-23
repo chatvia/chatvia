@@ -127,15 +127,19 @@ it('rejects a request whose nonce was removed or swapped', function (): void {
 });
 
 /**
- * Headers signed without a nonce: none in the request and none in the
- * signed identity lines.
+ * Headers signed by hand in the signature's canonical form, with the nonce
+ * as one more signed identity line, or with no nonce at all when null.
  *
  * @param  array<string, mixed>  $payload
  * @param  array<string, string>  $identity
  * @return array<string, string>
  */
-function internalHeadersWithoutNonce(string $path, array $payload, array $identity): array
+function vimrSignedByHand(string $path, array $payload, array $identity, ?string $nonce): array
 {
+    if ($nonce !== null) {
+        $identity[InternalMcpSignature::NONCE_HEADER] = $nonce;
+    }
+
     $timestamp = (string) now()->timestamp;
     $lines = collect($identity)
         ->mapWithKeys(fn (string $value, string $name): array => [strtolower($name) => $value])
@@ -151,10 +155,18 @@ function internalHeadersWithoutNonce(string $path, array $payload, array $identi
     ];
 }
 
+it('accepts a request signed by hand with a nonce, so the hand-built form matches the real one', function (): void {
+    $call = InternalMcp::toolCall('get-account-overview-tool');
+
+    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, str_repeat('b', 40)))
+        ->postJson('/mcp/account-analytics', $call)
+        ->assertOk();
+});
+
 it('refuses a request signed without a nonce', function (): void {
     $call = InternalMcp::toolCall('get-account-overview-tool');
 
-    $this->withHeaders(internalHeadersWithoutNonce('/mcp/account-analytics', $call, $this->identity))
+    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, null))
         ->postJson('/mcp/account-analytics', $call)
         ->assertStatus(401);
 });

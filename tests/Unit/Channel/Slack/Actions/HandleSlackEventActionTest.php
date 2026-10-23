@@ -7,6 +7,7 @@ use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Channel\Slack\Services\SlackAdapter;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Slack\FakeSlackClient;
@@ -49,6 +50,8 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
     $client = new FakeSlackClient;
     $runner = new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
 
+    $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
+
     slackHandle($client, $runner, $app, 'C123CHAN', '<@U0BOT> hi there');
 
     // One placeholder post, then a partial edit per push + the final edit.
@@ -66,9 +69,10 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
     // The bot's own mention is stripped before the pipeline sees the text.
     expect($runner->received())->toBe('hi there');
 
+    // Made at 10:00, stamped when the reply landed two partials (a minute each) later.
     $channel = SlackChannel::query()->firstOrFail();
     expect($channel->channel_id)->toBe('C123CHAN')
-        ->and($channel->last_message_at)->not->toBeNull();
+        ->and($channel->last_message_at->toDateTimeString())->toBe('2026-10-01 10:02:00');
 });
 
 it('replies in the thread the mention came from', function (): void {

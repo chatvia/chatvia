@@ -18,6 +18,7 @@ use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
@@ -366,6 +367,16 @@ function attachAgentTopics(Agent $agent, array $names): array
     }
 
     return $ids;
+}
+
+/**
+ * A stored embedding written by hand, as pgvector text: $value in every
+ * dimension, at the size the install stores (EMBEDDING_DIMENSIONS), never a
+ * fixed 1024.
+ */
+function embeddingVector(float $value = 0.1): string
+{
+    return '['.implode(',', array_fill(0, app(EmbeddingStorage::class)->dimensions(), $value)).']';
 }
 
 /**

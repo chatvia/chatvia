@@ -48,7 +48,7 @@ function knowledgeEvalChunk(Agent $agent, string $text, bool $attach = true): Ch
         'chunk_index' => 1,
         'chunk' => $text,
         'tokens' => 1,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0)).']',
+        'embedding' => embeddingVector(0.0),
         'search_text' => $text,
         'checksum' => Str::random(32),
     ]);

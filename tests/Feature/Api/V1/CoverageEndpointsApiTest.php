@@ -336,10 +336,11 @@ describe('audit regressions', function (): void {
 });
 
 describe('prompts', function (): void {
-    it('lists prompts for a holder of account.prompts and hides them otherwise', function (): void {
+    it('lists prompts for a teammate holding account.prompts and hides them from one without', function (): void {
         $prompt = $this->owner->workspace()->prompts()->create(['name' => 'Tone', 'prompt' => 'Be concise.']);
 
-        $this->withToken($this->token)
+        $holder = teammateWithPermissions($this->owner, ['account.prompts']);
+        withApiToken($holder->createToken('t')->plainTextToken)
             ->getJson('/api/v1/prompts')
             ->assertOk()
             ->assertJsonPath('data.0.id', $prompt->external_id);

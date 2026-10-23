@@ -5,7 +5,7 @@ namespace Tests;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
-use Tests\Support\ProvisionTestDatabase;
+use Tests\Support\Database\ProvisionTestDatabase;
 
 trait RefreshTestDatabases
 {

@@ -2,7 +2,7 @@
 
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Settings\BrandSettings;
-use Tests\Support\LicenseKeys;
+use Tests\Support\License\LicenseKeys;
 
 /**
  * The Settings overview asks the install to buy a license (support plus no

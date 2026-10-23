@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 |--------------------------------------------------------------------------
 |
 | The pure decision logic lives in NetworkAccessGuard::passes() and is tested
-| in tests/Unit/Security/Services/NetworkAccessGuardTest.php. This file covers
+| in tests/Unit/Domain/Security/Services/NetworkAccessGuardTest.php. This file covers
 | the MIDDLEWARE BODY that the unit test cannot reach: the admin bypass, the
 | "no policy row / mode off" no-op, and the wiring that turns a request's real
 | IP (+ resolved country) into a 403. It is appended to the `web` group

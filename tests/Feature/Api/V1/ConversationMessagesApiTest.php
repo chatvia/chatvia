@@ -13,8 +13,8 @@ use Domain\Conversation\Models\Message;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Queue;
 use Mockery\LegacyMockInterface;
-use Tests\Support\BufferedSseResponder;
-use Tests\Support\ScriptedLlmProvider;
+use Tests\Support\Http\BufferedSseResponder;
+use Tests\Support\Llm\ScriptedLlmProvider;
 
 /*
 |--------------------------------------------------------------------------

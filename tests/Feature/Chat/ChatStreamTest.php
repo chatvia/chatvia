@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
-use Tests\Support\BufferedSseResponder;
-use Tests\Support\ScriptedLlmProvider;
+use Tests\Support\Http\BufferedSseResponder;
+use Tests\Support\Llm\ScriptedLlmProvider;
 
 /**
  * The hosted chat's streaming endpoint over HTTP: a valid POST goes through

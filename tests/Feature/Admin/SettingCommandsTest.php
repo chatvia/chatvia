@@ -7,7 +7,7 @@ use App\Admin\Settings\MailSettings;
  * Admin-panel settings can be set from the command line (`chatvia:settings:set`), so
  * installers and scripts can set up an install without the panel, and listed
  * (`chatvia:settings:list`). The action itself is in
- * tests/Unit/Admin/Settings/SetSettingActionTest.php.
+ * tests/Unit/App/Admin/Settings/SetSettingActionTest.php.
  */
 it('sets a value with chatvia:settings:set', function (): void {
     $this->artisan('chatvia:settings:set', ['key' => 'mail.from_address', 'value' => 'hello@acme.example'])

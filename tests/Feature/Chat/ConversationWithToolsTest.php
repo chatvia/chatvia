@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Tests\Support\BufferedSseResponder;
-use Tests\Support\ScriptedLlmProvider;
+use Tests\Support\Http\BufferedSseResponder;
+use Tests\Support\Llm\ScriptedLlmProvider;
 
 /**
  * Integration coverage for a full tool-using conversation turn through the

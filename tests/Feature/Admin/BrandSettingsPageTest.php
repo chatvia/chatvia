@@ -6,7 +6,7 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Tests\Support\LicenseKeys;
+use Tests\Support\License\LicenseKeys;
 
 /**
  * Settings → Branding: hiding the "Powered by" credit needs a license key. A new

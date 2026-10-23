@@ -5,8 +5,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Tests\Support\BufferedSseResponder;
-use Tests\Support\ScriptedLlmProvider;
+use Tests\Support\Http\BufferedSseResponder;
+use Tests\Support\Llm\ScriptedLlmProvider;
 
 /**
  * Reasoning in the hosted chat, end to end: the agent's effort is sent as a

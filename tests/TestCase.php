@@ -9,9 +9,9 @@ use Faker\Factory;
 use Faker\Generator;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
-use Tests\Support\FakeEmbeddingsProvider;
-use Tests\Support\FakeReranker;
-use Tests\Support\FakeTextSplitter;
+use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
+use Tests\Support\Knowledge\Embedding\FakeReranker;
+use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 
 abstract class TestCase extends BaseTestCase
 {

@@ -10,8 +10,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
-use Tests\Support\BufferedSseResponder;
-use Tests\Support\ScriptedLlmProvider;
+use Tests\Support\Http\BufferedSseResponder;
+use Tests\Support\Llm\ScriptedLlmProvider;
 
 /**
  * POST chat/{agentSlug}/tools/{approval}/resolve resumes a hosted-chat turn

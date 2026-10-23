@@ -7,8 +7,8 @@ use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Services\WhatsappClient;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Testing\TestResponse;
-use Tests\Support\Whatsapp\FakeWhatsappClient;
-use Tests\Support\Whatsapp\FakeWhatsappOAuthClient;
+use Tests\Support\Channel\Whatsapp\FakeWhatsappClient;
+use Tests\Support\Channel\Whatsapp\FakeWhatsappOAuthClient;
 
 /**
  * WhatsApp connects via Embedded Signup: the Facebook JS SDK popup hands the

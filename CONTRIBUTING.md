@@ -181,7 +181,7 @@ then tag the widget release: every build takes the newest release.
 - Run one file or folder while you work:
 
   ```bash
-  php artisan test --compact tests/Unit/Agent
+  php artisan test --compact tests/Unit/Domain/Agent
   vendor/bin/pest tests/Architecture        # fast: no app, no database
   ```
 
@@ -200,9 +200,9 @@ then tag the widget release: every build takes the newest release.
   in `tests/Support/`. `TestCase` calls `Http::preventStrayRequests()`, so a
   request that no fake answers fails the test instead of going out.
 - Put a unit test at the path of the class it tests:
-  `tests/Unit/Knowledge/Retrieval/Services/KnowledgeBaseTest.php` for
+  `tests/Unit/Domain/Knowledge/Retrieval/Services/KnowledgeBaseTest.php` for
   `src/Domain/Knowledge/Retrieval/Services/KnowledgeBase.php`, App code under
-  `tests/Unit/{Admin,Http,Identity,Mcp}/…` (`UnitTestLayoutTest` checks it). Use the factories
+  `tests/Unit/App/…` (`TestLayoutTest` checks it). Use the factories
   and the helpers in `tests/Pest.php` rather than building models by hand. A
   helper function you declare in a test file is global, so give it a short
   prefix of its own (`cscChunk()`), or two files will clash.

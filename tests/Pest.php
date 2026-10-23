@@ -41,7 +41,7 @@ use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Process\ExecutableFinder;
 use Tests\RefreshTestDatabases;
-use Tests\Support\FakeLlmProviders;
+use Tests\Support\Llm\FakeLlmProviders;
 use Tests\TestCase;
 
 pest()

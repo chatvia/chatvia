@@ -4,9 +4,9 @@ use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Clusters\Settings\Pages\ManageAiProviderSettings;
 use App\Admin\Clusters\Settings\Pages\ManageChannelSettings;
 use App\Admin\Clusters\Settings\Pages\ManageConnectorSettings;
-use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
 use App\Admin\Clusters\Settings\Pages\ManageMailSettings;
 use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
+use App\Admin\Clusters\Settings\Pages\ManageSearchSettings;
 use App\Admin\Clusters\Settings\Pages\ManageSecuritySettings;
 use App\Admin\Clusters\Settings\Pages\ManageSignInSettings;
 use App\Admin\Clusters\Settings\Pages\ManageStorageSettings;
@@ -67,7 +67,7 @@ it('shows every settings page, and the overview links to each one', function ():
     }
 
     expect(collect(SettingsCluster::getClusteredComponents())->map(fn (string $page): string => $page::getSlug())->sort()->values()->all())
-        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'overview', 'platform', 'security', 'sign-in', 'splitting', 'storage', 'workspaces']);
+        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'overview', 'platform', 'search', 'security', 'sign-in', 'splitting', 'storage', 'workspaces']);
 });
 
 it('shows a card for every service, with its status', function (): void {
@@ -130,10 +130,9 @@ it('marks a page of optional services that has none set up as optional', functio
 
 it('lists the advanced cards last, closed, under their own heading', function (): void {
     $this->actingAs($this->admin, 'admin')
-        ->get(ManageKnowledgeSettings::getUrl())
+        ->get(ManageSearchSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['File types', 'Follow-up questions', 'Technical options. The defaults suit most installs.', 'knowledge-search_tuning'])
-        ->assertDontSee('knowledge-splitting')
+        ->assertSeeInOrder(['Finding answers', 'Follow-up questions', 'Technical options. The defaults suit most installs.', 'search-tuning'])
         ->assertSeeText('Save changes')
         ->assertDontSee('cv-outline__save');
 });

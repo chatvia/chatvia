@@ -252,8 +252,8 @@ return [
     | AI Services
     |--------------------------------------------------------------------------
     |
-    | Everything here is set in the admin panel (Settings → AI models and
-    | Settings → Knowledge); the values are the defaults.
+    | Everything here is set in the admin panel (Settings → AI models,
+    | Knowledge and Search); the values are the defaults.
     |
     | `tasks`: the catalog model (alias) behind each of the app's own LLM
     | calls (LlmTask). An unset task uses `default`, then the chat model.
@@ -433,7 +433,7 @@ return [
     |
     | `max_chunks` and `max_context_tokens` cap what one question adds to the
     | prompt (the best chunk always goes in). These and the settings above
-    | are set in the admin panel (Settings → Knowledge).
+    | are set in the admin panel (Settings → Search).
     |
     | `rerank_candidates` is how many hits go to the reranker; keep it well
     | above `max_chunks`. Agents with at most `exact_max_chunks` chunks are

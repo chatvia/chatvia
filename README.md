@@ -161,7 +161,7 @@ key.
 Reranking uses OpenRouter or Cohere. PDF, Word, slides and images are read by
 Mistral OCR or Azure Document Intelligence; without one of them, those files
 cannot be uploaded. Text is split into chunks inside ChatVia.ai, by tokens or by
-characters (**Settings → Knowledge**). Website import uses Firecrawl. Each
+characters (**Settings → Splitting**). Website import uses Firecrawl. Each
 API key is entered once in the admin panel (**Settings → AI providers**), and
 the models in **Settings → AI models**, not in `.env`; see
 [AI providers](https://chatvia.ai/docs/guide/installation#6-add-your-api-keys).

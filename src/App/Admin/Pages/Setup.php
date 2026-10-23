@@ -722,8 +722,9 @@ class Setup extends SimplePage
                     ->schema([
                         View::make('filament.setup.summary')
                             ->viewData(['rows' => [
-                                'Settings → Knowledge' => 'Search, the AI enhancement of sources, follow-up questions, and the file types people can upload.',
+                                'Settings → Knowledge' => 'The AI enhancement of sources, and the file types people can upload.',
                                 'Settings → Splitting' => 'How texts are split into chunks.',
+                                'Settings → Search' => 'Hybrid search, results per question, follow-up questions and the minimum scores.',
                                 'Settings → AI models' => 'More chat models, and a model for each app task.',
                                 'Settings → Branding' => 'The "Powered by ChatVia.ai" credit under hosted chats and widgets.',
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',

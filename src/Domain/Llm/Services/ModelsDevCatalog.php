@@ -6,6 +6,7 @@ namespace Domain\Llm\Services;
 
 use Domain\Llm\Data\Catalog\ModelFactsData;
 use Domain\Llm\Enums\LlmProviderKind;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,9 +14,10 @@ use Throwable;
 
 /**
  * The models.dev catalog (open, community-kept): for each provider and model,
- * whether it reasons, the reasoning effort values it takes and whether it
- * takes a temperature. The app reads these facts instead of guessing from a
- * model's name.
+ * whether it reasons, the reasoning effort values it takes, whether it
+ * takes a temperature, calls tools and keeps to a JSON schema, and the
+ * longest reply it writes. The app reads these facts instead of guessing
+ * from a model's name.
  *
  * The catalog (several MB) is fetched at most once a day, and only when it
  * changed (ETag); only the facts the app uses are kept, in the cache. It is
@@ -33,6 +35,9 @@ final class ModelsDevCatalog
 
     private const int TIMEOUT_SECONDS = 30;
 
+    /** The fields of a catalog entry the app reads; the rest is not kept. */
+    private const array FIELDS = ['reasoning', 'reasoning_options', 'temperature', 'tool_call', 'structured_output', 'limit'];
+
     /**
      * The facts for a model as its provider names it. A server of your own
      * has no catalog entry of its own, so its model is looked up among the
@@ -47,22 +52,26 @@ final class ModelsDevCatalog
 
     /**
      * The model's catalog entry, cut to the fields the app reads
-     * (`reasoning`, `reasoning_options`, `temperature`), for the model's row
-     * to keep. Null when it is not listed or the lookup is off.
+     * (`reasoning`, `reasoning_options`, `temperature`, `tool_call`,
+     * `structured_output`, `limit`), for the model's row to keep. Null when
+     * it is not listed or the lookup is off.
      *
      * @return array<string, mixed>|null
      */
     public function entry(LlmProviderKind $kind, string $modelId): ?array
     {
-        if (! $this->enabled()) {
-            return null;
-        }
+        return $this->enabled() ? $this->find($this->stored(refreshWhenOld: true), $kind, $modelId) : null;
+    }
 
-        $facts = $this->stored(refreshWhenOld: true);
-        $key = $kind->catalogKey();
-        $entry = $key !== null ? ($facts['providers'][$key][$modelId] ?? null) : ($facts['models'][$modelId] ?? null);
-
-        return is_array($entry) ? $entry : null;
+    /**
+     * The model's entry as last downloaded, never downloading: for a model
+     * that is not a catalog row, looked up while a request is answered.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function storedEntry(LlmProviderKind $kind, string $modelId): ?array
+    {
+        return $this->enabled() ? $this->find($this->stored(refreshWhenOld: false), $kind, $modelId) : null;
     }
 
     /**
@@ -89,6 +98,18 @@ final class ModelsDevCatalog
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $facts
+     * @return array<string, mixed>|null
+     */
+    private function find(array $facts, LlmProviderKind $kind, string $modelId): ?array
+    {
+        $key = $kind->catalogKey();
+        $entry = $key !== null ? ($facts['providers'][$key][$modelId] ?? null) : ($facts['models'][$modelId] ?? null);
+
+        return is_array($entry) ? $entry : null;
+    }
+
     private function enabled(): bool
     {
         return filter_var(config('chatvia.ai.models_dev.enabled', true), FILTER_VALIDATE_BOOL);
@@ -112,14 +133,15 @@ final class ModelsDevCatalog
     /**
      * Download the catalog unless it is unchanged, and keep its facts. A
      * failed download keeps what is stored and is not tried again until the
-     * next day, so a broken connection never slows each lookup.
+     * next day, so a broken connection never slows each lookup. Facts kept
+     * with other fields than the app now reads are downloaded again in full.
      *
      * @param  array<string, mixed>  $stored
      * @return array<string, mixed>
      */
     private function fetch(array $stored): array
     {
-        $etag = is_string($stored['etag'] ?? null) ? $stored['etag'] : null;
+        $etag = filled($stored['etag'] ?? null) && ($stored['fields'] ?? null) === self::FIELDS ? $stored['etag'] : null;
 
         try {
             $response = Http::timeout(self::TIMEOUT_SECONDS)
@@ -132,6 +154,7 @@ final class ModelsDevCatalog
                 $catalog = (array) $response->throw()->json();
                 $fresh = [
                     'etag' => $response->header('ETag') ?: null,
+                    'fields' => self::FIELDS,
                     'checked_at' => now()->getTimestamp(),
                     'providers' => $this->providerFacts((array) ($catalog['providers'] ?? [])),
                     'models' => $this->entries((array) ($catalog['models'] ?? [])),
@@ -180,7 +203,7 @@ final class ModelsDevCatalog
 
         foreach ($models as $id => $entry) {
             if (is_array($entry)) {
-                $entries[(string) $id] = array_intersect_key($entry, array_flip(['reasoning', 'reasoning_options', 'temperature']));
+                $entries[(string) $id] = Arr::only($entry, self::FIELDS);
             }
         }
 

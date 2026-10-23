@@ -46,9 +46,10 @@ use Illuminate\Support\Facades\Cache;
  * named as the provider names it (`name`, sent in every call); the app
  * refers to it by its row id. Its capabilities come from
  * the models.dev catalog ({@see ModelsDevCatalog}): whether it reasons, the
- * effort values it takes and whether it takes a temperature, so the app
- * sends each model what it takes instead of guessing from its name. For a
- * model the catalog does not list, the admin says whether it reasons. An admin adds
+ * effort values it takes, whether it takes a temperature, calls tools and
+ * keeps to a JSON schema, and its longest reply, so the app sends each model
+ * only what it takes instead of guessing from its name. For a model the catalog does not list, the admin says
+ * whether it reasons, and the other settings go as asked. An admin adds
  * the models an install may use; agents and the app's own tasks pick theirs
  * from it, and every call to a model goes to its provider.
  */
@@ -61,7 +62,13 @@ class Llm extends Model
     private const array EFFORT_ORDER = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
 
     /** The sampling settings a model that takes no temperature refuses. */
-    private const array SAMPLING = ['temperature', 'top_p', 'presence_penalty', 'frequency_penalty'];
+    private const array SAMPLING = ['temperature', 'top_p', 'top_k', 'presence_penalty', 'frequency_penalty'];
+
+    /** The request keys that cap the reply length, as the providers name it. */
+    private const array REPLY_LENGTH = ['max_tokens', 'max_completion_tokens'];
+
+    /** The request keys that offer tools, which a model that calls none refuses. */
+    private const array TOOLS = ['tools', 'tool_choice', 'parallel_tool_calls'];
 
     protected function casts(): array
     {
@@ -125,15 +132,21 @@ class Llm extends Model
     }
 
     /**
-     * The settings to send this model: the sampling it takes, and the value
-     * for the effort the app chose (Off by default: the least it takes).
+     * The settings to send this model: the sampling it takes, a reply length
+     * it can write, tools only when it calls them, and the value for the
+     * effort the app chose (Off by default: the least it takes).
      *
      * @param  array<string, mixed>  $settings
      * @return array<string, mixed>
      */
     public function requestSettings(array $settings, ReasoningEffort $effort = ReasoningEffort::Off): array
     {
-        $settings = $this->sampling($settings);
+        $settings = $this->replyLength($this->sampling($settings));
+
+        if (! $this->callsTools()) {
+            $settings = Arr::except($settings, self::TOOLS);
+        }
+
         $value = $this->effortValue($effort);
 
         return $value === null ? $settings : [...$settings, AbstractLlmProvider::REASONING_EFFORT => $value];
@@ -151,10 +164,49 @@ class Llm extends Model
         return $this->facts()?->takesTemperature === false ? Arr::except($settings, self::SAMPLING) : $settings;
     }
 
+    /**
+     * The settings with a reply length no longer than the longest the model
+     * writes: a provider refuses a request that asks for more.
+     *
+     * @param  array<string, mixed>  $settings
+     * @return array<string, mixed>
+     */
+    public function replyLength(array $settings): array
+    {
+        $limit = $this->facts()?->maxOutputTokens;
+
+        if ($limit === null) {
+            return $settings;
+        }
+
+        foreach (self::REPLY_LENGTH as $key) {
+            if (is_int($settings[$key] ?? null)) {
+                $settings[$key] = min($settings[$key], $limit);
+            }
+        }
+
+        return $settings;
+    }
+
     /** What the model's capabilities say, when any are known. */
     public function facts(): ?ModelFactsData
     {
         return is_array($this->capabilities) ? ModelFactsData::fromCatalog($this->capabilities) : null;
+    }
+
+    /** Whether the model can call tools: yes unless its facts say it cannot. */
+    public function callsTools(): bool
+    {
+        return $this->facts()?->callsTools !== false;
+    }
+
+    /**
+     * Whether the provider can hold the model's reply to a JSON schema: yes
+     * unless its facts say it cannot.
+     */
+    public function takesResponseSchema(): bool
+    {
+        return $this->facts()?->takesResponseSchema !== false;
     }
 
     /** Whether the model thinks before it answers, so agents may set how hard. */

@@ -214,8 +214,14 @@ theme.
   app now sends what each model takes. Chats with OpenAI models now use
   OpenAI's Responses API.
 - **Each model's details come from models.dev**, an open list of AI models:
-  whether it reasons, how hard it can think, and whether it takes a
-  temperature. They are kept with each model you add, refreshed once a day,
+  whether it reasons, how hard it can think, whether it takes a
+  temperature, whether it can use tools and follow a JSON schema, and the
+  longest answer it can write. Each call sends a model only what it takes:
+  no temperature, top-p or top-k to a model that refuses them, never a longer
+  answer than it can write, and no tools to a model that cannot use them (it
+  answers without them). A model that cannot follow a JSON schema gets the
+  schema in its instructions instead. Chat with a PDF follows the same
+  rules. The details are kept with each model you add, refreshed once a day,
   on the setup's first page, and with **Refresh model details** in Settings →
   AI models (switch: **Look up model details on models.dev**). Nothing is
   guessed from a model's name any more. A model that is not asked to reason

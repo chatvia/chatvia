@@ -72,9 +72,10 @@ abstract class ToolLoopSource
     }
 
     /**
-     * This turn's model in the catalog, when it has one: its facts decide
-     * the effort value and the sampling settings sent. Without one, the
-     * agent's settings go as they are and no effort is sent.
+     * This turn's model, when it has one: its facts decide the effort value,
+     * the sampling settings and the reply length sent
+     * ({@see Llm::requestSettings()}). Without one, the agent's settings go
+     * as they are and no effort is sent.
      */
     protected function model(ChatContext $context): ?Llm
     {
@@ -159,15 +160,20 @@ abstract class ToolLoopSource
     }
 
     /**
-     * The turn's candidate tools, in OpenAI shape. Approval is communicated to
-     * the model by a single system note (see injectToolSystemNote), not by
-     * annotating each tool — so this stays a pure pass-through with no
-     * per-candidate-tool policy lookups.
+     * The turn's candidate tools, in OpenAI shape; none for a model that
+     * cannot call tools, which then answers without them. Approval is
+     * communicated to the model by a single system note (see
+     * injectToolSystemNote), not by annotating each tool — so this stays a
+     * pure pass-through with no per-candidate-tool policy lookups.
      *
      * @return array<int, array<string, mixed>>
      */
     protected function prepareToolDefinitions(ChatContext $context): array
     {
+        if ($this->model($context)?->callsTools() === false) {
+            return [];
+        }
+
         return $this->toolSelector->selectForTurn(
             $context->requestData->agent,
             $context->payload->message,

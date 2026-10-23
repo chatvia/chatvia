@@ -15,6 +15,7 @@ use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\DocumentLlm;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
@@ -95,7 +96,13 @@ class PdfSource extends ToolLoopSource
 
     protected function modelName(ChatContext $context): string
     {
-        return (string) config('chatvia.ai.models.document_chat');
+        return $this->model($context)->name;
+    }
+
+    /** The PDF chat model, with what it takes: the agent's settings are fitted to it. */
+    protected function model(ChatContext $context): Llm
+    {
+        return $this->documentLlm->model((string) config('chatvia.ai.models.document_chat'));
     }
 
     protected function logLabel(): string
@@ -181,7 +188,7 @@ class PdfSource extends ToolLoopSource
         $messages[$lastUserIndex] = [
             'role' => MessageRole::User->value,
             'content' => [
-                ['type' => 'text', 'text' => is_string($text) ? $text : ''],
+                ['type' => 'text', 'text' => is_array($text) ? '' : (string) $text],
                 ...array_map(static fn (string $url): array => ['type' => 'document_url', 'document_url' => $url], $documentUrls),
             ],
         ];

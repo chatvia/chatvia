@@ -410,7 +410,8 @@ case and an adapter class. Every call goes to its model's provider:
 (`ModelsDevCatalog`: fetched when it changed, at most daily, never during a
 chat): each added model keeps its entry in `llms.capabilities` (whether it
 reasons, its `reasoning_options` effort values, whether it takes a
-temperature), filled by `AddLlmModelAction` and the daily
+temperature, `tool_call`, `structured_output`, its `limit.output`), filled by
+`AddLlmModelAction` and the daily
 `chatvia:llm:sync-facts` (`SyncLlmFactsAction`, also run on the setup's first
 page and by "Refresh model details"). Nothing is guessed from a model's name.
 Reasoning: the admin lets agents reason (`chatvia.ai.reasoning.enabled`, off
@@ -420,9 +421,18 @@ says which models agents may make think.
 Each agent picks a `ReasoningEffort` (the `reasoning` settings group);
 `Agent::reasoningEffort()` is Off unless both allow it. `Llm::requestSettings()`
 turns it into a value the model takes (`effortValue()`: Off is its least,
-`none` where it has it) and drops sampling for a model that takes no
-temperature; the tool loop, the app's own tasks (`ChatRequestData`), evals
-and the analytics chat all send that. Providers only move the value into
+`none` where it has it), drops sampling (`temperature`, `top_p`, `top_k`,
+penalties) for a model that takes no temperature, caps `max_tokens` /
+`max_completion_tokens` at `limit.output`, and drops `tools` / `tool_choice`
+/ `parallel_tool_calls` for a model whose `tool_call` is false (the tool loop
+and evals select no tools for it: `Llm::callsTools()`); the tool loop, the
+app's own tasks (`ChatRequestData`), evals and the analytics chat all send
+that. `ChatRequestData` sends `response_format` only when
+`Llm::takesResponseSchema()`; otherwise the schema goes into the system
+prompt (`ResponseSchemaData::instruction()`) and `LlmJson` reads the reply. The PDF
+chat and document models are not catalog rows: `DocumentLlm::model()` gives
+them their stored models.dev entry (`ModelsDevCatalog::storedEntry()`, never
+a download), so they are fitted the same way. Providers only move the value into
 their own field (OpenRouter's `reasoning` object); a model the catalog does
 not list gets no effort unless an agent asks for one. A provider
 with a Responses API streams chat turns through it with the

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Agent;
 
+use App\Admin\Settings\AiProviderIcon;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
@@ -49,7 +50,11 @@ final readonly class SetupPageProps
         // was turned off since.
         $catalog = Llm::catalog()
             ->filter(fn (Llm $model): bool => $model->isAvailable() || $model->id === $selectedModel)
-            ->map(fn (Llm $model): LlmModelData => LlmModelData::fromLlmModel($model, selected: $model->id === $selectedModel))
+            ->map(fn (Llm $model): LlmModelData => LlmModelData::fromLlmModel(
+                $model,
+                selected: $model->id === $selectedModel,
+                providerIcon: AiProviderIcon::forKind($model->provider->kind),
+            ))
             ->values()
             ->all();
 

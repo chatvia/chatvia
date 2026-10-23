@@ -1065,6 +1065,7 @@ declare namespace Domain {
                 provider: string;
                 is_reasoning: boolean;
                 is_selected: boolean;
+                provider_icon: string | null;
             };
         }
         namespace Enums {

@@ -2,9 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Members\UpdateTeamMemberRoleAction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Exceptions\TeamOwnerImmutableException;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 
 /**
@@ -14,13 +13,7 @@ use Domain\Membership\Team\Services\TeamService;
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->role = fn (string $name) => app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: $name,
-        permissions: [],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    $this->role = fn (string $name): Role => teamRole($this->team, $name, permissions: []);
 });
 
 it('moves a member to another of the team\'s roles', function (): void {

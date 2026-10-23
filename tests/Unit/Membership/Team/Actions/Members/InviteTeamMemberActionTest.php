@@ -2,9 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Members\InviteTeamMemberAction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
@@ -25,13 +23,7 @@ beforeEach(function (): void {
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
 
     // Default teams only carry the `owner` role, which is never invitable.
-    app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    teamRole($this->team);
 });
 
 function itmAddUser(Team $team, User $inviter, User $user): void

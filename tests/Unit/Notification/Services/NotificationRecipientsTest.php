@@ -2,10 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Notification\Services\NotificationRecipients;
 use Illuminate\Support\Facades\DB;
 
@@ -70,9 +68,7 @@ it('reads a teammate without a current team in their oldest team, as the dashboa
     $older = ownerTeam($this->owner);
     $newer = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->owner->workspace(), name: 'Newer'));
     $member = teammateWithPermissions($this->owner, ['account.prompts'], team: $older);
-    $newerRole = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $newer, name: 'Security', permissions: ['account.security'], allAgents: true, agentExternalIds: [],
-    ));
+    $newerRole = teamRole($newer, 'Security', permissions: ['account.security']);
     $newer->members()->attach($member->id, ['role_id' => $newerRole->id]);
     $member->forceFill(['current_team_id' => null])->save();
 

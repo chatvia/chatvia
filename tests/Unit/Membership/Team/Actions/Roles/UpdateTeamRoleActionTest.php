@@ -1,7 +1,6 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamAgentAccess;
@@ -24,13 +23,7 @@ it('drops agents.access-all when scoping an all-agents role, even if the payload
     $kept = makeTeamAgent($this->owner, 'Kept', $this->team);
     $dropped = makeTeamAgent($this->owner, 'Dropped', $this->team);
 
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    $role = teamRole($this->team);
 
     expect($role->hasPermissionTo('agents.access-all'))->toBeTrue();
 
@@ -56,13 +49,7 @@ it('drops agents.access-all when scoping an all-agents role, even if the payload
 });
 
 it('renames the role', function (): void {
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    $role = teamRole($this->team);
 
     $updated = app(UpdateTeamRoleAction::class)->execute($role, new SaveTeamRoleData(
         team: $this->team,
@@ -78,13 +65,7 @@ it('renames the role', function (): void {
 
 it('keeps the old name and grants when the new grants are rejected', function (): void {
     $agent = makeTeamAgent($this->owner, 'Bot', $this->team);
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: false,
-        agentExternalIds: [$agent->external_id],
-    ));
+    $role = teamRole($this->team, allAgents: false, agentExternalIds: [$agent->external_id]);
 
     expect(fn () => app(UpdateTeamRoleAction::class)->execute($role, new SaveTeamRoleData(
         team: $this->team,

@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\Web\Models;
 
+use Database\Factories\SourceWebsiteFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
@@ -12,6 +13,7 @@ use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Enums\RefreshInterval;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -84,7 +86,8 @@ use Support\Concerns\HasExternalId;
 #[Guarded(['id'])]
 class SourceWebsite extends Model implements ChunkableContract
 {
-    use Chunkable, HasExternalId, HasStorageFile;
+    /** @use HasFactory<SourceWebsiteFactory> */
+    use Chunkable, HasExternalId, HasFactory, HasStorageFile;
 
     /** The column default, so a website just created reads it too. */
     #[\Override]

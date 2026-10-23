@@ -12,7 +12,7 @@ use Filament\Facades\Filament;
 beforeEach(function (): void {
     // fresh(): load every column, as a real request does (strict mode flags
     // attributes a factory instance never had).
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
 
 it('does not let a dashboard (web guard) session into the panel', function (): void {

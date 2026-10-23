@@ -9,9 +9,11 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Builds a chat message (user or assistant) inside a fresh conversation.
- * Assistant messages get a model, a response time and sometimes a confidence
- * score, like real replies.
+ * Builds a chat message inside a fresh conversation: a visitor's message with
+ * no feedback, unless a state says otherwise. An assistant reply
+ * ({@see fromAssistant()}) gets the first model of the catalog, a response
+ * time and a confidence score, like a real reply. Nothing is picked at random,
+ * so a test that leaves a field out always runs the same case.
  *
  * @extends Factory<Message>
  */
@@ -27,30 +29,24 @@ class MessageFactory extends Factory
      */
     public function definition(): array
     {
-        $role = fake()->randomElement(['user', 'assistant']);
-
         return [
             'chat_conversation_id' => Conversation::factory(),
             'workspace_id' => fn (array $attributes): int => (int) Conversation::query()->whereKey($attributes['chat_conversation_id'])->value('workspace_id'),
-            'generation_id' => fake()->optional(0.5)->uuid(),
-            'content' => fake()->paragraphs(random_int(1, 3), true),
+            'generation_id' => null,
+            'content' => fake()->paragraphs(2, true),
             'metadata' => null,
-            'role' => $role,
-            'llm_id' => $role === 'assistant' ? $this->getRandomLlmId() : null,
-            'confidence_score' => $role === 'assistant' ? fake()->optional(0.7)->randomFloat(4, 0.7, 1) : null,
-            'feedback' => fake()->optional(0.2)->randomElement(MessageFeedback::cases()),
-            'response_time_ms' => $role === 'assistant' ? fake()->numberBetween(500, 5000) : null,
+            'role' => 'user',
+            'llm_id' => null,
+            'confidence_score' => null,
+            'feedback' => null,
+            'response_time_ms' => null,
         ];
     }
 
-    /**
-     * Get a random LLM ID from the database.
-     */
-    private function getRandomLlmId(): ?int
+    /** The first model of the catalog, or none when the catalog is empty. */
+    private function firstLlmId(): ?int
     {
-        $llmIds = Llm::pluck('id')->toArray();
-
-        return $llmIds ? fake()->randomElement($llmIds) : null;
+        return Llm::query()->oldest('id')->value('id');
     }
 
     /**
@@ -73,9 +69,9 @@ class MessageFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'role' => 'assistant',
-            'llm_id' => $this->getRandomLlmId(),
-            'confidence_score' => fake()->randomFloat(4, 0.7, 1),
-            'response_time_ms' => fake()->numberBetween(500, 5000),
+            'llm_id' => $this->firstLlmId(),
+            'confidence_score' => 0.9,
+            'response_time_ms' => 1200,
         ]);
     }
 

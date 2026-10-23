@@ -4,7 +4,6 @@ use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
 use App\Admin\Settings\AiProviderUsage;
 use App\Admin\Settings\AiSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Enums\AiCapability;
@@ -27,13 +26,8 @@ use Livewire\Livewire;
  * on checks the OpenAI key with a real call, and is refused when it fails.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
-
-function voicePage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageAiModelSettings::class);
-}
 
 function voiceField(Testable $page): Select
 {
@@ -87,7 +81,7 @@ it('saves the voice, the longest call and the model', function (): void {
 it('shows the voice service in use, marked connected, with no Automatic', function (): void {
     connectAiProviders(AiProvider::OpenAi);
 
-    $field = voiceField(voicePage($this->admin)->assertFormSet(['voice' => 'openai']));
+    $field = voiceField(adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['voice' => 'openai']));
 
     expect($field->getOptions())->toBe(['openai' => 'OpenAI Realtime (connected)', 'none' => 'Off'])
         ->and($field->canSelectPlaceholder())->toBeFalse()
@@ -97,7 +91,7 @@ it('shows the voice service in use, marked connected, with no Automatic', functi
 it('shows Off, and greys out OpenAI Realtime, until OpenAI is connected', function (): void {
     config(['services.openai.api_key' => null]);
 
-    $field = voiceField(voicePage($this->admin)->assertFormSet(['voice' => 'none']));
+    $field = voiceField(adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['voice' => 'none']));
 
     expect($field->getOptions())->toBe(['openai' => 'OpenAI Realtime (not connected)', 'none' => 'Off'])
         ->and($field->isOptionDisabled('openai', 'OpenAI Realtime'))->toBeTrue();
@@ -108,7 +102,7 @@ it('checks the OpenAI key before it turns voice on', function (): void {
     config(['chatvia.ai.voice' => 'none']);
     Http::fake(['api.openai.com/v1/models' => Http::response(['data' => [['id' => 'gpt-realtime-2.1', 'object' => 'model']]])]);
 
-    voicePage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['voice' => 'openai'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -124,7 +118,7 @@ it('refuses voice when OpenAI refuses the key', function (): void {
     config(['chatvia.ai.voice' => 'none']);
     Http::fake(['api.openai.com/v1/models' => Http::response(['error' => ['message' => 'Incorrect API key provided']], 401)]);
 
-    voicePage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['voice' => 'openai'])
         ->call('save')
         ->assertHasFormErrors(['voice' => 'OpenAI refused the API key. Check that you copied all of it.']);
@@ -137,7 +131,7 @@ it('does not call OpenAI again when voice is unchanged', function (): void {
     config(['chatvia.ai.voice' => 'openai']);
     Http::fake();
 
-    voicePage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->call('save')
         ->assertHasNoFormErrors();
 
@@ -148,7 +142,7 @@ it('refuses OpenAI before it is connected', function (): void {
     config(['services.openai.api_key' => null]);
     Http::fake();
 
-    voicePage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['voice' => 'openai'])
         ->call('save')
         ->assertHasFormErrors(['voice' => 'OpenAI is not connected. Add its key in AI providers first.']);

@@ -8,9 +8,10 @@ use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Builds a conversation inside a fresh visitor session. The denormalized
- * `agent_id` is copied from the session after making, so callers that pass only
- * a session still get a valid row.
+ * Builds an untitled Chat Widget conversation inside a fresh visitor session.
+ * The denormalized `agent_id` is copied from the session after making, so
+ * callers that pass only a session still get a valid row. The surface and the
+ * title are fixed, so a test that leaves them out always runs the same case.
  *
  * @extends Factory<Conversation>
  */
@@ -31,8 +32,8 @@ class ConversationFactory extends Factory
             'chat_session_id' => fn (array $attributes): int => Session::factory()
                 ->create(isset($attributes['agent_id']) ? ['agent_id' => $attributes['agent_id']] : [])
                 ->id,
-            'source' => fake()->randomElement(ConversationSource::cases()),
-            'title' => fake()->optional(0.7)->sentence(3),
+            'source' => ConversationSource::Widget,
+            'title' => null,
         ];
     }
 

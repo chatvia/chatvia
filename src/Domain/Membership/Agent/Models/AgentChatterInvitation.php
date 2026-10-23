@@ -2,8 +2,10 @@
 
 namespace Domain\Membership\Agent\Models;
 
+use Database\Factories\AgentChatterInvitationFactory;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -25,6 +27,9 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class AgentChatterInvitation extends Model
 {
+    /** @use HasFactory<AgentChatterInvitationFactory> */
+    use HasFactory;
+
     /** How many days an invitation link stays valid after it is sent. */
     public const int TTL_DAYS = 7;
 

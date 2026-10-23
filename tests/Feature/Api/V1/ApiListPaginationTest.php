@@ -9,7 +9,6 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
@@ -75,24 +74,8 @@ function pagedRecords(string $list, User $owner, Agent $agent): array
             fn (): string => FormSubmission::factory()->forDefinition(pagedForm($agent))->submitted()->create()->external_id,
             range(1, 3),
         ),
-        'eval runs' => array_map(fn (): string => EvalRun::create([
-            'agent_id' => $agent->id,
-            'agent_name' => $agent->name,
-            'workspace_id' => $agent->workspace_id,
-            'status' => EvalRunStatus::Completed,
-            'total_cases' => 0,
-            'started_at' => now(),
-        ])->external_id, range(1, 3)),
-        'topics' => array_map(function () use ($agent): string {
-            $topic = Topic::query()->create([
-                'workspace_id' => $agent->workspace_id,
-                'topic' => 'Topic '.Str::random(6),
-                'description' => 'Paging test topic',
-            ]);
-            $agent->topics()->attach($topic->id);
-
-            return $topic->external_id;
-        }, range(1, 3)),
+        'eval runs' => array_map(fn (): string => EvalRun::factory()->forAgent($agent)->completed()->create()->external_id, range(1, 3)),
+        'topics' => array_map(fn (): string => Topic::factory()->attachedTo($agent)->create()->external_id, range(1, 3)),
     };
 
     $uri = match ($list) {

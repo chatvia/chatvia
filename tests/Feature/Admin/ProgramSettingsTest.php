@@ -3,7 +3,6 @@
 use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ServerProgram;
-use App\Identity\Workspace\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\File;
@@ -18,7 +17,7 @@ use Livewire\Livewire;
  * finds.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
 
     $this->folder = sys_get_temp_dir().'/chatvia-programs-'.uniqid();

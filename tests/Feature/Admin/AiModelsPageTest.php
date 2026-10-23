@@ -4,7 +4,6 @@ use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\ReplaceAgentModelAction;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Jobs\ReembedToolVectorsJob;
@@ -21,7 +20,6 @@ use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
-use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
 /**
@@ -32,17 +30,12 @@ use Livewire\Livewire;
  * a warning, and starts a re-index.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 
     foreach (AiProvider::cases() as $provider) {
         config([$provider->apiKeyConfig() => null]);
     }
 });
-
-function modelsPage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageAiModelSettings::class);
-}
 
 /** OpenRouter connected, listing two chat models. */
 function modelsFakeOpenRouter(): void
@@ -75,7 +68,7 @@ it('uses the recommended model for quick tasks of the default model\'s provider'
     // Saving settings reloads the saved keys; connect after it.
     connectAiProviders(AiProvider::OpenRouter);
 
-    $page = modelsPage($this->admin)
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('recommendedTaskModels')->schemaComponent('recommended-task-models', schema: 'form'))
         ->assertNotified('openai/gpt-4.1-mini does the quick tasks now');
     $mini = (string) Llm::query()->where('name', 'openai/gpt-4.1-mini')->value('id');
@@ -89,14 +82,14 @@ it('hides "Use the recommended models" for a server of your own', function (): v
     $chat = testLlm('llama3.1:8b');
     saveSettings(AiSettings::class, ['default_agent_model' => (string) $chat->id]);
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertSchemaComponentHidden('recommended-task-models', 'form');
 });
 
 it('adds a model from a connected provider\'s list', function (): void {
     modelsFakeOpenRouter();
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick']])
         ->assertHasNoActionErrors()
         ->assertNotified('meta-llama/llama-4-maverick added');
@@ -117,7 +110,7 @@ it('marks a model as reasoning when its provider says so', function (): void {
         'supported_parameters' => ['tools', 'reasoning'],
     ]]])]);
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['deepseek/deepseek-r1']])
         ->assertHasNoActionErrors();
 
@@ -127,7 +120,7 @@ it('marks a model as reasoning when its provider says so', function (): void {
 it('lets the admin mark a model models.dev does not list as reasoning, and let agents reason', function (): void {
     $model = Llm::factory()->create(['capabilities' => ['reasoning' => false]]);
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertTableColumnExists('reasons')
         ->call('updateTableColumnState', 'reasons', (string) $model->getKey(), true)
         ->fillForm(['allow_reasoning' => true])
@@ -141,7 +134,7 @@ it('lets the admin mark a model models.dev does not list as reasoning, and let a
 it('adds several models at once', function (): void {
     modelsFakeOpenRouter();
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b']])
         ->assertHasNoActionErrors()
         ->assertNotified('2 models added');
@@ -153,7 +146,7 @@ it('adds several models at once', function (): void {
 it('lists the first provider\'s models as soon as the form opens', function (): void {
     modelsFakeOpenRouter();
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->mountAction(TestAction::make('addModel')->table())
         ->assertSchemaStateSet(['source' => 'account:openrouter'], 'mountedActionSchema0')
         ->assertFormFieldVisible('models');
@@ -162,7 +155,7 @@ it('lists the first provider\'s models as soon as the form opens', function (): 
 it('keeps Add off until a model is picked', function (): void {
     modelsFakeOpenRouter();
 
-    $page = modelsPage($this->admin)->mountAction(TestAction::make('addModel')->table());
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)->mountAction(TestAction::make('addModel')->table());
 
     expect($page->instance()->getMountedAction()->getModalSubmitAction()->isDisabled())->toBeTrue();
 
@@ -176,7 +169,7 @@ it('offers only connected providers and servers of your own', function (): void 
     Http::fake(['api.groq.com/*' => Http::response(['data' => []])]);
     $server = LlmProvider::factory()->create(['name' => 'Office Ollama']);
 
-    $sources = modelsPage($this->admin)
+    $sources = adminPage(ManageAiModelSettings::class, $this->admin)
         ->mountAction(TestAction::make('addModel')->table())
         ->instance()
         ->getSchema('mountedActionSchema0')
@@ -190,7 +183,7 @@ it('takes a typed model name from a server that lists none', function (): void {
     $server = LlmProvider::factory()->create(['base_url' => 'https://ollama.office.test/v1']);
     Http::fake(['ollama.office.test/*' => Http::response('Not found', 404)]);
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => "server:{$server->id}", 'model_id' => 'llama3.1:8b'])
         ->assertHasNoActionErrors();
 
@@ -209,7 +202,7 @@ it('removes a model, moving its agents and the tasks that used it', function ():
     $settings->images_model = (string) $new->id;
     $settings->save();
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('removeModel')->table($old), data: ['replacement' => $new->id])
         ->assertHasNoActionErrors();
 
@@ -226,7 +219,7 @@ it('keeps the last model agents use', function (): void {
     $only = testLlm('only-model');
     createAgent($this->admin, ['llm_id' => $only->id]);
 
-    modelsPage($this->admin)->assertActionDisabled(TestAction::make('removeModel')->table($only));
+    adminPage(ManageAiModelSettings::class, $this->admin)->assertActionDisabled(TestAction::make('removeModel')->table($only));
 
     expect(fn () => app(RemoveLlmModelAction::class)->execute($only))->toThrow(InvalidArgumentException::class);
 });
@@ -253,7 +246,7 @@ it('moves every agent of a model with one action', function (): void {
 });
 
 it('refuses a search service whose provider is not connected', function (): void {
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['embedding_provider' => 'cohere'])
         ->call('save')
         ->assertHasFormErrors(['embedding_provider' => 'Connect Cohere in AI providers first.']);
@@ -285,7 +278,7 @@ it('warns and asks before it changes the embedding model of stored documents, th
         }
     });
 
-    $page = modelsPage($this->admin)
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['embedding_provider' => 'openai', 'openai_embedding_model' => 'text-embedding-3-large'])
         ->assertSee('Changing the embedding model means a re-index')
         ->call('save')
@@ -308,7 +301,7 @@ it('changes the embedding model without asking while nothing is stored as vector
     Chunk::query()->delete();
     AgentQuestionAnswerQuestion::query()->update(['embedding' => null]);
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['embedding_provider' => 'openai', 'openai_embedding_model' => 'text-embedding-3-large'])
         ->assertDontSee('Changing the embedding model means a re-index')
         ->call('save')
@@ -324,7 +317,7 @@ it('starts a re-index by hand and shows its progress', function (): void {
     Chunk::factory()->create();
     Bus::fake();
 
-    modelsPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction('reindex')
         ->assertNotified('Re-index started')
         ->assertSee('Re-indexing: 0% done');
@@ -332,5 +325,5 @@ it('starts a re-index by hand and shows its progress', function (): void {
     Bus::assertBatched(fn (PendingBatchFake $batch): bool => $batch->name === 'Embedding re-index');
     Bus::assertDispatched(ReembedToolVectorsJob::class);
 
-    modelsPage($this->admin)->assertActionDisabled('reindex');
+    adminPage(ManageAiModelSettings::class, $this->admin)->assertActionDisabled('reindex');
 });

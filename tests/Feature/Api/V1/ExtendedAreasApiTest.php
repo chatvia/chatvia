@@ -12,7 +12,6 @@ use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Pagination\Cursor;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,21 +34,7 @@ beforeEach(function (): void {
 /** One immutable tool-call audit row of the given agent. */
 function extAuditRow(Agent $agent, array $overrides = []): AgentActivity
 {
-    return AgentActivity::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'trace_id' => (string) Str::uuid(),
-        'tool_call_id' => 'call_'.Str::random(6),
-        'tool_name' => 'get_weather',
-        'tool_kind' => 'function',
-        'outcome' => 'auto',
-        'is_gated' => false,
-        'is_error' => false,
-        'arguments_truncated' => false,
-        'result_truncated' => false,
-        ...$overrides,
-    ]);
+    return AgentActivity::factory()->forAgent($agent)->create($overrides);
 }
 
 describe('leads', function (): void {

@@ -29,7 +29,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportTesting\Testable;
-use Livewire\Livewire;
+use Tests\Support\Admin\FakeRedisAndHorizon;
 
 /**
  * The admin setup of a new install: every panel page leads to it until it is
@@ -43,10 +43,12 @@ use Livewire\Livewire;
  * Settings → AI providers ({@see CompleteSetupAction}).
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     $this->dimensions = app(EmbeddingStorage::class)->dimensions();
 
     Filament::setCurrentPanel('admin');
+    // The server step checks Redis and the queue: answer them offline.
+    FakeRedisAndHorizon::bind();
     Queue::fake([SyncBuiltinConnectorsJob::class]);
     setupFakeOpenRouterEmbeddingModels();
     setupNotDone();
@@ -67,16 +69,10 @@ function setupNotDone(): void
 /** The setup page past its server step, with every service running. */
 function setupPage(User $admin): Testable
 {
-    return setupServerStep($admin)
+    return adminPage(Setup::class, $admin)
         ->set('server', setupServicesRunning())
         ->goToNextWizardStep()
         ->assertWizardCurrentStep(2);
-}
-
-/** The setup page as it opens, on the server step. */
-function setupServerStep(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(Setup::class);
 }
 
 /**
@@ -205,7 +201,7 @@ it('can be finished after a skip, from Settings', function (): void {
 });
 
 it('opens on the server step and checks the services ChatVia.ai runs on', function (): void {
-    setupServerStep($this->admin)
+    adminPage(Setup::class, $this->admin)
         ->assertWizardCurrentStep(1)
         ->assertSee('Checking each service…')
         ->call('checkServer')
@@ -216,7 +212,7 @@ it('opens on the server step and checks the services ChatVia.ai runs on', functi
 it('says why pg_textsearch matters and what to do to get it', function (): void {
     $state = app(PgTextsearchSupport::class)->state();
 
-    $page = setupServerStep($this->admin)->set('server', setupServicesRunning())->assertSee('Everything runs.');
+    $page = adminPage(Setup::class, $this->admin)->set('server', setupServicesRunning())->assertSee('Everything runs.');
 
     match ($state) {
         PgTextsearchState::Active => $page->assertDontSee(['Keyword search', 'pg_textsearch']),
@@ -228,7 +224,7 @@ it('says why pg_textsearch matters and what to do to get it', function (): void 
 });
 
 it('asks before going on with a service down, and goes on once agreed', function (): void {
-    setupServerStep($this->admin)
+    adminPage(Setup::class, $this->admin)
         ->set('server', setupServicesRunning(['queue' => ServiceState::Down]))
         ->assertSee(['One service is down.', 'Horizon is not running.', 'php artisan horizon'])
         ->goToNextWizardStep()
@@ -240,7 +236,7 @@ it('asks before going on with a service down, and goes on once agreed', function
 });
 
 it('goes on without asking when a service only needs a look', function (): void {
-    setupServerStep($this->admin)
+    adminPage(Setup::class, $this->admin)
         ->set('server', setupServicesRunning(['scheduler' => ServiceState::Warning]))
         ->assertSee('Everything answers. One service needs a look.')
         ->goToNextWizardStep()

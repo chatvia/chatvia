@@ -14,7 +14,7 @@ use Livewire\Livewire;
  * in plain words, from a Markdown file per card.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
 
 /**

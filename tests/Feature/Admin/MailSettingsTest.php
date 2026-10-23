@@ -4,25 +4,17 @@ use App\Admin\Clusters\Settings\Pages\ManageMailSettings;
 use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\SettingsConfig;
-use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Http;
-use Livewire\Features\SupportTesting\Testable;
-use Livewire\Livewire;
 
 /**
  * Settings → Email offers every mailer Laravel ships with in one dropdown
  * ({@see MailProvider}) and asks only for the chosen one's settings.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
 });
-
-function mailPage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageMailSettings::class);
-}
 
 it('offers every mailer Laravel ships with, each with a mail.mailers entry', function (): void {
     expect(array_column(MailProvider::cases(), 'value'))->toBe(['smtp', 'ses', 'mailgun', 'postmark', 'resend', 'cloudflare', 'sendmail', 'log']);
@@ -37,7 +29,7 @@ it('offers every mailer Laravel ships with, each with a mail.mailers entry', fun
 });
 
 it('shows only the settings of the provider picked', function (): void {
-    mailPage($this->admin)
+    adminPage(ManageMailSettings::class, $this->admin)
         ->fillForm(['mailer' => 'mailgun'])
         ->assertFormFieldVisible('mailgun_domain')
         ->assertFormFieldVisible('mailgun_secret')
@@ -49,7 +41,7 @@ it('shows only the settings of the provider picked', function (): void {
 });
 
 it('saves the provider picked and its settings, and the mailer uses them', function (): void {
-    mailPage($this->admin)
+    adminPage(ManageMailSettings::class, $this->admin)
         ->fillForm([
             'mailer' => 'mailgun',
             'mailgun_domain' => 'mg.example.com',
@@ -72,7 +64,7 @@ it('saves the provider picked and its settings, and the mailer uses them', funct
 });
 
 it('asks for the picked provider\'s required settings only', function (): void {
-    mailPage($this->admin)
+    adminPage(ManageMailSettings::class, $this->admin)
         ->fillForm(['mailer' => 'postmark'])
         ->call('save')
         ->assertHasFormErrors(['postmark_token'])
@@ -86,7 +78,7 @@ it('keeps a mailer from .env that is not in the list', function (): void {
     config(['mail.default' => 'failover']);
     app()->forgetInstance(SettingsConfig::class);
 
-    mailPage($this->admin)
+    adminPage(ManageMailSettings::class, $this->admin)
         ->assertFormSet(['mailer' => 'failover'])
         ->fillForm(['from_address' => 'chat@example.com'])
         ->call('save')

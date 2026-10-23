@@ -2,8 +2,6 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Members\RemoveTeamMemberAction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Exceptions\TeamOwnerImmutableException;
 use Domain\Membership\Team\Services\TeamService;
 
@@ -18,13 +16,7 @@ beforeEach(function (): void {
 
 it('detaches a member and keeps the account', function (): void {
     $member = User::factory()->employee($this->owner)->create();
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Support',
-        permissions: [],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    $role = teamRole($this->team, permissions: []);
     $this->team->members()->attach($member->id, ['role_id' => $role->id]);
 
     app(RemoveTeamMemberAction::class)->execute($this->team, $member);

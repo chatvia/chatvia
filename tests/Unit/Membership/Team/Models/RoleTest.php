@@ -1,8 +1,6 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
@@ -18,13 +16,7 @@ function roleTestRole(array $permissions, bool $allAgents = false, array $agentE
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
 
-    return app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Support',
-        permissions: $permissions,
-        allAgents: $allAgents,
-        agentExternalIds: $agentExternalIds,
-    ));
+    return teamRole($team, permissions: $permissions, allAgents: $allAgents, agentExternalIds: $agentExternalIds);
 }
 
 it('grants the permissions the role holds and nothing else', function (): void {
@@ -67,9 +59,7 @@ it('checks its own agent list once per agent', function (): void {
     $team = app(TeamService::class)->createDefaultTeam($owner);
     $listed = createAgent($owner, ['team_id' => $team->id]);
     $other = createAgent($owner, ['team_id' => $team->id]);
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team, name: 'Support', permissions: ['agent.chat.view'], allAgents: false, agentExternalIds: [$listed->external_id],
-    ))->fresh();
+    $role = teamRole($team, allAgents: false, agentExternalIds: [$listed->external_id])->fresh();
 
     $queries = 0;
     DB::listen(function () use (&$queries): void {

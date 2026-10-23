@@ -36,7 +36,7 @@ use Support\Localization\Country\Models\Country;
 beforeEach(function (): void {
     // A future month no seeded row falls in.
     $this->travelTo(Carbon::parse('2031-03-20 15:30:00', 'UTC'));
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     $this->owner = User::factory()->create([
         'name' => 'Dana Owner',
         'email' => 'dana@acme.test',

@@ -149,12 +149,7 @@ it('refuses to resume for a deactivated workspace, without claiming the checkpoi
 
 it('refuses to resume once the workspace reached its monthly message limit', function (): void {
     $checkpoint = resumeCheckpoint();
-    MessageLimit::create([
-        'workspace_id' => $this->agent->workspace_id,
-        'monthly_limit' => 3,
-        'messages_used' => 3,
-        'period_starts_at' => now()->startOfMonth(),
-    ]);
+    MessageLimit::factory()->reached()->create(['workspace_id' => $this->agent->workspace_id]);
 
     $events = resumeEvents($checkpoint);
     $error = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error);
@@ -168,12 +163,7 @@ it('refuses to resume once the workspace reached its monthly message limit', fun
 it('refuses to resume once the chatter reached their monthly message limit', function (): void {
     $chatter = Chatter::factory()->grantedTo($this->agent)->create();
     $checkpoint = resumeCheckpoint($chatter->id);
-    MessageLimit::create([
-        'chatter_id' => $chatter->id,
-        'monthly_limit' => 3,
-        'messages_used' => 3,
-        'period_starts_at' => now()->startOfMonth(),
-    ]);
+    MessageLimit::factory()->forChatter($chatter)->reached()->create();
 
     $events = resumeEvents($checkpoint);
     $error = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error);

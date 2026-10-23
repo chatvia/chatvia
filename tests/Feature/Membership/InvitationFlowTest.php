@@ -5,8 +5,6 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Domain\Membership\Agent\Notifications\AgentChatterInvitationNotification;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Notifications\TeamInvitationNotification;
@@ -53,13 +51,7 @@ function invitationFlowOwner(): User
  */
 function invitationFlowSupportRole(Team $team): void
 {
-    app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    teamRole($team);
 }
 
 /**

@@ -35,7 +35,7 @@ it('offers the Spectra trace link to an admin signed in to the admin panel', fun
     // Both sessions at once, as in a real browser: the dashboard on the web
     // guard, the admin panel on its own. setUser keeps `web` the default guard.
     $this->actingAs($this->owner);
-    Auth::guard('admin')->setUser(User::factory()->admin()->create()->fresh());
+    Auth::guard('admin')->setUser(adminUser());
 
     $this->get(route('agents.logs', $this->agent))
         ->assertOk()

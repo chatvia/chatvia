@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Slack\Actions\HandleSlackEventAction;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
@@ -8,7 +7,6 @@ use Domain\Channel\Slack\Services\SlackAdapter;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Slack\FakeSlackClient;
 
@@ -20,17 +18,7 @@ use Tests\Support\Slack\FakeSlackClient;
  */
 function slackHandleApp(): AgentSlackApp
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentSlackApp::create([
-        'agent_id' => $agent->id,
-        'bot_token' => 'xoxb-secret-token',
-        'signing_secret' => 'signing-secret-value-12345678',
-        'bot_user_id' => 'U0BOT',
-        'team_name' => 'Acme Inc',
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-    ]);
+    return AgentSlackApp::factory()->create(['bot_token' => 'xoxb-secret-token']);
 }
 
 /**

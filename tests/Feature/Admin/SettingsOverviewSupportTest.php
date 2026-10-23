@@ -2,7 +2,6 @@
 
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Settings\BrandSettings;
-use App\Identity\Workspace\Models\User;
 use Tests\Support\LicenseKeys;
 
 /**
@@ -10,7 +9,7 @@ use Tests\Support\LicenseKeys;
  * "Powered by" credit) and thanks the install that has one.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 
     LicenseKeys::trust();
     config(['app.url' => 'https://chat.acme.com']);

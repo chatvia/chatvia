@@ -2,9 +2,11 @@
 
 namespace Domain\Conversation\Topic\Models;
 
+use Database\Factories\ConversationTopicFactory;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -26,6 +28,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[WithoutTimestamps]
 class ConversationTopic extends Model
 {
+    /** @use HasFactory<ConversationTopicFactory> */
+    use HasFactory;
+
     /** @return BelongsTo<Conversation, $this> */
     public function conversation(): BelongsTo
     {

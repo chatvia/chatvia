@@ -21,7 +21,6 @@ use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     // Chatter deletion wipes the avatar tree on the assets disk and attachment
@@ -34,12 +33,7 @@ beforeEach(function (): void {
 /** An open invitation of the email to the agent. */
 function deleteChatterTestInvitation(Agent $agent, string $email): AgentChatterInvitation
 {
-    return AgentChatterInvitation::query()->create([
-        'agent_id' => $agent->id,
-        'email' => $email,
-        'token' => Str::random(40),
-        'expires_at' => now()->addDays(AgentChatterInvitation::TTL_DAYS),
-    ]);
+    return AgentChatterInvitation::factory()->forAgent($agent)->create(['email' => $email]);
 }
 
 it('deletes the chatter and its agent grants, and leaves the other chatters of the workspace alone', function (): void {

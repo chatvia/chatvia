@@ -1,10 +1,8 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamPermissionCatalog;
 use Domain\Membership\Team\Services\TeamRoleResolver;
 use Domain\Membership\Team\Services\TeamService;
@@ -33,13 +31,7 @@ it('maps every team of the owner to all codes, without reading team_user', funct
 it('maps every joined team of a teammate to its role permissions', function (): void {
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Viewer',
-        permissions: ['agent.chat.view'],
-        allAgents: false,
-        agentExternalIds: [],
-    ));
+    $role = teamRole($team, 'Viewer', allAgents: false);
     $teammate = User::factory()->employee($owner)->create();
     $team->members()->attach($teammate->id, ['role_id' => $role->id]);
 

@@ -1,8 +1,6 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamAgentAccess;
 use Domain\Membership\Team\Services\TeamService;
 
@@ -16,13 +14,7 @@ beforeEach(function (): void {
 
 function taaJoinWithRole(object $test, bool $allAgents, array $agentIds = []): void
 {
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $test->team,
-        name: 'Role '.$test->team->roles()->count(),
-        permissions: [],
-        allAgents: $allAgents,
-        agentExternalIds: $agentIds,
-    ));
+    $role = teamRole($test->team, 'Role '.$test->team->roles()->count(), permissions: [], allAgents: $allAgents, agentExternalIds: $agentIds);
 
     $test->team->members()->attach($test->member->id, ['role_id' => $role->id]);
 }

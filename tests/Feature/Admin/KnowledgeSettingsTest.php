@@ -2,7 +2,6 @@
 
 use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
 use App\Admin\Settings\KnowledgeSettings;
-use App\Identity\Workspace\Models\User;
 use Livewire\Livewire;
 
 /**
@@ -10,7 +9,7 @@ use Livewire\Livewire;
  * and search have their own pages.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
 
 it('shows what agents learn from, and leaves search to its own page', function (): void {

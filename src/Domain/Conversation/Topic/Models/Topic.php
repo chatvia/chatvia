@@ -3,12 +3,14 @@
 namespace Domain\Conversation\Topic\Models;
 
 use App\Identity\Workspace\Models\Workspace;
+use Database\Factories\TopicFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -56,7 +58,8 @@ class Topic extends Model
 {
     // The dashboard binds topics by integer id, so the default route key
     // stays; the public API names them explicitly ({topic:external_id}).
-    use HasExternalId;
+    /** @use HasFactory<TopicFactory> */
+    use HasExternalId, HasFactory;
 
     /** @return BelongsTo<Workspace, $this> */
     public function workspace(): BelongsTo

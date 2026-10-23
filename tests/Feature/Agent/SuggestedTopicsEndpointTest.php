@@ -27,18 +27,10 @@ it('returns grouped suggestions with capped examples', function (): void {
     // "refunds" appears in 3 conversations (above threshold, examples capped
     // at 2); "shipping" in 1 (below threshold — dropped).
     foreach (['Refund one', 'Refund two', 'Refund three'] as $title) {
-        ConversationTopic::create([
-            'workspace_id' => $agent->workspace_id,
-            'chat_conversation_id' => suggestedTopicsConversation($agent, $title)->id,
-            'suggested_label' => 'refunds',
-        ]);
+        ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, $title))->suggested('refunds')->create();
     }
 
-    ConversationTopic::create([
-        'workspace_id' => $agent->workspace_id,
-        'chat_conversation_id' => suggestedTopicsConversation($agent, 'Shipping one')->id,
-        'suggested_label' => 'shipping',
-    ]);
+    ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, 'Shipping one'))->suggested('shipping')->create();
 
     $response = $this->actingAs($owner)
         ->getJson(route('agents.topics.suggestions', $agent))
@@ -69,11 +61,7 @@ it('does not leak the suggestions or examples of another agent in the same works
     // A sibling shares the workspace, so only the agent filter keeps it out.
     $sibling = createAgent($owner, ['name' => 'Sibling']);
 
-    ConversationTopic::create([
-        'workspace_id' => $sibling->workspace_id,
-        'chat_conversation_id' => suggestedTopicsConversation($sibling, 'Sibling chat')->id,
-        'suggested_label' => 'sibling-only',
-    ]);
+    ConversationTopic::factory()->forConversation(suggestedTopicsConversation($sibling, 'Sibling chat'))->suggested('sibling-only')->create();
 
     $response = $this->actingAs($owner)
         ->getJson(route('agents.topics.suggestions', $agent))
@@ -90,11 +78,7 @@ it('only counts conversations from the suggestion window', function (): void {
     $owner = $agent->workspace->owner;
 
     foreach (['Recent one', 'Recent two', 'Old one'] as $title) {
-        ConversationTopic::create([
-            'workspace_id' => $agent->workspace_id,
-            'chat_conversation_id' => suggestedTopicsConversation($agent, $title)->id,
-            'suggested_label' => 'refunds',
-        ]);
+        ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, $title))->suggested('refunds')->create();
     }
 
     // `title` is encrypted, so find the old row (the last one) by id.
@@ -128,12 +112,12 @@ it('reads the examples of every label with the same number of queries', function
         return $queries;
     };
 
-    ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => suggestedTopicsConversation($agent, 'Refund')->id, 'suggested_label' => 'refunds']);
+    ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, 'Refund'))->suggested('refunds')->create();
     $countQueries();
     $oneLabel = $countQueries();
 
     foreach (['shipping', 'returns'] as $label) {
-        ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => suggestedTopicsConversation($agent, ucfirst($label))->id, 'suggested_label' => $label]);
+        ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, ucfirst($label)))->suggested($label)->create();
     }
     $threeLabels = $countQueries();
 

@@ -3,12 +3,14 @@
 namespace Domain\Evaluation\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\EvalRunFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Enums\EvalRunStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -31,7 +33,8 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class EvalRun extends Model
 {
-    use HasExternalId;
+    /** @use HasFactory<EvalRunFactory> */
+    use HasExternalId, HasFactory;
 
     /**
      * @return BelongsTo<Agent, $this>

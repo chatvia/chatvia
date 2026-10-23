@@ -27,6 +27,7 @@ use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Queue\Attributes\Queue;
@@ -35,6 +36,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ReadsClassAttributes;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Process\ExecutableFinder;
 use Tests\RefreshTestDatabases;
@@ -108,6 +111,25 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
 }
 
 /**
+ * A role on $team granting exactly $permissions, made the way Settings → Teams
+ * makes one. A new team has only the owner role, which nobody can be invited
+ * to, so a test that invites or adds a teammate needs one of these.
+ *
+ * @param  list<string>  $permissions
+ * @param  list<string>  $agentExternalIds  the agents the role reaches when not $allAgents
+ */
+function teamRole(Team $team, string $name = 'Support', array $permissions = ['agent.chat.view'], bool $allAgents = true, array $agentExternalIds = []): Role
+{
+    return app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
+        team: $team,
+        name: $name,
+        permissions: $permissions,
+        allAgents: $allAgents,
+        agentExternalIds: $agentExternalIds,
+    ));
+}
+
+/**
  * A teammate of the owner's workspace on $team (the owner's primary team when
  * omitted), under a new role granting exactly $permissions. Their current team
  * is that team, so the permission helpers resolve it.
@@ -119,13 +141,7 @@ function teammateWithPermissions(User $owner, array $permissions, ?Team $team = 
 {
     $team ??= ownerTeam($owner);
 
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: $permissions,
-        allAgents: $allAgents,
-        agentExternalIds: $agentExternalIds,
-    ));
+    $role = teamRole($team, 'Role-'.Str::random(10), $permissions, $allAgents, $agentExternalIds);
 
     $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
     $team->members()->attach($member->id, ['role_id' => $role->id]);
@@ -133,6 +149,23 @@ function teammateWithPermissions(User $owner, array $permissions, ?Team $team = 
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     return $member;
+}
+
+/** An admin of the install, as the admin panel's guard loads one. */
+function adminUser(): User
+{
+    return User::factory()->admin()->create()->fresh();
+}
+
+/**
+ * A Filament page (or other Livewire component) of the admin panel, opened by
+ * $admin, or by a new admin when none is given.
+ *
+ * @param  class-string  $page
+ */
+function adminPage(string $page, ?User $admin = null): Testable
+{
+    return Livewire::actingAs($admin ?? adminUser(), 'admin')->test($page);
 }
 
 /**
@@ -358,15 +391,9 @@ function programInstalled(string $name): bool
  */
 function attachAgentTopics(Agent $agent, array $names): array
 {
-    $ids = [];
-
-    foreach ($names as $name) {
-        $topic = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => $name, 'description' => "About {$name}"]);
-        $agent->topics()->attach($topic->id);
-        $ids[$name] = $topic->id;
-    }
-
-    return $ids;
+    return collect($names)
+        ->mapWithKeys(fn (string $name): array => [$name => Topic::factory()->attachedTo($agent)->create(['topic' => $name, 'description' => "About {$name}"])->id])
+        ->all();
 }
 
 /**

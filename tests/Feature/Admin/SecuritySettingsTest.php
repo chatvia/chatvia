@@ -5,7 +5,6 @@ use App\Admin\Clusters\Settings\Pages\ManageSecuritySettings;
 use App\Admin\Settings\SecuritySettings;
 use App\Http\Auth\BotCheck;
 use App\Http\Auth\BotCheckForm;
-use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 
@@ -15,7 +14,7 @@ use Livewire\Livewire;
  * headers, and the security audit log with how long it is kept.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
 });
 

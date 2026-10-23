@@ -2,7 +2,6 @@
 
 use App\Admin\Pages\Tools;
 use App\Admin\StaffTool;
-use App\Identity\Workspace\Models\User;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -17,7 +16,7 @@ use Laravel\Horizon\Horizon;
  */
 
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
 
 it('shows a card with a link for each staff tool', function (): void {

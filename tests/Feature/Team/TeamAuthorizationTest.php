@@ -3,10 +3,8 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
@@ -110,9 +108,7 @@ describe('teams.destroy', function (): void {
 describe('teams.invite', function (): void {
     it('lets the owner invite someone to their team', function (): void {
         $team = $this->owner->primaryTeam();
-        app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-            team: $team, name: 'Support', permissions: ['agent.chat.view'], allAgents: true, agentExternalIds: [],
-        ));
+        teamRole($team);
 
         $this->actingAs($this->owner)
             ->from('/')
@@ -135,9 +131,7 @@ describe('teams.invite', function (): void {
 function seedResendInvitation(User $owner): array
 {
     $team = $owner->primaryTeam();
-    app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team, name: 'Support', permissions: ['agent.chat.view'], allAgents: true, agentExternalIds: [],
-    ));
+    teamRole($team);
     $invitation = app(CreateTeamInvitationAction::class)->execute($team, 'invitee@example.com', 'support');
 
     return [$team, $invitation];

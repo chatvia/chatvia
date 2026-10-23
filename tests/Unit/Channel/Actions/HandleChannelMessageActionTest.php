@@ -13,7 +13,6 @@ use Domain\Channel\Slack\Services\SlackChannelResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Messenger\FakeMessengerClient;
 use Tests\Support\Slack\FakeSlackClient;
@@ -35,26 +34,14 @@ beforeEach(function (): void {
 
 function hcmMessengerPage(bool $public = true): AgentMessengerPage
 {
-    return AgentMessengerPage::create([
-        'agent_id' => Agent::factory()->create(['is_public' => $public])->id,
-        'page_access_token' => 'EAAG-page-token',
-        'page_id' => '1234567890',
-        'page_name' => 'Acme Support',
-        'is_enabled' => true,
-    ]);
+    return AgentMessengerPage::factory()
+        ->forAgent(Agent::factory()->create(['is_public' => $public]))
+        ->create(['page_access_token' => 'EAAG-page-token']);
 }
 
 function hcmSlackApp(): AgentSlackApp
 {
-    return AgentSlackApp::create([
-        'agent_id' => Agent::factory()->create(['is_public' => true])->id,
-        'bot_token' => 'xoxb-bot-token',
-        'signing_secret' => 'signing-secret-value-12345678',
-        'bot_user_id' => 'U0BOT',
-        'team_name' => 'Acme Inc',
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-    ]);
+    return AgentSlackApp::factory()->create(['bot_token' => 'xoxb-bot-token']);
 }
 
 it('answers a typing channel with one whole reply in the sender’s chat and stamps it', function (): void {

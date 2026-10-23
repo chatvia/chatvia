@@ -10,8 +10,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Support\Localization\Country\Models\Country;
 
 /**
- * Builds an anonymous visitor session for a fresh agent, usually with a country
- * picked from the seeded `countries` table.
+ * Builds an anonymous visitor session for a fresh agent, with no country
+ * unless {@see withCountry()} gives it the first one of the seeded
+ * `countries` table.
  *
  * @extends Factory<Session>
  */
@@ -34,9 +35,7 @@ class SessionFactory extends Factory
             'user_id' => null,
             'chatter_id' => null,
             'ip_address' => fake()->ipv4(),
-            'country_id' => fake()->optional(0.8)->randomElement(
-                Country::pluck('id')->toArray() ?: [null]
-            ),
+            'country_id' => null,
             'user_agent' => fake()->userAgent(),
         ];
     }
@@ -68,7 +67,7 @@ class SessionFactory extends Factory
     public function withCountry(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'country_id' => Country::inRandomOrder()->first()?->id,
+            'country_id' => Country::query()->oldest('id')->value('id'),
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentActivityFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
@@ -10,6 +11,7 @@ use Domain\Integration\Tool\Enums\ToolKind;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -59,6 +61,9 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class AgentActivity extends Model
 {
+    /** @use HasFactory<AgentActivityFactory> */
+    use HasFactory;
+
     /** Insert-only audit log. */
     public const ?string UPDATED_AT = null;
 

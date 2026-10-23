@@ -19,16 +19,7 @@ use Tests\Support\Instagram\FakeInstagramClient;
  */
 function instagramTurnAccount(): AgentInstagramAccount
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentInstagramAccount::create([
-        'agent_id' => $agent->id,
-        'page_access_token' => 'IGAA-secret-token-1234567890',
-        'page_id' => '998877',
-        'ig_id' => '17840012345',
-        'username' => 'acme.support',
-        'is_enabled' => true,
-    ]);
+    return AgentInstagramAccount::factory()->create(['page_access_token' => 'IGAA-secret-token-1234567890']);
 }
 
 function instagramTurnAdapter(FakeInstagramClient $client, AgentInstagramAccount $account, string $igsid): InstagramAdapter

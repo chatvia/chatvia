@@ -2,7 +2,6 @@
 
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\AiSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Llm\Enums\AiProvider;
 use Filament\Forms\Components\Select;
@@ -20,7 +19,7 @@ use Livewire\Livewire;
  * short rerank as it is saved, and refused when that fails.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     app()->forgetInstance(Reranker::class);
 
     config([
@@ -29,11 +28,6 @@ beforeEach(function (): void {
         AiProvider::Cohere->apiKeyConfig() => null,
     ]);
 });
-
-function rerankerPage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageAiModelSettings::class);
-}
 
 function rerankerField(Testable $page): Select
 {
@@ -70,7 +64,7 @@ it('offers the strongest OpenRouter rerankers, best first', function (): void {
 it('shows the reranker in use, marked connected, with no Automatic', function (): void {
     connectAiProviders(AiProvider::OpenRouter);
 
-    $field = rerankerField(rerankerPage($this->admin)->assertFormSet(['reranker' => 'openrouter']));
+    $field = rerankerField(adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['reranker' => 'openrouter']));
 
     expect($field->getOptions())->toBe([
         'openrouter' => 'OpenRouter (connected)',
@@ -86,7 +80,7 @@ it('shows the reranker in use, marked connected, with no Automatic', function ()
 });
 
 it('shows Off when no reranker is connected', function (): void {
-    rerankerPage($this->admin)->assertFormSet(['reranker' => 'none']);
+    adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['reranker' => 'none']);
 });
 
 it('tests a new OpenRouter model with a rerank before it saves it, and the search uses it', function (): void {
@@ -94,7 +88,7 @@ it('tests a new OpenRouter model with a rerank before it saves it, and the searc
     Http::fake(['openrouter.ai/api/v1/rerank' => Http::response(rerankResponse())]);
 
     // OpenRouter is in use already: only its model changes.
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['reranker' => 'openrouter', 'openrouter_rerank_model' => 'qwen/qwen3-reranker-8b'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -116,7 +110,7 @@ it('tests Cohere Rerank with its default model before it saves it', function ():
     config(['chatvia.ai.reranker' => 'none']);
     Http::fake(['api.cohere.com/v2/rerank' => Http::response(rerankResponse())]);
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertFormSet(['reranker' => 'none'])
         ->fillForm(['reranker' => 'cohere'])
         ->call('save')
@@ -133,7 +127,7 @@ it('refuses OpenRouter when the test rerank is refused', function (): void {
     config(['chatvia.ai.reranker' => 'none']);
     Http::fake(['openrouter.ai/api/v1/rerank' => Http::response(['error' => ['message' => 'No auth credentials found']], 401)]);
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['reranker' => 'openrouter'])
         ->call('save')
         ->assertHasFormErrors(['reranker' => 'OpenRouter refused this key. Check that you copied all of it.']);
@@ -144,7 +138,7 @@ it('refuses OpenRouter when the test rerank is refused', function (): void {
 it('saves a self-hosted reranker with its address and model, once it answers', function (): void {
     Http::fake(['reranker.example.com/*' => Http::response(rerankResponse())]);
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm([
             'reranker' => 'custom',
             'rerank_custom_url' => 'https://reranker.example.com/v1',
@@ -163,7 +157,7 @@ it('saves a self-hosted reranker with its address and model, once it answers', f
 it('says why a self-hosted reranker failed', function (): void {
     Http::fake(['reranker.example.com/*' => Http::response(['message' => 'The model `Qwen/Nope` does not exist.'], 404)]);
 
-    $page = rerankerPage($this->admin)
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm([
             'reranker' => 'custom',
             'rerank_custom_url' => 'https://reranker.example.com/v1',
@@ -181,7 +175,7 @@ it('does not test the reranker again when it is unchanged', function (): void {
     config(['chatvia.ai.reranker' => 'openrouter']);
     Http::fake();
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertFormSet(['reranker' => 'openrouter'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -194,7 +188,7 @@ it('turns the reranker off without a call', function (): void {
     config(['chatvia.ai.reranker' => 'openrouter']);
     Http::fake();
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['reranker' => 'none'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -206,7 +200,7 @@ it('turns the reranker off without a call', function (): void {
 it('refuses a reranker whose provider is not connected', function (): void {
     Http::fake();
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['reranker' => 'openrouter'])
         ->call('save')
         ->assertHasFormErrors(['reranker' => 'OpenRouter is not connected. Add its key in AI providers first.']);
@@ -217,7 +211,7 @@ it('refuses a reranker whose provider is not connected', function (): void {
 it('refuses a reranker that is not offered', function (): void {
     Http::fake();
 
-    rerankerPage($this->admin)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['reranker' => 'qwen'])
         ->call('save')
         ->assertHasFormErrors(['reranker']);

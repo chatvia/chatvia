@@ -3,8 +3,6 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Actions\Invitations\ResendTeamInvitationAction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
@@ -22,13 +20,7 @@ function rtiTeamWithSupportRole(): Team
 
     $team = app(TeamService::class)->createDefaultTeam($owner);
 
-    app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
+    teamRole($team);
 
     return $team;
 }

@@ -37,9 +37,13 @@ class FormSubmissionFactory extends Factory
         ];
     }
 
+    /** A lead of a new form of the agent, so the lead and its form agree. */
     public function forAgent(Agent $agent): static
     {
-        return $this->state(fn (array $attributes): array => ['agent_id' => $agent->id]);
+        return $this->state(fn (array $attributes): array => [
+            'form_definition_id' => FormDefinition::factory()->forAgent($agent),
+            'agent_id' => $agent->id,
+        ]);
     }
 
     public function forDefinition(FormDefinition $definition): static

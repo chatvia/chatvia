@@ -3,7 +3,6 @@
 use App\Admin\Clusters\Settings\Pages\ManageStorageSettings;
 use App\Admin\Settings\StorageDisks;
 use App\Admin\Settings\StorageSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Models\Attachment;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
@@ -11,8 +10,6 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use Livewire\Features\SupportTesting\Testable;
-use Livewire\Livewire;
 
 /**
  * Settings → Storage: the private disk stays on this server until
@@ -21,14 +18,9 @@ use Livewire\Livewire;
  * already. A button checks the saved storage.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
 });
-
-function storagePage(User $admin): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test(ManageStorageSettings::class);
-}
 
 it('keeps files on this server by default', function (): void {
     expect(config('filesystems.storage'))->toBe('local')
@@ -53,7 +45,7 @@ it('gives the private disk the s3 disk once S3-compatible storage is chosen', fu
 it('moves the private disk to S3-compatible storage once it is saved, also for a process that opened it', function (): void {
     $before = Storage::disk('private');
 
-    storagePage($this->admin)
+    adminPage(ManageStorageSettings::class, $this->admin)
         ->fillForm([
             'driver' => 's3',
             's3_endpoint' => 'http://minio:9000',
@@ -113,7 +105,7 @@ it('goes back to this server in a process that started on S3-compatible storage'
 });
 
 it('refuses S3-compatible storage without its bucket and keys', function (): void {
-    storagePage($this->admin)
+    adminPage(ManageStorageSettings::class, $this->admin)
         ->fillForm(['driver' => 's3'])
         ->call('save')
         ->assertHasFormErrors(['s3_region', 's3_key', 's3_secret', 's3_bucket']);
@@ -124,7 +116,7 @@ it('refuses S3-compatible storage without its bucket and keys', function (): voi
 it('checks the saved storage by writing, reading and deleting a file', function (): void {
     Storage::fake('private');
 
-    storagePage($this->admin)
+    adminPage(ManageStorageSettings::class, $this->admin)
         ->callAction('testStorage')
         ->assertNotified('Storage works');
 
@@ -136,7 +128,7 @@ it('says why the storage failed', function (): void {
     $failing->shouldReceive('put')->andThrow(new RuntimeException('Access Denied'));
     Storage::set('private', $failing);
 
-    storagePage($this->admin)
+    adminPage(ManageStorageSettings::class, $this->admin)
         ->callAction('testStorage')
         ->assertNotified(Notification::make()->danger()->title('Storage does not work')->body('The private storage failed: Access Denied')->persistent());
 });

@@ -52,7 +52,7 @@ it('replays the remembered answer of a retried request without asking the model'
     $sources = [new SourceRefData(id: 'chunk-1', label: 'Opening hours', kind: 'text', url: null, page: null, passages: 1)];
     app(RequestDedupeStore::class)->remember('req-retry', 'msg-earlier', 'We open at nine.', 'en', $sources);
     // Even a workspace at its limit gets the answer it was already given.
-    MessageLimit::create(['workspace_id' => $this->agent->workspace_id, 'monthly_limit' => 1, 'messages_used' => 1, 'period_starts_at' => now()->startOfMonth()]);
+    MessageLimit::factory()->reached()->create(['workspace_id' => $this->agent->workspace_id]);
 
     $events = replayStream('req-retry');
 

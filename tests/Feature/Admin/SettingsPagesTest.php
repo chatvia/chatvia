@@ -22,7 +22,6 @@ use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\ToolRecording;
 use App\Admin\Settings\WorkspaceSettings;
-use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmTask;
@@ -31,7 +30,6 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
 /**
@@ -40,18 +38,8 @@ use Livewire\Livewire;
  * secrets are write-only and a blank field keeps its default.
  */
 beforeEach(function (): void {
-    $this->admin = User::factory()->admin()->create()->fresh();
+    $this->admin = adminUser();
 });
-
-/**
- * One settings page, as the given admin.
- *
- * @param  class-string  $page
- */
-function settingsPage(User $admin, string $page): Testable
-{
-    return Livewire::actingAs($admin, 'admin')->test($page);
-}
 
 it('shows every settings page, and the overview links to each one', function (): void {
     $this->actingAs($this->admin, 'admin');
@@ -109,7 +97,7 @@ it('keeps the services behind the built-in tools on Connectors, under Advanced',
 
     $this->get(ManagePlatformSettings::getUrl())->assertDontSee(['Perplexity', 'OpenWeather', 'ExchangeRate-API']);
 
-    settingsPage($this->admin, ManageConnectorSettings::class)
+    adminPage(ManageConnectorSettings::class, $this->admin)
         ->fillForm(['perplexity_base_url' => 'https://perplexity.example.com', 'github_client_id' => 'id', 'github_client_secret' => 'secret'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -147,7 +135,7 @@ it('lets an admin without two-factor authentication change the values', function
         ->assertOk()
         ->assertSee('client-id-shown');
 
-    settingsPage($this->admin, ManageSignInSettings::class)
+    adminPage(ManageSignInSettings::class, $this->admin)
         ->fillForm(['google_client_id' => 'client-id-changed'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -161,7 +149,7 @@ it('never sends a saved secret to the browser', function (): void {
     $settings->google_client_secret = 'top-secret-value';
     $settings->save();
 
-    settingsPage($this->admin, ManageSignInSettings::class)
+    adminPage(ManageSignInSettings::class, $this->admin)
         ->assertSchemaStateSet(['google_client_id' => 'visible-id', 'google_client_secret' => null])
         ->assertDontSee('top-secret-value');
 });
@@ -172,7 +160,7 @@ it('keeps a saved secret when its input is left blank', function (): void {
     $settings->google_client_secret = 'kept-secret';
     $settings->save();
 
-    settingsPage($this->admin, ManageSignInSettings::class)
+    adminPage(ManageSignInSettings::class, $this->admin)
         ->fillForm(['google_client_id' => ' new-id ', 'google_client_secret' => ''])
         ->call('save')
         ->assertHasNoFormErrors()
@@ -185,7 +173,7 @@ it('keeps a saved secret when its input is left blank', function (): void {
 it('saves a new secret encrypted', function (): void {
     Http::fake(['api.scaleway.ai/*' => Http::response(['data' => [['id' => 'gpt-oss-120b']]])]);
 
-    settingsPage($this->admin, ManageAiProviderSettings::class)
+    adminPage(ManageAiProviderSettings::class, $this->admin)
         ->fillForm(['scaleway_api_key' => 'scw-key'])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -201,7 +189,7 @@ it('removes one saved secret', function (): void {
     $settings->google_client_secret = 'secret';
     $settings->save();
 
-    settingsPage($this->admin, ManageSignInSettings::class)
+    adminPage(ManageSignInSettings::class, $this->admin)
         ->callAction(TestAction::make('forget_google_client_secret')->schemaComponent('google_client_secret', schema: 'form'));
 
     expect(savedSetting(SignInSettings::class, 'google_client_secret'))->toBeNull()
@@ -209,7 +197,7 @@ it('removes one saved secret', function (): void {
 });
 
 it('validates the format of a field', function (): void {
-    settingsPage($this->admin, ManageChannelSettings::class)
+    adminPage(ManageChannelSettings::class, $this->admin)
         ->fillForm(['whatsapp_register_pin' => 'not-six-digits'])
         ->call('save')
         ->assertHasFormErrors(['whatsapp_register_pin']);
@@ -222,7 +210,7 @@ it('takes a path on this server or a full address for the widget script', functi
         ->and(url(config('chatvia.widget.script_url_embed')))->toBe(url('/shakomako/embed.js'));
 
     foreach (['/shakomako/next/embed.js', 'https://cdn.example.com/embed.js'] as $address) {
-        settingsPage($this->admin, ManagePlatformSettings::class)
+        adminPage(ManagePlatformSettings::class, $this->admin)
             ->fillForm(['widget_script_url' => $address])
             ->call('save')
             ->assertHasNoFormErrors();
@@ -233,7 +221,7 @@ it('takes a path on this server or a full address for the widget script', functi
     expect(url(config('chatvia.widget.script_url_embed')))->toBe('https://cdn.example.com/embed.js');
 
     foreach (['shakomako/embed.js', '//cdn.example.com/embed.js', 'javascript:alert(1)', 'ftp://cdn.example.com/embed.js'] as $address) {
-        settingsPage($this->admin, ManagePlatformSettings::class)
+        adminPage(ManagePlatformSettings::class, $this->admin)
             ->fillForm(['widget_script_url' => $address])
             ->call('save')
             ->assertHasFormErrors(['widget_script_url']);
@@ -243,7 +231,7 @@ it('takes a path on this server or a full address for the widget script', functi
 it('keeps the tracking code as typed, and an empty box turns it off', function (): void {
     $snippet = "<script defer data-site=\"acme\" src=\"https://stats.acme.example/js/script.js\"></script>\n<script>window.stats = window.stats || [];</script>";
 
-    settingsPage($this->admin, ManagePlatformSettings::class)
+    adminPage(ManagePlatformSettings::class, $this->admin)
         ->fillForm(['tracking_code' => $snippet])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -251,7 +239,7 @@ it('keeps the tracking code as typed, and an empty box turns it off', function (
     expect(savedSetting(PlatformSettings::class, 'tracking_code'))->toBe($snippet)
         ->and(config('chatvia.tracking_code'))->toBe($snippet);
 
-    settingsPage($this->admin, ManagePlatformSettings::class)
+    adminPage(ManagePlatformSettings::class, $this->admin)
         ->assertSchemaStateSet(['tracking_code' => $snippet])
         ->fillForm(['tracking_code' => ''])
         ->call('save')
@@ -263,7 +251,7 @@ it('keeps the tracking code as typed, and an empty box turns it off', function (
 it('keeps Spectra on, and keeps only counts while prompts and replies are not saved', function (): void {
     // phpunit.xml leaves Pulse out of the install, and Spectra in. Spectra
     // records out of the box, so its switch starts on.
-    settingsPage($this->admin, ManagePlatformSettings::class)
+    adminPage(ManagePlatformSettings::class, $this->admin)
         ->assertSee(['Off in .env', 'PULSE_ENABLED=false in .env', 'Open Spectra'])
         // A number left blank shows its default (30 days) as a placeholder.
         ->assertSchemaStateSet(['spectra_enabled' => true, 'spectra_store_content' => true, 'spectra_retention_days' => null])
@@ -286,13 +274,13 @@ it('restarts Pulse\'s server stats when the Pulse switch changes', function (): 
     app()->forgetInstance(ToolRecording::class);
     Artisan::spy();
 
-    settingsPage($this->admin, ManagePlatformSettings::class)
+    adminPage(ManagePlatformSettings::class, $this->admin)
         ->fillForm(['tracking_code' => '<script></script>'])
         ->call('save');
 
     Artisan::shouldNotHaveReceived('call', ['pulse:restart']);
 
-    settingsPage($this->admin, ManagePlatformSettings::class)
+    adminPage(ManagePlatformSettings::class, $this->admin)
         ->assertSchemaStateSet(['pulse_enabled' => true])
         ->fillForm(['pulse_enabled' => false])
         ->call('save')
@@ -308,13 +296,13 @@ it('shows the workspace values in use', function (): void {
         ->assertSee('Sign-up open · no message limit')
         ->assertSee('Kept 366 days');
 
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->assertSee('Sign-up and limits')
         ->assertSchemaStateSet(['registration_enabled' => true, 'new_workspace_message_limit' => null]);
 });
 
 it('keeps a value that still equals its default unsaved', function (): void {
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['registration_enabled' => true, 'new_workspace_message_limit' => 0])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -324,12 +312,12 @@ it('keeps a value that still equals its default unsaved', function (): void {
 });
 
 it('saves the workspace values, an off switch included', function (): void {
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['registration_enabled' => false, 'new_workspace_message_limit' => 500])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['retention_days' => 90])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -345,7 +333,7 @@ it('saves the workspace values, an off switch included', function (): void {
 });
 
 it('validates the workspace values', function (): void {
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['retention_days' => 0])
         ->call('save')
         ->assertHasFormErrors(['retention_days']);
@@ -354,7 +342,7 @@ it('validates the workspace values', function (): void {
 });
 
 it('refuses a fewest-days value above the days to keep conversations', function (): void {
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['retention_days' => 30, 'retention_floor_days' => 60])
         ->call('save')
         ->assertHasFormErrors(['retention_floor_days']);
@@ -363,12 +351,12 @@ it('refuses a fewest-days value above the days to keep conversations', function 
 });
 
 it('keeps notifications for the days an admin chooses', function (): void {
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['notification_retention_days' => 0])
         ->call('save')
         ->assertHasFormErrors(['notification_retention_days']);
 
-    settingsPage($this->admin, ManageWorkspaceSettings::class)
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->fillForm(['notification_retention_days' => 14])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -378,7 +366,7 @@ it('keeps notifications for the days an admin chooses', function (): void {
 });
 
 it('refuses a choice that is not offered', function (): void {
-    settingsPage($this->admin, ManageMailSettings::class)
+    adminPage(ManageMailSettings::class, $this->admin)
         ->fillForm(['mailer' => 'carrier-pigeon'])
         ->call('save')
         ->assertHasFormErrors(['mailer']);
@@ -391,7 +379,7 @@ it('refuses an embedding provider that cannot return the stored vector size', fu
     config(['chatvia.embeddings.dimensions' => 2048]);
     connectAiProviders(AiProvider::Mistral);
 
-    settingsPage($this->admin, ManageAiModelSettings::class)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertFormFieldEnabled('embedding_provider')
         ->fillForm(['embedding_provider' => 'mistral'])
         ->call('save')
@@ -404,7 +392,7 @@ it('keeps the embedding provider and models open once a source is trained', func
     Chunk::factory()->create(['chunk' => 'Trained text.']);
 
     // A change warns and re-indexes (AiModelsPageTest) instead of being locked.
-    settingsPage($this->admin, ManageAiModelSettings::class)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertFormFieldEnabled('embedding_provider')
         ->assertFormFieldEnabled('scaleway_embedding_model');
 });
@@ -413,12 +401,12 @@ it('picks the model of each app task from the models that may be used', function
     $picked = testLlm('picked-model');
     $off = testLlm('off-model', attributes: ['is_enabled' => false]);
 
-    settingsPage($this->admin, ManageAiModelSettings::class)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm([$property => (string) $off->id])
         ->call('save')
         ->assertHasFormErrors([$property]);
 
-    settingsPage($this->admin, ManageAiModelSettings::class)
+    adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm([$property => (string) $picked->id])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -431,7 +419,7 @@ it('picks the model of each app task from the models that may be used', function
 ]);
 
 it('has a setting and a field for every app task', function (): void {
-    $page = settingsPage($this->admin, ManageAiModelSettings::class);
+    $page = adminPage(ManageAiModelSettings::class, $this->admin);
 
     foreach (LlmTask::appTasks() as $task) {
         expect(AiSettings::propertyFor($task->configKey()))->toBe($task->settingsProperty());
@@ -474,7 +462,7 @@ it('shows every card as a section of its page, with an outline', function (): vo
 it('shows the S3 fields only while S3-compatible storage is chosen', function (): void {
     config(['filesystems.storage' => 'local']);
 
-    settingsPage($this->admin, ManageStorageSettings::class)
+    adminPage(ManageStorageSettings::class, $this->admin)
         ->assertFormFieldHidden('s3_region')
         ->fillForm(['driver' => 's3'])
         ->assertFormFieldVisible('s3_region')
@@ -482,7 +470,7 @@ it('shows the S3 fields only while S3-compatible storage is chosen', function ()
 });
 
 it('refuses a security log floor above the days to keep it', function (): void {
-    settingsPage($this->admin, ManageSecuritySettings::class)
+    adminPage(ManageSecuritySettings::class, $this->admin)
         ->fillForm(['security_audit_retention_days' => 30, 'security_audit_retention_floor_days' => 60])
         ->call('save')
         ->assertHasFormErrors(['security_audit_retention_floor_days']);

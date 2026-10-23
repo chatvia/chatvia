@@ -178,10 +178,9 @@ it('refuses a document LLM provider that cannot read PDF documents', function ()
     expect(fn (): DocumentLlm => app(DocumentLlm::class))->toThrow(InvalidArgumentException::class, 'Use auto, mistral, none');
 });
 
-it('refuses a provider kind it has no client for, one that is off, or one without its key', function (LlmProvider $provider): void {
+it('refuses a provider that is off, or one without its key', function (LlmProvider $provider): void {
     expect(fn (): LlmProviderInterface => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
 })->with([
-    'no client yet' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Anthropic)->make(),
     'turned off' => fn (): LlmProvider => LlmProvider::factory()->disabled()->make(),
     'no key' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->make(),
 ]);

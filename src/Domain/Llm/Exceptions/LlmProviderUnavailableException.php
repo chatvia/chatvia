@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Exceptions;
 
-use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use RuntimeException;
 
 /**
- * A model's provider cannot be called: it is turned off, or the app has no
- * client for its kind yet.
+ * A model's provider cannot be called: it is turned off, or it has no key.
  */
 final class LlmProviderUnavailableException extends RuntimeException
 {
@@ -22,10 +20,5 @@ final class LlmProviderUnavailableException extends RuntimeException
     public static function notConnected(LlmProvider $provider): self
     {
         return new self("The LLM provider \"{$provider->name}\" has no API key. Add it in the admin panel (Settings → AI providers).");
-    }
-
-    public static function unsupported(LlmProviderKind $kind): self
-    {
-        return new self("ChatVia.ai cannot call {$kind->value} providers yet.");
     }
 }

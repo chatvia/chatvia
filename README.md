@@ -155,7 +155,8 @@ explains how to work on it.
 APIs. You need a chat provider and an embedding provider. The default
 configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
 and others) for chat and embeddings. Other chat providers: OpenRouter,
-OpenAI, Mistral, Google Gemini, Groq, or your own OpenAI-compatible server.
+OpenAI, Anthropic, Mistral, Google Gemini, Groq, or your own OpenAI-compatible
+server.
 OpenRouter, OpenAI, Mistral and Google Gemini make embeddings with the same
 key.
 Reranking uses OpenRouter or Cohere. PDF, Word, slides and images are read by

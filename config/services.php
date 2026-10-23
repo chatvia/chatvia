@@ -226,6 +226,10 @@ return [
         'api_key' => null,
     ],
 
+    'anthropic' => [
+        'api_key' => null,
+    ],
+
     'scalewayai' => [
         'api_key' => null,
         // Base URL for chat, embeddings and transcription. The generic

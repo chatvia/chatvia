@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Enums;
 
+use Domain\Llm\Providers\Adapters\AnthropicAdapter;
 use Domain\Llm\Providers\Adapters\CustomServerAdapter;
 use Domain\Llm\Providers\Adapters\GeminiAdapter;
 use Domain\Llm\Providers\Adapters\GroqAdapter;
@@ -36,11 +37,11 @@ enum LlmProviderKind: string
     case Custom = 'custom';
 
     /**
-     * The adapter of this kind, or null while the app cannot call it yet.
+     * The adapter of this kind.
      *
-     * @return class-string<ProviderAdapter>|null
+     * @return class-string<ProviderAdapter>
      */
-    public function adapter(): ?string
+    public function adapter(): string
     {
         return match ($this) {
             self::OpenRouter => OpenRouterAdapter::class,
@@ -49,8 +50,8 @@ enum LlmProviderKind: string
             self::Mistral => MistralAdapter::class,
             self::Groq => GroqAdapter::class,
             self::Scaleway => ScalewayAdapter::class,
+            self::Anthropic => AnthropicAdapter::class,
             self::Custom => CustomServerAdapter::class,
-            self::Anthropic => null,
         };
     }
 

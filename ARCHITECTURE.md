@@ -388,8 +388,8 @@ Tools that an agent can call.
 
 Talking to language models. An admin enters each provider's key once
 (Settings → AI providers): an `AiProvider` account (Scaleway AI, OpenRouter,
-OpenAI, Mistral, Google Gemini, Groq, Cohere, Jina, Voyage AI, Azure
-Document Intelligence), whose `capabilities()` say what it does here (chat,
+OpenAI, Mistral, Google Gemini, Groq, Anthropic, Cohere, Jina, Voyage AI,
+Azure Document Intelligence), whose `capabilities()` say what it does here (chat,
 embeddings, speech, documents, reranking). The key serves everything the
 provider does. Chat models are added in Settings → AI models to the catalog
 (`Llm`, `llms`: one model on one provider, named as the provider names it;
@@ -442,7 +442,13 @@ rewrites the request (full history each time, nothing stored, a summary of
 the thinking asked for when the turn shows it, `SHOW_REASONING`, and dropped
 if the provider refuses it) and `ResponsesStream` reads the reply back as a Chat Completions
 stream, so the transformer and the tool loop see no difference. Single calls
-(`completion()`) stay on Chat Completions. The app's own calls use a model per `LlmTask` (one
+(`completion()`) stay on Chat Completions. `Anthropic` speaks only its own
+Messages API, for streamed turns and single calls alike, through the same
+kind of translation (`Providers\Messages`: `MessagesPayload` for the request,
+system messages lifted out, tool calls and results as blocks, the effort as
+adaptive thinking, prompt caching on; `MessagesStream` and `MessagesReply`
+for the reply). A model from before adaptive thinking is asked again on a
+thinking budget. The app's own calls use a model per `LlmTask` (one
 case per call: follow-up rewriting, tool picking, guardrails, titles, image
 descriptions…), picked in Settings → AI models and resolved by `TaskModels`:
 the task's model, else the model for quick tasks (`chatvia.ai.tasks.default`),
@@ -941,7 +947,7 @@ unless a row names another page, its setting is on **Settings → AI models**.
 
 | Step | Contract | Drivers | Config key (admin setting) |
 |---|---|---|---|
-| Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; tasks `chatvia.agent.default_model`, `chatvia.ai.tasks.*` |
+| Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `anthropic`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; tasks `chatvia.agent.default_model`, `chatvia.ai.tasks.*` |
 | Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina`, `voyage` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `openrouter`, `cohere`, `custom` (a self-hosted `/rerank` server), `none` (a basic similarity check instead) | `chatvia.ai.reranker`, `chatvia.ai.rerank.*` |
 | Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |

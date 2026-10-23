@@ -3,13 +3,13 @@
 use App\Admin\Settings\BrandSettings;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Tests\Support\LicenseKeys;
+use Tests\Support\License\LicenseKeys;
 
 /**
  * The daily license check from the command line (`chatvia:license:check`): a key
  * that chatvia.ai no longer has active for this domain is removed and the
  * credit shows again. The action's other answers are in
- * tests/Unit/Admin/Settings/CheckLicenseActionTest.php.
+ * tests/Unit/App/Admin/Settings/CheckLicenseActionTest.php.
  */
 beforeEach(function (): void {
     LicenseKeys::trust();

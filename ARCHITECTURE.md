@@ -107,7 +107,7 @@ locators there; use constructor injection instead.
 | `tests/Architecture/ClassesHaveDocblocksTest.php` | Every class, interface, trait and enum under `src/` has a docblock with at least one sentence of prose, or its file is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/FrontendConventionsTest.php` | Frontend rules: no `hsl(var(--x))`, no third-party icon CDN or Google Fonts, no `console.log`, `safeStorage` on the boot and hosted-chat paths, one shared Echo connection, `AlertDialog` for delete confirmations. |
 | `tests/Architecture/Psr4PathCaseTest.php` | Every class file git tracks under `src/` has the exact case of its namespace and class name, as Linux autoloading needs (macOS forgives a wrong case). |
-| `tests/Architecture/UnitTestLayoutTest.php` | A unit test named after a class sits at that class's path: `src/Domain/X/Y.php` → `tests/Unit/X/YTest.php`, App classes without the `App` segment, Support classes under `tests/Unit/Support/`. |
+| `tests/Architecture/TestLayoutTest.php` | A unit test named after a class sits at that class's path with `src/` dropped: `src/Domain/X/Y.php` → `tests/Unit/Domain/X/YTest.php`, `src/App/…` → `tests/Unit/App/…`, `src/Support/…` → `tests/Unit/Support/…`. `tests/Unit` holds only `App`, `Domain`, `Support`, `Config` and `Database`. |
 
 The Architecture suite runs without the Laravel container or a database, so it
 takes about a second: `vendor/bin/pest tests/Architecture`.
@@ -1237,7 +1237,7 @@ See the widget's README for embed options.
 
 | Suite | Folder | Notes |
 |---|---|---|
-| Unit | `tests/Unit/` | Actions, services, DTOs, at the path of the class they test (`tests/Unit/Agent/Actions/Account/CreateAgentActionTest.php` for `src/Domain/Agent/Actions/Account/CreateAgentAction.php`; App code under `tests/Unit/{Admin,Http,Identity,Mcp}/…`). A test of behaviour across several classes sits in its context's folder. |
+| Unit | `tests/Unit/` | Actions, services, DTOs, at the path of the class they test (`tests/Unit/Domain/Agent/Actions/Account/CreateAgentActionTest.php` for `src/Domain/Agent/Actions/Account/CreateAgentAction.php`; App code under `tests/Unit/App/…`). A test of behaviour across several classes sits in its context's folder. |
 | Feature | `tests/Feature/` | HTTP-level tests, the safety net for routes, middleware and permissions. |
 | Architecture | `tests/Architecture/` | Framework-free rules (section 2). |
 | Eval | `tests/Eval/` | Quality checks with real models (group `eval`). They skip themselves without an API key. |

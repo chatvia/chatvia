@@ -9,7 +9,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
-use Tests\Support\Connector\PendingConnectorOAuth;
+use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 
 /**
  * The connector OAuth callback over HTTP: it hands the signed-in user and the

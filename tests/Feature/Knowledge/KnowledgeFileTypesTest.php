@@ -9,8 +9,8 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
-use Tests\Support\OldOffice\PowerPointBinaryFile;
-use Tests\Support\OldOffice\WordBinaryFile;
+use Tests\Support\Knowledge\Document\OldOffice\PowerPointBinaryFile;
+use Tests\Support\Knowledge\Document\OldOffice\WordBinaryFile;
 
 /**
  * An admin chooses the file types workspaces may upload as knowledge

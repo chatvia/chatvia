@@ -8,7 +8,7 @@ use Mockery\MockInterface;
  * The Setup appearance-text endpoints: saving auto-translates the three strings
  * into every supported language and manual overrides persist separately. How
  * the chat surfaces pick a language is in
- * tests/Unit/Agent/Services/AppearanceTextResolverTest.php.
+ * tests/Unit/Domain/Agent/Services/AppearanceTextResolverTest.php.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();

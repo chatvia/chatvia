@@ -12,7 +12,7 @@ use App\Admin\Settings\WorkspaceSettings;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\SettingsRepositories\SettingsRepository;
-use Tests\Support\LicenseKeys;
+use Tests\Support\License\LicenseKeys;
 
 /**
  * The values saved in the admin panel are stored with spatie/laravel-settings

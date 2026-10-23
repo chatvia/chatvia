@@ -6,7 +6,7 @@ use Domain\Llm\Operations\Translate\TextTranslator;
 /**
  * The Setup → Chat Bubbles endpoint saves the prompts and auto-translates each
  * one into every enabled language. How the widget picks a language is in
- * tests/Unit/Widget/BuildWidgetSettingsActionTest.php.
+ * tests/Unit/Domain/Widget/BuildWidgetSettingsActionTest.php.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();

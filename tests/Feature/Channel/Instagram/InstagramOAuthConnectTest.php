@@ -5,8 +5,8 @@ use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Services\InstagramClient;
 use Domain\Channel\Services\MetaOAuthClient;
 use Domain\Membership\Team\Services\TeamService;
-use Tests\Support\Instagram\FakeInstagramClient;
-use Tests\Support\Instagram\FakeInstagramOAuthClient;
+use Tests\Support\Channel\Instagram\FakeInstagramClient;
+use Tests\Support\Channel\Instagram\FakeInstagramOAuthClient;
 
 /**
  * The Instagram connect flow is OAuth (Facebook Login for Business, Page-linked):

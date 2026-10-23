@@ -9,7 +9,7 @@ use Laravel\Horizon\Contracts\SupervisorRepository;
 /**
  * chatvia:workers:tune sizes the queue workers to this machine and saves them as
  * the Settings → Platform values, for installers and scripts. The sizing
- * itself is in tests/Unit/Admin/Settings/WorkerSizingTest.php.
+ * itself is in tests/Unit/App/Admin/Settings/WorkerSizingTest.php.
  */
 function tuneWorkersHorizonNotRunning(): void
 {

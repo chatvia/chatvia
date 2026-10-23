@@ -450,7 +450,7 @@ your machine. After you change `.env`, run `vendor/bin/sail restart`.
 
 ```bash
 composer test                                  # the whole Pest suite
-php artisan test --compact tests/Unit/Agent    # one folder or file
+php artisan test --compact tests/Unit/Domain/Agent    # one folder or file
 composer ci:check                              # every CI gate (see below)
 ```
 

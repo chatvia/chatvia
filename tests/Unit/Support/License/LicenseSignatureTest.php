@@ -3,7 +3,7 @@
 use Support\License\LicenseFeature;
 use Support\License\LicenseKey;
 use Support\License\LicenseSignature;
-use Tests\Support\LicenseKeys;
+use Tests\Support\License\LicenseKeys;
 
 /**
  * License keys are Ed25519-signed terms, checked offline against the public

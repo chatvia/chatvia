@@ -5,8 +5,8 @@ use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Services\MessengerClient;
 use Domain\Channel\Services\MetaOAuthClient;
 use Domain\Membership\Team\Services\TeamService;
-use Tests\Support\Messenger\FakeMessengerClient;
-use Tests\Support\Messenger\FakeMessengerOAuthClient;
+use Tests\Support\Channel\Messenger\FakeMessengerClient;
+use Tests\Support\Channel\Messenger\FakeMessengerOAuthClient;
 
 /**
  * The Messenger connect flow is OAuth (Facebook Login for Business): redirect →

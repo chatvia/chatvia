@@ -13,7 +13,7 @@ Write `it('refuses the last link of a file and changes nothing', function (): vo
 A test name says what happens and what should result, never "works". Split a test when "and" joins two separate behaviours; several outcomes of one behaviour are fine.
 
 ## Unit is one class; Feature goes through HTTP
-`tests/Unit/{Context}/…` calls one class directly (an Action, a service, a DTO, a model) and may use the database. `tests/Feature/…` goes through HTTP, the console or broadcasting (routes, middleware, permissions). Name the file `{Class}Test.php` and mirror the class's path under `src/Domain/{Context}/`.
+`tests/Unit/…` calls one class directly (an Action, a service, a DTO, a model) and may use the database. `tests/Feature/…` goes through HTTP, the console or broadcasting (routes, middleware, permissions). Name the file `{Class}Test.php` and mirror the class's path with `src/` dropped: `src/Domain/{Context}/…` → `tests/Unit/Domain/{Context}/…`, `src/App/…` → `tests/Unit/App/…`.
 
 ## Test Actions directly
 Build the DTO, call `app(XAction::class)->execute(…)`, then check the returned value, the database and the side effects. Include at least one refusal path and check that nothing changed: `expect(fn () => …)->toThrow(X::class)` plus a state check.

@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Exceptions;
  * anonymous subclass double that builds a ChatContext from the request and
  * leaves RAG a no-op (the real method would hit embeddings).
  */
-function fakeChatService(?Closure $onInit = null): ChatService
+function earChatService(?Closure $onInit = null): ChatService
 {
     return new readonly class($onInit) extends ChatService
     {
@@ -79,9 +79,9 @@ function fakeChatService(?Closure $onInit = null): ChatService
     };
 }
 
-function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $models = null): EvalAgentRunner
+function earRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $models = null): EvalAgentRunner
 {
-    $chatService = fakeChatService($onInit);
+    $chatService = earChatService($onInit);
 
     $toolSelector = Mockery::mock(ToolSelector::class);
     $toolSelector->shouldReceive('selectForTurn')->andReturn([]);
@@ -104,7 +104,7 @@ it('captures the answer without recording a reply or counting it against the mes
     app(SetMessageLimitAction::class)->execute($agent->workspace, 10);
     $replyRecorder = $this->spy(AssistantReplyRecorder::class);
 
-    $runner = fakeEvalRunner(function (ChatContext $context): void {
+    $runner = earRunner(function (ChatContext $context): void {
         $context->streamedMessage = 'Eval answer.';
         $context->toolCallNames = ['lookup', 'lookup'];
     });
@@ -135,7 +135,7 @@ it('turns guardrails off for its own request without touching global config', fu
     $configDuring = null;
     $request = null;
 
-    $runner = fakeEvalRunner(
+    $runner = earRunner(
         onRun: function (ChatContext $context) use (&$configDuring): void {
             // Anything else running in this worker during the eval must still
             // see the real settings.
@@ -162,7 +162,7 @@ it('reports a pipeline failure and records it as a failed run', function (): voi
     Exceptions::fake();
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
 
-    $runner = fakeEvalRunner(function (): void {
+    $runner = earRunner(function (): void {
         throw new RuntimeException('provider exploded');
     });
 
@@ -180,7 +180,7 @@ it('builds the headless request with VALID uuid session + conversation ids', fun
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
 
     $captured = null;
-    $runner = fakeEvalRunner(
+    $runner = earRunner(
         onRun: fn (ChatContext $context): string => $context->streamedMessage = 'ok',
         onInit: function (StreamRequestData $data) use (&$captured): void {
             $captured = $data;
@@ -217,7 +217,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
         },
     );
 
-    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class), new AiCallTags);
+    $evalRunner = new EvalAgentRunner(earChatService(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class), new AiCallTags);
     $result = $evalRunner->run($agent, 'Please email support.');
 
     expect($captureFlag)->toBeTrue()
@@ -240,7 +240,7 @@ it('returns an error result when the agent has no model and no model can answer'
         }
     });
 
-    $result = fakeEvalRunner(fn (): null => null, models: $noModels)->run($agent, 'hello');
+    $result = earRunner(fn (): null => null, models: $noModels)->run($agent, 'hello');
 
     expect($result->failed())->toBeTrue()
         ->and($result->error)->toContain('no model can answer');

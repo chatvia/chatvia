@@ -7,6 +7,10 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Each MCP tool call counts in the agent's daily MCP tool rollup, one counter
+ * per server and tool, with the description the tool had at its latest call.
+ */
 function rmtRollup(int $agentId): Builder
 {
     return DB::connection(config('chatvia.analytics.connection'))

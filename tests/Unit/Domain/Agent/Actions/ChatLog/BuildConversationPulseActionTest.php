@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * summary of where the mood started, ended, peaked and which way it moved.
  * Assistant replies are counted but never charted.
  */
-function pulseConversation(): Conversation
+function bcpConversation(): Conversation
 {
     $session = Session::factory()->create();
 
@@ -29,7 +29,7 @@ function pulseConversation(): Conversation
 /**
  * @param  list<array{0: string, 1: string|null, 2: string|null}>  $turns  role, tone, sentiment
  */
-function addPulseTurns(Conversation $conversation, array $turns): void
+function bcpTurns(Conversation $conversation, array $turns): void
 {
     foreach ($turns as $minute => [$role, $tone, $sentiment]) {
         Message::factory()->create([
@@ -44,8 +44,8 @@ function addPulseTurns(Conversation $conversation, array $turns): void
 }
 
 it('charts only visitor messages and summarises an improving, resolved conversation', function (): void {
-    $conversation = pulseConversation();
-    addPulseTurns($conversation, [
+    $conversation = bcpConversation();
+    bcpTurns($conversation, [
         ['user', 'frustrated', 'negative'],
         ['assistant', null, null],
         ['user', null, 'positive'],
@@ -77,8 +77,8 @@ it('charts only visitor messages and summarises an improving, resolved conversat
 });
 
 it('reports a declining conversation that never recovered', function (): void {
-    $conversation = pulseConversation();
-    addPulseTurns($conversation, [
+    $conversation = bcpConversation();
+    bcpTurns($conversation, [
         ['user', 'satisfied', 'positive'],
         ['user', 'urgent', 'negative'],
     ]);
@@ -93,8 +93,8 @@ it('reports a declining conversation that never recovered', function (): void {
 });
 
 it('keeps a small mood change as stable and leaves peaks empty without them', function (): void {
-    $conversation = pulseConversation();
-    addPulseTurns($conversation, [
+    $conversation = bcpConversation();
+    bcpTurns($conversation, [
         ['user', null, 'neutral'],
         ['user', 'confused', 'neutral'],
     ]);
@@ -107,8 +107,8 @@ it('keeps a small mood change as stable and leaves peaks empty without them', fu
 });
 
 it('returns an empty, stable summary when the visitor never wrote', function (): void {
-    $conversation = pulseConversation();
-    addPulseTurns($conversation, [['assistant', null, null]]);
+    $conversation = bcpConversation();
+    bcpTurns($conversation, [['assistant', null, null]]);
 
     $pulse = app(BuildConversationPulseAction::class)->execute($conversation->session->agent, $conversation);
 

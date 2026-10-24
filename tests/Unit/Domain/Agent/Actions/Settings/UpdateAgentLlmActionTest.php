@@ -19,7 +19,7 @@ beforeEach(function (): void {
     $this->agent = createAgent($owner);
 });
 
-it('points the agent at the model resolved from its external name', function (): void {
+it('points the agent at the model with the given id', function (): void {
     $llm = Llm::factory()->create(['name' => 'qwen3-32b']);
 
     app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(
@@ -97,7 +97,7 @@ it('overwrites a previously chosen model and its settings', function (): void {
         ->and((float) $this->agent->modelSettings()->where('group', 'llm_settings')->where('key', 'temperature')->value('value'))->toBe(0.5);
 });
 
-it('throws and changes nothing when the model external name is unknown', function (): void {
+it('throws and changes nothing when no model has the given id', function (): void {
     $originalLlmId = $this->agent->llm_id;
 
     expect(fn () => app(UpdateAgentLlmAction::class)->execute($this->agent, new UpdateAgentLlmData(

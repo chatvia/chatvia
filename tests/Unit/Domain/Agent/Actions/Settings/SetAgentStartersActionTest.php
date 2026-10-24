@@ -7,6 +7,11 @@ use Domain\Agent\Data\Settings\Copy\UpdateStartersData;
 use Domain\Agent\Models\AgentStarter;
 use Domain\Llm\Operations\Translate\TextTranslator;
 
+/**
+ * Saving an agent's conversation starters keeps one ordered list, gives each
+ * starter an id and drops blank ones. How their translations are made and
+ * kept is in StartersAndBubblesTranslationTest.
+ */
 beforeEach(function (): void {
     $this->agent = createAgent(User::factory()->create());
     // Default: no real LLM calls. Tests that assert translations re-mock below.
@@ -50,36 +55,4 @@ it('reindexes sparse keys, drops blanks, and defaults a missing icon to null', f
 
     expect(array_column($result, 'text'))->toBe(['b', 'a'])
         ->and($result[0]->icon)->toBeNull();
-});
-
-it('stores the AI translations the translator returns', function (): void {
-    $this->mock(TextTranslator::class)
-        ->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?', 'fr' => 'Salut ?']]);
-
-    $result = app(SetAgentStartersAction::class)->execute($this->agent, new UpdateStartersData(starters: [
-        new StarterData(null, 'Hello?'),
-    ]));
-
-    expect($result[0]->translations)->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
-});
-
-it('preserves manual overrides and skips re-translation when the text is unchanged', function (): void {
-    // Scope to one language so the cached translation fully covers the enabled set.
-    $this->agent->setSetting('enabled_languages', ['de'], 'appearance');
-
-    $this->mock(TextTranslator::class)
-        ->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?']]);
-
-    $action = app(SetAgentStartersAction::class);
-
-    $first = $action->execute($this->agent->fresh(), new UpdateStartersData(starters: [new StarterData(null, 'Hi?')]));
-    $id = $first[0]->id;
-
-    // Same text + a hand-typed German override → the translator must NOT run again.
-    $second = $action->execute($this->agent->fresh(), new UpdateStartersData(starters: [
-        new StarterData($id, 'Hi?', null, overrides: ['de' => 'Servus?']),
-    ]));
-
-    expect($second[0]->translations)->toBe(['de' => 'Hallo?'])
-        ->and($second[0]->overrides)->toBe(['de' => 'Servus?']);
 });

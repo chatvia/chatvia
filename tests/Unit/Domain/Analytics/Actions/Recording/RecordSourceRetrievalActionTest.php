@@ -7,6 +7,10 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Each knowledge retrieval counts once per source in the agent's daily source
+ * rollup, which keeps the source's latest name and type for the Sources page.
+ */
 it('upserts and increments per-source retrieval rollups', function (): void {
     $action = app(RecordSourceRetrievalAction::class);
     $agentId = 940001;

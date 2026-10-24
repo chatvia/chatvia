@@ -7,7 +7,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Models\Session;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 
@@ -17,16 +16,14 @@ use Domain\Form\Models\FormSubmission;
  * and the latest SUBMITTED lead of that conversation. A form that was shown
  * but never filled is not a lead.
  */
-function chatLogConversation(Agent $agent): Conversation
+function lcmConversation(Agent $agent): Conversation
 {
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-
-    return Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id]);
+    return Conversation::factory()->create(['agent_id' => $agent->id]);
 }
 
 it('returns the messages in order, a visitor message before a same-second reply', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = chatLogConversation($agent);
+    $conversation = lcmConversation($agent);
     $at = now()->subMinutes(5);
 
     Message::factory()->create(['chat_conversation_id' => $conversation->id, 'role' => 'assistant', 'content' => 'Reply', 'created_at' => $at]);
@@ -43,7 +40,7 @@ it('returns the messages in order, a visitor message before a same-second reply'
 
 it('keeps same-second messages of one role in the order they were stored, across pages', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = chatLogConversation($agent);
+    $conversation = lcmConversation($agent);
     $at = now()->subMinutes(5)->startOfSecond();
     $stored = Message::factory()->count(60)->create(['chat_conversation_id' => $conversation->id, 'role' => 'user', 'created_at' => $at]);
 
@@ -56,7 +53,7 @@ it('keeps same-second messages of one role in the order they were stored, across
 
 it('pages the messages fifty at a time', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = chatLogConversation($agent);
+    $conversation = lcmConversation($agent);
     Message::factory()->count(51)->create(['chat_conversation_id' => $conversation->id, 'role' => 'user']);
 
     $second = app(ListConversationMessagesAction::class)->execute($agent, $conversation, page: 2);
@@ -68,7 +65,7 @@ it('pages the messages fifty at a time', function (): void {
 
 it('returns nothing for a conversation of another agent', function (): void {
     $agent = Agent::factory()->create();
-    $foreign = chatLogConversation(Agent::factory()->create());
+    $foreign = lcmConversation(Agent::factory()->create());
     Message::factory()->create(['chat_conversation_id' => $foreign->id, 'role' => 'user']);
 
     $result = app(ListConversationMessagesAction::class)->execute($agent, $foreign);
@@ -79,7 +76,7 @@ it('returns nothing for a conversation of another agent', function (): void {
 
 it('attaches the latest submitted lead and ignores pending forms', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = chatLogConversation($agent);
+    $conversation = lcmConversation($agent);
     $definition = FormDefinition::factory()->forAgent($agent)->create();
 
     FormSubmission::factory()->forDefinition($definition)->submitted()->create([
@@ -100,7 +97,7 @@ it('attaches the latest submitted lead and ignores pending forms', function (): 
 
 it('has no lead when the only form was never filled', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = chatLogConversation($agent);
+    $conversation = lcmConversation($agent);
     $definition = FormDefinition::factory()->forAgent($agent)->create();
     FormSubmission::factory()->forDefinition($definition)->create(['chat_conversation_id' => $conversation->id]);
 
@@ -109,7 +106,7 @@ it('has no lead when the only form was never filled', function (): void {
 
 it('reports a live handoff with the operator', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = chatLogConversation($agent);
+    $conversation = lcmConversation($agent);
     $operator = User::factory()->create();
     $conversation->forceFill([
         'handoff_status' => HandoffStatus::Human,

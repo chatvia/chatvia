@@ -8,27 +8,12 @@ use Domain\Agent\Data\Resources\Stats\MessageByDayData;
 use Domain\Agent\Data\Resources\Stats\TopKnowledgeData;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\DateRangeData;
-use Illuminate\Support\Facades\DB;
 
 /**
  * The agent Analytics overview. Its numbers come from the Analytics read
  * models; these tests pin the shaping: document types of the top files, the
  * daily series following the selected range, and the full payload keys.
  */
-function basRollup(Agent $agent, string $hour, int $replies, int $conversations): void
-{
-    DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
-        'agent_id' => $agent->id,
-        'workspace_id' => $agent->workspace_id,
-        'bucket_hour' => $hour,
-        'country_code' => '--',
-        'llm_id' => 0,
-        'user_messages' => $replies,
-        'assistant_messages' => $replies,
-        'conversations_started' => $conversations,
-    ]);
-}
-
 it('reports the document classification of the most accessed files', function (): void {
     $agent = Agent::factory()->create();
 
@@ -62,7 +47,7 @@ it('builds the daily series for the selected range, not the last days before tod
     $agent = Agent::factory()->create();
 
     // Activity in an earlier month, inside the selected range.
-    basRollup($agent, '2026-03-10 09:00:00', replies: 4, conversations: 2);
+    analyticsRollup($agent, '2026-03-10 09:00:00', ['user_messages' => 4, 'assistant_messages' => 4, 'conversations_started' => 2]);
 
     $stats = app(BuildAgentStatsAction::class)->execute($agent, DateRangeData::fromDates('2026-03-09', '2026-03-11'));
 

@@ -5,7 +5,6 @@ use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\ScoreEvalCaseAction;
 use Domain\Evaluation\Data\AgentRunResultData;
-use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Events\EvalCaseScored;
 use Domain\Evaluation\Models\EvalCase;
@@ -15,6 +14,7 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use Tests\Support\Evaluation\EvalFixtures;
 
 /**
  * ScoreEvalCase glues the runner to the scorer and writes the immutable result.
@@ -30,59 +30,34 @@ beforeEach(function (): void {
 });
 
 /**
- * A running eval run of a new agent and one active case scored by the given
- * scorer.
+ * A running eval run of a new agent with a model, and one active case of it
+ * scored by the given scorer.
  *
  * @param  array<string, mixed>  $config
  * @return array{0: EvalRun, 1: EvalCase}
  */
-function scoringFixtures(string $scorerType = 'contains', array $config = ['value' => 'paris']): array
+function secaFixtures(ScorerType $scorer = ScorerType::Contains, array $config = ['value' => 'paris']): array
 {
-    $agent = Agent::factory()->create();
-    $agent->update(['llm_id' => Llm::factory()->create()->id]);
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
 
-    $run = EvalRun::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'status' => EvalRunStatus::Running,
-        'total_cases' => 1,
-        'started_at' => now(),
-    ]);
-
-    $case = EvalCase::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'capital',
-        'input' => 'Capital of France?',
-        'scorer_type' => $scorerType,
-        'scorer_config' => $config,
-        'is_active' => true,
-    ]);
-
-    return [$run, $case];
+    return [
+        EvalRun::factory()->forAgent($agent)->create(['total_cases' => 1]),
+        EvalCase::factory()->forAgent($agent)->create(['input' => 'Capital of France?', 'scorer_type' => $scorer, 'scorer_config' => $config]),
+    ];
 }
 
-function secaRunner(AgentRunResultData $data): EvalAgentRunner
+/** The runner, answering every case with this captured run. */
+function secaRunnerReturns(AgentRunResultData $data): void
 {
-    $mock = Mockery::mock(EvalAgentRunner::class);
-    $mock->shouldReceive('run')->andReturn($data);
+    $runner = Mockery::mock(EvalAgentRunner::class);
+    $runner->shouldReceive('run')->andReturn($data);
 
-    return $mock;
+    app()->instance(EvalAgentRunner::class, $runner);
 }
 
 it('records a passing result with the captured run state', function (): void {
-    [$run, $case] = scoringFixtures();
-
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: 'The capital is Paris.',
-        sources: ['World Atlas'],
-        toolsCalled: ['geo_lookup'],
-        tokens: 42,
-        latencyMs: 120,
-        traceId: 'trace-abc',
-    )));
+    [$run, $case] = secaFixtures();
+    secaRunnerReturns(EvalFixtures::run('The capital is Paris.', [['name' => 'geo_lookup', 'arguments' => '{}']], sources: ['World Atlas'], tokens: 42, traceId: 'trace-abc'));
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
@@ -97,19 +72,11 @@ it('records a passing result with the captured run state', function (): void {
 });
 
 it('scores a tool_call case from the captured (never executed) tool call', function (): void {
-    [$run, $case] = scoringFixtures('tool_call', ['tool' => 'send_email', 'arguments' => '{"to": "support@acme.com"}']);
+    [$run, $case] = secaFixtures(ScorerType::ToolCall, ['tool' => 'send_email', 'arguments' => '{"to": "support@acme.com"}']);
 
     // The runner captures the intended call and never executes it: the result
     // carries no text answer, only the tool call.
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: '',
-        sources: [],
-        toolsCalled: ['send_email'],
-        tokens: 12,
-        latencyMs: 30,
-        traceId: 'trace-tool',
-        toolCalls: [['name' => 'send_email', 'arguments' => '{"to": "support@acme.com"}']],
-    )));
+    secaRunnerReturns(EvalFixtures::run(toolCalls: [['name' => 'send_email', 'arguments' => '{"to": "support@acme.com"}']]));
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
@@ -119,34 +86,15 @@ it('scores a tool_call case from the captured (never executed) tool call', funct
 });
 
 it('records a failing result when the scorer rejects the answer', function (): void {
-    [$run, $case] = scoringFixtures(config: ['value' => 'berlin']);
+    [$run, $case] = secaFixtures(config: ['value' => 'berlin']);
+    secaRunnerReturns(EvalFixtures::run('The capital is Paris.'));
 
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: 'The capital is Paris.',
-        sources: [],
-        toolsCalled: [],
-        tokens: 10,
-        latencyMs: 50,
-        traceId: 'trace-x',
-    )));
-
-    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
-
-    expect($result->has_passed)->toBeFalse();
+    expect(app(ScoreEvalCaseAction::class)->execute($run, $case)->has_passed)->toBeFalse();
 });
 
 it('records a failing result (not an exception) when the agent run errored', function (): void {
-    [$run, $case] = scoringFixtures();
-
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: '',
-        sources: [],
-        toolsCalled: [],
-        tokens: null,
-        latencyMs: 0,
-        traceId: 'trace-err',
-        error: 'model timeout',
-    )));
+    [$run, $case] = secaFixtures();
+    secaRunnerReturns(EvalFixtures::run(error: 'model timeout', tokens: null));
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
@@ -155,51 +103,22 @@ it('records a failing result (not an exception) when the agent run errored', fun
         ->and($result->judge_rationale)->toContain('model timeout');
 });
 
-it('counts one message against the workspace limit for a case that produced an answer', function (): void {
-    [$run, $case] = scoringFixtures();
+it('counts one message against the workspace limit only for a case that produced an answer', function (AgentRunResultData $outcome, int $counted): void {
+    [$run, $case] = secaFixtures();
     app(SetMessageLimitAction::class)->execute($run->agent->workspace, 10);
-
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: 'The capital is Paris.',
-        sources: [],
-        toolsCalled: [],
-        tokens: 42,
-        latencyMs: 120,
-        traceId: 'trace-count',
-    )));
+    secaRunnerReturns($outcome);
 
     app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect(MessageLimit::query()->where('workspace_id', $run->agent->workspace_id)->value('messages_used'))->toBe(1);
-});
-
-it('does not count a message when the agent run errored (no answer produced)', function (): void {
-    [$run, $case] = scoringFixtures();
-    app(SetMessageLimitAction::class)->execute($run->agent->workspace, 10);
-
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: '',
-        sources: [],
-        toolsCalled: [],
-        tokens: null,
-        latencyMs: 0,
-        traceId: 'trace-err',
-        error: 'model timeout',
-    )));
-
-    app(ScoreEvalCaseAction::class)->execute($run, $case);
-
-    expect(MessageLimit::query()->where('workspace_id', $run->agent->workspace_id)->value('messages_used'))->toBe(0);
-});
+    expect(MessageLimit::query()->where('workspace_id', $run->agent->workspace_id)->value('messages_used'))->toBe($counted);
+})->with([
+    'an answer' => [fn (): AgentRunResultData => EvalFixtures::run('The capital is Paris.'), 1],
+    'a failed run' => [fn (): AgentRunResultData => EvalFixtures::run(error: 'model timeout', tokens: null), 0],
+]);
 
 it('skips the LLM call when the workspace has reached its monthly message limit', function (): void {
-    [$run, $case] = scoringFixtures();
-    MessageLimit::create([
-        'workspace_id' => $run->agent->workspace_id,
-        'monthly_limit' => 1,
-        'messages_used' => 1,
-        'period_starts_at' => now()->startOfMonth(),
-    ]);
+    [$run, $case] = secaFixtures();
+    MessageLimit::factory()->forWorkspace($run->agent->workspace)->reached()->create();
 
     // The runner must never be invoked — a case over the limit spends no LLM call.
     $runner = Mockery::mock(EvalAgentRunner::class);
@@ -213,21 +132,13 @@ it('skips the LLM call when the workspace has reached its monthly message limit'
 });
 
 it('broadcasts the scored case with the run external id and running pass/fail tally', function (): void {
-    [$run, $case] = scoringFixtures();
+    [$run, $case] = secaFixtures();
     $agent = $run->agent;
 
     // Partial fake so HasExternalId's model `creating` hook still assigns the
     // (NOT NULL) external_id to the result row written by the action.
     Event::fake([EvalCaseScored::class]);
-
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: 'The capital is Paris.',
-        sources: [],
-        toolsCalled: [],
-        tokens: 42,
-        latencyMs: 120,
-        traceId: 'trace-bc',
-    )));
+    secaRunnerReturns(EvalFixtures::run('The capital is Paris.'));
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
@@ -251,16 +162,8 @@ it('caps a multibyte answer on a character boundary so the result row is stored'
     // 9 bytes splits a 2-byte Arabic letter / 4-byte emoji; a byte substr()
     // would leave invalid UTF-8 and Postgres would reject the insert.
     config(['chatvia.evals.max_output_bytes' => 9]);
-    [$run, $case] = scoringFixtures();
-
-    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
-        answer: $answer,
-        sources: [],
-        toolsCalled: [],
-        tokens: 1,
-        latencyMs: 1,
-        traceId: 'trace-mb',
-    )));
+    [$run, $case] = secaFixtures();
+    secaRunnerReturns(EvalFixtures::run($answer));
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case)->fresh();
 

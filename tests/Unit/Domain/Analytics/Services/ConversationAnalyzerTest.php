@@ -79,14 +79,12 @@ it('returns null instead of a guessed result when the model output is not valid 
 it('shows the model the pending labels of recent conversations only', function (): void {
     [$agent] = cazAgentWithTopics([]);
 
-    $conversation = function (Agent $agent, string $label, int $daysAgo): void {
-        $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'created_at' => now()->subDays($daysAgo)]);
-
-        ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => $conversation->id, 'suggested_label' => $label]);
-    };
-
-    $conversation($agent, 'Recent Theme', 3);
-    $conversation($agent, 'Old Theme', 120);
+    foreach (['Recent Theme' => 3, 'Old Theme' => 120] as $label => $daysAgo) {
+        ConversationTopic::factory()
+            ->forConversation(Conversation::factory()->create(['agent_id' => $agent->id, 'created_at' => now()->subDays($daysAgo)]))
+            ->suggested($label)
+            ->create();
+    }
 
     fakeLlmCompletion(json_encode(['topic_ids' => [], 'suggested_topics' => [], 'sentiment' => 'neutral', 'tone' => 'neutral', 'language' => 'en']));
 

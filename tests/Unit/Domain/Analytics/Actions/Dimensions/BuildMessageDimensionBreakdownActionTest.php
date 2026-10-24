@@ -12,28 +12,17 @@ use Illuminate\Support\Facades\DB;
  * 'total' and 'unspecified' are derived from the message rollup's user_messages
  * (total user messages) minus the analysed counts.
  */
-function bmdSeedDaily(string $table, int $agentId, string $column, string $day, string $value, int $count): void
+/** One daily sentiment or tone rollup row of the agent. */
+function bmdDaily(Agent $agent, MessageDimension $dimension, string $day, string $value, int $count): void
 {
-    DB::connection(config('chatvia.analytics.connection'))->table($table)->insert([
-        'agent_id' => $agentId,
-        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('workspace_id'),
+    $column = $dimension === MessageDimension::Tone ? 'tone' : 'sentiment';
+
+    DB::connection(config('chatvia.analytics.connection'))->table("analytics_agent_{$column}_daily")->insert([
+        'agent_id' => $agent->id,
+        'workspace_id' => $agent->workspace_id,
         'bucket_day' => $day,
         $column => $value,
         'message_count' => $count,
-    ]);
-}
-
-function bmdSeedUserMessages(int $agentId, string $day, int $count): void
-{
-    // Total user messages live on the hourly message rollup; one bucket row per
-    // day is enough for the read action's SUM(user_messages) by date.
-    DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
-        'agent_id' => $agentId,
-        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('workspace_id'),
-        'bucket_hour' => $day.' 10:00:00+00',
-        'country_code' => '--',
-        'llm_id' => 0,
-        'user_messages' => $count,
     ]);
 }
 
@@ -41,13 +30,13 @@ it('aggregates per-day bucket counts and range totals from the rollups', functio
     $agent = Agent::factory()->create();
 
     // Day 1: tone neutral=2, frustrated=1 (3 analysed); 4 user messages → 1 unspecified
-    bmdSeedDaily('analytics_agent_tone_daily', $agent->id, 'tone', '2026-06-01', 'neutral', 2);
-    bmdSeedDaily('analytics_agent_tone_daily', $agent->id, 'tone', '2026-06-01', 'frustrated', 1);
-    bmdSeedUserMessages($agent->id, '2026-06-01', 4);
+    bmdDaily($agent, MessageDimension::Tone, '2026-06-01', 'neutral', 2);
+    bmdDaily($agent, MessageDimension::Tone, '2026-06-01', 'frustrated', 1);
+    analyticsRollup($agent, '2026-06-01 10:00:00+00', ['user_messages' => 4]);
 
     // Day 2: tone urgent=1; 1 user message → 0 unspecified
-    bmdSeedDaily('analytics_agent_tone_daily', $agent->id, 'tone', '2026-06-02', 'urgent', 1);
-    bmdSeedUserMessages($agent->id, '2026-06-02', 1);
+    bmdDaily($agent, MessageDimension::Tone, '2026-06-02', 'urgent', 1);
+    analyticsRollup($agent, '2026-06-02 10:00:00+00', ['user_messages' => 1]);
 
     $result = app(BuildMessageDimensionBreakdownAction::class)->execute(
         $agent,
@@ -86,11 +75,11 @@ it('scopes the aggregate to the requested agent', function (): void {
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create();
 
-    bmdSeedDaily('analytics_agent_sentiment_daily', $agent->id, 'sentiment', '2026-06-01', 'positive', 1);
-    bmdSeedUserMessages($agent->id, '2026-06-01', 1);
+    bmdDaily($agent, MessageDimension::Sentiment, '2026-06-01', 'positive', 1);
+    analyticsRollup($agent, '2026-06-01 10:00:00+00', ['user_messages' => 1]);
 
-    bmdSeedDaily('analytics_agent_sentiment_daily', $other->id, 'sentiment', '2026-06-01', 'positive', 9);
-    bmdSeedUserMessages($other->id, '2026-06-01', 9);
+    bmdDaily($other, MessageDimension::Sentiment, '2026-06-01', 'positive', 9);
+    analyticsRollup($other, '2026-06-01 10:00:00+00', ['user_messages' => 9]);
 
     $result = app(BuildMessageDimensionBreakdownAction::class)->execute(
         $agent,

@@ -23,8 +23,9 @@ beforeEach(function (): void {
 });
 
 it('creates an api-sourced agent owned by the resolved team and attaches the workspace topics', function (): void {
-    $topicA = Topic::create(['topic' => 'Billing', 'description' => 'Billing questions']);
-    $topicB = Topic::create(['topic' => 'Support', 'description' => 'Support questions']);
+    // System topics belong to no workspace.
+    $topicA = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Billing']);
+    $topicB = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Support']);
 
     $agent = app(CreateApiAgentAction::class)->execute($this->owner->workspace(), new CreateApiAgentData(
         name: 'API Bot',
@@ -111,8 +112,7 @@ it('rejects a prompt id the owner does not own', function (): void {
 });
 
 it('never attaches another workspace custom topics', function (): void {
-    $stranger = User::factory()->create();
-    $foreign = Topic::create(['topic' => 'Their secret', 'description' => 'Other workspace', 'workspace_id' => $stranger->workspace()->id]);
+    $foreign = Topic::factory()->create();
 
     $agent = app(CreateApiAgentAction::class)->execute($this->owner->workspace(), new CreateApiAgentData(
         name: 'API Bot',

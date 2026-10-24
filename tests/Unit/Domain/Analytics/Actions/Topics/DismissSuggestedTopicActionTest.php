@@ -11,13 +11,10 @@ use Domain\Conversation\Topic\Models\ConversationTopic;
  */
 function dstSuggestion(Agent $agent, string $label): ConversationTopic
 {
-    $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
-
-    return ConversationTopic::create([
-        'workspace_id' => $agent->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'suggested_label' => $label,
-    ]);
+    return ConversationTopic::factory()
+        ->forConversation(Conversation::factory()->create(['agent_id' => $agent->id]))
+        ->suggested($label)
+        ->create();
 }
 
 it('drops every suggestion row of the label for the agent', function (): void {

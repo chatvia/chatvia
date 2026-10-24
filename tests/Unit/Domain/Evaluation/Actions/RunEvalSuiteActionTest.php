@@ -21,39 +21,19 @@ use Support\Exceptions\DomainValidationException;
  * workspace that reached its monthly message limit can't start a suite at all
  * (each scored case counts as one message).
  */
-
-/**
- * An agent with a chat model.
- */
-function agentWithLlm(): Agent
+/** An agent with a chat model. */
+function resAgent(): Agent
 {
-    $agent = Agent::factory()->create();
-    $agent->update(['llm_id' => Llm::factory()->create()->id]);
-
-    return $agent;
-}
-
-function evalCaseFor(Agent $agent, bool $active): EvalCase
-{
-    return EvalCase::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'case',
-        'input' => 'ping',
-        'scorer_type' => 'contains',
-        'scorer_config' => ['value' => 'pong'],
-        'is_active' => $active,
-    ]);
+    return Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
 }
 
 it('snapshots a running run and batches one job per active case', function (): void {
     Bus::fake();
-    $agent = agentWithLlm();
+    $agent = resAgent();
 
-    evalCaseFor($agent, active: true);
-    evalCaseFor($agent, active: true);
-    evalCaseFor($agent, active: false);
+    EvalCase::factory()->forAgent($agent)->create();
+    EvalCase::factory()->forAgent($agent)->create();
+    EvalCase::factory()->forAgent($agent)->inactive()->create();
 
     $run = app(RunEvalSuiteAction::class)->execute($agent);
 
@@ -67,9 +47,9 @@ it('snapshots a running run and batches one job per active case', function (): v
 
 it('finalizes immediately when there are no active cases', function (): void {
     Bus::fake();
-    $agent = agentWithLlm();
+    $agent = resAgent();
 
-    evalCaseFor($agent, active: false);
+    EvalCase::factory()->forAgent($agent)->inactive()->create();
 
     $run = app(RunEvalSuiteAction::class)->execute($agent);
 
@@ -81,15 +61,10 @@ it('finalizes immediately when there are no active cases', function (): void {
 
 it('refuses to start a suite when the workspace reached its monthly message limit', function (): void {
     Bus::fake();
-    $agent = agentWithLlm();
+    $agent = resAgent();
 
-    evalCaseFor($agent, active: true);
-    MessageLimit::create([
-        'workspace_id' => $agent->workspace_id,
-        'monthly_limit' => 5,
-        'messages_used' => 5,
-        'period_starts_at' => now()->startOfMonth(),
-    ]);
+    EvalCase::factory()->forAgent($agent)->create();
+    MessageLimit::factory()->forWorkspace($agent->workspace)->reached()->create();
 
     expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
         ->toThrow(DomainValidationException::class);
@@ -102,9 +77,9 @@ it('refuses to start a suite when the workspace reached its monthly message limi
 it('broadcasts the new running run so it appears live on open Evals pages', function (): void {
     Bus::fake();
     Event::fake([EvalRunProgressed::class]);
-    $agent = agentWithLlm();
+    $agent = resAgent();
 
-    evalCaseFor($agent, active: true);
+    EvalCase::factory()->forAgent($agent)->create();
 
     $run = app(RunEvalSuiteAction::class)->execute($agent);
 

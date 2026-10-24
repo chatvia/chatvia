@@ -14,14 +14,10 @@ use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Guardrail\Models\GuardrailEvent;
-use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
-use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -29,10 +25,10 @@ use Illuminate\Support\Str;
 
 /**
  * The purge of a deleted agent: its leads, chats and sessions go in small
- * batches, then its own sources, settings, chat memory and files, then its
- * audit and guardrail rows lose their agent (they are kept), and finally the
- * agent row. Another agent's data stays, and a retry after a failure
- * finishes the job.
+ * batches, then its settings, chat memory and files, then its audit and
+ * guardrail rows lose their agent (they are kept), and finally the agent row.
+ * Another agent's data stays, and a retry after a failure finishes the job.
+ * Which sources go is in PurgeAgentSourcesTest.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -40,18 +36,11 @@ beforeEach(function (): void {
 });
 
 /** A conversation of the agent with two messages and one attachment row. */
-function purgeTestConversation(Agent $agent): Conversation
+function pgaConversation(Agent $agent): Conversation
 {
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
     Message::factory()->count(2)->create(['chat_conversation_id' => $conversation->id]);
-    Attachment::create([
-        'workspace_id' => $agent->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'filepath' => 'workspaces/x/agents/'.$agent->external_id.'/attachments/doc.pdf',
-        'filename' => 'doc.pdf',
-        'mime_type' => 'application/pdf',
-        'size_bytes' => 4,
-    ]);
+    Attachment::factory()->forConversation($conversation)->create();
 
     return $conversation;
 }
@@ -72,74 +61,16 @@ function pgaCountDeletes(string $table, Closure $callback): int
     return $count;
 }
 
-/** A tool-call audit row of the agent. */
-function pgaActivity(Agent $agent): AgentActivity
-{
-    return AgentActivity::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'trace_id' => (string) Str::uuid(),
-        'tool_call_id' => 'call_'.Str::random(6),
-        'tool_name' => 'get_weather',
-        'tool_kind' => 'function',
-        'outcome' => 'auto',
-        'is_gated' => false,
-        'is_error' => false,
-        'arguments_truncated' => false,
-        'result_truncated' => false,
-    ]);
-}
-
-/** A guardrail event of the agent. */
-function pgaGuardrailEvent(Agent $agent): GuardrailEvent
-{
-    return GuardrailEvent::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'visitor_key' => hash('sha256', 'visitor-1'),
-        'stage' => 'input',
-        'guard_type' => 'prompt_injection',
-        'outcome' => 'blocked',
-        'snippet' => 'Ignore all previous instructions.',
-    ]);
-}
-
-/**
- * A source of one of the four kinds the purge handles, in the agent's
- * workspace and linked to the given agents.
- */
-function pgaSource(string $kind, Agent ...$agents): Model
-{
-    $workspaceId = $agents[0]->workspace_id;
-
-    $source = match ($kind) {
-        'file' => AgentFileFactory::new()->create(['workspace_id' => $workspaceId]),
-        'website' => SourceWebsite::create(['workspace_id' => $workspaceId, 'url' => 'https://docs.example.test/'.uniqid(), 'status' => SourceStatus::Completed->value]),
-        'text' => SourceText::create(['workspace_id' => $workspaceId, 'filepath' => 'texts/'.uniqid().'.txt', 'excerpt' => 'Opening hours', 'length' => 1, 'checksum' => md5(uniqid())]),
-        'youtube' => SourceYoutubeVideo::create(['workspace_id' => $workspaceId, 'url' => 'https://www.youtube.com/watch?v='.uniqid(), 'length' => 1, 'status' => SourceStatus::Completed->value]),
-    };
-
-    $relation = ['file' => 'files', 'website' => 'websites', 'text' => 'texts', 'youtube' => 'youtubeVideos'][$kind];
-
-    foreach ($agents as $agent) {
-        $agent->{$relation}()->attach($source->getKey());
-    }
-
-    return $source;
-}
-
 it('removes the agent chats, leads, sources, settings, memory and files, then the agent', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = purgeTestConversation($agent);
+    $conversation = pgaConversation($agent);
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $lead = FormSubmission::factory()->forAgent($agent)->create();
 
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->files()->attach($file->id);
 
-    ModelSetting::create(['model_type' => $agent->getMorphClass(), 'model_id' => $agent->id, 'group' => 'appearance', 'key' => 'title', 'value' => 'Hi', 'data_type' => 'string']);
+    $agent->setSetting('title', 'Hi', 'appearance');
 
     $tag = ChatCache::agentTag($agent->external_id);
     Cache::driver('chat')->tags([$tag])->forever('memory', ['x']);
@@ -174,9 +105,7 @@ it('deletes conversations and sessions in small batches', function (): void {
     $agent = Agent::factory()->create();
 
     // Five conversations, each with its own session, plus two more sessions.
-    foreach (range(1, 5) as $ignored) {
-        purgeTestConversation($agent);
-    }
+    Collection::times(5, fn (): Conversation => pgaConversation($agent));
     Session::factory()->count(2)->create(['agent_id' => $agent->id]);
 
     $agent->delete();
@@ -196,7 +125,7 @@ it('deletes conversations and sessions in small batches', function (): void {
 
 it('deletes the leads before the conversations they came from', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = purgeTestConversation($agent);
+    $conversation = pgaConversation($agent);
     $lead = FormSubmission::factory()->forAgent($agent)->create(['chat_conversation_id' => $conversation->id]);
 
     $statements = [];
@@ -217,10 +146,10 @@ it('keeps the agent audit and guardrail rows, cleared of the agent in batches', 
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
 
-    $activities = collect(range(1, 3))->map(fn (): AgentActivity => pgaActivity($agent));
-    $events = collect(range(1, 3))->map(fn (): GuardrailEvent => pgaGuardrailEvent($agent));
-    $otherActivity = pgaActivity($other);
-    $otherEvent = pgaGuardrailEvent($other);
+    $activities = AgentActivity::factory()->forAgent($agent)->count(3)->create();
+    $events = GuardrailEvent::factory()->forAgent($agent)->count(3)->create();
+    $otherActivity = AgentActivity::factory()->forAgent($other)->create();
+    $otherEvent = GuardrailEvent::factory()->forAgent($other)->create();
 
     $updates = ['agent_activities' => 0, 'guardrail_events' => 0];
     DB::listen(function (QueryExecuted $query) use (&$updates): void {
@@ -245,15 +174,11 @@ it('leaves another agent of the workspace alone', function (): void {
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
 
-    purgeTestConversation($agent);
-    $kept = purgeTestConversation($other);
+    pgaConversation($agent);
+    $kept = pgaConversation($other);
     // The form is the other agent's too: deleting a form takes its leads.
     $keptLead = FormSubmission::factory()->forDefinition(FormDefinition::factory()->forAgent($other)->create())->create();
-    $keptSetting = ModelSetting::create(['model_type' => $other->getMorphClass(), 'model_id' => $other->id, 'group' => 'appearance', 'key' => 'title', 'value' => 'Hi', 'data_type' => 'string']);
-
-    $shared = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $agent->files()->attach($shared->id);
-    $other->files()->attach($shared->id);
+    $other->setSetting('title', 'Hi', 'appearance');
 
     $agent->delete();
     app(PurgeAgentAction::class)->execute($agent);
@@ -262,64 +187,12 @@ it('leaves another agent of the workspace alone', function (): void {
         ->and(Conversation::find($kept->id))->not->toBeNull()
         ->and(Message::query()->where('chat_conversation_id', $kept->id)->count())->toBe(2)
         ->and(FormSubmission::find($keptLead->id))->not->toBeNull()
-        ->and(ModelSetting::find($keptSetting->id))->not->toBeNull()
-        ->and(SourceFile::find($shared->id))->not->toBeNull();
+        ->and($other->modelSettings()->where('group', 'appearance')->where('key', 'title')->exists())->toBeTrue();
 });
-
-it('keeps the files of a source another agent still uses', function (): void {
-    $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
-
-    // The first agent uploaded it, then the other agent started using it too.
-    $shared = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $agent->files()->attach($shared->id);
-    $other->files()->attach($shared->id);
-
-    $folder = KnowledgeStoragePath::forSource($shared);
-    $shared->update(['parser_filepath' => $folder.'/pages.json']);
-    Storage::put($shared->filepath, '%PDF-1.7');
-    Storage::put($shared->parser_filepath, '[]');
-    Storage::put($folder.'/images/page.jpg', 'jpeg');
-
-    $agent->delete();
-    app(PurgeAgentAction::class)->execute($agent);
-
-    expect(SourceFile::find($shared->id))->not->toBeNull()
-        ->and($other->files()->whereKey($shared->id)->exists())->toBeTrue();
-    Storage::assertExists([$shared->filepath, $shared->parser_filepath, $folder.'/images/page.jpg']);
-});
-
-it('deletes the agent own source of each kind and keeps one another agent uses', function (string $kind): void {
-    $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
-
-    $own = pgaSource($kind, $agent);
-    $shared = pgaSource($kind, $agent, $other);
-
-    $agent->delete();
-    app(PurgeAgentAction::class)->execute($agent);
-
-    expect($own::query()->find($own->getKey()))->toBeNull()
-        ->and($shared::query()->find($shared->getKey()))->not->toBeNull();
-})->with(['file', 'website', 'text', 'youtube']);
-
-it('deletes a source of each kind shared only with another deleted agent', function (string $kind): void {
-    $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
-
-    $shared = pgaSource($kind, $agent, $other);
-
-    // Both agents were deleted; the other one's purge has not run yet.
-    $other->delete();
-    $agent->delete();
-    app(PurgeAgentAction::class)->execute($agent);
-
-    expect($shared::query()->find($shared->getKey()))->toBeNull();
-})->with(['file', 'website', 'text', 'youtube']);
 
 it('finishes the purge when run again after a failure', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = purgeTestConversation($agent);
+    $conversation = pgaConversation($agent);
 
     // The final delete fails once (an outage), then works on the retry.
     $outage = new ArrayObject(['on' => true]);
@@ -345,7 +218,7 @@ it('finishes the purge when run again after a failure', function (): void {
 
 it('refuses to purge an agent that is not deleted', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = purgeTestConversation($agent);
+    $conversation = pgaConversation($agent);
 
     expect(fn () => app(PurgeAgentAction::class)->execute($agent))->toThrow(LogicException::class);
 
@@ -354,10 +227,9 @@ it('refuses to purge an agent that is not deleted', function (): void {
 
 it('runs from a job that skips a live or purged agent', function (): void {
     $live = Agent::factory()->create();
-    $conversation = purgeTestConversation($live);
+    $conversation = pgaConversation($live);
 
-    $job = new PurgeAgentJob($live->id);
-    $job->handle(app(PurgeAgentAction::class));
+    new PurgeAgentJob($live->id)->handle(app(PurgeAgentAction::class));
 
     // A live agent is never purged, and an id that is gone is a no-op.
     new PurgeAgentJob(PHP_INT_MAX)->handle(app(PurgeAgentAction::class));

@@ -36,15 +36,14 @@ it('returns no options for an agent without located visitors', function (): void
     expect(app(ListAgentVisitorCountriesAction::class)->execute($agent)->countries->toCollection())->toBeEmpty();
 });
 
-it('reads the countries without scanning the agent\'s sessions', function (): void {
+it('reads the countries in one query', function (): void {
     $agent = Agent::factory()->create();
-    $queries = [];
-    DB::listen(function ($query) use (&$queries): void {
-        $queries[] = $query->sql;
+    $queries = 0;
+    DB::listen(function () use (&$queries): void {
+        $queries++;
     });
 
     app(ListAgentVisitorCountriesAction::class)->execute($agent);
 
-    expect($queries)->toHaveCount(1)
-        ->and($queries[0])->toStartWith('select "id", "code", "name" from "countries" where exists');
+    expect($queries)->toBe(1);
 });

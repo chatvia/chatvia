@@ -7,6 +7,11 @@ use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 
+/**
+ * The scheduled scan queues the end-of-life analysis of every visible
+ * conversation old enough and not analysed yet, until its attempts are used
+ * up, and counts what it queued.
+ */
 /** @param  array<string, mixed>  $attributes */
 function qpcaConversation(Agent $agent, array $attributes = []): Conversation
 {

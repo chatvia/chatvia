@@ -6,6 +6,10 @@ use Domain\Analytics\Events\MessageAnalyzed;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * An analysed visitor message counts in the agent's daily sentiment and tone
+ * rollups, each only when the analysis gave that dimension.
+ */
 function rmaDimensionCount(string $table, int $agentId, string $column, string $value): ?int
 {
     $count = DB::connection(config('chatvia.analytics.connection'))->table($table)

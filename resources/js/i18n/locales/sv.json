@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Välj ett antal och generera förslag från din kunskapsbas.",
                 "starters_translate_empty": "Lägg först till startfrågor på fliken Standard och översätt dem sedan här.",
                 "starters_generate_failed": "Det gick inte att generera startfrågor",
-                "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen."
+                "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen.",
+                "appearance_notice": "Notis under chattrutan",
+                "appearance_notice_placeholder": "Till exempel: Jag svarar på frågor om våra produkter. Jag kan ha fel, så kontrollera viktiga detaljer.",
+                "appearance_notice_help": "Valfritt. En kort rad under meddelanderutan i varje chatt: vad agenten täcker och att svar kan vara fel. Översätts automatiskt."
             },
             "languages": {
                 "title": "Gränssnittsspråk",

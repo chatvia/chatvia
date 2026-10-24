@@ -31,6 +31,8 @@ class RetrievedSourceData extends Data
         public string $sourceable_type,
         public int $sourceable_id,
         public array $images = [],
+        /** The day the chunk's text entered the knowledge base (Y-m-d), so the model can prefer newer facts. */
+        public ?string $added_on = null,
     ) {}
 
     /**

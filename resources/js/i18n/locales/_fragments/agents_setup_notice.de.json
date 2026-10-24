@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Hinweis unter dem Chatfeld",
+                "appearance_notice_placeholder": "Zum Beispiel: Ich beantworte Fragen zu unseren Produkten. Ich kann mich irren, prüfe also wichtige Details.",
+                "appearance_notice_help": "Optional. Eine kurze Zeile unter dem Nachrichtenfeld in jedem Chat: was der Agent abdeckt und dass Antworten falsch sein können. Wird automatisch übersetzt."
+            }
+        }
+    }
+}

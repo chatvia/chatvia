@@ -23,7 +23,9 @@ use Throwable;
  * before it is searched as it is, but still goes to the model for its
  * language: the guardrail classifier names it too, but that may be off or
  * fail, and a reply with no language named drifts into the language of the
- * knowledge it quotes. When it is switched off
+ * knowledge it quotes. With `chatvia.ai.query.rewriter.clarify` on, the same
+ * call flags a message too vague to search and writes one short question to
+ * ask the visitor. When it is switched off
  * (`chatvia.ai.query.rewriter.enabled`) or the call fails, the message is
  * used unchanged.
  */
@@ -76,7 +78,9 @@ class QueryRewriter
             $reply = $this->chat->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::FollowUp),
                 messages: [
-                    ChatMessageData::system(prompt('knowledge/rewrite-query')),
+                    ChatMessageData::system(prompt('knowledge/rewrite-query', [
+                        'clarify' => filter_var(config('chatvia.ai.query.rewriter.clarify'), FILTER_VALIDATE_BOOL),
+                    ])),
                     ChatMessageData::user(prompt('knowledge/rewrite-query-user', [
                         'conversation' => $conversation,
                         'message' => $message,
@@ -91,7 +95,7 @@ class QueryRewriter
 
         return $reply->then(
             fn (ChatResponseData $reply): RewrittenQueryData => $conversation === ''
-                ? RewrittenQueryData::unchanged($message)->orLanguage($this->parse($reply->content, $message)->language)
+                ? $this->parse($reply->content, $message)->withQuery($message)
                 : $this->parse($reply->content, $message),
             $unchanged,
         );
@@ -120,8 +124,10 @@ class QueryRewriter
     }
 
     /**
-     * The prompt asks for `<iso-639-1>|<question>`. A reply without the pipe
-     * is taken as the question itself; an empty one keeps the message.
+     * The prompt asks for `<iso-639-1>|<question>`, or `<iso-639-1>|?|<question
+     * for the visitor>` for a message too vague to search (the message is then
+     * searched as it is). A reply without the pipe is taken as the question
+     * itself; an empty one keeps the message.
      */
     private function parse(string $reply, string $message): RewrittenQueryData
     {
@@ -132,9 +138,16 @@ class QueryRewriter
         }
 
         [$language, $query] = array_map(Str::trim(...), explode('|', $reply, 2));
+        $language = Str::isMatch('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $language) ? $language : 'en';
+
+        if (Str::startsWith($query, '?|')) {
+            $question = Str::trim(Str::after($query, '?|'));
+
+            return new RewrittenQueryData($language, $message, $question !== '' ? $question : null);
+        }
 
         return new RewrittenQueryData(
-            language: Str::isMatch('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $language) ? $language : 'en',
+            language: $language,
             query: $query !== '' ? $query : $message,
         );
     }

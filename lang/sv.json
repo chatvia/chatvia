@@ -143,6 +143,7 @@
     "Conversation deleted successfully.": "Samtalet har raderats.",
     "You do not have access to this agent": "Du har inte åtkomst till den här agenten",
     "Please enter a message": "Skriv ett meddelande",
+    "Your message is too long. Please keep it under :max characters.": "Ditt meddelande är för långt. Håll det under :max tecken.",
     "The server rejected the token (401 Unauthorized). Double-check the value and try again.": "Servern avvisade token (401 Unauthorized). Kontrollera värdet och försök igen.",
     "The token is valid but does not have permission to call this MCP server (403).": "Token är giltig men har inte behörighet att anropa den här MCP-servern (403).",
     "The connector endpoint returned 404. The service may have moved — please report this.": "Kopplingens slutpunkt svarade 404. Tjänsten kan ha flyttat — rapportera gärna detta.",

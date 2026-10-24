@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Wählen Sie eine Anzahl und generieren Sie Vorschläge aus Ihrer Wissensdatenbank.",
                 "starters_translate_empty": "Fügen Sie zuerst im Tab „Standard“ Gesprächseinstiege hinzu und übersetzen Sie sie dann hier.",
                 "starters_generate_failed": "Gesprächseinstiege konnten nicht generiert werden",
-                "starters_generate_empty": "Es kamen keine Gesprächseinstiege zurück. Prüfen Sie, ob die Wissensdatenbank Inhalte hat, und versuchen Sie es erneut."
+                "starters_generate_empty": "Es kamen keine Gesprächseinstiege zurück. Prüfen Sie, ob die Wissensdatenbank Inhalte hat, und versuchen Sie es erneut.",
+                "appearance_notice": "Hinweis unter dem Chatfeld",
+                "appearance_notice_placeholder": "Zum Beispiel: Ich beantworte Fragen zu unseren Produkten. Ich kann mich irren, prüfe also wichtige Details.",
+                "appearance_notice_help": "Optional. Eine kurze Zeile unter dem Nachrichtenfeld in jedem Chat: was der Agent abdeckt und dass Antworten falsch sein können. Wird automatisch übersetzt."
             },
             "languages": {
                 "title": "Oberflächensprachen",

@@ -2010,7 +2010,10 @@
                 "starters_generate_hint": "개수를 선택하고 지식 베이스에서 제안을 생성하세요.",
                 "starters_translate_empty": "먼저 기본 탭에서 시작 문구를 추가한 다음 여기에서 번역하세요.",
                 "starters_generate_failed": "시작 문구를 생성하지 못했습니다",
-                "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요."
+                "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요.",
+                "appearance_notice": "채팅 입력창 아래 안내",
+                "appearance_notice_placeholder": "예: 저희 제품에 대한 질문에 답합니다. 틀릴 수 있으니 중요한 내용은 확인하세요.",
+                "appearance_notice_help": "선택 사항. 모든 채팅의 메시지 입력창 아래에 표시되는 짧은 한 줄: 에이전트가 다루는 내용과 답변이 틀릴 수 있다는 점. 자동으로 번역됩니다."
             },
             "languages": {
                 "title": "UI 언어",

@@ -22,6 +22,7 @@ export function useSetupText({ agentId, reloadPreview }: SetupSectionDeps, appea
         welcome_message: appearance.string('welcome_message'),
         chat_window_title: appearance.string('chat_window_title'),
         composer_placeholder: appearance.string('composer_placeholder'),
+        notice: appearance.string('notice'),
     });
 
     const translations = ref<LocaleMap>((appearance.saved.text_translations as LocaleMap) ?? {});
@@ -36,6 +37,7 @@ export function useSetupText({ agentId, reloadPreview }: SetupSectionDeps, appea
                 chat_window_title: form.chat_window_title,
                 welcome_message: form.welcome_message,
                 composer_placeholder: form.composer_placeholder,
+                notice: form.notice,
             });
             translations.value = asLocaleMap(saved?.translations);
 

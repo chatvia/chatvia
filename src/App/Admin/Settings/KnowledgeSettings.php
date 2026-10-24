@@ -87,6 +87,12 @@ class KnowledgeSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.query.rewriter.enabled')]
     public ?bool $query_rewriter = null;
 
+    #[ConfigKey('chatvia.ai.query.rewriter.clarify')]
+    public ?bool $query_clarify = null;
+
+    #[ConfigKey('chatvia.vector.search.scope_hint')]
+    public ?bool $scope_hint = null;
+
     public static function group(): string
     {
         return 'knowledge';

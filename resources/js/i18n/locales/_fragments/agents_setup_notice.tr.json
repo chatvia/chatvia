@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Sohbet kutusunun altındaki not",
+                "appearance_notice_placeholder": "Örneğin: Ürünlerimizle ilgili soruları yanıtlarım. Hata yapabilirim, bu yüzden önemli ayrıntıları kontrol edin.",
+                "appearance_notice_help": "İsteğe bağlı. Her sohbette mesaj kutusunun altında kısa bir satır: ajanın neleri kapsadığı ve yanıtların yanlış olabileceği. Otomatik çevrilir."
+            }
+        }
+    }
+}

@@ -5,11 +5,14 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\WidgetHeaders;
+use Illuminate\Support\Str;
 use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * POST /widget/stream runs a chat turn in the visitor's conversation. It
- * needs the conversation id, and refuses a session that is not the caller's:
+ * needs the conversation id, refuses a message over the admin's length limit
+ * (as JSON, even when the widget does not ask for it), and refuses a session
+ * that is not the caller's:
  * one of another agent, or, on a protected agent, one of another signed-in
  * chatter. The turn itself is covered by the ChatStreamService tests.
  */
@@ -24,6 +27,19 @@ it('refuses to stream without a conversation id', function (): void {
     $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/stream', ['content' => 'Hello'])
         ->assertStatus(400);
+});
+
+it('refuses a message longer than the admin\'s limit with a JSON 422', function (): void {
+    config(['chatvia.guardrails.max_message_chars' => 300]);
+    $boot = EmbeddedWidget::boot($this->agent);
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
+        WidgetHeaders::SESSION_ID => $boot['session_id'],
+        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
+    ]))
+        ->post('/widget/stream', ['content' => Str::repeat('a', 301)])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('content');
 });
 
 it('refuses to stream on a session of another agent', function (): void {

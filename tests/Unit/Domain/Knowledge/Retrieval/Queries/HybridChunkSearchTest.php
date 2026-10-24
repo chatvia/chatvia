@@ -137,7 +137,9 @@ it('ranks a small agent\'s chunks by true distance and never returns another wor
     // Which path a limit picks is the scope() test's.
     $results = app(KnowledgeBase::class)->search($agent, 'mountain trail');
 
-    expect(array_map(fn (RetrievedChunkData $chunk): int => $chunk->id, $results))->toBe($ids);
+    expect(array_map(fn (RetrievedChunkData $chunk): int => $chunk->id, $results))->toBe($ids)
+        // Each result carries the day its text was added, for the newer-wins rule.
+        ->and($results[0]->added_on)->toBe(now()->toDateString());
 })->with(['exact', 'indexed']);
 
 it('ranks only chunks that share a term with the query on the keyword channel', function (): void {

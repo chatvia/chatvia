@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Choose a number and generate suggestions from your knowledge base.",
                 "starters_translate_empty": "Add starters on the Default tab first, then translate them here.",
                 "starters_generate_failed": "Could not generate starters",
-                "starters_generate_empty": "No starters came back. Check that the knowledge base has content, then try again."
+                "starters_generate_empty": "No starters came back. Check that the knowledge base has content, then try again.",
+                "appearance_notice": "Notice under the chat box",
+                "appearance_notice_placeholder": "For example: I answer questions about our products. I can make mistakes, so check important details.",
+                "appearance_notice_help": "Optional. A short line under the message box in every chat: what the agent covers, and that answers can be wrong. Translated automatically."
             },
             "languages": {
                 "title": "UI languages",

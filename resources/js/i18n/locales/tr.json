@@ -2010,7 +2010,10 @@
                 "starters_generate_hint": "Bir sayı seçin ve bilgi tabanınızdan öneriler oluşturun.",
                 "starters_translate_empty": "Önce Varsayılan sekmesinde başlatıcı ekleyin, ardından burada çevirin.",
                 "starters_generate_failed": "Başlatıcılar oluşturulamadı",
-                "starters_generate_empty": "Hiç başlatıcı gelmedi. Bilgi tabanında içerik olduğunu kontrol edin ve tekrar deneyin."
+                "starters_generate_empty": "Hiç başlatıcı gelmedi. Bilgi tabanında içerik olduğunu kontrol edin ve tekrar deneyin.",
+                "appearance_notice": "Sohbet kutusunun altındaki not",
+                "appearance_notice_placeholder": "Örneğin: Ürünlerimizle ilgili soruları yanıtlarım. Hata yapabilirim, bu yüzden önemli ayrıntıları kontrol edin.",
+                "appearance_notice_help": "İsteğe bağlı. Her sohbette mesaj kutusunun altında kısa bir satır: ajanın neleri kapsadığı ve yanıtların yanlış olabileceği. Otomatik çevrilir."
             },
             "languages": {
                 "title": "Arayüz dilleri",

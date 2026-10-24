@@ -95,6 +95,7 @@ class TurnContextFactory
             assistantMessageId: Str::uuid7()->toString(),
             queryLanguage: $rewritten->language,
             searchQuery: $rewritten->query,
+            clarifyingQuestion: $rewritten->clarifyingQuestion,
         );
 
         // Carry the block decision to the stream, and log every input verdict.

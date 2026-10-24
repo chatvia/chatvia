@@ -29,12 +29,14 @@ class TranslateAgentAppearanceAction
 
         $unchanged = (string) ($current->get('chat_window_title') ?? '') === $data->chat_window_title
             && (string) ($current->get('welcome_message') ?? '') === $data->welcome_message
-            && (string) ($current->get('composer_placeholder') ?? '') === $data->composer_placeholder;
+            && (string) ($current->get('composer_placeholder') ?? '') === $data->composer_placeholder
+            && (string) ($current->get('notice') ?? '') === $data->notice;
 
         // Persist the base (source-language) strings — idempotent updateOrCreate.
         $agent->setSetting('chat_window_title', $data->chat_window_title, 'appearance');
         $agent->setSetting('welcome_message', $data->welcome_message, 'appearance');
         $agent->setSetting('composer_placeholder', $data->composer_placeholder, 'appearance');
+        $agent->setSetting('notice', $data->notice, 'appearance');
 
         /** @var array<string, TranslatableText> $copies field => copy, empty fields left out */
         $copies = [];

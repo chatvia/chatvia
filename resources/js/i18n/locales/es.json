@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Elige un número y genera sugerencias a partir de tu base de conocimiento.",
                 "starters_translate_empty": "Primero agrega iniciadores en la pestaña Predeterminado y luego tradúcelos aquí.",
                 "starters_generate_failed": "No se pudieron generar iniciadores",
-                "starters_generate_empty": "No se recibió ningún iniciador. Comprueba que la base de conocimiento tenga contenido e inténtalo de nuevo."
+                "starters_generate_empty": "No se recibió ningún iniciador. Comprueba que la base de conocimiento tenga contenido e inténtalo de nuevo.",
+                "appearance_notice": "Aviso bajo el cuadro de chat",
+                "appearance_notice_placeholder": "Por ejemplo: Respondo preguntas sobre nuestros productos. Puedo equivocarme, así que comprueba los detalles importantes.",
+                "appearance_notice_help": "Opcional. Una línea corta bajo el cuadro de mensaje en cada chat: qué cubre el agente y que las respuestas pueden ser incorrectas. Se traduce automáticamente."
             },
             "languages": {
                 "title": "Idiomas de la interfaz",

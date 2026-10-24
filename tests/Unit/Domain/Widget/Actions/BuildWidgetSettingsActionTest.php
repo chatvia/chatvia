@@ -5,8 +5,9 @@ use Domain\Widget\Actions\BuildWidgetSettingsAction;
 
 /**
  * BuildWidgetSettingsAction assembles the boot payload the embedded widget
- * reads. These cover the customer-configurable privacy-policy link — the
- * widget shows a consent notice only when the owner has set a URL.
+ * reads. These cover the customer-configurable privacy-policy link (the
+ * widget shows a consent notice only when the owner has set a URL) and the
+ * optional notice under the composer.
  */
 it('surfaces the privacy policy url the owner set on the appearance group', function (): void {
     $agent = createAgent(User::factory()->create());
@@ -24,6 +25,20 @@ it('leaves the privacy policy url null when the owner has not set one', function
     $settings = app(BuildWidgetSettingsAction::class)->execute($agent);
 
     expect($settings->privacy_policy_url)->toBeNull();
+});
+
+it('ships the notice in the visitor\'s language, and none when it is empty', function (): void {
+    $agent = createAgent(User::factory()->create());
+
+    expect(app(BuildWidgetSettingsAction::class)->execute($agent)->notice)->toBeNull();
+
+    $agent->setSetting('notice', 'Answers can be wrong.', 'appearance');
+    $agent->setSetting('text_translations', ['notice' => ['de' => 'Antworten können falsch sein.']], 'appearance');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh(), 'de');
+
+    expect($settings->notice)->toBe('Antworten können falsch sein.')
+        ->and($settings->text_translations['notice'] ?? null)->toBe(['de' => 'Antworten können falsch sein.']);
 });
 
 it('marks both embed surfaces enabled by default', function (): void {

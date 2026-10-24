@@ -2,10 +2,11 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Illuminate\Support\Str;
 use Mockery\MockInterface;
 
 /**
- * Saving the three appearance texts in Setup stores them and answers with
+ * Saving the appearance texts in Setup (with the optional notice) stores them and answers with
  * their AI translations into every supported language. How the chat surfaces
  * pick a language is in tests/Unit/Domain/Agent/Services/AppearanceTextResolverTest.php.
  */
@@ -31,4 +32,33 @@ it('saves the base text and returns the AI translations', function (): void {
 
     expect($appearance->get('welcome_message'))->toBe('Hello, how can I help?')
         ->and($appearance->get('text_translations'))->toBe($map);
+});
+
+it('saves the notice under the chat and has it translated with the other texts', function (): void {
+    $agent = Agent::factory()->create();
+    $map = ['notice' => ['de' => 'Antworten können falsch sein.']];
+    $this->mock(TextTranslator::class, fn (MockInterface $mock): mixed => $mock->shouldReceive('translate')->once()
+        ->withArgs(fn (array $fields): bool => array_key_exists('notice', $fields))
+        ->andReturn($map));
+
+    $this->actingAs($agent->workspace->owner)
+        ->postJson(route('agents.appearance.text', $agent->external_id), [
+            'chat_window_title' => '',
+            'welcome_message' => '',
+            'composer_placeholder' => '',
+            'notice' => 'Answers can be wrong.',
+        ])
+        ->assertOk()
+        ->assertJsonPath('translations.notice.de', 'Antworten können falsch sein.');
+
+    expect($agent->fresh()->settings('appearance')->get('notice'))->toBe('Answers can be wrong.');
+});
+
+it('rejects a notice longer than 300 characters', function (): void {
+    $agent = Agent::factory()->create();
+
+    $this->actingAs($agent->workspace->owner)
+        ->postJson(route('agents.appearance.text', $agent->external_id), ['notice' => Str::repeat('a', 301)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('notice');
 });

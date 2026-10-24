@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Wybierz liczbę i wygeneruj sugestie z bazy wiedzy.",
                 "starters_translate_empty": "Najpierw dodaj startery na karcie Domyślne, a potem przetłumacz je tutaj.",
                 "starters_generate_failed": "Nie udało się wygenerować starterów",
-                "starters_generate_empty": "Nie otrzymano żadnych starterów. Sprawdź, czy baza wiedzy ma treść, i spróbuj ponownie."
+                "starters_generate_empty": "Nie otrzymano żadnych starterów. Sprawdź, czy baza wiedzy ma treść, i spróbuj ponownie.",
+                "appearance_notice": "Uwaga pod polem czatu",
+                "appearance_notice_placeholder": "Na przykład: Odpowiadam na pytania o nasze produkty. Mogę się mylić, więc sprawdzaj ważne szczegóły.",
+                "appearance_notice_help": "Opcjonalnie. Krótka linijka pod polem wiadomości w każdym czacie: czego dotyczy agent i że odpowiedzi mogą być błędne. Tłumaczona automatycznie."
             },
             "languages": {
                 "title": "Języki interfejsu",

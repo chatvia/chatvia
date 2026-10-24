@@ -1,6 +1,6 @@
 /**
- * Picks the agent's title, welcome message and composer placeholder in the
- * visitor's language for the hosted chat surfaces.
+ * Picks the agent's title, welcome message, composer placeholder and notice in
+ * the visitor's language for the hosted chat surfaces.
  */
 type LocaleMap = Record<string, Record<string, string>>;
 
@@ -8,6 +8,7 @@ export interface AppearanceTextStrings {
     chat_window_title: string | null;
     welcome_message: string | null;
     composer_placeholder: string | null;
+    notice: string | null;
 }
 
 /**
@@ -37,6 +38,7 @@ export function resolveAppearanceText(appearance: Record<string, unknown> | unde
         chat_window_title: pick('chat_window_title'),
         welcome_message: pick('welcome_message'),
         composer_placeholder: pick('composer_placeholder'),
+        notice: pick('notice'),
     };
 }
 

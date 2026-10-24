@@ -52,6 +52,10 @@ return [
                 'welcome_message' => 'What can I help with? ',
                 'chat_window_title' => 'Chat',
                 'composer_placeholder' => 'Ask anything...',
+                // Optional short notice under the composer on every surface:
+                // what the agent covers, that answers can be wrong. Empty =
+                // no notice. Translated like the texts above.
+                'notice' => '',
                 // Optional link to the workspace's own privacy policy. When set,
                 // the chat surfaces (widget, hosted chat, bar) show a "By
                 // chatting, you agree to our privacy policy" consent notice that
@@ -77,8 +81,8 @@ return [
                 // knowledge sources under small talk confuses chatters, so
                 // owners opt in. Off means the sources never leave the server.
                 'show_sources' => false,
-                // Per-locale copies of the three text strings above
-                // (chat_window_title / welcome_message / composer_placeholder).
+                // Per-locale copies of the text strings above
+                // (chat_window_title / welcome_message / composer_placeholder / notice).
                 // The base values stay the source/default; these hold the
                 // localized variants the chat surfaces resolve by visitor
                 // language (AppearanceTextResolver).
@@ -251,6 +255,7 @@ return [
             'welcome_message' => ['nullable', 'string'],
             'chat_window_title' => ['nullable', 'string'],
             'composer_placeholder' => ['nullable', 'string'],
+            'notice' => ['nullable', 'string', 'max:300'],
             'privacy_policy_url' => ['nullable', 'url', 'max:2048'],
             'allow_file_uploads' => ['nullable', 'boolean'],
             'allow_voice_input' => ['nullable', 'boolean'],

@@ -71,6 +71,10 @@ class WidgetSettingsData extends Data
         // thread is empty): the greeting is too long to show inside the small
         // input, so the widget never uses it as the placeholder.
         public ?string $composer_placeholder,
+        // Optional short notice under the composer (what the agent covers,
+        // that answers can be wrong); null shows nothing. Resolved for the
+        // visitor's language like the strings above.
+        public ?string $notice,
         // Optional link to the workspace's own privacy policy. When non-empty,
         // the widget shows a "By chatting, you agree to our privacy policy"
         // consent notice linking here; when null it shows nothing. The URL the

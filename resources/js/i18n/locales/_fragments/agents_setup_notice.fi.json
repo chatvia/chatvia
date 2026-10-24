@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Huomautus chat-kentän alla",
+                "appearance_notice_placeholder": "Esimerkiksi: Vastaan kysymyksiin tuotteistamme. Voin erehtyä, joten tarkista tärkeät tiedot.",
+                "appearance_notice_help": "Valinnainen. Lyhyt rivi viestikentän alla jokaisessa chatissa: mitä agentti kattaa ja että vastaukset voivat olla vääriä. Käännetään automaattisesti."
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "채팅 입력창 아래 안내",
+                "appearance_notice_placeholder": "예: 저희 제품에 대한 질문에 답합니다. 틀릴 수 있으니 중요한 내용은 확인하세요.",
+                "appearance_notice_help": "선택 사항. 모든 채팅의 메시지 입력창 아래에 표시되는 짧은 한 줄: 에이전트가 다루는 내용과 답변이 틀릴 수 있다는 점. 자동으로 번역됩니다."
+            }
+        }
+    }
+}

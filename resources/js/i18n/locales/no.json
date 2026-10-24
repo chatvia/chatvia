@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Velg et antall og generer forslag fra kunnskapsbasen din.",
                 "starters_translate_empty": "Legg først til startemeldinger på Standard-fanen, og oversett dem deretter her.",
                 "starters_generate_failed": "Kunne ikke generere startemeldinger",
-                "starters_generate_empty": "Ingen startemeldinger kom tilbake. Sjekk at kunnskapsbasen har innhold, og prøv igjen."
+                "starters_generate_empty": "Ingen startemeldinger kom tilbake. Sjekk at kunnskapsbasen har innhold, og prøv igjen.",
+                "appearance_notice": "Merknad under chatfeltet",
+                "appearance_notice_placeholder": "For eksempel: Jeg svarer på spørsmål om produktene våre. Jeg kan ta feil, så sjekk viktige detaljer.",
+                "appearance_notice_help": "Valgfritt. En kort linje under meldingsfeltet i hver chat: hva agenten dekker, og at svar kan være feil. Oversettes automatisk."
             },
             "languages": {
                 "title": "Grensesnittspråk",

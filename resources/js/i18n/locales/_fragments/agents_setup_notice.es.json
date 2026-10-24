@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Aviso bajo el cuadro de chat",
+                "appearance_notice_placeholder": "Por ejemplo: Respondo preguntas sobre nuestros productos. Puedo equivocarme, así que comprueba los detalles importantes.",
+                "appearance_notice_help": "Opcional. Una línea corta bajo el cuadro de mensaje en cada chat: qué cubre el agente y que las respuestas pueden ser incorrectas. Se traduce automáticamente."
+            }
+        }
+    }
+}

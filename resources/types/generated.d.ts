@@ -1524,6 +1524,7 @@ declare namespace Domain {
                     keyboard_trigger: string | null;
                     bar_placement: string | null;
                     composer_placeholder: string | null;
+                    notice: string | null;
                     privacy_policy_url: string | null;
                     handoff_enabled: boolean;
                     allow_file_uploads: boolean;

@@ -304,6 +304,8 @@ return [
     |
     | `query.rewriter` turns a follow-up ("and the price?") into a full
     | question for the knowledge search: one quick-task model call per follow-up.
+    | `query.rewriter.clarify` lets the same call flag a message too vague to
+    | search, so the agent asks what the visitor means instead of guessing.
     | `chunker.enhance` adds an AI step per chunk (a summary and likely
     | questions, then a new embedding) for files and web pages, and a
     | summary of the whole source; it finds far more of the right passages
@@ -389,6 +391,10 @@ return [
         'query' => [
             'rewriter' => [
                 'enabled' => true,
+                // Let the rewrite flag a message too vague to search (a bare
+                // number, one unclear word); when nothing is found, the agent
+                // then asks what the visitor means. Off until measured.
+                'clarify' => false,
             ],
         ],
 
@@ -476,6 +482,10 @@ return [
             'slow_log_ms' => 2000,
             'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 25),
             'exact_max_chunks' => 10_000,
+            // When nothing passes the relevance check, tell the model what the
+            // agent's knowledge covers (its sources' names), so it can say what
+            // it can help with. Off until measured.
+            'scope_hint' => false,
 
             'ef_search' => [
                 'default' => 100,
@@ -695,6 +705,9 @@ return [
         'queue' => env('GUARDRAILS_QUEUE', 'analytics'),
         'retention_days' => 90,
         'max_snippet_bytes' => 2048,
+        // The longest message a visitor may send in the hosted chat or the
+        // widget; a longer one is refused before any model runs.
+        'max_message_chars' => 4000,
     ],
 
     /*

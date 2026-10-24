@@ -2010,7 +2010,10 @@
                 "starters_generate_hint": "Pilih jumlah dan buat saran dari basis pengetahuan Anda.",
                 "starters_translate_empty": "Tambahkan pembuka di tab Bawaan terlebih dahulu, lalu terjemahkan di sini.",
                 "starters_generate_failed": "Gagal membuat pembuka",
-                "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi."
+                "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi.",
+                "appearance_notice": "Catatan di bawah kotak chat",
+                "appearance_notice_placeholder": "Contoh: Saya menjawab pertanyaan tentang produk kami. Saya bisa salah, jadi periksa detail penting.",
+                "appearance_notice_help": "Opsional. Satu baris singkat di bawah kotak pesan di setiap chat: apa yang dicakup agen, dan bahwa jawaban bisa salah. Diterjemahkan otomatis."
             },
             "languages": {
                 "title": "Bahasa UI",

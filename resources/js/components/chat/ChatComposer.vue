@@ -39,6 +39,8 @@ interface Props {
     allowVoiceConversation?: boolean;
     /** Per-chat upload ceiling (`agent.files.upload.max_files`). The server enforces it too. */
     maxFiles?: number;
+    /** The longest message the server accepts (`guardrails.max_message_chars`); the textarea stops there. */
+    maxLength?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -254,6 +256,7 @@ async function toggleRecording() {
                         class="text-foreground placeholder:text-muted-foreground/50 max-h-[200px] min-h-[24px] flex-1 resize-none !border-0 !bg-transparent py-2 text-[15px] leading-relaxed !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
                         :class="showUploadButton ? 'px-1' : 'px-3'"
                         :disabled="disabled"
+                        :maxlength="maxLength"
                         rows="1"
                     />
 

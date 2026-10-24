@@ -9,9 +9,11 @@ describe('resolveAppearanceText', () => {
         chat_window_title: 'Support',
         welcome_message: 'Hi! How can we help?',
         composer_placeholder: 'Ask anything',
+        notice: 'Answers can be wrong.',
         text_translations: {
             chat_window_title: { de: 'Hilfe', fr: 'Aide' },
             welcome_message: { de: 'Hallo! Wie können wir helfen?' },
+            notice: { de: 'Antworten können falsch sein.' },
         },
         text_overrides: {
             chat_window_title: { de: 'Kundendienst', fr: '' },
@@ -23,6 +25,7 @@ describe('resolveAppearanceText', () => {
             chat_window_title: 'Kundendienst',
             welcome_message: 'Hallo! Wie können wir helfen?',
             composer_placeholder: 'Ask anything',
+            notice: 'Antworten können falsch sein.',
         });
     });
 
@@ -32,7 +35,7 @@ describe('resolveAppearanceText', () => {
 
     it('gives the base text for a language with nothing of its own, and null for a missing value', () => {
         expect(resolveAppearanceText(appearance, 'ja').welcome_message).toBe('Hi! How can we help?');
-        expect(resolveAppearanceText({}, 'de')).toEqual({ chat_window_title: null, welcome_message: null, composer_placeholder: null });
+        expect(resolveAppearanceText({}, 'de')).toEqual({ chat_window_title: null, welcome_message: null, composer_placeholder: null, notice: null });
         expect(resolveAppearanceText(null, 'de').chat_window_title).toBeNull();
     });
 });

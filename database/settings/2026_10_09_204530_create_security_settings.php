@@ -20,6 +20,7 @@ return new class extends SettingsMigration
             $group->add('turnstile_password_reset');
             $group->add('guardrails_enabled');
             $group->add('guardrail_retention_days');
+            $group->add('max_message_chars');
             $group->add('tool_audit_retention_days');
             $group->add('tool_rate_limit');
             $group->add('tool_rate_window_seconds');

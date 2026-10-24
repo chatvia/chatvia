@@ -21,6 +21,7 @@ use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Operations\Query\QueryRewriter;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -33,7 +34,9 @@ use Illuminate\Support\Str;
  *  - after it (what the model gets, KnowledgeBase::search): how many questions
  *    got their passage, and how many uncovered questions got nothing;
  *  - the check's scores for the right passage and for uncovered questions, with
- *    a threshold sweep — this is how the default thresholds are chosen.
+ *    a threshold sweep — this is how the default thresholds are chosen;
+ *  - for multi-hop and global questions (several facts each): how many facts
+ *    rank high and reach the model, and how many questions get every fact.
  *
  * It runs the REAL embeddings provider and reranker (the test fakes would make
  * every number noise), so it needs keys and network, and skips itself without
@@ -179,6 +182,7 @@ it('measures knowledge retrieval quality against the labelled set', function ():
     $pool = max($settings->candidateLimit(), 25);
 
     $rows = [];
+    $factRows = [];
 
     foreach ($cases as $case) {
         $query = retrievalEvalQuery($case);
@@ -186,6 +190,13 @@ it('measures knowledge retrieval quality against the labelled set', function ():
         $scope = $search->scope($agent, $settings->exactMaxChunks);
         $candidates = $search->search($agent, $query, $vector, $pool, $scope, $settings->accuracy);
         $shipped = app(KnowledgeBase::class)->search($agent, $query);
+
+        if (isset($case['kind'])) {
+            $factRows[] = retrievalEvalFactsRow($case, $candidates, $shipped);
+
+            continue;
+        }
+
         $scores = retrievalEvalScores($query, $candidates);
 
         $rank = $case['expect'] !== null ? retrievalEvalRank($candidates, $case['expect']) : null;
@@ -204,10 +215,89 @@ it('measures knowledge retrieval quality against the labelled set', function ():
     }
 
     retrievalEvalReport($rows, $settings);
+    retrievalEvalFactsReport($factRows, $settings);
     retrievalEvalQaReport($agent);
 
-    expect($rows)->toHaveCount(count($cases));
+    expect(count($rows) + count($factRows))->toBe(count($cases));
 })->group('eval');
+
+/**
+ * A multi-hop or global case: for each of its facts, the rank of the first
+ * candidate that holds it, and whether the model got it.
+ *
+ * @param  array{query: string, kind: string, expect: list<string|list<string>>}  $case
+ * @param  list<RetrievedChunkData>  $candidates
+ * @param  list<RetrievedChunkData>  $shipped
+ * @return array{query: string, kind: string, facts: list<string|list<string>>, fact_ranks: list<int|null>, fact_shipped: list<bool>}
+ */
+function retrievalEvalFactsRow(array $case, array $candidates, array $shipped): array
+{
+    // A fact worded two ways counts at the best rank of either wording.
+    $rankOf = static fn (array $chunks, string|array $fact): ?int => collect((array) $fact)
+        ->map(static fn (string $text): ?int => retrievalEvalRank($chunks, $text))
+        ->filter()
+        ->min();
+
+    return [
+        'query' => $case['query'],
+        'kind' => $case['kind'],
+        'facts' => $case['expect'],
+        'fact_ranks' => array_map(static fn (string|array $fact): ?int => $rankOf($candidates, $fact), $case['expect']),
+        'fact_shipped' => array_map(static fn (string|array $fact): bool => $rankOf($shipped, $fact) !== null, $case['expect']),
+    ];
+}
+
+/**
+ * Multi-hop and global questions: how many of their facts the search ranks
+ * high and the model gets, and how many questions get every fact. The
+ * baseline a graph-based retriever has to beat.
+ *
+ * @param  list<array{query: string, kind: string, facts: list<string|list<string>>, fact_ranks: list<int|null>, fact_shipped: list<bool>}>  $rows
+ */
+function retrievalEvalFactsReport(array $rows, RetrievalSettingsData $settings): void
+{
+    $pct = static fn (int $part, int $whole): string => $whole === 0 ? '  n/a' : sprintf('%5.1f%%', 100 * $part / $whole);
+    $within = static fn (array $row, int $k): int => count(array_filter($row['fact_ranks'], static fn (?int $rank): bool => $rank !== null && $rank <= $k));
+    $got = static fn (array $row): int => count(array_filter($row['fact_shipped']));
+
+    $out = ['', sprintf('=== Multi-hop and global questions (the model gets at most %d chunks) ===', $settings->maxChunks)];
+
+    foreach (['multi-hop' => 'Multi-hop', 'global' => 'Global'] as $kind => $label) {
+        $set = array_values(array_filter($rows, static fn (array $row): bool => $row['kind'] === $kind));
+        $facts = array_sum(array_map(static fn (array $row): int => count($row['facts']), $set));
+        $complete = static fn (callable $found): int => count(array_filter($set, static fn (array $row): bool => $found($row) === count($row['facts'])));
+
+        $out[] = sprintf('%s (%d questions, %d facts)', $label, count($set), $facts);
+        $out[] = sprintf('  facts found        top 5 %s · top 10 %s · given to the model %s',
+            $pct(array_sum(array_map(static fn (array $row): int => $within($row, 5), $set)), $facts),
+            $pct(array_sum(array_map(static fn (array $row): int => $within($row, 10), $set)), $facts),
+            $pct(array_sum(array_map($got, $set)), $facts));
+        $out[] = sprintf('  every fact found   top 5 %s · top 10 %s · given to the model %s',
+            $pct($complete(static fn (array $row): int => $within($row, 5)), count($set)),
+            $pct($complete(static fn (array $row): int => $within($row, 10)), count($set)),
+            $pct($complete($got), count($set)));
+    }
+
+    $out[] = '';
+    $out[] = 'Facts the model did not get:';
+
+    foreach ($rows as $row) {
+        $missing = [];
+
+        foreach ($row['facts'] as $index => $fact) {
+            if (! $row['fact_shipped'][$index]) {
+                $rank = $row['fact_ranks'][$index];
+                $missing[] = '"'.Arr::first(Arr::wrap($fact)).'"'.($rank !== null ? " (rank {$rank})" : ' (not in the pool)');
+            }
+        }
+
+        if ($missing !== []) {
+            $out[] = "  - [{$row['kind']}] {$row['query']}: ".implode(', ', $missing);
+        }
+    }
+
+    fwrite(STDOUT, implode(PHP_EOL, $out).PHP_EOL);
+}
 
 /**
  * Saved Q&A answers by meaning: the closest saved question's similarity for

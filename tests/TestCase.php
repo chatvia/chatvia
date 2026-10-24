@@ -7,14 +7,56 @@ use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Faker\Factory;
 use Faker\Generator;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Testing\ParallelTesting;
+use Tests\Support\Database\ParallelTestDatabases;
+use Tests\Support\Database\ProvisionTestDatabase;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 use Tests\Support\Knowledge\Embedding\FakeReranker;
 use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * In a parallel run each worker tests against its own database
+     * (`testing_test_1`, …), a copy of the testing database made before the
+     * workers start ({@see ParallelTestDatabases}).
+     */
+    public function createApplication(): Application
+    {
+        $app = parent::createApplication();
+
+        if ($token = $app->make(ParallelTesting::class)->token()) {
+            $this->pointToolConnectionsAtWorkerDatabase($app, (string) $token);
+
+            // Should Laravel still make a worker's database itself (its check
+            // for it failed), build it like `testing`, not with a bare migrate.
+            $app->make(ParallelTesting::class)->setUpTestDatabaseBeforeMigrating(fn (): mixed => (new ProvisionTestDatabase)());
+        }
+
+        return $app;
+    }
+
+    /**
+     * Pulse and Spectra have connections of their own, set to the testing
+     * database (phpunit.xml). Laravel moves only the default connection to
+     * the worker's database, so these follow it: otherwise every worker
+     * would migrate and read the one shared database at once.
+     */
+    private function pointToolConnectionsAtWorkerDatabase(Application $app, string $token): void
+    {
+        $config = $app->make('config');
+        $database = (string) $config->get('database.connections.'.$config->get('database.default').'.database');
+
+        foreach (ParallelTestDatabases::CONNECTIONS_ON_THE_TESTING_DATABASE as $connection) {
+            if ($config->get("database.connections.{$connection}.database") === $database) {
+                $config->set("database.connections.{$connection}.database", ParallelTestDatabases::workerDatabase($database, $token));
+            }
+        }
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

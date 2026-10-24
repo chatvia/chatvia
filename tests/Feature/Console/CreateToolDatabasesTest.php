@@ -16,9 +16,13 @@ function ctdDatabaseExists(string $name): bool
 }
 
 it('leaves existing tool databases alone', function (): void {
+    // Whatever database this run uses: `testing`, or a worker's in a parallel run.
+    $pulse = config('database.connections.pulse.database');
+    $spectra = config('database.connections.spectra.database');
+
     $this->artisan('chatvia:db:create-tool-databases')
-        ->expectsOutputToContain('The Pulse database "testing" is there.')
-        ->expectsOutputToContain('The Spectra database "testing" is there.')
+        ->expectsOutputToContain("The Pulse database \"{$pulse}\" is there.")
+        ->expectsOutputToContain("The Spectra database \"{$spectra}\" is there.")
         ->assertSuccessful();
 });
 

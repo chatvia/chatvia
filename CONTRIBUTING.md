@@ -177,7 +177,12 @@ then tag the widget release: every build takes the newest release.
   migration files change, it rebuilds the schema on the next run. Each test
   runs inside a transaction. You never need to migrate the test database by
   hand.
-- The suite runs one process at a time; `--parallel` is not supported.
+- `composer test` runs the suite in parallel, one process per CPU core (at
+  most 8, so PostgreSQL keeps enough locks for its other users). Each
+  process gets its own database (`testing_test_1`, `testing_test_2`, …), a
+  copy of `testing` made one at a time, so the migrations run once. A copy
+  is made again when the migration files change. `--recreate-databases`
+  makes every copy again.
 - Run one file or folder while you work:
 
   ```bash

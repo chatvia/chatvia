@@ -21,9 +21,9 @@ use Symfony\Component\Finder\Finder;
  * worker databases (testing_test_1, _test_2, ...) was rebuilt.
  *
  * Called from RefreshTestDatabases::beginDatabaseTransaction() — once per
- * process, before the first test transaction opens. (The suite runs serially;
- * `--parallel` is unsupported because each worker database would need this
- * same healing wired into Laravel's parallel-testing bootstrap.)
+ * process, before the first test transaction opens. In a parallel run it
+ * keeps the testing database up to date before each worker copies it
+ * ({@see ParallelTestDatabases}).
  */
 class ProvisionTestDatabase
 {

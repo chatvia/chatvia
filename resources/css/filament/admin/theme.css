@@ -2679,6 +2679,56 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     --cv-service-tone: #0d9488;
 }
 
+/* Models lists the models of many AI providers, so its tile is the one in
+ * several colours: a sky-to-orange wash, and the sparkles stroked with the
+ * same gradient (the tile's hidden <linearGradient>). */
+:is(.cv-service, .cv-status-row)[data-service='model_details'] {
+    --cv-service-tone: #9333ea;
+    --cv-models-from: #0284c7;
+    --cv-models-via: #9333ea;
+    --cv-models-to: #ea580c;
+    --cv-models-wash: 13%;
+
+    & .cv-service__icon--tinted {
+        background-image: linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--cv-models-from) var(--cv-models-wash), var(--cv-card)),
+            color-mix(in oklab, var(--cv-models-via) var(--cv-models-wash), var(--cv-card)),
+            color-mix(in oklab, var(--cv-models-to) var(--cv-models-wash), var(--cv-card))
+        );
+
+        & .fi-icon {
+            stroke: url(#cv-service-gradient-models);
+        }
+    }
+}
+
+.dark :is(.cv-service, .cv-status-row)[data-service='model_details'] {
+    --cv-models-from: #38bdf8;
+    --cv-models-via: #c084fc;
+    --cv-models-to: #fb923c;
+    --cv-models-wash: 22%;
+}
+
+/* Out of the layout: a gradient under display: none does not paint. */
+.cv-service__gradient {
+    position: absolute;
+    width: 0;
+    height: 0;
+
+    & stop:nth-child(1) {
+        stop-color: var(--cv-models-from);
+    }
+
+    & stop:nth-child(2) {
+        stop-color: var(--cv-models-via);
+    }
+
+    & stop:nth-child(3) {
+        stop-color: var(--cv-models-to);
+    }
+}
+
 .dark .cv-service__icon--tinted {
     background-color: color-mix(in oklab, var(--cv-service-tone) 20%, var(--cv-card));
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cv-service-tone) 35%, transparent);
@@ -2708,6 +2758,20 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
 .cv-service__summary {
     color: var(--cv-text);
+}
+
+/* A service named after a site (models.dev): its title links there, opened
+ * in a new tab. */
+.cv-service__link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 40%, transparent);
+    text-underline-offset: 3px;
+
+    &:hover {
+        color: var(--cv-text);
+        text-decoration-color: currentColor;
+    }
 }
 
 /* On a card the description keeps to one line, so the check lines of the

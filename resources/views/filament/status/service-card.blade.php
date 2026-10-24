@@ -7,16 +7,16 @@
 --}}
 <article class="cv-service" data-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
     <div class="cv-service__head">
-        <span class="cv-service__icon cv-service__icon--tinted">
-            @if ($service->logo() !== null)
-                <img src="{{ $service->logo() }}" alt="" class="cv-service__logo" />
-            @else
-                <x-filament::icon :icon="$service->icon()" />
-            @endif
-        </span>
+        @include('filament.status.service-icon', ['service' => $service])
 
         <div class="cv-service__name">
-            <h3 class="cv-service__title">{{ $service->label() }}</h3>
+            <h3 class="cv-service__title">
+                @if ($service->url() !== null)
+                    <a href="{{ $service->url() }}" target="_blank" rel="noopener noreferrer" class="cv-service__link">{{ $service->label() }}</a>
+                @else
+                    {{ $service->label() }}
+                @endif
+            </h3>
             <p class="cv-service__description cv-service__description--line">{{ $service->description() }}</p>
         </div>
 

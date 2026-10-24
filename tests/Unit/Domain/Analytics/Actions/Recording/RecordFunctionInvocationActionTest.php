@@ -7,6 +7,10 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Each function call counts in the agent's daily function rollup, one counter
+ * per function, with the name and description it had at its latest call.
+ */
 function rfiRollup(int $agentId): Builder
 {
     return DB::connection(config('chatvia.analytics.connection'))

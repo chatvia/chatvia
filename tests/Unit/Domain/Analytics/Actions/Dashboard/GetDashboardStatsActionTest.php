@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Dashboard\GetDashboardStatsAction;
+use Domain\Analytics\Data\Dashboard\DashboardStatsData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -11,108 +12,97 @@ use Illuminate\Support\Str;
 
 /**
  * GetDashboardStatsAction aggregates the whole dashboard payload from the
- * analytics rollup + events stream, keyed on the viewer's workspace. These
- * tests pin the structure and the representative scoping rules: only the
- * workspace's agents/rollups count, active sessions are 24h-distinct, and the
- * messages panel reads the workspace's monthly message limit when it has one.
+ * analytics rollup + events stream, keyed on the viewer's workspace: only the
+ * workspace's agents and rollups count, active sessions are the distinct
+ * sessions that sent a message in the last 24 hours, and the messages panel
+ * reads the workspace's monthly message limit when it has one.
  */
-function gdsRollup(Agent $agent, string $bucketHour, array $values = []): void
-{
-    DB::connection(config('chatvia.analytics.connection'))
-        ->table('analytics_agent_hourly_rollups')
-        ->insert(array_merge([
-            'agent_id' => $agent->id,
-            'workspace_id' => $agent->workspace_id,
-            'bucket_hour' => $bucketHour,
-            'country_code' => '--',
-            'llm_id' => 0,
-        ], $values));
-}
+beforeEach(function (): void {
+    // Mid-month, mid-day: keeps the trend (month-bucketed) and the daily
+    // volume windows deterministic.
+    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
+});
 
-function gdsEvent(Agent $agent, string $sessionExternalId, Carbon $occurredAt): void
+function gdsEvent(Agent $agent, string $sessionExternalId, Carbon $occurredAt, string $type = 'message_sent'): void
 {
     DB::connection(config('chatvia.analytics.connection'))
         ->table('analytics_events')
         ->insert([
             'agent_id' => $agent->id,
             'workspace_id' => $agent->workspace_id,
-            'event_type' => 'message_sent',
+            'event_type' => $type,
             'session_external_id' => $sessionExternalId,
             'occurred_at' => $occurredAt,
+            ...($type === 'feedback_given' ? ['feedback' => 'positive', 'message_external_id' => (string) Str::uuid()] : []),
         ]);
 }
 
-it('aggregates agents, conversations, messages and sessions for the workspace owner', function (): void {
-    // Mid-month, mid-day: keeps the trend (month-bucketed) and the daily
-    // volume windows deterministic.
-    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
-
+/**
+ * The stats of a workspace with two agents and some traffic, next to another
+ * workspace's traffic that must not leak in: 5 conversations and 9 replies
+ * this month, sessions A (twice) and B in the last day plus a stale one, and a
+ * monthly limit of 1000 with 11 messages counted. The limit's counter (11)
+ * differs from the rollup sum (9) on purpose, as when 2 replies were eval
+ * cases, which count but never reach the rollup.
+ */
+function gdsWorkspaceStats(): DashboardStatsData
+{
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
-
-    // A monthly limit of 1000 with 11 replies counted. The limit's counter
-    // (11) deliberately differs from the rollup sum (9) — as when 2 of the
-    // replies were eval cases, which count but never reach the analytics
-    // rollup — to pin which source each panel reads.
-    MessageLimit::create([
-        'workspace_id' => $owner->workspace()->id,
-        'monthly_limit' => 1000,
-        'messages_used' => 11,
-        'period_starts_at' => now()->startOfMonth(),
-    ]);
+    MessageLimit::factory()->forWorkspace($owner->workspace())->create(['monthly_limit' => 1000, 'messages_used' => 11]);
 
     $agentA = createAgent($owner, ['name' => 'Agent A']);
     $agentB = createAgent($owner, ['name' => 'Agent B']);
+    analyticsRollup($agentA, '2026-06-15 10:00:00+00', ['conversations_started' => 3, 'assistant_messages' => 5]);
+    analyticsRollup($agentB, '2026-06-14 22:00:00+00', ['conversations_started' => 2, 'assistant_messages' => 4]);
 
-    gdsRollup($agentA, '2026-06-15 10:00:00+00', ['conversations_started' => 3, 'assistant_messages' => 5]);
-    gdsRollup($agentB, '2026-06-14 22:00:00+00', ['conversations_started' => 2, 'assistant_messages' => 4]);
-
-    // Another workspace's traffic must not leak into this dashboard.
     $foreignAgent = Agent::factory()->create();
-    gdsRollup($foreignAgent, '2026-06-15 10:00:00+00', ['conversations_started' => 7, 'assistant_messages' => 9]);
+    analyticsRollup($foreignAgent, '2026-06-15 10:00:00+00', ['conversations_started' => 7, 'assistant_messages' => 9]);
 
-    // Active sessions: distinct session ids in the last 24h. Session A twice
-    // (still one visitor), session B once, one stale, one foreign.
     $sessionA = (string) Str::uuid();
-    $sessionB = (string) Str::uuid();
     gdsEvent($agentA, $sessionA, now()->subHours(2));
     gdsEvent($agentA, $sessionA, now()->subHours(1));
-    gdsEvent($agentB, $sessionB, now()->subHours(3));
+    gdsEvent($agentB, (string) Str::uuid(), now()->subHours(3));
     gdsEvent($agentA, (string) Str::uuid(), now()->subDays(2));
     gdsEvent($foreignAgent, (string) Str::uuid(), now()->subHours(1));
 
-    $stats = app(GetDashboardStatsAction::class)->execute($owner, $team)->toArray();
+    return app(GetDashboardStatsAction::class)->execute($owner, $team);
+}
 
-    expect($stats)->toHaveKeys([
-        'agents', 'messages', 'conversations', 'active_sessions',
-        'knowledge_sources', 'team', 'weekly_usage', 'monthly_usage',
-    ])->not->toHaveKey('usage');
+it('counts the workspace\'s own agents, conversations and active sessions', function (): void {
+    $stats = gdsWorkspaceStats()->toArray();
 
-    expect($stats['agents']['total'])->toBe(2)
+    expect($stats)->not->toHaveKey('usage')
+        ->and($stats['agents']['total'])->toBe(2)
         ->and($stats['conversations'])->toBe(5)
         ->and($stats['active_sessions'])->toBe(2)
         ->and($stats['team']['members'])->toBe(0);
+});
 
-    // Messages panel: used from the LIMIT's counter (covers eval cases the
-    // rollup never sees).
-    expect($stats['messages']['total'])->toBe(11)
-        ->and($stats['messages']['limit'])->toBe(1000)
-        ->and($stats['messages']['available'])->toBe(989);
+it('reads the messages used from the monthly limit\'s counter', function (): void {
+    $messages = gdsWorkspaceStats()->toArray()['messages'];
 
-    // Trend (team present): all 9 assistant messages landed this month.
-    expect($stats['messages']['trend']['this_month'])->toBe(9)
-        ->and($stats['messages']['trend']['last_month'])->toBe(0)
-        ->and($stats['messages']['trend']['percent_change'])->toBe(100);
+    expect($messages['total'])->toBe(11)
+        ->and($messages['limit'])->toBe(1000)
+        ->and($messages['available'])->toBe(989);
+});
 
-    // Daily volume series: fixed-length windows whose values sum to the
-    // workspace's assistant messages (both rollup days are inside 7 days).
+it('compares this month\'s replies with last month\'s', function (): void {
+    expect(gdsWorkspaceStats()->toArray()['messages']['trend'])
+        ->toBe(['this_month' => 9, 'last_month' => 0, 'percent_change' => 100]);
+});
+
+it('charts the replies of the last 7 and 30 days, every day present', function (): void {
+    $stats = gdsWorkspaceStats()->toArray();
+
     expect($stats['weekly_usage'])->toHaveCount(7)
         ->and(array_sum(array_column($stats['weekly_usage'], 'value')))->toBe(9)
         ->and($stats['monthly_usage'])->toHaveCount(30)
         ->and(array_sum(array_column($stats['monthly_usage'], 'value')))->toBe(9);
+});
 
-    // No sources attached to any agent.
-    expect($stats['knowledge_sources'])->toBe([
+it('counts no knowledge sources while no agent has one', function (): void {
+    expect(gdsWorkspaceStats()->toArray()['knowledge_sources'])->toBe([
         'files' => 0,
         'websites' => 0,
         'crawled_pages' => 0,
@@ -136,14 +126,12 @@ it('returns a zeroed trend and member count when no team is passed', function ()
 });
 
 it('counts this month\'s replies from the rollup when the workspace has no limit', function (): void {
-    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
-
     $owner = User::factory()->create();
     $agent = createAgent($owner);
 
-    gdsRollup($agent, '2026-06-10 10:00:00+00', ['assistant_messages' => 4]);
+    analyticsRollup($agent, '2026-06-10 10:00:00+00', ['assistant_messages' => 4]);
     // Last month does not count.
-    gdsRollup($agent, '2026-05-20 10:00:00+00', ['assistant_messages' => 6]);
+    analyticsRollup($agent, '2026-05-20 10:00:00+00', ['assistant_messages' => 6]);
 
     $stats = app(GetDashboardStatsAction::class)->execute($owner, null)->toArray();
 
@@ -152,31 +140,17 @@ it('counts this month\'s replies from the rollup when the workspace has no limit
 });
 
 it('counts only the sessions that sent a message as active', function (): void {
-    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
-
     $owner = User::factory()->create();
     $agent = createAgent($owner);
 
     gdsEvent($agent, (string) Str::uuid(), now()->subHour());
     // Feedback rows carry no session in practice; one that did is still no visit.
-    DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')->insert([
-        'agent_id' => $agent->id,
-        'workspace_id' => $agent->workspace_id,
-        'event_type' => 'feedback_given',
-        'feedback' => 'positive',
-        'message_external_id' => (string) Str::uuid(),
-        'session_external_id' => (string) Str::uuid(),
-        'occurred_at' => now()->subMinutes(30),
-    ]);
+    gdsEvent($agent, (string) Str::uuid(), now()->subMinutes(30), 'feedback_given');
 
-    $stats = app(GetDashboardStatsAction::class)->execute($owner, null);
-
-    expect($stats->active_sessions)->toBe(1);
+    expect(app(GetDashboardStatsAction::class)->execute($owner, null)->active_sessions)->toBe(1);
 });
 
 it('serves the team size from the cached value of the viewer\'s team', function (): void {
-    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
-
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
     $role = $team->roles()->firstOrFail();

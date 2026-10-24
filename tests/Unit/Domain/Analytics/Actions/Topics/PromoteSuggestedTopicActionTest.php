@@ -20,40 +20,39 @@ use Support\Exceptions\DomainValidationException;
 function pstConversation(Agent $agent, string $label): Conversation
 {
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
-
-    ConversationTopic::create([
-        'workspace_id' => $agent->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'suggested_label' => $label,
-    ]);
+    ConversationTopic::factory()->forConversation($conversation)->suggested($label)->create();
 
     return $conversation;
+}
+
+/**
+ * The topic ids and the suggestion labels on the conversation's rows.
+ *
+ * @return array{topics: list<int>, suggestions: list<string>}
+ */
+function pstRows(Conversation $conversation): array
+{
+    $rows = ConversationTopic::query()->where('chat_conversation_id', $conversation->id)->get();
+
+    return [
+        'topics' => $rows->pluck('topic_id')->filter()->values()->all(),
+        'suggestions' => $rows->pluck('suggested_label')->filter()->values()->all(),
+    ];
 }
 
 it('promotes a suggested label and backfills its conversations', function (): void {
     Event::fake([ConversationTopicAssigned::class]);
 
     $agent = Agent::factory()->create();
-    $conversations = [
-        pstConversation($agent, 'Refund Requests'),
-        pstConversation($agent, 'Refund Requests'),
-    ];
+    $first = pstConversation($agent, 'Refund Requests');
+    $second = pstConversation($agent, 'Refund Requests');
 
     $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, 'Refund Requests');
 
     expect($topic->topic)->toBe('Refund Requests')
-        ->and($agent->topics()->where('topics.id', $topic->id)->exists())->toBeTrue();
-
-    foreach ($conversations as $conversation) {
-        expect(ConversationTopic::query()
-            ->where('chat_conversation_id', $conversation->id)
-            ->where('topic_id', $topic->id)
-            ->exists())->toBeTrue()
-            ->and(ConversationTopic::query()
-                ->where('chat_conversation_id', $conversation->id)
-                ->whereNotNull('suggested_label')
-                ->exists())->toBeFalse();
-    }
+        ->and($agent->topics()->where('topics.id', $topic->id)->exists())->toBeTrue()
+        ->and(pstRows($first))->toBe(['topics' => [$topic->id], 'suggestions' => []])
+        ->and(pstRows($second))->toBe(['topics' => [$topic->id], 'suggestions' => []]);
 
     Event::assertDispatchedTimes(ConversationTopicAssigned::class, 2);
 });
@@ -78,10 +77,7 @@ it('promotes the label on old conversations too, not only on recent ones', funct
 
     $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, 'Shipping Delays');
 
-    expect(ConversationTopic::query()
-        ->where('chat_conversation_id', $old->id)
-        ->where('topic_id', $topic->id)
-        ->exists())->toBeTrue();
+    expect(pstRows($old)['topics'])->toBe([$topic->id]);
 });
 
 it('leaves the same label on other agents\' conversations untouched', function (): void {
@@ -95,18 +91,9 @@ it('leaves the same label on other agents\' conversations untouched', function (
 
     $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, 'Refund Requests');
 
-    foreach ([$sameWorkspace, $otherWorkspace] as $conversation) {
-        expect(ConversationTopic::query()
-            ->where('chat_conversation_id', $conversation->id)
-            ->where('suggested_label', 'Refund Requests')
-            ->exists())->toBeTrue()
-            ->and(ConversationTopic::query()
-                ->where('chat_conversation_id', $conversation->id)
-                ->whereNotNull('topic_id')
-                ->exists())->toBeFalse();
-    }
-
-    expect(ConversationTopic::query()->where('chat_conversation_id', $ours->id)->where('topic_id', $topic->id)->exists())->toBeTrue();
+    expect(pstRows($sameWorkspace))->toBe(['topics' => [], 'suggestions' => ['Refund Requests']])
+        ->and(pstRows($otherWorkspace))->toBe(['topics' => [], 'suggestions' => ['Refund Requests']])
+        ->and(pstRows($ours)['topics'])->toBe([$topic->id]);
     Event::assertDispatchedTimes(ConversationTopicAssigned::class, 1);
     Event::assertDispatched(ConversationTopicAssigned::class, fn (ConversationTopicAssigned $event): bool => $event->agentId === $agent->id);
 });
@@ -115,11 +102,10 @@ it('fires no event for a conversation that already has the topic', function (): 
     Event::fake([ConversationTopicAssigned::class]);
 
     $agent = Agent::factory()->create();
-    $topic = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Refund Requests', 'description' => '']);
-    $agent->topics()->attach($topic->id);
+    $topic = Topic::factory()->attachedTo($agent)->create(['topic' => 'Refund Requests']);
 
     $tagged = pstConversation($agent, 'Refund Requests');
-    ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => $tagged->id, 'topic_id' => $topic->id]);
+    ConversationTopic::factory()->forConversation($tagged)->forTopic($topic)->create();
     $untagged = pstConversation($agent, 'Refund Requests');
 
     // Hand back the existing topic, as when the conversation got it before
@@ -137,7 +123,7 @@ it('fires no event for a conversation that already has the topic', function (): 
     app(PromoteSuggestedTopicAction::class)->execute($agent, 'Refund Requests');
 
     // One event, for the untagged conversation only.
-    expect(ConversationTopic::query()->where('chat_conversation_id', $tagged->id)->pluck('topic_id')->all())->toBe([$topic->id])
-        ->and(ConversationTopic::query()->where('chat_conversation_id', $untagged->id)->pluck('topic_id')->all())->toBe([$topic->id]);
+    expect(pstRows($tagged))->toBe(['topics' => [$topic->id], 'suggestions' => []])
+        ->and(pstRows($untagged))->toBe(['topics' => [$topic->id], 'suggestions' => []]);
     Event::assertDispatchedTimes(ConversationTopicAssigned::class, 1);
 });

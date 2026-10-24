@@ -6,6 +6,10 @@ use Domain\Analytics\Events\ConversationTopicAssigned;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * A topic assigned to a conversation counts once in the agent's daily topic
+ * rollup, on the day it was assigned.
+ */
 it('upserts and increments the topic daily rollup', function (): void {
     $action = app(RecordConversationTopicAction::class);
     $agentId = 930001;

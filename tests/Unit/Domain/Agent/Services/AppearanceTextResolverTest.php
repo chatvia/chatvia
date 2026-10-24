@@ -24,7 +24,7 @@ function atrAppearance(): Collection
     ]);
 }
 
-it('uses the AI translation when there is no override', function (): void {
+it('uses the locale\'s override, else its AI translation', function (): void {
     $resolved = (new AppearanceTextResolver)->resolve(atrAppearance(), 'de');
 
     expect($resolved['chat_window_title'])->toBe('Unterhaltung')

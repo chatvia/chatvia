@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Retention\PruneAnalyticsEventsAction;
 use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
@@ -83,16 +84,10 @@ it('deletes the metrics of old, quiet conversations and old first-seen sessions'
 });
 
 it('keeps the hourly rollups however old', function (): void {
-    app(AnalyticsDatabase::class)->table('analytics_agent_hourly_rollups')->insert([
-        'agent_id' => 910003,
-        'workspace_id' => 910002,
-        'bucket_hour' => now()->subDays(800)->startOfHour(),
-        'country_code' => '--',
-        'llm_id' => 0,
-        'assistant_messages' => 5,
-    ]);
+    $agent = Agent::factory()->create();
+    analyticsRollup($agent, now()->subDays(800)->startOfHour()->toDateTimeString(), ['assistant_messages' => 5]);
 
     app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
 
-    expect(app(AnalyticsDatabase::class)->table('analytics_agent_hourly_rollups')->where('agent_id', 910003)->exists())->toBeTrue();
+    expect(app(AnalyticsDatabase::class)->table('analytics_agent_hourly_rollups')->where('agent_id', $agent->id)->exists())->toBeTrue();
 });

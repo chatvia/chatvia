@@ -7,6 +7,10 @@ use Domain\Knowledge\Source\File\Services\FileAnalyzer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 
+/**
+ * Analysing an upload before it is trained describes the file: its page count
+ * from the analyzer, its mime and file type, and whether it is audio or video.
+ */
 function asfaAnalyzerReturningPages(int $pages): void
 {
     $analyzer = Mockery::mock(FileAnalyzer::class);

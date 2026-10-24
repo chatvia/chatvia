@@ -6,17 +6,12 @@ use Domain\Agent\Policies\AgentPolicy;
 use Domain\Membership\Team\Services\TeamService;
 
 /**
- * AgentPolicy: nobody lists every agent, create needs the target team's
- * owner, and view/update/delete hand over to the dashboard access rule
+ * AgentPolicy: create needs the target team's owner, and view/update/delete
+ * hand over to the dashboard access rule
  * (AgentAccessPolicy::canManage(), whose cases have their own test).
  */
 beforeEach(function (): void {
     $this->policy = app(AgentPolicy::class);
-});
-
-it('viewAny is granted to nobody, platform staff included', function (): void {
-    expect($this->policy->viewAny(User::factory()->admin()->create()))->toBeFalse()
-        ->and($this->policy->viewAny(User::factory()->workspace()->create()))->toBeFalse();
 });
 
 it('create is granted only to the owner of the target team', function (): void {

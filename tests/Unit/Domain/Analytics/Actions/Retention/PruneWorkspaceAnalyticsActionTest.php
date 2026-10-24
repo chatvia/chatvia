@@ -5,6 +5,8 @@ use Domain\Analytics\Actions\Retention\PruneWorkspaceAnalyticsAction;
 use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -76,14 +78,25 @@ it('deletes the workspace\'s older rows from every analytics table, feedback inc
         ->and(pwaCounts($other))->each->toBe(1);
 });
 
-it('deletes in small batches and is idempotent', function (): void {
+it('deletes in batches of the given size and is idempotent', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
     pwaRetention($workspace, 30);
     foreach ([40, 50, 60] as $index => $daysAgo) {
         pwaSeed($workspace, $daysAgo, agentId: 921000 + $index);
     }
 
-    expect(app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2))->toBe(3 * count(PWA_TABLES))
+    $eventDeletes = 0;
+    DB::listen(function (QueryExecuted $query) use (&$eventDeletes): void {
+        if (Str::startsWith(Str::squish($query->sql), 'DELETE FROM analytics_events WHERE')) {
+            $eventDeletes++;
+        }
+    });
+
+    $deleted = app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2);
+
+    // 3 old rows in batches of 2: 2, then 1, then one that finds nothing.
+    expect($deleted)->toBe(3 * count(PWA_TABLES))
+        ->and($eventDeletes)->toBe(3)
         ->and(app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2))->toBe(0)
         ->and(pwaCounts($workspace))->each->toBe(0);
 });

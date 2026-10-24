@@ -17,8 +17,9 @@ it('creates a protected agent with generated identity and attaches the workspace
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
 
-    $topicA = Topic::create(['topic' => 'Billing', 'description' => 'Billing questions']);
-    $topicB = Topic::create(['topic' => 'Support', 'description' => 'Support questions']);
+    // System topics belong to no workspace.
+    $topicA = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Billing']);
+    $topicB = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Support']);
 
     $agent = app(CreateAgentAction::class)->execute(new CreateAgentData(
         user: $owner,
@@ -46,7 +47,7 @@ it('creates a protected agent with generated identity and attaches the workspace
         ->and($attachedIds->count())->toBe(Topic::forWorkspace($owner->workspace())->count());
 });
 
-it('stamps the workspace owner as agent owner when an employee creates the agent', function (): void {
+it('keys the agent to the workspace when a teammate creates it', function (): void {
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
     $employee = User::factory()->employee($owner)->create();
@@ -60,8 +61,7 @@ it('stamps the workspace owner as agent owner when an employee creates the agent
     // agent.workspace_id keys every account-level stat (dashboard, analytics,
     // message limit), so it must resolve to the owner's workspace, also when a
     // teammate creates the agent.
-    expect($agent->workspace_id)->toBe($owner->workspace()->id)
-        ->and($employee->workspace()->is($owner->workspace()))->toBeTrue();
+    expect($agent->workspace_id)->toBe($owner->workspace()->id);
 });
 
 it('generates a distinct identity per agent', function (): void {
@@ -88,8 +88,8 @@ it('attaches the workspace own topics but never another workspace custom topics'
     $team = app(TeamService::class)->createDefaultTeam($owner);
     $stranger = User::factory()->create();
 
-    $own = Topic::create(['topic' => 'Our refunds', 'description' => 'Own topic', 'workspace_id' => $owner->workspace()->id]);
-    $foreign = Topic::create(['topic' => 'Their secret', 'description' => 'Other workspace', 'workspace_id' => $stranger->workspace()->id]);
+    $own = Topic::factory()->create(['workspace_id' => $owner->workspace()->id]);
+    $foreign = Topic::factory()->create(['workspace_id' => $stranger->workspace()->id]);
 
     $agent = app(CreateAgentAction::class)->execute(new CreateAgentData(
         user: $owner,

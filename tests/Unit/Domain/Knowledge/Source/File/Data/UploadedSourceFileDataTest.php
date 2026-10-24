@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 

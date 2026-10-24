@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * The PDF maker renders HTML built from chat transcripts. WeasyPrint may load
  * only `data:` URLs while it does, so a link or image in a message can never

@@ -118,8 +118,8 @@ final class ModelsDevCatalog
         $entry = $this->find($this->stored(refreshWhenOld: false), $kind, $modelId);
         $canonical = $entry['canonical_model_id'] ?? ($kind->catalogKey() === null && $entry !== null ? $modelId : null);
 
-        if (is_string($canonical) && Str::contains($canonical, '/')) {
-            return 'labs/'.Str::lower(Str::before($canonical, '/'));
+        if (is_scalar($canonical) && Str::contains((string) $canonical, '/')) {
+            return 'labs/'.Str::lower(Str::before((string) $canonical, '/'));
         }
 
         return $kind->catalogKey();
@@ -138,8 +138,9 @@ final class ModelsDevCatalog
         $key = "llm:models-dev:logo:{$logo}";
         $stored = Cache::get($key);
 
-        if (is_string($stored)) {
-            return $stored !== '' ? $stored : null;
+        // A logo that could not be read is kept as '', so it is not asked for again.
+        if ($stored !== null) {
+            return filled($stored) ? (string) $stored : null;
         }
 
         try {

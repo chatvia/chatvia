@@ -179,6 +179,32 @@ effect shows in the `Follow-ups` line. [`fixtures/knowledge/qa.php`](fixtures/kn
 holds saved Q&A answers and messages that should (or should not) get them by
 meaning; its sweep picks the Q&A similarity bar.
 
+Multi-hop and global questions list several facts, and need every one:
+
+```php
+['query' => 'Which shop can I leave a product for repair at, and when is that shop open?',
+ 'kind' => 'multi-hop', 'expect' => ['next to the workshop', 'Monday to Saturday, 9:00 to 18:00']],
+['query' => 'Give me an overview of all the fees and costs I might pay.', 'kind' => 'global',
+ 'expect' => ['4.95, free from 60', 'the return costs 7.95', ['New zip on a jacket | 25', 'new zip on a jacket costs 25']]],
+```
+
+A multi-hop question joins facts from different chunks; a global one asks about
+the whole collection, so its facts are spread over more chunks than the model
+gets. A fact given as a list matches any of its wordings. These questions are
+the baseline for retrieval that follows links between chunks (a knowledge graph).
+
+Baseline, 2026-10-24 (OpenRouter: `qwen/qwen3-embedding-8b`, `cohere/rerank-4-pro`
+at 0.7, 5 chunks to the model, 400-token chunks, 14 chunks in all):
+
+| | facts top 5 | facts top 10 | facts given | every fact given |
+|---|---|---|---|---|
+| Multi-hop (11) | 100.0% | 100.0% | 86.4% | 72.7% |
+| Global (7) | 84.4% | 93.8% | 81.2% | 28.6% |
+
+Every multi-hop fact the model missed ranked in the top 3: the relevance check
+dropped it, not the search. With only 14 chunks the top 10 is most of the
+collection, so treat these numbers as optimistic until the set grows.
+
 `expect` is text that must be in a retrieved chunk (case-insensitive). Add real,
 anonymized questions from your logs; keep some that the knowledge does **not**
 cover, or the threshold sweep can only say "keep everything".
@@ -190,6 +216,7 @@ cover, or the threshold sweep can only say "keep everything".
 | `Before the check` | the hybrid search's ranking: is the right passage in the top 1 / 3 / 5? `MRR` rewards it being first |
 | `After the check` | what the model actually gets: questions that got their passage, and uncovered questions that got **nothing** |
 | `Follow-ups` | questions that only make sense with the history |
+| `Multi-hop` / `Global` | facts ranked in the top 5 / 10 and given to the model, and questions that got **every** fact; the facts the model missed are listed below |
 | scores + sweep | the check's score for the right passage vs. the best score of an uncovered question, and for each threshold how many of each it keeps or blocks |
 
 The best threshold keeps nearly every right passage and blocks most uncovered

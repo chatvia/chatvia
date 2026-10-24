@@ -9,6 +9,12 @@ declare(strict_types=1);
  *   as answered (case-insensitive). Null for a question the knowledge does
  *   not cover: nothing should come back for it.
  * - `history`: earlier user messages, for a follow-up question.
+ * - `kind` => `multi-hop` or `global`, with `expect` a list of facts: every
+ *   fact must be in a retrieved chunk for the question to count as fully
+ *   answered. A fact is a string, or a list of strings where any one will do
+ *   (the same fact worded differently in two documents). A multi-hop
+ *   question joins facts that sit in different chunks; a global one asks
+ *   about the whole collection, so the facts are spread wide.
  *
  * The documents are resources/chunking/{markdown.md,text.txt,transcript.txt}
  * and fixtures/knowledge/arabic.md.
@@ -73,4 +79,28 @@ return [
     ['query' => 'when does it close?', 'history' => ['Tell me about the airport shop'], 'expect' => '7:00 to 22:00'],
     ['query' => 'and if one breaks on a trip?', 'history' => ['How many tent poles does the Trail 2 have?'], 'expect' => 'pole sleeve'],
     ['query' => 'وكم يستغرق؟', 'history' => ['كم رسوم التوصيل؟'], 'expect' => 'خلال يومين إلى أربعة أيام'],
+
+    // Multi-hop: the answer joins facts from two chunks, often through a
+    // shared thing (a shop, a product, a person).
+    ['query' => 'A pole of my Trail 2 broke on a trip. What can I use right away, and what does the workshop charge to fix it at home?', 'kind' => 'multi-hop', 'expect' => ['pole sleeve', ['Broken tent pole section | 12', 'broken section of a tent pole costs 12']]],
+    ['query' => 'Which shop can I leave a product for repair at, and when is that shop open?', 'kind' => 'multi-hop', 'expect' => ['next to the workshop', 'Monday to Saturday, 9:00 to 18:00']],
+    ['query' => 'Can I rent a tent at the shop that is open on public holidays?', 'kind' => 'multi-hop', 'expect' => ['except the airport shop', 'Lakeside and city centre shops']],
+    ['query' => 'I live in Norway. How fast is express delivery, and do I have to pay customs when it arrives?', 'kind' => 'multi-hop', 'expect' => ['1 to 2 working days', 'we pay the customs fees for you']],
+    ['query' => 'How long is the warranty on a down sleeping bag, and how often may I wash it?', 'kind' => 'multi-hop', 'expect' => ['warranty of three years', 'at most once a year']],
+    ['query' => 'I packed my Trail 2 wet and now it has mould. Will the warranty cover it, and how should I store the tent from now on?', 'kind' => 'multi-hop', 'expect' => [['got mould is not covered', 'Mould is not covered by the warranty'], 'Store it loosely in a dry place']],
+    ['query' => 'What job does the presenter of the Trail 2 video have, and how many people work at Pinewood?', 'kind' => 'multi-hop', 'expect' => ['I work in our test team', 'twenty-four people']],
+    ['query' => 'Why should the fly not touch the inner tent, and what does it cost to patch a small hole in the fabric?', 'kind' => 'multi-hop', 'expect' => ['water from the outside can come through', ['Small hole in fabric | from 10', 'small hole in the fabric costs from 10']]],
+    ['query' => 'How long does a repair take in the summer, and where do I send the repair form?', 'kind' => 'multi-hop', 'expect' => ['up to three weeks', 'send it to our workshop with the form inside']],
+    ['query' => 'How many pegs should the Trail 2 have, and how far from the tent do the guy lines go?', 'kind' => 'multi-hop', 'expect' => ['There should be twelve', 'about one metre']],
+    ['query' => 'طلبت بقيمة ١٥٠ ريالاً وسأدفع عند الاستلام، كم أدفع فوق سعر الطلب؟', 'kind' => 'multi-hop', 'expect' => ['٢٥ ريالاً', '١٥ ريالاً']],
+
+    // Global: about the whole collection, so the facts are spread over many
+    // chunks (more than the model gets for one question).
+    ['query' => 'What are all the ways I can get help from or contact Pinewood?', 'kind' => 'global', 'expect' => ['from 8:00 to 22:00', 'through the contact form', '4 Harbour Road', 'write them in the comments']],
+    ['query' => 'What does Pinewood do to make its gear last a long time?', 'kind' => 'global', 'expect' => ['we repair what we sell', 'Good care makes your gear last longer', 'build them to last for many seasons', 'We clean and check every item after each rental', 'repair kit']],
+    ['query' => 'Tell me everything about tents: warranty, setup, care, rental and repairs.', 'kind' => 'global', 'expect' => ['Tents and backpacks have a warranty of five years', 'forty-five degrees', 'Always dry your tent fully', 'Two-person tent | 25', 'New zip on a tent door']],
+    ['query' => 'Give me an overview of all the fees and costs I might pay.', 'kind' => 'global', 'expect' => ['4.95, free from 60', 'the return costs 7.95', ['New zip on a jacket | 25', 'new zip on a jacket costs 25'], 'Two-person tent | 25']],
+    ['query' => 'What topics does your help centre cover?', 'kind' => 'global', 'expect' => ['## Orders', '## Delivery', '## Returns and refunds', '## Product care', '## Your account and privacy', '## Gear rental']],
+    ['query' => 'What do customers most often need to know about returns, refunds and the warranty?', 'kind' => 'global', 'expect' => ['within 30 days of delivery', 'five to ten working days', 'warranty of three years', 'faded colour']],
+    ['query' => 'لخّص لي كل ما يجب أن أعرفه عن متجر الرياض.', 'kind' => 'global', 'expect' => ['من السبت إلى الخميس', 'خلال يومين إلى أربعة أيام', 'خلال ١٤ يوماً', 'آبل باي']],
 ];

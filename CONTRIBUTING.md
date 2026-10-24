@@ -29,7 +29,8 @@ a 👍 or a comment with your own case.
 
 The rest of this guide explains how to set up the project and check a change.
 It is for the maintainers, and for anyone who runs a changed copy of
-ChatVia.ai (the [MIT License](LICENSE) allows this). Read
+ChatVia.ai (the [ChatVia.ai License](LICENSE) allows this, as long as the
+"Powered by ChatVia.ai" credit stays). Read
 [ARCHITECTURE.md](ARCHITECTURE.md) before a bigger change. It explains how the
 code is organised, the conventions, and the words we use.
 

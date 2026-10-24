@@ -13,7 +13,7 @@
         "mcp",
         "llm"
     ],
-    "license": "MIT",
+    "license": "LicenseRef-ChatVia.ai",
     "require": {
         "php": "^8.5",
         "ext-dom": "*",

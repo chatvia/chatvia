@@ -127,14 +127,14 @@ class SettingsOverview extends Page
 
         if ($license->allowsHidingCredit($key)) {
             return Callout::make('Thank you for your support')
-                ->description('Your license is active, licensed to '.$license->read($key)?->licensee.'. It helps me keep ChatVia.ai free and open source.')
+                ->description('Your license is active, licensed to '.$license->read($key)?->licensee.'. It helps me keep ChatVia.ai free.')
                 ->icon(Heroicon::OutlinedHeart)
                 ->success()
                 ->actions([$this->hireMeAction()]);
         }
 
         return Callout::make('Support ChatVia.ai')
-            ->description('ChatVia.ai is free and open source. A license costs $399, one time. It supports my work on ChatVia.ai and removes the "Powered by ChatVia.ai" credit from your chats.')
+            ->description('ChatVia.ai is free to use. A license costs $399, one time. It supports my work on ChatVia.ai and lets you remove the "Powered by ChatVia.ai" credit from your chats.')
             ->icon(Heroicon::OutlinedHeart)
             ->color('primary')
             ->extraAttributes(['class' => 'cv-link-dividers'])

@@ -299,7 +299,7 @@ banner() {
     author=$(dim 'Created and maintained by Ahmad Mayahi')
     say ''
     if [ "$UNICODE" = 1 ]; then
-        site="$(accent 'https://chatvia.ai')$(dim ' · MIT License')"
+        site="$(accent 'https://chatvia.ai')$(dim ' · ChatVia.ai License')"
         printf '  %s\n' '    ▄▄██████▄▄' '  ▄████████████' ' ▄███▀      ▀██'
         printf '  %s    %s\n' ' ████           ▄██▄' "$name"
         printf '  %s    %s\n' ' ████           ▀██▀' "$tagline"
@@ -308,7 +308,7 @@ banner() {
         printf '  %s    %s\n' ' ██████████▀▀▀      ' "$author"
         printf '  %s    %s\n' '██▀▀                ' "$(dim 'https://mayahi.net')"
     else
-        site="$(accent 'https://chatvia.ai')$(dim ' - MIT License')"
+        site="$(accent 'https://chatvia.ai')$(dim ' - ChatVia.ai License')"
         printf '  %s\n' "$name" "$tagline" "$site" "$author $(dim '(https://mayahi.net)')"
     fi
 }

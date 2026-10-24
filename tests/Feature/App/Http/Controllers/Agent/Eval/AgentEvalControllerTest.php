@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Inertia\ResponseFactory;
 use Inertia\Testing\AssertableInertia;
 
@@ -14,7 +14,7 @@ use Inertia\Testing\AssertableInertia;
 it('leaves the knowledge questions out of the first load and serves them on a partial reload', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
-    AgentQuestionAnswer::create(['agent_id' => $agent->id, 'title' => 'Refunds', 'answer' => 'Within 30 days.', 'questions' => 'How do refunds work?']);
+    AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['answer' => 'Within 30 days.', 'questions' => 'How do refunds work?']);
 
     $this->actingAs($owner)
         ->get(route('agents.evals', $agent))

@@ -52,6 +52,7 @@ use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Process\ExecutableFinder;
 use Tests\RefreshTestDatabases;
 use Tests\Support\Files\TempTestFiles;
+use Tests\Support\Identity\SharedId;
 use Tests\Support\Knowledge\Document\OldOffice\WordBinaryFile;
 use Tests\Support\Llm\FakeLlmProviders;
 use Tests\TestCase;
@@ -165,6 +166,21 @@ function teammateWithPermissions(User $owner, array $permissions, ?Team $team = 
     return $member;
 }
 
+/**
+ * Every agent permission but $permission, for a teammate who holds all of
+ * them except the one under test.
+ *
+ * @return list<string>
+ */
+function allAgentPermissionsBut(string $permission): array
+{
+    return collect(config('team-permissions.permissions'))
+        ->keys()
+        ->filter(fn (string $code): bool => Str::startsWith($code, 'agent.') && $code !== $permission)
+        ->values()
+        ->all();
+}
+
 /** An admin of the install, as the admin panel's guard loads one. */
 function adminUser(): User
 {
@@ -270,13 +286,13 @@ function fakeLlmCompletion(string $content): void
 }
 
 /**
- * An id that is free in both `users` and `chatters`, so a test can create a
- * staff account and a chatter with the same id and prove the two never mix.
- * Taking the next value of both sequences means neither table can hold it.
+ * An id that is free in both `users` and `chatters` ({@see SharedId}), so a
+ * test can create a staff account and a chatter with the same id and prove
+ * the two never mix.
  */
 function sharedStaffAndChatterId(): int
 {
-    return (int) DB::scalar("select greatest(nextval(pg_get_serial_sequence('users', 'id')), nextval(pg_get_serial_sequence('chatters', 'id')))");
+    return SharedId::staffAndChatter();
 }
 
 /**

@@ -14,7 +14,7 @@ beforeEach(function (): void {
     Event::fake([TypingStarted::class]);
     $this->owner = User::factory()->create();
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
-    $this->conversation = Conversation::factory()->withoutTitle()->create(['agent_id' => $this->agent->id, 'handoff_status' => HandoffStatus::Human, 'handoff_user_id' => $this->owner->id, 'is_visible' => true]);
+    $this->conversation = Conversation::factory()->forAgent($this->agent)->visible()->handedOff(HandoffStatus::Human, $this->owner)->create();
     $this->url = route('agents.handoff.typing', ['agent' => $this->agent->external_id, 'conversation' => $this->conversation->external_id]);
 });
 

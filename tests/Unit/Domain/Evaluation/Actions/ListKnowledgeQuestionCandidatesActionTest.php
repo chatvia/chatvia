@@ -2,12 +2,12 @@
 
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
 use Domain\Evaluation\Data\KnowledgeQuestionCandidateData;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
 /**
  * The "From knowledge" picker contract: QA pairs come first, split per line
@@ -15,11 +15,6 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
  * the agent's sources; a question already used as a case input is flagged so
  * the UI can disable it.
  */
-function lkqQa(Agent $agent, string $questions): AgentQuestionAnswer
-{
-    return AgentQuestionAnswer::create(['agent_id' => $agent->id, 'title' => 'Refunds', 'answer' => 'Refunds take 5 business days.', 'questions' => $questions]);
-}
-
 /** @return array<string, array<string, mixed>> the candidates by question */
 function lkqCandidates(Agent $agent): array
 {
@@ -30,7 +25,7 @@ function lkqCandidates(Agent $agent): array
 
 it('lists QA-pair questions, deduped, and flags ones already used as a case input', function (): void {
     $agent = createAgent(User::factory()->create());
-    lkqQa($agent, "How long do refunds take?\nHow long do refunds take?\nWhen do I get my money back?");
+    AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['questions' => "How long do refunds take?\nHow long do refunds take?\nWhen do I get my money back?"]);
     EvalCase::factory()->forAgent($agent)->create(['input' => 'how long do refunds take?']);
 
     $candidates = lkqCandidates($agent);
@@ -47,7 +42,7 @@ it('lists the questions of the agent\'s chunks after its QA pairs, flagging used
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $file->agents()->attach($agent->id);
     Chunk::factory()->forSource($file)->create(['questions' => "What is A?\nWhat is B?"]);
-    lkqQa($agent, 'How do refunds work?');
+    AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['questions' => 'How do refunds work?']);
     EvalCase::factory()->forAgent($agent)->create(['input' => 'what is a?']);
 
     $candidates = lkqCandidates($agent);

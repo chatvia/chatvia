@@ -18,7 +18,7 @@ beforeEach(function (): void {
 });
 
 it('posts the reply of the operator who holds the conversation', function (): void {
-    $conversation = Conversation::factory()->withoutTitle()->create(['agent_id' => $this->agent->id, 'handoff_status' => HandoffStatus::Human, 'handoff_user_id' => $this->owner->id, 'is_visible' => true]);
+    $conversation = Conversation::factory()->forAgent($this->agent)->visible()->handedOff(HandoffStatus::Human, $this->owner)->create();
 
     $this->actingAs($this->owner)
         ->postJson(route('agents.handoff.message', ['agent' => $this->agent->external_id, 'conversation' => $conversation->external_id]), ['content' => 'Hi, I am here.'])
@@ -31,7 +31,7 @@ it('posts the reply of the operator who holds the conversation', function (): vo
 });
 
 it('refuses a reply from an operator who does not hold the conversation', function (): void {
-    $conversation = Conversation::factory()->withoutTitle()->create(['agent_id' => $this->agent->id, 'handoff_status' => HandoffStatus::Pending, 'is_visible' => true]);
+    $conversation = Conversation::factory()->forAgent($this->agent)->visible()->handedOff(HandoffStatus::Pending)->create();
 
     $this->actingAs($this->owner)
         ->postJson(route('agents.handoff.message', ['agent' => $this->agent->external_id, 'conversation' => $conversation->external_id]), ['content' => 'Hello'])

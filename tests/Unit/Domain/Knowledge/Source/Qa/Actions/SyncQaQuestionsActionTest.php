@@ -1,5 +1,6 @@
 <?php
 
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\SyncQaQuestionsAction;
@@ -52,7 +53,7 @@ it('rebuilds the rows when the questions change, and only then', function (): vo
 
 it('leaves out a question that is only punctuation', function (): void {
     $agent = Agent::factory()->create();
-    $qa = AgentQuestionAnswer::query()->create(['agent_id' => $agent->id, 'title' => 'Odd', 'questions' => "???\nReal question?", 'answer' => 'An answer.']);
+    $qa = AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['title' => 'Odd', 'questions' => "???\nReal question?", 'answer' => 'An answer.']);
 
     app(SyncQaQuestionsAction::class)->execute($qa);
 

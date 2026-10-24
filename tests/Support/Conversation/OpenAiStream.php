@@ -13,8 +13,8 @@ use GuzzleHttp\Psr7\Utils;
 
 /**
  * An OpenAI-compatible SSE body, line by line, run through
- * {@see OpenAiCompatibleTransformer} on a turn of its own, and the texts of
- * the events it streamed.
+ * {@see OpenAiCompatibleTransformer} on a bare context
+ * ({@see TestChatContext::bare()}), and the texts of the events it streamed.
  */
 final class OpenAiStream
 {
@@ -34,9 +34,7 @@ final class OpenAiStream
      */
     public static function transform(array $lines, array $offeredToolNames = [], bool $showsReasoning = false): array
     {
-        $context = TestChatContext::make();
-        $context->offeredToolNames = $offeredToolNames;
-        $context->showsReasoning = $showsReasoning;
+        $context = TestChatContext::bare(showsReasoning: $showsReasoning, offeredToolNames: $offeredToolNames);
         $response = new Response(200, [], Utils::streamFor(implode('', $lines)));
 
         return [iterator_to_array(new OpenAiCompatibleTransformer()->transform($response, $context), false), $context];

@@ -11,8 +11,8 @@ use Domain\Conversation\Models\Conversation;
 it('lists the conversations waiting for an operator', function (): void {
     $owner = User::factory()->create();
     $agent = makeTeamAgent($owner, 'Support Bot');
-    $waiting = Conversation::factory()->withoutTitle()->create(['agent_id' => $agent->id, 'handoff_status' => HandoffStatus::Pending, 'is_visible' => true]);
-    Conversation::factory()->withoutTitle()->create(['agent_id' => $agent->id, 'handoff_status' => HandoffStatus::Ai, 'is_visible' => true]);
+    $waiting = Conversation::factory()->forAgent($agent)->visible()->handedOff(HandoffStatus::Pending)->create();
+    Conversation::factory()->forAgent($agent)->visible()->create(['handoff_status' => HandoffStatus::Ai]);
 
     $this->actingAs($owner)
         ->getJson(route('agents.handoff.pending', ['agent' => $agent->external_id]))

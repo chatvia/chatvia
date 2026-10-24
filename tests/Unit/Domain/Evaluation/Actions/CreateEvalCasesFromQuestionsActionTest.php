@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\CreateEvalCasesFromQuestionsAction;
 use Domain\Evaluation\Data\CreateEvalCasesFromQuestionsData;
@@ -40,11 +41,6 @@ function cecChunk(Agent $agent, string $text, bool $attach = true): Chunk
     }
 
     return Chunk::factory()->forSource($source)->create(['chunk' => $text]);
-}
-
-function cecQa(Agent $agent, string $answer, string $questions): AgentQuestionAnswer
-{
-    return AgentQuestionAnswer::create(['agent_id' => $agent->id, 'title' => 'Refunds', 'answer' => $answer, 'questions' => $questions]);
 }
 
 function cecData(KnowledgeQuestionItemData ...$items): CreateEvalCasesFromQuestionsData
@@ -88,7 +84,10 @@ it('creates an llm_judge case from a chunk question with the chunk text as refer
 
 it('uses the QA pair answer as the reference for a qa question', function (): void {
     $agent = cecAgent();
-    $qa = cecQa($agent, 'Refunds take 5 business days.', "How long do refunds take?\nWhen do I get my money back?");
+    $qa = AgentQuestionAnswerFactory::new()->attachedTo($agent)->create([
+        'answer' => 'Refunds take 5 business days.',
+        'questions' => "How long do refunds take?\nWhen do I get my money back?",
+    ]);
 
     $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(
         cecData(cecQaQuestion($qa, 'How long do refunds take?')),
@@ -166,7 +165,7 @@ it('rejects a chunk belonging to another workspace', function (): void {
 it('rejects a QA pair belonging to another agent', function (): void {
     $agent = cecAgent();
     $other = cecAgent();
-    $foreignQa = cecQa($other, 'Not yours.', 'A question?');
+    $foreignQa = AgentQuestionAnswerFactory::new()->attachedTo($other)->create(['answer' => 'Not yours.', 'questions' => 'A question?']);
 
     expect(fn () => app(CreateEvalCasesFromQuestionsAction::class)->execute(
         cecData(cecQaQuestion($foreignQa, 'A question?')),

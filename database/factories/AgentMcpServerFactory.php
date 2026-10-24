@@ -6,6 +6,8 @@ namespace Database\Factories;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Form\Models\FormDefinition;
+use Domain\Integration\Connector\Actions\Account\ConnectTokenConnectorAction;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpTransport;
@@ -18,7 +20,7 @@ use Illuminate\Support\Str;
  * auth) in a new workspace unless `workspace_id` is given, {@see forOwner()} or
  * {@see attachedTo()}. The states {@see preset()} and {@see builtin()} build
  * catalog connectors that read their tools from the shared `connector_tools`
- * catalog.
+ * catalog; {@see formsCapability()} is the workspace's Forms server.
  *
  * @extends Factory<AgentMcpServer>
  */
@@ -97,6 +99,23 @@ class AgentMcpServerFactory extends Factory
             'name' => Str::headline($connectorSlug),
             'slug' => AgentMcpServer::makeSlug($connectorSlug),
             'url' => Str::rtrim((string) config('app.url'), '/').'/mcp/'.$connectorSlug,
+        ]);
+    }
+
+    /**
+     * The workspace's Forms server, as turning the Forms capability on
+     * connects it ({@see ConnectTokenConnectorAction}, then the catalog sync):
+     * the built-in forms server at the catalog's URL, with the catalog's name
+     * and description.
+     */
+    public function formsCapability(): static
+    {
+        $connector = 'connectors.'.FormDefinition::CAPABILITY_SLUG;
+
+        return $this->builtin(FormDefinition::CAPABILITY_SLUG)->state(fn (): array => [
+            'name' => config()->string($connector.'.name'),
+            'description' => config()->string($connector.'.description'),
+            'url' => config()->string($connector.'.mcp_url'),
         ]);
     }
 

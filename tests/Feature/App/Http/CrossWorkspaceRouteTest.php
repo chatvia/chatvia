@@ -4,6 +4,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Models\Conversation;
@@ -224,12 +225,7 @@ function isolationYoutubeVideo(Agent $agent): SourceYoutubeVideo
 
 function isolationQuestionAnswer(Agent $agent): AgentQuestionAnswer
 {
-    return AgentQuestionAnswer::query()->create([
-        'agent_id' => $agent->id,
-        'title' => 'Refunds',
-        'answer' => 'Refunds take 5 business days.',
-        'questions' => 'How long do refunds take?',
-    ]);
+    return AgentQuestionAnswerFactory::new()->attachedTo($agent)->create();
 }
 
 function isolationTopic(Agent $agent): Topic

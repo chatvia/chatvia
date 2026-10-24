@@ -12,7 +12,7 @@ use GuzzleHttp\Psr7\FnStream;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\StreamInterface;
-use ReflectionClass;
+use Tests\Support\Conversation\TestChatContext;
 
 /**
  * A provider's own stream format (Anthropic Messages, OpenAI Responses), as
@@ -34,14 +34,14 @@ final class ProviderStream
 
     /**
      * The re-written stream read through the chat engine's transformer, with a
-     * context holding only what the transformer reads.
+     * context holding only what the transformer reads ({@see TestChatContext::bare()}).
      *
      * @param  list<string>  $offeredToolNames
      * @return array{0: list<StreamEvent>, 1: ChatContext}
      */
     public static function transform(StreamInterface $stream, bool $showsReasoning = true, array $offeredToolNames = []): array
     {
-        $context = self::bareContext($showsReasoning, $offeredToolNames);
+        $context = TestChatContext::bare(showsReasoning: $showsReasoning, offeredToolNames: $offeredToolNames);
 
         return [iterator_to_array(new OpenAiCompatibleTransformer()->transform(new Response(200, [], $stream), $context), false), $context];
     }
@@ -73,23 +73,5 @@ final class ProviderStream
                 return $lines === [];
             },
         ]);
-    }
-
-    /**
-     * A ChatContext with no turn behind it: built without its constructor,
-     * which needs a whole chat turn.
-     *
-     * @param  list<string>  $offeredToolNames
-     */
-    private static function bareContext(bool $showsReasoning, array $offeredToolNames): ChatContext
-    {
-        $reflection = new ReflectionClass(ChatContext::class);
-        $context = $reflection->newInstanceWithoutConstructor();
-        $reflection->getProperty('sources')->setValue($context, collect());
-        $reflection->getProperty('assistantMessageId')->setValue($context, 'asst-test');
-        $context->offeredToolNames = $offeredToolNames;
-        $context->showsReasoning = $showsReasoning;
-
-        return $context;
     }
 }

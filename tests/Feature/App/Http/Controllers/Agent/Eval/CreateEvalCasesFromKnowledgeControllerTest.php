@@ -2,9 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
 /**
  * The "From knowledge" picker posts the questions picked from the agent's
@@ -17,7 +17,7 @@ it('creates one case per picked question', function (): void {
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $file->agents()->attach($agent->id);
     $chunk = Chunk::factory()->forSource($file)->create(['chunk' => 'Refunds are available within 30 days.']);
-    $qa = AgentQuestionAnswer::create(['agent_id' => $agent->id, 'title' => 'Refunds', 'answer' => 'Refunds take 5 business days.', 'questions' => 'How long do refunds take?']);
+    $qa = AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['questions' => 'How long do refunds take?']);
 
     $this->actingAs($owner)
         ->post(route('agents.evals.cases.from-knowledge', $agent), [

@@ -13,6 +13,18 @@ use Domain\Llm\AbstractLlmProvider;
 class Mistral extends AbstractLlmProvider
 {
     /**
+     * Mistral reads a PDF in its own `document_url` part, so the parts are
+     * sent as they are.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function withFileParts(array $payload): array
+    {
+        return $payload;
+    }
+
+    /**
      * Mistral chat completions rejects `top_k` (error 3051), but the agent's
      * stored llmSettings always include it. It has no reasoning effort
      * either: its reasoning models always think.

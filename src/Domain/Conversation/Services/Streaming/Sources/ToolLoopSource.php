@@ -32,7 +32,7 @@ use Throwable;
 
 /**
  * Shared turn envelope for every streaming source that runs the agentic tool
- * loop ({@see LlmSource}, {@see PdfSource}). It owns everything the
+ * loop ({@see LlmSource}, {@see AttachmentSource}). It owns everything the
  * sources must do the same way: the `start` event, tool selection, the
  * error-to-event mapping, the partial save on a client disconnect, the
  * approval resume, and the finish step — which always runs the output
@@ -84,7 +84,7 @@ abstract class ToolLoopSource
         return null;
     }
 
-    /** Short prefix for log lines, e.g. "Chat" or "PDF chat". */
+    /** Short prefix for log lines, e.g. "Chat" or "File chat". */
     abstract protected function logLabel(): string;
 
     /** User-facing error when the upstream provider cannot be reached. */

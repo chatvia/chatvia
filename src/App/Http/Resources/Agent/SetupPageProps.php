@@ -18,6 +18,7 @@ use Domain\Llm\Data\LlmModelData;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Uri;
 
@@ -35,6 +36,7 @@ final readonly class SetupPageProps
         private TaskModels $models,
         private VoiceAvailability $voice,
         private Transcriber $transcriber,
+        private ChatFileModel $chatFiles,
     ) {}
 
     /**
@@ -90,6 +92,11 @@ final readonly class SetupPageProps
                 'default' => RealtimeVoice::configured()->value,
                 'choices' => array_column(RealtimeVoice::cases(), 'value'),
             ],
+
+            // File uploads (Settings → Composer options): whether this
+            // install allows chat file uploads and has a model that reads
+            // them. Without it the switch shows off and is locked.
+            'fileUploadsAvailable' => $this->chatFiles->isAvailable(),
 
             // Per-surface behaviour settings (the Behavior section swaps them on the preview tab).
             'widgetSettings' => $agent->settings('widget'),

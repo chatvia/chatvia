@@ -9,7 +9,7 @@ use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Llm\Contracts\Transcriber;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\ChatFileModel;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsData;
 use Domain\Widget\Data\Settings\WidgetSettingsReverbData;
@@ -41,7 +41,7 @@ class BuildWidgetSettingsAction
 
     public function __construct(
         private readonly AppearanceTextResolver $appearanceText,
-        private readonly DocumentLlm $documentLlm,
+        private readonly ChatFileModel $fileModel,
         private readonly VoiceAvailability $voice,
         private readonly Transcriber $transcriber,
         private readonly WorkspaceActivation $activation,
@@ -92,8 +92,9 @@ class BuildWidgetSettingsAction
             composer_placeholder: $text['composer_placeholder'] ?? null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
-            // Chat uploads are PDFs, so they need an LLM that can read them.
-            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->documentLlm->isAvailable(),
+            // Uploads need a model that reads files; it decides the types.
+            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->fileModel->isAvailable(),
+            upload_accept: $this->fileModel->acceptedMimeTypes(),
             // Dictation is written down by the server: no speech-to-text, no mic.
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true) && $this->transcriber->isEnabled(),
             voice_conversation: $this->voice->isOnFor($agent),

@@ -3,14 +3,12 @@
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\AttachmentSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
-use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +22,7 @@ use Tests\Support\Conversation\TestChatContext;
 /**
  * Every source that runs the tool loop shares one finish step, so the output
  * guardrails (PII redaction / toxicity replacement) run before ANY answer is
- * saved or replayed — PDF chats included, and also the partial answer saved
+ * saved or replayed — chats with attached files included, and also the partial answer saved
  * after the visitor disconnects. The runner and the guard are faked; the
  * assertions are on what the source saves and streams.
  */
@@ -41,7 +39,7 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
     $shared = [$replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, new RedactingOutputGuard(['a@b.com' => '[EMAIL]']), $recorder];
 
     $events = match ($source) {
-        'pdf' => new PdfSource(new DocumentLlm(LlmProviderKind::Mistral), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
+        'files' => new AttachmentSource(app(ChatFileModel::class), app(LlmProviders::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
         default => new LlmSource(app(LlmProviders::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']]),
     };
 
@@ -51,11 +49,11 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
 beforeEach(function (): void {
     Cache::flush();
     Log::spy();
-    // The PDF source reads whole PDFs with Mistral, which needs its key.
-    connectAiProviders(AiProvider::Mistral);
+    // The attachment source answers with the model for chat files.
+    useChatFiles();
 });
 
-dataset('tool loop sources', ['llm', 'pdf']);
+dataset('tool loop sources', ['llm', 'files']);
 
 it('redacts the answer with the output guardrails before saving and replaying it', function (string $source): void {
     $context = TestChatContext::make();

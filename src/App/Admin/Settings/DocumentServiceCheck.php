@@ -30,7 +30,7 @@ final readonly class DocumentServiceCheck
         return $reader === AiProvider::Mistral ? $this->mistralOcr() : $this->providers->check($reader);
     }
 
-    /** The models that read whole PDFs, for summaries and PDF chat. */
+    /** The models that read whole PDFs, for source summaries. */
     public function wholePdf(AiProvider $provider): ConnectionCheckData
     {
         return $this->providers->check($provider);

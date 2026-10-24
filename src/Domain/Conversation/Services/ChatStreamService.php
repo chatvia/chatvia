@@ -14,11 +14,11 @@ use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\AttachmentSource;
 use Domain\Conversation\Services\Streaming\Sources\ErrorSource;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\HandoffSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
-use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sources\QaSource;
 use Domain\Conversation\Services\Streaming\Sources\ReplaySource;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
@@ -54,7 +54,7 @@ readonly class ChatStreamService
         private MessageAllowance $allowance,
         private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private LlmSource $llmSource,
-        private PdfSource $pdfSource,
+        private AttachmentSource $attachmentSource,
         private QaSource $qaSource,
         private GuardBlockSource $guardBlockSource,
         private HandoffSource $handoffSource,
@@ -140,8 +140,8 @@ readonly class ChatStreamService
 
         $this->spectraTagger->tag($conversation);
 
-        if ($conversation instanceof Conversation && $conversation->pdfAttachments()->exists()) {
-            return $this->pdfSource->resume($context, $checkpoint, $data->decisions);
+        if ($conversation instanceof Conversation && $conversation->attachments()->exists()) {
+            return $this->attachmentSource->resume($context, $checkpoint, $data->decisions);
         }
 
         return $this->llmSource->resume($context, $checkpoint, $data->decisions);
@@ -295,14 +295,14 @@ readonly class ChatStreamService
 
         $llmMessages = $this->chatService->prepareLlmMessages($context);
 
-        // A conversation with PDFs is answered by the document LLM, which
-        // reads the whole files, instead of the agent's LLM. The rows come
-        // from the upload endpoints (claimed by the conversation on its first
-        // hosted-chat turn).
-        $pdfs = ($conversation ?? $this->conversation($data))?->pdfAttachments()->get();
+        // A conversation with attached files is answered by the model for
+        // chat files, which reads them whole, instead of the agent's model.
+        // The rows come from the upload endpoints (claimed by the
+        // conversation on its first hosted-chat turn).
+        $attachments = ($conversation ?? $this->conversation($data))?->attachments()->get();
 
-        if ($pdfs !== null && $pdfs->isNotEmpty()) {
-            return $this->pdfSource->events($context, $llmMessages, $pdfs);
+        if ($attachments !== null && $attachments->isNotEmpty()) {
+            return $this->attachmentSource->events($context, $llmMessages, $attachments);
         }
 
         return $this->llmSource->events($context, $llmMessages);

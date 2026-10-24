@@ -18,7 +18,6 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
@@ -168,11 +167,11 @@ it('refuses to resume once the chatter reached their monthly message limit', fun
         ->and($this->runner->runs)->toBe([]);
 });
 
-it('continues on the document model while the conversation has a PDF', function (): void {
-    connectAiProviders(AiProvider::Mistral);
+it('continues on the model for chat files while the conversation has an attached file', function (): void {
+    $model = useChatFiles();
     Attachment::factory()->forConversation($this->conversation)->create();
 
     resumeEvents(resumeCheckpoint());
 
-    expect($this->runner->runs)->toBe([['model' => (string) config('chatvia.ai.models.document_chat'), 'start_iteration' => 3]]);
+    expect($this->runner->runs)->toBe([['model' => $model->name, 'start_iteration' => 3]]);
 });

@@ -13,7 +13,7 @@ use Spatie\LaravelData\Data;
 final class RemoteModelData extends Data
 {
     /**
-     * @param  array<string, bool>  $features  `vision`, `function_calling`, `reasoning`, when the provider says
+     * @param  array<string, bool>  $features  `vision`, `files` (reads PDF files), `function_calling`, `reasoning`, when the provider says
      */
     public function __construct(
         public string $id,

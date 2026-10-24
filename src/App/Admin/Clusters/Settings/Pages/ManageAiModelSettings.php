@@ -15,6 +15,7 @@ use App\Admin\Settings\Data\ConnectionCheckData;
 use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\DocumentServiceCheck;
 use App\Admin\Settings\LlmTaskText;
+use App\Admin\Settings\ModelLogo;
 use App\Admin\Settings\RerankerCheck;
 use BackedEnum;
 use Closure;
@@ -32,8 +33,10 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
+use Domain\Llm\Actions\Catalog\CheckLlmListingAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Actions\Catalog\SyncLlmFactsAction;
+use Domain\Llm\Data\Catalog\ModelFactsData;
 use Domain\Llm\Data\Catalog\ModelListData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
@@ -44,6 +47,7 @@ use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
@@ -68,7 +72,10 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Bus\Batch;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -237,6 +244,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         return [
             SettingsCard::make('models', 'Models agents can use', 'Add models from your connected providers. Each agent picks one of them.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
+                $this->unlistedCallout(),
                 EmbeddedTable::make(),
                 $this->withHelp($this->modelChoice('default_agent_model', 'Default model for new agents', unset: 'The first model on the list'),
                     'New agents answer with this model until they pick their own. The analytics assistant uses it too. Empty: the first model on the list.'),
@@ -288,17 +296,27 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'none' => 'Off',
                 ], 'Reads the text, scans and tables of PDFs, Word, slides and images while sources are trained. Mistral OCR also reads the pictures inside Word and PowerPoint files; Azure skips them. Excel, CSV, old office files and RTF are read by the app. Off: PDF, Word, slides and images cannot be uploaded.',
                     check: fn (string $reader): ConnectionCheckData => app(DocumentServiceCheck::class)->reader(AiProvider::from($reader))),
-                $this->serviceChoice('document_llm', 'Summaries and PDF chat', [
+                $this->serviceChoice('document_llm', 'Source summaries', [
                     'mistral' => 'Mistral',
                     'none' => 'Off',
-                ], 'Mistral\'s models read each document whole: they write a short summary of every source, and answer questions about PDF files attached in a chat. Off turns both off.',
+                ], 'Mistral\'s models read each document whole and write a short summary of every source. Off: no summaries.',
                     check: fn (string $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->wholePdf(AiProvider::from($provider))),
+                $this->toggle('chat_files_enabled', 'Chat file uploads',
+                    help: 'Lets chatters attach a PDF file or an image in a chat and ask about it, when the agent allows uploads too (agent Setup → Settings → Composer options). Off: no agent can offer uploads.')
+                    ->live(),
+                $this->modelChoice('chat_files_model', 'Model for chat file uploads', unset: 'Automatic', only: fn (): array => $this->fileModels('chat_files_model'))
+                    ->live()
+                    ->helperText(fn (Get $get): string => $this->chatFilesHelp($get('chat_files_model')))
+                    ->visible(fn (Get $get): bool => (bool) $get('chat_files_enabled')),
+                Callout::make('No model reads PDF files and images')
+                    ->description('Chatters cannot attach files until a model that reads both is added under Chat models.')
+                    ->icon(Heroicon::OutlinedPaperClip)
+                    ->warning()
+                    ->visible(fn (Get $get): bool => (bool) $get('chat_files_enabled') && $this->fileModels('chat_files_model') === []),
             ])->advancedFields(fn (): array => [
                 $this->text('mistral_ocr_model', 'Mistral OCR model'),
                 $this->text('summary_model', 'Summary model', help: 'A Mistral model. Writes the short summary of each source.'),
                 $this->text('analysis_model', 'Analysis model', help: 'A Mistral model. Finds each document\'s type, language, audience and likely questions.'),
-                $this->text('document_chat_model', 'PDF chat model',
-                    help: 'A Mistral model. Answers questions about PDF files attached in a chat. Needs PDF reading and function calling.'),
             ])->summary(fn (): string => $this->documentsSummary()),
             SettingsCard::make('speech', 'Speech to text', 'Voice input, and audio and video sources.', Heroicon::OutlinedMicrophone, fn (): array => [
                 $this->serviceChoice('transcriber', 'Speech to text', [
@@ -357,7 +375,13 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->columns([
                 TextColumn::make('name')
                     ->label('Model')
-                    ->suffix(fn (Llm $model): string => (string) $model->id === (string) $this->valueInUse('default_agent_model') ? ' · default' : ''),
+                    ->formatStateUsing(fn (Llm $model): HtmlString => new HtmlString(ModelLogo::forLlm($model)))
+                    ->suffix(fn (Llm $model): string => (string) $model->id === (string) $this->valueInUse('default_agent_model') ? ' · default' : '')
+                    ->description(fn (Llm $model): ?string => match (true) {
+                        $model->unlisted_at !== null => 'No longer served by its provider',
+                        ! $model->callsTools() => 'No tool calling: tools will not work',
+                        default => null,
+                    }),
                 TextColumn::make('provider.name')
                     ->label('Provider')
                     ->description(fn (Llm $model): ?string => $model->provider->is_enabled && $model->provider->isConnected() ? null : 'Not connected')
@@ -418,15 +442,31 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->label('Models')
                     ->placeholder('Pick one or more models')
                     ->helperText('Models agents can use already are greyed out.')
-                    ->options(fn (Get $get): array => collect($this->listOf($get('source'))->models ?? [])
-                        ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => $model->name === $model->id ? $model->id : "{$model->name} ({$model->id})"])
-                        ->all())
+                    ->options(function (Get $get): array {
+                        $kind = $this->draftOf($get('source'))->kind ?? LlmProviderKind::Custom;
+
+                        return collect($this->listOf($get('source'))->models ?? [])
+                            ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => ModelLogo::label(
+                                $model->name === $model->id ? $model->id : "{$model->name} ({$model->id})",
+                                $kind,
+                                $model->id,
+                            )])
+                            ->all();
+                    })
+                    ->allowHtml()
                     ->disableOptionWhen(fn (string $value, Get $get): bool => in_array($value, $this->addedModels($get('source')), true))
                     ->multiple()
                     ->searchable()
                     ->required()
                     ->live()
                     ->visible(fn (Get $get): bool => $this->listOf($get('source'))?->status === ModelListStatus::Listed),
+                Callout::make(fn (Get $get): string => Arr::join($this->pickedWithoutTools($get), ', ', ' and ').' cannot call tools')
+                    ->description(fn (Get $get): string => count($this->pickedWithoutTools($get)) === 1
+                        ? 'Tools will not work for agents that use it: they answer without them. You can still add it.'
+                        : 'Tools will not work for agents that use them: they answer without them. You can still add them.')
+                    ->icon(Heroicon::OutlinedWrenchScrewdriver)
+                    ->warning()
+                    ->visible(fn (Get $get): bool => $this->pickedWithoutTools($get) !== []),
                 TextInput::make('model_id')
                     ->label('Model')
                     ->placeholder('For example llama3.1:8b')
@@ -458,6 +498,29 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ? Notification::make()->success()->title("{$added->first()->name} added")->body('Agents can pick it now.')->send()
                     : Notification::make()->success()->title("{$added->count()} models added")->body('Agents can pick them now.')->send();
             });
+    }
+
+    /**
+     * The models picked in "Add a model" that models.dev says cannot call
+     * tools, by id.
+     *
+     * @return list<string>
+     */
+    private function pickedWithoutTools(Get $get): array
+    {
+        $draft = $this->draftOf($get('source'));
+
+        if (! $draft instanceof LlmProvider) {
+            return [];
+        }
+
+        $catalog = app(ModelsDevCatalog::class);
+
+        return collect((array) ($get('models') ?? []))
+            ->map(fn (mixed $id): string => (string) $id)
+            ->filter(fn (string $id): bool => $catalog->facts($draft->kind, $id)?->callsTools === false)
+            ->values()
+            ->all();
     }
 
     /** Whether the open "Add a model" form names a model to add yet. */
@@ -512,6 +575,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 Select::make('replacement')
                     ->label('Model for these agents')
                     ->options($this->replacements($record))
+                    ->allowHtml()
                     ->default(fn (): ?int => $this->defaultChatModel()?->getKey())
                     ->required()
                     ->native(false),
@@ -631,8 +695,25 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         return Llm::available()
             ->reject(fn (Llm $other): bool => $other->is($model))
-            ->mapWithKeys(fn (Llm $other): array => [$other->id => "{$other->name} ({$other->provider->name})"])
+            ->mapWithKeys(fn (Llm $other): array => [$other->id => ModelLogo::forLlm($other, "{$other->name} ({$other->provider->name})")])
             ->all();
+    }
+
+    /**
+     * The models a provider stopped serving ({@see CheckLlmListingAction}):
+     * hidden from the pickers, and the app's own tasks that used one use
+     * another model until it is served again or replaced.
+     */
+    private function unlistedCallout(): Callout
+    {
+        $unlisted = fn (): Collection => Llm::catalog()->filter(fn (Llm $llm): bool => $llm->is_enabled && $llm->unlisted_at !== null);
+
+        return Callout::make(fn (): string => Arr::join($unlisted()->map(fn (Llm $llm): string => $llm->name.' ('.$llm->provider->name.')')->all(), ', ', ' and ')
+            .(count($unlisted()) === 1 ? ' is' : ' are').' no longer served')
+            ->description('The provider refused calls to it and no longer lists it, so the pickers hide it, and the app\'s own tasks that used it now use another model. Agents that use it cannot answer. Pick another model where it is still set. It comes back on its own once the provider serves it again.')
+            ->icon(Heroicon::OutlinedExclamationTriangle)
+            ->warning()
+            ->visible(fn (): bool => $unlisted()->isNotEmpty());
     }
 
     private function modelsSummary(): string
@@ -652,13 +733,16 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
      * A catalog model, by its id, for one of the app's jobs. Unset uses
      * the default model.
      */
-    private function modelChoice(string $property, string $label, ?string $help = null, string $unset = 'Same as the default model'): Select
+    private function modelChoice(string $property, string $label, ?string $help = null, string $unset = 'Same as the default model', ?Closure $only = null): Select
     {
+        $options = fn (): array => $this->catalogOptions($only instanceof Closure ? $only() : null);
+
         return Select::make($property)
             ->label($label)
             ->helperText($help)
-            ->options(fn (): array => $this->catalogOptions())
-            ->in(fn (): array => array_merge(...array_map(array_keys(...), array_values($this->catalogOptions()))))
+            ->options($options)
+            ->allowHtml()
+            ->in(fn (): array => array_merge(...array_map(array_keys(...), array_values($options()))))
             ->searchable()
             ->placeholder($unset);
     }
@@ -668,7 +752,63 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** One task's model, with a "?" that says what uses it and which model fits. */
     private function taskChoice(LlmTask $task): Select
     {
-        return $this->withHelp($this->modelChoice($task->settingsProperty(), LlmTaskText::label($task), unset: 'Same as the model for quick tasks'), LlmTaskText::help($task));
+        return $this->withHelp($this->modelChoice(
+            $task->settingsProperty(),
+            LlmTaskText::label($task),
+            unset: 'Same as the model for quick tasks',
+            only: $task === LlmTask::Images ? fn (): array => $this->imageModels($task->settingsProperty()) : null,
+        ), LlmTaskText::help($task));
+    }
+
+    /**
+     * The ids of the models that read both PDF files and images, so they can
+     * answer about a file a chatter attaches. The model in use stays listed.
+     *
+     * @return list<int>
+     */
+    private function fileModels(string $property): array
+    {
+        $files = app(ChatFileModel::class);
+        $ids = Llm::available()->filter(fn (Llm $llm): bool => $files->readsFiles($llm))->pluck('id')->all();
+        $inUse = Llm::fromSetting($this->valueInUse($property))?->id;
+
+        return array_values(array_unique($inUse !== null ? [...$ids, $inUse] : $ids));
+    }
+
+    /**
+     * The help under "Model for chat file uploads": what it does, and, while
+     * none is picked, the model Automatic takes.
+     */
+    private function chatFilesHelp(mixed $picked): string
+    {
+        $does = 'Answers about the PDF file or image a chatter attaches when the agent\'s own model cannot read files; an agent whose model reads both answers itself. Only the models that read both are listed.';
+
+        if (Llm::fromSetting($picked) instanceof Llm) {
+            return $does;
+        }
+
+        $automatic = app(ChatFileModel::class)->automatic();
+
+        return $automatic instanceof Llm
+            ? "{$does} Automatic: {$automatic->name}, the default model if it reads both, else the first one that does."
+            : "{$does} Automatic: no model reads both, so uploads are off.";
+    }
+
+    /**
+     * The ids of the models that can describe images: the ones known to read
+     * them (models.dev), or, when none is known to, every one not known not
+     * to. The model in use stays listed.
+     *
+     * @return list<int>
+     */
+    private function imageModels(string $property): array
+    {
+        $reads = Llm::available()->mapWithKeys(fn (Llm $llm): array => [$llm->id => $this->readsImages($llm)]);
+        $readers = $reads->filter(fn (?bool $reads): bool => $reads === true);
+        $ids = ($readers->isNotEmpty() ? $readers : $reads->reject(fn (?bool $reads): bool => $reads === false))->keys()->all();
+        $inUse = Llm::fromSetting($this->valueInUse($property))?->id;
+
+        return array_values(array_unique($inUse !== null ? [...$ids, $inUse] : $ids));
     }
 
     /**
@@ -769,15 +909,34 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     }
 
     /**
-     * The models that may be picked, by provider: id => name.
+     * Whether a model reads images: as its own facts say, else as models.dev
+     * says now (a model added before the facts kept its inputs); null when
+     * neither says.
+     */
+    private function readsImages(Llm $llm): ?bool
+    {
+        if (($reads = $llm->readsImages()) !== null) {
+            return $reads;
+        }
+
+        $entry = app(ModelsDevCatalog::class)->storedEntry($llm->provider->kind, $llm->name);
+
+        return $entry !== null ? ModelFactsData::fromCatalog($entry)->readsImages : null;
+    }
+
+    /**
+     * The models that may be picked (all, or the ids given), by provider:
+     * id => name, with its logo.
      *
+     * @param  list<int>|null  $ids
      * @return array<string, array<int, string>>
      */
-    private function catalogOptions(): array
+    private function catalogOptions(?array $ids = null): array
     {
         return Llm::available()
+            ->when($ids !== null, fn ($models) => $models->filter(fn (Llm $llm): bool => in_array($llm->id, $ids, true)))
             ->groupBy(fn (Llm $llm): string => $llm->provider->name)
-            ->map(fn ($models): array => $models->mapWithKeys(fn (Llm $llm): array => [$llm->id => $llm->name])->all())
+            ->map(fn ($models): array => $models->mapWithKeys(fn (Llm $llm): array => [$llm->id => ModelLogo::forLlm($llm)])->all())
             ->all();
     }
 
@@ -885,7 +1044,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return AiProvider::tryFrom($this->driverInUse($property))?->label() ?? 'off';
     }
 
-    /** The reader in use, and whether summaries and PDF chat are on, for the card's summary line. */
+    /** The reader in use, whether summaries are on, and the model for chat files, for the card's summary line. */
     private function documentsSummary(): string
     {
         $reader = match ($this->driverInUse('document_parser')) {
@@ -894,7 +1053,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             default => 'off',
         };
 
-        return "Reading: {$reader} · PDF chat: ".($this->driverInUse('document_llm') === 'none' ? 'off' : 'on');
+        return "Reading: {$reader} · Summaries: ".($this->driverInUse('document_llm') === 'none' ? 'off' : 'on')
+            .' · Chat uploads: '.(app(ChatFileModel::class)->find()->name ?? 'off');
     }
 
     /**

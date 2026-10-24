@@ -110,3 +110,29 @@ it('turns the reasoning effort into each provider\'s own field', function (strin
     'compatible as given' => [OpenAiCompatible::class, 'qwen3-8b', 'low', ['reasoning_effort' => 'low'], []],
     'mistral has none' => [Mistral::class, 'magistral-medium', 'high', [], ['reasoning_effort']],
 ]);
+
+/** A user turn with a PDF attached, as the attachment source writes it. */
+function hookPdfTurn(): array
+{
+    return [['role' => 'user', 'content' => [
+        ['type' => 'text', 'text' => 'Summarise'],
+        ['type' => 'document_url', 'document_url' => 'data:application/pdf;base64,JVBERg==', 'document_name' => 'report.pdf'],
+    ]]];
+}
+
+it('sends a PDF as a Chat Completions file part, streamed or not', function (string $provider): void {
+    $file = ['type' => 'file', 'file' => ['filename' => 'report.pdf', 'file_data' => 'data:application/pdf;base64,JVBERg==']];
+
+    $recorder = GuzzleRecorder::answering(new Response(200, [], "data: [DONE]\n\n"));
+    hookClient($provider)->stream('model', hookPdfTurn());
+
+    expect($recorder->body()['messages'][0]['content'][1])->toBe($file)
+        ->and(hookCompletionBody($provider, ['model' => 'model', 'messages' => hookPdfTurn()])['messages'][0]['content'][1])->toBe($file);
+})->with([OpenRouter::class, OpenAiCompatible::class]);
+
+it('keeps a PDF as Mistral\'s own document part', function (): void {
+    $recorder = GuzzleRecorder::answering(new Response(200, [], "data: [DONE]\n\n"));
+    hookClient(Mistral::class)->stream('model', hookPdfTurn());
+
+    expect($recorder->body()['messages'][0]['content'][1])->toBe(hookPdfTurn()[0]['content'][1]);
+});

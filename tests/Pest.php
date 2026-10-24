@@ -273,6 +273,26 @@ function testLlm(string $name = 'test-model', LlmProviderKind $kind = LlmProvide
 }
 
 /**
+ * Turn chat file uploads on with a catalog model that reads PDF files and
+ * images as the model for them, or turn them off.
+ */
+function useChatFiles(bool $on = true): ?Llm
+{
+    if (! $on) {
+        config(['chatvia.ai.chat_files.enabled' => false]);
+
+        return null;
+    }
+
+    $model = testLlm('mistral-medium-latest', LlmProviderKind::Mistral, [
+        'capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text', 'image', 'pdf']]],
+    ]);
+    config(['chatvia.ai.chat_files.enabled' => true, 'chatvia.ai.chat_files.model' => (string) $model->id]);
+
+    return $model;
+}
+
+/**
  * Stub the LLM provider's chat-completion HTTP call so analysis tests get a
  * deterministic assistant message instead of hitting a real model.
  */

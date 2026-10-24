@@ -74,3 +74,11 @@ it('adds a summary of the thinking on request, only when the model reasons', fun
     expect(ResponsesPayload::withSummary(rpBody())['reasoning'])->toBe(['effort' => 'medium', 'summary' => 'auto'])
         ->and(ResponsesPayload::withSummary(rpBody(['reasoning_effort' => null])))->not->toHaveKey('reasoning');
 });
+
+it('sends a PDF as an input file with its bytes and name', function (): void {
+    $body = ResponsesPayload::fromChatCompletions(['model' => 'gpt-6-sol', 'messages' => [['role' => 'user', 'content' => [
+        ['type' => 'document_url', 'document_url' => 'data:application/pdf;base64,JVBERg==', 'document_name' => 'report.pdf'],
+    ]]]]);
+
+    expect($body['input'][0]['content'])->toBe([['type' => 'input_file', 'filename' => 'report.pdf', 'file_data' => 'data:application/pdf;base64,JVBERg==']]);
+});

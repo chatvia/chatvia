@@ -35,7 +35,12 @@ const { t } = useI18n();
 // chip picks it up. Anything without one gets the generic file icon.
 const KNOWN_EXTENSIONS = new Set(['pdf']);
 
+// An image shows itself, small; other files get their type's icon.
+const isImage = computed(() => props.attachment.mime_type.startsWith('image/'));
+
 const iconUrl = computed(() => {
+    if (isImage.value) return props.attachment.url;
+
     const extension = props.attachment.filename.split('.').pop()?.toLowerCase();
     if (extension && KNOWN_EXTENSIONS.has(extension)) return `/images/icons/files/${extension}.svg`;
     if (props.attachment.mime_type === 'application/pdf') return '/images/icons/files/pdf.svg';
@@ -52,7 +57,7 @@ const iconUrl = computed(() => {
             rel="noopener noreferrer"
             class="bg-card text-foreground hover:bg-muted/50 inline-flex max-w-[260px] items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors"
         >
-            <img :src="iconUrl" :alt="attachment.mime_type" class="h-6 w-6 shrink-0" />
+            <img :src="iconUrl" :alt="attachment.mime_type" class="h-6 w-6 shrink-0" :class="{ 'rounded object-cover': isImage }" />
             <div class="flex min-w-0 flex-col items-start leading-tight">
                 <span class="max-w-[180px] truncate font-medium">{{ attachment.filename }}</span>
                 <span class="text-muted-foreground text-[11px]">{{ formatFileSize(attachment.size_bytes) }}</span>

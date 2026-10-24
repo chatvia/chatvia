@@ -44,8 +44,8 @@ use Psr\Http\Message\ResponseInterface;
  * injection guard before the model reads it ({@see GuardrailService::scanToolResult()}).
  *
  * Shared by every source that needs the loop — `LlmSource` runs it on the
- * agent's configured provider, `PdfSource` on the document LLM with a
- * PDF-augmented user turn, and evals in capture-only mode. Each caller owns
+ * agent's configured provider, `AttachmentSource` on the model for chat
+ * files with the files added to the user turn, and evals in capture-only mode. Each caller owns
  * its own start/finish envelope; the runner only handles the iterations and
  * the tool plumbing. When a turn pauses for approval its calls are stored as
  * {@see PendingToolCallData} on a ToolApprovalCheckpoint.

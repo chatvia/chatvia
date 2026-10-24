@@ -52,6 +52,12 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.document_llm')]
     public ?string $document_llm = null;
 
+    #[ConfigKey('chatvia.ai.chat_files.enabled')]
+    public ?bool $chat_files_enabled = null;
+
+    #[ConfigKey('chatvia.ai.chat_files.model')]
+    public ?string $chat_files_model = null;
+
     #[ConfigKey('chatvia.agent.default_model')]
     public ?string $default_agent_model = null;
 
@@ -111,9 +117,6 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.models.analysis')]
     public ?string $analysis_model = null;
-
-    #[ConfigKey('chatvia.ai.models.document_chat')]
-    public ?string $document_chat_model = null;
 
     #[ConfigKey('services.scalewayai.embedding_model')]
     public ?string $scaleway_embedding_model = null;

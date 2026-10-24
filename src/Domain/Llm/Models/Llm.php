@@ -207,6 +207,18 @@ class Llm extends Model
         return $this->facts()?->callsTools !== false;
     }
 
+    /** Whether the model reads images, as its facts say; null when they do not say. */
+    public function readsImages(): ?bool
+    {
+        return $this->facts()?->readsImages;
+    }
+
+    /** Whether the model reads PDF files, as its facts say; null when they do not say. */
+    public function readsFiles(): ?bool
+    {
+        return $this->facts()?->readsFiles;
+    }
+
     /**
      * Whether the provider can hold the model's reply to a JSON schema: yes
      * unless its facts say it cannot.

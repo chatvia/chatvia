@@ -10,7 +10,9 @@ use Spatie\LaravelData\Data;
  * What the models.dev catalog says about one model: whether it reasons, the
  * reasoning effort values it takes (null when it lists none, or reasons
  * without a named effort), whether it takes a temperature, calls tools and
- * keeps a reply to a JSON schema, and the longest reply it writes in tokens.
+ * keeps a reply to a JSON schema, the longest reply it writes in tokens,
+ * whether it reads images (an image among its inputs), and whether it reads
+ * PDF files (a PDF among its inputs).
  * Anything the catalog does not say is null.
  */
 final class ModelFactsData extends Data
@@ -25,6 +27,8 @@ final class ModelFactsData extends Data
         public ?int $maxOutputTokens = null,
         public ?bool $callsTools = null,
         public ?bool $takesResponseSchema = null,
+        public ?bool $readsImages = null,
+        public ?bool $readsFiles = null,
     ) {}
 
     /**
@@ -43,6 +47,7 @@ final class ModelFactsData extends Data
         }
 
         $output = $entry['limit']['output'] ?? null;
+        $inputs = $entry['modalities']['input'] ?? null;
 
         return new self(
             reasoning: (bool) ($entry['reasoning'] ?? false),
@@ -51,6 +56,8 @@ final class ModelFactsData extends Data
             maxOutputTokens: is_int($output) && $output > 0 ? $output : null,
             callsTools: is_bool($entry['tool_call'] ?? null) ? $entry['tool_call'] : null,
             takesResponseSchema: is_bool($entry['structured_output'] ?? null) ? $entry['structured_output'] : null,
+            readsImages: is_array($inputs) ? in_array('image', $inputs, true) : null,
+            readsFiles: is_array($inputs) ? in_array('pdf', $inputs, true) : null,
         );
     }
 }

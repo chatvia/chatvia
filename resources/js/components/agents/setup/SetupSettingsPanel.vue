@@ -23,6 +23,7 @@ const {
     isSavingComposer,
     saveComposer,
     voice,
+    fileUploadsAvailable,
     repliesForm,
     isSavingReplies,
     saveReplies,
@@ -33,6 +34,15 @@ const {
     isSavingAnalytics,
     saveAnalytics,
 } = generalSettings;
+
+// While the install has no chat file uploads the switch shows off; the
+// agent's own choice is kept for when an admin turns them on again.
+const fileUploads = computed({
+    get: (): boolean => fileUploadsAvailable && composerForm.allow_file_uploads,
+    set: (value: boolean): void => {
+        composerForm.allow_file_uploads = value;
+    },
+});
 
 /** A voice's name as shown: "Marin". */
 const voiceName = (voice: string): string => voice.charAt(0).toUpperCase() + voice.slice(1);
@@ -79,11 +89,11 @@ const help = computed(() => ({
             <div class="divide-y rounded-md border">
                 <SetupSwitchRow
                     id="allow-file-uploads"
-                    v-model="composerForm.allow_file_uploads"
+                    v-model="fileUploads"
                     :label="t('agents.setup.settings.file_uploads_label')"
-                    :hint="t('agents.setup.settings.file_uploads_hint')"
+                    :hint="fileUploadsAvailable ? t('agents.setup.settings.file_uploads_hint') : t('agents.setup.settings.file_uploads_unavailable')"
                     :help="help.fileUploads"
-                    :disabled="locked"
+                    :disabled="locked || !fileUploadsAvailable"
                 />
                 <SetupSwitchRow
                     id="allow-voice-input"

@@ -47,6 +47,8 @@ interface Props {
     enabledLanguages?: string[];
     /** Whether the composer offers PDF uploads: the owner allows them and the server can read PDFs. */
     allowFileUploads?: boolean;
+    /** The MIME types the file picker offers: what the server's model for chat files reads. */
+    uploadAccept?: string;
     /** Whether the composer offers dictation: the owner allows it and the server has speech to text set up. */
     allowVoiceInput?: boolean;
     /** Whether the composer offers voice conversations: the owner turned them on and the server has them set up. */
@@ -71,6 +73,7 @@ const props = withDefaults(defineProps<Props>(), {
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
     allowFileUploads: false,
+    uploadAccept: 'application/pdf',
     allowVoiceInput: false,
     voiceConversation: false,
 });
@@ -227,6 +230,7 @@ onMounted(async () => {
                             :isThinking="isStreaming"
                             :placeholder="resolvedAppearance.composer_placeholder ?? undefined"
                             :allow-file-uploads="allowFileUploads"
+                            :upload-accept="uploadAccept"
                             :allow-voice-input="allowVoiceInput"
                             :allow-voice-conversation="voiceConversation"
                             :max-files="maxFilesPerChat"

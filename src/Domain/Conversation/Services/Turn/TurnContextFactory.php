@@ -201,8 +201,8 @@ class TurnContextFactory
      * masked (it equals the original when there is none) and is what gets
      * stored, shown, replayed and answered, so a raw identifier never reaches
      * the record or the model. The rewritten question only serves the search
-     * (ChatContext::$searchQuery). PDFs travel separately (see PdfSource), so
-     * the visible text stays clean.
+     * (ChatContext::$searchQuery). Attached files travel separately (see
+     * AttachmentSource), so the visible text stays clean.
      */
     private function userTurn(StreamRequestData $data, GuardResultData $guard, RewrittenQueryData $rewritten, ?string $messageId = null): UserTurnData
     {

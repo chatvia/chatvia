@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Streaming\Sources\Concerns;
 
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
-use Domain\Conversation\Services\Streaming\Sources\PdfSource;
+use Domain\Conversation\Services\Streaming\Sources\AttachmentSource;
 use Illuminate\Support\Str;
 
 /**
  * Shared tool-usage system note for the streaming sources that run the agentic
  * tool loop ({@see LlmSource}
- * and {@see PdfSource}).
+ * and {@see AttachmentSource}).
  * Kept in one place so the note's wording and placement can't drift between the
  * two turn paths.
  */

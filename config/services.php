@@ -244,7 +244,6 @@ return [
     'mistral' => [
         'api_key' => null,
         'base_url' => env('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1'),
-        // The PDF chat model is chatvia.ai.models.document_chat.
         'ocr_model' => env('MISTRAL_OCR_MODEL', 'mistral-ocr-latest'),
         'embedding_model' => env('MISTRAL_EMBEDDING_MODEL', 'mistral-embed'),
     ],

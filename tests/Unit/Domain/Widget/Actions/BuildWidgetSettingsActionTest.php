@@ -1,8 +1,6 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 
 /**
@@ -202,13 +200,25 @@ it('leaves the Reverb address empty so the widget uses its API server', function
     ]);
 });
 
-it('hides the widget upload button when no LLM can read PDF documents', function (): void {
+it('hides the widget upload button while no model reads chat files', function (): void {
     $agent = createAgent(User::factory()->create());
     $agent->setSetting('allow_file_uploads', true, 'appearance');
 
-    app()->instance(DocumentLlm::class, new DocumentLlm(null));
-    expect(app(BuildWidgetSettingsAction::class)->execute($agent->fresh())->allow_file_uploads)->toBeFalse();
+    $off = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+    expect($off->allow_file_uploads)->toBeFalse()
+        ->and($off->upload_accept)->toBe([]);
 
-    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
-    expect(app(BuildWidgetSettingsAction::class)->execute($agent->fresh())->allow_file_uploads)->toBeTrue();
+    useChatFiles();
+    $on = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+    expect($on->allow_file_uploads)->toBeTrue()
+        ->and($on->upload_accept)->toBe(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+});
+
+it('hides the widget upload button while an admin has chat file uploads off', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('allow_file_uploads', true, 'appearance');
+    useChatFiles();
+    useChatFiles(false);
+
+    expect(app(BuildWidgetSettingsAction::class)->execute($agent->fresh())->allow_file_uploads)->toBeFalse();
 });

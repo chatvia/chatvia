@@ -7,6 +7,7 @@ use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\Knowledge\Document\PngImage;
 
 /**
  * One enhancement step for every source type ("contextual retrieval"), run
@@ -49,12 +50,11 @@ it('prepends the summary to the text to embed and returns the questions', functi
 
 it('describes the images and tables of a document page and returns them as metadata', function (): void {
     // A 4x4 PNG.
-    $png = 'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWNgIB0AAAA0AAEjQ4N1AAAAAElFTkSuQmCC';
     $page = new PageData(
         pageNumber: 1,
         content: 'Depths of the oceans.',
         checksum: md5(uniqid()),
-        imagesBase64: [$png],
+        imagesBase64: [PngImage::BASE64],
         tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |", '  '],
     );
 
@@ -75,12 +75,11 @@ it('describes the images and tables of a document page and returns them as metad
 
 it('skips the images of a page when image descriptions are off, and still describes its tables', function (): void {
     config(['chatvia.ai.chunker.describe_images' => false]);
-    $png = 'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWNgIB0AAAA0AAEjQ4N1AAAAAElFTkSuQmCC';
     $page = new PageData(
         pageNumber: 1,
         content: 'Depths of the oceans.',
         checksum: md5(uniqid()),
-        imagesBase64: [$png],
+        imagesBase64: [PngImage::BASE64],
         tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |"],
     );
 

@@ -16,41 +16,16 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 
 /**
  * IngestTextFileAction chunks a raw-text SourceFile (.txt/.md) directly with
  * the text splitter (no OCR), as Markdown or plain text, and rides the shared
  * DocumentChunkIngestionJob batch. The splitter is faked to return fixed
- * chunks, so we assert the orchestration: idempotency, handing an empty
- * file to the shared batch step, real-chunk fan-out and the kind of content.
+ * chunks (FakeTextSplitter::returning()), so these check the orchestration:
+ * idempotency, handing an empty file to the shared batch step, real-chunk
+ * fan-out and the kind of content.
  */
-function itfFakeSplitter(array $chunks): TextSplitter
-{
-    return new class($chunks) implements TextSplitter
-    {
-        /** @var list<ContentKind> */
-        public array $kinds = [];
-
-        /** @var list<string> */
-        public array $texts = [];
-
-        public function __construct(private readonly array $chunks) {}
-
-        public function split(string $text, ContentKind $kind): array
-        {
-            $this->kinds[] = $kind;
-            $this->texts[] = $text;
-
-            return $this->chunks;
-        }
-
-        public function name(): string
-        {
-            return 'fixed';
-        }
-    };
-}
-
 function itfFakeEbookText(string $markdown): EbookText
 {
     return new class($markdown) extends EbookText
@@ -80,7 +55,7 @@ it('is idempotent: an already-ingested SourceFile returns immediately', function
     ]);
     $agent->files()->attach($sourceFile->id);
 
-    itfAction(itfFakeSplitter(['# A']))->execute($sourceFile, $agent);
+    itfAction(FakeTextSplitter::returning('# A'))->execute($sourceFile, $agent);
 
     Bus::assertNothingBatched();
     Event::assertNotDispatched(FileIngestionProgressed::class);
@@ -104,9 +79,9 @@ it('hands an empty job list to the shared batch step when the file yields no chu
         ->withArgs(fn (SourceFile $source, Agent $for, Collection $jobs): bool => $source->is($sourceFile) && $for->is($agent) && $jobs->isEmpty())
         ->andReturnNull();
 
-    itfAction(itfFakeSplitter([]))->execute($sourceFile, $agent);
+    itfAction(new FakeTextSplitter([]))->execute($sourceFile, $agent);
 
-    expect($sourceFile->fresh()->parser)->toBe('fixed');
+    expect($sourceFile->fresh()->parser)->toBe('fake');
 });
 
 it('fans real chunks out through a Bus batch named with the SourceFile id', function (): void {
@@ -121,12 +96,12 @@ it('fans real chunks out through a Bus batch named with the SourceFile id', func
     Storage::put($sourceFile->filepath, "# Title\n\nBody text.");
     $agent->files()->attach($sourceFile->id);
 
-    itfAction(itfFakeSplitter(['# Title', 'Body text.']))->execute($sourceFile, $agent);
+    itfAction(FakeTextSplitter::returning('# Title', 'Body text.'))->execute($sourceFile, $agent);
 
     Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
-        ->and($sourceFile->fresh()->parser)->toBe('fixed');
+        ->and($sourceFile->fresh()->parser)->toBe('fake');
 });
 
 it('reads ebook (.epub/.fb2) text as Markdown before chunking', function (): void {
@@ -144,13 +119,13 @@ it('reads ebook (.epub/.fb2) text as Markdown before chunking', function (): voi
     $agent->files()->attach($sourceFile->id);
 
     $ebookText = itfFakeEbookText("# Chapter 1\n\nThe book body.");
-    itfAction(itfFakeSplitter(['# Chapter 1', 'The book body.']), $ebookText)
+    itfAction(FakeTextSplitter::returning('# Chapter 1', 'The book body.'), $ebookText)
         ->execute($sourceFile, $agent);
 
     Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
-        ->and($sourceFile->fresh()->parser)->toBe('fixed');
+        ->and($sourceFile->fresh()->parser)->toBe('fake');
 });
 
 it('splits Markdown files and ebooks as Markdown, and .txt files as plain text', function (string $filename, ContentKind $kind): void {
@@ -162,7 +137,7 @@ it('splits Markdown files and ebooks as Markdown, and .txt files as plain text',
     Storage::put($sourceFile->filepath, 'Some text.');
     $agent->files()->attach($sourceFile->id);
 
-    $splitter = itfFakeSplitter(['Some text.']);
+    $splitter = FakeTextSplitter::returning('Some text.');
     itfAction($splitter, itfFakeEbookText('# Some text.'))->execute($sourceFile, $agent);
 
     expect($splitter->kinds)->toBe([$kind]);
@@ -185,7 +160,7 @@ it('reads a windows-1251 FB2 book itself on a server without pandoc', function (
     Storage::put($sourceFile->filepath, mb_convert_encoding($xml, 'Windows-1251', 'UTF-8'));
     $agent->files()->attach($sourceFile->id);
 
-    $splitter = itfFakeSplitter(['Глава 1']);
+    $splitter = FakeTextSplitter::returning('Глава 1');
     app()->make(IngestTextFileAction::class, ['splitter' => $splitter])->execute($sourceFile, $agent);
 
     expect($splitter->texts)->toBe(["## Глава 1\n\nВесной мы сажаем картофель."])

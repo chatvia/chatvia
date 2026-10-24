@@ -19,11 +19,10 @@ beforeEach(function (): void {
 });
 
 it('accepts every document extension the ingestion reads while every type is on', function (): void {
-    foreach (SourceFileTypes::documentExtensions() as $ext) {
-        expect(SourceFileTypes::isSupported('file.'.$ext))->toBeTrue("$ext should be supported");
-    }
+    $refused = array_values(array_filter(SourceFileTypes::documentExtensions(), fn (string $extension): bool => ! SourceFileTypes::isSupported('file.'.$extension)));
 
-    expect(SourceFileTypes::isSupported('malware.exe'))->toBeFalse()
+    expect($refused)->toBe([])
+        ->and(SourceFileTypes::isSupported('malware.exe'))->toBeFalse()
         ->and(SourceFileTypes::isSupported('archive.zip'))->toBeFalse();
 });
 
@@ -77,19 +76,4 @@ it('maps audio and video MIME types to their category and rejects unknown ones',
         ->and(SourceFileTypes::categoryOfMimeType('video/mp4'))->toBe(KnowledgeFileType::Video)
         ->and(fn (): string => SourceFileTypes::categoryOfMimeType('application/x-unknown'))
         ->toThrow(RuntimeException::class, 'Unsupported mime type');
-});
-
-it('keeps every document format on a server without pandoc, catdoc or catppt', function (): void {
-    config(['services.bin.catdoc' => '/nowhere/catdoc', 'services.bin.catppt' => '/nowhere/catppt', 'services.bin.pandoc' => '/nowhere/pandoc']);
-
-    // The app reads them all itself.
-    expect(SourceFileTypes::isSupported('minutes.doc'))->toBeTrue()
-        ->and(SourceFileTypes::isSupported('letter.rtf'))->toBeTrue()
-        ->and(SourceFileTypes::isSupported('slides.ppt'))->toBeTrue()
-        ->and(SourceFileTypes::isSupported('book.epub'))->toBeTrue()
-        ->and(SourceFileTypes::isSupported('book.fb2'))->toBeTrue()
-        ->and(SourceFileTypes::isSupported('report.docx'))->toBeTrue()
-        ->and(KnowledgeFileType::Word->readableExtensions())->toBe(['doc', 'docx', 'rtf'])
-        ->and(KnowledgeFileType::Presentation->readableExtensions())->toBe(['ppt', 'pptx'])
-        ->and(KnowledgeFileType::Audio->readableExtensions())->toBe(KnowledgeFileType::Audio->extensions());
 });

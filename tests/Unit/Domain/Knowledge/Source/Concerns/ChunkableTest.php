@@ -13,38 +13,22 @@ use Illuminate\Support\Facades\DB;
  * chunk has been imported — otherwise the UI renders "ingested" and then reverts
  * to "Training in progress" on the next read that still sees Processing (the
  * batch `finally()` not yet committed). Only the Completed short-circuit yields 100.
+ * Deleting a source's chunks goes in batches, so a big source never holds
+ * one long statement.
  */
-it('caps progress at 99 while still processing, even when all chunks are imported', function (): void {
+it('reports progress from the imported chunks, 100 only once the file is completed', function (string $status, ?int $expected, ?int $imported, int $progress): void {
     $file = new SourceFile;
-    $file->status = 'ingesting';
-    $file->expected_chunks = 570;
-    $file->chunks_count = 570;
+    $file->status = $status;
+    $file->expected_chunks = $expected;
+    $file->chunks_count = $imported;
 
-    expect($file->ingestionProgress())->toBe(99);
-});
-
-it('reports partial progress while processing', function (): void {
-    $file = new SourceFile;
-    $file->status = 'ingesting';
-    $file->expected_chunks = 100;
-    $file->chunks_count = 45;
-
-    expect($file->ingestionProgress())->toBe(45);
-});
-
-it('returns 100 only once the file is marked completed', function (): void {
-    $file = new SourceFile;
-    $file->status = 'ingested';
-
-    expect($file->ingestionProgress())->toBe(100);
-});
-
-it('returns 0 before processing starts', function (): void {
-    $file = new SourceFile;
-    $file->status = 'pending';
-
-    expect($file->ingestionProgress())->toBe(0);
-});
+    expect($file->ingestionProgress())->toBe($progress);
+})->with([
+    'processing, every chunk imported: capped at 99' => ['ingesting', 570, 570, 99],
+    'processing, part imported' => ['ingesting', 100, 45, 45],
+    'completed' => ['ingested', null, null, 100],
+    'not started' => ['pending', null, null, 0],
+]);
 
 it('deletes every chunk of a source in batches, the summary included', function (): void {
     $file = AgentFileFactory::new()->create();

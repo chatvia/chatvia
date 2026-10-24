@@ -55,7 +55,7 @@ function ldpPdf(array $pages, string $extension = 'pdf'): string
 
     $pdf .= 'trailer << /Size '.(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF\n";
 
-    return create_temp_file('document.'.$extension, $pdf);
+    return tempTestFile('document.'.$extension, $pdf);
 }
 
 it('reads each PDF page into its own PageData', function (): void {
@@ -75,12 +75,10 @@ it('reads each PDF page into its own PageData', function (): void {
         ->and($pages[1]->content)->toBe('Shipping is free in the EU.')
         ->and($pages[0]->imagesBase64)->toBe([])
         ->and($pages[0]->tables)->toBe([]);
-
-    @unlink($path);
 });
 
 it('reads office files through OfficeText, one PageData per page', function (): void {
-    $docx = create_temp_file('policy.docx', 'not really a docx');
+    $docx = tempTestFile('policy.docx', 'not really a docx');
 
     $this->mock(OfficeText::class, function (MockInterface $mock) use ($docx): void {
         $mock->shouldReceive('supports')->with('docx')->andReturnTrue();
@@ -92,37 +90,29 @@ it('reads office files through OfficeText, one PageData per page', function (): 
     expect($pages)->toHaveCount(2)
         ->and($pages[0]->content)->toBe('First page.')
         ->and($pages[1]->pageNumber)->toBe(2);
-
-    @unlink($docx);
 });
 
 it('reads a plain-text file without any outside program', function (): void {
-    $txt = create_temp_file('notes.txt', "Opening hours.\n\nMonday to Friday.");
+    $txt = tempTestFile('notes.txt', "Opening hours.\n\nMonday to Friday.");
 
     $pages = app(LocalDocumentParser::class)->parse($txt, 'users/ws/agents/agent/tmp');
 
     expect($pages)->toHaveCount(1)
         ->and($pages[0]->content)->toBe("Opening hours.\n\nMonday to Friday.");
-
-    @unlink($txt);
 });
 
 it('explains that images need an OCR service', function (): void {
-    $image = create_temp_file('scan.png', 'png-bytes');
+    $image = tempTestFile('scan.png', 'png-bytes');
 
     expect(fn () => app(LocalDocumentParser::class)->parse($image, 'users/ws/agents/agent/tmp'))
         ->toThrow(DocumentParsingException::class, 'OCR service');
-
-    @unlink($image);
 });
 
 it('rejects a format it cannot read', function (): void {
-    $file = create_temp_file('archive.xyz', 'bytes');
+    $file = tempTestFile('archive.xyz', 'bytes');
 
     expect(fn () => app(LocalDocumentParser::class)->parse($file, 'users/ws/agents/agent/tmp'))
         ->toThrow(DocumentParsingException::class, '.xyz');
-
-    @unlink($file);
 });
 
 it('reports a PDF the text tool cannot read as a parsing failure', function (): void {
@@ -130,10 +120,8 @@ it('reports a PDF the text tool cannot read as a parsing failure', function (): 
         $this->markTestSkipped('pdftotext is not installed.');
     }
 
-    $broken = create_temp_file('broken.pdf', 'this is not a pdf');
+    $broken = tempTestFile('broken.pdf', 'this is not a pdf');
 
     expect(fn () => app(LocalDocumentParser::class)->parse($broken, 'users/ws/agents/agent/tmp'))
         ->toThrow(DocumentParsingException::class, 'The document could not be read');
-
-    @unlink($broken);
 });

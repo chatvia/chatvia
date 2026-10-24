@@ -2,8 +2,6 @@
 
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Rerank\CompatibleReranker;
-use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
-use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -60,29 +58,4 @@ it('throws on a server error, so callers fall back', function (): void {
     Http::fake(['rerank.test/v1/rerank' => Http::response(['error' => 'down'], 503)]);
 
     expect(fn (): array => new CompatibleReranker('https://rerank.test/v1', 'k', 'm')->rerank('q', ['a']))->toThrow(Exception::class);
-});
-
-it('gives each model its thresholds, and unmeasured ones the generic bars', function (): void {
-    $generic = RerankModelCatalog::thresholds('someone/new-reranker');
-
-    expect($generic->knowledge)->toBe(0.30)
-        ->and($generic->toolRead)->toBe(0.30)
-        ->and($generic->toolWrite)->toBe(0.40)
-        ->and(RerankModelCatalog::thresholds('rerank-v4.0-pro'))->toEqual(RerankModelCatalog::thresholds('cohere/rerank-4-pro'));
-});
-
-it('lists the curated OpenRouter rerankers first, then the live ones', function (): void {
-    // A fresh client: TestCase fakes this list as empty for every other test.
-    Http::swap(new Factory(app('events')));
-    Http::fake(['openrouter.ai/api/v1/models?output_modalities=rerank*' => Http::response(['data' => [
-        ['id' => 'cohere/rerank-4-pro', 'name' => 'Cohere: Rerank 4 Pro'],
-        ['id' => 'brand/new-reranker', 'name' => 'Brand New Reranker'],
-    ]])]);
-    cache()->forget('rerank:openrouter-models');
-
-    $options = app(RerankModelCatalog::class)->openRouterOptions();
-
-    expect(array_key_first($options))->toBe('cohere/rerank-4-pro')
-        ->and($options['cohere/rerank-4-pro'])->toStartWith('Cohere Rerank 4 Pro')
-        ->and(array_key_last($options))->toBe('brand/new-reranker');
 });

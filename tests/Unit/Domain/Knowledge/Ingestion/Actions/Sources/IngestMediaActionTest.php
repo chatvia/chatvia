@@ -14,6 +14,7 @@ use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
+use Tests\Support\Llm\FakeTranscriber;
 
 /**
  * IngestMediaAction turns an audio/video transcript into a batch of chunk
@@ -40,7 +41,7 @@ it('stores the chunking batch id where cancel() looks for it', function (): void
 
     $sourceFile->refresh();
 
-    expect($sourceFile->internal_chunking_batch_id)->not->toBeNull()
+    expect(Bus::findBatch((string) $sourceFile->internal_chunking_batch_id)?->name)->toBe("Ingestion {$sourceFile->getMorphClass()} ID: {$sourceFile->id}")
         ->and($sourceFile->internal_ingestion_job_id)->toBe('queue-job-uuid');
 });
 
@@ -90,28 +91,7 @@ it('stores a new transcript in the source folder', function (): void {
     Storage::put($sourceFile->filepath, 'ID3-binary-audio-bytes');
 
     $this->mock(AudioCompressor::class)->shouldNotReceive('process');
-    app()->instance(Transcriber::class, new class implements Transcriber
-    {
-        public function transcribe(string $filePath): string
-        {
-            return 'Hello from a new transcript.';
-        }
-
-        public function takesAsIs(string $extension, int $bytes): bool
-        {
-            return true;
-        }
-
-        public function isEnabled(): bool
-        {
-            return true;
-        }
-
-        public function name(): string
-        {
-            return 'fake-whisper';
-        }
-    });
+    app()->instance(Transcriber::class, new FakeTranscriber('Hello from a new transcript.', name: 'fake-whisper'));
 
     app(IngestMediaAction::class)->execute($sourceFile, $agent);
 

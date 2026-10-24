@@ -19,7 +19,6 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
@@ -52,58 +51,17 @@ use Illuminate\Support\Str;
  * the scoreboard. The number it prints is the thing you're trying to move.
  */
 beforeEach(function (): void {
-    // The eval calls the real embeddings and reranker, so it runs only with a
-    // key on the command line, and skips before any request without one.
-    // API keys live in the admin panel, not in .env, so the key is put into
-    // config here.
-    $scaleway = env('SCALEWAYAI_API_KEY');
-    $openrouter = env('OPENROUTER_API_KEY');
-
-    if (blank($scaleway) && blank($openrouter)) {
-        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… (or OPENROUTER_API_KEY=…) vendor/bin/pest --testsuite=Eval');
-    }
-
-    if (filled($scaleway)) {
-        config(['services.scalewayai.api_key' => $scaleway]);
-    }
-
-    if (filled($openrouter)) {
-        config(['services.openrouter.api_key' => $openrouter]);
-    }
-
-    // The reranker's key the same way: without it the gate silently falls
-    // back to the similarity check and every threshold number is about the
-    // wrong scale.
-    if (filled($cohere = env('COHERE_API_KEY'))) {
-        config(['services.cohere.api_key' => $cohere]);
-    }
-
-    evalEmbeddingOverrides();
-
-    Http::allowStrayRequests();
-
-    // Swap the offline fake (bound in TestCase) for the real, config-selected
-    // provider, then pin that one instance so the helpers, hybrid search and the
-    // relevance gate all score with the same real embeddings + reranker.
-    app()->forgetInstance(EmbeddingsProviderInterface::class);
-    $provider = app(EmbeddingsProviderInterface::class);
-
-    // Health probe: a wrong key or no network skips cleanly rather than fail.
+    // The eval calls the real embeddings and reranker (without the reranker's
+    // key, COHERE_API_KEY, the gate falls back to the similarity check and
+    // every threshold number is about the wrong scale), so it runs only with a
+    // key on the command line, and skips before any request without one. The
+    // helpers, hybrid search and relevance gate all score with the one bound
+    // provider.
     try {
-        $provider->embedQuery('health check');
+        $this->embeddings = evalUseRealModels();
     } catch (Throwable $e) {
-        $this->markTestSkipped(
-            'real embeddings unavailable (configure the embedding provider + API key, then re-run with --testsuite=Eval): '.$e->getMessage()
-        );
+        $this->markTestSkipped($e->getMessage());
     }
-
-    app()->instance(EmbeddingsProviderInterface::class, $provider);
-    $this->embeddings = $provider;
-
-    // The relevance gate scores with the reranker, which TestCase also fakes —
-    // swap in the real, config-selected one.
-    app()->forgetInstance(Reranker::class);
-    app()->instance(Reranker::class, app(Reranker::class));
 });
 
 it('measures tool-routing retrieval quality against the labelled set', function (): void {

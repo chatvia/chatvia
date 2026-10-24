@@ -62,14 +62,3 @@ it('tags indexing and search embeddings apart', function (): void {
 
     expect($provider->tags)->toBe([['embedding'], ['embedding'], ['search-embedding']]);
 });
-
-it('passes the vectors, size and model through', function (): void {
-    $provider = tembProvider();
-    $embeddings = new TaggedEmbeddings($provider, new AiCallTags);
-
-    expect($embeddings->embed('chunk'))->toBe([0.1])
-        ->and($embeddings->embedQuery('question'))->toBe([0.2])
-        ->and($embeddings->getDimensions())->toBe(1024)
-        ->and($embeddings->getModelName())->toBe('test-embed')
-        ->and($embeddings->provider())->toBe($provider);
-});

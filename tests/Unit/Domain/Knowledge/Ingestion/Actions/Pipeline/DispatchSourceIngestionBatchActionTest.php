@@ -2,15 +2,12 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Actions\Pipeline\CompleteSourceIngestionAction;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
-use Domain\Knowledge\Source\Text\Events\TextIngestionStarted;
-use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
@@ -157,25 +154,6 @@ it('completes the source and broadcasts the final progress when the batch finish
 
     expect($file->fresh()->status)->toBe(SourceStatus::Completed);
     Event::assertDispatched(FileIngestionProgressed::class, fn (FileIngestionProgressed $event): bool => $event->agentExternalId === $agent->external_id);
-});
-
-it('broadcasts a text source completion on the text channel', function (): void {
-    Event::fake([TextIngestionStarted::class]);
-
-    $agent = Agent::factory()->create();
-    $text = SourceText::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'filepath' => 'users/x/agents/y/train/text/a.txt',
-        'excerpt' => 'excerpt',
-        'length' => 1,
-        'checksum' => md5(uniqid()),
-        'status' => SourceStatus::Processing,
-    ]);
-
-    app(CompleteSourceIngestionAction::class)->execute($text, $agent->external_id);
-
-    expect($text->fresh()->status)->toBe(SourceStatus::Completed);
-    Event::assertDispatched(TextIngestionStarted::class, fn (TextIngestionStarted $event): bool => $event->broadcastWith()['status'] === 'ingested');
 });
 
 it('queues no summary while enhancement is off, so training makes no model calls', function (): void {

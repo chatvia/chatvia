@@ -10,10 +10,7 @@ use Tests\Support\Knowledge\Document\OldOffice\CompoundFileWriter;
  */
 function cfbFile(string $bytes): string
 {
-    $path = (string) tempnam(sys_get_temp_dir(), 'cfb');
-    file_put_contents($path, $bytes);
-
-    return $path;
+    return tempTestFile('file.cfb', $bytes);
 }
 
 it('reads large and small streams by name, ignoring case', function (): void {
@@ -29,7 +26,6 @@ it('reads large and small streams by name, ignoring case', function (): void {
         ->and($file->read('Missing'))->toBeNull();
 
     $file->close();
-    @unlink($path);
 });
 
 it('tells a compound file from any other file and refuses to open the other', function (): void {
@@ -39,9 +35,6 @@ it('tells a compound file from any other file and refuses to open the other', fu
     expect(CompoundFile::isCompoundFile($compound))->toBeTrue()
         ->and(CompoundFile::isCompoundFile($other))->toBeFalse()
         ->and(fn (): CompoundFile => CompoundFile::open($other))->toThrow(RuntimeException::class, 'not an OLE compound file');
-
-    @unlink($compound);
-    @unlink($other);
 });
 
 it('refuses a sector chain that loops instead of reading it forever', function (): void {
@@ -56,5 +49,4 @@ it('refuses a sector chain that loops instead of reading it forever', function (
     expect(fn (): ?string => $file->read('Big'))->toThrow(RuntimeException::class, 'broken sector chain');
 
     $file->close();
-    @unlink($path);
 });

@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\File\File;
  * path (OCR, Pandoc, OfficePdf). It must read the field it was asked for,
  * leave no temp files behind, and never delete a stored original.
  */
-function storageFileModel(array $attributes): Model
+function hsfModel(array $attributes): Model
 {
     $model = new #[Unguarded] class extends Model
     {
@@ -31,14 +31,14 @@ beforeEach(function (): void {
 
 it('reads the requested field even when filepath is empty', function (): void {
     Storage::put('users/u/audio/transcript.txt', 'hello transcript');
-    $model = storageFileModel(['id' => 7, 'filepath' => null, 'parser_filepath' => 'users/u/audio/transcript.txt']);
+    $model = hsfModel(['id' => 7, 'filepath' => null, 'parser_filepath' => 'users/u/audio/transcript.txt']);
 
     expect($model->readContents('parser_filepath'))->toBe('hello transcript')
         ->and($model->withLocalFile(fn (File $file): string => $file->getContent(), 'parser_filepath'))->toBe('hello transcript');
 });
 
 it('names the missing field instead of always blaming filepath', function (): void {
-    $model = storageFileModel(['id' => 7, 'filepath' => 'users/u/a.txt', 'parser_filepath' => null]);
+    $model = hsfModel(['id' => 7, 'filepath' => 'users/u/a.txt', 'parser_filepath' => null]);
 
     expect(fn () => $model->readFile('parser_filepath'))
         ->toThrow(RuntimeException::class, 'parser_filepath');
@@ -46,7 +46,7 @@ it('names the missing field instead of always blaming filepath', function (): vo
 
 it('creates exactly one local copy, with the stored extension', function (): void {
     Storage::put('users/u/doc.docx', 'docx-bytes');
-    $model = storageFileModel(['id' => 1, 'filepath' => 'users/u/doc.docx']);
+    $model = hsfModel(['id' => 1, 'filepath' => 'users/u/doc.docx']);
 
     $file = $model->readFile();
 
@@ -62,7 +62,7 @@ it('creates exactly one local copy, with the stored extension', function (): voi
 
 it('deletes the local copy after withLocalFile, even when the callback throws', function (): void {
     Storage::put('users/u/doc.txt', 'text');
-    $model = storageFileModel(['id' => 1, 'filepath' => 'users/u/doc.txt']);
+    $model = hsfModel(['id' => 1, 'filepath' => 'users/u/doc.txt']);
 
     $path = $model->withLocalFile(fn (File $file): string => $file->getPathname());
     expect(file_exists($path))->toBeFalse();
@@ -83,7 +83,7 @@ it('deletes the local copy after withLocalFile, even when the callback throws', 
 
 it('hands a stored PDF to withPdf as-is and never deletes it', function (): void {
     Storage::put('users/u/report.pdf', '%PDF-1.7');
-    $model = storageFileModel(['id' => 1, 'filepath' => 'users/u/report.pdf']);
+    $model = hsfModel(['id' => 1, 'filepath' => 'users/u/report.pdf']);
 
     $office = Mockery::mock(OfficePdf::class);
     $office->shouldNotReceive('toPdf');
@@ -98,7 +98,7 @@ it('hands a stored PDF to withPdf as-is and never deletes it', function (): void
 it('converts other files to a temporary PDF under the file\'s own root and cleans up every copy afterwards', function (): void {
     $root = 'workspaces/'.Str::uuid()->toString();
     Storage::put($root.'/agents/a/files/notes.docx', 'docx-bytes');
-    $model = storageFileModel(['id' => 1, 'filepath' => $root.'/agents/a/files/notes.docx']);
+    $model = hsfModel(['id' => 1, 'filepath' => $root.'/agents/a/files/notes.docx']);
 
     $converted = sys_get_temp_dir().'/converted_'.uniqid().'.pdf';
     $inputSeen = null;
@@ -134,7 +134,7 @@ it('makes the PDF from the parsed pages, not the raw JSON, when a source has the
         ['pageNumber' => 1, 'content' => 'First page text.', 'checksum' => 'a'],
         ['pageNumber' => 2, 'content' => 'Second page text.', 'checksum' => 'b'],
     ]));
-    $model = storageFileModel(['id' => 1, 'filepath' => 'users/u/scan.png', 'parser_filepath' => 'users/u/pages.json']);
+    $model = hsfModel(['id' => 1, 'filepath' => 'users/u/scan.png', 'parser_filepath' => 'users/u/pages.json']);
 
     $converted = sys_get_temp_dir().'/converted_'.uniqid().'.pdf';
 

@@ -87,17 +87,16 @@ final readonly class MarkdownComparison
             $markdown = (string) preg_replace('/(?<!!)\[([^\[\]]*)\]\([^)]*\)/', '$1', $markdown);
         }
 
-        $text = (string) preg_replace([
-            '/^\[\^[^\]]+\]:[ \t]*/m',     // footnote labels (the note text stays)
-            '/\[\^[^\]]+\]/',              // footnote marks
-            '/!\[[^\]]*\]\([^)]*\)/',      // images
-            '/\[([^\]]*)\]\([^)]*\)/',     // links: their text stays
-            '/(?<!\\\\)<\/?(?:'.self::BLOCK_TAGS.')\b[^>]*>/i',
-            '/(?<!\\\\)<\/?[a-z][a-z0-9]*\b[^>]*>/i',  // an escaped \<date> is text
-        ], ['', ' ', ' ', '$1', ' ', ''], $markdown);
-
-        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $text = str_replace(["\u{00AD}", "\u{00A0}"], ['', ' '], $text);
+        $text = (string)preg_replace([
+                '/^\[\^[^\]]+\]:[ \t]*/m',     // footnote labels (the note text stays)
+                '/\[\^[^\]]+\]/',              // footnote marks
+                '/!\[[^\]]*\]\([^)]*\)/',      // images
+                '/\[([^\]]*)\]\([^)]*\)/',     // links: their text stays
+                '/(?<!\\\\)<\/?(?:' . self::BLOCK_TAGS . ')\b[^>]*>/i',
+                '/(?<!\\\\)<\/?[a-z][a-z0-9]*\b[^>]*>/i',  // an escaped \<date> is text
+            ], ['', ' ', ' ', '$1', ' ', ''], $markdown)
+                |> (fn($x) => html_entity_decode($x, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+                |> (fn($x) => str_replace(["\u{00AD}", "\u{00A0}"], ['', ' '], $x));
 
         return (string) preg_replace('/\\\\([[:punct:]])/', '$1', $text);
     }

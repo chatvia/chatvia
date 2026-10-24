@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
  * shape (and the refusal of non-identifier text configurations) is what keeps
  * config values out of the SQL as text.
  */
-function lexicalSearchWith(string $driver, string $config = 'simple'): LexicalSearch
+function lxsSearch(string $driver, string $config = 'simple'): LexicalSearch
 {
     config(['chatvia.search.lexical_driver' => $driver, 'chatvia.search.text_config' => $config]);
 
@@ -21,7 +21,7 @@ function lexicalSearchWith(string $driver, string $config = 'simple'): LexicalSe
 }
 
 it('builds pg_textsearch SQL: a bm25 query, the <@> score, no extra condition', function (): void {
-    $lexical = lexicalSearchWith('pg_textsearch');
+    $lexical = lxsSearch('pg_textsearch');
 
     expect($lexical->driver())->toBe(LexicalDriver::PgTextsearch)
         ->and($lexical->queryExpression('chunks_search_text_lexical'))->toBe("to_bm25query(?, 'chunks_search_text_lexical')")
@@ -32,7 +32,7 @@ it('builds pg_textsearch SQL: a bm25 query, the <@> score, no extra condition', 
 });
 
 it('builds built-in full-text SQL: a tsquery, a negated ts_rank, an @@ condition', function (): void {
-    $lexical = lexicalSearchWith('postgres');
+    $lexical = lxsSearch('postgres');
 
     expect($lexical->driver())->toBe(LexicalDriver::Postgres)
         ->and($lexical->queryExpression('chunks_search_text_lexical'))->toBe("websearch_to_tsquery('simple', ?)")
@@ -43,12 +43,12 @@ it('builds built-in full-text SQL: a tsquery, a negated ts_rank, an @@ condition
 });
 
 it('joins the query words with OR for the built-in search, as BM25 ranks on any shared term', function (): void {
-    expect(lexicalSearchWith('postgres')->queryText("What is  the\nrefund policy?"))->toBe('What OR is OR the OR refund OR policy?')
-        ->and(lexicalSearchWith('pg_textsearch')->queryText('What is the refund policy?'))->toBe('What is the refund policy?');
+    expect(lxsSearch('postgres')->queryText("What is  the\nrefund policy?"))->toBe('What OR is OR the OR refund OR policy?')
+        ->and(lxsSearch('pg_textsearch')->queryText('What is the refund policy?'))->toBe('What is the refund policy?');
 });
 
 it('tokenizes with the configured text search configuration', function (): void {
-    $lexical = lexicalSearchWith('postgres', 'english');
+    $lexical = lxsSearch('postgres', 'english');
 
     expect($lexical->queryExpression('x'))->toBe("websearch_to_tsquery('english', ?)");
 });
@@ -56,7 +56,7 @@ it('tokenizes with the configured text search configuration', function (): void 
 it('resolves auto from the installed extensions, once', function (): void {
     $installed = (bool) DB::scalar("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_textsearch')");
 
-    $lexical = lexicalSearchWith('auto');
+    $lexical = lxsSearch('auto');
 
     expect($lexical->driver())->toBe($installed ? LexicalDriver::PgTextsearch : LexicalDriver::Postgres)
         // Memoized: a config change after the first resolution changes nothing.
@@ -65,9 +65,9 @@ it('resolves auto from the installed extensions, once', function (): void {
 });
 
 it('refuses an unknown driver', function (): void {
-    lexicalSearchWith('elastic')->driver();
+    lxsSearch('elastic')->driver();
 })->throws(InvalidLexicalSearchException::class);
 
 it('refuses a text configuration that is not a plain identifier', function (): void {
-    lexicalSearchWith('postgres', "simple'; DROP TABLE chunks; --")->textConfig();
+    lxsSearch('postgres', "simple'; DROP TABLE chunks; --")->textConfig();
 })->throws(InvalidLexicalSearchException::class);

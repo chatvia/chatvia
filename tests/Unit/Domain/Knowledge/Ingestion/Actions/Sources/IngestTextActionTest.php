@@ -26,14 +26,7 @@ it('marks the text as processing, announces it, and hands its parts on as chunk 
     Event::fake([TextIngestionStarted::class]);
 
     $agent = Agent::factory()->create();
-    $text = SourceText::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'filepath' => 'workspaces/x/sources/source_text/y/text.txt',
-        'excerpt' => 'Opening hours.',
-        'length' => 1,
-        'checksum' => md5(uniqid()),
-        'status' => SourceStatus::Pending,
-    ]);
+    $text = SourceText::factory()->attachedTo($agent)->create(['excerpt' => 'Opening hours.']);
     Storage::put($text->filepath, "Opening hours.\n\nMonday to Friday.");
 
     $handedOn = null;

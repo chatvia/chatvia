@@ -127,8 +127,7 @@ it('reads Word 6 and 95 files in the code page of their language', function (): 
 
 it('refuses a password-protected file and a file that is not a Word document', function (): void {
     $locked = new WordBinaryFile()->paragraph('Secret.')->encrypted()->save();
-    $other = (string) tempnam(sys_get_temp_dir(), 'doc');
-    file_put_contents($other, CompoundFileWriter::write(['Workbook' => 'not a document']));
+    $other = tempTestFile('other.doc', CompoundFileWriter::write(['Workbook' => 'not a document']));
 
     expect(fn (): string => docrRead($locked))->toThrow(RuntimeException::class, 'password protected')
         ->and(fn (): string => docrRead($other))->toThrow(RuntimeException::class, 'not a Word document');

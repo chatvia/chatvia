@@ -26,7 +26,7 @@ function mocrResponse(array $page): array
 /** A small local PDF to OCR. */
 function mocrPdf(): string
 {
-    return create_temp_file('manual.pdf', '%PDF-1.4 test');
+    return tempTestFile('manual.pdf', '%PDF-1.4 test');
 }
 
 it('posts the expected OCR envelope with bearer auth and the PDF inside the request', function (): void {
@@ -50,36 +50,16 @@ it('posts the expected OCR envelope with bearer auth and the PDF inside the requ
         && $request['include_image_base64'] === true);
 });
 
-it('sends images under image_url instead of document_url', function (): void {
-    Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
-            'index' => 0,
-            'markdown' => 'text on the image',
-            'images' => [],
-            'tables' => [],
-        ]), 200),
-    ]);
+it('sends each file as a data: URL typed by its extension, images under image_url', function (string $name, string $bytes, array $document): void {
+    Http::fake(['api.mistral.ai/v1/ocr' => Http::response(mocrResponse(['index' => 0, 'markdown' => 'text', 'images' => [], 'tables' => []]), 200)]);
 
-    app(MistralOcr::class)->fromFile(create_temp_file('scan.jpg', 'jpeg bytes'));
+    app(MistralOcr::class)->fromFile(tempTestFile($name, $bytes));
 
-    Http::assertSent(fn (Request $request): bool => $request['document'] === ['type' => 'image_url', 'image_url' => 'data:image/jpeg;base64,'.base64_encode('jpeg bytes')]);
-});
-
-it('types an office file by its extension', function (): void {
-    Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
-            'index' => 0,
-            'markdown' => 'slide',
-            'images' => [],
-            'tables' => [],
-        ]), 200),
-    ]);
-
-    app(MistralOcr::class)->fromFile(create_temp_file('deck.pptx', 'pptx bytes'));
-
-    Http::assertSent(fn (Request $request): bool => $request['document']['document_url']
-        === 'data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,'.base64_encode('pptx bytes'));
-});
+    Http::assertSent(fn (Request $request): bool => $request['document'] === $document);
+})->with([
+    'an image' => ['scan.jpg', 'jpeg bytes', ['type' => 'image_url', 'image_url' => 'data:image/jpeg;base64,'.base64_encode('jpeg bytes')]],
+    'an office file' => ['deck.pptx', 'pptx bytes', ['type' => 'document_url', 'document_url' => 'data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,'.base64_encode('pptx bytes')]],
+]);
 
 it('keeps no copy of the file in storage', function (): void {
     Storage::fake();

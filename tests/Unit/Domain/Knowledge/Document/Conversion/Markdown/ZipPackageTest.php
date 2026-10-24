@@ -6,7 +6,7 @@ use Domain\Knowledge\Document\Conversion\Markdown\ZipPackage;
  * Read-only, size-checked access to the parts of a zip-based document.
  */
 it('reads parts by name, in any case, and gives null for a missing part', function (): void {
-    $path = create_temp_file('package.zip', '');
+    $path = tempTestFile('package.zip');
     $zip = new ZipArchive;
     $zip->open($path, ZipArchive::OVERWRITE);
     $zip->addFromString('word/document.xml', '<?xml version="1.0"?><doc>text</doc>');
@@ -22,15 +22,12 @@ it('reads parts by name, in any case, and gives null for a missing part', functi
         ->and($package->xml('word/broken.xml'))->toBeNull();
 
     $package->close();
-    @unlink($path);
 });
 
 it('refuses a file that is not a zip', function (): void {
-    $path = create_temp_file('fake.zip', 'plain text');
+    $path = tempTestFile('fake.zip', 'plain text');
 
     expect(fn (): ZipPackage => ZipPackage::open($path))->toThrow(RuntimeException::class);
-
-    @unlink($path);
 });
 
 it('resolves a link against the folder of the part that holds it', function (): void {

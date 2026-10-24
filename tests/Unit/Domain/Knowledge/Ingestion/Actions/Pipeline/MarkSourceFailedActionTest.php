@@ -22,18 +22,6 @@ beforeEach(function (): void {
     Event::fake([TextIngestionStarted::class, WebsiteCrawlStarted::class, UrlIngestionStarted::class]);
 });
 
-function msfText(Agent $agent): SourceText
-{
-    return SourceText::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'filepath' => 'users/x/agents/y/train/text/a.txt',
-        'excerpt' => 'excerpt',
-        'length' => 1,
-        'checksum' => md5(uniqid()),
-        'status' => SourceStatus::Processing,
-    ]);
-}
-
 it('marks a file failed with the reason and reports the exception', function (): void {
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingesting']);
@@ -50,8 +38,8 @@ it('marks a file failed with the reason and reports the exception', function ():
 
 it('tells the Web page when a website or one of its URLs fails', function (): void {
     $agent = Agent::factory()->create();
-    $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'crawling']);
-    $url = $website->urls()->create(['url' => 'https://docs.example.test/a']);
+    $website = SourceWebsite::factory()->attachedTo($agent)->create(['status' => SourceStatus::Crawling]);
+    $url = $website->urls()->create(['url' => $website->url.'/a']);
 
     app(MarkSourceFailedAction::class)->execute($website, $agent, new RuntimeException('map failed'));
     app(MarkSourceFailedAction::class)->execute($url, $agent, new RuntimeException('scrape failed'));
@@ -65,7 +53,7 @@ it('tells the Web page when a website or one of its URLs fails', function (): vo
 
 it('marks a text failed when its ingestion job fails, instead of leaving it ingesting', function (): void {
     $agent = Agent::factory()->create();
-    $text = msfText($agent);
+    $text = SourceText::factory()->processing()->attachedTo($agent)->create();
 
     new TextIngestionJob($text, $agent)->failed(new RuntimeException('splitter down'));
 

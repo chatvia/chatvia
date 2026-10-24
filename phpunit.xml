@@ -15,7 +15,7 @@
             <directory>tests/Architecture</directory>
         </testsuite>
         <!-- On-demand eval harnesses (real embeddings; self-skip without an API
-             key, so harmless in the default run). Target with the eval group. -->
+             key, so harmless in the default run). Run with the Eval testsuite. -->
         <testsuite name="Eval">
             <directory>tests/Eval</directory>
         </testsuite>

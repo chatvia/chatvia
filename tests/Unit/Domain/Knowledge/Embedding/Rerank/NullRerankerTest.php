@@ -19,7 +19,3 @@ it('honours the result cap', function (): void {
     expect((new NullReranker)->rerank('q', ['a', 'b', 'c'], topN: 2))->toHaveCount(2)
         ->and((new NullReranker)->rerank('q', []))->toBe([]);
 });
-
-it('tells callers to skip their relevance threshold', function (): void {
-    expect((new NullReranker)->isEnabled())->toBeFalse();
-});

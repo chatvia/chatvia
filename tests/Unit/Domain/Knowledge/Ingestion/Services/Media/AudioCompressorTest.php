@@ -15,10 +15,10 @@ beforeEach(function (): void {
     }
 });
 
-/** A 3-second recording made with ffmpeg, with a picture too when it is a video. */
+/** A 3-second recording made with ffmpeg, with a picture too when it is a video; deleted after the test. */
 function acRecording(string $extension, bool $video = false): string
 {
-    $path = tempnam(sys_get_temp_dir(), 'rec_').'.'.$extension;
+    $path = tempTestFile('recording.'.$extension);
 
     Process::run([
         config('services.bin.ffmpeg'), '-v', 'error',
@@ -33,14 +33,11 @@ function acRecording(string $extension, bool $video = false): string
 it('turns audio and video of any format into a short MP3', function (string $extension, bool $video): void {
     $recording = acRecording($extension, $video);
 
-    $mp3 = app(AudioCompressor::class)->process($recording);
+    $mp3 = deleteAfterTest(app(AudioCompressor::class)->process($recording));
 
     expect($mp3)->toEndWith('.mp3')
         ->and(filesize($mp3))->toBeLessThan(filesize($recording) + 20_000)
         ->and(app(AudioDurationExtractor::class)->getDurationInSeconds($mp3))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
-
-    unlink($mp3);
-    unlink($recording);
 })->with([
     'ogg' => ['ogg', false],
     'flac' => ['flac', false],
@@ -52,7 +49,7 @@ it('fails on a file ffmpeg cannot read, and leaves no MP3 behind', function (): 
     $folder = create_temp_dir('/audio-compression');
     $before = glob("{$folder}/*.mp3") ?: [];
 
-    expect(fn (): string => app(AudioCompressor::class)->process(create_temp_file('broken.ogg', 'not audio')))
+    expect(fn (): string => app(AudioCompressor::class)->process(tempTestFile('broken.ogg', 'not audio')))
         ->toThrow(RuntimeException::class, 'Compression failed');
 
     expect(glob("{$folder}/*.mp3") ?: [])->toBe($before);

@@ -56,9 +56,9 @@ class TurnContextFactory
         // The guard check and the rewrite are both small model calls, so they
         // go out together. The rewrite reads the masked text (masking needs no
         // model call), never a raw identifier. A blocked message's rewrite is
-        // dropped, so it never reaches the chat model. The guard's classifier
-        // also names the language, which a first message (no rewrite) or a
-        // blocked one would otherwise lack.
+        // dropped, so it never reaches the chat model. Both name the language:
+        // the rewrite's wins, and the classifier's covers a blocked message or
+        // a failed rewrite.
         $earlierTurns = $this->earlierTurns($history, $data);
         $guarding = $this->inspectInput($data, $earlierTurns);
         $rewriting = $this->queryRewriter->rewriteAsync($this->maskedMessage($data), $earlierTurns);

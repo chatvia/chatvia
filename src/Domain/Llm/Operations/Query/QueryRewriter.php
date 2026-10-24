@@ -20,8 +20,11 @@ use Throwable;
  * makes sense without the chat, from the last turns before it, and detects
  * its language. The result is used only to search the knowledge; the model
  * still answers the message as the visitor wrote it. A message with no chat
- * before it is searched as it is, without a model call. When it is switched
- * off (`chatvia.ai.query.rewriter.enabled`) or the call fails, the message is
+ * before it is searched as it is, but still goes to the model for its
+ * language: the guardrail classifier names it too, but that may be off or
+ * fail, and a reply with no language named drifts into the language of the
+ * knowledge it quotes. When it is switched off
+ * (`chatvia.ai.query.rewriter.enabled`) or the call fails, the message is
  * used unchanged.
  */
 class QueryRewriter
@@ -58,7 +61,7 @@ class QueryRewriter
         $conversation = $this->conversation($history);
 
         // A preset in .env may read "1" or "true".
-        if ($conversation === '' || ! filter_var(config('chatvia.ai.query.rewriter.enabled'), FILTER_VALIDATE_BOOL)) {
+        if (! filter_var(config('chatvia.ai.query.rewriter.enabled'), FILTER_VALIDATE_BOOL)) {
             return Create::promiseFor(RewrittenQueryData::unchanged($message));
         }
 
@@ -87,7 +90,9 @@ class QueryRewriter
         }
 
         return $reply->then(
-            fn (ChatResponseData $reply): RewrittenQueryData => $this->parse($reply->content, $message),
+            fn (ChatResponseData $reply): RewrittenQueryData => $conversation === ''
+                ? RewrittenQueryData::unchanged($message)->orLanguage($this->parse($reply->content, $message)->language)
+                : $this->parse($reply->content, $message),
             $unchanged,
         );
     }

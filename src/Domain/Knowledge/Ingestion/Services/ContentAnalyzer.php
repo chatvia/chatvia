@@ -19,6 +19,9 @@ use Domain\Llm\Services\StructuredCompletion;
  * read as a PDF from a URL (a `data:` URL holding the PDF itself, or a link the
  * provider can open) by the configured document-reading LLM
  * (`chatvia.ai.models.analysis`). The reply must follow a strict JSON schema.
+ * The language comes first in it: the model writes the fields in order, and
+ * asked for the language last it had already written the questions and
+ * topics in a language it guessed, then named that one.
  */
 class ContentAnalyzer
 {
@@ -57,6 +60,11 @@ class ContentAnalyzer
         return [
             'type' => 'object',
             'properties' => [
+                'language' => [
+                    'type' => 'string',
+                    'pattern' => '^[a-z]{2}$',
+                    'description' => 'Primary language as ISO 639-1 language code (e.g., en, ar, fr, es, de, it, pt, ru, ja, ko, zh, hi). For mixed languages, use the predominant language.',
+                ],
                 'questions' => [
                     'type' => 'array',
                     'items' => ['type' => 'string'],
@@ -169,11 +177,6 @@ class ContentAnalyzer
                         'contains_sensitive_info',
                     ],
                 ],
-                'language' => [
-                    'type' => 'string',
-                    'pattern' => '^[a-z]{2}$',
-                    'description' => 'Primary language as ISO 639-1 language code (e.g., en, ar, fr, es, de, it, pt, ru, ja, ko, zh, hi). For mixed languages, use the predominant language.',
-                ],
                 'confidence_score' => [
                     'type' => 'number',
                     'minimum' => 0,
@@ -182,10 +185,10 @@ class ContentAnalyzer
                 ],
             ],
             'required' => [
+                'language',
                 'questions',
                 'document_type',
                 'metadata',
-                'language',
                 'confidence_score',
             ],
             'additionalProperties' => false,

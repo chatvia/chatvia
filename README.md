@@ -459,9 +459,11 @@ composer ci:check                              # every CI gate (see below)
   see `phpunit.xml`). The Docker setup creates this database for you. On the
   first run, the suite installs the extensions, migrates and seeds it; when
   migrations change, it rebuilds the schema by itself.
-- Run the suite in one process, as `composer test` does. With `--parallel`,
-  every process builds its own test database at the same time, and PostgreSQL
-  runs out of locks (`max_locks_per_transaction`).
+- `composer test` runs the suite in parallel, one process per CPU core, at
+  most 8 (`php artisan test --parallel --max-processes=8`). Each process gets
+  its own database (`testing_test_1`, …), a copy of `testing`, so the
+  migrations run once and never in many databases at the same time. Run one
+  file or folder without `--parallel`.
 - `composer ci:check` runs, without changing any file: `composer validate`,
   `composer audit`, `npm audit` (production dependencies), Pint, Rector,
   PHPStan, Prettier, ESLint, `vue-tsc`, the i18n check and the test suite. CI

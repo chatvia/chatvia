@@ -15,12 +15,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
+use Tests\Support\Database\ParallelTestDatabases;
 
 /**
  * Application-wide framework settings: the password policy, the morph map,
@@ -46,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureFactoryResolution();
         $this->forceHttpsInProduction();
         $this->extendSocialiteProviders();
+        $this->prepareParallelTestDatabases();
     }
 
     /**
@@ -114,6 +117,18 @@ class AppServiceProvider extends ServiceProvider
         if (app()->isProduction() && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
+    }
+
+    // A parallel test run (`--parallel`) copies the testing database once for
+    // each worker, in the main process before any worker starts: PostgreSQL
+    // copies a database only while nothing else has it open.
+    private function prepareParallelTestDatabases(): void
+    {
+        if (! $this->app->runningUnitTests()) {
+            return;
+        }
+
+        ParallelTesting::setUpProcess(fn (int|string $token): mixed => ParallelTestDatabases::prepare(config(), (string) $token));
     }
 
     private function extendSocialiteProviders(): void

@@ -33,7 +33,7 @@ it('picks the model of each app task from the models that may be used', function
     'one task' => ['guardrails_model', 'chatvia.ai.tasks.guardrails'],
 ]);
 
-it('has a setting and a field for every app task', function (): void {
+it('has a setting and a field for every app task, image descriptions on the Documents card', function (): void {
     $page = adminPage(ManageAiModelSettings::class, $this->admin);
 
     foreach (LlmTask::appTasks() as $task) {

@@ -14,7 +14,8 @@ it('names and explains every app task, and lists each in one group', function ()
             ->and(LlmTaskText::help($task))->not->toBeEmpty();
     }
 
-    expect(array_merge(...array_values(LlmTaskText::GROUPS)))->toEqualCanonicalizing(LlmTask::appTasks());
+    // Image descriptions have their model on the Documents card instead.
+    expect([...LlmTaskText::listedTasks(), LlmTask::Images])->toEqualCanonicalizing(LlmTask::appTasks());
 });
 
 it('lists as quick tasks the small ones the model for quick tasks does', function (): void {

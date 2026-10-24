@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Admin\Settings\Actions;
 
 use App\Admin\Settings\AiSettings;
-use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\TaskModelPreset;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
@@ -20,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * preset ({@see TaskModelPreset}): the small one for app tasks, the chat
  * model for the tasks that need a large one, the one that reads images for
  * image descriptions. Without that one, image descriptions are turned off
- * (Settings → Knowledge). A model picked for a single task before is
+ * (Settings → AI models → Documents). A model picked for a single task before is
  * cleared.
  */
 final readonly class ApplyRecommendedTaskModelsAction
@@ -28,7 +27,6 @@ final readonly class ApplyRecommendedTaskModelsAction
     public function __construct(
         private AddLlmModelAction $addModel,
         private AiSettings $ai,
-        private KnowledgeSettings $knowledge,
     ) {}
 
     /**
@@ -44,12 +42,11 @@ final readonly class ApplyRecommendedTaskModelsAction
                 $this->ai->{$property} = $value;
             }
 
-            $this->ai->save();
-
             if (! $reader instanceof Llm) {
-                $this->knowledge->describe_images = false;
-                $this->knowledge->save();
+                $this->ai->describe_images = false;
             }
+
+            $this->ai->save();
 
             return $model;
         });

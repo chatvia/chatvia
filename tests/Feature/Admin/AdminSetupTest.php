@@ -363,7 +363,7 @@ it('lets the admin turn image descriptions off, although a recommended model rea
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse()
+    expect(savedSetting(AiSettings::class, 'describe_images'))->toBeFalse()
         ->and(savedSetting(AiSettings::class, 'images_model'))->toBeNull();
 });
 
@@ -449,7 +449,7 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('openrouter')
         ->and(savedSetting(AiSettings::class, 'openrouter_embedding_model'))->toBe('qwen/qwen3-embedding-8b')
         // No recommended model that reads images: image descriptions are off.
-        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
+        ->and(savedSetting(AiSettings::class, 'describe_images'))->toBeFalse();
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/embeddings'
         && $request->header('Authorization') === ['Bearer sk-or-test']

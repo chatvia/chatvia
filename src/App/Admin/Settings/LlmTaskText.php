@@ -14,14 +14,28 @@ use InvalidArgumentException;
  */
 final class LlmTaskText
 {
-    /** The app tasks by when they run, the order Settings → AI models lists them in. */
+    /**
+     * The app tasks on the Models for app tasks card, by when they run, in
+     * the order it lists them. Image descriptions are not among them: their
+     * model sits next to its switch on the Documents card.
+     */
     public const array GROUPS = [
         'During a chat (the reply waits for these)' => [LlmTask::FollowUp, LlmTask::ToolRouting, LlmTask::Guardrails],
         'After a reply (in the background)' => [LlmTask::Titles, LlmTask::ConversationAnalysis],
         'Agent setup' => [LlmTask::Starters, LlmTask::Translation, LlmTask::FormText, LlmTask::ChatAddress],
-        'Training sources' => [LlmTask::Enhancement, LlmTask::Tables, LlmTask::Images],
+        'Training sources' => [LlmTask::Enhancement, LlmTask::Tables],
         'Testing' => [LlmTask::EvalJudge],
     ];
+
+    /**
+     * The tasks the Models for app tasks card lists, in its order.
+     *
+     * @return list<LlmTask>
+     */
+    public static function listedTasks(): array
+    {
+        return array_merge(...array_values(self::GROUPS));
+    }
 
     public static function label(LlmTask $task): string
     {
@@ -66,7 +80,7 @@ final class LlmTaskText
             LlmTask::ChatAddress => ['Hosted chat addresses', 'Suggests a short address for an agent\'s hosted chat (/chat/…).'],
             LlmTask::Enhancement => ['AI enhancement', 'Writes a summary and the likely questions for each part of a file or web page while sources are trained. One call per part, so large files make many calls. Turned on in Settings → Knowledge → AI enhancement.'],
             LlmTask::Tables => ['Tables', 'Turns the tables inside documents into plain text, so search can find what they say.'],
-            LlmTask::Images => ['Image descriptions', 'Describes the pictures inside PDF files and other documents, so search can find them. Needs a model that reads images. Turned on in Settings → Knowledge → AI enhancement → Describe images.'],
+            LlmTask::Images => ['Image descriptions', 'Describes the pictures inside PDF files and other documents, so search can find them. Needs a model that reads images. Turned on in Settings → AI models → Documents → Describe images.'],
             LlmTask::EvalJudge => ['Evaluation judge', 'Scores an agent\'s answers in evaluations. A stronger model gives fairer scores.'],
             LlmTask::Chat => throw new InvalidArgumentException('The chat model is "Default model for new agents".'),
         };

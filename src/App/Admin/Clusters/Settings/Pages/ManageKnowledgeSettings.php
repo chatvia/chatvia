@@ -25,7 +25,9 @@ use Illuminate\Support\Str;
  * What agents learn from: the file types people may upload, website import
  * (Firecrawl) and the AI enhancement of chunks. How text is split into
  * chunks (ManageSplittingSettings) and how agents search it
- * (ManageSearchSettings) have their own pages.
+ * (ManageSearchSettings) have their own pages. Describing the pictures
+ * inside documents sits on Settings → AI models → Documents, next to its
+ * model.
  */
 class ManageKnowledgeSettings extends AdminSettingsPage
 {
@@ -120,14 +122,11 @@ class ManageKnowledgeSettings extends AdminSettingsPage
                 $this->toggle('enhance_chunks', 'Enhance files and web pages',
                     help: 'Adds a summary and likely questions to every chunk of uploaded files and crawled pages, and a summary of the whole source, so far more of the right passages are found. One model call per chunk while training: a 300-page PDF makes about 300 calls. The model is set in Settings → AI models → Models for app tasks.'),
                 $this->toggle('enhance_text_chunks', 'Enhance text sources',
-                    help: 'The same step for pasted texts. They are short, so it costs little. With both off, training makes no model calls.'),
-                $this->toggle('describe_images', 'Describe images',
-                    help: 'While files are enhanced, describes the pictures inside PDF files and other documents, so search can find what they show. Needs a model that reads images: Settings → AI models → Models for app tasks → Image descriptions. The setup turns this off when your AI provider has no such model. Off: pictures are skipped, and the text is still read.'),
+                    help: 'The same step for pasted texts. They are short, so it costs little. With both off, training makes no model calls. The pictures inside documents are described on Settings → AI models → Documents.'),
             ])->summary(fn (): string => sprintf(
-                'Files and pages %s · Texts %s · Images %s',
+                'Files and pages %s · Texts %s',
                 $this->shown($this->valueInUse('enhance_chunks')),
                 $this->shown($this->valueInUse('enhance_text_chunks')),
-                $this->shown($this->valueInUse('describe_images')),
             )),
         ];
     }

@@ -11,8 +11,8 @@ use Illuminate\Support\Str;
 
 /**
  * The Documents card of Settings → AI models: document reading (Mistral OCR,
- * Azure Document Intelligence or Off), source summaries and chat file
- * uploads, each with its model. A new reader is checked with a real call as
+ * Azure Document Intelligence or Off), source summaries, image descriptions
+ * and chat file uploads, each with its model. A new reader is checked with a real call as
  * it is saved and refused, with the reason, when the call fails. What the pickers share is in ServiceChoicesTest.
  */
 beforeEach(function (): void {
@@ -119,6 +119,42 @@ it('warns when no model reads PDF files for source summaries', function (): void
     adminPage(ManageAiModelSettings::class, $this->admin)
         ->fillForm(['source_summaries_enabled' => true])
         ->assertSee('No model reads PDF files');
+});
+
+it('lists only the models that read images for image descriptions, and saves the switch and the pick', function (): void {
+    $reader = testLlm('reader', attributes: ['capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text', 'image']]]]);
+    testLlm('text-only', attributes: ['capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text']]]]);
+
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['describe_images' => true])
+        ->assertFormFieldVisible('images_model');
+
+    expect(array_merge(...array_map(array_keys(...), array_values($page->instance()->form->getFlatFields(withHidden: true)['images_model']->getOptions()))))->toBe([$reader->id]);
+
+    $page->fillForm(['images_model' => (string) $reader->id])->call('save')->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'images_model'))->toBe((string) $reader->id)
+        ->and(config('chatvia.ai.tasks.images'))->toBe((string) $reader->id)
+        ->and(config('chatvia.ai.chunker.describe_images'))->toBeTrue();
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['describe_images' => false])
+        ->assertFormFieldHidden('images_model')
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'describe_images'))->toBeFalse()
+        ->and(config('chatvia.ai.chunker.describe_images'))->toBeFalse();
+});
+
+it('warns when no model reads images for image descriptions', function (): void {
+    // Every model known not to read images: one nothing is known about is still listed.
+    Llm::query()->each(fn (Llm $llm): bool => $llm->update(['capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text']]]]));
+    Llm::flushCatalogCache();
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['describe_images' => true])
+        ->assertSee('No model reads images');
 });
 
 it('lists only the models that read PDF files and images for chat file uploads, and saves the switch and the pick', function (): void {

@@ -28,6 +28,7 @@ return new class extends SettingsMigration
             $group->add('chat_files_model');
             $group->add('source_summaries_enabled');
             $group->add('source_summaries_model');
+            $group->add('describe_images');
             $group->add('default_agent_model');
             $group->add('task_model');
             $group->add('follow_up_model');

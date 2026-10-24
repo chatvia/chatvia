@@ -165,14 +165,14 @@ class UpdateSecurityPolicyAction
             return;
         }
 
-        $parts = parse_url($url);
-        if (! is_array($parts) || Str::lower($parts['scheme'] ?? '') !== 'https' || empty($parts['host'])) {
+        $uri = SafeUrl::parse($url);
+        if (Str::lower((string) $uri?->scheme()) !== 'https' || blank($uri->host())) {
             throw UnsafeWebhookUrlException::for('The webhook URL must be a valid https URL.');
         }
 
-        $host = Str::trim($parts['host'], '[]');
+        $host = Str::trim($uri->host(), '[]');
 
-        if (strtolower($host) === 'localhost') {
+        if (Str::lower($host) === 'localhost') {
             throw UnsafeWebhookUrlException::for('The webhook URL must not point to an internal address.');
         }
 

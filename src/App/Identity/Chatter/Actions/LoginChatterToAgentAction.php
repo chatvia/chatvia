@@ -6,6 +6,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Data\Sessions\LoginData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Checks a chatter's password for an agent's hosted chat (/chat/login).
@@ -26,7 +27,7 @@ class LoginChatterToAgentAction
     {
         $chatter = Chatter::query()
             ->where('workspace_id', $agent->workspace_id)
-            ->whereRaw('lower(email) = ?', [strtolower(trim($data->email))])
+            ->whereRaw('lower(email) = ?', [Str::lower(Str::trim($data->email))])
             ->first();
 
         $hash = $chatter?->password;

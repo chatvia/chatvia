@@ -7,6 +7,7 @@ namespace App\Mcp\Tools\Analytics;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\Activity\ConversationStatsQuery;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -35,7 +36,7 @@ class GetConversationStatsTool extends AnalyticsTool
 
         $summary = sprintf(
             '%s: %s conversations, averaging %s messages each%s.%s',
-            ucfirst($scope->period->label),
+            Str::ucfirst($scope->period->label),
             number_format($data->conversations),
             $data->avgMessagesPerConversation !== null ? number_format((float) $data->avgMessagesPerConversation, 1) : '0',
             $data->avgDurationSeconds !== null ? ' and about '.number_format((float) $data->avgDurationSeconds).'s long' : '',

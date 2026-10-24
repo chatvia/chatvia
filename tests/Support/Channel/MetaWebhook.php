@@ -32,7 +32,7 @@ final class MetaWebhook
     /** Meta's GET verify handshake with this verify token. */
     public static function verify(MetaApp $app, string $verifyToken, string $challenge = 'challenge-123'): TestResponse
     {
-        return test()->get(route($app->value.'.webhook.verify').'?'.http_build_query([
+        return test()->get(route($app->value.'.webhook.verify', [
             'hub.mode' => 'subscribe',
             'hub.verify_token' => $verifyToken,
             'hub.challenge' => $challenge,

@@ -3,6 +3,7 @@
 namespace Domain\Agent\Services;
 
 use Domain\Agent\Models\Agent as AgentModel;
+use Illuminate\Support\Str;
 
 /**
  * Stateless locator helpers for finding an {@see AgentModel} from a hosted
@@ -38,7 +39,7 @@ class AgentLocator
      */
     public static function resolveByHost(string $host): ?AgentModel
     {
-        $host = strtolower(trim($host));
+        $host = Str::lower(Str::trim($host));
 
         if ($host === '') {
             return null;

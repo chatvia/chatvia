@@ -12,6 +12,7 @@ use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Mockery\MockInterface;
 
 /**
@@ -111,15 +112,15 @@ it('leaves out tools whose full name an LLM would reject', function (): void {
     // the 64 letters, digits, `_` and `-` LLM providers accept.
     sotAdvertise([
         ['ask-tutor', 'ask'],
-        [str_repeat('a', 46), 'fits exactly'],
-        [str_repeat('b', 47), 'one character too long'],
+        [Str::repeat('a', 46), 'fits exactly'],
+        [Str::repeat('b', 47), 'one character too long'],
         ['ask.tutor', 'has a dot'],
         ['ask tutor', 'has a space'],
     ]);
 
     $tools = app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
-    expect($tools->pluck('name')->all())->toBe([str_repeat('a', 46), 'ask-tutor'])
+    expect($tools->pluck('name')->all())->toBe([Str::repeat('a', 46), 'ask-tutor'])
         ->and($this->server->fresh()->catalog_tools_count)->toBe(2);
 });
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support\Knowledge\Document\OldOffice;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 /**
  * Builds small Word documents in the binary format (.doc), for tests of the
@@ -151,7 +152,7 @@ final class WordBinaryFile
     public static function word6(string $text, int $languageId, string $encoding): string
     {
         $bytes = (string) iconv('UTF-8', $encoding, $text);
-        $header = str_repeat("\0", 0x300);
+        $header = Str::repeat("\0", 0x300);
         $put = static function (int $offset, string $value) use (&$header): void {
             $header = substr_replace($header, $value, $offset, strlen($value));
         };
@@ -160,6 +161,7 @@ final class WordBinaryFile
         $put(0x18, pack('VV', 0x300, 0x300 + strlen($bytes)));
         $put(0x34, pack('V', strlen($bytes)));
 
+        // str_pad, not Str::padRight: these are bytes, and mb_str_pad counts characters.
         $path = (string) tempnam(sys_get_temp_dir(), 'doc');
         file_put_contents($path, CompoundFileWriter::write(['WordDocument' => str_pad($header.$bytes, 4096, "\0")]));
 
@@ -217,7 +219,7 @@ final class WordBinaryFile
         $second = array_slice($units, $split);
         $firstIsAscii = max([0, ...$first]) < 0x80;
 
-        $word = str_repeat("\0", self::TEXT_START);
+        $word = Str::repeat("\0", self::TEXT_START);
         $secondAt = strlen($word);
         $word .= pack('v*', ...$second);
         $word .= mb_convert_encoding(self::STALE, 'UTF-16LE', 'UTF-8');
@@ -258,7 +260,7 @@ final class WordBinaryFile
         $addPart(1, $this->styleSheet());
 
         if ($references !== []) {
-            $addPart(2, pack('V*', ...[...$references, $bodyLength]).str_repeat(pack('v', 1), count($references)));
+            $addPart(2, pack('V*', ...[...$references, $bodyLength]).Str::repeat(pack('v', 1), count($references)));
             $addPart(3, pack('V*', ...[...$noteStarts, $noteLength + 1]));
         }
 
@@ -271,8 +273,8 @@ final class WordBinaryFile
         }
 
         $flags = 0x0004 | 0x0200 | ($this->encrypted ? 0x0100 : 0);
-        $header = pack('vvvvvv', 0xA5EC, 0x00C1, 0, 0x0409, 0, $flags).str_repeat("\0", 20)
-            .pack('v', 14).str_repeat("\0", 28)
+        $header = pack('vvvvvv', 0xA5EC, 0x00C1, 0, 0x0409, 0, $flags).Str::repeat("\0", 20)
+            .pack('v', 14).Str::repeat("\0", 28)
             .pack('v', 22).pack('V*', strlen($word), 0, 0, $bodyLength, $noteLength, 0, 0, 0, 0, 0, 0, ...array_fill(0, 11, 0))
             .pack('v', 93);
 
@@ -317,7 +319,7 @@ final class WordBinaryFile
 
         foreach (array_chunk($filled, 8) as $chunk) {
             $count = count($chunk);
-            $page = str_repeat("\0", 512);
+            $page = Str::repeat("\0", 512);
             $offsets = pack('V*', ...[...array_column($chunk, 0), $chunk[$count - 1][1]]);
             $page = substr_replace($page, $offsets, 0, strlen($offsets));
             $free = 511;
@@ -334,7 +336,7 @@ final class WordBinaryFile
                     $offset = intdiv($free, 2);
                 }
 
-                $entry = $paragraphs ? chr($offset).str_repeat("\0", 12) : chr($offset);
+                $entry = $paragraphs ? chr($offset).Str::repeat("\0", 12) : chr($offset);
                 $page = substr_replace($page, $entry, ($count + 1) * 4 + $index * strlen($entry), strlen($entry));
             }
 
@@ -353,7 +355,7 @@ final class WordBinaryFile
     private function styleSheet(): string
     {
         $count = max(array_keys($this->styles)) + 1;
-        $sheet = pack('v', 18).pack('vv', $count, 10).str_repeat("\0", 14);
+        $sheet = pack('v', 18).pack('vv', $count, 10).Str::repeat("\0", 14);
 
         for ($number = 0; $number < $count; $number++) {
             if (! isset($this->styles[$number])) {
@@ -390,10 +392,10 @@ final class WordBinaryFile
         $levels = '';
 
         foreach ($this->lists as $id => $listLevels) {
-            $definitions .= pack('VV', $id, 0).str_repeat(pack('v', 0x0FFF), 9).chr(count($listLevels) === 1 ? 1 : 0)."\0";
+            $definitions .= pack('VV', $id, 0).Str::repeat(pack('v', 0x0FFF), 9).chr(count($listLevels) === 1 ? 1 : 0)."\0";
 
             foreach (array_pad($listLevels, count($listLevels) === 1 ? 1 : 9, ['bullet' => true, 'start' => 1]) as $level) {
-                $levels .= pack('V', $level['start']).chr($level['bullet'] ? 23 : 0).str_repeat("\0", 23).pack('v', 0);
+                $levels .= pack('V', $level['start']).chr($level['bullet'] ? 23 : 0).Str::repeat("\0", 23).pack('v', 0);
             }
         }
 
@@ -406,7 +408,7 @@ final class WordBinaryFile
         $data = '';
 
         foreach ($this->overrides as $override) {
-            $table .= pack('V', $override['list']).str_repeat("\0", 8).chr(count($override['starts']))."\0\0\0";
+            $table .= pack('V', $override['list']).Str::repeat("\0", 8).chr(count($override['starts']))."\0\0\0";
             $data .= pack('V', 0);
 
             foreach ($override['starts'] as $level => $start) {

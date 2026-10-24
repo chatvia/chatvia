@@ -7,6 +7,7 @@ use Domain\Integration\Builtin\Data\Currency\CurrencyConversionRequestData;
 use Domain\Integration\Builtin\Exceptions\CurrencyConversionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -68,7 +69,7 @@ class CurrencyConverter
         // The key goes in a bearer header, never in the URL, so it cannot leak
         // through request logs or error messages. Connection errors are still
         // swallowed: the model only needs to know the rates are unavailable.
-        $baseUrl = rtrim((string) config('services.exchange_rate.base_url'), '/');
+        $baseUrl = Str::rtrim((string) config('services.exchange_rate.base_url'), '/');
 
         try {
             $response = Http::timeout(10)

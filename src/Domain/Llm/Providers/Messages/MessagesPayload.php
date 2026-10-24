@@ -233,7 +233,7 @@ final class MessagesPayload
 
         return array_values(array_filter(
             array_map(self::block(...), $parts),
-            static fn (?array $block): bool => $block !== null && ($block['type'] !== 'text' || trim((string) $block['text']) !== ''),
+            static fn (?array $block): bool => $block !== null && ($block['type'] !== 'text' || Str::trim((string) $block['text']) !== ''),
         ));
     }
 
@@ -268,7 +268,7 @@ final class MessagesPayload
             return ['type' => 'url', 'url' => $url];
         }
 
-        [$meta, $data] = array_pad(explode(',', substr($url, 5), 2), 2, '');
+        [$meta, $data] = array_pad(explode(',', Str::chopStart($url, 'data:'), 2), 2, '');
 
         return ['type' => 'base64', 'media_type' => Str::before($meta, ';'), 'data' => $data];
     }

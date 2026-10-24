@@ -6,6 +6,7 @@ use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -48,7 +49,7 @@ final readonly class PdfInfo implements PdfInspector
     {
         $result = Process::timeout(60)->run([$this->pdfInfoPath, $pdfPath]);
 
-        return ! $result->successful() && str_contains($result->errorOutput(), 'Incorrect password');
+        return ! $result->successful() && Str::contains($result->errorOutput(), 'Incorrect password');
     }
 
     /** @return array<string, string|float> pdfinfo fields keyed by snake_case name (`pages`, `title`, ...) */
@@ -96,18 +97,18 @@ final readonly class PdfInfo implements PdfInspector
         $output = mb_convert_encoding($output, 'UTF-8', 'UTF-8');
 
         $info = [];
-        $lines = explode("\n", trim($output));
+        $lines = Str::of($output)->trim()->explode("\n");
 
         foreach ($lines as $line) {
-            if (empty(trim($line))) {
+            if (empty(Str::trim($line))) {
                 continue;
             }
 
-            if (str_contains($line, ':')) {
+            if (Str::contains($line, ':')) {
                 [$key, $value] = explode(':', $line, 2);
-                $key = strtolower(trim($key));
-                $key = str_replace(' ', '_', $key);
-                $value = trim($value);
+                $key = Str::lower(Str::trim($key));
+                $key = Str::replace(' ', '_', $key);
+                $value = Str::trim($value);
 
                 // Parse page size
                 if ($key === 'page_size' && preg_match('/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*pts/', $value, $matches)) {

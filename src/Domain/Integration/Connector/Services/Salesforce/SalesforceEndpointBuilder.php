@@ -7,6 +7,7 @@ namespace Domain\Integration\Connector\Services\Salesforce;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 use Domain\Integration\Connector\Data\Salesforce\SalesforceOrgData;
 use Domain\Integration\Connector\Enums\SalesforceEnvironment;
+use Illuminate\Support\Str;
 
 /**
  * Derives the Salesforce Hosted MCP server URL + OAuth endpoints from a
@@ -35,14 +36,14 @@ class SalesforceEndpointBuilder
         // OAuth login host: the org's My Domain if given (required for orgs that
         // enforce it), else the generic prod/sandbox login host.
         $loginHost = filled($org->myDomain)
-            ? rtrim(trim($org->myDomain), '/')
+            ? Str::rtrim(Str::trim($org->myDomain), '/')
             : ($isSandbox ? 'https://test.salesforce.com' : 'https://login.salesforce.com');
 
         $segment = $isSandbox ? 'sandbox' : 'platform';
 
         return new BringYourOwnOAuthData(
             clientId: $org->clientId,
-            clientSecret: filled($org->clientSecret) ? trim($org->clientSecret) : null,
+            clientSecret: filled($org->clientSecret) ? Str::trim($org->clientSecret) : null,
             mcpUrl: "https://api.salesforce.com/platform/mcp/v1/{$segment}/{$org->server}",
             authServerUrl: $loginHost,
             authorizationEndpoint: $loginHost.'/services/oauth2/authorize',

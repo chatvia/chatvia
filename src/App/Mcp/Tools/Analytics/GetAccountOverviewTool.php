@@ -6,6 +6,7 @@ namespace App\Mcp\Tools\Analytics;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\Activity\AccountOverviewQuery;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -35,7 +36,7 @@ class GetAccountOverviewTool extends AnalyticsTool
 
         $summary = sprintf(
             '%s: %s messages (%s in, %s AI) across %s conversations from %s visitors, %s leads captured.%s%s',
-            ucfirst($scope->period->label),
+            Str::ucfirst($scope->period->label),
             number_format($data->totalMessages()),
             number_format($data->incomingMessages),
             number_format($data->aiMessages),

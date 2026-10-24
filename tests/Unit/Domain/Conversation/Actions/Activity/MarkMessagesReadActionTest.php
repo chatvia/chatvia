@@ -43,7 +43,7 @@ it('marks the operator replies read for the visitor with a single update', funct
 
     DB::enableQueryLog();
     $marked = app(MarkMessagesReadAction::class)->execute($scope, MessageReader::Visitor);
-    $updates = collect(DB::getQueryLog())->filter(fn (array $q): bool => str_starts_with($q['query'], 'update "chat_messages"'));
+    $updates = collect(DB::getQueryLog())->filter(fn (array $q): bool => Str::startsWith($q['query'], 'update "chat_messages"'));
     DB::disableQueryLog();
 
     expect($marked)->toBe(2)

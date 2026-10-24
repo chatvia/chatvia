@@ -9,6 +9,7 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Illuminate\Support\Str;
 use LogicException;
 
 /**
@@ -53,7 +54,7 @@ final class KnowledgeStoragePath
 
         $path = 'workspaces/'.self::workspaceExternalId($workspaceId).'/sources/'.$source->getMorphClass().'/'.$externalId;
 
-        return $subfolder === '' ? $path : $path.'/'.trim($subfolder, '/');
+        return $subfolder === '' ? $path : $path.'/'.Str::trim($subfolder, '/');
     }
 
     private static function workspaceExternalId(int $workspaceId): string

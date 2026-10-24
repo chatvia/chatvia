@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Source\Web\Services;
 use Domain\Knowledge\Source\Web\Data\Firecrawl\ScrapedPageData;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Thin adapter over the FireCrawl v2 API.
@@ -23,7 +24,7 @@ class Firecrawl
 {
     private function client(): PendingRequest
     {
-        $baseUrl = rtrim((string) config('services.firecrawl.endpoint'), '/').'/';
+        $baseUrl = Str::rtrim((string) config('services.firecrawl.endpoint'), '/').'/';
 
         return Http::withToken(config('services.firecrawl.key'))
             ->timeout(120)

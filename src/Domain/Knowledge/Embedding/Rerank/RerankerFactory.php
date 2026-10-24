@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Embedding\Rerank;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
+use Illuminate\Support\Str;
 
 /**
  * Builds the reranker set in the admin panel (Settings → AI models), with
@@ -63,7 +64,7 @@ class RerankerFactory
     private function cohere(?string $apiKey, ?string $model): Reranker
     {
         return new CompatibleReranker(
-            baseUrl: rtrim((string) config('services.cohere.api_endpoint', 'https://api.cohere.com/v2'), '/'),
+            baseUrl: Str::rtrim((string) config('services.cohere.api_endpoint', 'https://api.cohere.com/v2'), '/'),
             apiKey: $apiKey ?? config('services.cohere.api_key'),
             model: (string) ($model ?? config('services.cohere.rerank_model') ?: 'rerank-v4.0-pro'),
             extraPayload: ['max_tokens_per_doc' => 1000],
@@ -74,7 +75,7 @@ class RerankerFactory
     private function custom(?string $apiKey, ?string $model, ?string $url): Reranker
     {
         return new CompatibleReranker(
-            baseUrl: rtrim((string) ($url ?? config('chatvia.ai.rerank.custom.url')), '/'),
+            baseUrl: Str::rtrim((string) ($url ?? config('chatvia.ai.rerank.custom.url')), '/'),
             apiKey: $apiKey ?? config('chatvia.ai.rerank.custom.key'),
             model: (string) ($model ?? config('chatvia.ai.rerank.custom.model')),
             keyRequired: false,

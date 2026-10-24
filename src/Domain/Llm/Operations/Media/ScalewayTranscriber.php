@@ -8,6 +8,7 @@ use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Speech-to-text through the OpenAI-compatible `/audio/transcriptions`
@@ -35,7 +36,7 @@ class ScalewayTranscriber implements Transcriber
             ->attach(
                 'file',
                 File::get($filePath),
-                'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)),
+                'audio.'.Str::lower(pathinfo($filePath, PATHINFO_EXTENSION)),
             )
             ->post(Scaleway::baseUrl().'/audio/transcriptions', [
                 'model' => (string) config('services.scalewayai.transcription_model'),

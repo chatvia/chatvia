@@ -12,6 +12,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Str;
 
 /**
  * Embeds a short text with an embedding service, as training a source will:
@@ -32,7 +33,7 @@ final readonly class EmbeddingCheck
     {
         $values = array_filter([
             $provider->apiKeyConfig() => $apiKey,
-            $provider->modelConfig() => $model !== null ? trim($model) : null,
+            $provider->modelConfig() => $model !== null ? Str::trim($model) : null,
         ], filled(...));
 
         try {

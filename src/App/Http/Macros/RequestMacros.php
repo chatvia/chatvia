@@ -4,6 +4,7 @@ namespace App\Http\Macros;
 
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Str;
 use Support\Http\CloudflareIps;
 
 /**
@@ -45,10 +46,10 @@ final class RequestMacros
                 || $this->isFromTrustedProxy();
 
             if ($cloudflareTrusted) {
-                $cf = strtoupper(trim((string) $this->header('CF-IPCountry')));
+                $cf = Str::upper(Str::trim((string) $this->header('CF-IPCountry')));
 
                 if ($cf !== '' && ! in_array($cf, RequestMacros::CLOUDFLARE_NON_COUNTRIES, true)) {
-                    return strtolower($cf);
+                    return Str::lower($cf);
                 }
             }
 
@@ -66,7 +67,7 @@ final class RequestMacros
 
             $country = app(NetworkAccessGuard::class)->countryFor($clientIp);
 
-            return $country !== null ? strtolower($country) : null;
+            return $country !== null ? Str::lower($country) : null;
         });
     }
 }

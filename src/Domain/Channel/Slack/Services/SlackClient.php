@@ -5,6 +5,7 @@ namespace Domain\Channel\Slack\Services;
 use Domain\Channel\Services\RedactedException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -134,9 +135,9 @@ class SlackClient
     {
         $text = (new SlackFormatter)->toMrkdwn($markdown);
 
-        if (mb_strlen($text) > self::MESSAGE_LIMIT) {
-            Log::warning('Slack message truncated at limit', ['length' => mb_strlen($text)]);
-            $text = mb_substr($text, 0, self::MESSAGE_LIMIT - 1).'…';
+        if (Str::length($text) > self::MESSAGE_LIMIT) {
+            Log::warning('Slack message truncated at limit', ['length' => Str::length($text)]);
+            $text = Str::substr($text, 0, self::MESSAGE_LIMIT - 1).'…';
         }
 
         return $text;

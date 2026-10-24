@@ -7,6 +7,7 @@ use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\UserSocial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,6 +45,6 @@ class SocialController
         $request->user()->socials()->where('provider', $providerEnum)->delete();
 
         return to_route('account.social.edit')
-            ->with('success', __(':provider disconnected.', ['provider' => ucfirst($providerEnum->value)]));
+            ->with('success', __(':provider disconnected.', ['provider' => Str::ucfirst($providerEnum->value)]));
     }
 }

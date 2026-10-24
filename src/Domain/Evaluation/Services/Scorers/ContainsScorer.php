@@ -7,6 +7,7 @@ namespace Domain\Evaluation\Services\Scorers;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
+use Illuminate\Support\Str;
 
 /**
  * Passes when the agent's answer contains an expected substring. The needle is
@@ -27,8 +28,8 @@ class ContainsScorer implements ScorerInterface
         $caseSensitive = (bool) ($case->scorer_config['case_sensitive'] ?? false);
 
         $hit = $caseSensitive
-            ? str_contains($actual, $needle)
-            : str_contains(mb_strtolower($actual), mb_strtolower($needle));
+            ? Str::contains($actual, $needle)
+            : Str::contains(Str::lower($actual), Str::lower($needle));
 
         return $hit
             ? ScoreResultData::pass(1.0, "Output contains \"{$needle}\".")

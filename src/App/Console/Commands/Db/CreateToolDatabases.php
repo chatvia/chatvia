@@ -9,6 +9,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
 
 /**
  * Start-up and deploy step, run before the migrations: creates the own
@@ -64,7 +65,7 @@ class CreateToolDatabases extends Command
         } catch (QueryException $exception) {
             $this->components->error("Could not create the {$tool} database \"{$name}\": {$exception->getPrevious()?->getMessage()}");
             $this->line('Create it yourself (CREATE DATABASE "'.$name.'" OWNER "'.$database->getConfig('username').'"), or give the');
-            $this->line('database user the CREATEDB right. DB_'.strtoupper($connection).'_DATABASE names it.');
+            $this->line('database user the CREATEDB right. DB_'.Str::upper($connection).'_DATABASE names it.');
 
             return false;
         } finally {

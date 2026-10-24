@@ -62,7 +62,7 @@ function pgaCountDeletes(string $table, Closure $callback): int
     $count = 0;
 
     DB::listen(function (QueryExecuted $query) use ($table, &$count): void {
-        if (str_starts_with($query->sql, "DELETE FROM {$table} ")) {
+        if (Str::startsWith($query->sql, "DELETE FROM {$table} ")) {
             $count++;
         }
     });

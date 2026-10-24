@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Notifications\AccountDeletionConfirmationNotification;
 use App\Identity\Workspace\Notifications\DataExportReadyNotification;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Str;
 
 /**
  * Transactional emails name ChatVia.ai through the `:app` placeholder, in
@@ -17,7 +18,7 @@ it('names ChatVia.ai in the data export and account deletion emails', function (
     $export = DataExport::create([
         'user_id' => $user->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('d', 64),
+        'download_token' => Str::repeat('d', 64),
         'file_path' => 'data-exports/x.zip',
         'file_size' => 1,
         'expires_at' => now()->addDay(),

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * Builds a saved prompt for the workspace Library, owned by a fresh workspace
@@ -21,7 +22,7 @@ class AgentPromptFactory extends Factory
     {
         return [
             'workspace_id' => fn (): int => User::factory()->create()->workspace()->id,
-            'name' => ucfirst(fake()->unique()->words(2, true)),
+            'name' => Str::ucfirst(fake()->unique()->words(2, true)),
             'prompt' => fake()->paragraphs(2, true),
         ];
     }

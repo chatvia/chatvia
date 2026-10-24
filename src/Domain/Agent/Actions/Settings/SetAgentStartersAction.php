@@ -36,7 +36,7 @@ class SetAgentStartersAction
         $items = [];
 
         foreach (array_values($starters) as $starter) {
-            $text = trim($starter->text);
+            $text = Str::trim($starter->text);
 
             if ($text === '') {
                 continue;

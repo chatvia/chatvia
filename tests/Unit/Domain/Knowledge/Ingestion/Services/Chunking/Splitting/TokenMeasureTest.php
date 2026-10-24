@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
+use Illuminate\Support\Str;
 
 /**
  * Token windows: a token can hold part of a multi-byte character, so a
@@ -10,7 +11,7 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
  */
 it('cuts windows of the size that join back into the text', function (): void {
     $measure = new TokenMeasure('cl100k_base');
-    $text = str_repeat('The quick brown fox jumps over the lazy dog. ', 20);
+    $text = Str::repeat('The quick brown fox jumps over the lazy dog. ', 20);
     $windows = $measure->windows($text, 16, 0);
 
     expect(implode('', $windows))->toBe($text)

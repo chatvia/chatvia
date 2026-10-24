@@ -10,6 +10,7 @@ use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * Finalize an agent-chatter invitation. The chatter row is already in the DB
@@ -44,7 +45,7 @@ class AcceptAgentInvitationAction
 
         if ($data->kind === InvitationCredentialKind::Social) {
             $socialEmail = $data->socialEmail ?? '';
-            if (! hash_equals(strtolower($invitedEmail), strtolower($socialEmail))) {
+            if (! hash_equals(Str::lower($invitedEmail), Str::lower($socialEmail))) {
                 throw new AgentChatterInvitationRejectedException(
                     'email',
                     __('This invitation was sent to :email. Sign in with the :provider account that uses the same email.', [
@@ -113,7 +114,7 @@ class AcceptAgentInvitationAction
     private function resolveInvitedChatter(Agent $agent, string $email): Chatter
     {
         $chatter = Chatter::query()
-            ->whereRaw('lower(email) = ?', [strtolower(trim($email))])
+            ->whereRaw('lower(email) = ?', [Str::lower(Str::trim($email))])
             ->where('workspace_id', $agent->workspace_id)
             ->first();
 

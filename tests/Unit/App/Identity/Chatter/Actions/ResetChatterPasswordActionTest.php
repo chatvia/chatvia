@@ -13,6 +13,7 @@ use App\Identity\Chatter\Services\ChatterPasswordResetTokens;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     Notification::fake();
@@ -32,8 +33,8 @@ it('sends the chatter a reset link to the agent hosted chat', function (): void 
         function (ChatterResetPasswordNotification $notification) use ($chatter): bool {
             $url = $notification->toMail($chatter)->actionUrl;
 
-            return str_contains($url, '/chat/'.$this->agent->slug.'/reset-password/'.$notification->token)
-                && str_contains($url, 'chatter='.$chatter->external_id);
+            return Str::contains($url, '/chat/'.$this->agent->slug.'/reset-password/'.$notification->token)
+                && Str::contains($url, 'chatter='.$chatter->external_id);
         },
     );
 });

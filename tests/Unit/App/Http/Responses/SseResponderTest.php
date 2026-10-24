@@ -5,6 +5,7 @@ use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * The App-layer SSE transport: the domain yields StreamEvents, this turns them
@@ -41,10 +42,12 @@ function sseOutput(Generator $events): string
  */
 function sseEnvelopes(string $output): array
 {
-    return array_values(array_map(
-        static fn (string $line): array => json_decode(substr($line, strlen('data: ')), true, flags: JSON_THROW_ON_ERROR),
-        array_filter(explode("\n\n", $output), static fn (string $line): bool => str_starts_with($line, 'data: ')),
-    ));
+    return Str::of($output)
+        ->explode("\n\n")
+        ->filter(static fn (string $line): bool => Str::startsWith($line, 'data: '))
+        ->map(static fn (string $line): array => json_decode(Str::after($line, 'data: '), true, flags: JSON_THROW_ON_ERROR))
+        ->values()
+        ->all();
 }
 
 beforeEach(function (): void {

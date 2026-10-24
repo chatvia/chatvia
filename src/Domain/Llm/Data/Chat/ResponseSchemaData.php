@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Data\Chat;
 
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -41,7 +42,7 @@ final class ResponseSchemaData extends Data
     /** The schema as a prompt instruction, for a model that cannot be held to it. */
     public function instruction(): string
     {
-        return trim(prompt('json/schema-reply', [
+        return Str::trim(prompt('json/schema-reply', [
             'schema' => json_encode($this->schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]));
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Document\Conversion;
 
 use Domain\Knowledge\Document\Conversion\Markdown\MarkdownReaders;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Support\Executable;
 
@@ -30,12 +31,12 @@ class EbookText
 
     public function supports(string $extension): bool
     {
-        return in_array(strtolower($extension), self::EXTENSIONS, true);
+        return in_array(Str::lower($extension), self::EXTENSIONS, true);
     }
 
     public function toMarkdown(string $path, string $extension): string
     {
-        $extension = strtolower($extension);
+        $extension = Str::lower($extension);
 
         if (! $this->supports($extension)) {
             throw new InvalidArgumentException("Unsupported ebook format: {$extension}");

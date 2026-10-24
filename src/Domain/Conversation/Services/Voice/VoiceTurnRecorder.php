@@ -10,6 +10,7 @@ use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
+use Illuminate\Support\Str;
 
 /**
  * Saves a voice call's turns as a typed turn's are saved: the visitor's
@@ -40,7 +41,7 @@ final readonly class VoiceTurnRecorder
     {
         $context = $turn->context;
         $request = $context->requestData;
-        $text = trim($transcript);
+        $text = Str::trim($transcript);
 
         $guard = blank($text)
             ? GuardResultData::clean(__('(Voice message that could not be transcribed)'))

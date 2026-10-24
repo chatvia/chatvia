@@ -10,6 +10,7 @@ use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
 /**
@@ -143,7 +144,7 @@ it('signs an hmac function request over the timestamp and the raw body', functio
     Http::assertSent(fn (ClientRequest $request): bool => $request->header(HttpToolDispatcher::TIMESTAMP_HEADER) === [$timestamp]
         && $request->header(HttpToolDispatcher::SIGNATURE_HEADER) === [$expected]
         // The secret itself never travels.
-        && ! str_contains(json_encode($request->headers()), 'shh-its-a-secret'));
+        && ! Str::contains(json_encode($request->headers()), 'shh-its-a-secret'));
 });
 
 it('signs a GET hmac request over the raw query string', function (): void {

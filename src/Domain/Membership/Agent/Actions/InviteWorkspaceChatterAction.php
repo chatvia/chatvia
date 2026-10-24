@@ -8,6 +8,7 @@ use Domain\Membership\Agent\Data\InviteAgentChatterData;
 use Domain\Membership\Agent\Data\InviteWorkspaceChatterData;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Invite a chatter from the workspace Members page and grant them access to a
@@ -47,7 +48,7 @@ class InviteWorkspaceChatterAction
                 /** @var Chatter $chatter */
                 $chatter = Chatter::query()
                     ->where('workspace_id', $agents->first()->workspace_id)
-                    ->whereRaw('lower(email) = ?', [strtolower(trim($data->email))])
+                    ->whereRaw('lower(email) = ?', [Str::lower(Str::trim($data->email))])
                     ->firstOrFail();
 
                 foreach ($rest as $agent) {

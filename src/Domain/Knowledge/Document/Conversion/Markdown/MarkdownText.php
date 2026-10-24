@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 /**
  * Writes the GitHub Markdown blocks the built-in readers share: headings,
@@ -29,19 +30,21 @@ final class MarkdownText
      */
     public static function inline(string $text): string
     {
-        $text = str_replace(["\u{00AD}", "\r\n", "\r"], ['', "\n", "\n"], $text);
-        $text = (string) preg_replace('/<(?=[A-Za-z\/!?])/', '\\<', $text);
-        $text = (string) preg_replace('/[ \t]+/u', ' ', $text);
-        $lines = array_map(trim(...), explode("\n", $text));
-
-        return trim(implode("\n", array_filter($lines, static fn (string $line): bool => $line !== '')));
+        return Str::of($text)
+            ->replace(["\u{00AD}", "\r\n", "\r"], ['', "\n", "\n"])
+            ->replaceMatches('/<(?=[A-Za-z\/!?])/', '\\<')
+            ->replaceMatches('/[ \t]+/u', ' ')
+            ->explode("\n")
+            ->map(fn (string $line): string => Str::trim($line))
+            ->filter(fn (string $line): bool => $line !== '')
+            ->implode("\n");
     }
 
     public static function heading(int $level, string $text): string
     {
-        $text = trim((string) preg_replace('/\s+/u', ' ', $text));
+        $text = Str::of($text)->replaceMatches('/\s+/u', ' ')->trim()->toString();
 
-        return $text === '' ? '' : str_repeat('#', max(1, min(6, $level))).' '.$text;
+        return $text === '' ? '' : Str::repeat('#', max(1, min(6, $level))).' '.$text;
     }
 
     /**
@@ -50,15 +53,15 @@ final class MarkdownText
      */
     public static function paragraph(string $text): string
     {
-        return (string) preg_replace(['/^(\s*)#/m', '/^(\s*\d+)([.)])(?=\s|$)/m', '/^(\s*)([-+*])(?=\s)/m'], ['$1\\\\#', '$1\\\\$2', '$1\\\\$2'], $text);
+        return Str::replaceMatches(['/^(\s*)#/m', '/^(\s*\d+)([.)])(?=\s|$)/m', '/^(\s*)([-+*])(?=\s)/m'], ['$1\\\\#', '$1\\\\$2', '$1\\\\$2'], $text) ?? '';
     }
 
     /** One list item, indented four spaces per level so any marker nests. */
     public static function item(int $level, string $marker, string $text): string
     {
-        $indent = str_repeat(' ', 4 * max(0, $level));
+        $indent = Str::repeat(' ', 4 * max(0, $level));
 
-        return $indent.$marker.' '.str_replace("\n", "\n".$indent.str_repeat(' ', mb_strlen($marker) + 1), self::paragraph($text));
+        return $indent.$marker.' '.Str::replace("\n", "\n".$indent.Str::repeat(' ', Str::length($marker) + 1), self::paragraph($text));
     }
 
     /**
@@ -86,7 +89,7 @@ final class MarkdownText
             $lines[] = '| '.implode(' | ', $cells).' |';
 
             if ($number === 0) {
-                $lines[] = '|'.str_repeat(' --- |', count($used));
+                $lines[] = '|'.Str::repeat(' --- |', count($used));
             }
         }
 
@@ -106,15 +109,12 @@ final class MarkdownText
             return [[self::BLOCK, self::table($rows)]];
         }
 
-        $blocks = [];
-
-        foreach (explode("\n", implode("\n", Arr::flatten($rows))) as $line) {
-            if (filled($line)) {
-                $blocks[] = [self::BLOCK, self::paragraph(trim($line))];
-            }
-        }
-
-        return $blocks;
+        return Str::of(implode("\n", Arr::flatten($rows)))
+            ->explode("\n")
+            ->filter(fn (string $line): bool => filled($line))
+            ->map(fn (string $line): array => [self::BLOCK, self::paragraph(Str::trim($line))])
+            ->values()
+            ->all();
     }
 
     /**
@@ -146,8 +146,11 @@ final class MarkdownText
 
     private static function cell(string $text): string
     {
-        $text = trim((string) preg_replace('/\s*\n\s*/u', '<br>', trim($text)));
-
-        return str_replace('|', '\\|', $text);
+        return Str::of($text)
+            ->trim()
+            ->replaceMatches('/\s*\n\s*/u', '<br>')
+            ->trim()
+            ->replace('|', '\\|')
+            ->toString();
     }
 }

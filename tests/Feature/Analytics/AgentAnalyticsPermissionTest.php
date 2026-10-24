@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -32,7 +33,7 @@ it('requires the matching analytics permission', function (string $permission, s
     // Every other analytics permission, so only the one under test is missing.
     $others = array_values(array_filter(
         array_keys(config('team-permissions.permissions')),
-        fn (string $code): bool => str_starts_with($code, 'agent.analytics.') && $code !== $permission,
+        fn (string $code): bool => Str::startsWith($code, 'agent.analytics.') && $code !== $permission,
     ));
     $blocked = teammateWithPermissions($this->owner, ['agent.chat.view', ...$others]);
     $allowed = teammateWithPermissions($this->owner, [$permission]);

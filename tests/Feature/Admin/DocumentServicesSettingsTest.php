@@ -7,6 +7,7 @@ use Domain\Llm\Services\DocumentLlm;
 use Filament\Forms\Components\Select;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 
 /**
@@ -26,7 +27,7 @@ beforeEach(function (): void {
 /** Whether a request went to Mistral or Azure (the page lists OpenRouter's models too). */
 function documentServiceCall(Request $request): bool
 {
-    return str_contains($request->url(), 'api.mistral.ai') || str_contains($request->url(), 'cognitiveservices.azure.com');
+    return Str::contains($request->url(), 'api.mistral.ai') || Str::contains($request->url(), 'cognitiveservices.azure.com');
 }
 
 /** @return array<string, Select> */
@@ -77,7 +78,7 @@ it('reads a test image with Mistral OCR before it saves Mistral OCR', function (
         && $request->hasHeader('Authorization', 'Bearer mistral-key')
         && $request['model'] === config('services.mistral.ocr_model')
         && $request['document']['type'] === 'image_url'
-        && str_starts_with($request['document']['image_url'], 'data:image/png;base64,'));
+        && Str::startsWith($request['document']['image_url'], 'data:image/png;base64,'));
 });
 
 it('refuses Mistral OCR when Mistral refuses the key', function (): void {
@@ -117,7 +118,7 @@ it('checks the Azure resource before it saves Azure', function (): void {
         ->assertHasNoFormErrors();
 
     expect(savedSetting(AiSettings::class, 'document_parser'))->toBe('azure');
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/documentintelligence/info'));
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), '/documentintelligence/info'));
 });
 
 it('refuses Azure when its endpoint does not answer', function (): void {

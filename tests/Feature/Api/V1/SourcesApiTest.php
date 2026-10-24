@@ -79,7 +79,7 @@ it('answers an unsupported file with the standard 422 field error', function ():
 
 it('adds a text and answers 201 with its public id', function (): void {
     $response = $this->withToken($this->token)
-        ->postJson($this->uri.'/texts', ['content' => str_repeat('Refunds take five business days. ', 20)])
+        ->postJson($this->uri.'/texts', ['content' => Str::repeat('Refunds take five business days. ', 20)])
         ->assertCreated()
         ->assertJsonPath('data.kind', 'text');
 

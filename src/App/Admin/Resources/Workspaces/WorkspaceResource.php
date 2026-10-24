@@ -21,6 +21,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -246,8 +247,8 @@ class WorkspaceResource extends Resource
      */
     private static function countryName(string $code): string
     {
-        $country = Country::query()->where('code', strtolower($code))->first();
+        $country = Country::query()->where('code', Str::lower($code))->first();
 
-        return $country instanceof Country ? $country->localizedName().' ('.strtoupper($code).')' : strtoupper($code);
+        return $country instanceof Country ? $country->localizedName().' ('.Str::upper($code).')' : Str::upper($code);
     }
 }

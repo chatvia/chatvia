@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Services\Detectors;
 
+use Illuminate\Support\Str;
+
 /**
  * Values the PII filters must leave as they are: the business's own contact
  * details and the owner's "never mask" list. Without it the agent could not
@@ -34,9 +36,9 @@ final readonly class PiiAllowlist
         $numbers = [];
 
         foreach ($values as $value) {
-            $value = strtolower(trim($value));
+            $value = Str::lower(Str::trim($value));
 
-            if (str_contains($value, '@')) {
+            if (Str::contains($value, '@')) {
                 $emails[] = $value;
 
                 continue;
@@ -44,7 +46,7 @@ final readonly class PiiAllowlist
 
             $digits = $this->significantDigits($value);
 
-            if (strlen($digits) >= self::MIN_DIGITS) {
+            if (Str::length($digits) >= self::MIN_DIGITS) {
                 $numbers[] = $digits;
             }
         }
@@ -55,27 +57,27 @@ final readonly class PiiAllowlist
 
     public function allows(string $value): bool
     {
-        if (str_contains($value, '@')) {
-            $email = strtolower($value);
+        if (Str::contains($value, '@')) {
+            $email = Str::lower($value);
 
             return array_any($this->emails, static fn (string $entry): bool => $entry === $email
-                || (str_starts_with($entry, '@') && str_ends_with($email, $entry)));
+                || (Str::startsWith($entry, '@') && Str::endsWith($email, $entry)));
         }
 
         $digits = $this->significantDigits($value);
 
-        if (strlen($digits) < self::MIN_DIGITS) {
+        if (Str::length($digits) < self::MIN_DIGITS) {
             return false;
         }
 
         // The same number with or without its country code.
-        return array_any($this->numbers, static fn (string $entry): bool => str_ends_with($digits, $entry)
-            || str_ends_with($entry, $digits));
+        return array_any($this->numbers, static fn (string $entry): bool => Str::endsWith($digits, $entry)
+            || Str::endsWith($entry, $digits));
     }
 
     /** The digits without the leading zeros of a trunk or `00` prefix. */
     private function significantDigits(string $value): string
     {
-        return ltrim(preg_replace('/\D/', '', $value) ?? '', '0');
+        return Str::of($value)->replaceMatches('/\D/', '')->ltrim('0')->toString();
     }
 }

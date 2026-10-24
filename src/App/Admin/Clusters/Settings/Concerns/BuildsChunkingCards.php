@@ -185,7 +185,7 @@ trait BuildsChunkingCards
     /** Text as the browser may send it back: other line endings, trimmed. */
     private function normalized(string $text): string
     {
-        return trim(str_replace(["\r\n", "\r"], "\n", $text));
+        return Str::trim(Str::replace(["\r\n", "\r"], "\n", $text));
     }
 
     /** Split the sample with the page's (unsaved) unit, size, overlap, strategy and tokenizer. */

@@ -13,6 +13,7 @@ use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * InviteAgentChatterAction is the FIRST line of defence in the agent-invitation
@@ -44,7 +45,7 @@ function iacWorkspaceChatters(User $workspace, string $email): Builder
 {
     return Chatter::query()
         ->where('workspace_id', $workspace->workspace()->id)
-        ->whereRaw('lower(email) = ?', [strtolower($email)]);
+        ->whereRaw('lower(email) = ?', [Str::lower($email)]);
 }
 
 it('provisions a new chatter, attaches the agent pivot, and dispatches AgentChatterInvited', function (): void {

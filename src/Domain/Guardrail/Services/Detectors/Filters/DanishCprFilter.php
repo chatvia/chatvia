@@ -2,6 +2,8 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Str;
+
 /**
  * Danish CPR number: 10 digits as DDMMYY-SSSS (the dash is optional), where the
  * last 4 are a sequence number. {@see accepts()} validates the embedded birth
@@ -30,13 +32,13 @@ final class DanishCprFilter extends PiiFilter
 
     protected function accepts(string $value): bool
     {
-        $digits = preg_replace('/\D/', '', $value) ?? '';
-        if (strlen($digits) !== 10) {
+        $digits = Str::replaceMatches('/\D/', '', $value) ?? '';
+        if (Str::length($digits) !== 10) {
             return false;
         }
 
-        $day = (int) substr($digits, 0, 2);
-        $month = (int) substr($digits, 2, 2);
+        $day = (int) Str::substr($digits, 0, 2);
+        $month = (int) Str::substr($digits, 2, 2);
 
         return $day >= 1 && $day <= 31 && $month >= 1 && $month <= 12;
     }

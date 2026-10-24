@@ -6,6 +6,7 @@ namespace Domain\Channel\Telegram\Services;
 
 use Domain\Channel\Services\MarkdownDomFormatter;
 use DOMNode;
+use Illuminate\Support\Str;
 
 /**
  * Renders the model's CommonMark reply into the small HTML subset Telegram
@@ -31,7 +32,9 @@ class TelegramFormatter extends MarkdownDomFormatter
      */
     public function toPlain(string $markdown): string
     {
-        return trim(html_entity_decode(strip_tags($this->toHtml($markdown)), ENT_QUOTES | ENT_HTML5));
+        return Str::of($this->toHtml($markdown))->stripTags()->toString()
+            |> (static fn (string $text): string => html_entity_decode($text, ENT_QUOTES | ENT_HTML5))
+            |> Str::trim(...);
     }
 
     protected function mapNode(string $tag, DOMNode $node, string $renderedChildren): string
@@ -46,8 +49,8 @@ class TelegramFormatter extends MarkdownDomFormatter
             'br' => "\n",
             'hr' => "\n",
             'p' => $renderedChildren."\n\n",
-            'blockquote' => '<blockquote>'.trim($renderedChildren)."</blockquote>\n",
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => '<b>'.trim($renderedChildren)."</b>\n\n",
+            'blockquote' => '<blockquote>'.Str::trim($renderedChildren)."</blockquote>\n",
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => '<b>'.Str::trim($renderedChildren)."</b>\n\n",
             'ul', 'ol' => $this->renderList($node, $tag === 'ol'),
             default => $renderedChildren, // unwrap anything else
         };
@@ -55,7 +58,7 @@ class TelegramFormatter extends MarkdownDomFormatter
 
     protected function renderText(string $text): string
     {
-        return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text);
+        return Str::replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text);
     }
 
     protected function trimsLinkText(): bool
@@ -65,6 +68,6 @@ class TelegramFormatter extends MarkdownDomFormatter
 
     protected function formatLink(string $href, string $inner): string
     {
-        return '<a href="'.str_replace(['&', '"'], ['&amp;', '&quot;'], $href).'">'.$inner.'</a>';
+        return '<a href="'.Str::replace(['&', '"'], ['&amp;', '&quot;'], $href).'">'.$inner.'</a>';
     }
 }

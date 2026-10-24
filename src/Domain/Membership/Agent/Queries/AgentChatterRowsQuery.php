@@ -8,6 +8,7 @@ use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\Resources\AgentChatterRowData;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\DataCollection;
 
 /**
@@ -35,7 +36,7 @@ class AgentChatterRowsQuery
         $invitations = AgentChatterInvitation::query()
             ->where('agent_id', $agent->id)
             ->get()
-            ->keyBy(fn (AgentChatterInvitation $invitation): string => strtolower($invitation->email));
+            ->keyBy(fn (AgentChatterInvitation $invitation): string => Str::lower($invitation->email));
 
         $rows = $chatters
             ->map(function (Chatter $chatter) use ($grantedSet, $invitations): AgentChatterRowData {
@@ -43,7 +44,7 @@ class AgentChatterRowsQuery
                 $invitationExpiresAt = null;
 
                 if ($chatter->email_verified_at === null && $chatter->email !== null) {
-                    $invitation = $invitations->get(strtolower($chatter->email));
+                    $invitation = $invitations->get(Str::lower($chatter->email));
 
                     if ($invitation !== null && ! $invitation->hasExpired()) {
                         $invitationUrl = route('agents.invitation.show', ['invitation' => $invitation->token]);
@@ -58,7 +59,7 @@ class AgentChatterRowsQuery
                     $invitationExpiresAt,
                 );
             })
-            ->sortBy(fn (AgentChatterRowData $row): array => [$row->has_access ? 0 : 1, strtolower($row->name)])
+            ->sortBy(fn (AgentChatterRowData $row): array => [$row->has_access ? 0 : 1, Str::lower($row->name)])
             ->values();
 
         return AgentChatterRowData::collect($rows, DataCollection::class);

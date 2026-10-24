@@ -6,6 +6,7 @@ use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Jobs\PurgeAgentJob;
 use Domain\Agent\Models\Agent;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Str;
 
 /**
  * The dashboard routes that change an agent itself: rename, update the
@@ -29,7 +30,7 @@ function setupRoutesAllAgentPermissionsBut(string $permission): array
 {
     return array_values(array_filter(
         array_keys(config('team-permissions.permissions')),
-        fn (string $code): bool => str_starts_with($code, 'agent.') && $code !== $permission,
+        fn (string $code): bool => Str::startsWith($code, 'agent.') && $code !== $permission,
     ));
 }
 

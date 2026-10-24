@@ -42,7 +42,7 @@ it('hangs up the visitor\'s own call and flags it ended', function (): void {
     app(EndVoiceCallAction::class)->execute($this->agent, $this->call->session_id, $this->call->call_id);
 
     expect(app(VoiceCallStore::class)->isEnded($this->call->call_id))->toBeTrue();
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/realtime/calls/rtc_abc123/hangup'));
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls/rtc_abc123/hangup'));
 });
 
 it('does not end a call of another session, another agent or no call at all', function (string $who): void {

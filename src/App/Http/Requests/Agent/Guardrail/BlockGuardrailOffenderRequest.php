@@ -16,6 +16,7 @@ use Domain\Security\Data\BlockVisitorData;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\VisitorBlockDuration;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -115,7 +116,7 @@ class BlockGuardrailOffenderRequest extends FormRequest
 
     private function reason(): ?string
     {
-        $reason = trim($this->string('reason')->toString());
+        $reason = Str::trim($this->string('reason')->toString());
 
         return $reason === '' ? null : $reason;
     }

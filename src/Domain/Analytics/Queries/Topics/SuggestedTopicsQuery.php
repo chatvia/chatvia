@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * The emergent topics the conversation analysis suggests for an agent, most
@@ -62,7 +63,7 @@ class SuggestedTopicsQuery
         // Labels already covered by a real topic shouldn't be suggested again.
         $existingNames = $agent->topics()
             ->pluck('topics.topic')
-            ->map(fn (mixed $name): string => mb_strtolower((string) $name))
+            ->map(fn (mixed $name): string => Str::lower((string) $name))
             ->all();
 
         return $this->forAgentConversations(ConversationTopic::query(), $agent)

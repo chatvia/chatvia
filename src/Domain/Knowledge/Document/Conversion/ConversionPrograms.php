@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Document\Conversion;
 
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
+use Illuminate\Support\Str;
 use Support\Executable;
 
 /**
@@ -36,7 +37,7 @@ final class ConversionPrograms
     /** The program the format needs with the reader in use, or null when none does. */
     public function programFor(string $extension): ?string
     {
-        $extension = strtolower($extension);
+        $extension = Str::lower($extension);
 
         if (DocumentReaders::readsItself($this->driver(), $extension)) {
             return null;

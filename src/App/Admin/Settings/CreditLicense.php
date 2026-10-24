@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Support\Uri;
 use Support\License\LicenseFeature;
 use Support\License\LicenseKey;
 use Support\License\LicenseSignature;
@@ -52,6 +53,6 @@ final readonly class CreditLicense
     /** The host this install runs on, from `app.url`. */
     public function host(): string
     {
-        return LicenseKey::host((string) parse_url((string) $this->config->get('app.url'), PHP_URL_HOST));
+        return LicenseKey::host((string) Uri::of((string) $this->config->get('app.url'))->host());
     }
 }

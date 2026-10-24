@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Embedding;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Embeddings from Google's Gemini API (`services.gemini`), gemini-embedding-001
@@ -54,7 +55,7 @@ class Gemini extends AbstractEmbeddingsProvider
      */
     private function request(array $texts, string $taskType): array
     {
-        $model = str_starts_with($this->getModel(), 'models/') ? $this->getModel() : 'models/'.$this->getModel();
+        $model = Str::startsWith($this->getModel(), 'models/') ? $this->getModel() : 'models/'.$this->getModel();
         $vectors = [];
 
         foreach (array_chunk($texts, self::BATCH_SIZE) as $batch) {

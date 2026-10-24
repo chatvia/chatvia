@@ -18,6 +18,7 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * Demo data: creates recent sessions, conversations and messages for the demo
@@ -355,7 +356,7 @@ class ChatSeeder extends Seeder
                     $message = Message::create([
                         'workspace_id' => $conversation->workspace_id,
                         'chat_conversation_id' => $conversation->id,
-                        'content' => str_replace('\\n', "\n", $messageData['content']),
+                        'content' => Str::replace('\\n', "\n", $messageData['content']),
                         'role' => $messageData['role'],
                         'llm_id' => $llmId,
                         'confidence_score' => $isAssistant ? fake()->randomFloat(4, 0.75, 0.99) : null,

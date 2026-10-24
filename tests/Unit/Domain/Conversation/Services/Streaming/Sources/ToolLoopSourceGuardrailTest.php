@@ -24,6 +24,7 @@ use Domain\Llm\Services\LlmProviders;
 use Domain\Security\Services\VisitorFingerprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Tests\Support\Conversation\NoToolSelector;
 use Tests\Support\Conversation\ScriptedToolLoopRunner;
 use Tests\Support\Conversation\TestChatContext;
@@ -43,12 +44,12 @@ function tlsGuard(): GuardrailService
 
         public function inspectOutput(Agent $agent, string $text, ?string $language = null): GuardResultData
         {
-            if (! str_contains($text, 'a@b.com')) {
+            if (! Str::contains($text, 'a@b.com')) {
                 return GuardResultData::clean($text);
             }
 
             return new GuardResultData(
-                text: str_replace('a@b.com', '[EMAIL]', $text),
+                text: Str::replace('a@b.com', '[EMAIL]', $text),
                 verdicts: [new GuardVerdictData(GuardType::Pii, GuardStage::Output, GuardOutcome::Redacted)],
             );
         }

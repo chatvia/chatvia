@@ -4,6 +4,8 @@ namespace App\Http\Middleware\Web;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -94,7 +96,7 @@ class ContentSecurityPolicy
             ]);
         }
 
-        $reportUri = trim((string) config('chatvia.security.csp_report_uri', ''));
+        $reportUri = Str::trim((string) config('chatvia.security.csp_report_uri', ''));
 
         if ($reportUri !== '') {
             $directives[] = 'report-uri '.$reportUri;
@@ -149,28 +151,24 @@ class ContentSecurityPolicy
      */
     private function originOf(string $url): ?string
     {
-        $url = trim($url);
+        $url = Str::trim($url);
 
-        if ($url === '' || (str_starts_with($url, '/') && ! str_starts_with($url, '//'))) {
+        if ($url === '' || (Str::startsWith($url, '/') && ! Str::startsWith($url, '//'))) {
             return null;
         }
 
-        if (! str_contains($url, '://')) {
-            $url = 'https://'.ltrim($url, '/');
+        if (! Str::contains($url, '://')) {
+            $url = 'https://'.Str::ltrim($url, '/');
         }
 
-        $parts = parse_url($url);
+        $uri = SafeUrl::parse($url);
 
-        if (! is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+        if (blank($uri?->scheme()) || blank($uri->host())) {
             return null;
         }
 
-        $origin = $parts['scheme'].'://'.$parts['host'];
+        $port = $uri->port() !== null ? ":{$uri->port()}" : '';
 
-        if (isset($parts['port'])) {
-            $origin .= ':'.$parts['port'];
-        }
-
-        return $origin;
+        return "{$uri->scheme()}://{$uri->host()}{$port}";
     }
 }

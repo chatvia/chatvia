@@ -21,6 +21,7 @@ use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use League\Flysystem\UnableToReadFile;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -212,8 +213,8 @@ class PdfSource extends ToolLoopSource
 
         $body = (string) $response->getBody();
 
-        return mb_strlen($body) > self::MAX_LOGGED_BODY_LENGTH
-            ? mb_substr($body, 0, self::MAX_LOGGED_BODY_LENGTH).'…[truncated]'
+        return Str::length($body) > self::MAX_LOGGED_BODY_LENGTH
+            ? Str::substr($body, 0, self::MAX_LOGGED_BODY_LENGTH).'…[truncated]'
             : $body;
     }
 }

@@ -11,6 +11,7 @@ use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 /**
  * Document parser backed by Mistral's hosted OCR: reads PDFs, Word,
@@ -29,7 +30,7 @@ class MistralDocumentParser implements DocumentParser
 
     public function parse(string $filePath, string $storageDirectory): Collection
     {
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $extension = Str::lower(pathinfo($filePath, PATHINFO_EXTENSION));
 
         if (DocumentReaders::readsItself('mistral', $extension)) {
             return $this->ocr->fromFile($filePath);

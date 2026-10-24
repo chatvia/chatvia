@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Document\Conversion;
 use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 use Smalot\PdfParser\Config;
@@ -146,8 +147,8 @@ final readonly class BuiltinPdfInspector implements PdfInspector
         foreach (self::DETAILS as $name => $key) {
             $value = $details[$name] ?? null;
 
-            if (is_scalar($value) && trim((string) $value) !== '') {
-                $info[$key] = mb_convert_encoding(trim((string) $value), 'UTF-8', 'UTF-8');
+            if (is_scalar($value) && Str::trim((string) $value) !== '') {
+                $info[$key] = mb_convert_encoding(Str::trim((string) $value), 'UTF-8', 'UTF-8');
             }
         }
 
@@ -159,7 +160,7 @@ final readonly class BuiltinPdfInspector implements PdfInspector
     {
         $header = (string) file_get_contents($pdfPath, false, null, 0, 1024);
 
-        return preg_match('/%PDF-(\d+\.\d+)/', $header, $match) === 1 ? $match[1] : '';
+        return Str::match('/%PDF-(\d+\.\d+)/', $header);
     }
 
     private function validatePdfFile(string $path): void

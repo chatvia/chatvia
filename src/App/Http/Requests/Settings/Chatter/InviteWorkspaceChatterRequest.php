@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\InviteWorkspaceChatterData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 /**
@@ -71,7 +72,7 @@ class InviteWorkspaceChatterRequest extends FormRequest
 
     public function email(): string
     {
-        return strtolower(trim((string) $this->validated('email')));
+        return Str::lower(Str::trim((string) $this->validated('email')));
     }
 
     public function toData(): InviteWorkspaceChatterData

@@ -6,6 +6,7 @@ use Domain\Integration\Builtin\Data\Weather\CurrentWeatherData;
 use Domain\Integration\Builtin\Enums\WeatherUnit;
 use Domain\Integration\Builtin\Exceptions\WeatherLookupException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -55,6 +56,6 @@ class OpenWeatherClient
 
     private function baseUrl(): string
     {
-        return rtrim((string) config('services.openweather.base_url'), '/');
+        return Str::rtrim((string) config('services.openweather.base_url'), '/');
     }
 }

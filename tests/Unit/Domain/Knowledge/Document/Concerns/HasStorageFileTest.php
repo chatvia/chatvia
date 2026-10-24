@@ -52,7 +52,7 @@ it('creates exactly one local copy, with the stored extension', function (): voi
 
     try {
         // No empty sibling without the extension is left next to the copy.
-        expect(file_exists(substr($file->getPathname(), 0, -strlen('.docx'))))->toBeFalse()
+        expect(file_exists(Str::chopEnd($file->getPathname(), '.docx')))->toBeFalse()
             ->and($file->getExtension())->toBe('docx')
             ->and($file->getContent())->toBe('docx-bytes');
     } finally {

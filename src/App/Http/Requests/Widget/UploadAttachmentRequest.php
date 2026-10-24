@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * A file a widget visitor attaches to their conversation (PDF only for now).
@@ -24,7 +25,7 @@ class UploadAttachmentRequest extends FormRequest
         // segment. Strip anything outside the UUID alphabet so `../` (which
         // Flysystem's normaliser would collapse into another agent's prefix)
         // can never reach the path.
-        $sessionId = preg_replace('/[^A-Za-z0-9-]/', '', (string) $this->header(WidgetHeaders::SESSION_ID)) ?? '';
+        $sessionId = Str::replaceMatches('/[^A-Za-z0-9-]/', '', (string) $this->header(WidgetHeaders::SESSION_ID)) ?? '';
 
         return new UploadAttachmentData(
             file: $this->file('file'),

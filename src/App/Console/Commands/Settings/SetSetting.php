@@ -8,6 +8,7 @@ use App\Admin\Settings\Actions\SetSettingAction;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -58,6 +59,6 @@ class SetSetting extends Command
 
         $piped = stream_get_contents(STDIN);
 
-        return $piped === false ? null : rtrim($piped, "\r\n");
+        return $piped === false ? null : Str::rtrim($piped, "\r\n");
     }
 }

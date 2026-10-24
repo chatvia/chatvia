@@ -15,6 +15,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -185,7 +186,7 @@ class ChatLogWriter
             'os' => $device->os,
             'referrer_url' => $turn->referrer_url,
             'page_url' => $turn->page_url,
-            'locale' => $turn->locale ? explode(',', $turn->locale)[0] : null,
+            'locale' => $turn->locale ? Str::before($turn->locale, ',') : null,
         ];
     }
 

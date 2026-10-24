@@ -2,6 +2,7 @@
 
 namespace Domain\Analytics\Services\Chat;
 
+use Illuminate\Support\Str;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Tool;
 use ReflectionClass;
@@ -29,7 +30,7 @@ class AnalyticsToolset
      */
     public function build(): array
     {
-        $base = rtrim((string) config('app.url'), '/');
+        $base = Str::rtrim((string) config('app.url'), '/');
 
         $definitions = [];
         $routes = [];

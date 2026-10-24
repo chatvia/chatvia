@@ -12,6 +12,7 @@ use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\OpenAiCompatible;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Base of the adapters for providers with an OpenAI-style API: chat through
@@ -47,7 +48,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
     public function baseUrl(LlmProvider $provider): string
     {
-        return rtrim((string) ($provider->base_url ?: $this->accountBaseUrl() ?: $this->defaultBaseUrl()), '/');
+        return Str::rtrim((string) ($provider->base_url ?: $this->accountBaseUrl() ?: $this->defaultBaseUrl()), '/');
     }
 
     public function needsApiKey(): bool
@@ -86,7 +87,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
             ->filter(fn (array $model): bool => $model['known']['chat'] ?? $this->isChatModel($model['row']))
             ->map(fn (array $model): RemoteModelData => $this->withKnown($this->toModel($model['row']), $model['known']))
             ->unique('id')
-            ->sortBy(fn (RemoteModelData $model): string => strtolower($model->name))
+            ->sortBy(fn (RemoteModelData $model): string => Str::lower($model->name))
             ->values();
     }
 
@@ -155,7 +156,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
      */
     protected function isChatModel(array $row): bool
     {
-        return preg_match(static::NOT_CHAT, $this->modelId($row)) !== 1;
+        return ! Str::isMatch(static::NOT_CHAT, $this->modelId($row));
     }
 
     /**

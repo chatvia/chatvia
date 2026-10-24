@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 it('renders a prompt blade view to a non-empty string', function (): void {
     expect(prompt('knowledge/system'))->toBeString()->not->toBe('');
@@ -27,8 +28,8 @@ it('accepts nested slash-style names', function (): void {
 
 it('has a file for every prompt the code renders', function (): void {
     $used = collect(File::allFiles(base_path('src')))
-        ->flatMap(fn (SplFileInfo $file): array => preg_match_all("/\\bprompt\\('([a-z0-9\\/._-]+)'/", (string) file_get_contents($file->getPathname()), $m) ? $m[1] : [])
-        ->map(fn (string $name): string => str_replace('.', '/', $name))
+        ->flatMap(fn (SplFileInfo $file): array => Str::matchAll("/\\bprompt\\('([a-z0-9\\/._-]+)'/", (string) file_get_contents($file->getPathname()))->all())
+        ->map(fn (string $name): string => Str::replace('.', '/', $name))
         ->unique()
         ->values();
 

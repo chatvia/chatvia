@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Web\Data\Firecrawl;
 
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -27,7 +28,7 @@ final class ScrapedPageData extends Data
             $title = $this->metadata[$key] ?? null;
 
             if (filled($title)) {
-                return mb_substr(trim($title), 0, 500);
+                return Str::substr(Str::trim($title), 0, 500);
             }
         }
 

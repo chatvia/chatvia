@@ -5,6 +5,7 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\CharacterMeasure;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\MarkdownSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\RecursiveSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
+use Illuminate\Support\Str;
 
 /**
  * The Markdown splitter follows the structure of the page: one section per
@@ -64,7 +65,7 @@ it('repeats the headings above a chunk from the middle of a long section', funct
     ]);
 
     foreach ($chunks as $chunk) {
-        expect(mb_strlen($chunk))->toBeLessThanOrEqual(100);
+        expect(Str::length($chunk))->toBeLessThanOrEqual(100);
     }
 });
 
@@ -126,10 +127,10 @@ it('cuts a long code block by lines, with its fences in every part', function ()
     foreach ($chunks as $chunk) {
         expect($chunk)->toStartWith("# Script\n\n```php\n")
             ->and($chunk)->toEndWith("\n```")
-            ->and(mb_strlen($chunk))->toBeLessThanOrEqual(120);
+            ->and(Str::length($chunk))->toBeLessThanOrEqual(120);
     }
 
-    expect(implode("\n", array_map(fn (string $chunk): string => substr($chunk, strlen("# Script\n\n```php\n"), -4), $chunks)))->toBe($code);
+    expect(implode("\n", array_map(fn (string $chunk): string => Str::of($chunk)->chopStart("# Script\n\n```php\n")->chopEnd("\n```")->toString(), $chunks)))->toBe($code);
 });
 
 it('keeps a table that fits whole, and repeats the header row in every part of a long one', function (): void {
@@ -144,12 +145,12 @@ it('keeps a table that fits whole, and repeats the header row in every part of a
 
     foreach ($chunks as $chunk) {
         expect($chunk)->toStartWith("# Shops\n\n| Shop | Address |\n|---|---|\n| Shop ")
-            ->and(mb_strlen($chunk))->toBeLessThanOrEqual(120);
+            ->and(Str::length($chunk))->toBeLessThanOrEqual(120);
     }
 });
 
 it('leaves out a bare heading that only leads into the next section', function (): void {
-    $markdown = "# Guide\n\n## Returns\n\n".str_repeat('Any item within 30 days. ', 4);
+    $markdown = "# Guide\n\n## Returns\n\n".Str::repeat('Any item within 30 days. ', 4);
 
     expect(mdsSplit($markdown, 80))->toBe([
         "# Guide\n## Returns\n\nAny item within 30 days. Any item within 30 days.",
@@ -158,7 +159,7 @@ it('leaves out a bare heading that only leads into the next section', function (
 });
 
 it('splits Arabic Markdown in tokens and characters without cutting a letter', function (ChunkMeasure $measure, int $size): void {
-    $markdown = "# مساعدة\n\n## الإرجاع\n\n".str_repeat('يمكنك إرجاع أي منتج خلال ثلاثين يوما. احتفظ بالإيصال. ', 6)."\n\n## الشحن\n\nنشحن خلال يومين 👍🏽.";
+    $markdown = "# مساعدة\n\n## الإرجاع\n\n".Str::repeat('يمكنك إرجاع أي منتج خلال ثلاثين يوما. احتفظ بالإيصال. ', 6)."\n\n## الشحن\n\nنشحن خلال يومين 👍🏽.";
     $chunks = mdsSplit($markdown, $size, 0, $measure);
 
     expect(count($chunks))->toBeGreaterThan(1);
@@ -181,12 +182,12 @@ it('splits a crawled page and an ebook into chunks that fit', function (string $
 
     foreach ($chunks as $chunk) {
         expect($measure->length($chunk))->toBeLessThanOrEqual(120)
-            ->and(trim($chunk))->not->toBe('');
+            ->and(Str::trim($chunk))->not->toBe('');
     }
 })->with([
     'help centre sample' => [fn (): string => file_get_contents(resource_path('chunking/markdown.md'))],
     'Pandoc ebook' => [fn (): string => implode("\n\n", array_map(
-        fn (int $chapter): string => "Chapter {$chapter}\n=========\n\n".str_repeat("The night was cold and the road was long. She walked on, thinking of home.\n\n", 5),
+        fn (int $chapter): string => "Chapter {$chapter}\n=========\n\n".Str::repeat("The night was cold and the road was long. She walked on, thinking of home.\n\n", 5),
         range(1, 3),
     ))],
 ]);

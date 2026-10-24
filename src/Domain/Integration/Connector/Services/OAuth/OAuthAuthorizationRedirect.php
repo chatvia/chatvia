@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Illuminate\Support\Uri;
 
 /**
  * The last step of every "start OAuth" path: park the pending flow under a
@@ -33,8 +34,6 @@ class OAuthAuthorizationRedirect
             $params['scope'] = $pending->scopes;
         }
 
-        $separator = str_contains($authorizationEndpoint, '?') ? '&' : '?';
-
-        return $authorizationEndpoint.$separator.http_build_query($params);
+        return Uri::of($authorizationEndpoint)->withQuery($params)->value();
     }
 }

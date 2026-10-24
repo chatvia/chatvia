@@ -76,10 +76,10 @@ function isolationSignedInRoutes(bool $api): array
             $middleware = collect($route->gatherMiddleware())->reject(fn (mixed $middleware): bool => $middleware instanceof Closure);
 
             return $route->getName() !== null
-                && str_starts_with($route->uri(), 'api/') === $api
-                && ! str_starts_with($route->uri(), 'chat/')
-                && $middleware->contains(fn (string $middleware): bool => $middleware === 'auth' || str_starts_with($middleware, 'auth:'))
-                && ! $middleware->contains(fn (string $middleware): bool => $middleware === 'signed' || str_starts_with($middleware, 'signed:') || str_starts_with($middleware, ValidateSignature::class));
+                && Str::startsWith($route->uri(), 'api/') === $api
+                && ! Str::startsWith($route->uri(), 'chat/')
+                && $middleware->contains(fn (string $middleware): bool => $middleware === 'auth' || Str::startsWith($middleware, 'auth:'))
+                && ! $middleware->contains(fn (string $middleware): bool => $middleware === 'signed' || Str::startsWith($middleware, 'signed:') || Str::startsWith($middleware, ValidateSignature::class));
         })
         ->values()
         ->all();
@@ -134,7 +134,7 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'agent' => $agent,
         'conversation', 'conversationId' => isolationConversation($agent),
         'function' => isolationFunction($agent),
-        'external_id' => str_contains($route->uri(), '/prompts/')
+        'external_id' => Str::contains($route->uri(), '/prompts/')
             ? AgentPrompt::factory()->create(['workspace_id' => $agent->workspace_id])
             : isolationFunction($agent),
         'prompt' => AgentPrompt::factory()->create(['workspace_id' => $agent->workspace_id]),
@@ -143,7 +143,7 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'website', 'websiteId' => isolationWebsite($agent),
         'link' => isolationLink($built['website'] ?? isolationWebsite($agent)),
         'text', 'textId' => isolationText($agent),
-        'id' => str_contains($route->uri(), '/sources/qa/') ? isolationQuestionAnswer($agent) : isolationText($agent),
+        'id' => Str::contains($route->uri(), '/sources/qa/') ? isolationQuestionAnswer($agent) : isolationText($agent),
         'qa' => isolationQuestionAnswer($agent),
         'youtube' => isolationYoutubeVideo($agent),
         'topic' => isolationTopic($agent),
@@ -275,7 +275,7 @@ function isolationBody(Route $route, array $ofB): array
     return match ($route->getName()) {
         'people.chatters.update' => ['deactivated' => false],
         'teams.update-role' => ['name' => 'Renamed', 'all_agents' => true],
-        'agents.sources.text.update' => ['content' => str_repeat('Our new refund policy. ', 25)],
+        'agents.sources.text.update' => ['content' => Str::repeat('Our new refund policy. ', 25)],
         'agents.sources.qa.update' => ['title' => 'Refunds', 'questions' => [['question' => 'How long?']], 'answer' => 'Five days.'],
         'agents.sources.files.link' => ['file_id' => $ofB['file']->getKey()],
         'agents.sources.texts.link' => ['text_id' => $ofB['text']->getKey()],

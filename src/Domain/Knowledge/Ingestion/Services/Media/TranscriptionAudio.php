@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Ingestion\Services\Media;
 use Closure;
 use Domain\Llm\Contracts\Transcriber;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Support\Executable;
 
 /**
@@ -33,13 +34,13 @@ class TranscriptionAudio
     /** Whether the service takes the file as it is. */
     public function takesAsIs(string $path, string $extension): bool
     {
-        return $this->transcriber->takesAsIs(strtolower($extension), (int) @filesize($path));
+        return $this->transcriber->takesAsIs(Str::lower($extension), (int) @filesize($path));
     }
 
     /** Whether the service reads files of this format at all (at some size). */
     public function readsFormat(string $extension): bool
     {
-        return $this->transcriber->takesAsIs(strtolower($extension), 1);
+        return $this->transcriber->takesAsIs(Str::lower($extension), 1);
     }
 
     public function hasFfmpeg(): bool

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Support\Knowledge\Document\OldOffice;
 
+use Illuminate\Support\Str;
+
 /**
  * Writes an OLE compound file (MS-CFB, version 3, 512-byte sectors) holding
  * the given streams, for tests of the readers of the old Office formats.
@@ -46,6 +48,7 @@ final class CompoundFileWriter
                 $miniFat[] = $index === $count - 1 ? self::END_OF_CHAIN : $first + $index + 1;
             }
 
+            // str_pad, not Str::padRight: these are bytes, and mb_str_pad counts characters.
             $miniStream .= str_pad($bytes, $count * self::MINI_SECTOR, "\0");
         }
 
@@ -96,8 +99,8 @@ final class CompoundFileWriter
 
         $difat = array_pad(range($fatStart, $fatStart + $fatCount - 1), 109, self::FREE);
 
-        $header = "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1".str_repeat("\0", 16)
-            .pack('vvvvv', 0x003E, 3, 0xFFFE, 9, 6).str_repeat("\0", 6)
+        $header = "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1".Str::repeat("\0", 16)
+            .pack('vvvvv', 0x003E, 3, 0xFFFE, 9, 6).Str::repeat("\0", 6)
             .pack('VVVVVVVVV', 0, $fatCount, $directoryStart, 0, self::MINI_CUTOFF, $miniFatStart, $miniFatCount, self::END_OF_CHAIN, 0)
             .pack('V*', ...$difat);
 
@@ -111,7 +114,7 @@ final class CompoundFileWriter
         return str_pad($utf16, 64, "\0")
             .pack('vCC', strlen($utf16) + 2, $type, 1)
             .pack('VVV', self::FREE, $right, $child)
-            .str_repeat("\0", 16 + 4 + 16)
+            .Str::repeat("\0", 16 + 4 + 16)
             .pack('VVV', $start, $size, 0);
     }
 }

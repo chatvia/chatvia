@@ -40,9 +40,9 @@ class RewriteFormDescriptionAction
     public function execute(RewriteFormDescriptionData $data): string
     {
         $context = collect([
-            'Form name: '.(filled($data->name) ? trim($data->name) : '(unnamed)'),
-            'Form type: '.(filled($data->form_type) ? trim($data->form_type) : 'generic'),
-            'Current instruction: '.(filled($data->agent_instructions) ? trim($data->agent_instructions) : '(empty)'),
+            'Form name: '.(filled($data->name) ? Str::trim($data->name) : '(unnamed)'),
+            'Form type: '.(filled($data->form_type) ? Str::trim($data->form_type) : 'generic'),
+            'Current instruction: '.(filled($data->agent_instructions) ? Str::trim($data->agent_instructions) : '(empty)'),
         ])->implode("\n");
 
         $content = $this->chat->send(new ChatRequestData(

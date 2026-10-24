@@ -8,6 +8,7 @@ use Domain\Knowledge\Document\Conversion\Markdown\MarkdownReaders;
 use DOMDocument;
 use DOMElement;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use RuntimeException;
@@ -76,7 +77,7 @@ class OfficeText
 
     public function supports(string $extension): bool
     {
-        return array_key_exists(strtolower($extension), self::READERS);
+        return array_key_exists(Str::lower($extension), self::READERS);
     }
 
     /**
@@ -96,7 +97,7 @@ class OfficeText
      */
     public function pages(string $path, string $extension): array
     {
-        $extension = strtolower($extension);
+        $extension = Str::lower($extension);
 
         if (! File::exists($path)) {
             throw new InvalidArgumentException("Input file does not exist: {$path}");
@@ -195,13 +196,13 @@ class OfficeText
         $current = [];
         $length = 0;
 
-        foreach (preg_split("/\n{2,}/", str_replace(["\r\n", "\r"], "\n", $text)) ?: [] as $paragraph) {
+        foreach (Str::of($text)->replace(["\r\n", "\r"], "\n")->split("/\n{2,}/") as $paragraph) {
             if (blank($paragraph)) {
                 continue;
             }
 
             $current[] = $paragraph;
-            $length += mb_strlen($paragraph);
+            $length += Str::length($paragraph);
 
             if ($length >= self::CHARS_PER_PAGE) {
                 $pages[] = implode("\n\n", $current);
@@ -220,7 +221,7 @@ class OfficeText
     /** Pandoc keeps image references (`![](media/image1.png)`); they carry no text. */
     private function withoutImages(string $markdown): string
     {
-        return (string) preg_replace(['/!\[[^\]]*\]\([^)]*\)/', '/<img\b[^>]*>/i'], '', $markdown);
+        return Str::replaceMatches(['/!\[[^\]]*\]\([^)]*\)/', '/<img\b[^>]*>/i'], '', $markdown) ?? '';
     }
 
     /** A plain-text file as UTF-8; older Windows files are often Windows-1252. */
@@ -249,8 +250,10 @@ class OfficeText
             $slides = [];
 
             for ($index = 0; $index < $zip->numFiles; $index++) {
-                if (preg_match('#^ppt/slides/slide(\d+)\.xml$#', (string) $zip->getNameIndex($index), $match) === 1) {
-                    $slides[(int) $match[1]] = $index;
+                $number = Str::match('#^ppt/slides/slide(\d+)\.xml$#', (string) $zip->getNameIndex($index));
+
+                if ($number !== '') {
+                    $slides[(int) $number] = $index;
                 }
             }
 
@@ -281,7 +284,7 @@ class OfficeText
         $lines = [];
 
         foreach ($dom->getElementsByTagNameNS(self::DRAWING_NS, 'p') as $paragraph) {
-            $line = trim($this->runsText($paragraph));
+            $line = Str::trim($this->runsText($paragraph));
 
             if ($line !== '') {
                 $lines[] = $line;
@@ -322,7 +325,7 @@ class OfficeText
             foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
                 $table = $this->markdownTable($sheet->toArray(null, true, false, false));
 
-                $pages[] = trim('## '.$sheet->getTitle()."\n\n".$table);
+                $pages[] = Str::trim('## '.$sheet->getTitle()."\n\n".$table);
             }
 
             return $pages;
@@ -353,7 +356,7 @@ class OfficeText
             $lines[] = '| '.implode(' | ', $row).' |';
 
             if ($number === 0) {
-                $lines[] = '|'.str_repeat(' --- |', $width);
+                $lines[] = '|'.Str::repeat(' --- |', $width);
             }
         }
 
@@ -368,7 +371,7 @@ class OfficeText
 
         $text = is_scalar($value) ? (string) $value : '';
 
-        return trim(str_replace(['|', "\r\n", "\n", "\r"], ['\\|', ' ', ' ', ' '], $text));
+        return Str::trim(Str::replace(['|', "\r\n", "\n", "\r"], ['\\|', ' ', ' ', ' '], $text));
     }
 
     /**

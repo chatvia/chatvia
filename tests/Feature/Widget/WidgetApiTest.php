@@ -11,6 +11,7 @@ use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Mockery\MockInterface;
 use Tests\Support\Widget\EmbeddedWidget;
@@ -220,7 +221,7 @@ it('answers a second heartbeat within a minute without reading or writing the co
     Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()->update(['last_activity_at' => $stale]);
     $conversationQueries = 0;
     DB::listen(function ($query) use (&$conversationQueries): void {
-        if (str_contains($query->sql, 'chat_conversations')) {
+        if (Str::contains($query->sql, 'chat_conversations')) {
             $conversationQueries++;
         }
     });

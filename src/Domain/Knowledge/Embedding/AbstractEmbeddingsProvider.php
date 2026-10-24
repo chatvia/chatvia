@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Embedding;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Base for the embedding providers: the cached query-embedding entry point and
@@ -98,7 +99,7 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
      */
     protected function endpoint(?string $path = null): string
     {
-        return rtrim($this->getBaseUrl(), '/').$path;
+        return Str::rtrim($this->getBaseUrl(), '/').$path;
     }
 
     /**

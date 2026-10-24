@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Document\Conversion\Markdown;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -98,7 +99,7 @@ final class DocxReader
 
             $this->readRelatedParts($package, $main);
 
-            return trim(MarkdownText::join([
+            return Str::trim(MarkdownText::join([
                 ...$this->blocks($body),
                 [MarkdownText::BLOCK, $this->notes->toMarkdown()],
             ]));
@@ -119,7 +120,7 @@ final class DocxReader
     private function mainPart(ZipPackage $package): string
     {
         foreach ($this->relationships($package->xml('_rels/.rels')) as $relationship) {
-            if (str_ends_with($relationship['type'], '/officeDocument')) {
+            if (Str::endsWith($relationship['type'], '/officeDocument')) {
                 return ZipPackage::resolve('', $relationship['target']);
             }
         }
@@ -133,7 +134,7 @@ final class DocxReader
         $relations = $package->xml(ZipPackage::resolve($main, '_rels/'.basename($main).'.rels'));
 
         foreach ($this->relationships($relations) as $relationship) {
-            $kind = substr($relationship['type'], (int) strrpos($relationship['type'], '/') + 1);
+            $kind = Str::afterLast($relationship['type'], '/');
 
             if ($kind === 'hyperlink' && $relationship['external']) {
                 $this->links[$relationship['id']] = $relationship['target'];
@@ -377,7 +378,7 @@ final class DocxReader
             return $text;
         }
 
-        return $parts[1].'['.str_replace(']', '\\]', $parts[2]).']('.str_replace([' ', '(', ')'], ['%20', '%28', '%29'], $url).')'.$parts[3];
+        return $parts[1].'['.Str::replace(']', '\\]', $parts[2]).']('.Str::replace([' ', '(', ')'], ['%20', '%28', '%29'], $url).')'.$parts[3];
     }
 
     /**
@@ -451,11 +452,13 @@ final class DocxReader
         }
 
         foreach ($this->styleChain($style) as $definition) {
-            if (preg_match('/^heading\s*([1-9])$/i', $definition['name'], $match) === 1) {
-                return (int) $match[1];
+            $level = Str::match('/^heading\s*([1-9])$/i', $definition['name']);
+
+            if ($level !== '') {
+                return (int) $level;
             }
 
-            if (in_array(strtolower($definition['name']), ['title', 'toc heading'], true)) {
+            if (in_array(Str::lower($definition['name']), ['title', 'toc heading'], true)) {
                 return 1;
             }
 
@@ -464,8 +467,14 @@ final class DocxReader
             }
         }
 
+        if ($this->styles !== []) {
+            return null;
+        }
+
         // Without a styles part the id is all there is ("Heading1").
-        return $this->styles === [] && preg_match('/^heading([1-9])$/i', $style ?? '', $match) === 1 ? (int) $match[1] : null;
+        $level = Str::match('/^heading([1-9])$/i', $style ?? '');
+
+        return $level !== '' ? (int) $level : null;
     }
 
     /**

@@ -8,6 +8,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Deleting a website removes its row, its chunks, its agent links and its
@@ -39,7 +40,7 @@ it('deletes a website chunks before the transaction that deletes the row', funct
     $outerLevel = DB::transactionLevel();
     $chunkDeleteLevels = [];
     DB::listen(function (QueryExecuted $query) use (&$chunkDeleteLevels): void {
-        if (str_starts_with($query->sql, 'DELETE FROM chunks ')) {
+        if (Str::startsWith($query->sql, 'DELETE FROM chunks ')) {
             $chunkDeleteLevels[] = $query->connection->transactionLevel();
         }
     });

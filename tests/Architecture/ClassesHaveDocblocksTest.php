@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 /**
  * Guardrail for "every class says what it is for."
  *
@@ -38,8 +40,8 @@ function docblockSourceFiles(): array
     );
 
     foreach ($iterator as $file) {
-        if ($file->isFile() && str_ends_with((string) $file, '.php')) {
-            $files[] = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root) + 1));
+        if ($file->isFile() && Str::endsWith((string) $file, '.php')) {
+            $files[] = Str::of($file->getPathname())->chopStart($root.DIRECTORY_SEPARATOR)->replace(DIRECTORY_SEPARATOR, '/')->toString();
         }
     }
 
@@ -127,18 +129,17 @@ function docblockProseWordCount(string $docblock): int
 {
     $prose = [];
 
-    foreach (preg_split('/\R/', $docblock) ?: [] as $line) {
-        $line = (string) preg_replace('#^\s*/\*\*|\*/\s*$#', '', $line);
-        $line = ltrim($line, " \t*");
+    foreach (Str::of($docblock)->split('/\R/') as $line) {
+        $line = Str::of($line)->replaceMatches('#^\s*/\*\*|\*/\s*$#', '')->ltrim(" \t*")->toString();
 
-        if (str_starts_with($line, '@')) {
+        if (Str::startsWith($line, '@')) {
             break;
         }
 
         $prose[] = $line;
     }
 
-    return (int) preg_match_all("/\\p{L}[\\p{L}\\p{N}_'’-]*/u", implode(' ', $prose));
+    return Str::matchAll("/\\p{L}[\\p{L}\\p{N}_'’-]*/u", implode(' ', $prose))->count();
 }
 
 /**

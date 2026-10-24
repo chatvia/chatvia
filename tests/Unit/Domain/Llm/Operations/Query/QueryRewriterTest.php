@@ -6,6 +6,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The rewriter turns a follow-up into a full question from the chat before
@@ -73,8 +74,8 @@ it('sends the last turns of the chat and the message', function (): void {
 
     expect(app(QueryRewriter::class)->rewrite('and how much is it?', rewriterHistory())->query)->toBe('How much does express delivery cost?');
 
-    Http::assertSent(fn (Request $request): bool => str_contains((string) json_encode($request->data()), 'Visitor: How long does express delivery take?\\nAgent: One to two working days.')
-        && str_contains((string) json_encode($request->data()), 'Last message: and how much is it?'));
+    Http::assertSent(fn (Request $request): bool => Str::contains((string) json_encode($request->data()), 'Visitor: How long does express delivery take?\\nAgent: One to two working days.')
+        && Str::contains((string) json_encode($request->data()), 'Last message: and how much is it?'));
 });
 
 it('makes no call for a message with no chat before it, or when switched off', function (): void {

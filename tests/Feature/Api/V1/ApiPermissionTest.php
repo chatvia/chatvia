@@ -352,7 +352,7 @@ describe('per-agent: every other mutating route is gated by its own permission',
         // Every other agent permission, so only the one under test is missing.
         $others = array_values(array_filter(
             array_keys(config('team-permissions.permissions')),
-            fn (string $code): bool => str_starts_with($code, 'agent.') && $code !== $permission,
+            fn (string $code): bool => Str::startsWith($code, 'agent.') && $code !== $permission,
         ));
 
         [$uri, $body, $untouched] = $request($this->agent);

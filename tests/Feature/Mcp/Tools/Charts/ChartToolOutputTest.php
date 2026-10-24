@@ -13,6 +13,7 @@ use App\Mcp\Tools\Charts\RenderSankeyChartTool;
 use App\Mcp\Tools\Charts\RenderScatterChartTool;
 use App\Mcp\Tools\Charts\RenderSunburstChartTool;
 use App\Mcp\Tools\Charts\RenderTreemapChartTool;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Server\Testing\TestResponse;
 
 /**
@@ -212,7 +213,7 @@ dataset('chart tool calls', [
     ]],
     'validation error, title too long' => [RenderPieChartTool::class, [
         'data' => [['name' => 'A', 'value' => 1]],
-        'title' => str_repeat('x', 121),
+        'title' => Str::repeat('x', 121),
         'summary' => 'Too long a title.',
     ]],
 ]);

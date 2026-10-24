@@ -69,7 +69,7 @@ class TelegramCommandRouter
         }
 
         $entry = $commands[$name];
-        $value = trim($entry['value']);
+        $value = Str::trim($entry['value']);
 
         // /help with no custom text auto-lists the available commands.
         if ($name === 'help' && $value === '') {
@@ -97,7 +97,7 @@ class TelegramCommandRouter
         $menu = array_map(
             static fn (array $e): array => [
                 'command' => $e['command'],
-                'description' => $e['description'] !== '' ? $e['description'] : ucfirst($e['command']),
+                'description' => $e['description'] !== '' ? $e['description'] : Str::ucfirst($e['command']),
             ],
             array_values($this->effective($bot)),
         );
@@ -184,36 +184,36 @@ class TelegramCommandRouter
     /** Parse "/cmd@botname args" → "cmd" (lowercased), or null when it isn't a command. */
     private function parse(string $text): ?string
     {
-        $text = ltrim($text);
+        $text = Str::ltrim($text);
 
-        if (! str_starts_with($text, '/')) {
+        if (! Str::startsWith($text, '/')) {
             return null;
         }
 
         // First whitespace-delimited token, minus the leading slash; in groups
         // Telegram appends "@botusername", which we strip.
-        $token = strtok(substr($text, 1), " \n\t");
+        $token = strtok(Str::chopStart($text, '/'), " \n\t");
 
         // strtok returns false (never '') when the remainder is empty/all-whitespace.
         if ($token === false) {
             return null;
         }
 
-        $command = strtolower(explode('@', $token, 2)[0]);
+        $command = Str::of($token)->before('@')->lower()->toString();
 
-        return preg_match('/^[a-z0-9_]{1,32}$/', $command) === 1 ? $command : null;
+        return Str::isMatch('/^[a-z0-9_]{1,32}$/', $command) ? $command : null;
     }
 
     /** Replace the {name} placeholder with the sender's first name (or a neutral fallback). */
     private function interpolate(AgentTelegramBot $bot, string $value, TelegramSenderData $sender): string
     {
-        if (! str_contains($value, '{name}')) {
+        if (! Str::contains($value, '{name}')) {
             return $value;
         }
 
         $name = Str::trim($sender->firstName ?? '');
 
-        return str_replace('{name}', $name !== '' ? $name : ChannelLocale::text($bot->agent, 'there'), $value);
+        return Str::replace('{name}', $name !== '' ? $name : ChannelLocale::text($bot->agent, 'there'), $value);
     }
 
     /**
@@ -224,7 +224,7 @@ class TelegramCommandRouter
         $lines = [ChannelLocale::text($bot->agent, 'Here is what I can do:'), ''];
 
         foreach ($commands as $name => $entry) {
-            $description = trim($entry['description']);
+            $description = Str::trim($entry['description']);
             $lines[] = $description !== '' ? "/{$name} — {$description}" : "/{$name}";
         }
 

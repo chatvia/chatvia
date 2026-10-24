@@ -8,6 +8,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Form\Actions\RenderInlineFormAction;
 use Domain\Form\Data\InlineFormData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -50,7 +51,7 @@ class RenderFormTool extends Tool
             'slug' => ['required', 'string', 'max:120'],
         ]);
 
-        $requested = trim($validated['slug']);
+        $requested = Str::trim($validated['slug']);
         $outcome = $render->execute($caller->agent, $caller->conversation, $requested);
 
         if ($outcome->form instanceof InlineFormData) {

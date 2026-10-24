@@ -11,6 +11,7 @@ use Domain\Conversation\Queries\SearchSessionConversationsQuery;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Search the current chat session's conversations from the sidebar palette
@@ -28,7 +29,7 @@ class ConversationSearchController
         WidgetVerification $verification,
         SearchSessionConversationsQuery $search,
     ): Collection {
-        $term = trim((string) $request->query('q', ''));
+        $term = Str::trim((string) $request->query('q', ''));
         if ($term === '') {
             return collect();
         }

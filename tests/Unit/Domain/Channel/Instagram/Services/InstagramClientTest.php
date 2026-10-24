@@ -3,6 +3,7 @@
 use Domain\Channel\Instagram\Services\InstagramClient;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The client's requests are the contract with Instagram Messaging through the
@@ -17,14 +18,14 @@ beforeEach(function (): void {
 it('sends a reply as plain text in parts of at most 1000 characters', function (): void {
     Http::fake(['graph.facebook.com/v25.0/me/messages' => Http::response(['message_id' => 'mid.1'])]);
 
-    new InstagramClient()->sendMessage('EAAG-page-token', '5550001234', '**Hi** '.str_repeat('a', 1500));
+    new InstagramClient()->sendMessage('EAAG-page-token', '5550001234', '**Hi** '.Str::repeat('a', 1500));
 
     Http::assertSentCount(2);
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/v25.0/me/messages'
         && $request->hasHeader('Authorization', 'Bearer EAAG-page-token')
         && $request['recipient'] === ['id' => '5550001234']
         && $request['messaging_type'] === 'RESPONSE'
-        && $request['message']['text'] === 'Hi '.str_repeat('a', 997));
+        && $request['message']['text'] === 'Hi '.Str::repeat('a', 997));
 });
 
 it('shows the typing indicator with the typing_on sender action', function (): void {

@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -58,6 +59,8 @@ class AddAgentYoutubeVideoAction
     {
         $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/';
 
-        return preg_match($pattern, $url, $matches) ? $matches[1] : null;
+        $id = Str::match($pattern, $url);
+
+        return $id !== '' ? $id : null;
     }
 }

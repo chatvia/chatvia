@@ -19,6 +19,7 @@ use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Uri;
 
 /**
  * The props of the unified Setup page, drawn from many sources: the agent's
@@ -120,7 +121,7 @@ final readonly class SetupPageProps
             // the app's own host, which serves every chat.
             'domain' => [
                 'value' => $agent->domain,
-                'cname_target' => (string) parse_url((string) config('app.url'), PHP_URL_HOST),
+                'cname_target' => (string) Uri::of((string) config('app.url'))->host(),
             ],
         ];
     }

@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Document\Conversion\OfficeText;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\Support\Knowledge\Document\DocxFile;
@@ -73,7 +74,7 @@ it('reads one page per sheet, as a Markdown table with formulas calculated', fun
 });
 
 it('reads plain text as-is and cuts long text into pages at paragraph breaks', function (): void {
-    $paragraph = str_repeat('word ', 400); // 2000 characters
+    $paragraph = Str::repeat('word ', 400); // 2000 characters
     $path = tempTestFile('long.txt', implode("\n\n", [$paragraph, $paragraph, $paragraph]));
 
     $pages = app(OfficeText::class)->pages($path, 'txt');
@@ -141,8 +142,8 @@ it('reads a file its built-in reader cannot read with the installed program, as 
     Process::fake(['*' => Process::result(output: "Text the program found.\n\nSecond paragraph.")]);
     $unreadable = tempTestFile('old.doc', CompoundFileWriter::write(['Unknown' => 'no Word or PowerPoint stream']));
 
-    expect(array_map(trim(...), app(OfficeText::class)->pages($unreadable, 'doc')))->toBe(["Text the program found.\n\nSecond paragraph."])
-        ->and(array_map(trim(...), app(OfficeText::class)->pages($unreadable, 'ppt')))->toBe(["Text the program found.\n\nSecond paragraph."]);
+    expect(array_map(Str::trim(...), app(OfficeText::class)->pages($unreadable, 'doc')))->toBe(["Text the program found.\n\nSecond paragraph."])
+        ->and(array_map(Str::trim(...), app(OfficeText::class)->pages($unreadable, 'ppt')))->toBe(["Text the program found.\n\nSecond paragraph."]);
 
 });
 

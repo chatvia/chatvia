@@ -83,7 +83,7 @@ class PerplexityClient
      */
     private function post(string $apiKey, string $path, array $payload, int $timeout): ?array
     {
-        $baseUrl = rtrim((string) config('services.perplexity.base_url', 'https://api.perplexity.ai'), '/');
+        $baseUrl = Str::rtrim((string) config('services.perplexity.base_url', 'https://api.perplexity.ai'), '/');
 
         $response = Http::withToken($apiKey)
             ->timeout($timeout)
@@ -115,7 +115,10 @@ class PerplexityClient
         // Reasoning models (sonar-reasoning*) wrap their chain-of-thought in
         // <think>…</think> before the final answer — strip it so the agent
         // only sees the answer. Harmless for non-reasoning models.
-        $answer = trim((string) preg_replace('/<think>.*?<\/think>/s', '', $content));
+        $answer = Str::of($content)
+            ->replaceMatches('/<think>.*?<\/think>/s', '')
+            ->trim()
+            ->toString();
 
         $citations = new CitationList;
         foreach ($body['search_results'] ?? [] as $result) {
@@ -170,7 +173,7 @@ class PerplexityClient
             }
         }
 
-        return new PerplexityAnswerData(trim($answer), $citations->all(), $this->sandboxRun($output));
+        return new PerplexityAnswerData(Str::trim($answer), $citations->all(), $this->sandboxRun($output));
     }
 
     /**

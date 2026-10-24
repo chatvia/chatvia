@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
 use DOMDocument;
+use Illuminate\Support\Str;
 use RuntimeException;
 use ZipArchive;
 
@@ -39,7 +40,7 @@ final class ZipPackage
     /** The part's bytes, or null when the package has no such part. */
     public function read(string $name): ?string
     {
-        $name = ltrim(str_replace('\\', '/', $name), '/');
+        $name = Str::ltrim(Str::replace('\\', '/', $name), '/');
         $index = $this->zip->locateName($name);
 
         if ($index === false) {
@@ -92,9 +93,9 @@ final class ZipPackage
     /** Resolves a link target against the folder of the part that holds it. */
     public static function resolve(string $base, string $target): string
     {
-        $target = rawurldecode(explode('#', $target, 2)[0]);
+        $target = rawurldecode(Str::before($target, '#'));
 
-        $path = str_starts_with($target, '/') ? $target : (dirname($base) === '.' ? '' : dirname($base).'/').$target;
+        $path = Str::startsWith($target, '/') ? $target : (dirname($base) === '.' ? '' : dirname($base).'/').$target;
         $parts = [];
 
         foreach (explode('/', $path) as $segment) {

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 /*
  * PSR-4 autoloading is case-sensitive on Linux (production, CI) but not on
  * macOS. A folder or file renamed only by case on a Mac (e.g. `QA` → `Qa`)
@@ -33,7 +35,7 @@ it('tracks every class file under the exact case of its namespace and class name
     $mismatches = [];
 
     foreach ($output as $path) {
-        if (! str_ends_with($path, '.php') || $path === 'src/Support/helpers.php') {
+        if (! Str::endsWith($path, '.php') || $path === 'src/Support/helpers.php') {
             continue;
         }
 
@@ -58,8 +60,8 @@ it('tracks every class file under the exact case of its namespace and class name
         $fqcn = $namespace[1].'\\'.$class[1];
 
         foreach (PSR4_ROOTS as $prefix => $base) {
-            if (str_starts_with($fqcn, $prefix)) {
-                $expected = $base.str_replace('\\', '/', substr($fqcn, strlen($prefix))).'.php';
+            if (Str::startsWith($fqcn, $prefix)) {
+                $expected = $base.Str::of($fqcn)->chopStart($prefix)->replace('\\', '/')->toString().'.php';
 
                 if ($expected !== $path) {
                     $mismatches[] = "{$path} (expected {$expected})";

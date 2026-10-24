@@ -11,6 +11,7 @@ use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Uri;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -57,7 +58,7 @@ final class ResolveHostedChatAgent
     {
         $host = $request->getHost();
 
-        if ($host === parse_url((string) config('app.url'), PHP_URL_HOST)) {
+        if ($host === Uri::of((string) config('app.url'))->host()) {
             return true;
         }
 

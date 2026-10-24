@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Eval\Support;
 
+use Illuminate\Support\Str;
+
 /**
  * Compares two Markdown readings of one document, pandoc's (the reference)
  * and a built-in reader's (the candidate), for the document reader eval:
@@ -84,21 +86,21 @@ final readonly class MarkdownComparison
     {
         // Links inside links (pandoc's contents entries) come off one layer at a time.
         for ($layer = 0; $layer < 3; $layer++) {
-            $markdown = (string) preg_replace('/(?<!!)\[([^\[\]]*)\]\([^)]*\)/', '$1', $markdown);
+            $markdown = Str::replaceMatches('/(?<!!)\[([^\[\]]*)\]\([^)]*\)/', '$1', $markdown) ?? '';
         }
 
-        $text = (string)preg_replace([
-                '/^\[\^[^\]]+\]:[ \t]*/m',     // footnote labels (the note text stays)
-                '/\[\^[^\]]+\]/',              // footnote marks
-                '/!\[[^\]]*\]\([^)]*\)/',      // images
-                '/\[([^\]]*)\]\([^)]*\)/',     // links: their text stays
-                '/(?<!\\\\)<\/?(?:' . self::BLOCK_TAGS . ')\b[^>]*>/i',
-                '/(?<!\\\\)<\/?[a-z][a-z0-9]*\b[^>]*>/i',  // an escaped \<date> is text
-            ], ['', ' ', ' ', '$1', ' ', ''], $markdown)
-                |> (fn($x) => html_entity_decode($x, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
-                |> (fn($x) => str_replace(["\u{00AD}", "\u{00A0}"], ['', ' '], $x));
+        $text = (Str::replaceMatches([
+            '/^\[\^[^\]]+\]:[ \t]*/m',     // footnote labels (the note text stays)
+            '/\[\^[^\]]+\]/',              // footnote marks
+            '/!\[[^\]]*\]\([^)]*\)/',      // images
+            '/\[([^\]]*)\]\([^)]*\)/',     // links: their text stays
+            '/(?<!\\\\)<\/?(?:'.self::BLOCK_TAGS.')\b[^>]*>/i',
+            '/(?<!\\\\)<\/?[a-z][a-z0-9]*\b[^>]*>/i',  // an escaped \<date> is text
+        ], ['', ' ', ' ', '$1', ' ', ''], $markdown) ?? '')
+                |> (fn ($x): string => html_entity_decode($x, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+                |> (fn ($x) => Str::replace(["\u{00AD}", "\u{00A0}"], ['', ' '], $x));
 
-        return (string) preg_replace('/\\\\([[:punct:]])/', '$1', $text);
+        return Str::replaceMatches('/\\\\([[:punct:]])/', '$1', $text) ?? '';
     }
 
     /**
@@ -109,9 +111,7 @@ final readonly class MarkdownComparison
      */
     public static function words(string $markdown): array
     {
-        preg_match_all('/[\p{L}\p{N}\p{M}]+/u', mb_strtolower(self::plainText($markdown)), $matches);
-
-        return $matches[0];
+        return Str::matchAll('/[\p{L}\p{N}\p{M}]+/u', Str::lower(self::plainText($markdown)))->all();
     }
 
     /**
@@ -121,12 +121,12 @@ final readonly class MarkdownComparison
      */
     public static function headings(string $markdown): array
     {
-        $lines = explode("\n", str_replace("\r\n", "\n", $markdown));
+        $lines = Str::of($markdown)->replace("\r\n", "\n")->explode("\n")->all();
         $headings = [];
         $fenced = false;
 
         foreach ($lines as $index => $line) {
-            if (preg_match('/^\s*(```|~~~)/', $line) === 1) {
+            if (Str::isMatch('/^\s*(```|~~~)/', $line)) {
                 $fenced = ! $fenced;
 
                 continue;
@@ -140,11 +140,11 @@ final readonly class MarkdownComparison
 
             if (preg_match('/^ {0,3}#{1,6}\s+(.*?)\s*#*\s*$/u', $line, $match) === 1) {
                 $headings[] = implode(' ', self::words($match[1]));
-            } elseif (trim($line) !== '' && ! str_starts_with(ltrim($line), '|') && preg_match('/^ {0,3}(=+|-+)\s*$/', $next) === 1 && preg_match('/^ {0,3}[-*+]\s/', $line) !== 1) {
+            } elseif (Str::trim($line) !== '' && ! Str::startsWith(Str::ltrim($line), '|') && Str::isMatch('/^ {0,3}(=+|-+)\s*$/', $next) && ! Str::isMatch('/^ {0,3}[-*+]\s/', $line)) {
                 // Setext: the heading may span the lines of its paragraph.
                 $text = $line;
 
-                for ($back = $index - 1; $back >= 0 && trim($lines[$back]) !== ''; $back--) {
+                for ($back = $index - 1; $back >= 0 && Str::trim($lines[$back]) !== ''; $back--) {
                     $text = $lines[$back].' '.$text;
                 }
 
@@ -165,12 +165,12 @@ final readonly class MarkdownComparison
         $tables = 0;
         $rows = 0;
 
-        foreach (explode("\n", $markdown) as $line) {
-            $line = trim($line);
+        foreach (Str::of($markdown)->explode("\n") as $line) {
+            $line = Str::trim($line);
 
-            if (preg_match('/^\|(\s*:?-+:?\s*\|)+$/', $line) === 1 || preg_match('/^:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/', $line) === 1) {
+            if (Str::isMatch(['/^\|(\s*:?-+:?\s*\|)+$/', '/^:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/'], $line)) {
                 $tables++;
-            } elseif (str_starts_with($line, '|') && str_ends_with($line, '|') && trim($line, "| \t") !== '') {
+            } elseif (Str::startsWith($line, '|') && Str::endsWith($line, '|') && Str::trim($line, "| \t") !== '') {
                 // A row with no text (pandoc's stand-in header) is not counted.
                 $rows++;
             }
@@ -180,7 +180,7 @@ final readonly class MarkdownComparison
         $depth = 0;
 
         foreach ($tags as [, $closing, $tag]) {
-            if (strtolower($tag) === 'table') {
+            if (Str::lower($tag) === 'table') {
                 $depth += $closing === '' ? 1 : -1;
                 $tables += $closing === '' && $depth === 1 ? 1 : 0;
             } elseif ($closing === '' && $depth === 1) {
@@ -194,9 +194,7 @@ final readonly class MarkdownComparison
     /** The number of distinct footnote definitions (`[^1]: …`). */
     public static function footnotes(string $markdown): int
     {
-        preg_match_all('/^\[\^([^\]]+)\]:/m', $markdown, $matches);
-
-        return count(array_unique($matches[1]));
+        return Str::matchAll('/^\[\^([^\]]+)\]:/m', $markdown)->unique(strict: true)->count();
     }
 
     /**
@@ -214,7 +212,7 @@ final readonly class MarkdownComparison
         $joined = [];
 
         for ($index = 0; $index < count($reference) - 1; $index++) {
-            if (mb_strlen($reference[$index]) > 1 && mb_strlen($reference[$index + 1]) > 1) {
+            if (Str::length($reference[$index]) > 1 && Str::length($reference[$index + 1]) > 1) {
                 $joined[$reference[$index].$reference[$index + 1]] = $reference[$index].' '.$reference[$index + 1];
             }
         }

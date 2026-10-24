@@ -6,6 +6,7 @@ namespace App\Mcp\Tools\Analytics;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\Outcomes\LeadStatsQuery;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -33,7 +34,7 @@ class GetLeadStatsTool extends AnalyticsTool
 
         $summary = sprintf(
             '%s: %s leads captured. Conversion rate %s%% of %s conversations.',
-            ucfirst($scope->period->label),
+            Str::ucfirst($scope->period->label),
             number_format($data->totalLeads),
             $data->conversionRatePct,
             number_format($data->conversations),

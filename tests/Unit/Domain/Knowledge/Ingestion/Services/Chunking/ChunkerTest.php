@@ -6,6 +6,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Chunker::enhancePage() asks the enhancement model for a page summary +
@@ -68,8 +69,5 @@ it('asks for the summary and questions in the page\'s own language', function ()
 
     app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Dania er syv år gammel.', checksum: 'c'));
 
-    Http::assertSent(fn (Request $request): bool => str_contains(
-        $request['messages'][0]['content'],
-        'Write the summary and every question in the language of TargetPage',
-    ));
+    Http::assertSent(fn (Request $request): bool => Str::contains($request['messages'][0]['content'], 'Write the summary and every question in the language of TargetPage'));
 });

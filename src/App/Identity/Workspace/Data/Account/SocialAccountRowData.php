@@ -6,6 +6,7 @@ namespace App\Identity\Workspace\Data\Account;
 
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\UserSocial;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -27,7 +28,7 @@ class SocialAccountRowData extends Data
     {
         return new self(
             provider: $provider->value,
-            label: ucfirst($provider->value),
+            label: Str::ucfirst($provider->value),
             connected: $linked instanceof UserSocial,
             connected_at: $linked?->created_at?->toIso8601String(),
         );

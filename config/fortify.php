@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Laravel\Fortify\Features;
 
 return [
@@ -148,29 +150,30 @@ return [
     'passkeys' => [
         // RP ID is the apex host of APP_URL. A credential bound to it is
         // spec-valid from the www. origin too, so one passkey works on both hosts.
-        'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
+        'relying_party_id' => Uri::of((string) config('app.url'))->host(),
         // Both the apex and www may serve the app (no host redirect), so accept
         // both origins. The WebAuthn check matches the full origin exactly
         // before any subdomain rule, so listing www here is enough — no
         // allow-subdomains flag. PASSKEY_EXTRA_ORIGINS (comma-separated) adds
         // more origins.
         'allowed_origins' => (static function (): array {
-            $parts = parse_url((string) config('app.url'));
+            $appUrl = Uri::of((string) config('app.url'));
+            $scheme = $appUrl->scheme();
+            $host = $appUrl->host();
             $origins = [];
 
-            if (is_array($parts) && ! empty($parts['scheme']) && ! empty($parts['host'])) {
-                $port = isset($parts['port']) ? ':'.$parts['port'] : '';
-                $host = $parts['host'];
-                $origins[] = $parts['scheme'].'://'.$host.$port;
+            if (filled($scheme) && filled($host)) {
+                $port = $appUrl->port() !== null ? ":{$appUrl->port()}" : '';
+                $origins[] = "{$scheme}://{$host}{$port}";
 
                 // A www. variant only makes sense for a real domain name.
-                if (! str_starts_with($host, 'www.') && str_contains($host, '.') && filter_var($host, FILTER_VALIDATE_IP) === false) {
-                    $origins[] = $parts['scheme'].'://www.'.$host.$port;
+                if (! Str::startsWith($host, 'www.') && Str::contains($host, '.') && filter_var($host, FILTER_VALIDATE_IP) === false) {
+                    $origins[] = "{$scheme}://www.{$host}{$port}";
                 }
             }
 
             $extra = array_map(
-                fn (string $origin): string => rtrim(trim($origin), '/'),
+                fn (string $origin): string => Str::rtrim(Str::trim($origin), '/'),
                 explode(',', (string) env('PASSKEY_EXTRA_ORIGINS', '')),
             );
 

@@ -4,6 +4,7 @@ use App\Admin\Settings\PdfMakerCheck;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * PdfMakerCheck makes a one-line PDF with a maker's typed values before they
@@ -17,7 +18,7 @@ it('makes a test PDF with Cloudflare, with the typed token', function (): void {
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.cloudflare.com/client/v4/accounts/account-1/browser-rendering/pdf'
         && $request->hasHeader('Authorization', 'Bearer token-1')
-        && str_contains((string) $request['html'], 'Chatvia test page'));
+        && Str::contains((string) $request['html'], 'Chatvia test page'));
 });
 
 it('reports a Cloudflare token without the permission as refused', function (): void {

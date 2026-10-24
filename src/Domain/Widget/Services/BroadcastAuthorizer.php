@@ -41,11 +41,13 @@ readonly class BroadcastAuthorizer
         string $socketId,
         ?Agent $agent = null,
     ): WidgetBroadcastAuthData|BroadcastDenialReason {
-        if (preg_match(self::CHANNEL_PATTERN, $channelName, $matches) !== 1) {
+        $conversationExternalId = Str::match(self::CHANNEL_PATTERN, $channelName);
+
+        if ($conversationExternalId === '') {
             return BroadcastDenialReason::InvalidChannel;
         }
 
-        $conversation = $this->findConversation($matches[1], $sessionExternalId, $agent);
+        $conversation = $this->findConversation($conversationExternalId, $sessionExternalId, $agent);
 
         if (! $conversation instanceof Conversation) {
             return BroadcastDenialReason::UnknownConversation;

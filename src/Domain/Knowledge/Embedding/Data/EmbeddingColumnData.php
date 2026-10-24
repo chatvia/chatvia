@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding\Data;
 
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -21,6 +22,8 @@ final class EmbeddingColumnData extends Data
     /** The vector size the column holds: 1024 for `halfvec(1024)`. */
     public function dimensions(): ?int
     {
-        return preg_match('/\((\d+)\)$/', $this->type, $match) === 1 ? (int) $match[1] : null;
+        $size = Str::match('/\((\d+)\)$/', $this->type);
+
+        return $size !== '' ? (int) $size : null;
     }
 }

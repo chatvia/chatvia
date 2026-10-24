@@ -3,6 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Uri;
 
 /**
  * The embed-origin allow-list is the customer's own `sites` plus install-wide
@@ -121,7 +122,7 @@ it('adds the extra hosts set in the admin panel to the APP_URL host', function (
 it('lets the widget load on the APP_URL host with the default config', function (): void {
     $agent = wvAgentWithSites([]);
     // No config override: this is the list the app booted with.
-    $appHost = (string) parse_url((string) env('APP_URL'), PHP_URL_HOST);
+    $appHost = (string) Uri::of((string) env('APP_URL'))->host();
 
     $verification = app(WidgetVerification::class);
 

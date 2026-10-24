@@ -11,6 +11,7 @@ use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -185,7 +186,7 @@ class ConnectorClassifier
 
         $connectors = [];
         foreach ($servers as $server) {
-            $description = trim((string) $server->description);
+            $description = Str::trim((string) $server->description);
             $connectors[$server->slug] = $description !== '' ? $server->name.': '.$description : $server->name;
         }
 

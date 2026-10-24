@@ -21,9 +21,11 @@ final class QuestionNormalizer
         $text = Str::lower($decomposed === false ? $text : $decomposed);
 
         // Combining marks (accents, Arabic diacritics) and the Arabic tatweel.
-        $text = (string) preg_replace('/[\p{Mn}\x{0640}]+/u', '', $text);
-        $text = (string) preg_replace('/[\p{P}\p{S}]+/u', ' ', $text);
-
-        return trim((string) preg_replace('/\s+/u', ' ', $text));
+        return Str::of($text)
+            ->replaceMatches('/[\p{Mn}\x{0640}]+/u', '')
+            ->replaceMatches('/[\p{P}\p{S}]+/u', ' ')
+            ->replaceMatches('/\s+/u', ' ')
+            ->trim()
+            ->toString();
     }
 }

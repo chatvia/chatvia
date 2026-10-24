@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use Support\Executable;
 
 /**
@@ -51,13 +52,18 @@ final readonly class ServerProgramFinder
      */
     public function detect(ServerProgram $program): ?string
     {
-        $folders = [...explode(PATH_SEPARATOR, (string) getenv('PATH')), ...($this->usualFolders ?? self::USUAL_FOLDERS)];
+        $folders = Str::of((string) getenv('PATH'))
+            ->explode(PATH_SEPARATOR)
+            ->merge($this->usualFolders ?? self::USUAL_FOLDERS)
+            ->filter()
+            ->unique()
+            ->implode(PATH_SEPARATOR);
 
-        $result = Process::env(['PATH' => implode(PATH_SEPARATOR, array_unique(array_filter($folders)))])
+        $result = Process::env(['PATH' => $folders])
             ->timeout(10)
             ->run(['which', $program->value]);
 
-        $path = trim((string) strtok($result->output(), "\n"));
+        $path = Str::trim((string) strtok($result->output(), "\n"));
 
         return $result->successful() && $program->acceptsPath($path) && $path !== $program->value && Executable::exists($path)
             ? $path

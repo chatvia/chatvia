@@ -6,6 +6,7 @@ use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 /**
  * Validate + shape the seed URL for an agent website crawl. The
@@ -55,40 +56,29 @@ class StartAgentWebsiteCrawlRequest extends FormRequest
             return $paths;
         }
 
-        $pathList = array_map(trim(...), explode(',', $paths));
-        $sanitized = [];
-
-        foreach ($pathList as $path) {
-            if (empty($path)) {
-                continue;
-            }
-
-            $cleaned = $this->extractPathFromUrl($path);
-            if (! empty($cleaned)) {
-                $sanitized[] = $cleaned;
-            }
-        }
-
-        return implode(', ', $sanitized);
+        return Str::of($paths)
+            ->explode(',')
+            ->map(static fn (string $path): string => Str::trim($path))
+            ->filter()
+            ->map(fn (string $path): string => $this->extractPathFromUrl($path))
+            ->filter()
+            ->implode(', ');
     }
 
     private function extractPathFromUrl(string $input): string
     {
-        if (preg_match('/^https?:\/\//', $input)) {
-            // parse_url() never throws; it returns false for a malformed URL
-            // and null when there is no path.
-            $path = parse_url($input, PHP_URL_PATH);
+        if (Str::isMatch('/^https?:\/\//', $input)) {
+            // The raw path, so a trailing slash stays part of the pattern;
+            // a malformed URL has no path.
+            $path = SafeUrl::parse($input)?->getUri()->getPath() ?? '';
 
-            return Str::ltrim((string) $path, '/');
+            return Str::ltrim($path, '/');
         }
 
-        if (preg_match('/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\//', $input)) {
-            $slashPos = strpos($input, '/');
-            if ($slashPos !== false) {
-                return ltrim(substr($input, $slashPos + 1), '/');
-            }
+        if (Str::isMatch('/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\//', $input)) {
+            return Str::ltrim(Str::after($input, '/'), '/');
         }
 
-        return ltrim($input, '/');
+        return Str::ltrim($input, '/');
     }
 }

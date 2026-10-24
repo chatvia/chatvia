@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Document\Conversion\Markdown;
 
 use Domain\Knowledge\Document\Conversion\EbookText;
 use Domain\Knowledge\Document\Conversion\OfficeText;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -21,13 +22,13 @@ final class MarkdownReaders
 
     public function supports(string $extension): bool
     {
-        return in_array(strtolower($extension), self::EXTENSIONS, true);
+        return in_array(Str::lower($extension), self::EXTENSIONS, true);
     }
 
     /** The file's text as GitHub Markdown, read by the reader for its extension. */
     public function toMarkdown(string $path, string $extension): string
     {
-        return match (strtolower($extension)) {
+        return match (Str::lower($extension)) {
             'docx' => new DocxReader()->toMarkdown($path),
             'odt' => new OdtReader()->toMarkdown($path),
             'rtf' => new RtfReader()->toMarkdown($path),

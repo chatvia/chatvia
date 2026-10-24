@@ -307,7 +307,7 @@ function analyticsToolResult(TestResponse $response, array $agents): string
     $json = json_encode($body['result'] ?? $body['error'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
     foreach ($agents as $name => $agent) {
-        $json = str_replace('"agent_id": '.$agent->id.',', '"agent_id": "@'.$name.'",', $json);
+        $json = Str::replace('"agent_id": '.$agent->id.',', '"agent_id": "@'.$name.'",', $json);
     }
 
     return $json;
@@ -356,7 +356,7 @@ it('returns a stable result for each analytics tool', function (string $tool, ar
     $seeded = seedAnalyticsWorkspace();
     $agents = ['alpha' => $seeded['alpha'], 'beta' => $seeded['beta']];
 
-    if (isset($arguments['agent']) && str_starts_with($arguments['agent'], '@')) {
+    if (isset($arguments['agent']) && Str::startsWith($arguments['agent'], '@')) {
         $arguments['agent'] = $agents[substr($arguments['agent'], 1)]->external_id;
     }
 

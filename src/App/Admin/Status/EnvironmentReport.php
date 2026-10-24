@@ -75,7 +75,7 @@ final readonly class EnvironmentReport
             new EnvironmentFactData('PHP', PHP_VERSION),
             ...array_map(
                 fn (string $name, string $package): EnvironmentFactData => new EnvironmentFactData($name, InstalledVersions::isInstalled($package)
-                    ? ltrim((string) InstalledVersions::getPrettyVersion($package), 'v')
+                    ? Str::ltrim((string) InstalledVersions::getPrettyVersion($package), 'v')
                     : __('Not installed')),
                 array_keys(self::PACKAGES),
                 self::PACKAGES,

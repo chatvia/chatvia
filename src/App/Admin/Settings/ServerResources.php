@@ -6,6 +6,7 @@ namespace App\Admin\Settings;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 
 /**
  * What this server gives the queue workers: its memory, the container's own
@@ -40,12 +41,12 @@ final readonly class ServerResources
     {
         $meminfo = self::read('/proc/meminfo');
 
-        if (filled($meminfo) && preg_match('/^MemTotal:\s+(\d+) kB/m', $meminfo, $matches) === 1) {
-            return (int) $matches[1] * 1024;
+        if (filled($meminfo) && ($kib = Str::match('/^MemTotal:\s+(\d+) kB/m', $meminfo)) !== '') {
+            return (int) $kib * 1024;
         }
 
         if (PHP_OS_FAMILY === 'Darwin') {
-            $bytes = (int) trim(Process::run(['sysctl', '-n', 'hw.memsize'])->output());
+            $bytes = (int) Str::trim(Process::run(['sysctl', '-n', 'hw.memsize'])->output());
 
             if ($bytes > 0) {
                 return $bytes;
@@ -65,7 +66,7 @@ final readonly class ServerResources
                 continue;
             }
 
-            $value = trim($value);
+            $value = Str::trim($value);
 
             if ($value !== '' && $value !== 'max') {
                 return (int) $value;
@@ -80,18 +81,18 @@ final readonly class ServerResources
         // A container's CPU quota, "200000 100000" = 2 processors; "max" is none.
         $quota = self::read('/sys/fs/cgroup/cpu.max');
 
-        if (filled($quota) && preg_match('/^(\d+) (\d+)/', trim($quota), $matches) === 1) {
+        if (filled($quota) && preg_match('/^(\d+) (\d+)/', Str::trim($quota), $matches) === 1) {
             return max(1, (int) ceil((int) $matches[1] / (int) $matches[2]));
         }
 
         $cpuinfo = self::read('/proc/cpuinfo');
 
-        if (filled($cpuinfo) && ($count = preg_match_all('/^processor\s*:/m', $cpuinfo)) > 0) {
+        if (filled($cpuinfo) && ($count = Str::matchAll('/^processor\s*:/m', $cpuinfo)->count()) > 0) {
             return $count;
         }
 
         if (PHP_OS_FAMILY === 'Darwin') {
-            $count = (int) trim(Process::run(['sysctl', '-n', 'hw.ncpu'])->output());
+            $count = (int) Str::trim(Process::run(['sysctl', '-n', 'hw.ncpu'])->output());
 
             if ($count > 0) {
                 return $count;

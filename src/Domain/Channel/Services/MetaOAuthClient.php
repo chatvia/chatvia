@@ -7,6 +7,7 @@ use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Uri;
 use Throwable;
 
 /**
@@ -92,7 +93,7 @@ class MetaOAuthClient
             'graph_version' => $this->version(),
         ]);
 
-        return 'https://www.facebook.com/'.$this->version().'/dialog/oauth?'.http_build_query($params);
+        return Uri::of("https://www.facebook.com/{$this->version()}/dialog/oauth")->withQuery($params)->value();
     }
 
     /**

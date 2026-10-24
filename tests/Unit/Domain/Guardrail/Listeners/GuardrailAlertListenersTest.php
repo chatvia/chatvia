@@ -12,6 +12,7 @@ use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 /**
  * Blocked attacks and skipped checks reach the owner by email (when they
@@ -72,7 +73,7 @@ it('records a blocked attack in the security audit log, without the message', fu
     Event::assertDispatchedTimes(SecurityEventOccurred::class, 1);
     Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $event): bool => $event->action === 'guardrail.attack_blocked'
         && $event->workspaceId === (int) $this->agent->workspace_id
-        && ! str_contains($event->metadata, 'sample')
+        && ! Str::contains($event->metadata, 'sample')
         && json_decode($event->metadata, true)['stage'] === 'output');
 });
 

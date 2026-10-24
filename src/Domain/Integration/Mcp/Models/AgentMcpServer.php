@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Support\Concerns\HasExternalId;
 
 /**
@@ -288,10 +289,13 @@ class AgentMcpServer extends Model implements AttachableToAgents
      */
     public static function makeSlug(string $input): string
     {
-        $slug = preg_replace('/[^a-z0-9_]+/', '_', strtolower($input)) ?? 'mcp';
-        $slug = trim($slug, '_');
+        $slug = Str::of($input)
+            ->lower()
+            ->replaceMatches('/[^a-z0-9_]+/', '_')
+            ->trim('_')
+            ->toString();
 
-        return $slug === '' ? 'mcp' : substr($slug, 0, 40);
+        return $slug === '' ? 'mcp' : Str::substr($slug, 0, 40);
     }
 
     /**
@@ -306,7 +310,7 @@ class AgentMcpServer extends Model implements AttachableToAgents
         $slug = $base;
 
         for ($suffix = 2; $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
-            $slug = substr($base, 0, 38).'_'.$suffix;
+            $slug = Str::substr($base, 0, 38).'_'.$suffix;
         }
 
         return $slug;

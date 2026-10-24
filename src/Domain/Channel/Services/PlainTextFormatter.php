@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Channel\Services;
 
 use DOMNode;
+use Illuminate\Support\Str;
 
 /**
  * Renders the model's CommonMark reply as readable plain text, for channels
@@ -28,13 +29,13 @@ class PlainTextFormatter extends MarkdownDomFormatter
     {
         return match ($tag) {
             'code' => $node->textContent,
-            'pre' => rtrim($node->textContent)."\n\n",
+            'pre' => Str::rtrim($node->textContent)."\n\n",
             'a' => $this->renderLink($node),
             'br' => "\n",
             'hr' => "\n",
             'p' => $renderedChildren."\n\n",
-            'blockquote' => trim($renderedChildren)."\n\n",
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => trim($renderedChildren)."\n\n",
+            'blockquote' => Str::trim($renderedChildren)."\n\n",
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => Str::trim($renderedChildren)."\n\n",
             'ul', 'ol' => $this->renderList($node, $tag === 'ol'),
             default => $renderedChildren, // unwrap formatting + anything else
         };

@@ -19,6 +19,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 /**
  * What agents learn from: the file types people may upload, website import
@@ -200,7 +201,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
             return null;
         }
 
-        $driver = strtolower((string) config('chatvia.ai.transcriber', 'auto'));
+        $driver = Str::lower((string) config('chatvia.ai.transcriber', 'auto'));
 
         return $driver === 'auto' ? AiProvider::firstConnectedFor(AiCapability::Speech) : AiProvider::tryFrom($driver);
     }

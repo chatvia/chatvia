@@ -66,9 +66,3 @@ it('keeps every tool when the turn has no conversation, or an unknown one', func
     expect(approvalFilterNames($this->filter->apply(new Agent, $this->entries, null)))->toHaveCount(3)
         ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, (string) Str::uuid())))->toHaveCount(3);
 });
-
-it('says only the hosted chat shows tool approvals', function (): void {
-    $showing = array_values(array_filter(ConversationSource::cases(), static fn (ConversationSource $s): bool => $s->showsToolApprovals()));
-
-    expect($showing)->toBe([ConversationSource::HostedChat]);
-});

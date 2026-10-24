@@ -16,6 +16,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 
 /**
@@ -98,7 +99,7 @@ it('fans real chunks out through a Bus batch named with the SourceFile id', func
 
     itfAction(FakeTextSplitter::returning('# Title', 'Body text.'))->execute($sourceFile, $agent);
 
-    Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    Bus::assertBatched(fn (PendingBatch $batch): bool => Str::contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
         ->and($sourceFile->fresh()->parser)->toBe('fake');
@@ -122,7 +123,7 @@ it('reads ebook (.epub/.fb2) text as Markdown before chunking', function (): voi
     itfAction(FakeTextSplitter::returning('# Chapter 1', 'The book body.'), $ebookText)
         ->execute($sourceFile, $agent);
 
-    Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    Bus::assertBatched(fn (PendingBatch $batch): bool => Str::contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
         ->and($sourceFile->fresh()->parser)->toBe('fake');
@@ -174,12 +175,12 @@ it('splits with the built-in splitter and records its name', function (): void {
 
     $agent = Agent::factory()->create();
     $sourceFile = AgentFileFactory::new()->create(['status' => 'uploaded', 'filename' => 'notes.md']);
-    Storage::put($sourceFile->filepath, "# Returns\n\n".str_repeat('You can return any item within 30 days. ', 6)."\n\n# Shipping\n\nWe ship in two days.");
+    Storage::put($sourceFile->filepath, "# Returns\n\n".Str::repeat('You can return any item within 30 days. ', 6)."\n\n# Shipping\n\nWe ship in two days.");
     $agent->files()->attach($sourceFile->id);
 
     itfAction(new BuiltinTextSplitter)->execute($sourceFile, $agent);
 
-    Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    Bus::assertBatched(fn (PendingBatch $batch): bool => Str::contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->parser)->toBe('builtin')
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(3);
 });

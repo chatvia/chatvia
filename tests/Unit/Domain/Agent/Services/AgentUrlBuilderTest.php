@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentUrlBuilder;
+use Illuminate\Support\Uri;
 
 /**
  * Every agent's hosted chat lives under `{APP_URL}/chat/`: its slug for the
@@ -38,6 +39,6 @@ it('matches the chat routes', function (): void {
     config(['app.url' => 'https://chatvia.example']);
     $agent = Agent::factory()->make(['slug' => 'helper', 'external_id' => 'abc123']);
 
-    expect(parse_url(AgentUrlBuilder::chatUrl($agent), PHP_URL_PATH))->toBe(route('chat.home', ['agentSlug' => 'helper'], absolute: false))
-        ->and(parse_url(AgentUrlBuilder::chatEmbedUrl($agent), PHP_URL_PATH))->toBe(route('chat.embed.home', ['agentSlug' => 'abc123'], absolute: false));
+    expect(Uri::of(AgentUrlBuilder::chatUrl($agent))->getUri()->getPath())->toBe(route('chat.home', ['agentSlug' => 'helper'], absolute: false))
+        ->and(Uri::of(AgentUrlBuilder::chatEmbedUrl($agent))->getUri()->getPath())->toBe(route('chat.embed.home', ['agentSlug' => 'abc123'], absolute: false));
 });

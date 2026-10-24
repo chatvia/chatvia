@@ -28,7 +28,7 @@ function csrfMiddleware(): PreventRequestForgery
 function csrfRequest(string $uri, array $headers = []): Request
 {
     $request = Request::create($uri, 'POST', server: collect($headers)
-        ->mapWithKeys(fn (string $value, string $name): array => ['HTTP_'.strtoupper(str_replace('-', '_', $name)) => $value])
+        ->mapWithKeys(fn (string $value, string $name): array => ['HTTP_'.Str::upper(Str::replace('-', '_', $name)) => $value])
         ->all());
 
     $session = app('session.store');

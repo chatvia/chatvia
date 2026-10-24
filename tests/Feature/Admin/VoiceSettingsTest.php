@@ -14,6 +14,7 @@ use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
 use Filament\Forms\Components\Select;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -44,7 +45,7 @@ function savedVoice(): ?string
 /** Whether a request went to OpenAI (the page lists OpenRouter's models too). */
 function voiceOpenAiCall(Request $request): bool
 {
-    return str_contains($request->url(), 'api.openai.com');
+    return Str::contains($request->url(), 'api.openai.com');
 }
 
 it('turns voice on with OpenAI once it is connected, and off without it', function (): void {

@@ -8,6 +8,7 @@ use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Support\Http\SafeUrl;
 use Throwable;
 
@@ -74,17 +75,17 @@ class McpOAuthDiscoverer
         $candidates = [];
 
         try {
-            $header = $this->safeGet($mcpUrl)->header('WWW-Authenticate');
-            if ($header && preg_match('/resource_metadata="?([^",\s]+)"?/i', $header, $m)) {
-                $candidates[] = $m[1];
+            $metadataUrl = Str::match('/resource_metadata="?([^",\s]+)"?/i', $this->safeGet($mcpUrl)->header('WWW-Authenticate'));
+            if ($metadataUrl !== '') {
+                $candidates[] = $metadataUrl;
             }
         } catch (Throwable) {
             // Best-effort: even an unreachable probe still has predictable
             // well-known URLs worth trying below.
         }
 
-        $origin = rtrim($this->originOf($mcpUrl), '/');
-        $path = Str::rtrim(parse_url($mcpUrl, PHP_URL_PATH) ?: '', '/');
+        $origin = Str::rtrim($this->originOf($mcpUrl), '/');
+        $path = $this->pathOf(SafeUrl::parse($mcpUrl));
 
         if ($path !== '') {
             $candidates[] = $origin.'/.well-known/oauth-protected-resource'.$path;
@@ -201,7 +202,7 @@ class McpOAuthDiscoverer
         }
 
         return $advertised['path'] === ''
-            || str_starts_with($target['path'].'/', $advertised['path'].'/');
+            || Str::startsWith($target['path'].'/', $advertised['path'].'/');
     }
 
     /**
@@ -209,20 +210,16 @@ class McpOAuthDiscoverer
      */
     private function normalizedResource(string $url): ?array
     {
-        $parts = parse_url(trim($url));
-        if (! is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+        $uri = SafeUrl::parse(Str::trim($url));
+        if (! $uri instanceof Uri || blank($uri->scheme()) || blank($uri->host())) {
             return null;
         }
 
-        $scheme = strtolower($parts['scheme']);
-        $port = $parts['port'] ?? null;
-        if (($scheme === 'https' && $port === 443) || ($scheme === 'http' && $port === 80)) {
-            $port = null;
-        }
-
+        // Uri lowercases the host and drops a default port, so equal
+        // resources compare equal.
         return [
-            'origin' => $scheme.'://'.strtolower($parts['host']).($port !== null ? ':'.$port : ''),
-            'path' => rtrim($parts['path'] ?? '', '/'),
+            'origin' => $this->originFrom($uri),
+            'path' => $this->pathOf($uri),
         ];
     }
 
@@ -236,17 +233,13 @@ class McpOAuthDiscoverer
      */
     private function candidateMetadataUrls(string $authServerUrl): iterable
     {
-        $parts = parse_url($authServerUrl);
-        if (! $parts || empty($parts['scheme']) || empty($parts['host'])) {
+        $uri = SafeUrl::parse($authServerUrl);
+        if (! $uri instanceof Uri || blank($uri->scheme()) || blank($uri->host())) {
             return [];
         }
 
-        $origin = $parts['scheme'].'://'.$parts['host'];
-        if (! empty($parts['port'])) {
-            $origin .= ':'.$parts['port'];
-        }
-
-        $path = isset($parts['path']) ? rtrim($parts['path'], '/') : '';
+        $origin = $this->originFrom($uri);
+        $path = $this->pathOf($uri);
 
         if ($path === '') {
             return [$origin.'/.well-known/oauth-authorization-server'];
@@ -273,16 +266,26 @@ class McpOAuthDiscoverer
 
     private function originOf(string $url): string
     {
-        $parts = parse_url($url);
-        if (! $parts || empty($parts['scheme']) || empty($parts['host'])) {
+        $uri = SafeUrl::parse($url);
+        if (! $uri instanceof Uri || blank($uri->scheme()) || blank($uri->host())) {
             return $url;
         }
 
-        $origin = $parts['scheme'].'://'.$parts['host'];
-        if (! empty($parts['port'])) {
-            $origin .= ':'.$parts['port'];
-        }
+        return $this->originFrom($uri);
+    }
 
-        return $origin;
+    private function originFrom(Uri $uri): string
+    {
+        $port = $uri->port() !== null ? ":{$uri->port()}" : '';
+
+        return "{$uri->scheme()}://{$uri->host()}{$port}";
+    }
+
+    /** The URL's path without a trailing slash: "" for the root. */
+    private function pathOf(?Uri $uri): string
+    {
+        $path = $uri?->path() ?? '/';
+
+        return $path === '/' ? '' : "/{$path}";
     }
 }

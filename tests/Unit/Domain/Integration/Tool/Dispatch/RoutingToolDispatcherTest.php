@@ -6,6 +6,7 @@ use Domain\Integration\Mcp\Services\McpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Dispatch\RoutingToolDispatcher;
+use Illuminate\Support\Str;
 
 /**
  * The router forwards each call to its backend and holds every result to the
@@ -40,11 +41,11 @@ function routingDispatcher(ToolDispatchResult $mcpResult, ToolDispatchResult $ht
 it('cuts a result longer than the limit and tells the model it was cut', function (): void {
     config(['chatvia.agent.tools.max_result_chars' => 1000]);
     $artifacts = [['kind' => 'echarts_option', 'data' => []]];
-    $dispatcher = routingDispatcher(new ToolDispatchResult(str_repeat('é', 1500), $artifacts), ToolDispatchResult::text('ok'));
+    $dispatcher = routingDispatcher(new ToolDispatchResult(Str::repeat('é', 1500), $artifacts), ToolDispatchResult::text('ok'));
 
     $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__notion__fetch', '{}'));
 
-    expect($result->text)->toStartWith(str_repeat('é', 1000)."\n\n")
+    expect($result->text)->toStartWith(Str::repeat('é', 1000)."\n\n")
         ->and($result->text)->toEndWith(sprintf(RoutingToolDispatcher::CUT_NOTE, 1000))
         ->and(mb_substr_count($result->text, 'é'))->toBe(1000)
         ->and($result->artifacts)->toBe($artifacts)
@@ -53,7 +54,7 @@ it('cuts a result longer than the limit and tells the model it was cut', functio
 
 it('leaves a result within the limit as it is', function (): void {
     config(['chatvia.agent.tools.max_result_chars' => 1000]);
-    $original = ToolDispatchResult::text(str_repeat('a', 1000));
+    $original = ToolDispatchResult::text(Str::repeat('a', 1000));
     $dispatcher = routingDispatcher(ToolDispatchResult::text('mcp'), $original);
 
     expect($dispatcher->dispatch(new Agent, ToolCallData::named('lookup_order', '{}')))->toBe($original);
@@ -61,19 +62,19 @@ it('leaves a result within the limit as it is', function (): void {
 
 it('keeps an error flagged when it is cut', function (): void {
     config(['chatvia.agent.tools.max_result_chars' => 1000]);
-    $dispatcher = routingDispatcher(ToolDispatchResult::error(str_repeat('x', 5000)), ToolDispatchResult::text('ok'));
+    $dispatcher = routingDispatcher(ToolDispatchResult::error(Str::repeat('x', 5000)), ToolDispatchResult::text('ok'));
 
     $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__github__search', '{}'));
 
     expect($result->isError)->toBeTrue()
-        ->and(mb_strlen($result->text))->toBeLessThan(1200);
+        ->and(Str::length($result->text))->toBeLessThan(1200);
 });
 
 it('never cuts below 1,000 characters, whatever the setting says', function (): void {
     config(['chatvia.agent.tools.max_result_chars' => 10]);
-    $dispatcher = routingDispatcher(ToolDispatchResult::text(str_repeat('a', 1500)), ToolDispatchResult::text('ok'));
+    $dispatcher = routingDispatcher(ToolDispatchResult::text(Str::repeat('a', 1500)), ToolDispatchResult::text('ok'));
 
     $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__notion__fetch', '{}'));
 
-    expect($result->text)->toStartWith(str_repeat('a', 1000)."\n\n");
+    expect($result->text)->toStartWith(Str::repeat('a', 1000)."\n\n");
 });

@@ -11,6 +11,7 @@ use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Uri;
 
 /**
  * A custom server added with OAuth carries its name and a slug that is free
@@ -47,7 +48,7 @@ it('carries the custom name and a workspace-unique slug in the pending state', f
         auth_strategy: ConnectorAuthStrategy::Oauth,
     ), 'binding');
 
-    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+    $query = Uri::of($url)->query()->all();
     $pending = PendingOAuthState::unseal(Cache::get('oauth:mcp:state:'.$query['state']));
 
     expect($pending?->connectorSlug)->toBeNull()

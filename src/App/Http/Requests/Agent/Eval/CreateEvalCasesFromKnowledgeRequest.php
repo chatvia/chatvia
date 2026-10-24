@@ -6,6 +6,7 @@ use Domain\Evaluation\Data\CreateEvalCasesFromQuestionsData;
 use Domain\Evaluation\Data\KnowledgeQuestionItemData;
 use Domain\Evaluation\Enums\EvalQuestionSource;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -45,7 +46,7 @@ class CreateEvalCasesFromKnowledgeRequest extends FormRequest
                 fn (array $item): KnowledgeQuestionItemData => new KnowledgeQuestionItemData(
                     type: EvalQuestionSource::from($item['type']),
                     id: (int) $item['id'],
-                    question: trim($item['question']),
+                    question: Str::trim($item['question']),
                 ),
                 $items,
             ),

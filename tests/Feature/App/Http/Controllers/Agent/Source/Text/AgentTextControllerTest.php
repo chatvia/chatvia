@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * The agent's text list comes one page at a time (newest first) and reads the
@@ -39,7 +40,7 @@ it('pages the text list from the rows, without reading the texts from storage', 
 it('answers a text the workspace already has with a validation error', function (): void {
     Bus::fake([TextIngestionJob::class]);
     Storage::fake();
-    $content = str_repeat('Our refund policy covers every purchase made in the last thirty days. ', 10);
+    $content = Str::repeat('Our refund policy covers every purchase made in the last thirty days. ', 10);
     $other = createAgent($this->owner);
 
     $this->actingAs($this->owner)

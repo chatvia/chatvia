@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Illuminate\Support\Str;
 use Support\Http\CloudflareIps;
 
 /*
@@ -25,7 +26,7 @@ use Support\Http\CloudflareIps;
 |
 */
 
-$proxies = trim((string) env('TRUSTED_PROXIES', ''));
+$proxies = Str::trim((string) env('TRUSTED_PROXIES', ''));
 
 $expand = fn (string $entry): array => strcasecmp($entry, 'cloudflare') === 0
     ? CloudflareIps::ranges()
@@ -36,7 +37,7 @@ return [
     'proxies' => match (true) {
         $proxies === '*', $proxies === '' => env('APP_ENV') === 'local' ? '*' : null,
         default => array_values(array_unique(array_merge(
-            ...array_map($expand, array_filter(array_map(trim(...), explode(',', $proxies)))),
+            ...array_map($expand, array_filter(array_map(Str::trim(...), explode(',', $proxies)))),
         ))),
     },
 

@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * MessageAllowance answers "may this account send one more message this
@@ -61,7 +62,7 @@ it('answers from the cache without a query once warmed', function (): void {
     DB::enableQueryLog();
     $this->allowance->canSend($this->workspace->id);
 
-    expect(collect(DB::getQueryLog())->filter(fn (array $q): bool => str_contains($q['query'], 'message_limits')))->toBeEmpty();
+    expect(collect(DB::getQueryLog())->filter(fn (array $q): bool => Str::contains($q['query'], 'message_limits')))->toBeEmpty();
 });
 
 it('lets a chatter without a limit send', function (): void {

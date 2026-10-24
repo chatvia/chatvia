@@ -16,6 +16,7 @@ use App\Mcp\Tools\Weather\CurrentWeatherTool;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Server\Testing\TestResponse;
 
 /**
@@ -268,5 +269,5 @@ it('sends the key only as a bearer token', function (): void {
     PerplexityServer::tool(PerplexityWebSearchTool::class, ['query' => 'latest news'])->assertOk();
 
     Http::assertSent(fn (ClientRequest $request): bool => $request->hasHeader('Authorization', 'Bearer pplx-key')
-        && ! str_contains($request->url(), 'pplx-key'));
+        && ! Str::contains($request->url(), 'pplx-key'));
 });

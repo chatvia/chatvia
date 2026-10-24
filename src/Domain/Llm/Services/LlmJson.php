@@ -30,11 +30,11 @@ final class LlmJson
 
     private static function withoutCodeFence(string $reply): string
     {
-        if (! str_starts_with($reply, '```')) {
+        if (! Str::startsWith($reply, '```')) {
             return $reply;
         }
 
-        return preg_replace('/^```[a-zA-Z]*\s*|\s*```$/', '', $reply) ?? $reply;
+        return Str::replaceMatches('/^```[a-zA-Z]*\s*|\s*```$/', '', $reply) ?? $reply;
     }
 
     /**
@@ -42,14 +42,13 @@ final class LlmJson
      */
     private static function decodeBetween(string $reply, string $open, string $close): ?array
     {
-        $start = strpos($reply, $open);
-        $end = strrpos($reply, $close);
+        $after = Str::after($reply, $open);
 
-        if ($start === false || $end === false || $end <= $start) {
+        if (! Str::contains($reply, $open) || ! Str::contains($after, $close)) {
             return null;
         }
 
-        return self::decodeArray(substr($reply, $start, $end - $start + 1));
+        return self::decodeArray($open.Str::beforeLast($after, $close).$close);
     }
 
     /**

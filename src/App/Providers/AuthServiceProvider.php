@@ -11,6 +11,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 
@@ -55,11 +56,11 @@ class AuthServiceProvider extends ServiceProvider
     private function configurePolicyResolution(): void
     {
         Gate::guessPolicyNamesUsing(function (string $modelClass): ?string {
-            if (! str_contains($modelClass, '\\Models\\')) {
+            if (! Str::contains($modelClass, '\\Models\\')) {
                 return null;
             }
 
-            $policy = str_replace('\\Models\\', '\\Policies\\', $modelClass).'Policy';
+            $policy = Str::replace('\\Models\\', '\\Policies\\', $modelClass).'Policy';
 
             return class_exists($policy) ? $policy : null;
         });

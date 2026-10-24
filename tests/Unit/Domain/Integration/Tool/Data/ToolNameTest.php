@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolKind;
+use Illuminate\Support\Str;
 
 /**
  * ToolName is the single parse/compose point for the `mcp__{slug}__{tool}`
@@ -74,6 +75,6 @@ it('matches a server by its tool prefix', function (): void {
 it('applies the LLM function-name rule to the full name', function (): void {
     expect(ToolName::forMcp('stripe', 'create-customer')->isValidForLlm())->toBeTrue()
         ->and(ToolName::forMcp('stripe', 'has space')->isValidForLlm())->toBeFalse()
-        ->and(ToolName::forMcp('stripe', str_repeat('a', 60))->isValidForLlm())->toBeFalse()
+        ->and(ToolName::forMcp('stripe', Str::repeat('a', 60))->isValidForLlm())->toBeFalse()
         ->and(ToolName::parse('1starts_with_digit')->isValidForLlm())->toBeFalse();
 });

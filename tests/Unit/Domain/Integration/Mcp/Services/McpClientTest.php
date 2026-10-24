@@ -9,6 +9,8 @@ use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Mockery\MockInterface;
 
 /** A third-party server reached with a bearer token (not saved). */
@@ -37,7 +39,7 @@ function mclInternalServer(?string $connectorSlug): AgentMcpServer
 {
     $server = mclServer();
     $server->connector_slug = $connectorSlug;
-    $server->url = rtrim((string) config('app.url'), '/').'/mcp/charts';
+    $server->url = Str::rtrim((string) config('app.url'), '/').'/mcp/charts';
     $server->auth_type = 'none';
     $server->auth_value = null;
 
@@ -174,12 +176,12 @@ it('refuses a reply whose id is not the id it sent', function (): void {
 });
 
 it('reports an HTTP error by status and the start of the body', function (): void {
-    $body = 'Service Unavailable '.str_repeat('x', 300);
+    $body = 'Service Unavailable '.Str::repeat('x', 300);
     Http::fake(['mcp.example.test/*' => Http::response($body, 503)]);
 
     expect(fn (): array => app(McpClient::class)->fetchTools(mclServer()))
         ->toThrow(function (McpException $e) use ($body): void {
-            expect($e->getMessage())->toBe('MCP server returned HTTP 503: '.mb_substr($body, 0, 200))
+            expect($e->getMessage())->toBe('MCP server returned HTTP 503: '.Str::substr($body, 0, 200))
                 ->and($e->getCode())->toBe(503);
         });
 });
@@ -219,7 +221,7 @@ it('signs every request to a first-party server over the body and the identity',
             $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
             $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
             $request->method(),
-            (string) parse_url($request->url(), PHP_URL_PATH),
+            Uri::of($request->url())->getUri()->getPath(),
             $request->body(),
             InternalMcpSignature::identityHeadersFrom($request->headers()),
         );
@@ -243,11 +245,11 @@ it('sends a first-party server to the internal URL with a valid signature', func
             $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
             $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
             $request->method(),
-            parse_url($request->url(), PHP_URL_PATH),
+            Uri::of($request->url())->getUri()->getPath(),
             $request->body(),
             InternalMcpSignature::identityHeadersFrom($request->headers()),
         ));
-    Http::assertNotSent(fn (ClientRequest $request): bool => ! str_starts_with($request->url(), 'http://app:8080/'));
+    Http::assertNotSent(fn (ClientRequest $request): bool => ! Str::startsWith($request->url(), 'http://app:8080/'));
 });
 
 it('never sends a third-party server to the internal URL', function (): void {
@@ -256,7 +258,7 @@ it('never sends a third-party server to the internal URL', function (): void {
 
     app(McpClient::class)->callTool(mclServer(), 'ping', []);
 
-    Http::assertNotSent(fn (ClientRequest $request): bool => str_starts_with($request->url(), 'http://app:8080'));
+    Http::assertNotSent(fn (ClientRequest $request): bool => Str::startsWith($request->url(), 'http://app:8080'));
 });
 
 it('does not sign a custom server that points at an internal URL', function (): void {

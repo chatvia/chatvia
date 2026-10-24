@@ -5,6 +5,7 @@ use App\Admin\Settings\ServerProgramFinder;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 
 /**
  * ServerProgramFinder tells the Programs card whether this server finds a
@@ -51,11 +52,11 @@ it('detects a program with which, also in the usual folders', function (): void 
     expect(new ServerProgramFinder(['/nowhere', $this->folder])->detect(ServerProgram::Pdfinfo))->toBe("{$this->folder}/pdfinfo");
 
     Process::assertRan(fn (PendingProcess $process): bool => $process->command === ['which', 'pdfinfo']
-        && str_ends_with((string) $process->environment['PATH'], PATH_SEPARATOR.'/nowhere'.PATH_SEPARATOR.$this->folder));
+        && Str::endsWith((string) $process->environment['PATH'], PATH_SEPARATOR.'/nowhere'.PATH_SEPARATOR.$this->folder));
 });
 
 it('detects nothing when which finds no program, or a path the field would refuse', function (string $output, int $exitCode): void {
-    Process::fake(['*which*' => Process::result(output: str_replace('{folder}', $this->folder, $output), exitCode: $exitCode)]);
+    Process::fake(['*which*' => Process::result(output: Str::replace('{folder}', $this->folder, $output), exitCode: $exitCode)]);
 
     expect(new ServerProgramFinder([$this->folder])->detect(ServerProgram::Pandoc))->toBeNull();
 })->with([

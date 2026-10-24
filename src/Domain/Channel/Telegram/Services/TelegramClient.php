@@ -4,6 +4,7 @@ namespace Domain\Channel\Telegram\Services;
 
 use Domain\Channel\Services\RedactedException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Telegram\Bot\Api;
 use Throwable;
 
@@ -81,7 +82,7 @@ class TelegramClient
      */
     public function sendMessage(string $token, int|string $chatId, string $text): void
     {
-        $text = trim($text);
+        $text = Str::trim($text);
 
         if ($text === '') {
             return;
@@ -92,7 +93,7 @@ class TelegramClient
         $html = $formatter->toHtml($text);
 
         // The common case: one message that renders as HTML.
-        if (mb_strlen($html) <= self::MESSAGE_LIMIT) {
+        if (Str::length($html) <= self::MESSAGE_LIMIT) {
             try {
                 $api->sendMessage(['chat_id' => $chatId, 'text' => $html, 'parse_mode' => 'HTML']);
 
@@ -159,12 +160,12 @@ class TelegramClient
      */
     private function chunk(string $text): array
     {
-        $text = trim($text);
+        $text = Str::trim($text);
 
         if ($text === '') {
             return [];
         }
 
-        return mb_strlen($text) <= self::MESSAGE_LIMIT ? [$text] : mb_str_split($text, self::MESSAGE_LIMIT);
+        return Str::length($text) <= self::MESSAGE_LIMIT ? [$text] : Str::of($text)->split(self::MESSAGE_LIMIT)->all();
     }
 }

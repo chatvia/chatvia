@@ -3,6 +3,7 @@
 use Domain\Channel\Messenger\Services\MessengerClient;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The client's requests are the contract with the Messenger Send API, which
@@ -35,9 +36,9 @@ it('splits a reply over 2000 characters and stops after a part fails', function 
         ->push(['error' => ['message' => 'Rate limited']], 400)
         ->push(['message_id' => 'mid.3'])]);
 
-    new MessengerClient()->sendMessage('EAAG-page-token', '24680', str_repeat('a', 4500));
+    new MessengerClient()->sendMessage('EAAG-page-token', '24680', Str::repeat('a', 4500));
 
-    $parts = array_map(fn (array $pair): int => mb_strlen($pair[0]['message']['text']), Http::recorded()->all());
+    $parts = array_map(fn (array $pair): int => Str::length($pair[0]['message']['text']), Http::recorded()->all());
     expect($parts)->toBe([2000, 2000]);
 });
 

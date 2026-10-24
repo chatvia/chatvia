@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -33,10 +34,10 @@ it('shows AgentNotFound on every chat route once the workspace is deactivated', 
     $this->call($method, $this->chat.$path, $body)
         ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
 
-    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'api.openai.com'));
+    Http::assertNotSent(fn (Request $request): bool => Str::contains($request->url(), 'api.openai.com'));
 })->with([
     'home' => ['GET', '', []],
-    'stream' => ['POST', '/stream/'.str_repeat('a', 8), ['content' => 'Hello']],
+    'stream' => ['POST', '/stream/'.Str::repeat('a', 8), ['content' => 'Hello']],
     'voice call' => ['POST', '/voice', ['sdp' => 'v=0 offer']],
     'usage' => ['GET', '/usage', []],
 ]);

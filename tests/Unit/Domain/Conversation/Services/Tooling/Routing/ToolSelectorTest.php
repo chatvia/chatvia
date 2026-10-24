@@ -16,6 +16,7 @@ use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Routing\AlwaysAvailableToolResolver;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 function tsEntry(string $name): ToolEntry
 {
@@ -27,7 +28,7 @@ function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpSe
 {
     $server = AgentMcpServer::create([
         'workspace_id' => $agent->workspace_id,
-        'name' => ucfirst($slug),
+        'name' => Str::ucfirst($slug),
         'slug' => $slug,
         'url' => "https://example.test/mcp/{$slug}",
         'category' => McpServerCategory::Custom,

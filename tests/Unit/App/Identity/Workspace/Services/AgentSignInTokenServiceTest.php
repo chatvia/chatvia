@@ -5,6 +5,7 @@ use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Membership\Team\Services\TeamService;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -104,11 +105,11 @@ describe('compact HMAC credential', function (): void {
 
         expect($token)->toStartWith('cvh1.');
 
-        $body = substr($token, 5);
+        $body = Str::after($token, 'cvh1.');
         [$sub, $exp, $sig] = [
-            substr($body, 0, strpos($body, '.')),
-            substr($body, strpos($body, '.') + 1, strrpos($body, '.') - strpos($body, '.') - 1),
-            substr($body, strrpos($body, '.') + 1),
+            Str::before($body, '.'),
+            Str::between($body, '.', '.'),
+            Str::afterLast($body, '.'),
         ];
 
         expect($sub)->toBe($this->owner->external_id)
@@ -153,7 +154,7 @@ describe('compact HMAC credential', function (): void {
     it('rejects a tampered signature', function (): void {
         $token = $this->service->issueHmac($this->owner, $this->agent)['token'];
         // Flip the last hex char.
-        $tampered = substr($token, 0, -1).(str_ends_with($token, '0') ? '1' : '0');
+        $tampered = substr($token, 0, -1).(Str::endsWith($token, '0') ? '1' : '0');
 
         expect($this->service->verify($tampered, $this->agent))->toBeNull();
     });
@@ -215,10 +216,10 @@ describe('compact HMAC credential', function (): void {
     })->with([
         'missing segments' => 'cvh1.only-one-segment',
         'two segments' => 'cvh1.user_123.1234567890',
-        'non-numeric exp' => fn (): string => 'cvh1.user_123.notanumber.'.str_repeat('a', 64),
-        'non-hex sig' => fn (): string => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('z', 64),
+        'non-numeric exp' => fn (): string => 'cvh1.user_123.notanumber.'.Str::repeat('a', 64),
+        'non-hex sig' => fn (): string => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.'.Str::repeat('z', 64),
         'wrong sig length' => fn (): string => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.deadbeef',
-        'empty user_id' => fn (): string => 'cvh1..'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('a', 64),
+        'empty user_id' => fn (): string => 'cvh1..'.now()->addMinutes(5)->getTimestamp().'.'.Str::repeat('a', 64),
     ]);
 });
 

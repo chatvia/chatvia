@@ -96,12 +96,12 @@ class RenderInlineFormAction
     {
         // Underscores would otherwise be dropped (book_a_demo → bookademo), so
         // normalize snake_case to spaces before slugifying.
-        $slugified = Str::slug(str_replace('_', ' ', $requested));
+        $slugified = Str::slug(Str::replace('_', ' ', $requested));
 
         return $active->first(static fn (FormDefinition $form): bool => $form->slug === $requested
             || $form->slug === $slugified
             || Str::slug($form->name) === $slugified
-            || mb_strtolower($form->name) === mb_strtolower($requested));
+            || Str::lower($form->name) === Str::lower($requested));
     }
 
     /**

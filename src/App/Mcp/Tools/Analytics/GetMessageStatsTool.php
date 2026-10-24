@@ -6,6 +6,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\Activity\MessageStatsQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -37,7 +38,7 @@ class GetMessageStatsTool extends AnalyticsTool
 
         $summary = sprintf(
             '%s: %s messages total — %s incoming, %s AI replies.%s',
-            ucfirst($period->label),
+            Str::ucfirst($period->label),
             number_format($data->total()),
             number_format($data->incoming),
             number_format($data->outgoing),

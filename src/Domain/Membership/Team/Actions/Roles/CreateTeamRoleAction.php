@@ -6,6 +6,7 @@ use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -26,7 +27,7 @@ class CreateTeamRoleAction
     public function execute(SaveTeamRoleData $data): Role
     {
         $team = $data->team;
-        $code = strtolower(str_replace(' ', '_', $data->name));
+        $code = Str::lower(Str::replace(' ', '_', $data->name));
 
         if ($team->roles()->where('code', $code)->exists()) {
             throw new DomainValidationException('name', __('A role with this name already exists.'));

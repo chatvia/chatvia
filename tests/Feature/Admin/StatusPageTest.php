@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\Support\Admin\FakeRedisAndHorizon;
 
@@ -220,9 +221,9 @@ it('finds Reverb running with no open channels, and says when it refuses the key
         ->and($refused->summary)->toBe('Reverb refused the app keys.')
         ->and(collect($refused->checks)->firstWhere('label', 'App keys')->value)->toBe('Refused (401)');
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'reverb.test')
-        && str_contains($request->url(), '/apps/test-app-id/channels?')
-        && str_contains($request->url(), 'auth_signature='));
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), 'reverb.test')
+        && Str::contains($request->url(), '/apps/test-app-id/channels?')
+        && Str::contains($request->url(), 'auth_signature='));
 });
 
 it('warns when email goes to the log, and finds an SMTP server that does not answer', function (): void {

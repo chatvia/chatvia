@@ -11,6 +11,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Support\Localization\Country\Models\Country;
 
@@ -154,7 +155,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
             ip_allowlist: $this->cleanList('ip_allowlist'),
             geo_mode: GeoMode::from((string) $this->input('geo_mode')),
             // Lowercase to match the countries table + the geo-IP provider's codes.
-            geo_countries: array_values(array_unique(array_map(strtolower(...), $this->cleanList('geo_countries')))),
+            geo_countries: array_values(array_unique(array_map(Str::lower(...), $this->cleanList('geo_countries')))),
             webhook_url: $this->blankToNull($this->input('webhook_url')),
             // Write-only: a blank value leaves the stored secret untouched.
             webhook_secret: $this->blankToNull($this->input('webhook_secret')),
@@ -195,9 +196,9 @@ class UpdateSecurityPolicyRequest extends FormRequest
         }
 
         // countries.code is stored lowercase; the geo-IP provider may return either case.
-        $country = Country::query()->where('code', strtolower($code))->first(['code', 'name']);
+        $country = Country::query()->where('code', Str::lower($code))->first(['code', 'name']);
 
-        return $country?->localizedName() ?? strtoupper($code);
+        return $country?->localizedName() ?? Str::upper($code);
     }
 
     /**
@@ -227,7 +228,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
      */
     private function cleanList(string $key): array
     {
-        $entries = array_map(fn (mixed $value): string => trim((string) $value), (array) $this->input($key, []));
+        $entries = array_map(fn (mixed $value): string => Str::trim((string) $value), (array) $this->input($key, []));
 
         return array_values(array_unique(array_filter($entries, filled(...))));
     }

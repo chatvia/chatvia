@@ -3,6 +3,7 @@
 use Domain\Channel\Whatsapp\Services\WhatsappClient;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The client's outbound payloads are the contract with Meta — a wrong field
@@ -23,7 +24,7 @@ it('sends a text message with the documented Cloud API payload', function (): vo
 
     $this->client->sendMessage('token-x', '111222333', '4915551234567', 'Hello **there**');
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/111222333/messages')
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), '/111222333/messages')
         && $request->hasHeader('Authorization', 'Bearer token-x')
         && $request['messaging_product'] === 'whatsapp'
         && $request['recipient_type'] === 'individual'
@@ -37,7 +38,7 @@ it('sends a text message with the documented Cloud API payload', function (): vo
 it('chunks a body over the 4096-char limit into multiple sends', function (): void {
     ($this->fakeSend)();
 
-    $this->client->sendMessage('token-x', '111222333', '4915551234567', str_repeat('a', 5000));
+    $this->client->sendMessage('token-x', '111222333', '4915551234567', Str::repeat('a', 5000));
 
     $bodies = [];
     Http::assertSentCount(2);
@@ -47,8 +48,8 @@ it('chunks a body over the 4096-char limit into multiple sends', function (): vo
         return true;
     });
 
-    expect(mb_strlen($bodies[0]))->toBe(4096)
-        ->and(mb_strlen($bodies[1]))->toBe(904);
+    expect(Str::length($bodies[0]))->toBe(4096)
+        ->and(Str::length($bodies[1]))->toBe(904);
 });
 
 it('marks read and shows typing off the inbound wamid in one call', function (): void {
@@ -56,7 +57,7 @@ it('marks read and shows typing off the inbound wamid in one call', function ():
 
     $this->client->sendTypingIndicator('token-x', '111222333', 'wamid.IN9');
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/111222333/messages')
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), '/111222333/messages')
         && $request['messaging_product'] === 'whatsapp'
         && $request['status'] === 'read'
         && $request['message_id'] === 'wamid.IN9'
@@ -70,8 +71,8 @@ it('validates credentials via the phone number node', function (): void {
 
     expect($info)->toBe(['display_phone_number' => '+1 555-123-4567', 'verified_name' => 'Acme']);
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/111222333')
-        && str_contains($request->url(), 'display_phone_number%2Cverified_name'));
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), '/111222333')
+        && Str::contains($request->url(), 'display_phone_number%2Cverified_name'));
 });
 
 it('returns null when Meta rejects the credentials', function (): void {

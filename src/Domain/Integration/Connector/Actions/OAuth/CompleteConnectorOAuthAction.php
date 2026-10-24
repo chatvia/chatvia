@@ -15,6 +15,7 @@ use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpTransport;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -109,6 +110,6 @@ class CompleteConnectorOAuthAction
 
     private function connectorName(string $slug): string
     {
-        return $this->catalog->find($slug)?->name ?? ucfirst($slug);
+        return $this->catalog->find($slug)?->name ?? Str::ucfirst($slug);
     }
 }

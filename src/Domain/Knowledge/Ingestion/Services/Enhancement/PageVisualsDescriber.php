@@ -29,7 +29,7 @@ class PageVisualsDescriber
     public function describe(PageData $page, string $imageDirectory): PageVisualsData
     {
         $tables = array_values(array_filter(
-            array_map(trim(...), $page->tables),
+            array_map(Str::trim(...), $page->tables),
             static fn (string $table): bool => $table !== '',
         ));
 
@@ -61,7 +61,7 @@ class PageVisualsDescriber
                 continue;
             }
 
-            $path = rtrim($imageDirectory, '/').'/'.Str::uuid()->toString().'.jpg';
+            $path = Str::rtrim($imageDirectory, '/').'/'.Str::uuid()->toString().'.jpg';
             Storage::put($path, $jpeg);
 
             $described[$path] = $description;

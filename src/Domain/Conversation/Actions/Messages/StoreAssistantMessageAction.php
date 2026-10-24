@@ -17,6 +17,7 @@ use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Writes one assistant reply to the chat log. It first settles the reply's
@@ -121,8 +122,8 @@ class StoreAssistantMessageAction
             'sourceable_type' => $source->sourceable_type,
             'sourceable_id' => $source->sourceable_id,
             'score' => $source->score,
-            'label' => mb_substr($source->label, 0, 500),
-            'url' => $source->url !== null ? mb_substr($source->url, 0, 2048) : null,
+            'label' => Str::substr($source->label, 0, 500),
+            'url' => $source->url !== null ? Str::substr($source->url, 0, 2048) : null,
             'page' => $source->page,
         ], $turn->sources));
     }

@@ -6,6 +6,7 @@ use Domain\Llm\Enums\AiProvider;
 use Filament\Forms\Components\Select;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 
 /**
@@ -40,7 +41,7 @@ function savedTranscriber(): ?string
 /** Whether a request went to Scaleway AI or OpenAI (the page lists OpenRouter's models too). */
 function speechProviderCall(Request $request): bool
 {
-    return str_contains($request->url(), 'api.scaleway.ai') || str_contains($request->url(), 'api.openai.com');
+    return Str::contains($request->url(), 'api.scaleway.ai') || Str::contains($request->url(), 'api.openai.com');
 }
 
 it('shows the service in use, marked connected, with no Automatic', function (): void {

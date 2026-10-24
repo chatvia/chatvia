@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 return [
 
     /*
@@ -28,7 +30,7 @@ return [
      * (WidgetVerification, Settings → Platform for install-wide extra sites).
      */
     'allowed_origins' => array_values(array_filter(array_map(
-        trim(...),
+        Str::trim(...),
         explode(',', (string) env('CORS_ALLOWED_ORIGINS', '*'))
     ))),
 

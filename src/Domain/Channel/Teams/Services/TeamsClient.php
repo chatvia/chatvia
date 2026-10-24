@@ -186,16 +186,16 @@ class TeamsClient
      */
     private function activitiesUrl(string $serviceUrl, string $conversationId): string
     {
-        return rtrim($serviceUrl, '/').'/v3/conversations/'.rawurlencode($conversationId).'/activities';
+        return Str::rtrim($serviceUrl, '/').'/v3/conversations/'.rawurlencode($conversationId).'/activities';
     }
 
     private function render(string $markdown): string
     {
         $text = (new TeamsFormatter)->toTeamsMarkdown($markdown);
 
-        if (mb_strlen($text) > self::MESSAGE_LIMIT) {
-            Log::warning('Teams message truncated at limit', ['length' => mb_strlen($text)]);
-            $text = mb_substr($text, 0, self::MESSAGE_LIMIT - 1).'…';
+        if (Str::length($text) > self::MESSAGE_LIMIT) {
+            Log::warning('Teams message truncated at limit', ['length' => Str::length($text)]);
+            $text = Str::substr($text, 0, self::MESSAGE_LIMIT - 1).'…';
         }
 
         return $text;

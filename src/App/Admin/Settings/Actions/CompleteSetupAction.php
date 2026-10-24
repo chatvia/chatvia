@@ -176,7 +176,7 @@ final readonly class CompleteSetupAction
         $property = $config !== null ? AiProviderSettings::propertyFor($config) : null;
 
         if ($property !== null && filled($address)) {
-            $this->set($this->providers, $property, rtrim(trim($address), '/'));
+            $this->set($this->providers, $property, Str::rtrim(Str::trim($address), '/'));
         }
     }
 

@@ -739,7 +739,7 @@ final class VoiceCallSession implements RealtimeCallHandler
     /** About how long it takes to say a text, so the call ends after the goodbye. */
     private function secondsToSay(string $text): float
     {
-        $words = count(preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        $words = Str::of($text)->trim()->split('/\s+/u', -1, PREG_SPLIT_NO_EMPTY)->count();
 
         return min(self::GOODBYE_SECONDS, max(2.0, $words / 2.5 + 1.5));
     }

@@ -164,7 +164,7 @@ class AgentSignInTokenService
 
         // Dispatch on the scheme tag. A JWT always starts with `eyJ`, so the
         // `cvh1.` prefix is unambiguous.
-        if (str_starts_with($token, self::HMAC_PREFIX)) {
+        if (Str::startsWith($token, self::HMAC_PREFIX)) {
             $sub = $this->verifyHmacSubject($token, $secret);
 
             if ($sub === null) {
@@ -217,6 +217,7 @@ class AgentSignInTokenService
      */
     private function verifyHmacSubject(string $token, string $secret): ?string
     {
+        // Byte offsets: the HMAC covers the raw bytes of the token.
         $body = substr($token, strlen(self::HMAC_PREFIX));
 
         // The sig (hex) and exp (digits) carry no dots, so split from the
@@ -236,7 +237,7 @@ class AgentSignInTokenService
         $exp = substr($head, $prevDot + 1);
         $userId = substr($head, 0, $prevDot);
 
-        if ($userId === '' || $exp === '' || ! ctype_digit($exp) || ! preg_match('/^[a-f0-9]{64}$/', $sig)) {
+        if ($userId === '' || $exp === '' || ! ctype_digit($exp) || ! Str::isMatch('/^[a-f0-9]{64}$/', $sig)) {
             return null;
         }
 

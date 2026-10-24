@@ -14,6 +14,7 @@ use Domain\Evaluation\Services\EvalAgentRunner;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 /**
  * ScoreEvalCase glues the runner to the scorer and writes the immutable result.
@@ -265,7 +266,7 @@ it('caps a multibyte answer on a character boundary so the result row is stored'
 
     expect(mb_check_encoding((string) $result->actual_output, 'UTF-8'))->toBeTrue()
         ->and(strlen((string) $result->actual_output))->toBeLessThan(9)
-        ->and(str_starts_with($answer, (string) $result->actual_output))->toBeTrue()
+        ->and(Str::startsWith($answer, (string) $result->actual_output))->toBeTrue()
         ->and($result->actual_output_truncated)->toBeTrue()
         ->and($result->actual_output_sha256)->toBe(hash('sha256', $answer));
 })->with([

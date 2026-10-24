@@ -9,6 +9,7 @@ use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use LogicException;
 use Support\Exceptions\DomainValidationException;
 use Throwable;
@@ -48,7 +49,7 @@ class FileAnalyzer
      */
     public function analyze(string $path, ?string $extension = null): FileAnalysisData
     {
-        $extension = strtolower($extension ?? pathinfo($path, PATHINFO_EXTENSION));
+        $extension = Str::lower($extension ?? pathinfo($path, PATHINFO_EXTENSION));
 
         return match (true) {
             is_audio_file($path), is_video_file($path) => new FileAnalysisData(length: $this->audioDuration->getDurationInMinutes($path)),
@@ -102,7 +103,7 @@ class FileAnalyzer
     private function estimateEbookPages(string $path, string $extension): int
     {
         try {
-            $characters = mb_strlen($this->ebookText->toMarkdown($path, $extension));
+            $characters = Str::length($this->ebookText->toMarkdown($path, $extension));
 
             return max(1, (int) ceil($characters / OfficeText::CHARS_PER_PAGE));
         } catch (Throwable) {

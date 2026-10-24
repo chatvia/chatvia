@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
+use Illuminate\Support\Str;
 use Tests\Support\Mcp\InternalMcp;
 
 /**
@@ -119,7 +120,7 @@ it('rejects a request whose nonce was removed or swapped', function (): void {
     $call = InternalMcp::toolCall('get-account-overview-tool');
     $headers = InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity);
 
-    $swapped = [...$headers, InternalMcpSignature::NONCE_HEADER => str_repeat('a', 40)];
+    $swapped = [...$headers, InternalMcpSignature::NONCE_HEADER => Str::repeat('a', 40)];
     $this->withHeaders($swapped)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
 
     unset($headers[InternalMcpSignature::NONCE_HEADER]);
@@ -142,9 +143,9 @@ function vimrSignedByHand(string $path, array $payload, array $identity, ?string
 
     $timestamp = (string) now()->timestamp;
     $lines = collect($identity)
-        ->mapWithKeys(fn (string $value, string $name): array => [strtolower($name) => $value])
+        ->mapWithKeys(fn (string $value, string $name): array => [Str::lower($name) => $value])
         ->sortKeys()
-        ->map(fn (string $value, string $name): string => $name.':'.trim($value))
+        ->map(fn (string $value, string $name): string => $name.':'.Str::trim($value))
         ->implode("\n");
     $canonical = implode("\n", [$timestamp, 'POST', $path, hash('sha256', (string) json_encode($payload)), $lines]);
 
@@ -158,7 +159,7 @@ function vimrSignedByHand(string $path, array $payload, array $identity, ?string
 it('accepts a request signed by hand with a nonce, so the hand-built form matches the real one', function (): void {
     $call = InternalMcp::toolCall('get-account-overview-tool');
 
-    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, str_repeat('b', 40)))
+    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, Str::repeat('b', 40)))
         ->postJson('/mcp/account-analytics', $call)
         ->assertOk();
 });

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
@@ -114,7 +115,7 @@ class AppServiceProvider extends ServiceProvider
     // of the Docker image on localhost), and forcing https would break it.
     private function forceHttpsInProduction(): void
     {
-        if (app()->isProduction() && str_starts_with((string) config('app.url'), 'https://')) {
+        if (app()->isProduction() && Str::startsWith((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
     }

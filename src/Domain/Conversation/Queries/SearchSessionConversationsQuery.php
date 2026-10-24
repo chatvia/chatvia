@@ -9,6 +9,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Search one chat session's conversations for the sidebar palette. Matches on
@@ -45,9 +46,9 @@ class SearchSessionConversationsQuery
         $byId = $conversations->keyBy('id');
 
         // Title matches — substring of the decrypted title.
-        $needle = mb_strtolower($term);
+        $needle = Str::lower($term);
         $titleMatchIds = $conversations
-            ->filter(fn (Conversation $conversation): bool => str_contains(mb_strtolower((string) $conversation->title), $needle))
+            ->filter(fn (Conversation $conversation): bool => Str::contains(Str::lower((string) $conversation->title), $needle))
             ->pluck('id');
 
         // Content matches — full-text search over messages in these

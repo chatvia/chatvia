@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Document\Conversion;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -87,6 +88,6 @@ class Pandoc
 
     private function readerFor(string $extension): ?string
     {
-        return self::READERS[strtolower($extension)] ?? null;
+        return self::READERS[Str::lower($extension)] ?? null;
     }
 }

@@ -74,7 +74,7 @@ class ChannelReplyRunner
         }
 
         try {
-            $reply = $this->stripWebOnlyArtifactTags(trim($this->run($turn, $onProgress)));
+            $reply = $this->stripWebOnlyArtifactTags(Str::trim($this->run($turn, $onProgress)));
 
             return $reply !== '' ? $reply : ChannelLocale::text($agent, 'Sorry — I could not produce a reply.');
         } catch (Throwable $e) {
@@ -194,14 +194,14 @@ class ChannelReplyRunner
      */
     private function stripWebOnlyArtifactTags(string $reply): string
     {
-        if (! str_contains($reply, '<render-form')) {
+        if (! Str::contains($reply, '<render-form')) {
             return $reply;
         }
 
         return $reply
-            |> (static fn (string $s): string => preg_replace('#<render-form\b[^>]*>.*?</render-form>#is', '', $s) ?? $s)
-            |> (static fn (string $s): string => preg_replace('#<render-form\b[^>]*?/?>#i', '', $s) ?? $s)
-            |> (static fn (string $s): string => preg_replace("/[ \t]*\n{3,}/", "\n\n", $s) ?? $s)
-            |> trim(...);
+            |> (static fn (string $s): string => Str::replaceMatches('#<render-form\b[^>]*>.*?</render-form>#is', '', $s) ?? $s)
+            |> (static fn (string $s): string => Str::replaceMatches('#<render-form\b[^>]*?/?>#i', '', $s) ?? $s)
+            |> (static fn (string $s): string => Str::replaceMatches("/[ \t]*\n{3,}/", "\n\n", $s) ?? $s)
+            |> Str::trim(...);
     }
 }

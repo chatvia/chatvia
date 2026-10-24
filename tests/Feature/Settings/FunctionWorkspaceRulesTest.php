@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 
 /**
@@ -100,7 +101,7 @@ describe('the approval gate follows the HTTP verb on every path', function (): v
 
         $this->withHeaders(['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'])
             ->postJson('/api/v1/functions', [
-                'internal_name' => 'fn_'.strtolower($method),
+                'internal_name' => 'fn_'.Str::lower($method),
                 'description' => 'd',
                 'parameters_schema' => ['type' => 'object', 'properties' => []],
                 'webhook_url' => 'https://example.com/webhook',
@@ -108,7 +109,7 @@ describe('the approval gate follows the HTTP verb on every path', function (): v
             ])
             ->assertSuccessful();
 
-        expect(AgentFunction::where('internal_name', 'fn_'.strtolower($method))->sole()->requires_approval)->toBe($expected);
+        expect(AgentFunction::where('internal_name', 'fn_'.Str::lower($method))->sole()->requires_approval)->toBe($expected);
     })->with([
         'GET reads freely' => ['GET', false],
         'POST asks first' => ['POST', true],

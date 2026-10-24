@@ -9,6 +9,7 @@ use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
@@ -49,7 +50,7 @@ class Vision
             tag: AiCallTag::ImageDescription,
         ))->content;
 
-        return $description === '' || str_contains($description, self::NO_INFO) ? null : $description;
+        return $description === '' || Str::contains($description, self::NO_INFO) ? null : $description;
     }
 
     /**

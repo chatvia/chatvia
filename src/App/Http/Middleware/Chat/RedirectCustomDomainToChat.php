@@ -8,6 +8,8 @@ use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -41,12 +43,12 @@ final class RedirectCustomDomainToChat
 
     private function isAppHost(Request $request): bool
     {
-        return $request->getHost() === parse_url((string) config('app.url'), PHP_URL_HOST);
+        return $request->getHost() === Uri::of((string) config('app.url'))->host();
     }
 
     private function isSignInStep(Request $request): bool
     {
-        $magicLinkPath = trim((string) config('magiclink.url.validate_path', 'magiclink'), '/');
+        $magicLinkPath = Str::trim((string) config('magiclink.url.validate_path', 'magiclink'), '/');
 
         return $request->routeIs(...self::SIGN_IN_ROUTES) || $request->is($magicLinkPath.'/*');
     }

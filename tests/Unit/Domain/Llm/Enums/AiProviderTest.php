@@ -14,6 +14,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The map of what each AI provider does matches the code that does it: the
@@ -102,7 +103,7 @@ it('refuses a wrong OpenRouter key, whose model list is public', function (): vo
     $list = app(ModelListing::class)->list(LlmProvider::factory()->make(['kind' => LlmProviderKind::OpenRouter, 'base_url' => null, 'api_key' => 'sk-or-wrong']));
 
     expect($list->status)->toBe(ModelListStatus::KeyRefused);
-    Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), '/models'));
+    Http::assertNotSent(fn (Request $request): bool => Str::endsWith($request->url(), '/models'));
 });
 
 it('refuses a wrong Gemini key, which gets a 400, but not another 400', function (): void {

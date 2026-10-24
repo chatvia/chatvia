@@ -5,6 +5,7 @@ namespace Domain\Security\Services;
 use Domain\Analytics\Services\IP2Country;
 use Domain\Security\Enums\GeoMode;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
@@ -64,7 +65,7 @@ class NetworkAccessGuard
             return true;
         }
 
-        $listed = in_array(strtolower($country), array_map(strtolower(...), $geoCountries), true);
+        $listed = in_array(Str::lower($country), array_map(Str::lower(...), $geoCountries), true);
 
         return $geoMode === GeoMode::Allow ? $listed : ! $listed;
     }

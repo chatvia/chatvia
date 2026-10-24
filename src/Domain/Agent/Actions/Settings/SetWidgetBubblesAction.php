@@ -7,6 +7,7 @@ use Domain\Agent\Data\Settings\Copy\UpdateBubblesData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentTextTranslator;
 use Domain\Agent\ValueObjects\TranslatableText;
+use Illuminate\Support\Str;
 
 /**
  * Replace an agent's widget chat-bubble prompts and (re)generate their AI
@@ -37,7 +38,7 @@ class SetWidgetBubblesAction
         $copies = [];
 
         foreach (array_values($bubbles) as $index => $bubble) {
-            $text = trim($bubble->text);
+            $text = Str::trim($bubble->text);
 
             if ($text === '') {
                 continue;

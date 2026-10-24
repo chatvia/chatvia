@@ -27,6 +27,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 use Generator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -327,7 +328,7 @@ class ToolLoopRunner
                 continue;
             }
 
-            $loggedName = mb_substr($call->name, 0, self::MAX_LOGGED_NAME_LENGTH);
+            $loggedName = Str::substr($call->name, 0, self::MAX_LOGGED_NAME_LENGTH);
             $message = sprintf(self::UNKNOWN_TOOL_RESULT, $loggedName);
 
             $this->appendToolResult($llmMessages, $call->id, $message);

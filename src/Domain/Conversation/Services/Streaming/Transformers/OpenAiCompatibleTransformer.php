@@ -7,6 +7,7 @@ use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Generator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -92,7 +93,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                 $line = substr($buffer, 0, $newline);
                 $buffer = substr($buffer, $newline + 1);
 
-                if (filled($line) && str_starts_with($line, self::DATA_PREFIX)) {
+                if (filled($line) && Str::startsWith($line, self::DATA_PREFIX)) {
                     yield substr($line, strlen(self::DATA_PREFIX));
                 }
             }
@@ -211,12 +212,12 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         $state->thinkBuffer .= $text;
 
         if ($state->think === ThinkPhase::Undecided) {
-            $leading = ltrim($state->thinkBuffer);
+            $leading = Str::ltrim($state->thinkBuffer);
 
-            if (str_starts_with($leading, self::THINK_OPEN)) {
+            if (Str::startsWith($leading, self::THINK_OPEN)) {
                 $state->think = ThinkPhase::Thinking;
                 $state->thinkBuffer = substr($leading, strlen(self::THINK_OPEN));
-            } elseif ($leading === '' || str_starts_with(self::THINK_OPEN, $leading)) {
+            } elseif ($leading === '' || Str::startsWith(self::THINK_OPEN, $leading)) {
                 return;
             } else {
                 $state->think = ThinkPhase::Done;
@@ -243,7 +244,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         }
 
         $state->think = ThinkPhase::Done;
-        $answer = ltrim(substr($state->thinkBuffer, $close + strlen(self::THINK_CLOSE)));
+        $answer = Str::ltrim(substr($state->thinkBuffer, $close + strlen(self::THINK_CLOSE)));
         $thought = substr($state->thinkBuffer, 0, $close);
         $state->thinkBuffer = '';
 
@@ -258,7 +259,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
     private function partialTagLength(string $text, string $tag): int
     {
         for ($length = min(strlen($tag) - 1, strlen($text)); $length > 0; $length--) {
-            if (str_ends_with($text, substr($tag, 0, $length))) {
+            if (Str::endsWith($text, substr($tag, 0, $length))) {
                 return $length;
             }
         }
@@ -287,7 +288,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
             return;
         }
 
-        $leading = ltrim($state->heldContent);
+        $leading = Str::ltrim($state->heldContent);
 
         if ($leading === '') {
             return;

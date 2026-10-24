@@ -14,6 +14,7 @@ use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * HybridChunkSearch, run through KnowledgeBase::search(). The two ways a
@@ -168,7 +169,7 @@ it('searches by meaning only when hybrid search is turned off', function (bool $
     $results = app(KnowledgeBase::class)->search($agent, 'refund');
 
     expect(array_map(fn (RetrievedChunkData $chunk): int => $chunk->id, $results))->toBe([$refund])
-        ->and(str_contains((string) $results[0]->search_type, 'bm25'))->toBe($keywordChannel);
+        ->and(Str::contains((string) $results[0]->search_type, 'bm25'))->toBe($keywordChannel);
 })->with([
     'hybrid: the keyword channels find it too' => [true, true],
     'meaning only: the vector channels alone find it' => [false, false],
@@ -180,7 +181,7 @@ it('never scans a vector or keyword index on the exact path', function (): void 
 
     $captured = null;
     DB::listen(function (QueryExecuted $query) use (&$captured): void {
-        if (str_contains($query->sql, 'scope AS MATERIALIZED')) {
+        if (Str::contains($query->sql, 'scope AS MATERIALIZED')) {
             $captured = [$query->sql, $query->bindings];
         }
     });

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Queries over knowledge chunks: source scoping, website chunks no page
@@ -77,12 +78,12 @@ class ChunkQueryBuilder extends Builder
             ->pluck('questions');
 
         return $blocks
-            ->flatMap(fn (string $block): array => preg_split('/\r\n|\r|\n/', $block) ?: [])
-            ->map(fn (string $question): string => trim($question))
+            ->flatMap(fn (string $block): array => Str::of($block)->split('/\r\n|\r|\n/')->all())
+            ->map(fn (string $question): string => Str::trim($question))
             ->filter()
             // The starters endpoint caps each entry at 255 chars; never suggest
             // one that would fail validation when the user saves it.
-            ->filter(fn (string $question): bool => mb_strlen($question) <= self::MAX_QUESTION_LENGTH)
+            ->filter(fn (string $question): bool => Str::length($question) <= self::MAX_QUESTION_LENGTH)
             ->unique()
             ->take($limit)
             ->values()
@@ -106,16 +107,16 @@ class ChunkQueryBuilder extends Builder
         $candidates = [];
 
         foreach ($rows as $row) {
-            foreach (preg_split('/\r\n|\r|\n/', (string) $row->questions) ?: [] as $question) {
-                $question = trim($question);
+            foreach (Str::of((string) $row->questions)->split('/\r\n|\r|\n/') as $question) {
+                $question = Str::trim($question);
 
                 // Same 255-char cap as questionsForAgent — here because the
                 // question doubles as the eval case name, a 255-char column.
-                if ($question === '' || mb_strlen($question) > self::MAX_QUESTION_LENGTH || isset($seen[mb_strtolower($question)])) {
+                if ($question === '' || Str::length($question) > self::MAX_QUESTION_LENGTH || isset($seen[Str::lower($question)])) {
                     continue;
                 }
 
-                $seen[mb_strtolower($question)] = true;
+                $seen[Str::lower($question)] = true;
                 $candidates[] = ['chunk_id' => (int) $row->id, 'question' => $question, 'source_type' => (string) $row->chunkable_type];
 
                 if (count($candidates) >= $limit) {
@@ -147,9 +148,9 @@ class ChunkQueryBuilder extends Builder
     {
         return $this->agentChunks($agent, ['summary', 'chunk'], $limit)
             ->get()
-            ->map(fn (object $row): string => trim((string) ($row->summary ?: $row->chunk)))
+            ->map(fn (object $row): string => Str::trim((string) ($row->summary ?: $row->chunk)))
             ->filter()
-            ->map(fn (string $text): string => mb_substr($text, 0, self::SAMPLE_CHARS))
+            ->map(fn (string $text): string => Str::substr($text, 0, self::SAMPLE_CHARS))
             ->values()
             ->all();
     }

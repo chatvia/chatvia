@@ -26,7 +26,7 @@ abstract class MarkdownDomFormatter
      */
     protected function render(string $markdown): string
     {
-        $markdown = trim($markdown);
+        $markdown = Str::trim($markdown);
 
         if ($markdown === '') {
             return '';
@@ -51,10 +51,11 @@ abstract class MarkdownDomFormatter
         $out = $root !== null ? $this->renderChildren($root) : '';
 
         // Tidy the block-level spacing the mapping introduces.
-        $out = preg_replace("/[ \t]+\n/", "\n", $out);
-        $out = preg_replace("/\n{3,}/", "\n\n", $out);
-
-        return trim($out);
+        return Str::of($out)
+            ->replaceMatches("/[ \t]+\n/", "\n")
+            ->replaceMatches("/\n{3,}/", "\n\n")
+            ->trim()
+            ->toString();
     }
 
     protected function renderChildren(DOMNode $node): string
@@ -77,7 +78,7 @@ abstract class MarkdownDomFormatter
             return '';
         }
 
-        $tag = strtolower($node->nodeName);
+        $tag = Str::lower($node->nodeName);
 
         return $this->mapNode($tag, $node, $this->renderChildren($node));
     }
@@ -92,9 +93,9 @@ abstract class MarkdownDomFormatter
         $index = 1;
 
         foreach ($node->childNodes as $child) {
-            if ($child->nodeType === XML_ELEMENT_NODE && strtolower($child->nodeName) === 'li') {
+            if ($child->nodeType === XML_ELEMENT_NODE && Str::lower($child->nodeName) === 'li') {
                 $marker = $ordered ? $index++.'. ' : $this->bulletMarker();
-                $out .= $marker.trim($this->renderChildren($child))."\n";
+                $out .= $marker.Str::trim($this->renderChildren($child))."\n";
             }
         }
 
@@ -107,11 +108,11 @@ abstract class MarkdownDomFormatter
      */
     protected function renderLink(DOMNode $node): string
     {
-        $inner = $this->trimsLinkText() ? trim($this->renderChildren($node)) : $this->renderChildren($node);
+        $inner = $this->trimsLinkText() ? Str::trim($this->renderChildren($node)) : $this->renderChildren($node);
         $href = $node->attributes?->getNamedItem('href')?->nodeValue ?? '';
 
         // Only real web links; otherwise keep the text alone.
-        if ($href === '' || preg_match('#^https?://#i', $href) !== 1) {
+        if ($href === '' || ! Str::isMatch('#^https?://#i', $href)) {
             return $inner;
         }
 

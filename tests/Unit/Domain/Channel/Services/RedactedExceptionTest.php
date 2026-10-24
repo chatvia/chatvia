@@ -2,6 +2,7 @@
 
 use Domain\Channel\Services\RedactedException;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Str;
 
 /**
  * Channel API exceptions carry the request URL in their message. Meta puts
@@ -38,5 +39,5 @@ it('removes bearer tokens and form-encoded secrets', function (): void {
 });
 
 it('caps very long messages', function (): void {
-    expect(mb_strlen(RedactedException::redact(str_repeat('a', 5000))))->toBeLessThanOrEqual(301);
+    expect(Str::length(RedactedException::redact(Str::repeat('a', 5000))))->toBeLessThanOrEqual(301);
 });

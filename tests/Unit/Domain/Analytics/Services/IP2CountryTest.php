@@ -5,6 +5,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * IP geolocation through IP2Location. Private, reserved and malformed
@@ -52,7 +53,7 @@ it('sends the API key as a bearer token, not in the query string', function (): 
     app(IP2Country::class)->locate('8.8.8.8');
 
     Http::assertSent(fn (Request $request): bool => $request->hasHeader('Authorization', 'Bearer super-secret-key')
-        && ! str_contains($request->url(), 'super-secret-key')
+        && ! Str::contains($request->url(), 'super-secret-key')
         && $request['ip'] === '8.8.8.8');
 });
 
@@ -62,7 +63,7 @@ it('reports a failed lookup without the API key and returns no country', functio
 
     expect(app(IP2Country::class)->countryCode('8.8.8.8'))->toBeNull();
 
-    Exceptions::assertReported(fn (RuntimeException $e): bool => ! str_contains($e->getMessage(), 'super-secret-key')
-        && str_contains($e->getMessage(), '[redacted]')
+    Exceptions::assertReported(fn (RuntimeException $e): bool => ! Str::contains($e->getMessage(), 'super-secret-key')
+        && Str::contains($e->getMessage(), '[redacted]')
         && ! $e->getPrevious() instanceof Throwable);
 });

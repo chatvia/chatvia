@@ -42,7 +42,7 @@ beforeEach(function (): void {
         toolKind: 'function',
         connectorSlug: null,
         connectorName: null,
-        arguments: (string) json_encode(['note' => str_repeat('x', 200)]),
+        arguments: (string) json_encode(['note' => Str::repeat('x', 200)]),
         resultText: 'Sunny',
         isError: false,
         latencyMs: 12,
@@ -58,7 +58,7 @@ it('renders a cut tool-call row on the governance audit page', function (): void
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('rows.data.0.arguments', null)
             ->where('rows.data.0.arguments_truncated', true)
-            ->where('rows.data.0.arguments_preview', fn (string $text): bool => str_starts_with($text, '{"note":"xxx') && strlen($text) === 40));
+            ->where('rows.data.0.arguments_preview', fn (string $text): bool => Str::startsWith($text, '{"note":"xxx') && strlen($text) === 40));
 });
 
 it('renders a cut tool-call row on the agent audit page', function (): void {
@@ -88,7 +88,7 @@ it('renders a cut security row on the security audit viewer', function (): void 
         action: SecurityAuditAction::PolicyChanged,
         workspaceId: $this->owner->workspace()->id,
         actor: SecurityActorData::forUser($this->owner),
-        metadata: ['blob' => str_repeat('x', 200)],
+        metadata: ['blob' => Str::repeat('x', 200)],
     ));
 
     $this->actingAs($this->owner)

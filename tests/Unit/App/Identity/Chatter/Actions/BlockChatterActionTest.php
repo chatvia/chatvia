@@ -9,6 +9,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Models\SecurityAuditLog;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 /**
  * Blocking a chatter switches their account off with the internal reason,
@@ -44,7 +45,7 @@ it('switches the account off and emails the chatter', function (): void {
         $mail = $notification->toMail($chatter);
 
         return $notification->workspaceName === $this->agent->workspace->name
-            && ! str_contains(implode(' ', $mail->introLines), 'Prompt injection, 12 times');
+            && ! Str::contains(implode(' ', $mail->introLines), 'Prompt injection, 12 times');
     });
 });
 

@@ -3,6 +3,7 @@
 namespace Domain\Guardrail\Services\Detectors;
 
 use Domain\Guardrail\Data\PiiRedactionData;
+use Illuminate\Support\Str;
 
 /**
  * Mutable accumulator threaded through the PII filter pipeline. Each filter masks
@@ -38,7 +39,7 @@ final class PiiRedactionState
         $hits = 0;
         $this->assigned[$type] ??= [];
 
-        $masked = preg_replace_callback($pattern, function (array $m) use ($label, $type, $accept, &$hits): string {
+        $masked = Str::replaceMatches($pattern, function (array $m) use ($label, $type, $accept, &$hits): string {
             $value = $m[0];
             if ($this->allowlist->allows($value) || ($accept !== null && ! $accept($value))) {
                 return $value;

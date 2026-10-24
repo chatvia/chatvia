@@ -11,6 +11,7 @@ use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Uri;
 
 /**
  * Starting a catalog connector's OAuth flow: PKCE S256 is mandatory, the
@@ -84,7 +85,7 @@ it('returns the authorize URL with PKCE and caches the encrypted, bound state', 
 
     expect($url)->toStartWith('https://auth.example.test/authorize?');
 
-    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+    $query = Uri::of($url)->query()->all();
     expect($query['response_type'])->toBe('code')
         ->and($query['client_id'])->toBe('oauth-client-xyz')
         ->and($query['code_challenge_method'])->toBe('S256')

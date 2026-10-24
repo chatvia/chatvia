@@ -27,8 +27,8 @@ class StoreAttachmentAction
         // external_id is auto-filled by HasExternalId on `creating`,
         // and it's intentionally not on Fillable — we want callers using
         // ::create() to never overwrite it.
-        $extension = strtolower($data->file->getClientOriginalExtension() ?: 'pdf');
-        $directory = trim($data->directory, '/');
+        $extension = Str::lower($data->file->getClientOriginalExtension() ?: 'pdf');
+        $directory = Str::trim($data->directory, '/');
         $filename = Str::uuid().'.'.$extension;
         $filepath = $directory.'/'.$filename;
 

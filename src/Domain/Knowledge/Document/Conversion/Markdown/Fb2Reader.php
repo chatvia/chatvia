@@ -9,6 +9,7 @@ use DOMElement;
 use DOMNode;
 use DOMText;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -70,7 +71,7 @@ final class Fb2Reader
             array_push($blocks, ...$this->section($body, 0));
         }
 
-        return trim(MarkdownText::join([...$blocks, [MarkdownText::BLOCK, $this->notes->toMarkdown()]]));
+        return Str::trim(MarkdownText::join([...$blocks, [MarkdownText::BLOCK, $this->notes->toMarkdown()]]));
     }
 
     /**
@@ -121,7 +122,7 @@ final class Fb2Reader
             array_push($blocks, ...match ($child->localName) {
                 'title' => [[MarkdownText::BLOCK, MarkdownText::heading($level + 2, $this->lines($child, ' '))]],
                 'stanza' => $this->paragraph(implode("\n", array_map(
-                    fn (DOMElement $line): string => trim($this->inline($line)),
+                    fn (DOMElement $line): string => Str::trim($this->inline($line)),
                     array_filter($this->children($child, '*'), static fn (DOMElement $line): bool => in_array($line->localName, ['title', 'subtitle', 'v'], true)),
                 ))),
                 'epigraph' => $this->section($child, $level + 1),
@@ -147,7 +148,7 @@ final class Fb2Reader
                 $text = MarkdownText::inline($this->inline($child));
 
                 if ($text !== '') {
-                    $lines[] = '> '.str_replace("\n", "\n> ", $text);
+                    $lines[] = '> '.Str::replace("\n", "\n> ", $text);
                 }
             }
         }
@@ -188,7 +189,7 @@ final class Fb2Reader
     /** The paragraphs of a title, joined. */
     private function lines(DOMElement $title, string $glue): string
     {
-        return implode($glue, array_map(fn (DOMElement $line): string => trim($this->inline($line)), $this->children($title, 'p')));
+        return implode($glue, array_map(fn (DOMElement $line): string => Str::trim($this->inline($line)), $this->children($title, 'p')));
     }
 
     /** The text of a paragraph, with note links made into `[^1]` marks. */
@@ -198,7 +199,7 @@ final class Fb2Reader
 
         foreach ($node->childNodes as $child) {
             if ($child instanceof DOMText) {
-                $text .= (string) preg_replace('/\s+/u', ' ', $child->data);
+                $text .= Str::replaceMatches('/\s+/u', ' ', $child->data) ?? '';
             } elseif ($child instanceof DOMElement && $child->localName === 'a' && $this->isNoteLink($child)) {
                 $text .= $this->note($child);
             } elseif ($child instanceof DOMElement && $child->localName !== 'image') {
@@ -211,12 +212,12 @@ final class Fb2Reader
 
     private function isNoteLink(DOMElement $link): bool
     {
-        return $link->getAttribute('type') === 'note' || isset($this->noteSections[ltrim($this->href($link), '#')]);
+        return $link->getAttribute('type') === 'note' || isset($this->noteSections[Str::ltrim($this->href($link), '#')]);
     }
 
     private function note(DOMElement $link): string
     {
-        $section = $this->noteSections[ltrim($this->href($link), '#')] ?? null;
+        $section = $this->noteSections[Str::ltrim($this->href($link), '#')] ?? null;
 
         if ($section === null) {
             return $this->inline($link);
@@ -227,7 +228,7 @@ final class Fb2Reader
         foreach ($section->childNodes as $child) {
             // The note's title is only its number.
             if ($child instanceof DOMElement && $child->localName !== 'title') {
-                $paragraphs[] = trim($this->inline($child));
+                $paragraphs[] = Str::trim($this->inline($child));
             }
         }
 

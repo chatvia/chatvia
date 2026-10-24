@@ -8,6 +8,7 @@ use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Mcp\InternalMcp;
 
 /**
@@ -25,7 +26,7 @@ function attachCharts(Agent $agent): AgentMcpServer
         'connector_slug' => 'charts',
         'name' => 'Interactive charts',
         'slug' => 'charts',
-        'url' => rtrim((string) config('app.url'), '/').'/mcp/charts',
+        'url' => Str::rtrim((string) config('app.url'), '/').'/mcp/charts',
         'transport' => 'streamable_http',
         'auth_type' => 'none',
         'uses_central_catalog' => true,
@@ -85,7 +86,7 @@ it('routes a message-count question to the message stats tool, with its dispatch
 
     $names = array_map(static fn (array $d): string => $d['function']['name'], $result['definitions']);
 
-    expect(collect($names)->contains(fn (string $name): bool => str_ends_with($name, 'get-message-stats-tool')))->toBeTrue();
+    expect(collect($names)->contains(fn (string $name): bool => Str::endsWith($name, 'get-message-stats-tool')))->toBeTrue();
 
     // Every returned tool has a dispatch URL pointing at an internal /mcp/ route.
     foreach ($names as $name) {
@@ -105,8 +106,8 @@ it('does not make charts ambient — an unattached agent gets neither charts nor
     );
 
     // Charts is opt-in (like forms): not attached → not in the pool.
-    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeFalse();
-    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__forms__')))->toBeFalse();
+    expect(collect($names)->contains(fn (string $n): bool => Str::startsWith($n, 'mcp__charts__')))->toBeFalse();
+    expect(collect($names)->contains(fn (string $n): bool => Str::startsWith($n, 'mcp__forms__')))->toBeFalse();
 });
 
 it('surfaces charts tools once the agent attaches the connector', function (): void {
@@ -120,7 +121,7 @@ it('surfaces charts tools once the agent attaches the connector', function (): v
         app(ToolRegistry::class)->for($agent),
     );
 
-    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeTrue();
+    expect(collect($names)->contains(fn (string $n): bool => Str::startsWith($n, 'mcp__charts__')))->toBeTrue();
 });
 
 /** A bar chart call the tool accepts. */

@@ -2,6 +2,7 @@
 
 use Domain\Form\Services\FormSchemaBuilder;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 /**
  * validationRules() is the server-side check of a submitted inline form
@@ -38,13 +39,13 @@ it('accepts a value of the field type and refuses another', function (array $fie
     expect(fsbPasses($fields, ['answer' => $valid]))->toBeTrue()
         ->and(fsbPasses($fields, ['answer' => $invalid]))->toBeFalse();
 })->with([
-    'text up to 1000 characters' => [['type' => 'text'], str_repeat('a', 1000), str_repeat('a', 1001)],
+    'text up to 1000 characters' => [['type' => 'text'], Str::repeat('a', 1000), Str::repeat('a', 1001)],
     'a field with no type is text' => [[], 'Jane', ['not', 'a', 'string']],
     'email' => [['type' => 'email'], 'jane@acme.com', 'not-an-email'],
     'number' => [['type' => 'number'], '42.5', 'forty-two'],
-    'tel up to 50 characters' => [['type' => 'tel'], '+1 555 0100', str_repeat('1', 51)],
+    'tel up to 50 characters' => [['type' => 'tel'], '+1 555 0100', Str::repeat('1', 51)],
     'date' => [['type' => 'date'], '2026-06-15', 'not a date'],
-    'textarea up to 5000 characters' => [['type' => 'textarea'], str_repeat('a', 5000), str_repeat('a', 5001)],
+    'textarea up to 5000 characters' => [['type' => 'textarea'], Str::repeat('a', 5000), Str::repeat('a', 5001)],
     'select from its options' => [['type' => 'select', 'options' => FSB_OPTIONS], 'large', 'medium'],
     'radio from its options' => [['type' => 'radio', 'options' => FSB_OPTIONS], 'small', 'medium'],
     'checkbox' => [['type' => 'checkbox'], true, 'maybe'],

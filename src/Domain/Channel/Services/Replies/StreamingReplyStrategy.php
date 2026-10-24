@@ -9,6 +9,7 @@ use Domain\Channel\Contracts\StreamsReplies;
 use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Services\ChannelReplyRunner;
+use Illuminate\Support\Str;
 
 /**
  * Delivers a reply on a channel whose messages can be edited in place (Slack,
@@ -45,7 +46,7 @@ class StreamingReplyStrategy
                     return;
                 }
 
-                $partial = trim($replySoFar);
+                $partial = Str::trim($replySoFar);
 
                 if ($partial !== '' && $partial !== $lastPushed) {
                     $channel->updateMessage($messageId, $partial);

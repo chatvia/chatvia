@@ -3,6 +3,7 @@
 namespace Domain\Analytics\Services;
 
 use Domain\Analytics\Data\UserAgentData;
+use Illuminate\Support\Str;
 
 /**
  * Reads the device type, browser and operating system from a user-agent
@@ -46,16 +47,16 @@ class UserAgentParser
     private function deviceType(string $userAgent): string
     {
         return match (true) {
-            stripos($userAgent, 'ipad') !== false => 'iPad',
-            stripos($userAgent, 'ipod') !== false => 'iPod',
-            stripos($userAgent, 'iphone') !== false => 'iPhone',
-            preg_match('/windows phone/i', $userAgent) === 1 => 'Windows Phone',
-            stripos($userAgent, 'android') !== false && stripos($userAgent, 'mobile') === false => 'Android Tablet',
-            stripos($userAgent, 'android') !== false => 'Android Phone',
-            stripos($userAgent, 'playbook') !== false => 'BlackBerry Tablet',
-            stripos($userAgent, 'blackberry') !== false => 'BlackBerry',
-            preg_match('/kindle|silk/i', $userAgent) === 1 => 'Kindle',
-            preg_match('/(webos|iemobile|opera mini)/i', $userAgent) === 1 => 'Mobile',
+            Str::contains($userAgent, 'ipad', ignoreCase: true) => 'iPad',
+            Str::contains($userAgent, 'ipod', ignoreCase: true) => 'iPod',
+            Str::contains($userAgent, 'iphone', ignoreCase: true) => 'iPhone',
+            Str::isMatch('/windows phone/i', $userAgent) => 'Windows Phone',
+            Str::contains($userAgent, 'android', ignoreCase: true) && ! Str::contains($userAgent, 'mobile', ignoreCase: true) => 'Android Tablet',
+            Str::contains($userAgent, 'android', ignoreCase: true) => 'Android Phone',
+            Str::contains($userAgent, 'playbook', ignoreCase: true) => 'BlackBerry Tablet',
+            Str::contains($userAgent, 'blackberry', ignoreCase: true) => 'BlackBerry',
+            Str::isMatch('/kindle|silk/i', $userAgent) => 'Kindle',
+            Str::isMatch('/(webos|iemobile|opera mini)/i', $userAgent) => 'Mobile',
             default => 'Desktop',
         };
     }
@@ -68,21 +69,24 @@ class UserAgentParser
     private function operatingSystem(string $userAgent): string
     {
         // iOS devices (iPhone, iPad, iPod)
-        if (preg_match('/(iphone|ipad|ipod)/i', $userAgent)) {
+        if (Str::isMatch('/(iphone|ipad|ipod)/i', $userAgent)) {
             return 'iOS';
         }
 
         // Android: major version only.
-        if (preg_match('/android\s+([\d.]+)/i', $userAgent, $matches)) {
-            return 'Android '.explode('.', $matches[1])[0];
+        $android = Str::match('/android\s+([\d.]+)/i', $userAgent);
+        if ($android !== '') {
+            return 'Android '.Str::before($android, '.');
         }
 
-        if (preg_match('/mac os x\s+([\d_.]+)/i', $userAgent, $matches)) {
-            return 'macOS '.str_replace('_', '.', $matches[1]);
+        $mac = Str::match('/mac os x\s+([\d_.]+)/i', $userAgent);
+        if ($mac !== '') {
+            return 'macOS '.Str::replace('_', '.', $mac);
         }
 
-        if (preg_match('/windows nt\s+([\d.]+)/i', $userAgent, $matches)) {
-            return 'Windows '.$matches[1];
+        $windows = Str::match('/windows nt\s+([\d.]+)/i', $userAgent);
+        if ($windows !== '') {
+            return 'Windows '.$windows;
         }
 
         return $this->firstMatch(self::FALLBACK_OS_PATTERNS, $userAgent) ?? 'Unknown';
@@ -93,10 +97,10 @@ class UserAgentParser
      */
     private function firstMatch(array $patterns, string $userAgent): ?string
     {
-        $haystack = strtolower($userAgent);
+        $haystack = Str::lower($userAgent);
 
         foreach ($patterns as $label => $pattern) {
-            if (preg_match($pattern, $haystack)) {
+            if (Str::isMatch($pattern, $haystack)) {
                 return $label;
             }
         }

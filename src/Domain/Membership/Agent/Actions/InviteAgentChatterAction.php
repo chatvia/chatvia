@@ -41,7 +41,7 @@ class InviteAgentChatterAction
     public function execute(InviteAgentChatterData $data): AgentChatterInvitationData
     {
         $agent = $data->agent;
-        $email = strtolower(trim($data->email));
+        $email = Str::lower(Str::trim($data->email));
 
         if ($agent->is_public) {
             throw new AgentChatterInvitationRejectedException(
@@ -93,7 +93,7 @@ class InviteAgentChatterAction
     private function derivedNameFromEmail(string $email): string
     {
         $local = Str::before($email, '@');
-        $clean = trim(str_replace(['.', '_', '-', '+'], ' ', $local));
+        $clean = Str::trim(Str::replace(['.', '_', '-', '+'], ' ', $local));
 
         return Str::headline($clean) ?: 'Member';
     }

@@ -12,6 +12,7 @@ use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Enums\PiiHandling;
 use Domain\Guardrail\Enums\TopicResponse;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -86,7 +87,7 @@ class SaveGuardrailSettingsRequest extends FormRequest
             allowed_scope: $this->string('allowed_scope')->toString() ?: null,
             refusal_message: $this->string('refusal_message')->toString() ?: null,
             allowlist: array_values(array_unique(array_filter(
-                array_map(trim(...), (array) $this->input('allowlist', [])),
+                array_map(Str::trim(...), (array) $this->input('allowlist', [])),
                 filled(...),
             ))),
             // Only the built-in filters; a custom pattern carries its own action.
@@ -118,7 +119,7 @@ class SaveGuardrailSettingsRequest extends FormRequest
             return;
         }
 
-        if (preg_match(new CustomPiiPatternData('check', $pattern)->regex(), '') === 1) {
+        if (Str::isMatch(new CustomPiiPatternData('check', $pattern)->regex(), '')) {
             $fail(__('The pattern must not match empty text.'));
         }
     }

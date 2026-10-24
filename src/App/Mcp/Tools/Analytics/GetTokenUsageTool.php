@@ -6,6 +6,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\Usage\TokenUsageQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -37,7 +38,7 @@ class GetTokenUsageTool extends AnalyticsTool
             ? sprintf('No tokens consumed %s.', $period->label)
             : sprintf(
                 '%s: %s tokens consumed (%s prompt, %s completion), ~%s per AI reply.',
-                ucfirst($period->label),
+                Str::ucfirst($period->label),
                 number_format($data->total),
                 number_format($data->prompt),
                 number_format($data->completion),

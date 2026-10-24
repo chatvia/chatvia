@@ -7,6 +7,7 @@ use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Models\SecurityAuditLog;
+use Illuminate\Support\Str;
 
 /**
  * The recorder writes one row per security event into `security_audit_logs`.
@@ -55,7 +56,7 @@ it('caps oversized metadata and flags truncation, hashing the raw payload', func
         action: SecurityAuditAction::PolicyChanged,
         workspaceId: $user->workspace()->id,
         actor: SecurityActorData::forUser($user),
-        metadata: ['blob' => str_repeat('x', 200)],
+        metadata: ['blob' => Str::repeat('x', 200)],
     );
 
     app(RecordSecurityEventAction::class)->execute($event);

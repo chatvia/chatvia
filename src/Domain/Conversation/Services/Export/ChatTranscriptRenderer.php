@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Export;
 
 use Domain\Conversation\Data\Memory\MessageData;
+use Illuminate\Support\Str;
 use League\CommonMark\ConverterInterface;
 
 /**
@@ -36,7 +37,7 @@ class ChatTranscriptRenderer
      */
     public function toText(array $messages): string
     {
-        return $this->joined($messages, fn (MessageData $message): string => strip_tags($this->html($message)));
+        return $this->joined($messages, fn (MessageData $message): string => Str::of($this->html($message))->stripTags()->toString());
     }
 
     /**
@@ -66,15 +67,15 @@ class ChatTranscriptRenderer
 
     private function withoutRemoteImages(string $html): string
     {
-        return (string) preg_replace_callback('/<img\b[^>]*>/i', function (array $tag): string {
-            if (preg_match('/\ssrc\s*=\s*"\s*data:/i', $tag[0]) === 1) {
+        return Str::replaceMatches('/<img\b[^>]*>/i', function (array $tag): string {
+            if (Str::isMatch('/\ssrc\s*=\s*"\s*data:/i', $tag[0])) {
                 return $tag[0];
             }
 
-            $alt = preg_match('/\salt\s*=\s*"([^"]*)"/i', $tag[0], $match) === 1 ? html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5) : '';
+            $alt = html_entity_decode(Str::match('/\salt\s*=\s*"([^"]*)"/i', $tag[0]), ENT_QUOTES | ENT_HTML5);
 
             return e($alt);
-        }, $html);
+        }, $html) ?? '';
     }
 
     /**
@@ -84,7 +85,7 @@ class ChatTranscriptRenderer
     private function joined(array $messages, callable $render): string
     {
         return collect($messages)
-            ->map(static fn (MessageData $message): string => trim($render($message)))
+            ->map(static fn (MessageData $message): string => Str::trim($render($message)))
             ->implode(self::MESSAGE_SEPARATOR)."\n";
     }
 }

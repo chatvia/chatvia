@@ -2,6 +2,8 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Str;
+
 /**
  * Masks payment card numbers ([CARD_n]); only digit runs that pass the Luhn
  * check count, so ordinary long numbers stay readable.
@@ -31,8 +33,8 @@ final class CardFilter extends PiiFilter
      */
     protected function accepts(string $value): bool
     {
-        $digits = preg_replace('/\D/', '', $value) ?? '';
-        $len = strlen($digits);
+        $digits = Str::replaceMatches('/\D/', '', $value) ?? '';
+        $len = Str::length($digits);
 
         return $len >= 13 && $len <= 19 && $this->luhn($digits);
     }

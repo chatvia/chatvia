@@ -6,6 +6,7 @@ namespace App\Mcp\Tools\Analytics;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\Outcomes\HandoffStatsQuery;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -33,7 +34,7 @@ class GetHandoffStatsTool extends AnalyticsTool
 
         $summary = sprintf(
             '%s: %s of %s conversations went to a human (%s%% handoff rate). %s handoff%s pending right now.',
-            ucfirst($scope->period->label),
+            Str::ucfirst($scope->period->label),
             number_format($data->handoffs),
             number_format($data->conversations),
             $data->handoffRatePct,

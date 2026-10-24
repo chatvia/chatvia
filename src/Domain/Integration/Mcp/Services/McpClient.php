@@ -389,24 +389,22 @@ class McpClient
     {
         $contentType = Str::lower($response->header('Content-Type'));
 
-        if (! str_contains($contentType, 'text/event-stream')) {
+        if (! Str::contains($contentType, 'text/event-stream')) {
             $decoded = $response->json();
 
             return is_array($decoded) ? $decoded : null;
         }
 
-        $dataLines = [];
-        foreach (preg_split('/\r?\n/', $response->body()) ?: [] as $line) {
-            if (str_starts_with($line, 'data:')) {
-                $dataLines[] = ltrim(substr($line, 5));
-            }
-        }
+        $dataLines = Str::of($response->body())
+            ->split('/\r?\n/')
+            ->filter(fn (string $line): bool => Str::startsWith($line, 'data:'))
+            ->map(fn (string $line): string => Str::ltrim(Str::chopStart($line, 'data:')));
 
-        if ($dataLines === []) {
+        if ($dataLines->isEmpty()) {
             return null;
         }
 
-        $decoded = json_decode(implode('', $dataLines), true);
+        $decoded = json_decode($dataLines->implode(''), true);
 
         return is_array($decoded) ? $decoded : null;
     }

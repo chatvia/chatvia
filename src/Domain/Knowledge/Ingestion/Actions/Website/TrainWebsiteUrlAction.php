@@ -21,6 +21,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Firecrawl;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
 /**
@@ -55,7 +56,7 @@ class TrainWebsiteUrlAction
         SafeUrl::assert($websiteUrl->url);
 
         $scraped = $this->firecrawl->scrape($websiteUrl->url);
-        $markdown = trim($scraped->markdown);
+        $markdown = Str::trim($scraped->markdown);
         $title = $scraped->title();
 
         /** @var SourceWebsite $website */

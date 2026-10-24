@@ -7,6 +7,7 @@ use Domain\Analytics\Services\IP2Country;
 use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Models\Session;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Str;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -44,7 +45,7 @@ class LocateSession implements ShouldQueue
         // only when it agrees with the trusted country (see stamp()).
         $location = $session->ip_address ? $this->ip2Country->locate($session->ip_address) : null;
 
-        $this->stamp($session, strtolower($countryCode), $location);
+        $this->stamp($session, Str::lower($countryCode), $location);
     }
 
     private function stamp(Session $session, string $countryCode, ?IpLocationData $location): void
@@ -61,7 +62,7 @@ class LocateSession implements ShouldQueue
         // for the wrong place (the CF edge PoP) — drop them rather than stamp a
         // city that contradicts the country.
         $ipMatchesCountry = $location?->countryCode
-            && strtolower($location->countryCode) === $countryCode;
+            && Str::lower($location->countryCode) === $countryCode;
 
         if ($ipMatchesCountry) {
             if (! $session->city && $location->cityName) {

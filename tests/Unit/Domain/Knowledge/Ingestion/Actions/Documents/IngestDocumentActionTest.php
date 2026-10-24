@@ -13,6 +13,7 @@ use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Ingestion\FakeDocumentParser;
 
 /**
@@ -133,7 +134,7 @@ it('splits a page longer than the chunk size into parts that keep its page numbe
     Storage::put($sourceFile->filepath, '%PDF-1.4 test');
     $agent->files()->attach($sourceFile->id);
 
-    $long = str_repeat('Every tent is tested on a real trip before we sell it. ', 8);
+    $long = Str::repeat('Every tent is tested on a real trip before we sell it. ', 8);
     $parser = new FakeDocumentParser([
         new PageData(pageNumber: 1, content: 'A short first page.', checksum: hash('xxh128', 'A short first page.')),
         new PageData(pageNumber: 2, content: $long, checksum: hash('xxh128', $long), tables: ['| a |']),
@@ -146,7 +147,7 @@ it('splits a page longer than the chunk size into parts that keep its page numbe
 
         return $pages->count() === 4
             && $pages->pluck('pageNumber')->all() === [1, 2, 2, 2]
-            && $pages->every(fn (PageData $page): bool => mb_strlen($page->content) <= 200);
+            && $pages->every(fn (PageData $page): bool => Str::length($page->content) <= 200);
     });
 
     // The stored pages stay whole.

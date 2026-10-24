@@ -7,6 +7,7 @@ namespace App\Http\Requests\Agent\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\InviteAgentChatterData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * Inviting someone to chat with one agent. The email is normalised (trimmed,
@@ -29,7 +30,7 @@ class InviteAgentChatterRequest extends FormRequest
 
     public function email(): string
     {
-        return strtolower(trim((string) $this->validated('email')));
+        return Str::lower(Str::trim((string) $this->validated('email')));
     }
 
     public function toData(Agent $agent): InviteAgentChatterData

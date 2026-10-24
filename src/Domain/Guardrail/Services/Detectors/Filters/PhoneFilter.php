@@ -2,6 +2,8 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Str;
+
 /**
  * Masks phone numbers ([PHONE_n]). Runs last, after the stricter number
  * filters, so its looser pattern cannot swallow their digits.
@@ -52,22 +54,22 @@ final class PhoneFilter extends PiiFilter
      */
     protected function accepts(string $value): bool
     {
-        $digits = preg_replace('/\D/', '', $value) ?? '';
-        $length = strlen($digits);
+        $digits = Str::replaceMatches('/\D/', '', $value) ?? '';
+        $length = Str::length($digits);
 
         if ($length < 9 || $length > 15) {
             return false;
         }
 
-        if (array_any(self::NOT_PHONES, static fn (string $pattern): bool => preg_match($pattern, $value) === 1)) {
+        if (Str::isMatch(self::NOT_PHONES, $value)) {
             return false;
         }
 
-        $start = ltrim($value, '(');
+        $start = Str::ltrim($value, '(');
 
-        return str_starts_with($start, '+')
-            || str_starts_with($start, '0')
-            || preg_match(self::NORTH_AMERICAN, $value) === 1
-            || preg_match(self::NORTH_AMERICAN_DIGITS, $value) === 1;
+        return Str::startsWith($start, '+')
+            || Str::startsWith($start, '0')
+            || Str::isMatch(self::NORTH_AMERICAN, $value)
+            || Str::isMatch(self::NORTH_AMERICAN_DIGITS, $value);
     }
 }

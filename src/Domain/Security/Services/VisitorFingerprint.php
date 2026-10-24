@@ -43,7 +43,7 @@ final class VisitorFingerprint
 
         // IPv6: keep the first 64 bits. IPv4: the whole address.
         return strlen($packed) === 16
-            ? inet_ntop(substr($packed, 0, 8).str_repeat("\0", 8)).'/64'
+            ? inet_ntop(substr($packed, 0, 8).Str::repeat("\0", 8)).'/64'
             : (string) inet_ntop($packed);
     }
 }

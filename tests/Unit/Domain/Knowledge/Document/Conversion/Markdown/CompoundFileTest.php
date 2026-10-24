@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\CompoundFile;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Document\OldOffice\CompoundFileWriter;
 
 /**
@@ -14,7 +15,7 @@ function cfbFile(string $bytes): string
 }
 
 it('reads large and small streams by name, ignoring case', function (): void {
-    $large = str_repeat('Large stream. ', 700);
+    $large = Str::repeat('Large stream. ', 700);
     $path = cfbFile(CompoundFileWriter::write(['WordDocument' => $large, 'Small' => 'A few bytes.', 'Empty' => '']));
     $file = CompoundFile::open($path);
 
@@ -38,7 +39,7 @@ it('tells a compound file from any other file and refuses to open the other', fu
 });
 
 it('refuses a sector chain that loops instead of reading it forever', function (): void {
-    $bytes = CompoundFileWriter::write(['Big' => str_repeat('x', 5000)]);
+    $bytes = CompoundFileWriter::write(['Big' => Str::repeat('x', 5000)]);
 
     // The stream starts at sector 0; point that sector's table entry back at itself.
     $fatSector = unpack('V', $bytes, 0x4C)[1];

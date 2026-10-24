@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Services;
 
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -44,10 +45,10 @@ final class RedactedException
             '#\b(Bearer|OAuth)\s+[A-Za-z0-9._~+/=-]+#i' => '$1 [redacted]',
         ];
 
-        $redacted = preg_replace(array_keys($patterns), array_values($patterns), $message) ?? '';
+        $redacted = Str::replaceMatches(array_keys($patterns), array_values($patterns), $message) ?? '';
 
-        return mb_strlen($redacted) > self::MAX_MESSAGE_LENGTH
-            ? mb_substr($redacted, 0, self::MAX_MESSAGE_LENGTH).'…'
+        return Str::length($redacted) > self::MAX_MESSAGE_LENGTH
+            ? Str::substr($redacted, 0, self::MAX_MESSAGE_LENGTH).'…'
             : $redacted;
     }
 }

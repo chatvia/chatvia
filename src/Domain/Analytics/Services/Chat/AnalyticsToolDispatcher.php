@@ -10,6 +10,7 @@ use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Mcp\Services\McpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Uri;
 use Throwable;
 
 /**
@@ -65,7 +66,7 @@ class AnalyticsToolDispatcher
     private function serverFor(string $url): AgentMcpServer
     {
         return new AgentMcpServer()->forceFill([
-            'connector_slug' => basename((string) parse_url($url, PHP_URL_PATH)),
+            'connector_slug' => Uri::of($url)->pathSegments()->last() ?? '',
             'url' => $url,
             'auth_type' => McpAuthType::None,
             'auth_value' => null,

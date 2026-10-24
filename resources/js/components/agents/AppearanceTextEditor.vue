@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * The Info editor of the Setup page: chat title, welcome message and composer
- * placeholder. The "Default" tab edits the base strings; each flag tab edits
+ * The Info editor of the Setup page: chat title, welcome message, composer
+ * placeholder and the notice under the composer. The "Default" tab edits the base strings; each flag tab edits
  * that language's manual translation (placeholder = the AI translation).
  */
 import type { LocaleMap } from '@/api/agentSetup';
@@ -10,7 +10,7 @@ import TranslationLanguageTabs from '@/components/agents/setup/TranslationLangua
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-type FieldKey = 'chat_window_title' | 'welcome_message' | 'composer_placeholder';
+type FieldKey = 'chat_window_title' | 'welcome_message' | 'composer_placeholder' | 'notice';
 
 const props = withDefaults(
     defineProps<{
@@ -18,6 +18,7 @@ const props = withDefaults(
         welcomeMessage: string;
         chatWindowTitle: string;
         composerPlaceholder: string;
+        notice: string;
         // AI translations (read-only here) shown as the placeholder for each
         // language tab, so an empty field falls back to the automatic value.
         translations: LocaleMap;
@@ -36,6 +37,7 @@ const emit = defineEmits<{
     'update:welcomeMessage': [value: string];
     'update:chatWindowTitle': [value: string];
     'update:composerPlaceholder': [value: string];
+    'update:notice': [value: string];
     'update:overrides': [value: LocaleMap];
 }>();
 
@@ -46,8 +48,14 @@ const selected = ref<string>('default');
 
 const isDefault = computed(() => selected.value === 'default');
 
-const baseFor = (field: FieldKey): string =>
-    field === 'welcome_message' ? props.welcomeMessage : field === 'chat_window_title' ? props.chatWindowTitle : props.composerPlaceholder;
+const BASE: Record<FieldKey, () => string> = {
+    welcome_message: () => props.welcomeMessage,
+    chat_window_title: () => props.chatWindowTitle,
+    composer_placeholder: () => props.composerPlaceholder,
+    notice: () => props.notice,
+};
+
+const baseFor = (field: FieldKey): string => BASE[field]();
 
 const fieldValue = (field: FieldKey): string => {
     if (isDefault.value) return baseFor(field);
@@ -64,6 +72,7 @@ const placeholders = computed(() =>
               chat_window_title: placeholderFor('chat_window_title'),
               welcome_message: placeholderFor('welcome_message'),
               composer_placeholder: placeholderFor('composer_placeholder'),
+              notice: placeholderFor('notice'),
           },
 );
 
@@ -71,6 +80,7 @@ const update = (field: FieldKey, value: string): void => {
     if (isDefault.value) {
         if (field === 'welcome_message') emit('update:welcomeMessage', value);
         else if (field === 'chat_window_title') emit('update:chatWindowTitle', value);
+        else if (field === 'notice') emit('update:notice', value);
         else emit('update:composerPlaceholder', value);
         return;
     }
@@ -84,7 +94,7 @@ const update = (field: FieldKey, value: string): void => {
 
 // A language tab shows a dot when it has at least one manual override.
 const hasOverride = (code: string): boolean =>
-    (['chat_window_title', 'welcome_message', 'composer_placeholder'] as FieldKey[]).some(
+    (['chat_window_title', 'welcome_message', 'composer_placeholder', 'notice'] as FieldKey[]).some(
         (field) => (props.overrides?.[field]?.[code] ?? '').trim() !== '',
     );
 </script>
@@ -99,12 +109,14 @@ const hasOverride = (code: string): boolean =>
             :welcome-message="fieldValue('welcome_message')"
             :chat-window-title="fieldValue('chat_window_title')"
             :composer-placeholder="fieldValue('composer_placeholder')"
+            :notice="fieldValue('notice')"
             :placeholders="placeholders"
             :errors="isDefault ? errors : {}"
             :disabled="disabled"
             @update:welcome-message="update('welcome_message', $event)"
             @update:chat-window-title="update('chat_window_title', $event)"
             @update:composer-placeholder="update('composer_placeholder', $event)"
+            @update:notice="update('notice', $event)"
         />
 
         <p class="text-muted-foreground text-xs">

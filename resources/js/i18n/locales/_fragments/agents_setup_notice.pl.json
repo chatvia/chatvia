@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Uwaga pod polem czatu",
+                "appearance_notice_placeholder": "Na przykład: Odpowiadam na pytania o nasze produkty. Mogę się mylić, więc sprawdzaj ważne szczegóły.",
+                "appearance_notice_help": "Opcjonalnie. Krótka linijka pod polem wiadomości w każdym czacie: czego dotyczy agent i że odpowiedzi mogą być błędne. Tłumaczona automatycznie."
+            }
+        }
+    }
+}

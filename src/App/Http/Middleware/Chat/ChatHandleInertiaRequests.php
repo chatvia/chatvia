@@ -60,6 +60,9 @@ class ChatHandleInertiaRequests extends Middleware
             // the same value via MaxConversationAttachments so a frontend
             // bypass still gets a 422.
             'maxFilesPerChat' => (int) config('chatvia.agent.files.upload.max_files'),
+            // The longest message (admin Settings → Security); the composer
+            // stops there, and ChatStreamRequest refuses a longer one.
+            'messageMaxLength' => (int) config('chatvia.guardrails.max_message_chars'),
         ];
     }
 }

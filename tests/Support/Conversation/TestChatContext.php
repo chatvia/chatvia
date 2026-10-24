@@ -46,6 +46,7 @@ final class TestChatContext
         ?int $actorUserId = null,
         ?string $ipAddress = null,
         ?string $userAgent = null,
+        ?string $clarifyingQuestion = null,
     ): ChatContext {
         $llm ??= Llm::factory()->create();
 
@@ -77,6 +78,7 @@ final class TestChatContext
             userMessageId: $userMessageId ?? (string) Str::uuid(),
             assistantMessageId: (string) Str::uuid(),
             queryLanguage: $queryLanguage,
+            clarifyingQuestion: $clarifyingQuestion,
         );
     }
 

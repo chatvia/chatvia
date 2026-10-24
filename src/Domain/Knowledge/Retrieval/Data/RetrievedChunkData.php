@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Retrieval\Data;
 
+use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
 use stdClass;
 
@@ -38,6 +39,8 @@ final class RetrievedChunkData extends Data
          * reranker's score, or the similarity check's. Null when no check ran.
          */
         public ?float $relevance = null,
+        /** The day the chunk's text entered the knowledge base (Y-m-d), or null when unknown. */
+        public ?string $added_on = null,
     ) {}
 
     /**
@@ -57,6 +60,7 @@ final class RetrievedChunkData extends Data
             score: (float) $row->score,
             similarity: isset($row->similarity) ? (float) $row->similarity : null,
             tokens: (int) ($row->tokens ?? 0),
+            added_on: filled($row->created_at ?? null) ? Carbon::parse($row->created_at)->toDateString() : null,
         );
     }
 
@@ -99,6 +103,7 @@ final class RetrievedChunkData extends Data
             similarity: $this->similarity,
             tokens: $this->tokens,
             relevance: $relevance ?? $this->relevance,
+            added_on: $this->added_on,
         );
     }
 }

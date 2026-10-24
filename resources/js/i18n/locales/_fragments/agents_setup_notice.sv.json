@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Notis under chattrutan",
+                "appearance_notice_placeholder": "Till exempel: Jag svarar på frågor om våra produkter. Jag kan ha fel, så kontrollera viktiga detaljer.",
+                "appearance_notice_help": "Valfritt. En kort rad under meddelanderutan i varje chatt: vad agenten täcker och att svar kan vara fel. Översätts automatiskt."
+            }
+        }
+    }
+}

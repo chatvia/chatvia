@@ -62,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
         chat_window_title: null,
         avatar: null,
         composer_placeholder: null,
+        notice: null,
     }),
     removeSidebar: false,
     hideSidebarOnPageLoad: false,
@@ -80,7 +81,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { t } = useI18n();
 const bus = useChatEventBus();
-const { resolvedAppearance, maxFilesPerChat, canSendMessages } = useChatSurface(props);
+const { resolvedAppearance, maxFilesPerChat, messageMaxLength, canSendMessages } = useChatSurface(props);
 
 const messagesContainer = ref<HTMLElement | null>(null);
 const transcriptContent = ref<HTMLElement | null>(null);
@@ -233,6 +234,7 @@ onMounted(async () => {
                             :allow-voice-input="allowVoiceInput"
                             :allow-voice-conversation="voiceConversation"
                             :max-files="maxFilesPerChat"
+                            :max-length="messageMaxLength"
                             :disabled="!canSendMessages || hasPendingApprovals"
                             :upload-endpoint="storeAttachment.url()"
                             :upload-headers="uploadHeaders"
@@ -241,6 +243,14 @@ onMounted(async () => {
                             @stopStreaming="stopStreaming"
                             @startVoice="isVoiceOpen = true"
                         />
+
+                        <p
+                            v-if="resolvedAppearance.notice"
+                            dir="auto"
+                            class="text-muted-foreground/70 mx-auto mt-2 max-w-2xl px-4 text-center text-[11px] leading-snug"
+                        >
+                            {{ resolvedAppearance.notice }}
+                        </p>
 
                         <PoweredByFooter />
                     </div>

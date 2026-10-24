@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Ghi chú dưới ô trò chuyện",
+                "appearance_notice_placeholder": "Ví dụ: Tôi trả lời câu hỏi về sản phẩm của chúng tôi. Tôi có thể sai, nên hãy kiểm tra các chi tiết quan trọng.",
+                "appearance_notice_help": "Không bắt buộc. Một dòng ngắn dưới ô tin nhắn trong mọi cuộc trò chuyện: tác tử phụ trách những gì, và câu trả lời có thể sai. Được dịch tự động."
+            }
+        }
+    }
+}

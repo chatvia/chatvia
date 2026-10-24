@@ -114,6 +114,8 @@ export interface ChatAppearance {
     avatar?: string | null;
     logo?: string | null;
     composer_placeholder?: string | null;
+    /** Optional short notice under the composer (what the agent covers, that answers can be wrong). */
+    notice?: string | null;
     allow_file_uploads?: boolean;
     allow_voice_input?: boolean;
     [key: string]: unknown;

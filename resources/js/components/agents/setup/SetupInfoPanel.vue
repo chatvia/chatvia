@@ -16,6 +16,7 @@ const { enabledLanguageMap } = languages;
                 v-model:welcome-message="form.welcome_message"
                 v-model:chat-window-title="form.chat_window_title"
                 v-model:composer-placeholder="form.composer_placeholder"
+                v-model:notice="form.notice"
                 v-model:overrides="overrides"
                 :translations="translations"
                 :languages="enabledLanguageMap"

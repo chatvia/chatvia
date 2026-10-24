@@ -2010,7 +2010,10 @@
                 "starters_generate_hint": "Chọn số lượng và tạo gợi ý từ cơ sở kiến thức của bạn.",
                 "starters_translate_empty": "Hãy thêm câu mở đầu ở tab Mặc định trước, sau đó dịch chúng tại đây.",
                 "starters_generate_failed": "Không thể tạo câu mở đầu",
-                "starters_generate_empty": "Không nhận được câu mở đầu nào. Hãy kiểm tra cơ sở kiến thức có nội dung, rồi thử lại."
+                "starters_generate_empty": "Không nhận được câu mở đầu nào. Hãy kiểm tra cơ sở kiến thức có nội dung, rồi thử lại.",
+                "appearance_notice": "Ghi chú dưới ô trò chuyện",
+                "appearance_notice_placeholder": "Ví dụ: Tôi trả lời câu hỏi về sản phẩm của chúng tôi. Tôi có thể sai, nên hãy kiểm tra các chi tiết quan trọng.",
+                "appearance_notice_help": "Không bắt buộc. Một dòng ngắn dưới ô tin nhắn trong mọi cuộc trò chuyện: tác tử phụ trách những gì, và câu trả lời có thể sai. Được dịch tự động."
             },
             "languages": {
                 "title": "Ngôn ngữ giao diện",

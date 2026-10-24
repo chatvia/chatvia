@@ -143,6 +143,7 @@
     "Conversation deleted successfully.": "Keskustelu poistettiin.",
     "You do not have access to this agent": "Sinulla ei ole pääsyä tähän agenttiin",
     "Please enter a message": "Kirjoita viesti",
+    "Your message is too long. Please keep it under :max characters.": "Viestisi on liian pitkä. Pidä se alle :max merkissä.",
     "The server rejected the token (401 Unauthorized). Double-check the value and try again.": "Palvelin hylkäsi tunnuksen (401 Unauthorized). Tarkista arvo ja yritä uudelleen.",
     "The token is valid but does not have permission to call this MCP server (403).": "Tunnus on kelvollinen, mutta sillä ei ole oikeutta kutsua tätä MCP-palvelinta (403).",
     "The connector endpoint returned 404. The service may have moved — please report this.": "Liittimen päätepiste palautti 404. Palvelu on ehkä siirtynyt — ilmoita tästä.",

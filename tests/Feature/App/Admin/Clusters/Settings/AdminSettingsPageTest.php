@@ -67,7 +67,7 @@ it('lists the advanced cards last, closed, under their own heading', function ()
     $this->actingAs($this->admin, 'admin')
         ->get(ManageSearchSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['Finding answers', 'Follow-up questions', 'Technical options. The defaults suit most installs.', 'search-tuning'])
+        ->assertSeeInOrder(['Finding answers', 'Unclear and follow-up questions', 'Technical options. The defaults suit most installs.', 'search-tuning'])
         ->assertSeeText('Save changes')
         ->assertDontSee('cv-outline__save');
 });

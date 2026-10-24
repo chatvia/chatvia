@@ -15,11 +15,13 @@ import { del, post, put } from './http';
 /** Text per field, per locale: `{ welcome_message: { de: '…', fr: '…' } }`. */
 export type LocaleMap = Record<string, Record<string, string>>;
 
-/** The three appearance strings shown in every chat surface. */
+/** The appearance strings shown in every chat surface. */
 export interface AppearanceText {
     chat_window_title: string;
     welcome_message: string;
     composer_placeholder: string;
+    /** Optional short notice under the composer; empty shows none. */
+    notice: string;
 }
 
 /** A conversation starter as stored: base text, icon, AI translations and manual edits. */

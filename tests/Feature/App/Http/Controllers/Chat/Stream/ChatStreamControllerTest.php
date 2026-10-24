@@ -53,6 +53,15 @@ it('rejects a chat-stream request with no message (validation)', function (): vo
     )->assertStatus(422)->assertJsonValidationErrors(['message']);
 });
 
+it('refuses a message longer than the admin\'s limit before any model runs', function (): void {
+    config(['chatvia.guardrails.max_message_chars' => 300]);
+
+    $this->postJson(
+        "/chat/{$this->agent->external_id}/stream/".Str::uuid(),
+        ['message' => Str::repeat('a', 301)],
+    )->assertStatus(422)->assertJsonValidationErrors(['message']);
+});
+
 it('stores the visitor message before the stream is read when the client asks it to', function (): void {
     $conversationId = (string) Str::uuid();
 

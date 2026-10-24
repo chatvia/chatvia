@@ -143,6 +143,7 @@
     "Conversation deleted successfully.": "گفتگو با موفقیت حذف شد.",
     "You do not have access to this agent": "به این عامل دسترسی ندارید",
     "Please enter a message": "لطفاً یک پیام بنویسید",
+    "Your message is too long. Please keep it under :max characters.": "پیام شما خیلی طولانی است. لطفاً آن را کمتر از :max نویسه نگه دارید.",
     "The server rejected the token (401 Unauthorized). Double-check the value and try again.": "سرور توکن را رد کرد (401 Unauthorized). مقدار را بررسی کنید و دوباره تلاش کنید.",
     "The token is valid but does not have permission to call this MCP server (403).": "توکن معتبر است اما اجازه فراخوانی این سرور MCP را ندارد (403).",
     "The connector endpoint returned 404. The service may have moved — please report this.": "نقطه پایانی کانکتور خطای 404 داد. شاید سرویس جابه‌جا شده باشد — لطفاً آن را گزارش دهید.",

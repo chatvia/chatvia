@@ -143,6 +143,7 @@
     "Conversation deleted successfully.": "تم حذف المحادثة بنجاح.",
     "You do not have access to this agent": "ليست لديك صلاحية الوصول إلى هذا الوكيل",
     "Please enter a message": "اكتب رسالة",
+    "Your message is too long. Please keep it under :max characters.": "رسالتك طويلة جدًا. اجعلها أقل من :max حرف.",
     "The server rejected the token (401 Unauthorized). Double-check the value and try again.": "رفض الخادم الرمز (401 غير مصرح). تحقق من القيمة وحاول مرة أخرى.",
     "The token is valid but does not have permission to call this MCP server (403).": "الرمز صالح لكنه لا يملك إذنًا لاستدعاء خادم MCP هذا (403).",
     "The connector endpoint returned 404. The service may have moved — please report this.": "أعاد عنوان الموصل الخطأ 404. ربما انتقلت الخدمة — يرجى الإبلاغ عن ذلك.",

@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Validates the Setup → appearance text form (chat title / welcome / composer
- * placeholder). The route already enforces `agent.permission:agent.setup`, so
+ * placeholder / notice under the composer). The route already enforces `agent.permission:agent.setup`, so
  * authorize() defers to it.
  */
 class SaveAppearanceTextRequest extends FormRequest
@@ -28,6 +28,7 @@ class SaveAppearanceTextRequest extends FormRequest
             'chat_window_title' => ['nullable', 'string', 'max:120'],
             'welcome_message' => ['nullable', 'string', 'max:500'],
             'composer_placeholder' => ['nullable', 'string', 'max:200'],
+            'notice' => ['nullable', 'string', 'max:300'],
         ];
     }
 
@@ -37,6 +38,7 @@ class SaveAppearanceTextRequest extends FormRequest
             welcome_message: (string) $this->string('welcome_message'),
             chat_window_title: (string) $this->string('chat_window_title'),
             composer_placeholder: (string) $this->string('composer_placeholder'),
+            notice: (string) $this->string('notice'),
         );
     }
 }

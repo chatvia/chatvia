@@ -34,6 +34,7 @@ class BuildWidgetSettingsAction
         'chat_window_title' => 'title',
         'welcome_message' => 'welcome_message',
         'composer_placeholder' => 'composer_placeholder',
+        'notice' => 'notice',
     ];
 
     /** The widget `language` setting value that means "follow the visitor". */
@@ -90,6 +91,7 @@ class BuildWidgetSettingsAction
             keyboard_trigger: $bar['trigger'] ?? null,
             bar_placement: $bar['placement'] ?? null,
             composer_placeholder: $text['composer_placeholder'] ?? null,
+            notice: filled($text['notice'] ?? null) ? $text['notice'] : null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
             // Uploads need a model that reads files; it decides the types.

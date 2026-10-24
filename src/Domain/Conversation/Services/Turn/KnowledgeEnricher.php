@@ -13,6 +13,7 @@ use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
+use Domain\Knowledge\Retrieval\Services\KnowledgeScope;
 use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Services\QaMatcher;
@@ -43,6 +44,7 @@ class KnowledgeEnricher
         private readonly QaMatcher $qaMatcher,
         private readonly GuardrailService $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
+        private readonly KnowledgeScope $scope,
     ) {}
 
     public function enrich(ChatContext $context): ChatContext
@@ -68,7 +70,7 @@ class KnowledgeEnricher
         $context->setSources($sources);
 
         if ($sources->isEmpty()) {
-            return $context;
+            return $this->withNoMatchNote($context);
         }
 
         $this->countRetrieval($context, $sources);
@@ -147,6 +149,7 @@ class KnowledgeEnricher
             sourceable_type: $chunk->chunkable_type,
             sourceable_id: $chunk->chunkable_id,
             images: $chunk->images(),
+            added_on: $chunk->added_on,
         ));
     }
 
@@ -203,30 +206,65 @@ class KnowledgeEnricher
 
     /**
      * A copy of the context whose LLM-facing message carries the reference
-     * material. Only that message changes; the payload is cloned, so a field
-     * added later can never be dropped by a hand-written rebuild.
+     * material, with the sources and their confidence.
      *
      * @param  Collection<int, RetrievedSourceData>  $sources
      */
     private function withReferenceMaterial(ChatContext $context, Collection $sources): ChatContext
     {
-        $enriched = new ChatContext(
+        $enriched = $this->withMessageForLlm($context, $this->referenceMaterial($context->payload->message_for_llm ?? '', $sources));
+
+        $enriched->setSources($sources);
+        $enriched->setConfidenceScore($this->confidence($sources));
+
+        return $enriched;
+    }
+
+    /**
+     * When nothing in the knowledge matched: a note that says so and, with
+     * the admin's switches on, either the question to ask a visitor whose
+     * message is too vague to search, or what the agent's knowledge covers,
+     * so the model can say what it can help with. The context is unchanged
+     * when neither applies, or the agent has no knowledge at all.
+     */
+    private function withNoMatchNote(ChatContext $context): ChatContext
+    {
+        $clarifyingQuestion = filter_var(config('chatvia.ai.query.rewriter.clarify'), FILTER_VALIDATE_BOOL)
+            ? $context->clarifyingQuestion
+            : null;
+        $scope = $clarifyingQuestion === null && filter_var(config('chatvia.vector.search.scope_hint'), FILTER_VALIDATE_BOOL)
+            ? $this->scope->names($context->requestData->agent)
+            : [];
+
+        if ($clarifyingQuestion === null && $scope === []) {
+            return $context;
+        }
+
+        return $this->withMessageForLlm($context, prompt('knowledge/no-match', [
+            'question' => $context->payload->message_for_llm ?? '',
+            'clarifyingQuestion' => $clarifyingQuestion,
+            'scope' => $scope,
+        ]));
+    }
+
+    /**
+     * A copy of the context whose LLM-facing message is $message. Only that
+     * message changes; the payload is cloned, so a field added later can
+     * never be dropped by a hand-written rebuild.
+     */
+    private function withMessageForLlm(ChatContext $context, string $message): ChatContext
+    {
+        return new ChatContext(
             requestData: $context->requestData,
-            payload: $context->payload->withMessageForLlm(
-                $this->referenceMaterial($context->payload->message_for_llm ?? '', $sources),
-            ),
+            payload: $context->payload->withMessageForLlm($message),
             llmMessages: $context->llmMessages,
             userMessageId: $context->userMessageId,
             assistantMessageId: $context->assistantMessageId,
             queryLanguage: $context->queryLanguage,
             startTime: $context->getStartTime(),
             searchQuery: $context->searchQuery,
+            clarifyingQuestion: $context->clarifyingQuestion,
         );
-
-        $enriched->setSources($sources);
-        $enriched->setConfidenceScore($this->confidence($sources));
-
-        return $enriched;
     }
 
     /**
@@ -244,8 +282,9 @@ class KnowledgeEnricher
 
     /**
      * The visitor's question followed by the retrieved chunks, each in its own
-     * numbered `<source>` block, with a signed link for every image so the
-     * model can show them. A chunk cannot close its block early: a closing
+     * numbered `<source>` block dated with the day it entered the knowledge
+     * base (so the model can prefer the newer of two that disagree), with a
+     * signed link for every image so the model can show them. A chunk cannot close its block early: a closing
      * tag inside it is escaped.
      *
      * @param  Collection<int, RetrievedSourceData>  $sources
@@ -257,6 +296,7 @@ class KnowledgeEnricher
             'hasImages' => $sources->contains(static fn (RetrievedSourceData $source): bool => $source->images !== []),
             'items' => $sources->values()->map(fn (RetrievedSourceData $source, int $index): array => [
                 'id' => $index + 1,
+                'added' => $source->added_on,
                 'content' => Str::replaceMatches('/<(\/?source)\b/i', '&lt;$1', $source->content) ?? '',
                 'images' => $this->imageLinks($source),
             ])->all(),

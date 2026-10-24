@@ -8,6 +8,7 @@ use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Services\Streaming\ToolCallDeltas;
+use Domain\Llm\Data\Query\RewrittenQueryData;
 use Illuminate\Support\Collection;
 
 /**
@@ -144,6 +145,12 @@ class ChatContext
          * or, for a follow-up, the full question written from the chat.
          */
         public readonly ?string $searchQuery = null,
+        /**
+         * One short question to ask the visitor when their message is too
+         * vague to search ({@see RewrittenQueryData::$clarifyingQuestion});
+         * used only when nothing in the knowledge matched.
+         */
+        public readonly ?string $clarifyingQuestion = null,
     ) {
         $this->sources = collect();
         $this->startTime = $startTime ?? microtime(true);

@@ -56,6 +56,7 @@ const props = withDefaults(defineProps<Props>(), {
         avatar: null,
         logo: null,
         composer_placeholder: null,
+        notice: null,
     }),
     removeSidebar: false,
     hideSidebarOnPageLoad: false,
@@ -74,7 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t, locale: i18nLocale } = useI18n();
-const { resolvedAppearance, maxFilesPerChat, canSendMessages } = useChatSurface(props);
+const { resolvedAppearance, maxFilesPerChat, messageMaxLength, canSendMessages } = useChatSurface(props);
 
 const starters = ref<ConversationStarter[]>([]);
 const selectedStarter = ref('');
@@ -160,6 +161,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                             :allow-voice-input="allowVoiceInput"
                             :allow-voice-conversation="voiceConversation"
                             :max-files="maxFilesPerChat"
+                            :max-length="messageMaxLength"
                             :upload-endpoint="uploadEndpoint"
                             :upload-headers="uploadHeaders"
                             :delete-endpoint="deleteEndpoint"
@@ -194,6 +196,14 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                                 </span>
                             </button>
                         </div>
+
+                        <p
+                            v-if="resolvedAppearance.notice"
+                            dir="auto"
+                            class="text-muted-foreground/70 mx-auto mt-2 max-w-2xl px-4 text-center text-[11px] leading-snug"
+                        >
+                            {{ resolvedAppearance.notice }}
+                        </p>
 
                         <PoweredByFooter />
                     </div>

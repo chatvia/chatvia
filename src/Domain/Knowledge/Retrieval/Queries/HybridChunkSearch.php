@@ -353,7 +353,7 @@ rrf_scores AS (
     FROM combined_results
     GROUP BY id
 )
-SELECT c.id, c.external_id, c.chunk, c.chunk_index, c.chunkable_type, c.chunkable_id, c.metadata, c.tokens,
+SELECT c.id, c.external_id, c.chunk, c.chunk_index, c.chunkable_type, c.chunkable_id, c.metadata, c.tokens, c.created_at,
        r.search_type, r.rrf_score AS score,
        GREATEST(1 - (c.embedding <=> {$vector}), COALESCE(1 - (c.questions_embedding <=> {$vector}), 0)) AS similarity
 FROM rrf_scores r

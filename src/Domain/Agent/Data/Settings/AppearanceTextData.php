@@ -8,8 +8,9 @@ use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
- * The three localizable appearance strings (the `appearance` model-settings
- * group). Built from SaveAppearanceTextRequest; `toFields()` is the non-empty
+ * The localizable appearance strings (the `appearance` model-settings group):
+ * chat title, welcome message, composer placeholder and the optional notice
+ * shown under the composer (what the agent covers, that answers can be wrong). Built from SaveAppearanceTextRequest; `toFields()` is the non-empty
  * base-text map handed to TextTranslator.
  */
 class AppearanceTextData extends Data
@@ -18,6 +19,7 @@ class AppearanceTextData extends Data
         public string $welcome_message,
         public string $chat_window_title,
         public string $composer_placeholder,
+        public string $notice = '',
     ) {}
 
     /**
@@ -32,6 +34,7 @@ class AppearanceTextData extends Data
             'chat_window_title' => Str::trim($this->chat_window_title),
             'welcome_message' => Str::trim($this->welcome_message),
             'composer_placeholder' => Str::trim($this->composer_placeholder),
+            'notice' => Str::trim($this->notice),
         ], static fn (string $value): bool => $value !== '');
     }
 }

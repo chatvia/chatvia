@@ -25,7 +25,7 @@ interface ChatSurfaceSource {
 
 export function useChatSurface(source: ChatSurfaceSource) {
     const { locale: i18nLocale } = useI18n();
-    const page = usePage<PageProps & { maxFilesPerChat?: number; defaultLocale?: string }>();
+    const page = usePage<PageProps & { maxFilesPerChat?: number; messageMaxLength?: number; defaultLocale?: string }>();
     const { applyColorTheme } = useColorTheme();
     const { canSendMessages } = useSendCapacity();
 
@@ -39,6 +39,9 @@ export function useChatSurface(source: ChatSurfaceSource) {
     // Shared by ChatHandleInertiaRequests from `agent.files.upload.max_files`.
     const maxFilesPerChat = computed(() => page.props.maxFilesPerChat ?? DEFAULT_MAX_FILES_PER_CHAT);
 
+    // Shared from `guardrails.max_message_chars`; the server refuses a longer message.
+    const messageMaxLength = computed(() => page.props.messageMaxLength);
+
     onMounted(() => {
         // Honour the owner's pinned language, else the visitor's stored/browser
         // choice, else the install's default language.
@@ -46,5 +49,5 @@ export function useChatSurface(source: ChatSurfaceSource) {
         applyColorTheme(source.appearance);
     });
 
-    return { resolvedAppearance, maxFilesPerChat, canSendMessages };
+    return { resolvedAppearance, maxFilesPerChat, messageMaxLength, canSendMessages };
 }

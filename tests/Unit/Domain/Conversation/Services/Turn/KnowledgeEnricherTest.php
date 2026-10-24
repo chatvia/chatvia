@@ -1,5 +1,6 @@
 <?php
 
+use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Services\ChatContext;
@@ -20,7 +21,10 @@ use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
 /**
  * Knowledge is attached to the LLM-facing message as numbered reference
- * material, with a signed link for every described image.
+ * material, dated when the day the text was added is known, with a signed
+ * link for every described image. When nothing matches, the admin's switches
+ * add a note: the question to ask a visitor whose message is too vague, or
+ * what the agent's knowledge covers.
  */
 function keContext(Agent $agent, string $question): ChatContext
 {
@@ -39,7 +43,7 @@ function keMockKnowledge(array $chunks): void
     app()->instance(KnowledgeBase::class, $knowledgeBase);
 }
 
-function keChunk(int $id, string $externalId, string $text, ?float $relevance, array $images = []): RetrievedChunkData
+function keChunk(int $id, string $externalId, string $text, ?float $relevance, array $images = [], ?string $addedOn = null): RetrievedChunkData
 {
     return new RetrievedChunkData(
         id: $id,
@@ -52,6 +56,7 @@ function keChunk(int $id, string $externalId, string $text, ?float $relevance, a
         search_type: 'vector+bm25',
         score: 0.03,
         relevance: $relevance,
+        added_on: $addedOn,
     );
 }
 
@@ -99,6 +104,58 @@ it('names each source and gives the clients only its label, kind, link and page'
         ->sourceable_id->toBe(999_999)
         ->and($source->forClient(passages: 1)->toArray())->toBe(['id' => 'ext-5', 'label' => 'Unknown source', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 1])
         ->and($context->payload->message_for_llm)->toBe("### User Question:\nHours?\n\n### Reference material\n<source id=\"1\">\nOnly text\n</source>\n");
+});
+
+it('dates each source with the day its text was added, so newer facts can win', function (): void {
+    $agent = Agent::factory()->create();
+
+    keMockKnowledge([keChunk(5, 'ext-5', 'Price: 12 EUR', 0.8, addedOn: '2026-09-30')]);
+
+    $context = app(KnowledgeEnricher::class)->enrich(keContext($agent, 'Price?'));
+
+    expect($context->payload->message_for_llm)->toContain("<source id=\"1\" added=\"2026-09-30\">\nPrice: 12 EUR\n</source>")
+        ->and($context->sources->first()->added_on)->toBe('2026-09-30');
+});
+
+it('asks the visitor what they mean when nothing matches a vague message', function (): void {
+    config(['chatvia.ai.query.rewriter.clarify' => true, 'chatvia.vector.search.scope_hint' => true]);
+    $agent = Agent::factory()->create();
+    keMockKnowledge([]);
+
+    $context = app(KnowledgeEnricher::class)->enrich(TestChatContext::make(
+        agent: $agent,
+        message: '8675309',
+        llmMessages: [],
+        clarifyingQuestion: 'What would you like to know about 8675309?',
+    ));
+
+    expect($context->payload->message_for_llm)
+        ->toContain('Nothing in the knowledge matches this message.')
+        ->toContain('"What would you like to know about 8675309?"')
+        ->not->toContain('Your knowledge covers')
+        ->and($context->payload->message)->toBe('8675309')
+        ->and($context->sources)->toBeEmpty();
+});
+
+it('tells the model what the knowledge covers when nothing matches', function (): void {
+    config(['chatvia.vector.search.scope_hint' => true]);
+    $agent = Agent::factory()->create();
+    // A file, not a Q&A entry: the fake embeddings would let a Q&A entry match any question.
+    $agent->files()->attach(AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'filename' => 'Shipping_times.pdf'])->id);
+    keMockKnowledge([]);
+
+    $context = app(KnowledgeEnricher::class)->enrich(keContext($agent, 'Do you sell boats?'));
+
+    expect($context->payload->message_for_llm)->toContain("Your knowledge covers:\n- Shipping times");
+});
+
+it('leaves the message alone when nothing matches and both switches are off', function (): void {
+    $agent = Agent::factory()->create();
+    keMockKnowledge([]);
+
+    $context = app(KnowledgeEnricher::class)->enrich(TestChatContext::make(agent: $agent, message: '8675309', llmMessages: [], clarifyingQuestion: 'What do you mean?'));
+
+    expect($context->payload->message_for_llm)->toBe('8675309');
 });
 
 it('has no confidence when no relevance check ran', function (): void {

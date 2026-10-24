@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Vælg et antal, og generér forslag ud fra din vidensbase.",
                 "starters_translate_empty": "Tilføj først startere på fanen Standard, og oversæt dem derefter her.",
                 "starters_generate_failed": "Kunne ikke generere startere",
-                "starters_generate_empty": "Der kom ingen startere tilbage. Tjek, at vidensbasen har indhold, og prøv igen."
+                "starters_generate_empty": "Der kom ingen startere tilbage. Tjek, at vidensbasen har indhold, og prøv igen.",
+                "appearance_notice": "Note under chatfeltet",
+                "appearance_notice_placeholder": "For eksempel: Jeg svarer på spørgsmål om vores produkter. Jeg kan tage fejl, så tjek vigtige detaljer.",
+                "appearance_notice_help": "Valgfrit. En kort linje under beskedfeltet i hver chat: hvad agenten dækker, og at svar kan være forkerte. Oversættes automatisk."
             },
             "languages": {
                 "title": "Sprog i brugerfladen",

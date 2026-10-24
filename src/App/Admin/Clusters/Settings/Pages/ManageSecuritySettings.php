@@ -89,7 +89,9 @@ class ManageSecuritySettings extends AdminSettingsPage
                 $this->toggle('guardrails_enabled', 'Guardrails',
                     help: 'When off, no check runs on any agent, whatever the agent\'s own settings.'),
                 $this->integer('guardrail_retention_days', 'Days to keep the guardrail log', min: 1),
-            ])->summary(fn (): string => ($this->valueInUse('guardrails_enabled') ? 'On' : 'Off').' · log kept '.$this->valueInUse('guardrail_retention_days').' days'),
+                $this->integer('max_message_chars', 'Longest visitor message (characters)',
+                    help: 'A longer message in the hosted chat or the widget is refused before any model runs.', min: 200, max: 32000),
+            ])->summary(fn (): string => ($this->valueInUse('guardrails_enabled') ? 'On' : 'Off').' · log kept '.$this->valueInUse('guardrail_retention_days').' days · messages up to '.$this->valueInUse('max_message_chars').' characters'),
             SettingsCard::make('tool_calls', 'Tool calls', 'How far an agent may go with tools, and the log of every tool call.', Heroicon::OutlinedWrenchScrewdriver, fn (): array => [
                 $this->integer('tool_max_rounds', 'Tool rounds per answer',
                     help: 'How many times an agent may call tools while it works on one answer. After the last round it answers with what it found.', min: 1, max: 20),

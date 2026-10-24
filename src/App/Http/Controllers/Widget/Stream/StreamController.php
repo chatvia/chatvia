@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Widget\Stream;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
+use App\Http\Requests\Widget\WidgetStreamRequest;
 use App\Http\Responses\SseResponder;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
@@ -11,7 +12,6 @@ use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -28,7 +28,7 @@ readonly class StreamController
     ) {}
 
     public function __invoke(
-        Request $request,
+        WidgetStreamRequest $request,
         #[WidgetAgent] Agent $agent,
         WidgetVerification $verification,
         SseResponder $sse,

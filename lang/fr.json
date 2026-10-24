@@ -143,6 +143,7 @@
     "Conversation deleted successfully.": "La conversation a été supprimée.",
     "You do not have access to this agent": "Vous n'avez pas accès à cet agent",
     "Please enter a message": "Veuillez saisir un message",
+    "Your message is too long. Please keep it under :max characters.": "Votre message est trop long. Restez sous :max caractères.",
     "The server rejected the token (401 Unauthorized). Double-check the value and try again.": "Le serveur a refusé le jeton (401 Unauthorized). Vérifiez la valeur et réessayez.",
     "The token is valid but does not have permission to call this MCP server (403).": "Le jeton est valide, mais il n'a pas le droit d'appeler ce serveur MCP (403).",
     "The connector endpoint returned 404. The service may have moved — please report this.": "Le point de terminaison du connecteur a renvoyé 404. Le service a peut-être changé d'adresse — merci de le signaler.",

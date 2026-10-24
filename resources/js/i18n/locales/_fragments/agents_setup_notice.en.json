@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Notice under the chat box",
+                "appearance_notice_placeholder": "For example: I answer questions about our products. I can make mistakes, so check important details.",
+                "appearance_notice_help": "Optional. A short line under the message box in every chat: what the agent covers, and that answers can be wrong. Translated automatically."
+            }
+        }
+    }
+}

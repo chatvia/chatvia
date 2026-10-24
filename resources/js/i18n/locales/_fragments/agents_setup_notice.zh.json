@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "聊天框下方的提示",
+                "appearance_notice_placeholder": "例如：我回答关于我们产品的问题。我可能会出错，请核实重要信息。",
+                "appearance_notice_help": "可选。在每个聊天的消息框下方显示一行简短文字：代理涵盖哪些内容，以及回答可能有误。会自动翻译。"
+            }
+        }
+    }
+}

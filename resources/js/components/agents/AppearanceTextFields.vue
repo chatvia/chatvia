@@ -1,16 +1,17 @@
 <script setup lang="ts">
 /**
- * The three appearance text inputs (chat title, welcome message, composer
- * placeholder), each with its icon and validation error. Used by
- * AppearanceTextEditor for the base text and for each language tab.
+ * The appearance text inputs (chat title, welcome message, composer
+ * placeholder, notice under the composer), each with its icon and validation
+ * error. Used by AppearanceTextEditor for the base text and for each
+ * language tab.
  */
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MessageCircle, Pencil, Type } from 'lucide-vue-next';
+import { Info, MessageCircle, Pencil, Type } from 'lucide-vue-next';
 import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-type FieldKey = 'chat_window_title' | 'welcome_message' | 'composer_placeholder';
+type FieldKey = 'chat_window_title' | 'welcome_message' | 'composer_placeholder' | 'notice';
 
 const { t } = useI18n();
 
@@ -19,12 +20,13 @@ const props = withDefaults(
         welcomeMessage: string;
         chatWindowTitle: string;
         composerPlaceholder: string;
+        notice: string;
         errors?: Record<string, string | undefined>;
         disabled?: boolean;
         // Optional per-field input placeholders. When set (e.g. the automatic
         // translation for a language tab), they replace the default static hints
         // so an empty field clearly means "fall back to this value".
-        placeholders?: { chat_window_title?: string; welcome_message?: string; composer_placeholder?: string };
+        placeholders?: { chat_window_title?: string; welcome_message?: string; composer_placeholder?: string; notice?: string };
     }>(),
     { disabled: false, errors: () => ({}), placeholders: () => ({}) },
 );
@@ -33,6 +35,7 @@ const emit = defineEmits<{
     'update:welcomeMessage': [value: string];
     'update:chatWindowTitle': [value: string];
     'update:composerPlaceholder': [value: string];
+    'update:notice': [value: string];
 }>();
 
 interface Field {
@@ -69,6 +72,14 @@ const fields = computed<Field[]>(() => [
         icon: Pencil,
         update: (value) => emit('update:composerPlaceholder', value),
     },
+    {
+        key: 'notice',
+        label: t('agents.setup.sections.appearance_notice'),
+        value: props.notice,
+        placeholder: props.placeholders?.notice || t('agents.setup.sections.appearance_notice_placeholder'),
+        icon: Info,
+        update: (value) => emit('update:notice', value),
+    },
 ]);
 </script>
 
@@ -93,6 +104,7 @@ const fields = computed<Field[]>(() => [
                     @update:model-value="field.update(String($event))"
                 />
             </div>
+            <p v-if="field.key === 'notice'" class="text-muted-foreground text-xs">{{ t('agents.setup.sections.appearance_notice_help') }}</p>
             <p v-if="errors?.[field.key]" class="text-destructive text-sm">{{ errors[field.key] }}</p>
         </div>
     </div>

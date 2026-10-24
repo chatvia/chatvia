@@ -38,6 +38,8 @@ return new class extends SettingsMigration
             $group->add('similarity_threshold');
             $group->add('qa_similarity_threshold');
             $group->add('query_rewriter');
+            $group->add('query_clarify');
+            $group->add('scope_hint');
         });
     }
 

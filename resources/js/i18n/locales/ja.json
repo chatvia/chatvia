@@ -2010,7 +2010,10 @@
                 "starters_generate_hint": "数を選んで、ナレッジベースから候補を生成します。",
                 "starters_translate_empty": "まず「デフォルト」タブできっかけを追加してから、ここで翻訳してください。",
                 "starters_generate_failed": "会話のきっかけを生成できませんでした",
-                "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。"
+                "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。",
+                "appearance_notice": "チャット欄の下の注意書き",
+                "appearance_notice_placeholder": "例：当社製品に関する質問にお答えします。間違えることもあるため、重要な点はご確認ください。",
+                "appearance_notice_help": "任意。すべてのチャットでメッセージ欄の下に表示する短い一文です。エージェントが扱う内容と、回答が間違っている可能性を伝えます。自動で翻訳されます。"
             },
             "languages": {
                 "title": "UI 言語",

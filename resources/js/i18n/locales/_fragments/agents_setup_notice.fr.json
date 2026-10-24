@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_notice": "Note sous la zone de chat",
+                "appearance_notice_placeholder": "Par exemple : Je réponds aux questions sur nos produits. Je peux me tromper, vérifiez donc les détails importants.",
+                "appearance_notice_help": "Facultatif. Une courte ligne sous la zone de message dans chaque chat : ce que couvre l'agent, et que les réponses peuvent être fausses. Traduite automatiquement."
+            }
+        }
+    }
+}

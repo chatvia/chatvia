@@ -11,7 +11,7 @@
 @if (! $loop->first)
 
 @endif
-<source id="{{ $item['id'] }}">
+<source id="{{ $item['id'] }}"@if ($item['added'] ?? null) added="{{ $item['added'] }}"@endif>
 {!! $item['content'] !!}
 @if ($item['images'] !== [])
 

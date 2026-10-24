@@ -13,8 +13,10 @@ use Illuminate\Support\Str;
 /**
  * The rewriter turns a follow-up into a full question from the chat before
  * it, asking the model for `<lang>|<question>`. A message with no chat before
- * it is asked about only for its language. A reply without the pipe, or a
- * failed call, must fall back gracefully instead of failing the chat turn.
+ * it is asked about only for its language. With clarifying on, a message too
+ * vague to search comes back as `<lang>|?|<question for the visitor>`. A
+ * reply without the pipe, or a failed call, must fall back gracefully instead
+ * of failing the chat turn.
  */
 beforeEach(function (): void {
     config(['chatvia.ai.query.rewriter.enabled' => true]);
@@ -83,6 +85,24 @@ it('asks for the language of a message with no chat before it and keeps the mess
 
     Http::assertSent(fn (Request $request): bool => Str::contains((string) json_encode($request->data()), 'Chat:\\n(no earlier messages)')
         && Str::contains((string) json_encode($request->data()), 'Last message: summary'));
+});
+
+it('reads a question for the visitor and searches the message as it is', function (array $history): void {
+    config(['chatvia.ai.query.rewriter.clarify' => true]);
+    fakeLlmCompletion('en|?|What would you like to know about 8675309?');
+
+    expect(app(QueryRewriter::class)->rewrite('8675309', $history))
+        ->toEqual(new RewrittenQueryData(language: 'en', query: '8675309', clarifyingQuestion: 'What would you like to know about 8675309?'));
+
+    Http::assertSent(fn (Request $request): bool => Str::contains((string) json_encode($request->data()), 'too vague to search'));
+})->with(['first message' => [[]], 'follow-up' => [fn (): array => qrwHistory()]]);
+
+it('leaves the vague-message rule out of the prompt while clarifying is off', function (): void {
+    fakeLlmCompletion('en|8675309');
+
+    app(QueryRewriter::class)->rewrite('8675309', qrwHistory());
+
+    Http::assertSent(fn (Request $request): bool => ! Str::contains((string) json_encode($request->data()), 'too vague to search'));
 });
 
 it('makes no call when switched off', function (array $history): void {

@@ -2011,7 +2011,10 @@
                 "starters_generate_hint": "Valitse määrä ja luo ehdotuksia tietämyskannastasi.",
                 "starters_translate_empty": "Lisää ensin aloitusviestit Oletus-välilehdellä ja käännä ne sitten tässä.",
                 "starters_generate_failed": "Aloitusviestien luonti epäonnistui",
-                "starters_generate_empty": "Aloitusviestejä ei saatu. Tarkista, että tietämyskannassa on sisältöä, ja yritä uudelleen."
+                "starters_generate_empty": "Aloitusviestejä ei saatu. Tarkista, että tietämyskannassa on sisältöä, ja yritä uudelleen.",
+                "appearance_notice": "Huomautus chat-kentän alla",
+                "appearance_notice_placeholder": "Esimerkiksi: Vastaan kysymyksiin tuotteistamme. Voin erehtyä, joten tarkista tärkeät tiedot.",
+                "appearance_notice_help": "Valinnainen. Lyhyt rivi viestikentän alla jokaisessa chatissa: mitä agentti kattaa ja että vastaukset voivat olla vääriä. Käännetään automaattisesti."
             },
             "languages": {
                 "title": "Käyttöliittymän kielet",

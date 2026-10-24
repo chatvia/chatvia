@@ -67,10 +67,16 @@ class ManageSearchSettings extends AdminSettingsPage
                 $this->shown($this->valueInUse('hybrid_search')),
                 $this->shown($this->valueInUse('max_chunks')),
             )),
-            SettingsCard::make('questions', 'Follow-up questions', 'How a short follow-up, like "and the price?", is searched.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
+            SettingsCard::make('questions', 'Unclear and follow-up questions', 'How a short follow-up, like "and the price?", is searched, and what the agent says when nothing is found.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
                 $this->toggle('query_rewriter', 'Understand follow-up questions',
                     help: 'An AI step turns a follow-up ("and the price?") into a full question from the chat before it, only for the search. One model call per follow-up. The model is set in Settings → AI models → Models for app tasks.'),
-            ])->summary(fn (): string => 'Understand follow-up questions '.$this->shown($this->valueInUse('query_rewriter'))),
+                $this->toggle('query_clarify', 'Ask back when a message is unclear',
+                    help: 'The same AI step spots a message too vague to search, like a bare number. When nothing is found, the agent asks what the visitor means instead of saying it has no answer. Needs "Understand follow-up questions".'),
+                $this->toggle('scope_hint', 'Say what the agent can help with',
+                    help: 'When nothing in the knowledge matches, the agent is told the names of its sources, so it can tell the visitor what it can help with.'),
+            ])->summary(fn (): string => 'Understand follow-up questions '.$this->shown($this->valueInUse('query_rewriter'))
+                .' · ask back '.$this->shown($this->valueInUse('query_clarify'))
+                .' · say what it can help with '.$this->shown($this->valueInUse('scope_hint'))),
             SettingsCard::make('tuning', 'Fine-tuning', 'Search speed, how much text an agent gets, and the minimum scores.', Heroicon::OutlinedAdjustmentsHorizontal, fn (): array => [
                 $this->choice('search_mode', 'Search mode', self::SEARCH_MODES,
                     help: sprintf('Only for agents with more than %s parts in their sources. Smaller ones are always searched in full.', number_format((int) config('chatvia.vector.search.exact_max_chunks')))),

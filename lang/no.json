@@ -143,6 +143,7 @@
     "Conversation deleted successfully.": "Samtalen ble slettet.",
     "You do not have access to this agent": "Du har ikke tilgang til denne agenten",
     "Please enter a message": "Skriv en melding",
+    "Your message is too long. Please keep it under :max characters.": "Meldingen din er for lang. Hold den under :max tegn.",
     "The server rejected the token (401 Unauthorized). Double-check the value and try again.": "Serveren avviste tokenet (401 Unauthorized). Sjekk verdien og prøv igjen.",
     "The token is valid but does not have permission to call this MCP server (403).": "Tokenet er gyldig, men har ikke tillatelse til å kalle denne MCP-serveren (403).",
     "The connector endpoint returned 404. The service may have moved — please report this.": "Koblingens endepunkt svarte 404. Tjenesten kan ha flyttet — vennligst rapporter dette.",

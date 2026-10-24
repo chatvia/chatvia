@@ -19,7 +19,7 @@ it('shows the everyday cards first, and the fine-tuning under Advanced', functio
         ->assertOk()
         ->assertSeeInOrder([
             'Finding answers', 'Hybrid search on · 5 results per question',
-            'Follow-up questions', 'Understand follow-up questions on',
+            'Unclear and follow-up questions', 'Understand follow-up questions on',
             'Technical options. The defaults suit most installs.',
             'Fine-tuning', 'Balanced · reranker, minimum 0.3',
         ])

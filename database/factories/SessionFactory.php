@@ -41,12 +41,13 @@ class SessionFactory extends Factory
     }
 
     /**
-     * Indicate that the session is for a staff account (a dashboard preview).
+     * Indicate that the session is for a staff account (a dashboard preview):
+     * the given one, or a new one.
      */
-    public function forUser(): static
+    public function forUser(?User $user = null): static
     {
         return $this->state(fn (array $attributes): array => [
-            'user_id' => User::factory(),
+            'user_id' => $user?->id ?? User::factory(),
         ]);
     }
 

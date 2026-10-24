@@ -1,9 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Turn\SpectraTurnTagger;
 use Spectra\Spectra;
 use Spectra\Support\Tracking\RequestContext;
@@ -13,17 +11,6 @@ use Spectra\Support\Tracking\RequestContext;
  * Trackables screen: the tagger sets the conversation as Spectra's trackable
  * for the rest of the request, and only while Spectra records.
  */
-function sttConversation(): Conversation
-{
-    $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-
-    return Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'agent_id' => $agent->id,
-    ]);
-}
-
 /** The trackable Spectra would store on the next recorded AI call. */
 function sttNextRequest(): RequestContext
 {
@@ -32,7 +19,7 @@ function sttNextRequest(): RequestContext
 
 it('tags the AI calls of the turn with the conversation', function (): void {
     config(['spectra.enabled' => true]);
-    $conversation = sttConversation();
+    $conversation = Conversation::factory()->create();
 
     app(SpectraTurnTagger::class)->tag($conversation);
 
@@ -43,7 +30,7 @@ it('tags the AI calls of the turn with the conversation', function (): void {
 
 it('resolves a deferred conversation lookup only when Spectra records', function (): void {
     config(['spectra.enabled' => true]);
-    $conversation = sttConversation();
+    $conversation = Conversation::factory()->create();
 
     app(SpectraTurnTagger::class)->tag(fn (): Conversation => $conversation);
 
@@ -71,7 +58,7 @@ it('tags nothing for a turn without a conversation row', function (): void {
 it('wins over the signed-in user Spectra would otherwise fall back to', function (): void {
     config(['spectra.enabled' => true, 'spectra.tracking.auto_track_user' => true]);
     test()->actingAs(User::factory()->create());
-    $conversation = sttConversation();
+    $conversation = Conversation::factory()->create();
 
     app(SpectraTurnTagger::class)->tag($conversation);
 

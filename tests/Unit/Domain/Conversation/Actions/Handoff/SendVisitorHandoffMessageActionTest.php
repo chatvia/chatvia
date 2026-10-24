@@ -7,13 +7,11 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
 use Domain\Conversation\Data\Memory\ChatScopeData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Events\MessagePosted;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
@@ -29,21 +27,15 @@ beforeEach(function (): void {
     Bus::fake();
 });
 
-function visitorHandoffConversation(HandoffStatus $status): Conversation
+function svhmConversation(HandoffStatus $status): Conversation
 {
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
 
-    return Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::Widget,
-        'handoff_status' => $status,
-    ]);
+    return Conversation::factory()->forAgent($agent)->handedOff($status)->create();
 }
 
 it('adds the message to the conversation and broadcasts it with the visitor session as sender', function (): void {
-    $conversation = visitorHandoffConversation(HandoffStatus::Human);
+    $conversation = svhmConversation(HandoffStatus::Human);
     $session = $conversation->session;
 
     $messageId = app(SendVisitorHandoffMessageAction::class)->execute(
@@ -67,20 +59,20 @@ it('adds the message to the conversation and broadcasts it with the visitor sess
 it('counts a chatter’s relayed message against their monthly limit', function (): void {
     // A live chat is still the chatter talking: their limit counts the
     // relayed message like any other, through the turn's own counting.
-    $conversation = visitorHandoffConversation(HandoffStatus::Human);
-    $chatter = Chatter::factory()->grantedTo($conversation->session->agent)->create();
-    $conversation->session->update(['chatter_id' => $chatter->id]);
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+    $chatter = Chatter::factory()->grantedTo($agent)->create();
+    $conversation = Conversation::factory()->forAgent($agent)->ofChatter($chatter)->handedOff(HandoffStatus::Human)->create();
     app(SetMessageLimitAction::class)->execute($chatter, 5);
 
     app(SendVisitorHandoffMessageAction::class)->execute(
-        new SendVisitorHandoffMessageData($conversation->fresh(), 'Still there?'),
+        new SendVisitorHandoffMessageData($conversation, 'Still there?'),
     );
 
     expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(1);
 });
 
 it('does nothing when no human holds the conversation', function (): void {
-    $conversation = visitorHandoffConversation(HandoffStatus::Ai);
+    $conversation = svhmConversation(HandoffStatus::Ai);
 
     expect(app(SendVisitorHandoffMessageAction::class)->execute(new SendVisitorHandoffMessageData($conversation, 'Hello')))->toBeNull();
 

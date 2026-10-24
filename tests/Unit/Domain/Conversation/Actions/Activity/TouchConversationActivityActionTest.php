@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
  * updated_at, skips hidden conversations, and moves at most once a minute.
  */
 it('stamps a visible conversation without touching updated_at', function (): void {
+    $this->freezeSecond();
     $conversation = Conversation::factory()->create(['is_visible' => true, 'last_activity_at' => null]);
     // An hour back, so a touch now would show: the column keeps whole seconds.
     $updatedAt = now()->subHour()->startOfSecond();
@@ -17,7 +18,7 @@ it('stamps a visible conversation without touching updated_at', function (): voi
     app(TouchConversationActivityAction::class)->execute($conversation);
 
     $fresh = $conversation->fresh();
-    expect($fresh->last_activity_at)->not->toBeNull()
+    expect($fresh->last_activity_at->equalTo(now()))->toBeTrue()
         ->and($fresh->updated_at->equalTo($updatedAt))->toBeTrue();
 });
 

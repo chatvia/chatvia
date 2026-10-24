@@ -2,51 +2,24 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
 
 /**
- * RequestHandoffAction routes a visitor from AI to a human teammate.
- * State machine: 'ai' → 'pending' → 'human' → 'returned' → 'ai'.
- * This action only ever pushes a conversation FROM 'ai' INTO 'pending'.
- *
- * Per-agent toggle: `settings.widget.handoff_enabled` (default true).
+ * A visitor asks for a person: an AI conversation goes to 'pending' and the
+ * team hears it; one already waiting or with a teammate stays as it is. The
+ * agent's widget `handoff_enabled` switch (on by default) can turn live chat
+ * off.
  */
-function makeHandoffScenario(string $initialStatus = 'ai', array $widgetSettings = []): Conversation
-{
-    $agent = Agent::factory()->create();
-
-    foreach ($widgetSettings as $key => $value) {
-        $agent->setSetting($key, $value, 'widget');
-    }
-
-    $session = Session::factory()->create([
-        'agent_id' => $agent->id,
-    ]);
-
-    /** @var Conversation $conversation */
-    $conversation = Conversation::factory()->create([
-        'chat_session_id' => $session->id,
-        'external_id' => (string) Str::uuid(),
-        'source' => ConversationSource::Widget,
-        'handoff_status' => $initialStatus,
-    ]);
-
-    return $conversation;
-}
-
 beforeEach(function (): void {
     Event::fake([HandedOff::class]);
 });
 
-it('transitions handoff_status from ai to pending and broadcasts HandedOff', function (): void {
-    $conversation = makeHandoffScenario(initialStatus: 'ai');
+it('puts an AI conversation in the queue and broadcasts it', function (): void {
+    $conversation = Conversation::factory()->create();
 
     $result = app(RequestHandoffAction::class)->execute($conversation);
 
@@ -59,33 +32,24 @@ it('transitions handoff_status from ai to pending and broadcasts HandedOff', fun
         && $event->adminName === null);
 });
 
-it('returns "human" without dispatching when the conversation is already with a human', function (): void {
-    $conversation = makeHandoffScenario(initialStatus: 'human');
+it('leaves a conversation that is waiting or with a teammate as it is, without broadcasting', function (HandoffStatus $status): void {
+    $conversation = Conversation::factory()->handedOff($status)->create();
 
     $result = app(RequestHandoffAction::class)->execute($conversation);
 
-    expect($result)->toBe(HandoffStatus::Human)
-        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Human);
+    expect($result)->toBe($status)
+        ->and($conversation->fresh()->handoff_status)->toBe($status);
 
     Event::assertNotDispatched(HandedOff::class);
-});
+})->with([
+    'already waiting' => HandoffStatus::Pending,
+    'with a teammate' => HandoffStatus::Human,
+]);
 
-it('returns "pending" without dispatching when handoff was already requested', function (): void {
-    $conversation = makeHandoffScenario(initialStatus: 'pending');
-
-    $result = app(RequestHandoffAction::class)->execute($conversation);
-
-    expect($result)->toBe(HandoffStatus::Pending)
-        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending);
-
-    Event::assertNotDispatched(HandedOff::class);
-});
-
-it('refuses with HandoffUnavailableException when the agent has handoff_enabled=false in widget settings', function (): void {
-    $conversation = makeHandoffScenario(
-        initialStatus: 'ai',
-        widgetSettings: ['handoff_enabled' => false],
-    );
+it('refuses while the agent has live chat turned off', function (): void {
+    $agent = Agent::factory()->create();
+    $agent->setSetting('handoff_enabled', false, 'widget');
+    $conversation = Conversation::factory()->forAgent($agent)->create();
 
     expect(fn () => app(RequestHandoffAction::class)->execute($conversation))
         ->toThrow(HandoffUnavailableException::class, 'Live chat is turned off for this agent.');

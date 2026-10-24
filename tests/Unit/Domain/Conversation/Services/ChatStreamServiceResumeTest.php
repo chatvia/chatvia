@@ -5,13 +5,11 @@ use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\ToolApprovalDecision;
 use Domain\Conversation\Enums\ToolApprovalStatus;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
@@ -48,10 +46,7 @@ beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['llm_id' => $this->llm->id]);
     // No classifier call on the resumed answer.
     $this->agent->setSetting('enabled', false, 'guardrails');
-    $this->conversation = Conversation::factory()->create([
-        'chat_session_id' => Session::factory()->create(['agent_id' => $this->agent->id])->id,
-        'source' => ConversationSource::HostedChat,
-    ]);
+    $this->conversation = Conversation::factory()->forAgent($this->agent)->hostedChat()->create();
 });
 
 /** The turn of this test's conversation, paused on one gated call in its third round. */
@@ -175,14 +170,7 @@ it('refuses to resume once the chatter reached their monthly message limit', fun
 
 it('continues on the document model while the conversation has a PDF', function (): void {
     connectAiProviders(AiProvider::Mistral);
-    Attachment::create([
-        'workspace_id' => $this->conversation->workspace_id,
-        'chat_conversation_id' => $this->conversation->id,
-        'filepath' => 'workspaces/w/chat/terms.pdf',
-        'filename' => 'terms.pdf',
-        'mime_type' => 'application/pdf',
-        'size_bytes' => 8,
-    ]);
+    Attachment::factory()->forConversation($this->conversation)->create();
 
     resumeEvents(resumeCheckpoint());
 

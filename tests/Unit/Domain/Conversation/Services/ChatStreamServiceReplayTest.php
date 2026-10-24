@@ -4,11 +4,7 @@ use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Turn\SourceRefData;
-use Domain\Conversation\Data\Turn\StreamRequestData;
-use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Jobs\StoreMessageJob;
-use Domain\Conversation\Services\AgentChatRateLimiter;
-use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
@@ -20,6 +16,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Support\Conversation\ScriptedToolLoopRunner;
+use Tests\Support\Conversation\StreamTurn;
 
 /**
  * A retried request (the same request id) gets the answer it already
@@ -36,16 +33,14 @@ beforeEach(function (): void {
 });
 
 /** @return list<StreamEvent> */
-function replayStream(string $requestId): array
+function cssrStream(string $requestId): array
 {
-    return iterator_to_array(app(ChatStreamService::class)->stream(new StreamRequestData(
-        agent: test()->agent,
-        message: new StreamRequestMessageData(model: test()->agent->llm, message: 'When do you open?'),
-        externalSessionId: test()->scope->sessionId,
-        conversationId: test()->scope->conversationId,
-        saveUserMessageImmediately: true,
-        requestId: $requestId,
-    )), preserve_keys: false);
+    return StreamTurn::run(test()->agent, 'When do you open?', [
+        'externalSessionId' => test()->scope->sessionId,
+        'conversationId' => test()->scope->conversationId,
+        'saveUserMessageImmediately' => true,
+        'requestId' => $requestId,
+    ]);
 }
 
 it('replays the remembered answer of a retried request without asking the model', function (): void {
@@ -54,7 +49,7 @@ it('replays the remembered answer of a retried request without asking the model'
     // Even a workspace at its limit gets the answer it was already given.
     MessageLimit::factory()->reached()->create(['workspace_id' => $this->agent->workspace_id]);
 
-    $events = replayStream('req-retry');
+    $events = cssrStream('req-retry');
 
     expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Delta, EventType::Sources, EventType::Done])
         ->and($events[0]->data)->toMatchArray(['assistant_message_id' => 'msg-earlier', 'request_id' => 'req-retry', 'language' => 'en', 'replayed' => true])
@@ -70,10 +65,10 @@ it('replays the remembered answer of a retried request without asking the model'
 
 it('answers afresh when the remembered answer is empty', function (): void {
     app(RequestDedupeStore::class)->remember('req-empty', 'msg-earlier', '', null);
-    // The gate after the replay refuses the turn, so a turn past the replay ends there.
-    $this->mock(AgentChatRateLimiter::class)->shouldReceive('visitorExceeded')->andReturnTrue();
+    // A gate after the replay refuses the turn, so a turn past the replay ends there.
+    StreamTurn::stopAtTheRateLimit($this->agent);
 
-    $events = replayStream('req-empty');
+    $events = cssrStream('req-empty');
 
     expect(collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Error)->data['code'])->toBe(ErrorCode::RateLimited->value)
         ->and(collect($events)->contains(fn (StreamEvent $e): bool => ($e->data['replayed'] ?? false) === true))->toBeFalse();

@@ -11,13 +11,13 @@ use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Tests\Support\Conversation\NoToolSelector;
+use Tests\Support\Conversation\RecordingReplyRecorder;
 use Tests\Support\Conversation\ScriptedToolLoopRunner;
 use Tests\Support\Conversation\TestChatContext;
 use Tests\Support\Llm\CannedLlmProvider;
@@ -30,16 +30,6 @@ use Tests\Support\Llm\FakeLlmProviders;
  * and the tool loop run inside ToolLoopRunner; these tests script it and
  * check what LlmSource does around it.
  */
-function lsReplyRecorder(): AssistantReplyRecorder
-{
-    return new class extends AssistantReplyRecorder
-    {
-        public function __construct() {}
-
-        public function recordCompletedReply(ChatContext $context): void {}
-    };
-}
-
 /**
  * A turn of an agent with its guardrails switched off, so the real output
  * guard returns the answer unchanged without a classifier call.
@@ -56,7 +46,7 @@ function lsSource(ToolLoopRunner $runner): LlmSource
 {
     return new LlmSource(
         providers: new FakeLlmProviders(new CannedLlmProvider),
-        replyRecorder: lsReplyRecorder(),
+        replyRecorder: new RecordingReplyRecorder,
         dedupe: new RequestDedupeStore,
         toolSelector: new NoToolSelector,
         runner: $runner,

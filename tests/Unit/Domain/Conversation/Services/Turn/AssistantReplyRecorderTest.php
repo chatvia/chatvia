@@ -2,17 +2,14 @@
 
 use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
 use App\Identity\Workspace\Models\MessageLimit;
-use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
 use Domain\Conversation\Data\Messages\MessageSourceData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
@@ -34,19 +31,13 @@ beforeEach(function (): void {
 
 function recorderContext(): ChatContext
 {
-    $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversation = Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-    ]);
+    $conversation = Conversation::factory()->hostedChat()->create();
 
     $context = TestChatContext::make(
-        agent: $agent,
+        agent: $conversation->agent,
         message: 'Summarise the PDF',
         llmMessages: [],
-        externalSessionId: $session->external_id,
+        externalSessionId: $conversation->session->external_id,
         conversationId: $conversation->external_id,
     );
     $context->appendStreamedMessage('Here is the summary.');

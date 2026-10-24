@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Voice\StartVoiceCallAction;
 use Domain\Conversation\Data\Voice\VoiceCallerData;
@@ -16,12 +17,12 @@ use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Services\VisitorFingerprint;
-use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use Tests\Support\Conversation\Voice\VoiceCalls;
 
 /**
  * Starting a voice call opens it with OpenAI for the browser's offer, keeps
@@ -34,16 +35,12 @@ beforeEach(function (): void {
     config(['chatvia.ai.voice' => 'auto', 'horizon.defaults.voice.maxProcesses' => 1]);
     Queue::fake();
 
-    $this->openAiAnswer = fn (): PromiseInterface => Http::response('v=0 answer', 201, ['Location' => '/v1/realtime/calls/rtc_abc123']);
-    Http::fake([
-        'api.openai.com/v1/realtime/calls' => fn (): PromiseInterface => ($this->openAiAnswer)(),
-        'api.openai.com/*' => Http::response('', 200),
-    ]);
+    VoiceCalls::fakeOpenAi();
 
     $this->agent = Agent::factory()->create(['is_public' => true]);
     $this->agent->setSetting('allow_voice_conversation', true, 'appearance');
-    $this->session = Session::factory()->create(['agent_id' => $this->agent->id]);
-    $this->conversation = Conversation::factory()->create(['chat_session_id' => $this->session->id, 'source' => ConversationSource::HostedChat]);
+    $this->conversation = Conversation::factory()->forAgent($this->agent)->hostedChat()->create();
+    $this->session = $this->conversation->session;
 });
 
 function svcCaller(?string $sessionId = null, ?string $conversationId = null): VoiceCallerData
@@ -129,10 +126,18 @@ it('refuses the call while every voice worker is busy', function (): void {
 
     expect(svcRefusal(fn (): VoiceCallStartedData => app(StartVoiceCallAction::class)->execute(svcCaller(), 'v=0 offer')))->toBe(VoiceCallRefusal::Busy);
     Http::assertNothingSent();
+    Queue::assertNothingPushed();
+});
+
+it('refuses the call once the workspace used its monthly messages, without calling OpenAI', function (): void {
+    MessageLimit::factory()->forWorkspace($this->agent->workspace)->reached()->create();
+
+    expect(svcRefusal(fn (): VoiceCallStartedData => app(StartVoiceCallAction::class)->execute(svcCaller(), 'v=0 offer')))->toBe(VoiceCallRefusal::MessageLimitReached);
+    Http::assertNothingSent();
 });
 
 it('frees the worker slot and refuses the call when OpenAI fails', function (): void {
-    $this->openAiAnswer = fn (): PromiseInterface => Http::response(['error' => ['message' => 'down']], 500);
+    VoiceCalls::refuseNewCalls();
 
     expect(svcRefusal(fn (): VoiceCallStartedData => app(StartVoiceCallAction::class)->execute(svcCaller(), 'v=0 offer')))->toBe(VoiceCallRefusal::Failed)
         ->and(app(VoiceCallSlots::class)->take((string) Str::uuid7(), 60))->toBeTrue();

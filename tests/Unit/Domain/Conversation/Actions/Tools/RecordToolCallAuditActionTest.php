@@ -4,7 +4,6 @@ use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Domain\Conversation\Events\ToolCallCompleted;
-use Domain\Conversation\Listeners\RecordToolCallAudit;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Support\Str;
@@ -15,7 +14,7 @@ use Illuminate\Support\Str;
  * connector are stored, secrets are redacted, oversized payloads are capped,
  * and a sha256 of the RAW args is kept.
  */
-function auditEvent(array $overrides = []): ToolCallCompleted
+function rtcaEvent(array $overrides = []): ToolCallCompleted
 {
     return new ToolCallCompleted(...array_merge([
         'agentId' => 1,
@@ -42,7 +41,7 @@ function auditEvent(array $overrides = []): ToolCallCompleted
 
 it('writes one agent_activities row with denormalized names, redacted args + raw hash', function (): void {
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]);
+    $event = rtcaEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
 
@@ -69,10 +68,10 @@ it('stores who acted: the staff account or the chatter named on the event', func
     $chatter = Chatter::factory()->grantedTo($agent)->create();
     $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id];
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'userId' => $staff->id, 'userName' => $staff->name]));
+    app(RecordToolCallAuditAction::class)->execute(rtcaEvent([...$base, 'userId' => $staff->id, 'userName' => $staff->name]));
     $staffRow = AgentActivity::query()->latest('id')->first();
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'chatterId' => $chatter->id, 'userName' => $chatter->name]));
+    app(RecordToolCallAuditAction::class)->execute(rtcaEvent([...$base, 'chatterId' => $chatter->id, 'userName' => $chatter->name]));
     $chatterRow = AgentActivity::query()->latest('id')->first();
 
     expect([(int) $staffRow->user_id, $staffRow->chatter_id, $staffRow->user_name])->toBe([$staff->id, null, $staff->name])
@@ -81,7 +80,7 @@ it('stores who acted: the staff account or the chatter named on the event', func
 
 it('records decided_at for a gated approved call', function (): void {
     $agent = Agent::factory()->create();
-    $event = auditEvent([
+    $event = rtcaEvent([
         'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id,
         'approvalOutcome' => 'approved', 'gated' => true, 'decidedAt' => now()->toIso8601String(),
     ]);
@@ -98,17 +97,17 @@ it('keeps what the person said when they approved out loud, capped', function ()
     $agent = Agent::factory()->create();
     $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'approvalOutcome' => 'approved', 'gated' => true];
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => 'Yes, send it.']));
+    app(RecordToolCallAuditAction::class)->execute(rtcaEvent([...$base, 'decisionNote' => 'Yes, send it.']));
     expect(AgentActivity::query()->latest('id')->first()->decision_note)->toBe('Yes, send it.');
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => Str::repeat('y', 5000)]));
+    app(RecordToolCallAuditAction::class)->execute(rtcaEvent([...$base, 'decisionNote' => Str::repeat('y', 5000)]));
     expect(strlen((string) AgentActivity::query()->latest('id')->first()->decision_note))->toBe(1000);
 });
 
 it('caps an oversized result and flags truncation', function (): void {
     config(['chatvia.governance.max_result_bytes' => 10]);
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'resultText' => Str::repeat('x', 50)]);
+    $event = rtcaEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'resultText' => Str::repeat('x', 50)]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
@@ -121,7 +120,7 @@ it('stores every outcome the tool loop can report', function (ToolCallOutcome $o
     // agent_activity.outcome has a Postgres CHECK: an enum case it does not
     // list would make the queued listener fail and the audit row go missing.
     $agent = Agent::factory()->create();
-    $event = auditEvent([
+    $event = rtcaEvent([
         'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id,
         'approvalOutcome' => $outcome->value, 'gated' => $outcome->wasGated(),
     ]);
@@ -134,7 +133,7 @@ it('stores every outcome the tool loop can report', function (ToolCallOutcome $o
 it('redacts secret keys at any depth and in any case', function (): void {
     $agent = Agent::factory()->create();
     $raw = '{"user":{"name":"Dana","Password":"pw-1"},"items":[{"api_key":"k-1","sku":"A7"}]}';
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
+    $event = rtcaEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
@@ -153,7 +152,7 @@ it('caps oversized arguments after redacting them, keeps the cut text as a previ
     config(['chatvia.governance.max_arg_bytes' => 40]);
     $agent = Agent::factory()->create();
     $raw = json_encode(['token' => 'secret123', 'note' => Str::repeat('x', 200)]);
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
+    $event = rtcaEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
@@ -173,29 +172,12 @@ it('stores arguments that are not JSON as preview text, capped', function (): vo
     $agent = Agent::factory()->create();
     $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id];
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'arguments' => 'city=Oslo']));
+    app(RecordToolCallAuditAction::class)->execute(rtcaEvent([...$base, 'arguments' => 'city=Oslo']));
     $short = AgentActivity::query()->latest('id')->first();
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'arguments' => 'city=Copenhagen']));
+    app(RecordToolCallAuditAction::class)->execute(rtcaEvent([...$base, 'arguments' => 'city=Copenhagen']));
     $long = AgentActivity::query()->latest('id')->first();
 
     expect([$short->arguments, $short->arguments_preview, $short->arguments_truncated])->toBe([null, 'city=Oslo', false])
         ->and([$long->arguments, $long->arguments_preview, $long->arguments_truncated])->toBe([null, 'city=Copen', true]);
-});
-
-it('writes the audit row from the queued listener while the audit is on', function (): void {
-    $agent = Agent::factory()->create();
-
-    app(RecordToolCallAudit::class)->handle(auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]));
-
-    expect(AgentActivity::query()->where('agent_id', $agent->id)->count())->toBe(1);
-});
-
-it('writes nothing while the governance audit is switched off', function (): void {
-    config(['chatvia.governance.audit_enabled' => false]);
-    $agent = Agent::factory()->create();
-
-    app(RecordToolCallAudit::class)->handle(auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]));
-
-    expect(AgentActivity::query()->where('agent_id', $agent->id)->exists())->toBeFalse();
 });

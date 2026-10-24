@@ -12,7 +12,7 @@ use Support\Exceptions\DomainValidationException;
  */
 it('attaches a system topic to the agent', function (): void {
     $agent = createAgent(User::factory()->create());
-    $topic = Topic::create(['topic' => 'Billing', 'description' => 'System topic']);
+    $topic = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Billing']);
 
     app(AttachExistingTopicToAgentAction::class)->execute($agent, $topic);
 
@@ -22,7 +22,7 @@ it('attaches a system topic to the agent', function (): void {
 it('attaches a workspace topic to the agent', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
-    $topic = Topic::create(['topic' => 'Refunds', 'description' => '', 'workspace_id' => $owner->workspace()->id]);
+    $topic = Topic::factory()->create(['workspace_id' => $owner->workspace()->id, 'topic' => 'Refunds']);
 
     app(AttachExistingTopicToAgentAction::class)->execute($agent, $topic);
 
@@ -31,7 +31,7 @@ it('attaches a workspace topic to the agent', function (): void {
 
 it('rejects a topic the agent already has, without adding a second link', function (): void {
     $agent = createAgent(User::factory()->create());
-    $topic = Topic::create(['topic' => 'Shipping', 'description' => '']);
+    $topic = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Shipping']);
 
     app(AttachExistingTopicToAgentAction::class)->execute($agent, $topic);
 

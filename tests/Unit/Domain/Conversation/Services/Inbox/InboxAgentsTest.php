@@ -2,7 +2,6 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Services\Inbox\InboxAgents;
-use Domain\Membership\Team\Services\TeamService;
 
 /**
  * Which agents' chats a staff member sees in the Inbox and where they may
@@ -11,16 +10,14 @@ use Domain\Membership\Team\Services\TeamService;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->owner->refresh();
     $this->support = makeTeamAgent($this->owner, 'Support');
     $this->sales = makeTeamAgent($this->owner, 'Sales');
     $this->inboxAgents = app(InboxAgents::class);
 });
 
 it('gives the owner every agent and lets them reply', function (): void {
-    expect($this->inboxAgents->viewableBy($this->owner)->pluck('id')->sort()->values()->all())
-        ->toBe(collect([$this->support->id, $this->sales->id])->sort()->values()->all())
+    expect($this->inboxAgents->viewableBy($this->owner)->pluck('id')->all())
+        ->toEqualCanonicalizing([$this->support->id, $this->sales->id])
         ->and($this->inboxAgents->canReplyOn($this->owner, $this->support))->toBeTrue();
 });
 

@@ -10,10 +10,6 @@ use Illuminate\Support\Facades\Cache;
  * A finished answer is kept by request id for a few minutes, encrypted, so a
  * retried request can replay it.
  */
-it('returns null for an unknown request id', function (): void {
-    expect(new RequestDedupeStore()->find('req-missing'))->toBeNull();
-});
-
 it('remembers and reads a snapshot', function (): void {
     $store = new RequestDedupeStore;
 

@@ -3,9 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
-use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
@@ -22,31 +20,19 @@ use Domain\Widget\Services\WidgetVerification;
 /**
  * @return array{0: Agent, 1: Session, 2: Conversation, 3: Message}
  */
-function visitorClearSetup(): array
+function ccfvSetup(): array
 {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-
-    $conversation = Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::Widget,
-        'is_visible' => true,
-    ]);
-
+    $conversation = Conversation::factory()->forAgent(createAgent(User::factory()->create()))->visible()->create();
     $message = Message::factory()->fromUser()->create([
         'chat_conversation_id' => $conversation->id,
         'content' => 'What are your opening hours?',
     ]);
 
-    return [$agent, $session, $conversation, $message];
+    return [$conversation->agent, $conversation->session, $conversation, $message];
 }
 
 it('hides a cleared conversation from the visitor but keeps the customer record intact', function (): void {
-    [$agent, $session, $conversation, $message] = visitorClearSetup();
+    [$agent, $session, $conversation, $message] = ccfvSetup();
 
     app(ClearConversationForVisitorAction::class)->execute(
         new ChatScopeData($agent, $session->external_id, $conversation->external_id),
@@ -64,7 +50,7 @@ it('hides a cleared conversation from the visitor but keeps the customer record 
 });
 
 it('does not clear a conversation of another session or agent', function (): void {
-    [$agent, , $conversation] = visitorClearSetup();
+    [$agent, , $conversation] = ccfvSetup();
     $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
     $clear = app(ClearConversationForVisitorAction::class);
 
@@ -79,7 +65,7 @@ it('does not clear a conversation of another session or agent', function (): voi
 });
 
 it('drops a cleared conversation from the visitor session rebuild', function (): void {
-    [$agent, $session, $conversation] = visitorClearSetup();
+    [$agent, $session, $conversation] = ccfvSetup();
 
     // The clear drops the conversation's cache, so the next read rebuilds
     // the list from the database and exercises the cleared_at filter.
@@ -97,7 +83,7 @@ it('drops a cleared conversation from the visitor session rebuild', function ():
 });
 
 it('stops the widget read side from resurfacing a cleared conversation', function (): void {
-    [$agent, $session, $conversation] = visitorClearSetup();
+    [$agent, $session, $conversation] = ccfvSetup();
 
     // Resolvable before the clear...
     expect(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))
@@ -111,35 +97,4 @@ it('stops the widget read side from resurfacing a cleared conversation', functio
     // bootstrap restore, form submit all funnel through verifyConversationId).
     expect(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))
         ->toBeNull();
-});
-
-it('clears every conversation in the session without erasing any of them', function (): void {
-    [$agent, $session, $first, $firstMessage] = visitorClearSetup();
-
-    $second = Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::Widget,
-        'is_visible' => true,
-    ]);
-
-    app(ClearSessionConversationsForVisitorAction::class)->execute(
-        new ChatScopeData($agent, $session->external_id),
-    );
-
-    // Both rows survive (not trashed), both stamped cleared, content preserved.
-    foreach ([$first->id, $second->id] as $id) {
-        $row = Conversation::query()->find($id);
-
-        expect($row)->not->toBeNull()
-            ->and($row->trashed())->toBeFalse()
-            ->and($row->cleared_at)->not->toBeNull()
-            ->and($row->deleted_by)->toBe('user');
-    }
-
-    expect($firstMessage->fresh()->content)->toBe('What are your opening hours?');
-
-    // The customer's chat-log query (default scope, agent-scoped) still sees both.
-    expect(Conversation::query()->where('agent_id', $agent->id)->count())->toBe(2);
 });

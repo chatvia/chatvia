@@ -1,19 +1,21 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
-use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Turn\SystemPromptBuilder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Str;
+use Tests\Support\Conversation\TestChatContext;
 
 /**
- * The system prompt names a signed-in chatter only on protected agents.
+ * The system prompt of a turn: it opens with the guardrails leak marker (while
+ * the injection guard is on), names a signed-in chatter only on a protected
+ * agent, and tells the model which language to answer in. It goes first in
+ * the messages, with the visitor's last message replaced by the enriched one.
  */
-function systemPromptFor(Agent $agent, ?string $chatterName, ?string $source = null): string
+function spbPrompt(Agent $agent, ?string $chatterName, ?string $source = null): string
 {
     $data = new StreamRequestData(
         agent: $agent,
@@ -30,51 +32,30 @@ function systemPromptFor(Agent $agent, ?string $chatterName, ?string $source = n
 it('tells a protected agent the signed-in chatter name', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
-    expect(systemPromptFor($agent, 'Ada Lovelace'))->toContain('Ada Lovelace');
+    expect(spbPrompt($agent, 'Ada Lovelace'))->toContain('Ada Lovelace');
 });
 
 it('does not name the visitor on a public agent', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
 
-    expect(systemPromptFor($agent, 'Ada Lovelace'))->not->toContain('Ada Lovelace');
+    expect(spbPrompt($agent, 'Ada Lovelace'))->not->toContain('Ada Lovelace');
 });
 
 it('omits the identity block when no chatter is signed in', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
-    expect(systemPromptFor($agent, null))->not->toContain('signed-in user');
+    expect(spbPrompt($agent, null))->not->toContain('signed-in user');
 });
 
-// Forms are not listed in the system prompt: the agent finds them at runtime
-// through the Forms MCP server (find-forms → render-form), and the web-only
-// channel gate lives in those tools (covered by FindFormsToolTest).
-
 it('puts the system prompt first and replaces a trailing visitor message with the enriched one', function (): void {
-    $agent = Agent::factory()->create();
-    $request = new StreamRequestData(
-        agent: $agent,
-        message: new StreamRequestMessageData(model: Llm::factory()->create(), message: 'Hi'),
-        externalSessionId: (string) Str::uuid(),
-        conversationId: (string) Str::uuid(),
-    );
-    $context = new ChatContext(
-        requestData: $request,
-        payload: new UserTurnData(
-            external_session_id: $request->externalSessionId,
-            external_conversation_id: $request->conversationId,
-            external_message_id: (string) Str::uuid(),
-            llm_id: null,
-            message: 'Hi',
-            sent_at: now(),
-            message_for_llm: 'Hi [with reference material]',
-        ),
+    $context = TestChatContext::make(
+        message: 'Hi',
         llmMessages: [
             ['role' => 'user', 'content' => 'Earlier question'],
             ['role' => 'assistant', 'content' => 'Earlier answer'],
             ['role' => 'user', 'content' => 'Hi'],
         ],
-        userMessageId: null,
-        assistantMessageId: (string) Str::uuid(),
+        messageForLlm: 'Hi [with reference material]',
     );
 
     $messages = app(SystemPromptBuilder::class)->messagesFor($context);
@@ -84,27 +65,10 @@ it('puts the system prompt first and replaces a trailing visitor message with th
 });
 
 it('tells the model to answer in the language of the visitor message, not the sources language', function (): void {
-    $agent = Agent::factory()->create();
-    $request = new StreamRequestData(
-        agent: $agent,
-        message: new StreamRequestMessageData(model: Llm::factory()->create(), message: 'Who is Dania?'),
-        externalSessionId: (string) Str::uuid(),
-        conversationId: (string) Str::uuid(),
-    );
-    $context = new ChatContext(
-        requestData: $request,
-        payload: new UserTurnData(
-            external_session_id: $request->externalSessionId,
-            external_conversation_id: $request->conversationId,
-            external_message_id: (string) Str::uuid(),
-            llm_id: null,
-            message: 'Who is Dania?',
-            sent_at: now(),
-            message_for_llm: 'Who is Dania? [with reference material]',
-        ),
+    $context = TestChatContext::make(
+        message: 'Who is Dania?',
         llmMessages: [],
-        userMessageId: null,
-        assistantMessageId: (string) Str::uuid(),
+        messageForLlm: 'Who is Dania? [with reference material]',
         queryLanguage: 'en',
     );
 
@@ -116,7 +80,7 @@ it('tells the model to answer in the language of the visitor message, not the so
 it('keeps the generic language rule when no language was detected', function (): void {
     $agent = Agent::factory()->create();
 
-    expect(systemPromptFor($agent, null))
+    expect(spbPrompt($agent, null))
         ->toContain("Write your whole answer in the language of the user's message");
 });
 
@@ -125,12 +89,12 @@ it('opens the system prompt with the guardrails leak marker', function (): void 
     $marker = app(GuardrailService::class)->leakMarker($agent);
 
     expect($marker)->toStartWith('CV-')
-        ->and(systemPromptFor($agent, null))->toStartWith("Internal reference: {$marker}.");
+        ->and(spbPrompt($agent, null))->toStartWith("Internal reference: {$marker}.");
 });
 
 it('leaves the leak marker out when the injection guard is off', function (): void {
     $agent = Agent::factory()->create();
     $agent->setSetting('injection', false, 'guardrails');
 
-    expect(systemPromptFor($agent->fresh(), null))->not->toContain('Internal reference');
+    expect(spbPrompt($agent->fresh(), null))->not->toContain('Internal reference');
 });

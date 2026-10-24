@@ -2,10 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Data\Memory\MessageData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
@@ -19,48 +17,27 @@ beforeEach(function (): void {
     $this->hydrator = new MessageAttachmentHydrator;
 });
 
-it('maps a claimed attachment to its own message external id', function (): void {
-    $owner = $this->hydrator->resolveOwner(
-        chatMessageId: 42,
-        attachmentCreatedTimestamp: 1_000,
+it('finds which message an uploaded file belongs to on reload', function (?int $chatMessageId, ?int $uploadedAt, ?string $lastUser, ?int $lastUserAt, ?string $owner): void {
+    expect($this->hydrator->resolveOwner(
+        chatMessageId: $chatMessageId,
+        attachmentCreatedTimestamp: $uploadedAt,
         externalIdByMessageId: [42 => 'msg-ext-42'],
-        lastUserExternalId: 'last-user',
-        lastUserTimestamp: 2_000,
-    );
-
-    expect($owner)->toBe('msg-ext-42');
-});
-
-it('returns null for a claimed attachment whose message is not in the lookup', function (): void {
-    expect($this->hydrator->resolveOwner(99, 1_000, [42 => 'x'], 'last-user', 2_000))->toBeNull();
-});
-
-it('clusters an orphan uploaded before the last user message onto it', function (): void {
-    expect($this->hydrator->resolveOwner(null, 1_500, [], 'last-user', 2_000))->toBe('last-user');
-});
-
-it('does NOT cluster an orphan uploaded after the last user message (composer file)', function (): void {
-    expect($this->hydrator->resolveOwner(null, 2_500, [], 'last-user', 2_000))->toBeNull();
-});
-
-it('returns null for an orphan when there is no user message yet', function (): void {
-    expect($this->hydrator->resolveOwner(null, 1_500, [], null, null))->toBeNull();
-});
-
-it('clusters an orphan with an unknown upload time defensively onto the last user message', function (): void {
-    expect($this->hydrator->resolveOwner(null, null, [], 'last-user', 2_000))->toBe('last-user');
-});
-
-it('clusters an orphan when the last user timestamp is unknown', function (): void {
-    expect($this->hydrator->resolveOwner(null, 2_500, [], 'last-user', null))->toBe('last-user');
-});
+        lastUserExternalId: $lastUser,
+        lastUserTimestamp: $lastUserAt,
+    ))->toBe($owner);
+})->with([
+    'sent with a message: that message' => [42, 1_000, 'last-user', 2_000, 'msg-ext-42'],
+    'sent with a message not in the lookup: none' => [99, 1_000, 'last-user', 2_000, null],
+    'pending, uploaded before the last visitor message: that message' => [null, 1_500, 'last-user', 2_000, 'last-user'],
+    'pending, uploaded after the last visitor message: none (still in the composer)' => [null, 2_500, 'last-user', 2_000, null],
+    'pending, before any visitor message: none' => [null, 1_500, null, null, null],
+    'pending, upload time unknown: the last visitor message' => [null, null, 'last-user', 2_000, 'last-user'],
+    'pending, last visitor message time unknown: that message' => [null, 2_500, 'last-user', null, 'last-user'],
+]);
 
 it('overwrites a form artifact status with the live submission status on reload', function (): void {
     $agent = makeTeamAgent(User::factory()->create(), 'Bot');
-    $conversation = Conversation::factory()->withTitle('t')->create([
-        'chat_session_id' => Session::factory()->create(['agent_id' => $agent->id])->id,
-        'source' => ConversationSource::HostedChat,
-    ]);
+    $conversation = Conversation::factory()->forAgent($agent)->hostedChat()->create();
     $definition = FormDefinition::factory()->forAgent($agent)->create();
     $submission = FormSubmission::factory()->forDefinition($definition)->submitted()->create([
         'chat_conversation_id' => $conversation->id,

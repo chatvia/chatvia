@@ -1,10 +1,8 @@
 <?php
 
 use Domain\Conversation\Models\Attachment;
-use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Deleting an attachment row wipes its stored file, but only once the delete
@@ -14,25 +12,8 @@ beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
 });
 
-function attachmentModelUpload(): Attachment
-{
-    $filepath = 'workspaces/w/chat/'.Str::uuid().'.pdf';
-    Storage::disk(Attachment::DISK)->put($filepath, 'fake pdf');
-
-    $conversation = Conversation::factory()->create();
-
-    return Attachment::create([
-        'workspace_id' => $conversation->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'filepath' => $filepath,
-        'filename' => 'job-posting.pdf',
-        'mime_type' => 'application/pdf',
-        'size_bytes' => 8,
-    ]);
-}
-
 it('wipes the stored file when the row is deleted', function (): void {
-    $attachment = attachmentModelUpload();
+    $attachment = Attachment::factory()->stored()->create();
 
     $attachment->delete();
 
@@ -40,7 +21,7 @@ it('wipes the stored file when the row is deleted', function (): void {
 });
 
 it('keeps the stored file when the surrounding delete rolls back', function (): void {
-    $attachment = attachmentModelUpload();
+    $attachment = Attachment::factory()->stored()->create();
 
     try {
         DB::transaction(function () use ($attachment): void {

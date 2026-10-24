@@ -2,14 +2,13 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Voice\EndVoiceCallAction;
-use Domain\Conversation\Data\Voice\VoiceCallData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Tests\Support\Conversation\Voice\VoiceCalls;
 
 /**
  * Pressing End hangs the call up with OpenAI at once and flags it ended for
@@ -19,22 +18,10 @@ use Illuminate\Support\Str;
 beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
     config(['chatvia.ai.voice' => 'auto']);
-    Http::fake(['api.openai.com/*' => Http::response('', 200)]);
+    VoiceCalls::fakeOpenAi();
 
     $this->agent = Agent::factory()->create();
-    $this->call = new VoiceCallData(
-        call_id: Str::uuid7()->toString(),
-        provider_call_id: 'rtc_abc123',
-        agent_id: $this->agent->id,
-        workspace_id: (int) $this->agent->workspace_id,
-        surface: ConversationSource::HostedChat,
-        session_id: (string) Str::uuid(),
-        conversation_id: (string) Str::uuid(),
-        model: 'gpt-realtime-2.1',
-        voice: 'marin',
-        started_at: now()->getTimestamp(),
-        max_seconds: 600,
-    );
+    $this->call = VoiceCalls::data($this->agent, (string) Str::uuid(), (string) Str::uuid(), providerCallId: 'rtc_abc123');
     app(VoiceCallStore::class)->put($this->call);
 });
 

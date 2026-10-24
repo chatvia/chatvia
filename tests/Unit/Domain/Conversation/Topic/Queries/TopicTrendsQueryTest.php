@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\DB;
  */
 it('fills every day of the range for each busy topic', function (): void {
     $agent = Agent::factory()->create();
-    $billing = Topic::query()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Billing', 'description' => 'Invoices']);
-    $shipping = Topic::query()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Shipping', 'description' => 'Delivery']);
+    $billing = Topic::factory()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Billing']);
+    $shipping = Topic::factory()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Shipping']);
 
     $rollup = DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_topic_daily');
     $rollup->insert([

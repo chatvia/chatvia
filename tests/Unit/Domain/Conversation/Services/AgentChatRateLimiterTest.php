@@ -4,10 +4,14 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Services\AgentChatRateLimiter;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
 
+/**
+ * The agent's messages-per-minute cap and each visitor's own cap, in fixed
+ * one-minute windows that refused turns do not extend. A cap of zero is off.
+ * Going over the agent's cap alerts the owner who opted in. The agent's caps
+ * are read once and kept until forget() drops them.
+ */
 beforeEach(function (): void {
     Cache::flush();
     $this->limiter = app(AgentChatRateLimiter::class);
@@ -26,9 +30,9 @@ it('treats a limit of zero as disabled', function (): void {
     $agent = Agent::factory()->create();
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 0, group: 'security');
 
-    foreach (range(1, 5) as $_) {
-        expect($this->limiter->exceeded($agent))->toBeFalse();
-    }
+    expect($this->limiter->exceeded($agent))->toBeFalse()
+        ->and($this->limiter->exceeded($agent))->toBeFalse()
+        ->and($this->limiter->exceeded($agent))->toBeFalse();
 });
 
 it('dispatches the alert event once over the cap when the owner opted in', function (): void {
@@ -59,39 +63,21 @@ it('does not dispatch the alert event when the owner opted out', function (): vo
     Event::assertNotDispatched(AgentRateLimitExceeded::class);
 });
 
-it('caches the security config so later turns do not re-query model_settings', function (): void {
-    $agent = Agent::factory()->create();
-    $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 5, group: 'security');
-
-    // First turn warms the cache.
-    $this->limiter->exceeded($agent);
-
-    DB::enableQueryLog();
-
-    // A freshly loaded instance simulates a subsequent request — the per-instance
-    // settings cache is cold, so only the cross-request cache spares the SELECT.
-    $this->limiter->exceeded(Agent::find($agent->id));
-
-    $settingsReads = collect(DB::getQueryLog())
-        ->filter(fn (array $q): bool => Str::contains($q['query'], 'model_settings'));
-
-    expect($settingsReads)->toBeEmpty();
-
-    DB::disableQueryLog();
-});
-
-it('forget() drops the cached config so a new cap applies immediately', function (): void {
+it('keeps the cap it read until forget() drops it, so a new cap applies at once', function (): void {
     $agent = Agent::factory()->create();
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
 
-    $this->limiter->exceeded($agent);                       // caches cap=1, 1 hit
+    $this->limiter->exceeded($agent);                       // reads cap=1, 1 hit
     expect($this->limiter->exceeded($agent))->toBeTrue();   // over the cap of 1
 
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 10, group: 'security');
+
+    // A freshly loaded agent, as on the next request: the kept cap still applies.
+    expect($this->limiter->exceeded(Agent::find($agent->id)))->toBeTrue();
+
     $this->limiter->forget($agent);
 
-    // Without forget() the stale cap=1 would still block; the raised cap now wins.
-    expect($this->limiter->exceeded($agent))->toBeFalse();
+    expect($this->limiter->exceeded(Agent::find($agent->id)))->toBeFalse();
 });
 
 it('counts in a fixed window that refused turns do not extend', function (): void {

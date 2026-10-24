@@ -16,15 +16,8 @@ use Illuminate\Support\Str;
  * the visitor cleared the thread. Anything else is null, never another
  * visitor's or another tenant's conversation.
  */
-function sessionScopedConversation(array $sessionAttributes = []): Conversation
-{
-    $session = Session::factory()->create($sessionAttributes);
-
-    return Conversation::factory()->create(['chat_session_id' => $session->id]);
-}
-
 it('finds the conversation of the given session and agent', function (): void {
-    $conversation = sessionScopedConversation();
+    $conversation = Conversation::factory()->create();
     $session = $conversation->session;
 
     $found = app(FindWidgetConversationAction::class)->execute(
@@ -37,7 +30,7 @@ it('finds the conversation of the given session and agent', function (): void {
 });
 
 it('returns null when the session belongs to another agent', function (): void {
-    $conversation = sessionScopedConversation();
+    $conversation = Conversation::factory()->create();
     $otherAgent = Agent::factory()->create();
 
     $found = app(FindWidgetConversationAction::class)->execute(
@@ -50,7 +43,7 @@ it('returns null when the session belongs to another agent', function (): void {
 });
 
 it('returns null when the conversation belongs to another session', function (): void {
-    $conversation = sessionScopedConversation();
+    $conversation = Conversation::factory()->create();
     $otherSession = Session::factory()->create(['agent_id' => $conversation->session->agent_id]);
 
     $found = app(FindWidgetConversationAction::class)->execute(
@@ -63,7 +56,7 @@ it('returns null when the conversation belongs to another session', function ():
 });
 
 it('returns null for a thread the visitor cleared, like the widget\'s other lookups', function (): void {
-    $conversation = sessionScopedConversation();
+    $conversation = Conversation::factory()->create();
     $conversation->update(['cleared_at' => now()]);
     $agent = $conversation->session->agent;
 
@@ -80,7 +73,7 @@ it('on a protected agent, only finds the signed-in chatter\'s own conversation',
     $agent = Agent::factory()->create();
     $owner = Chatter::factory()->ofWorkspace($agent->workspace)->create();
     $other = Chatter::factory()->ofWorkspace($agent->workspace)->create();
-    $conversation = sessionScopedConversation(['agent_id' => $agent->id, 'chatter_id' => $owner->id]);
+    $conversation = Conversation::factory()->forAgent($agent)->ofChatter($owner)->create();
     $session = $conversation->session;
 
     $find = fn (ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(
@@ -99,7 +92,7 @@ it('on a protected agent, only finds the signed-in chatter\'s own conversation',
 
 it('on a protected agent, finds a staff member\'s conversation for that staff member only', function (): void {
     $staff = User::factory()->create();
-    $conversation = sessionScopedConversation(['user_id' => $staff->id]);
+    $conversation = Conversation::factory()->inSession(Session::factory()->forUser($staff)->create())->create();
     $session = $conversation->session;
 
     $find = fn (ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(

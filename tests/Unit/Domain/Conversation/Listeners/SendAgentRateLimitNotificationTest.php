@@ -6,6 +6,10 @@ use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Listeners\SendAgentRateLimitNotification;
 use Illuminate\Support\Facades\Notification;
 
+/**
+ * An agent over its per-minute cap emails the workspace owner, at most once
+ * an hour for each agent.
+ */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
 });

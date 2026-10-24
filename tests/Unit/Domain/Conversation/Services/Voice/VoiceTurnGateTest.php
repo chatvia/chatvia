@@ -4,7 +4,6 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\VoiceCallRefusal;
-use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Conversation\Services\Voice\VoiceTurnGate;
 
 /**
@@ -24,15 +23,9 @@ it('refuses a deactivated workspace as not available', function (): void {
     expect($gate->refusal($agent, null))->toBe(VoiceCallRefusal::NotAvailable);
 });
 
-/** A limit already used up this month, for the workspace or the chatter given. */
-function vtgReachedLimit(array $owner): void
-{
-    MessageLimit::create([...$owner, 'monthly_limit' => 2, 'messages_used' => 2, 'period_starts_at' => now()->startOfMonth()]);
-}
-
 it('refuses once the workspace has used its monthly messages', function (): void {
     $agent = Agent::factory()->create();
-    vtgReachedLimit(['workspace_id' => $agent->workspace_id]);
+    MessageLimit::factory()->forWorkspace($agent->workspace)->reached()->create();
 
     expect(app(VoiceTurnGate::class)->refusal($agent, null))->toBe(VoiceCallRefusal::MessageLimitReached);
 });
@@ -41,7 +34,7 @@ it('refuses a chatter who has used their own monthly messages, and only them', f
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
     $other = Chatter::factory()->grantedTo($agent)->create();
-    vtgReachedLimit(['chatter_id' => $chatter->id]);
+    MessageLimit::factory()->forChatter($chatter)->reached()->create();
     $gate = app(VoiceTurnGate::class);
 
     expect($gate->refusal($agent, $chatter->id))->toBe(VoiceCallRefusal::ChatterMessageLimitReached)
@@ -51,7 +44,9 @@ it('refuses a chatter who has used their own monthly messages, and only them', f
 
 it('refuses while the agent is over its messages-per-minute cap', function (): void {
     $agent = Agent::factory()->create();
-    $this->mock(AgentChatRateLimiter::class)->shouldReceive('exceeded')->andReturnTrue();
+    $agent->setSetting('chat_rate_limit_per_minute', 1, 'security');
+    $gate = app(VoiceTurnGate::class);
 
-    expect(app(VoiceTurnGate::class)->refusal($agent, null))->toBe(VoiceCallRefusal::RateLimited);
+    expect($gate->refusal($agent, null))->toBeNull()
+        ->and($gate->refusal($agent, null))->toBe(VoiceCallRefusal::RateLimited);
 });

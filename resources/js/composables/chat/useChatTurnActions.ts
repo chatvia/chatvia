@@ -35,35 +35,8 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
         turn.startTurn({ message: content, ...slots, attachments, isNewConversation: isNewConversationVisit() });
     }
 
-    /** Re-streams an edited prompt in place (used when the bubble has no paired reply id). */
-    function editInPlace(messageId: MessageId, content: string) {
-        const messages = transcript.messages.value;
-        const userIndex = transcript.indexOf(messageId);
-        if (userIndex === -1) return;
-
-        const prompt = messages[userIndex];
-        if (prompt.content === content) return;
-
-        const assistantIndex = userIndex + 1;
-        const reply = messages[assistantIndex];
-        if (reply?.role !== 'assistant') return;
-
-        const previousAssistantId = reply.id;
-        prompt.content = content;
-        reply.content = '';
-        reply.id = 0;
-        transcript.forgetReplyExtras(previousAssistantId);
-
-        void scroll.pinToTop(userIndex);
-        turn.startTurn({
-            message: content,
-            userIndex,
-            assistantIndex,
-            updatedMessageInfo: { userMessageId: prompt.id, assistantMessageId: previousAssistantId },
-        });
-    }
-
-    function editAndRegenerate(userMessageId: MessageId, assistantMessageId: MessageId, newContent: string) {
+    /** With no reply id (the reply never landed) only the prompt is taken back and asked again. */
+    function editAndRegenerate(userMessageId: MessageId, assistantMessageId: MessageId | undefined, newContent: string) {
         return reissue(userMessageId, assistantMessageId, newContent);
     }
 
@@ -76,7 +49,7 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
     }
 
     /** Asks the server to drop the pair; null when the visitor was already told why it failed. */
-    async function deletePairOnServer(userMessageId: MessageId, assistantMessageId: MessageId): Promise<RegeneratedTurn | null> {
+    async function deletePairOnServer(userMessageId: MessageId, assistantMessageId: MessageId | undefined): Promise<RegeneratedTurn | null> {
         try {
             const result = await regenerateMessage({ conversationId, userMessageId, assistantMessageId });
             if (result?.user_message_content !== undefined) return result;
@@ -96,23 +69,25 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
     /**
      * Edit and regenerate share this flow: the server deletes the pair (and
      * returns the original timestamp), then a new reply streams into the same
-     * slots with the prompt moved to the top of the view.
+     * slots with the prompt moved to the top of the view. A prompt whose reply
+     * never landed gets a fresh reply slot after it.
      */
-    async function reissue(userMessageId: MessageId, assistantMessageId: MessageId, overrideContent: string | null = null) {
+    async function reissue(userMessageId: MessageId, assistantMessageId: MessageId | undefined, overrideContent: string | null = null) {
         const result = await deletePairOnServer(userMessageId, assistantMessageId);
         if (!result) return;
 
         const content = overrideContent ?? result.user_message_content;
         const userIndex = transcript.indexOf(userMessageId);
-        const assistantIndex = transcript.indexOf(assistantMessageId);
-        if (userIndex === -1 || assistantIndex === -1) {
+        const pairedIndex = assistantMessageId === undefined ? null : transcript.indexOf(assistantMessageId);
+        if (userIndex === -1 || pairedIndex === -1) {
             toast.error(t('chat.regenerate_failed'));
             return;
         }
 
-        transcript.forgetReplyExtras(assistantMessageId);
         transcript.messages.value[userIndex] = { role: 'user', content, id: 0 };
-        transcript.resetReply(assistantIndex);
+        transcript.forgetReplyExtras(assistantMessageId);
+        if (pairedIndex !== null) transcript.resetReply(pairedIndex);
+        const assistantIndex = pairedIndex ?? transcript.replySlotAfter(userIndex);
         void scroll.pinToTop(userIndex);
         turn.startTurn({
             message: content,
@@ -147,5 +122,5 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
         transcript.removeAttachment(messageId, attachmentId);
     }
 
-    return { send, editInPlace, editAndRegenerate, regenerate, retry, deleteMessage, deleteAttachment, goToNewChat };
+    return { send, editAndRegenerate, regenerate, retry, deleteMessage, deleteAttachment, goToNewChat };
 }

@@ -23,7 +23,8 @@ export interface RegeneratedTurn {
 export interface MessagePairRef {
     conversationId: string;
     userMessageId: string | number;
-    assistantMessageId: string | number;
+    /** Missing when the reply never landed: only the prompt is taken back. */
+    assistantMessageId?: string | number;
 }
 
 /** Response of an inline form submit (Domain\Form\Data\FormSubmitResultData). */
@@ -130,7 +131,7 @@ export function regenerateMessage(pair: MessagePairRef): Promise<RegeneratedTurn
     return post<RegeneratedTurn>(chat.messages.regenerate.url(), {
         conversation_id: pair.conversationId,
         user_message_id: pair.userMessageId,
-        assistant_message_id: pair.assistantMessageId,
+        assistant_message_id: pair.assistantMessageId ?? null,
     });
 }
 

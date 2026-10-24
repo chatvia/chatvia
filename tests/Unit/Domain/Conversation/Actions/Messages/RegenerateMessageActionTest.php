@@ -67,6 +67,15 @@ it('drops only the question on a regenerate when its answer never landed', funct
         ->and(rmaHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
 });
 
+it('drops only the question when the client has no answer id for it', function (): void {
+    [$scope, , $ids] = rmaConversation(['q1' => MessageRole::User, 'a1' => MessageRole::Assistant, 'q2' => MessageRole::User]);
+
+    $result = app(RegenerateMessageAction::class)->execute($scope, null, $ids['q2']);
+
+    expect($result?->user_message_content)->toBe('text q2')
+        ->and(rmaHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
+});
+
 it('deletes the question\'s uploads on a regenerate when its answer never landed', function (): void {
     [$scope, $conversation, $ids] = rmaConversation(['q1' => MessageRole::User, 'a1' => MessageRole::Assistant, 'q2' => MessageRole::User]);
     $question = Message::factory()->fromUser()->create(['external_id' => $ids['q2'], 'chat_conversation_id' => $conversation->id, 'content' => 'text q2']);

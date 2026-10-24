@@ -191,7 +191,8 @@ export function useChatScroll(container: Ref<HTMLElement | null>, content: Ref<H
         let scrollsUp = false;
         if (event instanceof WheelEvent) {
             scrollsUp = event.deltaY < 0;
-        } else if (event instanceof TouchEvent) {
+        } else if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
+            // Desktop Firefox has no TouchEvent, so a bare instanceof throws on every key press.
             const y = event.touches[0]?.clientY;
             // The finger moving down drags the content down: the view scrolls up.
             scrollsUp = y !== undefined && touchStartY !== null && y > touchStartY;

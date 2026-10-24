@@ -189,7 +189,6 @@ onMounted(async () => {
                             :artifacts-for="transcript.artifactsFor"
                             :approvals-for="approvals.approvalsFor"
                             :resolving-approval-ids="resolvingApprovalIds"
-                            @message-updated="actions.editInPlace"
                             @message-edited="actions.editAndRegenerate"
                             @message-deleted="actions.deleteMessage"
                             @attachment-deleted="actions.deleteAttachment"

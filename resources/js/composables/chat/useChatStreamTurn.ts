@@ -20,8 +20,6 @@ import { useToolApprovals, type ApprovalDecisions } from './useToolApprovals';
 
 export interface StartTurnOptions extends TurnSlots {
     message: string;
-    /** The pair an in-place edit replaces. */
-    updatedMessageInfo?: { userMessageId?: MessageId | null; assistantMessageId?: MessageId | null };
     saveUserMessageImmediately?: boolean;
     /** Original timestamp of a regenerated prompt, so it keeps its place in history. */
     createdAt?: string | null;
@@ -101,7 +99,6 @@ export function useChatStreamTurn({ conversationId, transcript, scroll }: Stream
 
         const payload = JSON.stringify({
             message: options.message,
-            updated_message_info: options.updatedMessageInfo ?? {},
             save_user_message_immediately: options.saveUserMessageImmediately ?? false,
             created_at: options.createdAt ?? null,
             request_id: requestId,

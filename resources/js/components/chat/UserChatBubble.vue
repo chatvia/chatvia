@@ -37,9 +37,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    messageUpdated: [id: MessageId, content: string];
     messageDeleted: [id: MessageId];
-    messageEdited: [userMessageId: MessageId, assistantMessageId: MessageId, newContent: string];
+    messageEdited: [userMessageId: MessageId, assistantMessageId: MessageId | undefined, newContent: string];
     attachmentDeleted: [messageId: MessageId, attachmentId: string];
 }>();
 
@@ -72,16 +71,13 @@ function cancelEditing() {
     editedContent.value = '';
 }
 
-// With a paired reply the edit regenerates it; otherwise the prompt is updated in place.
+// The edit asks again: it replaces the paired reply, or streams the first one
+// when the reply never landed (e.g. the page reloaded mid-stream).
 function saveEditedMessage() {
     const content = editedContent.value.trim();
     if (!content || persistedId.value === null) return;
 
-    if (props.assistantMessageId !== undefined) {
-        emit('messageEdited', persistedId.value, props.assistantMessageId, content);
-    } else {
-        emit('messageUpdated', persistedId.value, content);
-    }
+    emit('messageEdited', persistedId.value, props.assistantMessageId, content);
     isEditing.value = false;
 }
 

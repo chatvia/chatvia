@@ -31,8 +31,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    messageUpdated: [id: MessageId, content: string];
-    messageEdited: [userMessageId: MessageId, assistantMessageId: MessageId, newContent: string];
+    messageEdited: [userMessageId: MessageId, assistantMessageId: MessageId | undefined, newContent: string];
     messageDeleted: [id: MessageId];
     attachmentDeleted: [messageId: MessageId, attachmentId: string];
     regenerate: [userMessageId: MessageId, assistantMessageId: MessageId, onDone: () => void];
@@ -75,11 +74,11 @@ function rowClass(index: number, message: Message) {
     ];
 }
 
-/** The reply paired with the prompt at `index`, if one follows it. */
+/** The stored reply paired with the prompt at `index`, if one follows it (a stub has id 0). */
 function replyIdAfter(index: number): MessageId | undefined {
     const next = props.messages[index + 1];
 
-    return next?.role === 'assistant' ? (next.id ?? undefined) : undefined;
+    return next?.role === 'assistant' && next.id ? next.id : undefined;
 }
 
 /** The prompt paired with the reply at `index`, if one precedes it. */
@@ -112,7 +111,6 @@ function promptIdBefore(index: number): MessageId | undefined {
                     :assistant-message-id="replyIdAfter(index)"
                     :conversation-id="conversationId"
                     :isRTL="isMessageRTL(message)"
-                    @message-updated="(id, content) => emit('messageUpdated', id, content)"
                     @message-deleted="(id) => emit('messageDeleted', id)"
                     @message-edited="(userId, assistantId, content) => emit('messageEdited', userId, assistantId, content)"
                     @attachment-deleted="(messageId, attachmentId) => emit('attachmentDeleted', messageId, attachmentId)"

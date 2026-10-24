@@ -12,7 +12,8 @@ use Domain\Conversation\Services\Memory\ChatMemory;
 /**
  * Prepares a "regenerate answer": removes the last exchange (the visitor's
  * message and the assistant's answer) from the live history and hands back
- * the visitor's text, which the client sends again as a new turn. Returns
+ * the visitor's text, which the client sends again as a new turn. With no
+ * answer id (the answer never landed) only the visitor message goes. Returns
  * null when the visitor message is not in the history.
  */
 class RegenerateMessageAction
@@ -22,7 +23,7 @@ class RegenerateMessageAction
         private readonly DeleteMessagePairAction $deletePair,
     ) {}
 
-    public function execute(ChatScopeData $scope, string $assistantMessageId, string $userMessageId): ?RegeneratedTurnData
+    public function execute(ChatScopeData $scope, ?string $assistantMessageId, string $userMessageId): ?RegeneratedTurnData
     {
         $memory = $this->memory->withScope($scope);
         $userMessage = $memory->getMessageById($userMessageId);
@@ -31,7 +32,9 @@ class RegenerateMessageAction
             return null;
         }
 
-        $this->deletePair->execute($scope, $assistantMessageId);
+        if ($assistantMessageId !== null) {
+            $this->deletePair->execute($scope, $assistantMessageId);
+        }
 
         // When the answer never landed, the visitor message is still in the
         // history: it goes on its own, never with the answer before it.

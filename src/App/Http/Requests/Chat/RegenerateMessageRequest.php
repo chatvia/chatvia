@@ -71,7 +71,8 @@ class RegenerateMessageRequest extends FormRequest
     {
         return [
             'conversation_id' => ['required', 'string'],
-            'assistant_message_id' => ['required', 'string'],
+            // Missing when the answer never landed (the stream was cut off).
+            'assistant_message_id' => ['nullable', 'string'],
             'user_message_id' => ['required', 'string'],
         ];
     }
@@ -81,9 +82,9 @@ class RegenerateMessageRequest extends FormRequest
         return $this->string('conversation_id')->toString();
     }
 
-    public function assistantMessageId(): string
+    public function assistantMessageId(): ?string
     {
-        return $this->string('assistant_message_id')->toString();
+        return $this->filled('assistant_message_id') ? $this->string('assistant_message_id')->toString() : null;
     }
 
     public function userMessageId(): string

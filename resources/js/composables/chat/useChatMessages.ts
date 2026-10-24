@@ -92,6 +92,22 @@ export function useChatMessages(conversationId: string) {
         messages.value[index] = assistantStub();
     }
 
+    /**
+     * The slot for a new reply to the prompt at `userIndex`: the row after it
+     * (an error card or an unsaved reply), or a stub inserted there when the
+     * next row is another prompt or there is none.
+     */
+    function replySlotAfter(userIndex: number): number {
+        const index = userIndex + 1;
+        if (messages.value[index] && messages.value[index].role !== 'user') {
+            resetReply(index);
+        } else {
+            messages.value.splice(index, 0, assistantStub());
+        }
+
+        return index;
+    }
+
     /** The reply being streamed: by UUID once the server sent it, else by its slot. */
     function findStreamingAssistant(id: MessageId | null, fallbackIndex: number): Message | undefined {
         if (id) {
@@ -161,6 +177,7 @@ export function useChatMessages(conversationId: string) {
         forgetReplyExtras,
         appendTurn,
         resetReply,
+        replySlotAfter,
         findStreamingAssistant,
         indexOf,
         removePair,

@@ -91,6 +91,10 @@ jobs:
             SHAKOMAKO_VERSION=${{ steps.widget.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Attached to the image for scanners: how it was built (provenance)
+          # and the packages inside it (SBOM).
+          provenance: mode=max
+          sbom: true
           # The build cache lives in the registry, as the `buildcache` tag.
           # The Actions cache would not help: a tag run can only read caches
           # of its own tag and of the default branch, so every release would

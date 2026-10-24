@@ -172,27 +172,30 @@ ENV APP_BASE_DIR=/var/www/chatvia \
     NGINX_WEBROOT=/var/www/chatvia/public
 
 # The app folder, and where chatvia-setup keeps the generated secrets (a
-# volume in compose).
-RUN install -d -o www-data -g www-data -m 0755 /var/www/chatvia /var/lib/chatvia \
+# volume in compose). The app folder belongs to root: the code, its packages
+# and .env are read-only for the app (www-data). Only storage/ and
+# bootstrap/cache/ are its own, so a flaw in the app cannot change the code
+# that runs.
+RUN install -d -m 0755 /var/www/chatvia \
+    && install -d -o www-data -g www-data -m 0755 /var/lib/chatvia \
     && rmdir /var/www/html \
     && chown www-data:www-data /etc/nginx/server-opts.d/security.conf /etc/nginx/server-opts.d/shakomako.conf
 
 WORKDIR /var/www/chatvia
 
-COPY --chown=www-data:www-data --from=vendor /app/vendor ./vendor
-COPY --chown=www-data:www-data . .
-COPY --chown=www-data:www-data --from=assets /app/public/build ./public/build
-COPY --chown=www-data:www-data --from=widget /shakomako/dist ./public/shakomako
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+COPY --from=assets /app/public/build ./public/build
+COPY --from=widget /shakomako/dist ./public/shakomako
 # Production defaults. Real environment variables always win over this file.
-COPY --chown=www-data:www-data docker/app/production.env ./.env
-
-USER www-data
+COPY docker/app/production.env ./.env
 
 # composer dump-autoload runs the package scripts (package discovery and the
 # Filament assets). They boot the app, which has no Reverb keys yet (those are
 # made per install) and no Redis, so broadcasting and the cache are off for
 # this one command. check-platform-reqs fails the build when an extension is
-# missing.
+# missing. It runs as root, so the files it writes belong to root too; then
+# storage/ and bootstrap/cache/ are handed to www-data.
 RUN set -eux; \
     mkdir -p \
         bootstrap/cache \
@@ -202,10 +205,14 @@ RUN set -eux; \
         storage/framework/sessions \
         storage/framework/views \
         storage/logs; \
+    export COMPOSER_ALLOW_SUPERUSER=1; \
     BROADCAST_CONNECTION=null CACHE_STORE=array composer dump-autoload --optimize --no-dev --no-interaction; \
     composer check-platform-reqs --no-dev; \
     ln -sfn /var/www/chatvia/storage/app/public public/storage; \
-    rm -rf storage/framework/views/* storage/logs/*
+    rm -rf storage/framework/views/* storage/logs/*; \
+    chown -R www-data:www-data storage bootstrap/cache
+
+USER www-data
 
 # OPcache: the code never changes inside a container, so the base image
 # already skips the file checks (validate_timestamps=0). Room for every PHP

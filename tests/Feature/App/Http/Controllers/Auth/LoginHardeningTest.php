@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
  * deactivated accounts stay out (an open session too), chatters never get in,
  * unknown emails cost the same as known ones, and a sign-in that stops at the
  * two-factor challenge is not stamped as done. The magic link and the passkey
- * refuse a deactivated account too (MagicLinkSignInTest,
+ * refuse a deactivated account too (HostedChatMagicLinkSignInTest,
  * FortifyServiceProviderTest).
  */
 describe('deactivated accounts', function (): void {

@@ -12,8 +12,10 @@ Write `it('refuses the last link of a file and changes nothing', function (): vo
 ## Names state the scenario and the outcome
 A test name says what happens and what should result, never "works". Split a test when "and" joins two separate behaviours; several outcomes of one behaviour are fine.
 
-## Unit is one class; Feature goes through HTTP
-`tests/Unit/…` calls one class directly (an Action, a service, a DTO, a model) and may use the database. `tests/Feature/…` goes through HTTP, the console or broadcasting (routes, middleware, permissions). Name the file `{Class}Test.php` and mirror the class's path with `src/` dropped: `src/Domain/{Context}/…` → `tests/Unit/Domain/{Context}/…`, `src/App/…` → `tests/Unit/App/…`.
+## Unit is one class; Feature goes through an entry point
+`tests/Unit/…` calls one class directly (an Action, a service, a DTO, a model) and may use the database. Name the file `{Class}Test.php` and mirror the class's path with `src/` dropped: `src/Domain/{Context}/…` → `tests/Unit/Domain/{Context}/…`, `src/App/…` → `tests/Unit/App/…`, `src/Support/…` → `tests/Unit/Support/…`. Tests of `config/` and `database/` files go in `tests/Unit/{Config,Database}`.
+
+`tests/Feature/…` goes through an entry point the outside world uses: an HTTP route, a Filament/Livewire page, an artisan command or broadcasting auth. Put it at that entry point's path: `tests/Feature/App/Http/Controllers/…/{Controller}Test.php`, `tests/Feature/App/Admin/{Pages,Resources,…}/…`, `tests/Feature/App/Console/Commands/{Ns}/{Command}Test.php`. A flow across several entry points is named for its behaviour and sits in their nearest common folder. A file that makes no request is a unit test. Never write a `*JobTest.php`.
 
 ## Test Actions directly
 Build the DTO, call `app(XAction::class)->execute(…)`, then check the returned value, the database and the side effects. Include at least one refusal path and check that nothing changed: `expect(fn () => …)->toThrow(X::class)` plus a state check.

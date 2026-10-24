@@ -102,12 +102,12 @@ locators there; use constructor injection instead.
 
 | Test | What it checks |
 |---|---|
-| `tests/Architecture/ConventionsTest.php` | Domain does not use `Illuminate\Http\Request` (except the two bridges); Domain uses App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App (these read the code, not comments, so a fully-qualified name counts); Actions (in every layer, the admin panel's too) use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions, on one line or split over several, go through `WidgetVerification` (an allowlist names the others and why each is safe); form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is passed to `Event::listen()`/`Event::subscribe()` in a service provider. |
+| `tests/Architecture/ConventionsTest.php` | Domain does not use `Illuminate\Http\Request` (except the two bridges); Domain uses App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App (these read the code, not comments, so a fully-qualified name counts); Actions (in every layer, the admin panel's too) use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions, on one line or split over several, go through `WidgetVerification` (an allowlist names the others and why each is safe); form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is passed to `Event::listen()`/`Event::subscribe()` in a service provider; every test file starts with a docblock, and tests use `it()`, never `test('…')`. |
 | `tests/Architecture/ActionsHaveTestsTest.php` | Every Action is named in the code of a test file (not a comment or a `use` line, not a helper in `tests/Pest.php` or `tests/Support/`), or is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/ClassesHaveDocblocksTest.php` | Every class, interface, trait and enum under `src/` has a docblock with at least one sentence of prose, or its file is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/FrontendConventionsTest.php` | Frontend rules: no `hsl(var(--x))`, no third-party icon CDN or Google Fonts, no `console.log`, `safeStorage` on the boot and hosted-chat paths, one shared Echo connection, `AlertDialog` for delete confirmations. |
 | `tests/Architecture/Psr4PathCaseTest.php` | Every class file git tracks under `src/` has the exact case of its namespace and class name, as Linux autoloading needs (macOS forgives a wrong case). |
-| `tests/Architecture/TestLayoutTest.php` | A unit test named after a class sits at that class's path with `src/` dropped: `src/Domain/X/Y.php` → `tests/Unit/Domain/X/YTest.php`, `src/App/…` → `tests/Unit/App/…`, `src/Support/…` → `tests/Unit/Support/…`. `tests/Unit` holds only `App`, `Domain`, `Support`, `Config` and `Database`. |
+| `tests/Architecture/TestLayoutTest.php` | A test named after a class sits at that class's path with `src/` dropped: `src/Domain/X/Y.php` → `tests/Unit/Domain/X/YTest.php`, a controller `src/App/Http/Controllers/…/XController.php` → `tests/Feature/App/Http/Controllers/…/XControllerTest.php`. `tests/Unit` holds only `App`, `Domain`, `Support`, `Config` and `Database`; `tests/Feature` only `App`, `Bootstrap`, `Database` and `Routes`. Every feature test sends a request or runs a command (directly or through a helper in `tests/Pest.php` or `tests/Support`), and no unit test does. |
 
 The Architecture suite runs without the Laravel container or a database, so it
 takes about a second: `vendor/bin/pest tests/Architecture`.
@@ -238,7 +238,7 @@ other connector (`config/connectors.php`).
   `McpCallerContext`, which tools receive by injection. Tools never read the
   `X-Chatvia-*` headers themselves.
 - A tool's name, description, input schema and output are a contract with the
-  LLM and the chat UI. Snapshot tests in `tests/Feature/Mcp/` pin them. Tool
+  LLM and the chat UI. Snapshot tests in `tests/Feature/App/Mcp/` and `tests/Unit/App/Mcp/` pin them. Tool
   names come from the class name and are stored in the database, so never
   rename a tool class.
 - After you add or change a built-in tool, run `php artisan chatvia:mcp:sync-builtin`.
@@ -863,7 +863,7 @@ Scoping is explicit (no global scopes), with layers that catch a missed check:
   hold.
 - **Jobs.** The dashboard, API, hosted chat and widget put the workspace id in
   hidden `Context`, so queued jobs carry it.
-- **Tests.** `tests/Feature/Isolation/` walks the route table with two
+- **Tests.** `tests/Feature/App/Http/CrossWorkspaceRouteTest.php` walks the route table with two
   workspaces and checks every agent and workspace route answers 404 for the
   other workspace's records, and that the database refuses cross-workspace
   rows.
@@ -1238,7 +1238,7 @@ See the widget's README for embed options.
 | Suite | Folder | Notes |
 |---|---|---|
 | Unit | `tests/Unit/` | Actions, services, DTOs, at the path of the class they test (`tests/Unit/Domain/Agent/Actions/Account/CreateAgentActionTest.php` for `src/Domain/Agent/Actions/Account/CreateAgentAction.php`; App code under `tests/Unit/App/…`). A test of behaviour across several classes sits in its context's folder. |
-| Feature | `tests/Feature/` | HTTP-level tests, the safety net for routes, middleware and permissions. |
+| Feature | `tests/Feature/` | Tests through an entry point (an HTTP route, an admin page, an artisan command, broadcasting auth), at the path of that entry point: `tests/Feature/App/Http/Controllers/…/{Controller}Test.php`, `tests/Feature/App/Admin/…`, `tests/Feature/App/Console/Commands/{Ns}/…`. A flow across several entry points is named for its behaviour in their nearest common folder (`tests/Feature/App/Http/CrossWorkspaceRouteTest.php`). Tests of files outside `src/` sit in `tests/Feature/{Bootstrap,Database,Routes}`. |
 | Architecture | `tests/Architecture/` | Framework-free rules (section 2). |
 | Eval | `tests/Eval/` | Quality checks with real models (group `eval`). They skip themselves without an API key. |
 | Frontend | `resources/js/**/*.test.ts` | Vitest unit tests of plain TypeScript, next to the file they test (`npm run test`, `vitest.config.ts`). |

@@ -26,9 +26,24 @@
 
 name: chatvia
 
+# Container output (docker compose logs) is rotated: at most 5 files of 10 MB
+# per container, so a busy install cannot fill the disk.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
+
+# The app runs as www-data and needs no Linux capabilities, and nothing in it
+# may gain more rights (setuid programs).
 x-app: &app
   image: ${CHATVIA_IMAGE:-ghcr.io/chatvia/chatvia}:${CHATVIA_VERSION:-latest}
   restart: unless-stopped
+  logging: *logging
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
   # Any app setting from the project's .env.example can go in this .env file.
   env_file:
     - path: .env
@@ -61,6 +76,9 @@ services:
     # not override `command`.
     image: ghcr.io/chatvia/postgres:18-1.5.1
     restart: unless-stopped
+    logging: *logging
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -83,6 +101,9 @@ services:
   redis:
     image: redis:8.10-alpine
     restart: unless-stopped
+    logging: *logging
+    security_opt:
+      - no-new-privileges:true
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redisdata:/data
@@ -117,9 +138,14 @@ services:
       - "${APP_PORT:-8000}:8080"
     depends_on: *depends-on-migrate
 
+  # The command services run with a small init process: it passes on the stop
+  # signal and reaps finished child processes (the scheduler's background
+  # tasks, for example), which PHP as process 1 would leave behind. The web
+  # container has its own (s6).
   horizon:
     <<: *app
     command: ["php", "artisan", "horizon"]
+    init: true
     stop_signal: SIGTERM
     stop_grace_period: 60s
     depends_on: *depends-on-migrate
@@ -130,6 +156,7 @@ services:
   scheduler:
     <<: *app
     command: ["php", "artisan", "schedule:work"]
+    init: true
     stop_signal: SIGTERM
     depends_on: *depends-on-migrate
     healthcheck:
@@ -139,6 +166,7 @@ services:
   reverb:
     <<: *app
     command: ["php", "artisan", "reverb:start"]
+    init: true
     stop_signal: SIGTERM
     depends_on: *depends-on-migrate
     healthcheck:
@@ -152,6 +180,7 @@ services:
   pulse:
     <<: *app
     command: ["php", "artisan", "pulse:check"]
+    init: true
     environment:
       PULSE_SERVER_NAME: ${PULSE_SERVER_NAME:-chatvia}
     stop_signal: SIGTERM

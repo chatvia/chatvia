@@ -115,6 +115,9 @@
             "model_placeholder": "Välj en modell",
             "model_default": "Standard",
             "model_empty": "Inga modeller ännu. En administratör lägger till dem i adminpanelen under Settings → AI models.",
+            "model_no_tools": "Inga verktygsanrop",
+            "model_no_tools_title": "Den här modellen kan inte anropa verktyg",
+            "model_no_tools_description": "Verktyg fungerar inte: agenten svarar utan dem. Välj en annan modell om agenten behöver sina verktyg.",
             "behavior": {
                 "hosted_title": "Beteende för Hosted Chat",
                 "hosted_description": "Iframe-alternativ för den inbäddade Hosted Chat-ytan.",

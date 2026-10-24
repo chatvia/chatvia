@@ -2022,7 +2022,10 @@
             "reasoning_low": "低",
             "reasoning_medium": "中",
             "reasoning_high": "高",
-            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。"
+            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。",
+            "model_no_tools": "ツール呼び出し非対応",
+            "model_no_tools_title": "このモデルはツールを呼び出せません",
+            "model_no_tools_description": "ツールは動作しません。エージェントはツールなしで回答します。エージェントにツールが必要な場合は、別のモデルを選んでください。"
         },
         "topics_index": {
             "title": "トピック",

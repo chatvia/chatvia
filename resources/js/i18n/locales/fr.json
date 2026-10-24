@@ -2023,7 +2023,10 @@
             "reasoning_low": "Faible",
             "reasoning_medium": "Moyen",
             "reasoning_high": "Élevé",
-            "reasoning_locked": "Votre administrateur a désactivé le raisonnement pour tous les agents (panneau d'administration → Paramètres → Modèles d'IA)."
+            "reasoning_locked": "Votre administrateur a désactivé le raisonnement pour tous les agents (panneau d'administration → Paramètres → Modèles d'IA).",
+            "model_no_tools": "Pas d'appel d'outils",
+            "model_no_tools_title": "Ce modèle ne peut pas appeler d'outils",
+            "model_no_tools_description": "Les outils ne fonctionneront pas : l'agent répond sans eux. Choisissez un autre modèle si l'agent a besoin de ses outils."
         },
         "topics_index": {
             "title": "Sujets",

@@ -2023,7 +2023,10 @@
             "reasoning_low": "Baixo",
             "reasoning_medium": "Médio",
             "reasoning_high": "Alto",
-            "reasoning_locked": "O seu administrador desligou o raciocínio para todos os agentes (painel de administração → Definições → Modelos de IA)."
+            "reasoning_locked": "O seu administrador desligou o raciocínio para todos os agentes (painel de administração → Definições → Modelos de IA).",
+            "model_no_tools": "Sem chamada de ferramentas",
+            "model_no_tools_title": "Este modelo não consegue chamar ferramentas",
+            "model_no_tools_description": "As ferramentas não vão funcionar: o agente responde sem elas. Escolha outro modelo se o agente precisar das suas ferramentas."
         },
         "topics_index": {
             "title": "Tópicos",

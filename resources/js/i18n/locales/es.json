@@ -2023,7 +2023,10 @@
             "reasoning_low": "Bajo",
             "reasoning_medium": "Medio",
             "reasoning_high": "Alto",
-            "reasoning_locked": "Tu administrador ha desactivado el razonamiento para todos los agentes (panel de administración → Ajustes → Modelos de IA)."
+            "reasoning_locked": "Tu administrador ha desactivado el razonamiento para todos los agentes (panel de administración → Ajustes → Modelos de IA).",
+            "model_no_tools": "Sin llamadas a herramientas",
+            "model_no_tools_title": "Este modelo no puede llamar a herramientas",
+            "model_no_tools_description": "Las herramientas no funcionarán: el agente responde sin ellas. Elige otro modelo si el agente necesita sus herramientas."
         },
         "topics_index": {
             "title": "Temas",

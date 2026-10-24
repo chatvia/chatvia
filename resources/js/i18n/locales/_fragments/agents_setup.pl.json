@@ -115,6 +115,9 @@
             "model_placeholder": "Wybierz model",
             "model_default": "Domyślny",
             "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models.",
+            "model_no_tools": "Brak wywołań narzędzi",
+            "model_no_tools_title": "Ten model nie potrafi wywoływać narzędzi",
+            "model_no_tools_description": "Narzędzia nie będą działać: agent odpowiada bez nich. Wybierz inny model, jeśli agent potrzebuje swoich narzędzi.",
             "behavior": {
                 "hosted_title": "Zachowanie hostowanego czatu",
                 "hosted_description": "Opcje iframe dla osadzonej powierzchni hostowanego czatu.",

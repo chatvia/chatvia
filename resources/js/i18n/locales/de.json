@@ -2023,7 +2023,10 @@
             "reasoning_low": "Niedrig",
             "reasoning_medium": "Mittel",
             "reasoning_high": "Hoch",
-            "reasoning_locked": "Dein Admin hat die Überlegungen für alle Agenten ausgeschaltet (Admin-Bereich → Einstellungen → KI-Modelle)."
+            "reasoning_locked": "Dein Admin hat die Überlegungen für alle Agenten ausgeschaltet (Admin-Bereich → Einstellungen → KI-Modelle).",
+            "model_no_tools": "Keine Tool-Aufrufe",
+            "model_no_tools_title": "Dieses Modell kann keine Tools aufrufen",
+            "model_no_tools_description": "Tools funktionieren nicht: Der Agent antwortet ohne sie. Wählen Sie ein anderes Modell, wenn der Agent seine Tools braucht."
         },
         "topics_index": {
             "title": "Themen",

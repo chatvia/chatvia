@@ -115,6 +115,9 @@
             "model_placeholder": "Valitse malli",
             "model_default": "Oletus",
             "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models.",
+            "model_no_tools": "Ei työkalukutsuja",
+            "model_no_tools_title": "Tämä malli ei osaa kutsua työkaluja",
+            "model_no_tools_description": "Työkalut eivät toimi: agentti vastaa ilman niitä. Valitse toinen malli, jos agentti tarvitsee työkalujaan.",
             "behavior": {
                 "hosted_title": "Isännöidyn chatin käyttäytyminen",
                 "hosted_description": "Iframe-asetukset upotetulle isännöidylle chat-pinnalle.",

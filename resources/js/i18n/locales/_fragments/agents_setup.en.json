@@ -132,6 +132,9 @@
             "model_placeholder": "Choose a model",
             "model_default": "Default",
             "model_empty": "No models yet. An admin adds them in the admin panel, under Settings → AI models.",
+            "model_no_tools": "No tool calling",
+            "model_no_tools_title": "This model cannot call tools",
+            "model_no_tools_description": "Tools will not work: the agent answers without them. Pick another model if the agent needs its tools.",
             "behavior": {
                 "hosted_title": "Hosted Chat behaviour",
                 "hosted_description": "Iframe options for the embedded Hosted Chat surface.",

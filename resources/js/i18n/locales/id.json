@@ -2022,7 +2022,10 @@
             "reasoning_low": "Rendah",
             "reasoning_medium": "Sedang",
             "reasoning_high": "Tinggi",
-            "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI)."
+            "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI).",
+            "model_no_tools": "Tanpa pemanggilan alat",
+            "model_no_tools_title": "Model ini tidak dapat memanggil alat",
+            "model_no_tools_description": "Alat tidak akan berfungsi: agen menjawab tanpa alat. Pilih model lain jika agen membutuhkan alatnya."
         },
         "topics_index": {
             "title": "Topik",

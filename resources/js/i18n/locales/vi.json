@@ -2022,7 +2022,10 @@
             "reasoning_low": "Thấp",
             "reasoning_medium": "Trung bình",
             "reasoning_high": "Cao",
-            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI)."
+            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI).",
+            "model_no_tools": "Không gọi công cụ",
+            "model_no_tools_title": "Mô hình này không thể gọi công cụ",
+            "model_no_tools_description": "Công cụ sẽ không hoạt động: tác tử trả lời mà không dùng chúng. Hãy chọn mô hình khác nếu tác tử cần công cụ."
         },
         "topics_index": {
             "title": "Chủ đề",

@@ -132,6 +132,9 @@
             "model_placeholder": "اختر نموذجًا",
             "model_default": "افتراضي",
             "model_empty": "لا توجد نماذج بعد. يضيفها المسؤول في لوحة الإدارة، ضمن Settings → AI models.",
+            "model_no_tools": "لا يستدعي الأدوات",
+            "model_no_tools_title": "لا يستطيع هذا النموذج استدعاء الأدوات",
+            "model_no_tools_description": "لن تعمل الأدوات: سيجيب الوكيل بدونها. اختر نموذجًا آخر إذا كان الوكيل يحتاج إلى أدواته.",
             "behavior": {
                 "hosted_title": "سلوك الدردشة المستضافة",
                 "hosted_description": "خيارات iframe لسطح الدردشة المستضافة المضمّن.",

@@ -9,7 +9,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 /**
  * A catalog model as the model picker shows it: its id, its name at its
  * provider, the provider's name and logo (the picker groups models by
- * provider), and whether it reasons.
+ * provider), whether it reasons, and whether it calls tools.
  */
 #[TypeScript]
 class LlmModelData extends Data
@@ -21,6 +21,7 @@ class LlmModelData extends Data
         public bool $is_reasoning,
         public bool $is_selected = true,
         public ?string $provider_icon = null,
+        public bool $calls_tools = true,
     ) {}
 
     public static function fromLlmModel(Llm $llm, bool $selected = true, ?string $providerIcon = null): self
@@ -32,6 +33,7 @@ class LlmModelData extends Data
             is_reasoning: $llm->reasons(),
             is_selected: $selected,
             provider_icon: $providerIcon,
+            calls_tools: $llm->callsTools(),
         );
     }
 }

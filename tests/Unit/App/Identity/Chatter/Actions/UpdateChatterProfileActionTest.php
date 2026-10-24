@@ -52,7 +52,7 @@ it('throws ValidationException when the current password is wrong', function ():
     ));
 })->throws(ValidationException::class);
 
-it('checks the current password against this chatter only, not another account with the same email', function (): void {
+it('checks the current password against this chatter only, not another account with the same email', function (string $foreignPassword): void {
     $workspace = User::factory()->workspace()->create();
     // A staff account and a chatter of another workspace share the email and
     // know a different password; neither may unlock this chatter's change.
@@ -66,16 +66,16 @@ it('checks the current password against this chatter only, not another account w
         'password' => Hash::make('current-pass'),
     ]);
 
-    foreach (['staff-pass', 'other-pass'] as $foreignPassword) {
-        expect(fn () => app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
-            user: $chatter,
-            currentPassword: $foreignPassword,
-            newPassword: 'brand-new-pass',
-        )))->toThrow(ValidationException::class);
-    }
-
-    expect(Hash::check('current-pass', $chatter->fresh()->password))->toBeTrue();
-});
+    expect(fn () => app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
+        user: $chatter,
+        currentPassword: $foreignPassword,
+        newPassword: 'brand-new-pass',
+    )))->toThrow(ValidationException::class)
+        ->and(Hash::check('current-pass', $chatter->fresh()->password))->toBeTrue();
+})->with([
+    'the staff account\'s password' => 'staff-pass',
+    'the other workspace chatter\'s password' => 'other-pass',
+]);
 
 it('does not save the chatter when no values are supplied', function (): void {
     $chatter = Chatter::factory()->create(['name' => 'Stable']);

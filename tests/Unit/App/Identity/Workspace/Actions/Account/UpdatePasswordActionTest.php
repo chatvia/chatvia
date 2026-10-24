@@ -5,6 +5,9 @@ use App\Identity\Workspace\Data\Account\UpdatePasswordData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Changing a staff account's password stores the new one hashed.
+ */
 it('hashes and stores the new password', function (): void {
     $user = User::factory()->create([
         'password' => Hash::make('old-password'),

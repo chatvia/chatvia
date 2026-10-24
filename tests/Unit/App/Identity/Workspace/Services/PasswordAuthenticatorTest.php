@@ -4,6 +4,11 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * The dashboard's password check: the account when email and password match,
+ * otherwise null, and a password hash is computed either way, so the answer
+ * time does not tell which emails have an account.
+ */
 it('returns the user when email and password match', function (): void {
     $user = User::factory()->create([
         'email' => 'match@example.test',

@@ -1,22 +1,17 @@
 <?php
 
+use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\PruneExpiredAgentChatterInvitationsAction;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
-use Illuminate\Support\Str;
 
 /**
  * Chatter invitations are deleted 30 days after their link expired; a live
  * link and one that expired recently stay.
  */
-function peaciInvitation(Agent $agent, string $expiresAt): AgentChatterInvitation
+function peaciInvitation(Agent $agent, CarbonInterface $expiresAt): AgentChatterInvitation
 {
-    return AgentChatterInvitation::query()->create([
-        'agent_id' => $agent->id,
-        'email' => Str::random(8).'@example.test',
-        'token' => Str::random(64),
-        'expires_at' => $expiresAt,
-    ]);
+    return AgentChatterInvitation::factory()->forAgent($agent)->create(['expires_at' => $expiresAt]);
 }
 
 it('deletes invitations that expired more than 30 days ago', function (): void {

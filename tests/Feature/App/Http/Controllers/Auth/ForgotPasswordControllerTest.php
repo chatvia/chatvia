@@ -1,0 +1,54 @@
+<?php
+
+use App\Identity\Workspace\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Notification;
+
+/**
+ * The "Forgot password" form (ForgotPasswordController): a known email gets a
+ * reset link, an unknown one gets the same answer and nothing is sent, and
+ * the form takes five requests a minute.
+ */
+beforeEach(function (): void {
+    Notification::fake();
+});
+
+it('sends a reset link to a known email', function (): void {
+    $user = User::factory()->create(['email' => 'test@example.com']);
+
+    $this->post(route('password.email'), ['email' => 'test@example.com'])
+        ->assertSessionHas('status');
+
+    Notification::assertSentTo($user, ResetPassword::class);
+});
+
+it('answers an unknown email the same way and sends nothing', function (): void {
+    User::factory()->create(['email' => 'test@example.com']);
+
+    $this->post(route('password.email'), ['email' => 'test@example.com']);
+    $known = session('status');
+    Notification::fake();
+
+    $this->post(route('password.email'), ['email' => 'nonexistent@example.com'])
+        ->assertSessionHas('status', $known);
+
+    Notification::assertNothingSent();
+});
+
+it('requires a valid email', function (string $email): void {
+    $this->post(route('password.email'), ['email' => $email])
+        ->assertSessionHasErrors('email');
+})->with([
+    'no email' => '',
+    'not an email' => 'not-an-email',
+]);
+
+it('takes five reset requests a minute and refuses the sixth', function (): void {
+    User::factory()->create(['email' => 'test@example.com']);
+
+    foreach (range(1, 5) as $attempt) {
+        $this->post(route('password.email'), ['email' => 'test@example.com'])->assertRedirect();
+    }
+
+    $this->post(route('password.email'), ['email' => 'test@example.com'])->assertStatus(429);
+});

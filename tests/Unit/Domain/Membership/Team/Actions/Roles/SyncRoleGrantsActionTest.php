@@ -8,6 +8,10 @@ use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * A role's agent grants: the all-agents meta-permission follows the
+ * all-agents switch only, and agents outside the team are refused.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);

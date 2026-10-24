@@ -5,6 +5,10 @@ use Domain\Membership\Team\Actions\Members\AssignUserToRoleAction;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 
+/**
+ * Putting a person on a team under a role: a new member is attached, an
+ * existing one is moved to the role.
+ */
 it('attaches a new member and moves an existing one to the new role', function (): void {
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);

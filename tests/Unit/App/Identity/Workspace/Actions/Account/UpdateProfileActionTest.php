@@ -6,6 +6,11 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Saving the profile: name and email, a new photo under the person's own
+ * `users/{ext}/profile-photos/` folder, and a changed email must be verified
+ * again.
+ */
 it('updates name and email and returns the user', function (): void {
     $user = User::factory()->create([
         'name' => 'Old',
@@ -70,5 +75,5 @@ it('keeps email_verified_at when the email is unchanged', function (): void {
         email: 'same@example.test',
     ));
 
-    expect($user->fresh()->email_verified_at)->not->toBeNull();
+    expect($user->fresh()->email_verified_at?->toDateTimeString())->toBe($verifiedAt->toDateTimeString());
 });

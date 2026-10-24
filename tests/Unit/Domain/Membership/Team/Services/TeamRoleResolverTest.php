@@ -10,6 +10,11 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * The permissions a person holds per team: an owner every code on every team
+ * (without reading `team_user`), a teammate their role's permissions on each
+ * team they joined.
+ */
 it('maps every team of the owner to all codes, without reading team_user', function (): void {
     $owner = User::factory()->create();
     $ownTeam = app(TeamService::class)->createDefaultTeam($owner);

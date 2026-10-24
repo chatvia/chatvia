@@ -9,7 +9,8 @@ use Domain\Membership\Team\Services\TeamService;
  * What a team role lets a user do: the rule behind the `team.permission:*`
  * and `agent.permission:*` route middleware. Owners hold every permission in
  * their own team only; teammates need the named permission (and, on an agent,
- * access to it); admins hold everything.
+ * access to it); platform admins hold nothing in a workspace that is not
+ * theirs.
  */
 
 beforeEach(function (): void {

@@ -24,7 +24,7 @@ use MagicLink\MagicLink;
  * Sends a link for the email (scoped to the agent when given) and returns
  * the sign-in it carries, or null when none was sent.
  */
-function sentMagicLinkSignIn(string $email, ?Agent $agent = null): ?MagicLinkSignIn
+function smlSentSignIn(string $email, ?Agent $agent = null): ?MagicLinkSignIn
 {
     Event::fake([MagicLinkRequested::class]);
 
@@ -45,29 +45,23 @@ function sentMagicLinkSignIn(string $email, ?Agent $agent = null): ?MagicLinkSig
     return MagicLink::query()->findOrFail($id)->action;
 }
 
-it('sends a magic link to a user that matches the email', function (): void {
+it('sends a dashboard link to the account with the email, whatever its case and spacing', function (string $typed): void {
     Notification::fake();
     User::factory()->create(['email' => 'user@example.test']);
 
     app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: 'user@example.test'),
+        new SendMagicLinkData(email: $typed),
         redirectUrl: '/dashboard',
     );
 
-    Notification::assertSentOnDemand(MagicLinkNotification::class);
-});
-
-it('normalises the email (trim + lowercase) before lookup', function (): void {
-    Notification::fake();
-    User::factory()->create(['email' => 'mixed@example.test']);
-
-    app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: '  MIXED@example.test  '),
-        redirectUrl: '/dashboard',
+    Notification::assertSentOnDemand(
+        MagicLinkNotification::class,
+        fn (MagicLinkNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === 'user@example.test',
     );
-
-    Notification::assertSentOnDemand(MagicLinkNotification::class);
-});
+})->with([
+    'as stored' => 'user@example.test',
+    'mixed case with spaces' => '  USER@Example.test  ',
+]);
 
 it('silently no-ops when no user matches the email', function (): void {
     Notification::fake();
@@ -98,7 +92,7 @@ it('silently no-ops for a staff account that cannot reach the scoped agent', fun
     // workspace is found and then refused by canAccessAgent().
     User::factory()->workspace()->create(['email' => 'outsider@example.test']);
 
-    expect(sentMagicLinkSignIn('outsider@example.test', $agent))->toBeNull();
+    expect(smlSentSignIn('outsider@example.test', $agent))->toBeNull();
 });
 
 it('silently no-ops for a chatter of the workspace who was not granted the agent', function (): void {
@@ -119,7 +113,7 @@ it('signs a chatter of the agent\'s workspace in to the agent\'s chat', function
     $agent = createAgent(User::factory()->workspace()->create());
     $chatter = Chatter::factory()->grantedTo($agent)->create(['email' => 'chatter@example.test']);
 
-    $signIn = sentMagicLinkSignIn('  CHATTER@example.test ', $agent);
+    $signIn = smlSentSignIn('  CHATTER@example.test ', $agent);
 
     expect($signIn)->not->toBeNull()
         ->and($signIn?->chatterId)->toBe($chatter->id)
@@ -132,7 +126,7 @@ it('prefers the workspace\'s chatter over a staff account with the same email', 
     $agent = createAgent($owner);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['email' => 'shared@example.test']);
 
-    $signIn = sentMagicLinkSignIn('shared@example.test', $agent);
+    $signIn = smlSentSignIn('shared@example.test', $agent);
 
     expect($signIn?->chatterId)->toBe($chatter->id)
         ->and($signIn?->userId)->toBeNull();
@@ -142,7 +136,7 @@ it('signs staff who can reach the agent in to its chat when no chatter has the e
     $owner = User::factory()->workspace()->create(['email' => 'owner@example.test']);
     $agent = createAgent($owner);
 
-    $signIn = sentMagicLinkSignIn('owner@example.test', $agent);
+    $signIn = smlSentSignIn('owner@example.test', $agent);
 
     expect($signIn?->userId)->toBe($owner->id)
         ->and($signIn?->chatterId)->toBeNull()
@@ -168,5 +162,5 @@ it('silently no-ops for a deactivated chatter', function (): void {
     $agent = createAgent(User::factory()->workspace()->create());
     Chatter::factory()->grantedTo($agent)->deactivated()->create(['email' => 'off-chatter@example.test']);
 
-    expect(sentMagicLinkSignIn('off-chatter@example.test', $agent))->toBeNull();
+    expect(smlSentSignIn('off-chatter@example.test', $agent))->toBeNull();
 });

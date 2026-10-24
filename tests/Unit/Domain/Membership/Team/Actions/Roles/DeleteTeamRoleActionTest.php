@@ -5,6 +5,10 @@ use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Deleting a team role: a role nobody holds goes; one a member still holds
+ * is refused and stays.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);

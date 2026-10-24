@@ -25,7 +25,7 @@ beforeEach(function (): void {
     ]);
 });
 
-function loginChatterToAgentChat(string $email, string $password): ?Chatter
+function lctaLogin(string $email, string $password): ?Chatter
 {
     return app(LoginChatterToAgentAction::class)->execute(
         new LoginData(email: $email, password: $password, remember: false),
@@ -34,25 +34,25 @@ function loginChatterToAgentChat(string $email, string $password): ?Chatter
 }
 
 it('returns the chatter who has a grant for the agent', function (): void {
-    expect(loginChatterToAgentChat('chatter@example.test', 'chatter-pass')?->id)->toBe($this->chatter->id);
+    expect(lctaLogin('chatter@example.test', 'chatter-pass')?->id)->toBe($this->chatter->id);
 });
 
 it('matches the email without case', function (): void {
-    expect(loginChatterToAgentChat('Chatter@Example.TEST', 'chatter-pass')?->id)->toBe($this->chatter->id);
+    expect(lctaLogin('Chatter@Example.TEST', 'chatter-pass')?->id)->toBe($this->chatter->id);
 });
 
 it('returns null when the password is wrong', function (): void {
-    expect(loginChatterToAgentChat('chatter@example.test', 'wrong-password'))->toBeNull();
+    expect(lctaLogin('chatter@example.test', 'wrong-password'))->toBeNull();
 });
 
 it('returns null when the chatter is deactivated, even with valid credentials', function (): void {
     app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
 
-    expect(loginChatterToAgentChat('chatter@example.test', 'chatter-pass'))->toBeNull();
+    expect(lctaLogin('chatter@example.test', 'chatter-pass'))->toBeNull();
 });
 
 it('returns null when no chatter matches the email', function (): void {
-    expect(loginChatterToAgentChat('no-such-user@example.test', 'chatter-pass'))->toBeNull();
+    expect(lctaLogin('no-such-user@example.test', 'chatter-pass'))->toBeNull();
 });
 
 it('still computes a password hash when no chatter matches the email', function (): void {
@@ -60,7 +60,7 @@ it('still computes a password hash when no chatter matches the email', function 
     // can't reveal which emails are registered.
     Hash::shouldReceive('make')->once()->andReturn('hashed');
 
-    expect(loginChatterToAgentChat('no-such-user@example.test', 'chatter-pass'))->toBeNull();
+    expect(lctaLogin('no-such-user@example.test', 'chatter-pass'))->toBeNull();
 });
 
 it('returns null for a chatter of this workspace without a grant for the agent', function (): void {
@@ -69,17 +69,7 @@ it('returns null for a chatter of this workspace without a grant for the agent',
         'password' => Hash::make('pass'),
     ]);
 
-    expect(loginChatterToAgentChat('ungranted@example.test', 'pass'))->toBeNull();
-});
-
-it('never finds a chatter of another workspace with the same email', function (): void {
-    $otherAgent = createAgent(User::factory()->create());
-    Chatter::factory()->grantedTo($otherAgent)->create([
-        'email' => 'shared@example.test',
-        'password' => Hash::make('elsewhere-pass'),
-    ]);
-
-    expect(loginChatterToAgentChat('shared@example.test', 'elsewhere-pass'))->toBeNull();
+    expect(lctaLogin('ungranted@example.test', 'pass'))->toBeNull();
 });
 
 it('lets the same email be a chatter of two workspaces, each with its own password', function (): void {
@@ -93,16 +83,16 @@ it('lets the same email be a chatter of two workspaces, each with its own passwo
         'password' => Hash::make('there-pass'),
     ]);
 
-    expect(loginChatterToAgentChat('twice@example.test', 'here-pass')?->id)->toBe($here->id)
-        ->and(loginChatterToAgentChat('twice@example.test', 'there-pass'))->toBeNull();
+    expect(lctaLogin('twice@example.test', 'here-pass')?->id)->toBe($here->id)
+        ->and(lctaLogin('twice@example.test', 'there-pass'))->toBeNull();
 });
 
 it('never signs in a staff account, even with its right password', function (): void {
-    expect(loginChatterToAgentChat('owner@example.test', 'correct-password'))->toBeNull();
+    expect(lctaLogin('owner@example.test', 'correct-password'))->toBeNull();
 });
 
 it('returns null for a chatter without a password', function (): void {
     $this->chatter->forceFill(['password' => null])->save();
 
-    expect(loginChatterToAgentChat('chatter@example.test', ''))->toBeNull();
+    expect(lctaLogin('chatter@example.test', ''))->toBeNull();
 });

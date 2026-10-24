@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 
+/**
+ * The first step of deleting an account: a signed confirmation link for the
+ * account, valid for 30 minutes, handed to the email listener through
+ * AccountDeletionRequested.
+ */
 it('dispatches AccountDeletionRequested with a signed confirmation link for the user', function (): void {
     Event::fake();
 

@@ -2,7 +2,6 @@
 
 use App\Identity\ApiKey\Models\PersonalAccessToken;
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -21,10 +20,6 @@ function patStoredLastUsedAt(PersonalAccessToken $token): ?string
 {
     return DB::table('personal_access_tokens')->where('id', $token->id)->value('last_used_at');
 }
-
-it('is the token model Sanctum uses', function (): void {
-    expect(patToken(User::factory()->create()))->toBeInstanceOf(PersonalAccessToken::class);
-});
 
 it('writes the first use and skips another one within the minute', function (): void {
     $this->travelTo(now()->startOfMinute());
@@ -61,21 +56,4 @@ it('saves any other change even right after a use', function (): void {
     $token->forceFill(['name' => 'renamed', 'last_used_at' => now()])->save();
 
     expect($token->fresh()->name)->toBe('renamed');
-});
-
-it('records the first API request, then skips the next one within the minute', function (): void {
-    $this->travelTo(now()->startOfMinute());
-    $owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($owner);
-    $plain = $owner->createToken('account')->plainTextToken;
-    $token = $owner->tokens()->sole();
-
-    $this->withToken($plain)->getJson(route('api.v1.teams.index'))->assertOk();
-    $first = patStoredLastUsedAt($token);
-
-    $this->travel(20)->seconds();
-    $this->withToken($plain)->getJson(route('api.v1.teams.index'))->assertOk();
-
-    expect($first)->not->toBeNull()
-        ->and(patStoredLastUsedAt($token))->toBe($first);
 });

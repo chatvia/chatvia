@@ -11,6 +11,7 @@ use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Chatter\Enums\ChatterSource;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
 use Support\Exceptions\DomainValidationException;
@@ -89,7 +90,7 @@ it('grants the chatter access to every agent supplied as a collection', function
         ->toContain($second->id);
 });
 
-it('rejects an email the workspace already uses, without case', function (): void {
+it('rejects an email the workspace already uses, without case, on the email field', function (): void {
     Chatter::factory()->ofWorkspace($this->owner)->create(['email' => 'taken@example.test']);
 
     expect(fn () => app(CreateChatterAction::class)->execute(new CreateChatterData(
@@ -97,30 +98,19 @@ it('rejects an email the workspace already uses, without case', function (): voi
         agents: $this->agent,
         name: 'Copy',
         email: 'TAKEN@Example.test',
-    )))->toThrow(DomainValidationException::class);
+    )))->toThrow(function (DomainValidationException $e): void {
+        expect($e->field)->toBe('email');
+    });
 
     expect(Chatter::query()->where('workspace_id', $this->owner->workspace()->id)->whereRaw('lower(email) = ?', ['taken@example.test'])->count())->toBe(1);
 });
 
-it('reports the duplicate on the email field', function (): void {
-    Chatter::factory()->ofWorkspace($this->owner)->create(['email' => 'taken@example.test']);
-
-    try {
-        app(CreateChatterAction::class)->execute(new CreateChatterData(
-            workspace: $this->owner->workspace(),
-            agents: $this->agent,
-            name: 'Copy',
-            email: 'taken@example.test',
-        ));
-        $this->fail('Expected a DomainValidationException.');
-    } catch (DomainValidationException $e) {
-        expect($e->field)->toBe('email');
-    }
-});
-
-it('creates a separate chatter for an email used in another workspace', function (): void {
-    $otherOwner = User::factory()->workspace()->create();
-    $elsewhere = Chatter::factory()->ofWorkspace($otherOwner)->create(['email' => 'shared@example.test']);
+it('creates a separate chatter for an email used elsewhere and leaves that account alone', function (string $elsewhere): void {
+    $account = match ($elsewhere) {
+        'chatter' => Chatter::factory()->ofWorkspace(User::factory()->workspace()->create())->create(['email' => 'shared@example.test']),
+        'staff' => User::factory()->employee($this->owner)->create(['email' => 'shared@example.test']),
+    };
+    $before = $account->fresh()->getAttributes();
 
     $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData(
         workspace: $this->owner->workspace(),
@@ -130,28 +120,24 @@ it('creates a separate chatter for an email used in another workspace', function
         password: 'pass-1234',
     ));
 
-    expect($chatter->id)->not->toBe($elsewhere->id)
-        ->and($chatter->workspace_id)->toBe($this->owner->workspace()->id)
-        ->and(Chatter::query()->whereRaw('lower(email) = ?', ['shared@example.test'])->count())->toBe(2)
-        // The other workspace's chatter is untouched and still has no grant here.
-        ->and($elsewhere->fresh()->workspace_id)->toBe($otherOwner->workspace()->id)
-        ->and($elsewhere->fresh()->canAccessAgent($this->agent))->toBeFalse();
-});
+    expect($chatter->workspace_id)->toBe($this->owner->workspace()->id)
+        ->and($chatter->email)->toBe('shared@example.test')
+        ->and($chatter->is($account))->toBeFalse()
+        ->and($account->fresh()->getAttributes())->toBe($before);
+})->with([
+    'a chatter of another workspace' => 'chatter',
+    'a staff account of this workspace' => 'staff',
+]);
 
-it('creates a chatter with the email of a staff account', function (): void {
-    $staff = User::factory()->employee($this->owner)->create(['email' => 'teammate@example.test']);
+it('creates no teammate, team or team member', function (): void {
+    $workspace = $this->owner->workspace();
+    $team = ownerTeam($this->owner);
+    $before = [$workspace->members()->count(), Team::query()->count(), $team->members()->count()];
 
-    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData(
-        workspace: $this->owner->workspace(),
-        agents: $this->agent,
-        name: 'Teammate as chatter',
-        email: 'teammate@example.test',
-        password: 'pass-1234',
-    ));
+    app(CreateChatterAction::class)->execute(new CreateChatterData($workspace, $this->agent, 'Jane'));
 
-    expect($chatter)->toBeInstanceOf(Chatter::class)
-        ->and($chatter->email)->toBe('teammate@example.test')
-        // The staff account keeps its own password and its teammate role.
-        ->and(Hash::check('pass-1234', $staff->fresh()->password))->toBeFalse()
-        ->and($staff->fresh()->isTeammate())->toBeTrue();
+    // Compared by count: a chatter's id comes from another table and can
+    // equal a staff id.
+    expect([$workspace->members()->count(), Team::query()->count(), $team->members()->count()])->toBe($before)
+        ->and($workspace->chatters()->count())->toBe(1);
 });

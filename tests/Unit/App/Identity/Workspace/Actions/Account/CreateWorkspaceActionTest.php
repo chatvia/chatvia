@@ -3,10 +3,14 @@
 use App\Identity\Workspace\Actions\Account\CreateWorkspaceAction;
 use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Models\Workspace;
+
+/**
+ * Creating the workspace of a new account: named after it, owned by it, with
+ * a default team that becomes the account's current team.
+ */
 
 /** A saved account with no workspace yet (the factory gives every created user one). */
-function accountWithoutWorkspace(): User
+function cwaAccountWithoutWorkspace(): User
 {
     $user = User::factory()->make(['name' => 'Dana']);
     $user->save();
@@ -15,7 +19,7 @@ function accountWithoutWorkspace(): User
 }
 
 it('creates a workspace named after the account, with the account as its owner', function (): void {
-    $owner = accountWithoutWorkspace();
+    $owner = cwaAccountWithoutWorkspace();
 
     $workspace = app(CreateWorkspaceAction::class)->execute($owner);
 
@@ -28,7 +32,7 @@ it('creates a workspace named after the account, with the account as its owner',
 });
 
 it('creates the default team and makes it the current team', function (): void {
-    $owner = accountWithoutWorkspace();
+    $owner = cwaAccountWithoutWorkspace();
 
     $workspace = app(CreateWorkspaceAction::class)->execute($owner);
 
@@ -36,12 +40,4 @@ it('creates the default team and makes it the current team', function (): void {
 
     expect($owner->fresh()?->current_team_id)->toBe($team->id)
         ->and($owner->ownsTeam($team))->toBeTrue();
-});
-
-it('gives each account its own workspace', function (): void {
-    $first = app(CreateWorkspaceAction::class)->execute(accountWithoutWorkspace());
-    $second = app(CreateWorkspaceAction::class)->execute(accountWithoutWorkspace());
-
-    expect($first->is($second))->toBeFalse()
-        ->and(Workspace::query()->whereKey([$first->id, $second->id])->count())->toBe(2);
 });

@@ -45,17 +45,17 @@ it('re-dispatches TeamInvitationCreated for the existing invitation without crea
 });
 
 it('refreshes the sent timestamp so the pending list reflects the latest send and the accept window resets', function (): void {
+    $this->freezeTime();
     $team = rtiTeamWithSupportRole();
 
     $invitation = app(CreateTeamInvitationAction::class)->execute($team, 'invitee@example.com', 'support');
 
-    // Backdate the original send past the 7-day window, then confirm the resend moves it forward.
+    // Backdate the original send past the 7-day window; the resend moves it to now.
     $invitation->forceFill(['created_at' => now()->subDays(10)])->save();
-    $original = $invitation->fresh()->created_at;
 
     Event::fake([TeamInvitationCreated::class]);
 
     app(ResendTeamInvitationAction::class)->execute($invitation);
 
-    expect($invitation->fresh()->created_at->greaterThan($original))->toBeTrue();
+    expect($invitation->fresh()->created_at->toDateTimeString())->toBe(now()->toDateTimeString());
 });

@@ -6,6 +6,11 @@ use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
 
+/**
+ * Linking a social sign-in to an account: one row per account and provider,
+ * a new provider id replaces the old one, and an identity already linked to
+ * another account is refused.
+ */
 it('creates a UserSocial row for a fresh link', function (): void {
     $user = User::factory()->create();
 

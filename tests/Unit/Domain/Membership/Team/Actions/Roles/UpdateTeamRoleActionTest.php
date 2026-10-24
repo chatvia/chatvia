@@ -7,6 +7,10 @@ use Domain\Membership\Team\Services\TeamAgentAccess;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Editing a team role: rename it and change its grants; rejected grants keep
+ * the old name and grants.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);

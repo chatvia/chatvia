@@ -4,6 +4,11 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamAgentAccess;
 use Domain\Membership\Team\Services\TeamService;
 
+/**
+ * Which agents a team role reaches: the owner every agent of the workspace,
+ * a scoped role its own list, an all-agents role the team's agents, and
+ * nobody another workspace's agent.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);

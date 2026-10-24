@@ -24,14 +24,13 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     // Chatter deletion wipes the avatar tree on the assets disk and attachment
-    // files on the private disk; fake both so the assertions stay hermetic and
-    // never hit real S3 / CDN storage.
+    // files on the attachments disk.
     Storage::fake(Attachment::DISK);
     Storage::fake('assets');
 });
 
 /** An open invitation of the email to the agent. */
-function deleteChatterTestInvitation(Agent $agent, string $email): AgentChatterInvitation
+function dcaInvitation(Agent $agent, string $email): AgentChatterInvitation
 {
     return AgentChatterInvitation::factory()->forAgent($agent)->create(['email' => $email]);
 }
@@ -105,34 +104,22 @@ it('keeps the sessions of a staff account whose id equals the chatter id', funct
         ->and(ChatCache::isOwnedBy($staffConversation->external_id, $staffViewer, $workspace->external_id))->toBeTrue();
 });
 
-it('wipes the deleted chatter conversation attachment files on S3', function (): void {
+it('wipes the attachment files of the deleted chatter\'s conversations', function (): void {
     $workspace = User::factory()->workspace()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
     $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
 
     $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
     $conversation = Conversation::factory()->withTitle('With attachment')->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
-
-    $filepath = "users/{$workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
-    Storage::disk(Attachment::DISK)->put($filepath, 'data');
-    $attachment = Attachment::create([
-        'workspace_id' => $agent->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'filepath' => $filepath,
-        'filename' => 'doc.pdf',
-        'mime_type' => 'application/pdf',
-        'size_bytes' => 4,
-    ]);
-
-    Storage::disk(Attachment::DISK)->assertExists($filepath);
+    $attachment = Attachment::factory()->forConversation($conversation)->stored()->create();
 
     app(DeleteChatterAction::class)->execute($chatter);
 
-    Storage::disk(Attachment::DISK)->assertMissing($filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
 });
 
-it('wipes the deleted chatter profile photo on S3', function (): void {
+it('wipes the deleted chatter\'s profile photo and keeps other chatters\' photos', function (): void {
     $chatter = Chatter::factory()->create();
     $other = Chatter::factory()->create();
 
@@ -177,8 +164,8 @@ it('deletes the chatter open invitations to the workspace agents, without case',
     $second = createAgent($workspace);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['email' => 'gone@example.test']);
 
-    $first = deleteChatterTestInvitation($agent, 'gone@example.test');
-    $upperCase = deleteChatterTestInvitation($second, 'Gone@Example.TEST');
+    $first = dcaInvitation($agent, 'gone@example.test');
+    $upperCase = dcaInvitation($second, 'Gone@Example.TEST');
 
     app(DeleteChatterAction::class)->execute($chatter);
 
@@ -194,8 +181,8 @@ it('keeps invitations of other emails and of the same email in other workspaces'
     $otherWorkspace = User::factory()->workspace()->create();
     $otherAgent = createAgent($otherWorkspace);
 
-    $otherEmail = deleteChatterTestInvitation($agent, 'stays@example.test');
-    $otherWorkspaceInvite = deleteChatterTestInvitation($otherAgent, 'gone@example.test');
+    $otherEmail = dcaInvitation($agent, 'stays@example.test');
+    $otherWorkspaceInvite = dcaInvitation($otherAgent, 'gone@example.test');
 
     app(DeleteChatterAction::class)->execute($chatter);
 
@@ -207,7 +194,7 @@ it('deletes a token-only chatter without touching invitations', function (): voi
     $workspace = User::factory()->workspace()->create();
     $agent = createAgent($workspace);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['email' => null]);
-    $invitation = deleteChatterTestInvitation($agent, 'someone@example.test');
+    $invitation = dcaInvitation($agent, 'someone@example.test');
 
     app(DeleteChatterAction::class)->execute($chatter);
 

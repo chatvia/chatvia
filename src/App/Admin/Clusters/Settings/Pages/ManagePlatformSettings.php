@@ -13,28 +13,24 @@ use App\Admin\Settings\PdfMakerCheck;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
-use App\Admin\Settings\ToolRecording;
-use App\Admin\StaffTool;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 
 /**
  * Install-wide options: default language, the chat widget, the tracking
- * code, visitor location, alerts, whether Pulse and Spectra record, what
- * makes PDFs, the number of queue workers, where the programs that read
- * files are, and the panel's Logs page.
+ * code, visitor location, alerts, what makes PDFs, the number of queue
+ * workers, where the programs that read files are, and the panel's Logs
+ * page.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -73,12 +69,6 @@ class ManagePlatformSettings extends AdminSettingsPage
         'pdf_gotenberg_url' => 'Address',
     ];
 
-    /** The .env switch that leaves a tool out of the install, by its recording setting. */
-    private const array TOOL_SWITCHES = [
-        'pulse_enabled' => 'PULSE_ENABLED',
-        'spectra_enabled' => 'SPECTRA_ENABLED',
-    ];
-
     #[\Override]
     protected static string $settings = PlatformSettings::class;
 
@@ -96,29 +86,19 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, tracking code, visitor location, Pulse, Spectra, PDF maker, queue workers, programs and logs.';
+        return 'Language, widget, tracking code, visitor location, PDF maker, queue workers, programs and logs.';
     }
 
     /**
      * The Development card shows or hides Logs in the sidebar, so the
      * sidebar is drawn again with the saved choice.
-     *
-     * `pulse:check` (Pulse's server stats) runs for hours and never sees a
-     * save, so a change of the Pulse switch restarts it: the process that
-     * keeps it running starts it again with the saved choice.
      */
     #[\Override]
     public function save(): void
     {
-        $pulse = $this->valueInUse('pulse_enabled');
-
         parent::save();
 
         $this->dispatch('refresh-sidebar');
-
-        if ($this->valueInUse('pulse_enabled') !== $pulse) {
-            Artisan::call('pulse:restart');
-        }
     }
 
     public static function overviewGroup(): string
@@ -159,17 +139,6 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->email('horizon_notify_email', 'Alert email',
                     help: 'Gets an email when jobs wait too long in the queue. Applies after Horizon restarts.'),
             ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? 'To '.$this->valueInUse('horizon_notify_email') : 'No alerts'),
-            SettingsCard::make('pulse', 'Pulse', 'The app\'s health: slow pages, queries and jobs, errors, queues and the servers.', Heroicon::OutlinedHeart, fn (): array => [
-                $this->recordingToggle('pulse_enabled', 'Record app health', help: 'Data older than 7 days is removed.'),
-            ])->summary(fn (): string => $this->recordingSummary('pulse_enabled'))
-                ->console($this->toolUrl(StaffTool::Pulse), 'Open Pulse'),
-            SettingsCard::make('spectra', 'Spectra', 'A log of every AI call: the model, the tokens, the cost and the time it took.', Heroicon::OutlinedCpuChip, fn (): array => [
-                $this->recordingToggle('spectra_enabled', 'Record AI calls'),
-                $this->toggle('spectra_store_content', 'Save prompts and replies',
-                    help: 'Also keeps the text sent to the AI and its answer, which includes what visitors write. Off keeps only the counts, costs and times.'),
-                $this->integer('spectra_retention_days', 'Keep AI calls for (days)', help: 'Older calls are removed every night.', min: 1, max: 3650),
-            ])->summary(fn (): string => $this->recordingSummary('spectra_enabled'))
-                ->console($this->toolUrl(StaffTool::Spectra), 'Open Spectra'),
             SettingsCard::make('pdf_maker', 'PDF maker', 'What makes PDFs: chat exports, and the PDF of an office file for its summary.', Heroicon::OutlinedDocumentArrowDown, fn (): array => [
                 $this->pdfMakerChoice(),
                 $this->pdfMakerField(PdfMaker::Cloudflare, $this->text('pdf_cloudflare_account_id', 'Account ID', help: 'On the right of the home page of your Cloudflare dashboard.'), required: true),
@@ -207,40 +176,6 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->summary(fn (): string => $this->valueInUse('logs_page_enabled') === true ? __('Logs page on') : __('Logs page off'))
                 ->advanced(),
         ];
-    }
-
-    /** Whether .env (TOOL_SWITCHES) leaves the tool of a recording setting in this install. */
-    private function installed(string $property): bool
-    {
-        $tools = app(ToolRecording::class);
-
-        return $property === 'pulse_enabled' ? $tools->pulseInstalled() : $tools->spectraInstalled();
-    }
-
-    /** A tool's recording switch, locked while .env leaves the tool out. */
-    private function recordingToggle(string $property, string $label, ?string $help = null): Toggle
-    {
-        if (! $this->installed($property)) {
-            return $this->toggle($property, $label, help: self::TOOL_SWITCHES[$property].'=false in .env leaves this tool out of the install, so it cannot record.')
-                ->disabled();
-        }
-
-        return $this->toggle($property, $label, $help);
-    }
-
-    private function recordingSummary(string $property): string
-    {
-        return match (true) {
-            ! $this->installed($property) => 'Off in .env',
-            $this->valueInUse($property) === true => 'On',
-            default => 'Off',
-        };
-    }
-
-    /** Where a card's link opens the tool; none when the admin cannot open it. */
-    private function toolUrl(StaffTool $tool): ?string
-    {
-        return $tool->unavailableReason() === null ? $tool->url() : null;
     }
 
     /**

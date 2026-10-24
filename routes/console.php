@@ -112,7 +112,7 @@ Schedule::command('model:prune', ['--model' => [MagicLink::class]])->dailyAt('05
 Schedule::command('auth:clear-resets users')->dailyAt('05:25')->withoutOverlapping()->onOneServer();
 Schedule::command('chatvia:prune:chatter-password-resets')->dailyAt('05:30')->withoutOverlapping()->onOneServer();
 
-// Spectra's AI call log keeps the days set in Settings → Platform → Spectra.
+// Spectra's AI call log keeps the days set in Settings → Observability.
 // It runs while Spectra does not record too, so an old log still empties.
 Schedule::command('spectra:prune', ['--hours' => max(1, (int) config('chatvia.spectra.retention_days')) * 24])->dailyAt('05:20')->withoutOverlapping()->onOneServer();
 

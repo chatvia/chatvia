@@ -9,7 +9,7 @@ use Laravel\Pulse\Facades\Pulse;
 
 /**
  * Turns the recording of two staff tools on and off from Settings →
- * Platform: Pulse (the app's health) and Spectra (the AI call log).
+ * Observability: Pulse (the app's health) and Spectra (the AI call log).
  *
  * Both read their own `enabled` flag once, while they boot, which is before
  * the saved settings are applied. So that flag stays the "installed" switch

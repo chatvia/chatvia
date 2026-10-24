@@ -50,10 +50,6 @@ return new class extends SettingsMigration
             $group->add('pdf_gotenberg_username');
             $group->addEncrypted('pdf_gotenberg_password');
             $group->add('logs_page_enabled');
-            $group->add('pulse_enabled');
-            $group->add('spectra_enabled');
-            $group->add('spectra_store_content');
-            $group->add('spectra_retention_days');
         });
     }
 

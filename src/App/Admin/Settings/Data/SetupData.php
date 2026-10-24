@@ -55,5 +55,6 @@ final class SetupData extends Data
         public ?string $voiceApiKey = null,
         public ?StorageSetupData $storage = null,
         public ?MailSetupData $mail = null,
+        public bool $recordAiCalls = true,
     ) {}
 }

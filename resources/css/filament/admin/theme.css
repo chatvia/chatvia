@@ -1938,6 +1938,225 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     align-content: start;
 }
 
+/* The test window of a section of the models step: one row per model, a
+ * spinner while it is asked, then a tick or a cross with the reason. */
+.cv-model-tests__list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cv-model-test {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--cv-border, rgb(0 0 0 / 0.08));
+    border-radius: 0.75rem;
+    transition: border-color 150ms, background-color 150ms;
+
+    &[data-state='passed'] {
+        border-color: color-mix(in oklab, var(--color-success-500) 35%, transparent);
+        background: color-mix(in oklab, var(--color-success-500) 6%, transparent);
+    }
+
+    &[data-state='busy'] {
+        border-color: color-mix(in oklab, var(--color-warning-500) 40%, transparent);
+        background: color-mix(in oklab, var(--color-warning-500) 7%, transparent);
+    }
+
+    &[data-state='failed'] {
+        border-color: color-mix(in oklab, var(--color-danger-500) 35%, transparent);
+        background: color-mix(in oklab, var(--color-danger-500) 6%, transparent);
+    }
+}
+
+/* The picture the model for image descriptions is shown. */
+.cv-model-tests__image {
+    display: block;
+    width: 6rem;
+    height: 6rem;
+    margin: 0 0 0.875rem;
+    border: 1px solid var(--cv-border);
+    border-radius: 0.75rem;
+}
+
+.cv-model-test__status {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.25rem;
+    height: 1.5rem;
+
+    & > * {
+        grid-area: 1 / 1;
+    }
+}
+
+.cv-model-test__mark {
+    display: grid;
+    place-items: center;
+}
+
+.cv-model-test__waiting {
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 2px dashed var(--cv-text-subtle, rgb(0 0 0 / 0.3));
+    border-radius: 9999px;
+}
+
+.cv-model-test__spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-primary-500);
+}
+
+.cv-model-test__passed {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-success-500);
+    animation: cv-model-test-pop 220ms ease-out;
+}
+
+.cv-model-test__busy {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-warning-500);
+    animation: cv-model-test-pop 220ms ease-out;
+}
+
+.cv-model-test__failed {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-danger-500);
+    animation: cv-model-test-pop 220ms ease-out;
+}
+
+@keyframes cv-model-test-pop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cv-model-test__passed,
+    .cv-model-test__busy,
+    .cv-model-test__failed {
+        animation: none;
+    }
+}
+
+.cv-model-test__body {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+}
+
+.cv-model-test__name {
+    font-weight: 500;
+    color: var(--cv-text);
+    overflow-wrap: anywhere;
+}
+
+/* Under a model: its reply when it passed, or why it is busy or failed. */
+.cv-model-test__message {
+    color: var(--cv-text-muted);
+    line-height: 1.375rem;
+    overflow-wrap: anywhere;
+
+    [data-state='busy'] > .cv-model-test__body > & {
+        color: var(--color-warning-700);
+    }
+
+    [data-state='failed'] > .cv-model-test__body > & {
+        color: var(--color-danger-600);
+    }
+}
+
+:is(.dark) .cv-model-test__message {
+    [data-state='busy'] > .cv-model-test__body > & {
+        color: var(--color-warning-400);
+    }
+
+    [data-state='failed'] > .cv-model-test__body > & {
+        color: var(--color-danger-400);
+    }
+}
+
+.cv-model-tests__summary {
+    margin: 0.875rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    &[data-state='passed'] {
+        color: var(--color-success-600);
+    }
+
+    &[data-state='busy'] {
+        color: var(--color-warning-700);
+    }
+
+    &[data-state='failed'] {
+        color: var(--color-danger-600);
+    }
+}
+
+:is(.dark) .cv-model-tests__summary {
+    &[data-state='passed'] {
+        color: var(--color-success-400);
+    }
+
+    &[data-state='busy'] {
+        color: var(--color-warning-400);
+    }
+
+    &[data-state='failed'] {
+        color: var(--color-danger-400);
+    }
+}
+
+/* A model's name with its lab's logo before it ({@see ModelLogo}). The logo
+ * is a mask, so it takes the colour of the text in light and dark mode. */
+.cv-model-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    vertical-align: middle;
+
+    & > span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.cv-model-logo {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: currentColor;
+    /* The image is set on the element ({@see ModelLogo::mark()}). */
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+/* How many models are ticked, under the list. */
+.cv-model-picker__count {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--cv-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
 /* -------------------------------------------------------------------------
  * Chatvia views: the Settings overview tiles
  * ---------------------------------------------------------------------- */

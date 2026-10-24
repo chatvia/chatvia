@@ -11,7 +11,9 @@ use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiProviderIcon;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\ChatModelCheck;
 use App\Admin\Settings\Data\MailSetupData;
+use App\Admin\Settings\Data\ModelCheckData;
 use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
@@ -20,6 +22,8 @@ use App\Admin\Settings\LlmTaskText;
 use App\Admin\Settings\MailField;
 use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\ModelLogo;
+use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\RerankerCheck;
 use App\Admin\Settings\SetupRequirements;
@@ -27,6 +31,7 @@ use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageCheck;
 use App\Admin\Settings\StorageSettings;
 use App\Admin\Settings\TaskModelPreset;
+use App\Admin\Settings\ToolRecording;
 use App\Admin\Status\Data\ServiceStatusData;
 use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
@@ -47,6 +52,7 @@ use Domain\Knowledge\Retrieval\Enums\PgTextsearchState;
 use Domain\Knowledge\Retrieval\Services\PgTextsearchSupport;
 use Domain\Llm\Actions\Catalog\SyncLlmFactsAction;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
+use Domain\Llm\Data\Catalog\ModelFactsData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
@@ -56,6 +62,7 @@ use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -79,17 +86,22 @@ use Filament\Schemas\Components\View;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\GridDirection;
 use Filament\Support\Enums\Width;
 use Filament\Support\Exceptions\Halt;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Renderless;
 
 /**
  * The setup of a new install: everything the app needs to work, step by
@@ -100,38 +112,44 @@ use Illuminate\Validation\ValidationException;
  *    keyword search: pg_textsearch is recommended, with why and how to get
  *    it, and turned on here when the database has it loaded. Next with a
  *    service down asks first ({@see serverDownAction()}); nothing is saved.
- * 2. Connect AI: a provider and its key (its model list checks it).
+ * 2. AI provider: the main provider and its key (its model list checks it);
+ *    more providers can be added later in Settings → AI providers.
  * 3. Models: the chat models agents can use (one or more, one of them the
  *    default for new agents; the provider's recommended ones are picked,
  *    {@see ModelPresets}), the model for quick tasks (guardrails, follow-up
  *    questions, titles…: a small one when the provider has one, else
  *    the chat model), the model for image descriptions (one that reads
- *    images; with none, image descriptions are off), the embedding service
+ *    images; with none, image descriptions are off), the model for chat
+ *    file uploads (one that reads PDF files and images; with none, chatters
+ *    cannot attach files), the embedding service
  *    (it starts on the provider's own when that fits; any other may be
  *    picked, with its key) and model (picked from OpenRouter's list there),
  *    checked with a test embedding, and the
  *    reranker: OpenRouter (its live list of rerankers), Cohere, a server
  *    of your own or none, checked with a test question.
- * 4. Documents: Mistral OCR, Azure Document Intelligence or none (the
- *    default). Without a reader, PDF, Word, slides and images cannot be
- *    uploaded.
- * 5. Websites: Firecrawl or none (the default). Without it, websites cannot
- *    be added as knowledge.
- * 6. Speech to text: Scaleway AI, OpenAI or none (the default). Without it,
- *    audio and video files cannot be uploaded and voice messages stay
- *    audio.
- * 7. Voice conversations: OpenAI's Realtime API or none (the default).
- *    It needs an OpenAI key even when agents answer with another provider;
- *    each agent still turns calls on in its own setup.
- * 8. Storage: this server (the default) or S3-compatible storage (checked
+ * 4. Ingestion, in two sections. Document reader: Mistral OCR, Azure
+ *    Document Intelligence or none (the default); without a reader, PDF,
+ *    Word, slides and images cannot be uploaded. Website import: Firecrawl
+ *    or none (the default); without it, websites cannot be added as
+ *    knowledge.
+ * 5. Voice, in two sections. Speech to text: Scaleway AI, OpenAI or none
+ *    (the default); without it, audio and video files cannot be uploaded
+ *    and voice messages stay audio. Voice conversations: OpenAI's Realtime
+ *    API or none (the default); it needs an OpenAI key even when agents
+ *    answer with another provider, and each agent still turns calls on in
+ *    its own setup.
+ * 6. Storage: this server (the default) or S3-compatible storage (checked
  *    with a test file).
- * 9. Mailer: none (the default) or a mail service. Without one nobody
+ * 7. Mailer: none (the default) or a mail service. Without one nobody
  *    receives sign-up, password or invitation emails.
- * 10. Final: "Complete", the choices made, and where the rest (chunking,
+ * 8. Observability: Spectra, the log of every AI call (the default), or
+ *    none. What it saves of each call is changed in Settings →
+ *    Observability.
+ * 9. Final: "Complete", the choices made, and where the rest (chunking,
  *    search…), which keeps its default values, is changed.
  *
- * Each step starts on the safe choice ("Not now", "This server") unless
- * it is set up already: what `.env` suggests is not a choice. The one
+ * Each step starts on the safe choice ("Not now", "This server", Spectra
+ * on) unless it is set up already: what `.env` suggests is not a choice. The one
  * exception is the reranker with OpenRouter as the provider: the same key
  * covers it, so it starts on OpenRouter. "Not now"
  * turns the service off, so "Automatic" does not turn it on behind the
@@ -151,6 +169,17 @@ class Setup extends SimplePage
     /** The option of a server of your own, beside the providers. */
     private const string CUSTOM = 'custom';
 
+    /** The sections of the models step that "Test" checks ({@see testAction()}). */
+    private const string TEST_CHAT = 'chat';
+
+    private const string TEST_EMBEDDINGS = 'embeddings';
+
+    private const string TEST_RERANKER = 'reranker';
+
+    private const string TEST_IMAGES = 'images';
+
+    private const string TEST_FILES = 'files';
+
     /** The option of no document reader, website import or speech to text. */
     private const string NOT_NOW = 'none';
 
@@ -160,12 +189,12 @@ class Setup extends SimplePage
      * chose uses the key typed there.
      */
     private const array KEY_FIELDS = [
-        'provider' => ['api_key', 'Connect AI'],
+        'provider' => ['api_key', 'AI provider'],
         'embedding_provider' => ['embedding_api_key', 'Models'],
         'reranker' => ['rerank_api_key', 'Models'],
-        'document_reader' => ['document_api_key', 'Documents'],
-        'transcriber' => ['transcription_api_key', 'Speech to text'],
-        'voice' => ['voice_api_key', 'Voice conversations'],
+        'document_reader' => ['document_api_key', 'Ingestion'],
+        'transcriber' => ['transcription_api_key', 'Voice'],
+        'voice' => ['voice_api_key', 'Voice'],
     ];
 
     /** The label of the server step, which Next leaves once a service down is confirmed. */
@@ -174,11 +203,14 @@ class Setup extends SimplePage
     /** The services the server step checks: what runs beside the web server. Storage and email have steps of their own. */
     private const array SERVER_SERVICES = [Service::Database, Service::Redis, Service::Queue, Service::Scheduler, Service::Realtime, Service::ModelDetails];
 
-    /** The label of the documents step, which Next leaves once "Not now" is confirmed. */
-    private const string DOCUMENTS_STEP = 'Documents';
+    /** The label of the ingestion step, which Next leaves once "Not now" for a document reader is confirmed. */
+    private const string INGESTION_STEP = 'Ingestion';
 
     /** The option of website import with Firecrawl. */
     private const string FIRECRAWL = 'firecrawl';
+
+    /** The option of recording AI calls with Spectra. */
+    private const string SPECTRA = 'spectra';
 
     #[\Override]
     protected Width|string|null $maxWidth = Width::SixExtraLarge;
@@ -192,8 +224,20 @@ class Setup extends SimplePage
     /** @var list<string> The provider's recommended chat models in the list ({@see ModelPresets::chatModels()}). */
     public array $suggestedModels = [];
 
+    /** @var list<string> The listed models models.dev says cannot call tools: agents that use them answer without tools. */
+    public array $modelsWithoutTools = [];
+
+    /** @var array<string, bool> Whether each listed model reads images, for the models the provider or models.dev says. */
+    public array $modelsReadingImages = [];
+
     /** Whether the list has a recommended model that reads images ({@see ModelPresets::visionModel()}). */
     public bool $listsVisionModel = false;
+
+    /** @var list<string> The listed models that read PDF files and images, as the provider or models.dev says. */
+    public array $modelsReadingFiles = [];
+
+    /** Whether the list has a recommended model for chat file uploads ({@see ModelPresets::fileModel()}). */
+    public bool $listsFileModel = false;
 
     /** How reading the model list went ({@see ModelListStatus}), or null before it was read. */
     public ?string $listStatus = null;
@@ -247,6 +291,8 @@ class Setup extends SimplePage
             'quick_task_model' => null,
             'describe_images' => false,
             'vision_model' => null,
+            'chat_files' => false,
+            'files_model' => null,
             'reranker' => $this->suggestedReranker($provider),
             'openrouter_rerank_model' => config('chatvia.ai.rerank.openrouter_model') ?: RerankModelCatalog::DEFAULT_OPENROUTER,
             'cohere_rerank_model' => config('services.cohere.rerank_model') ?: array_key_first(RerankModelCatalog::COHERE),
@@ -260,6 +306,7 @@ class Setup extends SimplePage
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
             'from_name' => 'ChatVia.ai',
+            'observability' => app(ObservabilitySettings::class)->spectra_enabled === false ? self::NOT_NOW : self::SPECTRA,
         ]);
     }
 
@@ -305,12 +352,11 @@ class Setup extends SimplePage
                 $this->serverStep(),
                 $this->connectStep(),
                 $this->modelsStep(),
-                $this->documentsStep(),
-                $this->websitesStep(),
-                $this->speechStep(),
+                $this->ingestionStep(),
                 $this->voiceStep(),
                 $this->storageStep(),
                 $this->emailStep(),
+                $this->observabilityStep(),
                 $this->finalStep(),
             ])
                 ->contained(false)
@@ -355,6 +401,7 @@ class Setup extends SimplePage
             ),
             quickTaskModel: $this->listedChoice($state, 'quick_task_model'),
             visionModel: (bool) ($state['describe_images'] ?? false) ? $this->listedChoice($state, 'vision_model') : null,
+            filesModel: (bool) ($state['chat_files'] ?? false) ? $this->listedChoice($state, 'files_model') : null,
             embeddingProvider: $embedding,
             embeddingModel: $this->filled($state, 'embedding_model'),
             embeddingApiKey: $embedding instanceof EmbeddingProvider && ! $this->reusesEarlierKey('embedding_provider', $state) ? $this->filled($state, 'embedding_api_key') : null,
@@ -376,6 +423,7 @@ class Setup extends SimplePage
                 fromAddress: $this->filled($state, 'from_address'),
                 fromName: $this->filled($state, 'from_name'),
             ),
+            recordAiCalls: ($state['observability'] ?? null) !== self::NOT_NOW,
         ));
 
         Cache::forget($this->modelCacheKey());
@@ -421,12 +469,12 @@ class Setup extends SimplePage
 
     private function connectStep(): Step
     {
-        return Step::make('Connect AI')
-            ->description('Your AI provider and its key')
+        return Step::make('AI provider')
+            ->description('Main AI provider')
             ->icon(Heroicon::OutlinedKey)
             ->schema([
-                Section::make('AI provider')
-                    ->description('Choose the main AI provider. Your agents use its models to answer.')
+                Section::make('Main AI provider')
+                    ->description('Choose the main AI provider. Your agents use its models to answer. This is just the one to start with: you can add more providers later in Settings → AI providers.')
                     ->icon(Heroicon::OutlinedSparkles)
                     ->schema($this->providerFields()),
             ])
@@ -448,14 +496,20 @@ class Setup extends SimplePage
                 Section::make('Chat models')
                     ->description('The models agents can use. Each agent picks one; new agents start with the default. You can add more later in Settings → AI models.')
                     ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                    ->key(self::TEST_CHAT, isInheritable: false)
+                    ->headerActions([$this->testAction(self::TEST_CHAT)])
                     ->schema($this->chatModelFields()),
                 Section::make('Embeddings')
                     ->description(fn (Get $get): string => $this->embeddingDescription($get))
                     ->icon(Heroicon::OutlinedCubeTransparent)
+                    ->key(self::TEST_EMBEDDINGS, isInheritable: false)
+                    ->headerActions([$this->testAction(self::TEST_EMBEDDINGS)])
                     ->schema([...$this->embeddingServiceFields(), ...$this->embeddingModelFields()]),
                 Section::make('Reranker')
                     ->description('Scores what search finds, and your tools, against each question, so agents use only the relevant ones.')
                     ->icon(Heroicon::OutlinedBarsArrowDown)
+                    ->key(self::TEST_RERANKER, isInheritable: false)
+                    ->headerActions([$this->testAction(self::TEST_RERANKER)])
                     ->schema($this->rerankerFields()),
             ])
             ->afterValidation(fn () => $this->showingErrors(function (): void {
@@ -464,11 +518,11 @@ class Setup extends SimplePage
             }));
     }
 
-    private function documentsStep(): Step
+    private function ingestionStep(): Step
     {
-        return Step::make(self::DOCUMENTS_STEP)
-            ->description('PDFs, Office files and images')
-            ->icon(Heroicon::OutlinedDocumentText)
+        return Step::make(self::INGESTION_STEP)
+            ->description('Documents and websites')
+            ->icon(Heroicon::OutlinedInboxArrowDown)
             ->schema([
                 Section::make('Document reader')
                     ->description('Reads PDF, Word, slides and images, with their tables, so agents can learn from them.')
@@ -499,19 +553,6 @@ class Setup extends SimplePage
                             ->required(fn (Get $get): bool => blank(config('services.azure_document_intelligence.endpoint')))
                             ->visible(fn (Get $get): bool => $get('document_reader') === AiProvider::Azure->value && ! $this->usesSavedKey('document_reader', $get)),
                     ]),
-            ])
-            ->afterValidation(fn () => $this->showingErrors(function (): void {
-                $this->checkReader();
-                $this->confirmNoReader();
-            }));
-    }
-
-    private function websitesStep(): Step
-    {
-        return Step::make('Websites')
-            ->description('Importing websites')
-            ->icon(Heroicon::OutlinedGlobeAlt)
-            ->schema([
                 Section::make('Website import')
                     ->description('To learn from a website, agents need Firecrawl. It finds the pages of the site and reads each one, also pages built with JavaScript.')
                     ->icon(Heroicon::OutlinedGlobeAlt)
@@ -541,15 +582,20 @@ class Setup extends SimplePage
                             ->visible(fn (Get $get): bool => $get('website_import') === self::FIRECRAWL),
                     ]),
             ])
-            ->afterValidation(fn () => $this->showingErrors($this->checkFirecrawl(...)));
+            ->afterValidation(fn () => $this->showingErrors(function (): void {
+                $this->checkReader();
+                $this->checkFirecrawl();
+                $this->confirmNoReader();
+            }));
     }
 
-    private function speechStep(): Step
+    private function voiceStep(): Step
     {
-        $services = array_map(AiProvider::from(...), $this->speechOptions());
+        $speech = array_map(AiProvider::from(...), $this->speechOptions());
+        $voice = array_map(AiProvider::from(...), $this->voiceOptions());
 
-        return Step::make('Speech to text')
-            ->description('Audio and video files')
+        return Step::make('Voice')
+            ->description('Speech to text and live calls')
             ->icon(Heroicon::OutlinedMicrophone)
             ->schema([
                 Section::make('Speech to text')
@@ -559,11 +605,11 @@ class Setup extends SimplePage
                         Radio::make('transcriber')
                             ->hiddenLabel()
                             ->options([
-                                ...collect($services)->mapWithKeys(fn (AiProvider $service): array => [$service->value => $service->label()])->all(),
+                                ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => $service->label()])->all(),
                                 self::NOT_NOW => 'Not now',
                             ])
                             ->descriptions([
-                                ...collect($services)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "Whisper on {$service->label()}."])->all(),
+                                ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "Whisper on {$service->label()}."])->all(),
                                 self::NOT_NOW => 'People cannot upload audio or video files, and voice messages are not turned into text.',
                             ])
                             ->required()
@@ -571,18 +617,6 @@ class Setup extends SimplePage
                         $this->keyCallout('transcriber'),
                         $this->serviceKeyField('transcription_api_key', 'transcriber', 'getSpeechKey'),
                     ]),
-            ])
-            ->afterValidation(fn () => $this->showingErrors(fn () => $this->checkServiceKey('transcriber', 'transcription_api_key')));
-    }
-
-    private function voiceStep(): Step
-    {
-        $services = array_map(AiProvider::from(...), $this->voiceOptions());
-
-        return Step::make('Voice conversations')
-            ->description('Live calls with agents')
-            ->icon(Heroicon::OutlinedPhone)
-            ->schema([
                 Section::make('Voice conversations')
                     ->description('Visitors can talk with an agent in a live call, in the hosted chat and the chat widget. The agent listens, answers out loud and uses its tools. This uses the OpenAI Realtime API, so it needs an OpenAI key, also when your agents answer with another provider.')
                     ->icon(Heroicon::OutlinedPhone)
@@ -590,11 +624,11 @@ class Setup extends SimplePage
                         Radio::make('voice')
                             ->hiddenLabel()
                             ->options([
-                                ...collect($services)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "{$service->label()} Realtime"])->all(),
+                                ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "{$service->label()} Realtime"])->all(),
                                 self::NOT_NOW => 'Not now',
                             ])
                             ->descriptions([
-                                ...collect($services)->mapWithKeys(fn (AiProvider $service): array => [$service->value => 'Each agent still turns calls on in its own setup. A call costs much more than a typed chat.'])->all(),
+                                ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => 'Each agent still turns calls on in its own setup. A call costs much more than a typed chat.'])->all(),
                                 self::NOT_NOW => 'Visitors chat by typing. The call button is hidden. You can turn calls on later in Settings → AI models.',
                             ])
                             ->required()
@@ -603,7 +637,10 @@ class Setup extends SimplePage
                         $this->serviceKeyField('voice_api_key', 'voice', 'getVoiceKey'),
                     ]),
             ])
-            ->afterValidation(fn () => $this->showingErrors(fn () => $this->checkServiceKey('voice', 'voice_api_key')));
+            ->afterValidation(fn () => $this->showingErrors(function (): void {
+                $this->checkServiceKey('transcriber', 'transcription_api_key');
+                $this->checkServiceKey('voice', 'voice_api_key');
+            }));
     }
 
     private function storageStep(): Step
@@ -702,6 +739,33 @@ class Setup extends SimplePage
             ]);
     }
 
+    private function observabilityStep(): Step
+    {
+        return Step::make('Observability')
+            ->description('A log of every AI call')
+            ->icon(Heroicon::OutlinedEye)
+            ->schema([
+                Section::make('Spectra')
+                    ->description('Spectra keeps a log of every call ChatVia.ai makes to an AI service: which model answered, how many tokens it used, what it cost and how long it took. It helps you see what your agents cost, and find out why an answer was slow or wrong. The log stays on this server, in a database of its own, and only admins can open it.')
+                    ->icon(Heroicon::OutlinedCpuChip)
+                    ->schema([
+                        Radio::make('observability')
+                            ->hiddenLabel()
+                            ->options([self::SPECTRA => 'Record AI calls with Spectra', self::NOT_NOW => 'Not now'])
+                            ->descriptions([
+                                self::SPECTRA => 'Recommended. It also saves the prompts and replies, so you can read a whole call. Choose what it saves, and for how many days, in Settings → Observability.',
+                                self::NOT_NOW => 'No AI call is logged, so Spectra shows no costs or times. You can turn it on later in Settings → Observability.',
+                            ])
+                            ->required(),
+                        Callout::make('Spectra is left out of this install')
+                            ->description('The server\'s .env file has SPECTRA_ENABLED=false, so Spectra cannot record, whatever you choose here. Remove that line to use it.')
+                            ->icon(Heroicon::OutlinedExclamationTriangle)
+                            ->warning()
+                            ->visible(fn (): bool => ! app(ToolRecording::class)->spectraInstalled()),
+                    ]),
+            ]);
+    }
+
     private function finalStep(): Step
     {
         return Step::make('Final')
@@ -730,6 +794,7 @@ class Setup extends SimplePage
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
                                 'Settings → Sign-in' => 'Sign-in with other accounts.',
                                 'Settings → Security' => 'The bot check on public forms, guardrails, tool call limits and the security log.',
+                                'Settings → Observability' => 'Pulse, and what Spectra saves of each AI call and for how many days.',
                             ]]),
                     ]),
             ]);
@@ -761,16 +826,20 @@ class Setup extends SimplePage
             'Image descriptions' => (bool) $get('describe_images') && filled($get('vision_model')) && $this->models !== []
                 ? ($this->models[$get('vision_model')] ?? (string) $get('vision_model'))
                 : 'Off',
+            'Chat file uploads' => (bool) $get('chat_files') && filled($get('files_model')) && $this->models !== []
+                ? ($this->models[$get('files_model')] ?? (string) $get('files_model'))
+                : 'Off',
             'Embeddings' => $embedding instanceof EmbeddingProvider
                 ? $embedding->label().(filled($get('embedding_model')) ? " · {$get('embedding_model')}" : '')
                 : 'Already set up',
             'Reranker' => $this->rerankerSummary(),
-            'Documents' => AiProvider::tryFrom((string) $get('document_reader'))?->label() ?? 'Not now',
-            'Websites' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
+            'Document reader' => AiProvider::tryFrom((string) $get('document_reader'))?->label() ?? 'Not now',
+            'Website import' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
             'Speech to text' => AiProvider::tryFrom((string) $get('transcriber'))?->label() ?? 'Not now',
             'Voice conversations' => ($voice = AiProvider::tryFrom((string) $get('voice'))) instanceof AiProvider ? "{$voice->label()} Realtime" : 'Not now',
             'Storage' => $get('storage_driver') === 's3' ? 'S3-compatible storage' : 'This server',
             'Mailer' => ! $mailer instanceof MailProvider || $mailer === MailProvider::Log ? 'Not now' : $mailer->label(),
+            'Observability' => $get('observability') === self::NOT_NOW ? 'Not now' : 'Spectra',
         ];
     }
 
@@ -1029,9 +1098,15 @@ class Setup extends SimplePage
             ViewField::make('chat_models')
                 ->label('Models agents can use')
                 ->view('filament.setup.chat-models')
-                ->viewData(fn (Get $get): array => ['chosen' => collect((array) $get('chat_models'))
-                    ->mapWithKeys(fn (string $id): array => [$id => $this->modelName($id)])
-                    ->all()])
+                ->viewData(fn (Get $get): array => [
+                    'chosen' => collect((array) $get('chat_models'))
+                        ->mapWithKeys(fn (string $id): array => [$id => $this->modelName($id)])
+                        ->all(),
+                    'withoutTools' => $this->modelsWithoutTools,
+                    'logos' => collect((array) $get('chat_models'))
+                        ->mapWithKeys(fn (string $id): array => [$id => ModelLogo::url($this->chatKind((array) $this->data), $id)])
+                        ->all(),
+                ])
                 ->required(fn (): bool => $this->models !== [])
                 ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
                     if (collect((array) $value)->contains(fn (mixed $id): bool => ! array_key_exists((string) $id, $this->models))) {
@@ -1041,16 +1116,25 @@ class Setup extends SimplePage
                 ->validationMessages(['required' => 'Pick at least one model for your agents.'])
                 ->helperText(fn (): string => count($this->models).' chat models to choose from. The suggested ones call tools well.')
                 ->visible(fn (): bool => $this->models !== []),
+            Callout::make(fn (Get $get): string => $this->noToolsHeading($get))
+                ->description(fn (Get $get): string => count($this->chosenWithoutTools($get)) === 1
+                    ? 'Tools will not work for agents that use it: they answer without them. You can still keep it.'
+                    : 'Tools will not work for agents that use them: they answer without them. You can still keep them.')
+                ->icon(Heroicon::OutlinedWrenchScrewdriver)
+                ->warning()
+                ->visible(fn (Get $get): bool => $this->chosenWithoutTools($get) !== []),
             Select::make('default_model')
                 ->label('Default for new agents')
-                ->options(fn (Get $get): array => array_intersect_key($this->models, array_flip((array) $get('chat_models'))))
+                ->options(fn (Get $get): array => $this->modelOptions((array) $get('chat_models')))
+                ->allowHtml()
                 ->native(false)
                 ->selectablePlaceholder(false)
                 ->required(fn (): bool => $this->models !== [])
                 ->visible(fn (Get $get): bool => count((array) $get('chat_models')) > 1),
             Select::make('quick_task_model')
                 ->label('Model for quick tasks')
-                ->options(fn (): array => $this->models)
+                ->options(fn (): array => $this->modelOptions())
+                ->allowHtml()
                 ->in(fn (): array => array_keys($this->models))
                 ->searchable()
                 ->placeholder('Same as the chat model')
@@ -1063,12 +1147,29 @@ class Setup extends SimplePage
                 ->visible(fn (): bool => $this->models !== []),
             Select::make('vision_model')
                 ->label('Model for image descriptions')
-                ->options(fn (): array => $this->models)
-                ->in(fn (): array => array_keys($this->models))
+                ->options(fn (): array => $this->modelOptions($this->imageModels()))
+                ->allowHtml()
+                ->in(fn (): array => $this->imageModels())
                 ->searchable()
                 ->required()
-                ->helperText('A model that reads images.')
+                ->helperText(fn (): string => in_array(true, $this->modelsReadingImages, true) ? 'Only the models that read images are listed.' : 'A model that reads images.')
+                ->hintAction($this->testAction(self::TEST_IMAGES))
                 ->visible(fn (Get $get): bool => $this->models !== [] && (bool) $get('describe_images')),
+            Toggle::make('chat_files')
+                ->label('Chat file uploads')
+                ->live()
+                ->helperText(fn (Get $get): string => $this->filesHelp($get))
+                ->visible(fn (): bool => $this->models !== []),
+            Select::make('files_model')
+                ->label('Model for chat file uploads')
+                ->options(fn (): array => $this->modelOptions($this->fileModels()))
+                ->allowHtml()
+                ->in(fn (): array => $this->fileModels())
+                ->searchable()
+                ->required()
+                ->helperText('Only the models that read both PDF files and images are listed.')
+                ->hintAction($this->testAction(self::TEST_FILES))
+                ->visible(fn (Get $get): bool => $this->models !== [] && (bool) $get('chat_files')),
             Callout::make('Image descriptions are off')
                 ->description('Pictures inside PDF files and other documents are not described, so search cannot find what they show. The text of your documents is still read. Add a model that reads images later in Settings → AI models, then turn on Settings → Knowledge → AI enhancement → Describe images.')
                 ->icon(Heroicon::OutlinedPhoto)
@@ -1245,10 +1346,15 @@ class Setup extends SimplePage
                 CheckboxList::make('models')
                     ->hiddenLabel()
                     ->options(fn (): array => $this->modelChoices())
+                    ->allowHtml()
                     ->descriptions(fn (): array => $this->modelChoiceDescriptions())
+                    // One column, row by row: Filament's default fills CSS columns, which
+                    // in a list of fixed height spill to the side and scroll sideways.
+                    ->gridDirection(GridDirection::Row)
                     ->searchable()
                     ->searchPrompt('Search by name or id')
                     ->noSearchResultsMessage('No model matches your search.')
+                    ->belowContent(fn (CheckboxList $component): HtmlString => $this->pickedCount($component->getStatePath()))
                     ->required()
                     ->validationMessages(['required' => 'Pick at least one model for your agents.'])
                     // A long list keeps its height while searching, so the dialog does not jump.
@@ -1272,7 +1378,117 @@ class Setup extends SimplePage
     }
 
     /**
-     * Asked when Next leaves the documents step on "Not now": without a
+     * How many models are ticked out of all listed, counted in the browser as
+     * boxes are ticked.
+     */
+    private function pickedCount(string $statePath): HtmlString
+    {
+        $total = count($this->models);
+
+        return new HtmlString(sprintf(
+            '<p class="cv-model-picker__count" x-data x-text="(($wire.get(%s) ?? []).length) + %s"></p>',
+            e(Js::from($statePath)),
+            e(Js::from(" of {$total} ".($total === 1 ? 'model' : 'models').' picked')),
+        ));
+    }
+
+    /**
+     * "Test" on a section of the models step (and on the models for image
+     * descriptions and chat file uploads): a window that asks each model to
+     * answer now, with the key typed, one after another as it opens. Each row
+     * turns from a spinner to a tick, a warning when the provider is busy, or
+     * a cross with the reason ({@see testModel()}). Shown once there is a
+     * model to test.
+     */
+    private function testAction(string $section): Action
+    {
+        return Action::make('test'.Str::studly($section))
+            ->label('Test')
+            ->link()
+            ->icon(Heroicon::OutlinedPlayCircle)
+            ->modalHeading(match ($section) {
+                self::TEST_CHAT => 'Testing the chat models',
+                self::TEST_EMBEDDINGS => 'Testing the embedding model',
+                self::TEST_IMAGES => 'Testing the model for image descriptions',
+                self::TEST_FILES => 'Testing the model for chat file uploads',
+                default => 'Testing the reranker',
+            })
+            ->modalDescription(match ($section) {
+                self::TEST_IMAGES => 'It is shown this picture of a cat and asked to describe it, with the key you entered.',
+                self::TEST_FILES => 'It is sent a small PDF file of one page and asked to summarize it, with the key you entered.',
+                default => 'Each one is asked to answer now, with the key you entered.',
+            })
+            ->modalWidth(Width::Large)
+            ->modalContent(fn (): ViewContract => view('filament.setup.model-tests', [
+                'section' => $section,
+                'rows' => $this->testRows($section),
+                'image' => $section === self::TEST_IMAGES ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('images/setup/test-cat.png'))) : null,
+            ]))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close')
+            ->visible(fn (): bool => $this->testRows($section) !== []);
+    }
+
+    /**
+     * What a section's test checks, each by a key and its label (HTML, with
+     * the model's logo): the chosen chat models, the embedding model, the
+     * reranker, or the model for image descriptions; none when nothing is
+     * chosen.
+     *
+     * @return list<array{key: string, label: string}>
+     */
+    private function testRows(string $section): array
+    {
+        $state = (array) $this->data;
+
+        return match ($section) {
+            self::TEST_CHAT => array_map(fn (RemoteModelData $model): array => [
+                'key' => $model->id,
+                'label' => ModelLogo::label($this->modelName($model->id), $this->chatKind($state), $model->id),
+            ], $this->chosenModels($state)),
+            self::TEST_IMAGES => (bool) ($state['describe_images'] ?? false) && filled($state['vision_model'] ?? null) && $this->models !== []
+                ? [['key' => (string) $state['vision_model'], 'label' => ModelLogo::label($this->modelName((string) $state['vision_model']), $this->chatKind($state), (string) $state['vision_model'])]]
+                : [],
+            self::TEST_FILES => (bool) ($state['chat_files'] ?? false) && filled($state['files_model'] ?? null) && $this->models !== []
+                ? [['key' => (string) $state['files_model'], 'label' => ModelLogo::label($this->modelName((string) $state['files_model']), $this->chatKind($state), (string) $state['files_model'])]]
+                : [],
+            self::TEST_EMBEDDINGS => ($provider = $this->embeddingProvider($state)) instanceof EmbeddingProvider
+                ? [['key' => self::TEST_EMBEDDINGS, 'label' => e($provider->label().(filled($state['embedding_model'] ?? null) ? " · {$state['embedding_model']}" : ''))]]
+                : [],
+            default => ($reranker = $this->rerankerData($state))->isOn()
+                ? [['key' => self::TEST_RERANKER, 'label' => e((AiProvider::tryFrom($reranker->driver)?->label() ?? 'Your reranker server').(filled($reranker->model) ? " · {$reranker->model}" : ''))]]
+                : [],
+        };
+    }
+
+    /**
+     * Checks one row of a section's test, called by the test window as it
+     * opens; nothing on the page is drawn again. Only what the section
+     * tests is asked: a chosen chat model, the model for image descriptions,
+     * the model for chat file uploads.
+     *
+     * @return array{state: string, message: string|null}
+     */
+    #[Renderless]
+    public function testModel(string $section, string $key): array
+    {
+        $state = $this->form->getRawState();
+        $testable = in_array($key, array_column($this->testRows($section), 'key'), true);
+
+        $check = match (true) {
+            ! $testable => ModelCheckData::failed('This is not one of the models to test.'),
+            $section === self::TEST_CHAT => app(ChatModelCheck::class)->check($this->draftProvider($state), $key),
+            $section === self::TEST_IMAGES => app(ChatModelCheck::class)->checkImage($this->draftProvider($state), $key),
+            $section === self::TEST_FILES => app(ChatModelCheck::class)->checkFile($this->draftProvider($state), $key),
+            $section === self::TEST_EMBEDDINGS => ($failure = $this->embeddingFailure($state)) !== null ? ModelCheckData::failed($failure[1]) : ModelCheckData::passed(),
+            default => ($failure = $this->rerankerFailure($state)) !== null ? ModelCheckData::failed($failure[1]) : ModelCheckData::passed(),
+        };
+
+        return ['state' => $check->state, 'message' => $check->message];
+    }
+
+    /**
+     * Asked when Next leaves the ingestion step on "Not now" for a document reader: without a
      * reader, PDF, Word, slides and images cannot be uploaded. Going on
      * moves the wizard to the next step; going back keeps the choice open.
      */
@@ -1289,7 +1505,7 @@ class Setup extends SimplePage
             ->color('warning')
             ->action(function (): void {
                 $this->noReaderConfirmed = true;
-                $this->leaveStep(self::DOCUMENTS_STEP);
+                $this->leaveStep(self::INGESTION_STEP);
             });
     }
 
@@ -1456,10 +1672,25 @@ class Setup extends SimplePage
             ]);
         }
 
+        if (($failure = $this->embeddingFailure($state)) !== null) {
+            throw ValidationException::withMessages([$failure[0] => $failure[1]]);
+        }
+    }
+
+    /**
+     * Embeds a test text with the embedding service, model and key chosen;
+     * null when it works (or there is no service to check), else the field
+     * to mark and why. A pass is kept, so it is not checked again.
+     *
+     * @param  array<string, mixed>  $state
+     * @return array{string, string}|null
+     */
+    private function embeddingFailure(array $state): ?array
+    {
         $provider = $this->embeddingProvider($state);
 
         if (! $provider instanceof EmbeddingProvider) {
-            return;
+            return null;
         }
 
         $keyField = $this->earlierKeyField('embedding_provider', $state) ?? 'embedding_api_key';
@@ -1468,7 +1699,7 @@ class Setup extends SimplePage
         $fingerprint = hash('sha256', implode("\n", [$provider->value, $model ?? '', (string) $key]));
 
         if ($this->embeddingCheckedFor === $fingerprint) {
-            return;
+            return null;
         }
 
         $result = app(EmbeddingCheck::class)->check($provider, $model, filled($key) ? (string) $key : null, $this->storedDimensions());
@@ -1476,10 +1707,12 @@ class Setup extends SimplePage
         if (! $result->ok()) {
             $field = $result->status === EmbeddingCheckStatus::KeyRefused ? "data.{$keyField}" : 'data.embedding_model';
 
-            throw ValidationException::withMessages([$field => $result->message($provider->label(), $this->storedDimensions())]);
+            return [$field, $result->message($provider->label(), $this->storedDimensions())];
         }
 
         $this->embeddingCheckedFor = $fingerprint;
+
+        return null;
     }
 
     /**
@@ -1489,11 +1722,25 @@ class Setup extends SimplePage
      */
     private function checkReranker(): void
     {
-        $state = $this->form->getRawState();
+        if (($failure = $this->rerankerFailure($this->form->getRawState())) !== null) {
+            throw ValidationException::withMessages([$failure[0] => $failure[1]]);
+        }
+    }
+
+    /**
+     * Ranks a test question with the reranker, model and key chosen; null
+     * when it works (or none is chosen), else the field to mark and why. A
+     * pass is kept, so it is not checked again.
+     *
+     * @param  array<string, mixed>  $state
+     * @return array{string, string}|null
+     */
+    private function rerankerFailure(array $state): ?array
+    {
         $chosen = $this->rerankerData($state);
 
         if (! $chosen->isOn()) {
-            return;
+            return null;
         }
 
         $earlier = $this->earlierKeyField('reranker', $state);
@@ -1502,7 +1749,7 @@ class Setup extends SimplePage
         $fingerprint = hash('sha256', implode("\n", [$reranker->driver, $reranker->model ?? '', $reranker->apiKey ?? '', $reranker->url ?? '']));
 
         if ($this->rerankerCheckedFor === $fingerprint) {
-            return;
+            return null;
         }
 
         $check = app(RerankerCheck::class)->check($reranker);
@@ -1514,13 +1761,15 @@ class Setup extends SimplePage
                 default => "{$reranker->driver}_rerank_model",
             };
 
-            throw ValidationException::withMessages(["data.{$field}" => $check->message]);
+            return ["data.{$field}", (string) $check->message];
         }
 
         $this->rerankerCheckedFor = $fingerprint;
+
+        return null;
     }
 
-    /** The documents step's check: the reader's key (and Azure's endpoint) work. */
+    /** The ingestion step's check: the reader's key (and Azure's endpoint) work. */
     private function checkReader(): void
     {
         $state = $this->form->getRawState();
@@ -1585,7 +1834,7 @@ class Setup extends SimplePage
         }
     }
 
-    /** The websites step's check: Firecrawl accepts the key typed. */
+    /** The ingestion step's check: Firecrawl accepts the key typed. */
     private function checkFirecrawl(): void
     {
         $state = $this->form->getRawState();
@@ -1602,8 +1851,8 @@ class Setup extends SimplePage
     }
 
     /**
-     * The check of a step that picks an AI provider's service (speech to
-     * text, voice): its key works, the one typed here or in an earlier step,
+     * The check of a section that picks an AI provider's service (speech to
+     * text, voice conversations): its key works, the one typed here or in an earlier step,
      * or the saved one.
      */
     private function checkServiceKey(string $choice, string $keyField): void
@@ -1678,6 +1927,20 @@ class Setup extends SimplePage
             $model->id => $model->name === $model->id ? $model->id : "{$model->name} ({$model->id})",
         ])->all();
 
+        $catalog = app(ModelsDevCatalog::class);
+        $facts = collect($list->models)->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => $catalog->facts($draft->kind, $model->id)]);
+        $this->modelsWithoutTools = $facts->filter(fn (?ModelFactsData $fact): bool => $fact?->callsTools === false)->keys()->map(fn (string|int $id): string => (string) $id)->values()->all();
+        $this->modelsReadingImages = collect($list->models)
+            ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => $model->features['vision'] ?? $facts[$model->id]?->readsImages])
+            ->filter(fn (?bool $reads): bool => $reads !== null)
+            ->all();
+        $this->modelsReadingFiles = collect($list->models)
+            ->filter(fn (RemoteModelData $model): bool => ($model->features['files'] ?? $facts[$model->id]?->readsFiles) === true
+                && ($model->features['vision'] ?? $facts[$model->id]?->readsImages) === true)
+            ->map(fn (RemoteModelData $model): string => $model->id)
+            ->values()
+            ->all();
+
         $presets = app(ModelPresets::class);
         $account = $this->account($state);
         $suggested = array_map(fn (RemoteModelData $model): string => $model->id, $presets->chatModels($account, $list->models));
@@ -1698,6 +1961,14 @@ class Setup extends SimplePage
         if (blank($this->data['vision_model'] ?? null)) {
             $this->data['vision_model'] = $vision?->id;
             $this->data['describe_images'] = $vision instanceof RemoteModelData;
+        }
+
+        $files = $presets->fileModel($account, $list->models);
+        $this->listsFileModel = $files instanceof RemoteModelData;
+
+        if (blank($this->data['files_model'] ?? null)) {
+            $this->data['files_model'] = $files?->id;
+            $this->data['chat_files'] = $files instanceof RemoteModelData;
         }
     }
 
@@ -1973,24 +2244,38 @@ class Setup extends SimplePage
             $account = $this->chosenAccount($choice, $get)?->label();
             $step = $this->stepWithTypedKey($choice, $get);
 
-            return $step !== null
-                ? "Uses the {$account} key you entered in {$step}"
-                : "Uses your saved {$account} key".($this->chosenAccount($choice, $get)?->needsBaseUrl() ? ' and endpoint' : '');
-        })
-            ->description(fn (Get $get): ?string => $this->stepWithTypedKey($choice, $get) === null ? 'You can change it in Settings → AI providers.' : null)
+            return match ($step) {
+                null => "Uses your saved {$account} key".($this->chosenAccount($choice, $get)?->needsBaseUrl() ? ' and endpoint' : ''),
+                self::KEY_FIELDS[$choice][1] => "Uses the {$account} key above",
+                default => "Uses the {$account} key you entered in {$step}",
+            };
+        })->description(fn (Get $get): ?string => $this->stepWithTypedKey($choice, $get) === null ? 'You can change it in Settings → AI providers.' : null)
             ->icon(Heroicon::OutlinedKey)
             ->info()
             ->visible(fn (Get $get): bool => $this->reusesEarlierKey($choice, $get) || $this->usesSavedKey($choice, $get));
     }
 
-    /** The earlier step where the key of this field's account was typed; null when it was left blank there (the saved one is used) or not asked. */
+    /**
+     * The step where the key of this field's account is typed; null when it
+     * was left blank there (the saved one is used) or not asked. On this
+     * field's own step the key field shows above it, typed or not yet: it is
+     * asked whenever no key is saved.
+     */
     private function stepWithTypedKey(string $choice, Get $get): ?string
     {
         $earlier = $this->earlierKeyField($choice, $get);
 
-        return $earlier !== null && filled($get($earlier))
-            ? array_find(self::KEY_FIELDS, fn (array $field): bool => $field[0] === $earlier)[1] ?? null
-            : null;
+        if ($earlier === null) {
+            return null;
+        }
+
+        $step = array_find(self::KEY_FIELDS, fn (array $field): bool => $field[0] === $earlier)[1] ?? null;
+
+        if ($step === self::KEY_FIELDS[$choice][1]) {
+            return $this->chosenAccount($choice, $get)?->isConnected() ? null : $step;
+        }
+
+        return filled($get($earlier)) ? $step : null;
     }
 
     /** The key of the service chosen in a field, asked only when no earlier step has it and none is saved. */
@@ -2092,6 +2377,9 @@ class Setup extends SimplePage
     {
         $this->models = [];
         $this->suggestedModels = [];
+        $this->modelsWithoutTools = [];
+        $this->modelsReadingImages = [];
+        $this->modelsReadingFiles = [];
         $this->listStatus = null;
         $this->listMessage = null;
         $this->listedFor = null;
@@ -2100,7 +2388,31 @@ class Setup extends SimplePage
         $this->data['quick_task_model'] = null;
         $this->data['vision_model'] = null;
         $this->data['describe_images'] = false;
+        $this->data['files_model'] = null;
+        $this->data['chat_files'] = false;
         $this->listsVisionModel = false;
+        $this->listsFileModel = false;
+    }
+
+    /**
+     * The chosen chat models that cannot call tools, by name.
+     *
+     * @return list<string>
+     */
+    private function chosenWithoutTools(Get $get): array
+    {
+        return collect((array) $get('chat_models'))
+            ->map(fn (mixed $id): string => (string) $id)
+            ->intersect($this->modelsWithoutTools)
+            ->map(fn (string $id): string => $this->modelName($id))
+            ->values()
+            ->all();
+    }
+
+    /** The warning over the chosen models that cannot call tools, naming them. */
+    private function noToolsHeading(Get $get): string
+    {
+        return Arr::join($this->chosenWithoutTools($get), ', ', ' and ').' cannot call tools';
     }
 
     /** A listed model's name: its label without the id at its end. */
@@ -2110,8 +2422,9 @@ class Setup extends SimplePage
     }
 
     /**
-     * The listed models for "Manage models", by name: the chosen ones first,
-     * then the suggested ones, then the rest as the provider lists them.
+     * The listed models for "Manage models", by name with their logos: the
+     * chosen ones first, then the suggested ones, then the rest as the
+     * provider lists them.
      *
      * @return array<string, string>
      */
@@ -2122,13 +2435,75 @@ class Setup extends SimplePage
         return collect(array_keys($this->models))
             ->map(fn (string|int $id): string => (string) $id)
             ->sortBy(fn (string $id, int $position): int => $first[$id] ?? count($first) + $position)
-            ->mapWithKeys(fn (string $id): array => [$id => $this->modelName($id)])
+            ->mapWithKeys(fn (string $id): array => [$id => ModelLogo::label($this->modelName($id), $this->chatKind((array) $this->data), $id)])
             ->all();
     }
 
     /**
+     * The listed models that read both PDF files and images, so they can
+     * answer about the file a chatter attaches. Only what the provider or
+     * models.dev says counts: a model sent a file it cannot read answers
+     * about nothing.
+     *
+     * @return list<string>
+     */
+    private function fileModels(): array
+    {
+        return array_values(array_filter(array_map(strval(...), array_keys($this->models)), fn (string $id): bool => in_array($id, $this->modelsReadingFiles, true)));
+    }
+
+    /**
+     * The help under "Chat file uploads": what it does, and, while it is
+     * off, why: the admin turned it off, or no recommended model reads both
+     * PDF files and images.
+     */
+    private function filesHelp(Get $get): string
+    {
+        $does = 'Lets chatters attach a PDF file or an image in a chat and ask about it. Each agent still allows uploads in its own settings. An agent whose model reads both answers itself; for the others, this model does.';
+
+        if ((bool) $get('chat_files')) {
+            return $does;
+        }
+
+        $why = $this->listsFileModel
+            ? 'Off: no agent can offer uploads.'
+            : 'None of the recommended models of this provider reads both, so uploads are off.';
+
+        return "{$does} {$why} You can turn them on later in Settings → AI models → Documents.";
+    }
+
+    /**
+     * The listed models that can describe images: the ones known to read
+     * them, or, when no model is known to, every one not known not to.
+     *
+     * @return list<string>
+     */
+    private function imageModels(): array
+    {
+        $ids = array_map(strval(...), array_keys($this->models));
+        $readers = array_values(array_filter($ids, fn (string $id): bool => ($this->modelsReadingImages[$id] ?? null) === true));
+
+        return $readers !== [] ? $readers : array_values(array_filter($ids, fn (string $id): bool => ($this->modelsReadingImages[$id] ?? null) !== false));
+    }
+
+    /**
+     * The listed models (all of them, or the ids given, in the list's order)
+     * as choices: each label with the model's logo.
+     *
+     * @param  list<string>|null  $ids
+     * @return array<string, string>
+     */
+    private function modelOptions(?array $ids = null): array
+    {
+        $kind = $this->chatKind((array) $this->data);
+        $models = $ids === null ? $this->models : array_intersect_key($this->models, array_flip($ids));
+
+        return collect($models)->map(fn (string $label, string|int $id): string => ModelLogo::label($label, $kind, (string) $id))->all();
+    }
+
+    /**
      * Under each model in "Manage models": its id, when its name differs,
-     * and whether it is suggested.
+     * whether it is suggested, and that tools do not work with it.
      *
      * @return array<string, string>
      */
@@ -2139,6 +2514,7 @@ class Setup extends SimplePage
             ->mapWithKeys(fn (string $id): array => [$id => collect([
                 $this->modelName($id) === $id ? null : $id,
                 in_array($id, $this->suggestedModels, true) ? 'Suggested: calls tools well' : null,
+                in_array($id, $this->modelsWithoutTools, true) ? 'No tool calling: tools will not work' : null,
             ])->filter()->implode(' · ')])
             ->filter()
             ->all();

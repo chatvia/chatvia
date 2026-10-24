@@ -761,6 +761,11 @@ declare namespace Domain {
                     finished_at: string | null;
                     created_at: string;
                 };
+                export type EvalSourceCoverageData = {
+                    total: number;
+                    tested: number;
+                    untested: string[];
+                };
             }
         }
         namespace Enums {
@@ -1319,6 +1324,7 @@ declare namespace Domain {
                 | 'message_limit_reached'
                 | 'rate_limit_exceeded'
                 | 'eval_run_finished'
+                | 'eval_regressed'
                 | 'data_export_ready'
                 | 'ai_model_unavailable';
         }

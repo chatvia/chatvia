@@ -78,6 +78,7 @@ return new class extends Migration
             $table->string('actual_output_sha256', 64)->nullable();
             $table->boolean('actual_output_truncated')->default(false);
             $table->jsonb('sources_used')->nullable();
+            $table->jsonb('source_refs')->nullable();
             $table->jsonb('tools_called')->nullable();
             $table->text('judge_rationale')->nullable();
             $table->unsignedInteger('latency_ms')->nullable();

@@ -11,6 +11,8 @@ use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Models\Conversation;
 use Domain\Evaluation\Actions\FinalizeEvalRunAction;
+use Domain\Evaluation\Models\EvalCase;
+use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Events\FormSubmitted;
@@ -229,6 +231,21 @@ it('tells the person who started an eval run that it finished', function (): voi
 
     expect(nsRecipients(NotificationKind::EvalRunFinished))->toBe([$evaluator->id])
         ->and(UserNotification::query()->sole()->content->detail)->toBe('completed');
+});
+
+it('tells the people who see the evals when a run fails a case that passed before', function (): void {
+    $viewer = teammateWithPermissions($this->owner, ['agent.evals.view']);
+    $case = EvalCase::factory()->forAgent($this->agent)->create(['name' => 'Refunds']);
+    $before = EvalRun::factory()->forAgent($this->agent)->completed()->create();
+    EvalResult::create(['run_id' => $before->id, 'case_id' => $case->id, 'case_name' => 'Refunds', 'scorer_type' => 'contains', 'has_passed' => true]);
+    $now = EvalRun::factory()->forAgent($this->agent)->create();
+    EvalResult::create(['run_id' => $now->id, 'case_id' => $case->id, 'case_name' => 'Refunds', 'scorer_type' => 'contains', 'has_passed' => false]);
+
+    app(FinalizeEvalRunAction::class)->execute($now->fresh());
+
+    expect(nsRecipients(NotificationKind::EvalRegressed))->toEqualCanonicalizing([$this->owner->id, $viewer->id])
+        ->and(UserNotification::query()->where('kind', NotificationKind::EvalRegressed)->first()->content->subject)->toBe('1')
+        ->and(UserNotification::query()->where('kind', NotificationKind::EvalRegressed)->first()->content->detail)->toBe('Refunds');
 });
 
 it('puts a new-device sign-in in the person\'s own notifications, naming the browser', function (): void {

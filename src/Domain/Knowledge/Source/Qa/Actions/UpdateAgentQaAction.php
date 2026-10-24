@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Qa\Actions;
 
+use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
@@ -19,6 +20,8 @@ class UpdateAgentQaAction
             'questions' => $data->questionLines(),
             'answer' => $data->answer,
         ]);
+
+        AgentAnswersChanged::dispatch($qa->agent_id);
 
         return $qa;
     }

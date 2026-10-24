@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\Qa\Actions;
 
+use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
@@ -44,6 +45,8 @@ class CreateQaFromMessageReviseAction
             ]);
 
             $message->update(['agent_question_answer_id' => $qa->id]);
+
+            AgentAnswersChanged::dispatch($agent->id);
 
             return $qa;
         });

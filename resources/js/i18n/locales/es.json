@@ -1044,6 +1044,17 @@
                 "running": "En curso",
                 "completed": "Completada",
                 "failed": "Fallida"
+            },
+            "safety": {
+                "title": "Red de seguridad",
+                "description": "Detecta un cambio que rompe una respuesta antes que los visitantes.",
+                "auto_run": "Ejecutar evaluaciones tras los cambios",
+                "auto_run_help": "Una ejecución empieza 10 minutos después de que cambien el modelo, las instrucciones, las preguntas y respuestas o el conocimiento del agente. Si un caso que antes pasaba ahora falla, quienes ven las evaluaciones reciben una notificación. Cada caso cuenta como un mensaje.",
+                "coverage": "Fuentes que prueban las evaluaciones",
+                "coverage_none": "Ejecuta las evaluaciones una vez para ver qué fuentes prueban.",
+                "coverage_count": "La última ejecución usó {tested} de {total} fuentes.",
+                "untested": "Ningún caso llega aún a estas fuentes:",
+                "add_cases": "Añadir casos desde el conocimiento"
             }
         },
         "identity_verification": {
@@ -4283,6 +4294,10 @@
             "ai_model_unavailable": {
                 "title": "{subject} ya no está disponible en {detail}",
                 "body": "Las tareas propias de la aplicación que lo usaban ahora usan otro modelo. Elige uno nuevo en el panel de administración, en Ajustes → Modelos de IA."
+            },
+            "eval_regressed": {
+                "title": "Las evaluaciones encontraron un problema en {agent}",
+                "body": "Un caso que antes pasaba ahora falla: {detail}. | {subject} casos que antes pasaban ahora fallan, como {detail}."
             }
         },
         "clear_all": "Borrar todo",

@@ -1,0 +1,25 @@
+{
+    "notifications": {
+        "kinds": {
+            "eval_regressed": {
+                "title": "Arvioinnit löysivät ongelman: {agent}",
+                "body": "Aiemmin läpäissyt tapaus epäonnistuu nyt: {detail}. | {subject} aiemmin läpäissyttä tapausta epäonnistuu nyt, esimerkiksi {detail}."
+            }
+        }
+    },
+    "agents": {
+        "evals": {
+            "safety": {
+                "title": "Turvaverkko",
+                "description": "Huomaa muutos, joka rikkoo vastauksen, ennen kävijöitä.",
+                "auto_run": "Aja arvioinnit muutosten jälkeen",
+                "auto_run_help": "Ajo alkaa 10 minuuttia sen jälkeen, kun agentin malli, ohjeet, kysymykset ja vastaukset tai tieto muuttuvat. Jos aiemmin läpäissyt tapaus epäonnistuu, arviointeja näkevät saavat ilmoituksen. Jokainen tapaus lasketaan yhdeksi viestiksi.",
+                "coverage": "Lähteet, joita arvioinnit testaavat",
+                "coverage_none": "Aja arvioinnit kerran nähdäksesi, mitä lähteitä ne testaavat.",
+                "coverage_count": "Viimeisin ajo käytti {tested}/{total} lähdettä.",
+                "untested": "Mikään tapaus ei vielä ulotu näihin lähteisiin:",
+                "add_cases": "Lisää tapauksia tiedosta"
+            }
+        }
+    }
+}

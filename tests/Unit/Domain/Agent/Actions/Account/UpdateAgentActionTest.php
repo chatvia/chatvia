@@ -3,14 +3,17 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\UpdateAgentAction;
 use Domain\Agent\Data\Account\UpdateAgentData;
+use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
+use Illuminate\Support\Facades\Event;
 use Spatie\LaravelData\Optional;
 
 /**
  * UpdateAgentAction owns the agent_prompt_id ↔ system_instructions
  * mutual-exclusion rule (a library prompt and a custom instruction
- * string can never both be set). Test each branch concretely.
+ * string can never both be set). Test each branch concretely. A change to
+ * the instructions tells the evals the answers may have changed.
  */
 function uaaOwnedPrompt(User $user): AgentPrompt
 {
@@ -29,6 +32,17 @@ function uaaData(Agent $agent, array $overrides = []): UpdateAgentData
         'systemInstructions' => new Optional,
     ], $overrides));
 }
+
+it('announces changed answers when the instructions change, and not for a rename', function (): void {
+    Event::fake([AgentAnswersChanged::class]);
+    $agent = Agent::factory()->create(['system_instructions' => 'Be brief.']);
+
+    app(UpdateAgentAction::class)->execute(uaaData($agent, ['name' => 'Renamed']));
+    Event::assertNotDispatched(AgentAnswersChanged::class);
+
+    app(UpdateAgentAction::class)->execute(uaaData($agent->fresh(), ['systemInstructions' => 'Be detailed.']));
+    Event::assertDispatched(AgentAnswersChanged::class, fn (AgentAnswersChanged $event): bool => $event->agentId === $agent->id);
+});
 
 it('updates name when name is supplied', function (): void {
     $agent = Agent::factory()->create(['name' => 'Original']);

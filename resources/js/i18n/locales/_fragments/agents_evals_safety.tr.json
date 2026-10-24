@@ -1,0 +1,25 @@
+{
+    "notifications": {
+        "kinds": {
+            "eval_regressed": {
+                "title": "Değerlendirmeler {agent} üzerinde bir sorun buldu",
+                "body": "Daha önce geçen bir vaka artık başarısız: {detail}. | Daha önce geçen {subject} vaka artık başarısız, örneğin {detail}."
+            }
+        }
+    },
+    "agents": {
+        "evals": {
+            "safety": {
+                "title": "Güvenlik ağı",
+                "description": "Bir yanıtı bozan değişikliği ziyaretçilerden önce yakalayın.",
+                "auto_run": "Değişikliklerden sonra değerlendirmeleri çalıştır",
+                "auto_run_help": "Ajanın modeli, talimatları, S&C'leri veya bilgisi değiştikten 10 dakika sonra bir çalıştırma başlar. Daha önce geçen bir vaka başarısız olursa değerlendirmeleri görenler bildirim alır. Her vaka bir mesaj sayılır.",
+                "coverage": "Değerlendirmelerin test ettiği kaynaklar",
+                "coverage_none": "Hangi kaynakları test ettiklerini görmek için değerlendirmeleri bir kez çalıştırın.",
+                "coverage_count": "Son çalıştırma {total} kaynaktan {tested} tanesini kullandı.",
+                "untested": "Henüz hiçbir vaka bu kaynaklara ulaşmıyor:",
+                "add_cases": "Bilgiden vaka ekle"
+            }
+        }
+    }
+}

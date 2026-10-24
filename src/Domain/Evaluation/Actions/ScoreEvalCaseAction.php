@@ -98,6 +98,7 @@ class ScoreEvalCaseAction
             'actual_output_sha256' => hash('sha256', $result->answer),
             'actual_output_truncated' => $truncated,
             'sources_used' => $result->sources,
+            'source_refs' => $result->sourceRefs,
             'tools_called' => $result->toolsCalled,
             'judge_rationale' => $score->rationale,
             'latency_ms' => $result->latencyMs,

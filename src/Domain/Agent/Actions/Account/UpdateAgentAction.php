@@ -3,6 +3,7 @@
 namespace Domain\Agent\Actions\Account;
 
 use Domain\Agent\Data\Account\UpdateAgentData;
+use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
 use Spatie\LaravelData\Optional;
@@ -47,6 +48,10 @@ class UpdateAgentAction
         }
 
         $data->agent->update($attributes);
+
+        if ($data->agent->wasChanged(['system_instructions', 'agent_prompt_id'])) {
+            AgentAnswersChanged::dispatch($data->agent->id);
+        }
 
         return $data->agent->fresh();
     }

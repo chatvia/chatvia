@@ -24,6 +24,7 @@ use App\Identity\Workspace\Listeners\SendDataExportReadyNotification;
 use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use App\Mcp\CodeDefinedToolDefinitions;
+use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Agent\Events\AgentToolsChanged;
 use Domain\Agent\Listeners\ForgetAgentToolPool;
 use Domain\Agent\Models\Agent;
@@ -46,7 +47,9 @@ use Domain\Conversation\Listeners\SendAgentRateLimitNotification;
 use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Evaluation\Events\EvalRunFinished;
+use Domain\Evaluation\Listeners\NotifyEvalRegression;
 use Domain\Evaluation\Listeners\NotifyEvalRunFinished;
+use Domain\Evaluation\Listeners\QueueAutoEvalRun;
 use Domain\Form\Events\FormSubmitted;
 use Domain\Form\Listeners\NotifyLeadCaptured;
 use Domain\Form\Listeners\PushSubmissionToCrm;
@@ -355,6 +358,9 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(MessageLimitThresholdReached::class, NotifyMessageLimitThreshold::class);
         Event::listen(AgentRateLimitExceeded::class, NotifyRateLimitExceeded::class);
         Event::listen(EvalRunFinished::class, NotifyEvalRunFinished::class);
+        Event::listen(EvalRunFinished::class, NotifyEvalRegression::class);
+        Event::listen(AgentAnswersChanged::class, QueueAutoEvalRun::class);
+        Event::listen(SourceTrained::class, QueueAutoEvalRun::class);
         Event::listen(LlmUnlisted::class, NotifyAdminsOfUnlistedLlm::class);
 
         Event::subscribe(RecordAnalytics::class);

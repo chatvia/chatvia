@@ -1044,6 +1044,17 @@
                 "running": "运行中",
                 "completed": "已完成",
                 "failed": "失败"
+            },
+            "safety": {
+                "title": "安全网",
+                "description": "在访客发现之前，找出破坏回答的改动。",
+                "auto_run": "改动后运行评估",
+                "auto_run_help": "代理的模型、指令、问答或知识改动 10 分钟后会开始一次运行。如果之前通过的用例现在失败，能查看评估的人会收到通知。每个用例计为一条消息。",
+                "coverage": "评估测试到的来源",
+                "coverage_none": "运行一次评估，即可看到它们测试了哪些来源。",
+                "coverage_count": "上次运行用到了 {total} 个来源中的 {tested} 个。",
+                "untested": "还没有用例覆盖这些来源：",
+                "add_cases": "从知识添加用例"
             }
         },
         "identity_verification": {
@@ -4230,6 +4241,10 @@
             "ai_model_unavailable": {
                 "title": "{detail} 已不再提供 {subject}",
                 "body": "原先使用它的应用任务现在改用其他模型。请在管理面板的“设置 → AI 模型”中选择新模型。"
+            },
+            "eval_regressed": {
+                "title": "评估在 {agent} 上发现问题",
+                "body": "一个之前通过的用例现在失败：{detail}。 | {subject} 个之前通过的用例现在失败，例如 {detail}。"
             }
         },
         "clear_all": "全部清除",

@@ -223,6 +223,13 @@ return [
                 'check_before_showing' => false, // hold the answer until the output guards passed
                 'alert_owner' => false,   // email the owner about blocked attacks and skipped checks
             ],
+            // Evals page: queue an eval run a while after the agent's model,
+            // instructions, Q&A or knowledge changed, and alert the eval
+            // staff when it fails cases that passed before. Off by default:
+            // every case counts as one message.
+            'evals' => [
+                'auto_run' => false,
+            ],
             // Per-agent chat throttle (Security page). Caps how many messages the
             // agent will answer per minute (aggregate across all visitors) before
             // returning a rate-limit error; owners adjust it to fit their traffic.
@@ -319,6 +326,9 @@ return [
             'sentiment' => ['nullable', 'boolean'],
             'tone' => ['nullable', 'boolean'],
             'topics' => ['nullable', 'boolean'],
+        ],
+        'evals' => [
+            'auto_run' => ['nullable', 'boolean'],
         ],
         'security' => [
             'chat_rate_limit_per_minute' => ['nullable', 'integer', 'min:1', 'max:1000'],

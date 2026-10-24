@@ -29,6 +29,7 @@ return new class extends Migration
                 'message_limit_reached',
                 'rate_limit_exceeded',
                 'eval_run_finished',
+                'eval_regressed',
                 'data_export_ready',
                 'ai_model_unavailable',
             ]);

@@ -1,0 +1,25 @@
+{
+    "notifications": {
+        "kinds": {
+            "eval_regressed": {
+                "title": "Les évaluations ont trouvé un problème sur {agent}",
+                "body": "Un cas qui réussissait avant échoue maintenant : {detail}. | {subject} cas qui réussissaient avant échouent maintenant, par exemple {detail}."
+            }
+        }
+    },
+    "agents": {
+        "evals": {
+            "safety": {
+                "title": "Filet de sécurité",
+                "description": "Repérez un changement qui casse une réponse avant les visiteurs.",
+                "auto_run": "Lancer les évaluations après les changements",
+                "auto_run_help": "Une exécution démarre 10 minutes après un changement du modèle, des instructions, des Q&R ou des connaissances de l'agent. Si un cas qui réussissait échoue, les personnes qui voient les évaluations reçoivent une notification. Chaque cas compte pour un message.",
+                "coverage": "Sources testées par les évaluations",
+                "coverage_none": "Lancez les évaluations une fois pour voir quelles sources elles testent.",
+                "coverage_count": "La dernière exécution a utilisé {tested} sources sur {total}.",
+                "untested": "Aucun cas n'atteint encore ces sources :",
+                "add_cases": "Ajouter des cas depuis les connaissances"
+            }
+        }
+    }
+}

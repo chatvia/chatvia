@@ -3,6 +3,7 @@
 namespace Domain\Agent\Actions\Settings;
 
 use Domain\Agent\Data\Settings\UpdateAgentLlmData;
+use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\DB;
  * Set the agent's single LLM, its hyperparameters and its reasoning effort.
  * The model lives as a column on the agent itself (`llm_id`); the
  * hyperparameters live in the `llm_settings` settings group, the effort in
- * `reasoning`.
+ * `reasoning`. Tells the evals the agent's answers may have changed.
  */
 class UpdateAgentLlmAction
 {
@@ -29,5 +30,7 @@ class UpdateAgentLlmAction
             $agent->setSetting('frequency_penalty', $data->frequency_penalty, 'llm_settings');
             $agent->setSetting('effort', $data->reasoning_effort->value, 'reasoning');
         });
+
+        AgentAnswersChanged::dispatch($agent->id);
     }
 }

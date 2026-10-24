@@ -1044,6 +1044,17 @@
                 "running": "Berjalan",
                 "completed": "Selesai",
                 "failed": "Gagal"
+            },
+            "safety": {
+                "title": "Jaring pengaman",
+                "description": "Temukan perubahan yang merusak jawaban sebelum pengunjung menemukannya.",
+                "auto_run": "Jalankan evaluasi setelah perubahan",
+                "auto_run_help": "Satu evaluasi dimulai 10 menit setelah model, instruksi, Q&A, atau pengetahuan agen berubah. Jika kasus yang sebelumnya lulus kini gagal, orang yang melihat evaluasi mendapat notifikasi. Setiap kasus dihitung sebagai satu pesan.",
+                "coverage": "Sumber yang diuji evaluasi",
+                "coverage_none": "Jalankan evaluasi sekali untuk melihat sumber mana yang diuji.",
+                "coverage_count": "Evaluasi terakhir memakai {tested} dari {total} sumber.",
+                "untested": "Belum ada kasus yang menjangkau sumber ini:",
+                "add_cases": "Tambah kasus dari pengetahuan"
             }
         },
         "identity_verification": {
@@ -4230,6 +4241,10 @@
             "ai_model_unavailable": {
                 "title": "{subject} tidak tersedia lagi di {detail}",
                 "body": "Tugas aplikasi yang memakainya kini memakai model lain. Pilih model baru di panel admin, di Pengaturan → Model AI."
+            },
+            "eval_regressed": {
+                "title": "Evaluasi menemukan masalah pada {agent}",
+                "body": "Satu kasus yang sebelumnya lulus kini gagal: {detail}. | {subject} kasus yang sebelumnya lulus kini gagal, misalnya {detail}."
             }
         },
         "clear_all": "Hapus semua",

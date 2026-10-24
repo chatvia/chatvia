@@ -279,13 +279,16 @@ return [
     |   "scaleway", "openai" or "none".
     | - voice: live voice calls (the OpenAI Realtime API). "openai" or
     |   "none". Each agent still turns it on.
-    | - document_llm: reads whole PDFs for the summary of each source.
-    |   "mistral" or "none" (no summaries).
     | - chat_files: whether chatters may attach a PDF file or an image in a
     |   chat (off: no agent can offer it), and the catalog model (its
     |   `llms.id`) that answers about it when the agent's own model cannot,
     |   one that reads both (models.dev inputs). Null: the default chat model when it reads them, else the
     |   first model that does; none means no uploads.
+    | - source_summaries: whether each source gets a summary and an analysis
+    |   (type, language, likely questions), read as a whole PDF, and the
+    |   catalog model (its `llms.id`) that writes them, one that reads PDF
+    |   files (models.dev inputs). Null: the default chat model when it reads
+    |   them, else the first model that does; none means no summaries.
     |
     | `tokenizer` is the tiktoken encoding of every token count. `chunking`
     | is how text is split: the unit ("tokens" or "characters"), the size
@@ -295,8 +298,7 @@ return [
     | `models`: the embedding provider ("qwen", "openai", "openrouter",
     | "google", "cohere", "mistral", "jina" or "voyage"; it must return
     | `embeddings.dimensions`
-    | dimensions), and the document_llm models (names of that provider, not
-    | catalog models) for summaries and analysis.
+    | dimensions).
     |
     | `query.rewriter` turns a follow-up ("and the price?") into a full
     | question for the knowledge search: one quick-task model call per follow-up.
@@ -355,8 +357,11 @@ return [
         ],
         'transcriber' => 'auto',
         'voice' => 'auto',
-        'document_llm' => 'auto',
         'chat_files' => [
+            'enabled' => true,
+            'model' => null,
+        ],
+        'source_summaries' => [
             'enabled' => true,
             'model' => null,
         ],
@@ -376,8 +381,6 @@ return [
 
         'models' => [
             'embedding' => 'qwen',
-            'summary' => 'mistral-large-latest',
-            'analysis' => 'mistral-large-latest',
         ],
 
         'query' => [

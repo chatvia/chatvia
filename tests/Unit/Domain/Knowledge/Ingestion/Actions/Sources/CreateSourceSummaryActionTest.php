@@ -3,6 +3,7 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceSummaryAction;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Llm\Enums\LlmProviderKind;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -10,16 +11,15 @@ use Illuminate\Support\Str;
 
 /**
  * The summary chunk (chunk_index 0) comes from one analysis call and one
- * summary call. The PDF goes inside the request, so the model reads the
- * document even when it could not open a link to this site.
+ * summary call, both to the model for source summaries. The PDF goes inside
+ * the request, so the model reads the document even when it could not open
+ * a link to this site.
  */
 beforeEach(function (): void {
     Storage::fake();
 
-    config([
-        'services.mistral.api_key' => 'test-key',
-        'services.mistral.base_url' => 'https://mistral.test/v1',
-    ]);
+    config(['services.mistral.base_url' => 'https://mistral.test/v1']);
+    useSourceSummaries(name: 'mistral-summary-x');
 });
 
 /**
@@ -72,8 +72,8 @@ it('stores the summary chunk with the analysis questions and metadata', function
         ->and($source->fresh()->document_classification)->toBe('user_manual');
 });
 
-it('skips the summary, without any LLM call, when no LLM can read PDF documents', function (): void {
-    config(['services.mistral.api_key' => null, 'chatvia.ai.document_llm' => 'auto']);
+it('skips the summary, without any LLM call, when no model reads PDF files or summaries are off', function (Closure $setUp): void {
+    $setUp();
     Http::fake();
 
     $source = AgentFileFactory::new()->create([
@@ -86,7 +86,10 @@ it('skips the summary, without any LLM call, when no LLM can read PDF documents'
         ->and($source->summary()->exists())->toBeFalse();
 
     Http::assertNothingSent();
-});
+})->with([
+    'no model reads PDF files' => [fn () => config(['chatvia.ai.source_summaries.model' => (string) testLlm('text-only', LlmProviderKind::Mistral, ['capabilities' => ['modalities' => ['input' => ['text']]]])->id])],
+    'summaries off' => [fn () => useSourceSummaries(false)],
+]);
 
 it('skips a source that already has its summary, so a retry does not pay for it twice', function (): void {
     Http::fake();
@@ -104,12 +107,7 @@ it('skips a source that already has its summary, so a retry does not pay for it 
     Http::assertNothingSent();
 });
 
-it('reads the document with the configured summary and analysis models', function (): void {
-    config([
-        'chatvia.ai.models.summary' => 'summary-model-x',
-        'chatvia.ai.models.analysis' => 'analysis-model-x',
-    ]);
-
+it('reads the document with the model for source summaries, and names it on the chunk', function (): void {
     cssFakeModels('faq', 'en', ['refunds'], 'Summary.');
 
     $source = AgentFileFactory::new()->create([
@@ -118,11 +116,32 @@ it('reads the document with the configured summary and analysis models', functio
     ]);
     Storage::put($source->filepath, '%PDF-1.4 test');
 
-    app(CreateSourceSummaryAction::class)->execute($source);
+    $chunk = app(CreateSourceSummaryAction::class)->execute($source);
 
+    expect($chunk->chunked_using_model)->toBe('mistral-summary-x');
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://mistral.test/v1/chat/completions'
-        && $request['model'] === 'analysis-model-x' && isset($request['response_format']));
-    Http::assertSent(fn (Request $request): bool => $request['model'] === 'summary-model-x' && ! isset($request['response_format']));
+        && $request['model'] === 'mistral-summary-x' && isset($request['response_format']));
+    Http::assertSent(fn (Request $request): bool => $request['model'] === 'mistral-summary-x' && ! isset($request['response_format']));
+});
+
+it('reads the document with a model of another provider, as a file part', function (): void {
+    useSourceSummaries(name: 'gpt-x', kind: LlmProviderKind::Custom);
+    cssFakeModels('faq', 'en', ['refunds'], 'Summary.');
+
+    $source = AgentFileFactory::new()->create([
+        'filepath' => 'users/x/agents/y/files/faq.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+    Storage::put($source->filepath, '%PDF-1.4 test');
+
+    $chunk = app(CreateSourceSummaryAction::class)->execute($source);
+
+    expect($chunk->chunk)->toBe('Summary.')
+        ->and($chunk->chunked_using_model)->toBe('gpt-x');
+    Http::assertSentCount(2);
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://llm.test/v1/chat/completions'
+        && $request['model'] === 'gpt-x'
+        && ($request['messages'][0]['content'][1]['file']['file_data'] ?? null) === 'data:application/pdf;base64,'.base64_encode('%PDF-1.4 test'));
 });
 
 it('sends the PDF itself, and asks for the summary in the detected language', function (): void {

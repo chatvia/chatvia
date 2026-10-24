@@ -105,7 +105,6 @@ use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Events\LlmCallRefused;
 use Domain\Llm\Events\LlmUnlisted;
 use Domain\Llm\Listeners\NotifyAdminsOfUnlistedLlm;
@@ -115,10 +114,7 @@ use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
 use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
-use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Services\AiCallTags;
-use Domain\Llm\Services\DocumentLlm;
-use Domain\Llm\Services\ProviderAdapters;
 use Domain\Llm\Services\SharedHttpHandler;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
@@ -259,30 +255,6 @@ class DomainServiceProvider extends ServiceProvider
             'openai' => $app->make(OpenAiRealtimeCalls::class),
             'none' => $app->make(NullRealtimeCalls::class),
             default => throw $this->unknownAiDriver('voice', ['openai', 'none']),
-        });
-
-        $this->app->bind(function ($app): DocumentLlm {
-            $readers = array_map(
-                static fn (ProviderAdapter $adapter): LlmProviderKind => $adapter->kind(),
-                array_values(array_filter($app->make(ProviderAdapters::class)->all(), static fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments())),
-            );
-
-            // "Automatic" takes the first connected account whose models read
-            // a whole PDF: Azure reads documents too, but has no such models.
-            $auto = array_find(AiProvider::cases(), static fn (AiProvider $account): bool => $account->isConnected() && in_array($account->chatKind(), $readers, true));
-            $driver = $this->aiDriver('document_llm', auto: $auto?->value ?? 'none');
-
-            if ($driver === 'none') {
-                return new DocumentLlm(null);
-            }
-
-            $provider = LlmProviderKind::tryFrom($driver);
-
-            if (! in_array($provider, $readers, true)) {
-                throw $this->unknownAiDriver('document_llm', [...array_map(static fn (LlmProviderKind $kind): string => $kind->value, $readers), 'none']);
-            }
-
-            return new DocumentLlm($provider);
         });
     }
 

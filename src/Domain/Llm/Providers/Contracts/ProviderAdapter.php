@@ -47,9 +47,6 @@ interface ProviderAdapter
     /** Where an admin creates an API key, if the provider has such a page. */
     public function keysUrl(): ?string;
 
-    /** Whether its chat API reads a whole PDF passed by URL (a `document_url` part). */
-    public function readsDocuments(): bool;
-
     /** The chat client for a provider row of this kind. */
     public function client(LlmProvider $provider): LlmProviderInterface;
 

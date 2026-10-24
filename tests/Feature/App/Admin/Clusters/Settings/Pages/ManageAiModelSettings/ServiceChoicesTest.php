@@ -12,7 +12,7 @@ use Livewire\Features\SupportTesting\Testable;
 
 /**
  * The service pickers of Settings → AI models (reranker, document reading,
- * summaries and PDF chat, speech to text, voice) share one behaviour. There
+ * speech to text, voice) share one behaviour. There
  * is no "Automatic": each list shows the service in use, marks each provider
  * connected or not, and greys out the ones that are not. A new pick is
  * checked with one real call as it is saved; Off, or an unchanged pick,
@@ -27,7 +27,7 @@ beforeEach(function (): void {
         config([$provider->apiKeyConfig() => null]);
     }
 
-    config(['chatvia.ai.reranker' => 'auto', 'chatvia.ai.document_parser' => 'auto', 'chatvia.ai.document_llm' => 'auto', 'chatvia.ai.transcriber' => 'auto', 'chatvia.ai.voice' => 'auto']);
+    config(['chatvia.ai.reranker' => 'auto', 'chatvia.ai.document_parser' => 'auto', 'chatvia.ai.transcriber' => 'auto', 'chatvia.ai.voice' => 'auto']);
 });
 
 function scField(Testable $page, string $property): Select
@@ -45,7 +45,6 @@ function scServiceCall(Request $request): bool
 dataset('service pickers', [
     'reranker' => ['reranker', AiProvider::OpenRouter],
     'document reading' => ['document_parser', AiProvider::Mistral],
-    'summaries and PDF chat' => ['document_llm', AiProvider::Mistral],
     'speech to text' => ['transcriber', AiProvider::Scaleway],
     'voice' => ['voice', AiProvider::OpenAi],
 ]);
@@ -61,7 +60,6 @@ it('shows the service in use, marks each provider connected or not, and greys ou
 })->with([
     'reranker' => ['reranker', AiProvider::OpenRouter, ['openrouter' => 'OpenRouter (connected)', 'cohere' => 'Cohere Rerank (not connected)', 'custom' => 'Self-hosted', 'none' => 'Off (a basic similarity check)'], ['cohere']],
     'document reading' => ['document_parser', AiProvider::Mistral, ['mistral' => 'Mistral OCR (connected)', 'azure' => 'Azure Document Intelligence (not connected)', 'none' => 'Off'], ['azure']],
-    'summaries and PDF chat' => ['document_llm', AiProvider::Mistral, ['mistral' => 'Mistral (connected)', 'none' => 'Off'], []],
     'speech to text' => ['transcriber', AiProvider::Scaleway, ['scaleway' => 'Scaleway AI Whisper (connected)', 'openai' => 'OpenAI Whisper (not connected)', 'none' => 'Off'], ['openai']],
     'voice' => ['voice', AiProvider::OpenAi, ['openai' => 'OpenAI Realtime (connected)', 'none' => 'Off'], []],
 ]);
@@ -98,7 +96,6 @@ it('calls the service once, though a save reads the form twice', function (strin
 })->with([
     'reranker' => ['reranker', AiProvider::OpenRouter, 'openrouter.ai/api/v1/rerank', ['results' => [['index' => 0, 'relevance_score' => 0.9], ['index' => 1, 'relevance_score' => 0.1]]]],
     'document reading' => ['document_parser', AiProvider::Mistral, 'api.mistral.ai/v1/ocr', ['pages' => [['index' => 0, 'markdown' => 'Chatvia OCR check']]]],
-    'summaries and PDF chat' => ['document_llm', AiProvider::Mistral, 'api.mistral.ai/v1/models', ['data' => [['id' => 'mistral-medium-latest', 'capabilities' => ['completion_chat' => true]]]]],
     'speech to text' => ['transcriber', AiProvider::Scaleway, 'api.scaleway.ai/v1/models', ['object' => 'list', 'data' => [['id' => 'whisper-large-v3', 'object' => 'model']]]],
     'voice' => ['voice', AiProvider::OpenAi, 'api.openai.com/v1/models', ['data' => [['id' => 'gpt-realtime-2.1', 'object' => 'model']]]],
 ]);

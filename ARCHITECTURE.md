@@ -443,10 +443,7 @@ and evals select no tools for it: `Llm::callsTools()`); the tool loop, the
 app's own tasks (`ChatRequestData`), evals and the analytics chat all send
 that. `ChatRequestData` sends `response_format` only when
 `Llm::takesResponseSchema()`; otherwise the schema goes into the system
-prompt (`ResponseSchemaData::instruction()`) and `LlmJson` reads the reply. The PDF
-chat and document models are not catalog rows: `DocumentLlm::model()` gives
-them their stored models.dev entry (`ModelsDevCatalog::storedEntry()`, never
-a download), so they are fitted the same way. Providers only move the value into
+prompt (`ResponseSchemaData::instruction()`) and `LlmJson` reads the reply. Providers only move the value into
 their own field (OpenRouter's `reasoning` object); a model the catalog does
 not list gets no effort unless an agent asks for one. A provider
 with a Responses API streams chat turns through it with the
@@ -477,8 +474,9 @@ without one, `chatvia.ai.chunker.describe_images` is turned off and
 and "Use the recommended models" write them into the settings
 (`TaskModelPreset`), so an update never changes an install's models.
 Callers use typed helpers: `LlmChat` (one completion), `StructuredCompletion`
-and `LlmJson` (JSON answers), `DocumentLlm` (a model that reads whole PDF
-files).
+and `LlmJson` (JSON answers), `ChatFileModel` (the model for files a chatter
+attaches) and `SourceSummaryModel` (the model that reads a whole source as a
+PDF file, for its summary and analysis).
 
 Main parts: `Operations` (summaries, tables, vision, speech to text, titles,
 query rewriting, starters, translation, cost), `Usage` (`TokenUsageContext`
@@ -968,7 +966,7 @@ unless a row names another page, its setting is on **Settings → AI models**.
 | Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Splitting) |
 | Speech to text | `Transcriber` | `scaleway`, `openai`, `none` | `chatvia.ai.transcriber` |
 | Voice calls | `RealtimeCalls` | `openai` (the Realtime API), `none` (the voice button is hidden) | `chatvia.ai.voice`, `services.openai.realtime_*`, `chatvia.voice.*` |
-| Summaries and PDF chat (whole PDFs) | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
+| Source summaries (whole PDFs) | `SourceSummaryModel` | any catalog model that reads PDF files (models.dev inputs); Automatic, or off | `chatvia.ai.source_summaries.*` |
 | Files | Laravel disks `private`, `assets` | local or S3-compatible (`private`; given the `s3` disk by `StorageDisks`), Bunny CDN or local (`assets`) | `filesystems.storage` + `filesystems.disks.s3` (Settings → Storage), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
 
 Everything an admin may want to change lives in the admin panel under

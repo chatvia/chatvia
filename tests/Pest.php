@@ -276,6 +276,26 @@ function testLlm(string $name = 'test-model', LlmProviderKind $kind = LlmProvide
 }
 
 /**
+ * Turn source summaries on with a catalog model that reads PDF files as the
+ * model for them, or turn them off.
+ */
+function useSourceSummaries(bool $on = true, string $name = 'mistral-large-latest', LlmProviderKind $kind = LlmProviderKind::Mistral): ?Llm
+{
+    if (! $on) {
+        config(['chatvia.ai.source_summaries.enabled' => false]);
+
+        return null;
+    }
+
+    $model = testLlm($name, $kind, [
+        'capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text', 'pdf']]],
+    ]);
+    config(['chatvia.ai.source_summaries.enabled' => true, 'chatvia.ai.source_summaries.model' => (string) $model->id]);
+
+    return $model;
+}
+
+/**
  * Turn chat file uploads on with a catalog model that reads PDF files and
  * images as the model for them, or turn them off.
  */

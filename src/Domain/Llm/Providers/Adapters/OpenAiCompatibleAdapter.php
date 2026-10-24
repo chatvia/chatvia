@@ -61,11 +61,6 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
         return null;
     }
 
-    public function readsDocuments(): bool
-    {
-        return false;
-    }
-
     public function client(LlmProvider $provider): LlmProviderInterface
     {
         return new OpenAiCompatible($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');

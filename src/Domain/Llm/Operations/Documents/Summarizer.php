@@ -8,20 +8,20 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Enums\AiCallTag;
-use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Exceptions\NoSummaryModelException;
 use Domain\Llm\Services\LlmChat;
+use Domain\Llm\Services\SourceSummaryModel;
 use Locale;
 
 /**
  * Writes a short summary of a whole document, read as a PDF from a URL (a
  * `data:` URL holding the PDF itself, or a link the provider can open) by the
- * configured document-reading LLM (`chatvia.ai.models.summary`).
+ * model for source summaries ({@see SourceSummaryModel}).
  */
 class Summarizer
 {
     public function __construct(
-        private readonly DocumentLlm $documentLlm,
+        private readonly SourceSummaryModel $models,
         private readonly LlmChat $chat,
     ) {}
 
@@ -31,7 +31,7 @@ class Summarizer
      * prompt: asked only to keep "the document's language", the model still
      * answers in English.
      *
-     * @throws DocumentLlmUnavailableException
+     * @throws NoSummaryModelException
      */
     public function summarize(string $documentUrl, ?string $language = null): ChatResponseData
     {
@@ -39,8 +39,8 @@ class Summarizer
             'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
         ]);
 
-        return $this->chat->using($this->documentLlm->provider())->send(new ChatRequestData(
-            model: $this->documentLlm->model((string) config('chatvia.ai.models.summary')),
+        return $this->chat->send(new ChatRequestData(
+            model: $this->models->model(),
             messages: [
                 ChatMessageData::userWithAttachment($prompt, [
                     'type' => 'document_url',

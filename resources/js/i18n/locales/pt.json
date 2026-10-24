@@ -3964,7 +3964,9 @@
             "productivity": "Produtividade",
             "communication": "Comunicação",
             "automation": "Automatização",
-            "analytics": "Análise"
+            "analytics": "Análise",
+            "support": "Suporte",
+            "marketing": "Marketing"
         },
         "catalog": {
             "perplexity": {
@@ -4074,6 +4076,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Consulte análise de produto — eventos, gráficos e coortes — do seu projeto Amplitude."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Pesquise conversas, contatos e artigos de ajuda no Intercom e adicione notas internas."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Leia e responda tickets, adicione notas internas e use macros no seu helpdesk Gorgias."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Pesquise conversas do Help Scout e obtenha relatórios de suporte."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Leia e responda conversas da caixa de entrada compartilhada, rascunhos, tags e contatos no Front."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Leia e atualize negócios, pessoas, leads, atividades e notas no seu CRM Pipedrive."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Pesquise e atualize registros, listas, notas e tarefas no seu CRM Attio."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Leia perfis, listas, segmentos, campanhas, fluxos e relatórios do Klaviyo."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Leia e atualize quadros, itens e atualizações no monday.com."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Leia e grave bases, tabelas e registros no Airtable."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Consulte faturas, pedidos, transações, disputas e o rastreamento de envios no PayPal."
+            },
+            "forms": {
+                "name": "Formulários",
+                "description": "Capte leads com um formulário real para preencher no chat, além de formulários de agendamento e de qualificação. Validados e guardados automaticamente; nos canais que não mostram formulários, os dados são pedidos na conversa."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Pesquise no Google, Bing, YouTube e outros motores resultados em tempo real: notícias, preços, locais. Com tecnologia SerpApi.",
+                "token_label": "Chave de API da SerpApi",
+                "token_placeholder": "A sua chave de API da SerpApi"
             }
         }
     },

@@ -8,7 +8,9 @@
             "productivity": "Produktivität",
             "communication": "Kommunikation",
             "automation": "Automatisierung",
-            "analytics": "Analysen"
+            "analytics": "Analysen",
+            "support": "Support",
+            "marketing": "Marketing"
         },
         "catalog": {
             "perplexity": {
@@ -118,6 +120,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Produktanalysen abfragen – Ereignisse, Diagramme und Kohorten – aus Ihrem Amplitude-Projekt."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Unterhaltungen, Kontakte und Hilfeartikel in Intercom durchsuchen und interne Notizen hinzufügen."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Tickets lesen und beantworten, interne Notizen hinzufügen und Makros in Ihrem Gorgias-Helpdesk nutzen."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Help-Scout-Unterhaltungen durchsuchen und Support-Berichte abrufen."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Unterhaltungen im gemeinsamen Posteingang, Entwürfe, Tags und Kontakte in Front lesen und beantworten."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Deals, Personen, Leads, Aktivitäten und Notizen in Ihrem Pipedrive CRM lesen und aktualisieren."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Datensätze, Listen, Notizen und Aufgaben in Ihrem Attio CRM durchsuchen und aktualisieren."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Profile, Listen, Segmente, Kampagnen, Flows und Berichte aus Klaviyo lesen."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Boards, Items und Updates in monday.com lesen und aktualisieren."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Bases, Tabellen und Datensätze in Airtable lesen und schreiben."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Rechnungen, Bestellungen, Transaktionen, Konflikte und Sendungsverfolgung in PayPal abrufen."
+            },
+            "forms": {
+                "name": "Formulare",
+                "description": "Leads mit einem echten, ausfüllbaren Formular im Chat erfassen, dazu Buchungs- und Qualifizierungsformulare. Automatisch geprüft und gespeichert; auf Kanälen ohne Formularanzeige wird im Gespräch erfasst."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Google, Bing, YouTube und andere Suchmaschinen nach aktuellen Ergebnissen durchsuchen: Nachrichten, Preise, Orte. Bereitgestellt von SerpApi.",
+                "token_label": "SerpApi API-Schlüssel",
+                "token_placeholder": "Ihr SerpApi API-Schlüssel"
             }
         }
     }

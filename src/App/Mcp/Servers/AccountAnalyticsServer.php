@@ -30,7 +30,7 @@ use Override;
 /**
  * INTERNAL, owner-scoped analytics server. Unlike the other built-in servers
  * (Charts, Weather, Forms, ...) this one is deliberately NOT registered as a
- * featured connector in config/connectors.php — it never appears in the
+ * featured connector in the connector catalog — it never appears in the
  * customer-facing Connectors catalogue and is never attached to an agent. It is
  * driven only by the owner-facing "Ask your data" chat, which signs each call
  * with `X-Chatvia-Workspace-Id`; every tool scopes its numbers to that

@@ -8,7 +8,9 @@
             "productivity": "Produktivitet",
             "communication": "Kommunikation",
             "automation": "Automatisering",
-            "analytics": "Analyse"
+            "analytics": "Analyse",
+            "support": "Support",
+            "marketing": "Marketing"
         },
         "catalog": {
             "perplexity": {
@@ -118,6 +120,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Forespørg på produktanalyse — hændelser, diagrammer og kohorter — fra dit Amplitude-projekt."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Søg i samtaler, kontakter og hjælpeartikler i Intercom, og tilføj interne noter."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Læs og besvar tickets, tilføj interne noter, og brug makroer i din Gorgias-helpdesk."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Søg i Help Scout-samtaler, og hent supportrapporter."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Læs og besvar samtaler i fælles indbakker, kladder, tags og kontakter i Front."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Læs og opdater handler, personer, leads, aktiviteter og noter i dit Pipedrive CRM."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Søg i og opdater poster, lister, noter og opgaver i dit Attio CRM."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Læs profiler, lister, segmenter, kampagner, flows og rapporter fra Klaviyo."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Læs og opdater boards, elementer og opdateringer i monday.com."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Læs og skriv baser, tabeller og poster i Airtable."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Slå fakturaer, ordrer, transaktioner, tvister og forsendelsessporing op i PayPal."
+            },
+            "forms": {
+                "name": "Formularer",
+                "description": "Indsaml leads med en rigtig formular, der udfyldes i chatten, samt booking- og kvalificeringsformularer. Valideres og gemmes automatisk; på kanaler, der ikke kan vise en formular, indsamles oplysningerne i samtalen."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Søg i Google, Bing, YouTube og andre søgemaskiner efter aktuelle resultater: nyheder, priser, steder. Leveret af SerpApi.",
+                "token_label": "SerpApi API-nøgle",
+                "token_placeholder": "Din SerpApi API-nøgle"
             }
         }
     }

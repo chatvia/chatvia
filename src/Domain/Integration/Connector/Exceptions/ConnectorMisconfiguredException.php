@@ -8,8 +8,8 @@ use RuntimeException;
 
 /**
  * Raised when a connector is wired for pre-registered OAuth but the
- * operator-supplied credentials (the `oauth_client_id` / `oauth_client_secret`
- * env vars) are absent in this environment.
+ * admin has not entered its OAuth app (client id and secret) in Settings →
+ * Connectors.
  *
  * This is a server-side misconfiguration, not something the end user can act
  * on — the message carries setup detail for the error tracker / local debug

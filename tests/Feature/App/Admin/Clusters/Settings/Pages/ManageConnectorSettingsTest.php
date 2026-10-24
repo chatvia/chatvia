@@ -5,19 +5,21 @@ use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
 use App\Admin\Settings\ConnectorSettings;
 
 /**
- * Settings → Connectors: the OAuth apps of the connectors, and under
- * Advanced the services behind the built-in tools (Perplexity, OpenWeather,
- * ExchangeRate-API), which live here and not on the Platform page.
+ * Settings → Connectors: one card per connector whose OAuth app the admin
+ * registers, then the services behind the built-in tools (Perplexity,
+ * OpenWeather, ExchangeRate-API), which live here and not on the Platform
+ * page. The page has no "Advanced" group.
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
 });
 
-it('keeps the services behind the built-in tools on Connectors, under Advanced', function (): void {
+it('lists the OAuth apps, then the services behind the built-in tools, with no Advanced group', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get(ManageConnectorSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['GitHub', 'Technical options. The defaults suit most installs.', 'Perplexity', 'OpenWeather', 'ExchangeRate-API']);
+        ->assertSeeInOrder(['GitHub', 'Asana', 'Front', 'Perplexity', 'OpenWeather', 'ExchangeRate-API'])
+        ->assertDontSee('Technical options. The defaults suit most installs.');
 
     $this->get(ManagePlatformSettings::getUrl())->assertDontSee(['Perplexity', 'OpenWeather', 'ExchangeRate-API']);
 });

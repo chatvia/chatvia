@@ -8,7 +8,9 @@
             "productivity": "Produktywność",
             "communication": "Komunikacja",
             "automation": "Automatyzacja",
-            "analytics": "Analityka"
+            "analytics": "Analityka",
+            "support": "Wsparcie",
+            "marketing": "Marketing"
         },
         "catalog": {
             "perplexity": {
@@ -118,6 +120,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Pobieraj analizy produktowe — zdarzenia, wykresy i kohorty — z projektu Amplitude."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Przeszukuj rozmowy, kontakty i artykuły pomocy w Intercom oraz dodawaj notatki wewnętrzne."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Odczytuj zgłoszenia i odpowiadaj na nie, dodawaj notatki wewnętrzne i używaj makr w helpdesku Gorgias."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Przeszukuj rozmowy w Help Scout i pobieraj raporty wsparcia."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Odczytuj rozmowy ze wspólnej skrzynki, wersje robocze, tagi i kontakty w Front oraz odpowiadaj na rozmowy."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Odczytuj i aktualizuj transakcje, osoby, leady, aktywności i notatki w Pipedrive CRM."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Przeszukuj i aktualizuj rekordy, listy, notatki i zadania w Attio CRM."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Odczytuj profile, listy, segmenty, kampanie, przepływy i raporty z Klaviyo."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Odczytuj i aktualizuj tablice, elementy i aktualizacje w monday.com."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Odczytuj i zapisuj bazy, tabele i rekordy w Airtable."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Sprawdzaj faktury, zamówienia, transakcje, spory i śledzenie przesyłek w PayPal."
+            },
+            "forms": {
+                "name": "Formularze",
+                "description": "Zbieraj leady za pomocą prawdziwego formularza do wypełnienia w czacie, a także formularzy rezerwacji i kwalifikacji. Dane są sprawdzane i zapisywane automatycznie; w kanałach, które nie pokazują formularzy, dane są zbierane w rozmowie."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Wyszukuj aktualne wyniki w Google, Bing, YouTube i innych wyszukiwarkach: wiadomości, ceny, miejsca. Dostarczane przez SerpApi.",
+                "token_label": "Klucz API SerpApi",
+                "token_placeholder": "Twój klucz API SerpApi"
             }
         }
     }

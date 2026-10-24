@@ -3964,7 +3964,9 @@
             "productivity": "Productivité",
             "communication": "Communication",
             "automation": "Automatisation",
-            "analytics": "Analytique"
+            "analytics": "Analytique",
+            "support": "Support",
+            "marketing": "Marketing"
         },
         "catalog": {
             "perplexity": {
@@ -4074,6 +4076,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Interrogez les analyses produit — événements, graphiques et cohortes — depuis votre projet Amplitude."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Recherchez des conversations, des contacts et des articles d'aide dans Intercom, et ajoutez des notes internes."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Consultez les tickets et répondez-y, ajoutez des notes internes et utilisez des macros dans votre helpdesk Gorgias."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Recherchez des conversations Help Scout et récupérez des rapports de support."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Consultez les conversations de la boîte de réception partagée, les brouillons, les tags et les contacts dans Front, et répondez-y."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Consultez et mettez à jour les affaires, personnes, prospects, activités et notes dans votre CRM Pipedrive."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Recherchez et mettez à jour les fiches, listes, notes et tâches dans votre CRM Attio."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Consultez les profils, listes, segments, campagnes, flows et rapports de Klaviyo."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Consultez et mettez à jour les tableaux, éléments et mises à jour dans monday.com."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Lisez et modifiez les bases, tables et enregistrements dans Airtable."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Consultez les factures, commandes, transactions, litiges et le suivi des envois dans PayPal."
+            },
+            "forms": {
+                "name": "Formulaires",
+                "description": "Collectez des leads avec un vrai formulaire à remplir dans le chat, ainsi que des formulaires de réservation et de qualification. Validés et enregistrés automatiquement ; sur les canaux qui ne peuvent pas afficher de formulaire, la collecte se fait dans la conversation."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Cherchez des résultats en direct sur Google, Bing, YouTube et d'autres moteurs : actualités, prix, lieux. Propulsé par SerpApi.",
+                "token_label": "Clé API SerpApi",
+                "token_placeholder": "Votre clé API SerpApi"
             }
         }
     },

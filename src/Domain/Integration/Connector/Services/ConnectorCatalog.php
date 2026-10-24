@@ -2,20 +2,28 @@
 
 namespace Domain\Integration\Connector\Services;
 
+use Domain\Integration\Connector\Catalog\Connector;
+use Domain\Integration\Connector\Catalog\PreRegisteredOAuthConnector;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Read-only access to the connector catalog. `config/connectors.php` (the
- * presets) and `config/mcp.php` (the first-party builtin servers) are the
- * source of truth; this service hands out typed records and answers the
- * catalog questions the rest of the app asks — which connectors exist, which
- * are builtins, and which URL is a connector's canonical one.
+ * Read-only access to the connector catalog. The {@see Connector} classes
+ * listed in `config/connectors.php` and `config/mcp.php` (the first-party
+ * builtin servers) are the source of truth; this service hands out typed
+ * records and answers the catalog questions the rest of the app asks: which
+ * connectors exist, which are builtins, and which URL is a connector's
+ * canonical one.
  */
 class ConnectorCatalog
 {
+    public function __construct(
+        private readonly Container $container,
+    ) {}
+
     /**
      * Every catalog entry — connectors AND capabilities. Prefer the narrower
      * {@see connectors()} / {@see capabilities()} for UI listings.
@@ -24,11 +32,32 @@ class ConnectorCatalog
      */
     public function all(): Collection
     {
-        return collect(config()->array('connectors', []))
-            ->filter(fn (array $entry) => $entry['visible'] ?? true)
-            ->map(fn (array $entry): ConnectorData => ConnectorData::fromArray($entry))
-            ->sortBy(fn (ConnectorData $c): int => $c->priority)
-            ->keyBy(fn (ConnectorData $c): string => $c->slug);
+        return $this->definitions()
+            ->map(fn (Connector $connector): ConnectorData => $connector->toData())
+            ->sortBy(fn (ConnectorData $c): int => $c->priority);
+    }
+
+    /**
+     * The connector classes, keyed by slug. Built on every call (they are
+     * cheap) so an OAuth app saved in the admin panel applies at once.
+     *
+     * @return Collection<string, Connector>
+     */
+    public function definitions(): Collection
+    {
+        return collect(config()->array('connectors.catalog', []))
+            ->map(fn (string $class): Connector => $this->container->make($class))
+            ->keyBy(fn (Connector $connector): string => $connector->slug);
+    }
+
+    /**
+     * The connectors whose OAuth app an admin registers in Settings → Connectors.
+     *
+     * @return Collection<string, PreRegisteredOAuthConnector>
+     */
+    public function preRegisteredOAuth(): Collection
+    {
+        return $this->definitions()->whereInstanceOf(PreRegisteredOAuthConnector::class);
     }
 
     /**
@@ -55,19 +84,14 @@ class ConnectorCatalog
 
     public function find(string $slug): ?ConnectorData
     {
-        $entry = config('connectors.'.$slug);
-        if (! is_array($entry)) {
-            return null;
-        }
-
-        return ConnectorData::fromArray($entry);
+        return $this->definitions()->get($slug)?->toData();
     }
 
     /**
      * Whether a server slug belongs to a first-party builtin (charts, forms,
      * leads). These are safe, no-auth, Chatvia-hosted tools — they run without
      * an approval gate and are excluded from the governance audit. Resolves by
-     * slug even for hidden (visible:false) builtins like `leads`.
+     * slug.
      */
     public function isBuiltinSlug(string $slug): bool
     {
@@ -90,8 +114,7 @@ class ConnectorCatalog
     }
 
     /**
-     * The connector's canonical MCP URL: the preset's configured `mcp_url`
-     * (config/connectors.php), or `{app.url}/mcp/{slug}` for builtins
+     * The connector's canonical MCP URL: the connector's own MCP URL, or `{app.url}/mcp/{slug}` for builtins
      * (config/mcp.php). Null when the catalog defines no fixed endpoint —
      * i.e. the workspace supplies the URL at connect time.
      */
@@ -122,7 +145,7 @@ class ConnectorCatalog
     /**
      * Whether a server with this connector slug + URL may share the central
      * tool catalog: only when the URL is the connector's CANONICAL one. A
-     * preset whose URL is workspace-supplied (requires_url / BYO-OAuth, e.g.
+     * preset whose URL is workspace-supplied (TokenConnector::$requiresUrl / BYO-OAuth, e.g.
      * Zendesk or Salesforce) is tenant-specific — its tool definitions must
      * stay per-server so one workspace can never write tool text another
      * workspace's agents read.

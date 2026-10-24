@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Actions\Catalog\SyncMcpServerCatalogAction;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
@@ -81,7 +82,7 @@ it('persists the storage shape on refresh — canonical URL → central catalog'
 });
 
 it('keeps a preset with a workspace-supplied URL OUT of the shared catalog — per-server rows instead', function (): void {
-    // `zendesk` is a requires_url preset (mcp_url '' in config/connectors.php):
+    // `zendesk` is a requires_url preset (no fixed MCP URL in its connector class):
     // every workspace pastes its own instance URL, so definitions are
     // tenant-specific and must never be shared.
     $server = AgentMcpServer::factory()->preset('zendesk')->create(['url' => 'https://acme.example.com/api/mcp']);
@@ -132,7 +133,7 @@ it('backfills a preset\'s missing description from the catalog and re-embeds its
 
     app(SyncMcpServerCatalogAction::class)->execute($server);
 
-    expect($server->fresh()->description)->toBe(config('connectors.zendesk.description'))
+    expect($server->fresh()->description)->toBe(app(ConnectorCatalog::class)->find('zendesk')?->description)
         ->and(McpTool::where('mcp_server_id', $server->id)->count())->toBe(2)
         ->and(McpTool::where('mcp_server_id', $server->id)->where(fn (Builder $query): Builder => $query->whereNotNull('embedding')->orWhereNotNull('search_text'))->exists())->toBeFalse();
     Queue::assertPushed(EmbedMcpToolsJob::class, fn (EmbedMcpToolsJob $job): bool => $job->mcpServerId === $server->id);

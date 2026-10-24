@@ -3964,7 +3964,9 @@
             "productivity": "بهره‌وری",
             "communication": "ارتباطات",
             "automation": "اتوماسیون",
-            "analytics": "تحلیل‌ها"
+            "analytics": "تحلیل‌ها",
+            "support": "پشتیبانی",
+            "marketing": "بازاریابی"
         },
         "catalog": {
             "perplexity": {
@@ -4074,6 +4076,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "پرس‌وجوی تحلیل‌های محصول — رویدادها، نمودارها و کوهورت‌ها — از پروژه Amplitude شما."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "گفتگوها، مخاطبان و مقاله‌های راهنما را در Intercom جستجو کنید و یادداشت داخلی اضافه کنید."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "تیکت‌ها را بخوانید و به آن‌ها پاسخ دهید، یادداشت داخلی اضافه کنید و از ماکروها در میز کمک Gorgias خود استفاده کنید."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "گفتگوهای Help Scout را جستجو کنید و گزارش‌های پشتیبانی را دریافت کنید."
+            },
+            "front": {
+                "name": "Front",
+                "description": "گفتگوهای صندوق ورودی مشترک، پیش‌نویس‌ها، برچسب‌ها و مخاطبان را در Front بخوانید و پاسخ دهید."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "معاملات، افراد، سرنخ‌ها، فعالیت‌ها و یادداشت‌ها را در CRM Pipedrive خود بخوانید و به‌روز کنید."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "رکوردها، فهرست‌ها، یادداشت‌ها و کارها را در CRM Attio خود جستجو و به‌روز کنید."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "پروفایل‌ها، فهرست‌ها، بخش‌ها، کمپین‌ها، جریان‌ها و گزارش‌ها را از Klaviyo بخوانید."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "بردها، آیتم‌ها و به‌روزرسانی‌ها را در monday.com بخوانید و به‌روز کنید."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "پایگاه‌ها، جدول‌ها و رکوردها را در Airtable بخوانید و بنویسید."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "فاکتورها، سفارش‌ها، تراکنش‌ها، اختلاف‌ها و پیگیری محموله‌ها را در PayPal جستجو کنید."
+            },
+            "forms": {
+                "name": "فرم‌ها",
+                "description": "سرنخ‌های فروش را با یک فرم واقعی که در گفتگو پر می‌شود جمع کنید، به‌همراه فرم‌های رزرو و ارزیابی. داده‌ها خودکار بررسی و ذخیره می‌شوند؛ در کانال‌هایی که فرم نشان نمی‌دهند، اطلاعات در خود گفتگو گرفته می‌شود."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "در Google، Bing، YouTube و موتورهای دیگر نتایج زنده جستجو کنید: اخبار، قیمت‌ها، مکان‌ها. با پشتیبانی SerpApi.",
+                "token_label": "کلید API سرویس SerpApi",
+                "token_placeholder": "کلید API شما برای SerpApi"
             }
         }
     },

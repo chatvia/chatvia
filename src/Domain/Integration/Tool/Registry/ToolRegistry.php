@@ -122,7 +122,7 @@ class ToolRegistry
 
     /**
      * Per-server-shaped servers — their own `mcp_tools` rows. Covers custom
-     * servers AND presets with a workspace-supplied URL (requires_url /
+     * servers AND presets with a workspace-supplied URL (TokenConnector::$requiresUrl /
      * BYO-OAuth), which never share the central catalog.
      *
      * @return array<int, ToolEntry>

@@ -110,7 +110,7 @@ it('refuses to post the refresh token to an unsafe token endpoint', function ():
 });
 
 it('sends the connector app\'s current secret for a row connected with that app', function (): void {
-    config(['connectors.gmail.oauth_client_id' => 'gmail-app', 'connectors.gmail.oauth_client_secret' => 'rotated-secret']);
+    config(['connectors.oauth_apps.gmail.client_id' => 'gmail-app', 'connectors.oauth_apps.gmail.client_secret' => 'rotated-secret']);
     Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
     $server = otrStaleServer(['connector_slug' => 'gmail', 'oauth_client_id' => 'gmail-app', 'oauth_client_secret' => 'secret-at-connect']);
 
@@ -121,7 +121,7 @@ it('sends the connector app\'s current secret for a row connected with that app'
 });
 
 it('sends the row\'s own secret for a client the connector app did not issue', function (?string $connectorSlug): void {
-    config(['connectors.gmail.oauth_client_id' => 'gmail-app', 'connectors.gmail.oauth_client_secret' => 'app-secret']);
+    config(['connectors.oauth_apps.gmail.client_id' => 'gmail-app', 'connectors.oauth_apps.gmail.client_secret' => 'app-secret']);
     Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
     $server = otrStaleServer(['connector_slug' => $connectorSlug, 'oauth_client_id' => 'workspace-client', 'oauth_client_secret' => 'row-secret']);
 

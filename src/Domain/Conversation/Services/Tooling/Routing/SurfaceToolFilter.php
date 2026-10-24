@@ -13,8 +13,8 @@ use Illuminate\Support\Str;
 
 /**
  * Drops tools whose connector pins itself to surfaces other than the one this
- * conversation runs on. A connector may declare a `surfaces` allow-list in
- * config/connectors.php (e.g. Interactive Charts → ['hosted_chat']); when set,
+ * conversation runs on. A connector may declare a `surfaces` allow-list in its
+ * catalog class (e.g. Interactive Charts → ['hosted_chat']); when set,
  * its tools are withheld from the model on every other surface so it never
  * tries to call a tool whose artifact that surface can't render.
  *

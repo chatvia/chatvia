@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginConnectorOAuthAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
 use Domain\Integration\Connector\Exceptions\ConnectorMisconfiguredException;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
@@ -25,15 +26,15 @@ use Tests\Support\Integration\Connector\PendingConnectorOAuth;
  */
 function bcoConnector(array $overrides = []): ConnectorData
 {
-    return ConnectorData::fromArray([
+    return new ConnectorData(...[
         'slug' => 'fixture',
         'name' => 'Fixture',
         'description' => 'd',
         'category' => 'Test',
         'icon' => 'fixture',
-        'brand_color' => '000000',
-        'auth_strategy' => 'oauth',
-        'mcp_url' => 'https://mcp.example.test/rpc',
+        'brandColor' => '000000',
+        'authStrategy' => ConnectorAuthStrategy::Oauth,
+        'mcpUrl' => 'https://mcp.example.test/rpc',
         'priority' => 999,
         ...$overrides,
     ]);
@@ -93,9 +94,9 @@ it('raises a misconfiguration when the pre-registered OAuth app credentials are 
     // Wired for a pre-registered OAuth app (authorization endpoint set) but the
     // operator never set the client id: reportable, not a user-facing error.
     $connector = bcoConnector([
-        'oauth_authorization_endpoint' => 'https://auth.example.test/authorize',
-        'oauth_token_endpoint' => 'https://auth.example.test/token',
-        'oauth_client_id' => null,
+        'oauthAuthorizationEndpoint' => 'https://auth.example.test/authorize',
+        'oauthTokenEndpoint' => 'https://auth.example.test/token',
+        'oauthClientId' => null,
     ]);
 
     expect(fn (): string => app(BeginConnectorOAuthAction::class)->execute(User::factory()->create(), $connector, 'binding'))

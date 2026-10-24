@@ -3,6 +3,10 @@
 use Domain\Notification\Actions\PruneNotificationsAction;
 use Domain\Notification\Models\UserNotification;
 
+/**
+ * The nightly prune deletes notifications with no activity in the window,
+ * read or not, in batches.
+ */
 it('deletes notifications with no activity in the window, read or not, in batches', function (): void {
     $old = UserNotification::factory()->count(3)->create(['updated_at' => now()->subDays(8)]);
     $oldRead = UserNotification::factory()->read()->create(['updated_at' => now()->subDays(10)]);

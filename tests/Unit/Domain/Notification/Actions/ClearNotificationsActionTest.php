@@ -6,6 +6,10 @@ use Domain\Notification\Events\UserNotificationsCleared;
 use Domain\Notification\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
+/**
+ * Clearing deletes all of one person's notifications, read or not, and tells
+ * their tabs; with nothing to clear it sends nothing.
+ */
 beforeEach(function (): void {
     Event::fake([UserNotificationsCleared::class]);
 });

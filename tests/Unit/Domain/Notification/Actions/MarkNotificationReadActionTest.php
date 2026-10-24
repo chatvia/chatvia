@@ -6,6 +6,10 @@ use Domain\Notification\Events\UserNotificationsRead;
 use Domain\Notification\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
+/**
+ * Marking one notification read tells the person's tabs how many are left;
+ * one already read stays as it was, without a broadcast.
+ */
 beforeEach(function (): void {
     Event::fake([UserNotificationsRead::class]);
 });

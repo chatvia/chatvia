@@ -7,13 +7,23 @@ use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Notification\Services\NotificationRecipients;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Who a notification reaches: the owner and the workspace's active
+ * teammates holding the permission (on the agent, for an agent's
+ * notification), read the way the dashboard's permission policy reads them,
+ * in a few queries however many teammates there are.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner);
 });
 
-/** @return list<int> */
-function recipientIds(iterable $users): array
+/**
+ * The ids of these people, sorted.
+ *
+ * @return list<int>
+ */
+function nrIds(iterable $users): array
 {
     return collect($users)->pluck('id')->sort()->values()->all();
 }
@@ -24,7 +34,7 @@ it('reaches the owner and the teammates holding the permission on the agent', fu
 
     $recipients = app(NotificationRecipients::class)->forAgent($this->agent, 'agent.chat.takeover');
 
-    expect(recipientIds($recipients))->toBe(recipientIds([$this->owner, $takesOver]));
+    expect(nrIds($recipients))->toBe(nrIds([$this->owner, $takesOver]));
 });
 
 it('leaves out a teammate whose role does not reach the agent', function (): void {
@@ -33,7 +43,7 @@ it('leaves out a teammate whose role does not reach the agent', function (): voi
 
     $recipients = app(NotificationRecipients::class)->forAgent($this->agent, 'agent.leads.view');
 
-    expect(recipientIds($recipients))->toBe([$this->owner->id]);
+    expect(nrIds($recipients))->toBe([$this->owner->id]);
 });
 
 it('leaves out deactivated accounts and other workspaces', function (): void {
@@ -44,7 +54,7 @@ it('leaves out deactivated accounts and other workspaces', function (): void {
 
     $recipients = app(NotificationRecipients::class)->forAgent($this->agent, 'agent.leads.view');
 
-    expect(recipientIds($recipients))->toBe([$this->owner->id]);
+    expect(nrIds($recipients))->toBe([$this->owner->id]);
 });
 
 it('finds the holders of a workspace-wide permission', function (): void {
@@ -53,7 +63,7 @@ it('finds the holders of a workspace-wide permission', function (): void {
 
     $recipients = app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.security');
 
-    expect(recipientIds($recipients))->toBe(recipientIds([$this->owner, $security]));
+    expect(nrIds($recipients))->toBe(nrIds([$this->owner, $security]));
 });
 
 it('reaches a restricted teammate whose role lists the agent', function (): void {
@@ -61,7 +71,7 @@ it('reaches a restricted teammate whose role lists the agent', function (): void
 
     $recipients = app(NotificationRecipients::class)->forAgent($this->agent, 'agent.leads.view');
 
-    expect(recipientIds($recipients))->toBe(recipientIds([$this->owner, $listed]));
+    expect(nrIds($recipients))->toBe(nrIds([$this->owner, $listed]));
 });
 
 it('reads a teammate without a current team in their oldest team, as the dashboard does', function (): void {
@@ -72,8 +82,8 @@ it('reads a teammate without a current team in their oldest team, as the dashboa
     $newer->members()->attach($member->id, ['role_id' => $newerRole->id]);
     $member->forceFill(['current_team_id' => null])->save();
 
-    expect(recipientIds(app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.security')))->toBe([$this->owner->id])
-        ->and(recipientIds(app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.prompts')))->toBe(recipientIds([$this->owner, $member]));
+    expect(nrIds(app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.security')))->toBe([$this->owner->id])
+        ->and(nrIds(app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.prompts')))->toBe(nrIds([$this->owner, $member]));
 });
 
 it('picks the same people as the dashboard permission policy', function (): void {
@@ -92,12 +102,12 @@ it('picks the same people as the dashboard permission policy', function (): void
     foreach ([$this->agent, $otherAgent] as $agent) {
         $expected = $members->filter(fn (User $user): bool => $policy->allowsOnAgent($user, $agent, 'agent.leads.view'));
 
-        expect(recipientIds(app(NotificationRecipients::class)->forAgent($agent, 'agent.leads.view')))->toBe(recipientIds($expected));
+        expect(nrIds(app(NotificationRecipients::class)->forAgent($agent, 'agent.leads.view')))->toBe(nrIds($expected));
     }
 
     $expected = $members->filter(fn (User $user): bool => $policy->allows($user, 'account.security'));
 
-    expect(recipientIds(app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.security')))->toBe(recipientIds($expected));
+    expect(nrIds(app(NotificationRecipients::class)->forWorkspace($this->agent->workspace_id, 'account.security')))->toBe(nrIds($expected));
 });
 
 it('asks the same few queries however many teammates there are', function (): void {

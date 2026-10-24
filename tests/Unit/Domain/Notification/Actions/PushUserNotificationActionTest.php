@@ -10,6 +10,11 @@ use Domain\Notification\Events\UserNotificationPushed;
 use Domain\Notification\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
+/**
+ * Pushing a notification stores it with its category and tells the person's
+ * tabs. Notifications with the same group key gather into the unread row
+ * (one person's only); once that row is read, a new one starts.
+ */
 function pushNoteMessage(string $subject, ?string $groupKey = null, NotificationKind $kind = NotificationKind::SourceTrained): NotificationMessageData
 {
     return new NotificationMessageData($kind, new NotificationContentData(url: '/my/agents/a/sources/files', subject: $subject), $groupKey);

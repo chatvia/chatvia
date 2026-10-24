@@ -11,6 +11,8 @@ use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -38,12 +40,24 @@ class SemanticToolRouter
         private readonly ToolHybridSearch $search,
         private readonly ToolRelevanceGate $gate,
         private readonly ConnectorClassifier $connectorClassifier,
+        private readonly AiCallTags $tags,
     ) {}
+
+    /**
+     * Its query embedding and rerank are tagged `tool-routing` in Spectra,
+     * apart from the same kinds of call that the knowledge search makes.
+     *
+     * @return array<int, ToolEntry>
+     */
+    public function route(string $userMessage, Agent $agent): array
+    {
+        return $this->tags->during(AiCallTag::ToolRouting, fn (): array => $this->pick($userMessage, $agent));
+    }
 
     /**
      * @return array<int, ToolEntry>
      */
-    public function route(string $userMessage, Agent $agent): array
+    private function pick(string $userMessage, Agent $agent): array
     {
         $queryVector = $this->embeddings->embedQuery($userMessage);
 

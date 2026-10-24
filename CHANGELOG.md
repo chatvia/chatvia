@@ -441,10 +441,12 @@ theme.
   `app:create-pulse-database`).
 - **Every AI call in Spectra has a tag** that says what it is for, so you can
   filter the requests by it: `chat-reply`, `follow-up-rewrite`,
-  `guardrails`, `tool-routing`, `search-embedding`, `rerank`,
-  `conversation-title`, `conversation-analysis`, `embedding`,
+  `guardrails`, `tool-routing`, `knowledge-search`, `search-embedding`,
+  `rerank`, `conversation-title`, `conversation-analysis`, `embedding`,
   `chunk-enhancement`, `document-summary`, `transcription`, `evaluation`,
   `service-check` and more. The full list is `Domain\Llm\Enums\AiCallTag`.
+  A chat turn's search embedding and rerank also carry `tool-routing` or
+  `knowledge-search`, so you can see which search made them.
 - **Settings → Platform** turns Pulse and Spectra on and off. Pulse records
   from the start; Spectra records only once an admin turns it on, because it
   keeps what is sent to the AI. The Spectra card can also keep only counts,

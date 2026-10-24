@@ -11,6 +11,8 @@ use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -38,12 +40,24 @@ class KnowledgeBase
         private readonly HybridChunkSearch $hybridSearch,
         private readonly Reranker $reranker,
         private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly AiCallTags $tags,
     ) {}
 
     /**
+     * Its query embedding and rerank are tagged `knowledge-search` in
+     * Spectra, apart from the same kinds of call that tool routing makes.
+     *
      * @return list<RetrievedChunkData> best first, at most `max_chunks`
      */
     public function search(Agent $agent, string $query): array
+    {
+        return $this->tags->during(AiCallTag::KnowledgeSearch, fn (): array => $this->find($agent, $query));
+    }
+
+    /**
+     * @return list<RetrievedChunkData>
+     */
+    private function find(Agent $agent, string $query): array
     {
         $settings = RetrievalSettingsData::fromConfig();
         $searchStart = microtime(true);

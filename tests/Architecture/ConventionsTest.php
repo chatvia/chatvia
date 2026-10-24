@@ -827,6 +827,84 @@ it('class constants declare their type', function (): void {
     ]));
 });
 
+// --- Tests ---------------------------------------------------------------
+
+/** @return list<string> absolute paths of every test file in the Pest suites. */
+function conventionTestFiles(): array
+{
+    $files = [];
+
+    foreach (['tests/Unit', 'tests/Feature', 'tests/Architecture', 'tests/Eval'] as $dir) {
+        foreach (conventionPhpFiles($dir) as $path) {
+            if (Str::endsWith($path, 'Test.php')) {
+                $files[] = $path;
+            }
+        }
+    }
+
+    sort($files);
+
+    return $files;
+}
+
+/** Whether the first thing in $code after the opening tag, `declare`, `namespace` and `use` lines is a block comment. */
+function conventionStartsWithDocblock(string $code): bool
+{
+    $tokens = array_values(array_filter(
+        PhpToken::tokenize($code),
+        fn (PhpToken $token): bool => ! $token->is([T_OPEN_TAG, T_WHITESPACE]),
+    ));
+
+    for ($index = 0; isset($tokens[$index]); $index++) {
+        if (! $tokens[$index]->is([T_DECLARE, T_NAMESPACE, T_USE])) {
+            return $tokens[$index]->is(T_DOC_COMMENT)
+                || ($tokens[$index]->is(T_COMMENT) && Str::startsWith($tokens[$index]->text, '/*'));
+        }
+
+        while (isset($tokens[$index]) && $tokens[$index]->text !== ';') {
+            $index++;
+        }
+    }
+
+    return false;
+}
+
+it('starts every test file with a docblock that says what it covers', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
+
+    foreach (conventionTestFiles() as $path) {
+        if (! conventionStartsWithDocblock((string) file_get_contents($path))) {
+            $offenders[] = Str::replace($root, '', $path);
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});
+
+it('writes tests with it(), never test()', function (): void {
+    // test() with no arguments hands back the running test case; that use is fine.
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
+
+    foreach (conventionTestFiles() as $path) {
+        $tokens = array_values(array_filter(
+            PhpToken::tokenize((string) file_get_contents($path)),
+            fn (PhpToken $token): bool => ! $token->is([T_WHITESPACE, T_COMMENT, T_DOC_COMMENT]),
+        ));
+
+        foreach ($tokens as $index => $token) {
+            if ($token->is(T_STRING) && $token->text === 'test'
+                && ($tokens[$index + 1]->text ?? '') === '(' && ($tokens[$index + 2]->text ?? '') !== ')'
+                && ! ($tokens[$index - 1] ?? null)?->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION])) {
+                $offenders[] = Str::replace($root, '', $path).':'.$token->line;
+            }
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});
+
 // --- Event wiring --------------------------------------------------------
 
 it('every listener is registered in a service provider', function (): void {

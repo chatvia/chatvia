@@ -163,7 +163,8 @@ then tag the widget release: every build takes the newest release.
   tested with [Vitest](https://vitest.dev): a `name.test.ts` next to
   `name.ts`, run by `npm run test`.
 - We use [Pest](https://pestphp.com). Unit tests live in `tests/Unit/`,
-  feature (HTTP) tests in `tests/Feature/`, architecture rules in
+  feature tests (through a route, an admin page or a command) in
+  `tests/Feature/`, architecture rules in
   `tests/Architecture/`, and quality checks with real models in `tests/Eval/`
   (they skip themselves without an API key).
 - Tests run against **PostgreSQL**, not SQLite, because the app uses the
@@ -207,7 +208,11 @@ then tag the widget release: every build takes the newest release.
 - Put a unit test at the path of the class it tests:
   `tests/Unit/Domain/Knowledge/Retrieval/Services/KnowledgeBaseTest.php` for
   `src/Domain/Knowledge/Retrieval/Services/KnowledgeBase.php`, App code under
-  `tests/Unit/App/…` (`TestLayoutTest` checks it). Use the factories
+  `tests/Unit/App/…` (`TestLayoutTest` checks it). Put a feature test at the
+  path of its entry point: `tests/Feature/App/Http/Controllers/Agent/AgentControllerTest.php`
+  for `src/App/Http/Controllers/Agent/AgentController.php`, admin pages under
+  `tests/Feature/App/Admin/…`, commands under `tests/Feature/App/Console/Commands/…`.
+  Use the factories
   and the helpers in `tests/Pest.php` rather than building models by hand. A
   helper function you declare in a test file is global, so give it a short
   prefix of its own (`cscChunk()`), or two files will clash.

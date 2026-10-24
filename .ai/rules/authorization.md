@@ -33,4 +33,4 @@ The API applies the dashboard permission model to the token's user. Don't scope 
 Never log who was refused together with the resource they probed at an auth boundary, not even sampled.
 
 ## Prove both statuses in tests
-Every protected route has a test: a teammate without the permission gets 403, another workspace's record gets 404. `tests/Feature/Isolation/` sweeps every route.
+Every protected route has a test: a teammate without the permission gets 403, another workspace's record gets 404. `tests/Feature/App/Http/CrossWorkspaceRouteTest.php` sweeps every route for the 404, and `WorkspacePermissionRouteTest.php` next to it (with `Api/V1/ApiPermissionTest.php` for the API) for the 403.

@@ -595,8 +595,10 @@ On Linux it asks how to install ChatVia.ai (macOS always uses Docker):
   Supervisor (Horizon, Reverb, Pulse), cron and the firewall, creates the
   `chatvia` user, and deploys the newest release with Deployer into
   `/var/www/chatvia`. It sets up the whole server, so use one that runs
-  nothing else. Run the installer again to upgrade (it backs up the
-  database first), or to finish an install that stopped.
+  nothing else. Before you start, add an A record that points your domain
+  at the server: the installer checks it, and warns (but lets you go on)
+  when it does not point there yet. Run the installer again to upgrade
+  (it backs up the database first), or to finish an install that stopped.
   `--complete --yes --email you@example.com --domain chat.example.com`
   installs without questions; `--help` lists every option.
 

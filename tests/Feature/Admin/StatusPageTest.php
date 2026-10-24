@@ -96,7 +96,7 @@ it('calls a service running and an outside service set up', function (): void {
         ->set('checkedAt', now()->toIso8601String())
         ->set('services', ['database' => $running])
         ->set('aiServices', ['chat' => $running])
-        ->assertSeeInOrder(['Database', 'Running', 'Chat models', 'Set up']);
+        ->assertSeeInOrder(['PostgreSQL', 'Running', 'Chat models', 'Set up']);
 });
 
 it('finds the database with the extensions the search needs', function (): void {
@@ -423,8 +423,8 @@ it('lists what is down or needs a look on the banner', function (): void {
         ])
         ->set('aiServices', ['reranking' => ['state' => 'warning', 'summary' => 'The key was turned down.', 'facts' => [], 'providers' => []]])
         ->assertSee('1 service is down')
-        ->assertSeeInOrder(['Queue', 'Horizon is not running.', 'Reranking', 'The key was turned down.'])
-        ->assertDontSee('Database')
+        ->assertSeeInOrder(['Laravel Horizon', 'Horizon is not running.', 'Reranking', 'The key was turned down.'])
+        ->assertDontSee('PostgreSQL')
         ->assertDontSee('All systems operational');
 });
 

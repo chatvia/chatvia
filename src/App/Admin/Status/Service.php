@@ -24,19 +24,20 @@ enum Service: string
     case Programs = 'programs';
     case ModelDetails = 'model_details';
 
+    /** The product behind it, or what it is when it has no product of its own. */
     public function label(): string
     {
         return match ($this) {
-            self::Database => __('Database'),
+            self::Database => __('PostgreSQL'),
             self::Redis => __('Redis'),
-            self::Queue => __('Queue'),
+            self::Queue => __('Laravel Horizon'),
             self::Scheduler => __('Scheduler'),
-            self::Realtime => __('Live updates'),
-            self::ServerMonitor => __('Server monitor'),
+            self::Realtime => __('Laravel Reverb'),
+            self::ServerMonitor => __('Laravel Pulse'),
             self::Storage => __('File storage'),
             self::Email => __('Email'),
             self::Programs => __('Programs'),
-            self::ModelDetails => __('Model details'),
+            self::ModelDetails => 'models.dev',
         };
     }
 
@@ -44,16 +45,25 @@ enum Service: string
     public function description(): string
     {
         return match ($this) {
-            self::Database => __('PostgreSQL'),
+            self::Database => __('Data, vector and keyword search'),
             self::Redis => __('Chat memory and cache'),
-            self::Queue => __('Laravel Horizon'),
+            self::Queue => __('Background jobs'),
             self::Scheduler => __('Repeating tasks'),
-            self::Realtime => __('Laravel Reverb'),
-            self::ServerMonitor => __('Laravel Pulse'),
+            self::Realtime => __('Live updates'),
+            self::ServerMonitor => __('Server monitor'),
             self::Storage => __('Uploads and exports'),
             self::Email => __('Outgoing email'),
             self::Programs => __('File readers and PDFs'),
-            self::ModelDetails => __('From models.dev'),
+            self::ModelDetails => __('What each model supports'),
+        };
+    }
+
+    /** The site of a service named after one (models.dev), which its title links to. */
+    public function url(): ?string
+    {
+        return match ($this) {
+            self::ModelDetails => 'https://models.dev',
+            default => null,
         };
     }
 

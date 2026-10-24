@@ -38,16 +38,16 @@
     <div class="cv-status-list">
         @foreach ($services as [$service, $status])
             <div class="cv-status-row cv-status-row--service" data-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
-                <span class="cv-service__icon cv-service__icon--tinted">
-                    @if ($service->logo() !== null)
-                        <img src="{{ $service->logo() }}" alt="" class="cv-service__logo" />
-                    @else
-                        <x-filament::icon :icon="$service->icon()" />
-                    @endif
-                </span>
+                @include('filament.status.service-icon', ['service' => $service])
 
                 <div class="cv-status-row__name">
-                    <h3 class="cv-service__title">{{ $service->label() }}</h3>
+                    <h3 class="cv-service__title">
+                        @if ($service->url() !== null)
+                            <a href="{{ $service->url() }}" target="_blank" rel="noopener noreferrer" class="cv-service__link">{{ $service->label() }}</a>
+                        @else
+                            {{ $service->label() }}
+                        @endif
+                    </h3>
                     <p class="cv-service__description">
                         {{ $status !== null && $status->state !== \App\Admin\Status\ServiceState::Running ? $status->summary : $service->description() }}
                     </p>

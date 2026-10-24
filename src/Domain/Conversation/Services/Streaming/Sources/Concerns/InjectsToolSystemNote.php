@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Services\Streaming\Sources\Concerns;
 
-use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\AttachmentSource;
+use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Illuminate\Support\Str;
 
 /**

@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "생성",
                 "starters_generating": "생성하는 중…",
                 "starters_generate_hint": "개수를 선택하고 지식 베이스에서 제안을 생성하세요.",
-                "starters_translate_empty": "먼저 기본 탭에서 시작 문구를 추가한 다음 여기에서 번역하세요."
+                "starters_translate_empty": "먼저 기본 탭에서 시작 문구를 추가한 다음 여기에서 번역하세요.",
+                "starters_generate_failed": "시작 문구를 생성하지 못했습니다",
+                "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요."
             },
             "languages": {
                 "title": "UI 언어",

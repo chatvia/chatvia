@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Không thể tạo câu mở đầu",
+                "starters_generate_empty": "Không nhận được câu mở đầu nào. Hãy kiểm tra cơ sở kiến thức có nội dung, rồi thử lại."
+            }
+        }
+    }
+}

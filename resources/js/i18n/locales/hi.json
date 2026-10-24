@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "बनाएं",
                 "starters_generating": "बनाए जा रहे हैं…",
                 "starters_generate_hint": "एक संख्या चुनें और अपने नॉलेज बेस से सुझाव बनाएं।",
-                "starters_translate_empty": "पहले डिफ़ॉल्ट टैब पर स्टार्टर जोड़ें, फिर यहां उनका अनुवाद करें।"
+                "starters_translate_empty": "पहले डिफ़ॉल्ट टैब पर स्टार्टर जोड़ें, फिर यहां उनका अनुवाद करें।",
+                "starters_generate_failed": "स्टार्टर नहीं बन सके",
+                "starters_generate_empty": "कोई स्टार्टर नहीं मिला। जांचें कि नॉलेज बेस में सामग्री है, फिर दोबारा कोशिश करें।"
             },
             "languages": {
                 "title": "UI भाषाएं",

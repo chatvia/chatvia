@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Başlatıcılar oluşturulamadı",
+                "starters_generate_empty": "Hiç başlatıcı gelmedi. Bilgi tabanında içerik olduğunu kontrol edin ve tekrar deneyin."
+            }
+        }
+    }
+}

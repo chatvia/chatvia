@@ -9,7 +9,9 @@
                 "starters_generate_button": "Generate",
                 "starters_generating": "Generating…",
                 "starters_generate_hint": "Choose a number and generate suggestions from your knowledge base.",
-                "starters_translate_empty": "Add starters on the Default tab first, then translate them here."
+                "starters_translate_empty": "Add starters on the Default tab first, then translate them here.",
+                "starters_generate_failed": "Could not generate starters",
+                "starters_generate_empty": "No starters came back. Check that the knowledge base has content, then try again."
             }
         }
     }

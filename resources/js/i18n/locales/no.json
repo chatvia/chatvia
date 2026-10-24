@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Generer",
                 "starters_generating": "Genererer…",
                 "starters_generate_hint": "Velg et antall og generer forslag fra kunnskapsbasen din.",
-                "starters_translate_empty": "Legg først til startemeldinger på Standard-fanen, og oversett dem deretter her."
+                "starters_translate_empty": "Legg først til startemeldinger på Standard-fanen, og oversett dem deretter her.",
+                "starters_generate_failed": "Kunne ikke generere startemeldinger",
+                "starters_generate_empty": "Ingen startemeldinger kom tilbake. Sjekk at kunnskapsbasen har innhold, og prøv igjen."
             },
             "languages": {
                 "title": "Grensesnittspråk",

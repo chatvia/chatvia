@@ -6,8 +6,12 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
+use Domain\Llm\Exceptions\LlmCallFailedException;
+use Domain\Llm\Services\ProviderErrorReason;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -25,11 +29,14 @@ class StarterGenerator
     public function __construct(
         private readonly StructuredCompletion $completion,
         private readonly TaskModels $models,
+        private readonly ProviderErrorReason $reasons,
     ) {}
 
     /**
      * @param  array<int, string>  $content  knowledge-base content samples
      * @return array<int, string> suggested starter questions (≤ $count)
+     *
+     * @throws LlmCallFailedException when the model's provider cannot be reached or refuses the call
      */
     public function generate(array $content, int $count): array
     {
@@ -39,17 +46,25 @@ class StarterGenerator
             return [];
         }
 
-        $reply = $this->completion->send(new ChatRequestData(
-            model: $this->models->model(LlmTask::Starters),
-            messages: [
-                ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
-                ChatMessageData::user(prompt('starters/content', [
-                    'content' => Collection::make($content)->take(40)->implode("\n---\n"),
-                ])),
-            ],
-            tag: AiCallTag::ConversationStarters,
-            temperature: 0.7,
-        ));
+        $model = $this->models->model(LlmTask::Starters);
+
+        try {
+            $reply = $this->completion->send(new ChatRequestData(
+                model: $model,
+                messages: [
+                    ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
+                    ChatMessageData::user(prompt('starters/content', [
+                        'content' => Collection::make($content)->take(40)->implode("\n---\n"),
+                    ])),
+                ],
+                tag: AiCallTag::ConversationStarters,
+                temperature: 0.7,
+            ));
+        } catch (ConnectionException $exception) {
+            throw LlmCallFailedException::unreachable($model, $exception);
+        } catch (RequestException $exception) {
+            throw LlmCallFailedException::refused($model, $exception->response->status(), $this->reasons->of($exception->response), $exception);
+        }
 
         return Collection::make($reply->data ?? [])
             ->filter(fn (mixed $value): bool => filled($value))

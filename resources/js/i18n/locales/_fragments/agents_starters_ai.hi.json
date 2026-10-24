@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "स्टार्टर नहीं बन सके",
+                "starters_generate_empty": "कोई स्टार्टर नहीं मिला। जांचें कि नॉलेज बेस में सामग्री है, फिर दोबारा कोशिश करें।"
+            }
+        }
+    }
+}

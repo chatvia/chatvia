@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Generera",
                 "starters_generating": "Genererar…",
                 "starters_generate_hint": "Välj ett antal och generera förslag från din kunskapsbas.",
-                "starters_translate_empty": "Lägg först till startfrågor på fliken Standard och översätt dem sedan här."
+                "starters_translate_empty": "Lägg först till startfrågor på fliken Standard och översätt dem sedan här.",
+                "starters_generate_failed": "Det gick inte att generera startfrågor",
+                "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen."
             },
             "languages": {
                 "title": "Gränssnittsspråk",

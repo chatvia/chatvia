@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Kunne ikke generere startemeldinger",
+                "starters_generate_empty": "Ingen startemeldinger kom tilbake. Sjekk at kunnskapsbasen har innhold, og prøv igjen."
+            }
+        }
+    }
+}

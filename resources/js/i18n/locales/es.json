@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Generar",
                 "starters_generating": "Generando…",
                 "starters_generate_hint": "Elige un número y genera sugerencias a partir de tu base de conocimiento.",
-                "starters_translate_empty": "Primero agrega iniciadores en la pestaña Predeterminado y luego tradúcelos aquí."
+                "starters_translate_empty": "Primero agrega iniciadores en la pestaña Predeterminado y luego tradúcelos aquí.",
+                "starters_generate_failed": "No se pudieron generar iniciadores",
+                "starters_generate_empty": "No se recibió ningún iniciador. Comprueba que la base de conocimiento tenga contenido e inténtalo de nuevo."
             },
             "languages": {
                 "title": "Idiomas de la interfaz",

@@ -24,6 +24,9 @@ use App\Http\Middleware\Web\SetLocale;
 use Domain\Conversation\Exceptions\ConversationNotHeldException;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Exceptions\VoiceCallRefusedException;
+use Domain\Llm\Exceptions\LlmCallFailedException;
+use Domain\Llm\Exceptions\LlmProviderUnavailableException;
+use Domain\Llm\Exceptions\NoLlmAvailableException;
 use Domain\Membership\Team\Exceptions\TeamOwnerImmutableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -152,6 +155,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'error' => $e->refusal->value,
             'message' => $e->getMessage(),
         ], $e->refusal->status()));
+        // An AI feature of the dashboard (e.g. suggested starters) could not
+        // run: say why, so the person can fix the setup or try again later.
+        $exceptions->render(fn (LlmCallFailedException $e, Request $request): ?JsonResponse => $request->expectsJson()
+            ? response()->json(['message' => $e->getMessage()], 502)
+            : null);
+        $exceptions->render(fn (NoLlmAvailableException|LlmProviderUnavailableException $e, Request $request): ?JsonResponse => $request->expectsJson()
+            ? response()->json(['message' => $e->getMessage()], 503)
+            : null);
     })->create();
 
 // DDD layout: the Laravel framework surface lives at src/App/ rather than

@@ -408,7 +408,9 @@ theme.
   certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
   cron, and the firewall (the SSH ports stay open), creates the `chatvia`
   user, and deploys the release with Deployer into its own folder under
-  `/var/www/chatvia`. It warns that it takes over the whole server, checks
+  `/var/www/chatvia`. It asks you to point the domain at the server first,
+  checks its A record (check again, use another address, go on anyway or
+  stop), warns that it takes over the whole server, checks
   at the end that every part runs, and runs again to upgrade (after a
   database backup, without downtime) or to finish an install that stopped.
 - **Deployer keeps older widget versions.** Every release's

@@ -1972,10 +1972,15 @@ server_addresses() {
     return 0
 }
 
-# The addresses NAME points at in DNS, one per line.
+# The IPv4 addresses NAME points at in DNS (its A records), one per line.
 dns_addresses() {
-    getent ahosts "$1" 2>/dev/null | awk '{ print $1 }' | sort -u
+    getent ahostsv4 "$1" 2>/dev/null | awk '{ print $1 }' | sort -u
     return 0
+}
+
+# Forget cached DNS answers, so a record added a moment ago shows up.
+flush_dns() {
+    resolvectl flush-caches >/dev/null 2>&1 || true
 }
 
 meminfo_kb() {
@@ -2242,7 +2247,10 @@ native_collect_settings() {
         valid_host "$DOMAIN" || die "$INVALID"
         case ${CHATVIA_HTTPS:-yes} in no | false | 0) HTTPS=no ;; *) HTTPS=yes ;; esac
         if is_ip "$DOMAIN"; then HTTPS=no; fi
-        native_check_dns
+        if ! native_check_dns && [ "$HTTPS" = yes ]; then
+            info 'Without it, the HTTPS certificate fails, and ChatVia.ai runs on HTTP until you'
+            info 'get one (run this installer again then).'
+        fi
         case ${CHATVIA_FIREWALL:-yes} in no | false | 0) FIREWALL=no ;; *) FIREWALL=yes ;; esac
         case ${CHATVIA_SWAP:-auto} in
             yes | true | 1) SWAP=yes ;;
@@ -2254,18 +2262,19 @@ native_collect_settings() {
         case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
         [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
     else
+        native_domain_notice
         ask_admin
-        ask DOMAIN 'Domain name or IP address' --default "${CHATVIA_DOMAIN:-}" --placeholder 'chat.example.com' \
-            --hint "Where people open ChatVia.ai. Point the domain's DNS record at this server${SERVER_IP:+ ($SERVER_IP)} first." \
-            --check valid_host
-        DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+        native_ask_domain
         HTTPS=no
         if ! is_ip "$DOMAIN"; then
             choose 'HTTPS' \
                 "Get a free certificate from Let's Encrypt  — renews by itself (recommended)" \
                 'No HTTPS for now  — you can get a certificate later'
             if [ "$CHOICE" = 0 ]; then HTTPS=yes; fi
-            native_check_dns
+            if [ "$HTTPS" = yes ] && [ "$DNS_READY" = 0 ]; then
+                info 'The certificate needs the A record. If it does not work yet when the'
+                info 'installer gets there, ChatVia.ai runs on HTTP until you run the installer again.'
+            fi
         fi
         FIREWALL=no
         if confirm "Turn on the firewall? Only SSH, HTTP and HTTPS can come in." y; then FIREWALL=yes; fi
@@ -2282,28 +2291,70 @@ native_collect_settings() {
     native_resolve_version
 }
 
-# Let's Encrypt checks that the domain points at this server. Behind a proxy
-# or CDN it may point elsewhere and still work, so this only warns.
-native_check_dns() {
-    if is_ip "$DOMAIN"; then return; fi
-    local addresses mine
-    addresses=$(dns_addresses "$DOMAIN")
-    mine=$(server_addresses)
-    if [ -n "$addresses" ] && grep -qFxf <(printf '%s\n' "$mine") <<<"$addresses"; then
-        ok "$DOMAIN points at this server"
+# Shown before the questions: a new DNS record can take a while to work, so
+# it can be added now, while the other questions are answered.
+native_domain_notice() {
+    section 'Before you start: point your domain at this server'
+    info 'At your DNS provider, add an A record for the domain people will open'
+    if [ -n "$SERVER_IP" ]; then
+        info "(like chat.example.com) with the value $(bold "$SERVER_IP"), the IP address of this server."
+    else
+        info '(like chat.example.com) with the public IP address of this server as its value.'
+    fi
+    info 'The installer checks it in a moment. No domain yet? Use the IP address for now.'
+}
+
+# Asks for the domain and checks its A record. When it does not point here,
+# the person can check again, use another address, go on anyway (a proxy or
+# CDN in front, or a record that needs more time) or stop.
+native_ask_domain() {
+    DNS_READY=1
+    while true; do
+        ask DOMAIN 'Domain name or IP address' --default "${DOMAIN:-${CHATVIA_DOMAIN:-}}" --placeholder 'chat.example.com' \
+            --hint "Where people open ChatVia.ai. Its A record must point at this server${SERVER_IP:+ ($SERVER_IP)}." \
+            --check valid_host
+        DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+        while ! native_check_dns; do
+            choose "$DOMAIN does not point at this server yet" \
+                'Check again  — after you add or change the A record' \
+                'Continue anyway  — a proxy or CDN is in front, or the record needs more time' \
+                'Use another domain or the IP address' \
+                'Stop for now  — run the installer again once the record works'
+            case $CHOICE in
+                0) flush_dns ;;
+                1)
+                    DNS_READY=0
+                    return
+                    ;;
+                2) continue 2 ;;
+                *)
+                    outro 'Nothing was changed.'
+                    exit 0
+                    ;;
+            esac
+        done
         return
+    done
+}
+
+# Let's Encrypt checks that the domain points at this server. Behind a proxy
+# or CDN it may point elsewhere and still work, so this only warns. Returns 1
+# when it does not point here.
+native_check_dns() {
+    if is_ip "$DOMAIN"; then return 0; fi
+    local addresses
+    addresses=$(dns_addresses "$DOMAIN")
+    if [ -n "$addresses" ] && grep -qFxf <(server_addresses) <<<"$addresses"; then
+        ok "$DOMAIN points at this server"
+        return 0
     fi
     if [ -z "$addresses" ]; then
-        warn "$DOMAIN has no DNS record yet."
+        warn "$DOMAIN has no A record yet."
     else
-        warn "$DOMAIN points at $(printf '%s' "$addresses" | tr '\n' ' ')and not at this server${SERVER_IP:+ ($SERVER_IP)}."
+        warn "$DOMAIN points at $(printf '%s' "$addresses" | paste -sd ' ' - | sed 's/ /, /g'), not at this server${SERVER_IP:+ ($SERVER_IP)}."
     fi
     info "Add an A record for it that points at ${SERVER_IP:-this server}, unless a proxy or CDN is in front."
-    if [ "$HTTPS" = yes ]; then
-        info 'Without it, the HTTPS certificate fails, and ChatVia.ai runs on HTTP until you'
-        info 'get one (run this installer again then).'
-        if [ "$INTERACTIVE" = 1 ] && ! confirm 'Try to get the certificate anyway?' y; then HTTPS=no; fi
-    fi
+    return 1
 }
 
 native_show_summary() {
@@ -3427,6 +3478,8 @@ native_backup() {
 
 native_retry_https() {
     warn "$DOMAIN has no HTTPS certificate yet."
+    SERVER_IP=$(server_ip)
+    native_check_dns || true
     if [ "$INTERACTIVE" = 1 ] && ! confirm "Get it now? $DOMAIN must point at this server." y; then return; fi
     if ! run_step "Getting an HTTPS certificate for $DOMAIN" native_get_certificate; then
         warn 'Still no certificate. ChatVia.ai keeps running on HTTP.'
@@ -3509,7 +3562,7 @@ main() {
     NO_PULL=${CHATVIA_NO_PULL:-0}
     MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
-    DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no
+    DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no DNS_READY=1
 
     setup_output
     parse_args "$@"

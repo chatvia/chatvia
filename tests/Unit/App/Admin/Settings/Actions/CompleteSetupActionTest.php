@@ -89,14 +89,14 @@ it('describes images with the model that reads them', function (): void {
 
     expect(savedSetting(AiSettings::class, 'images_model'))->toBe((string) Llm::query()->where('name', 'mistral-small-3.2-24b-instruct-2506')->value('id'))
         // On is the default, so it stays unsaved.
-        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeNull();
+        ->and(savedSetting(AiSettings::class, 'describe_images'))->toBeNull();
 });
 
 it('turns image descriptions off without a model that reads images', function (): void {
     app(CompleteSetupAction::class)->execute(completeSetupData());
 
     expect(savedSetting(AiSettings::class, 'images_model'))->toBeNull()
-        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
+        ->and(savedSetting(AiSettings::class, 'describe_images'))->toBeFalse();
 });
 
 it('answers about chat files with the model that reads them', function (): void {

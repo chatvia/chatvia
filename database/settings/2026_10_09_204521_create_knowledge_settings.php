@@ -18,7 +18,6 @@ return new class extends SettingsMigration
             $group->add('file_types');
             $group->add('enhance_chunks');
             $group->add('enhance_text_chunks');
-            $group->add('describe_images');
             $group->addEncrypted('firecrawl_api_key');
             $group->add('firecrawl_endpoint');
             $group->add('firecrawl_rate_per_minute');

@@ -53,6 +53,7 @@ use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\ProviderAdapters;
 use Domain\Llm\Services\SourceSummaryModel;
+use Domain\Llm\Services\TaskModels;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
@@ -308,6 +309,16 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->icon(Heroicon::OutlinedDocumentText)
                     ->warning()
                     ->visible(fn (Get $get): bool => (bool) $get('source_summaries_enabled') && $this->pdfModels('source_summaries_model') === []),
+                $this->toggle('describe_images', 'Describe images',
+                    help: 'A model describes the pictures inside PDF files and other documents, so search can find what they show. It runs while AI enhancement is on (Settings → Knowledge). The setup turns this off when your AI provider has no model that reads images. Off: pictures are skipped, and the text is still read.')
+                    ->live(),
+                $this->modelChoice('images_model', 'Model for image descriptions', help: 'Only the models that read images are listed.', unset: 'Same as the model for quick tasks', only: fn (): array => $this->imageModels('images_model'))
+                    ->visible(fn (Get $get): bool => (bool) $get('describe_images')),
+                Callout::make('No model reads images')
+                    ->description('Pictures are not described until a model that reads images is added under Chat models.')
+                    ->icon(Heroicon::OutlinedPhoto)
+                    ->warning()
+                    ->visible(fn (Get $get): bool => (bool) $get('describe_images') && $this->imageModels('images_model') === []),
                 $this->toggle('chat_files_enabled', 'Chat file uploads',
                     help: 'Lets chatters attach a PDF file or an image in a chat and ask about it, when the agent allows uploads too (agent Setup → Settings → Composer options). Off: no agent can offer uploads.')
                     ->live(),
@@ -361,7 +372,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ...array_map(fn (string $group, array $tasks): Fieldset => Fieldset::make($group)
                     ->columns(1)
                     ->schema(array_map($this->taskChoice(...), $tasks)), array_keys(LlmTaskText::GROUPS), LlmTaskText::GROUPS),
-            ])->properties('task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTask::appTasks()))
+            ])->properties('task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTaskText::listedTasks()))
                 ->summary(fn (): string => $this->tasksSummary())
                 ->advanced(),
         ];
@@ -761,7 +772,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             $task->settingsProperty(),
             LlmTaskText::label($task),
             unset: 'Same as the model for quick tasks',
-            only: $task === LlmTask::Images ? fn (): array => $this->imageModels($task->settingsProperty()) : null,
         ), LlmTaskText::help($task));
     }
 
@@ -943,7 +953,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private function tasksSummary(): string
     {
         $shared = $this->catalogName($this->valueInUse('task_model'));
-        $own = count(array_filter(LlmTask::appTasks(), fn (LlmTask $task): bool => filled($this->valueInUse($task->settingsProperty()))));
+        $own = count(array_filter(LlmTaskText::listedTasks(), fn (LlmTask $task): bool => filled($this->valueInUse($task->settingsProperty()))));
 
         return ($shared ?? 'The default model').' for every task'
             .($own === 0 ? '' : ' · '.$own.' '.Str::plural('task', $own).' with '.($own === 1 ? 'its' : 'their').' own model');
@@ -1079,7 +1089,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return AiProvider::tryFrom($this->driverInUse($property))?->label() ?? 'off';
     }
 
-    /** The reader in use, the model for summaries and the model for chat files, for the card's summary line. */
+    /** The reader in use and the models for summaries, image descriptions and chat files, for the card's summary line. */
     private function documentsSummary(): string
     {
         $reader = match ($this->driverInUse('document_parser')) {
@@ -1089,6 +1099,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         };
 
         return "Reading: {$reader} · Summaries: ".(app(SourceSummaryModel::class)->find()->name ?? 'off')
+            .' · Images: '.((bool) $this->valueInUse('describe_images') ? (app(TaskModels::class)->find(LlmTask::Images)->name ?? 'off') : 'off')
             .' · Chat uploads: '.(app(ChatFileModel::class)->find()->name ?? 'off');
     }
 

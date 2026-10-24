@@ -1171,7 +1171,7 @@ class Setup extends SimplePage
                 ->hintAction($this->testAction(self::TEST_FILES))
                 ->visible(fn (Get $get): bool => $this->models !== [] && (bool) $get('chat_files')),
             Callout::make('Image descriptions are off')
-                ->description('Pictures inside PDF files and other documents are not described, so search cannot find what they show. The text of your documents is still read. Add a model that reads images later in Settings → AI models, then turn on Settings → Knowledge → AI enhancement → Describe images.')
+                ->description('Pictures inside PDF files and other documents are not described, so search cannot find what they show. The text of your documents is still read. Add a model that reads images later in Settings → AI models, then turn on Settings → AI models → Documents → Describe images.')
                 ->icon(Heroicon::OutlinedPhoto)
                 ->info()
                 ->visible(fn (): bool => $this->models === []),

@@ -61,6 +61,9 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.source_summaries.model')]
     public ?string $source_summaries_model = null;
 
+    #[ConfigKey('chatvia.ai.chunker.describe_images')]
+    public ?bool $describe_images = null;
+
     #[ConfigKey('chatvia.agent.default_model')]
     public ?string $default_agent_model = null;
 

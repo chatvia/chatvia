@@ -109,7 +109,7 @@ trait HasStorageFile
         // attribute — under `Model::shouldBeStrict()` `$this->parser_filepath`
         // would throw MissingAttributeException instead of falling back.
         $field = ($this->getAttributes()['parser_filepath'] ?? null) ? 'parser_filepath' : 'filepath';
-        $extension = strtolower(pathinfo((string) ($this->getAttributes()[$field] ?? ''), PATHINFO_EXTENSION));
+        $extension = Str::lower(pathinfo((string) ($this->getAttributes()[$field] ?? ''), PATHINFO_EXTENSION));
 
         $localPdf = $extension === 'json'
             ? $pdf->fromPages(PageData::fromJson($this->readContents($field))->pluck('content')->all())
@@ -120,7 +120,7 @@ trait HasStorageFile
         // removes a copy a crash left behind. Every model sharing this trait
         // stores its file under that root, including chat attachments, which
         // have no workspace column of their own.
-        $root = implode('/', array_slice(explode('/', (string) ($this->getAttributes()['filepath'] ?? '')), 0, 2));
+        $root = Str::of((string) ($this->getAttributes()['filepath'] ?? ''))->explode('/')->take(2)->implode('/');
         $pdfPath = ($root !== '' ? $root : 'tmp').'/tmp/'.Str::uuid()->toString().'.pdf';
 
         try {

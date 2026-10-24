@@ -13,6 +13,7 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Per-turn hybrid retrieval across the preset catalog, custom MCP tools, and
@@ -99,7 +100,7 @@ class ToolHybridSearch
 
         Log::debug('ToolHybridSearch: search complete', [
             'agent_id' => $agent->id,
-            'query_chars' => strlen($userMessage),
+            'query_chars' => Str::length($userMessage),
             'returned' => count($hits),
             'elapsed_ms' => round($elapsedMs, 2),
             'results' => array_map(static fn (ToolSearchHitData $hit): array => $hit->toLogContext(), $hits),
@@ -121,7 +122,7 @@ class ToolHybridSearch
                 name: (string) $row->fn_name,
                 description: (string) $row->fn_description,
                 parameters: ToolEntry::decodeSchema($row->fn_schema),
-                mutates: strtoupper((string) $row->fn_method) !== 'GET',
+                mutates: Str::upper((string) $row->fn_method) !== 'GET',
             ),
         };
 

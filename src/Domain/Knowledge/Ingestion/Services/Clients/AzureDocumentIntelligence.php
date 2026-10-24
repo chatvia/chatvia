@@ -13,6 +13,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 
 /**
  * Azure AI Document Intelligence (Settings → AI providers): reads a PDF,
@@ -46,7 +47,7 @@ class AzureDocumentIntelligence
         // Azure says why it refused a file (too large for the free tier, a
         // password lock, a format it cannot read); that reason is shown.
         if ($started->failed()) {
-            throw DocumentParsingException::failed(mb_substr((string) (
+            throw DocumentParsingException::failed(Str::substr((string) (
                 $started->json('error.innererror.message') ?? $started->json('error.message') ?? "Azure answered with an error ({$started->status()})."
             ), 0, 300));
         }
@@ -89,7 +90,7 @@ class AzureDocumentIntelligence
             }
 
             if ($status === 'failed' || now()->gte($deadline)) {
-                throw DocumentParsingException::failed(mb_substr((string) ($response->json('error.message') ?? 'Azure Document Intelligence did not finish.'), 0, 200));
+                throw DocumentParsingException::failed(Str::substr((string) ($response->json('error.message') ?? 'Azure Document Intelligence did not finish.'), 0, 200));
             }
 
             Sleep::for(max(1, (int) ($response->header('Retry-After') ?: 2)))->seconds();
@@ -114,11 +115,11 @@ class AzureDocumentIntelligence
             ->map(function (array $page, int $index) use ($content, $tables): PageData {
                 $number = (int) ($page['pageNumber'] ?? $index + 1);
                 $markdown = collect((array) ($page['spans'] ?? []))
-                    ->map(fn (array $span): string => mb_substr($content, (int) $span['offset'], (int) $span['length']))
+                    ->map(fn (array $span): string => Str::substr($content, (int) $span['offset'], (int) $span['length']))
                     ->join("\n");
 
                 // Tables come separately; comments mark page breaks and numbers.
-                $markdown = (string) preg_replace(['#<table\b.*?</table>#is', '#<!--.*?-->#s'], '', $markdown);
+                $markdown = Str::replaceMatches(['#<table\b.*?</table>#is', '#<!--.*?-->#s'], '', $markdown) ?? '';
 
                 $text = str(Markdown::convert($markdown)->getContent())
                     ->stripTags()
@@ -154,11 +155,11 @@ class AzureDocumentIntelligence
             $rows = array_fill(0, max(1, (int) ($table['rowCount'] ?? 1)), array_fill(0, max(1, (int) ($table['columnCount'] ?? 1)), ''));
 
             foreach ((array) ($table['cells'] ?? []) as $cell) {
-                $rows[(int) ($cell['rowIndex'] ?? 0)][(int) ($cell['columnIndex'] ?? 0)] = str_replace(['|', "\n"], ['\\|', ' '], trim((string) ($cell['content'] ?? '')));
+                $rows[(int) ($cell['rowIndex'] ?? 0)][(int) ($cell['columnIndex'] ?? 0)] = Str::replace(['|', "\n"], ['\\|', ' '], Str::trim((string) ($cell['content'] ?? '')));
             }
 
             $lines = array_map(fn (array $row): string => '| '.implode(' | ', $row).' |', $rows);
-            array_splice($lines, 1, 0, ['|'.str_repeat(' --- |', count($rows[0]))]);
+            array_splice($lines, 1, 0, ['|'.Str::repeat(' --- |', count($rows[0]))]);
 
             $byPage[$page][] = implode("\n", $lines);
         }
@@ -175,7 +176,7 @@ class AzureDocumentIntelligence
     /** An API address of the resource, with the API version. */
     private function url(string $path, ?string $endpoint = null): string
     {
-        $base = rtrim((string) ($endpoint ?? config('services.azure_document_intelligence.endpoint')), '/');
+        $base = Str::rtrim((string) ($endpoint ?? config('services.azure_document_intelligence.endpoint')), '/');
 
         return "{$base}/documentintelligence/{$path}?api-version=".config('services.azure_document_intelligence.api_version', '2024-11-30');
     }

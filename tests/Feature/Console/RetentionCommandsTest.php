@@ -17,6 +17,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * The scheduled retention commands run their Action: each one changes a row
@@ -60,7 +61,7 @@ it('deletes leads past the workspace\'s window with chatvia:prune:leads', functi
 
 it('forgets sign-in devices unused for 180 days with chatvia:prune:known-devices', function (): void {
     $user = User::factory()->create();
-    $device = UserKnownDevice::query()->create(['user_id' => $user->id, 'fingerprint_hash' => str_repeat('a', 64), 'last_seen_at' => now()->subDays(200)]);
+    $device = UserKnownDevice::query()->create(['user_id' => $user->id, 'fingerprint_hash' => Str::repeat('a', 64), 'last_seen_at' => now()->subDays(200)]);
 
     $this->artisan('chatvia:prune:known-devices')->assertSuccessful();
 
@@ -69,7 +70,7 @@ it('forgets sign-in devices unused for 180 days with chatvia:prune:known-devices
 
 it('deletes chatter and team invitations long expired with chatvia:prune:invitations', function (): void {
     $agent = Agent::factory()->create();
-    $chatterInvitation = AgentChatterInvitation::query()->create(['agent_id' => $agent->id, 'email' => 'old@example.test', 'token' => str_repeat('b', 64), 'expires_at' => now()->subDays(40)]);
+    $chatterInvitation = AgentChatterInvitation::query()->create(['agent_id' => $agent->id, 'email' => 'old@example.test', 'token' => Str::repeat('b', 64), 'expires_at' => now()->subDays(40)]);
     $team = app(TeamService::class)->createDefaultTeam(User::factory()->create());
     $teamInvitation = $team->invitations()->create(['role_id' => $team->roles()->firstOrFail()->id, 'email' => 'old@example.test']);
     $teamInvitation->forceFill(['created_at' => now()->subDays(40)])->save();

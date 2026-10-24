@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Ingestion\Services\Chunking\Splitting;
 
+use Illuminate\Support\Str;
+
 /**
  * Splits Markdown (crawled web pages, .md files, ebooks) by its structure:
  * one section per heading, small neighbouring sections packed together, and
@@ -37,7 +39,7 @@ final readonly class MarkdownSplitter
      */
     public function split(string $text): array
     {
-        $sections = $this->sections($this->blocks(str_replace(["\r\n", "\r"], "\n", $text)));
+        $sections = $this->sections($this->blocks(Str::replace(["\r\n", "\r"], "\n", $text)));
         $chunks = [];
         $group = [];
         $groupLength = 0;
@@ -98,7 +100,9 @@ final readonly class MarkdownSplitter
         for ($i = 0; $i < $count; $i++) {
             $line = $lines[$i];
 
-            if (preg_match(self::FENCE, $line, $fence) === 1) {
+            $fence = Str::match(self::FENCE, $line);
+
+            if ($fence !== '') {
                 $blocks = $this->withText($blocks, $paragraph);
                 $paragraph = [];
                 $code = [$line];
@@ -106,7 +110,7 @@ final readonly class MarkdownSplitter
                 while (++$i < $count) {
                     $code[] = $lines[$i];
 
-                    if ($this->closesFence($lines[$i], $fence[1])) {
+                    if ($this->closesFence($lines[$i], $fence)) {
                         break;
                     }
                 }
@@ -119,7 +123,7 @@ final readonly class MarkdownSplitter
             if (preg_match(self::ATX_HEADING, $line, $heading) === 1) {
                 $blocks = $this->withText($blocks, $paragraph);
                 $paragraph = [];
-                $blocks[] = ['type' => 'heading', 'lines' => [$line], 'level' => strlen($heading[1]), 'title' => trim($heading[2] ?? '')];
+                $blocks[] = ['type' => 'heading', 'lines' => [$line], 'level' => Str::length($heading[1]), 'title' => Str::trim($heading[2] ?? '')];
 
                 continue;
             }
@@ -132,19 +136,21 @@ final readonly class MarkdownSplitter
             }
 
             // A line of = or - under a paragraph (not a list) makes it a heading.
-            if ($paragraph !== [] && preg_match(self::SETEXT_UNDERLINE, $line, $underline) === 1 && preg_match(self::LIST_ITEM, $paragraph[0]) !== 1) {
+            $underline = $paragraph !== [] ? Str::match(self::SETEXT_UNDERLINE, $line) : '';
+
+            if ($underline !== '' && ! Str::isMatch(self::LIST_ITEM, $paragraph[0])) {
                 $blocks[] = [
                     'type' => 'heading',
                     'lines' => [...$paragraph, $line],
-                    'level' => $underline[1][0] === '=' ? 1 : 2,
-                    'title' => implode(' ', array_map(trim(...), $paragraph)),
+                    'level' => $underline[0] === '=' ? 1 : 2,
+                    'title' => implode(' ', array_map(Str::trim(...), $paragraph)),
                 ];
                 $paragraph = [];
 
                 continue;
             }
 
-            if (preg_match(self::THEMATIC_BREAK, $line) === 1) {
+            if (Str::isMatch(self::THEMATIC_BREAK, $line)) {
                 $blocks = $this->withText($blocks, $paragraph);
                 $paragraph = [];
                 $blocks[] = ['type' => 'text', 'lines' => [$line]];
@@ -152,12 +158,12 @@ final readonly class MarkdownSplitter
                 continue;
             }
 
-            if (str_contains($line, '|') && isset($lines[$i + 1]) && str_contains($lines[$i + 1], '|') && preg_match(self::TABLE_DELIMITER, $lines[$i + 1]) === 1) {
+            if (Str::contains($line, '|') && isset($lines[$i + 1]) && Str::contains($lines[$i + 1], '|') && Str::isMatch(self::TABLE_DELIMITER, $lines[$i + 1])) {
                 $blocks = $this->withText($blocks, $paragraph);
                 $paragraph = [];
                 $table = [$line, $lines[++$i]];
 
-                while (isset($lines[$i + 1]) && filled($lines[$i + 1]) && str_contains($lines[$i + 1], '|')) {
+                while (isset($lines[$i + 1]) && filled($lines[$i + 1]) && Str::contains($lines[$i + 1], '|')) {
                     $table[] = $lines[++$i];
                 }
 
@@ -199,7 +205,7 @@ final readonly class MarkdownSplitter
 
             $level = $block['level'] ?? 1;
             $path = array_filter($path, static fn (int $above): bool => $above < $level, ARRAY_FILTER_USE_KEY);
-            $heading = rtrim(str_repeat('#', $level).' '.($block['title'] ?? ''));
+            $heading = Str::rtrim(Str::repeat('#', $level).' '.($block['title'] ?? ''));
             $current = ['path' => array_values($path), 'heading' => $heading, 'source' => implode("\n", $block['lines']), 'blocks' => []];
             $path[$level] = $heading;
         }
@@ -240,7 +246,7 @@ final readonly class MarkdownSplitter
 
         foreach ($splitter->pack($pieces) as $chunk) {
             if (filled($chunk)) {
-                $chunks[] = $prefix.trim($chunk);
+                $chunks[] = $prefix.Str::trim($chunk);
             }
         }
 
@@ -278,10 +284,9 @@ final readonly class MarkdownSplitter
     private function codeParts(array $lines, RecursiveSplitter $splitter): array
     {
         $open = $lines[0];
-        preg_match(self::FENCE, $open, $fence);
-        $marker = $fence[1] ?? '```';
+        $marker = Str::match(self::FENCE, $open) ?: '```';
         $closed = count($lines) > 1 && $this->closesFence($lines[count($lines) - 1], $marker);
-        $close = $closed ? trim($lines[count($lines) - 1]) : $marker;
+        $close = $closed ? Str::trim($lines[count($lines) - 1]) : $marker;
         $code = implode("\n", array_slice($lines, 1, $closed ? -1 : null));
         $room = $splitter->size - $this->length($open."\n\n".$close);
 
@@ -293,7 +298,7 @@ final readonly class MarkdownSplitter
 
         foreach ($splitter->withSize($room)->chunks($code, [PatternSeparator::lines(), PatternSeparator::words()]) as $part) {
             if (filled($part)) {
-                $parts[] = $open."\n".rtrim($part, "\n")."\n".$close;
+                $parts[] = $open."\n".Str::rtrim($part, "\n")."\n".$close;
             }
         }
 
@@ -332,7 +337,7 @@ final readonly class MarkdownSplitter
         }
 
         return array_map(
-            static fn (string $chunk): string => $header."\n".rtrim($chunk, "\n"),
+            static fn (string $chunk): string => $header."\n".Str::rtrim($chunk, "\n"),
             $rowSplitter->pack($pieces),
         );
     }
@@ -416,6 +421,6 @@ final readonly class MarkdownSplitter
     /** Whether the line closes a code block opened with $marker: the same character, at least as many. */
     private function closesFence(string $line, string $marker): bool
     {
-        return preg_match('/^ {0,3}'.preg_quote($marker[0], '/').'{'.strlen($marker).',}[ \t]*$/', $line) === 1;
+        return Str::isMatch('/^ {0,3}'.preg_quote($marker[0], '/').'{'.Str::length($marker).',}[ \t]*$/', $line);
     }
 }

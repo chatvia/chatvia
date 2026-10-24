@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Streaming\Transformers;
 
+use Illuminate\Support\Str;
 use JsonException;
 
 /**
@@ -41,11 +42,11 @@ final class JsonToolCallParser
 
     private static function withoutCodeFence(string $content): string
     {
-        $text = trim($content);
-        $text = preg_replace('/^```(?:json)?\s*\n?/i', '', $text) ?? $text;
-        $text = preg_replace('/\n?```\s*$/', '', $text) ?? $text;
+        $text = Str::trim($content);
+        $text = Str::replaceMatches('/^```(?:json)?\s*\n?/i', '', $text) ?? $text;
+        $text = Str::replaceMatches('/\n?```\s*$/', '', $text) ?? $text;
 
-        return trim($text);
+        return Str::trim($text);
     }
 
     /**

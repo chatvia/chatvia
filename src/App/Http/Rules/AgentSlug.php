@@ -24,7 +24,7 @@ final readonly class AgentSlug implements ValidationRule
     {
         $slug = is_scalar($value) ? (string) $value : '';
 
-        if (Str::length($slug) < 3 || Str::length($slug) > 63 || preg_match(self::PATTERN, $slug) !== 1) {
+        if (Str::length($slug) < 3 || Str::length($slug) > 63 || ! Str::isMatch(self::PATTERN, $slug)) {
             $fail('validation.regex')->translate();
 
             return;

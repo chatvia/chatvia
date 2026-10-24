@@ -56,7 +56,7 @@ final class LexicalSearch
     {
         $value = config('chatvia.search.text_config', 'simple');
 
-        if (blank($value) || ! preg_match('/^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)?$/', $value)) {
+        if (blank($value) || ! Str::isMatch('/^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)?$/', $value)) {
             throw InvalidLexicalSearchException::textConfig($value);
         }
 
@@ -74,7 +74,7 @@ final class LexicalSearch
     {
         return match ($this->driver()) {
             LexicalDriver::PgTextsearch => $query,
-            LexicalDriver::Postgres => implode(' OR ', preg_split('/\s+/', trim($query), flags: PREG_SPLIT_NO_EMPTY) ?: []),
+            LexicalDriver::Postgres => Str::of($query)->trim()->split('/\s+/', flags: PREG_SPLIT_NO_EMPTY)->implode(' OR '),
         };
     }
 

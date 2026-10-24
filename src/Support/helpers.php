@@ -79,7 +79,7 @@ if (! function_exists('file_extension')) {
     {
         $name = $file instanceof UploadedFile ? $file->getClientOriginalName() : $file;
 
-        return strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        return Str::lower(pathinfo($name, PATHINFO_EXTENSION));
     }
 }
 
@@ -135,7 +135,7 @@ if (! function_exists('template')) {
     function template(string $template, array $placeholders): string
     {
         foreach ($placeholders as $key => $value) {
-            $template = str_replace('{'.$key.'}', (string) $value, $template);
+            $template = Str::replace('{'.$key.'}', (string) $value, $template);
         }
 
         return $template;
@@ -157,6 +157,6 @@ if (! function_exists('prompt')) {
      */
     function prompt(string $name, array $data = []): string
     {
-        return view('prompts::'.str_replace('/', '.', $name), $data)->render();
+        return view('prompts::'.Str::replace('/', '.', $name), $data)->render();
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Document\Conversion;
 
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
 use Intervention\Image\Encoders\PngEncoder;
@@ -27,7 +28,7 @@ final class ReaderImage
      */
     public function png(string $path, int $minSide = 1, int $maxSide = PHP_INT_MAX): string
     {
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $extension = Str::lower(pathinfo($path, PATHINFO_EXTENSION));
 
         try {
             $image = $this->manager()->decodePath($path);

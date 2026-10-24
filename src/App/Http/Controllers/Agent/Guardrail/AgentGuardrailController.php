@@ -17,6 +17,7 @@ use Domain\Guardrail\Queries\GuardrailOffendersQuery;
 use Domain\Guardrail\Queries\GuardrailTriggerLogQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -43,7 +44,7 @@ class AgentGuardrailController
         $filters = new GuardrailLogFiltersData(
             guard_type: GuardType::tryFrom($request->string('guard_type')->toString()),
             outcome: GuardOutcome::tryFrom($request->string('outcome')->toString()),
-            visitor: preg_match('/^[0-9a-f]{64}$/', $visitor) === 1 ? $visitor : null,
+            visitor: Str::isMatch('/^[0-9a-f]{64}$/', $visitor) ? $visitor : null,
         );
 
         $page = $log->forAgent($agent, $filters)->withQueryString();

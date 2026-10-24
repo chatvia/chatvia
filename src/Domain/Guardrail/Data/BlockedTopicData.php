@@ -43,14 +43,14 @@ class BlockedTopicData extends Data
         }
 
         return new self(
-            name: trim((string) $stored['name']),
-            description: filled($stored['description'] ?? null) ? trim((string) $stored['description']) : null,
+            name: Str::trim((string) $stored['name']),
+            description: filled($stored['description'] ?? null) ? Str::trim((string) $stored['description']) : null,
             examples: array_values(array_filter(
                 array_map(static fn (mixed $example): string => filled($example) ? Str::trim($example) : '', (array) ($stored['examples'] ?? [])),
                 filled(...),
             )),
             action: TopicResponse::tryFrom((string) ($stored['action'] ?? '')) ?? TopicResponse::Refuse,
-            reply: filled($stored['reply'] ?? null) ? trim((string) $stored['reply']) : null,
+            reply: filled($stored['reply'] ?? null) ? Str::trim((string) $stored['reply']) : null,
             reply_translations: array_filter((array) ($stored['reply_translations'] ?? []), filled(...)),
         );
     }

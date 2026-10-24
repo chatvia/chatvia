@@ -101,14 +101,14 @@ it('keeps what the person said when they approved out loud, capped', function ()
     app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => 'Yes, send it.']));
     expect(AgentActivity::query()->latest('id')->first()->decision_note)->toBe('Yes, send it.');
 
-    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => str_repeat('y', 5000)]));
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => Str::repeat('y', 5000)]));
     expect(strlen((string) AgentActivity::query()->latest('id')->first()->decision_note))->toBe(1000);
 });
 
 it('caps an oversized result and flags truncation', function (): void {
     config(['chatvia.governance.max_result_bytes' => 10]);
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'resultText' => str_repeat('x', 50)]);
+    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'resultText' => Str::repeat('x', 50)]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
@@ -152,7 +152,7 @@ it('redacts secret keys at any depth and in any case', function (): void {
 it('caps oversized arguments after redacting them, keeps the cut text as a preview and flags the cut', function (): void {
     config(['chatvia.governance.max_arg_bytes' => 40]);
     $agent = Agent::factory()->create();
-    $raw = json_encode(['token' => 'secret123', 'note' => str_repeat('x', 200)]);
+    $raw = json_encode(['token' => 'secret123', 'note' => Str::repeat('x', 200)]);
     $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
 
     app(RecordToolCallAuditAction::class)->execute($event);

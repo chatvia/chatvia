@@ -7,6 +7,8 @@ use Domain\Llm\Enums\AiProvider;
 use Filament\Forms\Components\Select;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -44,7 +46,7 @@ function savedReranker(): ?string
 /** Whether a request is a rerank (the page also lists OpenRouter's models). */
 function rerankCall(Request $request): bool
 {
-    return str_ends_with((string) parse_url($request->url(), PHP_URL_PATH), '/rerank');
+    return Str::endsWith(Uri::of($request->url())->getUri()->getPath(), '/rerank');
 }
 
 /** A rerank that works: the first text ranks first. */

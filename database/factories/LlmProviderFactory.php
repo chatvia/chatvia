@@ -5,6 +5,7 @@ namespace Database\Factories;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * Builds a connection to an LLM provider (`llm_providers`), by default an
@@ -41,7 +42,7 @@ class LlmProviderFactory extends Factory
     {
         return $this->state(fn (): array => [
             'kind' => $kind,
-            'name' => ucfirst($kind->value),
+            'name' => Str::ucfirst($kind->value),
             'base_url' => $kind === LlmProviderKind::Custom ? 'https://llm.test/v1' : null,
             'api_key' => $kind === LlmProviderKind::Custom ? 'test-key' : null,
         ]);

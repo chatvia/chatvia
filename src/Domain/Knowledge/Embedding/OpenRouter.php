@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Embedding;
 
 use Domain\Knowledge\Embedding\Services\OpenRouterEmbeddingModels;
+use Illuminate\Support\Str;
 
 /**
  * Embeddings through OpenRouter (`services.openrouter`), with the same key as
@@ -16,7 +17,7 @@ class OpenRouter extends OpenAi
 {
     protected function doEmbedQuery(string $text): array
     {
-        if (! str_contains($this->getModel(), 'qwen3-embedding')) {
+        if (! Str::contains($this->getModel(), 'qwen3-embedding')) {
             return parent::doEmbedQuery($text);
         }
 

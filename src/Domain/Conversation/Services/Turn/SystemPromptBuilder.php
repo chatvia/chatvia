@@ -7,6 +7,7 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Guardrail\Services\GuardrailService;
+use Illuminate\Support\Str;
 use Locale;
 
 /**
@@ -65,8 +66,8 @@ class SystemPromptBuilder
         $marker = $data->guardrailsEnabled ? $this->guardrails->leakMarker($agent) : null;
 
         return $this->withCallerAndBusiness(
-            ($marker !== null ? trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
-                .rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding', [
+            ($marker !== null ? Str::trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
+                .Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding', [
                     'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
                 ]),
             $agent,
@@ -86,7 +87,7 @@ class SystemPromptBuilder
     public function voicePrompt(Agent $agent, ?string $chatterName, array $history): string
     {
         $prompt = $this->withCallerAndBusiness(
-            rtrim($agent->resolveSystemInstructions())."\n\n".prompt('voice/system'),
+            Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('voice/system'),
             $agent,
             $chatterName,
         );

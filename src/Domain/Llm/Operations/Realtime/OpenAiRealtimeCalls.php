@@ -70,7 +70,7 @@ class OpenAiRealtimeCalls implements RealtimeCalls
 
         // `/v1/realtime/calls/rtc_…`: the segment after calls/ is the call's id.
         $location = Str::rtrim($response->header('Location'), '/');
-        $callId = str_contains($location, '/calls/') ? Str::afterLast($location, '/') : '';
+        $callId = Str::contains($location, '/calls/') ? Str::afterLast($location, '/') : '';
 
         if (blank($callId) || blank($response->body())) {
             throw new RealtimeCallFailedException('OpenAI answered the voice call without an answer or a call id.');
@@ -141,9 +141,10 @@ class OpenAiRealtimeCalls implements RealtimeCalls
      */
     private function sdpLines(string $sdp): string
     {
-        $lines = preg_split('/\r\n|\n|\r/', trim($sdp)) ?: [];
-
-        return implode("\r\n", $lines)."\r\n";
+        return Str::of($sdp)
+            ->trim()
+            ->split('/\r\n|\n|\r/')
+            ->implode("\r\n")."\r\n";
     }
 
     /**
@@ -162,12 +163,12 @@ class OpenAiRealtimeCalls implements RealtimeCalls
 
     private function endpoint(): string
     {
-        return rtrim((string) config('services.openai.api_endpoint'), '/');
+        return Str::rtrim((string) config('services.openai.api_endpoint'), '/');
     }
 
     /** The API address as a WebSocket address: https://…/v1 → wss://…/v1/realtime. */
     private function socketUrl(): string
     {
-        return preg_replace('#^http#i', 'ws', $this->endpoint()).'/realtime';
+        return Str::replaceMatches('#^http#i', 'ws', $this->endpoint()).'/realtime';
     }
 }

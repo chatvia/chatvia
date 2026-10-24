@@ -6,6 +6,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * The suggestions endpoint groups emergent (un-promoted) topic labels and
@@ -117,7 +118,7 @@ it('reads the examples of every label with the same number of queries', function
     $oneLabel = $countQueries();
 
     foreach (['shipping', 'returns'] as $label) {
-        ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, ucfirst($label)))->suggested($label)->create();
+        ConversationTopic::factory()->forConversation(suggestedTopicsConversation($agent, Str::ucfirst($label)))->suggested($label)->create();
     }
     $threeLabels = $countQueries();
 

@@ -47,7 +47,7 @@ final readonly class PgTextsearchSupport
     {
         return Str::of($libraries)
             ->explode(',')
-            ->map(fn (string $library): string => trim($library, " \t\""))
+            ->map(fn (string $library): string => Str::trim($library, " \t\""))
             ->contains(self::EXTENSION);
     }
 }

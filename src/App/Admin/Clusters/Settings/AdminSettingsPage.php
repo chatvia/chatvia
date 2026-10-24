@@ -331,7 +331,7 @@ abstract class AdminSettingsPage extends Page
             }
 
             try {
-                $label = $component instanceof Field ? Str::squish(strip_tags((string) $component->getLabel())) : '';
+                $label = $component instanceof Field ? Str::of((string) $component->getLabel())->stripTags()->squish()->toString() : '';
                 $children = $component->getDefaultChildComponents();
             } catch (Throwable) {
                 continue;
@@ -389,7 +389,7 @@ abstract class AdminSettingsPage extends Page
                     ->badge($card->required !== [])
                     ->size(TextSize::Small)
                     ->color(fn (): string => $this->statusLine($card)[1])
-                    ->tooltip(fn (): ?string => mb_strlen($this->statusLine($card)[0]) > 60 ? $this->statusLine($card)[0] : null),
+                    ->tooltip(fn (): ?string => Str::length($this->statusLine($card)[0]) > 60 ? $this->statusLine($card)[0] : null),
                 ...($card->consoleUrl === null ? [] : [
                     Action::make('console_'.$card->key)
                         ->label($card->consoleLabel ?? 'Open console')
@@ -473,7 +473,7 @@ abstract class AdminSettingsPage extends Page
     {
         $file = resource_path('help/settings/'.static::getSlug().'/'.($card->helpFile ?? $card->key).'.md');
 
-        return File::isFile($file) ? str_replace('{title}', $card->title, File::get($file)) : null;
+        return File::isFile($file) ? Str::replace('{title}', $card->title, File::get($file)) : null;
     }
 
     /**
@@ -780,8 +780,8 @@ abstract class AdminSettingsPage extends Page
     {
         return $this->text($property, $label, $help)
             ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
-                $isPath = filled($value) && preg_match('#^/(?!/)\S*$#', $value) === 1;
-                $isUrl = filled($value) && preg_match('#^https?://#i', $value) === 1 && filter_var($value, FILTER_VALIDATE_URL) !== false;
+                $isPath = filled($value) && Str::isMatch('#^/(?!/)\S*$#', $value);
+                $isUrl = filled($value) && Str::isMatch('#^https?://#i', $value) && filter_var($value, FILTER_VALIDATE_URL) !== false;
 
                 if (! $isPath && ! $isUrl) {
                     $fail('Enter a path on this server that starts with "/", or a full address that starts with "https://".');

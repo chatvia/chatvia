@@ -5,6 +5,7 @@ namespace Domain\Conversation\QueryBuilders;
 use Domain\Conversation\Models\Message;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Query scopes for chat-log messages: reading one conversation safely inside
@@ -52,8 +53,10 @@ class MessageQueryBuilder extends Builder
      */
     public function searchContent(string $term): self
     {
-        $words = collect(preg_split('/\s+/', trim($term), -1, PREG_SPLIT_NO_EMPTY) ?: [])
-            ->filter(fn (string $word): bool => mb_strlen($word) >= 2)
+        $words = Str::of($term)
+            ->trim()
+            ->split('/\s+/', -1, PREG_SPLIT_NO_EMPTY)
+            ->filter(fn (string $word): bool => Str::length($word) >= 2)
             ->values();
 
         // No searchable token (blank or all single chars) → match nothing.
@@ -79,7 +82,7 @@ class MessageQueryBuilder extends Builder
     /** Escape LIKE/ILIKE wildcards so user input is matched literally. */
     private function escapeLike(string $value): string
     {
-        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+        return Str::replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
     /**

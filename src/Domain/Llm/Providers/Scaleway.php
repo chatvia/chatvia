@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Models\Llm;
+use Illuminate\Support\Str;
 
 /**
  * Chat completions through the Scaleway Generative APIs (open-weight models
@@ -23,6 +24,6 @@ class Scaleway extends AbstractLlmProvider
      */
     public static function baseUrl(): string
     {
-        return rtrim((string) config('services.scalewayai.endpoint'), '/');
+        return Str::rtrim((string) config('services.scalewayai.endpoint'), '/');
     }
 }

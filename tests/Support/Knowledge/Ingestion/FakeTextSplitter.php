@@ -6,6 +6,7 @@ namespace Tests\Support\Knowledge\Ingestion;
 
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
+use Illuminate\Support\Str;
 
 /**
  * Simple stand-in for the text splitter, bound by default in TestCase: one
@@ -38,10 +39,12 @@ class FakeTextSplitter implements TextSplitter
         $this->kinds[] = $kind;
         $this->texts[] = $text;
 
-        return $this->chunks ?? array_values(array_filter(
-            array_map(trim(...), preg_split('/\n\s*\n/', $text) ?: []),
-            static fn (string $part): bool => $part !== '',
-        ));
+        return $this->chunks ?? Str::of($text)
+            ->split('/\n\s*\n/')
+            ->map(static fn (string $part): string => Str::trim($part))
+            ->reject(static fn (string $part): bool => $part === '')
+            ->values()
+            ->all();
     }
 
     public function name(): string

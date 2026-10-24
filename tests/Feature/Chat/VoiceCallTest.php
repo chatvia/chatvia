@@ -17,6 +17,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery\LegacyMockInterface;
 use Tests\Support\Widget\EmbeddedWidget;
@@ -55,7 +56,7 @@ function sentVoiceSession(): array
     $session = null;
 
     Http::assertSent(function (Request $request) use (&$session): bool {
-        if (! str_ends_with($request->url(), '/realtime/calls')) {
+        if (! Str::endsWith($request->url(), '/realtime/calls')) {
             return false;
         }
 
@@ -115,7 +116,7 @@ it('sends OpenAI the offer with its line endings, though form input is trimmed',
 it('sends the key and an anonymous caller id to OpenAI, never to the browser', function (): void {
     $response = $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])->assertOk();
 
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/realtime/calls')
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls')
         && $request->hasHeader('Authorization', 'Bearer test-key')
         && strlen($request->header('OpenAI-Safety-Identifier')[0] ?? '') === 64);
 
@@ -212,7 +213,7 @@ it('hangs up the visitor\'s own call and 404s another one', function (): void {
 
     $this->deleteJson($this->chat.'/voice/calls/'.$callId)->assertNoContent();
     expect(app(VoiceCallStore::class)->isEnded($callId))->toBeTrue();
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/realtime/calls/rtc_abc123/hangup'));
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls/rtc_abc123/hangup'));
 
     $this->deleteJson($this->chat.'/voice/calls/'.Str::uuid7())->assertNotFound();
 });

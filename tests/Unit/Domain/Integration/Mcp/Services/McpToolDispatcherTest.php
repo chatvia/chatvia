@@ -13,6 +13,7 @@ use Domain\Integration\Mcp\Services\McpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Tool arguments are visitor data and transport errors can carry URLs or
@@ -60,7 +61,7 @@ it('logs argument keys but never their values', function (): void {
 
     Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context): bool => $message === 'MCP tool dispatched'
         && $context['arg_keys'] === ['email', 'phone']
-        && ! str_contains((string) json_encode($context), 'jane@example.com'));
+        && ! Str::contains((string) json_encode($context), 'jane@example.com'));
 });
 
 it('hides transport details from the model and the logs', function (): void {
@@ -81,8 +82,8 @@ it('hides transport details from the model and the logs', function (): void {
 
         return $message === 'MCP tool dispatch failed'
             && $context['exception'] === McpException::class
-            && ! str_contains($encoded, 'SECRET-TOKEN')
-            && ! str_contains($encoded, 'jane@example.com');
+            && ! Str::contains($encoded, 'SECRET-TOKEN')
+            && ! Str::contains($encoded, 'jane@example.com');
     });
 
     // The full message stays with the workspace: the counters listener

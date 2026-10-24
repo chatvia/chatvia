@@ -11,6 +11,7 @@ use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Enums\VisitorBlockDuration;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Models\SecurityAuditLog;
+use Illuminate\Support\Str;
 
 /**
  * Blocking a visitor keeps one block per fingerprint (blocking again updates
@@ -28,7 +29,7 @@ function bvaBlock(VisitorBlockDuration $duration, ?string $reason = null): Block
 {
     return app(BlockVisitorAction::class)->execute(new BlockVisitorData(
         workspaceId: test()->agent->workspace_id,
-        visitorKey: str_repeat('a', 64),
+        visitorKey: Str::repeat('a', 64),
         duration: $duration,
         actor: SecurityActorData::forUser(test()->owner),
         agentId: test()->agent->id,

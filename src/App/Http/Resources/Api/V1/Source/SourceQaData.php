@@ -6,6 +6,7 @@ namespace App\Http\Resources\Api\V1\Source;
 
 use Carbon\CarbonInterface;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -45,7 +46,7 @@ class SourceQaData extends Data
         return new self(
             id: $qa->external_id,
             title: $qa->title,
-            questions: array_values(array_filter(explode("\n", $qa->questions))),
+            questions: Str::of($qa->questions)->explode("\n")->filter()->values()->all(),
             answer: $qa->answer,
             created_at: $qa->created_at,
         );

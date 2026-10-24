@@ -10,6 +10,7 @@ use Domain\Integration\Mcp\Services\McpToolDispatcher;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Illuminate\Support\Str;
 
 /**
  * The single `ToolDispatcherInterface` binding the rest of the app talks to.
@@ -47,12 +48,12 @@ class RoutingToolDispatcher implements ToolDispatcherInterface
     {
         $limit = max(self::MIN_RESULT_CHARS, (int) config('chatvia.agent.tools.max_result_chars'));
 
-        if (mb_strlen($result->text) <= $limit) {
+        if (Str::length($result->text) <= $limit) {
             return $result;
         }
 
         return new ToolDispatchResult(
-            mb_substr($result->text, 0, $limit)."\n\n".sprintf(self::CUT_NOTE, $limit),
+            Str::substr($result->text, 0, $limit)."\n\n".sprintf(self::CUT_NOTE, $limit),
             $result->artifacts,
             $result->isError,
         );

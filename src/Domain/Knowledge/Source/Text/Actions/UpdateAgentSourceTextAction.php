@@ -40,7 +40,7 @@ class UpdateAgentSourceTextAction
     {
         $newContent = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
         $checksum = md5($newContent);
-        $numberOfPages = (int) ceil(str_word_count($newContent) / self::WORDS_PER_PAGE);
+        $numberOfPages = (int) ceil(Str::wordCount($newContent) / self::WORDS_PER_PAGE);
 
         if ($sourceText->checksum === $checksum) {
             return false;

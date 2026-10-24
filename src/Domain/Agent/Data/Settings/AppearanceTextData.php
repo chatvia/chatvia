@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Agent\Data\Settings;
 
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -28,9 +29,9 @@ class AppearanceTextData extends Data
     public function toFields(): array
     {
         return array_filter([
-            'chat_window_title' => trim($this->chat_window_title),
-            'welcome_message' => trim($this->welcome_message),
-            'composer_placeholder' => trim($this->composer_placeholder),
+            'chat_window_title' => Str::trim($this->chat_window_title),
+            'welcome_message' => Str::trim($this->welcome_message),
+            'composer_placeholder' => Str::trim($this->composer_placeholder),
         ], static fn (string $value): bool => $value !== '');
     }
 }

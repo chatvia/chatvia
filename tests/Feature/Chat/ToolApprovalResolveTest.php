@@ -76,7 +76,7 @@ it('resumes the visitor\'s own paused turn and runs the approved call', function
         ->and($events->where('type', 'done')->last()['data']['reason'])->toBe('complete')
         ->and($this->checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Resolved);
 
-    Http::assertSent(fn (ClientRequest $request): bool => str_starts_with($request->url(), 'https://orders.example.test/cancel'));
+    Http::assertSent(fn (ClientRequest $request): bool => Str::startsWith($request->url(), 'https://orders.example.test/cancel'));
 });
 
 it('answers 404 for another visitor\'s paused turn and leaves it pending', function (): void {

@@ -7,6 +7,8 @@ namespace App\Http\Requests\Agent;
 use Domain\Agent\Data\Settings\UpdateAgentDomainData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Illuminate\Validation\Rule;
 
 /**
@@ -28,7 +30,7 @@ class UpdateAgentDomainRequest extends FormRequest
      */
     public function rules(): array
     {
-        $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $appHost = Uri::of((string) config('app.url'))->host();
 
         /** @var Agent $agent */
         $agent = $this->route('agent');
@@ -65,7 +67,7 @@ class UpdateAgentDomainRequest extends FormRequest
     public function toData(): UpdateAgentDomainData
     {
         // Normalized hostname (lowercase, trimmed); empty input means "clear".
-        $domain = strtolower(trim((string) $this->input('domain')));
+        $domain = Str::lower(Str::trim((string) $this->input('domain')));
 
         return new UpdateAgentDomainData(
             domain: $domain === '' ? null : $domain,

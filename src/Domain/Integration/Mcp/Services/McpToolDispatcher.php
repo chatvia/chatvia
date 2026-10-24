@@ -15,6 +15,7 @@ use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -124,7 +125,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
     private function messageForModel(Throwable $e): string
     {
         if ($e instanceof McpException && $e->serverMessage !== null) {
-            return 'The tool reported an error: '.mb_substr($e->serverMessage, 0, 500);
+            return 'The tool reported an error: '.Str::substr($e->serverMessage, 0, 500);
         }
 
         if ($e instanceof McpException && $e->getCode() >= 400 && $e->getCode() < 600) {

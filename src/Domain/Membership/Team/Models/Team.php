@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Support\Concerns\HasExternalId;
 
 /**
@@ -128,10 +129,10 @@ class Team extends Model
      */
     public function hasUserWithEmail(string $email): bool
     {
-        $email = strtolower($email);
+        $email = Str::lower($email);
 
-        return strtolower($this->owner->email) === $email
-            || $this->members->contains(fn ($user): bool => strtolower($user->email) === $email);
+        return Str::lower($this->owner->email) === $email
+            || $this->members->contains(fn ($user): bool => Str::lower($user->email) === $email);
     }
 
     /**

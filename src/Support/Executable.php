@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Support;
 
+use Illuminate\Support\Str;
+
 /**
  * Finds the program file a configured path leads to, with file checks only
  * (no `which`, no process), so it is cheap enough to ask before every use.
@@ -26,17 +28,15 @@ final class Executable
             return null;
         }
 
-        if (str_starts_with($path, '/')) {
+        if (Str::startsWith($path, '/')) {
             return self::isProgram($path) ? $path : null;
         }
 
-        foreach (explode(PATH_SEPARATOR, (string) getenv('PATH')) as $folder) {
-            if ($folder !== '' && self::isProgram("{$folder}/{$path}")) {
-                return "{$folder}/{$path}";
-            }
-        }
-
-        return null;
+        return Str::of((string) getenv('PATH'))
+            ->explode(PATH_SEPARATOR)
+            ->filter(fn (string $folder): bool => $folder !== '')
+            ->map(fn (string $folder): string => "{$folder}/{$path}")
+            ->first(fn (string $program): bool => self::isProgram($program));
     }
 
     /** Whether a program is found for the path ({@see find()}). */

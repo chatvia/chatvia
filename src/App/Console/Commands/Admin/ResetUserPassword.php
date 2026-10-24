@@ -58,7 +58,7 @@ class ResetUserPassword extends Command
         if ($this->option('stdin')) {
             $line = fgets(STDIN);
 
-            return $line === false ? '' : rtrim($line, "\r\n");
+            return $line === false ? '' : Str::rtrim($line, "\r\n");
         }
 
         return (string) ($this->argument('password') ?? $this->secret('New password'));

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 /*
  * Source-level guardrails for the Vue dashboard + hosted chat (resources/js).
  * There is no JavaScript test runner for resources/js, so these checks read the
@@ -28,18 +30,18 @@ $frontendOffenders = function (string $pattern, array $allowed = []) use ($front
 
     foreach ($iterator as $file) {
         $path = (string) $file;
-        if (! $file->isFile() || ! preg_match('/\.(vue|ts|js)$/', $path)) {
+        if (! $file->isFile() || ! Str::isMatch('/\.(vue|ts|js)$/', $path)) {
             continue;
         }
 
-        $relative = ltrim(str_replace($frontendRoot, '', $path), DIRECTORY_SEPARATOR);
+        $relative = Str::ltrim(Str::replace($frontendRoot, '', $path), DIRECTORY_SEPARATOR);
         if (in_array($relative, $allowed, true)) {
             continue;
         }
 
         // Block comments may explain a rule by quoting the forbidden form.
-        $source = (string) preg_replace('#/\*.*?\*/#s', '', (string) file_get_contents($path));
-        if (preg_match($pattern, $source) === 1) {
+        $source = Str::replaceMatches('#/\*.*?\*/#s', '', (string) file_get_contents($path)) ?? '';
+        if (Str::isMatch($pattern, $source)) {
             $offenders[] = $relative;
         }
     }
@@ -109,7 +111,7 @@ it('builds form controls on the shared ui components', function () use ($fronten
 
     $offenders = array_values(array_filter(
         $frontendOffenders('/<select\b|<textarea\b|type="(checkbox|radio|range)"/', $custom),
-        fn (string $file): bool => ! str_starts_with($file, 'components/ui/'),
+        fn (string $file): bool => ! Str::startsWith($file, 'components/ui/'),
     ));
 
     expect($offenders)->toBe([]);

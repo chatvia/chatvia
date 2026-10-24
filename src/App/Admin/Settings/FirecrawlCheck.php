@@ -7,6 +7,7 @@ namespace App\Admin\Settings;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Checks a Firecrawl key with a call that costs no credits: the team's
@@ -17,7 +18,7 @@ final class FirecrawlCheck
 {
     public function check(string $apiKey, ?string $endpoint = null): ConnectionCheckData
     {
-        $endpoint = rtrim(filled($endpoint) ? $endpoint : (string) config('services.firecrawl.endpoint'), '/');
+        $endpoint = Str::rtrim(filled($endpoint) ? $endpoint : (string) config('services.firecrawl.endpoint'), '/');
 
         try {
             $status = Http::withToken($apiKey)->acceptJson()->timeout(10)->get("{$endpoint}/team/credit-usage")->status();

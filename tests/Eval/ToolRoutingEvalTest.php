@@ -112,7 +112,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     // The compiled name each catalog tool ships under, and its scope and
     // connector, so whatever the router ships can be classified.
     $compiledName = static fn (string $slug, string $tool): string => $pool === 'function'
-        ? mb_substr($slug.'_'.$tool, 0, 64)
+        ? Str::substr($slug.'_'.$tool, 0, 64)
         : 'mcp__'.$slug.'__'.$tool;
     $scopeByName = [];
     $connectorByName = [];
@@ -141,7 +141,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
             // Mirror EmbedConnectorToolsAction — connector context
             // is embedded alongside the tool so an ambiguous name still carries
             // its brand signal.
-            $text = trim($connector['name']."\n".$connector['description']."\n\n".$tool['name']."\n\n".$tool['description']);
+            $text = Str::trim($connector['name']."\n".$connector['description']."\n\n".$tool['name']."\n\n".$tool['description']);
             $vectors = [
                 'embedding' => app(EmbeddingsProviderInterface::class)->embed($text),
                 'search_text' => $text,
@@ -271,8 +271,8 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     $w = max($agg['write_cases'], 1);
 
     // --- Scoreboard ---
-    $pct = static fn (float $v): string => str_pad(number_format($v * 100, 1).'%', 7, ' ', STR_PAD_LEFT);
-    $out = "\n".str_repeat('=', 96)."\n";
+    $pct = static fn (float $v): string => Str::padLeft(number_format($v * 100, 1).'%', 7, ' ');
+    $out = "\n".Str::repeat('=', 96)."\n";
     $reranker = app(Reranker::class);
     $bars = $reranker->isEnabled()
         ? 'reranker '.$reranker->model().' read='.RelevanceThresholds::toolRerank($reranker, false).' / write='.RelevanceThresholds::toolRerank($reranker, true)
@@ -281,9 +281,9 @@ it('measures tool-routing retrieval quality against the labelled set', function 
         .'  ·  gate='.(config('chatvia.agent.tools.routing.relevance_gate') ? 'on' : 'off')
         .'  ·  '.$bars
         .'  ·  connector_router='.(config('chatvia.agent.tools.routing.connector_classifier') ? 'on' : 'off')."\n";
-    $out .= str_repeat('=', 96)."\n";
+    $out .= Str::repeat('=', 96)."\n";
     $out .= sprintf("%-40s %-30s %-7s %-7s %-5s %s\n", 'query', 'expected', 'ship#1', 'in-set', 'rank', 'wrong-write');
-    $out .= str_repeat('-', 96)."\n";
+    $out .= Str::repeat('-', 96)."\n";
     foreach ($rows as $r) {
         // Flag a starved write: correct mutation dropped out of the shipped set.
         $starved = $r['write'] && ! $r['in_set'];
@@ -297,19 +297,19 @@ it('measures tool-routing retrieval quality against the labelled set', function 
             $r['wrong_write'],
         );
     }
-    $out .= str_repeat('-', 96)."\n";
+    $out .= Str::repeat('-', 96)."\n";
     $out .= 'top-1 accuracy (pre-gate) : '.$pct($agg['top1'] / $n)."   ({$agg['top1']}/{$n})\n";
     $out .= 'recall@5                  : '.$pct($agg['recall5'] / $n)."   ({$agg['recall5']}/{$n})\n";
-    $out .= 'MRR                       : '.str_pad(number_format($agg['mrr'] / $n, 3), 7, ' ', STR_PAD_LEFT)."\n";
+    $out .= 'MRR                       : '.Str::padLeft(number_format($agg['mrr'] / $n, 3), 7, ' ')."\n";
     $out .= 'shipped top-1 accuracy    : '.$pct($agg['shipped_top1'] / $n)."   ({$agg['shipped_top1']}/{$n})\n";
     $out .= 'shipped recall (in set)   : '.$pct($agg['shipped_recall'] / $n)."   ({$agg['shipped_recall']}/{$n})\n";
     $out .= 'avg tools shipped / turn  : '.number_format($agg['shipped_size'] / $n, 1)."\n";
-    $out .= str_repeat('-', 96)."\n";
+    $out .= Str::repeat('-', 96)."\n";
     $out .= 'WRONG-MUTATION (write cases only, n='.$agg['write_cases'].")\n";
     $out .= '  wrong write as top-1     : '.$pct($agg['wrong_write_top1'] / $w)."   ({$agg['wrong_write_top1']}/{$agg['write_cases']})\n";
     $out .= '  wrong write in shipped   : '.$pct($agg['wrong_write_in_set'] / $w)."   ({$agg['wrong_write_in_set']}/{$agg['write_cases']})\n";
     $out .= '  correct write STARVED    : '.$pct($agg['write_starved'] / $w)."   ({$agg['write_starved']}/{$agg['write_cases']})   <- write bar dropped the right tool\n";
-    $out .= str_repeat('=', 96)."\n";
+    $out .= Str::repeat('=', 96)."\n";
 
     fwrite(STDOUT, $out);
 

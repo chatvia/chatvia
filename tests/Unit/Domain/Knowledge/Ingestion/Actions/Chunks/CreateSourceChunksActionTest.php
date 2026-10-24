@@ -14,6 +14,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
 /**
@@ -64,7 +65,7 @@ it('stores a group of pages with one embedding request and one insert', function
 
     $inserts = 0;
     DB::listen(function (QueryExecuted $query) use (&$inserts): void {
-        $inserts += str_starts_with($query->sql, 'insert into "chunks"') ? 1 : 0;
+        $inserts += Str::startsWith($query->sql, 'insert into "chunks"') ? 1 : 0;
     });
 
     $created = app(CreateSourceChunksAction::class)->execute(cscData($file, [
@@ -129,7 +130,7 @@ it('enhances a page before storing it, so the chunk row is written once', functi
 
     $updates = 0;
     DB::listen(function (QueryExecuted $query) use (&$updates): void {
-        $updates += str_starts_with($query->sql, 'update "chunks"') ? 1 : 0;
+        $updates += Str::startsWith($query->sql, 'update "chunks"') ? 1 : 0;
     });
 
     app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'The Pacific is the largest ocean.')], ChunkEnhancement::Text));

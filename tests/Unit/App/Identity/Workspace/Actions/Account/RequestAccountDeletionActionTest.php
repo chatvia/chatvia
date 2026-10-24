@@ -6,6 +6,8 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 it('dispatches AccountDeletionRequested with a signed confirmation link for the user', function (): void {
     Event::fake();
@@ -18,9 +20,9 @@ it('dispatches AccountDeletionRequested with a signed confirmation link for the 
         AccountDeletionRequested::class,
         fn (AccountDeletionRequested $event): bool => $event->email === $user->email
             && $event->name === $user->name
-            && str_contains($event->url, '/my/account/delete-account/confirm/'.$user->id)
-            && str_contains($event->url, 'signature=')
-            && str_contains($event->url, 'expires='),
+            && Str::contains($event->url, '/my/account/delete-account/confirm/'.$user->id)
+            && Str::contains($event->url, 'signature=')
+            && Str::contains($event->url, 'expires='),
     );
 });
 
@@ -32,7 +34,7 @@ it('mints a confirmation link that is valid for 30 minutes', function (): void {
     app(RequestAccountDeletionAction::class)->execute($user);
 
     $url = Event::dispatched(AccountDeletionRequested::class)->sole()[0]->url;
-    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+    $query = Uri::of($url)->query()->all();
 
     expect((int) $query['expires'])->toBe(now()->addMinutes(30)->getTimestamp())
         ->and(URL::hasValidSignature(Request::create($url)))->toBeTrue();

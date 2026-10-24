@@ -7,6 +7,7 @@ use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Every Scaleway Generative APIs call must use a configured address, never a
@@ -33,7 +34,7 @@ it('sends embeddings to the configured endpoint', function (): void {
 
     app(Qwen3::class)->embed('hello');
 
-    Http::assertSent(fn (Request $request): bool => str_starts_with($request->url(), 'https://api.scaleway.test/project-x/v1/'));
+    Http::assertSent(fn (Request $request): bool => Str::startsWith($request->url(), 'https://api.scaleway.test/project-x/v1/'));
 });
 
 it('sends transcriptions to the configured endpoint', function (): void {
@@ -60,8 +61,8 @@ it('sends the configured embedding and transcription models', function (): void 
     app(Qwen3::class)->embed('hello');
     app(ScalewayTranscriber::class)->transcribe(create_temp_file('clip.mp3', 'fake-audio'));
 
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/embeddings') && $request['model'] === 'embed-model-x');
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/audio/transcriptions')
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/embeddings') && $request['model'] === 'embed-model-x');
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/audio/transcriptions')
         && collect($request->data())->contains(fn (array $part): bool => ($part['name'] ?? null) === 'model' && ($part['contents'] ?? null) === 'whisper-x'));
 });
 

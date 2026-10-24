@@ -7,6 +7,7 @@ use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Turns an owner's correction of an agent reply (Chat log → "revise answer")
@@ -37,7 +38,7 @@ class CreateQaFromMessageReviseAction
 
             $qa = AgentQuestionAnswer::query()->create([
                 'agent_id' => $agent->id,
-                'title' => mb_substr($userMessage, 0, self::TITLE_LENGTH),
+                'title' => Str::substr($userMessage, 0, self::TITLE_LENGTH),
                 'questions' => $userMessage,
                 'answer' => $expectedResponse,
             ]);

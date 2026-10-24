@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Form\Actions\ExportSubmissionsCsvAction;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->freezeTime();
@@ -23,7 +24,7 @@ function escvRows(string $csv): array
 {
     return array_map(
         static fn (string $line): array => str_getcsv($line, escape: '\\'),
-        explode("\n", rtrim($csv, "\n")),
+        explode("\n", Str::rtrim($csv, "\n")),
     );
 }
 

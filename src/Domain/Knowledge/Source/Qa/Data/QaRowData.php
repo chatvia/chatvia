@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\Qa\Data;
 
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
@@ -30,8 +31,8 @@ class QaRowData extends Data
 
     public static function fromModel(AgentQuestionAnswer $qa): self
     {
-        $questions = collect(explode("\n", $qa->questions))
-            ->map(fn (string $question): string => trim($question))
+        $questions = Str::of($qa->questions)->explode("\n")
+            ->map(fn (string $question): string => Str::trim($question))
             ->filter()
             ->values()
             ->map(fn (string $question): QaQuestionItemData => QaQuestionItemData::fromQuestion($question))

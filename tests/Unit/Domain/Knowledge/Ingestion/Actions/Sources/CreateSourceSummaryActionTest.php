@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * The summary chunk (chunk_index 0) comes from one analysis call and one
@@ -141,5 +142,5 @@ it('sends the PDF itself, and asks for the summary in the detected language', fu
         ->and($source->fresh()->language)->toBe('da');
 
     Http::assertSent(fn (Request $request): bool => ! isset($request['response_format'])
-        && str_contains($request['messages'][0]['content'][0]['text'], 'The document is written in Danish.'));
+        && Str::contains($request['messages'][0]['content'][0]['text'], 'The document is written in Danish.'));
 });

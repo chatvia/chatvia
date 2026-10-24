@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\Media\TranscriptionAudio;
+use Illuminate\Support\Str;
 use Tests\Support\Llm\FakeTranscriber;
 
 /**
@@ -12,8 +13,8 @@ use Tests\Support\Llm\FakeTranscriber;
  */
 it('can turn a file into text as it is, or after ffmpeg compressed it', function (): void {
     $audio = new TranscriptionAudio(FakeTranscriber::takingAsIs(['mp3', 'webm'], maxBytes: 100), new AudioCompressor);
-    $small = tempTestFile('small.webm', str_repeat('a', 50));
-    $large = tempTestFile('large.webm', str_repeat('a', 500));
+    $small = tempTestFile('small.webm', Str::repeat('a', 50));
+    $large = tempTestFile('large.webm', Str::repeat('a', 500));
 
     config(['services.bin.ffmpeg' => '/bin/sh']);
 

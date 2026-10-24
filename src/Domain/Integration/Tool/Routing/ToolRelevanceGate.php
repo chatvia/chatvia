@@ -9,6 +9,7 @@ use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -176,6 +177,6 @@ class ToolRelevanceGate
      */
     private function document(ToolEntry $entry): string
     {
-        return trim($entry->name."\n".$entry->description);
+        return Str::trim($entry->name."\n".$entry->description);
     }
 }

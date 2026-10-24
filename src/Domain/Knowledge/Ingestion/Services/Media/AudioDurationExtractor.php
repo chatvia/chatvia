@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Ingestion\Services\Media;
 use getID3;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Support\Executable;
 use Throwable;
@@ -99,7 +100,7 @@ class AudioDurationExtractor
             );
         }
 
-        return trim($result->output());
+        return Str::trim($result->output());
     }
 
     /**

@@ -3,6 +3,8 @@
 namespace Domain\Knowledge\Source\Web\Services\Crawler;
 
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
+use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 /**
  * Stage-1 URL selection. The actual discovery is done by FireCrawl's async
@@ -31,16 +33,16 @@ final class Crawler
      */
     public function rootUrl(string $url): string
     {
-        $parts = parse_url($url);
+        $uri = SafeUrl::parse($url);
 
-        if (empty($parts['host'])) {
+        if (blank($uri?->host())) {
             return $url;
         }
 
-        $scheme = $parts['scheme'] ?? 'https';
-        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $scheme = $uri->scheme() ?? 'https';
+        $port = $uri->port() !== null ? ":{$uri->port()}" : '';
 
-        return $scheme.'://'.$parts['host'].$port;
+        return "{$scheme}://{$uri->host()}{$port}";
     }
 
     /**
@@ -62,7 +64,7 @@ final class Crawler
         $seen = [];
 
         foreach ($links as $link) {
-            $normalized = rtrim($link, '/');
+            $normalized = Str::rtrim($link, '/');
 
             if (isset($seen[$normalized])) {
                 continue;
@@ -111,21 +113,21 @@ final class Crawler
 
     private function extractUrlPath(string $url): string
     {
-        $parsedUrl = parse_url($url);
-        $path = $parsedUrl['path'] ?? '/';
+        // The raw path: a trailing slash is part of what the patterns match.
+        $path = SafeUrl::parse($url)?->getUri()->getPath() ?? '';
 
-        return ltrim($path, '/');
+        return Str::ltrim($path, '/');
     }
 
     private function matchesPatterns(string $urlPath, string $patterns): bool
     {
-        $patternList = array_map(trim(...), explode(',', $patterns));
+        $patternList = Str::of($patterns)->explode(',')->map(fn (string $pattern): string => Str::trim($pattern));
 
         foreach ($patternList as $pattern) {
-            $pattern = ltrim($pattern, '/');
+            $pattern = Str::ltrim($pattern, '/');
             $regexPattern = $this->convertGlobToRegex($pattern);
 
-            if (preg_match($regexPattern, $urlPath)) {
+            if (Str::isMatch($regexPattern, $urlPath)) {
                 return true;
             }
         }
@@ -139,7 +141,7 @@ final class Crawler
         $escaped = preg_quote($pattern, '#');
 
         // Convert * to regex equivalent
-        $regex = str_replace('\*', '.*', $escaped);
+        $regex = Str::replace('\*', '.*', $escaped);
 
         // Wrap in delimiters and anchors
         return '#^'.$regex.'#';

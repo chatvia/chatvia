@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\PatternSeparator;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\RecursiveSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\SentenceSeparator;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
+use Illuminate\Support\Str;
 
 /**
  * The recursive splitter cuts at the coarsest place that makes the pieces
@@ -43,7 +44,7 @@ it('keeps every chunk within the size and loses no text', function (ChunkMeasure
             ->and(mb_check_encoding($chunk, 'UTF-8'))->toBeTrue();
     }
 
-    expect(preg_replace('/\s+/u', '', implode('', $chunks)))->toBe(preg_replace('/\s+/u', '', rsText()));
+    expect(Str::replaceMatches('/\s+/u', '', implode('', $chunks)))->toBe(Str::replaceMatches('/\s+/u', '', rsText()));
 })->with('measures');
 
 it('keeps a text that fits as one chunk, and returns nothing for blank text', function (): void {
@@ -76,7 +77,7 @@ it('splits a long paragraph between sentences, then between words', function ():
 });
 
 it('falls back to fixed windows for a run with no place to split', function (ChunkMeasure $measure, int $size): void {
-    $run = str_repeat('abcdefghij', 30);
+    $run = Str::repeat('abcdefghij', 30);
     $chunks = new RecursiveSplitter($measure, $size)->split($run, rsTextSeparators());
 
     expect(implode('', $chunks))->toBe($run);

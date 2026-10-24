@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 
 /**
  * Build an audio fixture with ffmpeg. When $headerless is true the stream is
@@ -66,7 +67,7 @@ it('recovers the duration of a header-less MediaRecorder webm where ffprobe retu
         '-v', 'error', '-show_entries', 'format=duration',
         '-of', 'default=noprint_wrappers=1:nokey=1', $file,
     ]);
-    expect(trim($probe->output()))->toBe('N/A');
+    expect(Str::trim($probe->output()))->toBe('N/A');
 
     $seconds = app(AudioDurationExtractor::class)->getDurationInSeconds($file);
 

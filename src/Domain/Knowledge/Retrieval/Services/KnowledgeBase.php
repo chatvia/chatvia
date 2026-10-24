@@ -12,6 +12,7 @@ use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -80,7 +81,7 @@ class KnowledgeBase
 
         $this->logTimings($settings, [
             'agent_id' => $agent->id,
-            'query_chars' => strlen($query),
+            'query_chars' => Str::length($query),
             'accuracy' => $settings->accuracy,
             'scope' => $scope->value,
             'candidate_limit' => $settings->candidateLimit(),

@@ -37,7 +37,7 @@ class CreateAgentSourceTextAction
     {
         $content = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
         $checksum = md5($content);
-        $numberOfPages = (int) ceil(str_word_count($content) / self::WORDS_PER_PAGE);
+        $numberOfPages = (int) ceil(Str::wordCount($content) / self::WORDS_PER_PAGE);
 
         if (SourceText::query()->where('workspace_id', $agent->workspace_id)->where('checksum', $checksum)->exists()) {
             throw $this->duplicate();

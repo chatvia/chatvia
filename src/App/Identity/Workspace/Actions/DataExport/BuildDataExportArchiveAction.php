@@ -172,7 +172,7 @@ class BuildDataExportArchiveAction
     {
         $generatedAt = now()->toIso8601String();
         $heading = 'ChatVia.ai — Personal Data Export';
-        $underline = str_repeat('=', mb_strlen($heading));
+        $underline = Str::repeat('=', Str::length($heading));
 
         $body = <<<TXT
 {$heading}
@@ -469,7 +469,7 @@ TXT;
      */
     private function safeName(string $filename): string
     {
-        $name = basename(str_replace('\\', '/', $filename));
+        $name = basename(Str::replace('\\', '/', $filename));
 
         return in_array($name, ['', '.', '..'], true) ? 'file' : $name;
     }

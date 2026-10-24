@@ -8,6 +8,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\Llm;
+use Illuminate\Support\Str;
 
 /**
  * What runs on which AI provider right now: the embedding service in use,
@@ -63,7 +64,7 @@ final class AiProviderUsage
     /** The provider a "chatvia.ai.*" driver resolves to: the one picked, or the first connected one. */
     private function driver(string $key, AiCapability $capability): ?AiProvider
     {
-        $driver = strtolower(trim((string) config("chatvia.ai.{$key}", 'auto')));
+        $driver = Str::lower(Str::trim((string) config("chatvia.ai.{$key}", 'auto')));
 
         if ($driver === '' || $driver === 'auto') {
             return AiProvider::firstConnectedFor($capability);

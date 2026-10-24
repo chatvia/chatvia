@@ -53,13 +53,15 @@ class TitleGenerator
      */
     public static function clean(string $reply): string
     {
-        $line = collect(preg_split('/\R/u', $reply) ?: [])
-            ->map(static fn (string $line): string => trim($line))
+        $line = Str::of($reply)
+            ->split('/\R/u')
+            ->map(static fn (string $line): string => Str::trim($line))
             ->first(filled(...)) ?? '';
 
-        $line = (string) preg_replace('/^(#+\s*|[*_]+\s*)?(title\s*:\s*)?/iu', '', $line);
-        $line = trim($line, " \t*_#\"'`“”‘’.");
-
-        return Str::limit($line, self::MAX_TITLE_LENGTH, '');
+        return Str::of($line)
+            ->replaceMatches('/^(#+\s*|[*_]+\s*)?(title\s*:\s*)?/iu', '')
+            ->trim(" \t*_#\"'`“”‘’.")
+            ->limit(self::MAX_TITLE_LENGTH, '')
+            ->toString();
     }
 }

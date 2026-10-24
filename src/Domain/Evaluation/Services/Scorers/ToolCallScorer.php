@@ -30,7 +30,7 @@ class ToolCallScorer implements ScorerInterface
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {
-        $expectedTool = trim((string) ($case->scorer_config['tool'] ?? ''));
+        $expectedTool = Str::trim((string) ($case->scorer_config['tool'] ?? ''));
 
         if ($expectedTool === '') {
             return ScoreResultData::fail(0.0, 'No expected tool configured.');
@@ -82,7 +82,7 @@ class ToolCallScorer implements ScorerInterface
         foreach ($calls as $call) {
             $name = $call['name'] ?? '';
 
-            if ($name === $expectedTool || str_ends_with($name, '__'.$expectedTool)) {
+            if ($name === $expectedTool || Str::endsWith($name, '__'.$expectedTool)) {
                 return $call;
             }
         }
@@ -149,7 +149,7 @@ class ToolCallScorer implements ScorerInterface
             return json_encode($expected) === json_encode($actual);
         }
 
-        return mb_strtolower(trim((string) $expected)) === mb_strtolower(trim((string) $actual));
+        return Str::lower(Str::trim((string) $expected)) === Str::lower(Str::trim((string) $actual));
     }
 
     private function stringify(mixed $value): string

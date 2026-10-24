@@ -10,6 +10,7 @@ use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 /**
  * Behavioural coverage for the per-retrieval stats bump. The action resolves
@@ -89,7 +90,7 @@ it('names each kind of source for the rollup', function (): void {
     $website = SourceWebsite::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test']);
     $text = SourceText::factory()->ingested()->create([
         'workspace_id' => $agent->workspace_id,
-        'excerpt' => "Our   opening\nhours:\n\n".str_repeat('nine to five ', 10),
+        'excerpt' => "Our   opening\nhours:\n\n".Str::repeat('nine to five ', 10),
     ]);
     $titled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/dQw4w9WgXcQ', 'title' => 'Product tour']);
     $untitled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/aaaaaaaaaaa', 'title' => null]);

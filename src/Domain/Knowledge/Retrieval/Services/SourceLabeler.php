@@ -134,7 +134,7 @@ class SourceLabeler
         $excerpts = SourceText::query()->whereIn('id', $ids)->pluck('excerpt', 'id');
 
         return $chunks->mapWithKeys(function (RetrievedChunkData $chunk) use ($excerpts): array {
-            $excerpt = trim((string) preg_replace('/\s+/u', ' ', (string) $excerpts->get($chunk->chunkable_id)));
+            $excerpt = Str::of((string) $excerpts->get($chunk->chunkable_id))->replaceMatches('/\s+/u', ' ')->trim()->toString();
 
             return $excerpt === '' ? [] : [$chunk->id => new SourceLabelData(Str::limit($excerpt, self::TEXT_LABEL_LENGTH, preserveWords: true), SourceKind::Text)];
         })->all();

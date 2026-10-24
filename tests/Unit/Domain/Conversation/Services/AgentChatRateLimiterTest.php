@@ -6,6 +6,7 @@ use Domain\Conversation\Services\AgentChatRateLimiter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     Cache::flush();
@@ -72,7 +73,7 @@ it('caches the security config so later turns do not re-query model_settings', f
     $this->limiter->exceeded(Agent::find($agent->id));
 
     $settingsReads = collect(DB::getQueryLog())
-        ->filter(fn (array $q): bool => str_contains($q['query'], 'model_settings'));
+        ->filter(fn (array $q): bool => Str::contains($q['query'], 'model_settings'));
 
     expect($settingsReads)->toBeEmpty();
 

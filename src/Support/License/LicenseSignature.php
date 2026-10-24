@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Support\License;
 
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -64,14 +65,14 @@ final class LicenseSignature
     /** The raw bytes of a base64 key, or null when it is not one of $length bytes. */
     private static function rawKey(string $key, int $length): ?string
     {
-        $raw = base64_decode(trim($key), true);
+        $raw = base64_decode(Str::trim($key), true);
 
         return $raw !== false && strlen($raw) === $length ? $raw : null;
     }
 
     private static function encode(string $bytes): string
     {
-        return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
+        return Str::rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
     }
 
     private static function decode(string $text): ?string

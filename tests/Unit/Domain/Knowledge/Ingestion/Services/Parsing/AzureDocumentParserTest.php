@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 
 /**
  * Azure Document Intelligence reads a document: it gets the file in the
@@ -54,8 +55,8 @@ it('sends the file to Azure, waits for it, and reads its pages and tables', func
             ->push(['status' => 'succeeded', 'analyzeResult' => [
                 'content' => $content,
                 'pages' => [
-                    ['pageNumber' => 1, 'spans' => [['offset' => 0, 'length' => mb_strlen($first)]]],
-                    ['pageNumber' => 2, 'spans' => [['offset' => mb_strlen($first), 'length' => mb_strlen($second)]]],
+                    ['pageNumber' => 1, 'spans' => [['offset' => 0, 'length' => Str::length($first)]]],
+                    ['pageNumber' => 2, 'spans' => [['offset' => Str::length($first), 'length' => Str::length($second)]]],
                 ],
                 'tables' => [[
                     'rowCount' => 2,
@@ -79,8 +80,8 @@ it('sends the file to Azure, waits for it, and reads its pages and tables', func
         ->and($pages[1]->content)->toBe('Refunds within 30 days.')
         ->and($pages[1]->tables)->toBe(["| Plan | Price |\n| --- | --- |\n| Pro | 10 € |"]);
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), ':analyze')
-        && str_contains($request->url(), 'outputContentFormat=markdown')
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), ':analyze')
+        && Str::contains($request->url(), 'outputContentFormat=markdown')
         && $request->header('Ocp-Apim-Subscription-Key') === ['az-key']
         && $request['base64Source'] === base64_encode('%PDF-1.4 test'));
     Sleep::assertSleptTimes(1);
@@ -99,7 +100,7 @@ function adpFakeAnalysis(int $pages = 1): void
         'docs.cognitiveservices.azure.com/documentintelligence/documentModels/prebuilt-layout/analyzeResults/*' => Http::response(['status' => 'succeeded', 'analyzeResult' => [
             'content' => $content,
             'pages' => array_map(function (int $page) use (&$offset): array {
-                $length = mb_strlen("Page {$page}.");
+                $length = Str::length("Page {$page}.");
                 $span = ['pageNumber' => $page, 'spans' => [['offset' => $offset, 'length' => $length]]];
                 $offset += $length + 1;
 
@@ -138,7 +139,7 @@ it('sends Azure a PNG for an image format or size it does not take', function (s
     app(AzureDocumentParser::class)->parse(adpTempImage($width, $height, $format), 'tmp');
 
     Http::assertSent(function (Request $request): bool {
-        if (! str_contains($request->url(), ':analyze')) {
+        if (! Str::contains($request->url(), ':analyze')) {
             return false;
         }
 

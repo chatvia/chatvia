@@ -5,6 +5,7 @@ namespace Domain\Integration\Mcp\Services;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 /**
  * Proof-of-origin for calls to Chatvia's OWN built-in MCP servers
@@ -63,7 +64,7 @@ final class InternalMcpSignature
 
     public static function isInternalUrl(string $url): bool
     {
-        $base = rtrim((string) config('app.url'), '/').'/mcp/';
+        $base = Str::rtrim((string) config('app.url'), '/').'/mcp/';
 
         return Str::startsWith($url, $base);
     }
@@ -82,9 +83,9 @@ final class InternalMcpSignature
             return $url;
         }
 
-        $base = rtrim((string) config('app.url'), '/');
+        $base = Str::rtrim((string) config('app.url'), '/');
 
-        return rtrim((string) $internal, '/').substr($url, strlen($base));
+        return Str::rtrim((string) $internal, '/').Str::chopStart($url, $base);
     }
 
     /**
@@ -137,7 +138,7 @@ final class InternalMcpSignature
             return false;
         }
 
-        $nonce = self::identityHeadersFrom($identityHeaders)[strtolower(self::NONCE_HEADER)] ?? null;
+        $nonce = self::identityHeadersFrom($identityHeaders)[Str::lower(self::NONCE_HEADER)] ?? null;
 
         return self::claimNonce($nonce, (int) $timestamp);
     }
@@ -149,7 +150,7 @@ final class InternalMcpSignature
      */
     private static function claimNonce(?string $nonce, int $timestamp): bool
     {
-        if ($nonce === null || preg_match('/^[A-Za-z0-9]{16,128}$/', $nonce) !== 1) {
+        if ($nonce === null || ! Str::isMatch('/^[A-Za-z0-9]{16,128}$/', $nonce)) {
             return false;
         }
 
@@ -168,13 +169,13 @@ final class InternalMcpSignature
      */
     public static function identityHeadersFrom(array $headers): array
     {
-        $excluded = [strtolower(self::TIMESTAMP_HEADER), strtolower(self::SIGNATURE_HEADER)];
+        $excluded = [Str::lower(self::TIMESTAMP_HEADER), Str::lower(self::SIGNATURE_HEADER)];
         $identity = [];
 
         foreach ($headers as $name => $value) {
-            $name = strtolower((string) $name);
+            $name = Str::lower((string) $name);
 
-            if (! str_starts_with($name, self::IDENTITY_HEADER_PREFIX) || in_array($name, $excluded, true)) {
+            if (! Str::startsWith($name, self::IDENTITY_HEADER_PREFIX) || in_array($name, $excluded, true)) {
                 continue;
             }
 
@@ -194,13 +195,13 @@ final class InternalMcpSignature
 
         $lines = [];
         foreach ($identity as $name => $value) {
-            $lines[] = $name.':'.trim($value);
+            $lines[] = $name.':'.Str::trim($value);
         }
 
         $canonical = implode("\n", [
             $timestamp,
-            strtoupper($method),
-            '/'.trim($path, '/'),
+            Str::upper($method),
+            '/'.Str::trim($path, '/'),
             hash('sha256', $body),
             implode("\n", $lines),
         ]);
@@ -210,6 +211,7 @@ final class InternalMcpSignature
 
     private static function pathOf(string $url): string
     {
-        return (string) (parse_url($url, PHP_URL_PATH) ?? '');
+        // The raw path: the receiver signs the path it was sent, slashes and all.
+        return Uri::of($url)->getUri()->getPath();
     }
 }

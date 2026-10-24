@@ -29,7 +29,7 @@ class CustomPiiPatternData extends Data
         }
 
         return new self(
-            name: trim((string) $stored['name']),
+            name: Str::trim((string) $stored['name']),
             pattern: (string) $stored['pattern'],
             action: PiiHandling::tryFrom((string) ($stored['action'] ?? '')) ?? PiiHandling::Mask,
         );
@@ -44,19 +44,19 @@ class CustomPiiPatternData extends Data
     /** The placeholder label, e.g. `CUSTOMER_NUMBER` → [CUSTOMER_NUMBER_1]. */
     public function label(): string
     {
-        return strtoupper(Str::snake(Str::ascii($this->name)));
+        return Str::upper(Str::snake(Str::ascii($this->name)));
     }
 
     /** The pattern as a PHP regular expression (case-insensitive, Unicode). */
     public function regex(): string
     {
-        return '~'.str_replace('~', '\~', $this->pattern).'~iu';
+        return '~'.Str::replace('~', '\~', $this->pattern).'~iu';
     }
 
     /** Whether the pattern compiles. */
     public static function isValidPattern(string $pattern): bool
     {
-        return @preg_match('~'.str_replace('~', '\~', $pattern).'~iu', '') !== false;
+        return @preg_match('~'.Str::replace('~', '\~', $pattern).'~iu', '') !== false;
     }
 
     /**

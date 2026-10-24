@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Locks the contract Files.vue relies on: 100% means "done" and nothing else. A
@@ -39,7 +40,7 @@ it('deletes every chunk of a source in batches, the summary included', function 
 
     $deletes = 0;
     DB::listen(function (QueryExecuted $query) use (&$deletes): void {
-        if (str_starts_with($query->sql, 'DELETE FROM chunks ')) {
+        if (Str::startsWith($query->sql, 'DELETE FROM chunks ')) {
             $deletes++;
         }
     });

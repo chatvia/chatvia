@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Uri;
 
 /**
  * A conversation's file opens only through the signed link the attachment
@@ -39,7 +40,7 @@ it('opens a PDF through its signed link', function (): void {
 it('keeps the link valid on another host', function (): void {
     $url = viewableAttachment()->url;
 
-    $this->get('https://chat.example.org'.parse_url($url, PHP_URL_PATH).'?'.parse_url($url, PHP_URL_QUERY))
+    $this->get(Uri::of($url)->withScheme('https')->withHost('chat.example.org')->withPort(null)->value())
         ->assertOk();
 });
 

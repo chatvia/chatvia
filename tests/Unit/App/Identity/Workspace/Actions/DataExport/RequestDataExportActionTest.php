@@ -8,6 +8,7 @@ use App\Identity\Workspace\Jobs\PrepareDataExportJob;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 
 it('creates a pending export and dispatches the build job', function (): void {
     Queue::fake();
@@ -33,7 +34,7 @@ it('refuses to start a second export while one is pending', function (): void {
     DataExport::create([
         'user_id' => $user->id,
         'status' => DataExportStatus::Pending,
-        'download_token' => str_repeat('a', 64),
+        'download_token' => Str::repeat('a', 64),
     ]);
 
     app(RequestDataExportAction::class)
@@ -48,7 +49,7 @@ it('refuses to start a second export while a ready export has not expired', func
     DataExport::create([
         'user_id' => $user->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('b', 64),
+        'download_token' => Str::repeat('b', 64),
         'file_path' => 'data-exports/1/abc.zip',
         'file_size' => 1024,
         'expires_at' => now()->addHours(12),
@@ -66,7 +67,7 @@ it('allows a new request once the previous export has expired', function (): voi
     DataExport::create([
         'user_id' => $user->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('c', 64),
+        'download_token' => Str::repeat('c', 64),
         'file_path' => 'data-exports/1/old.zip',
         'file_size' => 1024,
         'expires_at' => now()->subHour(),
@@ -87,7 +88,7 @@ it('allows a new request after the previous one failed', function (): void {
     DataExport::create([
         'user_id' => $user->id,
         'status' => DataExportStatus::Failed,
-        'download_token' => str_repeat('d', 64),
+        'download_token' => Str::repeat('d', 64),
         'error_message' => 'something broke',
     ]);
 

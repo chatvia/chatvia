@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Str;
+
 /**
  * Masks UK National Insurance numbers ([UK_NINO_n]): two letters, six
  * digits and a final A–D, e.g. "QQ 12 34 56 C". The letter rules of HMRC
@@ -31,6 +33,6 @@ final class UkNinoFilter extends PiiFilter
 
     protected function accepts(string $value): bool
     {
-        return ! in_array(strtoupper(substr($value, 0, 2)), self::INVALID_PREFIXES, true);
+        return ! in_array(Str::of($value)->substr(0, 2)->upper()->toString(), self::INVALID_PREFIXES, true);
     }
 }

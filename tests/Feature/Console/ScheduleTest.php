@@ -2,13 +2,14 @@
 
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Str;
 
 /** The cron expression the scheduler runs $command on, or null when it is not scheduled. */
 function scheduleExpressionOf(string $command): ?string
 {
     $event = collect(app(Schedule::class)->events())
-        ->first(fn (Event $event): bool => str_ends_with((string) $event->command, ' '.$command)
-            || str_contains((string) $event->command, ' '.$command.' '));
+        ->first(fn (Event $event): bool => Str::endsWith((string) $event->command, ' '.$command)
+            || Str::contains((string) $event->command, ' '.$command.' '));
 
     return $event?->expression;
 }
@@ -62,7 +63,7 @@ it('schedules nothing the tests above do not name', function (): void {
 it('prunes the Spectra log after the days kept', function (): void {
     $command = collect(app(Schedule::class)->events())
         ->map(fn (Event $event): string => (string) $event->command)
-        ->first(fn (string $command): bool => str_contains($command, 'spectra:prune'));
+        ->first(fn (string $command): bool => Str::contains($command, 'spectra:prune'));
 
     // 30 days, the default of Settings → Platform → Spectra.
     expect($command)->toContain('--hours=720');

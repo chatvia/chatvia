@@ -12,6 +12,7 @@ use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -107,7 +108,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     private function encodePayload(FunctionWebhookMethod $method, array $args): string
     {
         return $method === FunctionWebhookMethod::Get
-            ? http_build_query($args, '', '&', PHP_QUERY_RFC3986)
+            ? Arr::query($args)
             : (string) json_encode($args);
     }
 

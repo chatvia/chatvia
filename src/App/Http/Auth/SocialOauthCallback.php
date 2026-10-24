@@ -8,6 +8,7 @@ use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Contracts\User;
 use Laravel\Socialite\Facades\Socialite;
@@ -55,7 +56,7 @@ final readonly class SocialOauthCallback
         }
 
         return to_route('account.social.edit')
-            ->with('success', __(':provider connected.', ['provider' => ucfirst($provider->value)]));
+            ->with('success', __(':provider connected.', ['provider' => Str::ucfirst($provider->value)]));
     }
 
     private function handleLogin(SocialProvider $provider): RedirectResponse

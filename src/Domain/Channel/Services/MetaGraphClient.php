@@ -4,6 +4,7 @@ namespace Domain\Channel\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -74,12 +75,12 @@ abstract class MetaGraphClient
      */
     protected function chunk(string $text): array
     {
-        $text = trim($text);
+        $text = Str::trim($text);
 
         if ($text === '') {
             return [];
         }
 
-        return mb_strlen($text) <= $this->messageLimit() ? [$text] : mb_str_split($text, $this->messageLimit());
+        return Str::length($text) <= $this->messageLimit() ? [$text] : Str::of($text)->split($this->messageLimit())->all();
     }
 }

@@ -6,6 +6,7 @@ use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Uri;
 
 /**
  * A workspace-registered OAuth client drives PKCE straight off the supplied
@@ -35,11 +36,11 @@ it('builds a PKCE authorize URL from the supplied client + endpoints', function 
         ->and($url)->toContain('response_type=code')
         ->and($url)->toContain('code_challenge_method=S256')
         ->and($url)->toContain('code_challenge=')
-        // mcp_api + refresh_token (http_build_query encodes the space as +).
-        ->and($url)->toContain('scope=mcp_api+refresh_token')
+        // mcp_api + refresh_token (Uri encodes the space as %20, RFC 3986).
+        ->and($url)->toContain('scope=mcp_api%20refresh_token')
         ->and($url)->toContain('redirect_uri=');
 
-    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+    $query = Uri::of($url)->query()->all();
     $pending = PendingOAuthState::unseal(Cache::get('oauth:mcp:state:'.$query['state']));
 
     // The client travels with the flow so the callback can store it on the row.

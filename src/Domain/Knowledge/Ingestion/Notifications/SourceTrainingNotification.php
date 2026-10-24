@@ -98,7 +98,7 @@ class SourceTrainingNotification extends InboxNotification
         return match (true) {
             $this->source instanceof SourceFile => $this->source->filename,
             $this->source instanceof SourceText => Str::limit(Str::squish($this->source->excerpt), 60),
-            $this->source instanceof SourceWebsite => Str::limit(preg_replace('#^https?://(www\.)?#i', '', $this->source->url) ?? $this->source->url, 60),
+            $this->source instanceof SourceWebsite => Str::limit(Str::replaceMatches('#^https?://(www\.)?#i', '', $this->source->url) ?? $this->source->url, 60),
         };
     }
 }

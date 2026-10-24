@@ -96,7 +96,7 @@ class AgentMcpServerFactory extends Factory
             'uses_central_catalog' => true,
             'name' => Str::headline($connectorSlug),
             'slug' => AgentMcpServer::makeSlug($connectorSlug),
-            'url' => rtrim((string) config('app.url'), '/').'/mcp/'.$connectorSlug,
+            'url' => Str::rtrim((string) config('app.url'), '/').'/mcp/'.$connectorSlug,
         ]);
     }
 

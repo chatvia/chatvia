@@ -6,6 +6,7 @@ namespace App\Admin\Settings;
 
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Llm\Contracts\Transcriber;
+use Illuminate\Support\Str;
 
 /**
  * A program on the server that the app runs to read files or make PDFs. Its
@@ -101,6 +102,6 @@ enum ServerProgram: string
     public function acceptsPath(string $path): bool
     {
         return $path === $this->value
-            || (str_starts_with($path, '/') && str_ends_with($path, '/'.$this->value) && preg_match('/[\x00-\x1F\x7F]/', $path) !== 1);
+            || (Str::startsWith($path, '/') && Str::endsWith($path, '/'.$this->value) && ! Str::isMatch('/[\x00-\x1F\x7F]/', $path));
     }
 }

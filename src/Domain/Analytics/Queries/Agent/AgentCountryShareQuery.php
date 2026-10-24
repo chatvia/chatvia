@@ -4,6 +4,7 @@ namespace Domain\Analytics\Queries\Agent;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Account\Audience\CountryShareData;
+use Illuminate\Support\Str;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -60,8 +61,8 @@ class AgentCountryShareQuery extends AgentAnalyticsQuery
             ->pluck('name', 'code');
 
         return $rows->map(static fn (object $row): CountryShareData => new CountryShareData(
-            code: strtoupper((string) $row->country_code),
-            name: $names[(string) $row->country_code] ?? strtoupper((string) $row->country_code),
+            code: Str::upper((string) $row->country_code),
+            name: $names[(string) $row->country_code] ?? Str::upper((string) $row->country_code),
             conversations: (int) $row->conversation_count,
             pct: (float) $row->percentage,
         ))->all();

@@ -6,6 +6,7 @@ namespace Domain\Channel\Slack\Services;
 
 use Domain\Channel\Services\MarkdownDomFormatter;
 use DOMNode;
+use Illuminate\Support\Str;
 
 /**
  * Renders the model's CommonMark reply as Slack mrkdwn (`*bold*`, `_italic_`,
@@ -27,17 +28,17 @@ class SlackFormatter extends MarkdownDomFormatter
     protected function mapNode(string $tag, DOMNode $node, string $renderedChildren): string
     {
         return match ($tag) {
-            'strong', 'b' => '*'.trim($renderedChildren).'*',
-            'em', 'i' => '_'.trim($renderedChildren).'_',
-            'del', 's', 'strike' => '~'.trim($renderedChildren).'~',
+            'strong', 'b' => '*'.Str::trim($renderedChildren).'*',
+            'em', 'i' => '_'.Str::trim($renderedChildren).'_',
+            'del', 's', 'strike' => '~'.Str::trim($renderedChildren).'~',
             'code' => '`'.$this->renderText($node->textContent).'`',
-            'pre' => "```\n".rtrim($this->renderText($node->textContent))."\n```\n",
+            'pre' => "```\n".Str::rtrim($this->renderText($node->textContent))."\n```\n",
             'a' => $this->renderLink($node),
             'br' => "\n",
             'hr' => "\n",
             'p' => $renderedChildren."\n\n",
             'blockquote' => $this->renderBlockquote($node),
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => '*'.trim($renderedChildren)."*\n\n",
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => '*'.Str::trim($renderedChildren)."*\n\n",
             'ul', 'ol' => $this->renderList($node, $tag === 'ol'),
             default => $renderedChildren, // unwrap anything else
         };
@@ -45,21 +46,24 @@ class SlackFormatter extends MarkdownDomFormatter
 
     protected function renderText(string $text): string
     {
-        return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text);
+        return Str::replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text);
     }
 
     protected function formatLink(string $href, string $inner): string
     {
         // `|` and `>` would terminate the label / the link token.
-        $href = str_replace(['&', '|', '>'], ['&amp;', '%7C', '%3E'], $href);
+        $href = Str::replace(['&', '|', '>'], ['&amp;', '%7C', '%3E'], $href);
 
         return '<'.$href.'|'.$inner.'>';
     }
 
     private function renderBlockquote(DOMNode $node): string
     {
-        $inner = trim($this->renderChildren($node));
-        $quoted = implode("\n", array_map(fn (string $line): string => '> '.$line, explode("\n", $inner)));
+        $quoted = Str::of($this->renderChildren($node))
+            ->trim()
+            ->explode("\n")
+            ->map(fn (string $line): string => '> '.$line)
+            ->implode("\n");
 
         return $quoted."\n\n";
     }

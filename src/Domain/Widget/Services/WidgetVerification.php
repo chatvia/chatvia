@@ -10,6 +10,7 @@ use Domain\Conversation\Models\Session;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 /**
  * The checks every widget API call relies on. This is one of the few places
@@ -128,7 +129,7 @@ class WidgetVerification
             $value = $request->headers->get($header);
 
             if (filled($value)) {
-                return parse_url($value, PHP_URL_HOST) ?: null;
+                return SafeUrl::parse($value)?->host() ?: null;
             }
         }
 
@@ -149,18 +150,17 @@ class WidgetVerification
      */
     private function alwaysAllowedHosts(): array
     {
-        $configured = [];
+        $hosts = collect(['always_allowed_origins', 'extra_allowed_origins'])
+            ->flatMap(static function (string $key): array {
+                $value = config("chatvia.widget.{$key}", []);
 
-        foreach (['always_allowed_origins', 'extra_allowed_origins'] as $key) {
-            $value = config("chatvia.widget.{$key}", []);
-
-            array_push($configured, ...(is_array($value) ? $value : explode(',', (string) $value)));
-        }
-
-        $hosts = array_values(array_unique(array_filter(array_map(
-            static fn (mixed $host): string => strtolower(trim((string) $host)),
-            $configured,
-        ))));
+                return is_array($value) ? $value : Str::of((string) $value)->explode(',')->all();
+            })
+            ->map(static fn (mixed $host): string => Str::lower(Str::trim((string) $host)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
         if (app()->environment('local')) {
             $hosts[] = 'localhost';
@@ -209,7 +209,7 @@ class WidgetVerification
 
     private function withoutWww(string $host): string
     {
-        return (string) preg_replace('/^www\./', '', $host);
+        return Str::chopStart($host, 'www.');
     }
 
     private function withWww(string $host): string

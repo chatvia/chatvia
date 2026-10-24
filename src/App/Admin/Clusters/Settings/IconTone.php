@@ -48,7 +48,7 @@ final class IconTone
             return self::DEFAULT;
         }
 
-        $name = (string) preg_replace('/^(Outlined|Mini|Micro)/', '', $icon->name);
+        $name = Str::replaceMatches('/^(Outlined|Mini|Micro)/', '', $icon->name) ?? '';
 
         foreach (self::TONES as $tone => $names) {
             if (in_array($name, $names, true)) {

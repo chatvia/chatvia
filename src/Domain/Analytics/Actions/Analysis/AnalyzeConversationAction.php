@@ -12,6 +12,7 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Support\Localization\Language\Models\Language;
 
 /**
@@ -97,7 +98,7 @@ class AnalyzeConversationAction
     private function transcript(Collection $messages): string
     {
         return $messages
-            ->map(fn (Message $message): string => ucfirst($message->role->value).': '.$message->content)
+            ->map(fn (Message $message): string => Str::ucfirst($message->role->value).': '.$message->content)
             ->implode("\n");
     }
 

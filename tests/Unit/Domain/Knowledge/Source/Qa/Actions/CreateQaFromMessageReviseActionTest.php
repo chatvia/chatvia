@@ -7,6 +7,7 @@ use Domain\Conversation\Models\Session;
 use Domain\Knowledge\Source\Qa\Actions\CreateQaFromMessageReviseAction;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 
 /**
  * Revising a reply in the chat log turns the owner's correction into a curated
@@ -42,11 +43,11 @@ it('creates a Q&A from the correction and links the reply to it', function (): v
 it('cuts the title to the first hundred characters of the question', function (): void {
     $agent = Agent::factory()->create();
     $reply = cqmrReply($agent);
-    $question = str_repeat('é', 150);
+    $question = Str::repeat('é', 150);
 
     $qa = app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $reply->id, $question, 'Answer');
 
-    expect(mb_strlen($qa->title))->toBe(100)
+    expect(Str::length($qa->title))->toBe(100)
         ->and($qa->questions)->toBe($question);
 });
 

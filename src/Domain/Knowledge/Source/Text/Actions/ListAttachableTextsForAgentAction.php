@@ -10,6 +10,7 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -53,7 +54,7 @@ class ListAttachableTextsForAgentAction
                 return 0;
             }
 
-            return count(preg_split('/\s+/u', trim($content), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+            return Str::of($content)->trim()->split('/\s+/u', -1, PREG_SPLIT_NO_EMPTY)->count();
         });
     }
 }

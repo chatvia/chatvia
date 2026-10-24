@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Ingestion\Services;
 use Domain\Knowledge\Ingestion\Actions\Chunks\EnhanceChunkAction;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageVisualsData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Illuminate\Support\Str;
 
 /**
  * The text a chunk's embedding is made from, in one place, so ingestion and a
@@ -30,7 +31,7 @@ final class ChunkEmbeddingText
 
     public static function forSummary(string $summary): string
     {
-        return strip_tags($summary);
+        return Str::of($summary)->stripTags()->toString();
     }
 
     /** The text of a stored chunk, from what its row holds. */

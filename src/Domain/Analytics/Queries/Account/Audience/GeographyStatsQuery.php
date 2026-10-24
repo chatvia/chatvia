@@ -8,6 +8,7 @@ use Domain\Analytics\Data\Account\Audience\GeographyStatsData;
 use Domain\Analytics\Data\Account\LabelCountData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Where visitors come from — top countries by conversations — and what they
@@ -43,14 +44,14 @@ class GeographyStatsQuery extends AccountAnalyticsQuery
             ->get();
 
         $names = DB::table('countries')
-            ->whereIn('code', $rows->pluck('country_code')->map(fn ($code): string => strtolower((string) $code))->all())
+            ->whereIn('code', $rows->pluck('country_code')->map(fn ($code): string => Str::lower((string) $code))->all())
             ->pluck('name', 'code');
 
         $total = (int) $rows->sum('conversations');
 
         return $rows->map(fn (object $row): CountryShareData => new CountryShareData(
-            code: strtoupper((string) $row->country_code),
-            name: $names[strtolower((string) $row->country_code)] ?? strtoupper((string) $row->country_code),
+            code: Str::upper((string) $row->country_code),
+            name: $names[Str::lower((string) $row->country_code)] ?? Str::upper((string) $row->country_code),
             conversations: (int) $row->conversations,
             pct: $this->pct((int) $row->conversations, $total),
         ))->all();

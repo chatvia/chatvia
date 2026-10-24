@@ -9,6 +9,7 @@ use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * Authorizes the composer-X delete on `chat.messages.attachments.delete`.
@@ -70,10 +71,7 @@ class DeleteAttachmentRequest extends FormRequest
     private function belongsToAgent(Attachment $attachment, Agent $agent): bool
     {
         if ($attachment->chat_conversation_id === null) {
-            return str_starts_with(
-                $attachment->filepath,
-                sprintf('workspaces/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id)
-            );
+            return Str::startsWith($attachment->filepath, sprintf('workspaces/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id));
         }
 
         return $attachment->conversation()->withTrashed()->first()?->session?->agent_id === $agent->id;

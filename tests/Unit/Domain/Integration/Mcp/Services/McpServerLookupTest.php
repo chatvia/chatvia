@@ -7,6 +7,7 @@ use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * One MCP tool call needs the server row for its label, its approval check
@@ -25,7 +26,7 @@ it('loads the server row once for display, approval and dispatch', function (): 
     app(McpServerLookup::class)->attachedToAgent($agent, 'stripe');
 
     $serverReads = collect(DB::getQueryLog())
-        ->filter(fn (array $q): bool => str_contains($q['query'], 'from "mcp_servers"'));
+        ->filter(fn (array $q): bool => Str::contains($q['query'], 'from "mcp_servers"'));
     DB::disableQueryLog();
 
     expect($server)->not->toBeNull()

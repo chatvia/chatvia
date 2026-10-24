@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support\Http;
 
 use App\Http\Responses\SseResponder;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -35,14 +36,12 @@ final class BufferedSseResponder extends SseResponder
      */
     public static function events(string $sse): array
     {
-        $frames = array_filter(
-            explode("\n\n", trim($sse)),
-            static fn (string $frame): bool => str_starts_with($frame, 'data: '),
-        );
-
-        return array_values(array_map(
-            static fn (string $frame): array => (array) json_decode(substr($frame, 6), true, 512, JSON_THROW_ON_ERROR),
-            $frames,
-        ));
+        return Str::of($sse)
+            ->trim()
+            ->explode("\n\n")
+            ->filter(static fn (string $frame): bool => Str::startsWith($frame, 'data: '))
+            ->map(static fn (string $frame): array => (array) json_decode(Str::chopStart($frame, 'data: '), true, 512, JSON_THROW_ON_ERROR))
+            ->values()
+            ->all();
     }
 }

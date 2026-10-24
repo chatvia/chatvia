@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Enums;
 
+use Illuminate\Support\Str;
+
 /**
  * A voice an agent can speak with in a voice conversation: the built-in
  * voices of the OpenAI Realtime API. OpenAI recommends Marin and Cedar for
@@ -28,7 +30,7 @@ enum RealtimeVoice: string
 
     public function label(): string
     {
-        return ucfirst($this->value);
+        return Str::ucfirst($this->value);
     }
 
     /**

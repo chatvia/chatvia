@@ -1714,7 +1714,7 @@ class Setup extends SimplePage
     {
         $ids = $this->models !== []
             ? array_values(array_filter((array) ($state['chat_models'] ?? []), filled(...)))
-            : array_filter([trim((string) ($state['chat_model_id'] ?? ''))], filled(...));
+            : array_filter([Str::trim((string) ($state['chat_model_id'] ?? ''))], filled(...));
 
         return array_values(array_map(fn (string $id): RemoteModelData => $this->listedModel($id) ?? new RemoteModelData($id, $id), $ids));
     }
@@ -1728,7 +1728,7 @@ class Setup extends SimplePage
      */
     private function listedChoice(array $state, string $field): ?RemoteModelData
     {
-        $id = trim((string) ($state[$field] ?? ''));
+        $id = Str::trim((string) ($state[$field] ?? ''));
 
         return $id === '' || $this->models === [] ? null : $this->listedModel($id) ?? new RemoteModelData($id, $id);
     }
@@ -1799,7 +1799,7 @@ class Setup extends SimplePage
      */
     private function filled(array $state, string $key): ?string
     {
-        $value = trim((string) ($state[$key] ?? ''));
+        $value = Str::trim((string) ($state[$key] ?? ''));
 
         return $value !== '' ? $value : null;
     }
@@ -2073,7 +2073,7 @@ class Setup extends SimplePage
         return new LlmProvider([
             'kind' => $this->chatKind($state),
             'name' => $account?->label() ?? (string) ($state['server_name'] ?? 'Server'),
-            'base_url' => $account instanceof AiProvider ? null : rtrim((string) ($state['server_url'] ?? ''), '/'),
+            'base_url' => $account instanceof AiProvider ? null : Str::rtrim((string) ($state['server_url'] ?? ''), '/'),
             'api_key' => $this->filled($state, 'api_key'),
         ]);
     }

@@ -3,6 +3,7 @@
 namespace Domain\Integration\Tool\Data;
 
 use Domain\Integration\Tool\Enums\ToolKind;
+use Illuminate\Support\Str;
 use Stringable;
 
 /**
@@ -42,24 +43,23 @@ final readonly class ToolName implements Stringable
 
     public static function parse(string $value): self
     {
-        if (! str_starts_with($value, self::MCP_PREFIX)) {
+        if (! Str::startsWith($value, self::MCP_PREFIX)) {
             return self::webhookFunction($value);
         }
 
-        $rest = substr($value, strlen(self::MCP_PREFIX));
-        $separatorAt = strpos($rest, self::SEPARATOR);
+        $rest = Str::chopStart($value, self::MCP_PREFIX);
 
-        if ($separatorAt === false) {
+        if (! Str::contains($rest, self::SEPARATOR)) {
             return self::webhookFunction($value);
         }
 
-        $slug = substr($rest, 0, $separatorAt);
+        $slug = Str::before($rest, self::SEPARATOR);
 
         return new self(
             value: $value,
             kind: ToolKind::Mcp,
             serverSlug: $slug !== '' ? $slug : null,
-            tool: substr($rest, $separatorAt + strlen(self::SEPARATOR)),
+            tool: Str::after($rest, self::SEPARATOR),
         );
     }
 
@@ -98,7 +98,7 @@ final readonly class ToolName implements Stringable
      */
     public function isFromServer(string $serverSlug): bool
     {
-        return str_starts_with($this->value, self::mcpPrefix($serverSlug));
+        return Str::startsWith($this->value, self::mcpPrefix($serverSlug));
     }
 
     /**
@@ -106,7 +106,7 @@ final readonly class ToolName implements Stringable
      */
     public function isValidForLlm(): bool
     {
-        return preg_match(self::LLM_NAME_PATTERN, $this->value) === 1;
+        return Str::isMatch(self::LLM_NAME_PATTERN, $this->value);
     }
 
     public function __toString(): string

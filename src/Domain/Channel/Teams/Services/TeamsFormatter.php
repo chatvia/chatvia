@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Channel\Teams\Services;
 
+use Illuminate\Support\Str;
+
 /**
  * Adapts the model's CommonMark reply to the Markdown subset Teams renders in
  * bot messages (`textFormat: markdown`). Unlike Slack's mrkdwn this IS
@@ -17,7 +19,7 @@ class TeamsFormatter
 {
     public function toTeamsMarkdown(string $markdown): string
     {
-        $markdown = trim($markdown);
+        $markdown = Str::trim($markdown);
 
         if ($markdown === '') {
             return '';
@@ -27,7 +29,7 @@ class TeamsFormatter
         $inFence = false;
 
         foreach (explode("\n", $markdown) as $line) {
-            if (preg_match('/^\s*(```|~~~)/', $line) === 1) {
+            if (Str::isMatch('/^\s*(```|~~~)/', $line)) {
                 $inFence = ! $inFence;
                 $out[] = $line;
 
@@ -41,20 +43,21 @@ class TeamsFormatter
             }
 
             // `# Heading` (with optional closing hashes) → bold line.
-            if (preg_match('/^#{1,6}\s+(.+?)\s*#*\s*$/', $line, $matches) === 1) {
-                $out[] = '**'.$matches[1].'**';
+            $heading = Str::match('/^#{1,6}\s+(.+?)\s*#*\s*$/', $line);
+            if ($heading !== '') {
+                $out[] = '**'.$heading.'**';
 
                 continue;
             }
 
             // Horizontal rules (---, ***, ___) render as literal characters — drop them.
-            if (preg_match('/^\s*([-*_])\s*(?:\1\s*){2,}$/', $line) === 1) {
+            if (Str::isMatch('/^\s*([-*_])\s*(?:\1\s*){2,}$/', $line)) {
                 continue;
             }
 
             $out[] = $line;
         }
 
-        return trim(implode("\n", $out));
+        return Str::trim(implode("\n", $out));
     }
 }

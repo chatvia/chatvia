@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Support\Knowledge\Document\OldOffice;
 
+use Illuminate\Support\Str;
+
 /**
  * Builds small PowerPoint presentations in the binary format (.ppt), for
  * tests of the built-in reader. Each slide has placeholder text, kept in the
@@ -94,6 +96,7 @@ final class PowerPointBinaryFile
 
         $currentUser = $this->atom(0x0FF6, pack('VVVvvCCv', 0x14, $this->encrypted ? self::ENCRYPTED_TOKEN : self::PLAIN_TOKEN, $currentEdit, 4, 0x03F4, 3, 0, 0).'test');
 
+        // str_pad, not Str::padRight: these are bytes, and mb_str_pad counts characters.
         $path = (string) tempnam(sys_get_temp_dir(), 'ppt');
         file_put_contents($path, CompoundFileWriter::write([
             'Current User' => $currentUser,
@@ -118,7 +121,7 @@ final class PowerPointBinaryFile
         $masters = $this->atom(0x03F3, pack('VVVVV', 99, 0, 1, 0x80000000, 0))
             .$this->atom(0x0F9F, pack('V', 0)).$this->text('Click to edit Master title style');
 
-        return $this->container(0x03E8, $this->atom(0x03E9, str_repeat("\0", 40))
+        return $this->container(0x03E8, $this->atom(0x03E9, Str::repeat("\0", 40))
             .$this->container(0x0FF0, $masters, 1)
             .$this->container(0x0FF0, $list));
     }
@@ -132,16 +135,16 @@ final class PowerPointBinaryFile
         $shapes = '';
 
         foreach (array_keys($placeholders) as $number) {
-            $shapes .= $this->container(0xF004, $this->atom(0xF00A, str_repeat("\0", 8)).$this->container(0xF00D, $this->atom(0x0F9E, pack('V', $number))));
+            $shapes .= $this->container(0xF004, $this->atom(0xF00A, Str::repeat("\0", 8)).$this->container(0xF00D, $this->atom(0x0F9E, pack('V', $number))));
         }
 
         foreach ($boxes as $text) {
-            $shapes .= $this->container(0xF004, $this->atom(0xF00A, str_repeat("\0", 8)).$this->container(0xF00D, $this->atom(0x0F9F, pack('V', 4)).$this->text($text)));
+            $shapes .= $this->container(0xF004, $this->atom(0xF00A, Str::repeat("\0", 8)).$this->container(0xF00D, $this->atom(0x0F9F, pack('V', 4)).$this->text($text)));
         }
 
         $drawing = $this->container(0x040C, $this->container(0xF002, $this->container(0xF003, $shapes)));
 
-        return $this->container(0x03EE, $this->atom(0x03EF, str_repeat("\0", 24)).$drawing);
+        return $this->container(0x03EE, $this->atom(0x03EF, Str::repeat("\0", 24)).$drawing);
     }
 
     private function userEdit(int $lastEdit, int $directory): string

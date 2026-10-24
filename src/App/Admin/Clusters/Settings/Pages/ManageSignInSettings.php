@@ -9,6 +9,7 @@ use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\SignInSettings;
 use BackedEnum;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 
 /**
  * The OAuth apps behind the "Sign in with …" buttons on the login and
@@ -73,7 +74,7 @@ class ManageSignInSettings extends AdminSettingsPage
                 // A chatter accepting a chat invitation with Google or Slack
                 // signs in through the same app, back to its own URL.
                 ...(in_array($service, ['google', 'slack'], true)
-                    ? ['Chat invitation '.lcfirst($redirectLabel) => ['agents.invitation.social.callback', ['provider' => $service]]]
+                    ? ['Chat invitation '.Str::lcfirst($redirectLabel) => ['agents.invitation.social.callback', ['provider' => $service]]]
                     : []),
             ]);
     }

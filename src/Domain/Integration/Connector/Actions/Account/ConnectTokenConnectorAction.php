@@ -9,6 +9,7 @@ use Domain\Integration\Mcp\Data\ProvisionedMcpServerData;
 use Domain\Integration\Mcp\Enums\McpTransport;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -91,15 +92,15 @@ class ConnectTokenConnectorAction
      */
     private function humanize(string $message): string
     {
-        $lower = mb_strtolower($message);
+        $lower = Str::lower($message);
 
         return match (true) {
-            str_contains($lower, '401') || str_contains($lower, 'unauthorized') => __('The server rejected the token (401 Unauthorized). Double-check the value and try again.'),
-            str_contains($lower, '403') => __('The token is valid but does not have permission to call this MCP server (403).'),
-            str_contains($lower, '404') => __('The connector endpoint returned 404. The service may have moved — please report this.'),
-            str_contains($lower, 'could not reach'),
-            str_contains($lower, 'timed out'),
-            str_contains($lower, 'curl error') => __('Could not reach the MCP server. Check your network and try again.'),
+            Str::contains($lower, '401') || Str::contains($lower, 'unauthorized') => __('The server rejected the token (401 Unauthorized). Double-check the value and try again.'),
+            Str::contains($lower, '403') => __('The token is valid but does not have permission to call this MCP server (403).'),
+            Str::contains($lower, '404') => __('The connector endpoint returned 404. The service may have moved — please report this.'),
+            Str::contains($lower, 'could not reach'),
+            Str::contains($lower, 'timed out'),
+            Str::contains($lower, 'curl error') => __('Could not reach the MCP server. Check your network and try again.'),
             default => $message,
         };
     }

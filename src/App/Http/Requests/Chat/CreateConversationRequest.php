@@ -6,6 +6,7 @@ use App\Identity\Chatter\Models\Chatter;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * Validates a hosted-chat visitor's first message, which opens a new
@@ -42,7 +43,7 @@ class CreateConversationRequest extends FormRequest
             userAgent: $this->userAgent(),
             referrerUrl: $this->header('referer') ?: $this->server('HTTP_REFERER'),
             pageUrl: $this->url(),
-            locale: $this->header('accept-language') ? substr($this->header('accept-language'), 0, 5) : null,
+            locale: $this->header('accept-language') ? Str::substr($this->header('accept-language'), 0, 5) : null,
             attachmentIds: $this->extractAttachmentIds(),
             chatterId: $this->user() instanceof Chatter ? $this->user()->id : null,
         );

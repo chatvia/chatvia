@@ -9,6 +9,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Speech-to-text through OpenAI's `/audio/transcriptions` endpoint (Whisper,
@@ -34,8 +35,8 @@ class OpenAiTranscriber implements Transcriber
         // OpenAI tells the format by the file name.
         $response = $this->tags->during(AiCallTag::Transcription, fn (): mixed => Http::withToken((string) config('services.openai.api_key'))
             ->timeout(3600)
-            ->attach('file', File::get($filePath), 'audio.'.strtolower(pathinfo($filePath, PATHINFO_EXTENSION)))
-            ->post(rtrim((string) config('services.openai.api_endpoint'), '/').'/audio/transcriptions', [
+            ->attach('file', File::get($filePath), 'audio.'.Str::lower(pathinfo($filePath, PATHINFO_EXTENSION)))
+            ->post(Str::rtrim((string) config('services.openai.api_endpoint'), '/').'/audio/transcriptions', [
                 'model' => $this->name(),
             ])->throw()->json());
 

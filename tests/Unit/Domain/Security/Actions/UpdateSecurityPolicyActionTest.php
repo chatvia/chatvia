@@ -13,6 +13,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
 function uspActor(User $user): SecurityActorData
@@ -159,8 +160,8 @@ it('never leaks the webhook secret into audit metadata, only a rotation flag', f
     );
 
     Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyChanged->value
-        && str_contains($e->metadata, 'webhook_secret_rotated')
-        && ! str_contains($e->metadata, 'shh-secret'));
+        && Str::contains($e->metadata, 'webhook_secret_rotated')
+        && ! Str::contains($e->metadata, 'shh-secret'));
 });
 
 it('rejects a non-https webhook URL (SSRF guard)', function (): void {

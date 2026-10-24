@@ -8,6 +8,7 @@ use App\Admin\AdminGlobalSearchProvider;
 use App\Admin\Clusters\Settings\Data\SettingsSearchEntryData;
 use App\Admin\Clusters\Settings\Data\SettingsSearchHitData;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -57,11 +58,11 @@ final class SettingsSearch
     {
         $query = Str::lower(Str::squish($query));
 
-        if (mb_strlen($query) < self::MIN_LENGTH) {
+        if (Str::length($query) < self::MIN_LENGTH) {
             return [];
         }
 
-        return array_values(array_unique(explode(' ', $query)));
+        return Str::of($query)->explode(' ')->unique()->values()->all();
     }
 
     /**
@@ -76,14 +77,14 @@ final class SettingsSearch
         }
 
         $pattern = '/('.implode('|', array_map(fn (string $term): string => preg_quote($term, '/'), $terms)).')/iu';
-        $parts = preg_split($pattern, $text, flags: PREG_SPLIT_DELIM_CAPTURE) ?: [$text];
+        $parts = Str::of($text)
+            ->split($pattern, flags: PREG_SPLIT_DELIM_CAPTURE)
+            ->whenEmpty(fn (Collection $parts): Collection => $parts->push($text));
 
         // Split on the words, so the marks never land inside an escaped character.
-        return new HtmlString(implode('', array_map(
-            fn (string $part, int $index): string => $index % 2 === 1 ? '<mark>'.e($part).'</mark>' : e($part),
-            $parts,
-            array_keys($parts),
-        )));
+        return new HtmlString($parts
+            ->map(fn (string $part, int $index): string => $index % 2 === 1 ? '<mark>'.e($part).'</mark>' : e($part))
+            ->implode(''));
     }
 
     /**

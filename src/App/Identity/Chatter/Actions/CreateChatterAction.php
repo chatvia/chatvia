@@ -7,6 +7,7 @@ use App\Identity\Chatter\Enums\ChatterSource;
 use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -24,7 +25,7 @@ class CreateChatterAction
      */
     public function execute(CreateChatterData $data): Chatter
     {
-        $email = $data->email !== null ? strtolower(trim($data->email)) : null;
+        $email = $data->email !== null ? Str::lower(Str::trim($data->email)) : null;
 
         if ($email !== null && $data->workspace->chatters()->whereRaw('lower(email) = ?', [$email])->exists()) {
             throw new DomainValidationException('email', __('A chatter with this email already exists in your workspace.'));

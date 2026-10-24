@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Services\Voice;
 
+use Illuminate\Support\Str;
+
 /**
  * The actions a voice call holds until the visitor says yes. A call has
  * nothing to click, so a tool that needs a person's approval is not run the
@@ -72,7 +74,7 @@ final class VoiceToolApprovals
 
         return $name."\n".(is_array($decoded)
             ? (string) json_encode(self::sorted($decoded), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-            : trim($arguments));
+            : Str::trim($arguments));
     }
 
     /**

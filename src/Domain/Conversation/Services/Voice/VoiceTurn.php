@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Voice;
 
 use Domain\Conversation\Services\ChatContext;
+use Illuminate\Support\Str;
 
 /**
  * One spoken turn of a voice call, from the moment the visitor stops
@@ -68,10 +69,10 @@ final class VoiceTurn
 
     public function addSpoken(string $text): void
     {
-        $text = trim($text);
+        $text = Str::trim($text);
 
         if ($text !== '') {
-            $this->spoken = ltrim($this->spoken.' '.$text);
+            $this->spoken = Str::ltrim($this->spoken.' '.$text);
         }
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Ingestion\Services\Chunking\Splitting;
 
 use Domain\Knowledge\Ingestion\Contracts\ChunkMeasure;
+use Illuminate\Support\Str;
 
 /**
  * Measures chunks in characters as a reader sees them (grapheme clusters),
@@ -17,7 +18,7 @@ final readonly class CharacterMeasure implements ChunkMeasure
     {
         $length = grapheme_strlen($text);
 
-        return is_int($length) ? $length : mb_strlen($text);
+        return is_int($length) ? $length : Str::length($text);
     }
 
     public function windows(string $text, int $size, int $overlap): array

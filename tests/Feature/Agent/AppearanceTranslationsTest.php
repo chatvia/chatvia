@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Illuminate\Support\Str;
 use Mockery\MockInterface;
 
 /**
@@ -56,7 +57,7 @@ it('rejects an oversized override value', function (): void {
     $this->actingAs($this->owner)
         ->putJson(route('agents.appearance.translations.update', $this->agent->external_id), [
             'overrides' => [
-                'welcome_message' => ['de' => str_repeat('x', 501)],
+                'welcome_message' => ['de' => Str::repeat('x', 501)],
             ],
         ])
         ->assertStatus(422);

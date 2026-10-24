@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Support\License;
 
+use Illuminate\Support\Str;
+
 /**
  * The terms a license key carries: who bought it, the domains it works on and
  * what it unlocks. This is only the content of a key; it is trusted once
@@ -40,9 +42,12 @@ final readonly class LicenseKey
     /** A host name as keys hold it: lowercase, with no port or trailing dot. */
     public static function host(string $host): string
     {
-        $host = strtolower(trim($host));
-
-        return rtrim((string) preg_replace('/:\d+$/', '', $host), '.');
+        return Str::of($host)
+            ->trim()
+            ->lower()
+            ->replaceMatches('/:\d+$/', '')
+            ->rtrim('.')
+            ->toString();
     }
 
     /**

@@ -53,7 +53,7 @@ it('writes one immutable guardrail_events row from the event', function (): void
 it('caps the stored snippet but hashes the full original', function (): void {
     config(['chatvia.guardrails.max_snippet_bytes' => 10]);
     $agent = Agent::factory()->create();
-    $long = str_repeat('x', 60);
+    $long = Str::repeat('x', 60);
 
     (new RecordGuardrailEventAction)->execute(guardEvent($agent, $long));
 
@@ -75,7 +75,7 @@ it('cuts a multibyte snippet on a character boundary so Postgres accepts it', fu
 
     expect(mb_check_encoding((string) $row->snippet, 'UTF-8'))->toBeTrue()
         ->and(strlen((string) $row->snippet))->toBeLessThan(9)
-        ->and(str_starts_with($sample, (string) $row->snippet))->toBeTrue()
+        ->and(Str::startsWith($sample, (string) $row->snippet))->toBeTrue()
         ->and($row->snippet_sha256)->toBe(hash('sha256', $sample));
 })->with([
     'arabic' => 'مرحبا بك في الدعم',

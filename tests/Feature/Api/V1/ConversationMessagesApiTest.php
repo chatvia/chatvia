@@ -12,6 +12,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Uri;
 use Mockery\LegacyMockInterface;
 use Tests\Support\Http\BufferedSseResponder;
 use Tests\Support\Llm\ScriptedLlmProvider;
@@ -208,7 +209,7 @@ it('pages the messages by the time they were sent, not by when they were stored'
     $uri = "{$this->base}/conversations/{$conversation->external_id}/messages";
 
     $first = $this->withToken($this->token)->getJson($uri.'?per_page=2')->assertOk();
-    $second = $this->withToken($this->token)->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $first->json('next_cursor')]))->assertOk();
+    $second = $this->withToken($this->token)->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $first->json('next_cursor')])->value())->assertOk();
 
     expect([...array_column($first->json('data'), 'id'), ...array_column($second->json('data'), 'id')])
         ->toBe([$newest->external_id, $sameSecondLater->external_id, $sameSecondEarlier->external_id, $oldest->external_id])

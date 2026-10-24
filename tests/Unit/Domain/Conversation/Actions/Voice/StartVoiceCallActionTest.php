@@ -80,7 +80,7 @@ it('opens the call, keeps it and sends a worker to join it', function (): void {
         // The only worker is now taken by this call.
         ->and(app(VoiceCallSlots::class)->take((string) Str::uuid7(), 60))->toBeFalse();
 
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/realtime/calls'));
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls'));
     Queue::assertPushed(JoinVoiceCallJob::class, fn (JoinVoiceCallJob $job): bool => $job->call->call_id === $started->call_id);
 });
 

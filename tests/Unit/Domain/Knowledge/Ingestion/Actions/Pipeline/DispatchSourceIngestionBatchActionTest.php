@@ -13,6 +13,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 
 /**
  * The one batch pipeline shared by document, text-file, media and text
@@ -47,7 +48,7 @@ it('marks the source as ingesting with its page count, queues the summary and st
     // Enhanced pages get a job each.
     Bus::assertBatched(fn (PendingBatch $pending): bool => $pending->jobs->count() === 3
         && $pending->allowsFailures()
-        && str_contains((string) $pending->name, (string) $file->id));
+        && Str::contains((string) $pending->name, (string) $file->id));
 });
 
 it('pushes every chunk job onto the long-running ingestion queue', function (): void {

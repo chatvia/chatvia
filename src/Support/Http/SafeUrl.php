@@ -4,6 +4,8 @@ namespace Support\Http;
 
 use Closure;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
+use League\Uri\Contracts\UriException;
 use Support\Exceptions\UnsafeUrlException;
 
 /**
@@ -62,7 +64,7 @@ final class SafeUrl
     {
         $addresses = self::checkedAddresses($url);
         $options = self::clientOptions();
-        $host = trim((string) parse_url($url, PHP_URL_HOST), '[]');
+        $host = Str::trim((string) self::parse($url)?->host(), '[]');
 
         if ($addresses === [] || filter_var($host, FILTER_VALIDATE_IP)) {
             return $options;
@@ -94,19 +96,19 @@ final class SafeUrl
      */
     private static function checkedAddresses(string $url): array
     {
-        $parts = parse_url($url);
+        $uri = self::parse($url);
+        $scheme = Str::lower((string) $uri?->scheme());
+        $host = (string) $uri?->host();
 
-        if (! is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+        if ($scheme === '' || $host === '') {
             throw new UnsafeUrlException('The URL is malformed.');
         }
 
-        $scheme = Str::lower($parts['scheme']);
         if (! in_array($scheme, ['http', 'https'], true)) {
             throw new UnsafeUrlException('Only http and https URLs are allowed.');
         }
 
-        $host = $parts['host'];
-        if (str_contains($host, '..') || preg_match('/[\s<>"\\\\]/', $host)) {
+        if (Str::contains($host, '..') || Str::isMatch('/[\s<>"\\\\]/', $host)) {
             throw new UnsafeUrlException('The URL host is malformed.');
         }
 
@@ -139,12 +141,12 @@ final class SafeUrl
      */
     private static function resolveEntry(string $url, string $host, array $addresses): string
     {
-        $port = parse_url($url, PHP_URL_PORT)
-            ?? (strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80);
+        $uri = self::parse($url);
+        $port = $uri?->port() ?? (Str::lower((string) $uri?->scheme()) === 'https' ? 443 : 80);
 
-        usort($addresses, static fn (string $a, string $b): int => str_contains($a, ':') <=> str_contains($b, ':'));
+        usort($addresses, static fn (string $a, string $b): int => Str::contains($a, ':') <=> Str::contains($b, ':'));
 
-        $written = array_map(static fn (string $ip): string => str_contains($ip, ':') ? '['.$ip.']' : $ip, $addresses);
+        $written = array_map(static fn (string $ip): string => Str::contains($ip, ':') ? '['.$ip.']' : $ip, $addresses);
 
         return $host.':'.$port.':'.implode(',', $written);
     }
@@ -172,9 +174,26 @@ final class SafeUrl
             return null;
         }
 
-        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $scheme = Str::lower((string) self::parse($url)?->scheme());
 
         return in_array($scheme, ['http', 'https'], true) ? $url : null;
+    }
+
+    /**
+     * The URL as a Uri, or null when it is blank or malformed. A URL typed by
+     * a person can be anything, and Uri::of() throws on a malformed one.
+     */
+    public static function parse(?string $url): ?Uri
+    {
+        if (blank($url)) {
+            return null;
+        }
+
+        try {
+            return Uri::of($url);
+        } catch (UriException) {
+            return null;
+        }
     }
 
     /**
@@ -200,8 +219,8 @@ final class SafeUrl
      */
     public static function resolve(string $host): array
     {
-        // parse_url() keeps the brackets around an IPv6 literal ("[::1]").
-        $host = trim($host, '[]');
+        // A URL's host keeps the brackets around an IPv6 literal ("[::1]").
+        $host = Str::trim($host, '[]');
 
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             return [$host];

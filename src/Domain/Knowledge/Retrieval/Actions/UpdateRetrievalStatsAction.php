@@ -133,7 +133,7 @@ class UpdateRetrievalStatsAction
         return match ($type) {
             'source_file' => (string) $row->getAttribute('filename'),
             'source_website' => (string) $row->getAttribute('url'),
-            'source_text' => Str::limit(trim((string) preg_replace('/\s+/', ' ', (string) $row->getAttribute('excerpt'))), self::TEXT_LABEL_LENGTH),
+            'source_text' => Str::of((string) $row->getAttribute('excerpt'))->replaceMatches('/\s+/', ' ')->trim()->limit(self::TEXT_LABEL_LENGTH)->toString(),
             'source_youtube_video' => (string) ($row->getAttribute('title') ?: $row->getAttribute('url')),
             default => null,
         };

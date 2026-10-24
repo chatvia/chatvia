@@ -20,6 +20,7 @@ use Domain\Llm\Services\TaskModels;
 use Generator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
@@ -164,14 +165,14 @@ class AnalyticsChatRunner
             $buffer .= $body->read(8192);
 
             while (($newline = strpos($buffer, "\n")) !== false) {
-                $line = trim(substr($buffer, 0, $newline));
+                $line = Str::trim(substr($buffer, 0, $newline));
                 $buffer = substr($buffer, $newline + 1);
 
-                if ($line === '' || ! str_starts_with($line, 'data:')) {
+                if ($line === '' || ! Str::startsWith($line, 'data:')) {
                     continue;
                 }
 
-                $payload = trim(substr($line, 5));
+                $payload = Str::trim(substr($line, 5));
 
                 if ($payload === '[DONE]') {
                     return;
@@ -262,7 +263,7 @@ class AnalyticsChatRunner
      */
     private function toolLabel(?string $url): string
     {
-        $slug = $url === null ? null : basename((string) parse_url($url, PHP_URL_PATH));
+        $slug = $url === null ? null : Uri::of($url)->pathSegments()->last();
 
         foreach ((array) config('mcp.builtin', []) as $server) {
             if (($server['slug'] ?? null) === $slug) {
@@ -298,7 +299,7 @@ class AnalyticsChatRunner
 
     private function systemPrompt(Workspace $workspace): string
     {
-        return trim(prompt('analytics/chat-system', [
+        return Str::trim(prompt('analytics/chat-system', [
             'workspace' => $workspace->name,
             'today' => now()->toFormattedDateString(),
         ]));

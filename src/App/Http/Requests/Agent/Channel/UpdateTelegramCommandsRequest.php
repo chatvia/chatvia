@@ -5,6 +5,7 @@ namespace App\Http\Requests\Agent\Channel;
 use Domain\Channel\Telegram\Data\TelegramCommandData;
 use Domain\Channel\Telegram\Data\UpdateTelegramCommandsData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -34,10 +35,10 @@ class UpdateTelegramCommandsRequest extends FormRequest
     {
         $commands = array_map(
             static fn (array $c): array => [
-                'command' => ltrim(strtolower(trim((string) ($c['command'] ?? ''))), '/'),
-                'description' => trim((string) ($c['description'] ?? '')),
+                'command' => Str::ltrim(Str::lower(Str::trim((string) ($c['command'] ?? ''))), '/'),
+                'description' => Str::trim((string) ($c['description'] ?? '')),
                 'type' => ($c['type'] ?? 'message') === 'prompt' ? 'prompt' : 'message',
-                'value' => trim((string) ($c['value'] ?? '')),
+                'value' => Str::trim((string) ($c['value'] ?? '')),
             ],
             (array) $this->input('commands', []),
         );

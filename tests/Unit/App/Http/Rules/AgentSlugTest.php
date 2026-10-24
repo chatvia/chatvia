@@ -3,6 +3,7 @@
 use App\Http\Rules\AgentSlug;
 use Domain\Agent\Models\Agent;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 /**
  * An agent's chat-address slug: URL-safe, 3–63 characters, and not used by
@@ -22,7 +23,7 @@ it('accepts a free, well-formed slug', function (): void {
 
 it('rejects a malformed slug', function (string $slug): void {
     expect(slugFails(Agent::factory()->create(), $slug))->toBeTrue();
-})->with(['ab', 'Upper', 'has space', '-dash', 'dash-', 'under_score', str_repeat('a', 64)]);
+})->with(['ab', 'Upper', 'has space', '-dash', 'dash-', 'under_score', Str::repeat('a', 64)]);
 
 it('rejects another agent\'s slug or external id', function (): void {
     $agent = Agent::factory()->create();

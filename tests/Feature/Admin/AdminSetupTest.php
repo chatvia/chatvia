@@ -28,6 +28,7 @@ use Filament\Facades\Filament;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Tests\Support\Admin\FakeRedisAndHorizon;
 
@@ -277,7 +278,7 @@ it('checks the key with the provider\'s model list before the next step', functi
         ])
         ->assertFormFieldVisible('vision_model');
 
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/models')
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/models')
         && $request->header('Authorization') === ['Bearer scw-test']);
 });
 

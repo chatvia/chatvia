@@ -10,6 +10,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Str;
 
 /**
  * One structured-JSON LLM call that localizes a set of short UI strings into
@@ -76,7 +77,7 @@ class TextTranslator
                 $value = $byLocale[$locale] ?? null;
 
                 if (filled($value)) {
-                    $result[$field][$locale] = trim($value);
+                    $result[$field][$locale] = Str::trim($value);
                 }
             }
         }

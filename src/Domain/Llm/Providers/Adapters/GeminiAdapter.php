@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers\Adapters;
 
 use Domain\Llm\Enums\LlmProviderKind;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Str;
 
 /**
  * Google Gemini through its OpenAI-compatible endpoint. Its list names models
@@ -44,7 +45,7 @@ final class GeminiAdapter extends OpenAiCompatibleAdapter
     public function refusesKey(Response $response): bool
     {
         return parent::refusesKey($response)
-            || ($response->status() === 400 && str_contains(strtolower((string) $response->json('error.message', $response->json('0.error.message'))), 'api key'));
+            || ($response->status() === 400 && Str::contains(Str::lower((string) $response->json('error.message', $response->json('0.error.message'))), 'api key'));
     }
 
     /** The account's address is the native API the embeddings call; chat stays on its OpenAI-style address. */
@@ -57,6 +58,6 @@ final class GeminiAdapter extends OpenAiCompatibleAdapter
     {
         $id = (string) $row['id'];
 
-        return str_starts_with($id, 'models/') ? substr($id, 7) : $id;
+        return Str::chopStart($id, 'models/');
     }
 }

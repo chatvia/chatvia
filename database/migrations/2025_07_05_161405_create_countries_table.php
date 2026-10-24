@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -21,7 +22,7 @@ return new class extends Migration
         foreach ($countries as $country) {
             DB::table('countries')->insert([
                 'name' => $country['name'],
-                'code' => strtolower($country['code']),
+                'code' => Str::lower($country['code']),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

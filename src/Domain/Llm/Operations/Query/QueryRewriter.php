@@ -120,16 +120,16 @@ class QueryRewriter
      */
     private function parse(string $reply, string $message): RewrittenQueryData
     {
-        $reply = trim($reply);
+        $reply = Str::trim($reply);
 
-        if (! str_contains($reply, '|')) {
+        if (! Str::contains($reply, '|')) {
             return RewrittenQueryData::unchanged($reply !== '' ? $reply : $message);
         }
 
-        [$language, $query] = array_map(trim(...), explode('|', $reply, 2));
+        [$language, $query] = array_map(Str::trim(...), explode('|', $reply, 2));
 
         return new RewrittenQueryData(
-            language: preg_match('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $language) === 1 ? $language : 'en',
+            language: Str::isMatch('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $language) ? $language : 'en',
             query: $query !== '' ? $query : $message,
         );
     }

@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Document\Conversion;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -28,12 +29,12 @@ class CatDoc
 
     public function supports(string $extension): bool
     {
-        return array_key_exists(strtolower($extension), self::PROGRAMS);
+        return array_key_exists(Str::lower($extension), self::PROGRAMS);
     }
 
     public function toText(string $path, string $extension): string
     {
-        $program = self::PROGRAMS[strtolower($extension)] ?? null;
+        $program = self::PROGRAMS[Str::lower($extension)] ?? null;
 
         if ($program === null) {
             throw new InvalidArgumentException("Unsupported catdoc format: {$extension}");

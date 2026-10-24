@@ -7,6 +7,7 @@ namespace App\Admin;
 use Filament\AvatarProviders\Contracts\AvatarProvider;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
  * The admin panel's default avatar: the person's initials on a dark circle,
@@ -37,18 +38,20 @@ final class InitialsAvatarProvider implements AvatarProvider
     private function initials(string $name): string
     {
         // Leading punctuation ("[SYSTEM] Admin") is not part of a word.
-        $words = array_values(array_filter(array_map(
-            fn (string $word): string => (string) preg_replace('/^[^\p{L}\p{N}]+/u', '', $word),
-            preg_split('/\s+/u', trim($name)) ?: [],
-        )));
+        $words = Str::of($name)
+            ->trim()
+            ->split('/\s+/u')
+            ->map(fn (string $word): string => Str::replaceMatches('/^[^\p{L}\p{N}]+/u', '', $word) ?? '')
+            ->filter()
+            ->values();
 
-        if ($words === []) {
+        if ($words->isEmpty()) {
             return '?';
         }
 
-        $first = mb_substr($words[0], 0, 1);
-        $last = count($words) > 1 ? mb_substr($words[count($words) - 1], 0, 1) : '';
+        $first = Str::substr($words->first(), 0, 1);
+        $last = $words->count() > 1 ? Str::substr($words->last(), 0, 1) : '';
 
-        return mb_strtoupper($first.$last);
+        return Str::upper($first.$last);
     }
 }

@@ -23,6 +23,7 @@ use Domain\Guardrail\Services\Detectors\PiiAllowlist;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Support\Str;
 
 /**
  * The guardrail engine: given an agent's per-agent settings, runs the enabled
@@ -229,7 +230,7 @@ class GuardrailService
         $settings = GuardrailSettingsData::fromAgent($agent);
         $marker = $this->leakMarker($agent);
 
-        if ($marker !== null && str_contains($text, $marker)) {
+        if ($marker !== null && Str::contains($text, $marker)) {
             $outcome = $settings->injection_mode->outcome();
             $verdict = new GuardVerdictData(GuardType::PromptLeak, GuardStage::Output, $outcome, severity: GuardSeverity::High);
 

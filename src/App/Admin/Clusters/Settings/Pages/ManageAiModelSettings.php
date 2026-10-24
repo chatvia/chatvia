@@ -449,7 +449,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
                 $listed = collect($this->listOf((string) $data['source'])->models ?? [])->keyBy('id');
                 $added = collect((array) ($data['models'] ?? $data['model_id'] ?? []))
-                    ->map(fn (mixed $id): string => trim((string) $id))
+                    ->map(fn (mixed $id): string => Str::trim((string) $id))
                     ->filter()
                     ->unique()
                     ->map(fn (string $id): Llm => app(AddLlmModelAction::class)->execute($provider, $listed->get($id) ?? new RemoteModelData($id, $id)));
@@ -465,7 +465,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         $data = $this->getMountedAction()?->getRawData() ?? [];
 
-        return filled($data['models'] ?? null) || filled(trim((string) ($data['model_id'] ?? '')));
+        return filled($data['models'] ?? null) || filled(Str::trim((string) ($data['model_id'] ?? '')));
     }
 
     /** Whether models.dev lists the model, so its capabilities come from there. */
@@ -859,7 +859,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             return $llm->isAvailable() ? $llm->slug() : 'none';
         }
 
-        $driver = strtolower(trim((string) $this->configured($property)));
+        $driver = Str::lower(Str::trim((string) $this->configured($property)));
 
         if ($driver !== '' && $driver !== 'auto') {
             return $driver;

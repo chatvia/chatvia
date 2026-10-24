@@ -8,6 +8,7 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -33,7 +34,7 @@ class EmbedFormDefinitionAction
         try {
             // The name and the agent instructions are what the visitor's intent
             // is matched against, so they are the embedded text.
-            $text = trim($form->name."\n\n".$form->agent_instructions);
+            $text = Str::trim($form->name."\n\n".$form->agent_instructions);
             $form->forceFill([
                 'embedding' => $this->embeddings->embed($text),
                 'search_text' => $text,

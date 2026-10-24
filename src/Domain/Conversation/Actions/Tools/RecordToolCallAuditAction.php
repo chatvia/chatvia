@@ -98,7 +98,7 @@ class RecordToolCallAuditAction
      */
     private function redact(array $data): array
     {
-        $keys = array_map(strtolower(...), (array) config('chatvia.governance.redact_keys', []));
+        $keys = array_map(Str::lower(...), (array) config('chatvia.governance.redact_keys', []));
 
         foreach ($data as $key => $value) {
             if (in_array(Str::lower((string) $key), $keys, true)) {

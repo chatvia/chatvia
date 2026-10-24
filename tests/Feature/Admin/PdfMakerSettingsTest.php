@@ -6,6 +6,7 @@ use Filament\Facades\Filament;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Settings → Platform → PDF maker: WeasyPrint on this server, or Cloudflare
@@ -43,7 +44,7 @@ it('saves Cloudflare after a test PDF, and uses it at once', function (): void {
 
     app()->forgetScopedInstances();
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/accounts/account-1/browser-rendering/pdf'));
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->url(), '/accounts/account-1/browser-rendering/pdf'));
 
     expect(config('laravel-pdf.driver'))->toBe('cloudflare')
         ->and(config('laravel-pdf.cloudflare'))->toBe(['api_token' => 'token-1', 'account_id' => 'account-1'])

@@ -19,6 +19,7 @@ use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * One structured LLM call that, over a full conversation transcript, returns
@@ -82,7 +83,7 @@ class ConversationAnalyzer
         $data = $this->ask(new ChatRequestData(
             model: $this->models->model(LlmTask::ConversationAnalysis),
             messages: [
-                ChatMessageData::system(trim(prompt('analytics/message-analysis'))),
+                ChatMessageData::system(Str::trim(prompt('analytics/message-analysis'))),
                 ChatMessageData::user($text),
             ],
             tag: AiCallTag::ConversationAnalysis,
@@ -127,7 +128,7 @@ class ConversationAnalyzer
             ? '(none configured)'
             : $topics->map(fn (Topic $topic): string => "  {$topic->id}: {$topic->topic}".($topic->description ? " — {$topic->description}" : ''))->implode("\n");
 
-        return trim(prompt('analytics/conversation-analysis', [
+        return Str::trim(prompt('analytics/conversation-analysis', [
             'topicList' => $topicList,
             'pendingLabels' => $pendingLabels === [] ? '(none)' : implode(', ', $pendingLabels),
         ]));
@@ -216,7 +217,7 @@ class ConversationAnalyzer
      */
     private function sentiment(array $data): Sentiment
     {
-        return Sentiment::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? Sentiment::Neutral;
+        return Sentiment::tryFrom(Str::lower((string) ($data['sentiment'] ?? ''))) ?? Sentiment::Neutral;
     }
 
     /**
@@ -224,7 +225,7 @@ class ConversationAnalyzer
      */
     private function tone(array $data): Tone
     {
-        return Tone::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? Tone::Neutral;
+        return Tone::tryFrom(Str::lower((string) ($data['tone'] ?? ''))) ?? Tone::Neutral;
     }
 
     /**
@@ -254,13 +255,13 @@ class ConversationAnalyzer
      */
     private function newSuggestions(mixed $labels, Collection $topics): array
     {
-        $existingNames = $topics->pluck('topic')->map(fn (mixed $name): string => mb_strtolower(trim((string) $name)))->all();
+        $existingNames = $topics->pluck('topic')->map(fn (mixed $name): string => Str::lower(Str::trim((string) $name)))->all();
 
         return collect(is_array($labels) ? $labels : [])
             ->filter(fn (mixed $label): bool => filled($label))
-            ->map(fn (string $label): string => trim($label))
-            ->reject(fn (string $label): bool => in_array(mb_strtolower($label), $existingNames, true))
-            ->unique(fn (string $label): string => mb_strtolower($label))
+            ->map(fn (string $label): string => Str::trim($label))
+            ->reject(fn (string $label): bool => in_array(Str::lower($label), $existingNames, true))
+            ->unique(fn (string $label): string => Str::lower($label))
             ->values()
             ->all();
     }
@@ -271,9 +272,13 @@ class ConversationAnalyzer
             return null;
         }
 
-        $code = preg_replace('/[^a-z]/', '', strtolower(trim($language)));
+        $code = Str::of($language)
+            ->trim()
+            ->lower()
+            ->replaceMatches('/[^a-z]/', '')
+            ->toString();
 
-        return strlen((string) $code) === 2 ? $code : null;
+        return Str::length($code) === 2 ? $code : null;
     }
 
     /**

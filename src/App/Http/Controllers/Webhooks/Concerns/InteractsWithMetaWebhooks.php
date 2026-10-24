@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Webhooks\Concerns;
 use Domain\Channel\Enums\MetaApp;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
 /**
  * The Meta-platform webhooks (Messenger, WhatsApp, Instagram) share one
@@ -49,7 +50,7 @@ trait InteractsWithMetaWebhooks
     {
         $header = (string) $request->header('X-Hub-Signature-256');
 
-        if (! str_starts_with($header, 'sha256=')) {
+        if (! Str::startsWith($header, 'sha256=')) {
             return false;
         }
 

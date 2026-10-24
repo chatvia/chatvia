@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Ingestion\Services\Chunking\Splitting;
 
 use Domain\Knowledge\Ingestion\Contracts\ChunkMeasure;
 use Domain\Knowledge\Ingestion\Contracts\Separator;
+use Illuminate\Support\Str;
 
 /**
  * Splits a text into chunks of at most a size, at the best place it can: the
@@ -132,6 +133,6 @@ final readonly class RecursiveSplitter
      */
     public static function trimmed(array $chunks): array
     {
-        return array_values(array_filter(array_map(trim(...), $chunks), static fn (string $chunk): bool => $chunk !== ''));
+        return array_values(array_filter(array_map(Str::trim(...), $chunks), static fn (string $chunk): bool => $chunk !== ''));
     }
 }

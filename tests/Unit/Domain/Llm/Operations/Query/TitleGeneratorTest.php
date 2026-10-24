@@ -6,6 +6,7 @@ use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Str;
 
 /**
  * Conversation titles: the model's reply is cleaned to one short line, and the
@@ -16,7 +17,7 @@ it('cleans the reply to a short title', function (): void {
     expect(TitleGenerator::clean("**Title:** \"Sunday Opening Hours.\"\n\nThe visitor asked when…"))->toBe('Sunday Opening Hours')
         ->and(TitleGenerator::clean("\n\n# Polite Decline\n"))->toBe('Polite Decline')
         ->and(TitleGenerator::clean('Title: Order tracking'))->toBe('Order tracking')
-        ->and(mb_strlen(TitleGenerator::clean(str_repeat('word ', 40))))->toBeLessThanOrEqual(80)
+        ->and(Str::length(TitleGenerator::clean(Str::repeat('word ', 40))))->toBeLessThanOrEqual(80)
         ->and(TitleGenerator::clean(''))->toBe('')
         ->and(TitleGenerator::clean("  \n "))->toBe('');
 });

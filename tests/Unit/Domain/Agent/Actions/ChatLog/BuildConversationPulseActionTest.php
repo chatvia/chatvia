@@ -7,6 +7,7 @@ use Domain\Analytics\Enums\Tone;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Illuminate\Support\Str;
 
 /**
  * The pulse charts the visitor's mood across a conversation: one point per
@@ -34,7 +35,7 @@ function addPulseTurns(Conversation $conversation, array $turns): void
         Message::factory()->create([
             'chat_conversation_id' => $conversation->id,
             'role' => $role,
-            'content' => str_repeat('word ', 20),
+            'content' => Str::repeat('word ', 20),
             'tone' => $tone,
             'sentiment' => $sentiment,
             'created_at' => now()->subHour()->addMinutes($minute),
@@ -58,7 +59,7 @@ it('charts only visitor messages and summarises an improving, resolved conversat
     expect($points)->toHaveCount(3)
         ->and($points->map(fn (ChatLogPulseMessageData $p): array => [$p->index, $p->sentiment_score])->all())
         ->toBe([[1, -1.0], [2, 1.0], [3, 0.0]])
-        ->and(mb_strlen($points->first()->content_preview))->toBeLessThanOrEqual(53);
+        ->and(Str::length($points->first()->content_preview))->toBeLessThanOrEqual(53);
 
     $summary = $pulse->summary;
     expect($summary->trend)->toBe('improving')

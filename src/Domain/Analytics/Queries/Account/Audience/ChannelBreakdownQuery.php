@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Account\Audience\ChannelBreakdownData;
 use Domain\Analytics\Data\Account\Audience\ChannelShareData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 use Domain\Conversation\Enums\ConversationSource;
+use Illuminate\Support\Str;
 
 /**
  * Conversations per channel (Hosted Chat, Chat Widget, WhatsApp, …), busiest
@@ -29,7 +30,7 @@ class ChannelBreakdownQuery extends AccountAnalyticsQuery
             totalConversations: $total,
             channels: $rows->map(fn (object $row): ChannelShareData => new ChannelShareData(
                 source: $row->source,
-                label: ConversationSource::tryFrom((string) $row->source)?->label() ?? ucfirst((string) $row->source),
+                label: ConversationSource::tryFrom((string) $row->source)?->label() ?? Str::ucfirst((string) $row->source),
                 conversations: (int) $row->conversations,
                 pct: $this->pct((int) $row->conversations, $total),
             ))->all(),

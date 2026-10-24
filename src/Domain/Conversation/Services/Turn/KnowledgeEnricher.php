@@ -257,7 +257,7 @@ class KnowledgeEnricher
             'hasImages' => $sources->contains(static fn (RetrievedSourceData $source): bool => $source->images !== []),
             'items' => $sources->values()->map(fn (RetrievedSourceData $source, int $index): array => [
                 'id' => $index + 1,
-                'content' => (string) preg_replace('/<(\/?source)\b/i', '&lt;$1', $source->content),
+                'content' => Str::replaceMatches('/<(\/?source)\b/i', '&lt;$1', $source->content) ?? '',
                 'images' => $this->imageLinks($source),
             ])->all(),
         ]);
@@ -276,7 +276,7 @@ class KnowledgeEnricher
                 // image, so it is attacker-influenceable: strip the markdown
                 // delimiters so it cannot break out of the alt text and add
                 // another image URL.
-                'description' => str_replace([']', '[', '(', ')', "\n", "\r"], ' ', (string) $description),
+                'description' => Str::replace([']', '[', '(', ')', "\n", "\r"], ' ', (string) $description),
                 // Always the main domain (not an agent's custom domain). The path
                 // carries an HMAC over (chunk, index), so the public image route
                 // only serves links the server minted.

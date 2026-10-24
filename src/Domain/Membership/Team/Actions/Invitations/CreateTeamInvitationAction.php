@@ -7,6 +7,7 @@ use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Listeners\SendTeamInvitationEmail;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
+use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -29,7 +30,7 @@ class CreateTeamInvitationAction
     {
         // Stored lower-case so the accept step and the `[team_id, email]`
         // unique index see one spelling per address.
-        $email = strtolower(trim($email));
+        $email = Str::lower(Str::trim($email));
 
         if ($team->hasUserWithEmail($email)) {
             throw new DomainValidationException('email', __('This user already belongs to the team.'));

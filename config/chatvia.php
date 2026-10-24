@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Domain\Conversation\Services\ConversationRetention;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
+use Illuminate\Support\Uri;
 
 return [
 
@@ -747,7 +748,7 @@ return [
         ],
 
         'always_allowed_origins' => array_values(array_filter([
-            strtolower((string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST)),
+            Uri::of((string) env('APP_URL', ''))->host(),
         ])),
         'extra_allowed_origins' => '',
 

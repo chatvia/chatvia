@@ -11,6 +11,7 @@ use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\WorkspaceSettings;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\LaravelSettings\SettingsRepositories\SettingsRepository;
 use Tests\Support\License\LicenseKeys;
 
@@ -80,7 +81,7 @@ it('treats a saved false or 0 as a value, not as blank', function (): void {
 });
 
 it('uses the callback URL of this app for a redirect with nothing saved', function (): void {
-    $appUrl = rtrim((string) config('app.url'), '/');
+    $appUrl = Str::rtrim((string) config('app.url'), '/');
 
     expect(config('services.google.redirect'))->toBe($appUrl.'/auth/google/callback')
         ->and(config('services.meta.instagram.redirect'))->toBe($appUrl.'/my/channels/instagram/oauth/callback')

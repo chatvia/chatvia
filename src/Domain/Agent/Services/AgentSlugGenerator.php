@@ -61,14 +61,18 @@ class AgentSlugGenerator
      */
     public static function clean(?string $reply): ?string
     {
-        $name = Str::lower(Str::trim($reply ?? '', " \t\n\r\0\x0B\"'`"));
-        $name = explode('.', $name)[0];
-        $name = preg_replace('/\s+/', '-', $name) ?? '';
-        $name = preg_replace('/[^a-z0-9-]/', '', $name) ?? '';
-        $name = trim(preg_replace('/-{2,}/', '-', $name) ?? '', '-');
-        $name = substr($name, 0, self::MAX_LENGTH);
+        $name = Str::of($reply ?? '')
+            ->trim(" \t\n\r\0\x0B\"'`")
+            ->lower()
+            ->before('.')
+            ->replaceMatches('/\s+/', '-')
+            ->replaceMatches('/[^a-z0-9-]/', '')
+            ->replaceMatches('/-{2,}/', '-')
+            ->trim('-')
+            ->substr(0, self::MAX_LENGTH)
+            ->toString();
 
-        return strlen($name) >= self::MIN_LENGTH ? rtrim($name, '-') : null;
+        return Str::length($name) >= self::MIN_LENGTH ? Str::rtrim($name, '-') : null;
     }
 
     private function suggest(): ?string

@@ -131,6 +131,7 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Spatie\LaravelSettings\Events\SavingSettings;
 use Support\Executable;
@@ -284,7 +285,7 @@ class DomainServiceProvider extends ServiceProvider
     /** The configured driver for a chatvia.ai step, with `auto` (or empty) replaced by $auto. */
     private function aiDriver(string $key, string $auto): string
     {
-        $driver = strtolower(trim((string) config("chatvia.ai.{$key}", 'auto')));
+        $driver = Str::lower(Str::trim((string) config("chatvia.ai.{$key}", 'auto')));
 
         return $driver === '' || $driver === 'auto' ? $auto : $driver;
     }

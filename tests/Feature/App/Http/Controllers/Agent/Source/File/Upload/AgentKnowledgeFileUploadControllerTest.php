@@ -7,6 +7,7 @@ use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Document\EpubFile;
 use Tests\Support\Knowledge\Document\OldOffice\PowerPointBinaryFile;
 use Tests\Support\Knowledge\Document\OldOffice\WordBinaryFile;
@@ -106,6 +107,6 @@ it('refuses a recording the speech service does not take as it is, on a server w
         ->assertStatus(422)
         ->assertJsonPath('errors.file.0', $message);
 })->with([
-    'too large' => ['call.mp3', "ID3\x03\x00\x00\x00\x00\x00\x00".str_repeat("\xFF\xFB\x90\x00", 64), 'This recording is too large to turn into text on this server. Upload a shorter recording.'],
+    'too large' => ['call.mp3', "ID3\x03\x00\x00\x00\x00\x00\x00".Str::repeat("\xFF\xFB\x90\x00", 64), 'This recording is too large to turn into text on this server. Upload a shorter recording.'],
     'another format' => ['call.wav', 'RIFF'.pack('V', 36).'WAVEfmt '.pack('V', 16).pack('vvVVvv', 1, 1, 16000, 32000, 2, 16).'data'.pack('V', 0), 'This server can\'t turn .wav files into text. Upload an MP3 file instead.'],
 ]);

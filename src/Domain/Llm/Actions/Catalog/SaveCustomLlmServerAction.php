@@ -7,6 +7,7 @@ namespace Domain\Llm\Actions\Catalog;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
+use Illuminate\Support\Str;
 
 /**
  * Adds a server of your own (Settings → AI providers), or changes one: its
@@ -21,8 +22,8 @@ final class SaveCustomLlmServerAction
         $server ??= new LlmProvider(['kind' => LlmProviderKind::Custom]);
 
         $server->fill([
-            'name' => trim($data->name),
-            'base_url' => rtrim(trim($data->baseUrl), '/'),
+            'name' => Str::trim($data->name),
+            'base_url' => Str::rtrim(Str::trim($data->baseUrl), '/'),
             'headers' => $data->headers !== [] ? $data->headers : null,
             'is_enabled' => true,
         ]);

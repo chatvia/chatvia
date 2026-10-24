@@ -9,6 +9,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
+use Illuminate\Support\Str;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use League\HTMLToMarkdown\HtmlConverter;
 use RuntimeException;
@@ -53,7 +54,7 @@ final class EpubReader
                 }
             }
 
-            return trim(MarkdownText::join([...$chapters, [MarkdownText::BLOCK, $this->notes->toMarkdown()]]));
+            return Str::trim(MarkdownText::join([...$chapters, [MarkdownText::BLOCK, $this->notes->toMarkdown()]]));
         } finally {
             $package->close();
         }
@@ -90,7 +91,7 @@ final class EpubReader
                 continue;
             }
 
-            if (in_array('nav', explode(' ', $item->getAttribute('properties')), true)) {
+            if (Str::of($item->getAttribute('properties'))->explode(' ')->containsStrict('nav')) {
                 continue;
             }
 
@@ -127,9 +128,11 @@ final class EpubReader
             $inner .= $dom->saveHTML($child);
         }
 
-        $markdown = (string) preg_replace("/\n{3,}/", "\n\n", $converter->convert($inner));
-
-        return trim((string) preg_replace('/'.self::NOTE_MARK.'(\d+)'.self::NOTE_MARK.'/', '[^$1]', $markdown));
+        return Str::of($converter->convert($inner))
+            ->replaceMatches("/\n{3,}/", "\n\n")
+            ->replaceMatches('/'.self::NOTE_MARK.'(\d+)'.self::NOTE_MARK.'/', '[^$1]')
+            ->trim()
+            ->toString();
     }
 
     /**
@@ -139,7 +142,7 @@ final class EpubReader
      */
     private function parse(string $html): ?DOMDocument
     {
-        $xml = (string) preg_replace_callback('/&([a-zA-Z][a-zA-Z0-9]*);/', static function (array $match): string {
+        $xml = Str::replaceMatches('/&([a-zA-Z][a-zA-Z0-9]*);/', static function (array $match): string {
             if (in_array($match[1], ['amp', 'lt', 'gt', 'quot', 'apos'], true)) {
                 return $match[0];
             }
@@ -147,7 +150,7 @@ final class EpubReader
             $character = html_entity_decode($match[0], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
             return $character === $match[0] ? '' : $character;
-        }, $html);
+        }, $html) ?? '';
 
         $dom = ZipPackage::parseXml($xml);
 
@@ -190,7 +193,7 @@ final class EpubReader
         }
 
         foreach ($this->all($xpath, $body, ['a']) as $link) {
-            if (preg_match('#^(https?|mailto):#i', $link->getAttribute('href')) !== 1) {
+            if (! Str::isMatch('#^(https?|mailto):#i', $link->getAttribute('href'))) {
                 $this->unwrap($link);
             }
         }
@@ -207,23 +210,23 @@ final class EpubReader
         $href = $link->getAttribute('href');
         $typed = $this->hasType($link, ['noteref']) || $link->getAttribute('role') === 'doc-noteref';
 
-        if (! str_starts_with($href, '#') || ! $link->parentNode instanceof DOMNode) {
+        if (! Str::startsWith($href, '#') || ! $link->parentNode instanceof DOMNode) {
             return;
         }
 
-        $target = $xpath->query('.//*[@id="'.str_replace('"', '', substr($href, 1)).'"]', $body)?->item(0);
+        $target = $xpath->query('.//*[@id="'.Str::replace('"', '', Str::chopStart($href, '#')).'"]', $body)?->item(0);
 
         if (! $target instanceof DOMElement || (! $typed && ! $this->isNote($target))) {
             return;
         }
 
         // The converter would escape "[^1]", so the mark goes in as plain letters.
-        $number = trim($this->notes->add($this->noteText($target)), '[^]');
+        $number = Str::trim($this->notes->add($this->noteText($target)), '[^]');
         $mark = $link->ownerDocument?->createTextNode(self::NOTE_MARK.$number.self::NOTE_MARK);
         $target->parentNode?->removeChild($target);
 
         // A <sup> around the link goes with it.
-        $outer = $link->parentNode instanceof DOMElement && strtolower($link->parentNode->localName) === 'sup' && trim($link->parentNode->textContent) === trim($link->textContent)
+        $outer = $link->parentNode instanceof DOMElement && Str::lower($link->parentNode->localName) === 'sup' && Str::trim($link->parentNode->textContent) === Str::trim($link->textContent)
             ? $link->parentNode
             : $link;
 
@@ -239,13 +242,16 @@ final class EpubReader
 
         if ($copy instanceof DOMElement) {
             foreach (iterator_to_array($copy->getElementsByTagName('a')) as $link) {
-                if (str_starts_with($link->getAttribute('href'), '#') || $link->getAttribute('role') === 'doc-backlink') {
+                if (Str::startsWith($link->getAttribute('href'), '#') || $link->getAttribute('role') === 'doc-backlink') {
                     $link->parentNode?->removeChild($link);
                 }
             }
         }
 
-        return trim((string) preg_replace(['/\s+/u', '/^[\s\x{21A9}\x{FE0E}\x{FE0F}]+|[\s\x{21A9}\x{FE0E}\x{FE0F}]+$/u'], [' ', ''], $copy->textContent));
+        return Str::of($copy->textContent)
+            ->replaceMatches(['/\s+/u', '/^[\s\x{21A9}\x{FE0E}\x{FE0F}]+|[\s\x{21A9}\x{FE0E}\x{FE0F}]+$/u'], [' ', ''])
+            ->trim()
+            ->toString();
     }
 
     private function isNote(DOMElement $element): bool
@@ -267,7 +273,7 @@ final class EpubReader
     {
         $type = $element->getAttributeNS(self::OPS, 'type') ?: $element->getAttribute('epub:type');
 
-        return array_intersect(preg_split('/\s+/', strtolower($type)) ?: [], $types) !== [];
+        return Str::of($type)->lower()->split('/\s+/')->intersect($types)->isNotEmpty();
     }
 
     /** Replaces an element with its children. */

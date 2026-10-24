@@ -13,6 +13,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -287,6 +288,6 @@ class StreamRequestDataFactory
     {
         $header = $request->header('accept-language');
 
-        return $header ? substr($header, 0, 5) : null;
+        return $header ? Str::substr($header, 0, 5) : null;
     }
 }

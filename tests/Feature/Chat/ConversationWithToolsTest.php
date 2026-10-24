@@ -124,7 +124,7 @@ it('runs an auto-approved webhook tool mid-stream and persists the assistant rep
     expect($done['data']['reason'])->toBe('complete');
 
     // The webhook actually received the model's arguments.
-    Http::assertSent(fn (ClientRequest $request): bool => str_starts_with($request->url(), 'https://orders.example.test/status')
+    Http::assertSent(fn (ClientRequest $request): bool => Str::startsWith($request->url(), 'https://orders.example.test/status')
         && $request['order_id'] === '1234');
 
     // Persisted state: the conversation was minted for the hosted-chat surface

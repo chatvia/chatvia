@@ -19,7 +19,7 @@ class ExactMatchScorer implements ScorerInterface
     {
         $expected = Str::trim($case->expected_output ?? '');
         $actual = $result->answer;
-        $got = trim($actual);
+        $got = Str::trim($actual);
 
         return $got === $expected
             ? ScoreResultData::pass(1.0, 'Output exactly matches the expected answer.')

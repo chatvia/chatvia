@@ -401,7 +401,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         $draft = new LlmProvider([
             'kind' => LlmProviderKind::Custom,
             'name' => (string) $data['name'],
-            'base_url' => rtrim((string) $data['base_url'], '/'),
+            'base_url' => Str::rtrim((string) $data['base_url'], '/'),
             'api_key' => $key,
             'headers' => array_filter((array) ($data['headers'] ?? []), filled(...)) ?: null,
         ]);

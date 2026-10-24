@@ -9,6 +9,7 @@ use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * ConversationAnalyzer makes one LLM call and parses a JSON object into a
@@ -91,6 +92,6 @@ it('shows the model the pending labels of recent conversations only', function (
 
     app(ConversationAnalyzer::class)->analyze('User: hello', $agent);
 
-    Http::assertSent(fn (Request $request): bool => str_contains($request->body(), 'Recent Theme')
-        && ! str_contains($request->body(), 'Old Theme'));
+    Http::assertSent(fn (Request $request): bool => Str::contains($request->body(), 'Recent Theme')
+        && ! Str::contains($request->body(), 'Old Theme'));
 });

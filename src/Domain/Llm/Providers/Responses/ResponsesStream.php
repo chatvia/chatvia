@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Providers\Responses;
 
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Illuminate\Support\Str;
 use JsonException;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
@@ -87,9 +88,9 @@ final class ResponsesStream implements StreamInterface
     /** One upstream line as Chat Completions SSE (often nothing). */
     private function translate(string $line): string
     {
-        $line = rtrim($line, "\r");
+        $line = Str::rtrim($line, "\r");
 
-        if (! str_starts_with($line, self::DATA_PREFIX)) {
+        if (! Str::startsWith($line, self::DATA_PREFIX)) {
             return '';
         }
 

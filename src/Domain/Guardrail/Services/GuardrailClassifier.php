@@ -65,7 +65,7 @@ class GuardrailClassifier
             $reply = $this->completion->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::Guardrails),
                 messages: [
-                    ChatMessageData::system(trim(prompt('guardrails/classifier-system'))),
+                    ChatMessageData::system(Str::trim(prompt('guardrails/classifier-system'))),
                     ChatMessageData::user($this->userPrompt($text, $options)),
                 ],
                 tag: AiCallTag::Guardrails,
@@ -122,7 +122,7 @@ class GuardrailClassifier
             array_keys($options->blockedTopics),
         ));
 
-        return rtrim(prompt('guardrails/classifier-user', [
+        return Str::rtrim(prompt('guardrails/classifier-user', [
             'checkTopic' => $options->checkTopic,
             'allowedScope' => $scope !== '' ? $scope : '(no explicit scope — judge off_topic only by the blocked list)',
             'blockedTopics' => $blocked !== '' ? $blocked : '(none)',
@@ -156,7 +156,7 @@ class GuardrailClassifier
     /** The text without the tags that wrap it in the prompt. */
     private function untagged(string $text): string
     {
-        return (string) preg_replace('#<\s*/?\s*(?:text|conversation)\b[^>]*>#iu', '', $text);
+        return Str::replaceMatches('#<\s*/?\s*(?:text|conversation)\b[^>]*>#iu', '', $text) ?? '';
     }
 
     /** The topic number the model gave, or 0 when it names none of the topics. */
@@ -172,7 +172,7 @@ class GuardrailClassifier
     {
         $code = filled($value) ? Str::lower(Str::trim($value)) : '';
 
-        return preg_match('/^[a-z]{2}$/', $code) === 1 ? $code : null;
+        return Str::isMatch('/^[a-z]{2}$/', $code) ? $code : null;
     }
 
     /**

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Services\Detectors;
 
+use Illuminate\Support\Str;
+
 /**
  * A cheap rules pass for prompt injection hidden in text the agent reads but
  * the visitor did not write (retrieved knowledge chunks, tool and MCP
@@ -30,7 +32,7 @@ final class InjectionPatternDetector
     public function firstMatch(string $text): ?string
     {
         foreach (self::PATTERNS as $name => $pattern) {
-            if (preg_match($pattern, $text) === 1) {
+            if (Str::isMatch($pattern, $text)) {
                 return $name;
             }
         }

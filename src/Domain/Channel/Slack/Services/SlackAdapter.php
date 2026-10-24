@@ -7,6 +7,7 @@ use Domain\Channel\Contracts\StreamsReplies;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Conversation\Enums\ConversationSource;
+use Illuminate\Support\Str;
 
 /**
  * The Slack side of a channel turn: one Slack app talking in one channel or
@@ -31,10 +32,10 @@ final readonly class SlackAdapter implements StreamsReplies
     public function withoutBotMention(string $text): string
     {
         if ($this->app->bot_user_id !== null) {
-            $text = str_replace("<@{$this->app->bot_user_id}>", '', $text);
+            $text = Str::replace("<@{$this->app->bot_user_id}>", '', $text);
         }
 
-        return trim($text);
+        return Str::trim($text);
     }
 
     public function agent(): Agent

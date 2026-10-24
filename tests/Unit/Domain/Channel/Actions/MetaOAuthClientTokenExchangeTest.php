@@ -6,6 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * The token exchanges carry the Meta app secret. It must travel in a POST
@@ -36,8 +37,8 @@ it('sends the app secret in the POST body for both token exchanges', function ()
 
     Http::assertSentCount(2);
     Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
-        && ! str_contains($request->url(), 'META-APP-SECRET')
-        && ! str_contains($request->url(), '?')
+        && ! Str::contains($request->url(), 'META-APP-SECRET')
+        && ! Str::contains($request->url(), '?')
         && ($request->data()['client_secret'] ?? null) === 'META-APP-SECRET');
 });
 
@@ -47,7 +48,7 @@ it('sends the Embedded Signup exchange as a POST without secrets in the URL', fu
     expect((new MetaOAuthClient)->exchangeEmbeddedSignupCode('ES-CODE'))->toBe('BUSINESS-TOKEN');
 
     Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
-        && ! str_contains($request->url(), 'ES-CODE')
+        && ! Str::contains($request->url(), 'ES-CODE')
         && ($request->data()['code'] ?? null) === 'ES-CODE');
 });
 
@@ -63,7 +64,7 @@ it('never logs the app secret or token when a Graph call fails in transport', fu
     Log::shouldHaveReceived('warning')->withArgs(function (string $message, array $context = []): bool {
         $logged = $message.json_encode($context);
 
-        return ! str_contains($logged, 'META-APP-SECRET') && ! str_contains($logged, 'USER-TOKEN-VALUE');
+        return ! Str::contains($logged, 'META-APP-SECRET') && ! Str::contains($logged, 'USER-TOKEN-VALUE');
     });
     Log::shouldNotHaveReceived('info');
 });

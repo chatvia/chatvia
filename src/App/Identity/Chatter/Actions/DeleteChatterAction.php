@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -135,7 +136,7 @@ class DeleteChatterAction
 
         AgentChatterInvitation::query()
             ->whereIn('agent_id', Agent::query()->where('workspace_id', $chatter->workspace_id)->select('id'))
-            ->whereRaw('lower(email) = ?', [strtolower($chatter->email)])
+            ->whereRaw('lower(email) = ?', [Str::lower($chatter->email)])
             ->delete();
     }
 

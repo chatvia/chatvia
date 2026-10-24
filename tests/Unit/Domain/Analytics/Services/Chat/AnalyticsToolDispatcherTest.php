@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Services\Chat\AnalyticsToolDispatcher;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * The owner's "Ask your data" chat hands tool results to its model. When a
@@ -19,7 +20,7 @@ it('gives the model a generic message and logs the failure without the workspace
     $result = app(AnalyticsToolDispatcher::class)->dispatch(
         $workspace,
         'get-account-overview-tool',
-        rtrim((string) config('app.url'), '/').'/mcp/account-analytics',
+        Str::rtrim((string) config('app.url'), '/').'/mcp/account-analytics',
         [],
     );
 
@@ -33,7 +34,7 @@ it('gives the model a generic message and logs the failure without the workspace
         return $message === 'Analytics tool call failed'
             && $context['tool'] === 'get-account-overview-tool'
             && ! $context['exception'] instanceof Throwable && filled($context['exception'])
-            && ! str_contains((string) $logged, $workspace->external_id)
-            && ! str_contains((string) $logged, 'token=secret');
+            && ! Str::contains((string) $logged, $workspace->external_id)
+            && ! Str::contains((string) $logged, 'token=secret');
     })->once();
 });

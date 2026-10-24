@@ -5,6 +5,7 @@ namespace Domain\Conversation\Actions\Conversations;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -25,7 +26,7 @@ class RenameConversationAction
             ?? throw new InvalidArgumentException('A conversation id is required to rename a conversation.');
 
         // Generated titles often come back wrapped in quotes.
-        $cleanTitle = str_replace('"', '', $title);
+        $cleanTitle = Str::replace('"', '', $title);
 
         $this->memory->withScope($scope)->renameConversation($conversationId, $cleanTitle);
 

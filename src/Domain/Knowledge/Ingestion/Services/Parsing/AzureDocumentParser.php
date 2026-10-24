@@ -14,6 +14,7 @@ use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
@@ -52,7 +53,7 @@ class AzureDocumentParser implements DocumentParser
             throw new InvalidArgumentException('File does not exist');
         }
 
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $extension = Str::lower(pathinfo($filePath, PATHINFO_EXTENSION));
 
         if (SourceFileTypes::isImage($filePath)) {
             return $this->analyzeImage($filePath, $extension);

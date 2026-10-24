@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Embedding;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Embeddings from OpenAI's API (`services.openai`): the text-embedding-3
@@ -58,7 +59,7 @@ class OpenAi extends AbstractEmbeddingsProvider
     /** text-embedding-3-large returns up to 3072 dimensions, text-embedding-3-small up to 1536. */
     protected function supportsDimensions(int $dimensions): bool
     {
-        return $dimensions >= 1 && $dimensions <= (str_contains($this->getModel(), 'large') ? 3072 : 1536);
+        return $dimensions >= 1 && $dimensions <= (Str::contains($this->getModel(), 'large') ? 3072 : 1536);
     }
 
     protected function getApiKey(): string

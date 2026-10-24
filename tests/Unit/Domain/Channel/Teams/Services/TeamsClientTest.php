@@ -82,7 +82,7 @@ it('reuses the token until five minutes before it expires', function (): void {
         'smba.trafficmanager.net/*' => Http::response(['id' => 'act-42']),
     ]);
     $client = new TeamsClient;
-    $tokenRequests = fn (): int => count(Http::recorded(fn (Request $request): bool => str_contains($request->url(), 'login.microsoftonline.com')));
+    $tokenRequests = fn (): int => count(Http::recorded(fn (Request $request): bool => Str::contains($request->url(), 'login.microsoftonline.com')));
 
     $client->postMessage($this->bot, $this->serviceUrl, 'a:1conv', 'one');
     $this->travel(3299)->seconds();

@@ -13,6 +13,7 @@ use Domain\Llm\Contracts\Transcriber;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 use Tests\Support\Llm\FakeTranscriber;
 
@@ -72,8 +73,8 @@ it('chunks the stored transcript, not the audio file, on a retry', function (): 
         $job = $batch->jobs->first();
 
         return $job instanceof MediaChunkIngestionJob
-            && str_contains($job->group->pages[0]->content, 'stored transcript')
-            && ! str_contains($job->group->pages[0]->content, 'ID3');
+            && Str::contains($job->group->pages[0]->content, 'stored transcript')
+            && ! Str::contains($job->group->pages[0]->content, 'ID3');
     });
 });
 

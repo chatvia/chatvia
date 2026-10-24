@@ -2,6 +2,7 @@
 
 namespace Domain\Analytics\Data;
 
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -34,7 +35,7 @@ class IpLocationData extends Data
     {
         return new self(
             ip: $response['ip'] ?? '',
-            countryCode: isset($response['country_code']) ? strtolower($response['country_code']) : null,
+            countryCode: isset($response['country_code']) ? Str::lower($response['country_code']) : null,
             countryName: $response['country_name'] ?? null,
             regionName: $response['region_name'] ?? null,
             cityName: $response['city_name'] ?? null,

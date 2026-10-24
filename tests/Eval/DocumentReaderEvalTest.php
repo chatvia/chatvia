@@ -71,7 +71,7 @@ function dreFiles(string $folder): array
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder, FilesystemIterator::SKIP_DOTS)) as $file) {
         if ($file instanceof SplFileInfo && $file->isFile() && app(MarkdownReaders::class)->supports($file->getExtension())) {
-            $files[] = substr($file->getPathname(), strlen(rtrim($folder, '/')) + 1);
+            $files[] = Str::chopStart($file->getPathname(), Str::rtrim($folder, '/').'/');
         }
     }
 
@@ -112,7 +112,7 @@ function dreProgram(string $path, string $extension): string
 
     $markdown = app(Pandoc::class)->toGithubMarkdown($path, $extension);
 
-    return (string) preg_replace(['/!\[[^\]]*\]\([^)]*\)/', '/<img\b[^>]*>/i'], '', $markdown);
+    return Str::replaceMatches(['/!\[[^\]]*\]\([^)]*\)/', '/<img\b[^>]*>/i'], '', $markdown) ?? '';
 }
 
 it('compares the built-in readers with the programs on the sample documents', function (): void {
@@ -141,14 +141,14 @@ it('compares the built-in readers with the programs on the sample documents', fu
     $rows = [];
 
     foreach (dreFiles($folder) as $file) {
-        $path = rtrim($folder, '/').'/'.$file;
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $path = Str::rtrim($folder, '/').'/'.$file;
+        $extension = Str::lower(pathinfo($file, PATHINFO_EXTENSION));
 
         $program = dreRead(fn (): string => dreProgram($path, $extension));
         $php = dreRead(fn (): string => app(MarkdownReaders::class)->toMarkdown($path, $extension));
 
         if ($output !== '') {
-            $base = $output.'/'.str_replace('/', '__', $file);
+            $base = $output.'/'.Str::replace('/', '__', $file);
             File::put($base.'.program.md', $program['markdown'] ?? 'ERROR: '.$program['error']);
             File::put($base.'.php.md', $php['markdown'] ?? 'ERROR: '.$php['error']);
         }
@@ -220,7 +220,7 @@ function dreSummary(array $rows): string
  */
 function dreReport(array $rows, string $folder): string
 {
-    $out = ['# Document readers: programs vs PHP', '', 'Samples: `'.$folder.'` · '.count($rows).' files · '.Str::before(trim(Process::run([(string) config('services.bin.pandoc'), '--version'])->output()), "\n").' · catdoc and catppt for DOC and PPT', ''];
+    $out = ['# Document readers: programs vs PHP', '', 'Samples: `'.$folder.'` · '.count($rows).' files · '.Str::before(Str::trim(Process::run([(string) config('services.bin.pandoc'), '--version'])->output()), "\n").' · catdoc and catppt for DOC and PPT', ''];
     $out[] = '## Summary per format';
     $out[] = '';
     $out[] = dreSummary($rows);
@@ -236,7 +236,7 @@ function dreReport(array $rows, string $folder): string
         $metrics = $row['metrics'];
 
         if ($metrics === null) {
-            $out[] = sprintf('| %s | error: %s | | | | | | | | | |', $row['file'], str_replace('|', '/', (string) ($row['program']['error'] ?? $row['php']['error'])));
+            $out[] = sprintf('| %s | error: %s | | | | | | | | | |', $row['file'], Str::replace('|', '/', (string) ($row['program']['error'] ?? $row['php']['error'])));
 
             continue;
         }
@@ -304,10 +304,10 @@ function dreChunks(string $markdown, string $format): array
     $pages = [];
     $current = '';
 
-    foreach (preg_split("/\n{2,}/", $markdown) ?: [] as $paragraph) {
+    foreach (Str::of($markdown)->split("/\n{2,}/") as $paragraph) {
         $current = $current === '' ? $paragraph : $current."\n\n".$paragraph;
 
-        if (mb_strlen($current) >= OfficeText::CHARS_PER_PAGE) {
+        if (Str::length($current) >= OfficeText::CHARS_PER_PAGE) {
             $pages[] = $current;
             $current = '';
         }
@@ -357,9 +357,9 @@ function dreRetrieval(string $folder, array $questions): string
     $misses = [];
 
     foreach (dreFiles($folder) as $file) {
-        $cases = $questions[explode('.', basename($file))[0]] ?? [];
-        $path = rtrim($folder, '/').'/'.$file;
-        $format = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $cases = $questions[Str::before(basename($file), '.')] ?? [];
+        $path = Str::rtrim($folder, '/').'/'.$file;
+        $format = Str::lower(pathinfo($file, PATHINFO_EXTENSION));
 
         if ($cases === []) {
             continue;
@@ -376,8 +376,8 @@ function dreRetrieval(string $folder, array $questions): string
             $agent = Agent::factory()->create();
             $text = (string) $reading['markdown'];
             $source = SourceText::factory()->ingested()->attachedTo($agent)->create([
-                'excerpt' => mb_substr($text, 0, 200),
-                'length' => mb_strlen($text),
+                'excerpt' => Str::substr($text, 0, 200),
+                'length' => Str::length($text),
                 'checksum' => md5($reader.$file.$text),
             ]);
 
@@ -426,7 +426,7 @@ function dreRetrieval(string $folder, array $questions): string
  */
 function dreRank(array $chunks, string $expect): ?int
 {
-    $plain = static fn (string $text): string => (string) preg_replace('/\s+/u', ' ', str_replace('\\', '', $text));
+    $plain = static fn (string $text): string => Str::of($text)->replace('\\', '')->replaceMatches('/\s+/u', ' ')->toString();
 
     foreach ($chunks as $index => $chunk) {
         if (mb_stripos($plain($chunk->chunk), $plain($expect)) !== false) {

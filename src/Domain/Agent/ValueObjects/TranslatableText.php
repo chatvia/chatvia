@@ -101,7 +101,7 @@ final readonly class TranslatableText
             return null;
         }
 
-        return substr($locale, 0, 2);
+        return Str::substr($locale, 0, 2);
     }
 
     /**

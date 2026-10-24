@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Analytics\Services;
 
 use Domain\Analytics\Data\IpLocationData;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
@@ -29,7 +32,7 @@ class IP2Country
             return null;
         }
 
-        $url = rtrim((string) config('services.ip2location.endpoint'), '/').'/';
+        $url = Str::rtrim((string) config('services.ip2location.endpoint'), '/').'/';
 
         try {
             $result = Http::withToken($key)
@@ -68,7 +71,7 @@ class IP2Country
      */
     private function withoutKey(Throwable $e, string $key): RuntimeException
     {
-        $message = $key === '' ? $e->getMessage() : str_replace($key, '[redacted]', $e->getMessage());
+        $message = $key === '' ? $e->getMessage() : Str::replace($key, '[redacted]', $e->getMessage());
 
         return new RuntimeException('IP2Location lookup failed ('.$e::class.'): '.$message);
     }

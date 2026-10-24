@@ -5,6 +5,7 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -33,8 +34,8 @@ class EmbedAgentFunctionAction
         try {
             // Include the display name alongside the internal name + description
             // so retrieval matches on the user-facing label too.
-            $name = trim(($function->display_name ?? '')."\n".$function->internal_name);
-            $text = trim($name."\n\n".$function->description);
+            $name = Str::trim(($function->display_name ?? '')."\n".$function->internal_name);
+            $text = Str::trim($name."\n\n".$function->description);
             $function->forceFill([
                 'embedding' => $this->embeddings->embed($text),
                 'search_text' => $text,

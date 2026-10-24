@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Knowledge\Document;
 
+use Illuminate\Support\Str;
 use ZipArchive;
 
 /**
@@ -51,7 +52,7 @@ final class EpubFile
         $manifest = '';
 
         foreach (array_keys($this->chapters) as $index => $href) {
-            $manifest .= '<item id="c'.$index.'" href="'.str_replace(' ', '%20', $href).'" media-type="application/xhtml+xml"'.($href === $this->nav ? ' properties="nav"' : '').'/>';
+            $manifest .= '<item id="c'.$index.'" href="'.Str::replace(' ', '%20', $href).'" media-type="application/xhtml+xml"'.($href === $this->nav ? ' properties="nav"' : '').'/>';
         }
 
         $spine = $this->spine ?? array_map(static fn (int $index): string => 'c'.$index, array_keys(array_keys($this->chapters)));

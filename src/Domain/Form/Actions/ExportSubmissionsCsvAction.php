@@ -3,6 +3,7 @@
 namespace Domain\Form\Actions;
 
 use Domain\Form\Models\FormDefinition;
+use Illuminate\Support\Str;
 
 /**
  * Build a CSV of a form's submissions — one column per defined field plus a
@@ -53,6 +54,6 @@ class ExportSubmissionsCsvAction
 
     private function csvSafe(string $value): string
     {
-        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
+        return Str::isMatch('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
     }
 }

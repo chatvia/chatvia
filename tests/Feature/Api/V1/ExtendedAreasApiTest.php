@@ -12,6 +12,7 @@ use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Pagination\Cursor;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Uri;
 
 /*
 |--------------------------------------------------------------------------
@@ -405,7 +406,7 @@ describe('audit log', function (): void {
             ->assertJsonPath('data.0.trace_id', $second->trace_id);
 
         $this->withToken($this->token)
-            ->getJson("/api/v1/agents/{$this->agent->external_id}/audit?".http_build_query(['per_page' => 1, 'cursor' => $page->json('next_cursor')]))
+            ->getJson(Uri::of("/api/v1/agents/{$this->agent->external_id}/audit")->withQuery(['per_page' => 1, 'cursor' => $page->json('next_cursor')])->value())
             ->assertOk()
             ->assertJsonPath('data.0.trace_id', $first->trace_id)
             ->assertJsonPath('next_cursor', null);
@@ -422,7 +423,7 @@ describe('audit log', function (): void {
 
         foreach (['not-a-cursor', new Cursor(['other' => 1])->encode(), new Cursor([$column => 'abc'])->encode()] as $cursor) {
             $this->withToken($this->token)
-                ->getJson($uri.'?'.http_build_query(['per_page' => 1, 'cursor' => $cursor]))
+                ->getJson(Uri::of($uri)->withQuery(['per_page' => 1, 'cursor' => $cursor])->value())
                 ->assertOk()
                 ->assertJsonPath('data.0.trace_id', $newest->trace_id);
         }

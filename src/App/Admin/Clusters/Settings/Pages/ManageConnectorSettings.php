@@ -80,13 +80,13 @@ class ManageConnectorSettings extends AdminSettingsPage
     private function connector(string $slug): SettingsCard
     {
         $label = (string) config("connectors.{$slug}.name");
-        $property = Str::snake(str_replace('-', '_', $slug));
+        $property = Str::snake(Str::replace('-', '_', $slug));
 
         return SettingsCard::make(
             $property,
             $label,
             "Lets workspaces connect {$label} to their agents.",
-            asset(ltrim((string) config("connectors.{$slug}.logo_url"), '/')),
+            asset(Str::ltrim((string) config("connectors.{$slug}.logo_url"), '/')),
             fn (): array => [
                 $this->text("{$property}_client_id", 'Client ID', required: true),
                 $this->secret("{$property}_client_secret", 'Client secret'),

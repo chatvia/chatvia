@@ -8,6 +8,7 @@ use App\Admin\Settings\Data\ConnectionCheckData;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Support\Executable;
 
 /**
@@ -57,7 +58,7 @@ final readonly class PdfMakerCheck
         }
 
         try {
-            $response = $request->post(rtrim($url, '/').'/forms/chromium/convert/html');
+            $response = $request->post(Str::rtrim($url, '/').'/forms/chromium/convert/html');
         } catch (ConnectionException) {
             return new ConnectionCheckData(false, message: "Gotenberg could not be reached at {$url}.");
         }
@@ -75,7 +76,7 @@ final readonly class PdfMakerCheck
             return new ConnectionCheckData(false, message: "{$name} could not make a PDF (error {$response->status()})".(filled($detail) ? ": {$detail}" : '.'));
         }
 
-        if (! str_starts_with($response->body(), '%PDF')) {
+        if (! Str::startsWith($response->body(), '%PDF')) {
             return new ConnectionCheckData(false, message: "{$name} answered, but not with a PDF. Check the address.");
         }
 

@@ -11,6 +11,7 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 /**
  * Creates an admin account from the command line (see
@@ -72,7 +73,7 @@ class CreateAdminUser extends Command
         if ($this->option('stdin')) {
             $line = fgets(STDIN);
 
-            return $line === false ? '' : rtrim($line, "\r\n");
+            return $line === false ? '' : Str::rtrim($line, "\r\n");
         }
 
         return (string) ($this->argument('password') ?? $this->secret('Enter password for the admin user'));

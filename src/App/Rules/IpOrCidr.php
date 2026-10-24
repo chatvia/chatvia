@@ -4,6 +4,7 @@ namespace App\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Str;
 
 /**
  * Accepts a single IPv4/IPv6 address or a CIDR range (`203.0.113.0/24`,
@@ -24,7 +25,7 @@ class IpOrCidr implements ValidationRule
             return true;
         }
 
-        if (! str_contains($value, '/')) {
+        if (! Str::contains($value, '/')) {
             return false;
         }
 

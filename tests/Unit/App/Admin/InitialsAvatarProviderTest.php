@@ -1,6 +1,7 @@
 <?php
 
 use App\Admin\InitialsAvatarProvider;
+use Illuminate\Support\Str;
 
 /** The SVG inside the avatar's data URL. */
 function avatarSvg(string $name): string
@@ -9,7 +10,7 @@ function avatarSvg(string $name): string
 
     expect($url)->toStartWith('data:image/svg+xml;base64,');
 
-    return base64_decode(substr($url, strlen('data:image/svg+xml;base64,')));
+    return base64_decode(Str::after($url, 'data:image/svg+xml;base64,'));
 }
 
 it('draws the first and last initials', function (string $name, string $initials): void {

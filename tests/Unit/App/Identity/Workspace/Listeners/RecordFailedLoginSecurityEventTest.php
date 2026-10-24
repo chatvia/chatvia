@@ -6,6 +6,7 @@ use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 /**
  * A failed sign-in is audited for the workspace of the account it was aimed
@@ -30,7 +31,7 @@ it('records a failed attempt for the account with the attempted email', function
         && $event->outcome === 'failure'
         && $event->ip === '203.0.113.5'
         && json_decode($event->metadata, true) === ['email' => 'dana@acme.test']
-        && ! str_contains($event->metadata, 'guess-1'));
+        && ! Str::contains($event->metadata, 'guess-1'));
 });
 
 it('records a failed attempt for the account the guard resolved', function (): void {

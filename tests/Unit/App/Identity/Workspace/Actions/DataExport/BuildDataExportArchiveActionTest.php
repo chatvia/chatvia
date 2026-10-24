@@ -25,7 +25,7 @@ it('packages user data into a zip and marks the export ready', function (): void
     $export = DataExport::create([
         'user_id' => $user->id,
         'status' => DataExportStatus::Pending,
-        'download_token' => str_repeat('z', 64),
+        'download_token' => Str::repeat('z', 64),
     ]);
 
     app(BuildDataExportArchiveAction::class)->execute($export);
@@ -131,7 +131,7 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
     $export = DataExport::create([
         'user_id' => $owner->id,
         'status' => DataExportStatus::Pending,
-        'download_token' => str_repeat('y', 64),
+        'download_token' => Str::repeat('y', 64),
     ]);
 
     $maxBindings = 0;

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 /**
  * Guardrail enforcing "every Action lands with a test."
  *
@@ -32,7 +34,7 @@ function allActionClassNames(): array
     $base = __DIR__.'/../../src';
     $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base));
     foreach ($it as $file) {
-        if ($file->isFile() && str_ends_with((string) $file, 'Action.php')) {
+        if ($file->isFile() && Str::endsWith((string) $file, 'Action.php')) {
             $files[] = $file->getBasename('.php');
         }
     }
@@ -52,7 +54,7 @@ function actionTestCode(string $source): string
         }
     }
 
-    return (string) preg_replace('/^use [^;]+;$/m', '', $code);
+    return Str::replaceMatches('/^use [^;]+;$/m', '', $code) ?? '';
 }
 
 /** Does the code of a test file (`*Test.php`) under tests/ name this Action? */
@@ -68,17 +70,17 @@ function actionHasTest(string $actionShortName): bool
         $combined = '';
         $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__.'/..'));
         foreach ($it as $file) {
-            if (! $file->isFile() || ! str_ends_with((string) $file, 'Test.php')) {
+            if (! $file->isFile() || ! Str::endsWith((string) $file, 'Test.php')) {
                 continue;
             }
-            if (realpath($file->getPathname()) === $self || str_contains($file->getPathname(), DIRECTORY_SEPARATOR.'Eval'.DIRECTORY_SEPARATOR)) {
+            if (realpath($file->getPathname()) === $self || Str::contains($file->getPathname(), DIRECTORY_SEPARATOR.'Eval'.DIRECTORY_SEPARATOR)) {
                 continue;
             }
             $combined .= actionTestCode((string) file_get_contents($file->getPathname())).PHP_EOL;
         }
     }
 
-    return preg_match('/\b'.preg_quote($actionShortName, '/').'\b/', $combined) === 1;
+    return Str::isMatch('/\b'.preg_quote($actionShortName, '/').'\b/', $combined);
 }
 
 it('every Action either has a test or is on the explicit allowlist', function (): void {

@@ -3,6 +3,7 @@
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 // These tests pin the ContentSecurityPolicy middleware's header contract by
 // mounting it on probe routes. It is also registered globally in the `web`
@@ -72,7 +73,7 @@ describe('enforce mode', function (): void {
         ]);
 
         $imgSrc = collect(explode('; ', (string) $this->get('/_csp-chat-probe')->headers->get('Content-Security-Policy')))
-            ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
+            ->first(fn (string $directive): bool => Str::startsWith($directive, 'img-src'));
 
         expect($imgSrc)
             ->toContain('https://cdn-zone.example.net')
@@ -92,7 +93,7 @@ describe('enforce mode', function (): void {
         ]);
 
         $imgSrc = collect(explode('; ', (string) $this->get('/_csp-chat-probe')->headers->get('Content-Security-Policy')))
-            ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
+            ->first(fn (string $directive): bool => Str::startsWith($directive, 'img-src'));
 
         expect($imgSrc)->toContain('https://files.example.org');
     });

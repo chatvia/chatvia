@@ -35,7 +35,7 @@ final readonly class LicenseActivation
     public function activate(string $key): LicenseActivationData
     {
         try {
-            $response = $this->post('activate', ['key' => preg_replace('/\s+/', '', $key)]);
+            $response = $this->post('activate', ['key' => Str::replaceMatches('/\s+/', '', $key)]);
         } catch (ConnectionException) {
             return new LicenseActivationData(message: self::UNREACHABLE);
         }
@@ -100,7 +100,7 @@ final readonly class LicenseActivation
     {
         return Http::acceptJson()
             ->timeout(15)
-            ->post(rtrim((string) $this->config->get('chatvia.license.api_url'), '/').'/'.$endpoint, [
+            ->post(Str::rtrim((string) $this->config->get('chatvia.license.api_url'), '/').'/'.$endpoint, [
                 ...$payload,
                 'domain' => $this->license->host(),
             ]);

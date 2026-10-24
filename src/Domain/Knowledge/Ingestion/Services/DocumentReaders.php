@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Ingestion\Services;
 
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -34,7 +35,7 @@ final class DocumentReaders
     /** Whether a reader takes a file of this extension as it is. */
     public static function readsItself(string $driver, string $extension): bool
     {
-        return in_array(strtolower($extension), match ($driver) {
+        return in_array(Str::lower($extension), match ($driver) {
             'mistral' => self::MISTRAL_READS,
             'azure' => self::AZURE_READS,
             default => [],
@@ -44,7 +45,7 @@ final class DocumentReaders
     /** The driver in use, with "Automatic" resolved. */
     public function driver(): string
     {
-        $driver = strtolower(trim((string) config('chatvia.ai.document_parser', 'auto')));
+        $driver = Str::lower(Str::trim((string) config('chatvia.ai.document_parser', 'auto')));
 
         if ($driver === '' || $driver === 'auto') {
             return AiProvider::firstConnectedFor(AiCapability::Documents)?->value ?? 'none';

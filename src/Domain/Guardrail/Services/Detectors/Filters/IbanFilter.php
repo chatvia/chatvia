@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Str;
+
 /**
  * Masks bank account numbers in IBAN form ([IBAN_n]), with or without the
  * usual groups of four. Only a candidate that passes the ISO 13616 mod-97
@@ -32,8 +34,8 @@ final class IbanFilter extends PiiFilter
 
     protected function accepts(string $value): bool
     {
-        $iban = strtoupper(str_replace(' ', '', $value));
-        $length = strlen($iban);
+        $iban = Str::upper(Str::replace(' ', '', $value));
+        $length = Str::length($iban);
 
         if ($length < 15 || $length > 34) {
             return false;

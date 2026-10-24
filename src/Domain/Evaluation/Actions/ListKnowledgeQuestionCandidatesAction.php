@@ -8,6 +8,7 @@ use Domain\Evaluation\Enums\EvalQuestionSource;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Illuminate\Support\Str;
 
 /**
  * Candidate questions for the "From knowledge" picker: QA pairs first (they
@@ -43,7 +44,7 @@ class ListKnowledgeQuestionCandidatesAction
         $candidates = [];
 
         foreach ([...$this->qaQuestions($agent), ...$this->minedQuestions($agent)] as [$type, $id, $question, $source]) {
-            $normalized = mb_strtolower($question);
+            $normalized = Str::lower($question);
 
             if (isset($seen[$normalized])) {
                 continue;
@@ -54,7 +55,7 @@ class ListKnowledgeQuestionCandidatesAction
         }
 
         $existing = EvalCase::query()->forAgent($agent->id)->pluck('input')
-            ->mapWithKeys(fn (string $input): array => [mb_strtolower(trim($input)) => true]);
+            ->mapWithKeys(fn (string $input): array => [Str::lower(Str::trim($input)) => true]);
 
         $result = [];
 
@@ -65,7 +66,7 @@ class ListKnowledgeQuestionCandidatesAction
                 id: $id,
                 question: $question,
                 source: $source,
-                already_added: $existing->has(mb_strtolower($question)),
+                already_added: $existing->has(Str::lower($question)),
             );
         }
 
@@ -88,10 +89,10 @@ class ListKnowledgeQuestionCandidatesAction
             ->get(['id', 'title', 'questions']);
 
         foreach ($qaPairs as $qa) {
-            foreach (preg_split('/\r\n|\r|\n/', $qa->questions) ?: [] as $line) {
-                $question = trim($line);
+            foreach (Str::of($qa->questions)->split('/\r\n|\r|\n/') as $line) {
+                $question = Str::trim($line);
 
-                if ($question !== '' && mb_strlen($question) <= self::MAX_QUESTION_LENGTH) {
+                if ($question !== '' && Str::length($question) <= self::MAX_QUESTION_LENGTH) {
                     $questions[] = [EvalQuestionSource::Qa, $qa->id, $question, $qa->title];
                 }
             }
@@ -114,7 +115,7 @@ class ListKnowledgeQuestionCandidatesAction
                 EvalQuestionSource::Chunk,
                 (int) $mined['chunk_id'],
                 (string) $mined['question'],
-                self::SOURCE_LABELS[$mined['source_type']] ?? ucfirst(str_replace('_', ' ', $mined['source_type'])),
+                self::SOURCE_LABELS[$mined['source_type']] ?? Str::ucfirst(Str::replace('_', ' ', $mined['source_type'])),
             ];
         }
 

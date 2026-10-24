@@ -10,6 +10,7 @@ use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -43,7 +44,7 @@ class LocalDocumentParser implements DocumentParser
             throw DocumentParsingException::imagesNeedOcr();
         }
 
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $extension = Str::lower(pathinfo($filePath, PATHINFO_EXTENSION));
 
         if ($extension === 'pdf' || is_pdf_file($filePath)) {
             return $this->pages($this->pdfText($filePath));
@@ -71,9 +72,9 @@ class LocalDocumentParser implements DocumentParser
         ]);
 
         if (! $result->successful()) {
-            $error = strtok(trim($result->errorOutput()), "\n") ?: 'pdftotext exited with an error';
+            $error = strtok(Str::trim($result->errorOutput()), "\n") ?: 'pdftotext exited with an error';
 
-            throw DocumentParsingException::failed(mb_substr($error, 0, 200));
+            throw DocumentParsingException::failed(Str::substr($error, 0, 200));
         }
 
         return $result->output();
@@ -87,7 +88,7 @@ class LocalDocumentParser implements DocumentParser
         $pages = explode(self::PAGE_BREAK, $text);
 
         // The form feed after the last page leaves one empty entry at the end.
-        if (count($pages) > 1 && trim(end($pages)) === '') {
+        if (count($pages) > 1 && Str::trim(end($pages)) === '') {
             array_pop($pages);
         }
 
@@ -115,11 +116,13 @@ class LocalDocumentParser implements DocumentParser
 
     private function clean(string $page): string
     {
-        $text = TextCleaner::clean(str_replace(["\r\n", "\r"], "\n", $page));
+        $text = TextCleaner::clean(Str::replace(["\r\n", "\r"], "\n", $page));
 
         // Trailing spaces on each line, then at most one blank line in a row.
-        $text = (string) preg_replace('/[ \t]+$/m', '', $text);
-
-        return trim((string) preg_replace("/\n{3,}/", "\n\n", $text));
+        return Str::of($text)
+            ->replaceMatches('/[ \t]+$/m', '')
+            ->replaceMatches("/\n{3,}/", "\n\n")
+            ->trim()
+            ->toString();
     }
 }

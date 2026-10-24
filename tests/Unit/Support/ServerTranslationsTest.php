@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 /*
  * Server-side translations: the English-as-key `lang/{locale}.json` files that
  * back `__()` in mail, notifications, validation and flash messages. A string
@@ -22,8 +24,8 @@ $translationFiles = function (): array {
 
 /** The value of a PHP string literal ('…' or "…" without interpolation). */
 $unquote = fn (string $literal): string => $literal[0] === "'"
-    ? str_replace(["\\'", '\\\\'], ["'", '\\'], substr($literal, 1, -1))
-    : stripcslashes(substr($literal, 1, -1));
+    ? Str::replace(["\\'", '\\\\'], ["'", '\\'], Str::substr($literal, 1, -1))
+    : stripcslashes(Str::substr($literal, 1, -1));
 
 /**
  * The literal first argument of every `__()`, `trans()`, `trans_choice()` and
@@ -39,12 +41,12 @@ $keysInPhp = function (string $code) use ($unquote): array {
     $keys = [];
 
     foreach ($tokens as $i => $token) {
-        if (! is_array($token) || ! in_array(ltrim($token[1], '\\'), ['__', 'trans', 'trans_choice', 'get'], true)) {
+        if (! is_array($token) || ! in_array(Str::ltrim($token[1], '\\'), ['__', 'trans', 'trans_choice', 'get'], true)) {
             continue;
         }
 
         $previous = $tokens[$i - 1] ?? null;
-        $isLangGet = is_array($previous) && $previous[0] === T_DOUBLE_COLON && ltrim((string) ($tokens[$i - 2][1] ?? ''), '\\') === 'Lang';
+        $isLangGet = is_array($previous) && $previous[0] === T_DOUBLE_COLON && Str::ltrim((string) ($tokens[$i - 2][1] ?? ''), '\\') === 'Lang';
         $isMethodOrDefinition = is_array($previous) && in_array($previous[0], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION], true);
 
         if ($token[1] === 'get' ? ! $isLangGet : $isMethodOrDefinition) {
@@ -69,11 +71,9 @@ $keysInPhp = function (string $code) use ($unquote): array {
  *
  * @return list<string>
  */
-$keysInBlade = function (string $template) use ($unquote): array {
-    preg_match_all('/(?:@lang|\b__|\btrans_choice|\btrans)\(\s*(\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*")\s*[,)]/s', $template, $matches);
-
-    return array_map($unquote, $matches[1]);
-};
+$keysInBlade = (fn (string $template): array => Str::matchAll('/(?:@lang|\b__|\btrans_choice|\btrans)\(\s*(\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*")\s*[,)]/s', $template)
+    ->map($unquote)
+    ->all());
 
 it('has the same keys in every server-side locale file', function () use ($translationFiles): void {
     $files = $translationFiles();
@@ -97,17 +97,17 @@ it('translates every literal __() string in src/ and the views into every locale
             $path = (string) $file;
 
             $keys = match (true) {
-                str_ends_with($path, '.blade.php') => $keysInBlade((string) file_get_contents($path)),
-                str_ends_with($path, '.php') => $keysInPhp((string) file_get_contents($path)),
+                Str::endsWith($path, '.blade.php') => $keysInBlade((string) file_get_contents($path)),
+                Str::endsWith($path, '.php') => $keysInPhp((string) file_get_contents($path)),
                 default => [],
             };
 
             foreach ($keys as $key) {
-                if (preg_match('/^([a-z_]+)\.[\w.-]+$/', $key, $group) === 1 && in_array($group[1], $groupFiles, true)) {
+                if (in_array(Str::match('/^([a-z_]+)\.[\w.-]+$/', $key), $groupFiles, true)) {
                     continue;
                 }
 
-                $used[$key] ??= str_replace(base_path().'/', '', $path);
+                $used[$key] ??= Str::replace(base_path().'/', '', $path);
             }
         }
     }

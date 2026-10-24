@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 /**
  * The app shell must not carry one operator's identity (tracking code,
  * social handle, website) into another install, and must not load web fonts
@@ -11,13 +13,13 @@ it('adds the tracking code only when one is set, and only in production', functi
     app()->detectEnvironment(fn (): string => 'production');
 
     config(['chatvia.tracking_code' => null]);
-    expect(trim(view('partials.tracking-code')->render()))->toBe('');
+    expect(Str::trim(view('partials.tracking-code')->render()))->toBe('');
 
     config(['chatvia.tracking_code' => $snippet]);
-    expect(trim(view('partials.tracking-code')->render()))->toBe($snippet);
+    expect(Str::trim(view('partials.tracking-code')->render()))->toBe($snippet);
 
     app()->detectEnvironment(fn (): string => 'local');
-    expect(trim(view('partials.tracking-code')->render()))->toBe('');
+    expect(Str::trim(view('partials.tracking-code')->render()))->toBe('');
 });
 
 it('serves the app shell with self-hosted fonts and the product name only', function (): void {
@@ -36,8 +38,8 @@ it('serves the app shell with self-hosted fonts and the product name only', func
 it('loads no web font from a third-party CDN in any Blade view or stylesheet', function (): void {
     $offenders = collect([resource_path('views'), resource_path('css')])
         ->flatMap(fn (string $dir): array => iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS))))
-        ->filter(fn (SplFileInfo $file): bool => $file->isFile() && preg_match('/fonts\.(googleapis|gstatic)\.com/', (string) file_get_contents($file->getPathname())) === 1)
-        ->map(fn (SplFileInfo $file): string => str_replace(base_path().'/', '', $file->getPathname()))
+        ->filter(fn (SplFileInfo $file): bool => $file->isFile() && Str::isMatch('/fonts\.(googleapis|gstatic)\.com/', (string) file_get_contents($file->getPathname())))
+        ->map(fn (SplFileInfo $file): string => Str::replace(base_path().'/', '', $file->getPathname()))
         ->values()
         ->all();
 

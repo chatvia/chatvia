@@ -21,6 +21,7 @@ use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Pagination\Cursor;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,7 +127,7 @@ it('pages a list newest first and walks it with the cursor', function (string $l
         ->and($first->json('next_cursor'))->toBeString();
 
     $second = $this->withToken($this->token)
-        ->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $first->json('next_cursor')]))
+        ->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $first->json('next_cursor')])->value())
         ->assertOk();
 
     expect(array_column($second->json('data'), 'id'))->toBe(array_slice($newestFirst, 2))
@@ -157,7 +158,7 @@ it('starts again at the first page for a cursor it did not hand out', function (
     ];
 
     foreach ($foreign as $cursor) {
-        $page = $this->withToken($this->token)->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $cursor]))->assertOk();
+        $page = $this->withToken($this->token)->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $cursor])->value())->assertOk();
 
         expect(array_column($page->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2));
     }
@@ -209,7 +210,7 @@ it('pages the sources of every kind together, newest first', function (): void {
 
     do {
         $page = $this->withToken($this->token)
-            ->getJson($uri.'?'.http_build_query(array_filter(['per_page' => 2, 'cursor' => $cursor])))
+            ->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $cursor])->value())
             ->assertOk();
 
         $seen = [...$seen, ...array_map(fn (array $source): string => $source['kind'].':'.$source['id'], $page->json('data'))];
@@ -236,7 +237,7 @@ it('starts the source list again at the first page for a cursor it did not hand 
 
     foreach ([new Cursor(['created_at' => 'yesterday', 'sourceable_id' => 1, 'sourceable_type' => 'source_file'])->encode(), new Cursor(['id' => 1])->encode()] as $cursor) {
         $this->withToken($this->token)
-            ->getJson("/api/v1/agents/{$this->agent->external_id}/sources?".http_build_query(['cursor' => $cursor]))
+            ->getJson(Uri::of("/api/v1/agents/{$this->agent->external_id}/sources")->withQuery(['cursor' => $cursor])->value())
             ->assertOk()
             ->assertJsonPath('data.0.id', $file->external_id);
     }

@@ -146,7 +146,7 @@ class McpOAuthRegistrar
      */
     public function redirectUri(): string
     {
-        return rtrim(config('app.url'), '/').'/connectors/oauth/callback';
+        return Str::rtrim(config('app.url'), '/').'/connectors/oauth/callback';
     }
 
     /**

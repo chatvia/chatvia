@@ -9,6 +9,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Knowledge\Source\Qa\Services\QuestionNormalizer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Rebuilds the question rows of a curated Q&A entry from its `questions`
@@ -20,8 +21,8 @@ class SyncQaQuestionsAction
 {
     public function execute(AgentQuestionAnswer $qa): void
     {
-        $rows = collect(preg_split('/\R/u', $qa->questions) ?: [])
-            ->map(fn (string $question): string => trim($question))
+        $rows = Str::of($qa->questions)->split('/\R/u')
+            ->map(fn (string $question): string => Str::trim($question))
             ->filter(fn (string $question): bool => $question !== '')
             ->map(fn (string $question): array => [
                 'agent_question_answer_id' => $qa->id,

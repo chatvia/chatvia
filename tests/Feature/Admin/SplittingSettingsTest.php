@@ -9,6 +9,7 @@ use Domain\Knowledge\Ingestion\Enums\SplitStrategy;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The Splitting page of the admin panel: the chunk size and its unit, the
@@ -138,7 +139,7 @@ it('previews a kind of content with the unsaved options, in the unit on the page
 });
 
 it('opens the whole chunk in a modal from its card', function (): void {
-    $long = str_repeat('Refunds go back to the card you paid with. ', 20)."\n\nThe last line of the chunk.";
+    $long = Str::repeat('Refunds go back to the card you paid with. ', 20)."\n\nThe last line of the chunk.";
 
     adminPage(ManageSplittingSettings::class, $this->admin)
         ->fillForm(['chunk_size' => 1000, 'preview_kind' => 'text', 'preview_text' => $long])
@@ -147,7 +148,7 @@ it('opens the whole chunk in a modal from its card', function (): void {
         ->assertSee('View whole chunk')
         ->assertDontSee('The last line of the chunk.')
         ->mountAction(TestAction::make('viewChunk')->schemaComponent('preview-chunk-0', schema: 'form'))
-        ->assertMountedActionModalSee(['Chunk 1', mb_strlen($long).' characters', 'The last line of the chunk.']);
+        ->assertMountedActionModalSee(['Chunk 1', Str::length($long).' characters', 'The last line of the chunk.']);
 });
 
 it('previews the sample as Markdown, one section per heading, by default', function (): void {

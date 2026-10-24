@@ -36,7 +36,7 @@ class LlmJudgeScorer implements ScorerInterface
 
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {
-        $criteria = trim((string) ($case->scorer_config['criteria'] ?? ''));
+        $criteria = Str::trim((string) ($case->scorer_config['criteria'] ?? ''));
 
         if ($criteria === '') {
             return ScoreResultData::fail(0.0, 'No grading criteria configured for the judge.');
@@ -46,7 +46,7 @@ class LlmJudgeScorer implements ScorerInterface
             $data = $this->completion->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::EvalJudge),
                 messages: [
-                    ChatMessageData::system(trim(prompt('evals/judge-system'))),
+                    ChatMessageData::system(Str::trim(prompt('evals/judge-system'))),
                     ChatMessageData::user($this->userPrompt($case, $criteria, $result->answer)),
                 ],
                 tag: AiCallTag::EvaluationJudge,
@@ -69,7 +69,7 @@ class LlmJudgeScorer implements ScorerInterface
 
     private function userPrompt(EvalCase $case, string $criteria, string $answer): string
     {
-        return rtrim(prompt('evals/judge-user', [
+        return Str::rtrim(prompt('evals/judge-user', [
             'question' => $case->input,
             'criteria' => $criteria,
             'reference' => Str::trim($case->expected_output ?? ''),

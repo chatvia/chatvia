@@ -5,6 +5,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Actions\ListAttachableTextsForAgentAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * The "attach an existing text" list must show the workspace's texts (not just
@@ -45,13 +46,13 @@ it('lists the workspace texts for a teammate, excluding ones already attached', 
 
 it('cuts a multibyte excerpt on a character boundary', function (): void {
     $agent = Agent::factory()->create();
-    $excerpt = str_repeat('مرحبا ', 60); // 360 characters, 2 bytes each
+    $excerpt = Str::repeat('مرحبا ', 60); // 360 characters, 2 bytes each
 
     latText($agent, $excerpt, $excerpt);
 
     $row = app(ListAttachableTextsForAgentAction::class)->execute($agent->workspace->owner, $agent)->first();
 
-    expect(mb_strlen($row->excerpt))->toBe(200)
+    expect(Str::length($row->excerpt))->toBe(200)
         ->and(mb_check_encoding($row->excerpt, 'UTF-8'))->toBeTrue()
         ->and($row->word_count)->toBe(60);
 });

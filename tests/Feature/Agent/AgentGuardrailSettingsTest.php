@@ -12,6 +12,7 @@ use Domain\Guardrail\Models\GuardrailEvent;
 use Domain\Guardrail\Services\GuardrailClassifier;
 use Domain\Llm\Operations\Translate\TextTranslator;
 use GuzzleHttp\Promise\Create;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 
 /**
@@ -135,10 +136,10 @@ it('filters the activity log by guard and outcome', function (): void {
 });
 
 it('filters the activity log by visitor and shows who it was', function (): void {
-    $visitor = str_repeat('a', 64);
+    $visitor = Str::repeat('a', 64);
     $base = ['agent_id' => $this->agent->id, 'agent_name' => $this->agent->name, 'workspace_id' => $this->agent->workspace_id, 'stage' => 'input', 'guard_type' => 'pii', 'outcome' => 'redacted'];
     GuardrailEvent::query()->create([...$base, 'visitor_key' => $visitor, 'user_id' => $this->owner->id, 'user_name' => $this->owner->name]);
-    GuardrailEvent::query()->create([...$base, 'visitor_key' => str_repeat('b', 64)]);
+    GuardrailEvent::query()->create([...$base, 'visitor_key' => Str::repeat('b', 64)]);
 
     $this->actingAs($this->owner)
         ->get(route('agents.guardrails', ['agent' => $this->agent->external_id, 'visitor' => $visitor]))

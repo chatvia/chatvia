@@ -2,6 +2,8 @@
 
 namespace Domain\Knowledge\Retrieval\Services;
 
+use Illuminate\Support\Str;
+
 /**
  * Pure text-cleaning helpers for RAG retrieval results. Extracted from
  * {@see KnowledgeBase} so the clean-up of chunk text — which shapes every
@@ -19,11 +21,12 @@ class RetrievalScoring
      */
     public static function plainText(string $text): string
     {
-        $text = (string) preg_replace('/<br\s*\/?>/i', "\n", $text);
-        $text = (string) preg_replace('/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^<>]*)?\/?>/', '', $text);
-        $text = (string) preg_replace('/[ \t]+\n/', "\n", $text);
-        $text = (string) preg_replace('/\n{3,}/', "\n\n", $text);
-
-        return trim($text);
+        return Str::of($text)
+            ->replaceMatches('/<br\s*\/?>/i', "\n")
+            ->replaceMatches('/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^<>]*)?\/?>/', '')
+            ->replaceMatches('/[ \t]+\n/', "\n")
+            ->replaceMatches('/\n{3,}/', "\n\n")
+            ->trim()
+            ->toString();
     }
 }

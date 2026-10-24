@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -36,7 +37,7 @@ it('refuses a second concurrent request', function (): void {
     DataExport::create([
         'user_id' => $this->user->id,
         'status' => DataExportStatus::Processing,
-        'download_token' => str_repeat('a', 64),
+        'download_token' => Str::repeat('a', 64),
     ]);
 
     $this->actingAs($this->user)
@@ -53,7 +54,7 @@ it('lets the owner download a ready export', function (): void {
     $export = DataExport::create([
         'user_id' => $this->user->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('a', 64),
+        'download_token' => Str::repeat('a', 64),
         'file_path' => 'data-exports/test.zip',
         'file_size' => 17,
         'expires_at' => now()->addHours(12),
@@ -71,7 +72,7 @@ it('names the download after Chatvia', function (): void {
     $export = DataExport::create([
         'user_id' => $this->user->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('c', 64),
+        'download_token' => Str::repeat('c', 64),
         'file_path' => 'data-exports/brand.zip',
         'file_size' => 17,
         'expires_at' => now()->addHours(12),
@@ -93,7 +94,7 @@ it('hides another user\'s export from a download', function (): void {
     $export = DataExport::create([
         'user_id' => $other->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('b', 64),
+        'download_token' => Str::repeat('b', 64),
         'file_path' => 'data-exports/other.zip',
         'file_size' => 17,
         'expires_at' => now()->addHours(12),
@@ -111,7 +112,7 @@ it('refuses to download an expired export', function (): void {
     $export = DataExport::create([
         'user_id' => $this->user->id,
         'status' => DataExportStatus::Ready,
-        'download_token' => str_repeat('c', 64),
+        'download_token' => Str::repeat('c', 64),
         'file_path' => 'data-exports/expired.zip',
         'file_size' => 17,
         'expires_at' => now()->subHour(),
@@ -126,7 +127,7 @@ it('refuses to download an export that is not ready yet', function (): void {
     $export = DataExport::create([
         'user_id' => $this->user->id,
         'status' => DataExportStatus::Processing,
-        'download_token' => str_repeat('d', 64),
+        'download_token' => Str::repeat('d', 64),
     ]);
 
     $this->actingAs($this->user)

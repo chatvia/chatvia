@@ -6,6 +6,7 @@ use App\Http\Requests\Concerns\ValidatesPdfAttachment;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * Validates a PDF uploaded from the hosted-chat composer and decides where
@@ -27,7 +28,7 @@ class UploadAttachmentRequest extends FormRequest
         // Sanitize the client-supplied conversation id before it becomes a
         // storage path segment — block `../` cross-prefix writes (see the widget
         // UploadAttachmentRequest).
-        $conversationExternalId = preg_replace('/[^A-Za-z0-9-]/', '', (string) $this->header('X-CONVERSATION-ID')) ?: 'pending';
+        $conversationExternalId = Str::replaceMatches('/[^A-Za-z0-9-]/', '', (string) $this->header('X-CONVERSATION-ID')) ?: 'pending';
 
         return new UploadAttachmentData(
             file: $this->file('file'),

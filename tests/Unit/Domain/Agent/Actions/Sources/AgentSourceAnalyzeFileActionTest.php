@@ -5,6 +5,7 @@ use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\FileAnalyzer;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 function asfaAnalyzerReturningPages(int $pages): void
 {
@@ -28,7 +29,7 @@ it('describes a new file', function (): void {
 
 it('marks an audio upload as audio', function (): void {
     asfaAnalyzerReturningPages(1);
-    $file = UploadedFile::fake()->createWithContent('call.mp3', "ID3\x03\x00\x00\x00\x00\x00\x00".str_repeat("\xFF\xFB\x90\x00", 64));
+    $file = UploadedFile::fake()->createWithContent('call.mp3', "ID3\x03\x00\x00\x00\x00\x00\x00".Str::repeat("\xFF\xFB\x90\x00", 64));
 
     $result = app(AgentSourceAnalyzeFileAction::class)->execute($file);
 

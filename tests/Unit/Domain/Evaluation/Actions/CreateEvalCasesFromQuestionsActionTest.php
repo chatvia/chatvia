@@ -114,14 +114,14 @@ it('uses the QA pair answer as the reference for a qa question', function (): vo
 
 it('caps the reference answer at 8000 characters', function (): void {
     $agent = knowledgeEvalAgent();
-    $chunk = knowledgeEvalChunk($agent, str_repeat('a', 9000));
+    $chunk = knowledgeEvalChunk($agent, Str::repeat('a', 9000));
 
     $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(
         knowledgeEvalData(chunkQuestion($chunk, 'What does the document say?')),
         $agent,
     );
 
-    expect(mb_strlen($created->first()->expected_output))->toBe(8000);
+    expect(Str::length($created->first()->expected_output))->toBe(8000);
 });
 
 it('skips questions already present as a case input and intra-payload duplicates', function (): void {

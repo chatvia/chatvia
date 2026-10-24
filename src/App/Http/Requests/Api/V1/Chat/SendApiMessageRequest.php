@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Api\V1\Chat;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * A message sent to an agent over the public API. Carries no `toData()`:
@@ -39,6 +40,6 @@ class SendApiMessageRequest extends FormRequest
     public function wantsStream(): bool
     {
         return $this->boolean('stream')
-            || str_contains((string) $this->header('Accept'), 'text/event-stream');
+            || Str::contains((string) $this->header('Accept'), 'text/event-stream');
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Str;
+
 /**
  * German social-insurance number (Sozialversicherungsnummer / Rentenversicherungs-
  * nummer): 12 chars = 2-digit area + DDMMYY birth date + 1 surname letter + 2-digit
@@ -28,14 +30,14 @@ final class GermanSsnFilter extends PiiFilter
 
     protected function accepts(string $value): bool
     {
-        $digits = preg_replace('/\D/', '', $value) ?? '';
-        if (strlen($digits) !== 11) {
+        $digits = Str::replaceMatches('/\D/', '', $value) ?? '';
+        if (Str::length($digits) !== 11) {
             return false;
         }
 
         // Digits 3–8 are the birth date DDMMYY.
-        $day = (int) substr($digits, 2, 2);
-        $month = (int) substr($digits, 4, 2);
+        $day = (int) Str::substr($digits, 2, 2);
+        $month = (int) Str::substr($digits, 4, 2);
 
         return $day >= 1 && $day <= 31 && $month >= 1 && $month <= 12;
     }

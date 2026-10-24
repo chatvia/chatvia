@@ -29,6 +29,7 @@ use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\Conversation\TestChatContext;
 use Tests\Support\Llm\CannedLlmProvider;
@@ -537,7 +538,7 @@ it('refuses a call to a tool that was not offered, without dispatching or gating
 it('audits an unoffered MCP-shaped call under its server and a shortened name', function (): void {
     $context = TestChatContext::make();
 
-    $inventedName = 'mcp__other__'.str_repeat('x', 300);
+    $inventedName = 'mcp__other__'.Str::repeat('x', 300);
     $turn = 0;
     $transformer = tlrTransformer(function (ChatContext $ctx) use (&$turn, $inventedName): Generator {
         if ($turn++ === 0) {
@@ -555,7 +556,7 @@ it('audits an unoffered MCP-shaped call under its server and a shortened name', 
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->approvalOutcome === ToolCallOutcome::NotOffered->value
         && $e->toolKind === ToolKind::Mcp->value
         && $e->connectorSlug === 'other'
-        && $e->toolName === mb_substr($inventedName, strlen('mcp__other__'), 100 - strlen('mcp__other__'))
+        && $e->toolName === Str::substr($inventedName, strlen('mcp__other__'), 100 - strlen('mcp__other__'))
         && $e->arguments === '{"a":1}');
 });
 

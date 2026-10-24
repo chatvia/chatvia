@@ -2,6 +2,7 @@
 
 use App\Http\Rules\WorkspaceRule;
 use Domain\Widget\Services\WidgetVerification;
+use Illuminate\Support\Str;
 
 /*
  * Executable form of the layering and naming rules in ARCHITECTURE.md. Each
@@ -28,7 +29,7 @@ function conventionPhpFiles(string $relativeDir): array
     );
 
     foreach ($iterator as $file) {
-        if ($file->isFile() && str_ends_with((string) $file, '.php')) {
+        if ($file->isFile() && Str::endsWith((string) $file, '.php')) {
             $files[] = $file->getPathname();
         }
     }
@@ -46,7 +47,7 @@ function conventionFilesInSegment(string $segment): array
 
     return array_values(array_filter(
         conventionPhpFiles('src'),
-        fn (string $path): bool => str_contains($path, $needle),
+        fn (string $path): bool => Str::contains($path, $needle),
     ));
 }
 
@@ -63,8 +64,8 @@ function conventionOffenders(array $files, string $pattern): array
     $offenders = [];
 
     foreach ($files as $path) {
-        if (preg_match($pattern, (string) file_get_contents($path)) === 1) {
-            $offenders[] = str_replace($root, '', $path);
+        if (Str::isMatch($pattern, (string) file_get_contents($path))) {
+            $offenders[] = Str::replace($root, '', $path);
         }
     }
 
@@ -84,7 +85,7 @@ function conventionQualifiedNames(string $path, string $pattern): array
     $names = [];
 
     foreach (PhpToken::tokenize((string) file_get_contents($path)) as $token) {
-        if ($token->is([T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED]) && preg_match($pattern, $token->text) === 1) {
+        if ($token->is([T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED]) && Str::isMatch($pattern, $token->text)) {
             $names[] = $token->text;
         }
     }
@@ -108,7 +109,7 @@ it('the Domain layer does not import the HTTP request object', function (): void
 
     foreach (conventionPhpFiles('src/Domain') as $path) {
         if (conventionQualifiedNames($path, '/^\\\\?Illuminate\\\\Http\\\\Request$/') !== []) {
-            $offenders[] = str_replace($root, '', $path);
+            $offenders[] = Str::replace($root, '', $path);
         }
     }
 
@@ -121,7 +122,7 @@ it('the Domain layer never imports from App except the Identity carve-out', func
 
     foreach (conventionPhpFiles('src/Domain') as $path) {
         foreach (conventionQualifiedNames($path, '/^\\\\?App\\\\(?!Identity\\\\)/') as $name) {
-            $offenders[] = str_replace($root, '', $path).' → '.$name;
+            $offenders[] = Str::replace($root, '', $path).' → '.$name;
         }
     }
 
@@ -153,7 +154,7 @@ function conventionDomainOrAppReferences(string $path): array
 
     foreach ($tokens as $index => $token) {
         $qualified = $token->is([T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])
-            && preg_match('/^\\\\?(Domain|App)\\\\/', $token->text) === 1;
+            && Str::isMatch('/^\\\\?(Domain|App)\\\\/', $token->text);
 
         // A group import (`use Domain\{A, B};`) starts with a bare name and a separator.
         $groupPrefix = $token->is(T_STRING)
@@ -179,7 +180,7 @@ it('the Support layer never depends on Domain or App', function (): void {
 
     foreach ($files as $path) {
         foreach (conventionDomainOrAppReferences($path) as $reference) {
-            $offenders[] = str_replace($root, '', $path).' → '.$reference;
+            $offenders[] = Str::replace($root, '', $path).' → '.$reference;
         }
     }
 
@@ -228,7 +229,7 @@ it('listeners drop the redundant Listener suffix', function (): void {
 it('Domain models do not carry HTTP-leakage Request names', function (): void {
     $models = array_values(array_filter(
         conventionPhpFiles('src/Domain'),
-        fn (string $path): bool => str_contains($path, DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR),
+        fn (string $path): bool => Str::contains($path, DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR),
     ));
 
     // A class named "...Request" but not "...Requests".
@@ -291,14 +292,14 @@ it('controllers expose only resource methods or __invoke', function (): void {
     $offenders = [];
 
     foreach (conventionPhpFiles('src/App/Http/Controllers') as $path) {
-        if (str_contains($path, DIRECTORY_SEPARATOR.'Concerns'.DIRECTORY_SEPARATOR)) {
+        if (Str::contains($path, DIRECTORY_SEPARATOR.'Concerns'.DIRECTORY_SEPARATOR)) {
             continue;
         }
 
-        preg_match_all('/^\s*public\s+(?:static\s+)?function\s+(\w+)\s*\(/m', (string) file_get_contents($path), $matches);
+        $methods = Str::matchAll('/^\s*public\s+(?:static\s+)?function\s+(\w+)\s*\(/m', (string) file_get_contents($path));
 
-        foreach (array_diff($matches[1], CONTROLLER_PUBLIC_METHODS) as $method) {
-            $offenders[] = str_replace($root, '', $path).'::'.$method.'()';
+        foreach ($methods->diff(CONTROLLER_PUBLIC_METHODS) as $method) {
+            $offenders[] = Str::replace($root, '', $path).'::'.$method.'()';
         }
     }
 
@@ -336,7 +337,7 @@ it('Conversation/Session external_id lookups go through WidgetVerification', fun
     // WidgetVerification is where these lookups belong.
     $sources = array_values(array_filter(
         [...conventionPhpFiles('src/Domain'), ...conventionPhpFiles('src/App/Http/Controllers')],
-        fn (string $path): bool => ! str_ends_with($path, 'src/Domain/Widget/Services/WidgetVerification.php'),
+        fn (string $path): bool => ! Str::endsWith($path, 'src/Domain/Widget/Services/WidgetVerification.php'),
     ));
 
     // The chain may be split over lines: Conversation::query()
@@ -463,7 +464,7 @@ it('empty checks use filled()/blank(), not hand-written comparisons with an empt
         $lines = conventionHandWrittenEmptyChecks((string) file_get_contents($path));
 
         if ($lines !== []) {
-            $found[str_replace($root, '', $path)] = $lines;
+            $found[Str::replace($root, '', $path)] = $lines;
         }
     }
 
@@ -517,7 +518,7 @@ function conventionIsStringCalls(string $code): array
     $lines = [];
 
     foreach ($tokens as $i => $token) {
-        if (! $token->is([T_STRING, T_NAME_FULLY_QUALIFIED]) || strtolower(ltrim($token->text, '\\')) !== 'is_string') {
+        if (! $token->is([T_STRING, T_NAME_FULLY_QUALIFIED]) || Str::lower(Str::ltrim($token->text, '\\')) !== 'is_string') {
             continue;
         }
 
@@ -543,14 +544,14 @@ it('checks values with filled()/blank(), never is_string()', function (): void {
 
     foreach (['src', 'tests', 'config', 'routes', 'database', 'bootstrap'] as $dir) {
         foreach (conventionPhpFiles($dir) as $path) {
-            if (str_contains($path, DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR)) {
+            if (Str::contains($path, DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR)) {
                 continue;
             }
 
             $lines = conventionIsStringCalls((string) file_get_contents($path));
 
             if ($lines !== []) {
-                $offenders[] = str_replace($root, '', $path).':'.implode(',', $lines);
+                $offenders[] = Str::replace($root, '', $path).':'.implode(',', $lines);
             }
         }
     }
@@ -593,13 +594,17 @@ const NATIVE_IO_FUNCTIONS = [
 ];
 
 /**
- * Line numbers in $code that call one of NATIVE_IO_FUNCTIONS: the name
- * followed by `(`, but not a method (`->exec()`, `File::glob()`), a function
- * or constant being declared, or a word in a comment or string.
+ * Line numbers in $code that call one of $functions, or a function whose name
+ * starts with one of $prefixes: the name followed by `(` (a first-class
+ * callable `trim(...)` counts too), but not a method (`->exec()`,
+ * `File::glob()`), a function or constant being declared, or a word in a
+ * comment or string.
  *
+ * @param  list<string>  $functions
+ * @param  list<string>  $prefixes
  * @return list<int>
  */
-function conventionNativeIoCalls(string $code): array
+function conventionNativeCalls(string $code, array $functions, array $prefixes = []): array
 {
     $tokens = array_values(array_filter(
         PhpToken::tokenize($code),
@@ -612,9 +617,9 @@ function conventionNativeIoCalls(string $code): array
             continue;
         }
 
-        $name = strtolower(ltrim($token->text, '\\'));
+        $name = Str::lower(Str::ltrim($token->text, '\\'));
 
-        if (! in_array($name, NATIVE_IO_FUNCTIONS, true) && ! str_starts_with($name, 'curl_')) {
+        if (! in_array($name, $functions, true) && ! Str::startsWith($name, $prefixes)) {
             continue;
         }
 
@@ -633,10 +638,10 @@ it('local files, programs, waits and clocks go through Laravel, not plain PHP fu
     $found = [];
 
     foreach (conventionPhpFiles('src') as $path) {
-        $lines = conventionNativeIoCalls((string) file_get_contents($path));
+        $lines = conventionNativeCalls((string) file_get_contents($path), NATIVE_IO_FUNCTIONS, ['curl_']);
 
         if ($lines !== []) {
-            $found[str_replace($root, '', $path)] = $lines;
+            $found[Str::replace($root, '', $path)] = $lines;
         }
     }
 
@@ -671,6 +676,103 @@ it('local files, programs, waits and clocks go through Laravel, not plain PHP fu
     expect($nowClean)->toBe([], implode("\n", [
         '',
         'Allowlisted file has fewer plain file/process/time calls — lower or remove its NATIVE_IO_CALL_ALLOWLIST entry:',
+        ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
+/**
+ * Strings and URLs go through Laravel (.ai/rules/laravel-first.md): Str for
+ * string calls, Uri, SafeUrl and Arr::query() for URLs. Scanned: every PHP
+ * file the rule covers. Listed: byte-level files, which must work on raw
+ * bytes where Str counts characters, with how many calls each may keep.
+ *
+ * Not checked here: strlen(), substr(), explode() and preg_*(). They stay
+ * native in many places on purpose (byte caps, offsets from
+ * PREG_OFFSET_CAPTURE, several capture groups), so a count would only pin
+ * noise.
+ */
+const NATIVE_STRING_CALL_ALLOWLIST = [
+    // Binary Office, RTF and PDF readers: names, keywords and padding in raw bytes.
+    'src/Domain/Knowledge/Document/Conversion/Markdown/CompoundFile.php' => 4,
+    'src/Domain/Knowledge/Document/Conversion/Markdown/DocReader.php' => 3,
+    'src/Domain/Knowledge/Document/Conversion/Markdown/PptReader.php' => 2,
+    'src/Domain/Knowledge/Document/Conversion/Markdown/RtfReader.php' => 10,
+    'src/Domain/Knowledge/Document/Conversion/PdfEncryption.php' => 5,
+    'src/Domain/Knowledge/Document/Conversion/PdfSyntax.php' => 7,
+    // Byte offsets into a streamed buffer, paired with substr().
+    'src/Domain/Analytics/Services/Chat/AnalyticsChatRunner.php' => 1,
+    'src/Domain/Conversation/Services/Streaming/Transformers/OpenAiCompatibleTransformer.php' => 2,
+    'src/Domain/Llm/Providers/Messages/MessagesStream.php' => 1,
+    'src/Domain/Llm/Providers/Responses/ResponsesStream.php' => 1,
+    // Splits a signed token at byte offsets; the HMAC covers raw bytes.
+    'src/App/Identity/Workspace/Services/AgentSignInTokenService.php' => 2,
+    // Counts lines up to a byte offset from PREG_OFFSET_CAPTURE.
+    'tests/Architecture/ConventionsTest.php' => 1,
+    // Builds binary OLE files: padding counts bytes.
+    'tests/Support/Knowledge/Document/OldOffice/CompoundFileWriter.php' => 4,
+    'tests/Support/Knowledge/Document/OldOffice/PowerPointBinaryFile.php' => 1,
+    'tests/Support/Knowledge/Document/OldOffice/WordBinaryFile.php' => 3,
+];
+
+/** The plain PHP string and URL functions that Str, Uri and Arr::query() replace. */
+const NATIVE_STRING_FUNCTIONS = [
+    'str_contains', 'str_starts_with', 'str_ends_with', 'str_replace', 'str_ireplace',
+    'str_repeat', 'str_pad', 'mb_str_pad', 'str_word_count', 'substr_count',
+    'strtolower', 'strtoupper', 'mb_strtolower', 'mb_strtoupper', 'ucfirst', 'lcfirst', 'ucwords',
+    'trim', 'ltrim', 'rtrim', 'mb_substr', 'mb_strlen', 'strip_tags',
+    'strpos', 'stripos', 'strrpos',
+    'parse_url', 'http_build_query',
+];
+
+it('strings and URLs go through Str and Uri, not plain PHP functions', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $found = [];
+
+    foreach (['src', 'tests', 'config', 'routes', 'database', 'bootstrap'] as $dir) {
+        foreach (conventionPhpFiles($dir) as $path) {
+            if (Str::contains($path, DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR)) {
+                continue;
+            }
+
+            $lines = conventionNativeCalls((string) file_get_contents($path), NATIVE_STRING_FUNCTIONS);
+
+            if ($lines !== []) {
+                $found[Str::replace($root, '', $path)] = $lines;
+            }
+        }
+    }
+
+    ksort($found);
+
+    // Drift up: a new call, or one more in an allowlisted file.
+    $newOffenders = [];
+
+    foreach ($found as $file => $lines) {
+        if (count($lines) > (NATIVE_STRING_CALL_ALLOWLIST[$file] ?? 0)) {
+            $newOffenders[] = $file.':'.implode(',', $lines);
+        }
+    }
+
+    expect($newOffenders)->toBe([], implode("\n", [
+        '',
+        'Plain PHP string/URL call(s) — use Str, Uri, SafeUrl::parse() or Arr::query() (.ai/rules/laravel-first.md):',
+        ...array_map(fn (string $o): string => "  - {$o}", $newOffenders),
+        '',
+        'Or, for code that must work on raw bytes, add the file to NATIVE_STRING_CALL_ALLOWLIST in this file.',
+    ]));
+
+    // Drift down: an allowlisted call is gone, so the list must shrink too.
+    $nowClean = [];
+
+    foreach (NATIVE_STRING_CALL_ALLOWLIST as $file => $allowed) {
+        if (count($found[$file] ?? []) < $allowed) {
+            $nowClean[] = $file;
+        }
+    }
+
+    expect($nowClean)->toBe([], implode("\n", [
+        '',
+        'Allowlisted file has fewer plain string/URL calls — lower or remove its NATIVE_STRING_CALL_ALLOWLIST entry:',
         ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
     ]));
 });
@@ -714,7 +816,7 @@ it('class constants declare their type', function (): void {
 
     foreach ([...conventionPhpFiles('src'), ...conventionPhpFiles('database')] as $path) {
         foreach (conventionUntypedConstants((string) file_get_contents($path)) as $line) {
-            $offenders[] = str_replace($root, '', $path).':'.$line;
+            $offenders[] = Str::replace($root, '', $path).':'.$line;
         }
     }
 
@@ -743,7 +845,7 @@ it('every listener is registered in a service provider', function (): void {
     $unregistered = [];
     foreach ($listeners as $path) {
         $shortName = basename($path, '.php');
-        if (preg_match('/Event::(?:listen|subscribe)\([^;]*\b'.preg_quote($shortName, '/').'::class/', $providerContent) !== 1) {
+        if (! Str::isMatch('/Event::(?:listen|subscribe)\([^;]*\b'.preg_quote($shortName, '/').'::class/', $providerContent)) {
             $unregistered[] = $shortName;
         }
     }

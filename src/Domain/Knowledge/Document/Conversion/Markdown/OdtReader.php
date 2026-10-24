@@ -8,6 +8,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -81,7 +82,7 @@ final class OdtReader
             $this->readListStyles($package->xml('styles.xml'));
             $this->readListStyles($content);
 
-            return trim(MarkdownText::join([
+            return Str::trim(MarkdownText::join([
                 ...$this->blocks($text, 0),
                 [MarkdownText::BLOCK, $this->notes->toMarkdown()],
             ]));
@@ -334,7 +335,7 @@ final class OdtReader
         foreach ($node->childNodes as $child) {
             if ($child instanceof DOMText) {
                 // Spaces in OpenDocument text collapse, as in HTML; text:s is a real space.
-                $text .= (string) preg_replace('/[ \t\r\n]+/', ' ', $child->data);
+                $text .= Str::replaceMatches('/[ \t\r\n]+/', ' ', $child->data) ?? '';
 
                 continue;
             }
@@ -362,7 +363,7 @@ final class OdtReader
             }
 
             $text .= match ($child->localName) {
-                's' => str_repeat(' ', max(1, (int) ($child->getAttributeNS(self::TEXT, 'c') ?: 1))),
+                's' => Str::repeat(' ', max(1, (int) ($child->getAttributeNS(self::TEXT, 'c') ?: 1))),
                 'tab' => "\t",
                 'line-break' => "\n",
                 'note' => $this->note($child),
@@ -386,11 +387,11 @@ final class OdtReader
         $text = $this->inline($link);
         $url = $link->getAttributeNS(self::XLINK, 'href');
 
-        if (preg_match('#^(https?|mailto):#i', $url) !== 1 || blank($text) || preg_match('/^(\s*)(.*?)(\s*)$/su', $text, $parts) !== 1) {
+        if (! Str::isMatch('#^(https?|mailto):#i', $url) || blank($text) || preg_match('/^(\s*)(.*?)(\s*)$/su', $text, $parts) !== 1) {
             return $text;
         }
 
-        return $parts[1].'['.str_replace(']', '\\]', $parts[2]).']('.str_replace([' ', '(', ')'], ['%20', '%28', '%29'], $url).')'.$parts[3];
+        return $parts[1].'['.Str::replace(']', '\\]', $parts[2]).']('.Str::replace([' ', '(', ')'], ['%20', '%28', '%29'], $url).')'.$parts[3];
     }
 
     private function first(?DOMElement $parent, string $namespace, string $name): ?DOMElement

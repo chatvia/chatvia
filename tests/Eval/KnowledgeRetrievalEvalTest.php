@@ -21,6 +21,7 @@ use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * OFFLINE EVAL — not a pass/fail gate. It measures knowledge retrieval against
@@ -76,8 +77,8 @@ function retrievalEvalAgent(): Agent
         $text = (string) file_get_contents($path);
 
         $source = SourceText::factory()->ingested()->attachedTo($agent)->create([
-            'excerpt' => mb_substr($text, 0, 200),
-            'length' => mb_strlen($text),
+            'excerpt' => Str::substr($text, 0, 200),
+            'length' => Str::length($text),
             'checksum' => md5($path.$text),
         ]);
 

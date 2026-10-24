@@ -3,6 +3,7 @@
 namespace Domain\Integration\Function\Services;
 
 use Domain\Integration\Function\Rules\ValidParametersSchema;
+use Illuminate\Support\Str;
 
 /**
  * Validates that a user-supplied parameters schema is well-formed enough for
@@ -127,7 +128,7 @@ class FunctionSchemaValidator
      */
     private function validatePropertyName(string $name): array
     {
-        if (! preg_match(self::PROPERTY_NAME_REGEX, $name)) {
+        if (! Str::isMatch(self::PROPERTY_NAME_REGEX, $name)) {
             return ["Invalid property name \"{$name}\" — must start with a letter or underscore and contain only letters, numbers, and underscores."];
         }
 

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+
 /*
  * The test tree mirrors the source tree. A unit test named after a class sits
  * where that class sits, with only `src/` dropped:
@@ -24,8 +26,8 @@ function layoutSourceClasses(string $root): array
     $classes = [];
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/src', FilesystemIterator::SKIP_DOTS)) as $file) {
-        if (str_ends_with((string) $file, '.php')) {
-            $classes[$file->getBasename('.php')][] = substr($file->getPathname(), strlen($root) + 1);
+        if (Str::endsWith((string) $file, '.php')) {
+            $classes[$file->getBasename('.php')][] = Str::chopStart($file->getPathname(), $root.'/');
         }
     }
 
@@ -35,7 +37,7 @@ function layoutSourceClasses(string $root): array
 /** Where the unit test of the class at $sourcePath belongs: its path with `src/` dropped. */
 function layoutExpectedTestPath(string $sourcePath): string
 {
-    return 'tests/Unit/'.substr($sourcePath, strlen('src/'), -strlen('.php')).'Test.php';
+    return 'tests/Unit/'.Str::of($sourcePath)->chopStart('src/')->chopEnd('.php')->toString().'Test.php';
 }
 
 it('puts each unit test of a class where the class sits in src/', function (): void {
@@ -44,14 +46,14 @@ it('puts each unit test of a class where the class sits in src/', function (): v
     $misplaced = [];
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/tests/Unit', FilesystemIterator::SKIP_DOTS)) as $file) {
-        $path = substr($file->getPathname(), strlen($root) + 1);
+        $path = Str::chopStart($file->getPathname(), $root.'/');
 
-        if (! str_ends_with($path, 'Test.php')) {
+        if (! Str::endsWith($path, 'Test.php')) {
             continue;
         }
 
         // Only a test named after exactly one class has a place to be.
-        $sources = $classes[substr($file->getBasename('.php'), 0, -strlen('Test'))] ?? [];
+        $sources = $classes[Str::chopEnd($file->getBasename('.php'), 'Test')] ?? [];
 
         if (count($sources) === 1 && ($expected = layoutExpectedTestPath($sources[0])) !== $path) {
             $misplaced[] = "{$path} (expected {$expected})";
@@ -65,7 +67,7 @@ it('puts each unit test of a class where the class sits in src/', function (): v
 
 it('keeps tests/Unit to the folders of src/ and the repo folders tested outside it', function (): void {
     $root = (string) realpath(__DIR__.'/../../');
-    $folders = array_map('basename', glob($root.'/tests/Unit/*', GLOB_ONLYDIR) ?: []);
+    $folders = array_map(basename(...), glob($root.'/tests/Unit/*', GLOB_ONLYDIR) ?: []);
 
     expect(array_values(array_diff($folders, LAYOUT_UNIT_ROOTS)))->toBe([]);
 });

@@ -9,6 +9,7 @@ use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Suggests conversation starters from a sample of an agent's knowledge-base
@@ -52,8 +53,8 @@ class StarterGenerator
 
         return Collection::make($reply->data ?? [])
             ->filter(fn (mixed $value): bool => filled($value))
-            ->map(fn (string $value): string => trim($value))
-            ->filter(fn (string $value): bool => $value !== '' && mb_strlen($value) <= self::MAX_LENGTH)
+            ->map(fn (string $value): string => Str::trim($value))
+            ->filter(fn (string $value): bool => $value !== '' && Str::length($value) <= self::MAX_LENGTH)
             ->unique()
             ->take($count)
             ->values()

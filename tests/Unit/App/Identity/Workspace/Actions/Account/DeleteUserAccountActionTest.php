@@ -321,7 +321,7 @@ it('deletes conversations and sessions in small id-ordered batches by workspace'
     $deletes = ['chat_conversations' => 0, 'chat_sessions' => 0];
     DB::listen(function (QueryExecuted $query) use (&$deletes): void {
         foreach (array_keys($deletes) as $table) {
-            if (str_starts_with($query->sql, "DELETE FROM {$table} WHERE id IN (SELECT id FROM {$table} WHERE workspace_id = ? ORDER BY id LIMIT 2)")) {
+            if (Str::startsWith($query->sql, "DELETE FROM {$table} WHERE id IN (SELECT id FROM {$table} WHERE workspace_id = ? ORDER BY id LIMIT 2)")) {
                 $deletes[$table]++;
             }
         }

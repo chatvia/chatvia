@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\Text\Data;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -28,7 +29,7 @@ class TrainedTextRowData extends Data
             id: $text->id,
             // Character-based cut so multibyte text (Arabic, CJK, emoji) never
             // splits in the middle of a character.
-            excerpt: mb_substr((string) $text->excerpt, 0, 200),
+            excerpt: Str::substr((string) $text->excerpt, 0, 200),
             word_count: $wordCount,
             agents: $text->agents
                 ->map(fn (Agent $agent): array => ['id' => $agent->id, 'name' => $agent->name])

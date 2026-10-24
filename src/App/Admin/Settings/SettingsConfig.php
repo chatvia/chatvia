@@ -11,6 +11,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\QueryException;
 use Illuminate\Mail\MailManager;
 use Illuminate\Support\Manager;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\Factory as Socialite;
 use Spatie\LaravelPdf\Drivers\PdfDriver;
 use Throwable;
@@ -113,7 +114,7 @@ final class SettingsConfig
     public function default(ConfigKey $key): mixed
     {
         if ($key->defaultPath !== null) {
-            return rtrim((string) $this->config->get('app.url'), '/').$key->defaultPath;
+            return Str::rtrim((string) $this->config->get('app.url'), '/').$key->defaultPath;
         }
 
         $this->defaults ??= $this->snapshot();

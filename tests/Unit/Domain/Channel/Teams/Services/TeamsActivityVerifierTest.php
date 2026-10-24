@@ -4,6 +4,7 @@ use Domain\Channel\Teams\Services\TeamsActivityVerifier;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * The verifier is the webhook's whole authentication story, so it gets the
@@ -23,7 +24,7 @@ beforeEach(function (): void {
 
     $this->privatePem = $privatePem;
 
-    $b64url = fn (string $bin): string => rtrim(strtr(base64_encode($bin), '+/', '-_'), '=');
+    $b64url = fn (string $bin): string => Str::rtrim(strtr(base64_encode($bin), '+/', '-_'), '=');
 
     $this->publicJwk = [
         'kty' => 'RSA',

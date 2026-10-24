@@ -41,6 +41,7 @@ final readonly class PatternSeparator implements Separator
             return $text === '' ? [] : [$text];
         }
 
+        // Byte offsets from PREG_OFFSET_CAPTURE, so the cuts stay in bytes.
         $length = strlen($text);
         $pieces = [];
         $start = 0;

@@ -7,6 +7,7 @@ use Domain\Integration\Builtin\Data\Currency\CurrencyConversionRequestData;
 use Domain\Integration\Builtin\Exceptions\CurrencyConversionException;
 use Domain\Integration\Builtin\Services\CurrencyConverter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -39,8 +40,8 @@ class ExchangeRateTool extends Tool
         ]);
 
         $conversion = new CurrencyConversionRequestData(
-            from: strtoupper($validated['from'] ?? 'USD'),
-            to: strtoupper($validated['to']),
+            from: Str::upper($validated['from'] ?? 'USD'),
+            to: Str::upper($validated['to']),
             amount: (float) ($validated['amount'] ?? 1),
         );
 

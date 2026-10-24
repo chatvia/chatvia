@@ -11,6 +11,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -50,13 +51,13 @@ class CreateEvalCasesFromQuestionsAction
         }
 
         $existing = EvalCase::query()->forAgent($agent->id)->pluck('input')
-            ->mapWithKeys(fn (string $input): array => [mb_strtolower(trim($input)) => true]);
+            ->mapWithKeys(fn (string $input): array => [Str::lower(Str::trim($input)) => true]);
 
         return DB::transaction(function () use ($items, $agent, $chunks, $qas, $existing): Collection {
             $created = new Collection;
 
             foreach ($items as $item) {
-                $normalized = mb_strtolower(trim($item->question));
+                $normalized = Str::lower(Str::trim($item->question));
 
                 if ($existing->has($normalized)) {
                     continue;
@@ -76,7 +77,7 @@ class CreateEvalCasesFromQuestionsAction
                     'input' => $item->question,
                     'scorer_type' => ScorerType::LlmJudge->value,
                     'scorer_config' => ['criteria' => self::DEFAULT_CRITERIA],
-                    'expected_output' => mb_substr($reference, 0, self::MAX_REFERENCE_LENGTH),
+                    'expected_output' => Str::substr($reference, 0, self::MAX_REFERENCE_LENGTH),
                     'is_active' => true,
                 ]));
             }

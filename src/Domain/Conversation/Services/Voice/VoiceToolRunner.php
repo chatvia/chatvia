@@ -86,7 +86,7 @@ final readonly class VoiceToolRunner
         $agent = $context->requestData->agent;
 
         if (! isset($tools[$name])) {
-            $loggedName = mb_substr($name, 0, self::MAX_LOGGED_NAME_LENGTH);
+            $loggedName = Str::substr($name, 0, self::MAX_LOGGED_NAME_LENGTH);
             $message = sprintf(ToolLoopRunner::UNKNOWN_TOOL_RESULT, $loggedName);
 
             $this->audit->record($context, new PendingToolCallData(
@@ -221,7 +221,7 @@ final readonly class VoiceToolRunner
             'items' => $lookup->sources->values()->map(static fn (RetrievedSourceData $source, int $index): array => [
                 'id' => $index + 1,
                 // A chunk cannot close its block early.
-                'content' => (string) preg_replace('/<(\/?source)\b/i', '&lt;$1', $source->content),
+                'content' => Str::replaceMatches('/<(\/?source)\b/i', '&lt;$1', $source->content) ?? '',
             ])->all(),
         ]);
     }

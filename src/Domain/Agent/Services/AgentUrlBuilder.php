@@ -3,6 +3,7 @@
 namespace Domain\Agent\Services;
 
 use Domain\Agent\Models\Agent;
+use Illuminate\Support\Str;
 
 /**
  * Builds an agent's public URLs. Every agent's Hosted Chat lives under
@@ -16,7 +17,7 @@ final class AgentUrlBuilder
     /** `{APP_URL}/chat` — the base of every agent's Hosted Chat. */
     public static function chatBaseUrl(): string
     {
-        return rtrim((string) config('app.url'), '/').'/chat';
+        return Str::rtrim((string) config('app.url'), '/').'/chat';
     }
 
     /** `{base}/{slug}` — changes when the agent is renamed. */

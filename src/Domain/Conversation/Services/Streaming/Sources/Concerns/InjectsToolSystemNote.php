@@ -6,6 +6,7 @@ namespace Domain\Conversation\Services\Streaming\Sources\Concerns;
 
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\PdfSource;
+use Illuminate\Support\Str;
 
 /**
  * Shared tool-usage system note for the streaming sources that run the agentic
@@ -26,14 +27,14 @@ trait InjectsToolSystemNote
      */
     private function injectToolSystemNote(array &$llmMessages, bool $approvalEnabled): void
     {
-        $note = trim(prompt('tools/approval', ['approval' => $approvalEnabled]));
+        $note = Str::trim(prompt('tools/approval', ['approval' => $approvalEnabled]));
         if ($note === '') {
             return;
         }
 
         foreach ($llmMessages as $i => $message) {
             if (($message['role'] ?? null) === 'system') {
-                $llmMessages[$i]['content'] = rtrim((string) ($message['content'] ?? ''))."\n\n".$note;
+                $llmMessages[$i]['content'] = Str::rtrim((string) ($message['content'] ?? ''))."\n\n".$note;
 
                 return;
             }

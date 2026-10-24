@@ -6,6 +6,7 @@ use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\FakePdfBuilder;
@@ -43,7 +44,7 @@ it('exports a conversation as a PDF', function (): void {
 
     Pdf::assertRespondedWithPdf(fn (FakePdfBuilder $pdf): bool => $pdf->viewName === 'chat.export.pdf'
         && $pdf->isDownload()
-        && str_ends_with($pdf->downloadName, '.pdf'));
+        && Str::endsWith($pdf->downloadName, '.pdf'));
 });
 
 it('exports a conversation as Markdown, message by message', function (): void {
@@ -95,9 +96,9 @@ it('keeps every PDF maker from loading anything a message links to', function ()
     Pdf::assertRespondedWithPdf(function (FakePdfBuilder $pdf): bool {
         $html = $pdf->getHtml();
 
-        return str_contains($html, '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; font-src data:; style-src \'unsafe-inline\'">')
-            && ! str_contains($html, '169.254.169.254')
-            && str_contains($html, 'the chart')
-            && str_contains($html, '<img src="data:image/png;base64,iVBORw0KGgo="');
+        return Str::contains($html, '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; font-src data:; style-src \'unsafe-inline\'">')
+            && ! Str::contains($html, '169.254.169.254')
+            && Str::contains($html, 'the chart')
+            && Str::contains($html, '<img src="data:image/png;base64,iVBORw0KGgo="');
     });
 });

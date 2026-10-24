@@ -7,6 +7,7 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -42,8 +43,8 @@ class EmbedMcpToolsAction
                 // ambiguously named tool on the "Stripe" server still surfaces
                 // for billing queries.
                 $server = $tool->mcpServer;
-                $serverContext = $server ? trim($server->name."\n".$server->description) : '';
-                $text = trim($serverContext."\n\n".$tool->name."\n\n".$tool->description);
+                $serverContext = $server ? Str::trim($server->name."\n".$server->description) : '';
+                $text = Str::trim($serverContext."\n\n".$tool->name."\n\n".$tool->description);
                 $tool->forceFill([
                     'embedding' => $this->embeddings->embed($text),
                     'search_text' => $text,

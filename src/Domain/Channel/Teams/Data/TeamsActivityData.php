@@ -2,6 +2,8 @@
 
 namespace Domain\Channel\Teams\Data;
 
+use Illuminate\Support\Str;
+
 /**
  * The parts of a Bot Framework message activity a channel turn needs: where to
  * reply (the conversation id and the regional `serviceUrl`), how to title a
@@ -46,7 +48,7 @@ final readonly class TeamsActivityData
      */
     private static function textWithoutBotMention(array $activity): string
     {
-        $text = $activity['text'] ?? '';
+        $text = (string) ($activity['text'] ?? '');
 
         if (blank($text)) {
             return '';
@@ -58,12 +60,12 @@ final readonly class TeamsActivityData
             if (($entity['type'] ?? null) === 'mention'
                 && ($entity['mentioned']['id'] ?? null) === $recipientId
                 && filled($entity['text'] ?? null)) {
-                $text = str_replace($entity['text'], '', $text);
+                $text = Str::replace((string) $entity['text'], '', $text);
             }
         }
 
-        $text = preg_replace('#</?at>#', '', $text) ?? $text;
+        $text = Str::replaceMatches('#</?at>#', '', $text) ?? $text;
 
-        return trim($text);
+        return Str::trim($text);
     }
 }

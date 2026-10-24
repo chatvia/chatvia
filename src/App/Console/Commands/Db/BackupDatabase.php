@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * `php artisan chatvia:db:backup` — pg_dump the Postgres database and ship
@@ -72,7 +73,7 @@ class BackupDatabase extends Command
                 ]);
 
             if (! $result->successful()) {
-                $this->error('pg_dump failed: '.trim($result->errorOutput()));
+                $this->error('pg_dump failed: '.Str::trim($result->errorOutput()));
                 Log::error('Database backup failed.', [
                     'exit_code' => $result->exitCode(),
                     'stderr' => $result->errorOutput(),
@@ -115,7 +116,7 @@ class BackupDatabase extends Command
         $disk = Storage::disk(self::DISK);
 
         $dumps = collect($disk->files(self::PREFIX))
-            ->filter(static fn (string $path): bool => str_ends_with($path, '.dump'))
+            ->filter(static fn (string $path): bool => Str::endsWith($path, '.dump'))
             ->sortDesc()
             ->values();
 

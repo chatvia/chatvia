@@ -7,6 +7,7 @@ use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Identity\Workspace\Models\User;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 /**
@@ -45,7 +46,7 @@ it('explains every card of every settings page', function (): void {
         foreach ($cards as $card) {
             $help = $instance->helpOf($card);
 
-            if (blank($help) || str_contains($help, '{title}')) {
+            if (blank($help) || Str::contains($help, '{title}')) {
                 $missing[] = $page::getSlug().'/'.($card->helpFile ?? $card->key).'.md';
             }
         }

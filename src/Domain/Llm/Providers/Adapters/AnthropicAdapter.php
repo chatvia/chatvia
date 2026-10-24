@@ -10,6 +10,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Anthropic;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Anthropic's API: the Claude models, through its own Messages API
@@ -65,7 +66,7 @@ final class AnthropicAdapter extends OpenAiCompatibleAdapter
             ->filter(fn (mixed $row): bool => is_array($row) && filled($row['id'] ?? null))
             ->map(fn (array $row): RemoteModelData => $this->toModel($row))
             ->unique('id')
-            ->sortBy(fn (RemoteModelData $model): string => strtolower($model->name))
+            ->sortBy(fn (RemoteModelData $model): string => Str::lower($model->name))
             ->values();
     }
 

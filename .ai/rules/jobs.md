@@ -20,7 +20,7 @@ The constructor takes only models, DTOs or ids, as promoted `public readonly` pr
 Use Laravel 13 queue attributes: `#[Queue('exports')]`, `#[Tries(3)]`, `#[Backoff(10, 60, 300)]`, `#[Timeout(120)]`, `#[MaxExceptions(3)]`, `#[UniqueFor(600)]`. Don't write `public int $tries` / `$timeout` properties or call `$this->onQueue()` in the constructor, unless the queue is chosen per instance. Give each setting a one-line reason.
 
 ## Pick the queue on purpose
-Put a job on an existing queue: `messages` (chat replies), `default` (short work), `analytics`, `ingestion.*`, `exports` (long deletes and exports), `voice`. The queue name picks the Horizon supervisor. A job whose timeout is over 300 seconds must sit on a long supervisor's queue, below that connection's `retry_after`. A new queue needs a supervisor, a `waits` entry and a line in `HorizonConfigTest`.
+Put a job on an existing queue: `messages` (chat replies), `default` (short work), `analytics`, `ingestion.*`, `exports` (long deletes and exports), `voice`. The queue name picks the Horizon supervisor. A job whose timeout is over 300 seconds must sit on a long supervisor's queue, below that connection's `retry_after`. A new queue needs a supervisor and a `waits` entry in `config/horizon.php`.
 
 ## Never repeat billed or sent work
 Work that bills a message or sends a reply gets one try, with a comment saying why. Retryable work must be safe to repeat: each step only does what is left. Stop duplicate dispatch with `ShouldBeUnique`, a namespaced `uniqueId()` built from entity ids, and `#[UniqueFor]` so a lock cannot stick.

@@ -46,3 +46,9 @@ it('puts the lab\'s logo before the model\'s name', function (): void {
         ->toBe('<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/labs/alibaba.svg); mask-image: url(/admin/model-logos/labs/alibaba.svg)" aria-hidden="true"></span><span>Qwen3 &lt;235B&gt;</span></span>')
         ->and(ModelLogo::label('llama3.1:8b', LlmProviderKind::Custom, 'llama3.1:8b'))->toBe('llama3.1:8b');
 });
+
+it('puts a provider\'s own logo before its name', function (): void {
+    expect(ModelLogo::forProvider('OpenRouter', LlmProviderKind::OpenRouter))
+        ->toBe('<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/openrouter.svg); mask-image: url(/admin/model-logos/openrouter.svg)" aria-hidden="true"></span><span>OpenRouter</span></span>')
+        ->and(ModelLogo::forProvider('My <Ollama>', LlmProviderKind::Custom))->toBe('My &lt;Ollama&gt;');
+});

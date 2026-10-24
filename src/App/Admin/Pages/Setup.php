@@ -6,6 +6,7 @@ namespace App\Admin\Pages;
 
 use App\Admin\AdminPanelProvider;
 use App\Admin\Forms\CardRadio;
+use App\Admin\Forms\ModelPicker;
 use App\Admin\RequireSetup;
 use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\AiProviderCheck;
@@ -66,7 +67,6 @@ use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -86,7 +86,6 @@ use Filament\Schemas\Components\View;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\GridDirection;
 use Filament\Support\Enums\Width;
 use Filament\Support\Exceptions\Halt;
 use Filament\Support\Icons\Heroicon;
@@ -98,7 +97,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Renderless;
@@ -1343,22 +1341,11 @@ class Setup extends SimplePage
             ->modalWidth(Width::TwoExtraLarge)
             ->fillForm(fn (): array => ['models' => (array) ($this->data['chat_models'] ?? [])])
             ->schema([
-                CheckboxList::make('models')
-                    ->hiddenLabel()
+                ModelPicker::make('models')
                     ->options(fn (): array => $this->modelChoices())
-                    ->allowHtml()
                     ->descriptions(fn (): array => $this->modelChoiceDescriptions())
-                    // One column, row by row: Filament's default fills CSS columns, which
-                    // in a list of fixed height spill to the side and scroll sideways.
-                    ->gridDirection(GridDirection::Row)
-                    ->searchable()
-                    ->searchPrompt('Search by name or id')
-                    ->noSearchResultsMessage('No model matches your search.')
-                    ->belowContent(fn (CheckboxList $component): HtmlString => $this->pickedCount($component->getStatePath()))
                     ->required()
-                    ->validationMessages(['required' => 'Pick at least one model for your agents.'])
-                    // A long list keeps its height while searching, so the dialog does not jump.
-                    ->extraAttributes(fn (): array => ['class' => count($this->models) > 8 ? 'cv-model-picker cv-model-picker--long' : 'cv-model-picker']),
+                    ->validationMessages(['required' => 'Pick at least one model for your agents.']),
             ])
             ->modalSubmitActionLabel('Done')
             ->action(function (array $data): void {
@@ -1375,21 +1362,6 @@ class Setup extends SimplePage
                     $this->data['default_model'] = $chosen[0] ?? null;
                 }
             });
-    }
-
-    /**
-     * How many models are ticked out of all listed, counted in the browser as
-     * boxes are ticked.
-     */
-    private function pickedCount(string $statePath): HtmlString
-    {
-        $total = count($this->models);
-
-        return new HtmlString(sprintf(
-            '<p class="cv-model-picker__count" x-data x-text="(($wire.get(%s) ?? []).length) + %s"></p>',
-            e(Js::from($statePath)),
-            e(Js::from(" of {$total} ".($total === 1 ? 'model' : 'models').' picked')),
-        ));
     }
 
     /**

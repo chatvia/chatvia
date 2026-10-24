@@ -125,6 +125,12 @@ final class ModelsDevCatalog
         return $kind->catalogKey();
     }
 
+    /** The logo of a provider itself (`openrouter`); a server of your own has none. */
+    public function providerLogo(LlmProviderKind $kind): ?string
+    {
+        return $this->enabled() ? $kind->catalogKey() : null;
+    }
+
     /**
      * The SVG of a logo, downloaded once and kept for a month; null when it
      * could not be read (not tried again for a day).

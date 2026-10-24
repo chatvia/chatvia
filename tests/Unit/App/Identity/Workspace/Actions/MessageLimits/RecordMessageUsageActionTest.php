@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Support\Carbon;
+use Tests\Support\Identity\SharedId;
 
 /**
  * Each counted message adds one to this month's count of the limit it is
@@ -28,7 +29,7 @@ it('does nothing for an account without a limit', function (): void {
 });
 
 it('counts a message in the current month', function (): void {
-    $limit = MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 10, 'messages_used' => 3, 'period_starts_at' => '2026-06-01']);
+    $limit = MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 10, 'messages_used' => 3]);
 
     $this->action->execute($limit);
 
@@ -36,7 +37,7 @@ it('counts a message in the current month', function (): void {
 });
 
 it('restarts the count on the first message of a new month', function (): void {
-    $limit = MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 10, 'messages_used' => 10, 'period_starts_at' => '2026-05-01']);
+    $limit = MessageLimit::factory()->forWorkspace($this->workspace)->lastMonth()->reached()->create();
 
     $this->action->execute($limit);
 
@@ -47,7 +48,7 @@ it('restarts the count on the first message of a new month', function (): void {
 });
 
 it('refuses the next turn once the message reaching the limit is counted', function (): void {
-    $limit = MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 2, 'messages_used' => 1, 'period_starts_at' => '2026-06-01']);
+    $limit = MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 2, 'messages_used' => 1]);
 
     // Warm the cached answer while there is still room.
     expect($this->allowance->canSend($this->workspace->id))->toBeTrue();
@@ -59,11 +60,11 @@ it('refuses the next turn once the message reaching the limit is counted', funct
 
 it('refuses only the chatter when their message reaches their limit', function (): void {
     // Same integer id as the workspace, so a mixed-up row or cache key shows.
-    $workspace = Workspace::factory()->create(['id' => 987_654_322]);
+    $workspace = Workspace::factory()->create(['id' => SharedId::workspaceAndChatter()]);
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create(['id' => $workspace->id]);
 
-    $workspaceLimit = MessageLimit::create(['workspace_id' => $workspace->id, 'monthly_limit' => 2, 'messages_used' => 1, 'period_starts_at' => '2026-06-01']);
-    $chatterLimit = MessageLimit::create(['chatter_id' => $chatter->id, 'monthly_limit' => 2, 'messages_used' => 1, 'period_starts_at' => '2026-06-01']);
+    $workspaceLimit = MessageLimit::factory()->forWorkspace($workspace)->create(['monthly_limit' => 2, 'messages_used' => 1]);
+    $chatterLimit = MessageLimit::factory()->forChatter($chatter)->create(['monthly_limit' => 2, 'messages_used' => 1]);
 
     expect($this->allowance->canSend($workspace->id))->toBeTrue()
         ->and($this->allowance->canSendAsChatter($chatter->id))->toBeTrue();
@@ -77,7 +78,7 @@ it('refuses only the chatter when their message reaches their limit', function (
 });
 
 it('counts from the stored row, not from a stale copy of the limit', function (): void {
-    $limit = MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 10, 'messages_used' => 3, 'period_starts_at' => '2026-06-01']);
+    $limit = MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 10, 'messages_used' => 3]);
     $stale = MessageLimit::query()->findOrFail($limit->id);
 
     // Another reply counted meanwhile; the stale copy still says 3.
@@ -89,7 +90,7 @@ it('counts from the stored row, not from a stale copy of the limit', function ()
 });
 
 it('restarts the month only once when two copies of last month\'s row count', function (): void {
-    $limit = MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 10, 'messages_used' => 9, 'period_starts_at' => '2026-05-01']);
+    $limit = MessageLimit::factory()->forWorkspace($this->workspace)->lastMonth()->create(['monthly_limit' => 10, 'messages_used' => 9]);
     $other = MessageLimit::query()->findOrFail($limit->id);
 
     $this->action->execute($limit);

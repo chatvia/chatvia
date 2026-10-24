@@ -7,6 +7,10 @@ use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamPermissionCatalog;
 
+/**
+ * A new team's default roles: the owner role with every permission code,
+ * made once however often it runs.
+ */
 it('gives a team the owner role with every permission code', function (): void {
     $owner = User::factory()->create();
     $team = Team::create(['name' => 'Bare', 'workspace_id' => $owner->workspace()->id]);

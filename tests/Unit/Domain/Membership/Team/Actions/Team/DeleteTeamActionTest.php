@@ -30,17 +30,20 @@ it('deletes a secondary, empty team', function (): void {
     expect($team->fresh())->toBeNull();
 });
 
-it('refuses the primary team', function (): void {
-    app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->owner->workspace(), name: 'Spare'));
+it('refuses the primary team, also when it is the only one', function (bool $withSpare): void {
+    if ($withSpare) {
+        app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->owner->workspace(), name: 'Spare'));
+    }
     $primary = ownerTeam($this->owner);
 
-    app(DeleteTeamAction::class)->execute($this->owner, $primary);
-})->throws(DomainValidationException::class, 'primary team');
-
-it('refuses the only team (as the primary)', function (): void {
+    expect(fn () => app(DeleteTeamAction::class)->execute($this->owner, $primary))
+        ->toThrow(DomainValidationException::class, 'primary team')
+        ->and($primary->fresh())->not->toBeNull();
+})->with([
+    'with a spare team' => true,
     // The sole team is always the primary one, so that guard answers first.
-    app(DeleteTeamAction::class)->execute($this->owner, ownerTeam($this->owner));
-})->throws(DomainValidationException::class, 'primary team');
+    'as the only team' => false,
+]);
 
 it('refuses a team that still has agents', function (): void {
     $team = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->owner->workspace(), name: 'Spare'));

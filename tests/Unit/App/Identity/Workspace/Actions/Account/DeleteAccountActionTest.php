@@ -5,6 +5,11 @@ use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Bus;
 
+/**
+ * Deleting an account from the dashboard switches the workspace and its
+ * members off at once (their sessions and keys stop working) and queues the
+ * teardown itself (DeleteUserAccountActionTest).
+ */
 it('switches the account and its members off at once and queues the teardown', function (): void {
     Bus::fake([DeleteWorkspaceJob::class]);
     $owner = User::factory()->workspace()->create();

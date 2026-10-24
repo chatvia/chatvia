@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Self-serve sign-up: the new account owns a new workspace with its default
+ * team, gets the message limit the admin set for new workspaces (none by
+ * default), and Registered fires only once everything is committed.
+ */
 it('creates a user who owns a new workspace and dispatches the Registered event', function (): void {
     Event::fake([Registered::class]);
 

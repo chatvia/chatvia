@@ -8,6 +8,7 @@ use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\Support\Identity\SharedId;
 
 /**
  * MessageAllowance answers "may this account send one more message this
@@ -22,14 +23,14 @@ beforeEach(function (): void {
 });
 
 /**
- * A workspace and one of its chatters with the same integer id. The id is far
- * above both tables' sequences, and the test transaction rolls it back.
+ * A workspace and one of its chatters with the same integer id, free in both
+ * tables.
  *
  * @return array{0: Workspace, 1: Chatter}
  */
 function allowanceWorkspaceAndChatterSharingAnId(): array
 {
-    $workspace = Workspace::factory()->create(['id' => 987_654_321]);
+    $workspace = Workspace::factory()->create(['id' => SharedId::workspaceAndChatter()]);
 
     return [$workspace, Chatter::factory()->ofWorkspace($workspace)->create(['id' => $workspace->id])];
 }
@@ -39,13 +40,13 @@ it('lets an account without a limit send', function (): void {
 });
 
 it('refuses an account that used its whole limit this month', function (): void {
-    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($this->workspace)->reached()->create();
 
     expect($this->allowance->canSend($this->workspace->id))->toBeFalse();
 });
 
 it('lets the account send again when a new month starts', function (): void {
-    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($this->workspace)->reached()->create();
 
     expect($this->allowance->canSend($this->workspace->id))->toBeFalse();
 
@@ -56,7 +57,7 @@ it('lets the account send again when a new month starts', function (): void {
 });
 
 it('answers from the cache without a query once warmed', function (): void {
-    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 5, 'messages_used' => 1, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 5, 'messages_used' => 1]);
     $this->allowance->canSend($this->workspace->id);
 
     DB::enableQueryLog();
@@ -73,7 +74,7 @@ it('lets a chatter without a limit send', function (): void {
 
 it('refuses a chatter who used their whole limit this month', function (): void {
     $chatter = Chatter::factory()->ofWorkspace($this->workspace)->create();
-    MessageLimit::create(['chatter_id' => $chatter->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forChatter($chatter)->reached()->create();
 
     expect($this->allowance->canSendAsChatter($chatter->id))->toBeFalse()
         ->and($this->allowance->limitForChatter($chatter->id)?->chatter_id)->toBe($chatter->id);
@@ -81,7 +82,7 @@ it('refuses a chatter who used their whole limit this month', function (): void 
 
 it('does not refuse a workspace over a chatter limit with the same id', function (): void {
     [$workspace, $chatter] = allowanceWorkspaceAndChatterSharingAnId();
-    MessageLimit::create(['chatter_id' => $chatter->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forChatter($chatter)->reached()->create();
 
     expect($this->allowance->canSendAsChatter($chatter->id))->toBeFalse()
         ->and($this->allowance->canSend($workspace->id))->toBeTrue()
@@ -90,7 +91,7 @@ it('does not refuse a workspace over a chatter limit with the same id', function
 
 it('does not refuse a chatter over a workspace limit with the same id', function (): void {
     [$workspace, $chatter] = allowanceWorkspaceAndChatterSharingAnId();
-    MessageLimit::create(['workspace_id' => $workspace->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($workspace)->reached()->create();
 
     expect($this->allowance->canSend($workspace->id))->toBeFalse()
         ->and($this->allowance->canSendAsChatter($chatter->id))->toBeTrue()
@@ -103,12 +104,12 @@ it('caches a workspace and a chatter with the same id under separate keys', func
     // Warm the workspace's "may send" answer, then reach the chatter's limit:
     // a shared cache key would answer the chatter from the workspace's entry.
     expect($this->allowance->canSend($workspace->id))->toBeTrue();
-    MessageLimit::create(['chatter_id' => $chatter->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forChatter($chatter)->reached()->create();
 
     expect($this->allowance->canSendAsChatter($chatter->id))->toBeFalse();
 
     // Forgetting the chatter's answer leaves the workspace's cached answer.
-    MessageLimit::create(['workspace_id' => $workspace->id, 'monthly_limit' => 5, 'messages_used' => 5, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($workspace)->reached()->create();
     $this->allowance->forgetChatter($chatter->id);
 
     expect($this->allowance->canSend($workspace->id))->toBeTrue();

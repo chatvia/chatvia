@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Support\Carbon;
+use Tests\Support\Identity\SharedId;
 
 /**
  * Setting a limit creates or updates the account's one row (a workspace's on
@@ -31,7 +32,7 @@ it('creates a limit that starts this month at zero', function (): void {
 });
 
 it('keeps what was used this month when the limit changes', function (): void {
-    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 120, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 300, 'messages_used' => 120]);
 
     $this->action->execute($this->workspace, 100);
 
@@ -43,7 +44,7 @@ it('keeps what was used this month when the limit changes', function (): void {
 });
 
 it('restarts the count when the stored month is over', function (): void {
-    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 280, 'period_starts_at' => '2026-05-01']);
+    MessageLimit::factory()->forWorkspace($this->workspace)->lastMonth()->create(['monthly_limit' => 300, 'messages_used' => 280]);
 
     $this->action->execute($this->workspace, 500);
 
@@ -61,7 +62,7 @@ it('removes the limit when null is given', function (): void {
 });
 
 it('applies a lower limit to the cached answer right away', function (): void {
-    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 50, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 300, 'messages_used' => 50]);
     $allowance = app(MessageAllowance::class);
 
     expect($allowance->canSend($this->workspace->id))->toBeTrue();
@@ -85,7 +86,7 @@ it('sets a chatter limit on the chatter, not on a workspace', function (): void 
 });
 
 it('keeps a workspace limit and a chatter limit with the same id apart', function (): void {
-    $workspace = Workspace::factory()->create(['id' => 987_654_323]);
+    $workspace = Workspace::factory()->create(['id' => SharedId::workspaceAndChatter()]);
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create(['id' => $workspace->id]);
 
     $this->action->execute($workspace, 1000);
@@ -103,7 +104,7 @@ it('keeps a workspace limit and a chatter limit with the same id apart', functio
 
 it('applies a lower chatter limit to the chatter right away', function (): void {
     $chatter = Chatter::factory()->ofWorkspace($this->workspace)->create();
-    MessageLimit::create(['chatter_id' => $chatter->id, 'monthly_limit' => 30, 'messages_used' => 10, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::factory()->forChatter($chatter)->create(['monthly_limit' => 30, 'messages_used' => 10]);
     $allowance = app(MessageAllowance::class);
 
     expect($allowance->canSendAsChatter($chatter->id))->toBeTrue();

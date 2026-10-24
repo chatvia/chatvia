@@ -8,6 +8,11 @@ use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Creating a team role (Settings → Teams): its code, permissions and agents;
+ * a name the team already uses, or an agent outside the team, creates
+ * nothing.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);

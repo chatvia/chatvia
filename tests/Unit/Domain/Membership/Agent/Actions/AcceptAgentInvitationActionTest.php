@@ -12,7 +12,6 @@ use Domain\Membership\Agent\Enums\InvitationCredentialKind;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * AcceptAgentInvitationAction is the account-binding step at the end of an
@@ -31,7 +30,7 @@ use Illuminate\Support\Str;
  *  - Happy paths: password sets a real password + verifies email; social
  *    verifies email without writing a password or linking a social account.
  *  - Single use: the invitation row is checked (exists, not expired) and
- *    deleted inside the same transaction as the account update.
+ *    deleted when the account is activated; a rejected accept keeps it.
  */
 function aaiAgentAndChatter(string $email = 'invited@example.com'): array
 {
@@ -50,12 +49,10 @@ function aaiAgentAndChatter(string $email = 'invited@example.com'): array
 
 function aaiInvitation(Agent $agent, string $email = 'invited@example.com', ?CarbonInterface $expiresAt = null): AgentChatterInvitation
 {
-    return AgentChatterInvitation::create([
-        'agent_id' => $agent->id,
+    return AgentChatterInvitation::factory()->forAgent($agent)->create(array_filter([
         'email' => $email,
-        'token' => Str::random(64),
-        'expires_at' => $expiresAt ?? now()->addDays(7),
-    ]);
+        'expires_at' => $expiresAt,
+    ]));
 }
 
 it('finalises the invitation on the password path: sets password, verifies email', function (): void {
@@ -188,19 +185,7 @@ it('activates only the chatter of the agent workspace when another workspace has
         ->and($twin->password)->toBeNull();
 });
 
-it('REJECTS when the agent_chatter grant was revoked between invitation and accept', function (): void {
-    [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
-    $agent->chatters()->detach($chatter->id);
-
-    expect(fn () => app(AcceptAgentInvitationAction::class)->execute(new AcceptAgentInvitationData(
-        invitation: aaiInvitation($agent, 'invited@example.com'),
-        name: 'Revoked',
-        kind: InvitationCredentialKind::Password,
-        password: 'pw-revoked-12',
-    )))->toThrow(AgentChatterInvitationRejectedException::class);
-});
-
-it('deletes the invitation in the same transaction that activates the chatter', function (): void {
+it('uses up the invitation when it activates the chatter', function (): void {
     [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
     $invitation = aaiInvitation($agent);
 
@@ -247,7 +232,7 @@ it('REJECTS an invitation that was already used (deleted) even with a stale copy
     expect($chatter->fresh()->email_verified_at)->toBeNull();
 });
 
-it('keeps the invitation when the accept is rejected, so the owner can fix access and it still works', function (): void {
+it('REJECTS when the grant was revoked between invitation and accept, and keeps the invitation for when access is fixed', function (): void {
     [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
     $invitation = aaiInvitation($agent);
     $agent->chatters()->detach($chatter->id);
@@ -259,5 +244,6 @@ it('keeps the invitation when the accept is rejected, so the owner can fix acces
         password: 'pw-revoked-12',
     )))->toThrow(AgentChatterInvitationRejectedException::class);
 
-    expect(AgentChatterInvitation::query()->whereKey($invitation->id)->exists())->toBeTrue();
+    expect(AgentChatterInvitation::query()->whereKey($invitation->id)->exists())->toBeTrue()
+        ->and($chatter->fresh()->email_verified_at)->toBeNull();
 });

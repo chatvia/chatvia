@@ -1,9 +1,10 @@
 <?php
 
 /**
- * UpdateChatterAccessAction: the Members sheet's message cap (stored on
- * `message_limits.chatter_id`, never on the workspace's `workspace_id` row) and
- * the deactivation switch for one chatter.
+ * UpdateChatterAccessAction: the Members sheet's message cap and deactivation
+ * switch for one chatter. The cap itself is SetMessageLimitAction's rule (see
+ * its test); this pins what the access update adds: a field left out keeps
+ * its value, and the switch moves the chatter off and on.
  */
 
 use App\Identity\Chatter\Actions\UpdateChatterAccessAction;
@@ -11,6 +12,7 @@ use App\Identity\Chatter\Data\UpdateChatterAccessData;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
+use Spatie\LaravelData\Optional;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->workspace()->create();
@@ -18,36 +20,31 @@ beforeEach(function (): void {
     $this->action = app(UpdateChatterAccessAction::class);
 });
 
-it('sets a monthly message limit', function (): void {
-    $this->action->execute(new UpdateChatterAccessData(
-        chatter: $this->chatter,
-        messagesLimit: 250,
-        deactivated: false,
-    ));
+it('keeps the stored message limit when the update leaves it out', function (): void {
+    MessageLimit::factory()->forChatter($this->chatter)->create(['monthly_limit' => 250]);
 
-    $limit = MessageLimit::query()->where('chatter_id', $this->chatter->id)->first();
+    $this->action->execute(new UpdateChatterAccessData($this->chatter, Optional::create(), true, 'Spam'));
 
-    expect($limit?->monthly_limit)->toBe(250)
-        ->and($limit?->workspace_id)->toBeNull();
+    expect(MessageLimit::query()->where('chatter_id', $this->chatter->id)->value('monthly_limit'))->toBe(250)
+        ->and($this->chatter->fresh()->isDeactivated())->toBeTrue();
 });
 
-it('does not write a workspace limit for a workspace whose id equals the chatter id', function (): void {
-    // Chatter and workspace ids come from different tables and can be equal.
-    $workspace = User::factory()->create()->workspace();
-    $chatter = Chatter::factory()->ofWorkspace($this->owner)->create(['id' => $workspace->id]);
+it('changes only the reason when the update leaves the switch out', function (bool $deactivated, ?string $reason): void {
+    if ($deactivated) {
+        $this->chatter->update(['deactivated_at' => now()->subDay(), 'deactivation_reason' => 'first']);
+    }
+    $before = $this->chatter->fresh()->deactivated_at;
 
-    $this->action->execute(new UpdateChatterAccessData($chatter, 50, false));
+    $this->action->execute(new UpdateChatterAccessData($this->chatter, Optional::create(), Optional::create(), 'second'));
 
-    expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('monthly_limit'))->toBe(50)
-        ->and(MessageLimit::query()->where('workspace_id', $workspace->id)->exists())->toBeFalse();
-});
+    $chatter = $this->chatter->fresh();
 
-it('clears the limit when null is given', function (): void {
-    $this->action->execute(new UpdateChatterAccessData($this->chatter, 100, false));
-    $this->action->execute(new UpdateChatterAccessData($this->chatter, null, false));
-
-    expect(MessageLimit::query()->where('chatter_id', $this->chatter->id)->exists())->toBeFalse();
-});
+    expect($chatter->deactivation_reason)->toBe($reason)
+        ->and($chatter->deactivated_at?->toDateTimeString())->toBe($before?->toDateTimeString());
+})->with([
+    'a deactivated chatter gets the new reason' => [true, 'second'],
+    'an active chatter stays active, without a reason' => [false, null],
+]);
 
 it('deactivates a chatter with a reason', function (): void {
     $this->action->execute(new UpdateChatterAccessData(

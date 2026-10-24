@@ -4,6 +4,10 @@ use App\Identity\Workspace\Actions\Account\RemoveProfilePhotoAction;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Removing a profile photo deletes the stored file and clears the path; an
+ * account without a photo is left as it is.
+ */
 it('deletes the stored photo and clears it on the account', function (): void {
     Storage::fake(User::PROFILE_IMAGE_DISK);
     Storage::disk(User::PROFILE_IMAGE_DISK)->put('users/x/profile-photos/me.jpg', 'jpeg');

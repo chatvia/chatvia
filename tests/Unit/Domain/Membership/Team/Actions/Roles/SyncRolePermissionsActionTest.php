@@ -6,6 +6,10 @@ use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 
+/**
+ * Saving a role's permissions creates the permission rows it needs and
+ * replaces the role's list.
+ */
 it('creates missing permission rows and replaces the role permissions', function (): void {
     $team = app(TeamService::class)->createDefaultTeam(User::factory()->create());
     $role = Role::query()->create([

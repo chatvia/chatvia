@@ -5,6 +5,11 @@ use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
 
+/**
+ * Which staff account a social sign-in reaches: the one linked to the
+ * identity, or the one with the same email when the provider says it is
+ * verified (then linked for next time). Nothing else.
+ */
 it('signs in the account already linked to the provider identity', function (): void {
     $user = User::factory()->create();
     UserSocial::query()->create(['user_id' => $user->id, 'provider' => SocialProvider::Google, 'provider_id' => 'g-123']);

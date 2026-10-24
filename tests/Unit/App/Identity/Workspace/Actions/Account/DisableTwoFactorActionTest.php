@@ -3,6 +3,10 @@
 use App\Identity\Workspace\Actions\Account\DisableTwoFactorAction;
 use App\Identity\Workspace\Models\User;
 
+/**
+ * Turning two-factor sign-in off clears both kinds: Fortify's (dashboard)
+ * and Filament's app authentication (admin panel).
+ */
 it('turns off the dashboard and the admin panel two-factor sign-in', function (): void {
     $user = User::factory()->create();
     $user->forceFill([

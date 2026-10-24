@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Notification;
 
 /**
  * RecordKnownDevice remembers each (IP, User-Agent) a staff account signs in
- * from. A known device only gets its last_seen_at moved on; the first device
- * ever is stored without an email; a further new device is stored and the
- * user gets a new-device email.
+ * from (RecordKnownDeviceActionTest covers the row itself). The first device
+ * ever and a known device send no email; a further new device sends the user
+ * a new-device email.
  */
 beforeEach(function (): void {
     Notification::fake();
@@ -41,16 +41,11 @@ it('stores the first device without sending an email', function (): void {
     Notification::assertNothingSent();
 });
 
-it('only moves last_seen_at on for a known device', function (): void {
-    $this->travelTo('2026-05-01 09:00:00');
+it('sends no email when a known device signs in again', function (): void {
+    rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
     rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
 
-    $this->travelTo('2026-05-03 18:30:00');
-    rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
-
-    $device = UserKnownDevice::query()->where('user_id', $this->user->id)->sole();
-
-    expect($device->last_seen_at->toDateTimeString())->toBe('2026-05-03 18:30:00');
+    expect(UserKnownDevice::query()->where('user_id', $this->user->id)->count())->toBe(1);
     Notification::assertNothingSent();
 });
 

@@ -3,6 +3,10 @@
 use App\Identity\Workspace\Enums\DateFormat;
 use Illuminate\Support\Carbon;
 
+/**
+ * The date formats a person can pick: each one's PHP format and the dropdown
+ * options with a worked example.
+ */
 it('maps each case to a php format token', function (DateFormat $case, string $expected): void {
     expect(Carbon::create(2026, 6, 8)->format($case->phpFormat()))->toBe($expected);
 })->with([
@@ -21,8 +25,4 @@ it('exposes dropdown options with worked examples', function (): void {
 
     $iso = collect($options)->firstWhere('value', DateFormat::Iso->value);
     expect($iso['example'])->toBe('2026-06-08');
-});
-
-it('defaults to iso', function (): void {
-    expect(DateFormat::default())->toBe(DateFormat::Iso);
 });

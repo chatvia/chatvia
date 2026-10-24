@@ -9,6 +9,11 @@ use App\Identity\Workspace\Services\WidgetAuthSessionService;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 
+/**
+ * The widget's session token (`X-AUTH-TOKEN`): it resolves to the staff
+ * account or chatter it was issued for, on its own agent, from the same
+ * browser, and stops working when that account is switched off.
+ */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);

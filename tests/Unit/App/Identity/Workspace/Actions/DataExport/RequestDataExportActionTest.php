@@ -8,92 +8,63 @@ use App\Identity\Workspace\Jobs\PrepareDataExportJob;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Str;
+
+/**
+ * Requesting a data export queues one pending export at a time: a pending one,
+ * or a ready one still in its download window, blocks a second request; an
+ * expired or failed one does not.
+ */
+beforeEach(function (): void {
+    Queue::fake();
+    $this->user = User::factory()->create();
+});
 
 it('creates a pending export and dispatches the build job', function (): void {
-    Queue::fake();
+    $export = app(RequestDataExportAction::class)->execute(new RequestDataExportData(user: $this->user));
 
-    $user = User::factory()->create();
-
-    $export = app(RequestDataExportAction::class)
-        ->execute(new RequestDataExportData(user: $user));
-
-    expect($export)->toBeInstanceOf(DataExport::class)
-        ->and($export->user_id)->toBe($user->id)
+    expect($export->user_id)->toBe($this->user->id)
         ->and($export->status)->toBe(DataExportStatus::Pending)
         ->and($export->download_token)->toHaveLength(64);
 
     Queue::assertPushed(PrepareDataExportJob::class, fn (PrepareDataExportJob $job): bool => $job->dataExportId === $export->id);
 });
 
-it('refuses to start a second export while one is pending', function (): void {
-    Queue::fake();
+/** An earlier export of the user, in the given state. */
+function rdeEarlierExport(User $user, string $state): DataExport
+{
+    $factory = DataExport::factory();
 
-    $user = User::factory()->create();
+    $state = match ($state) {
+        'pending' => $factory,
+        'ready' => $factory->ready(),
+        'expired' => $factory->ready()->state(['expires_at' => now()->subHour()]),
+        'failed' => $factory->failed(),
+    };
 
-    DataExport::create([
-        'user_id' => $user->id,
-        'status' => DataExportStatus::Pending,
-        'download_token' => Str::repeat('a', 64),
-    ]);
+    return $state->create(['user_id' => $user->id]);
+}
 
-    app(RequestDataExportAction::class)
-        ->execute(new RequestDataExportData(user: $user));
-})->throws(ActiveDataExportExistsException::class);
+it('refuses a second export while one is still active', function (string $state): void {
+    rdeEarlierExport($this->user, $state);
 
-it('refuses to start a second export while a ready export has not expired', function (): void {
-    Queue::fake();
+    expect(fn () => app(RequestDataExportAction::class)->execute(new RequestDataExportData(user: $this->user)))
+        ->toThrow(ActiveDataExportExistsException::class);
 
-    $user = User::factory()->create();
+    expect(DataExport::query()->where('user_id', $this->user->id)->count())->toBe(1);
+    Queue::assertNothingPushed();
+})->with([
+    'pending' => 'pending',
+    'ready and not expired' => 'ready',
+]);
 
-    DataExport::create([
-        'user_id' => $user->id,
-        'status' => DataExportStatus::Ready,
-        'download_token' => Str::repeat('b', 64),
-        'file_path' => 'data-exports/1/abc.zip',
-        'file_size' => 1024,
-        'expires_at' => now()->addHours(12),
-    ]);
+it('allows a new request once the previous export is over', function (string $state): void {
+    rdeEarlierExport($this->user, $state);
 
-    app(RequestDataExportAction::class)
-        ->execute(new RequestDataExportData(user: $user));
-})->throws(ActiveDataExportExistsException::class);
-
-it('allows a new request once the previous export has expired', function (): void {
-    Queue::fake();
-
-    $user = User::factory()->create();
-
-    DataExport::create([
-        'user_id' => $user->id,
-        'status' => DataExportStatus::Ready,
-        'download_token' => Str::repeat('c', 64),
-        'file_path' => 'data-exports/1/old.zip',
-        'file_size' => 1024,
-        'expires_at' => now()->subHour(),
-    ]);
-
-    $export = app(RequestDataExportAction::class)
-        ->execute(new RequestDataExportData(user: $user));
+    $export = app(RequestDataExportAction::class)->execute(new RequestDataExportData(user: $this->user));
 
     expect($export->status)->toBe(DataExportStatus::Pending);
     Queue::assertPushed(PrepareDataExportJob::class);
-});
-
-it('allows a new request after the previous one failed', function (): void {
-    Queue::fake();
-
-    $user = User::factory()->create();
-
-    DataExport::create([
-        'user_id' => $user->id,
-        'status' => DataExportStatus::Failed,
-        'download_token' => Str::repeat('d', 64),
-        'error_message' => 'something broke',
-    ]);
-
-    $export = app(RequestDataExportAction::class)
-        ->execute(new RequestDataExportData(user: $user));
-
-    expect($export->status)->toBe(DataExportStatus::Pending);
-});
+})->with([
+    'ready, past its download window' => 'expired',
+    'failed' => 'failed',
+]);

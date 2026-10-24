@@ -10,23 +10,26 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
+/**
+ * Building a data export: the person's data in a ZIP on the local disk, the
+ * workspace's data for its owner only, streamed in batches without internal
+ * columns or secrets, the stored files copied in. A failed step marks the
+ * export failed and leaves no files behind.
+ */
 it('packages user data into a zip and marks the export ready', function (): void {
     Event::fake([DataExportReady::class]);
     Storage::fake('local');
 
     $user = User::factory()->create();
 
-    $export = DataExport::create([
-        'user_id' => $user->id,
-        'status' => DataExportStatus::Pending,
-        'download_token' => Str::repeat('z', 64),
-    ]);
+    $export = DataExport::factory()->create(['user_id' => $user->id]);
 
     app(BuildDataExportArchiveAction::class)->execute($export);
 
@@ -85,54 +88,45 @@ function bdeEntries(DataExport $export): array
 /** A pending export for the user. */
 function bdeExport(User $user): DataExport
 {
-    return DataExport::create([
-        'user_id' => $user->id,
-        'status' => DataExportStatus::Pending,
-        'download_token' => Str::random(64),
-    ]);
+    return DataExport::factory()->create(['user_id' => $user->id]);
 }
 
-it('streams a workspace bigger than one batch, with explicit columns and short queries', function (): void {
+/**
+ * The owner's export of a workspace bigger than one batch of two: five
+ * conversations of two messages and one stored attachment each (one of them
+ * in the trash), a knowledge file, and a chat of another workspace. Built
+ * with batches of two, so it takes three rounds; `maxBindings` is the most
+ * parameters one query of the build carried.
+ *
+ * @return array{export: DataExport, agent: Agent, conversations: Collection<int, Conversation>, file: Model, maxBindings: int}
+ */
+function bdeBuildBigWorkspace(): array
+{
     Event::fake([DataExportReady::class]);
     Storage::fake('local');
     Storage::fake();
 
     $agent = Agent::factory()->create(['auth_secret' => 'cvsk_secret']);
-    $owner = $agent->workspace->owner;
-    $other = Agent::factory()->create();
-
-    // Five conversations of two messages and one attachment each; one is in
-    // the trash. Batches of two need three rounds.
     $conversations = Conversation::factory()->count(5)->create(['agent_id' => $agent->id, 'title' => 'Hello']);
 
     foreach ($conversations as $conversation) {
         Message::factory()->count(2)->create(['chat_conversation_id' => $conversation->id]);
 
         $path = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/attachments/'.$conversation->id.'.txt';
-        Storage::disk(Attachment::DISK)->put($path, 'attachment-'.$conversation->id);
-        Attachment::create([
-            'workspace_id' => $agent->workspace_id,
-            'chat_conversation_id' => $conversation->id,
+        Attachment::factory()->forConversation($conversation)->stored('attachment-'.$conversation->id)->create([
             'filepath' => $path,
             'filename' => '../evil/'.$conversation->id.'.txt',
             'mime_type' => 'text/plain',
-            'size_bytes' => 12,
         ]);
     }
 
     $conversations->first()->delete();
-
-    // Another workspace's chats stay out.
-    Conversation::factory()->create(['agent_id' => $other->id]);
+    Conversation::factory()->create(['agent_id' => Agent::factory()->create()->id]);
 
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'filename' => 'manual.txt']);
     Storage::put($file->filepath, 'knowledge-bytes');
 
-    $export = DataExport::create([
-        'user_id' => $owner->id,
-        'status' => DataExportStatus::Pending,
-        'download_token' => Str::repeat('y', 64),
-    ]);
+    $export = bdeExport($agent->workspace->owner);
 
     $maxBindings = 0;
     DB::listen(function (QueryExecuted $query) use (&$maxBindings): void {
@@ -141,20 +135,37 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
 
     new BuildDataExportArchiveAction(batchSize: 2)->execute($export);
 
-    $export->refresh();
-    expect($export->status)->toBe(DataExportStatus::Ready);
+    return ['export' => $export->refresh(), 'agent' => $agent, 'conversations' => $conversations, 'file' => $file, 'maxBindings' => $maxBindings];
+}
 
-    $exportedConversations = json_decode(bdeEntry($export, 'conversations.json'), true, flags: JSON_THROW_ON_ERROR);
-    $exportedMessages = json_decode(bdeEntry($export, 'messages.json'), true, flags: JSON_THROW_ON_ERROR);
-    $agents = json_decode(bdeEntry($export, 'agents.json'), true, flags: JSON_THROW_ON_ERROR);
-    $knowledge = json_decode(bdeEntry($export, 'knowledge-sources.json'), true, flags: JSON_THROW_ON_ERROR);
+/** @return array<int|string, mixed> */
+function bdeJson(DataExport $export, string $name): array
+{
+    return json_decode((string) bdeEntry($export, $name), true, flags: JSON_THROW_ON_ERROR);
+}
 
-    expect(collect($exportedConversations)->pluck('id')->sort()->values()->all())->toBe($conversations->modelKeys())
-        ->and($exportedConversations[0]['title'])->toBe('Hello')
-        ->and($exportedConversations[0])->not->toHaveKeys(['workspace_id', 'analysis_attempts'])
-        ->and($exportedMessages)->toHaveCount(10)
-        ->and($exportedMessages[0])->toHaveKey('content')
-        ->and($exportedMessages[0])->not->toHaveKeys(['workspace_id', 'generation_id'])
+it('exports every conversation of the workspace, trashed ones too, in queries no bigger than one batch', function (): void {
+    ['export' => $export, 'conversations' => $conversations, 'maxBindings' => $maxBindings] = bdeBuildBigWorkspace();
+
+    expect($export->status)->toBe(DataExportStatus::Ready)
+        ->and(collect(bdeJson($export, 'conversations.json'))->pluck('id')->sort()->values()->all())->toBe($conversations->modelKeys())
+        ->and(bdeJson($export, 'messages.json'))->toHaveCount(10)
+        // No query carries more parameters than one batch of ids (plus a few).
+        ->and($maxBindings)->toBeLessThanOrEqual(6);
+});
+
+it('writes the exported columns only, never internal ids or secrets', function (): void {
+    ['export' => $export, 'agent' => $agent] = bdeBuildBigWorkspace();
+
+    $conversations = bdeJson($export, 'conversations.json');
+    $messages = bdeJson($export, 'messages.json');
+    $agents = bdeJson($export, 'agents.json');
+    $knowledge = bdeJson($export, 'knowledge-sources.json');
+
+    expect($conversations[0]['title'])->toBe('Hello')
+        ->and($conversations[0])->not->toHaveKeys(['workspace_id', 'analysis_attempts'])
+        ->and($messages[0])->toHaveKey('content')
+        ->and($messages[0])->not->toHaveKeys(['workspace_id', 'generation_id'])
         ->and($agents)->toHaveCount(1)
         ->and($agents[0]['external_id'])->toBe($agent->external_id)
         ->and($agents[0])->not->toHaveKey('auth_secret')
@@ -162,11 +173,16 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
         ->and($knowledge['files'][0])->not->toHaveKeys(['filepath', 'checksum'])
         ->and($knowledge['texts'])->toBe([])
         ->and($knowledge['websites'])->toBe([]);
+});
 
-    // Every stored file is copied in, under a name without folders. (Moving
-    // a conversation to the trash already removed its attachment.)
+it('copies every stored file in under a name without folders', function (): void {
+    ['export' => $export, 'conversations' => $conversations, 'file' => $file] = bdeBuildBigWorkspace();
+
+    // Moving a conversation to the trash already removed its attachment.
     $attachments = Attachment::query()->whereIn('chat_conversation_id', $conversations->modelKeys())->get();
-    expect($attachments)->toHaveCount(4);
+
+    expect($attachments)->toHaveCount(4)
+        ->and(bdeEntry($export, "attachments/knowledge/{$file->id}-manual.txt"))->toBe('knowledge-bytes');
 
     foreach ($attachments as $attachment) {
         $conversationId = $attachment->chat_conversation_id;
@@ -174,11 +190,6 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
         expect(bdeEntry($export, "attachments/conversations/{$conversationId}/{$attachment->id}-{$conversationId}.txt"))
             ->toBe('attachment-'.$conversationId);
     }
-
-    expect(bdeEntry($export, "attachments/knowledge/{$file->id}-manual.txt"))->toBe('knowledge-bytes');
-
-    // No query carries more parameters than one batch of ids (plus a few).
-    expect($maxBindings)->toBeLessThanOrEqual(6);
 });
 
 it('gives a teammate their personal data only, never the workspace data', function (): void {

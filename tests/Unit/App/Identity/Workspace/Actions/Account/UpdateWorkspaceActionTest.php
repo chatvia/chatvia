@@ -5,6 +5,10 @@ use App\Identity\Workspace\Data\Account\UpdateWorkspaceData;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 
+/**
+ * The admin panel's workspace edit: the workspace's name and its owner's name
+ * and email. A workspace without an owner only gets its name.
+ */
 it('renames the workspace and saves its owner\'s name and email', function (): void {
     $owner = User::factory()->create(['name' => 'Dana Owner', 'email' => 'dana@acme.test']);
     $workspace = $owner->workspace();

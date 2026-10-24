@@ -5,6 +5,10 @@ use Domain\Membership\Team\Actions\Team\ResolveOwnedTeamAction;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Finding a team by its public id inside the caller's workspace; another
+ * workspace's team is a `team_id` field error, as if it did not exist.
+ */
 it('resolves a team the owner owns', function (): void {
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);

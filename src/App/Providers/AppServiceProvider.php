@@ -129,7 +129,9 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
-        ParallelTesting::setUpProcess(fn (int|string $token): mixed => ParallelTestDatabases::prepare(config(), (string) $token));
+        ParallelTesting::setUpProcess(function (int|string $token): void {
+            ParallelTestDatabases::prepare(config(), (string) $token);
+        });
     }
 
     private function extendSocialiteProviders(): void

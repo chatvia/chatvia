@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
 use Domain\Knowledge\Ingestion\Enums\ChunkSizeUnit;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;

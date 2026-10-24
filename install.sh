@@ -2520,6 +2520,7 @@ native_update_system() {
 # are, and the install goes on.
 native_add_redis_repo() {
     local release keyring=/usr/share/keyrings/redis-archive-keyring.asc
+    # shellcheck source=/dev/null
     release=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}") || return 0
     [ -n "$release" ] || return 0
     curl -fsI --max-time 10 "https://packages.redis.io/deb/dists/$release/Release" >/dev/null 2>&1 || {

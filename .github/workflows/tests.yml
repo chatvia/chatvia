@@ -13,9 +13,11 @@ on:
   workflow_dispatch:
 
 # Read-only token, and no secrets anywhere in this workflow, so it runs the same
-# for pull requests from forks.
+# for pull requests from forks. `packages: read` pulls the Postgres image from
+# the GitHub Container Registry.
 permissions:
   contents: read
+  packages: read
 
 # A new push to the same pull request cancels its older run. Runs on branches
 # are never cancelled. The group includes the caller's workflow name, so a run

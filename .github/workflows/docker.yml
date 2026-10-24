@@ -30,6 +30,10 @@ jobs:
   tests:
     name: Tests
     uses: ./.github/workflows/tests.yml
+    # A called workflow gets no more than this; it pulls the Postgres image.
+    permissions:
+      contents: read
+      packages: read
 
   image:
     name: Build and push

@@ -2022,7 +2022,10 @@
             "reasoning_low": "低",
             "reasoning_medium": "中",
             "reasoning_high": "高",
-            "reasoning_locked": "管理员已为所有智能体关闭推理(管理面板 → 设置 → AI 模型)。"
+            "reasoning_locked": "管理员已为所有智能体关闭推理(管理面板 → 设置 → AI 模型)。",
+            "model_no_tools": "不支持工具调用",
+            "model_no_tools_title": "此模型无法调用工具",
+            "model_no_tools_description": "工具将无法使用：智能体会在不使用工具的情况下回答。如果智能体需要工具，请选择其他模型。"
         },
         "topics_index": {
             "title": "主题",

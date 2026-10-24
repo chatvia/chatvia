@@ -115,6 +115,9 @@
             "model_placeholder": "Escolha um modelo",
             "model_default": "Predefinido",
             "model_empty": "Ainda não há modelos. Um administrador adiciona-os no painel de administração, em Settings → AI models.",
+            "model_no_tools": "Sem chamada de ferramentas",
+            "model_no_tools_title": "Este modelo não consegue chamar ferramentas",
+            "model_no_tools_description": "As ferramentas não vão funcionar: o agente responde sem elas. Escolha outro modelo se o agente precisar das suas ferramentas.",
             "behavior": {
                 "hosted_title": "Comportamento do Chat Alojado",
                 "hosted_description": "Opções de iframe para a superfície de Chat Alojado incorporado.",

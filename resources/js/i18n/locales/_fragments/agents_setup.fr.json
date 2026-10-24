@@ -115,6 +115,9 @@
             "model_placeholder": "Choisir un modèle",
             "model_default": "Par défaut",
             "model_empty": "Aucun modèle pour l'instant. Un administrateur les ajoute dans le panneau d'administration, sous Settings → AI models.",
+            "model_no_tools": "Pas d'appel d'outils",
+            "model_no_tools_title": "Ce modèle ne peut pas appeler d'outils",
+            "model_no_tools_description": "Les outils ne fonctionneront pas : l'agent répond sans eux. Choisissez un autre modèle si l'agent a besoin de ses outils.",
             "behavior": {
                 "hosted_title": "Comportement du chat hébergé",
                 "hosted_description": "Options d'iframe pour la surface de chat hébergé intégrée.",

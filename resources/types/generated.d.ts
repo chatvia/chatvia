@@ -1095,6 +1095,7 @@ declare namespace Domain {
                 is_reasoning: boolean;
                 is_selected: boolean;
                 provider_icon: string | null;
+                calls_tools: boolean;
             };
         }
         namespace Enums {

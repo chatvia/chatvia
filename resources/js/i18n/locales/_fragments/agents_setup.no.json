@@ -115,6 +115,9 @@
             "model_placeholder": "Velg en modell",
             "model_default": "Standard",
             "model_empty": "Ingen modeller ennå. En administrator legger dem til i adminpanelet under Settings → AI models.",
+            "model_no_tools": "Ingen verktøykall",
+            "model_no_tools_title": "Denne modellen kan ikke kalle verktøy",
+            "model_no_tools_description": "Verktøy vil ikke fungere: agenten svarer uten dem. Velg en annen modell hvis agenten trenger verktøyene sine.",
             "behavior": {
                 "hosted_title": "Atferd for Hosted Chat",
                 "hosted_description": "Iframe-innstillinger for den innebygde Hosted Chat-flaten.",

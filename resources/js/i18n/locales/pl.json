@@ -2023,7 +2023,10 @@
             "reasoning_low": "Niskie",
             "reasoning_medium": "Średnie",
             "reasoning_high": "Wysokie",
-            "reasoning_locked": "Administrator wyłączył rozumowanie dla wszystkich agentów (panel administracyjny → Ustawienia → Modele AI)."
+            "reasoning_locked": "Administrator wyłączył rozumowanie dla wszystkich agentów (panel administracyjny → Ustawienia → Modele AI).",
+            "model_no_tools": "Brak wywołań narzędzi",
+            "model_no_tools_title": "Ten model nie potrafi wywoływać narzędzi",
+            "model_no_tools_description": "Narzędzia nie będą działać: agent odpowiada bez nich. Wybierz inny model, jeśli agent potrzebuje swoich narzędzi."
         },
         "topics_index": {
             "title": "Tematy",

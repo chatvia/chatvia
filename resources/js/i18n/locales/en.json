@@ -2023,7 +2023,10 @@
             "reasoning_low": "Low",
             "reasoning_medium": "Medium",
             "reasoning_high": "High",
-            "reasoning_locked": "Your admin has turned reasoning off for all agents (admin panel → Settings → AI models)."
+            "reasoning_locked": "Your admin has turned reasoning off for all agents (admin panel → Settings → AI models).",
+            "model_no_tools": "No tool calling",
+            "model_no_tools_title": "This model cannot call tools",
+            "model_no_tools_description": "Tools will not work: the agent answers without them. Pick another model if the agent needs its tools."
         },
         "topics_index": {
             "title": "Topics",

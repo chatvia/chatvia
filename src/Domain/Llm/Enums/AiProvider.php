@@ -191,11 +191,14 @@ enum AiProvider: string
      * with many makers (OpenRouter) gets a few, so agents can try them side by
      * side.
      *
-     * The picks answer from the knowledge base well and do not reason
-     * (models.dev `reasoning: false`): a reasoning model thinks before every
-     * reply, which is slower and costs more, and adds little when the answer
-     * is in the retrieved text. Google and Groq serve no such model, so they
-     * keep their best reasoning ones.
+     * The picks call tools, stay close to the retrieved text (few made-up
+     * facts in grounded answers), and answer without thinking: they reason
+     * not at all (models.dev `reasoning: false`), or they take the effort
+     * `none`, which an agent sends while its reasoning is off. A model that
+     * thinks before every reply is slower and costs more, and adds little
+     * when the answer is in the retrieved text. Anthropic serves no such
+     * model, and Google's (Gemma, Flash-Lite) are made for lighter work, so
+     * both keep their best ones at the least thinking they take.
      *
      * @return list<list<string>>
      */
@@ -203,20 +206,25 @@ enum AiProvider: string
     {
         return match ($this) {
             self::Scaleway => [
-                ['qwen3-235b-a22b-instruct-2507'],
+                ['deepseek-v4.1-flash', 'deepseek-v4-flash-0731'],
+                ['qwen3.8-27b', 'qwen3-235b-a22b-instruct-2507'],
+                ['gemma-4-26b-a4b-it'],
                 ['llama-3.3-70b-instruct'],
-                ['mistral-small-3.2-24b-instruct-2506'],
             ],
             self::OpenRouter => [
-                ['qwen/qwen3-235b-a22b-2507', 'qwen/qwen3-next-80b-a3b-instruct'],
-                ['openai/gpt-4.1', 'openai/gpt-4.1-mini'],
-                ['mistralai/mistral-large-2512', 'mistralai/mistral-medium-3.1'],
-                ['meta-llama/llama-3.3-70b-instruct', 'meta-llama/llama-4-maverick'],
+                ['deepseek/deepseek-v4.1-flash', 'deepseek/deepseek-v4-flash'],
+                ['openai/gpt-6-sol', 'openai/gpt-5.4-mini', 'openai/gpt-4.1'],
+                ['google/gemma-4-26b-a4b-it', 'google/gemma-4-31b-it'],
+                ['qwen/qwen3.8-27b', 'qwen/qwen3-235b-a22b-2507'],
+                ['anthropic/claude-haiku-5.5', 'anthropic/claude-haiku-4.5'],
             ],
-            self::OpenAi => [['gpt-4.1', 'gpt-4.1-mini']],
+            self::OpenAi => [['gpt-6-sol', 'gpt-5.4-mini', 'gpt-4.1']],
             self::Mistral => [['mistral-large-2512', 'ministral-14b-2512']],
             self::Google => [['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']],
-            self::Groq => [['openai/gpt-oss-120b', 'llama-3.3-70b-versatile']],
+            self::Groq => [
+                ['qwen/qwen3.8-27b', 'qwen/qwen3.6-27b'],
+                ['llama-3.3-70b-versatile'],
+            ],
             self::Anthropic => [['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6']],
             self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
@@ -224,20 +232,21 @@ enum AiProvider: string
 
     /**
      * The model the setup picks for quick tasks (guardrails, follow-up
-     * questions, titles…), best first: small, fast, cheap and without
-     * reasoning where the provider has one. The first one the provider lists
-     * is picked.
+     * questions, titles…), best first: small, fast, cheap, good at short
+     * structured answers, and without thinking where the provider has one.
+     * Several run before each reply, so speed counts most. The first one the
+     * provider lists is picked.
      *
      * @return list<string>
      */
     public function presetQuickTaskModels(): array
     {
         return match ($this) {
-            self::Scaleway => ['mistral-small-3.2-24b-instruct-2506'],
-            self::OpenRouter => ['qwen/qwen3-30b-a3b-instruct-2507', 'openai/gpt-4.1-mini', 'mistralai/ministral-8b-2512'],
-            self::OpenAi => ['gpt-4.1-mini', 'gpt-4.1-nano'],
+            self::Scaleway => ['gemma-4-26b-a4b-it', 'qwen3.6-35b-a3b'],
+            self::OpenRouter => ['openai/gpt-6-luna', 'openai/gpt-5.4-nano', 'google/gemma-4-26b-a4b-it'],
+            self::OpenAi => ['gpt-6-luna', 'gpt-5.4-nano', 'gpt-4.1-mini'],
             self::Mistral => ['ministral-8b-2512', 'ministral-8b-latest'],
-            self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'],
+            self::Google => ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['openai/gpt-oss-20b'],
             self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
             self::Cohere, self::Jina, self::Voyage, self::Azure => [],
@@ -247,7 +256,7 @@ enum AiProvider: string
     /**
      * The model the setup picks for image descriptions (the pictures inside
      * PDF files and other documents), best first: small models that read
-     * images, without reasoning where the provider has one. The first one the
+     * images, without thinking where the provider has one. The first one the
      * provider lists is picked; with none, image descriptions stay off.
      *
      * @return list<string>
@@ -255,14 +264,36 @@ enum AiProvider: string
     public function presetVisionModels(): array
     {
         return match ($this) {
-            self::Scaleway => ['mistral-small-3.2-24b-instruct-2506'],
-            self::OpenRouter => ['qwen/qwen3-vl-30b-a3b-instruct', 'mistralai/mistral-small-3.2-24b-instruct', 'openai/gpt-4.1-mini'],
-            self::OpenAi => ['gpt-4.1-mini'],
+            self::Scaleway => ['gemma-4-26b-a4b-it', 'qwen3.6-35b-a3b'],
+            self::OpenRouter => ['qwen/qwen3-vl-30b-a3b-instruct', 'openai/gpt-6-luna', 'google/gemma-4-26b-a4b-it'],
+            self::OpenAi => ['gpt-6-luna', 'gpt-5.4-nano', 'gpt-4.1-mini'],
             self::Mistral => ['ministral-14b-2512', 'mistral-large-2512'],
-            self::Google => ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'],
-            self::Groq => ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct'],
+            self::Google => ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'],
+            self::Groq => ['qwen/qwen3.8-27b', 'qwen/qwen3.6-27b', 'meta-llama/llama-4-scout-17b-16e-instruct'],
             self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
             self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+        };
+    }
+
+    /**
+     * The model the setup picks for chat file uploads (a PDF file or an
+     * image a chatter attaches), best first: models that read both
+     * (models.dev `pdf` and `image` inputs), call tools so the agent's tools
+     * still work, and answer as well as the chat models. The first one the
+     * provider lists is picked; with none, chat file uploads stay off.
+     * Scaleway and Groq serve no model that reads PDF files.
+     *
+     * @return list<string>
+     */
+    public function presetFileModels(): array
+    {
+        return match ($this) {
+            self::OpenRouter => ['openai/gpt-6-sol', 'openai/gpt-4.1-mini', 'google/gemini-2.5-flash', 'anthropic/claude-haiku-5.5'],
+            self::OpenAi => ['gpt-6-sol', 'gpt-4.1', 'gpt-4.1-mini'],
+            self::Mistral => ['mistral-large-2512', 'ministral-14b-2512'],
+            self::Google => ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'],
+            self::Anthropic => ['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6'],
+            self::Scaleway, self::Groq, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 }

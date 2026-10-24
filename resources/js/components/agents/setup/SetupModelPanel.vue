@@ -1,17 +1,19 @@
 <script setup lang="ts">
 /**
  * Setup → Model: the model the agent answers with, from the ones an admin
- * made available (grouped by the provider that serves them), the answer
+ * made available (grouped by the provider that serves them; a model that
+ * cannot call tools is marked, as the agent then answers without tools), the answer
  * temperature, and, for a model that reasons, how hard it thinks first. That
  * last one is locked at Off while the admin does not let agents reason.
  */
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 import type { ReasoningEffort } from '@/composables/agents/setup/useSetupModel';
-import { Server } from 'lucide-vue-next';
+import { Server, Wrench } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -95,6 +97,9 @@ const modelReasons = computed(() => selectedModel.value?.is_reasoning ?? false);
                                 <Badge v-if="llm.id === defaultModel" variant="secondary" class="text-xs font-normal">
                                     {{ t('agents.setup.model_default') }}
                                 </Badge>
+                                <span v-if="!llm.calls_tools" class="text-muted-foreground text-xs">
+                                    {{ t('agents.setup.model_no_tools') }}
+                                </span>
                             </SelectItem>
                         </SelectGroup>
                     </template>
@@ -103,6 +108,16 @@ const modelReasons = computed(() => selectedModel.value?.is_reasoning ?? false);
             <p v-if="form.errors.model_id" class="text-destructive text-sm">
                 {{ form.errors.model_id }}
             </p>
+            <Alert
+                v-if="selectedModel && !selectedModel.calls_tools"
+                class="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+            >
+                <Wrench />
+                <AlertTitle>{{ t('agents.setup.model_no_tools_title') }}</AlertTitle>
+                <AlertDescription class="text-amber-800 dark:text-amber-300">
+                    {{ t('agents.setup.model_no_tools_description') }}
+                </AlertDescription>
+            </Alert>
         </div>
 
         <div class="space-y-1 border-t pt-6">

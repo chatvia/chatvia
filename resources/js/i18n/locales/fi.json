@@ -2023,7 +2023,10 @@
             "reasoning_low": "Matala",
             "reasoning_medium": "Keskitaso",
             "reasoning_high": "Korkea",
-            "reasoning_locked": "Ylläpitäjä on poistanut päättelyn käytöstä kaikilta agenteilta (hallintapaneeli → Asetukset → Tekoälymallit)."
+            "reasoning_locked": "Ylläpitäjä on poistanut päättelyn käytöstä kaikilta agenteilta (hallintapaneeli → Asetukset → Tekoälymallit).",
+            "model_no_tools": "Ei työkalukutsuja",
+            "model_no_tools_title": "Tämä malli ei osaa kutsua työkaluja",
+            "model_no_tools_description": "Työkalut eivät toimi: agentti vastaa ilman niitä. Valitse toinen malli, jos agentti tarvitsee työkalujaan."
         },
         "topics_index": {
             "title": "Aiheet",

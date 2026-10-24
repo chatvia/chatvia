@@ -15,6 +15,7 @@ use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Bus;
@@ -41,7 +42,7 @@ beforeEach(function (): void {
 function modelsFakeOpenRouter(): void
 {
     connectAiProviders(AiProvider::OpenRouter);
-    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models/user' => Http::response(['data' => [
         [
             'id' => 'meta-llama/llama-4-maverick',
             'name' => 'Llama 4 Maverick',
@@ -60,8 +61,8 @@ function modelsFakeOpenRouter(): void
 }
 
 it('uses the recommended model for quick tasks of the default model\'s provider', function (): void {
-    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
-        ['id' => 'openai/gpt-4.1-mini', 'name' => 'GPT-4.1 Mini', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models/user' => Http::response(['data' => [
+        ['id' => 'openai/gpt-6-luna', 'name' => 'GPT-6 Luna', 'architecture' => ['input_modalities' => ['text', 'image']], 'supported_parameters' => ['tools']],
     ]])]);
     $chat = testLlm('meta-llama/llama-4-maverick', LlmProviderKind::OpenRouter);
     saveSettings(AiSettings::class, ['default_agent_model' => (string) $chat->id, 'guardrails_model' => (string) $chat->id]);
@@ -70,8 +71,8 @@ it('uses the recommended model for quick tasks of the default model\'s provider'
 
     $page = adminPage(ManageAiModelSettings::class, $this->admin)
         ->callAction(TestAction::make('recommendedTaskModels')->schemaComponent('recommended-task-models', schema: 'form'))
-        ->assertNotified('openai/gpt-4.1-mini does the quick tasks now');
-    $mini = (string) Llm::query()->where('name', 'openai/gpt-4.1-mini')->value('id');
+        ->assertNotified('openai/gpt-6-luna does the quick tasks now');
+    $mini = (string) Llm::query()->where('name', 'openai/gpt-6-luna')->value('id');
 
     $page->assertFormSet(['task_model' => $mini, 'guardrails_model' => null, 'eval_judge_model' => (string) $chat->id, 'images_model' => $mini]);
 
@@ -104,7 +105,7 @@ it('adds a model from a connected provider\'s list', function (): void {
 
 it('marks a model as reasoning when its provider says so', function (): void {
     connectAiProviders(AiProvider::OpenRouter);
-    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [[
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models/user' => Http::response(['data' => [[
         'id' => 'deepseek/deepseek-r1',
         'name' => 'DeepSeek R1',
         'supported_parameters' => ['tools', 'reasoning'],
@@ -141,6 +142,46 @@ it('adds several models at once', function (): void {
 
     expect(Llm::query()->whereIn('name', ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b'])->pluck('name')->sort()->values()->all())
         ->toBe(['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b']);
+});
+
+it('warns about a model that cannot call tools while adding it, still adds it, and marks it in the list', function (): void {
+    config(['chatvia.ai.models_dev.enabled' => true]);
+    Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['openrouter' => ['models' => [
+        'qwen/qwen3-235b-a22b' => ['tool_call' => false],
+        'meta-llama/llama-4-maverick' => ['tool_call' => true],
+    ]]], 'models' => []])]);
+    modelsFakeOpenRouter();
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->mountAction(TestAction::make('addModel')->table())
+        ->fillForm(['models' => ['meta-llama/llama-4-maverick']])
+        ->assertMountedActionModalDontSee('cannot call tools')
+        ->fillForm(['models' => ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b']])
+        ->assertMountedActionModalSee(['qwen/qwen3-235b-a22b cannot call tools', 'Tools will not work for agents that use it'])
+        ->callMountedAction()
+        ->assertHasNoActionErrors()
+        ->assertNotified('2 models added')
+        ->assertSee('No tool calling: tools will not work');
+
+    expect(Llm::query()->where('name', 'qwen/qwen3-235b-a22b')->sole()->callsTools())->toBeFalse();
+});
+
+it('lists only the models that read images for image descriptions, and keeps the one in use', function (): void {
+    $reader = testLlm('reader', attributes: ['capabilities' => ['modalities' => ['input' => ['text', 'image']]]]);
+    $textOnly = testLlm('text-only', attributes: ['capabilities' => ['modalities' => ['input' => ['text']]]]);
+    $unknown = testLlm('unknown');
+
+    $options = fn (): array => array_replace(...array_values(adminPage(ManageAiModelSettings::class, $this->admin)
+        ->instance()->form->getFlatFields(withHidden: true)['images_model']->getOptions()));
+
+    expect(array_keys($options()))->toBe([$reader->id]);
+
+    $settings = app(AiSettings::class);
+    $settings->images_model = (string) $textOnly->id;
+    $settings->save();
+
+    expect(array_keys($options()))->toEqualCanonicalizing([$reader->id, $textOnly->id])
+        ->and($options())->not->toHaveKey($unknown->id);
 });
 
 it('lists the first provider\'s models as soon as the form opens', function (): void {

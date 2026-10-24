@@ -2023,7 +2023,10 @@
             "reasoning_low": "Lav",
             "reasoning_medium": "Middels",
             "reasoning_high": "Høy",
-            "reasoning_locked": "Administratoren din har slått av resonnering for alle agenter (adminpanel → Innstillinger → AI-modeller)."
+            "reasoning_locked": "Administratoren din har slått av resonnering for alle agenter (adminpanel → Innstillinger → AI-modeller).",
+            "model_no_tools": "Ingen verktøykall",
+            "model_no_tools_title": "Denne modellen kan ikke kalle verktøy",
+            "model_no_tools_description": "Verktøy vil ikke fungere: agenten svarer uten dem. Velg en annen modell hvis agenten trenger verktøyene sine."
         },
         "topics_index": {
             "title": "Emner",

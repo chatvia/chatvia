@@ -2023,7 +2023,10 @@
             "reasoning_low": "Lav",
             "reasoning_medium": "Middel",
             "reasoning_high": "Høj",
-            "reasoning_locked": "Din administrator har slået overvejelser fra for alle agenter (adminpanel → Indstillinger → AI-modeller)."
+            "reasoning_locked": "Din administrator har slået overvejelser fra for alle agenter (adminpanel → Indstillinger → AI-modeller).",
+            "model_no_tools": "Ingen værktøjskald",
+            "model_no_tools_title": "Denne model kan ikke kalde værktøjer",
+            "model_no_tools_description": "Værktøjer virker ikke: agenten svarer uden dem. Vælg en anden model, hvis agenten har brug for sine værktøjer."
         },
         "topics_index": {
             "title": "Emner",

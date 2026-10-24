@@ -42,6 +42,17 @@ it('gives each model its provider logo, and none for a server of your own', func
                 && $catalog->firstWhere('id', $this->other->id)['provider_icon'] === null));
 });
 
+it('says which models cannot call tools, so the picker can warn', function (): void {
+    $toolless = testLlm('no-tools-model', attributes: ['capabilities' => ['tool_call' => false]]);
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.setup', $this->agent->external_id))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('catalog', fn (Collection $catalog): bool => $catalog->firstWhere('id', $toolless->id)['calls_tools'] === false
+                && $catalog->firstWhere('id', $this->other->id)['calls_tools'] === true));
+});
+
 it('sends the saved generation settings as numbers', function (): void {
     $this->agent->setSetting('temperature', '0.7', 'llm_settings');
 
@@ -61,3 +72,20 @@ it('tells the setup page the effort and whether reasoning is allowed', function 
             ->where('reasoningEffort', 'low')
             ->where('reasoningAllowed', true));
 });
+
+it('locks the file-upload switch while the install has no chat file uploads', function (Closure $arrange, bool $available): void {
+    $arrange();
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.setup', $this->agent->external_id))
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('fileUploadsAvailable', $available));
+})->with([
+    'on, with a model that reads files' => [function (): void {
+        useChatFiles();
+    }, true],
+    'turned off by an admin' => [function (): void {
+        useChatFiles();
+        useChatFiles(false);
+    }, false],
+    'no model reads files' => [function (): void {}, false],
+]);

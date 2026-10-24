@@ -14,6 +14,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Support\License\Entitlements;
 
 /**
  * The daily conversation retention sweep. First pulls every horizon back to
@@ -39,6 +40,10 @@ class PruneExpiredConversationsAction
      * the run reads only that slice of the sessions.
      */
     public const int UNUSED_SESSION_LOOKBACK_DAYS = 7;
+
+    public function __construct(
+        private readonly Entitlements $entitlements,
+    ) {}
 
     public function execute(int $chunk, int $graceDays): ConversationPruneResultData
     {
@@ -110,6 +115,11 @@ class PruneExpiredConversationsAction
      */
     private function pruneWorkspaceOverrides(int $chunk): int
     {
+        // Custom retention is an Enterprise feature; the install's own window still applies.
+        if (! $this->entitlements->enterprise()) {
+            return 0;
+        }
+
         $floor = (int) config('chatvia.retention.conversations_floor_days', 1);
         $ceiling = ConversationRetention::days();
 

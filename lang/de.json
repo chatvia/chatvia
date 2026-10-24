@@ -530,5 +530,6 @@
     "Your admin has turned reasoning off.": "Ihr Administrator hat das Nachdenken ausgeschaltet.",
     "Data, vector and keyword search": "Daten, Vektor- und Stichwortsuche",
     "Background jobs": "Hintergrundjobs",
-    "What each model supports": "Was jedes Modell unterstützt"
+    "What each model supports": "Was jedes Modell unterstützt",
+    "This needs an Enterprise license.": "Dafür ist eine Enterprise-Lizenz nötig."
 }

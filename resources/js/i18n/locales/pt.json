@@ -3338,6 +3338,13 @@
                 "tool_calls": "Chamadas de ferramentas",
                 "security": "Segurança"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Recursos Enterprise",
+            "locked_body": "Regras de rede, retenção de dados personalizada e o webhook SIEM precisam de uma licença Enterprise nesta instalação do ChatVia.ai. Suas configurações salvas são mantidas, mas só valem quando a instalação tiver uma.",
+            "export_csv": "Exportar CSV",
+            "export_locked": "Exportar o log de auditoria precisa de uma licença Enterprise."
         }
     },
     "app": {

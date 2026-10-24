@@ -3338,6 +3338,13 @@
                 "tool_calls": "Værktøjskald",
                 "security": "Sikkerhed"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Enterprise-funktioner",
+            "locked_body": "Netværksregler, egen dataopbevaring og SIEM-webhooken kræver en Enterprise-licens på denne ChatVia.ai-installation. Dine gemte indstillinger bevares, men de gælder først, når installationen har en.",
+            "export_csv": "Eksportér CSV",
+            "export_locked": "Eksport af revisionsloggen kræver en Enterprise-licens."
         }
     },
     "app": {

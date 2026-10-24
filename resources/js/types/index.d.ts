@@ -69,6 +69,9 @@ export interface SharedData extends PageProps {
     // Install-wide switches for unfinished features (`chatvia.features`), keyed
     // by name (e.g. `youtube_sources`). Read them through `useFeature()`.
     features: Record<string, boolean>;
+    // Whether this install has an Enterprise key: Security and Governance
+    // unlock their Enterprise features with it.
+    enterprise: boolean;
     // The knowledge file types this install accepts (admin Settings →
     // Ingestion), each with its extensions. Read through useKnowledgeFileTypes().
     knowledgeFileTypes: Partial<Record<Domain.Knowledge.Source.File.Enums.KnowledgeFileType, string[]>>;

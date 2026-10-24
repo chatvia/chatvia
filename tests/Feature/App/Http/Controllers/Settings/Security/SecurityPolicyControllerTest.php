@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Enums\GeoMode;
 use Domain\Security\Enums\IpAllowlistMode;
@@ -15,6 +16,7 @@ use Inertia\Testing\AssertableInertia;
  * in SecurityRetentionTest.
  */
 beforeEach(function (): void {
+    withEnterpriseLicense();
     $this->owner = User::factory()->create();
     ownerTeam($this->owner);
 });
@@ -153,4 +155,25 @@ it('rejects an internal SIEM webhook URL (SSRF)', function (): void {
         ->assertSessionHasErrors('webhook_url');
 
     expect(sppPolicy($this->owner)->webhook_url)->toBeNull();
+});
+
+it('refuses to save without an Enterprise license and keeps the saved rules', function (): void {
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
+    $policy->update(['ip_allowlist_mode' => 'dashboard', 'ip_allowlist' => ['203.0.113.0/24']]);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), sppForm())
+        ->assertForbidden();
+
+    expect($policy->fresh()->ip_allowlist)->toBe(['203.0.113.0/24']);
+});
+
+it('still shows the page without an Enterprise license', function (): void {
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    $this->actingAs($this->owner)
+        ->get(route('security.edit'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('enterprise', false));
 });

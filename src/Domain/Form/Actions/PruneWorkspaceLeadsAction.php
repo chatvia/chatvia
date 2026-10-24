@@ -7,11 +7,13 @@ namespace Domain\Form\Actions;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\DB;
+use Support\License\Entitlements;
 
 /**
  * Deletes captured leads (submitted `form_submissions`) older than the lead
  * retention a workspace chose in its security policy. Workspaces that left it
- * blank keep their leads. Pending and abandoned forms are not touched here:
+ * blank keep their leads, and so does every workspace while the install has
+ * no Enterprise key (custom retention is an Enterprise feature). Pending and abandoned forms are not touched here:
  * {@see PruneAbandonedFormSubmissionsAction} removes those.
  *
  * Rows go in batches, so one run never holds a huge delete, and nothing
@@ -19,11 +21,19 @@ use Illuminate\Support\Facades\DB;
  */
 class PruneWorkspaceLeadsAction
 {
+    public function __construct(
+        private readonly Entitlements $entitlements,
+    ) {}
+
     /**
      * @return int how many leads were deleted
      */
     public function execute(int $batchSize = 5000): int
     {
+        if (! $this->entitlements->enterprise()) {
+            return 0;
+        }
+
         // Never below the floor, even for a value saved before it was raised.
         $floor = (int) config('chatvia.retention.leads_floor_days', 1);
         $batchSize = max(1, $batchSize);

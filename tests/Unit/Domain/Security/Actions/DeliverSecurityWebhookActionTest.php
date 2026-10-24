@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\DeliverSecurityWebhookAction;
 use Domain\Security\Data\SecurityActorData;
@@ -47,6 +48,8 @@ function dswEnableSiem(User $owner, array $overrides = []): WorkspaceSecurityPol
 
     return $policy;
 }
+
+beforeEach(fn () => withEnterpriseLicense());
 
 it('delivers to the policy URL with its secret and resets the failure counter', function (): void {
     Http::fake(['*' => Http::response('', 200)]);
@@ -138,4 +141,19 @@ it('throws on a non-2xx response so the queue retries', function (): void {
 
     expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(dswEvent($owner->workspace()->id)))
         ->toThrow(RequestException::class);
+});
+
+it('sends nothing without an Enterprise license and keeps the webhook for later', function (): void {
+    Http::fake();
+    $owner = User::factory()->create();
+    $policy = dswEnableSiem($owner);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    expect(app(DeliverSecurityWebhookAction::class)->wants(dswEvent($owner->workspace()->id)))->toBeFalse();
+
+    app(DeliverSecurityWebhookAction::class)->execute(dswEvent($owner->workspace()->id));
+
+    Http::assertNothingSent();
+    expect($policy->fresh()->is_webhook_enabled)->toBeTrue()
+        ->and($policy->fresh()->webhook_url)->toBe('https://siem.example.com/ingest');
 });

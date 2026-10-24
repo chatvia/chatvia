@@ -14,6 +14,7 @@ use Illuminate\Support\Manager;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\Factory as Socialite;
 use Spatie\LaravelPdf\Drivers\PdfDriver;
+use Support\License\LicenseFeature;
 use Throwable;
 
 /**
@@ -70,10 +71,15 @@ final class SettingsConfig
         // however the switch was turned off (panel, chatvia:settings:set or config).
         $credit = 'chatvia.powered_by';
 
+        $license = $this->container->make(CreditLicense::class);
+
         if (($values[$credit] ?? $this->config->get($credit)) !== true
-            && ! $this->container->make(CreditLicense::class)->allowsHidingCredit($values['chatvia.license.key'] ?? null)) {
+            && ! $license->allowsHidingCredit($values['chatvia.license.key'] ?? null)) {
             $values[$credit] = true;
         }
+
+        // The Enterprise features follow the key alone; nothing else can switch them on.
+        $values['chatvia.license.enterprise'] = $license->allows($values['chatvia.license.key'] ?? null, LicenseFeature::Enterprise);
 
         $hash = md5(serialize($values));
 

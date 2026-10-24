@@ -530,5 +530,6 @@
     "Your admin has turned reasoning off.": "مدیر شما استدلال را خاموش کرده است.",
     "Data, vector and keyword search": "داده‌ها، جست‌وجوی برداری و کلیدواژه‌ای",
     "Background jobs": "کارهای پس‌زمینه",
-    "What each model supports": "آنچه هر مدل پشتیبانی می‌کند"
+    "What each model supports": "آنچه هر مدل پشتیبانی می‌کند",
+    "This needs an Enterprise license.": "این کار به مجوز Enterprise نیاز دارد."
 }

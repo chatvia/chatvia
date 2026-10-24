@@ -530,5 +530,6 @@
     "Your admin has turned reasoning off.": "Ylläpitäjäsi on poistanut päättelyn käytöstä.",
     "Data, vector and keyword search": "Tiedot, vektori- ja avainsanahaku",
     "Background jobs": "Taustatyöt",
-    "What each model supports": "Mitä kukin malli tukee"
+    "What each model supports": "Mitä kukin malli tukee",
+    "This needs an Enterprise license.": "Tämä tarvitsee Enterprise-lisenssin."
 }

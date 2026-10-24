@@ -6,12 +6,15 @@ namespace Domain\Conversation\Actions\Retention;
 
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\DB;
+use Support\License\Entitlements;
 
 /**
  * Clears the visitor details of chat sessions older than the "anonymize
  * after" window a workspace chose in its security policy: contact details,
  * IP address, browser string, location and the pages the visitor came from.
  * The session is stamped `anonymized_at`, so it is cleared only once.
+ * Custom retention is an Enterprise feature: without an Enterprise key no
+ * session is anonymized, and the saved windows apply again once one is added.
  *
  * What analytics needs stays: the agent, the country, the device type,
  * browser and OS, the locale. Messages, leads and the signed-in chatter's
@@ -34,11 +37,19 @@ class AnonymizeChatSessionsAction
         'referrer_url', 'page_url',
     ];
 
+    public function __construct(
+        private readonly Entitlements $entitlements,
+    ) {}
+
     /**
      * @return int how many sessions were anonymized
      */
     public function execute(int $batchSize = 5000): int
     {
+        if (! $this->entitlements->enterprise()) {
+            return 0;
+        }
+
         // Never below the floor, even for a value saved before it was raised.
         $floor = (int) config('chatvia.retention.anonymize_floor_days', 1);
         $batchSize = max(1, $batchSize);

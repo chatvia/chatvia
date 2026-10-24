@@ -9,6 +9,7 @@ use Domain\Conversation\Data\Audit\ToolCallAuditFiltersData;
 use Domain\Conversation\Models\AgentActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Support\LazyCollection;
 
 /**
  * Filtered, newest-first page of the Governed MCP Gateway audit log
@@ -26,6 +27,20 @@ class ToolCallAuditQuery
         return $this->filtered($filters)
             ->forWorkspace($workspaceId)
             ->cursorPaginate($perPage);
+    }
+
+    /**
+     * Every matching tool call of the workspace, newest first, read in chunks
+     * for the CSV export.
+     *
+     * @return LazyCollection<int, AgentActivity>
+     */
+    public function allForWorkspace(int $workspaceId, ToolCallAuditFiltersData $filters): LazyCollection
+    {
+        return $this->filtered($filters)
+            ->reorder()
+            ->forWorkspace($workspaceId)
+            ->lazyByIdDesc(500);
     }
 
     /**

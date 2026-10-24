@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -29,6 +30,8 @@ function pecAgedConversation(Agent $agent, int $daysIdle): Conversation
 
     return $conversation;
 }
+
+beforeEach(fn () => withEnterpriseLicense());
 
 it('prunes conversations idle past a workspace retention override', function (): void {
     $agent = Agent::factory()->create();
@@ -94,4 +97,15 @@ it('sweeps a hidden conversation of an overridden workspace by its own short hor
     $this->artisan('chatvia:prune:conversations')->assertSuccessful();
 
     expect(Conversation::withTrashed()->where('external_id', $id)->sole()->trashed())->toBeTrue();
+});
+
+it('ignores a workspace retention override without an Enterprise license', function (): void {
+    $agent = Agent::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 5]);
+    $old = pecAgedConversation($agent, daysIdle: 30);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    $this->artisan('chatvia:prune:conversations')->assertSuccessful();
+
+    expect($old->fresh()->trashed())->toBeFalse();
 });

@@ -22,6 +22,13 @@
         "api_keys": {
             "api_link": "ChatVia.ai API",
             "empty_description": "ChatVia.ai API का उपयोग शुरू करने के लिए एक जेनरेट करें।"
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Enterprise सुविधाएँ",
+            "locked_body": "नेटवर्क नियम, अपनी डेटा अवधि और SIEM वेबहुक के लिए इस ChatVia.ai इंस्टॉल पर Enterprise लाइसेंस चाहिए। आपकी सहेजी गई सेटिंग्स बनी रहती हैं, पर लाइसेंस मिलने तक लागू नहीं होतीं।",
+            "export_csv": "CSV निर्यात करें",
+            "export_locked": "ऑडिट लॉग निर्यात करने के लिए Enterprise लाइसेंस चाहिए।"
         }
     }
 }

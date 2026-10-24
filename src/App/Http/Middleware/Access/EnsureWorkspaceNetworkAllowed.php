@@ -10,6 +10,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Support\License\Entitlements;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -29,16 +30,23 @@ use Symfony\Component\HttpFoundation\Response;
  * the `web` group). The customer `/api/v1` surface lives in the `api` group and
  * is NOT covered yet, so a session-cookie-authenticated request from a blocked
  * country can still reach the same workspace data through the API.
+ *
+ * Network rules are an Enterprise feature. Without an Enterprise key they are
+ * not enforced (it fails open, so a lapsed key locks nobody out), and the
+ * saved rules apply again once a key is added.
  */
 class EnsureWorkspaceNetworkAllowed
 {
-    public function __construct(private readonly NetworkAccessGuard $guard) {}
+    public function __construct(
+        private readonly NetworkAccessGuard $guard,
+        private readonly Entitlements $entitlements,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (! $user instanceof User) {
+        if (! $user instanceof User || ! $this->entitlements->enterprise()) {
             return $next($request);
         }
 

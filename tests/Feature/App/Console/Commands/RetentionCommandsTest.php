@@ -25,6 +25,8 @@ use Illuminate\Support\Str;
  * past its workspace's window. What the Actions keep and remove is tested
  * next to them in tests/Unit.
  */
+beforeEach(fn () => withEnterpriseLicense());
+
 it('anonymizes old visitor sessions with chatvia:privacy:anonymize-sessions', function (): void {
     $agent = Agent::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['anonymize_after_days' => 30]);

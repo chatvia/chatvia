@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\PruneSecurityAuditLogAction;
 use Domain\Security\Models\SecurityAuditLog;
@@ -19,6 +20,8 @@ function psaRow(User $owner, int $daysAgo): void
         'created_at' => now()->subDays($daysAgo),
     ]);
 }
+
+beforeEach(fn () => withEnterpriseLicense());
 
 it('uses each workspace override, clamped to the floor, and the default for the rest', function (): void {
     config(['chatvia.security_audit.retention_floor_days' => 30]);
@@ -61,4 +64,15 @@ it('deletes in batches, for overriding workspaces and the rest alike', function 
     expect(app(PruneSecurityAuditLogAction::class)->execute(365, batchSize: 1))->toBe(4)
         ->and(SecurityAuditLog::query()->where('workspace_id', $shortened->workspace()->id)->count())->toBe(1)
         ->and(SecurityAuditLog::query()->where('workspace_id', $default->workspace()->id)->count())->toBe(1);
+});
+
+it('uses the default window for every workspace without an Enterprise license', function (): void {
+    $shortened = User::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($shortened->workspace()->id)->update(['retention_audit_days' => 60]);
+    psaRow($shortened, 90);  // past its override, inside the default → kept
+    psaRow($shortened, 400); // past the default → deleted
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    expect(app(PruneSecurityAuditLogAction::class)->execute(defaultDays: 365))->toBe(1)
+        ->and(SecurityAuditLog::query()->count())->toBe(1);
 });

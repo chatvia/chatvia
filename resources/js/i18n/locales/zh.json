@@ -3337,6 +3337,13 @@
                 "tool_calls": "工具调用",
                 "security": "安全"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Enterprise 功能",
+            "locked_body": "网络规则、自定义数据保留和 SIEM Webhook 需要此 ChatVia.ai 安装拥有 Enterprise 许可证。已保存的设置会保留，但在安装获得许可证之前不会生效。",
+            "export_csv": "导出 CSV",
+            "export_locked": "导出审计日志需要 Enterprise 许可证。"
         }
     },
     "app": {

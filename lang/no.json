@@ -530,5 +530,6 @@
     "Your admin has turned reasoning off.": "Administratoren din har slått av resonnering.",
     "Data, vector and keyword search": "Data, vektor- og nøkkelordsøk",
     "Background jobs": "Bakgrunnsjobber",
-    "What each model supports": "Hva hver modell støtter"
+    "What each model supports": "Hva hver modell støtter",
+    "This needs an Enterprise license.": "Dette krever en Enterprise-lisens."
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Retention\AnonymizeChatSessionsAction;
 use Domain\Conversation\Models\Session;
@@ -45,6 +46,8 @@ function acsAnonymizeAfter(Agent $agent, ?int $days): void
 {
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['anonymize_after_days' => $days]);
 }
+
+beforeEach(fn () => withEnterpriseLicense());
 
 it('clears visitor details on that workspace\'s older sessions and keeps the analytics fields', function (): void {
     $agent = Agent::factory()->create();
@@ -101,4 +104,14 @@ it('never uses a window below the configured floor', function (): void {
 
     expect(app(AnonymizeChatSessionsAction::class)->execute())->toBe(0)
         ->and(DB::table('chat_sessions')->where('id', $session->id)->value('email'))->toBe('dana@example.com');
+});
+
+it('anonymizes nothing without an Enterprise license', function (): void {
+    $agent = Agent::factory()->create();
+    acsAnonymizeAfter($agent, 30);
+    $old = acsVisitorSession($agent, 45);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    expect(app(AnonymizeChatSessionsAction::class)->execute())->toBe(0)
+        ->and($old->fresh()->email)->toBe('dana@example.com');
 });

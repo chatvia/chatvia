@@ -22,6 +22,8 @@ final class TestChatContext
 {
     /**
      * @param  list<array<string, mixed>>|null  $llmMessages  the history sent to the model; the message alone when null
+     * @param  string|null  $messageForLlm  the message with its reference material; the message itself when null
+     * @param  string|null  $queryLanguage  the language the question was written in, when the turn detected it
      */
     public static function make(
         ?Agent $agent = null,
@@ -34,6 +36,8 @@ final class TestChatContext
         bool $streamSources = false,
         ?string $userMessageId = null,
         ?int $chatterId = null,
+        ?string $messageForLlm = null,
+        ?string $queryLanguage = null,
     ): ChatContext {
         $llm ??= Llm::factory()->create();
 
@@ -56,11 +60,12 @@ final class TestChatContext
                 llm_id: $llm->id,
                 message: $message,
                 sent_at: now(),
-                message_for_llm: $message,
+                message_for_llm: $messageForLlm ?? $message,
             ),
             llmMessages: $llmMessages ?? [['role' => 'user', 'content' => $message]],
             userMessageId: $userMessageId ?? (string) Str::uuid(),
             assistantMessageId: (string) Str::uuid(),
+            queryLanguage: $queryLanguage,
         );
     }
 }

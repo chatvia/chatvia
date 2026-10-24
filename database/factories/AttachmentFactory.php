@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Identity\Workspace\Models\Workspace;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -44,6 +45,22 @@ class AttachmentFactory extends Factory
     public function forConversation(Conversation $conversation): static
     {
         return $this->state(['chat_conversation_id' => $conversation->id, 'workspace_id' => $conversation->workspace_id]);
+    }
+
+    /**
+     * An upload in the composer, before any conversation exists: in the
+     * agent's own upload folder, the one the chat checks before deleting it,
+     * or in a new workspace when no agent is given.
+     */
+    public function pending(?Agent $agent = null): static
+    {
+        return $this->state([
+            'chat_conversation_id' => null,
+            'chat_message_id' => null,
+            'workspace_id' => $agent->workspace_id ?? Workspace::factory(),
+        ])->state(fn (array $attributes): array => $agent instanceof Agent
+            ? ['filepath' => sprintf('workspaces/%s/agents/%s/attachments/pending/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, Str::uuid())]
+            : []);
     }
 
     public function forMessage(Message $message): static

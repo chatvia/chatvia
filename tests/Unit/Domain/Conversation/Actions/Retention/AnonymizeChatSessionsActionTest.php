@@ -61,11 +61,9 @@ it('clears visitor details on that workspace\'s older sessions and keeps the ana
     // its list fails the test.
     $visitorColumns = ['name', 'email', 'phone', 'ip_address', 'is_proxy', 'user_agent', 'city', 'region', 'zip_code', 'time_zone', 'referrer_url', 'page_url'];
     $cleared = DB::table('chat_sessions')->where('id', $old->id)->first();
-    foreach ($visitorColumns as $column) {
-        expect($cleared->{$column})->toBeNull("{$column} is still set");
-    }
 
-    expect($cleared->anonymized_at)->not->toBeNull()
+    expect(collect((array) $cleared)->only($visitorColumns)->reject(fn (mixed $value): bool => $value === null)->keys()->all())->toBe([])
+        ->and($cleared->anonymized_at)->not->toBeNull()
         // What analytics reads stays.
         ->and((int) $cleared->agent_id)->toBe($agent->id)
         ->and($cleared->country_id)->toEqual($old->country_id)
@@ -76,21 +74,17 @@ it('clears visitor details on that workspace\'s older sessions and keeps the ana
         // Clearing details is not visitor activity.
         ->and($cleared->updated_at)->toBe(DB::table('chat_sessions')->where('id', $old->id)->value('created_at'));
 
-    foreach ([$recent, $otherOld] as $untouched) {
-        $row = DB::table('chat_sessions')->where('id', $untouched->id)->first();
-
-        expect($row->anonymized_at)->toBeNull()
-            ->and($row->email)->toBe('dana@example.com')
-            ->and($row->ip_address)->toBe('203.0.113.9');
-    }
+    expect(DB::table('chat_sessions')->whereIn('id', [$recent->id, $otherOld->id])->get(['anonymized_at', 'email', 'ip_address'])->map(fn (object $row): array => (array) $row)->all())
+        ->toBe([
+            ['anonymized_at' => null, 'email' => 'dana@example.com', 'ip_address' => '203.0.113.9'],
+            ['anonymized_at' => null, 'email' => 'dana@example.com', 'ip_address' => '203.0.113.9'],
+        ]);
 });
 
 it('anonymizes in small batches and only once', function (): void {
     $agent = Agent::factory()->create();
     acsAnonymizeAfter($agent, 7);
-    foreach (range(1, 5) as $i) {
-        acsVisitorSession($agent, 10 + $i);
-    }
+    collect(range(11, 15))->each(fn (int $daysAgo): Session => acsVisitorSession($agent, $daysAgo));
 
     $action = app(AnonymizeChatSessionsAction::class);
 

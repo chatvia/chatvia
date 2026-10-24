@@ -3,7 +3,6 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
@@ -21,17 +20,8 @@ function adcaSetup(array $sessionAttrs = []): array
 {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
-
-    $session = Session::factory()->create(array_merge([
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'last_activity_at' => now()->subDay(),
-    ], $sessionAttrs));
-
-    $conversation = Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'source' => ConversationSource::Widget,
-    ]);
+    $session = Session::factory()->create(['agent_id' => $agent->id, 'last_activity_at' => now()->subDay(), ...$sessionAttrs]);
+    $conversation = Conversation::factory()->inSession($session)->create();
 
     return [$owner, $agent, $session, $conversation];
 }
@@ -101,10 +91,7 @@ it('keeps an inactive session while other conversations remain in it', function 
         'last_activity_at' => now()->subDays(45),
     ]);
 
-    $sibling = Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'source' => ConversationSource::Widget,
-    ]);
+    $sibling = Conversation::factory()->inSession($session)->create();
 
     app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
 

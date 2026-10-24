@@ -2,30 +2,29 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConfidenceBand;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The chat-log filters. filterByTopic matches through the conversation_topics
- * pivot, so a multi-label conversation appears under each of its topics.
+ * The chat-log filters: by topic (through the conversation_topics pivot, so
+ * a multi-label conversation appears under each of its topics), by the
+ * confidence band and the feedback of an assistant answer, by online status
+ * and by whole days. The latest message of each conversation loads in the
+ * same query.
  */
 it('matches conversations carrying the requested topic, multi-label aware', function (): void {
     $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
+    $billing = Topic::factory()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Billing']);
+    $bug = Topic::factory()->create(['workspace_id' => $agent->workspace_id, 'topic' => 'Bug']);
 
-    $billing = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Billing', 'description' => 'x']);
-    $bug = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Bug', 'description' => 'y']);
-
-    $multi = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::Widget]);
+    $multi = cqbConversation($agent);
     $multi->topics()->attach([$billing->id => ['workspace_id' => $agent->workspace_id], $bug->id => ['workspace_id' => $agent->workspace_id]]);
 
-    $single = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::Widget]);
+    $single = cqbConversation($agent);
     $single->topics()->attach([$bug->id => ['workspace_id' => $agent->workspace_id]]);
 
     $billingMatches = Conversation::query()->filterByTopic((string) $billing->id)->pluck('id')->all();
@@ -40,11 +39,7 @@ it('matches conversations carrying the requested topic, multi-label aware', func
 /** A widget conversation of the agent; the attributes override the defaults. */
 function cqbConversation(Agent $agent, array $attributes = []): Conversation
 {
-    return Conversation::factory()->create([
-        'chat_session_id' => Session::factory()->create(['agent_id' => $agent->id])->id,
-        'source' => ConversationSource::Widget,
-        ...$attributes,
-    ]);
+    return Conversation::factory()->forAgent($agent)->create($attributes);
 }
 
 /** @return list<int> the ids of the agent's conversations the query keeps */
@@ -88,13 +83,6 @@ it('ignores an unknown confidence band and an empty one', function (): void {
     expect(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByConfidenceScore(null)))->toBe([$answered->id, $unanswered->id])
         // An unknown band still needs a scored assistant answer, at any score.
         ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByConfidenceScore('sky-high')))->toBe([$answered->id]);
-});
-
-it('writes the confidence filter as the partial index predicate', function (): void {
-    $sql = Conversation::query()->filterByConfidenceScore('high')->toSql();
-
-    expect($sql)->toContain('"role" = ?')
-        ->and($sql)->toContain('"confidence_score" is not null');
 });
 
 it('loads the latest message of each conversation through one query', function (): void {

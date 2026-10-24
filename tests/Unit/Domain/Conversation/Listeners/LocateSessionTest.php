@@ -6,6 +6,12 @@ use Domain\Conversation\Models\Session;
 use Illuminate\Support\Facades\Http;
 use Support\Localization\Country\Models\Country;
 
+/**
+ * A new session's location: the country comes from the request (Cloudflare's
+ * country header), never from geo-locating the stored address, which may be
+ * Cloudflare's edge. The address's city is kept only when it agrees with that
+ * country, and a known country is never overwritten.
+ */
 beforeEach(function (): void {
     config([
         'services.ip2location.endpoint' => 'https://ip2location.test/',
@@ -18,12 +24,12 @@ beforeEach(function (): void {
     }
 });
 
-function fakeIpLocation(array $body): void
+function lcsFakeIpLocation(array $body): void
 {
     Http::fake(['ip2location.test*' => Http::response($body)]);
 }
 
-function locateSession(Session $session, ?string $countryCode): void
+function lcsLocate(Session $session, ?string $countryCode): void
 {
     app(LocateSession::class)->handle(new SessionLocationUnknown($session, $countryCode));
 }
@@ -32,7 +38,7 @@ it('stamps the request-resolved country and ignores a disagreeing IP geo', funct
     // Cloudflare says Iraq; the stored IP (the CF edge PoP) geo-locates to
     // Bulgaria. The country must follow Cloudflare, and Bulgaria's city must be
     // dropped rather than stamped against an Iraqi session.
-    fakeIpLocation([
+    lcsFakeIpLocation([
         'ip' => '203.0.113.10',
         'country_code' => 'BG',
         'city_name' => 'Sofia',
@@ -42,7 +48,7 @@ it('stamps the request-resolved country and ignores a disagreeing IP geo', funct
 
     $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => null, 'city' => null]);
 
-    locateSession($session, 'iq');
+    lcsLocate($session, 'iq');
 
     $session->refresh();
     expect($session->country_id)->toBe(Country::where('code', 'iq')->value('id'))
@@ -52,7 +58,7 @@ it('stamps the request-resolved country and ignores a disagreeing IP geo', funct
 });
 
 it('keeps IP-derived city/region when the IP geo agrees with the country', function (): void {
-    fakeIpLocation([
+    lcsFakeIpLocation([
         'ip' => '198.51.100.7',
         'country_code' => 'US',
         'city_name' => 'Seattle',
@@ -61,7 +67,7 @@ it('keeps IP-derived city/region when the IP geo agrees with the country', funct
 
     $session = Session::factory()->create(['ip_address' => '198.51.100.7', 'country_id' => null, 'city' => null]);
 
-    locateSession($session, 'us');
+    lcsLocate($session, 'us');
 
     $session->refresh();
     expect($session->country_id)->toBe(Country::where('code', 'us')->value('id'))
@@ -75,11 +81,11 @@ it('never stamps a country from IP geo when no Cloudflare country is supplied', 
     // instead of the visitor's. Leave country_id null: Request::country()
     // already geo-locates the real visitor at request time when there is no
     // Cloudflare in front.
-    fakeIpLocation(['ip' => '203.0.113.10', 'country_code' => 'BG', 'city_name' => 'Sofia']);
+    lcsFakeIpLocation(['ip' => '203.0.113.10', 'country_code' => 'BG', 'city_name' => 'Sofia']);
 
     $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => null, 'city' => null]);
 
-    locateSession($session, null);
+    lcsLocate($session, null);
 
     $session->refresh();
     expect($session->country_id)->toBeNull()
@@ -90,7 +96,7 @@ it('never overwrites an already-resolved country', function (): void {
     $bg = Country::where('code', 'bg')->value('id');
     $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => $bg]);
 
-    locateSession($session, 'iq');
+    lcsLocate($session, 'iq');
 
     expect($session->refresh()->country_id)->toBe($bg);
 });

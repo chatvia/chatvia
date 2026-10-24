@@ -1,0 +1,69 @@
+<?php
+
+use Domain\Agent\Models\Agent;
+use Domain\Llm\Enums\AiProvider;
+use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Services\DocumentLlm;
+use Inertia\Testing\AssertableInertia as Assert;
+
+/**
+ * The hosted chat page gets from the server which composer features to show,
+ * so it never offers what the server would refuse: uploads only with a model
+ * that reads PDFs, voice calls and dictation only while they are set up and
+ * on for the agent, and the visitor language switcher with the owner's list.
+ */
+beforeEach(function (): void {
+    $this->agent = Agent::factory()->create(['is_public' => true]);
+});
+
+it('tells the chat page which composer features to show', function (Closure $arrange, string $prop, mixed $expected): void {
+    $arrange($this->agent);
+
+    $this->get('/chat/'.$this->agent->slug)
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->where($prop, $expected));
+})->with([
+    'uploads, allowed with a PDF-reading model' => [function (Agent $agent): void {
+        $agent->setSetting('allow_file_uploads', true, 'appearance');
+        app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
+    }, 'allowFileUploads', true],
+    'uploads, allowed without a PDF-reading model' => [function (Agent $agent): void {
+        $agent->setSetting('allow_file_uploads', true, 'appearance');
+        app()->instance(DocumentLlm::class, new DocumentLlm(null));
+    }, 'allowFileUploads', false],
+    'uploads, turned off by the owner' => [function (Agent $agent): void {
+        $agent->setSetting('allow_file_uploads', false, 'appearance');
+        app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
+    }, 'allowFileUploads', false],
+    'voice calls, on for the agent' => [function (Agent $agent): void {
+        connectAiProviders(AiProvider::OpenAi);
+        config(['chatvia.ai.voice' => 'auto']);
+        $agent->setSetting('allow_voice_conversation', true, 'appearance');
+    }, 'voiceConversation', true],
+    'voice calls, off for the agent' => [function (Agent $agent): void {
+        connectAiProviders(AiProvider::OpenAi);
+        config(['chatvia.ai.voice' => 'auto']);
+        $agent->setSetting('allow_voice_conversation', false, 'appearance');
+    }, 'voiceConversation', false],
+    'dictation, no speech to text set up' => [function (): void {
+        config(['chatvia.ai.transcriber' => 'none']);
+    }, 'allowVoiceInput', false],
+    'dictation, speech to text set up' => [function (): void {
+        connectAiProviders(AiProvider::OpenAi);
+        config(['chatvia.ai.transcriber' => 'openai']);
+    }, 'allowVoiceInput', true],
+    'dictation, off for the agent' => [function (Agent $agent): void {
+        connectAiProviders(AiProvider::OpenAi);
+        config(['chatvia.ai.transcriber' => 'openai']);
+        $agent->setSetting('allow_voice_input', false, 'appearance');
+    }, 'allowVoiceInput', false],
+    'language switcher, by default' => [function (): void {}, 'enableLanguageSwitcher', true],
+    'language switcher, hidden by the owner' => [function (Agent $agent): void {
+        $agent->setSetting('show_language_switcher', false, 'embed');
+    }, 'enableLanguageSwitcher', false],
+    'languages, none picked: every language but "auto"' => [function (): void {
+        config(['chatvia.languages' => ['auto' => 'Auto-detect', 'en' => 'English', 'de' => 'Deutsch', 'ar' => 'العربية']]);
+    }, 'enabledLanguages', ['en', 'de', 'ar']],
+    'languages, picked by the owner' => [function (Agent $agent): void {
+        $agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
+    }, 'enabledLanguages', ['de', 'fr']],
+]);

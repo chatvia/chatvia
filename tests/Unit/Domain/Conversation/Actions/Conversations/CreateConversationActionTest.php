@@ -9,7 +9,6 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
@@ -22,38 +21,11 @@ use Illuminate\Support\Str;
  * MaxConversationAttachments on every later turn and running up document
  * reading costs.
  */
-function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
-{
-    $agent ??= Agent::factory()->create();
-
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    Conversation::factory()->create(['chat_session_id' => $session->id]);
-
-    // Create the rows with NO conversation binding so they remain orphans
-    // that claimAttachments() can claim.
-    // external_id is auto-generated on create (HasExternalId) and is not
-    // fillable, so we read it back rather than passing it in.
-    $ids = [];
-    for ($i = 0; $i < $count; $i++) {
-        $att = Attachment::create([
-            'workspace_id' => $agent->workspace_id,
-            'chat_conversation_id' => null,
-            'chat_message_id' => null,
-            'filepath' => 'users/test/agents/test/attachments/orphan-'.$i,
-            'filename' => "file-{$i}.pdf",
-            'mime_type' => 'application/pdf',
-            'size_bytes' => 8,
-        ]);
-        $ids[] = $att->external_id;
-    }
-
-    return [$agent, $session, $ids];
-}
-
 it('caps the number of attachments bound to a new conversation at config(chatvia.agent.files.upload.max_files)', function (): void {
     config(['chatvia.agent.files.upload.max_files' => 3]);
 
-    [$agent, , $orphanIds] = cccBuildOrphanAttachment(50);
+    $agent = Agent::factory()->create();
+    $orphanIds = Attachment::factory()->count(50)->pending($agent)->create()->pluck('external_id')->all();
 
     // Only the claim is exercised here; the other collaborators are tested
     // elsewhere.
@@ -79,20 +51,10 @@ it('caps the number of attachments bound to a new conversation at config(chatvia
 it('does NOT re-bind attachments that already belong to a different conversation', function (): void {
     config(['chatvia.agent.files.upload.max_files' => 100]);
 
-    [$agent] = cccBuildOrphanAttachment(0);
-
-    $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
-    $otherConversation = Conversation::factory()->create(['chat_session_id' => $otherSession->id]);
-
+    $agent = Agent::factory()->create();
+    $otherConversation = Conversation::factory()->forAgent($agent)->create();
     // Attachment is bound to another conversation already.
-    $alreadyBound = Attachment::create([
-        'workspace_id' => $otherConversation->workspace_id,
-        'chat_conversation_id' => $otherConversation->id,
-        'filepath' => 'users/test/agents/test/attachments/already-bound',
-        'filename' => 'bound.pdf',
-        'mime_type' => 'application/pdf',
-        'size_bytes' => 8,
-    ]);
+    $alreadyBound = Attachment::factory()->forConversation($otherConversation)->create();
 
     $data = new CreateConversationData(
         scope: new ChatScopeData($agent, (string) Str::uuid()),

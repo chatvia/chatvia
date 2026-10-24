@@ -8,16 +8,19 @@ use Domain\Conversation\Services\Tooling\Routing\ApprovalToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\StickyToolResolver;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
-use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Routing\AlwaysAvailableToolResolver;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
+/**
+ * The tools offered on a turn: the semantic router's pick, joined by the
+ * agent's always-on connector tools and the tools of recent turns, without
+ * duplicates. A fully pinned pool skips the router; a router failure offers
+ * the whole pool.
+ */
 function tsEntry(string $name): ToolEntry
 {
     return new ToolEntry(kind: ToolName::parse($name)->kind, sourceId: 'x:'.$name, name: $name, description: '', parameters: []);
@@ -26,20 +29,7 @@ function tsEntry(string $name): ToolEntry
 /** Attach a custom MCP server to the agent, optionally marked always-on. */
 function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpServer
 {
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'name' => Str::ucfirst($slug),
-        'slug' => $slug,
-        'url' => "https://example.test/mcp/{$slug}",
-        'category' => McpServerCategory::Custom,
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-
-    DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id, 'always_available' => $alwaysAvailable]);
-
-    return $server;
+    return AgentMcpServer::factory()->attachedTo($agent, $alwaysAvailable)->create(['slug' => $slug]);
 }
 
 /**
@@ -139,11 +129,9 @@ it('skips the router entirely when every tool in the pool is always-on', functio
 });
 
 it('pulls tools used in recent turns back in when routing skips them', function (): void {
-    $conversation = Conversation::factory()->create();
-    Message::factory()->create([
+    $conversation = Conversation::factory()->forAgent($this->agent)->create();
+    Message::factory()->fromAssistant()->withMetadata(['tool_calls' => ['mcp__crm__get_issue', 'send_email']])->create([
         'chat_conversation_id' => $conversation->id,
-        'role' => 'assistant',
-        'metadata' => ['tool_calls' => ['mcp__crm__get_issue', 'send_email']],
     ]);
     $pool = [tsEntry('send_email'), tsEntry('mcp__crm__search'), tsEntry('mcp__crm__get_issue')];
 

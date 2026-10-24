@@ -20,7 +20,7 @@ beforeEach(function (): void {
 
 /**
  * A fake upload whose content starts with the PDF magic header, so finfo
- * reports application/pdf and the action's is_pdf_file() guard passes. The
+ * reports application/pdf and the action's PDF check passes. The
  * file is a temporary one PHP removes by itself.
  */
 function staPdfUpload(): UploadedFile
@@ -56,7 +56,7 @@ it('stores the page count for a PDF upload', function (): void {
 
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: staPdfUpload(),
-        directory: 'users/test-workspace/agents/test-agent/attachments/test',
+        directory: 'workspaces/test-workspace/agents/test-agent/attachments/test',
         workspaceId: Workspace::factory()->create()->id,
     ));
 
@@ -69,7 +69,7 @@ it('leaves pages null for a non-PDF upload', function (): void {
     // No fake inspector bound — a non-PDF must never reach the page-count path.
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: staTextUpload(),
-        directory: 'users/test-workspace/agents/test-agent/attachments/test',
+        directory: 'workspaces/test-workspace/agents/test-agent/attachments/test',
         workspaceId: Workspace::factory()->create()->id,
     ));
 

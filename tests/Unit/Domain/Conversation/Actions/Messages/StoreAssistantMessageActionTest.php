@@ -28,13 +28,13 @@ use Tests\Support\Llm\FakeLlmProviders;
  * workspace's token log land in one transaction; analytics and the
  * conversation title follow the commit.
  */
-function storeAssistantAction(LlmProviderInterface $provider): StoreAssistantMessageAction
+function samaAction(LlmProviderInterface $provider): StoreAssistantMessageAction
 {
     return new StoreAssistantMessageAction(new FakeLlmProviders($provider), app(ChatLogWriter::class));
 }
 
 /** A stored visitor message, so the reply has its session and conversation. */
-function seedUserTurn(Agent $agent, ?string $source = 'widget'): UserTurnData
+function samaUserTurn(Agent $agent, ?string $source = 'widget'): UserTurnData
 {
     $turn = UserTurnData::from([
         'external_session_id' => (string) Str::uuid(),
@@ -51,7 +51,7 @@ function seedUserTurn(Agent $agent, ?string $source = 'widget'): UserTurnData
     return $turn;
 }
 
-function assistantTurn(Llm $llm, UserTurnData $userTurn, array $overrides = []): AssistantTurnData
+function samaTurn(Llm $llm, UserTurnData $userTurn, array $overrides = []): AssistantTurnData
 {
     return AssistantTurnData::from(array_merge([
         'external_session_id' => $userTurn->external_session_id,
@@ -80,8 +80,8 @@ it('takes the token counts from the provider generation lookup', function (): vo
         'tokens_completion' => 17,
     ]);
 
-    $turn = assistantTurn($llm, seedUserTurn($agent));
-    $message = storeAssistantAction($provider)->execute($agent, $turn);
+    $turn = samaTurn($llm, samaUserTurn($agent));
+    $message = samaAction($provider)->execute($agent, $turn);
 
     expect($message->role)->toBe(MessageRole::Assistant)
         ->and($message->llm_id)->toBe($llm->id)
@@ -100,8 +100,8 @@ it('leaves the tokens null when the provider has no generation lookup', function
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create(['name' => 'gpt-no-lookup']);
 
-    $message = storeAssistantAction(new CannedLlmProvider)
-        ->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
+    $message = samaAction(new CannedLlmProvider)
+        ->execute($agent, samaTurn($llm, samaUserTurn($agent)));
 
     expect($message->prompt_tokens)->toBeNull()
         ->and($message->completion_tokens)->toBeNull();
@@ -117,7 +117,7 @@ it('prefers inline stream usage over the provider generation lookup', function (
         'tokens_completion' => 999,
     ]);
 
-    $message = storeAssistantAction($provider)->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+    $message = samaAction($provider)->execute($agent, samaTurn($llm, samaUserTurn($agent), [
         'prompt_tokens' => 1200,
         'completion_tokens' => 300,
     ]));
@@ -130,7 +130,7 @@ it('keeps tool artifacts and tool names in the message metadata', function (): v
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
 
-    $message = storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+    $message = samaAction(new CannedLlmProvider)->execute($agent, samaTurn($llm, samaUserTurn($agent), [
         'artifacts' => [['kind' => 'echarts_option', 'data' => ['series' => []]]],
         'tool_calls' => ['mcp__charts__render'],
     ]));
@@ -145,7 +145,7 @@ it('stores the knowledge the answer was given, in its order', function (): void 
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
 
-    $message = storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+    $message = samaAction(new CannedLlmProvider)->execute($agent, samaTurn($llm, samaUserTurn($agent), [
         'sources' => [
             new MessageSourceData(rank: 0, chunk_id: null, sourceable_type: 'source_website', sourceable_id: 7, score: 0.91, label: 'Returns', url: 'https://shop.test/returns'),
             new MessageSourceData(rank: 1, chunk_id: null, sourceable_type: 'source_file', sourceable_id: 8, score: 0.42, label: 'manual.pdf', page: 3),
@@ -162,7 +162,7 @@ it('stores no sources for an answer given no knowledge', function (): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
 
-    $message = storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
+    $message = samaAction(new CannedLlmProvider)->execute($agent, samaTurn($llm, samaUserTurn($agent)));
 
     expect($message->sources)->toBeEmpty();
 });
@@ -170,12 +170,12 @@ it('stores no sources for an answer given no knowledge', function (): void {
 it('queues the title at once for a channel, where nobody watches it', function (): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
-    $userTurn = seedUserTurn($agent);
+    $userTurn = samaUserTurn($agent);
 
     // A Telegram conversation (the channel runner starts it with that source).
     Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null, 'source' => ConversationSource::Telegram]);
 
-    storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, $userTurn));
+    samaAction(new CannedLlmProvider)->execute($agent, samaTurn($llm, $userTurn));
 
     Bus::assertDispatched(GenerateConversationTitleJob::class, fn (GenerateConversationTitleJob $job): bool => $job->delay === null);
 });
@@ -183,11 +183,11 @@ it('queues the title at once for a channel, where nobody watches it', function (
 it('only queues a delayed fallback where the browser asks for the title itself', function (ConversationSource $source): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
-    $userTurn = seedUserTurn($agent);
+    $userTurn = samaUserTurn($agent);
 
     Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null, 'source' => $source]);
 
-    storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, $userTurn));
+    samaAction(new CannedLlmProvider)->execute($agent, samaTurn($llm, $userTurn));
 
     Bus::assertDispatched(GenerateConversationTitleJob::class, fn (GenerateConversationTitleJob $job): bool => $job->delay !== null);
 })->with([
@@ -198,12 +198,12 @@ it('only queues a delayed fallback where the browser asks for the title itself',
 it('leaves titling to the hosted chat client', function (): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
-    $userTurn = seedUserTurn($agent, source: null);
+    $userTurn = samaUserTurn($agent, source: null);
 
     expect(Conversation::query()->firstWhere('external_id', $userTurn->external_conversation_id)->source)
         ->toBe(ConversationSource::HostedChat);
 
-    storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, $userTurn));
+    samaAction(new CannedLlmProvider)->execute($agent, samaTurn($llm, $userTurn));
 
     Bus::assertNotDispatched(GenerateConversationTitleJob::class);
 });
@@ -212,7 +212,7 @@ it('tells analytics whether the reply found an answer and how confident it was',
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create(['name' => 'gpt-test-answer']);
 
-    storeAssistantAction(CannedLlmProvider::withGeneration([]))->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+    samaAction(CannedLlmProvider::withGeneration([]))->execute($agent, samaTurn($llm, samaUserTurn($agent), [
         'prompt_tokens' => 10,
         'completion_tokens' => 5,
         'has_llm_found_answer' => false,

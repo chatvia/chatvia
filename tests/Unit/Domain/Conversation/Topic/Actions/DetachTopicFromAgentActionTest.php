@@ -12,7 +12,7 @@ use Domain\Conversation\Topic\Models\Topic;
 it('deletes a workspace topic once its last agent lets it go', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
-    $topic = Topic::create(['topic' => 'Refunds', 'description' => '', 'workspace_id' => $owner->workspace()->id]);
+    $topic = Topic::factory()->create(['workspace_id' => $owner->workspace()->id, 'topic' => 'Refunds']);
     $agent->topics()->attach($topic->id);
 
     app(DetachTopicFromAgentAction::class)->execute($agent, $topic);
@@ -25,7 +25,7 @@ it('keeps a workspace topic that another agent still uses', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
     $other = createAgent($owner);
-    $topic = Topic::create(['topic' => 'Refunds', 'description' => '', 'workspace_id' => $owner->workspace()->id]);
+    $topic = Topic::factory()->create(['workspace_id' => $owner->workspace()->id, 'topic' => 'Refunds']);
     $agent->topics()->attach($topic->id);
     $other->topics()->attach($topic->id);
 
@@ -38,7 +38,7 @@ it('keeps a workspace topic that another agent still uses', function (): void {
 
 it('never deletes a system topic', function (): void {
     $agent = createAgent(User::factory()->create());
-    $topic = Topic::create(['topic' => 'General', 'description' => 'System topic']);
+    $topic = Topic::factory()->create(['workspace_id' => null, 'topic' => 'General']);
     $agent->topics()->attach($topic->id);
 
     app(DetachTopicFromAgentAction::class)->execute($agent, $topic);

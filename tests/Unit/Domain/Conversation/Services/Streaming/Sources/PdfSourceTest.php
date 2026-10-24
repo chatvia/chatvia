@@ -2,17 +2,12 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
-use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
-use Domain\Guardrail\Data\GuardResultData;
-use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
@@ -26,6 +21,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\Conversation\NoToolSelector;
+use Tests\Support\Conversation\RecordingGuardrailRecorder;
+use Tests\Support\Conversation\RecordingReplyRecorder;
+use Tests\Support\Conversation\RedactingOutputGuard;
 use Tests\Support\Conversation\TestChatContext;
 
 /**
@@ -46,35 +44,17 @@ beforeEach(function (): void {
     app()->instance(Client::class, new Client(['handler' => $stack]));
 });
 
-/** The PDF source on Mistral, with the real tool loop and no tools (unless given), guards or saving. */
-function pdfSource(ToolSelector $tools = new NoToolSelector): PdfSource
+/** The PDF source on Mistral (unless given), with the real tool loop and no tools (unless given), guards or saving. */
+function pdfSource(ToolSelector $tools = new NoToolSelector, ?RecordingReplyRecorder $replies = null, ?DocumentLlm $documents = null): PdfSource
 {
     return new PdfSource(
-        new DocumentLlm(LlmProviderKind::Mistral),
-        new class extends AssistantReplyRecorder
-        {
-            public function __construct() {}
-
-            public function recordCompletedReply(ChatContext $context): void {}
-        },
+        $documents ?? new DocumentLlm(LlmProviderKind::Mistral),
+        $replies ?? new RecordingReplyRecorder,
         new RequestDedupeStore,
         $tools,
         app(ToolLoopRunner::class),
-        new class extends GuardrailService
-        {
-            public function __construct() {}
-
-            public function inspectOutput(Agent $agent, string $text, ?string $language = null): GuardResultData
-            {
-                return GuardResultData::clean($text);
-            }
-        },
-        new class extends GuardrailRecorder
-        {
-            public function __construct() {}
-
-            public function record(ChatContext $context, string $sample, GuardResultData $result): void {}
-        },
+        new RedactingOutputGuard,
+        new RecordingGuardrailRecorder,
     );
 }
 
@@ -171,3 +151,15 @@ it('offers tools only to a PDF chat model that can call them', function (?bool $
     'not said' => [null, true],
     'calls none' => [false, false],
 ]);
+
+it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF documents', function (): void {
+    $replies = new RecordingReplyRecorder;
+
+    $events = iterator_to_array(pdfSource(replies: $replies, documents: new DocumentLlm(null))->events(TestChatContext::make(), [['role' => 'user', 'content' => 'Hello']], collect()), false);
+
+    expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Error, EventType::Done])
+        ->and($events[1]->data['message'])->toBe('Chatting with PDF files is not available.')
+        ->and($events[1]->data['message'])->not->toContain('Mistral')
+        ->and($replies->saved)->toBe([])
+        ->and($this->sent)->toBe([]);
+});

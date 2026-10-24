@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
@@ -9,23 +8,16 @@ use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
-use Domain\Guardrail\Data\GuardResultData;
-use Domain\Guardrail\Data\GuardVerdictData;
-use Domain\Guardrail\Enums\GuardOutcome;
-use Domain\Guardrail\Enums\GuardStage;
-use Domain\Guardrail\Enums\GuardType;
-use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmProviders;
-use Domain\Security\Services\VisitorFingerprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Tests\Support\Conversation\NoToolSelector;
+use Tests\Support\Conversation\RecordingGuardrailRecorder;
+use Tests\Support\Conversation\RecordingReplyRecorder;
+use Tests\Support\Conversation\RedactingOutputGuard;
 use Tests\Support\Conversation\ScriptedToolLoopRunner;
 use Tests\Support\Conversation\TestChatContext;
 
@@ -36,73 +28,17 @@ use Tests\Support\Conversation\TestChatContext;
  * after the visitor disconnects. The runner and the guard are faked; the
  * assertions are on what the source saves and streams.
  */
-function tlsGuard(): GuardrailService
-{
-    return new class extends GuardrailService
-    {
-        public function __construct() {}
-
-        public function inspectOutput(Agent $agent, string $text, ?string $language = null): GuardResultData
-        {
-            if (! Str::contains($text, 'a@b.com')) {
-                return GuardResultData::clean($text);
-            }
-
-            return new GuardResultData(
-                text: Str::replace('a@b.com', '[EMAIL]', $text),
-                verdicts: [new GuardVerdictData(GuardType::Pii, GuardStage::Output, GuardOutcome::Redacted)],
-            );
-        }
-    };
-}
-
-function tlsRecorder(): GuardrailRecorder
-{
-    return new class(new VisitorFingerprint) extends GuardrailRecorder
-    {
-        /** @var array<int, string> */
-        public array $samples = [];
-
-        public function record(ChatContext $context, string $sample, GuardResultData $result): void
-        {
-            $this->samples[] = $sample;
-        }
-    };
-}
-
-/**
- * A reply recorder whose only job here is to remember the text it was asked
- * to save.
- */
-function tlsReplyRecorder(): AssistantReplyRecorder
-{
-    return new class extends AssistantReplyRecorder
-    {
-        public ArrayObject $saved;
-
-        public function __construct()
-        {
-            $this->saved = new ArrayObject;
-        }
-
-        public function recordCompletedReply(ChatContext $context): void
-        {
-            $this->saved->append($context->streamedMessage);
-        }
-    };
-}
-
 /**
  * Build the named source with the shared fakes and return its event stream.
  *
- * @return array{0: Generator<int, StreamEvent>, 1: AssistantReplyRecorder, 2: GuardrailRecorder}
+ * @return array{0: Generator<int, StreamEvent>, 1: RecordingReplyRecorder, 2: RecordingGuardrailRecorder}
  */
 function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner): array
 {
-    $replyRecorder = tlsReplyRecorder();
-    $recorder = tlsRecorder();
+    $replyRecorder = new RecordingReplyRecorder;
+    $recorder = new RecordingGuardrailRecorder;
 
-    $shared = [$replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, tlsGuard(), $recorder];
+    $shared = [$replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, new RedactingOutputGuard(['a@b.com' => '[EMAIL]']), $recorder];
 
     $events = match ($source) {
         'pdf' => new PdfSource(new DocumentLlm(LlmProviderKind::Mistral), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
@@ -137,7 +73,7 @@ it('redacts the answer with the output guardrails before saving and replaying it
 
     expect($replace)->not->toBeNull()
         ->and($replace->data['text'])->toBe('Mail me at [EMAIL]')
-        ->and($replyRecorder->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
+        ->and($replyRecorder->saved)->toBe(['Mail me at [EMAIL]'])
         ->and($recorder->samples)->toBe(['Mail me at [EMAIL]'])
         ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]')
         ->and(end($events)->data['reason'])->toBe('complete');
@@ -154,23 +90,9 @@ it('redacts the partial answer it saves after the client disconnects', function 
     [$stream, $replyRecorder] = tlsStream($source, $context, $runner);
     iterator_to_array($stream, preserve_keys: false);
 
-    expect($replyRecorder->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
+    expect($replyRecorder->saved)->toBe(['Mail me at [EMAIL]'])
         ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]');
 })->with('tool loop sources');
-
-it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF documents', function (): void {
-    $context = TestChatContext::make();
-    $replyRecorder = tlsReplyRecorder();
-    $runner = ScriptedToolLoopRunner::never();
-
-    $source = new PdfSource(new DocumentLlm(null), $replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, tlsGuard(), tlsRecorder());
-    $events = iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hello']], collect()), false);
-
-    expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Error, EventType::Done])
-        ->and($events[1]->data['message'])->toBe('Chatting with PDF files is not available.')
-        ->and($events[1]->data['message'])->not->toContain('Mistral')
-        ->and($replyRecorder->saved->getArrayCopy())->toBe([]);
-});
 
 it('holds the answer until the output guards checked it, then sends it in one piece', function (string $source): void {
     $context = TestChatContext::make();

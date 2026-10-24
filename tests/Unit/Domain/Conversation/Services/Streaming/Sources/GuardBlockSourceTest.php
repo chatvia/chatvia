@@ -5,7 +5,7 @@ use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
-use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
+use Tests\Support\Conversation\RecordingReplyRecorder;
 use Tests\Support\Conversation\TestChatContext;
 
 /**
@@ -25,12 +25,7 @@ function guardBlockContext(): ChatContext
 
 function guardBlockSource(): GuardBlockSource
 {
-    return new GuardBlockSource(new class extends AssistantReplyRecorder
-    {
-        public function __construct() {}
-
-        public function recordRefusal(ChatContext $context): void {}
-    });
+    return new GuardBlockSource(new RecordingReplyRecorder);
 }
 
 it('sends the refusal when the conversation was not handed off', function (): void {

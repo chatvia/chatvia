@@ -12,10 +12,10 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
-use Domain\Conversation\Services\Memory\CacheCipher;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -25,11 +25,7 @@ use Illuminate\Support\Str;
  */
 function chatMemoryConversation(ChatSession $session, string $title): Conversation
 {
-    return Conversation::factory()->withTitle($title)->create([
-        'chat_session_id' => $session->id,
-        'source' => ConversationSource::HostedChat,
-        'is_visible' => true,
-    ]);
+    return Conversation::factory()->inSession($session)->hostedChat()->visible()->withTitle($title)->create();
 }
 
 function chatMemoryFor(Agent $agent, ChatSession $session, ?ChatViewerData $viewer = null): ChatMemory
@@ -52,20 +48,13 @@ it('rebuilds the conversation list from the database when the cache is cold', fu
 it('writes the rebuilt list back to the cache', function (): void {
     $agent = Agent::factory()->create();
     $session = ChatSession::factory()->create(['agent_id' => $agent->id]);
-    chatMemoryConversation($session, 'Welcome');
-
+    $conversation = chatMemoryConversation($session, 'Welcome');
     chatMemoryFor($agent, $session)->getConversationsForCurrentSession();
 
-    // Values are encrypted at rest, and reads must carry the same
-    // [workspace, agent, session] tag set the writes use.
-    $raw = Cache::driver('chat')
-        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
-        ->get($session->external_id);
-    expect($raw)->toBeString();
+    // Gone from the database, so only the cache can still list it.
+    DB::table('chat_conversations')->where('id', $conversation->id)->delete();
 
-    $cached = CacheCipher::decrypt($raw);
-    expect($cached['conversations'] ?? [])->toHaveCount(1)
-        ->and($cached['conversations'][0]['title'])->toBe('Welcome');
+    expect(collect(chatMemoryFor($agent, $session)->getConversationsForCurrentSession())->pluck('title')->all())->toBe(['Welcome']);
 });
 
 it('keeps the history when a conversation is started with a cold cache', function (): void {
@@ -126,19 +115,19 @@ it('rebuilds from the database when the cache was stamped for a staff account wi
         ->and($list[0]->title)->toBe('Chatter chat');
 });
 
-it('stamps the cached list with the viewer\'s kind and id', function (): void {
+it('serves the cached list only to the viewer it was built for, by kind and id', function (): void {
     $agent = Agent::factory()->create();
     $staff = User::factory()->create();
-    $session = ChatSession::factory()->create(['agent_id' => $agent->id, 'user_id' => $staff->id]);
-    chatMemoryConversation($session, 'Staff chat');
-
+    $session = ChatSession::factory()->forUser($staff)->create(['agent_id' => $agent->id]);
+    $conversation = chatMemoryConversation($session, 'Staff chat');
     chatMemoryFor($agent, $session, ChatViewerData::staff($staff->id))->getConversationsForCurrentSession();
 
-    $raw = Cache::driver('chat')
-        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
-        ->get($session->external_id);
+    // Gone from the database, so a reader the cache was not built for gets
+    // the rebuilt (empty) list.
+    DB::table('chat_conversations')->where('id', $conversation->id)->delete();
 
-    expect(CacheCipher::decrypt($raw)['viewer'] ?? null)->toBe('user:'.$staff->id);
+    expect(chatMemoryFor($agent, $session, ChatViewerData::staff($staff->id))->getConversationsForCurrentSession())->toHaveCount(1)
+        ->and(chatMemoryFor($agent, $session, ChatViewerData::chatter($staff->id))->getConversationsForCurrentSession())->toBe([]);
 });
 
 it('makes a conversation visible when its first message is added', function (): void {

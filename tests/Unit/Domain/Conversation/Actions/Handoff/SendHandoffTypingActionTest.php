@@ -3,13 +3,11 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Actions\Handoff\SendHandoffTypingAction;
 use Domain\Conversation\Data\Messages\BroadcastChatTypingData;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\TypingStarted;
 use Domain\Conversation\Exceptions\ConversationNotHeldException;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -18,15 +16,7 @@ use Illuminate\Support\Facades\Event;
  */
 function shtaConversation(User $holder): Conversation
 {
-    $agent = createAgent($holder);
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-
-    return Conversation::factory()->withoutTitle()->create([
-        'chat_session_id' => $session->id,
-        'source' => ConversationSource::Widget,
-        'handoff_status' => HandoffStatus::Human,
-        'handoff_user_id' => $holder->id,
-    ]);
+    return Conversation::factory()->forAgent(createAgent($holder))->handedOff(HandoffStatus::Human, $holder)->create();
 }
 
 function shtaTyping(Conversation $conversation, User $operator): BroadcastChatTypingData

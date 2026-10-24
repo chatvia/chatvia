@@ -6,6 +6,12 @@ use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 
+/**
+ * A connector the catalog pins to some surfaces offers its tools only on
+ * those surfaces' conversations; every tool stays when no connector is pinned
+ * or the conversation (its surface) is unknown.
+ */
+
 /** A tool entry named the way the registry compiles MCP tools: mcp__{slug}__{tool}. */
 function surfaceToolEntry(string $name): ToolEntry
 {

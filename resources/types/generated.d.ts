@@ -1491,6 +1491,7 @@ declare namespace Domain {
                     privacy_policy_url: string | null;
                     handoff_enabled: boolean;
                     allow_file_uploads: boolean;
+                    upload_accept: string[];
                     allow_voice_input: boolean;
                     voice_conversation: boolean;
                     max_files_per_chat: number;

@@ -10,6 +10,7 @@ use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\StorageSettings;
 use App\Identity\Workspace\Models\User;
@@ -98,6 +99,24 @@ it('turns image descriptions off without a model that reads images', function ()
         ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
 });
 
+it('answers about chat files with the model that reads them', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData([
+        'chatKind' => LlmProviderKind::Mistral,
+        'filesModel' => new RemoteModelData(id: 'mistral-large-2512', name: 'Mistral Large'),
+    ]));
+
+    expect(savedSetting(AiSettings::class, 'chat_files_model'))->toBe((string) Llm::query()->where('name', 'mistral-large-2512')->value('id'))
+        // On is the default, so it stays unsaved.
+        ->and(savedSetting(AiSettings::class, 'chat_files_enabled'))->toBeNull();
+});
+
+it('turns chat file uploads off without a model that reads files', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData());
+
+    expect(savedSetting(AiSettings::class, 'chat_files_model'))->toBeNull()
+        ->and(savedSetting(AiSettings::class, 'chat_files_enabled'))->toBeFalse();
+});
+
 it('leaves the task models unset without a model for quick tasks', function (): void {
     app(CompleteSetupAction::class)->execute(completeSetupData());
 
@@ -179,6 +198,16 @@ it('leaves a choice that equals its default unsaved, so a later default applies'
     ]));
 
     expect(savedSetting(StorageSettings::class, 'driver'))->toBeNull();
+});
+
+it('keeps Spectra recording by default, and turns it off when asked', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData());
+
+    expect(savedSetting(ObservabilitySettings::class, 'spectra_enabled'))->toBeNull();
+
+    app(CompleteSetupAction::class)->execute(completeSetupData(['recordAiCalls' => false]));
+
+    expect(savedSetting(ObservabilitySettings::class, 'spectra_enabled'))->toBeFalse();
 });
 
 it('refuses a setup without a chat model, and saves nothing', function (): void {

@@ -29,7 +29,7 @@ interface Props {
     /** Builds the DELETE url for an attachment by id (the parent supplies the
      *  route). When unset, the X button just clears local state. */
     deleteEndpoint?: (id: string) => string;
-    /** Accept attribute for the file picker; defaults to PDF only. */
+    /** Accept attribute for the file picker (MIME types); defaults to PDF only. */
     uploadAccept?: string;
     /** Show the "+" / file-upload button. Set false for agents that don't accept uploads. */
     allowFileUploads?: boolean;

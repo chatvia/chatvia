@@ -74,6 +74,8 @@ interface Props {
     defaultAnalytics: Record<string, unknown>;
 
     voice: SetupVoiceOptions;
+    /** Chat file uploads are on for this install and a model reads them; without it the switch is off and locked. */
+    fileUploadsAvailable: boolean;
 
     catalog: Llm[];
     selectedModel: number | null;
@@ -114,7 +116,7 @@ provideSetupContext({
     locked,
     preview,
     text: useSetupText(deps, appearance),
-    generalSettings: useSetupGeneralSettings(deps, appearance, analytics, props.voice),
+    generalSettings: useSetupGeneralSettings(deps, appearance, analytics, props.voice, props.fileUploadsAvailable),
     languages: useSetupLanguages(deps, appearance, () => props.availableLanguages),
     starters: useSetupStarters(deps, props.starters),
     bubbles: useSetupBubbles(deps, props.bubbles),

@@ -85,6 +85,11 @@ class WidgetSettingsData extends Data
         // Owners turn this off when the agent shouldn't accept uploads (e.g.
         // FAQ-only, compliance). Default true.
         public bool $allow_file_uploads,
+        // The MIME types the paperclip accepts: what the model for chat files
+        // reads (PDF and/or PNG, JPEG, WebP, GIF). The server checks the same
+        // list on upload.
+        /** @var list<string> */
+        public array $upload_accept,
         // Whether to show the microphone / voice-input button in the composer.
         // Owners turn this off when the agent shouldn't expose speech-to-text;
         // it is also off while no speech-to-text service is set up.

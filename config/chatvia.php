@@ -183,9 +183,10 @@ return [
     | Agent
     |--------------------------------------------------------------------------
     |
-    | `files.upload`: the largest PDF a chatter may attach (in KB), how many
-    | at once, and its most pages. The document LLM reads the whole PDF, so
-    | the page cap bounds cost and time (MaxPdfPages checks it at upload).
+    | `files.upload`: the largest file a chatter may attach (in KB), how many
+    | at once, and the most pages of a PDF. The model for chat files reads
+    | the whole file, so the page cap bounds cost and time (MaxPdfPages
+    | checks it at upload).
     |
     | `tools`: the most tool-call rounds one turn may run, so a model that
     | keeps asking for tools cannot loop forever (after the last round the
@@ -272,8 +273,13 @@ return [
     |   "scaleway", "openai" or "none".
     | - voice: live voice calls (the OpenAI Realtime API). "openai" or
     |   "none". Each agent still turns it on.
-    | - document_llm: reads whole PDFs for summaries and chat with PDF
-    |   files. "mistral" or "none" (those two features are off).
+    | - document_llm: reads whole PDFs for the summary of each source.
+    |   "mistral" or "none" (no summaries).
+    | - chat_files: whether chatters may attach a PDF file or an image in a
+    |   chat (off: no agent can offer it), and the catalog model (its
+    |   `llms.id`) that answers about it when the agent's own model cannot,
+    |   one that reads both (models.dev inputs). Null: the default chat model when it reads them, else the
+    |   first model that does; none means no uploads.
     |
     | `tokenizer` is the tiktoken encoding of every token count. `chunking`
     | is how text is split: the unit ("tokens" or "characters"), the size
@@ -284,8 +290,7 @@ return [
     | "google", "cohere", "mistral", "jina" or "voyage"; it must return
     | `embeddings.dimensions`
     | dimensions), and the document_llm models (names of that provider, not
-    | catalog models) for summaries, analysis and chat with PDF files. The
-    | last one needs function calling so tools still work in PDF chats.
+    | catalog models) for summaries and analysis.
     |
     | `query.rewriter` turns a follow-up ("and the price?") into a full
     | question for the knowledge search: one quick-task model call per follow-up.
@@ -345,6 +350,10 @@ return [
         'transcriber' => 'auto',
         'voice' => 'auto',
         'document_llm' => 'auto',
+        'chat_files' => [
+            'enabled' => true,
+            'model' => null,
+        ],
 
         'tokenizer' => 'cl100k_base',
 
@@ -363,7 +372,6 @@ return [
             'embedding' => 'qwen',
             'summary' => 'mistral-large-latest',
             'analysis' => 'mistral-large-latest',
-            'document_chat' => 'mistral-medium-latest',
         ],
 
         'query' => [

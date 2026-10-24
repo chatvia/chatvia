@@ -66,7 +66,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             'stream' => true,
         ], $settings);
 
-        $json = $this->preparePayload($json);
+        $json = $this->preparePayload($this->withFileParts($json));
         unset($json[self::SHOW_REASONING]);
 
         // Force the upstream to emit a final chunk with token usage: the reply's
@@ -91,7 +91,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      */
     public function completion(array $data)
     {
-        $data = $this->preparePayload($data);
+        $data = $this->preparePayload($this->withFileParts($data));
 
         return $this->client()
             ->timeout(600)
@@ -114,7 +114,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             ->setHandler(app(SharedHttpHandler::class)->handler())
             ->async()
             ->timeout(600)
-            ->post($this->getCompletionEndpoint(), $this->preparePayload($data));
+            ->post($this->getCompletionEndpoint(), $this->preparePayload($this->withFileParts($data)));
 
         // Laravel resolves with an error response or the connection error
         // itself; reject on both, as completion() throws.
@@ -125,6 +125,38 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
 
             return $response->throw();
         });
+    }
+
+    /**
+     * Write each PDF part (`document_url`) of the messages as a Chat
+     * Completions `file` part, the form OpenAI, OpenRouter and Gemini take.
+     * A provider with its own form for files overrides this.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function withFileParts(array $payload): array
+    {
+        if (! is_array($payload['messages'] ?? null)) {
+            return $payload;
+        }
+
+        $payload['messages'] = array_map(static function (mixed $message): mixed {
+            if (! is_array($message) || ! is_array($message['content'] ?? null)) {
+                return $message;
+            }
+
+            $message['content'] = array_map(static fn (mixed $part): mixed => is_array($part) && ($part['type'] ?? null) === 'document_url'
+                ? ['type' => 'file', 'file' => [
+                    'filename' => (string) ($part['document_name'] ?? 'document.pdf'),
+                    'file_data' => (string) ($part['document_url']['url'] ?? $part['document_url'] ?? ''),
+                ]]
+                : $part, $message['content']);
+
+            return $message;
+        }, $payload['messages']);
+
+        return $payload;
     }
 
     /**

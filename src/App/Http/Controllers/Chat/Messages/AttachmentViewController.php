@@ -31,7 +31,7 @@ class AttachmentViewController
                 'X-Content-Type-Options' => 'nosniff',
                 'Cache-Control' => 'private, max-age=3600',
             ],
-            $attachment->isPdf() ? 'inline' : 'attachment',
+            $attachment->opensInline() ? 'inline' : 'attachment',
         );
     }
 }

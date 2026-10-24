@@ -4,6 +4,7 @@ namespace Domain\Conversation\Models;
 
 use Database\Factories\AttachmentFactory;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
+use Domain\Llm\Enums\FileInput;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -20,9 +21,9 @@ use Support\Concerns\HasExternalId;
 use Throwable;
 
 /**
- * Visitor- or member-uploaded file attached to a conversation. Used for PDF
- * Q&A (the document LLM gets the file inside each request); the shape is
- * generic enough to back image or audio attachments too.
+ * Visitor- or member-uploaded file attached to a conversation: a PDF or an
+ * image, as the model for chat files reads them (that model gets the file
+ * inside each request).
  *
  * Stored on the private disk and opened through a signed link (the
  * `attachments.view` route). Deleting a row (including via the
@@ -81,9 +82,13 @@ class Attachment extends Model
         return $this->belongsTo(Message::class, 'chat_message_id');
     }
 
-    public function isPdf(): bool
+    /**
+     * Whether a browser may show the file in place: a PDF or one of the
+     * image types chatters may attach (never SVG, which can carry script).
+     */
+    public function opensInline(): bool
     {
-        return $this->mime_type === 'application/pdf';
+        return FileInput::forMimeType($this->mime_type) instanceof FileInput;
     }
 
     /**

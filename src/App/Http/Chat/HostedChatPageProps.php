@@ -5,7 +5,7 @@ namespace App\Http\Chat;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Llm\Contracts\Transcriber;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\ChatFileModel;
 
 /**
  * The page props every hosted-chat page shares (the standalone chat and the
@@ -16,7 +16,7 @@ use Domain\Llm\Services\DocumentLlm;
 final readonly class HostedChatPageProps
 {
     public function __construct(
-        private DocumentLlm $documentLlm,
+        private ChatFileModel $fileModel,
         private VoiceAvailability $voice,
         private Transcriber $transcriber,
     ) {}
@@ -31,12 +31,13 @@ final readonly class HostedChatPageProps
 
         return [
             'appearance' => $appearance,
-            // Chat uploads are PDFs, so the upload button only shows when the
-            // owner allows uploads AND an LLM that can read PDFs is set up
-            // (the same rule as the widget settings).
+            // The upload button only shows when the owner allows uploads AND
+            // a model that reads files is set up; it offers the types that
+            // model reads (the same rule as the widget settings).
             'allowFileUploads' => $agent instanceof Agent
                 && (bool) ($appearance?->get('allow_file_uploads') ?? true)
-                && $this->documentLlm->isAvailable(),
+                && $this->fileModel->isAvailable(),
+            'uploadAccept' => implode(',', $this->fileModel->acceptedMimeTypes()),
             // The mic (dictation) records, then the server writes it down, so
             // it only shows when the owner allows it AND a speech-to-text
             // service is set up (the same rule as the widget settings).

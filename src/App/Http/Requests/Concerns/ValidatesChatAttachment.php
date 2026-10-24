@@ -2,18 +2,19 @@
 
 namespace App\Http\Requests\Concerns;
 
-use App\Http\Rules\DocumentChatAvailable;
+use App\Http\Rules\ChatFilesAvailable;
 use App\Http\Rules\MaxConversationAttachments;
 use App\Http\Rules\MaxPdfPages;
 use App\Http\Rules\UnlockedPdf;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\ChatFileModel;
 
 /**
- * Shared PDF-attachment validation for the chat and widget upload requests.
+ * Shared attachment validation for the chat and widget upload requests: a
+ * PDF or an image, while chat file uploads are on ({@see ChatFileModel}).
  * Only the validation contract is shared — each request keeps its own
  * toData() (different storage path + identity headers).
  */
-trait ValidatesPdfAttachment
+trait ValidatesChatAttachment
 {
     public function authorize(): bool
     {
@@ -25,15 +26,16 @@ trait ValidatesPdfAttachment
      *
      * @return array<string, mixed>
      */
-    public function rules(DocumentLlm $documentLlm): array
+    public function rules(ChatFileModel $fileModel): array
     {
         return [
             'file' => [
+                'bail',
                 'required',
-                new DocumentChatAvailable($documentLlm),
+                new ChatFilesAvailable($fileModel),
                 'file',
-                'mimes:pdf',
-                'mimetypes:application/pdf',
+                'mimes:'.implode(',', $fileModel->acceptedExtensions()),
+                'mimetypes:'.implode(',', $fileModel->acceptedMimeTypes()),
                 'max:'.$this->maxFileSizeInKb(),
                 new MaxConversationAttachments(
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
@@ -54,8 +56,8 @@ trait ValidatesPdfAttachment
     {
         return [
             'file.required' => __('No file was uploaded.'),
-            'file.mimes' => __('Only PDF files are supported right now.'),
-            'file.mimetypes' => __('Only PDF files are supported right now.'),
+            'file.mimes' => __('Only PDF files and images (PNG, JPEG, WebP or GIF) can be attached.'),
+            'file.mimetypes' => __('Only PDF files and images (PNG, JPEG, WebP or GIF) can be attached.'),
             'file.max' => __('File is too large — the limit is :size MB.', ['size' => (int) round($this->maxFileSizeInKb() / 1024)]),
         ];
     }

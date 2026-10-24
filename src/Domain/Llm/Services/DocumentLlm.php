@@ -10,8 +10,9 @@ use Domain\Llm\Models\LlmProvider;
 
 /**
  * The LLM provider that can read a whole PDF passed by URL in a chat message
- * (a `document_url` message part). Document summaries, document analysis and
- * chat with PDF files use it.
+ * (a `document_url` message part). Document summaries and document analysis
+ * use it; a file a chatter attaches goes to a catalog model instead
+ * ({@see ChatFileModel}).
  *
  * Built from config (`chatvia.ai.document_llm`), with the key and address of
  * that account (Settings → AI providers) rather than a catalog model. When no such

@@ -96,6 +96,10 @@ final readonly class CompleteSetupAction
 
             $this->set($this->knowledge, 'describe_images', $vision instanceof Llm);
 
+            $files = $data->filesModel instanceof RemoteModelData ? $this->addModel->execute($provider, $data->filesModel) : null;
+            $this->set($this->ai, 'chat_files_model', $files instanceof Llm ? (string) $files->id : null);
+            $this->set($this->ai, 'chat_files_enabled', $files instanceof Llm);
+
             if ($data->embeddingProvider instanceof EmbeddingProvider) {
                 $this->set($this->ai, 'embedding_provider', $data->embeddingProvider->value);
 

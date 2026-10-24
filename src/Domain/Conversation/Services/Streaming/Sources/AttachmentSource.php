@@ -15,8 +15,11 @@ use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\FileInput;
+use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\ChatFileModel;
+use Domain\Llm\Services\LlmProviders;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
@@ -27,34 +30,39 @@ use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
- * Streams chat completions through the configured document-reading LLM
- * ({@see DocumentLlm}) with every PDF attached to the conversation injected as
- * a `document_url` chunk on the latest user turn. The PDF goes inside the
- * request as a data: URL rather than a link to this site: a model handed a
- * link it cannot open (a local or private install) answers about the link
- * instead of the document.
+ * Streams a turn of a conversation with attached files: every file is added
+ * to the latest user turn, a PDF as a `document_url` part and an image as an
+ * `image_url` part (each provider client writes them in its own form). The
+ * file goes inside the request as a data: URL rather than a link to this
+ * site: a model handed a link it cannot open (a local or private install)
+ * answers about the link instead of the file.
  *
- * Activated by {@see ChatStreamService} whenever
- * the current conversation has any PDF attachments. The agent's configured
- * LLM is intentionally bypassed — the document LLM answers from the whole PDF
- * directly, no separate OCR + retrieval step. When no such LLM is configured
- * the turn ends with a clear "not available" error.
+ * Activated by {@see ChatStreamService} whenever the conversation has any
+ * attachment. The agent's own model answers when it reads PDF files and
+ * images; otherwise the platform's model for chat files does
+ * ({@see ChatFileModel}), so an agent on a text-only model can still take
+ * files. The model reads the whole file directly, with no separate OCR +
+ * retrieval step. Providers keep no state, so the file travels with every
+ * turn of the conversation, next to the usual history. With uploads turned
+ * off, or a file of a type no chat file may be, the turn ends with a clear
+ * error.
  *
  * Tool calling IS supported and the answer passes the same output guardrails:
  * the envelope, tool loop and finish step are shared with LlmSource through
  * {@see ToolLoopSource}, so MCP / webhook tools still fire (and pause for
- * approval) inside PDF conversations. A resumed turn stays on the document LLM
- * so the PDF context (already in the snapshot's latest user turn) keeps flowing.
- * The snapshot holds the PDF itself; a chat allows one PDF of at most 10 pages
+ * approval) inside these conversations. A resumed turn stays on the model for
+ * chat files so the files (already in the snapshot's latest user turn) keep
+ * flowing. The snapshot holds the files themselves; a chat allows one file
  * (`chatvia.agent.files.upload`), so it stays small.
  */
-class PdfSource extends ToolLoopSource
+class AttachmentSource extends ToolLoopSource
 {
     /** Longest provider error body written to the log. */
     private const int MAX_LOGGED_BODY_LENGTH = 2000;
 
     public function __construct(
-        private readonly DocumentLlm $documentLlm,
+        private readonly ChatFileModel $fileModel,
+        private readonly LlmProviders $providers,
         AssistantReplyRecorder $replyRecorder,
         RequestDedupeStore $dedupe,
         ToolSelector $toolSelector,
@@ -67,32 +75,38 @@ class PdfSource extends ToolLoopSource
 
     /**
      * @param  array<int, array<string, mixed>>  $llmMessages  Conversation history (last entry is the new user turn).
-     * @param  Collection<int, Attachment>  $pdfs  Every PDF attached to this conversation; each is sent as a `document_url` chunk on the latest user turn.
+     * @param  Collection<int, Attachment>  $attachments  Every file attached to this conversation; each is added to the latest user turn.
      * @return Generator<int, StreamEvent>
      */
-    public function events(ChatContext $context, array $llmMessages, Collection $pdfs): Generator
+    public function events(ChatContext $context, array $llmMessages, Collection $attachments): Generator
     {
-        if (! $this->documentLlm->isAvailable()) {
-            yield from $this->refuse($context, __('Chatting with PDF files is not available.'));
+        if (! $this->fileModel->isAvailable()) {
+            yield from $this->refuse($context, __('Chatting with files is not available.'));
 
             return;
         }
 
-        $documentUrls = $pdfs->map(fn (Attachment $pdf): ?string => $this->dataUrl($pdf));
+        if ($attachments->contains(fn (Attachment $attachment): bool => ! FileInput::forMimeType($attachment->mime_type) instanceof FileInput)) {
+            yield from $this->refuse($context, __('The AI model cannot read this type of file. Start a new chat to attach another file.'));
 
-        // Answering without the PDF would mislead, so a file storage cannot read ends the turn.
-        if ($documentUrls->contains(null)) {
+            return;
+        }
+
+        $parts = $attachments->map(fn (Attachment $attachment): ?array => $this->part($attachment));
+
+        // Answering without the file would mislead, so a file storage cannot read ends the turn.
+        if ($parts->contains(null)) {
             yield from $this->refuse($context, $this->turnFailedMessage());
 
             return;
         }
 
-        yield from $this->streamTurn($context, $this->withDocumentUrls($llmMessages, $documentUrls->values()->all()));
+        yield from $this->streamTurn($context, $this->withParts($llmMessages, $parts->values()->all()));
     }
 
     protected function provider(ChatContext $context): LlmProviderInterface
     {
-        return $this->documentLlm->provider();
+        return $this->providers->for($this->model($context));
     }
 
     protected function modelName(ChatContext $context): string
@@ -100,15 +114,27 @@ class PdfSource extends ToolLoopSource
         return $this->model($context)->name;
     }
 
-    /** The PDF chat model, with what it takes: the agent's settings are fitted to it. */
+    /**
+     * The model that answers, with what it takes (the agent's settings are
+     * fitted to it): the agent's own model when it reads PDF files and
+     * images, else the platform's model for chat files. events() has checked
+     * uploads are on; a resumed turn whose model went away since fails like
+     * any unreachable model.
+     */
     protected function model(ChatContext $context): Llm
     {
-        return $this->documentLlm->model((string) config('chatvia.ai.models.document_chat'));
+        $agentModel = $context->requestData->message->model;
+
+        if ($this->fileModel->readsFiles($agentModel)) {
+            return $agentModel;
+        }
+
+        return $this->fileModel->find() ?? throw new LlmProviderUnavailableException(__('Chatting with files is not available.'));
     }
 
     protected function logLabel(): string
     {
-        return 'PDF chat';
+        return 'File chat';
     }
 
     protected function upstreamUnavailableMessage(): string
@@ -118,7 +144,7 @@ class PdfSource extends ToolLoopSource
 
     protected function turnFailedMessage(): string
     {
-        return __('Something went wrong while answering from the PDF.');
+        return __('Something went wrong while answering from the file.');
     }
 
     /**
@@ -149,38 +175,52 @@ class PdfSource extends ToolLoopSource
         yield StreamEvent::done($context->assistantMessageId, 'error');
     }
 
-    /** The stored PDF as a data: URL, or null when storage cannot read it. */
-    private function dataUrl(Attachment $pdf): ?string
+    /**
+     * The stored file as a message part with its bytes in a data: URL: a
+     * `document_url` for a PDF, an `image_url` for an image. Null when
+     * storage cannot read it.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function part(Attachment $attachment): ?array
     {
         try {
-            $contents = Storage::disk(Attachment::DISK)->get($pdf->filepath);
+            $contents = Storage::disk(Attachment::DISK)->get($attachment->filepath);
         } catch (UnableToReadFile $e) {
             report($e);
 
             return null;
         }
 
-        return $contents === null ? null : 'data:application/pdf;base64,'.base64_encode($contents);
+        if ($contents === null) {
+            return null;
+        }
+
+        $url = "data:{$attachment->mime_type};base64,".base64_encode($contents);
+
+        return FileInput::forMimeType($attachment->mime_type) === FileInput::Image
+            ? ['type' => 'image_url', 'image_url' => ['url' => $url]]
+            : ['type' => 'document_url', 'document_url' => $url, 'document_name' => $attachment->filename];
     }
 
     /**
-     * Rewrite the last user turn so its `content` is a list of typed chunks
-     * with every attached PDF appended as a `document_url`. The provider reads
-     * documents fresh on every request (no server-side state), so the PDFs
-     * travel on each new turn rather than only the first.
+     * Rewrite the last user turn so its `content` is a list of typed parts
+     * with every attached file appended. The provider reads files fresh on
+     * every request (no server-side state), so the files travel on each new
+     * turn rather than only the first.
      *
      * @param  array<int, array<string, mixed>>  $messages
-     * @param  array<int, string>  $documentUrls
+     * @param  array<int, array<string, mixed>>  $parts
      * @return array<int, array<string, mixed>>
      */
-    private function withDocumentUrls(array $messages, array $documentUrls): array
+    private function withParts(array $messages, array $parts): array
     {
         $lastUserIndex = array_key_last(array_filter(
             $messages,
             static fn (array $message): bool => ($message['role'] ?? '') === MessageRole::User->value,
         ));
 
-        if ($documentUrls === [] || $lastUserIndex === null) {
+        if ($parts === [] || $lastUserIndex === null) {
             return $messages;
         }
 
@@ -190,7 +230,7 @@ class PdfSource extends ToolLoopSource
             'role' => MessageRole::User->value,
             'content' => [
                 ['type' => 'text', 'text' => is_array($text) ? '' : (string) $text],
-                ...array_map(static fn (string $url): array => ['type' => 'document_url', 'document_url' => $url], $documentUrls),
+                ...$parts,
             ],
         ];
 

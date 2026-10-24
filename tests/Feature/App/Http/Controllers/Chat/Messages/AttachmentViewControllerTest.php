@@ -7,7 +7,8 @@ use Illuminate\Support\Uri;
 /**
  * A conversation's file opens only through the signed link the attachment
  * makes. The link works on any host, a missing or changed signature is
- * refused, and only a PDF opens in the browser.
+ * refused, and only a PDF or an image chatters may attach opens in the
+ * browser.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -48,11 +49,20 @@ it('refuses a link without a valid signature', function (): void {
     $this->get($attachment->url.'0')->assertForbidden();
 });
 
-it('downloads a file that is not a PDF instead of opening it', function (): void {
-    $response = $this->get(avcAttachment('text/html', 'page.html')->url);
+it('opens an image chatters may attach in the browser', function (): void {
+    $response = $this->get(avcAttachment('image/png', 'receipt.png')->url);
+
+    expect($response->headers->get('Content-Disposition'))->toStartWith('inline');
+});
+
+it('downloads any other file instead of opening it', function (string $mimeType, string $filename): void {
+    $response = $this->get(avcAttachment($mimeType, $filename)->url);
 
     expect($response->headers->get('Content-Disposition'))->toStartWith('attachment');
-});
+})->with([
+    'a web page' => ['text/html', 'page.html'],
+    'an SVG, which can carry script' => ['image/svg+xml', 'logo.svg'],
+]);
 
 it('answers 404 once the file is gone', function (): void {
     $attachment = avcAttachment();

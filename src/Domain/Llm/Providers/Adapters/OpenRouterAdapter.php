@@ -88,6 +88,7 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
             name: $model->name,
             features: array_filter([
                 'vision' => is_array($inputs) ? in_array('image', $inputs, true) : null,
+                'files' => is_array($inputs) ? in_array('file', $inputs, true) : null,
                 'function_calling' => is_array($parameters) ? in_array('tools', $parameters, true) : null,
                 'reasoning' => is_array($parameters) ? in_array('reasoning', $parameters, true) : null,
             ], is_bool(...)),

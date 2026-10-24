@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Widget;
 
-use App\Http\Requests\Concerns\ValidatesPdfAttachment;
+use App\Http\Requests\Concerns\ValidatesChatAttachment;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Widget\WidgetHeaders;
@@ -10,14 +10,14 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
 /**
- * A file a widget visitor attaches to their conversation (PDF only for now).
- * Validation is shared with the hosted chat ({@see ValidatesPdfAttachment});
+ * A file a widget visitor attaches to their conversation (a PDF or an image).
+ * Validation is shared with the hosted chat ({@see ValidatesChatAttachment});
  * the file is stored under the agent's attachment folder for the visitor's
  * session.
  */
 class UploadAttachmentRequest extends FormRequest
 {
-    use ValidatesPdfAttachment;
+    use ValidatesChatAttachment;
 
     public function toData(Agent $agent, ?int $conversationId): UploadAttachmentData
     {

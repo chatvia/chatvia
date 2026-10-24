@@ -2,8 +2,6 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Services\DocumentLlm;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -22,17 +20,24 @@ it('tells the chat page which composer features to show', function (Closure $arr
     $this->get('/chat/'.$this->agent->slug)
         ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->where($prop, $expected));
 })->with([
-    'uploads, allowed with a PDF-reading model' => [function (Agent $agent): void {
+    'uploads, allowed with a model that reads files' => [function (Agent $agent): void {
         $agent->setSetting('allow_file_uploads', true, 'appearance');
-        app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
+        useChatFiles();
     }, 'allowFileUploads', true],
-    'uploads, allowed without a PDF-reading model' => [function (Agent $agent): void {
+    'uploads, the types that model reads' => [function (Agent $agent): void {
+        useChatFiles();
+    }, 'uploadAccept', 'application/pdf,image/png,image/jpeg,image/webp,image/gif'],
+    'uploads, allowed without a model that reads files' => [function (Agent $agent): void {
         $agent->setSetting('allow_file_uploads', true, 'appearance');
-        app()->instance(DocumentLlm::class, new DocumentLlm(null));
+    }, 'allowFileUploads', false],
+    'uploads, turned off by an admin' => [function (Agent $agent): void {
+        $agent->setSetting('allow_file_uploads', true, 'appearance');
+        useChatFiles();
+        useChatFiles(false);
     }, 'allowFileUploads', false],
     'uploads, turned off by the owner' => [function (Agent $agent): void {
         $agent->setSetting('allow_file_uploads', false, 'appearance');
-        app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
+        useChatFiles();
     }, 'allowFileUploads', false],
     'voice calls, on for the agent' => [function (Agent $agent): void {
         connectAiProviders(AiProvider::OpenAi);

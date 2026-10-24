@@ -30,6 +30,7 @@ export function useSetupGeneralSettings(
     appearance: SettingsReader,
     analytics: SettingsReader,
     voice: SetupVoiceOptions,
+    fileUploadsAvailable: boolean,
 ) {
     const { t } = useI18n();
     const settingsUrl = (group: 'appearance' | 'analytics') => updateSettings.url({ agent: agentId(), group });
@@ -127,6 +128,7 @@ export function useSetupGeneralSettings(
         isSavingComposer,
         saveComposer,
         voice,
+        fileUploadsAvailable,
         repliesForm,
         isSavingReplies,
         saveReplies,

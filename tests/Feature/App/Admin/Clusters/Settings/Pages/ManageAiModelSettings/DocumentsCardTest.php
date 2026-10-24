@@ -10,10 +10,10 @@ use Illuminate\Support\Str;
 
 /**
  * The Documents card of Settings → AI models: document reading (Mistral OCR,
- * Azure Document Intelligence or Off) and summaries and PDF chat (Mistral or
- * Off). A new pick is checked with a real call as it is saved and refused,
- * with the reason, when the call fails. What the pickers share is in
- * ServiceChoicesTest.
+ * Azure Document Intelligence or Off), source summaries (Mistral or Off),
+ * and chat file uploads with their model. A new service pick is checked
+ * with a real call as it is saved and refused, with the reason, when the
+ * call fails. What the pickers share is in ServiceChoicesTest.
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
@@ -105,4 +105,22 @@ it('checks the Mistral key before it turns on summaries and PDF chat', function 
 
     expect(savedSetting(AiSettings::class, 'document_llm'))->toBe('mistral')
         ->and(app(DocumentLlm::class)->isAvailable())->toBeTrue();
+});
+
+it('lists only the models that read PDF files and images for chat file uploads, and saves the switch and the pick', function (): void {
+    $reads = fn (array $inputs): array => ['reasoning' => false, 'modalities' => ['input' => ['text', ...$inputs]]];
+    testLlm('images-only', attributes: ['capabilities' => $reads(['image'])]);
+    $both = testLlm('pdf-and-images', attributes: ['capabilities' => $reads(['image', 'pdf'])]);
+
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)->fillForm(['chat_files_enabled' => true]);
+
+    expect(array_merge(...array_map(array_keys(...), array_values($page->instance()->form->getFlatFields(withHidden: true)['chat_files_model']->getOptions()))))->toBe([$both->id]);
+
+    $page->fillForm(['chat_files_model' => (string) $both->id])->call('save')->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'chat_files_model'))->toBe((string) $both->id);
+
+    adminPage(ManageAiModelSettings::class, $this->admin)->fillForm(['chat_files_enabled' => false])->call('save')->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'chat_files_enabled'))->toBeFalse();
 });

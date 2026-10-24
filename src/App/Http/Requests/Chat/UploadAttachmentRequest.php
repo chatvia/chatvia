@@ -2,19 +2,19 @@
 
 namespace App\Http\Requests\Chat;
 
-use App\Http\Requests\Concerns\ValidatesPdfAttachment;
+use App\Http\Requests\Concerns\ValidatesChatAttachment;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
 /**
- * Validates a PDF uploaded from the hosted-chat composer and decides where
+ * Validates a file uploaded from the hosted-chat composer and decides where
  * it is stored.
  */
 class UploadAttachmentRequest extends FormRequest
 {
-    use ValidatesPdfAttachment;
+    use ValidatesChatAttachment;
 
     /**
      * @param  Agent  $agent  The agent the hosted chat resolved for this

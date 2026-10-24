@@ -136,8 +136,9 @@ final class ResponsesPayload
     }
 
     /**
-     * A Chat Completions content part in Responses form. Parts it has no
-     * other name for are sent as they are.
+     * A Chat Completions content part in Responses form: a PDF
+     * (`document_url`) becomes an `input_file` with its bytes. Parts it has
+     * no other name for are sent as they are.
      *
      * @return array<array-key, mixed>
      */
@@ -153,6 +154,11 @@ final class ResponsesPayload
                 'type' => 'input_image',
                 'image_url' => (string) ($part['image_url']['url'] ?? $part['image_url'] ?? ''),
                 'detail' => (string) ($part['image_url']['detail'] ?? 'auto'),
+            ],
+            'document_url' => [
+                'type' => 'input_file',
+                'filename' => (string) ($part['document_name'] ?? 'document.pdf'),
+                'file_data' => (string) ($part['document_url']['url'] ?? $part['document_url'] ?? ''),
             ],
             default => $part,
         };

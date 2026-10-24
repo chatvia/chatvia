@@ -78,7 +78,7 @@ it('reads names, context, prices and features from OpenRouter', function (): voi
         ->and($models['mistralai/mistral-small'])->toEqual(new RemoteModelData(
             id: 'mistralai/mistral-small',
             name: 'Mistral Small',
-            features: ['vision' => false, 'function_calling' => true, 'reasoning' => false],
+            features: ['vision' => false, 'files' => false, 'function_calling' => true, 'reasoning' => false],
         ));
 });
 

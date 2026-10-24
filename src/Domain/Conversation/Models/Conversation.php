@@ -280,16 +280,6 @@ class Conversation extends Model
     }
 
     /**
-     * Subset used by the streaming pipeline to decide PDF-Q&A routing.
-     *
-     * @return HasMany<Attachment, $this>
-     */
-    public function pdfAttachments(): HasMany
-    {
-        return $this->attachments()->where('mime_type', 'application/pdf');
-    }
-
-    /**
      * Committed topics this conversation belongs to (multi-label). Suggestion
      * rows in the pivot (topic_id NULL) don't join here.
      *

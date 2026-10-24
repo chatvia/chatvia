@@ -25,6 +25,8 @@ return new class extends SettingsMigration
             $group->add('transcriber');
             $group->add('voice');
             $group->add('document_llm');
+            $group->add('chat_files_enabled');
+            $group->add('chat_files_model');
             $group->add('default_agent_model');
             $group->add('task_model');
             $group->add('follow_up_model');
@@ -45,7 +47,6 @@ return new class extends SettingsMigration
             $group->add('model_facts_lookup');
             $group->add('summary_model');
             $group->add('analysis_model');
-            $group->add('document_chat_model');
             $group->add('scaleway_embedding_model');
             $group->add('scaleway_transcription_model');
             $group->add('mistral_ocr_model');

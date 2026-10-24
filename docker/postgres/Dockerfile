@@ -29,4 +29,9 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/pg_textsearch /tmp/pg_textsearch.zip
 
-CMD ["postgres", "-c", "shared_preload_libraries=pg_textsearch,pg_stat_statements"]
+# More lock slots than the default 64 per connection: the test suite runs in
+# parallel (one database per worker), and a test transaction that touches many
+# tables holds a lock on each. The slots are shared by every database on the
+# server, so several test runs at once used them all up ("out of shared
+# memory"). 256 costs a few MB of shared memory.
+CMD ["postgres", "-c", "shared_preload_libraries=pg_textsearch,pg_stat_statements", "-c", "max_locks_per_transaction=256"]

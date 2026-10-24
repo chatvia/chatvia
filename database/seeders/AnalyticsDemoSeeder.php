@@ -2,229 +2,126 @@
 
 namespace Database\Seeders;
 
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Models\Workspace;
+use Database\Seeders\Demo\DemoAgents;
+use Database\Seeders\Demo\DemoAnalytics;
 use Database\Seeders\Demo\DemoCountries;
+use Database\Seeders\Demo\DemoRandom;
+use Database\Seeders\Demo\DemoReply;
+use Database\Seeders\Demo\DemoVisitors;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Actions\Recording\RecordFeedbackGivenAction;
-use Domain\Analytics\Actions\Recording\RecordMessageAnalyzedAction;
-use Domain\Analytics\Actions\Recording\RecordMessageSentAction;
-use Domain\Analytics\Data\Recording\FeedbackRecordData;
-use Domain\Analytics\Data\Recording\MessageAnalysisRecordData;
-use Domain\Analytics\Data\Recording\MessageSentRecordData;
-use Domain\Analytics\Events\FeedbackGiven;
-use Domain\Analytics\Events\MessageAnalyzed;
-use Domain\Analytics\Events\MessageSent;
-use Domain\Llm\Models\Llm;
+use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Pulse\Facades\Pulse;
 
 /**
- * Seeds 30 days of "historical" analytics events that have NO backing rows in
- * chat_messages / chat_conversations — they represent the analytics that would
- * still be visible after the user deleted the underlying chats. ChatSeeder
- * lays its own (smaller) set of real chats on top, with matching analytics
- * events fired through the same Actions; together they tell the demo story
- * of "the chat log only shows recent conversations, but the analytics page
- * preserved everything."
+ * Demo data: 30 days of analytics for the demo agents with no chats behind
+ * them, the analytics a store keeps after people delete their chats.
+ * ChatSeeder adds two weeks of real chats with their own analytics on top.
  *
- * Run order: LlmSeeder → AnalyticsDemoSeeder → ChatSeeder.
+ * Every conversation follows its agent's profile in {@see DemoAgents}
+ * (volume, topics, sentiment, tone, feedback and unanswered rates); the
+ * visitors come from {@see DemoCountries} and chat in their own business
+ * hours. Each run first removes the demo workspace's analytics, so a rerun
+ * gives the same picture instead of doubling it. Skipped in production.
  */
 class AnalyticsDemoSeeder extends Seeder
 {
     use SkipsInProduction;
 
-    /** Days of synthetic history to fabricate. */
+    /** Days of history. */
     private const int DAYS = 30;
 
-    /** Hour-of-day weights (UTC) — bias toward business hours. */
-    private const array HOUR_WEIGHTS = [
-        0 => 1, 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1,
-        6 => 2, 7 => 3, 8 => 4,
-        9 => 7, 10 => 8, 11 => 8, 12 => 7, 13 => 7, 14 => 9, 15 => 9, 16 => 8,
-        17 => 6, 18 => 5, 19 => 4, 20 => 3, 21 => 3, 22 => 2, 23 => 2,
-    ];
+    /** Percent of conversations from a visitor who chatted before. */
+    private const int RETURNING_VISITORS = 15;
 
-    /** Synthetic sentiment distribution (skews positive). */
-    private const array SENTIMENT_WEIGHTS = ['positive' => 55, 'neutral' => 30, 'negative' => 15];
+    /** Percent of conversations from a signed-in chatter. */
+    private const int SIGNED_IN = 10;
 
-    /** Synthetic tone distribution. */
-    private const array TONE_WEIGHTS = ['neutral' => 40, 'satisfied' => 30, 'confused' => 12, 'frustrated' => 10, 'urgent' => 8];
+    /** Percent of visitor messages the message analysis labels. */
+    private const int ANALYZED = 95;
+
+    /** Percent of conversations the conversation analysis gives a topic. */
+    private const int TOPIC_ASSIGNED = 92;
+
+    public function __construct(
+        private readonly DemoAnalytics $analytics,
+    ) {}
 
     public function run(): void
     {
-        // It writes analytics for every agent in the database, so a production
-        // run would mix fake numbers into real customers' dashboards.
         if ($this->skipInProduction()) {
             return;
         }
 
-        // The seeder fires tens of thousands of upserts. Pulse would keep an
-        // entry for each of them until the end of the run.
-        $this->ensureMemoryLimit('512M');
+        // Thousands of upserts; Pulse would keep an entry for each of them.
         Pulse::stopRecording();
 
-        $agents = Agent::query()->orderBy('id')->get();
+        $workspace = DemoAgents::workspace();
+        $agents = $workspace instanceof Workspace ? DemoAgents::in($workspace) : collect();
 
-        if ($agents->isEmpty()) {
-            $this->command->warn('No agents found — skipping AnalyticsDemoSeeder.');
+        if (! $workspace instanceof Workspace || $agents->isEmpty()) {
+            $this->command->warn('No demo agents found. Run DatabaseSeeder first.');
 
             return;
         }
 
-        // Pull model dimensions from the actual llms table so the per-model
-        // analytics rows match real models. Falls back to the unknown model
-        // (0) if LlmSeeder hasn't run yet (allowing standalone db:seed --class).
-        $models = Llm::query()->pluck('id')->all();
-        if (empty($models)) {
-            $models = [0];
-        }
-        $modelWeights = $this->weightAround($models);
+        $this->analytics->clear($workspace);
 
-        $this->truncateAnalytics();
+        $chatters = DemoVisitors::chatters($workspace, $agents);
+        $topics = Topic::forWorkspace($workspace)->pluck('id', 'topic');
 
-        /** @var RecordMessageSentAction $messageSent */
-        $messageSent = app(RecordMessageSentAction::class);
-        /** @var RecordFeedbackGivenAction $feedbackGiven */
-        $feedbackGiven = app(RecordFeedbackGivenAction::class);
-        /** @var RecordMessageAnalyzedAction $messageAnalyzed */
-        $messageAnalyzed = app(RecordMessageAnalyzedAction::class);
+        foreach ($agents as $slug => $agent) {
+            $this->command->info('Seeding '.self::DAYS." days of analytics for {$agent->name} ({$agent->external_id})");
 
-        foreach ($agents as $agent) {
-            $this->command->info(sprintf(
-                'Seeding %d days of historical analytics for: %s (%s)',
-                self::DAYS, $agent->name, $agent->external_id
-            ));
+            [$conversations, $messages, $feedback] = $this->seedAgent($agent, DemoAgents::AGENTS[$slug], $chatters, $topics);
 
-            [$convs, $msgs, $fbs] = $this->seedAgent(
-                $agent, $messageSent, $feedbackGiven, $messageAnalyzed, $modelWeights
-            );
-
-            $this->command->info(sprintf('  → %d conversations, %d messages, %d feedback events', $convs, $msgs, $fbs));
+            $this->command->info("  → {$conversations} conversations, {$messages} messages, {$feedback} feedback events");
         }
     }
 
     /**
-     * Build a weight map for an arbitrary set of llm names — first one gets
-     * 60%, second 40%, additional ones split the remainder. Keeps the demo
-     * skewed so the "most used models" chart has visible spread.
-     *
-     * @param  list<string>  $models
-     * @return array<string, int>
+     * @param  array{daily_conversations: array{0: int, 1: int}, topics: array<string, int>, sentiment: array<string, int>, tone: array<string, int>, feedback_rate: int, unanswered_rate: int}  $profile
+     * @param  Collection<int, Chatter>  $chatters
+     * @param  Collection<string, int>  $topics
+     * @return array{0: int, 1: int, 2: int} conversations, messages, feedback events
      */
-    private function weightAround(array $models): array
+    private function seedAgent(Agent $agent, array $profile, Collection $chatters, Collection $topics): array
     {
-        return match (count($models)) {
-            0 => [],
-            1 => [$models[0] => 100],
-            default => array_combine(
-                $models,
-                array_pad([60, 40], count($models), max(1, (int) floor(20 / max(1, count($models) - 2))))
-            ),
-        };
-    }
-
-    /**
-     * @param  array<string, int>  $modelWeights
-     * @return array{0:int,1:int,2:int} [conversations, messages, feedback]
-     */
-    private function seedAgent(
-        Agent $agent,
-        RecordMessageSentAction $messageSent,
-        RecordFeedbackGivenAction $feedbackGiven,
-        RecordMessageAnalyzedAction $messageAnalyzed,
-        array $modelWeights,
-    ): array {
-        $startDate = now()->subDays(self::DAYS - 1)->startOfDay();
-        $convCount = 0;
-        $msgCount = 0;
-        $fbCount = 0;
+        $topicWeights = array_intersect_key($profile['topics'], $topics->all());
+        $firstDay = now()->utc()->startOfDay()->subDays(self::DAYS - 1);
+        $returning = [];
+        $counts = [0, 0, 0];
 
         $bar = $this->command->getOutput()->createProgressBar(self::DAYS);
         $bar->start();
 
-        for ($d = 0; $d < self::DAYS; $d++) {
-            $day = $startDate->copy()->addDays($d);
+        for ($index = 0; $index < self::DAYS; $index++) {
+            $day = $firstDay->copy()->addDays($index);
 
-            foreach (range(1, $this->conversationsForDay($day, $d)) as $_) {
-                $startedAt = $day->copy()->setTime(
-                    $this->weightedPick(self::HOUR_WEIGHTS),
-                    random_int(0, 59),
-                    random_int(0, 59),
-                );
+            foreach (range(1, $this->conversationsOn($day, $index, $profile['daily_conversations'])) as $_) {
+                $visitor = $this->visitor($returning, $chatters);
+                $startedAt = DemoRandom::localStart($day, $visitor['location']['timezone']);
 
-                $sessionId = (string) Str::uuid();
-                $convId = (string) Str::uuid();
-                $country = DemoCountries::pickCode();
-                $model = (string) $this->weightedPick($modelWeights);
+                if (! $startedAt instanceof Carbon) {
+                    continue;
+                }
 
-                // conversations_started gets incremented inside
-                // RecordMessageSentAction when it detects this is the first
-                // message of the conversation.
-                $convCount++;
+                $returning[] = $visitor;
+                $returning = array_slice($returning, -40);
 
-                // Exponential distribution → most chats are short, a few long.
-                $msgs = max(2, min(15, (int) round($this->randExp(4))));
-                $cursor = $startedAt->copy();
+                [$messages, $feedback] = $this->conversation($agent, $profile, $visitor, $startedAt);
+                $counts[0]++;
+                $counts[1] += $messages;
+                $counts[2] += $feedback;
 
-                for ($m = 0; $m < $msgs; $m++) {
-                    $isUser = $m % 2 === 0;
-                    $cursor = $cursor->copy()->addSeconds(random_int(15, 240));
-
-                    $msgId = (string) Str::uuid();
-                    $modelUsed = $isUser ? null : $model;
-                    $promptTokens = $isUser ? null : random_int(120, 1400);
-                    $completionTokens = $isUser ? null : random_int(60, 800);
-                    $responseMs = $isUser ? null : random_int(900, 5400);
-
-                    $messageSent->execute(MessageSentRecordData::fromEvent(new MessageSent(
-                        agentId: $agent->id,
-                        workspaceId: $agent->workspace_id,
-                        chatterId: null,
-                        conversationExternalId: $convId,
-                        messageExternalId: $msgId,
-                        sessionExternalId: $sessionId,
-                        role: $isUser ? 'user' : 'assistant',
-                        llmId: $modelUsed,
-                        countryCode: $country,
-                        responseTimeMs: $responseMs,
-                        promptTokens: $promptTokens,
-                        completionTokens: $completionTokens,
-                        occurredAt: $cursor,
-                    )));
-                    $msgCount++;
-
-                    // ~85% of user messages get synthetic sentiment + tone so the
-                    // Sentiment and Tone analytics pages have demo data; the rest
-                    // stay "unspecified" (derived from total user messages).
-                    if ($isUser && random_int(1, 100) <= 85) {
-                        $messageAnalyzed->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed(
-                            agentId: $agent->id,
-                            workspaceId: $agent->workspace_id,
-                            sentiment: (string) $this->weightedPick(self::SENTIMENT_WEIGHTS),
-                            tone: (string) $this->weightedPick(self::TONE_WEIGHTS),
-                            occurredAt: $cursor,
-                        )));
-                    }
-
-                    // ~25% of assistant turns get a reaction; positive skews 70/30.
-                    if (! $isUser && random_int(1, 100) <= 25) {
-                        $feedback = random_int(1, 100) <= 70 ? 'positive' : 'negative';
-                        $feedbackGiven->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
-                            agentId: $agent->id,
-                            workspaceId: $agent->workspace_id,
-                            chatterId: null,
-                            conversationExternalId: $convId,
-                            messageExternalId: $msgId,
-                            feedback: $feedback,
-                            llmId: $modelUsed,
-                            countryCode: $country,
-                            occurredAt: $cursor->copy()->addSeconds(random_int(5, 60)),
-                        )));
-                        $fbCount++;
-                    }
+                if ($topicWeights !== [] && DemoRandom::chance(self::TOPIC_ASSIGNED)) {
+                    $this->analytics->topic($agent, $topics[DemoRandom::pick($topicWeights)], $startedAt);
                 }
             }
 
@@ -234,82 +131,100 @@ class AnalyticsDemoSeeder extends Seeder
         $bar->finish();
         $this->command->newLine();
 
-        return [$convCount, $msgCount, $fbCount];
-    }
-
-    private function truncateAnalytics(): void
-    {
-        $connection = config('chatvia.analytics.connection');
-        $db = DB::connection($connection);
-
-        foreach ([
-            'analytics_events',
-            'analytics_agent_hourly_rollups',
-            'analytics_conversation_metrics',
-            'analytics_session_firsts',
-            'analytics_agent_sentiment_daily',
-            'analytics_agent_tone_daily',
-            'analytics_agent_topic_daily',
-            'analytics_agent_source_daily',
-        ] as $table) {
-            $db->table($table)->truncate();
-        }
-    }
-
-    private function conversationsForDay(Carbon $day, int $dayIndex): int
-    {
-        // Linear ramp ~8 → ~20/day across the window, weekend ×0.6, ±50% jitter
-        // so the trend chart has a real-looking slope rather than a flat line.
-        $base = (int) round(8 + (($dayIndex / max(1, self::DAYS - 1)) * 12));
-        if (in_array($day->dayOfWeek, [Carbon::SATURDAY, Carbon::SUNDAY], true)) {
-            $base = (int) round($base * 0.6);
-        }
-
-        $lo = max(1, (int) floor($base * 0.5));
-        $hi = max($lo + 1, (int) ceil($base * 1.5));
-
-        return random_int($lo, $hi);
+        return $counts;
     }
 
     /**
-     * @param  array<int|string, int|float>  $weights
+     * One conversation: turns of a visitor question and an AI reply.
+     *
+     * @param  array{sentiment: array<string, int>, tone: array<string, int>, feedback_rate: int, unanswered_rate: int}  $profile
+     * @param  array{session: string, chatter: int|null, location: array{code: string}}  $visitor
+     * @return array{0: int, 1: int} messages, feedback events
      */
-    private function weightedPick(array $weights): int|string
+    private function conversation(Agent $agent, array $profile, array $visitor, Carbon $startedAt): array
     {
-        $total = (int) round(array_sum($weights) * 1000);
-        $r = random_int(1, max(1, $total));
-        $acc = 0;
-        foreach ($weights as $key => $weight) {
-            $acc += (int) round($weight * 1000);
-            if ($r <= $acc) {
-                return $key;
+        $conversation = (string) Str::uuid7();
+        $country = $visitor['location']['code'];
+        $sentiment = (string) DemoRandom::pick($profile['sentiment']);
+        $tone = DemoRandom::toneFor($sentiment, $profile['tone']);
+        $turns = DemoRandom::turns(2.4);
+        $at = $startedAt->copy();
+        $feedback = 0;
+
+        for ($turn = 0; $turn < $turns; $turn++) {
+            $at = $at->copy()->addSeconds($turn === 0 ? 0 : random_int(20, 150));
+            $this->analytics->visitorMessage($agent, $visitor['chatter'], $visitor['session'], $conversation, (string) Str::uuid7(), $country, $at);
+
+            if (DemoRandom::chance(self::ANALYZED)) {
+                // Single messages vary around the mood of the whole chat.
+                $messageSentiment = DemoRandom::chance(70) ? $sentiment : 'neutral';
+                $this->analytics->analyzed($agent, $messageSentiment, DemoRandom::chance(70) ? $tone : DemoRandom::toneFor($messageSentiment, $profile['tone']), $at);
+            }
+
+            $reply = DemoRandom::chance($profile['unanswered_rate']) ? DemoReply::unanswered() : DemoReply::answered();
+            $at = $at->copy()->addMilliseconds($reply->responseTimeMs);
+            $message = (string) Str::uuid7();
+            $this->analytics->reply($agent, $visitor['chatter'], $visitor['session'], $conversation, $message, $country, $reply, $at);
+
+            if (DemoRandom::chance($profile['feedback_rate'])) {
+                $this->analytics->feedback($agent, $visitor['chatter'], $conversation, $message, $this->feedbackFor($reply, $sentiment), $country, $at->copy()->addSeconds(random_int(5, 90)));
+                $feedback++;
             }
         }
 
-        return array_key_last($weights);
+        return [$turns * 2, $feedback];
     }
 
-    private function randExp(float $mean): float
+    /** Thumbs up mostly for good answers in chats that went well. */
+    private function feedbackFor(DemoReply $reply, string $sentiment): string
     {
-        // Inverse-CDF sample from Exp(1/$mean).
-        $u = random_int(1, 999999) / 1000000;
+        $positive = match (true) {
+            ! $reply->foundAnswer => 15,
+            $sentiment === 'negative' => 35,
+            default => 88,
+        };
 
-        return -log($u) * $mean;
+        return DemoRandom::chance($positive) ? 'positive' : 'negative';
     }
 
     /**
-     * A year of demo analytics needs more memory than PHP's default 128M.
-     * Raise the limit to $limit, but never lower it: the test suite seeds in
-     * its own process, which runs with a higher limit.
+     * A returning visitor (same session, place and chatter), a signed-in
+     * chatter from their own country, or a new anonymous visitor.
+     *
+     * @param  list<array{session: string, chatter: int|null, location: array{code: string, id: int|null, city: string, timezone: string, locale: string}}>  $returning
+     * @param  Collection<int, Chatter>  $chatters
+     * @return array{session: string, chatter: int|null, location: array{code: string, id: int|null, city: string, timezone: string, locale: string}}
      */
-    private function ensureMemoryLimit(string $limit): void
+    private function visitor(array $returning, Collection $chatters): array
     {
-        $current = ini_get('memory_limit');
-
-        if ($current === '-1' || ini_parse_quantity((string) $current) >= ini_parse_quantity($limit)) {
-            return;
+        if ($returning !== [] && DemoRandom::chance(self::RETURNING_VISITORS)) {
+            return $returning[array_rand($returning)];
         }
 
-        ini_set('memory_limit', $limit);
+        if ($chatters->isNotEmpty() && DemoRandom::chance(self::SIGNED_IN)) {
+            $chatter = $chatters->random();
+
+            return ['session' => (string) Str::uuid7(), 'chatter' => $chatter->id, 'location' => DemoCountries::in(DemoVisitors::countryOf($chatter))];
+        }
+
+        return ['session' => (string) Str::uuid7(), 'chatter' => null, 'location' => DemoCountries::pick()];
+    }
+
+    /**
+     * A growing store: the daily volume climbs from the first to the last
+     * day of the range, dips on weekends and varies by ±35%.
+     *
+     * @param  array{0: int, 1: int}  $range
+     */
+    private function conversationsOn(Carbon $day, int $index, array $range): int
+    {
+        [$first, $last] = $range;
+        $base = $first + (($last - $first) * $index / max(1, self::DAYS - 1));
+
+        if ($day->isWeekend()) {
+            $base *= 0.7;
+        }
+
+        return random_int(max(1, (int) floor($base * 0.65)), max(1, (int) ceil($base * 1.35)));
     }
 }

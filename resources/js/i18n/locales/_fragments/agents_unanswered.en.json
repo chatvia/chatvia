@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Unanswered",
+            "description": "Questions the agent found no knowledge for, and answers visitors marked as bad. Add the right answer to fill the gap.",
+            "chatlog_off": "The chat log is off for this agent, so no new replies are stored here.",
+            "filter_all": "All",
+            "filter_not_found": "No knowledge found",
+            "filter_thumbs_down": "Thumbs down",
+            "include_revised": "Show revised",
+            "load_error": "Could not load the list.",
+            "try_again": "Try again",
+            "empty": "Nothing here. Every recent question found an answer.",
+            "reason_not_found": "No knowledge found",
+            "reason_thumbs_down": "Thumbs down",
+            "revised": "Revised",
+            "question": "Question",
+            "answer": "Answer",
+            "no_question": "(no question found)",
+            "add_answer": "Add the right answer",
+            "open_conversation": "Open conversation"
+        },
+        "nav": {
+            "unanswered": "Unanswered"
+        }
+    }
+}

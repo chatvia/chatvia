@@ -141,7 +141,12 @@
         "copy_message": "Kopier melding",
         "feedback_helpful": "Godt svar",
         "feedback_not_helpful": "Dårlig svar",
-        "edit_message": "Rediger melding"
+        "edit_message": "Rediger melding",
+        "feedback_comment_label": "Hva var feil? (valgfritt)",
+        "feedback_comment_placeholder": "For eksempel: prisen er utdatert.",
+        "feedback_comment_send": "Send",
+        "feedback_comment_skip": "Hopp over",
+        "feedback_comment_thanks": "Takk for tilbakemeldingen."
     },
     "errors": {
         "message_limit_reached": "Meldingsgrensen er nådd",
@@ -162,7 +167,9 @@
         "fallback_title": "Kilde {number}",
         "chunk_label": "Utdrag {index}",
         "open_link": "Åpne {label}",
-        "passage_count": "{count} utdrag | {count} utdrag"
+        "passage_count": "{count} utdrag | {count} utdrag",
+        "relevance": "Relevans {score}",
+        "passage_removed": "Denne passasjen er siden fjernet fra kunnskapsbasen."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Stemme",
                 "confidence_help": "Hvor godt agentens kunnskap samsvarte med dette spørsmålet — ikke hvor godt svaret er.",
                 "trace": "Spor",
-                "trace_help": "Se alle AI-kall bak dette svaret i Spectra"
+                "trace_help": "Se alle AI-kall bak dette svaret i Spectra",
+                "no_sources": "Ingen kunnskap brukt",
+                "no_sources_help": "Ingen passasje fra kunnskapsbasen besto relevanssjekken, så dette svaret brukte ingen.",
+                "feedback_comment": "Besøkendes notat:"
             },
             "details": {
                 "select_conversation": "Velg en samtale for å se detaljer",
@@ -575,7 +585,10 @@
                 "cancel": "Avbryt",
                 "save": "Lagre revisjon",
                 "saving": "Lagrer…",
-                "save_error": "Kunne ikke lagre revisjon. Prøv igjen."
+                "save_error": "Kunne ikke lagre revisjon. Prøv igjen.",
+                "add_eval_case": "Legg også til som evalueringstilfelle",
+                "add_eval_case_help": "Evalueringskjøringer sjekker at agenten fortsetter å gi dette svaret.",
+                "eval_case_added": "Lagret og lagt til i evalueringstilfellene."
             },
             "delete": {
                 "dialog_title": "Slett samtale?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Legg til avanserte muligheter i chatten — som interaktive diagrammer",
             "forms": "Skjemaer",
             "forms_tooltip": "Bygg skjemaer agenten din viser i chatten",
-            "blocked": "Blokkerte"
+            "blocked": "Blokkerte",
+            "unanswered": "Ubesvarte"
         },
         "create_modal": {
             "title": "Opprett agent",
@@ -2332,6 +2346,26 @@
             "empty": "Ingen innsendinger ennå.",
             "submitted_at": "Sendt inn",
             "deleted": "Innsending slettet"
+        },
+        "unanswered": {
+            "title": "Ubesvarte",
+            "description": "Spørsmål agenten ikke fant kunnskap til, og svar besøkende merket som dårlige. Legg til riktig svar for å tette hullet.",
+            "chatlog_off": "Chatloggen er slått av for denne agenten, så nye svar lagres ikke her.",
+            "filter_all": "Alle",
+            "filter_not_found": "Ingen kunnskap funnet",
+            "filter_thumbs_down": "Tommel ned",
+            "include_revised": "Vis reviderte",
+            "load_error": "Kunne ikke laste listen.",
+            "try_again": "Prøv igjen",
+            "empty": "Ingenting her. Alle nylige spørsmål fant et svar.",
+            "reason_not_found": "Ingen kunnskap funnet",
+            "reason_thumbs_down": "Tommel ned",
+            "revised": "Revidert",
+            "question": "Spørsmål",
+            "answer": "Svar",
+            "no_question": "(fant ikke spørsmålet)",
+            "add_answer": "Legg til riktig svar",
+            "open_conversation": "Åpne samtale"
         }
     },
     "auth": {

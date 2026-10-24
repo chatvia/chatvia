@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Sem resposta",
+            "description": "Perguntas para as quais o agente não encontrou conhecimento e respostas que os visitantes marcaram como ruins. Adicione a resposta certa para fechar a lacuna.",
+            "chatlog_off": "O registro de chat está desligado para este agente, então novas respostas não são salvas aqui.",
+            "filter_all": "Todas",
+            "filter_not_found": "Sem conhecimento",
+            "filter_thumbs_down": "Polegar para baixo",
+            "include_revised": "Mostrar revisadas",
+            "load_error": "Não foi possível carregar a lista.",
+            "try_again": "Tentar novamente",
+            "empty": "Nada aqui. Toda pergunta recente encontrou resposta.",
+            "reason_not_found": "Sem conhecimento",
+            "reason_thumbs_down": "Polegar para baixo",
+            "revised": "Revisada",
+            "question": "Pergunta",
+            "answer": "Resposta",
+            "no_question": "(pergunta não encontrada)",
+            "add_answer": "Adicionar a resposta certa",
+            "open_conversation": "Abrir conversa"
+        },
+        "nav": {
+            "unanswered": "Sem resposta"
+        }
+    }
+}

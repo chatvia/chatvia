@@ -141,7 +141,12 @@
         "copy_message": "Sao chép tin nhắn",
         "feedback_helpful": "Phản hồi tốt",
         "feedback_not_helpful": "Phản hồi chưa tốt",
-        "edit_message": "Sửa tin nhắn"
+        "edit_message": "Sửa tin nhắn",
+        "feedback_comment_label": "Điều gì chưa đúng? (không bắt buộc)",
+        "feedback_comment_placeholder": "Ví dụ: giá đã cũ.",
+        "feedback_comment_send": "Gửi",
+        "feedback_comment_skip": "Bỏ qua",
+        "feedback_comment_thanks": "Cảm ơn bạn đã góp ý."
     },
     "errors": {
         "message_limit_reached": "Đã đạt giới hạn tin nhắn",
@@ -162,7 +167,9 @@
         "fallback_title": "Nguồn {number}",
         "chunk_label": "Đoạn {index}",
         "open_link": "Mở {label}",
-        "passage_count": "{count} đoạn | {count} đoạn"
+        "passage_count": "{count} đoạn | {count} đoạn",
+        "relevance": "Mức liên quan {score}",
+        "passage_removed": "Đoạn này đã bị xóa khỏi cơ sở kiến thức."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Giọng nói",
                 "confidence_help": "Mức độ khớp giữa kiến thức của trợ lý với câu hỏi này — không phải chất lượng câu trả lời.",
                 "trace": "Dấu vết",
-                "trace_help": "Xem tất cả lệnh gọi AI đằng sau câu trả lời này trong Spectra"
+                "trace_help": "Xem tất cả lệnh gọi AI đằng sau câu trả lời này trong Spectra",
+                "no_sources": "Không dùng kiến thức",
+                "no_sources_help": "Không đoạn nào trong cơ sở kiến thức vượt qua bước kiểm tra mức liên quan, nên câu trả lời này không dùng đoạn nào.",
+                "feedback_comment": "Ghi chú của khách:"
             },
             "details": {
                 "select_conversation": "Chọn một cuộc trò chuyện để xem chi tiết",
@@ -575,7 +585,10 @@
                 "cancel": "Hủy",
                 "save": "Lưu chỉnh sửa",
                 "saving": "Đang lưu…",
-                "save_error": "Không thể lưu chỉnh sửa. Vui lòng thử lại."
+                "save_error": "Không thể lưu chỉnh sửa. Vui lòng thử lại.",
+                "add_eval_case": "Thêm cả thành trường hợp đánh giá",
+                "add_eval_case_help": "Các lần chạy đánh giá sẽ kiểm tra để tác tử tiếp tục đưa ra câu trả lời này.",
+                "eval_case_added": "Đã lưu và thêm vào các trường hợp đánh giá."
             },
             "delete": {
                 "dialog_title": "Xóa cuộc trò chuyện?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Thêm các tính năng nâng cao vào cuộc trò chuyện — như biểu đồ tương tác",
             "forms": "Biểu mẫu",
             "forms_tooltip": "Tạo các biểu mẫu mà trợ lý AI của bạn hiển thị trong cuộc trò chuyện",
-            "blocked": "Đã chặn"
+            "blocked": "Đã chặn",
+            "unanswered": "Chưa trả lời"
         },
         "create_modal": {
             "title": "Tạo trợ lý AI",
@@ -2331,6 +2345,26 @@
             "empty": "Chưa có lượt gửi nào.",
             "submitted_at": "Đã gửi",
             "deleted": "Đã xóa lượt gửi"
+        },
+        "unanswered": {
+            "title": "Chưa trả lời",
+            "description": "Các câu hỏi mà tác tử không tìm thấy kiến thức, và câu trả lời bị khách đánh giá là tệ. Thêm câu trả lời đúng để lấp chỗ trống.",
+            "chatlog_off": "Nhật ký trò chuyện đang tắt cho tác tử này, nên câu trả lời mới không được lưu ở đây.",
+            "filter_all": "Tất cả",
+            "filter_not_found": "Không tìm thấy kiến thức",
+            "filter_thumbs_down": "Không thích",
+            "include_revised": "Hiện mục đã sửa",
+            "load_error": "Không tải được danh sách.",
+            "try_again": "Thử lại",
+            "empty": "Không có gì ở đây. Mọi câu hỏi gần đây đều có câu trả lời.",
+            "reason_not_found": "Không tìm thấy kiến thức",
+            "reason_thumbs_down": "Không thích",
+            "revised": "Đã sửa",
+            "question": "Câu hỏi",
+            "answer": "Câu trả lời",
+            "no_question": "(không tìm thấy câu hỏi)",
+            "add_answer": "Thêm câu trả lời đúng",
+            "open_conversation": "Mở cuộc trò chuyện"
         }
     },
     "auth": {

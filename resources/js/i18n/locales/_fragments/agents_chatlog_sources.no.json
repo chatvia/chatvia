@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Ingen kunnskap brukt",
+                "no_sources_help": "Ingen passasje fra kunnskapsbasen besto relevanssjekken, så dette svaret brukte ingen."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevans {score}",
+        "passage_removed": "Denne passasjen er siden fjernet fra kunnskapsbasen."
+    }
+}

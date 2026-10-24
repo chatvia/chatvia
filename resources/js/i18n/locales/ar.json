@@ -141,7 +141,12 @@
         "copy_message": "نسخ الرسالة",
         "feedback_helpful": "رد جيد",
         "feedback_not_helpful": "رد سيئ",
-        "edit_message": "تعديل الرسالة"
+        "edit_message": "تعديل الرسالة",
+        "feedback_comment_label": "ما الخطأ؟ (اختياري)",
+        "feedback_comment_placeholder": "مثال: السعر قديم.",
+        "feedback_comment_send": "إرسال",
+        "feedback_comment_skip": "تخطٍّ",
+        "feedback_comment_thanks": "شكرًا على ملاحظاتك."
     },
     "errors": {
         "message_limit_reached": "تم الوصول إلى حد الرسائل",
@@ -162,7 +167,9 @@
         "fallback_title": "المصدر {number}",
         "chunk_label": "المقطع {index}",
         "open_link": "فتح {label}",
-        "passage_count": "{count} مقطع | {count} مقاطع"
+        "passage_count": "{count} مقطع | {count} مقاطع",
+        "relevance": "الصلة {score}",
+        "passage_removed": "أُزيل هذا المقطع من قاعدة المعرفة منذ ذلك الحين."
     },
     "home": {
         "logo_alt": "الشعار",
@@ -470,7 +477,10 @@
                 "voice": "صوت",
                 "confidence_help": "مدى تطابق معرفة الوكيل مع هذا السؤال — وليس مدى جودة الإجابة.",
                 "trace": "التتبع",
-                "trace_help": "عرض كل استدعاءات الذكاء الاصطناعي وراء هذا الرد في Spectra"
+                "trace_help": "عرض كل استدعاءات الذكاء الاصطناعي وراء هذا الرد في Spectra",
+                "no_sources": "لم تُستخدم أي معرفة",
+                "no_sources_help": "لم يجتز أي مقطع من قاعدة المعرفة فحص الصلة، لذلك لم تستخدم هذه الإجابة أيًّا منها.",
+                "feedback_comment": "ملاحظة الزائر:"
             },
             "details": {
                 "select_conversation": "اختر محادثة لعرض التفاصيل",
@@ -575,7 +585,10 @@
                 "cancel": "إلغاء",
                 "save": "حفظ التعديل",
                 "saving": "جارٍ الحفظ…",
-                "save_error": "تعذّر حفظ التعديل. يرجى المحاولة مجدداً."
+                "save_error": "تعذّر حفظ التعديل. يرجى المحاولة مجدداً.",
+                "add_eval_case": "أضفه أيضًا كحالة تقييم",
+                "add_eval_case_help": "ستتحقق عمليات التقييم من أن الوكيل يواصل تقديم هذه الإجابة.",
+                "eval_case_added": "تم الحفظ والإضافة إلى حالات التقييم."
             },
             "delete": {
                 "dialog_title": "حذف المحادثة؟",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "أضف ميزات غنية إلى المحادثة — مثل الرسوم البيانية التفاعلية",
             "forms": "النماذج",
             "forms_tooltip": "أنشئ نماذج يعرضها وكيلك في المحادثة",
-            "blocked": "المحظورون"
+            "blocked": "المحظورون",
+            "unanswered": "بلا إجابة"
         },
         "create_modal": {
             "title": "إنشاء وكيل",
@@ -2332,6 +2346,26 @@
             "empty": "لا توجد إرساليات بعد.",
             "submitted_at": "أُرسلت",
             "deleted": "تم حذف الإرسالية"
+        },
+        "unanswered": {
+            "title": "بلا إجابة",
+            "description": "أسئلة لم يجد لها الوكيل أي معرفة، وإجابات وصفها الزوار بأنها سيئة. أضف الإجابة الصحيحة لسد الفجوة.",
+            "chatlog_off": "سجل المحادثات متوقف لهذا الوكيل، لذلك لا تُحفظ هنا ردود جديدة.",
+            "filter_all": "الكل",
+            "filter_not_found": "لم تُعثر على معرفة",
+            "filter_thumbs_down": "استياء",
+            "include_revised": "إظهار المُعدَّلة",
+            "load_error": "تعذّر تحميل القائمة.",
+            "try_again": "حاول مرة أخرى",
+            "empty": "لا شيء هنا. وجد كل سؤال حديث إجابة.",
+            "reason_not_found": "لم تُعثر على معرفة",
+            "reason_thumbs_down": "استياء",
+            "revised": "مُعدَّلة",
+            "question": "السؤال",
+            "answer": "الإجابة",
+            "no_question": "(لم يُعثر على سؤال)",
+            "add_answer": "أضف الإجابة الصحيحة",
+            "open_conversation": "فتح المحادثة"
         }
     },
     "auth": {

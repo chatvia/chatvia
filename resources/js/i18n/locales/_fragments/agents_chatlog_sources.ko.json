@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "사용된 지식 없음",
+                "no_sources_help": "지식 베이스의 어떤 구절도 관련성 검사를 통과하지 못해 이 답변은 지식을 사용하지 않았습니다."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "관련성 {score}",
+        "passage_removed": "이 구절은 이후 지식 베이스에서 삭제되었습니다."
+    }
+}

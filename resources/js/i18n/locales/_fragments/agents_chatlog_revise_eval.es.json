@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Añadir también como caso de evaluación",
+                "add_eval_case_help": "Las evaluaciones comprobarán que el agente siga dando esta respuesta.",
+                "eval_case_added": "Guardado y añadido a los casos de evaluación."
+            }
+        }
+    }
+}

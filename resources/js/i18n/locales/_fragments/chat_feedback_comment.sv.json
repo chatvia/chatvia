@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Vad var fel? (valfritt)",
+        "feedback_comment_placeholder": "Till exempel: priset är inaktuellt.",
+        "feedback_comment_send": "Skicka",
+        "feedback_comment_skip": "Hoppa över",
+        "feedback_comment_thanks": "Tack för din feedback."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Besökarens anteckning:"
+            }
+        }
+    }
+}

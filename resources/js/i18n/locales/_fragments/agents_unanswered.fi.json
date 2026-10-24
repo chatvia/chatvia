@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Vastaamatta",
+            "description": "Kysymykset, joihin agentti ei löytänyt tietoa, ja vastaukset, jotka kävijät merkitsivät huonoiksi. Lisää oikea vastaus aukon täyttämiseksi.",
+            "chatlog_off": "Keskusteluloki on pois päältä tällä agentilla, joten uusia vastauksia ei tallenneta tähän.",
+            "filter_all": "Kaikki",
+            "filter_not_found": "Tietoa ei löytynyt",
+            "filter_thumbs_down": "Peukku alas",
+            "include_revised": "Näytä korjatut",
+            "load_error": "Luetteloa ei voitu ladata.",
+            "try_again": "Yritä uudelleen",
+            "empty": "Ei mitään. Jokainen viimeaikainen kysymys sai vastauksen.",
+            "reason_not_found": "Tietoa ei löytynyt",
+            "reason_thumbs_down": "Peukku alas",
+            "revised": "Korjattu",
+            "question": "Kysymys",
+            "answer": "Vastaus",
+            "no_question": "(kysymystä ei löytynyt)",
+            "add_answer": "Lisää oikea vastaus",
+            "open_conversation": "Avaa keskustelu"
+        },
+        "nav": {
+            "unanswered": "Vastaamatta"
+        }
+    }
+}

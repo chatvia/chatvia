@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Ayrıca değerlendirme vakası olarak ekle",
+                "add_eval_case_help": "Değerlendirme çalıştırmaları, ajanın bu yanıtı vermeye devam ettiğini kontrol eder.",
+                "eval_case_added": "Kaydedildi ve değerlendirme vakalarına eklendi."
+            }
+        }
+    }
+}

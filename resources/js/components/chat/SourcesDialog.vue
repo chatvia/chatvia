@@ -2,7 +2,9 @@
 /**
  * "N Sources" button under an assistant reply, opening a dialog with the
  * sources the answer was given: each one's name, the page of a PDF, how many
- * of its passages were used, and a link to a website page or a video.
+ * of its passages were used, and a link to a website page or a video. The
+ * chat log also passes each passage's relevance and the start of its text,
+ * and uses the smaller `compact` button in a message's details line.
  */
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +17,7 @@ import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     sources: MessageSource[];
+    compact?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -39,7 +42,16 @@ function sourceTitle(source: MessageSource, index: number): string {
 <template>
     <Dialog>
         <DialogTrigger asChild>
-            <Button variant="outline" size="sm" class="h-7 px-2 text-xs" :disabled="sourcesCount === 0">
+            <button
+                v-if="compact"
+                type="button"
+                class="hover:text-foreground inline-flex cursor-pointer items-center gap-1 transition-colors"
+                :disabled="sourcesCount === 0"
+            >
+                <FileText class="h-3 w-3" aria-hidden="true" />
+                {{ t('sources.source_count', { count: sourcesCount }, { plural: sourcesCount }) }}
+            </button>
+            <Button v-else variant="outline" size="sm" class="h-7 px-2 text-xs" :disabled="sourcesCount === 0">
                 <FileText class="me-1 h-3 w-3" />
                 {{ t('sources.source_count', { count: sourcesCount }, { plural: sourcesCount }) }}
             </Button>
@@ -56,28 +68,39 @@ function sourceTitle(source: MessageSource, index: number): string {
             <!-- min-w-0: a grid item is otherwise as wide as its longest name, which pushes the rows past the dialog. -->
             <ScrollArea class="max-h-[60vh] min-w-0 pe-4">
                 <ul class="space-y-2">
-                    <li v-for="(source, index) in sources" :key="source.id ?? index" class="flex min-w-0 items-center gap-3 rounded-lg border p-3">
-                        <Badge variant="secondary" class="shrink-0 text-xs">{{ index + 1 }}</Badge>
-                        <component :is="kindIcons[source.kind] ?? FileText" class="text-muted-foreground h-4 w-4 shrink-0" />
-                        <!-- The inner dir="auto" cuts a name at its own end (the left of an Arabic one); the outer span keeps the row's direction for me-auto. -->
-                        <span class="me-auto flex min-w-0">
-                            <span dir="auto" class="truncate text-sm font-medium" :title="sourceTitle(source, index)">
-                                {{ sourceTitle(source, index) }}
+                    <li v-for="(source, index) in sources" :key="source.id ?? index" class="min-w-0 rounded-lg border p-3">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <Badge variant="secondary" class="shrink-0 text-xs">{{ index + 1 }}</Badge>
+                            <component :is="kindIcons[source.kind] ?? FileText" class="text-muted-foreground h-4 w-4 shrink-0" />
+                            <!-- The inner dir="auto" cuts a name at its own end (the left of an Arabic one); the outer span keeps the row's direction for me-auto. -->
+                            <span class="me-auto flex min-w-0">
+                                <span dir="auto" class="truncate text-sm font-medium" :title="sourceTitle(source, index)">
+                                    {{ sourceTitle(source, index) }}
+                                </span>
                             </span>
-                        </span>
-                        <span v-if="(source.passages ?? 1) > 1" class="text-muted-foreground shrink-0 text-xs">
-                            {{ t('sources.passage_count', { count: source.passages }, { plural: source.passages }) }}
-                        </span>
-                        <a
-                            v-if="source.url"
-                            :href="source.url"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-muted-foreground hover:text-foreground shrink-0"
-                            :aria-label="t('sources.open_link', { label: sourceTitle(source, index) })"
-                        >
-                            <ExternalLink class="h-4 w-4" />
-                        </a>
+                            <span v-if="(source.passages ?? 1) > 1" class="text-muted-foreground shrink-0 text-xs">
+                                {{ t('sources.passage_count', { count: source.passages }, { plural: source.passages }) }}
+                            </span>
+                            <a
+                                v-if="source.url"
+                                :href="source.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-muted-foreground hover:text-foreground shrink-0"
+                                :aria-label="t('sources.open_link', { label: sourceTitle(source, index) })"
+                            >
+                                <ExternalLink class="h-4 w-4" />
+                            </a>
+                        </div>
+                        <p v-if="typeof source.score === 'number'" class="text-muted-foreground mt-2 text-xs tabular-nums">
+                            {{ t('sources.relevance', { score: source.score.toFixed(2) }) }}
+                        </p>
+                        <p v-if="source.preview" dir="auto" class="text-muted-foreground mt-1 line-clamp-4 text-xs leading-relaxed break-words">
+                            {{ source.preview }}
+                        </p>
+                        <p v-else-if="source.preview === null" class="text-muted-foreground mt-1 text-xs italic">
+                            {{ t('sources.passage_removed') }}
+                        </p>
                     </li>
                 </ul>
             </ScrollArea>

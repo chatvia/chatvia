@@ -141,7 +141,12 @@
         "copy_message": "Salin pesan",
         "feedback_helpful": "Respons bagus",
         "feedback_not_helpful": "Respons buruk",
-        "edit_message": "Edit pesan"
+        "edit_message": "Edit pesan",
+        "feedback_comment_label": "Apa yang salah? (opsional)",
+        "feedback_comment_placeholder": "Contoh: harganya sudah tidak berlaku.",
+        "feedback_comment_send": "Kirim",
+        "feedback_comment_skip": "Lewati",
+        "feedback_comment_thanks": "Terima kasih atas masukan Anda."
     },
     "errors": {
         "message_limit_reached": "Batas pesan tercapai",
@@ -162,7 +167,9 @@
         "fallback_title": "Sumber {number}",
         "chunk_label": "Potongan {index}",
         "open_link": "Buka {label}",
-        "passage_count": "{count} bagian | {count} bagian"
+        "passage_count": "{count} bagian | {count} bagian",
+        "relevance": "Relevansi {score}",
+        "passage_removed": "Bagian ini sudah dihapus dari basis pengetahuan."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Suara",
                 "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya.",
                 "trace": "Jejak",
-                "trace_help": "Lihat semua panggilan AI di balik balasan ini di Spectra"
+                "trace_help": "Lihat semua panggilan AI di balik balasan ini di Spectra",
+                "no_sources": "Tidak ada pengetahuan yang digunakan",
+                "no_sources_help": "Tidak ada bagian dari basis pengetahuan yang lolos pemeriksaan relevansi, jadi jawaban ini tidak menggunakan satu pun.",
+                "feedback_comment": "Catatan pengunjung:"
             },
             "details": {
                 "select_conversation": "Pilih percakapan untuk melihat detail",
@@ -575,7 +585,10 @@
                 "cancel": "Batal",
                 "save": "Simpan revisi",
                 "saving": "Menyimpan…",
-                "save_error": "Tidak dapat menyimpan revisi. Silakan coba lagi."
+                "save_error": "Tidak dapat menyimpan revisi. Silakan coba lagi.",
+                "add_eval_case": "Tambahkan juga sebagai kasus evaluasi",
+                "add_eval_case_help": "Evaluasi akan memeriksa bahwa agen tetap memberi jawaban ini.",
+                "eval_case_added": "Tersimpan dan ditambahkan ke kasus evaluasi."
             },
             "delete": {
                 "dialog_title": "Hapus percakapan?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif",
             "forms": "Formulir",
             "forms_tooltip": "Buat formulir yang ditampilkan agen Anda di dalam obrolan",
-            "blocked": "Diblokir"
+            "blocked": "Diblokir",
+            "unanswered": "Belum terjawab"
         },
         "create_modal": {
             "title": "Buat Agen",
@@ -2331,6 +2345,26 @@
             "empty": "Belum ada pengiriman.",
             "submitted_at": "Dikirim",
             "deleted": "Pengiriman dihapus"
+        },
+        "unanswered": {
+            "title": "Belum terjawab",
+            "description": "Pertanyaan yang tidak ditemukan pengetahuannya oleh agen, dan jawaban yang ditandai buruk oleh pengunjung. Tambahkan jawaban yang benar untuk menutup celahnya.",
+            "chatlog_off": "Log chat dimatikan untuk agen ini, jadi balasan baru tidak disimpan di sini.",
+            "filter_all": "Semua",
+            "filter_not_found": "Pengetahuan tidak ditemukan",
+            "filter_thumbs_down": "Jempol ke bawah",
+            "include_revised": "Tampilkan yang direvisi",
+            "load_error": "Daftar tidak dapat dimuat.",
+            "try_again": "Coba lagi",
+            "empty": "Tidak ada apa pun. Setiap pertanyaan terbaru menemukan jawaban.",
+            "reason_not_found": "Pengetahuan tidak ditemukan",
+            "reason_thumbs_down": "Jempol ke bawah",
+            "revised": "Direvisi",
+            "question": "Pertanyaan",
+            "answer": "Jawaban",
+            "no_question": "(pertanyaan tidak ditemukan)",
+            "add_answer": "Tambahkan jawaban yang benar",
+            "open_conversation": "Buka percakapan"
         }
     },
     "auth": {

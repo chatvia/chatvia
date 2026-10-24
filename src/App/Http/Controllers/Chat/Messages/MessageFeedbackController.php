@@ -23,6 +23,7 @@ class MessageFeedbackController
             $session->scope($agent, $request->conversationId()),
             $request->messageId(),
             $request->feedback(),
+            $request->comment(),
         );
     }
 }

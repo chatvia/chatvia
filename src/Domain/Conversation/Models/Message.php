@@ -43,6 +43,7 @@ use Support\Concerns\HasExternalId;
  * @property Sentiment|null $sentiment
  * @property Tone|null $tone
  * @property MessageFeedback|null $feedback
+ * @property string|null $feedback_comment
  * @property bool $is_response_from_qa
  * @property bool|null $has_llm_found_answer
  * @property int|null $response_time_ms
@@ -103,6 +104,7 @@ use Support\Concerns\HasExternalId;
     'sentiment',
     'tone',
     'feedback',
+    'feedback_comment',
     'is_response_from_qa',
     'has_llm_found_answer',
     'response_time_ms',

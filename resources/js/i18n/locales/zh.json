@@ -141,7 +141,12 @@
         "copy_message": "复制消息",
         "feedback_helpful": "回复很好",
         "feedback_not_helpful": "回复不佳",
-        "edit_message": "编辑消息"
+        "edit_message": "编辑消息",
+        "feedback_comment_label": "哪里有问题？（可选）",
+        "feedback_comment_placeholder": "例如：价格已过时。",
+        "feedback_comment_send": "发送",
+        "feedback_comment_skip": "跳过",
+        "feedback_comment_thanks": "感谢你的反馈。"
     },
     "errors": {
         "message_limit_reached": "已达到消息上限",
@@ -162,7 +167,9 @@
         "fallback_title": "来源 {number}",
         "chunk_label": "片段 {index}",
         "open_link": "打开 {label}",
-        "passage_count": "{count} 个片段 | {count} 个片段"
+        "passage_count": "{count} 个片段 | {count} 个片段",
+        "relevance": "相关度 {score}",
+        "passage_removed": "此段落之后已从知识库中删除。"
     },
     "home": {
         "logo_alt": "标志",
@@ -470,7 +477,10 @@
                 "voice": "语音",
                 "confidence_help": "表示智能体的知识与此问题的匹配程度，而非回答本身的质量。",
                 "trace": "追踪",
-                "trace_help": "在 Spectra 中查看此回复背后的所有 AI 调用"
+                "trace_help": "在 Spectra 中查看此回复背后的所有 AI 调用",
+                "no_sources": "未使用知识",
+                "no_sources_help": "知识库中没有任何段落通过相关性检查，因此这个回答没有使用知识。",
+                "feedback_comment": "访客备注："
             },
             "details": {
                 "select_conversation": "选择一个会话以查看详情",
@@ -575,7 +585,10 @@
                 "cancel": "取消",
                 "save": "保存修订",
                 "saving": "保存中…",
-                "save_error": "无法保存修订。请重试。"
+                "save_error": "无法保存修订。请重试。",
+                "add_eval_case": "同时添加为评估用例",
+                "add_eval_case_help": "评估运行会检查代理是否一直给出这个回答。",
+                "eval_case_added": "已保存，并已添加到评估用例。"
             },
             "delete": {
                 "dialog_title": "删除会话？",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "为聊天添加丰富的功能 — 例如交互式图表",
             "forms": "表单",
             "forms_tooltip": "构建智能体在聊天中展示的表单",
-            "blocked": "已屏蔽"
+            "blocked": "已屏蔽",
+            "unanswered": "未解答"
         },
         "create_modal": {
             "title": "创建智能体",
@@ -2331,6 +2345,26 @@
             "empty": "暂无提交记录。",
             "submitted_at": "提交时间",
             "deleted": "提交记录已删除"
+        },
+        "unanswered": {
+            "title": "未解答",
+            "description": "代理没有找到知识的问题，以及访客标记为不好的回答。添加正确的回答来补上缺口。",
+            "chatlog_off": "此代理的聊天记录已关闭，因此新的回复不会保存在这里。",
+            "filter_all": "全部",
+            "filter_not_found": "未找到知识",
+            "filter_thumbs_down": "差评",
+            "include_revised": "显示已修订",
+            "load_error": "无法加载列表。",
+            "try_again": "重试",
+            "empty": "这里没有内容。最近的每个问题都找到了答案。",
+            "reason_not_found": "未找到知识",
+            "reason_thumbs_down": "差评",
+            "revised": "已修订",
+            "question": "问题",
+            "answer": "回答",
+            "no_question": "（未找到问题）",
+            "add_answer": "添加正确回答",
+            "open_conversation": "打开对话"
         }
     },
     "auth": {

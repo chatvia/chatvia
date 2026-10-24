@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Tambahkan juga sebagai kasus evaluasi",
+                "add_eval_case_help": "Evaluasi akan memeriksa bahwa agen tetap memberi jawaban ini.",
+                "eval_case_added": "Tersimpan dan ditambahkan ke kasus evaluasi."
+            }
+        }
+    }
+}

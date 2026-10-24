@@ -245,6 +245,7 @@ declare namespace Domain {
                             sentiment: Domain.Analytics.Enums.Sentiment | null;
                             tone: Domain.Analytics.Enums.Tone | null;
                             feedback: string | null;
+                            feedback_comment: string | null;
                             is_response_from_qa: boolean;
                             response_time_ms: number | null;
                             prompt_tokens: number | null;
@@ -263,6 +264,18 @@ declare namespace Domain {
                             confidence_score: number | null;
                             voice: boolean;
                             trace_id: string | null;
+                            sources: Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageSourceData[];
+                        };
+                        export type ChatLogMessageSourceData = {
+                            id: string | null;
+                            label: string;
+                            kind: Domain.Knowledge.Retrieval.Enums.SourceKind;
+                            url: string | null;
+                            page: number | null;
+                            passages: number;
+                            rank: number;
+                            score: number | null;
+                            preview: string | null;
                         };
                         export type ChatLogMessagesResourceData = {
                             messages: Illuminate.LengthAwarePaginator<number, Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData>;
@@ -320,6 +333,19 @@ declare namespace Domain {
                         };
                         export type ChatLogTopicsResourceData = {
                             topics: Domain.Agent.Data.Resources.ChatLog.Topics.ChatLogTopicData[];
+                        };
+                    }
+                    namespace Unanswered {
+                        export type UnansweredQuestionData = {
+                            message_id: string;
+                            conversation_id: string;
+                            question: string;
+                            answer: string;
+                            not_found: boolean;
+                            thumbs_down: boolean;
+                            feedback_comment: string | null;
+                            revised: boolean;
+                            created_at: string;
                         };
                     }
                 }
@@ -430,6 +456,9 @@ declare namespace Domain {
                     is_video_file: boolean;
                 };
             }
+        }
+        namespace Enums {
+            export type UnansweredFilter = 'all' | 'not_found' | 'thumbs_down';
         }
         namespace Prompt {
             namespace Data {
@@ -1049,6 +1078,11 @@ declare namespace Domain {
         }
     }
     namespace Knowledge {
+        namespace Retrieval {
+            namespace Enums {
+                export type SourceKind = 'file' | 'media' | 'website' | 'text' | 'video';
+            }
+        }
         namespace Source {
             namespace Enums {
                 export type SourceStatus = 'uploaded' | 'pending' | 'crawling' | 'crawled' | 'ingesting' | 'failed' | 'ingested';

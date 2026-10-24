@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "ナレッジは使われていません",
+                "no_sources_help": "ナレッジベースのどの箇所も関連性チェックを通過しなかったため、この回答はナレッジを使っていません。"
+            }
+        }
+    },
+    "sources": {
+        "relevance": "関連度 {score}",
+        "passage_removed": "この箇所はその後ナレッジベースから削除されました。"
+    }
+}

@@ -10,15 +10,18 @@ use Domain\Conversation\Models\Message;
 use Domain\Form\Models\FormSubmission;
 
 /**
- * Paginated messages for a chat-log conversation plus its handoff state and
- * any lead row attached to the same conversation.
+ * Paginated messages for a chat-log conversation, each reply with the
+ * knowledge it was given, plus the conversation's handoff state and any lead
+ * row attached to the same conversation.
  */
 class ListConversationMessagesAction
 {
     public function execute(Agent $agent, Conversation $conversation, int $page = 1): ChatLogMessagesResourceData
     {
         $messages = Message::forAgentConversation($agent->id, $conversation->id)
-            ->with('llm')
+            // Only the chunk text: the preview needs nothing else, and a
+            // chunk's vectors are large.
+            ->with(['llm', 'sources.chunk:id,chunk'])
             ->orderBy('created_at')
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
             // The last tiebreak makes the order total, so no message repeats

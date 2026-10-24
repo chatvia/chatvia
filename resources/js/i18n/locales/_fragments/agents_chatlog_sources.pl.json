@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Nie użyto wiedzy",
+                "no_sources_help": "Żaden fragment z bazy wiedzy nie przeszedł sprawdzenia trafności, więc ta odpowiedź nie użyła żadnego."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Trafność {score}",
+        "passage_removed": "Ten fragment został już usunięty z bazy wiedzy."
+    }
+}

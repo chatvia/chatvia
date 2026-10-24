@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Models;
 
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Retrieval\Enums\SourceKind;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
@@ -57,5 +58,19 @@ class MessageSource extends Model
     public function chunk(): BelongsTo
     {
         return $this->belongsTo(Chunk::class);
+    }
+
+    /**
+     * The kind of source, from its morph alias. An audio or video file shows
+     * as a file: the row keeps no MIME type.
+     */
+    public function kind(): SourceKind
+    {
+        return match ($this->sourceable_type) {
+            'source_website', 'agent_website_url' => SourceKind::Website,
+            'source_youtube_video' => SourceKind::Video,
+            'source_text' => SourceKind::Text,
+            default => SourceKind::File,
+        };
     }
 }

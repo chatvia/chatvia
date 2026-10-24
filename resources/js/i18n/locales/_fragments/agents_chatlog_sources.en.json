@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "No knowledge used",
+                "no_sources_help": "No passage from the knowledge base passed the relevance check, so this answer did not use any."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevance {score}",
+        "passage_removed": "This passage has since been removed from the knowledge base."
+    }
+}

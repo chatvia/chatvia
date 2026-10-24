@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Что было не так? (необязательно)",
+        "feedback_comment_placeholder": "Например: цена устарела.",
+        "feedback_comment_send": "Отправить",
+        "feedback_comment_skip": "Пропустить",
+        "feedback_comment_thanks": "Спасибо за отзыв."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Заметка посетителя:"
+            }
+        }
+    }
+}

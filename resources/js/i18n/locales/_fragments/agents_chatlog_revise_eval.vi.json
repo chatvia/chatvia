@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Thêm cả thành trường hợp đánh giá",
+                "add_eval_case_help": "Các lần chạy đánh giá sẽ kiểm tra để tác tử tiếp tục đưa ra câu trả lời này.",
+                "eval_case_added": "Đã lưu và thêm vào các trường hợp đánh giá."
+            }
+        }
+    }
+}

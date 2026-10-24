@@ -141,7 +141,12 @@
         "copy_message": "메시지 복사",
         "feedback_helpful": "좋은 응답",
         "feedback_not_helpful": "나쁜 응답",
-        "edit_message": "메시지 편집"
+        "edit_message": "메시지 편집",
+        "feedback_comment_label": "무엇이 잘못되었나요? (선택)",
+        "feedback_comment_placeholder": "예: 가격이 오래되었습니다.",
+        "feedback_comment_send": "보내기",
+        "feedback_comment_skip": "건너뛰기",
+        "feedback_comment_thanks": "의견을 주셔서 감사합니다."
     },
     "errors": {
         "message_limit_reached": "메시지 한도에 도달했습니다",
@@ -162,7 +167,9 @@
         "fallback_title": "출처 {number}",
         "chunk_label": "청크 {index}",
         "open_link": "{label} 열기",
-        "passage_count": "발췌 {count}개 | 발췌 {count}개"
+        "passage_count": "발췌 {count}개 | 발췌 {count}개",
+        "relevance": "관련성 {score}",
+        "passage_removed": "이 구절은 이후 지식 베이스에서 삭제되었습니다."
     },
     "home": {
         "logo_alt": "로고",
@@ -470,7 +477,10 @@
                 "voice": "음성",
                 "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다.",
                 "trace": "트레이스",
-                "trace_help": "이 답변 뒤의 모든 AI 호출을 Spectra에서 보기"
+                "trace_help": "이 답변 뒤의 모든 AI 호출을 Spectra에서 보기",
+                "no_sources": "사용된 지식 없음",
+                "no_sources_help": "지식 베이스의 어떤 구절도 관련성 검사를 통과하지 못해 이 답변은 지식을 사용하지 않았습니다.",
+                "feedback_comment": "방문자 메모:"
             },
             "details": {
                 "select_conversation": "세부 정보를 보려면 대화를 선택하세요",
@@ -575,7 +585,10 @@
                 "cancel": "취소",
                 "save": "수정 저장",
                 "saving": "저장 중…",
-                "save_error": "수정을 저장할 수 없습니다. 다시 시도해 주세요."
+                "save_error": "수정을 저장할 수 없습니다. 다시 시도해 주세요.",
+                "add_eval_case": "평가 케이스로도 추가",
+                "add_eval_case_help": "평가 실행에서 에이전트가 계속 이 답변을 하는지 확인합니다.",
+                "eval_case_added": "저장했고 평가 케이스에 추가했습니다."
             },
             "delete": {
                 "dialog_title": "대화를 삭제하시겠습니까?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "풍부한 기능을 채팅에 추가합니다 — 대화형 차트 등",
             "forms": "양식",
             "forms_tooltip": "에이전트가 채팅에 표시하는 양식을 만드세요",
-            "blocked": "차단됨"
+            "blocked": "차단됨",
+            "unanswered": "답변 못 함"
         },
         "create_modal": {
             "title": "에이전트 만들기",
@@ -2331,6 +2345,26 @@
             "empty": "아직 제출 내역이 없습니다.",
             "submitted_at": "제출됨",
             "deleted": "제출 내역이 삭제되었습니다"
+        },
+        "unanswered": {
+            "title": "답변 못 함",
+            "description": "에이전트가 지식을 찾지 못한 질문과 방문자가 나쁘다고 표시한 답변입니다. 올바른 답변을 추가해 빈틈을 채우세요.",
+            "chatlog_off": "이 에이전트의 채팅 기록이 꺼져 있어 새 답변이 여기에 저장되지 않습니다.",
+            "filter_all": "전체",
+            "filter_not_found": "지식 없음",
+            "filter_thumbs_down": "싫어요",
+            "include_revised": "수정된 항목 표시",
+            "load_error": "목록을 불러올 수 없습니다.",
+            "try_again": "다시 시도",
+            "empty": "표시할 항목이 없습니다. 최근 질문은 모두 답을 찾았습니다.",
+            "reason_not_found": "지식 없음",
+            "reason_thumbs_down": "싫어요",
+            "revised": "수정됨",
+            "question": "질문",
+            "answer": "답변",
+            "no_question": "(질문을 찾을 수 없음)",
+            "add_answer": "올바른 답변 추가",
+            "open_conversation": "대화 열기"
         }
     },
     "auth": {

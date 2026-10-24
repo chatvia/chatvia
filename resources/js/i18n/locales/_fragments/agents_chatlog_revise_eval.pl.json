@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Dodaj też jako przypadek ewaluacji",
+                "add_eval_case_help": "Ewaluacje sprawdzą, czy agent nadal udziela tej odpowiedzi.",
+                "eval_case_added": "Zapisano i dodano do przypadków ewaluacji."
+            }
+        }
+    }
+}

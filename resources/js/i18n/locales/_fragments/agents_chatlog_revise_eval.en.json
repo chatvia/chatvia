@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Also add as an eval case",
+                "add_eval_case_help": "Eval runs will check that the agent keeps giving this answer.",
+                "eval_case_added": "Saved, and added to the eval cases."
+            }
+        }
+    }
+}

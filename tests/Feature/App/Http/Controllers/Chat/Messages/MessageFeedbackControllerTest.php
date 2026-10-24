@@ -32,6 +32,22 @@ it('records the visitor\'s rating of a reply in their conversation', function ()
     expect($reply->fresh()->feedback)->toBe(MessageFeedback::Positive);
 });
 
+it('keeps the visitor\'s note on a thumbs-down', function (): void {
+    $id = HostedChatVisitor::startConversation($this->agent);
+    $reply = Message::factory()->fromAssistant()->create(['chat_conversation_id' => Conversation::query()->firstWhere('external_id', $id)->id]);
+
+    $this->patchJson($this->url, ['conversation_id' => $id, 'message_id' => $reply->external_id, 'feedback' => 'negative', 'comment' => 'The opening hours are old.'])
+        ->assertOk();
+
+    expect($reply->fresh()->feedback_comment)->toBe('The opening hours are old.');
+});
+
+it('rejects a note longer than the limit', function (): void {
+    $this->patchJson($this->url, ['conversation_id' => (string) Str::uuid(), 'message_id' => (string) Str::uuid(), 'feedback' => 'negative', 'comment' => Str::repeat('a', 1001)])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['comment']);
+});
+
 it('does not record a rating for a reply in another visitor\'s conversation', function (): void {
     $id = HostedChatVisitor::startConversation($this->agent);
     $reply = Message::factory()->fromAssistant()->create(['chat_conversation_id' => Conversation::query()->firstWhere('external_id', $id)->id]);

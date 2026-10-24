@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Kein Wissen verwendet",
+                "no_sources_help": "Kein Abschnitt aus der Wissensbasis hat die Relevanzprüfung bestanden, daher hat diese Antwort keinen verwendet."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevanz {score}",
+        "passage_removed": "Dieser Abschnitt wurde inzwischen aus der Wissensbasis entfernt."
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Lägg också till som utvärderingsfall",
+                "add_eval_case_help": "Utvärderingskörningar kontrollerar att agenten fortsätter ge det här svaret.",
+                "eval_case_added": "Sparat och tillagt i utvärderingsfallen."
+            }
+        }
+    }
+}

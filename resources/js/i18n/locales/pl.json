@@ -141,7 +141,12 @@
         "copy_message": "Kopiuj wiadomość",
         "feedback_helpful": "Dobra odpowiedź",
         "feedback_not_helpful": "Zła odpowiedź",
-        "edit_message": "Edytuj wiadomość"
+        "edit_message": "Edytuj wiadomość",
+        "feedback_comment_label": "Co było nie tak? (opcjonalnie)",
+        "feedback_comment_placeholder": "Na przykład: cena jest nieaktualna.",
+        "feedback_comment_send": "Wyślij",
+        "feedback_comment_skip": "Pomiń",
+        "feedback_comment_thanks": "Dziękujemy za opinię."
     },
     "errors": {
         "message_limit_reached": "Osiągnięto limit wiadomości",
@@ -162,7 +167,9 @@
         "fallback_title": "Źródło {number}",
         "chunk_label": "Fragment {index}",
         "open_link": "Otwórz {label}",
-        "passage_count": "{count} fragment | {count} fragmentów"
+        "passage_count": "{count} fragment | {count} fragmentów",
+        "relevance": "Trafność {score}",
+        "passage_removed": "Ten fragment został już usunięty z bazy wiedzy."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Głos",
                 "confidence_help": "Jak dobrze wiedza agenta pasowała do tego pytania — a nie jak dobra jest odpowiedź.",
                 "trace": "Ślad",
-                "trace_help": "Zobacz wszystkie wywołania AI stojące za tą odpowiedzią w Spectra"
+                "trace_help": "Zobacz wszystkie wywołania AI stojące za tą odpowiedzią w Spectra",
+                "no_sources": "Nie użyto wiedzy",
+                "no_sources_help": "Żaden fragment z bazy wiedzy nie przeszedł sprawdzenia trafności, więc ta odpowiedź nie użyła żadnego.",
+                "feedback_comment": "Uwaga odwiedzającego:"
             },
             "details": {
                 "select_conversation": "Wybierz rozmowę, aby wyświetlić szczegóły",
@@ -575,7 +585,10 @@
                 "cancel": "Anuluj",
                 "save": "Zapisz poprawkę",
                 "saving": "Zapisywanie…",
-                "save_error": "Nie udało się zapisać poprawki. Spróbuj ponownie."
+                "save_error": "Nie udało się zapisać poprawki. Spróbuj ponownie.",
+                "add_eval_case": "Dodaj też jako przypadek ewaluacji",
+                "add_eval_case_help": "Ewaluacje sprawdzą, czy agent nadal udziela tej odpowiedzi.",
+                "eval_case_added": "Zapisano i dodano do przypadków ewaluacji."
             },
             "delete": {
                 "dialog_title": "Usunąć rozmowę?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Dodaj zaawansowane funkcje do czatu — takie jak interaktywne wykresy",
             "forms": "Formularze",
             "forms_tooltip": "Twórz formularze, które agent wyświetla w czacie",
-            "blocked": "Zablokowani"
+            "blocked": "Zablokowani",
+            "unanswered": "Bez odpowiedzi"
         },
         "create_modal": {
             "title": "Utwórz agenta",
@@ -2332,6 +2346,26 @@
             "empty": "Brak zgłoszeń.",
             "submitted_at": "Przesłano",
             "deleted": "Zgłoszenie usunięte"
+        },
+        "unanswered": {
+            "title": "Bez odpowiedzi",
+            "description": "Pytania, do których agent nie znalazł wiedzy, i odpowiedzi oznaczone przez odwiedzających jako złe. Dodaj właściwą odpowiedź, aby uzupełnić lukę.",
+            "chatlog_off": "Dziennik czatu jest wyłączony dla tego agenta, więc nowe odpowiedzi nie są tu zapisywane.",
+            "filter_all": "Wszystkie",
+            "filter_not_found": "Brak wiedzy",
+            "filter_thumbs_down": "Kciuk w dół",
+            "include_revised": "Pokaż poprawione",
+            "load_error": "Nie udało się wczytać listy.",
+            "try_again": "Spróbuj ponownie",
+            "empty": "Nic tu nie ma. Każde ostatnie pytanie znalazło odpowiedź.",
+            "reason_not_found": "Brak wiedzy",
+            "reason_thumbs_down": "Kciuk w dół",
+            "revised": "Poprawiona",
+            "question": "Pytanie",
+            "answer": "Odpowiedź",
+            "no_question": "(nie znaleziono pytania)",
+            "add_answer": "Dodaj właściwą odpowiedź",
+            "open_conversation": "Otwórz rozmowę"
         }
     },
     "auth": {

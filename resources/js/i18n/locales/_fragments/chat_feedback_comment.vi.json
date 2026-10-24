@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Điều gì chưa đúng? (không bắt buộc)",
+        "feedback_comment_placeholder": "Ví dụ: giá đã cũ.",
+        "feedback_comment_send": "Gửi",
+        "feedback_comment_skip": "Bỏ qua",
+        "feedback_comment_thanks": "Cảm ơn bạn đã góp ý."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Ghi chú của khách:"
+            }
+        }
+    }
+}

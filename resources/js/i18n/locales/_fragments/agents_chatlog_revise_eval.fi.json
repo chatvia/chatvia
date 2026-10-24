@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Lisää myös arviointitapaukseksi",
+                "add_eval_case_help": "Arviointiajot tarkistavat, että agentti antaa edelleen tämän vastauksen.",
+                "eval_case_added": "Tallennettu ja lisätty arviointitapauksiin."
+            }
+        }
+    }
+}

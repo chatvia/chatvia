@@ -142,6 +142,7 @@ return new class extends Migration
             $table->enum('tone', Tone::values())->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
+            $table->text('feedback_comment')->nullable();
 
             $table->boolean('is_response_from_qa')->default(false);
             $table->boolean('has_llm_found_answer')->nullable();

@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Bilgi kullanılmadı",
+                "no_sources_help": "Bilgi tabanındaki hiçbir bölüm alaka kontrolünü geçemedi, bu yüzden bu yanıt hiçbirini kullanmadı."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Alaka {score}",
+        "passage_removed": "Bu bölüm o zamandan beri bilgi tabanından kaldırıldı."
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Hva var feil? (valgfritt)",
+        "feedback_comment_placeholder": "For eksempel: prisen er utdatert.",
+        "feedback_comment_send": "Send",
+        "feedback_comment_skip": "Hopp over",
+        "feedback_comment_thanks": "Takk for tilbakemeldingen."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Besøkendes notat:"
+            }
+        }
+    }
+}

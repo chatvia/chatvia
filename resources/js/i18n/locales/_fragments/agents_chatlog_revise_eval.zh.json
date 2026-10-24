@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "同时添加为评估用例",
+                "add_eval_case_help": "评估运行会检查代理是否一直给出这个回答。",
+                "eval_case_added": "已保存，并已添加到评估用例。"
+            }
+        }
+    }
+}

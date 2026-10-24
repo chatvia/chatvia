@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Chưa trả lời",
+            "description": "Các câu hỏi mà tác tử không tìm thấy kiến thức, và câu trả lời bị khách đánh giá là tệ. Thêm câu trả lời đúng để lấp chỗ trống.",
+            "chatlog_off": "Nhật ký trò chuyện đang tắt cho tác tử này, nên câu trả lời mới không được lưu ở đây.",
+            "filter_all": "Tất cả",
+            "filter_not_found": "Không tìm thấy kiến thức",
+            "filter_thumbs_down": "Không thích",
+            "include_revised": "Hiện mục đã sửa",
+            "load_error": "Không tải được danh sách.",
+            "try_again": "Thử lại",
+            "empty": "Không có gì ở đây. Mọi câu hỏi gần đây đều có câu trả lời.",
+            "reason_not_found": "Không tìm thấy kiến thức",
+            "reason_thumbs_down": "Không thích",
+            "revised": "Đã sửa",
+            "question": "Câu hỏi",
+            "answer": "Câu trả lời",
+            "no_question": "(không tìm thấy câu hỏi)",
+            "add_answer": "Thêm câu trả lời đúng",
+            "open_conversation": "Mở cuộc trò chuyện"
+        },
+        "nav": {
+            "unanswered": "Chưa trả lời"
+        }
+    }
+}

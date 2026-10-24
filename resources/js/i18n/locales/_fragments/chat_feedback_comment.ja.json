@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "何が間違っていましたか？（任意）",
+        "feedback_comment_placeholder": "例：価格が古くなっています。",
+        "feedback_comment_send": "送信",
+        "feedback_comment_skip": "スキップ",
+        "feedback_comment_thanks": "フィードバックをありがとうございます。"
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "訪問者のメモ："
+            }
+        }
+    }
+}

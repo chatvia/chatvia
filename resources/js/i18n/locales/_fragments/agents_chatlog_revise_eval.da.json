@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "Tilføj også som evalueringstilfælde",
+                "add_eval_case_help": "Evalueringskørsler tjekker, at agenten bliver ved med at give dette svar.",
+                "eval_case_added": "Gemt og tilføjet til evalueringstilfældene."
+            }
+        }
+    }
+}

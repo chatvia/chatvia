@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 /**
  * Messages tab of the chat log: the selected conversation's transcript (with
- * search highlighting), per-message tone, sentiment, confidence, tokens and
- * feedback, the "Revise" shortcut, and paging.
+ * search highlighting), per-message tone, sentiment, confidence, the knowledge
+ * behind each answer, tokens, feedback and the visitor's note on it, the
+ * "Revise" shortcut, and paging.
  */
 import MessageCard from '@/components/chat/MessageCard.vue';
+import SourcesDialog from '@/components/chat/SourcesDialog.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -176,6 +178,23 @@ function goToPage(offset: number) {
                                 <span class="text-muted-foreground/30">•</span>
                             </template>
 
+                            <!-- The knowledge behind an answer, to tell a search miss from a model mistake -->
+                            <template v-if="m.role === 'assistant' && m.sources.length > 0">
+                                <SourcesDialog :sources="m.sources" compact />
+                                <span class="text-muted-foreground/30">•</span>
+                            </template>
+                            <template v-else-if="m.role === 'assistant' && !m.is_response_from_qa">
+                                <span class="group relative cursor-help">
+                                    {{ t('agents.chatlog.messages.no_sources') }}
+                                    <span
+                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 w-64 rounded bg-gray-900 px-2 py-1 text-start text-[10px] text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                    >
+                                        {{ t('agents.chatlog.messages.no_sources_help') }}
+                                    </span>
+                                </span>
+                                <span class="text-muted-foreground/30">•</span>
+                            </template>
+
                             <!-- Tokens (for assistant) -->
                             <template v-if="m.role === 'assistant' && getTotalTokens(m) !== null">
                                 <span class="group relative cursor-help tabular-nums">
@@ -278,6 +297,16 @@ function goToPage(offset: number) {
                                 </button>
                             </template>
                         </div>
+
+                        <!-- The visitor's note on a thumbs-down -->
+                        <p
+                            v-if="m.role === 'assistant' && m.feedback === 'negative' && m.feedback_comment"
+                            dir="auto"
+                            class="border-s-2 border-red-300 ps-2 text-xs break-words whitespace-pre-wrap text-red-700 dark:border-red-800 dark:text-red-300"
+                        >
+                            <span class="font-medium">{{ t('agents.chatlog.messages.feedback_comment') }}</span>
+                            {{ m.feedback_comment }}
+                        </p>
                     </div>
                 </div>
             </div>

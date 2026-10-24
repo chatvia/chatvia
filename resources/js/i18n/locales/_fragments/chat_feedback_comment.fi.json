@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Mikä oli vialla? (valinnainen)",
+        "feedback_comment_placeholder": "Esimerkiksi: hinta on vanhentunut.",
+        "feedback_comment_send": "Lähetä",
+        "feedback_comment_skip": "Ohita",
+        "feedback_comment_thanks": "Kiitos palautteestasi."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Kävijän huomautus:"
+            }
+        }
+    }
+}

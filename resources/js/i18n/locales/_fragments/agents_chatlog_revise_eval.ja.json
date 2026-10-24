@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "chatlog": {
+            "revise": {
+                "add_eval_case": "評価ケースとしても追加",
+                "add_eval_case_help": "評価の実行で、エージェントがこの回答を出し続けているか確認します。",
+                "eval_case_added": "保存し、評価ケースに追加しました。"
+            }
+        }
+    }
+}

@@ -141,7 +141,12 @@
         "copy_message": "Copiar mensagem",
         "feedback_helpful": "Boa resposta",
         "feedback_not_helpful": "Má resposta",
-        "edit_message": "Editar mensagem"
+        "edit_message": "Editar mensagem",
+        "feedback_comment_label": "O que estava errado? (opcional)",
+        "feedback_comment_placeholder": "Por exemplo: o preço está desatualizado.",
+        "feedback_comment_send": "Enviar",
+        "feedback_comment_skip": "Pular",
+        "feedback_comment_thanks": "Obrigado pelo seu feedback."
     },
     "errors": {
         "message_limit_reached": "Limite de mensagens atingido",
@@ -162,7 +167,9 @@
         "fallback_title": "Fonte {number}",
         "chunk_label": "Excerto {index}",
         "open_link": "Abrir {label}",
-        "passage_count": "{count} trecho | {count} trechos"
+        "passage_count": "{count} trecho | {count} trechos",
+        "relevance": "Relevância {score}",
+        "passage_removed": "Este trecho já foi removido da base de conhecimento."
     },
     "home": {
         "logo_alt": "Logotipo",
@@ -470,7 +477,10 @@
                 "voice": "Voz",
                 "confidence_help": "Quão bem o conhecimento do agente correspondeu a esta pergunta — não quão boa é a resposta.",
                 "trace": "Rastreio",
-                "trace_help": "Ver todas as chamadas de IA por trás desta resposta no Spectra"
+                "trace_help": "Ver todas as chamadas de IA por trás desta resposta no Spectra",
+                "no_sources": "Nenhum conhecimento usado",
+                "no_sources_help": "Nenhum trecho da base de conhecimento passou na verificação de relevância, então esta resposta não usou nenhum.",
+                "feedback_comment": "Nota do visitante:"
             },
             "details": {
                 "select_conversation": "Selecione uma conversa para ver os detalhes",
@@ -575,7 +585,10 @@
                 "cancel": "Cancelar",
                 "save": "Guardar revisão",
                 "saving": "A guardar…",
-                "save_error": "Não foi possível guardar a revisão. Por favor tente novamente."
+                "save_error": "Não foi possível guardar a revisão. Por favor tente novamente.",
+                "add_eval_case": "Adicionar também como caso de avaliação",
+                "add_eval_case_help": "As avaliações vão verificar se o agente continua dando esta resposta.",
+                "eval_case_added": "Salvo e adicionado aos casos de avaliação."
             },
             "delete": {
                 "dialog_title": "Eliminar conversa?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Adicione funcionalidades avançadas ao chat — como gráficos interativos",
             "forms": "Formulários",
             "forms_tooltip": "Crie formulários que o seu agente mostra na conversa",
-            "blocked": "Bloqueados"
+            "blocked": "Bloqueados",
+            "unanswered": "Sem resposta"
         },
         "create_modal": {
             "title": "Criar Agente",
@@ -2332,6 +2346,26 @@
             "empty": "Ainda não há submissões.",
             "submitted_at": "Submetido",
             "deleted": "Submissão eliminada"
+        },
+        "unanswered": {
+            "title": "Sem resposta",
+            "description": "Perguntas para as quais o agente não encontrou conhecimento e respostas que os visitantes marcaram como ruins. Adicione a resposta certa para fechar a lacuna.",
+            "chatlog_off": "O registro de chat está desligado para este agente, então novas respostas não são salvas aqui.",
+            "filter_all": "Todas",
+            "filter_not_found": "Sem conhecimento",
+            "filter_thumbs_down": "Polegar para baixo",
+            "include_revised": "Mostrar revisadas",
+            "load_error": "Não foi possível carregar a lista.",
+            "try_again": "Tentar novamente",
+            "empty": "Nada aqui. Toda pergunta recente encontrou resposta.",
+            "reason_not_found": "Sem conhecimento",
+            "reason_thumbs_down": "Polegar para baixo",
+            "revised": "Revisada",
+            "question": "Pergunta",
+            "answer": "Resposta",
+            "no_question": "(pergunta não encontrada)",
+            "add_answer": "Adicionar a resposta certa",
+            "open_conversation": "Abrir conversa"
         }
     },
     "auth": {

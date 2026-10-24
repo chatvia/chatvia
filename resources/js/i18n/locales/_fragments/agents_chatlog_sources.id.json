@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Tidak ada pengetahuan yang digunakan",
+                "no_sources_help": "Tidak ada bagian dari basis pengetahuan yang lolos pemeriksaan relevansi, jadi jawaban ini tidak menggunakan satu pun."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevansi {score}",
+        "passage_removed": "Bagian ini sudah dihapus dari basis pengetahuan."
+    }
+}

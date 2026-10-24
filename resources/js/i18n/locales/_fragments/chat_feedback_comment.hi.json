@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "क्या गलत था? (वैकल्पिक)",
+        "feedback_comment_placeholder": "उदाहरण: कीमत पुरानी है।",
+        "feedback_comment_send": "भेजें",
+        "feedback_comment_skip": "छोड़ें",
+        "feedback_comment_thanks": "आपकी प्रतिक्रिया के लिए धन्यवाद।"
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "विज़िटर की टिप्पणी:"
+            }
+        }
+    }
+}

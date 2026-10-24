@@ -141,7 +141,12 @@
         "copy_message": "Copier le message",
         "feedback_helpful": "Bonne réponse",
         "feedback_not_helpful": "Mauvaise réponse",
-        "edit_message": "Modifier le message"
+        "edit_message": "Modifier le message",
+        "feedback_comment_label": "Qu'est-ce qui n'allait pas ? (facultatif)",
+        "feedback_comment_placeholder": "Par exemple : le prix n'est plus à jour.",
+        "feedback_comment_send": "Envoyer",
+        "feedback_comment_skip": "Passer",
+        "feedback_comment_thanks": "Merci pour votre retour."
     },
     "errors": {
         "message_limit_reached": "Limite de messages atteinte",
@@ -162,7 +167,9 @@
         "fallback_title": "Source {number}",
         "chunk_label": "Extrait {index}",
         "open_link": "Ouvrir {label}",
-        "passage_count": "{count} passage | {count} passages"
+        "passage_count": "{count} passage | {count} passages",
+        "relevance": "Pertinence {score}",
+        "passage_removed": "Ce passage a depuis été retiré de la base de connaissances."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Vocal",
                 "confidence_help": "Dans quelle mesure les connaissances de l'agent correspondaient à cette question — pas la qualité de la réponse.",
                 "trace": "Trace",
-                "trace_help": "Voir tous les appels d'IA derrière cette réponse dans Spectra"
+                "trace_help": "Voir tous les appels d'IA derrière cette réponse dans Spectra",
+                "no_sources": "Aucune connaissance utilisée",
+                "no_sources_help": "Aucun passage de la base de connaissances n'a passé le contrôle de pertinence, cette réponse n'en a donc utilisé aucun.",
+                "feedback_comment": "Note du visiteur :"
             },
             "details": {
                 "select_conversation": "Sélectionnez une conversation pour afficher les détails",
@@ -575,7 +585,10 @@
                 "cancel": "Annuler",
                 "save": "Enregistrer la révision",
                 "saving": "Enregistrement…",
-                "save_error": "Impossible d'enregistrer la révision. Veuillez réessayer."
+                "save_error": "Impossible d'enregistrer la révision. Veuillez réessayer.",
+                "add_eval_case": "Ajouter aussi comme cas d'évaluation",
+                "add_eval_case_help": "Les évaluations vérifieront que l'agent donne toujours cette réponse.",
+                "eval_case_added": "Enregistré et ajouté aux cas d'évaluation."
             },
             "delete": {
                 "dialog_title": "Supprimer la conversation ?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Ajoutez des fonctionnalités avancées au chat — comme des graphiques interactifs",
             "forms": "Formulaires",
             "forms_tooltip": "Créez des formulaires que votre agent affiche dans la conversation",
-            "blocked": "Bloqués"
+            "blocked": "Bloqués",
+            "unanswered": "Sans réponse"
         },
         "create_modal": {
             "title": "Créer un agent",
@@ -2332,6 +2346,26 @@
             "empty": "Aucune soumission pour l'instant.",
             "submitted_at": "Envoyé le",
             "deleted": "Soumission supprimée"
+        },
+        "unanswered": {
+            "title": "Sans réponse",
+            "description": "Questions pour lesquelles l'agent n'a trouvé aucune connaissance, et réponses que les visiteurs ont jugées mauvaises. Ajoutez la bonne réponse pour combler le manque.",
+            "chatlog_off": "Le journal des conversations est désactivé pour cet agent, aucune nouvelle réponse n'est donc enregistrée ici.",
+            "filter_all": "Toutes",
+            "filter_not_found": "Aucune connaissance",
+            "filter_thumbs_down": "Pouce vers le bas",
+            "include_revised": "Afficher les révisées",
+            "load_error": "Impossible de charger la liste.",
+            "try_again": "Réessayer",
+            "empty": "Rien ici. Chaque question récente a trouvé une réponse.",
+            "reason_not_found": "Aucune connaissance",
+            "reason_thumbs_down": "Pouce vers le bas",
+            "revised": "Révisée",
+            "question": "Question",
+            "answer": "Réponse",
+            "no_question": "(question introuvable)",
+            "add_answer": "Ajouter la bonne réponse",
+            "open_conversation": "Ouvrir la conversation"
         }
     },
     "auth": {

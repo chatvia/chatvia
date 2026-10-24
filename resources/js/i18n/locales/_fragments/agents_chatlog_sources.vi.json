@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Không dùng kiến thức",
+                "no_sources_help": "Không đoạn nào trong cơ sở kiến thức vượt qua bước kiểm tra mức liên quan, nên câu trả lời này không dùng đoạn nào."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Mức liên quan {score}",
+        "passage_removed": "Đoạn này đã bị xóa khỏi cơ sở kiến thức."
+    }
+}

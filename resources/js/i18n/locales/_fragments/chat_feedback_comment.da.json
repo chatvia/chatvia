@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Hvad var forkert? (valgfrit)",
+        "feedback_comment_placeholder": "For eksempel: prisen er forældet.",
+        "feedback_comment_send": "Send",
+        "feedback_comment_skip": "Spring over",
+        "feedback_comment_thanks": "Tak for din feedback."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Besøgendes note:"
+            }
+        }
+    }
+}

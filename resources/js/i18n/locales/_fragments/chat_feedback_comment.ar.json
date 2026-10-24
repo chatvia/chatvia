@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "ما الخطأ؟ (اختياري)",
+        "feedback_comment_placeholder": "مثال: السعر قديم.",
+        "feedback_comment_send": "إرسال",
+        "feedback_comment_skip": "تخطٍّ",
+        "feedback_comment_thanks": "شكرًا على ملاحظاتك."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "ملاحظة الزائر:"
+            }
+        }
+    }
+}

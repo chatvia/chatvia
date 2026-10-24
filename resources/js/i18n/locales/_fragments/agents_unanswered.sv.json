@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Obesvarade",
+            "description": "Frågor som agenten inte hittade kunskap för, och svar som besökare markerade som dåliga. Lägg till rätt svar för att täcka luckan.",
+            "chatlog_off": "Chattloggen är avstängd för den här agenten, så nya svar sparas inte här.",
+            "filter_all": "Alla",
+            "filter_not_found": "Ingen kunskap hittad",
+            "filter_thumbs_down": "Tumme ner",
+            "include_revised": "Visa reviderade",
+            "load_error": "Det gick inte att läsa in listan.",
+            "try_again": "Försök igen",
+            "empty": "Inget här. Alla senaste frågor fick ett svar.",
+            "reason_not_found": "Ingen kunskap hittad",
+            "reason_thumbs_down": "Tumme ner",
+            "revised": "Reviderad",
+            "question": "Fråga",
+            "answer": "Svar",
+            "no_question": "(ingen fråga hittades)",
+            "add_answer": "Lägg till rätt svar",
+            "open_conversation": "Öppna samtal"
+        },
+        "nav": {
+            "unanswered": "Obesvarade"
+        }
+    }
+}

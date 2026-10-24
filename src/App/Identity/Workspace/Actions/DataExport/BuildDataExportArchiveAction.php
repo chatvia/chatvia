@@ -74,7 +74,7 @@ class BuildDataExportArchiveAction
 
     private const array CONVERSATION_COLUMNS = ['id', 'external_id', 'agent_id', 'chat_session_id', 'source', 'title', 'is_visible', 'sentiment', 'tone', 'handoff_status', 'handoff_at', 'last_activity_at', 'expires_at', 'deleted_at', 'created_at', 'updated_at'];
 
-    private const array MESSAGE_COLUMNS = ['id', 'external_id', 'chat_conversation_id', 'role', 'source', 'content', 'metadata', 'sentiment', 'tone', 'feedback', 'confidence_score', 'response_time_ms', 'prompt_tokens', 'completion_tokens', 'read_at', 'created_at', 'updated_at'];
+    private const array MESSAGE_COLUMNS = ['id', 'external_id', 'chat_conversation_id', 'role', 'source', 'content', 'metadata', 'sentiment', 'tone', 'feedback', 'feedback_comment', 'confidence_score', 'response_time_ms', 'prompt_tokens', 'completion_tokens', 'read_at', 'created_at', 'updated_at'];
 
     /**
      * @param  int  $batchSize  rows read per query; also the conversations whose

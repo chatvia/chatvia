@@ -90,6 +90,7 @@ export function handoffEventToMessage(event: HandoffMessageEvent): ChatLogMessag
         sentiment: null,
         tone: null,
         feedback: null,
+        feedback_comment: null,
         is_response_from_qa: false,
         response_time_ms: null,
         prompt_tokens: null,
@@ -103,6 +104,8 @@ export function handoffEventToMessage(event: HandoffMessageEvent): ChatLogMessag
         confidence_score: null,
         voice: false,
         trace_id: null,
+        // Only visitor and operator messages are pushed; they draw on no knowledge.
+        sources: [],
     };
 }
 

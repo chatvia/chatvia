@@ -15,7 +15,8 @@ use Illuminate\Support\Str;
 /**
  * A visitor's rating of a reply is stored once, from the live history when
  * it holds the reply and from the database otherwise, and analytics hears it
- * once. A reply outside the visitor's own conversation cannot be rated.
+ * once. A thumbs-down keeps the visitor's note on what was wrong. A reply
+ * outside the visitor's own conversation cannot be rated.
  */
 beforeEach(function (): void {
     Event::fake([FeedbackGiven::class]);
@@ -91,6 +92,31 @@ it('clears a rating with null', function (): void {
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, null);
 
     expect(Message::query()->where('external_id', $messageId)->value('feedback'))->toBeNull();
+});
+
+it('keeps a note added to a thumbs-down without counting the rating again', function (): void {
+    $scope = rmfaScope();
+    $messageId = (string) Str::uuid();
+    rmfaMessage($scope, $messageId);
+
+    app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative);
+    app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative, "  The refund period is wrong.\n ");
+
+    expect(Message::query()->where('external_id', $messageId)->value('feedback_comment'))->toBe('The refund period is wrong.');
+    Event::assertDispatchedTimes(FeedbackGiven::class, 1);
+});
+
+it('drops the note when the rating is not a thumbs-down', function (): void {
+    $scope = rmfaScope();
+    $messageId = (string) Str::uuid();
+    rmfaMessage($scope, $messageId)->update(['feedback' => MessageFeedback::Negative, 'feedback_comment' => 'Wrong price.']);
+
+    app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Positive, 'Ignored.');
+
+    $message = Message::query()->where('external_id', $messageId)->first();
+
+    expect($message->feedback)->toBe(MessageFeedback::Positive)
+        ->and($message->feedback_comment)->toBeNull();
 });
 
 it('cannot rate a message of a conversation outside the scope', function (): void {

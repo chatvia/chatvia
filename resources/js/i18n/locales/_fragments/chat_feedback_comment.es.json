@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "¿Qué estaba mal? (opcional)",
+        "feedback_comment_placeholder": "Por ejemplo: el precio está desactualizado.",
+        "feedback_comment_send": "Enviar",
+        "feedback_comment_skip": "Omitir",
+        "feedback_comment_thanks": "Gracias por tus comentarios."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Nota del visitante:"
+            }
+        }
+    }
+}

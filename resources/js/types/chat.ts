@@ -57,6 +57,10 @@ export interface MessageSource {
     url: string | null;
     page: number | null;
     passages?: number;
+    /** Chat log only (staff): how relevant the search found the passage. */
+    score?: number | null;
+    /** Chat log only (staff): the start of the passage; null once it is removed from the knowledge base. */
+    preview?: string | null;
 }
 
 /** A tool call that is running right now; drives the "Calling …" indicator. */

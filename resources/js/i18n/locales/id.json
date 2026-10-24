@@ -3537,7 +3537,7 @@
                 },
                 "security": {
                     "label": "Keamanan",
-                    "description": "Serangan yang diblokir, pemeriksaan keamanan yang tidak berjalan, login baru, dan perubahan keamanan."
+                    "description": "Serangan yang diblokir, pemeriksaan keamanan yang tidak dapat berjalan, model AI yang tidak tersedia lagi, login baru, dan perubahan keamanan."
                 },
                 "training": {
                     "label": "Pelatihan",
@@ -4146,7 +4146,8 @@
             },
             "guardrail_skipped": {
                 "title": "Pemeriksaan keamanan tidak berjalan di {agent} | Pemeriksaan keamanan tidak berjalan {count} kali di {agent}",
-                "body": "Pesan lolos tanpanya. Periksa layanan guardrail."
+                "body": "Pesan lolos tanpanya. Periksa layanan guardrail.",
+                "body_reason": "Pesan tetap terkirim tanpanya. {reason}"
             },
             "security_settings_changed": {
                 "by": "Diubah oleh {actor}.",
@@ -4178,9 +4179,23 @@
             "data_export_ready": {
                 "title": "Ekspor data Anda sudah siap",
                 "body": "Unduh dalam 24 jam."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} tidak tersedia lagi di {detail}",
+                "body": "Tugas aplikasi yang memakainya kini memakai model lain. Pilih model baru di panel admin, di Pengaturan → Model AI."
             }
         },
-        "clear_all": "Hapus semua"
+        "clear_all": "Hapus semua",
+        "skip_reasons": {
+            "model_unavailable": "Model AI untuk pemeriksaan keamanan tidak tersedia lagi. Admin dapat memilih model lain.",
+            "key_refused": "Penyedia AI menolak kunci API.",
+            "out_of_credit": "Akun di penyedia AI kehabisan kredit.",
+            "rate_limited": "Penyedia AI sedang membatasi permintaan.",
+            "unreachable": "Penyedia AI tidak dapat dihubungi.",
+            "provider_error": "Penyedia AI mengalami galat.",
+            "no_model": "Tidak ada model AI yang diatur untuk pemeriksaan keamanan.",
+            "bad_reply": "Model AI memberi jawaban yang tidak dapat dibaca aplikasi."
+        }
     },
     "reasoning": {
         "thinking": "Berpikir…",

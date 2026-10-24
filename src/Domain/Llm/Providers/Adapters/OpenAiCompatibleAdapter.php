@@ -76,7 +76,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
         $response = $this->client($provider)
             ->client()
             ->timeout(20)
-            ->get($this->baseUrl($provider).'/models')
+            ->get($this->modelsUrl($provider))
             ->throw();
 
         $known = $this->knownModels();
@@ -89,6 +89,12 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
             ->unique('id')
             ->sortBy(fn (RemoteModelData $model): string => Str::lower($model->name))
             ->values();
+    }
+
+    /** Where the provider lists its models. */
+    protected function modelsUrl(LlmProvider $provider): string
+    {
+        return $this->baseUrl($provider).'/models';
     }
 
     public function refusesKey(Response $response): bool

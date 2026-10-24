@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { unreadCount, type UserNotification } from '@/composables/notifications/notificationStore';
+import { unreadCount, visitNotification, type UserNotification } from '@/composables/notifications/notificationStore';
 import { useNotificationList } from '@/composables/notifications/useNotificationList';
 import { useNotificationStream } from '@/composables/notifications/useNotificationStream';
 import account from '@/routes/account';
 import notifications from '@/routes/notifications';
-import { Link, router } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { Bell, BellRing, CheckCheck, Settings, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -45,7 +45,7 @@ watch(unreadCount, (count, previous) => {
 function openNotification(notification: UserNotification): void {
     open.value = false;
     void list.markRead(notification);
-    router.visit(notification.content.url);
+    visitNotification(notification);
 }
 </script>
 

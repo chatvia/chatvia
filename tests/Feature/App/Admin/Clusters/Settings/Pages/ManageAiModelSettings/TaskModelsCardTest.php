@@ -42,3 +42,14 @@ it('has a setting and a field for every app task', function (): void {
         $page->assertFormFieldExists($task->settingsProperty());
     }
 });
+
+it('warns about a model its provider no longer serves and keeps it out of the pickers', function (): void {
+    $gone = testLlm('gone-model', attributes: ['unlisted_at' => now()]);
+    testLlm('kept-model');
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->assertSee('gone-model ('.$gone->provider->name.') is no longer served')
+        ->fillForm(['guardrails_model' => (string) $gone->id])
+        ->call('save')
+        ->assertHasFormErrors(['guardrails_model']);
+});

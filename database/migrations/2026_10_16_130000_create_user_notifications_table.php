@@ -30,6 +30,7 @@ return new class extends Migration
                 'rate_limit_exceeded',
                 'eval_run_finished',
                 'data_export_ready',
+                'ai_model_unavailable',
             ]);
             $table->enum('category', ['handoffs', 'security', 'training', 'leads', 'usage', 'reports']);
             // What the dashboard needs to write the line in the reader's own

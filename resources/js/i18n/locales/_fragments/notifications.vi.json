@@ -29,6 +29,16 @@
             "retention_changed": "Thời gian lưu dữ liệu đã thay đổi",
             "webhook_disabled": "Webhook kiểm toán đã bị tắt"
         },
+        "skip_reasons": {
+            "model_unavailable": "Mô hình AI cho bước kiểm tra an toàn không còn dùng được. Quản trị viên có thể chọn mô hình khác.",
+            "key_refused": "Nhà cung cấp AI đã từ chối khóa API.",
+            "out_of_credit": "Tài khoản ở nhà cung cấp AI đã hết tín dụng.",
+            "rate_limited": "Nhà cung cấp AI đang giới hạn yêu cầu.",
+            "unreachable": "Không kết nối được với nhà cung cấp AI.",
+            "provider_error": "Nhà cung cấp AI gặp lỗi.",
+            "no_model": "Chưa có mô hình AI nào được thiết lập cho bước kiểm tra an toàn.",
+            "bad_reply": "Mô hình AI đưa ra câu trả lời mà ứng dụng không đọc được."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "Một khách truy cập muốn nói chuyện với người thật",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "Một bước kiểm tra an toàn không chạy được trên {agent} | Một bước kiểm tra an toàn không chạy được {count} lần trên {agent}",
-                "body": "Tin nhắn đã đi qua mà không có nó. Hãy kiểm tra dịch vụ guardrail."
+                "body": "Tin nhắn đã đi qua mà không có nó. Hãy kiểm tra dịch vụ guardrail.",
+                "body_reason": "Tin nhắn đã đi qua mà không có bước này. {reason}"
             },
             "security_settings_changed": {
                 "by": "Người thay đổi: {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Bản xuất dữ liệu của bạn đã sẵn sàng",
                 "body": "Hãy tải xuống trong vòng 24 giờ."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} không còn dùng được ở {detail}",
+                "body": "Các tác vụ của ứng dụng từng dùng mô hình này nay dùng mô hình khác. Hãy chọn mô hình mới trong bảng quản trị, tại Cài đặt → Mô hình AI."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Bảo mật",
-                    "description": "Tấn công bị chặn, kiểm tra an toàn không chạy được, đăng nhập mới và thay đổi bảo mật."
+                    "description": "Các cuộc tấn công bị chặn, bước kiểm tra an toàn không chạy được, mô hình AI không còn dùng được, lần đăng nhập mới và thay đổi bảo mật."
                 },
                 "training": {
                     "label": "Huấn luyện",

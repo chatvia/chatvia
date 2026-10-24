@@ -3537,7 +3537,7 @@
                 },
                 "security": {
                     "label": "Bezpieczeństwo",
-                    "description": "Zablokowane ataki, kontrole bezpieczeństwa, które nie zadziałały, nowe logowania i zmiany bezpieczeństwa."
+                    "description": "Zablokowane ataki, kontrole bezpieczeństwa, których nie udało się wykonać, modele AI, które nie są już dostępne, nowe logowania i zmiany zabezpieczeń."
                 },
                 "training": {
                     "label": "Trenowanie",
@@ -4146,7 +4146,8 @@
             },
             "guardrail_skipped": {
                 "title": "Kontrola bezpieczeństwa nie zadziałała u {agent} | Kontrola bezpieczeństwa nie zadziałała {count} razy u {agent}",
-                "body": "Wiadomości przeszły bez niej. Sprawdź usługę guardrails."
+                "body": "Wiadomości przeszły bez niej. Sprawdź usługę guardrails.",
+                "body_reason": "Wiadomości przeszły bez niej. {reason}"
             },
             "security_settings_changed": {
                 "by": "Zmienione przez: {actor}.",
@@ -4178,9 +4179,23 @@
             "data_export_ready": {
                 "title": "Eksport Twoich danych jest gotowy",
                 "body": "Pobierz go w ciągu 24 godzin."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} nie jest już dostępny u {detail}",
+                "body": "Zadania aplikacji, które go używały, używają teraz innego modelu. Wybierz nowy w panelu administracyjnym, w Ustawienia → Modele AI."
             }
         },
-        "clear_all": "Wyczyść wszystkie"
+        "clear_all": "Wyczyść wszystkie",
+        "skip_reasons": {
+            "model_unavailable": "Model AI do kontroli bezpieczeństwa nie jest już dostępny. Administrator może wybrać inny.",
+            "key_refused": "Dostawca AI odrzucił klucz API.",
+            "out_of_credit": "Na koncie u dostawcy AI skończyły się środki.",
+            "rate_limited": "Dostawca AI ogranicza liczbę zapytań.",
+            "unreachable": "Nie udało się połączyć z dostawcą AI.",
+            "provider_error": "U dostawcy AI wystąpił błąd.",
+            "no_model": "Nie ustawiono modelu AI do kontroli bezpieczeństwa.",
+            "bad_reply": "Model AI dał odpowiedź, której aplikacja nie mogła odczytać."
+        }
     },
     "reasoning": {
         "thinking": "Myślę…",

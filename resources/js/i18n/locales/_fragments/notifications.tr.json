@@ -29,6 +29,16 @@
             "retention_changed": "Veri saklama süresi değiştirildi",
             "webhook_disabled": "Denetim webhook'u kapatıldı"
         },
+        "skip_reasons": {
+            "model_unavailable": "Güvenlik kontrolleri için yapay zekâ modeli artık kullanılamıyor. Bir yönetici başka bir model seçebilir.",
+            "key_refused": "Yapay zekâ sağlayıcısı API anahtarını reddetti.",
+            "out_of_credit": "Yapay zekâ sağlayıcısındaki hesabın kredisi bitti.",
+            "rate_limited": "Yapay zekâ sağlayıcısı istekleri sınırlıyor.",
+            "unreachable": "Yapay zekâ sağlayıcısına ulaşılamadı.",
+            "provider_error": "Yapay zekâ sağlayıcısında bir hata oldu.",
+            "no_model": "Güvenlik kontrolleri için bir yapay zekâ modeli ayarlanmamış.",
+            "bad_reply": "Yapay zekâ modeli, uygulamanın okuyamadığı bir yanıt verdi."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "Bir ziyaretçi bir kişiyle konuşmak istiyor",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "{agent} üzerinde bir güvenlik kontrolü çalışamadı | {agent} üzerinde bir güvenlik kontrolü {count} kez çalışamadı",
-                "body": "Mesajlar onsuz geçti. Guardrail hizmetini kontrol edin."
+                "body": "Mesajlar onsuz geçti. Guardrail hizmetini kontrol edin.",
+                "body_reason": "Mesajlar onsuz geçti. {reason}"
             },
             "security_settings_changed": {
                 "by": "Değiştiren: {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Veri dışa aktarımınız hazır",
                 "body": "24 saat içinde indirin."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} artık {detail} üzerinde kullanılamıyor",
+                "body": "Uygulamanın onu kullanan kendi görevleri artık başka bir model kullanıyor. Yönetim panelinde Ayarlar → Yapay zekâ modelleri altından yenisini seçin."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Güvenlik",
-                    "description": "Engellenen saldırılar, çalışamayan güvenlik kontrolleri, yeni girişler ve güvenlik değişiklikleri."
+                    "description": "Engellenen saldırılar, çalışamayan güvenlik kontrolleri, artık kullanılamayan yapay zekâ modelleri, yeni oturum açmalar ve güvenlik değişiklikleri."
                 },
                 "training": {
                     "label": "Eğitim",

@@ -30,6 +30,8 @@ return new class extends Migration
             // already use it keep it.
             $table->boolean('is_enabled')->default(true);
 
+            $table->timestamp('unlisted_at')->nullable();
+
             $table->timestamps();
 
             $table->unique(['llm_provider_id', 'name']);

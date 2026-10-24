@@ -5,6 +5,7 @@ use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
+use Domain\Llm\Enums\LlmFailure;
 use Tests\Support\Guardrail\GuardedAgent;
 
 /**
@@ -42,14 +43,15 @@ it('skips the AI check on answers when the agent does not check them', function 
 });
 
 it('logs the answer toxicity check as skipped when the classifier fails, and keeps the answer', function (): void {
-    $result = GuardedAgent::service(ClassifierVerdictData::failOpen())
+    $result = GuardedAgent::service(ClassifierVerdictData::failOpen(LlmFailure::Unreachable))
         ->inspectOutput(GuardedAgent::make(['filters' => []]), 'Our store opens at nine.');
 
     expect($result->blocked)->toBeFalse()
         ->and($result->text)->toBe('Our store opens at nine.')
         ->and($result->verdicts)->toHaveCount(1)
         ->and($result->verdicts[0]->outcome)->toBe(GuardOutcome::Skipped)
-        ->and($result->verdicts[0]->stage)->toBe(GuardStage::Output);
+        ->and($result->verdicts[0]->stage)->toBe(GuardStage::Output)
+        ->and($result->verdicts[0]->detail)->toBe(['reason' => 'classifier_unavailable', 'failure' => 'unreachable', 'alert' => true]);
 });
 
 it('never masks the business contact details or the allowlist', function (): void {

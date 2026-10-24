@@ -3537,7 +3537,7 @@
                 },
                 "security": {
                     "label": "安全",
-                    "description": "已拦截的攻击、未能运行的安全检查、新的登录和安全设置变更。"
+                    "description": "被拦截的攻击、未能运行的安全检查、不再可用的 AI 模型、新的登录和安全更改。"
                 },
                 "training": {
                     "label": "训练",
@@ -4146,7 +4146,8 @@
             },
             "guardrail_skipped": {
                 "title": "{agent} 上有一项安全检查未能运行 | {agent} 上有一项安全检查 {count} 次未能运行",
-                "body": "消息未经检查就通过了。请检查防护服务。"
+                "body": "消息未经检查就通过了。请检查防护服务。",
+                "body_reason": "消息未经此检查就已发出。{reason}"
             },
             "security_settings_changed": {
                 "by": "由 {actor} 更改。",
@@ -4178,9 +4179,23 @@
             "data_export_ready": {
                 "title": "你的数据导出已就绪",
                 "body": "请在 24 小时内下载。"
+            },
+            "ai_model_unavailable": {
+                "title": "{detail} 已不再提供 {subject}",
+                "body": "原先使用它的应用任务现在改用其他模型。请在管理面板的“设置 → AI 模型”中选择新模型。"
             }
         },
-        "clear_all": "全部清除"
+        "clear_all": "全部清除",
+        "skip_reasons": {
+            "model_unavailable": "安全检查所用的 AI 模型已不可用。管理员可以另选一个模型。",
+            "key_refused": "AI 提供商拒绝了 API 密钥。",
+            "out_of_credit": "AI 提供商账户的额度已用完。",
+            "rate_limited": "AI 提供商正在限制请求。",
+            "unreachable": "无法连接到 AI 提供商。",
+            "provider_error": "AI 提供商出现错误。",
+            "no_model": "尚未为安全检查设置 AI 模型。",
+            "bad_reply": "AI 模型给出的回答应用无法读取。"
+        }
     },
     "reasoning": {
         "thinking": "正在思考…",

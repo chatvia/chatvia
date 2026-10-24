@@ -3537,7 +3537,7 @@
                 },
                 "security": {
                     "label": "Sécurité",
-                    "description": "Attaques bloquées, contrôles de sécurité non exécutés, nouvelles connexions et changements de sécurité."
+                    "description": "Attaques bloquées, vérifications de sécurité qui n’ont pas pu s’exécuter, modèles d’IA qui ne sont plus disponibles, nouvelles connexions et changements de sécurité."
                 },
                 "training": {
                     "label": "Entraînement",
@@ -4146,7 +4146,8 @@
             },
             "guardrail_skipped": {
                 "title": "Un contrôle de sécurité n'a pas pu s'exécuter sur {agent} | Un contrôle de sécurité n'a pas pu s'exécuter {count} fois sur {agent}",
-                "body": "Les messages sont passés sans lui. Vérifiez le service de garde-fous."
+                "body": "Les messages sont passés sans lui. Vérifiez le service de garde-fous.",
+                "body_reason": "Les messages sont passés sans elle. {reason}"
             },
             "security_settings_changed": {
                 "by": "Modifié par {actor}.",
@@ -4178,9 +4179,23 @@
             "data_export_ready": {
                 "title": "Votre export de données est prêt",
                 "body": "Téléchargez-le dans les 24 heures."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} n’est plus disponible chez {detail}",
+                "body": "Les tâches de l’application qui l’utilisaient utilisent maintenant un autre modèle. Choisissez-en un nouveau dans le panneau d’administration, sous Paramètres → Modèles d’IA."
             }
         },
-        "clear_all": "Tout effacer"
+        "clear_all": "Tout effacer",
+        "skip_reasons": {
+            "model_unavailable": "Le modèle d’IA des vérifications de sécurité n’est plus disponible. Un administrateur peut en choisir un autre.",
+            "key_refused": "Le fournisseur d’IA a refusé la clé API.",
+            "out_of_credit": "Le compte du fournisseur d’IA n’a plus de crédit.",
+            "rate_limited": "Le fournisseur d’IA limite les requêtes.",
+            "unreachable": "Le fournisseur d’IA n’a pas pu être joint.",
+            "provider_error": "Le fournisseur d’IA a rencontré une erreur.",
+            "no_model": "Aucun modèle d’IA n’est configuré pour les vérifications de sécurité.",
+            "bad_reply": "Le modèle d’IA a donné une réponse que l’application n’a pas pu lire."
+        }
     },
     "reasoning": {
         "thinking": "Réflexion…",

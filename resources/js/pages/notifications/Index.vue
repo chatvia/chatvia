@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { NotificationFeed, NotificationFilter } from '@/api/notifications';
-import { unreadCount, type UserNotification } from '@/composables/notifications/notificationStore';
+import { unreadCount, visitNotification, type UserNotification } from '@/composables/notifications/notificationStore';
 import { useNotificationList } from '@/composables/notifications/useNotificationList';
 import AppLayout from '@/layouts/AppLayout.vue';
 import account from '@/routes/account';
 import notifications from '@/routes/notifications';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { Bell, CheckCheck, Loader2, Settings } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -40,7 +40,7 @@ const visible = computed(() => (filter.value === 'unread' ? list.items.value.fil
 
 function openNotification(notification: UserNotification): void {
     void list.markRead(notification);
-    router.visit(notification.content.url);
+    visitNotification(notification);
 }
 </script>
 

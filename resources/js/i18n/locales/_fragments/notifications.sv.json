@@ -29,6 +29,16 @@
             "retention_changed": "Datalagringen ändrades",
             "webhook_disabled": "Granskningswebhooken stängdes av"
         },
+        "skip_reasons": {
+            "model_unavailable": "AI-modellen för säkerhetskontroller är inte längre tillgänglig. En administratör kan välja en annan.",
+            "key_refused": "AI-leverantören avvisade API-nyckeln.",
+            "out_of_credit": "Kontot hos AI-leverantören har slut på kredit.",
+            "rate_limited": "AI-leverantören begränsar förfrågningarna.",
+            "unreachable": "AI-leverantören gick inte att nå.",
+            "provider_error": "AI-leverantören hade ett fel.",
+            "no_model": "Ingen AI-modell är inställd för säkerhetskontroller.",
+            "bad_reply": "AI-modellen gav ett svar som appen inte kunde läsa."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "En besökare vill prata med en person",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "En säkerhetskontroll kunde inte köras på {agent} | En säkerhetskontroll kunde inte köras {count} gånger på {agent}",
-                "body": "Meddelanden gick igenom utan den. Kontrollera guardrail-tjänsten."
+                "body": "Meddelanden gick igenom utan den. Kontrollera guardrail-tjänsten.",
+                "body_reason": "Meddelanden gick igenom utan den. {reason}"
             },
             "security_settings_changed": {
                 "by": "Ändrat av {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Din dataexport är klar",
                 "body": "Ladda ner den inom 24 timmar."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} är inte längre tillgänglig hos {detail}",
+                "body": "Appens egna uppgifter som använde den använder nu en annan modell. Välj en ny i adminpanelen under Inställningar → AI-modeller."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Säkerhet",
-                    "description": "Blockerade attacker, säkerhetskontroller som inte kunde köras, nya inloggningar och säkerhetsändringar."
+                    "description": "Blockerade attacker, säkerhetskontroller som inte kunde köras, AI-modeller som inte längre är tillgängliga, nya inloggningar och säkerhetsändringar."
                 },
                 "training": {
                     "label": "Träning",

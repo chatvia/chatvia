@@ -12,7 +12,7 @@ use Domain\Llm\Services\TaskModels;
 /**
  * The app's own LLM calls use a catalog model per task, picked in Settings →
  * AI by alias. A task that is unset, or whose model may not be used (it or
- * its provider is off), falls back to the model for app tasks, then to the
+ * its provider is off, or the provider no longer serves it), falls back to the model for app tasks, then to the
  * chat model, then to the first usable model of the catalog.
  */
 beforeEach(function (): void {
@@ -68,12 +68,17 @@ it('skips a picked model that is off, or whose provider is off', function (strin
     ]);
 
     $picked = $models[$pickedFor];
-    $off === 'model' ? $picked->update(['is_enabled' => false]) : $picked->provider->update(['is_enabled' => false]);
+    match ($off) {
+        'model' => $picked->update(['is_enabled' => false]),
+        'unlisted' => $picked->update(['unlisted_at' => now()]),
+        'provider' => $picked->provider->update(['is_enabled' => false]),
+    };
 
     expect(app(TaskModels::class)->model(LlmTask::Guardrails)->is($models[$expected]))->toBeTrue();
 })->with([
     'the task\'s model is off: the app tasks model' => ['task', 'model', 'app tasks'],
     'the task\'s provider is off: the app tasks model' => ['task', 'provider', 'app tasks'],
+    'the task\'s provider no longer serves it: the app tasks model' => ['task', 'unlisted', 'app tasks'],
     'the app tasks model is off: the chat model' => ['app tasks', 'model', 'chat'],
     'the app tasks provider is off: the chat model' => ['app tasks', 'provider', 'chat'],
 ]);

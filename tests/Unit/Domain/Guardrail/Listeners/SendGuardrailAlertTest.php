@@ -16,9 +16,13 @@ beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
 });
 
-function sgaFinding(Agent $agent, string $guardType, string $outcome): void
+function sgaFinding(Agent $agent, string $guardType, string $outcome, bool $alert = true): void
 {
-    app(SendGuardrailAlert::class)->handle(GuardrailTriggers::event($agent, $guardType, $outcome, severity: 'high', detail: ['pattern' => 'ignore_instructions']));
+    $detail = $outcome === 'skipped'
+        ? ['reason' => 'classifier_unavailable', 'failure' => 'unreachable', ...($alert ? ['alert' => true] : [])]
+        : ['pattern' => 'ignore_instructions'];
+
+    app(SendGuardrailAlert::class)->handle(GuardrailTriggers::event($agent, $guardType, $outcome, severity: 'high', detail: $detail));
 }
 
 it('emails the owner once an hour about blocked attacks when alerts are on', function (): void {
@@ -37,6 +41,14 @@ it('emails about a skipped check separately from attacks', function (): void {
     sgaFinding($this->agent, 'toxicity', 'skipped');
 
     Notification::assertSentToTimes($this->agent->workspace->owner, GuardrailAlertNotification::class, 2);
+});
+
+it('counts only the marked skip of a failed call as an alert', function (): void {
+    $this->agent->setSetting('alert_owner', true, 'guardrails');
+
+    sgaFinding($this->agent, 'blocked_topic', 'skipped', alert: false);
+
+    Notification::assertNothingSent();
 });
 
 it('sends no email when alerts are off or the finding is not an attack', function (bool $alerts, string $guardType, string $outcome): void {

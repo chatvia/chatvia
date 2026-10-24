@@ -29,6 +29,16 @@
             "retention_changed": "データの保存期間が変更されました",
             "webhook_disabled": "監査 Webhook がオフになりました"
         },
+        "skip_reasons": {
+            "model_unavailable": "安全チェック用の AI モデルが使えなくなりました。管理者が別のモデルを選べます。",
+            "key_refused": "AI プロバイダーが API キーを拒否しました。",
+            "out_of_credit": "AI プロバイダーのアカウントのクレジットが不足しています。",
+            "rate_limited": "AI プロバイダーがリクエストを制限しています。",
+            "unreachable": "AI プロバイダーに接続できませんでした。",
+            "provider_error": "AI プロバイダーでエラーが起きました。",
+            "no_model": "安全チェック用の AI モデルが設定されていません。",
+            "bad_reply": "AI モデルの回答をアプリが読み取れませんでした。"
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "訪問者が人との会話を希望しています",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "{agent} で安全チェックを実行できませんでした | {agent} で安全チェックを {count} 回実行できませんでした",
-                "body": "メッセージはチェックなしで通過しました。ガードレールサービスを確認してください。"
+                "body": "メッセージはチェックなしで通過しました。ガードレールサービスを確認してください。",
+                "body_reason": "メッセージはチェックなしで送られました。{reason}"
             },
             "security_settings_changed": {
                 "by": "変更者: {actor}",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "データのエクスポートが完了しました",
                 "body": "24 時間以内にダウンロードしてください。"
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} は {detail} で使えなくなりました",
+                "body": "このモデルを使っていたアプリのタスクは、今は別のモデルを使っています。管理パネルの「設定 → AI モデル」で新しいモデルを選んでください。"
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "セキュリティ",
-                    "description": "ブロックした攻撃、実行できなかった安全チェック、新しいサインイン、セキュリティの変更。"
+                    "description": "ブロックした攻撃、実行できなかった安全チェック、使えなくなった AI モデル、新しいサインイン、セキュリティの変更。"
                 },
                 "training": {
                     "label": "学習",

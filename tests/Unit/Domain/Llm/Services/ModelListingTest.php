@@ -48,13 +48,26 @@ it('reads a model list, and tells a refused key from a server it cannot reach', 
 it('refuses a wrong OpenRouter key, whose model list is public', function (): void {
     Http::fake([
         'openrouter.ai/api/v1/key' => Http::response(['error' => ['message' => 'User not found.', 'code' => 401]], 401),
-        'openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
+        'openrouter.ai/api/v1/models/user' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
     ]);
 
     $list = app(ModelListing::class)->list(LlmProvider::factory()->make(['kind' => LlmProviderKind::OpenRouter, 'base_url' => null, 'api_key' => 'sk-or-wrong']));
 
     expect($list->status)->toBe(ModelListStatus::KeyRefused);
-    Http::assertNotSent(fn (Request $request): bool => Str::endsWith($request->url(), '/models'));
+    Http::assertNotSent(fn (Request $request): bool => Str::endsWith($request->url(), '/models/user'));
+});
+
+it('lists only the OpenRouter models a provider the account allows serves', function (): void {
+    Http::fake([
+        'openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]),
+        'openrouter.ai/api/v1/models/user' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
+    ]);
+
+    $list = app(ModelListing::class)->list(LlmProvider::factory()->make(['kind' => LlmProviderKind::OpenRouter, 'base_url' => null, 'api_key' => 'sk-or-v1-test']));
+
+    expect($list->status)->toBe(ModelListStatus::Listed)
+        ->and(collect($list->models)->pluck('id')->all())->toBe(['openai/gpt-oss-120b']);
+    Http::assertNotSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/models');
 });
 
 it('refuses a wrong Gemini key, which gets a 400, but not another 400', function (): void {

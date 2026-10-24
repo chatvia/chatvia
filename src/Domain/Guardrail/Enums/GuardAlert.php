@@ -23,7 +23,9 @@ enum GuardAlert: string
         $outcome = GuardOutcome::tryFrom($event->outcome);
 
         return match (true) {
-            $outcome === GuardOutcome::Skipped => self::Skipped,
+            // One failed classifier call skips several checks; only the one
+            // it marks is an alert, so the count is of failed calls.
+            $outcome === GuardOutcome::Skipped => ($event->detail['alert'] ?? false) === true ? self::Skipped : null,
             $outcome === GuardOutcome::Blocked && in_array($type, [GuardType::PromptInjection, GuardType::PromptLeak], true) => self::Attack,
             default => null,
         };

@@ -36,6 +36,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
+use Domain\Llm\Services\TaskModels;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
@@ -568,6 +569,7 @@ function evalUseRealModels(): EmbeddingsProviderInterface
 
     evalEmbeddingOverrides();
     evalRerankOverrides();
+    evalChatOverrides();
     Http::allowStrayRequests();
 
     // Free API tiers cap tokens per minute: wait and ask again after a 429.
@@ -613,6 +615,28 @@ function evalRerankOverrides(): void
         'chatvia.ai.rerank.custom.model' => env('EVAL_RERANK_MODEL'),
         'chatvia.ai.rerank.custom.key' => env('EVAL_RERANK_KEY'),
     ]);
+}
+
+/**
+ * Which chat model the offline evals (tests/Eval) use for the app's own tasks
+ * (chunk enhancement, follow-up rewrites…), as env overrides for one run:
+ * EVAL_CHAT_MODEL (a model id, e.g. "google/gemma-4-26b-a4b-it") on
+ * EVAL_CHAT_PROVIDER (an LlmProviderKind value, default "openrouter"; its key
+ * given as for the embeddings). Unset, the testing catalog's model runs,
+ * which is on Scaleway.
+ */
+function evalChatOverrides(): void
+{
+    if (blank($model = env('EVAL_CHAT_MODEL'))) {
+        return;
+    }
+
+    $llm = Llm::factory()
+        ->for(LlmProvider::factory()->kind(LlmProviderKind::from((string) env('EVAL_CHAT_PROVIDER', LlmProviderKind::OpenRouter->value))), 'provider')
+        ->create(['name' => $model]);
+
+    config([TaskModels::SHARED_KEY => (string) $llm->id]);
+    Llm::flushCatalogCache();
 }
 
 function evalEmbeddingOverrides(): void

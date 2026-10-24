@@ -162,6 +162,7 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 | `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
 | `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
+| `EVAL_CHAT_MODEL` / `EVAL_CHAT_PROVIDER` | the chat model for the app's own tasks (enhancement, follow-up rewrites) for one run, e.g. `google/gemma-4-26b-a4b-it` on `openrouter` (the default provider). Unset, the testing catalog's Scaleway model runs, and without a Scaleway key the follow-up rewrite quietly keeps the question as it is |
 | `EVAL_CHUNK_SIZE` | the chunk size of this run, in the configured unit (tokens by default) |
 | `EVAL_CHUNK_MINIMUM` | the smallest chunk of this run, same unit; `0` turns it off |
 | `EVAL_RERANK_URL` / `EVAL_RERANK_MODEL` / `EVAL_RERANK_KEY` | rerank with any server that has the common `/rerank` API for one run (e.g. `https://api.jina.ai/v1` + `jina-reranker-v2-base-multilingual`) |
@@ -200,8 +201,18 @@ at 0.7, 5 chunks to the model, 400-token chunks, 14 chunks in all):
 |---|---|---|---|---|
 | Multi-hop (11) | 100.0% | 100.0% | 86.4% | 72.7% |
 | Global (7) | 84.4% | 93.8% | 81.2% | 28.6% |
+| Multi-hop, enriched | 90.9% | 90.9% | 86.4% | 72.7% |
+| Global, enriched | 84.4% | 90.6% | 81.2% | 28.6% |
 
-Every multi-hop fact the model missed ranked in the top 3: the relevance check
+"Enriched" is `EVAL_ENRICH=1` with `EVAL_CHAT_MODEL=google/gemma-4-26b-a4b-it`,
+as an install with the default enhancement has it. What the model gets is the
+same either way. Enhancement makes the hybrid ranking before the check worse
+(single-fact hit@5 97.3% → 73.0%, MRR 0.886 → 0.693), and the reranker hides
+it by lifting the right chunks back from ranks 6 to 13. With a real rewrite,
+follow-ups go from 75% to 100% hit@5; the first run had no working rewrite
+model, so the rewrite kept each follow-up as it was.
+
+Every multi-hop fact the model missed ranked in the top 5: the relevance check
 dropped it, not the search. With only 14 chunks the top 10 is most of the
 collection, so treat these numbers as optimistic until the set grows.
 

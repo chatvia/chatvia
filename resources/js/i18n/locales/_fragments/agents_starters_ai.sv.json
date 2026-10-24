@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Det gick inte att generera startfrågor",
+                "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen."
+            }
+        }
+    }
+}

@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "生成",
                 "starters_generating": "生成中…",
                 "starters_generate_hint": "数を選んで、ナレッジベースから候補を生成します。",
-                "starters_translate_empty": "まず「デフォルト」タブできっかけを追加してから、ここで翻訳してください。"
+                "starters_translate_empty": "まず「デフォルト」タブできっかけを追加してから、ここで翻訳してください。",
+                "starters_generate_failed": "会話のきっかけを生成できませんでした",
+                "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。"
             },
             "languages": {
                 "title": "UI 言語",

@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "시작 문구를 생성하지 못했습니다",
+                "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요."
+            }
+        }
+    }
+}

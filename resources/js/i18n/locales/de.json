@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Generieren",
                 "starters_generating": "Wird generiert…",
                 "starters_generate_hint": "Wählen Sie eine Anzahl und generieren Sie Vorschläge aus Ihrer Wissensdatenbank.",
-                "starters_translate_empty": "Fügen Sie zuerst im Tab „Standard“ Gesprächseinstiege hinzu und übersetzen Sie sie dann hier."
+                "starters_translate_empty": "Fügen Sie zuerst im Tab „Standard“ Gesprächseinstiege hinzu und übersetzen Sie sie dann hier.",
+                "starters_generate_failed": "Gesprächseinstiege konnten nicht generiert werden",
+                "starters_generate_empty": "Es kamen keine Gesprächseinstiege zurück. Prüfen Sie, ob die Wissensdatenbank Inhalte hat, und versuchen Sie es erneut."
             },
             "languages": {
                 "title": "Oberflächensprachen",

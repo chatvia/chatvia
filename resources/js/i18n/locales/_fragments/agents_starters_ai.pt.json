@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Não foi possível gerar iniciadores",
+                "starters_generate_empty": "Nenhum iniciador foi devolvido. Verifique se a base de conhecimento tem conteúdo e tente novamente."
+            }
+        }
+    }
+}

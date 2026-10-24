@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Gesprächseinstiege konnten nicht generiert werden",
+                "starters_generate_empty": "Es kamen keine Gesprächseinstiege zurück. Prüfen Sie, ob die Wissensdatenbank Inhalte hat, und versuchen Sie es erneut."
+            }
+        }
+    }
+}

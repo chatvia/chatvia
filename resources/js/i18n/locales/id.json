@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Buat",
                 "starters_generating": "Membuat…",
                 "starters_generate_hint": "Pilih jumlah dan buat saran dari basis pengetahuan Anda.",
-                "starters_translate_empty": "Tambahkan pembuka di tab Bawaan terlebih dahulu, lalu terjemahkan di sini."
+                "starters_translate_empty": "Tambahkan pembuka di tab Bawaan terlebih dahulu, lalu terjemahkan di sini.",
+                "starters_generate_failed": "Gagal membuat pembuka",
+                "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi."
             },
             "languages": {
                 "title": "Bahasa UI",

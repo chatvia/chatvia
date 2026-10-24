@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Generuj",
                 "starters_generating": "Generowanie…",
                 "starters_generate_hint": "Wybierz liczbę i wygeneruj sugestie z bazy wiedzy.",
-                "starters_translate_empty": "Najpierw dodaj startery na karcie Domyślne, a potem przetłumacz je tutaj."
+                "starters_translate_empty": "Najpierw dodaj startery na karcie Domyślne, a potem przetłumacz je tutaj.",
+                "starters_generate_failed": "Nie udało się wygenerować starterów",
+                "starters_generate_empty": "Nie otrzymano żadnych starterów. Sprawdź, czy baza wiedzy ma treść, i spróbuj ponownie."
             },
             "languages": {
                 "title": "Języki interfejsu",

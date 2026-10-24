@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Gagal membuat pembuka",
+                "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi."
+            }
+        }
+    }
+}

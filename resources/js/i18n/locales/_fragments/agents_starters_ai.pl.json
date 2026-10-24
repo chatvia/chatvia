@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Nie udało się wygenerować starterów",
+                "starters_generate_empty": "Nie otrzymano żadnych starterów. Sprawdź, czy baza wiedzy ma treść, i spróbuj ponownie."
+            }
+        }
+    }
+}

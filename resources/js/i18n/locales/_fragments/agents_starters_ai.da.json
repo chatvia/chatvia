@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Kunne ikke generere startere",
+                "starters_generate_empty": "Der kom ingen startere tilbage. Tjek, at vidensbasen har indhold, og prøv igen."
+            }
+        }
+    }
+}

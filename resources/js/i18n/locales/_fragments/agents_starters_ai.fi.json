@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "Aloitusviestien luonti epäonnistui",
+                "starters_generate_empty": "Aloitusviestejä ei saatu. Tarkista, että tietämyskannassa on sisältöä, ja yritä uudelleen."
+            }
+        }
+    }
+}

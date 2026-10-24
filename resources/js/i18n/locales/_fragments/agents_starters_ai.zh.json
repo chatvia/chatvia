@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "无法生成开场白",
+                "starters_generate_empty": "没有生成任何开场白。请确认知识库中有内容，然后重试。"
+            }
+        }
+    }
+}

@@ -9,7 +9,9 @@
                 "starters_generate_button": "إنشاء",
                 "starters_generating": "جارٍ الإنشاء…",
                 "starters_generate_hint": "اختر عددًا ثم أنشئ اقتراحات من قاعدة معرفتك.",
-                "starters_translate_empty": "أضف الأمثلة في تبويب الافتراضية أولًا، ثم ترجمها هنا."
+                "starters_translate_empty": "أضف الأمثلة في تبويب الافتراضية أولًا، ثم ترجمها هنا.",
+                "starters_generate_failed": "تعذّر إنشاء الأمثلة",
+                "starters_generate_empty": "لم تصل أي أمثلة. تأكد من أن قاعدة المعرفة فيها محتوى، ثم حاول مرة أخرى."
             }
         }
     }

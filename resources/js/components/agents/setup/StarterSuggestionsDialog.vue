@@ -4,17 +4,20 @@
  * of starter ideas drawn from the agent's knowledge base and lets the owner
  * tick which ones to add. Ideas that already exist as starters are shown but
  * can't be picked. Nothing is saved here; the picked texts go to the parent.
+ * When nothing can be made, the dialog says why (the server names the model
+ * and what its provider said).
  */
 import { generateStarters } from '@/api/agentSetup';
+import { errorMessage } from '@/api/http';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles } from 'lucide-vue-next';
+import { AlertCircle, Sparkles } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     agentId: string;
@@ -34,6 +37,9 @@ const count = ref('5');
 const isLoading = ref(false);
 const suggestions = ref<string[]>([]);
 const picked = ref<string[]>([]);
+// Why the last try made nothing: the server's reason, or '' when it gave none.
+const failure = ref<string | null>(null);
+const isEmpty = ref(false);
 
 const isAdded = (text: string): boolean => props.existing.some((existing) => existing.trim() === text.trim());
 const isPicked = (text: string): boolean => picked.value.includes(text);
@@ -44,17 +50,24 @@ watch(open, (isOpen) => {
         suggestions.value = [];
         picked.value = [];
         count.value = '5';
+        failure.value = null;
+        isEmpty.value = false;
     }
 });
 
 const generate = async (): Promise<void> => {
     isLoading.value = true;
+    failure.value = null;
+    isEmpty.value = false;
     try {
         const result = await generateStarters(props.agentId, Number(count.value));
         suggestions.value = Array.isArray(result?.suggestions) ? result.suggestions : [];
         picked.value = suggestions.value.filter((text) => !isAdded(text));
-    } catch {
-        toast.error(t('agents.setup.toasts.starters_error'));
+        isEmpty.value = suggestions.value.length === 0;
+    } catch (error) {
+        suggestions.value = [];
+        picked.value = [];
+        failure.value = errorMessage(error, '');
     } finally {
         isLoading.value = false;
     }
@@ -121,8 +134,14 @@ const addLabel = computed(() =>
                 </div>
             </ScrollArea>
 
+            <Alert v-else-if="failure !== null && !isLoading" variant="destructive">
+                <AlertCircle class="h-4 w-4" />
+                <AlertTitle>{{ t('agents.setup.sections.starters_generate_failed') }}</AlertTitle>
+                <AlertDescription v-if="failure" class="break-words">{{ failure }}</AlertDescription>
+            </Alert>
+
             <p v-else-if="!isLoading" class="text-muted-foreground py-8 text-center text-sm">
-                {{ t('agents.setup.sections.starters_generate_hint') }}
+                {{ isEmpty ? t('agents.setup.sections.starters_generate_empty') : t('agents.setup.sections.starters_generate_hint') }}
             </p>
 
             <DialogFooter>

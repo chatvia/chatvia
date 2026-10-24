@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Luo",
                 "starters_generating": "Luodaan…",
                 "starters_generate_hint": "Valitse määrä ja luo ehdotuksia tietämyskannastasi.",
-                "starters_translate_empty": "Lisää ensin aloitusviestit Oletus-välilehdellä ja käännä ne sitten tässä."
+                "starters_translate_empty": "Lisää ensin aloitusviestit Oletus-välilehdellä ja käännä ne sitten tässä.",
+                "starters_generate_failed": "Aloitusviestien luonti epäonnistui",
+                "starters_generate_empty": "Aloitusviestejä ei saatu. Tarkista, että tietämyskannassa on sisältöä, ja yritä uudelleen."
             },
             "languages": {
                 "title": "Käyttöliittymän kielet",

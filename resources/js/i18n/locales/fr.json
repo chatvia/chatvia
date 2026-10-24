@@ -1994,7 +1994,9 @@
                 "starters_generate_button": "Générer",
                 "starters_generating": "Génération en cours…",
                 "starters_generate_hint": "Choisissez un nombre et générez des suggestions à partir de votre base de connaissances.",
-                "starters_translate_empty": "Ajoutez d'abord des amorces dans l'onglet Par défaut, puis traduisez-les ici."
+                "starters_translate_empty": "Ajoutez d'abord des amorces dans l'onglet Par défaut, puis traduisez-les ici.",
+                "starters_generate_failed": "Impossible de générer des amorces",
+                "starters_generate_empty": "Aucune amorce n'a été renvoyée. Vérifiez que la base de connaissances contient du contenu, puis réessayez."
             },
             "languages": {
                 "title": "Langues de l'interface",

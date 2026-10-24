@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate_failed": "会話のきっかけを生成できませんでした",
+                "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。"
+            }
+        }
+    }
+}

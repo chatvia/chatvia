@@ -11,8 +11,9 @@ use Illuminate\Support\Str;
 /**
  * The recursive splitter cuts at the coarsest place that makes the pieces
  * fit (paragraphs, then lines, sentences, words), packs neighbouring pieces
- * up to the size, and falls back to fixed windows. It works the same in
- * tokens and in characters.
+ * up to the size, and falls back to fixed windows. It avoids chunks under
+ * the minimum where the text allows. It works the same in tokens and in
+ * characters.
  */
 function rsTextSeparators(): array
 {
@@ -122,4 +123,65 @@ it('packs measured pieces with the overlap', function (): void {
         'dddddddddddd',
         'ee',
     ])->and($splitter->pack([]))->toBe([]);
+});
+
+it('evens out a last chunk under the minimum with the one before', function (): void {
+    $pieces = [['aaaaaaaa', 8], ['bbbbbbbb', 8], ['cc', 2]];
+
+    expect(new RecursiveSplitter(new CharacterMeasure, 16)->pack($pieces))->toBe(['aaaaaaaabbbbbbbb', 'cc'])
+        ->and(new RecursiveSplitter(new CharacterMeasure, 16, 0, 6)->pack($pieces))->toBe(['aaaaaaaa', 'bbbbbbbbcc']);
+});
+
+it('keeps the overlap when it evens out a short last chunk', function (): void {
+    $pieces = [['aaaa', 4], ['bbbb', 4], ['cccc', 4], ['d', 1]];
+
+    expect(new RecursiveSplitter(new CharacterMeasure, 12, 4)->pack($pieces))->toBe(['aaaabbbbcccc', 'ccccd'])
+        ->and(new RecursiveSplitter(new CharacterMeasure, 12, 4, 6)->pack($pieces))->toBe(['aaaabbbb', 'bbbbccccd']);
+});
+
+it('leaves a short chunk when no cut makes it longer', function (): void {
+    expect(new RecursiveSplitter(new CharacterMeasure, 10, 0, 5)->pack([['dddddddddddd', 12], ['ee', 2]]))->toBe(['dddddddddddd', 'ee']);
+});
+
+it('cuts a short paragraph along with a long one after it', function (): void {
+    $text = "Short note.\n\nIt rains today. Bring a coat. The wind is strong.";
+
+    expect(new RecursiveSplitter(new CharacterMeasure, 35)->split($text, rsTextSeparators()))->toBe([
+        'Short note.',
+        'It rains today. Bring a coat.',
+        'The wind is strong.',
+    ])->and(new RecursiveSplitter(new CharacterMeasure, 35, 0, 15)->split($text, rsTextSeparators()))->toBe([
+        "Short note.\n\nIt rains today.",
+        'Bring a coat. The wind is strong.',
+    ]);
+});
+
+it('packs the short end of a long paragraph with the paragraphs after it', function (): void {
+    $text = "It rains today and it is cold outside. Stay.\n\nShops close at six.";
+
+    expect(new RecursiveSplitter(new CharacterMeasure, 40)->split($text, rsTextSeparators()))->toBe([
+        'It rains today and it is cold outside.',
+        'Stay.',
+        'Shops close at six.',
+    ])->and(new RecursiveSplitter(new CharacterMeasure, 40, 0, 15)->split($text, rsTextSeparators()))->toBe([
+        'It rains today and it is cold outside.',
+        "Stay.\n\nShops close at six.",
+    ]);
+});
+
+it('keeps every chunk within the size and loses no text with a minimum', function (ChunkMeasure $measure, int $size): void {
+    $splitter = new RecursiveSplitter($measure, $size, 0, intdiv($size, 2));
+    $chunks = $splitter->split(rsText(), rsTextSeparators());
+
+    foreach ($chunks as $chunk) {
+        expect($measure->length($chunk))->toBeLessThanOrEqual($size);
+    }
+
+    expect(Str::replaceMatches('/\s+/u', '', implode('', $chunks)))->toBe(Str::replaceMatches('/\s+/u', '', rsText()));
+})->with('measures');
+
+it('holds the minimum to half the size', function (): void {
+    expect(new RecursiveSplitter(new CharacterMeasure, 20, 0, 500)->minimum)->toBe(10)
+        ->and(new RecursiveSplitter(new CharacterMeasure, 20, 0, -3)->minimum)->toBe(0)
+        ->and(new RecursiveSplitter(new CharacterMeasure, 40, 0, 15)->withSize(20)->minimum)->toBe(10);
 });

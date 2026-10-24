@@ -30,8 +30,8 @@ it('shows the splitting options and the preview on their own page', function ():
         ->get(ManageSplittingSettings::getUrl())
         ->assertOk()
         ->assertSeeInOrder([
-            'Splitting', 'Up to 400 tokens · no overlap',
-            'Measure in', 'Chunk size', 'Overlap',
+            'Splitting', '128 to 400 tokens · no overlap',
+            'Measure in', 'Chunk size', 'Overlap', 'Smallest chunk',
             'Markdown', 'Web pages, Markdown files and ebooks',
             'Text', 'Transcript', 'Tokenizer',
             'one chunk per page',
@@ -84,6 +84,47 @@ it('saves the unit, the size, the strategies and the tokenizer, and the splitter
         ->and(ChunkingConfigData::forKind(ContentKind::Text)->encoding)->toBe('o200k_base');
 });
 
+it('saves the smallest chunk, and the splitter uses it', function (): void {
+    adminPage(ManageSplittingSettings::class, $this->admin)
+        ->fillForm(['chunk_size' => 300, 'chunk_minimum' => 100])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_minimum'))->toBe(100)
+        ->and(ChunkingConfigData::forKind(ContentKind::Text)->minimum)->toBe(100);
+
+    adminPage(ManageSplittingSettings::class, $this->admin)
+        ->fillForm(['chunk_minimum' => 0])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_minimum'))->toBe(0)
+        ->and(ChunkingConfigData::forKind(ContentKind::Text)->minimum)->toBe(0);
+});
+
+it('refuses a smallest chunk over half the chunk size', function (): void {
+    adminPage(ManageSplittingSettings::class, $this->admin)
+        ->fillForm(['chunk_size' => 300, 'chunk_minimum' => 151])
+        ->call('save')
+        ->assertHasFormErrors(['chunk_minimum']);
+
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_minimum'))->toBeNull();
+});
+
+it('previews with the smallest chunk on the page', function (): void {
+    $text = "Short note.\n\nIt rains today. Bring a coat. The wind is strong.";
+
+    adminPage(ManageSplittingSettings::class, $this->admin)
+        ->fillForm(['chunk_unit' => 'characters', 'chunk_size' => 35, 'chunk_minimum' => 0, 'preview_kind' => 'text', 'preview_text' => $text])
+        ->callAction(mssPreviewAction())
+        ->assertSee('3 chunks, split as Text');
+
+    adminPage(ManageSplittingSettings::class, $this->admin)
+        ->fillForm(['chunk_unit' => 'characters', 'chunk_size' => 35, 'chunk_minimum' => 15, 'preview_kind' => 'text', 'preview_text' => $text])
+        ->callAction(mssPreviewAction())
+        ->assertSee('2 chunks, split as Text');
+});
+
 it('limits the size by its unit', function (): void {
     adminPage(ManageSplittingSettings::class, $this->admin)
         ->fillForm(['chunk_unit' => 'tokens', 'chunk_size' => 9000])
@@ -103,6 +144,7 @@ it('keeps the defaults unsaved when they are not changed', function (): void {
 
     expect(savedSetting(KnowledgeSettings::class, 'chunk_unit'))->toBeNull()
         ->and(savedSetting(KnowledgeSettings::class, 'chunk_size'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'chunk_minimum'))->toBeNull()
         ->and(savedSetting(KnowledgeSettings::class, 'markdown_strategy'))->toBeNull()
         ->and(savedSetting(KnowledgeSettings::class, 'tokenizer'))->toBeNull();
 });

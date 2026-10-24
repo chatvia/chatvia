@@ -46,6 +46,15 @@ enum ChunkSizeUnit: string
         };
     }
 
+    /** The smallest chunk the splitter aims for when none is set: about the same text in either unit. */
+    public function defaultMinimum(): int
+    {
+        return match ($this) {
+            self::Tokens => 128,
+            self::Characters => 512,
+        };
+    }
+
     public function minSize(): int
     {
         return match ($this) {

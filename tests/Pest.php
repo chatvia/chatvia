@@ -41,6 +41,7 @@ use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use GuzzleHttp\Middleware as GuzzleMiddleware;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,8 @@ use Illuminate\Support\Traits\ReadsClassAttributes;
 use Illuminate\Support\Uri;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Process\ExecutableFinder;
 use Tests\RefreshTestDatabases;
@@ -538,9 +541,10 @@ function storeSourceChunks(SourceFile|SourceText|SourceWebsite $source, array $p
  * A provider key given on the command line, named after the provider's
  * config block (SCALEWAYAI_API_KEY, OPENROUTER_API_KEY, COHERE_API_KEY,
  * GEMINI_API_KEY, VOYAGE_API_KEY…), goes into config, as the admin panel puts
- * it there; the EVAL_EMBEDDING_* overrides apply ({@see evalEmbeddingOverrides()});
- * outside calls are allowed; and the configured embeddings provider and
- * reranker are bound, probed once. Returns the bound embeddings provider.
+ * it there; the EVAL_EMBEDDING_* and EVAL_RERANK_* overrides apply
+ * ({@see evalEmbeddingOverrides()}, {@see evalRerankOverrides()});
+ * outside calls are allowed, and retried after a rate limit; and the
+ * configured embeddings provider and reranker are bound, probed once. Returns the bound embeddings provider.
  *
  * @throws RuntimeException before any request, when no key is given
  * @throws Throwable when the real embeddings cannot be reached (a wrong key, no network)
@@ -563,7 +567,14 @@ function evalUseRealModels(): EmbeddingsProviderInterface
     }
 
     evalEmbeddingOverrides();
+    evalRerankOverrides();
     Http::allowStrayRequests();
+
+    // Free API tiers cap tokens per minute: wait and ask again after a 429.
+    Http::globalMiddleware(GuzzleMiddleware::retry(
+        static fn (int $retries, RequestInterface $request, ?ResponseInterface $response = null): bool => $retries < 10 && $response?->getStatusCode() === 429,
+        static fn (): int => 20_000,
+    ));
 
     app()->forgetInstance(EmbeddingsProviderInterface::class);
     $embeddings = app(EmbeddingsProviderInterface::class);
@@ -584,6 +595,26 @@ function evalUseRealModels(): EmbeddingsProviderInterface
  * provider runs — in the testing environment that is the config default, not
  * what the admin panel of an install has.
  */
+/**
+ * Which reranker the offline evals (tests/Eval) use, as env overrides for one
+ * run: EVAL_RERANK_URL (a server with the common /rerank API, such as
+ * https://api.jina.ai/v1), EVAL_RERANK_MODEL and EVAL_RERANK_KEY. Unset, the
+ * configured reranker runs.
+ */
+function evalRerankOverrides(): void
+{
+    if (blank($url = env('EVAL_RERANK_URL'))) {
+        return;
+    }
+
+    config([
+        'chatvia.ai.reranker' => 'custom',
+        'chatvia.ai.rerank.custom.url' => $url,
+        'chatvia.ai.rerank.custom.model' => env('EVAL_RERANK_MODEL'),
+        'chatvia.ai.rerank.custom.key' => env('EVAL_RERANK_KEY'),
+    ]);
+}
+
 function evalEmbeddingOverrides(): void
 {
     if (filled($provider = env('EVAL_EMBEDDING_PROVIDER'))) {

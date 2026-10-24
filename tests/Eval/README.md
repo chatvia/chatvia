@@ -162,6 +162,9 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 | `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
 | `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
+| `EVAL_CHUNK_SIZE` | the chunk size of this run, in the configured unit (tokens by default) |
+| `EVAL_CHUNK_MINIMUM` | the smallest chunk of this run, same unit; `0` turns it off |
+| `EVAL_RERANK_URL` / `EVAL_RERANK_MODEL` / `EVAL_RERANK_KEY` | rerank with any server that has the common `/rerank` API for one run (e.g. `https://api.jina.ai/v1` + `jina-reranker-v2-base-multilingual`) |
 
 ## Cases
 

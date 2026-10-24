@@ -25,6 +25,7 @@ return new class extends SettingsMigration
             $group->add('chunk_unit');
             $group->add('chunk_size');
             $group->add('chunk_overlap');
+            $group->add('chunk_minimum');
             $group->add('markdown_strategy');
             $group->add('text_strategy');
             $group->add('transcript_strategy');

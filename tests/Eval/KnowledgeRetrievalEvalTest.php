@@ -8,6 +8,7 @@ use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
@@ -41,7 +42,9 @@ use Illuminate\Support\Str;
  *     SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
  *
  * Knobs (env, one run): VECTOR_SEARCH_RELEVANCE_THRESHOLD, VECTOR_SEARCH_MAX_CHUNKS,
- * EVAL_ENRICH=1 (enrich chunks with the Smart model first; needs a chat model).
+ * EVAL_ENRICH=1 (enrich chunks with the Smart model first; needs a chat model),
+ * EVAL_CHUNK_SIZE and EVAL_CHUNK_MINIMUM (the chunk size and the smallest
+ * chunk, in the configured unit).
  */
 beforeEach(function (): void {
     // The eval calls the real embeddings and reranker, so it runs only with a
@@ -54,7 +57,34 @@ beforeEach(function (): void {
 
     // The real splitter, as production splits these documents.
     app()->instance(TextSplitter::class, new BuiltinTextSplitter);
+
+    foreach (['EVAL_CHUNK_SIZE' => 'size', 'EVAL_CHUNK_MINIMUM' => 'minimum'] as $variable => $setting) {
+        if (filled($value = env($variable))) {
+            config(["chatvia.ai.chunking.{$setting}" => (int) $value]);
+        }
+    }
 });
+
+/** How the eval documents split with this run's settings: the count and the sizes of the chunks. */
+function retrievalEvalChunkLine(): string
+{
+    $sizes = [];
+
+    foreach (retrievalEvalDocuments() as $path => $kind) {
+        $config = ChunkingConfigData::forKind($kind);
+
+        foreach (app(TextSplitter::class)->split((string) file_get_contents($path), $kind) as $chunk) {
+            $sizes[] = $config->measure()->length($chunk);
+        }
+    }
+
+    sort($sizes);
+    $config = ChunkingConfigData::forKind(ContentKind::Text);
+
+    return sprintf('chunks: size %d, smallest %d %s · %d chunks, min %d · median %d · max %d · under the smallest %d',
+        $config->size, $config->minimum, $config->unit->suffix(), count($sizes), $sizes[0], $sizes[intdiv(count($sizes), 2)], end($sizes),
+        count(array_filter($sizes, static fn (int $size): bool => $size < $config->minimum)));
+}
 
 /** The eval's documents: path => how it is split. */
 function retrievalEvalDocuments(): array
@@ -248,6 +278,7 @@ function retrievalEvalReport(array $rows, RetrievalSettingsData $settings): void
             ? 'reranker '.$reranker->model().', threshold '.RelevanceThresholds::knowledgeRerank($reranker)
             : 'similarity, threshold '.(RelevanceThresholds::knowledgeSimilarity() ?? 'none'),
         $settings->maxChunks, config('chatvia.vector.search.hybrid') ? 'on' : 'off');
+    $out[] = retrievalEvalChunkLine();
     $out[] = '';
     $out[] = sprintf('Before the check   (%d questions): hit@1 %s  hit@3 %s  hit@5 %s  MRR %.3f',
         count($answers), $pct($hitAt($answers, 1), count($answers)), $pct($hitAt($answers, 3), count($answers)), $pct($hitAt($answers, 5), count($answers)), $mrr($answers));

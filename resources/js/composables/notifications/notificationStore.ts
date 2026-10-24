@@ -5,11 +5,26 @@
  * shared prop, synced in app.ts); live changes arrive over Reverb and are
  * passed on to every open list through `onNotificationChange`.
  */
+import { router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
 export type UserNotification = Domain.Notification.Data.UserNotificationData;
 export type NotificationPreferences = Domain.Notification.Data.NotificationPreferencesData;
 type NotificationSummary = Domain.Notification.Data.NotificationSummaryData;
+
+// Notifications whose link opens the admin panel, which is not an Inertia page.
+const ADMIN_PANEL_KINDS: ReadonlySet<Domain.Notification.Enums.NotificationKind> = new Set(['ai_model_unavailable']);
+
+/** Opens the page a notification links to. */
+export function visitNotification(notification: UserNotification): void {
+    if (ADMIN_PANEL_KINDS.has(notification.kind)) {
+        window.location.assign(notification.content.url);
+
+        return;
+    }
+
+    router.visit(notification.content.url);
+}
 
 export const unreadCount = ref(0);
 export const notificationPreferences = ref<NotificationPreferences | null>(null);

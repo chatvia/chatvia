@@ -11,6 +11,7 @@ use Domain\Guardrail\Data\GuardrailSettingsData;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Data\GuardVerdictData;
 use Domain\Guardrail\Data\PiiRedactionData;
+use Domain\Guardrail\Enums\GuardAlert;
 use Domain\Guardrail\Enums\GuardMode;
 use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardSeverity;
@@ -21,6 +22,7 @@ use Domain\Guardrail\Enums\TopicResponse;
 use Domain\Guardrail\Services\Detectors\InjectionPatternDetector;
 use Domain\Guardrail\Services\Detectors\PiiAllowlist;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
+use Domain\Llm\Enums\LlmFailure;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Str;
@@ -384,7 +386,8 @@ class GuardrailService
     /**
      * The injection / off-topic / toxicity verdicts from one classifier call,
      * each blocking or flagged by its guard's mode and sensitivity. A failed
-     * call skips every check it covered.
+     * call skips every check it covered, saying why; only the first skip is
+     * an alert, so one failed call is one notification ({@see GuardAlert}).
      *
      * @return list<GuardVerdictData>
      */
@@ -392,8 +395,13 @@ class GuardrailService
     {
         if ($verdict->failed) {
             return array_map(
-                static fn (GuardType $type): GuardVerdictData => new GuardVerdictData($type, $stage, GuardOutcome::Skipped, detail: ['reason' => 'classifier_unavailable']),
+                static fn (GuardType $type, int $index): GuardVerdictData => new GuardVerdictData($type, $stage, GuardOutcome::Skipped, detail: [
+                    'reason' => 'classifier_unavailable',
+                    'failure' => ($verdict->failure ?? LlmFailure::Other)->value,
+                    ...($index === 0 ? ['alert' => true] : []),
+                ]),
                 $options->guardTypes(),
+                array_keys($options->guardTypes()),
             );
         }
 

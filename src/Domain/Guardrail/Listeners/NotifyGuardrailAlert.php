@@ -49,7 +49,7 @@ class NotifyGuardrailAlert implements ShouldQueue
 
         Notification::send(
             $this->recipients->forAgent($agent, 'agent.guardrails.view'),
-            new GuardrailInboxNotification($agent, $alert, $event->guardType),
+            new GuardrailInboxNotification($agent, $alert, $event->guardType, $event->detail['failure'] ?? null),
         );
     }
 }

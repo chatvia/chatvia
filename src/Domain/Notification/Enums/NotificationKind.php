@@ -27,6 +27,7 @@ enum NotificationKind: string
     case RateLimitExceeded = 'rate_limit_exceeded';
     case EvalRunFinished = 'eval_run_finished';
     case DataExportReady = 'data_export_ready';
+    case AiModelUnavailable = 'ai_model_unavailable';
 
     public function category(): NotificationCategory
     {
@@ -34,6 +35,7 @@ enum NotificationKind: string
             self::HandoffRequested => NotificationCategory::Handoffs,
             self::AttackBlocked,
             self::GuardrailSkipped,
+            self::AiModelUnavailable,
             self::SecuritySettingsChanged,
             self::NewDeviceSignIn => NotificationCategory::Security,
             self::SourceTrained,

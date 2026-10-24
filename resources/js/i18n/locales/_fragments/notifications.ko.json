@@ -29,6 +29,16 @@
             "retention_changed": "데이터 보관 기간이 바뀌었습니다",
             "webhook_disabled": "감사 웹훅이 꺼졌습니다"
         },
+        "skip_reasons": {
+            "model_unavailable": "안전 점검용 AI 모델을 더 이상 사용할 수 없습니다. 관리자가 다른 모델을 고를 수 있습니다.",
+            "key_refused": "AI 제공업체가 API 키를 거부했습니다.",
+            "out_of_credit": "AI 제공업체 계정의 크레딧이 모두 소진되었습니다.",
+            "rate_limited": "AI 제공업체가 요청을 제한하고 있습니다.",
+            "unreachable": "AI 제공업체에 연결할 수 없었습니다.",
+            "provider_error": "AI 제공업체에서 오류가 발생했습니다.",
+            "no_model": "안전 점검용 AI 모델이 설정되어 있지 않습니다.",
+            "bad_reply": "AI 모델이 앱이 읽을 수 없는 답변을 했습니다."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "방문자가 사람과 대화하고 싶어 합니다",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "{agent}에서 안전 검사를 실행하지 못했습니다 | {agent}에서 안전 검사를 {count}번 실행하지 못했습니다",
-                "body": "메시지가 검사 없이 전달되었습니다. 가드레일 서비스를 확인하세요."
+                "body": "메시지가 검사 없이 전달되었습니다. 가드레일 서비스를 확인하세요.",
+                "body_reason": "메시지는 점검 없이 전달되었습니다. {reason}"
             },
             "security_settings_changed": {
                 "by": "변경한 사람: {actor}",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "데이터 내보내기가 준비되었습니다",
                 "body": "24시간 안에 다운로드하세요."
+            },
+            "ai_model_unavailable": {
+                "title": "{detail}에서 더 이상 {subject}을(를) 사용할 수 없습니다",
+                "body": "이 모델을 쓰던 앱의 작업은 이제 다른 모델을 씁니다. 관리자 패널의 설정 → AI 모델에서 새 모델을 고르세요."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "보안",
-                    "description": "막은 공격, 실행되지 못한 안전 검사, 새 로그인, 보안 변경."
+                    "description": "차단된 공격, 실행하지 못한 안전 점검, 더 이상 사용할 수 없는 AI 모델, 새 로그인 및 보안 변경."
                 },
                 "training": {
                     "label": "학습",

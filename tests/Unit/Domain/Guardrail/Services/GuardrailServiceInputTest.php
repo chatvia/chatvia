@@ -6,6 +6,7 @@ use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Services\GuardrailClassifier;
+use Domain\Llm\Enums\LlmFailure;
 use GuzzleHttp\Promise\Create;
 use Tests\Support\Guardrail\GuardedAgent;
 
@@ -61,13 +62,16 @@ it('flags but does not block low-severity toxic input', function (): void {
 });
 
 it('logs every enabled check as skipped when the classifier fails, and lets the message through', function (): void {
-    $result = GuardedAgent::service(ClassifierVerdictData::failOpen())
+    $result = GuardedAgent::service(ClassifierVerdictData::failOpen(LlmFailure::ModelUnavailable))
         ->inspectInput(GuardedAgent::make(['blocked_topics' => ['politics']]), 'hello');
 
     expect($result->blocked)->toBeFalse()
         ->and(collect($result->verdicts)->pluck('outcome')->unique()->all())->toBe([GuardOutcome::Skipped])
         ->and(collect($result->verdicts)->pluck('guardType')->all())
-        ->toBe([GuardType::PromptInjection, GuardType::BlockedTopic, GuardType::Toxicity]);
+        ->toBe([GuardType::PromptInjection, GuardType::BlockedTopic, GuardType::Toxicity])
+        ->and(collect($result->verdicts)->pluck('detail.failure')->unique()->all())->toBe(['model_unavailable'])
+        // One failed call is one alert, not one per check.
+        ->and(collect($result->verdicts)->pluck('detail.alert')->all())->toBe([true, null, null]);
 });
 
 it('gives the classifier the earlier messages for context', function (): void {

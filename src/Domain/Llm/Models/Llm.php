@@ -4,6 +4,7 @@ namespace Domain\Llm\Models;
 
 use Database\Factories\LlmFactory;
 use Domain\Llm\AbstractLlmProvider;
+use Domain\Llm\Actions\Catalog\CheckLlmListingAction;
 use Domain\Llm\Data\Catalog\ModelFactsData;
 use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Services\ModelsDevCatalog;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Cache;
  * @property string $name
  * @property array<string, mixed>|null $capabilities
  * @property bool $is_enabled
+ * @property Carbon|null $unlisted_at
  * @property-read LlmProvider $provider
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -75,6 +77,7 @@ class Llm extends Model
         return [
             'capabilities' => 'json',
             'is_enabled' => 'boolean',
+            'unlisted_at' => 'datetime',
         ];
     }
 
@@ -91,10 +94,14 @@ class Llm extends Model
         return $this->belongsTo(LlmProvider::class, 'llm_provider_id');
     }
 
-    /** Whether the model may be picked: it and its provider are on, and the provider has its key. */
+    /**
+     * Whether the model may be picked: it and its provider are on, the
+     * provider has its key, and it still serves the model (see
+     * {@see CheckLlmListingAction}).
+     */
     public function isAvailable(): bool
     {
-        return $this->is_enabled && $this->provider->is_enabled && $this->provider->isConnected();
+        return $this->is_enabled && $this->unlisted_at === null && $this->provider->is_enabled && $this->provider->isConnected();
     }
 
     /**

@@ -36,7 +36,7 @@ beforeEach(function (): void {
 });
 
 it('stores each key once, and the chat models and the reranker use it', function (): void {
-    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b', 'architecture' => ['output_modalities' => ['text']]]]])]);
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models/user' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b', 'architecture' => ['output_modalities' => ['text']]]]])]);
 
     adminPage(ManageAiProviderSettings::class, $this->admin)
         ->fillForm(['openrouter_api_key' => 'sk-or-test'])

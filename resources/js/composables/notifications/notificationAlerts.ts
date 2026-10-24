@@ -8,8 +8,7 @@
  * Browsers only allow sound after the page was used, so the audio is
  * unlocked on the first click or key press.
  */
-import { router } from '@inertiajs/vue3';
-import { notificationPreferences, type UserNotification } from './notificationStore';
+import { notificationPreferences, visitNotification, type UserNotification } from './notificationStore';
 import type { NotificationText } from './useNotificationText';
 
 const LOCK_NAME = 'chatvia-notification-alerts';
@@ -101,7 +100,7 @@ function showDesktopAlert(notification: UserNotification, text: NotificationText
 
     alert.onclick = () => {
         window.focus();
-        router.visit(notification.content.url);
+        visitNotification(notification);
         alert.close();
     };
 }

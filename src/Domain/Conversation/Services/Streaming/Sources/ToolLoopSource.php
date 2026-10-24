@@ -21,7 +21,9 @@ use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\LlmFailure;
 use Domain\Llm\Enums\ReasoningEffort;
+use Domain\Llm\Events\LlmCallRefused;
 use Domain\Llm\Models\Llm;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
@@ -284,9 +286,21 @@ abstract class ToolLoopSource
         } catch (ClientDisconnected) {
             $this->finishAfterDisconnect($context, $rememberOnDisconnect);
         } catch (RequestException|UpstreamStreamClosed $e) {
+            $this->reportRefusal($context, $e);
+
             yield from $this->failTurn($context, $e, $phase, ErrorCode::UpstreamUnavailable, $this->upstreamUnavailableMessage());
         } catch (Throwable $e) {
             yield from $this->failTurn($context, $e, $phase, ErrorCode::Internal, $failedMessage);
+        }
+    }
+
+    /** A provider that answers as if it does not serve the turn's model may have stopped serving it. */
+    private function reportRefusal(ChatContext $context, Throwable $e): void
+    {
+        $model = $this->model($context);
+
+        if ($model instanceof Llm && LlmFailure::of($e) === LlmFailure::ModelUnavailable) {
+            LlmCallRefused::dispatch($model->id);
         }
     }
 

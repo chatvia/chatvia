@@ -29,6 +29,16 @@
             "retention_changed": "Tietojen säilytystä muutettiin",
             "webhook_disabled": "Auditointi-webhook poistettiin käytöstä"
         },
+        "skip_reasons": {
+            "model_unavailable": "Turvatarkistusten tekoälymalli ei ole enää saatavilla. Ylläpitäjä voi valita toisen.",
+            "key_refused": "Tekoälypalvelu hylkäsi API-avaimen.",
+            "out_of_credit": "Tekoälypalvelun tililtä on loppunut saldo.",
+            "rate_limited": "Tekoälypalvelu rajoittaa pyyntöjä.",
+            "unreachable": "Tekoälypalveluun ei saatu yhteyttä.",
+            "provider_error": "Tekoälypalvelussa tapahtui virhe.",
+            "no_model": "Turvatarkistuksille ei ole asetettu tekoälymallia.",
+            "bad_reply": "Tekoälymalli antoi vastauksen, jota sovellus ei voinut lukea."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "Vierailija haluaa puhua ihmisen kanssa",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "Turvatarkistus ei toiminut agentilla {agent} | Turvatarkistus ei toiminut {count} kertaa agentilla {agent}",
-                "body": "Viestit menivät läpi ilman sitä. Tarkista guardrail-palvelu."
+                "body": "Viestit menivät läpi ilman sitä. Tarkista guardrail-palvelu.",
+                "body_reason": "Viestit menivät läpi ilman sitä. {reason}"
             },
             "security_settings_changed": {
                 "by": "Muuttaja: {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Tietojen vienti on valmis",
                 "body": "Lataa se 24 tunnin kuluessa."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} ei ole enää saatavilla palvelusta {detail}",
+                "body": "Sovelluksen omat tehtävät, jotka käyttivät sitä, käyttävät nyt toista mallia. Valitse uusi hallintapaneelista kohdasta Asetukset → Tekoälymallit."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Tietoturva",
-                    "description": "Estetyt hyökkäykset, turvatarkistukset jotka eivät toimineet, uudet kirjautumiset ja tietoturvamuutokset."
+                    "description": "Estetyt hyökkäykset, turvatarkistukset, joita ei voitu tehdä, tekoälymallit, jotka eivät ole enää saatavilla, uudet kirjautumiset ja tietoturvamuutokset."
                 },
                 "training": {
                     "label": "Koulutus",

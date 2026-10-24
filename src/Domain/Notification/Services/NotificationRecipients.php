@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Who in a workspace should hear about something: the active staff accounts
- * whose team role holds a permission — on one agent, or workspace-wide. The
+ * whose team role holds a permission — on one agent, or workspace-wide. Or,
+ * for the install itself, its admins. The
  * rules are the dashboard's own ({@see TeamPermissionPolicy}), so a
  * notification only reaches someone who could open the page it links to.
  * Whether each of them wants it is their own switch, checked when it is sent.
@@ -99,6 +100,20 @@ final readonly class NotificationRecipients
                 return $role instanceof BaseCollection && $this->permissionsOf($role)->contains($permission);
             })
             ->values();
+    }
+
+    /**
+     * The active admins of the install, who run the admin panel.
+     *
+     * @return Collection<int, User>
+     */
+    public function admins(): Collection
+    {
+        return User::query()
+            ->where('is_admin', true)
+            ->whereNull('deactivated_at')
+            ->orderBy('id')
+            ->get();
     }
 
     /**

@@ -10,6 +10,7 @@ use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Data\Chat\StructuredReplyData;
 use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Enums\LlmFailure;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
@@ -32,9 +33,10 @@ use Throwable;
  * such tag inside them is removed first, so the text cannot close the wrapper
  * and pose as instructions to the classifier.
  *
- * Fails OPEN: any error or unparseable response returns a no-trigger verdict so
- * a classifier outage never blocks live chat. The failure is logged here, and
- * GuardrailService records the checks as skipped in the Activity log.
+ * Fails OPEN: any error or unparseable response (or no model to ask) returns
+ * a no-trigger verdict, with the kind of failure, so a classifier outage
+ * never blocks live chat. The failure is logged here, and GuardrailService
+ * records the checks as skipped in the Activity log.
  */
 class GuardrailClassifier
 {
@@ -86,7 +88,7 @@ class GuardrailClassifier
     {
         Log::warning('Guardrail classifier failed; failing open.', ['error' => $e->getMessage()]);
 
-        return ClassifierVerdictData::failOpen();
+        return ClassifierVerdictData::failOpen(LlmFailure::of($e));
     }
 
     /**
@@ -97,7 +99,7 @@ class GuardrailClassifier
         if ($data === null) {
             Log::warning('Guardrail classifier returned no parseable verdict; failing open.');
 
-            return ClassifierVerdictData::failOpen();
+            return ClassifierVerdictData::failOpen(LlmFailure::BadReply);
         }
 
         return new ClassifierVerdictData(

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { skipReason } from '@/composables/notifications/useNotificationText';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { guardrails, logs } from '@/routes/agents';
@@ -120,7 +121,11 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
     if (typeof d.tool === 'string') rows.push({ label: t('agents.guardrails.detail_labels.tool'), value: d.tool });
     if (typeof d.pattern === 'string') rows.push({ label: t('agents.guardrails.detail_labels.pattern'), value: d.pattern });
     if (d.reason === 'classifier_unavailable') {
-        rows.push({ label: t('agents.guardrails.detail_labels.reason'), value: t('agents.guardrails.classifier_unavailable') });
+        const why = typeof d.failure === 'string' ? skipReason(t, d.failure) : null;
+        rows.push({
+            label: t('agents.guardrails.detail_labels.reason'),
+            value: why ? `${t('agents.guardrails.classifier_unavailable')} ${why}` : t('agents.guardrails.classifier_unavailable'),
+        });
     } else if (typeof d.reason === 'string' && d.reason !== '') {
         rows.push({ label: t('agents.guardrails.detail_labels.reason'), value: d.reason });
     }

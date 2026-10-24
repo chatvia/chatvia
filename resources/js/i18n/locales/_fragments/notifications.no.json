@@ -29,6 +29,16 @@
             "retention_changed": "Datalagringen ble endret",
             "webhook_disabled": "Revisjons-webhooken ble slått av"
         },
+        "skip_reasons": {
+            "model_unavailable": "AI-modellen for sikkerhetssjekker er ikke lenger tilgjengelig. En administrator kan velge en annen.",
+            "key_refused": "AI-leverandøren avviste API-nøkkelen.",
+            "out_of_credit": "Kontoen hos AI-leverandøren er tom for kreditt.",
+            "rate_limited": "AI-leverandøren begrenser forespørslene.",
+            "unreachable": "AI-leverandøren kunne ikke nås.",
+            "provider_error": "AI-leverandøren hadde en feil.",
+            "no_model": "Ingen AI-modell er satt opp for sikkerhetssjekker.",
+            "bad_reply": "AI-modellen ga et svar appen ikke kunne lese."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "En besøkende vil snakke med en person",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "En sikkerhetssjekk kunne ikke kjøre på {agent} | En sikkerhetssjekk kunne ikke kjøre {count} ganger på {agent}",
-                "body": "Meldinger gikk gjennom uten den. Sjekk guardrail-tjenesten."
+                "body": "Meldinger gikk gjennom uten den. Sjekk guardrail-tjenesten.",
+                "body_reason": "Meldinger gikk gjennom uten den. {reason}"
             },
             "security_settings_changed": {
                 "by": "Endret av {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Dataeksporten din er klar",
                 "body": "Last den ned innen 24 timer."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} er ikke lenger tilgjengelig hos {detail}",
+                "body": "Appens egne oppgaver som brukte den, bruker nå en annen modell. Velg en ny i administrasjonspanelet under Innstillinger → AI-modeller."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Sikkerhet",
-                    "description": "Blokkerte angrep, sikkerhetssjekker som ikke kunne kjøre, nye pålogginger og sikkerhetsendringer."
+                    "description": "Blokkerte angrep, sikkerhetssjekker som ikke kunne kjøre, AI-modeller som ikke lenger er tilgjengelige, nye pålogginger og sikkerhetsendringer."
                 },
                 "training": {
                     "label": "Trening",

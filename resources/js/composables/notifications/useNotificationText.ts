@@ -13,6 +13,7 @@ import {
     Headset,
     KeyRound,
     MonitorSmartphone,
+    ServerOff,
     ShieldAlert,
     ShieldOff,
     UserPlus,
@@ -48,10 +49,39 @@ const LOOKS: Record<NotificationKind, NotificationLook> = {
     rate_limit_exceeded: { icon: Gauge, tone: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
     eval_run_finished: { icon: BadgeCheck, tone: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
     data_export_ready: { icon: Download, tone: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
+    ai_model_unavailable: { icon: ServerOff, tone: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
 };
 
 export function notificationLook(kind: NotificationKind): NotificationLook {
     return LOOKS[kind] ?? LOOKS.source_trained;
+}
+
+/**
+ * Why a safety check could not run, in one sentence, or null for a reason
+ * the dashboard does not know (older rows hold the guard's name instead).
+ * Shared with the Guardrails activity log.
+ */
+export function skipReason(t: (key: string) => string, failure: string): string | null {
+    switch (failure) {
+        case 'model_unavailable':
+            return t('notifications.skip_reasons.model_unavailable');
+        case 'key_refused':
+            return t('notifications.skip_reasons.key_refused');
+        case 'out_of_credit':
+            return t('notifications.skip_reasons.out_of_credit');
+        case 'rate_limited':
+            return t('notifications.skip_reasons.rate_limited');
+        case 'unreachable':
+            return t('notifications.skip_reasons.unreachable');
+        case 'provider_error':
+            return t('notifications.skip_reasons.provider_error');
+        case 'no_model':
+            return t('notifications.skip_reasons.no_model');
+        case 'bad_reply':
+            return t('notifications.skip_reasons.bad_reply');
+        default:
+            return null;
+    }
 }
 
 export function useNotificationText() {
@@ -112,11 +142,16 @@ export function useNotificationText() {
                     title: t('notifications.kinds.attack_blocked.title', vars, count),
                     body: guardName(content.detail),
                 };
-            case 'guardrail_skipped':
+            case 'guardrail_skipped': {
+                const reason = content.detail ? skipReason(t, content.detail) : null;
+
                 return {
                     title: t('notifications.kinds.guardrail_skipped.title', vars, count),
-                    body: t('notifications.kinds.guardrail_skipped.body'),
+                    body: reason
+                        ? t('notifications.kinds.guardrail_skipped.body_reason', { reason })
+                        : t('notifications.kinds.guardrail_skipped.body'),
                 };
+            }
             case 'security_settings_changed':
                 return {
                     title: securityChange(content.detail),
@@ -160,6 +195,11 @@ export function useNotificationText() {
                 return {
                     title: t('notifications.kinds.data_export_ready.title'),
                     body: t('notifications.kinds.data_export_ready.body'),
+                };
+            case 'ai_model_unavailable':
+                return {
+                    title: t('notifications.kinds.ai_model_unavailable.title', vars),
+                    body: t('notifications.kinds.ai_model_unavailable.body'),
                 };
             default:
                 return { title: t('notifications.title'), body: '' };

@@ -7,9 +7,13 @@ use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Events\LlmCallRefused;
 use Domain\Llm\Services\LlmChat;
+use Domain\Llm\Services\LlmProviders;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Spectra\Spectra;
 
@@ -122,4 +126,31 @@ it('rejects an async request on an error status, as send() throws', function ():
     $reply = app(LlmChat::class)->sendAsync(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::Guardrails));
 
     expect(fn () => $reply->wait())->toThrow(RequestException::class);
+});
+
+it('reports a model its provider answers 404 for, sent or not waited on', function (): void {
+    Http::fake(['*' => Http::response(['error' => ['message' => 'No allowed providers are available for the selected model.']], 404)]);
+    Event::fake([LlmCallRefused::class]);
+    $model = testLlm('gone-model');
+
+    expect(fn () => app(LlmChat::class)->send(new ChatRequestData($model, [ChatMessageData::user('Hi')], AiCallTag::Guardrails)))->toThrow(RequestException::class)
+        ->and(fn () => app(LlmChat::class)->sendAsync(new ChatRequestData($model, [ChatMessageData::user('Hi')], AiCallTag::Guardrails))->wait())->toThrow(RequestException::class);
+
+    Event::assertDispatchedTimes(LlmCallRefused::class, 2);
+    Event::assertDispatched(LlmCallRefused::class, fn (LlmCallRefused $event): bool => $event->llmId === $model->id);
+});
+
+it('does not report other failures, or a model sent to another provider', function (): void {
+    Event::fake([LlmCallRefused::class]);
+    Http::fake(['*' => Http::response('upstream error', 500)]);
+
+    expect(fn () => app(LlmChat::class)->send(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::Guardrails)))->toThrow(RequestException::class);
+
+    Http::swap(new Factory(app('events')));
+    Http::fake(['*' => Http::response('not here', 404)]);
+    $other = testLlm('other-model');
+
+    expect(fn () => app(LlmChat::class)->using(app(LlmProviders::class)->for($other))->send(new ChatRequestData(testLlm('named-model'), [ChatMessageData::user('Hi')], AiCallTag::Guardrails)))->toThrow(RequestException::class);
+
+    Event::assertNotDispatched(LlmCallRefused::class);
 });

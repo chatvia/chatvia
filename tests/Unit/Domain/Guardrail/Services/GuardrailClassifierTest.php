@@ -3,9 +3,15 @@
 use Domain\Guardrail\Data\ClassifierOptionsData;
 use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Guardrail\Services\GuardrailClassifier;
+use Domain\Llm\Enums\LlmFailure;
+use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Enums\LlmTask;
+use Domain\Llm\Events\LlmCallRefused;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Support\Llm\CannedLlmProvider;
 
@@ -55,14 +61,29 @@ it('fails OPEN when the classifier throws', function (): void {
     $verdict = gcClassifier($provider)->classifyAsync('hello', new ClassifierOptionsData(checkInjection: true, checkToxicity: true))->wait();
 
     expect($verdict->failed)->toBeTrue()
+        ->and($verdict->failure)->toBe(LlmFailure::Other)
         ->and($verdict->injection)->toBeFalse()
         ->and($verdict->toxic)->toBeFalse();
+});
+
+it('says the provider no longer serves the model when it answers 404', function (): void {
+    $model = testLlm('qwen/gone', LlmProviderKind::OpenRouter);
+    config([LlmTask::Guardrails->configKey() => (string) $model->id]);
+    Http::fake(['*' => Http::response(['error' => ['message' => 'No allowed providers are available for the selected model.']], 404)]);
+    Event::fake([LlmCallRefused::class]);
+
+    $verdict = app(GuardrailClassifier::class)->classifyAsync('hello', new ClassifierOptionsData(checkInjection: true))->wait();
+
+    expect($verdict->failed)->toBeTrue()
+        ->and($verdict->failure)->toBe(LlmFailure::ModelUnavailable);
+    Event::assertDispatched(LlmCallRefused::class, fn (LlmCallRefused $event): bool => $event->llmId === $model->id);
 });
 
 it('fails OPEN on unparseable output', function (): void {
     $verdict = gcClassifier(CannedLlmProvider::answering('not json at all'))->classifyAsync('hello', new ClassifierOptionsData(checkToxicity: true))->wait();
 
     expect($verdict->failed)->toBeTrue()
+        ->and($verdict->failure)->toBe(LlmFailure::BadReply)
         ->and($verdict->toxic)->toBeFalse();
 });
 

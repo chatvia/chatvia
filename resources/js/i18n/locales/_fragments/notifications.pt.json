@@ -29,6 +29,16 @@
             "retention_changed": "A retenção de dados foi alterada",
             "webhook_disabled": "O webhook de auditoria foi desligado"
         },
+        "skip_reasons": {
+            "model_unavailable": "O modelo de IA das verificações de segurança não está mais disponível. Um administrador pode escolher outro.",
+            "key_refused": "O provedor de IA recusou a chave de API.",
+            "out_of_credit": "A conta do provedor de IA está sem crédito.",
+            "rate_limited": "O provedor de IA está limitando as solicitações.",
+            "unreachable": "Não foi possível contactar o provedor de IA.",
+            "provider_error": "O provedor de IA teve um erro.",
+            "no_model": "Nenhum modelo de IA está configurado para as verificações de segurança.",
+            "bad_reply": "O modelo de IA deu uma resposta que o app não conseguiu ler."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "Um visitante quer falar com uma pessoa",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "Uma verificação de segurança não rodou em {agent} | Uma verificação de segurança não rodou {count} vezes em {agent}",
-                "body": "As mensagens passaram sem ela. Verifique o serviço de guardrails."
+                "body": "As mensagens passaram sem ela. Verifique o serviço de guardrails.",
+                "body_reason": "As mensagens passaram sem ela. {reason}"
             },
             "security_settings_changed": {
                 "by": "Alterado por {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Sua exportação de dados está pronta",
                 "body": "Baixe em até 24 horas."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} não está mais disponível em {detail}",
+                "body": "As tarefas do próprio app que o usavam agora usam outro modelo. Escolha um novo no painel de administração, em Configurações → Modelos de IA."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Segurança",
-                    "description": "Ataques bloqueados, verificações de segurança que não rodaram, novos logins e mudanças de segurança."
+                    "description": "Ataques bloqueados, verificações de segurança que não puderam ser executadas, modelos de IA que não estão mais disponíveis, novos acessos e mudanças de segurança."
                 },
                 "training": {
                     "label": "Treinamento",

@@ -29,6 +29,16 @@
             "retention_changed": "Die Datenaufbewahrung wurde geändert",
             "webhook_disabled": "Der Audit-Webhook wurde ausgeschaltet"
         },
+        "skip_reasons": {
+            "model_unavailable": "Das KI-Modell für Sicherheitsprüfungen ist nicht mehr verfügbar. Ein Admin kann ein anderes wählen.",
+            "key_refused": "Der KI-Anbieter hat den API-Schlüssel abgelehnt.",
+            "out_of_credit": "Das Konto beim KI-Anbieter hat kein Guthaben mehr.",
+            "rate_limited": "Der KI-Anbieter begrenzt die Anfragen.",
+            "unreachable": "Der KI-Anbieter war nicht erreichbar.",
+            "provider_error": "Beim KI-Anbieter ist ein Fehler aufgetreten.",
+            "no_model": "Für Sicherheitsprüfungen ist kein KI-Modell eingerichtet.",
+            "bad_reply": "Das KI-Modell gab eine Antwort, die die App nicht lesen konnte."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "Ein Besucher möchte mit einer Person sprechen",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "Eine Sicherheitsprüfung lief nicht bei {agent} | Eine Sicherheitsprüfung lief {count}-mal nicht bei {agent}",
-                "body": "Nachrichten gingen ohne sie durch. Prüfe den Guardrail-Dienst."
+                "body": "Nachrichten gingen ohne sie durch. Prüfe den Guardrail-Dienst.",
+                "body_reason": "Nachrichten gingen ohne sie durch. {reason}"
             },
             "security_settings_changed": {
                 "by": "Geändert von {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Dein Datenexport ist fertig",
                 "body": "Lade ihn innerhalb von 24 Stunden herunter."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} ist bei {detail} nicht mehr verfügbar",
+                "body": "Die eigenen Aufgaben der App, die es nutzten, verwenden jetzt ein anderes Modell. Wähle im Admin-Bereich unter Einstellungen → KI-Modelle ein neues."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Sicherheit",
-                    "description": "Blockierte Angriffe, Sicherheitsprüfungen, die nicht liefen, neue Anmeldungen und Sicherheitsänderungen."
+                    "description": "Abgewehrte Angriffe, Sicherheitsprüfungen, die nicht liefen, KI-Modelle, die nicht mehr verfügbar sind, neue Anmeldungen und Sicherheitsänderungen."
                 },
                 "training": {
                     "label": "Training",

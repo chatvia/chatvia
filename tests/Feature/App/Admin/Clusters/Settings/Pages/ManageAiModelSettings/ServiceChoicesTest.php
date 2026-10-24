@@ -38,7 +38,7 @@ function scField(Testable $page, string $property): Select
 /** A call to an AI service: anything but the model lists the page reads to show its choices. */
 function scServiceCall(Request $request): bool
 {
-    return ! Str::contains($request->url(), ['openrouter.ai/api/v1/models', 'openrouter.ai/api/v1/embeddings/models', 'models.dev/']);
+    return ! Str::contains($request->url(), ['openrouter.ai/api/v1/models/user', 'openrouter.ai/api/v1/embeddings/models', 'models.dev/']);
 }
 
 /** Each picker, with the provider a test connects. */

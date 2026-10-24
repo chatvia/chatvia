@@ -106,6 +106,10 @@ use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Events\LlmCallRefused;
+use Domain\Llm\Events\LlmUnlisted;
+use Domain\Llm\Listeners\NotifyAdminsOfUnlistedLlm;
+use Domain\Llm\Listeners\QueueLlmListingCheck;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
@@ -364,6 +368,9 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(AgentRateLimitExceeded::class, SendAgentRateLimitNotification::class);
         Event::listen(FormSubmitted::class, PushSubmissionToCrm::class);
 
+        // A provider that refused a call to a model may have stopped serving it.
+        Event::listen(LlmCallRefused::class, QueueLlmListingCheck::class);
+
         // The dashboard's notification center: each listener picks who should
         // hear about the event and sends an InboxNotification (queued).
         Event::listen(HandoffRequested::class, NotifyHandoffRequested::class);
@@ -376,6 +383,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(MessageLimitThresholdReached::class, NotifyMessageLimitThreshold::class);
         Event::listen(AgentRateLimitExceeded::class, NotifyRateLimitExceeded::class);
         Event::listen(EvalRunFinished::class, NotifyEvalRunFinished::class);
+        Event::listen(LlmUnlisted::class, NotifyAdminsOfUnlistedLlm::class);
 
         Event::subscribe(RecordAnalytics::class);
     }

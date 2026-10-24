@@ -22,6 +22,7 @@ use Domain\Knowledge\Ingestion\Actions\Website\CompleteWebsiteIngestionAction;
 use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Llm\Events\LlmUnlisted;
 use Domain\Notification\Enums\NotificationKind;
 use Domain\Notification\Models\UserNotification;
 use Domain\Security\Data\SecurityActorData;
@@ -141,6 +142,40 @@ it('gathers blocked attacks per agent for the people who see its guardrails', fu
         ->and($attack->count)->toBe(3)
         ->and($attack->content->detail)->toBe('prompt_injection')
         ->and(json_encode($attack->content->toArray()))->not->toContain('ignore all previous');
+});
+
+it('gathers skipped checks once per failed call, with the reason', function (): void {
+    $guard = teammateWithPermissions($this->owner, ['agent.guardrails.view']);
+
+    foreach (['prompt_injection' => true, 'blocked_topic' => false, 'toxicity' => false] as $guardType => $alert) {
+        GuardrailTriggered::dispatch(
+            $this->agent->id, $this->agent->name, $this->agent->workspace_id, null, null, null, null, null,
+            'input', $guardType, 'skipped', null,
+            ['reason' => 'classifier_unavailable', 'failure' => 'model_unavailable', ...($alert ? ['alert' => true] : [])],
+            'hello',
+        );
+    }
+
+    $skipped = UserNotification::query()->where('user_id', $guard->id)->sole();
+    expect($skipped->kind)->toBe(NotificationKind::GuardrailSkipped)
+        ->and($skipped->count)->toBe(1)
+        ->and($skipped->content->detail)->toBe('model_unavailable');
+});
+
+it('tells the admins that a provider stopped serving a model', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $gone = User::factory()->create(['is_admin' => true, 'deactivated_at' => now()]);
+    $llm = testLlm('qwen/gone');
+
+    LlmUnlisted::dispatch($llm->id);
+
+    expect(nsRecipients(NotificationKind::AiModelUnavailable))->toContain($admin->id)
+        ->not->toContain($gone->id, $this->owner->id);
+
+    $content = UserNotification::query()->where('user_id', $admin->id)->sole()->content;
+    expect($content->subject)->toBe('qwen/gone')
+        ->and($content->detail)->toBe($llm->provider->name)
+        ->and($content->url)->toBe('/admin/settings/ai-models');
 });
 
 it('tells the security team about a new API token, but not the person who made it', function (): void {

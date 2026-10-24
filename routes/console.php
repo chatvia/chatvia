@@ -87,6 +87,10 @@ Schedule::command('chatvia:llm:sync-facts')
     ->withoutOverlapping()
     ->onOneServer();
 
+// Offers a model again once the provider that stopped serving it lists it
+// again. Reads only the lists of providers with such a model.
+Schedule::command('chatvia:llm:check-listing')->hourlyAt(35)->withoutOverlapping(60)->onOneServer();
+
 // Per-workspace retention (Settings → Security → Retention), only for the
 // workspaces that set a window. Visitor details are cleared after the
 // conversation prune has removed orphan sessions; the analytics sweep runs

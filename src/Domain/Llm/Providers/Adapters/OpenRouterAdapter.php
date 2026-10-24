@@ -14,8 +14,13 @@ use Illuminate\Support\Collection;
 /**
  * OpenRouter: models from many companies with one key. Its list says the
  * most of any provider: names, context, what each model takes in and puts
- * out, and whether it calls tools. The list is public, so reading it first
- * asks about the key (`/key`), which refuses a wrong one.
+ * out, and whether it calls tools. The list answers any key, so reading it
+ * first asks about the key (`/key`), which refuses a wrong one.
+ *
+ * The list is the account's own (`/models/user`): only models that a
+ * provider the account allows (OpenRouter's privacy settings) serves. A
+ * model outside it fails every call, so the pickers and presets never
+ * offer one.
  */
 final class OpenRouterAdapter extends OpenAiCompatibleAdapter
 {
@@ -58,6 +63,11 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
             ->throw();
 
         return parent::models($provider);
+    }
+
+    protected function modelsUrl(LlmProvider $provider): string
+    {
+        return $this->baseUrl($provider).'/models/user';
     }
 
     protected function isChatModel(array $row): bool

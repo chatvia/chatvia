@@ -3537,7 +3537,7 @@
                 },
                 "security": {
                     "label": "Seguridad",
-                    "description": "Ataques bloqueados, controles de seguridad que no se ejecutaron, nuevos inicios de sesión y cambios de seguridad."
+                    "description": "Ataques bloqueados, comprobaciones de seguridad que no pudieron ejecutarse, modelos de IA que ya no están disponibles, nuevos inicios de sesión y cambios de seguridad."
                 },
                 "training": {
                     "label": "Entrenamiento",
@@ -4146,7 +4146,8 @@
             },
             "guardrail_skipped": {
                 "title": "Un control de seguridad no se ejecutó en {agent} | Un control de seguridad no se ejecutó {count} veces en {agent}",
-                "body": "Los mensajes pasaron sin él. Revisa el servicio de guardrails."
+                "body": "Los mensajes pasaron sin él. Revisa el servicio de guardrails.",
+                "body_reason": "Los mensajes pasaron sin ella. {reason}"
             },
             "security_settings_changed": {
                 "by": "Cambiado por {actor}.",
@@ -4178,9 +4179,23 @@
             "data_export_ready": {
                 "title": "Tu exportación de datos está lista",
                 "body": "Descárgala en las próximas 24 horas."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} ya no está disponible en {detail}",
+                "body": "Las tareas propias de la aplicación que lo usaban ahora usan otro modelo. Elige uno nuevo en el panel de administración, en Ajustes → Modelos de IA."
             }
         },
-        "clear_all": "Borrar todo"
+        "clear_all": "Borrar todo",
+        "skip_reasons": {
+            "model_unavailable": "El modelo de IA de las comprobaciones de seguridad ya no está disponible. Un administrador puede elegir otro.",
+            "key_refused": "El proveedor de IA rechazó la clave de API.",
+            "out_of_credit": "La cuenta del proveedor de IA no tiene saldo.",
+            "rate_limited": "El proveedor de IA está limitando las solicitudes.",
+            "unreachable": "No se pudo conectar con el proveedor de IA.",
+            "provider_error": "El proveedor de IA tuvo un error.",
+            "no_model": "No hay ningún modelo de IA configurado para las comprobaciones de seguridad.",
+            "bad_reply": "El modelo de IA dio una respuesta que la aplicación no pudo leer."
+        }
     },
     "reasoning": {
         "thinking": "Pensando…",

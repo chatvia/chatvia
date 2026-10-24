@@ -1283,7 +1283,8 @@ declare namespace Domain {
                 | 'message_limit_reached'
                 | 'rate_limit_exceeded'
                 | 'eval_run_finished'
-                | 'data_export_ready';
+                | 'data_export_ready'
+                | 'ai_model_unavailable';
         }
     }
     namespace Security {

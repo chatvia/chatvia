@@ -3537,7 +3537,7 @@
                 },
                 "security": {
                     "label": "Sikkerhed",
-                    "description": "Blokerede angreb, sikkerhedstjek der ikke kunne køre, nye logins og sikkerhedsændringer."
+                    "description": "Blokerede angreb, sikkerhedstjek der ikke kunne køre, AI-modeller der ikke længere er tilgængelige, nye login og sikkerhedsændringer."
                 },
                 "training": {
                     "label": "Træning",
@@ -4146,7 +4146,8 @@
             },
             "guardrail_skipped": {
                 "title": "Et sikkerhedstjek kunne ikke køre på {agent} | Et sikkerhedstjek kunne ikke køre {count} gange på {agent}",
-                "body": "Beskeder gik igennem uden det. Tjek guardrail-tjenesten."
+                "body": "Beskeder gik igennem uden det. Tjek guardrail-tjenesten.",
+                "body_reason": "Beskeder gik igennem uden det. {reason}"
             },
             "security_settings_changed": {
                 "by": "Ændret af {actor}.",
@@ -4178,9 +4179,23 @@
             "data_export_ready": {
                 "title": "Din dataeksport er klar",
                 "body": "Download den inden for 24 timer."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} er ikke længere tilgængelig hos {detail}",
+                "body": "Appens egne opgaver, der brugte den, bruger nu en anden model. Vælg en ny i administrationspanelet under Indstillinger → AI-modeller."
             }
         },
-        "clear_all": "Ryd alle"
+        "clear_all": "Ryd alle",
+        "skip_reasons": {
+            "model_unavailable": "AI-modellen til sikkerhedstjek er ikke længere tilgængelig. En administrator kan vælge en anden.",
+            "key_refused": "AI-udbyderen afviste API-nøglen.",
+            "out_of_credit": "Kontoen hos AI-udbyderen har ikke flere kreditter.",
+            "rate_limited": "AI-udbyderen begrænser forespørgslerne.",
+            "unreachable": "AI-udbyderen kunne ikke nås.",
+            "provider_error": "AI-udbyderen havde en fejl.",
+            "no_model": "Der er ikke sat nogen AI-model op til sikkerhedstjek.",
+            "bad_reply": "AI-modellen gav et svar, appen ikke kunne læse."
+        }
     },
     "reasoning": {
         "thinking": "Tænker…",

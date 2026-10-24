@@ -29,6 +29,16 @@
             "retention_changed": "Data retention was changed",
             "webhook_disabled": "The audit webhook was turned off"
         },
+        "skip_reasons": {
+            "model_unavailable": "The AI model for safety checks is no longer available. An admin can pick another one.",
+            "key_refused": "The AI provider refused the API key.",
+            "out_of_credit": "The AI provider account is out of credit.",
+            "rate_limited": "The AI provider is limiting requests.",
+            "unreachable": "The AI provider could not be reached.",
+            "provider_error": "The AI provider had an error.",
+            "no_model": "No AI model is set up for safety checks.",
+            "bad_reply": "The AI model gave an answer the app could not read."
+        },
         "kinds": {
             "handoff_requested": {
                 "title": "A visitor wants to talk to a person",
@@ -51,7 +61,8 @@
             },
             "guardrail_skipped": {
                 "title": "A safety check could not run on {agent} | A safety check could not run {count} times on {agent}",
-                "body": "Messages went through without it. Check the guardrail service."
+                "body": "Messages went through without it. Check the guardrail service.",
+                "body_reason": "Messages went through without it. {reason}"
             },
             "security_settings_changed": {
                 "by": "Changed by {actor}.",
@@ -83,6 +94,10 @@
             "data_export_ready": {
                 "title": "Your data export is ready",
                 "body": "Download it within 24 hours."
+            },
+            "ai_model_unavailable": {
+                "title": "{subject} is no longer available from {detail}",
+                "body": "The app's own tasks that used it now use another model. Pick a new one in the admin panel, under Settings → AI models."
             }
         }
     },
@@ -117,7 +132,7 @@
                 },
                 "security": {
                     "label": "Security",
-                    "description": "Blocked attacks, safety checks that could not run, new sign-ins and security changes."
+                    "description": "Blocked attacks, safety checks that could not run, AI models that are no longer available, new sign-ins and security changes."
                 },
                 "training": {
                     "label": "Training",

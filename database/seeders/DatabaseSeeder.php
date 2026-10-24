@@ -4,18 +4,24 @@ namespace Database\Seeders;
 
 use App\Identity\Workspace\Actions\Account\CreateWorkspaceAction;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
+use Database\Seeders\Demo\DemoAgents;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
+use Domain\Llm\Models\Llm;
+use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 
 /**
  * `php artisan db:seed`, for a local or staging database only: a starter LLM
- * catalog, an admin account, three agents, fake chats and analytics, with
- * the admin setup marked as done. Nothing runs in production, where the
- * admin setup in the panel adds the AI provider and model. The admin login
- * comes from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD (chatvia.seed).
+ * catalog, an admin account whose workspace is the demo store Halden Home,
+ * its three agents ({@see DemoAgents}), topics, 30 days of analytics and
+ * two weeks of chats. Running it again resets the demo data to the same
+ * shape. Nothing runs in production, where the admin setup in the panel adds
+ * the AI provider and model. The admin login comes from SEED_ADMIN_EMAIL /
+ * SEED_ADMIN_PASSWORD (chatvia.seed).
  */
 class DatabaseSeeder extends Seeder
 {
@@ -37,7 +43,6 @@ class DatabaseSeeder extends Seeder
         // still opens on the first visit to the admin panel.
         $this->call(LlmSeeder::class);
 
-        // Create the main demo user
         $user = User::firstOrCreate(
             ['email' => (string) config('chatvia.seed.admin_email')],
             [
@@ -54,64 +59,68 @@ class DatabaseSeeder extends Seeder
         // creates the default team.
         if (! $user->workspaceMembership()->exists()) {
             app(CreateWorkspaceAction::class)->execute($user);
-            $this->command->info('Created the demo workspace');
+            $user->unsetRelation('workspaceMembership');
         }
 
         $workspace = $user->workspace();
+        $workspace->update(['name' => DemoAgents::WORKSPACE_NAME]);
         $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
 
-        if (! Agent::where('external_id', 'e8c75295bf6572')->exists()) {
-            Agent::factory()->create([
-                'workspace_id' => $workspace->id,
-                'team_id' => $team->id,
-                'name' => 'Knowledge Base',
-                'slug' => 'knowledge',
-                'system_instructions' => prompt('knowledge/system'),
-                'is_public' => 1,
-                'external_id' => 'e8c75295bf6572',
-            ]);
-            $this->command->info('Created Knowledge Base agent');
+        foreach (DemoAgents::AGENTS as $slug => $definition) {
+            $this->seedAgent($workspace, $team, $slug, $definition);
         }
 
-        if (! Agent::where('external_id', '407f7fdfa1cf18')->exists()) {
-            Agent::factory()->create([
-                'workspace_id' => $workspace->id,
-                'team_id' => $team->id,
-                'name' => 'Customer Support',
-                'slug' => 'support',
-                'system_instructions' => prompt('knowledge/system'),
-                'is_public' => 1,
-                'external_id' => '407f7fdfa1cf18',
-            ]);
-            $this->command->info('Created Customer Support agent');
-        }
-
-        if (! Agent::where('external_id', 'demo_sales_agent')->exists()) {
-            Agent::factory()->create([
-                'workspace_id' => $workspace->id,
-                'team_id' => $team->id,
-                'name' => 'Sales Assistant',
-                'slug' => 'sales',
-                'system_instructions' => 'You are a helpful sales assistant that helps customers understand our products and pricing.',
-                'is_public' => 1,
-                'external_id' => 'demo_sales_agent',
-            ]);
-            $this->command->info('Created Sales Assistant agent');
-        }
-
-        // Analytics first: lays down 30 days of "historical" rollup data with
-        // no chat_* backing — represents conversations the user has since
-        // deleted. ChatSeeder then layers ~25-45 recent chats on top and fires
-        // matching analytics events, so the analytics page shows the union.
+        // Topics first: the analytics history and the chats both tag their
+        // conversations with them. The analytics history then lays down 30
+        // days of rollups with no chats behind them (chats people have since
+        // deleted), and ChatSeeder adds two weeks of chats with their own
+        // analytics on top, so the analytics pages show both.
+        $this->call(TopicsSeeder::class);
         $this->call(AnalyticsDemoSeeder::class);
-
-        // Seed chat data (sessions, conversations, messages) — also fires
-        // analytics events for every row it creates.
         $this->call(ChatSeeder::class);
 
-        // Seed topics
-        $this->call(TopicsSeeder::class);
-
         $this->command->info('Database seeding completed successfully!');
+    }
+
+    /**
+     * Create the agent, or bring an agent from an earlier seed run back to
+     * its definition (found by its slug, which is unique).
+     *
+     * @param  array{name: string, external_id: string, system_instructions: string}  $definition
+     */
+    private function seedAgent(Workspace $workspace, Team $team, string $slug, array $definition): void
+    {
+        $attributes = [
+            'name' => $definition['name'],
+            'external_id' => $definition['external_id'],
+            'system_instructions' => $definition['system_instructions'],
+            'is_public' => true,
+        ];
+
+        $agent = Agent::withTrashed()
+            ->where('workspace_id', $workspace->id)
+            ->where(fn ($query) => $query->where('slug', $slug)->orWhere('external_id', $definition['external_id']))
+            ->first();
+
+        if (! $agent instanceof Agent) {
+            $agent = Agent::factory()->create([
+                ...$attributes,
+                'workspace_id' => $workspace->id,
+                'team_id' => $team->id,
+                'slug' => $slug,
+            ]);
+
+            $this->command->info("Created the {$definition['name']} agent");
+        }
+
+        // The app gives a new agent the chat model of Settings → AI models,
+        // which needs a provider key. The demo replies need a model either
+        // way, so fall back to the first model of the catalog.
+        $agent->forceFill([
+            ...$attributes,
+            'slug' => $slug,
+            'deleted_at' => null,
+            'llm_id' => $agent->llm_id ?? Llm::query()->where('is_enabled', true)->orderBy('id')->value('id'),
+        ])->save();
     }
 }

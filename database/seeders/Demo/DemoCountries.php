@@ -5,69 +5,113 @@ namespace Database\Seeders\Demo;
 use Support\Localization\Country\Models\Country;
 
 /**
- * Single source of truth for the country mix used by demo seeders.
- *
- * Picking through this helper guarantees that the chat-log sessions, the
- * analytics rollups, the leads, and anything else seeded for the demo all
- * pull from the same weighted distribution — so the "by country" panel and
- * the per-session locations stay coherent.
+ * Where the demo store's visitors come from: the markets Halden Home ships
+ * to, each with a share of the traffic, the browser language and a few
+ * cities with their time zones. The chat sessions and the analytics history
+ * both pick through here, so the "by country" panel, the session locations
+ * and the hours people chat at agree with each other.
  */
 class DemoCountries
 {
     /**
-     * ISO-3166-1 alpha-2 codes (lowercase to match countries.code) with
-     * rough share weights. The numbers don't need to sum to 100 — pickCode()
-     * normalizes against the total.
+     * Lowercase ISO-3166-1 alpha-2 code (as in `countries.code`) → share of
+     * the traffic, browser language and city → IANA time zone.
+     *
+     * @var array<string, array{weight: int, locale: string, cities: array<string, string>}>
      */
-    public const array WEIGHTS = [
-        'us' => 30, 'gb' => 12, 'in' => 10, 'de' => 8, 'br' => 6,
-        'se' => 5, 'fr' => 4, 'nl' => 4, 'au' => 3, 'jp' => 3,
-        'ca' => 3, 'es' => 3, 'it' => 3, 'mx' => 3, 'pl' => 3,
+    public const array COUNTRIES = [
+        'us' => ['weight' => 34, 'locale' => 'en', 'cities' => [
+            'New York' => 'America/New_York', 'Austin' => 'America/Chicago', 'Chicago' => 'America/Chicago',
+            'Denver' => 'America/Denver', 'Seattle' => 'America/Los_Angeles', 'San Diego' => 'America/Los_Angeles',
+        ]],
+        'gb' => ['weight' => 14, 'locale' => 'en', 'cities' => [
+            'London' => 'Europe/London', 'Manchester' => 'Europe/London', 'Bristol' => 'Europe/London', 'Leeds' => 'Europe/London',
+        ]],
+        'ca' => ['weight' => 9, 'locale' => 'en', 'cities' => [
+            'Toronto' => 'America/Toronto', 'Vancouver' => 'America/Vancouver', 'Calgary' => 'America/Edmonton',
+        ]],
+        'de' => ['weight' => 9, 'locale' => 'de', 'cities' => [
+            'Berlin' => 'Europe/Berlin', 'Munich' => 'Europe/Berlin', 'Hamburg' => 'Europe/Berlin', 'Cologne' => 'Europe/Berlin',
+        ]],
+        'nl' => ['weight' => 5, 'locale' => 'nl', 'cities' => [
+            'Amsterdam' => 'Europe/Amsterdam', 'Utrecht' => 'Europe/Amsterdam', 'Rotterdam' => 'Europe/Amsterdam',
+        ]],
+        'fr' => ['weight' => 5, 'locale' => 'fr', 'cities' => [
+            'Paris' => 'Europe/Paris', 'Lyon' => 'Europe/Paris', 'Bordeaux' => 'Europe/Paris',
+        ]],
+        'es' => ['weight' => 5, 'locale' => 'es', 'cities' => [
+            'Madrid' => 'Europe/Madrid', 'Barcelona' => 'Europe/Madrid', 'Valencia' => 'Europe/Madrid',
+        ]],
+        'au' => ['weight' => 5, 'locale' => 'en', 'cities' => [
+            'Sydney' => 'Australia/Sydney', 'Melbourne' => 'Australia/Melbourne', 'Brisbane' => 'Australia/Brisbane',
+        ]],
+        'se' => ['weight' => 4, 'locale' => 'sv', 'cities' => [
+            'Stockholm' => 'Europe/Stockholm', 'Gothenburg' => 'Europe/Stockholm', 'Malmö' => 'Europe/Stockholm',
+        ]],
+        'ie' => ['weight' => 3, 'locale' => 'en', 'cities' => [
+            'Dublin' => 'Europe/Dublin', 'Cork' => 'Europe/Dublin',
+        ]],
+        'in' => ['weight' => 4, 'locale' => 'en', 'cities' => [
+            'Bengaluru' => 'Asia/Kolkata', 'Mumbai' => 'Asia/Kolkata', 'Pune' => 'Asia/Kolkata',
+        ]],
+        'mx' => ['weight' => 3, 'locale' => 'es', 'cities' => [
+            'Mexico City' => 'America/Mexico_City', 'Guadalajara' => 'America/Mexico_City',
+        ]],
     ];
 
-    /** @var array<string, int>|null code → countries.id, lazy-loaded once. */
+    /** @var array<string, int>|null code → countries.id, loaded once. */
     private static ?array $codeToId = null;
 
     /**
-     * Pick a weighted country code (lowercase, e.g. "us", "gb").
+     * A weighted country code, or a random one of $codes when given (a chat
+     * written in German comes from a German-speaking market).
+     *
+     * @param  list<string>  $codes
      */
-    public static function pickCode(): string
+    public static function pickCode(array $codes = []): string
     {
-        $total = array_sum(self::WEIGHTS);
-        $r = random_int(1, $total);
-        $acc = 0;
-
-        foreach (self::WEIGHTS as $code => $weight) {
-            $acc += $weight;
-            if ($r <= $acc) {
-                return $code;
-            }
+        if ($codes !== []) {
+            return $codes[array_rand($codes)];
         }
 
-        return array_key_last(self::WEIGHTS);
+        return DemoRandom::pick(array_map(fn (array $country): int => $country['weight'], self::COUNTRIES));
     }
 
     /**
-     * Pick a weighted country and return both the code and the countries.id
-     * resolved from the main DB. Both are needed when seeding chat sessions
-     * (id for the FK, code for the analytics rollup snapshot).
+     * A visitor location: the country (code for analytics, id for the
+     * session row), a city in it, its time zone and the browser language.
      *
-     * @return array{code: string, id: int|null}
+     * @param  list<string>  $codes
+     * @return array{code: string, id: int|null, city: string, timezone: string, locale: string}
      */
-    public static function pick(): array
+    public static function pick(array $codes = []): array
     {
-        $code = self::pickCode();
+        return self::in(self::pickCode($codes));
+    }
+
+    /**
+     * A random city of the given country.
+     *
+     * @return array{code: string, id: int|null, city: string, timezone: string, locale: string}
+     */
+    public static function in(string $code): array
+    {
+        $country = self::COUNTRIES[$code];
+        $city = array_rand($country['cities']);
 
         return [
             'code' => $code,
             'id' => self::idForCode($code),
+            'city' => $city,
+            'timezone' => $country['cities'][$city],
+            'locale' => $country['locale'],
         ];
     }
 
     public static function idForCode(string $code): ?int
     {
         self::$codeToId ??= Country::query()
-            ->whereIn('code', array_keys(self::WEIGHTS))
+            ->whereIn('code', array_keys(self::COUNTRIES))
             ->pluck('id', 'code')
             ->all();
 

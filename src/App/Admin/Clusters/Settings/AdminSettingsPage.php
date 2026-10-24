@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Support\Http\PublicUrl;
 use Throwable;
 
 /**
@@ -702,14 +703,19 @@ abstract class AdminSettingsPage extends Page
         }
 
         return [
+            // Built on APP_URL, not on this request: behind Docker or a proxy
+            // the request's host can be localhost or a container name.
             Section::make('Register these URLs with the provider')
                 ->icon(Heroicon::OutlinedLink)
+                ->description(PublicUrl::isInternal()
+                    ? 'These URLs use this install\'s address (APP_URL), '.PublicUrl::base().', which the provider cannot reach. Set APP_URL to the public address first.'
+                    : null)
                 ->compact()
                 ->secondary()
                 ->schema(array_map(
                     fn (string $label, string|array $route): TextEntry => TextEntry::make('callback_'.Str::snake($label))
                         ->label($label)
-                        ->state(is_array($route) ? route($route[0], $route[1]) : route($route))
+                        ->state(is_array($route) ? PublicUrl::route($route[0], $route[1]) : PublicUrl::route($route))
                         ->fontFamily(FontFamily::Mono)
                         ->copyable()
                         ->copyMessage('Copied'),

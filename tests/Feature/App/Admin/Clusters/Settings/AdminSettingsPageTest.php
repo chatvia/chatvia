@@ -36,6 +36,24 @@ it('shows every card as a section of its page, with an outline', function (): vo
         ->assertSee(route('auth.slack.callback'));
 });
 
+it('shows the callback URLs on APP_URL, with a warning while it is internal', function (): void {
+    config(['app.url' => 'https://chat.example.com']);
+
+    $this->actingAs($this->admin, 'admin')
+        ->get('http://localhost:8000'.Str::after(ManageSignInSettings::getUrl(), (string) url('/')))
+        ->assertOk()
+        ->assertSee('https://chat.example.com/auth/google/callback')
+        ->assertDontSee('http://localhost:8000/auth/google/callback')
+        ->assertDontSee('which the provider cannot reach');
+
+    config(['app.url' => 'http://localhost:8000']);
+
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageSignInSettings::getUrl())
+        ->assertOk()
+        ->assertSee('which the provider cannot reach');
+});
+
 it('shows each service card with its status', function (): void {
     saveSettings(SignInSettings::class, ['google_client_id' => 'id', 'google_client_secret' => 'secret', 'github_client_id' => 'id']);
 

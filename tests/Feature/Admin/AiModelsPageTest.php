@@ -1,6 +1,7 @@
 <?php
 
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
+use App\Admin\Forms\ModelPicker;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
@@ -205,19 +206,37 @@ it('keeps Add off until a model is picked', function (): void {
     expect($page->instance()->getMountedAction()->getModalSubmitAction()->isDisabled())->toBeFalse();
 });
 
-it('offers only connected providers and servers of your own', function (): void {
+it('shows every chat provider and the servers of your own, the ones without a key greyed out', function (): void {
+    config(['chatvia.ai.models_dev.enabled' => true]);
     connectAiProviders(AiProvider::Groq);
     Http::fake(['api.groq.com/*' => Http::response(['data' => []])]);
     $server = LlmProvider::factory()->create(['name' => 'Office Ollama']);
 
-    $sources = adminPage(ManageAiModelSettings::class, $this->admin)
-        ->mountAction(TestAction::make('addModel')->table())
-        ->instance()
-        ->getSchema('mountedActionSchema0')
-        ->getFlatFields()['source']
-        ->getOptions();
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)->mountAction(TestAction::make('addModel')->table());
+    $field = $page->instance()->getSchema('mountedActionSchema0')->getFlatFields()['source'];
 
-    expect($sources)->toBe(['account:groq' => 'Groq', "server:{$server->id}" => 'Office Ollama']);
+    expect($field->getOptions())->toHaveKeys(['account:openrouter', 'account:groq', "server:{$server->id}"])
+        ->and($field->getOptions())->not->toHaveKeys(['account:cohere', 'account:azure'])
+        ->and($field->getOptions()['account:openrouter'])->toContain('OpenRouter (no key yet)')
+        ->and($field->getOptions()['account:groq'])->toContain('/admin/model-logos/groq.svg')->not->toContain('no key yet')
+        ->and($field->getOptions()["server:{$server->id}"])->toBe('Office Ollama')
+        ->and($field->isOptionDisabled('account:openrouter', ''))->toBeTrue()
+        ->and($field->isOptionDisabled('account:groq', ''))->toBeFalse()
+        ->and($field->isOptionDisabled("server:{$server->id}", ''))->toBeFalse();
+
+    $page->assertSchemaStateSet(['source' => 'account:groq'], 'mountedActionSchema0');
+});
+
+it('lists the models to tick, with their ids, and marks the ones agents use already', function (): void {
+    modelsFakeOpenRouter();
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['qwen/qwen3-235b-a22b']]);
+
+    $field = $page->mountAction(TestAction::make('addModel')->table())->instance()->getSchema('mountedActionSchema0')->getFlatFields()['models'];
+
+    expect($field)->toBeInstanceOf(ModelPicker::class)
+        ->and($field->isOptionDisabled('qwen/qwen3-235b-a22b', ''))->toBeTrue()
+        ->and($field->isOptionDisabled('meta-llama/llama-4-maverick', ''))->toBeFalse()
+        ->and($field->getDescriptions()['qwen/qwen3-235b-a22b'] ?? '')->toContain('Agents can use it already');
 });
 
 it('takes a typed model name from a server that lists none', function (): void {

@@ -12,7 +12,8 @@ use Domain\Llm\Services\ModelsDevCatalog;
  * The logo of a model: its lab's (who made it), from models.dev, else its
  * provider's. The app serves it ({@see ModelLogoController}), so the admin's
  * browser never calls models.dev. Wherever the admin panel names a model
- * (lists, choices, badges, the models table) it shows it before the name.
+ * (lists, choices, badges, the models table) it shows it before the name;
+ * a provider picked next to its models gets its own logo the same way.
  */
 final class ModelLogo
 {
@@ -31,11 +32,18 @@ final class ModelLogo
      */
     public static function label(string $name, LlmProviderKind $kind, string $modelId): string
     {
-        $url = self::url($kind, $modelId);
+        return self::withMark($name, self::url($kind, $modelId));
+    }
 
-        return $url !== null
-            ? '<span class="cv-model-label">'.self::mark($url).'<span>'.e($name).'</span></span>'
-            : e($name);
+    /**
+     * A provider's name with its own logo before it, drawn like a model's;
+     * just the name for a server of your own.
+     */
+    public static function forProvider(string $name, LlmProviderKind $kind): string
+    {
+        $logo = app(ModelsDevCatalog::class)->providerLogo($kind);
+
+        return self::withMark($name, $logo !== null ? route('filament.admin.model-logo', ['logo' => $logo], absolute: false) : null);
     }
 
     /**
@@ -54,5 +62,12 @@ final class ModelLogo
     public static function forLlm(Llm $llm, ?string $text = null): string
     {
         return self::label($text ?? $llm->name, $llm->provider->kind, $llm->name);
+    }
+
+    private static function withMark(string $name, ?string $url): string
+    {
+        return $url !== null
+            ? '<span class="cv-model-label">'.self::mark($url).'<span>'.e($name).'</span></span>'
+            : e($name);
     }
 }

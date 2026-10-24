@@ -6,6 +6,7 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Forms\ModelPicker;
 use App\Admin\Settings\Actions\ApplyRecommendedTaskModelsAction;
 use App\Admin\Settings\Actions\ReindexEmbeddingsAction;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
@@ -65,6 +66,7 @@ use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -426,10 +428,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     }
 
     /**
-     * Adds one or more of a provider's chat models. The first provider is
-     * picked as the modal opens, so its models are listed at once, and they
-     * are listed again whenever another provider is picked. Add stays off
-     * until a model is picked or typed.
+     * Adds one or more of a provider's chat models. Every chat provider is
+     * listed, the ones without a key greyed out; the first
+     * connected one is picked as the modal opens, so its models are listed at
+     * once to tick, and they are listed again whenever another provider is
+     * picked. Add stays off until a model is ticked or typed.
      */
     private function addModelAction(): Action
     {
@@ -437,12 +440,21 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->label('Add a model')
             ->icon(Heroicon::OutlinedPlus)
             ->modalHeading('Add a model')
-            ->modalDescription('Pick a connected provider, then one or more of its chat models.')
+            ->modalDescription('Pick a provider, then tick the chat models agents can use.')
+            ->modalWidth(Width::TwoExtraLarge)
             ->schema([
                 Select::make('source')
                     ->label('Provider')
-                    ->options(fn (): array => $this->sources())
-                    ->default(fn (): ?string => array_key_first($this->sources()))
+                    ->helperText('Providers without a key are greyed out: add it in AI providers.')
+                    ->options(fn (): array => collect($this->sources())
+                        ->map(fn (string $name, string $source): string => ModelLogo::forProvider(
+                            $this->isConnected($source) ? $name : "{$name} (no key yet)",
+                            $this->draftOf($source)->kind ?? LlmProviderKind::Custom,
+                        ))
+                        ->all())
+                    ->allowHtml()
+                    ->disableOptionWhen(fn (string $value): bool => ! $this->isConnected($value))
+                    ->default(fn (): ?string => collect($this->sources())->keys()->first(fn (string $source): bool => $this->isConnected($source)))
                     ->required()
                     ->native(false)
                     ->live()
@@ -454,26 +466,19 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning()
                     ->visible(fn (Get $get): bool => filled($get('source')) && $this->listOf($get('source'))?->status !== ModelListStatus::Listed),
-                Select::make('models')
+                ModelPicker::make('models')
                     ->label('Models')
-                    ->placeholder('Pick one or more models')
-                    ->helperText('Models agents can use already are greyed out.')
                     ->options(function (Get $get): array {
                         $kind = $this->draftOf($get('source'))->kind ?? LlmProviderKind::Custom;
 
                         return collect($this->listOf($get('source'))->models ?? [])
-                            ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => ModelLogo::label(
-                                $model->name === $model->id ? $model->id : "{$model->name} ({$model->id})",
-                                $kind,
-                                $model->id,
-                            )])
+                            ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => ModelLogo::label($model->name, $kind, $model->id)])
                             ->all();
                     })
-                    ->allowHtml()
+                    ->descriptions(fn (Get $get): array => $this->modelDescriptions($get('source')))
                     ->disableOptionWhen(fn (string $value, Get $get): bool => in_array($value, $this->addedModels($get('source')), true))
-                    ->multiple()
-                    ->searchable()
                     ->required()
+                    ->validationMessages(['required' => 'Tick at least one model.'])
                     ->live()
                     ->visible(fn (Get $get): bool => $this->listOf($get('source'))?->status === ModelListStatus::Listed),
                 Callout::make(fn (Get $get): string => Arr::join($this->pickedWithoutTools($get), ', ', ' and ').' cannot call tools')
@@ -606,20 +611,54 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     }
 
     /**
-     * The providers a model can be added from: the connected accounts with
-     * chat models, then the servers of your own.
+     * The providers a model can be added from: every account with chat
+     * models, connected or not, then the servers of your own.
      *
      * @return array<string, string>
      */
     private function sources(): array
     {
         $accounts = collect(AiProvider::cases())
-            ->filter(fn (AiProvider $provider): bool => $provider->can(AiCapability::Chat) && $provider->isConnected())
+            ->filter(fn (AiProvider $provider): bool => $provider->can(AiCapability::Chat) && $provider->chatKind() instanceof LlmProviderKind)
             ->mapWithKeys(fn (AiProvider $provider): array => ["account:{$provider->value}" => $provider->label()]);
         $servers = LlmProvider::query()->where('kind', LlmProviderKind::Custom)->where('is_enabled', true)->orderBy('id')->get()
             ->mapWithKeys(fn (LlmProvider $server): array => ["server:{$server->id}" => $server->name]);
 
         return $accounts->merge($servers)->all();
+    }
+
+    /** Whether models can be added from a source: an account with its key, or a server of your own. */
+    private function isConnected(string $source): bool
+    {
+        [$type, $value] = array_pad(explode(':', $source, 2), 2, '');
+
+        return match ($type) {
+            'account' => AiProvider::tryFrom($value)?->isConnected() ?? false,
+            'server' => true,
+            default => false,
+        };
+    }
+
+    /**
+     * Under each listed model: its id, when its name differs, that agents can
+     * use it already, and that tools do not work with it.
+     *
+     * @return array<string, string>
+     */
+    private function modelDescriptions(mixed $source): array
+    {
+        $draft = $this->draftOf($source);
+        $added = $this->addedModels($source);
+        $catalog = app(ModelsDevCatalog::class);
+
+        return collect($this->listOf($source)->models ?? [])
+            ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => collect([
+                $model->name === $model->id ? null : $model->id,
+                in_array($model->id, $added, true) ? 'Agents can use it already' : null,
+                $draft instanceof LlmProvider && $catalog->facts($draft->kind, $model->id)?->callsTools === false ? 'No tool calling: tools will not work' : null,
+            ])->filter()->implode(' · ')])
+            ->filter()
+            ->all();
     }
 
     /** The provider row a source names: the account's (made when missing) or a server of your own. */

@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Ingen viden brugt",
+                "no_sources_help": "Ingen passage fra vidensbasen bestod relevanstjekket, så dette svar brugte ingen."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevans {score}",
+        "passage_removed": "Denne passage er siden blevet fjernet fra vidensbasen."
+    }
+}

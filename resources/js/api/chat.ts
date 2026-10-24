@@ -135,11 +135,18 @@ export function regenerateMessage(pair: MessagePairRef): Promise<RegeneratedTurn
     });
 }
 
-export function sendMessageFeedback(conversationId: string, messageId: string | number, feedback: MessageFeedbackValue): Promise<void> {
+/** Rates a reply; a thumbs-down may carry the visitor's note on what was wrong. */
+export function sendMessageFeedback(
+    conversationId: string,
+    messageId: string | number,
+    feedback: MessageFeedbackValue,
+    comment: string | null = null,
+): Promise<void> {
     return patch(chat.messages.feedback.url(), {
         conversation_id: conversationId,
         message_id: messageId,
         feedback,
+        comment,
     });
 }
 

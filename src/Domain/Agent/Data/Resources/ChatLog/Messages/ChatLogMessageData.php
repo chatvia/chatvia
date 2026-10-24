@@ -11,15 +11,16 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * One message in the chat log's conversation view, with its analysis
- * (sentiment, tone, feedback), the confidence of the knowledge behind an
- * answer (null when none was used), cost details, and whether it was spoken
- * in a voice call.
+ * (sentiment, tone, feedback and the visitor's note on it), the confidence of the knowledge behind an
+ * answer (null when none was used) and the knowledge itself, cost details,
+ * and whether it was spoken in a voice call.
  */
 #[TypeScript]
 class ChatLogMessageData extends Data
 {
     /**
      * @param  array<int, array{kind: string, data: mixed}>|null  $artifacts
+     * @param  list<ChatLogMessageSourceData>  $sources  the knowledge an assistant reply was given, best first
      */
     public function __construct(
         public string $id,
@@ -29,6 +30,8 @@ class ChatLogMessageData extends Data
         public ?Sentiment $sentiment,
         public ?Tone $tone,
         public ?string $feedback,
+        // The visitor's note on a thumbs-down, when they left one.
+        public ?string $feedback_comment,
         public bool $is_response_from_qa,
         public ?int $response_time_ms,
         public ?int $prompt_tokens,
@@ -45,6 +48,7 @@ class ChatLogMessageData extends Data
         // The Spectra trace behind an assistant reply; the UI links it only
         // for a viewer who may open /spectra.
         public ?string $trace_id = null,
+        public array $sources = [],
     ) {}
 
     public static function fromMessage(Message $message): self
@@ -59,6 +63,7 @@ class ChatLogMessageData extends Data
             sentiment: $message->sentiment,
             tone: $message->tone,
             feedback: $message->feedback?->value,
+            feedback_comment: $message->feedback_comment,
             is_response_from_qa: $message->is_response_from_qa,
             response_time_ms: $message->response_time_ms,
             prompt_tokens: $message->prompt_tokens,
@@ -72,6 +77,9 @@ class ChatLogMessageData extends Data
             confidence_score: $message->confidence_score,
             voice: (bool) ($message->metadata['voice'] ?? false),
             trace_id: $message->trace_id,
+            sources: $message->relationLoaded('sources')
+                ? $message->sources->map(ChatLogMessageSourceData::fromSource(...))->values()->all()
+                : [],
         );
     }
 }

@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Ubesvarede",
+            "description": "Spørgsmål, agenten ikke fandt viden til, og svar, som besøgende markerede som dårlige. Tilføj det rigtige svar for at lukke hullet.",
+            "chatlog_off": "Chatloggen er slået fra for denne agent, så nye svar gemmes ikke her.",
+            "filter_all": "Alle",
+            "filter_not_found": "Ingen viden fundet",
+            "filter_thumbs_down": "Tommel ned",
+            "include_revised": "Vis reviderede",
+            "load_error": "Listen kunne ikke indlæses.",
+            "try_again": "Prøv igen",
+            "empty": "Intet her. Alle nylige spørgsmål fandt et svar.",
+            "reason_not_found": "Ingen viden fundet",
+            "reason_thumbs_down": "Tommel ned",
+            "revised": "Revideret",
+            "question": "Spørgsmål",
+            "answer": "Svar",
+            "no_question": "(intet spørgsmål fundet)",
+            "add_answer": "Tilføj det rigtige svar",
+            "open_conversation": "Åbn samtale"
+        },
+        "nav": {
+            "unanswered": "Ubesvarede"
+        }
+    }
+}

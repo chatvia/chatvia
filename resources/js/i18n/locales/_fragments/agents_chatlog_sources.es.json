@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "No se usó conocimiento",
+                "no_sources_help": "Ningún fragmento de la base de conocimiento superó la comprobación de relevancia, así que esta respuesta no usó ninguno."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevancia {score}",
+        "passage_removed": "Este fragmento se ha eliminado de la base de conocimiento."
+    }
+}

@@ -66,6 +66,14 @@ export interface ReviseAnswerPayload {
     message_id: string;
     user_message: string;
     expected_response: string;
+    /** Also add an eval case judged against the corrected answer (needs the eval permission). */
+    add_eval_case?: boolean;
+}
+
+export interface ReviseAnswerResult {
+    qaId: number;
+    /** False when not asked for, or when the question already was an eval case. */
+    evalCaseCreated: boolean;
 }
 
 export function fetchChatLogConversations(agentId: string, filters: ChatLogConversationFilters): Promise<ChatLogConversationsPage> {
@@ -98,11 +106,11 @@ export function deleteChatLogConversation(agentId: string, conversationId: strin
     return del(chatLog.deleteConversation.url({ agent: agentId, conversation: conversationId }));
 }
 
-/** Stores the operator's corrected answer as a Q&A entry and returns its id. */
-export async function reviseAnswer(agentId: string, payload: ReviseAnswerPayload): Promise<number> {
-    const response = await post<{ qa_id: number }>(chatLog.reviseAnswer.url(agentId), payload);
+/** Stores the operator's corrected answer as a Q&A entry, and as an eval case when asked. */
+export async function reviseAnswer(agentId: string, payload: ReviseAnswerPayload): Promise<ReviseAnswerResult> {
+    const response = await post<{ qa_id: number; eval_case_created?: boolean }>(chatLog.reviseAnswer.url(agentId), payload);
 
-    return response.qa_id;
+    return { qaId: response.qa_id, evalCaseCreated: response.eval_case_created === true };
 }
 
 /** Address of the chat log page, used to keep the browser URL in step with the selection. */

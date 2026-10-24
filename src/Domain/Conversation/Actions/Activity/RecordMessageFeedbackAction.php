@@ -9,12 +9,14 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
  * Records a thumbs-up / thumbs-down on an assistant reply (or clears it with
  * null), in the live memory and in the chat log, and tells analytics when the
- * rating changed.
+ * rating changed. A thumbs-down may carry the visitor's short note on what
+ * was wrong; any other rating clears it.
  *
  * The database is written even when the conversation is no longer in the
  * live memory (expired, evicted, or after a cache restart), because the
@@ -27,21 +29,27 @@ class RecordMessageFeedbackAction
         private readonly ChatMemory $memory,
     ) {}
 
-    public function execute(ChatScopeData $scope, string $messageId, ?MessageFeedback $feedback): void
+    /** The longest note kept with a thumbs-down. */
+    public const int COMMENT_MAX_LENGTH = 1000;
+
+    public function execute(ChatScopeData $scope, string $messageId, ?MessageFeedback $feedback, ?string $comment = null): void
     {
         $conversationId = $scope->conversationId
             ?? throw new InvalidArgumentException('A conversation id is required to rate a message.');
         $value = $feedback?->value;
+        $comment = $feedback === MessageFeedback::Negative && filled($comment)
+            ? Str::of($comment)->trim()->limit(self::COMMENT_MAX_LENGTH, '')->value()
+            : null;
 
-        $this->updateLiveCopy($scope, $conversationId, $messageId, $value);
-        $this->updateStoredCopy($scope, $conversationId, $messageId, $value);
+        $this->updateLiveCopy($scope, $conversationId, $messageId, $value, $comment);
+        $this->updateStoredCopy($scope, $conversationId, $messageId, $value, $comment);
     }
 
     /**
      * When the message is still in the live memory: update it there and in the
      * database, and announce a changed rating with the model that answered.
      */
-    private function updateLiveCopy(ChatScopeData $scope, string $conversationId, string $messageId, ?string $value): void
+    private function updateLiveCopy(ChatScopeData $scope, string $conversationId, string $messageId, ?string $value, ?string $comment): void
     {
         $memory = $this->memory->withScope($scope);
         // The cached copy, not the client view: saving the client view back
@@ -55,7 +63,7 @@ class RecordMessageFeedbackAction
 
             $messages[$index] = $message->withFeedback($value);
 
-            Message::query()->where('external_id', $messageId)->update(['feedback' => $value]);
+            Message::query()->where('external_id', $messageId)->update(['feedback' => $value, 'feedback_comment' => $comment]);
 
             if ($message->feedback !== $value) {
                 $this->announce($conversationId, $messageId, $value, $message->llm_id);
@@ -67,26 +75,35 @@ class RecordMessageFeedbackAction
 
     /**
      * The database is the source of truth the dashboard reads. A no-op when
-     * the live path already wrote the same value; analytics upserts, so a
-     * rating is never counted twice. The model name lives only in the live
+     * the live path already wrote the same value and note; analytics upserts,
+     * so a rating is never counted twice, and a note added to a thumbs-down
+     * already given is no new rating. The model name lives only in the live
      * memory, so a rating recorded here carries none.
      */
-    private function updateStoredCopy(ChatScopeData $scope, string $conversationId, string $messageId, ?string $value): void
+    private function updateStoredCopy(ChatScopeData $scope, string $conversationId, string $messageId, ?string $value, ?string $comment): void
     {
         $message = Message::query()
             ->where('external_id', $messageId)
             ->whereHas('conversation', static function (ConversationQueryBuilder $query) use ($scope, $conversationId): void {
                 $query->inSession($scope->sessionId, $scope->agent->id)->where('external_id', $conversationId);
             })
-            ->first(['id', 'feedback']);
+            ->first(['id', 'feedback', 'feedback_comment']);
 
-        if ($message === null || $message->feedback?->value === $value) {
+        if ($message === null) {
             return;
         }
 
-        $message->update(['feedback' => $value]);
+        $changed = $message->feedback?->value !== $value;
 
-        $this->announce($conversationId, $messageId, $value, null);
+        if (! $changed && $message->feedback_comment === $comment) {
+            return;
+        }
+
+        $message->update(['feedback' => $value, 'feedback_comment' => $comment]);
+
+        if ($changed) {
+            $this->announce($conversationId, $messageId, $value, null);
+        }
     }
 
     /**

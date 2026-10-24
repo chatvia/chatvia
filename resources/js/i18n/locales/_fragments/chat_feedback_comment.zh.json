@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "哪里有问题？（可选）",
+        "feedback_comment_placeholder": "例如：价格已过时。",
+        "feedback_comment_send": "发送",
+        "feedback_comment_skip": "跳过",
+        "feedback_comment_thanks": "感谢你的反馈。"
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "访客备注："
+            }
+        }
+    }
+}

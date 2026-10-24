@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "무엇이 잘못되었나요? (선택)",
+        "feedback_comment_placeholder": "예: 가격이 오래되었습니다.",
+        "feedback_comment_send": "보내기",
+        "feedback_comment_skip": "건너뛰기",
+        "feedback_comment_thanks": "의견을 주셔서 감사합니다."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "방문자 메모:"
+            }
+        }
+    }
+}

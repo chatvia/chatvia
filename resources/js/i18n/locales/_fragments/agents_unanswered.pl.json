@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Bez odpowiedzi",
+            "description": "Pytania, do których agent nie znalazł wiedzy, i odpowiedzi oznaczone przez odwiedzających jako złe. Dodaj właściwą odpowiedź, aby uzupełnić lukę.",
+            "chatlog_off": "Dziennik czatu jest wyłączony dla tego agenta, więc nowe odpowiedzi nie są tu zapisywane.",
+            "filter_all": "Wszystkie",
+            "filter_not_found": "Brak wiedzy",
+            "filter_thumbs_down": "Kciuk w dół",
+            "include_revised": "Pokaż poprawione",
+            "load_error": "Nie udało się wczytać listy.",
+            "try_again": "Spróbuj ponownie",
+            "empty": "Nic tu nie ma. Każde ostatnie pytanie znalazło odpowiedź.",
+            "reason_not_found": "Brak wiedzy",
+            "reason_thumbs_down": "Kciuk w dół",
+            "revised": "Poprawiona",
+            "question": "Pytanie",
+            "answer": "Odpowiedź",
+            "no_question": "(nie znaleziono pytania)",
+            "add_answer": "Dodaj właściwą odpowiedź",
+            "open_conversation": "Otwórz rozmowę"
+        },
+        "nav": {
+            "unanswered": "Bez odpowiedzi"
+        }
+    }
+}

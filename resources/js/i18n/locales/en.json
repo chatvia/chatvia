@@ -141,7 +141,12 @@
         "copy_message": "Copy message",
         "feedback_helpful": "Good response",
         "feedback_not_helpful": "Bad response",
-        "edit_message": "Edit message"
+        "edit_message": "Edit message",
+        "feedback_comment_label": "What was wrong? (optional)",
+        "feedback_comment_placeholder": "For example: the price is out of date.",
+        "feedback_comment_send": "Send",
+        "feedback_comment_skip": "Skip",
+        "feedback_comment_thanks": "Thanks for your feedback."
     },
     "errors": {
         "message_limit_reached": "Message limit reached",
@@ -162,7 +167,9 @@
         "fallback_title": "Source {number}",
         "chunk_label": "Chunk {index}",
         "open_link": "Open {label}",
-        "passage_count": "{count} passage | {count} passages"
+        "passage_count": "{count} passage | {count} passages",
+        "relevance": "Relevance {score}",
+        "passage_removed": "This passage has since been removed from the knowledge base."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Voice",
                 "confidence_help": "How well the agent's knowledge matched this question — not how good the answer is.",
                 "trace": "Trace",
-                "trace_help": "View every AI call behind this reply in Spectra"
+                "trace_help": "View every AI call behind this reply in Spectra",
+                "no_sources": "No knowledge used",
+                "no_sources_help": "No passage from the knowledge base passed the relevance check, so this answer did not use any.",
+                "feedback_comment": "Visitor's note:"
             },
             "details": {
                 "select_conversation": "Select a conversation to view details",
@@ -575,7 +585,10 @@
                 "cancel": "Cancel",
                 "save": "Save revision",
                 "saving": "Saving…",
-                "save_error": "Could not save revision. Please try again."
+                "save_error": "Could not save revision. Please try again.",
+                "add_eval_case": "Also add as an eval case",
+                "add_eval_case_help": "Eval runs will check that the agent keeps giving this answer.",
+                "eval_case_added": "Saved, and added to the eval cases."
             },
             "delete": {
                 "dialog_title": "Delete conversation?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Add rich features to the chat — like interactive charts",
             "forms": "Forms",
             "forms_tooltip": "Build forms your agent shows in the chat",
-            "blocked": "Blocked"
+            "blocked": "Blocked",
+            "unanswered": "Unanswered"
         },
         "create_modal": {
             "title": "Create Agent",
@@ -2332,6 +2346,26 @@
             "empty": "No submissions yet.",
             "submitted_at": "Submitted",
             "deleted": "Submission deleted"
+        },
+        "unanswered": {
+            "title": "Unanswered",
+            "description": "Questions the agent found no knowledge for, and answers visitors marked as bad. Add the right answer to fill the gap.",
+            "chatlog_off": "The chat log is off for this agent, so no new replies are stored here.",
+            "filter_all": "All",
+            "filter_not_found": "No knowledge found",
+            "filter_thumbs_down": "Thumbs down",
+            "include_revised": "Show revised",
+            "load_error": "Could not load the list.",
+            "try_again": "Try again",
+            "empty": "Nothing here. Every recent question found an answer.",
+            "reason_not_found": "No knowledge found",
+            "reason_thumbs_down": "Thumbs down",
+            "revised": "Revised",
+            "question": "Question",
+            "answer": "Answer",
+            "no_question": "(no question found)",
+            "add_answer": "Add the right answer",
+            "open_conversation": "Open conversation"
         }
     },
     "auth": {

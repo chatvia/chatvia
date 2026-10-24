@@ -3,7 +3,8 @@
  * One assistant reply in the hosted chat: the model's thinking (when the
  * agent reasons, live only), the rendered answer, a "still working"
  * indicator (dots or the tool-call stack), any tool calls awaiting approval,
- * and the action row (copy, feedback, delete, regenerate, sources).
+ * and the action row (copy, feedback, delete, regenerate, sources). After a
+ * thumbs-down, an optional note on what was wrong.
  */
 import { deleteMessage as deleteMessageRequest, sendMessageFeedback, type MessageFeedbackValue } from '@/api/chat';
 import {
@@ -18,10 +19,11 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import type { ActiveToolCall, Message, MessageSource } from '@/types/chat';
 import type { ToolApprovalCall, ToolArtifact } from '@/types/stream';
 import { useClipboard } from '@vueuse/core';
-import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-vue-next';
+import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AssistantMessageBody from './AssistantMessageBody.vue';
@@ -76,6 +78,14 @@ const WIRE_FEEDBACK: Record<Feedback, MessageFeedbackValue> = { 'thumbs-up': 'po
 const feedback = ref<Feedback | null>(null);
 const isRegenerating = ref(false);
 
+/** The longest note the server keeps (RecordMessageFeedbackAction::COMMENT_MAX_LENGTH). */
+const COMMENT_MAX_LENGTH = 1000;
+// The note box opens after a fresh thumbs-down and closes once sent or skipped.
+const isCommentOpen = ref(false);
+const comment = ref('');
+const isSendingComment = ref(false);
+const isCommentSent = ref(false);
+
 const hasPendingApprovals = computed(() => (props.pendingApprovals?.length ?? 0) > 0);
 const activeCallList = computed(() => props.activeCalls ?? []);
 
@@ -110,11 +120,35 @@ async function provideFeedback(type: Feedback) {
 
     if (persistedId.value === null || !props.conversationId) return;
 
+    isCommentOpen.value = false;
+    isCommentSent.value = false;
+
     try {
         await sendMessageFeedback(props.conversationId, persistedId.value, next ? WIRE_FEEDBACK[next] : null);
         if (next !== null) emit('feedbackProvided', persistedId.value, next);
+        if (next === 'thumbs-down') {
+            comment.value = '';
+            isCommentOpen.value = true;
+        }
     } catch {
         feedback.value = null;
+    }
+}
+
+/** Sends the note with the thumbs-down it belongs to. A failed send keeps the box open with the text. */
+async function sendComment() {
+    const note = comment.value.trim();
+    if (note === '' || persistedId.value === null || !props.conversationId) return;
+
+    isSendingComment.value = true;
+    try {
+        await sendMessageFeedback(props.conversationId, persistedId.value, 'negative', note);
+        isCommentOpen.value = false;
+        isCommentSent.value = true;
+    } catch {
+        // The box stays open, so the visitor can try again.
+    } finally {
+        isSendingComment.value = false;
     }
 }
 
@@ -261,6 +295,43 @@ async function deleteMessage() {
                     <SourcesDialog v-if="sources && sources.length > 0" :sources="sources" />
                 </div>
             </div>
+
+            <form
+                v-if="isCommentOpen && feedback === 'thumbs-down'"
+                class="bg-muted/40 mt-2 flex max-w-md flex-col gap-2 rounded-xl border p-3"
+                @submit.prevent="sendComment"
+            >
+                <div class="flex items-center justify-between gap-2">
+                    <label :for="`feedback-note-${persistedId}`" class="text-sm font-medium">{{ t('messages.feedback_comment_label') }}</label>
+                    <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        class="text-muted-foreground hover:text-foreground h-6 w-6"
+                        :aria-label="t('messages.feedback_comment_skip')"
+                        @click="isCommentOpen = false"
+                    >
+                        <X class="h-3.5 w-3.5" />
+                    </Button>
+                </div>
+                <Textarea
+                    :id="`feedback-note-${persistedId}`"
+                    v-model="comment"
+                    rows="2"
+                    dir="auto"
+                    :maxlength="COMMENT_MAX_LENGTH"
+                    :placeholder="t('messages.feedback_comment_placeholder')"
+                    class="resize-none text-sm"
+                />
+                <div class="flex justify-end">
+                    <Button type="submit" size="sm" class="h-7 rounded-lg px-3 text-xs" :disabled="comment.trim() === '' || isSendingComment">
+                        {{ t('messages.feedback_comment_send') }}
+                    </Button>
+                </div>
+            </form>
+            <p v-else-if="isCommentSent && feedback === 'thumbs-down'" class="text-muted-foreground mt-2 text-xs" role="status">
+                {{ t('messages.feedback_comment_thanks') }}
+            </p>
         </div>
     </div>
 </template>

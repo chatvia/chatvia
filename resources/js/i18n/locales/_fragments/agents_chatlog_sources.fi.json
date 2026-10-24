@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Tietoa ei käytetty",
+                "no_sources_help": "Mikään tietokannan katkelma ei läpäissyt osuvuustarkistusta, joten tämä vastaus ei käyttänyt yhtäkään."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Osuvuus {score}",
+        "passage_removed": "Tämä katkelma on sittemmin poistettu tietokannasta."
+    }
+}

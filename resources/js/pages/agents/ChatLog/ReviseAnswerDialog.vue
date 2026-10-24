@@ -2,16 +2,19 @@
 /**
  * "Revise answer" dialog of the chat log: shows the visitor's question and the
  * assistant's reply, and saves the operator's expected answer as a Q&A entry
- * so future similar questions use it.
+ * so future similar questions use it. Staff who manage evals can also keep it
+ * as an eval case, so a later change that breaks the fix is caught.
  */
 import { reviseAnswer } from '@/api/chatLog';
 import { errorMessage } from '@/api/http';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { LoaderCircle } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
@@ -30,18 +33,23 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { hasPermission } = useTeamPermissions();
+
+const canAddEvalCase = computed(() => hasPermission('agent.evals.manage'));
 
 // Local copies: the textareas are bound with v-model even where they are read-only.
 const userMessageText = ref('');
 const botResponseText = ref('');
 const expectedResponse = ref('');
 const isSaving = ref(false);
+const addEvalCase = ref(true);
 
 watch(open, (isOpen) => {
     if (!isOpen) return;
     userMessageText.value = props.userMessage;
     botResponseText.value = props.botResponse;
     expectedResponse.value = '';
+    addEvalCase.value = true;
 });
 
 function close() {
@@ -55,11 +63,13 @@ async function save() {
 
     isSaving.value = true;
     try {
-        const qaId = await reviseAnswer(props.agentId, {
+        const { qaId, evalCaseCreated } = await reviseAnswer(props.agentId, {
             message_id: messageId,
             user_message: userMessageText.value,
             expected_response: expectedResponse.value,
+            add_eval_case: canAddEvalCase.value && addEvalCase.value,
         });
+        if (evalCaseCreated) toast.success(t('agents.chatlog.revise.eval_case_added'));
         emit('saved', messageId, qaId);
         close();
     } catch (error) {
@@ -108,6 +118,14 @@ async function save() {
                         :placeholder="t('agents.chatlog.revise.expected_response_placeholder')"
                         class="min-h-[150px] resize-none"
                     />
+                </div>
+
+                <div v-if="canAddEvalCase" class="flex items-start gap-2">
+                    <Checkbox id="add-eval-case" v-model="addEvalCase" class="mt-0.5" />
+                    <div class="space-y-0.5">
+                        <Label for="add-eval-case" class="text-sm font-medium">{{ t('agents.chatlog.revise.add_eval_case') }}</Label>
+                        <p class="text-muted-foreground text-xs">{{ t('agents.chatlog.revise.add_eval_case_help') }}</p>
+                    </div>
                 </div>
             </div>
 

@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "چه چیزی اشتباه بود؟ (اختیاری)",
+        "feedback_comment_placeholder": "برای مثال: قیمت قدیمی است.",
+        "feedback_comment_send": "ارسال",
+        "feedback_comment_skip": "رد شدن",
+        "feedback_comment_thanks": "از بازخورد شما سپاسگزاریم."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "یادداشت بازدیدکننده:"
+            }
+        }
+    }
+}

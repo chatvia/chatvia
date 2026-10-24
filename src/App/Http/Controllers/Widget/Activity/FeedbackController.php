@@ -36,7 +36,7 @@ class FeedbackController
 
         $rating = $request->toData();
 
-        $recordFeedback->execute(new ChatScopeData($agent, $sessionId, $conversationId), $rating->messageId, $rating->feedback);
+        $recordFeedback->execute(new ChatScopeData($agent, $sessionId, $conversationId), $rating->messageId, $rating->feedback, $rating->comment);
 
         return new WidgetAckData;
     }

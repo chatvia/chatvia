@@ -141,7 +141,12 @@
         "copy_message": "メッセージをコピー",
         "feedback_helpful": "良い応答",
         "feedback_not_helpful": "悪い応答",
-        "edit_message": "メッセージを編集"
+        "edit_message": "メッセージを編集",
+        "feedback_comment_label": "何が間違っていましたか？（任意）",
+        "feedback_comment_placeholder": "例：価格が古くなっています。",
+        "feedback_comment_send": "送信",
+        "feedback_comment_skip": "スキップ",
+        "feedback_comment_thanks": "フィードバックをありがとうございます。"
     },
     "errors": {
         "message_limit_reached": "メッセージの上限に達しました",
@@ -162,7 +167,9 @@
         "fallback_title": "ソース {number}",
         "chunk_label": "チャンク {index}",
         "open_link": "{label} を開く",
-        "passage_count": "{count} 件の抜粋 | {count} 件の抜粋"
+        "passage_count": "{count} 件の抜粋 | {count} 件の抜粋",
+        "relevance": "関連度 {score}",
+        "passage_removed": "この箇所はその後ナレッジベースから削除されました。"
     },
     "home": {
         "logo_alt": "ロゴ",
@@ -470,7 +477,10 @@
                 "voice": "音声",
                 "confidence_help": "エージェントのナレッジがこの質問とどれだけ一致したかを示します。回答の良し悪しではありません。",
                 "trace": "トレース",
-                "trace_help": "この返信の背後にあるすべてのAI呼び出しをSpectraで表示"
+                "trace_help": "この返信の背後にあるすべてのAI呼び出しをSpectraで表示",
+                "no_sources": "ナレッジは使われていません",
+                "no_sources_help": "ナレッジベースのどの箇所も関連性チェックを通過しなかったため、この回答はナレッジを使っていません。",
+                "feedback_comment": "訪問者のメモ："
             },
             "details": {
                 "select_conversation": "詳細を表示する会話を選択してください",
@@ -575,7 +585,10 @@
                 "cancel": "キャンセル",
                 "save": "修正を保存",
                 "saving": "保存中…",
-                "save_error": "修正を保存できませんでした。もう一度お試しください。"
+                "save_error": "修正を保存できませんでした。もう一度お試しください。",
+                "add_eval_case": "評価ケースとしても追加",
+                "add_eval_case_help": "評価の実行で、エージェントがこの回答を出し続けているか確認します。",
+                "eval_case_added": "保存し、評価ケースに追加しました。"
             },
             "delete": {
                 "dialog_title": "会話を削除しますか？",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "高度な機能をチャットに追加 — インタラクティブなチャートなど",
             "forms": "フォーム",
             "forms_tooltip": "エージェントがチャットに表示するフォームを作成",
-            "blocked": "ブロック中"
+            "blocked": "ブロック中",
+            "unanswered": "未回答"
         },
         "create_modal": {
             "title": "エージェントを作成",
@@ -2331,6 +2345,26 @@
             "empty": "送信内容はまだありません。",
             "submitted_at": "送信日時",
             "deleted": "送信内容を削除しました"
+        },
+        "unanswered": {
+            "title": "未回答",
+            "description": "エージェントがナレッジを見つけられなかった質問と、訪問者が悪いと評価した回答です。正しい回答を追加して不足を補いましょう。",
+            "chatlog_off": "このエージェントのチャットログはオフのため、新しい返信はここに保存されません。",
+            "filter_all": "すべて",
+            "filter_not_found": "ナレッジなし",
+            "filter_thumbs_down": "低評価",
+            "include_revised": "修正済みを表示",
+            "load_error": "一覧を読み込めませんでした。",
+            "try_again": "再試行",
+            "empty": "ここには何もありません。最近の質問はすべて回答が見つかりました。",
+            "reason_not_found": "ナレッジなし",
+            "reason_thumbs_down": "低評価",
+            "revised": "修正済み",
+            "question": "質問",
+            "answer": "回答",
+            "no_question": "（質問が見つかりません）",
+            "add_answer": "正しい回答を追加",
+            "open_conversation": "会話を開く"
         }
     },
     "auth": {

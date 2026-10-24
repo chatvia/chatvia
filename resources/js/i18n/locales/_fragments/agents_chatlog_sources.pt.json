@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Nenhum conhecimento usado",
+                "no_sources_help": "Nenhum trecho da base de conhecimento passou na verificação de relevância, então esta resposta não usou nenhum."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Relevância {score}",
+        "passage_removed": "Este trecho já foi removido da base de conhecimento."
+    }
+}

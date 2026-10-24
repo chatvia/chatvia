@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "未使用知识",
+                "no_sources_help": "知识库中没有任何段落通过相关性检查，因此这个回答没有使用知识。"
+            }
+        }
+    },
+    "sources": {
+        "relevance": "相关度 {score}",
+        "passage_removed": "此段落之后已从知识库中删除。"
+    }
+}

@@ -141,7 +141,12 @@
         "copy_message": "Kopiera meddelande",
         "feedback_helpful": "Bra svar",
         "feedback_not_helpful": "Dåligt svar",
-        "edit_message": "Redigera meddelande"
+        "edit_message": "Redigera meddelande",
+        "feedback_comment_label": "Vad var fel? (valfritt)",
+        "feedback_comment_placeholder": "Till exempel: priset är inaktuellt.",
+        "feedback_comment_send": "Skicka",
+        "feedback_comment_skip": "Hoppa över",
+        "feedback_comment_thanks": "Tack för din feedback."
     },
     "errors": {
         "message_limit_reached": "Meddelandegränsen har nåtts",
@@ -162,7 +167,9 @@
         "fallback_title": "Källa {number}",
         "chunk_label": "Utdrag {index}",
         "open_link": "Öppna {label}",
-        "passage_count": "{count} avsnitt | {count} avsnitt"
+        "passage_count": "{count} avsnitt | {count} avsnitt",
+        "relevance": "Relevans {score}",
+        "passage_removed": "Det här avsnittet har sedan dess tagits bort från kunskapsbasen."
     },
     "home": {
         "logo_alt": "Logotyp",
@@ -470,7 +477,10 @@
                 "voice": "Röst",
                 "confidence_help": "Hur väl agentens kunskap matchade den här frågan — inte hur bra svaret är.",
                 "trace": "Spår",
-                "trace_help": "Se alla AI-anrop bakom det här svaret i Spectra"
+                "trace_help": "Se alla AI-anrop bakom det här svaret i Spectra",
+                "no_sources": "Ingen kunskap användes",
+                "no_sources_help": "Inget avsnitt från kunskapsbasen klarade relevanskontrollen, så det här svaret använde inget.",
+                "feedback_comment": "Besökarens anteckning:"
             },
             "details": {
                 "select_conversation": "Välj en konversation för att visa detaljer",
@@ -575,7 +585,10 @@
                 "cancel": "Avbryt",
                 "save": "Spara revision",
                 "saving": "Sparar…",
-                "save_error": "Det gick inte att spara revisionen. Försök igen."
+                "save_error": "Det gick inte att spara revisionen. Försök igen.",
+                "add_eval_case": "Lägg också till som utvärderingsfall",
+                "add_eval_case_help": "Utvärderingskörningar kontrollerar att agenten fortsätter ge det här svaret.",
+                "eval_case_added": "Sparat och tillagt i utvärderingsfallen."
             },
             "delete": {
                 "dialog_title": "Ta bort konversation?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Lägg till avancerade funktioner i chatten — som interaktiva diagram",
             "forms": "Formulär",
             "forms_tooltip": "Bygg formulär som din agent visar i chatten",
-            "blocked": "Blockerade"
+            "blocked": "Blockerade",
+            "unanswered": "Obesvarade"
         },
         "create_modal": {
             "title": "Skapa agent",
@@ -2332,6 +2346,26 @@
             "empty": "Inga inskick ännu.",
             "submitted_at": "Inskickat",
             "deleted": "Inskick raderat"
+        },
+        "unanswered": {
+            "title": "Obesvarade",
+            "description": "Frågor som agenten inte hittade kunskap för, och svar som besökare markerade som dåliga. Lägg till rätt svar för att täcka luckan.",
+            "chatlog_off": "Chattloggen är avstängd för den här agenten, så nya svar sparas inte här.",
+            "filter_all": "Alla",
+            "filter_not_found": "Ingen kunskap hittad",
+            "filter_thumbs_down": "Tumme ner",
+            "include_revised": "Visa reviderade",
+            "load_error": "Det gick inte att läsa in listan.",
+            "try_again": "Försök igen",
+            "empty": "Inget här. Alla senaste frågor fick ett svar.",
+            "reason_not_found": "Ingen kunskap hittad",
+            "reason_thumbs_down": "Tumme ner",
+            "revised": "Reviderad",
+            "question": "Fråga",
+            "answer": "Svar",
+            "no_question": "(ingen fråga hittades)",
+            "add_answer": "Lägg till rätt svar",
+            "open_conversation": "Öppna samtal"
         }
     },
     "auth": {

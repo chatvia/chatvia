@@ -141,7 +141,12 @@
         "copy_message": "Mesajı kopyala",
         "feedback_helpful": "İyi yanıt",
         "feedback_not_helpful": "Kötü yanıt",
-        "edit_message": "Mesajı düzenle"
+        "edit_message": "Mesajı düzenle",
+        "feedback_comment_label": "Ne yanlıştı? (isteğe bağlı)",
+        "feedback_comment_placeholder": "Örneğin: fiyat güncel değil.",
+        "feedback_comment_send": "Gönder",
+        "feedback_comment_skip": "Atla",
+        "feedback_comment_thanks": "Geri bildiriminiz için teşekkürler."
     },
     "errors": {
         "message_limit_reached": "Mesaj sınırına ulaşıldı",
@@ -162,7 +167,9 @@
         "fallback_title": "Kaynak {number}",
         "chunk_label": "Parça {index}",
         "open_link": "{label} aç",
-        "passage_count": "{count} bölüm | {count} bölüm"
+        "passage_count": "{count} bölüm | {count} bölüm",
+        "relevance": "Alaka {score}",
+        "passage_removed": "Bu bölüm o zamandan beri bilgi tabanından kaldırıldı."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Ses",
                 "confidence_help": "Asistanın bilgisinin bu soruyla ne kadar eşleştiğini gösterir — yanıtın ne kadar iyi olduğunu değil.",
                 "trace": "İzleme",
-                "trace_help": "Bu yanıtın arkasındaki tüm yapay zekâ çağrılarını Spectra'da görüntüleyin"
+                "trace_help": "Bu yanıtın arkasındaki tüm yapay zekâ çağrılarını Spectra'da görüntüleyin",
+                "no_sources": "Bilgi kullanılmadı",
+                "no_sources_help": "Bilgi tabanındaki hiçbir bölüm alaka kontrolünü geçemedi, bu yüzden bu yanıt hiçbirini kullanmadı.",
+                "feedback_comment": "Ziyaretçinin notu:"
             },
             "details": {
                 "select_conversation": "Ayrıntıları görüntülemek için bir görüşme seçin",
@@ -575,7 +585,10 @@
                 "cancel": "İptal",
                 "save": "Düzeltmeyi kaydet",
                 "saving": "Kaydediliyor…",
-                "save_error": "Düzeltme kaydedilemedi. Lütfen tekrar deneyin."
+                "save_error": "Düzeltme kaydedilemedi. Lütfen tekrar deneyin.",
+                "add_eval_case": "Ayrıca değerlendirme vakası olarak ekle",
+                "add_eval_case_help": "Değerlendirme çalıştırmaları, ajanın bu yanıtı vermeye devam ettiğini kontrol eder.",
+                "eval_case_added": "Kaydedildi ve değerlendirme vakalarına eklendi."
             },
             "delete": {
                 "dialog_title": "Görüşme silinsin mi?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Sohbete gelişmiş özellikler ekleyin — etkileşimli grafikler gibi",
             "forms": "Formlar",
             "forms_tooltip": "Asistanınızın sohbette gösterdiği formları oluşturun",
-            "blocked": "Engellenenler"
+            "blocked": "Engellenenler",
+            "unanswered": "Yanıtsız"
         },
         "create_modal": {
             "title": "Asistan Oluştur",
@@ -2331,6 +2345,26 @@
             "empty": "Henüz gönderim yok.",
             "submitted_at": "Gönderildi",
             "deleted": "Gönderim silindi"
+        },
+        "unanswered": {
+            "title": "Yanıtsız",
+            "description": "Ajanın bilgi bulamadığı sorular ve ziyaretçilerin kötü olarak işaretlediği yanıtlar. Boşluğu kapatmak için doğru yanıtı ekleyin.",
+            "chatlog_off": "Bu ajan için sohbet kaydı kapalı, bu yüzden yeni yanıtlar burada saklanmıyor.",
+            "filter_all": "Tümü",
+            "filter_not_found": "Bilgi bulunamadı",
+            "filter_thumbs_down": "Beğenilmedi",
+            "include_revised": "Düzeltilenleri göster",
+            "load_error": "Liste yüklenemedi.",
+            "try_again": "Tekrar dene",
+            "empty": "Burada bir şey yok. Son soruların hepsi yanıt buldu.",
+            "reason_not_found": "Bilgi bulunamadı",
+            "reason_thumbs_down": "Beğenilmedi",
+            "revised": "Düzeltildi",
+            "question": "Soru",
+            "answer": "Yanıt",
+            "no_question": "(soru bulunamadı)",
+            "add_answer": "Doğru yanıtı ekle",
+            "open_conversation": "Sohbeti aç"
         }
     },
     "auth": {

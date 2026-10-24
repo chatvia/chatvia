@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Ne yanlıştı? (isteğe bağlı)",
+        "feedback_comment_placeholder": "Örneğin: fiyat güncel değil.",
+        "feedback_comment_send": "Gönder",
+        "feedback_comment_skip": "Atla",
+        "feedback_comment_thanks": "Geri bildiriminiz için teşekkürler."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Ziyaretçinin notu:"
+            }
+        }
+    }
+}

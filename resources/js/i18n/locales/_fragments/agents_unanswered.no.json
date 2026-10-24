@@ -1,0 +1,27 @@
+{
+    "agents": {
+        "unanswered": {
+            "title": "Ubesvarte",
+            "description": "Spørsmål agenten ikke fant kunnskap til, og svar besøkende merket som dårlige. Legg til riktig svar for å tette hullet.",
+            "chatlog_off": "Chatloggen er slått av for denne agenten, så nye svar lagres ikke her.",
+            "filter_all": "Alle",
+            "filter_not_found": "Ingen kunnskap funnet",
+            "filter_thumbs_down": "Tommel ned",
+            "include_revised": "Vis reviderte",
+            "load_error": "Kunne ikke laste listen.",
+            "try_again": "Prøv igjen",
+            "empty": "Ingenting her. Alle nylige spørsmål fant et svar.",
+            "reason_not_found": "Ingen kunnskap funnet",
+            "reason_thumbs_down": "Tommel ned",
+            "revised": "Revidert",
+            "question": "Spørsmål",
+            "answer": "Svar",
+            "no_question": "(fant ikke spørsmålet)",
+            "add_answer": "Legg til riktig svar",
+            "open_conversation": "Åpne samtale"
+        },
+        "nav": {
+            "unanswered": "Ubesvarte"
+        }
+    }
+}

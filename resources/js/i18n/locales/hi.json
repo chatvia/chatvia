@@ -141,7 +141,12 @@
         "copy_message": "संदेश कॉपी करें",
         "feedback_helpful": "अच्छा उत्तर",
         "feedback_not_helpful": "खराब उत्तर",
-        "edit_message": "संदेश संपादित करें"
+        "edit_message": "संदेश संपादित करें",
+        "feedback_comment_label": "क्या गलत था? (वैकल्पिक)",
+        "feedback_comment_placeholder": "उदाहरण: कीमत पुरानी है।",
+        "feedback_comment_send": "भेजें",
+        "feedback_comment_skip": "छोड़ें",
+        "feedback_comment_thanks": "आपकी प्रतिक्रिया के लिए धन्यवाद।"
     },
     "errors": {
         "message_limit_reached": "संदेश सीमा तक पहुँच गए",
@@ -162,7 +167,9 @@
         "fallback_title": "स्रोत {number}",
         "chunk_label": "खंड {index}",
         "open_link": "{label} खोलें",
-        "passage_count": "{count} अंश | {count} अंश"
+        "passage_count": "{count} अंश | {count} अंश",
+        "relevance": "प्रासंगिकता {score}",
+        "passage_removed": "यह अंश तब से ज्ञान आधार से हटा दिया गया है।"
     },
     "home": {
         "logo_alt": "लोगो",
@@ -470,7 +477,10 @@
                 "voice": "आवाज़",
                 "confidence_help": "एजेंट का ज्ञान इस प्रश्न से कितना मेल खाता है — उत्तर कितना अच्छा है, यह नहीं।",
                 "trace": "ट्रेस",
-                "trace_help": "इस जवाब के पीछे के सभी AI कॉल Spectra में देखें"
+                "trace_help": "इस जवाब के पीछे के सभी AI कॉल Spectra में देखें",
+                "no_sources": "कोई ज्ञान उपयोग नहीं हुआ",
+                "no_sources_help": "ज्ञान आधार का कोई भी अंश प्रासंगिकता जाँच में पास नहीं हुआ, इसलिए इस उत्तर ने किसी का उपयोग नहीं किया।",
+                "feedback_comment": "विज़िटर की टिप्पणी:"
             },
             "details": {
                 "select_conversation": "विवरण देखने के लिए एक बातचीत चुनें",
@@ -575,7 +585,10 @@
                 "cancel": "रद्द करें",
                 "save": "संशोधन सहेजें",
                 "saving": "सहेजा जा रहा है…",
-                "save_error": "संशोधन सहेजा नहीं जा सका। कृपया फिर से प्रयास करें।"
+                "save_error": "संशोधन सहेजा नहीं जा सका। कृपया फिर से प्रयास करें।",
+                "add_eval_case": "इसे मूल्यांकन केस के रूप में भी जोड़ें",
+                "add_eval_case_help": "मूल्यांकन रन जाँचेंगे कि एजेंट यही उत्तर देता रहे।",
+                "eval_case_added": "सहेजा गया और मूल्यांकन केस में जोड़ा गया।"
             },
             "delete": {
                 "dialog_title": "बातचीत हटाएं?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "चैट में बेहतरीन सुविधाएँ जोड़ें — जैसे इंटरैक्टिव चार्ट",
             "forms": "फ़ॉर्म",
             "forms_tooltip": "ऐसे फ़ॉर्म बनाएं जो आपका एजेंट चैट में दिखाता है",
-            "blocked": "ब्लॉक किए गए"
+            "blocked": "ब्लॉक किए गए",
+            "unanswered": "अनुत्तरित"
         },
         "create_modal": {
             "title": "एजेंट बनाएं",
@@ -2331,6 +2345,26 @@
             "empty": "अभी कोई सबमिशन नहीं है।",
             "submitted_at": "सबमिट किया गया",
             "deleted": "सबमिशन हटाया गया"
+        },
+        "unanswered": {
+            "title": "अनुत्तरित",
+            "description": "वे प्रश्न जिनके लिए एजेंट को कोई ज्ञान नहीं मिला, और वे उत्तर जिन्हें विज़िटर ने खराब बताया। कमी पूरी करने के लिए सही उत्तर जोड़ें।",
+            "chatlog_off": "इस एजेंट के लिए चैट लॉग बंद है, इसलिए नए उत्तर यहाँ सहेजे नहीं जाते।",
+            "filter_all": "सभी",
+            "filter_not_found": "कोई ज्ञान नहीं मिला",
+            "filter_thumbs_down": "नापसंद",
+            "include_revised": "संशोधित दिखाएँ",
+            "load_error": "सूची लोड नहीं हो सकी।",
+            "try_again": "फिर से कोशिश करें",
+            "empty": "यहाँ कुछ नहीं है। हर हाल के प्रश्न को उत्तर मिला।",
+            "reason_not_found": "कोई ज्ञान नहीं मिला",
+            "reason_thumbs_down": "नापसंद",
+            "revised": "संशोधित",
+            "question": "प्रश्न",
+            "answer": "उत्तर",
+            "no_question": "(कोई प्रश्न नहीं मिला)",
+            "add_answer": "सही उत्तर जोड़ें",
+            "open_conversation": "बातचीत खोलें"
         }
     },
     "auth": {

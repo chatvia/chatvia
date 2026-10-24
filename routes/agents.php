@@ -18,6 +18,8 @@ use App\Http\Controllers\Agent\Analytics\Topic\AgentTopicsDataController;
 use App\Http\Controllers\Agent\Analytics\Topic\DismissSuggestedTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\PromoteSuggestedTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\SuggestedTopicsDataController;
+use App\Http\Controllers\Agent\Analytics\Unanswered\AgentUnansweredController;
+use App\Http\Controllers\Agent\Analytics\Unanswered\AgentUnansweredDataController;
 use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use App\Http\Controllers\Agent\Bar\BarPreviewController;
 use App\Http\Controllers\Agent\Capability\AgentCapabilitiesController;
@@ -174,6 +176,12 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::middleware('agent.permission:agent.analytics.sources')->group(function (): void {
             Route::get('analytics/sources', AgentSourceController::class)->name('analytics.sources');
             Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
+        });
+        // The visitor questions behind replies that need a look: chat log content,
+        // so the chat log's view permission.
+        Route::middleware('agent.permission:agent.chat.view')->group(function (): void {
+            Route::get('analytics/unanswered', AgentUnansweredController::class)->name('analytics.unanswered');
+            Route::get('analytics/unanswered/data', AgentUnansweredDataController::class)->name('analytics.unanswered.data');
         });
 
         // Topics Management.

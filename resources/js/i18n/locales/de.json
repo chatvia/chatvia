@@ -141,7 +141,12 @@
         "copy_message": "Nachricht kopieren",
         "feedback_helpful": "Gute Antwort",
         "feedback_not_helpful": "Schlechte Antwort",
-        "edit_message": "Nachricht bearbeiten"
+        "edit_message": "Nachricht bearbeiten",
+        "feedback_comment_label": "Was war falsch? (optional)",
+        "feedback_comment_placeholder": "Zum Beispiel: Der Preis ist veraltet.",
+        "feedback_comment_send": "Senden",
+        "feedback_comment_skip": "Überspringen",
+        "feedback_comment_thanks": "Danke für dein Feedback."
     },
     "errors": {
         "message_limit_reached": "Nachrichtenlimit erreicht",
@@ -162,7 +167,9 @@
         "fallback_title": "Quelle {number}",
         "chunk_label": "Abschnitt {index}",
         "open_link": "{label} öffnen",
-        "passage_count": "{count} Abschnitt | {count} Abschnitte"
+        "passage_count": "{count} Abschnitt | {count} Abschnitte",
+        "relevance": "Relevanz {score}",
+        "passage_removed": "Dieser Abschnitt wurde inzwischen aus der Wissensbasis entfernt."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Sprache",
                 "confidence_help": "Wie gut das Wissen des Agenten zu dieser Frage passte — nicht, wie gut die Antwort ist.",
                 "trace": "Trace",
-                "trace_help": "Alle KI-Aufrufe hinter dieser Antwort in Spectra ansehen"
+                "trace_help": "Alle KI-Aufrufe hinter dieser Antwort in Spectra ansehen",
+                "no_sources": "Kein Wissen verwendet",
+                "no_sources_help": "Kein Abschnitt aus der Wissensbasis hat die Relevanzprüfung bestanden, daher hat diese Antwort keinen verwendet.",
+                "feedback_comment": "Notiz des Besuchers:"
             },
             "details": {
                 "select_conversation": "Wählen Sie ein Gespräch aus, um Details anzuzeigen",
@@ -575,7 +585,10 @@
                 "cancel": "Abbrechen",
                 "save": "Überarbeitung speichern",
                 "saving": "Wird gespeichert…",
-                "save_error": "Überarbeitung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+                "save_error": "Überarbeitung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+                "add_eval_case": "Auch als Eval-Fall hinzufügen",
+                "add_eval_case_help": "Eval-Läufe prüfen, dass der Agent weiterhin diese Antwort gibt.",
+                "eval_case_added": "Gespeichert und zu den Eval-Fällen hinzugefügt."
             },
             "delete": {
                 "dialog_title": "Gespräch löschen?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Erweiterte Funktionen zum Chat hinzufügen – etwa interaktive Diagramme",
             "forms": "Formulare",
             "forms_tooltip": "Erstellen Sie Formulare, die Ihr Agent im Chat anzeigt",
-            "blocked": "Gesperrt"
+            "blocked": "Gesperrt",
+            "unanswered": "Unbeantwortet"
         },
         "create_modal": {
             "title": "Agent erstellen",
@@ -2332,6 +2346,26 @@
             "empty": "Noch keine Einsendungen.",
             "submitted_at": "Eingereicht",
             "deleted": "Einsendung gelöscht"
+        },
+        "unanswered": {
+            "title": "Unbeantwortet",
+            "description": "Fragen, zu denen der Agent kein Wissen fand, und Antworten, die Besucher als schlecht markiert haben. Füge die richtige Antwort hinzu, um die Lücke zu schließen.",
+            "chatlog_off": "Das Chatprotokoll ist für diesen Agenten aus, daher werden hier keine neuen Antworten gespeichert.",
+            "filter_all": "Alle",
+            "filter_not_found": "Kein Wissen gefunden",
+            "filter_thumbs_down": "Daumen runter",
+            "include_revised": "Überarbeitete zeigen",
+            "load_error": "Die Liste konnte nicht geladen werden.",
+            "try_again": "Erneut versuchen",
+            "empty": "Nichts hier. Jede neue Frage hat eine Antwort gefunden.",
+            "reason_not_found": "Kein Wissen gefunden",
+            "reason_thumbs_down": "Daumen runter",
+            "revised": "Überarbeitet",
+            "question": "Frage",
+            "answer": "Antwort",
+            "no_question": "(keine Frage gefunden)",
+            "add_answer": "Richtige Antwort hinzufügen",
+            "open_conversation": "Gespräch öffnen"
         }
     },
     "auth": {

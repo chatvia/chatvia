@@ -141,7 +141,12 @@
         "copy_message": "Kopioi viesti",
         "feedback_helpful": "Hyvä vastaus",
         "feedback_not_helpful": "Huono vastaus",
-        "edit_message": "Muokkaa viestiä"
+        "edit_message": "Muokkaa viestiä",
+        "feedback_comment_label": "Mikä oli vialla? (valinnainen)",
+        "feedback_comment_placeholder": "Esimerkiksi: hinta on vanhentunut.",
+        "feedback_comment_send": "Lähetä",
+        "feedback_comment_skip": "Ohita",
+        "feedback_comment_thanks": "Kiitos palautteestasi."
     },
     "errors": {
         "message_limit_reached": "Viestiraja saavutettu",
@@ -162,7 +167,9 @@
         "fallback_title": "Lähde {number}",
         "chunk_label": "Katkelma {index}",
         "open_link": "Avaa {label}",
-        "passage_count": "{count} katkelma | {count} katkelmaa"
+        "passage_count": "{count} katkelma | {count} katkelmaa",
+        "relevance": "Osuvuus {score}",
+        "passage_removed": "Tämä katkelma on sittemmin poistettu tietokannasta."
     },
     "home": {
         "logo_alt": "Logo",
@@ -470,7 +477,10 @@
                 "voice": "Puhe",
                 "confidence_help": "Kuinka hyvin agentin tietämys vastasi tätä kysymystä — ei sitä, kuinka hyvä vastaus on.",
                 "trace": "Jäljitys",
-                "trace_help": "Katso kaikki tämän vastauksen taustalla olevat tekoälykutsut Spectrassa"
+                "trace_help": "Katso kaikki tämän vastauksen taustalla olevat tekoälykutsut Spectrassa",
+                "no_sources": "Tietoa ei käytetty",
+                "no_sources_help": "Mikään tietokannan katkelma ei läpäissyt osuvuustarkistusta, joten tämä vastaus ei käyttänyt yhtäkään.",
+                "feedback_comment": "Kävijän huomautus:"
             },
             "details": {
                 "select_conversation": "Valitse keskustelu nähdäksesi tiedot",
@@ -575,7 +585,10 @@
                 "cancel": "Peruuta",
                 "save": "Tallenna tarkistus",
                 "saving": "Tallennetaan…",
-                "save_error": "Tarkistuksen tallentaminen epäonnistui. Yritä uudelleen."
+                "save_error": "Tarkistuksen tallentaminen epäonnistui. Yritä uudelleen.",
+                "add_eval_case": "Lisää myös arviointitapaukseksi",
+                "add_eval_case_help": "Arviointiajot tarkistavat, että agentti antaa edelleen tämän vastauksen.",
+                "eval_case_added": "Tallennettu ja lisätty arviointitapauksiin."
             },
             "delete": {
                 "dialog_title": "Poistetaanko keskustelu?",
@@ -1681,7 +1694,8 @@
             "capabilities_tooltip": "Lisää chattiin monipuolisia ominaisuuksia — kuten interaktiivisia kaavioita",
             "forms": "Lomakkeet",
             "forms_tooltip": "Luo lomakkeita, jotka agenttisi näyttää keskustelussa",
-            "blocked": "Estetyt"
+            "blocked": "Estetyt",
+            "unanswered": "Vastaamatta"
         },
         "create_modal": {
             "title": "Luo agentti",
@@ -2332,6 +2346,26 @@
             "empty": "Ei vielä lähetyksiä.",
             "submitted_at": "Lähetetty",
             "deleted": "Lähetys poistettu"
+        },
+        "unanswered": {
+            "title": "Vastaamatta",
+            "description": "Kysymykset, joihin agentti ei löytänyt tietoa, ja vastaukset, jotka kävijät merkitsivät huonoiksi. Lisää oikea vastaus aukon täyttämiseksi.",
+            "chatlog_off": "Keskusteluloki on pois päältä tällä agentilla, joten uusia vastauksia ei tallenneta tähän.",
+            "filter_all": "Kaikki",
+            "filter_not_found": "Tietoa ei löytynyt",
+            "filter_thumbs_down": "Peukku alas",
+            "include_revised": "Näytä korjatut",
+            "load_error": "Luetteloa ei voitu ladata.",
+            "try_again": "Yritä uudelleen",
+            "empty": "Ei mitään. Jokainen viimeaikainen kysymys sai vastauksen.",
+            "reason_not_found": "Tietoa ei löytynyt",
+            "reason_thumbs_down": "Peukku alas",
+            "revised": "Korjattu",
+            "question": "Kysymys",
+            "answer": "Vastaus",
+            "no_question": "(kysymystä ei löytynyt)",
+            "add_answer": "Lisää oikea vastaus",
+            "open_conversation": "Avaa keskustelu"
         }
     },
     "auth": {

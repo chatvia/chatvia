@@ -1,0 +1,14 @@
+{
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "no_sources": "Aucune connaissance utilisée",
+                "no_sources_help": "Aucun passage de la base de connaissances n'a passé le contrôle de pertinence, cette réponse n'en a donc utilisé aucun."
+            }
+        }
+    },
+    "sources": {
+        "relevance": "Pertinence {score}",
+        "passage_removed": "Ce passage a depuis été retiré de la base de connaissances."
+    }
+}

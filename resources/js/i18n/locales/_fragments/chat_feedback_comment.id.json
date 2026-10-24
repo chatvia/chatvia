@@ -1,0 +1,16 @@
+{
+    "messages": {
+        "feedback_comment_label": "Apa yang salah? (opsional)",
+        "feedback_comment_placeholder": "Contoh: harganya sudah tidak berlaku.",
+        "feedback_comment_send": "Kirim",
+        "feedback_comment_skip": "Lewati",
+        "feedback_comment_thanks": "Terima kasih atas masukan Anda."
+    },
+    "agents": {
+        "chatlog": {
+            "messages": {
+                "feedback_comment": "Catatan pengunjung:"
+            }
+        }
+    }
+}

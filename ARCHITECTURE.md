@@ -51,7 +51,7 @@ command bar, messaging apps and a REST API.
 | `src/Domain/` | `Domain\` namespace: business logic, one folder per bounded context. |
 | `src/Support/` | `Support\` namespace: small helpers with no business rules. |
 | `routes/` | One file per area (`agents.php`, `chat.php`, `widget.php`, `api.php`, `ai.php`, one per messaging channel, ...). |
-| `config/` | Laravel config plus `chatvia.php` (product settings), `connectors.php`, `team-permissions.php`. |
+| `config/` | Laravel config plus `chatvia.php` (product settings), `connectors.php` (the list of connector classes), `team-permissions.php`. |
 | `database/` | Migrations, factories, seeders. |
 | `resources/js/` | The Vue frontend (dashboard and hosted chat). |
 | `resources/prompts/` | LLM prompt templates (Blade files, loaded with `prompt('folder/name')`). |
@@ -229,7 +229,8 @@ ChatVia.ai offers some tools of its own (charts, inline forms, weather, currency
 web search, account analytics) as Laravel MCP servers in `App\Mcp\Servers`,
 with their tools in `App\Mcp\Tools\{Analytics,Charts,Currency,Forms,Perplexity,Weather}`.
 They are routed in `routes/ai.php` under `/mcp/*` and added to agents like any
-other connector (`config/connectors.php`).
+other connector (a class in `Domain\Integration\Connector\Catalog\Connectors`,
+listed in `config/connectors.php`).
 
 - They are transport adapters, like controllers: validate the input, call a
   Domain Action, query or service, and map the result to the MCP response.
@@ -937,7 +938,7 @@ Use these words in code, UI and docs. Do not invent synonyms.
 | A connected MCP server | **McpServer** | `Domain\Integration\Mcp\Models\AgentMcpServer` |
 | A tool of a custom MCP server | **McpTool** | `Domain\Integration\Mcp\Models\McpTool` |
 | A tool of a catalog connector (shared catalog) | **ConnectorTool** | `Domain\Integration\Mcp\Models\ConnectorTool` |
-| A catalog MCP integration that signs in with OAuth | **Connector** | `config/connectors.php` + an `AgentMcpServer` row |
+| A catalog MCP integration that signs in with OAuth | **Connector** | a `Connector` class (listed in `config/connectors.php`) + an `AgentMcpServer` row |
 | A turn paused until a person approves a tool call | **ToolApprovalCheckpoint** | `Domain\Conversation\Models\ToolApprovalCheckpoint` |
 | A human operator taking over a conversation | **Handoff** | `HandoffStatus` on `Conversation`, `Actions/Handoff` |
 | Contact details captured in a conversation | **Lead** | a `FormSubmission` (`Domain\Form\Models\FormSubmission`) |
@@ -1283,7 +1284,8 @@ Both tests print the live ratio on every run, in the form
 | A side effect (e-mail, broadcast, push) | an event in `{Context}/Events/`, a listener in `{Context}/Listeners/`, **registered** in `DomainServiceProvider::registerEventListeners()` |
 | Background work | a job that calls an Action, on the right queue (`config/horizon.php`) |
 | A client for an outside service | a Service in `{Context}/Services/`, behind a contract when there can be more than one driver |
-| A new tool provider or built-in tool | `Domain\Integration\*`, or an MCP server in `App\Mcp` plus `config/connectors.php` |
+| A new tool provider or built-in tool | `Domain\Integration\*`, or an MCP server in `App\Mcp` plus a `Connector` class |
+| A new catalog connector | a class in `Domain\Integration\Connector\Catalog\Connectors` extending the base for how it connects (`DynamicOAuthConnector`, `PreRegisteredOAuthConnector`, `TokenConnector`, …), listed in `config/connectors.php`, with a logo and i18n text (`ConnectorCatalogTest` checks all three) |
 | A new messaging channel | `Domain\Channel\{Name}\` with a `ChannelAdapter` |
 | Account or sign-in logic | `App\Identity\*` |
 | A generic helper with no business rule | `Support\` |

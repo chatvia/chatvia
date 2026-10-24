@@ -3,6 +3,8 @@
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
+use Domain\Integration\Connector\Catalog\Connectors\ChartsConnector;
+use Domain\Integration\Connector\Catalog\Connectors\WeatherConnector;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 
@@ -27,31 +29,7 @@ function surfaceToolEntry(string $name): ToolEntry
 /** Minimal connectors catalog: charts pinned to Hosted Chat, weather unrestricted. */
 function surfaceCatalogConfig(): void
 {
-    config()->set('connectors', [
-        'charts' => [
-            'slug' => 'charts',
-            'name' => 'Interactive charts',
-            'description' => 'Charts',
-            'category' => 'Utilities',
-            'icon' => 'charts',
-            'brand_color' => '8B5CF6',
-            'auth_strategy' => 'none',
-            'priority' => 30,
-            'surfaces' => ['hosted_chat'],
-            'mcp_url' => 'https://example.test/mcp/charts',
-        ],
-        'weather' => [
-            'slug' => 'weather',
-            'name' => 'Weather',
-            'description' => 'Weather',
-            'category' => 'Utilities',
-            'icon' => 'weather',
-            'brand_color' => '3B82F6',
-            'auth_strategy' => 'token',
-            'priority' => 10,
-            'mcp_url' => 'https://example.test/mcp/weather',
-        ],
-    ]);
+    config()->set('connectors.catalog', [ChartsConnector::class, WeatherConnector::class]);
 }
 
 function surfaceToolNames(array $entries): array
@@ -90,19 +68,7 @@ it('keeps a surface-pinned connector on a surface in its allow-list', function (
 });
 
 it('keeps everything when no connector declares a surface restriction', function (): void {
-    config()->set('connectors', [
-        'weather' => [
-            'slug' => 'weather',
-            'name' => 'Weather',
-            'description' => 'Weather',
-            'category' => 'Utilities',
-            'icon' => 'weather',
-            'brand_color' => '3B82F6',
-            'auth_strategy' => 'token',
-            'priority' => 10,
-            'mcp_url' => 'https://example.test/mcp/weather',
-        ],
-    ]);
+    config()->set('connectors.catalog', [WeatherConnector::class]);
     $conversation = Conversation::factory()->create(['source' => ConversationSource::Widget]);
 
     $kept = surfaceToolNames($this->filter->apply($this->entries, $conversation->external_id));

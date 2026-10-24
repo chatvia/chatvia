@@ -7,8 +7,7 @@ namespace Domain\Integration\Connector\Enums;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * How a workspace connects a catalog connector (`auth_strategy` in
- * config/connectors.php):
+ * How a workspace connects a catalog connector (`Connector::$authStrategy`):
  *
  *   - None  → no credentials; connecting is a single click.
  *   - Token → the workspace pastes an API token (and, for some presets, its

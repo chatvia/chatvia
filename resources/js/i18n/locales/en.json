@@ -3964,7 +3964,9 @@
             "productivity": "Productivity",
             "communication": "Communication",
             "automation": "Automation",
-            "analytics": "Analytics"
+            "analytics": "Analytics",
+            "support": "Support",
+            "marketing": "Marketing"
         },
         "catalog": {
             "perplexity": {
@@ -4074,6 +4076,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Query product analytics — events, charts, and cohorts — from your Amplitude project."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Search conversations, contacts, and help articles in Intercom, and add internal notes."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Read and answer tickets, add internal notes, and use macros in your Gorgias helpdesk."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Search Help Scout conversations and pull support reports."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Read and reply to shared inbox conversations, drafts, tags, and contacts in Front."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Read and update deals, people, leads, activities, and notes in your Pipedrive CRM."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Search and update records, lists, notes, and tasks in your Attio CRM."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Read profiles, lists, segments, campaigns, flows, and reports from Klaviyo."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Read and update boards, items, and updates in monday.com."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Read and write bases, tables, and records in Airtable."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Look up invoices, orders, transactions, disputes, and shipment tracking in PayPal."
+            },
+            "forms": {
+                "name": "Forms",
+                "description": "Capture leads with a real, fillable form in the chat — plus booking and qualification forms. Validated and stored automatically; falls back to conversational capture on channels that can't show a form."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Search Google, Bing, YouTube, and other engines for live results — news, prices, locations — powered by SerpApi.",
+                "token_label": "SerpApi API key",
+                "token_placeholder": "Your SerpApi API key"
             }
         }
     },

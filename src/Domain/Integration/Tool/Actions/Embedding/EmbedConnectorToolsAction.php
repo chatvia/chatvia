@@ -67,7 +67,7 @@ class EmbedConnectorToolsAction
 
     /**
      * The connector's "{name}\n{description}" context, resolved from the preset
-     * catalog (config/connectors.php) or, for builtins, the registry
+     * catalog (ConnectorCatalog) or, for builtins, the registry
      * (config/mcp.php). Empty string when neither knows the slug.
      */
     private function connectorContext(string $connectorSlug): string

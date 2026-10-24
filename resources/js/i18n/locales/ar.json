@@ -3964,7 +3964,9 @@
             "productivity": "الإنتاجية",
             "communication": "التواصل",
             "automation": "الأتمتة",
-            "analytics": "التحليلات"
+            "analytics": "التحليلات",
+            "support": "الدعم",
+            "marketing": "التسويق"
         },
         "catalog": {
             "perplexity": {
@@ -4074,6 +4076,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "استعلم عن تحليلات المنتج — الأحداث والرسوم البيانية والمجموعات — من مشروع Amplitude الخاص بك."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "ابحث في المحادثات وجهات الاتصال ومقالات المساعدة في Intercom، وأضف ملاحظات داخلية."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "اقرأ التذاكر وردّ عليها، وأضف ملاحظات داخلية، واستخدم وحدات الماكرو في مكتب مساعدة Gorgias الخاص بك."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "ابحث في محادثات Help Scout واجلب تقارير الدعم."
+            },
+            "front": {
+                "name": "Front",
+                "description": "اقرأ محادثات صندوق الوارد المشترك والمسودات والوسوم وجهات الاتصال في Front وردّ عليها."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "اقرأ وحدّث الصفقات والأشخاص والعملاء المحتملين والأنشطة والملاحظات في نظام Pipedrive CRM الخاص بك."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "ابحث في السجلات والقوائم والملاحظات والمهام وحدّثها في نظام Attio CRM الخاص بك."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "اقرأ الملفات الشخصية والقوائم والشرائح والحملات والتدفقات والتقارير من Klaviyo."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "اقرأ وحدّث اللوحات والعناصر والتحديثات في monday.com."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "اقرأ واكتب القواعد والجداول والسجلات في Airtable."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "ابحث عن الفواتير والطلبات والمعاملات والنزاعات وتتبع الشحنات في PayPal."
+            },
+            "forms": {
+                "name": "النماذج",
+                "description": "اجمع العملاء المحتملين بنموذج حقيقي يُملأ داخل المحادثة، إضافة إلى نماذج الحجز والتأهيل. يتم التحقق من البيانات وحفظها تلقائيًا؛ وفي القنوات التي لا تعرض النماذج تُجمع البيانات خلال المحادثة."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "ابحث في Google وBing وYouTube ومحركات أخرى عن نتائج مباشرة: أخبار وأسعار وأماكن. مقدَّم من SerpApi.",
+                "token_label": "مفتاح API لـ SerpApi",
+                "token_placeholder": "مفتاح API الخاص بك لـ SerpApi"
             }
         }
     },

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginBringYourOwnClientOAuthAction;
-use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Illuminate\Support\Uri;
 use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 
@@ -14,7 +14,7 @@ use Tests\Support\Integration\Connector\PendingConnectorOAuth;
  * client id + endpoints — no discovery, no dynamic registration.
  */
 it('builds a PKCE authorize URL from the supplied client + endpoints', function (): void {
-    $connector = ConnectorData::fromArray(config('connectors.salesforce'));
+    $connector = app(ConnectorCatalog::class)->find('salesforce');
     $user = User::factory()->create();
 
     $byo = new BringYourOwnOAuthData(

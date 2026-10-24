@@ -8,7 +8,9 @@
             "productivity": "Tuottavuus",
             "communication": "Viestintä",
             "automation": "Automaatio",
-            "analytics": "Analytiikka"
+            "analytics": "Analytiikka",
+            "support": "Asiakastuki",
+            "marketing": "Markkinointi"
         },
         "catalog": {
             "perplexity": {
@@ -118,6 +120,56 @@
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Tee kyselyitä tuoteanalytiikkaan — tapahtumat, kaaviot ja kohortit — Amplitude-projektistasi."
+            },
+            "intercom": {
+                "name": "Intercom",
+                "description": "Hae keskusteluja, yhteystietoja ja ohjeartikkeleita Intercomista ja lisää sisäisiä muistiinpanoja."
+            },
+            "gorgias": {
+                "name": "Gorgias",
+                "description": "Lue ja vastaa tiketteihin, lisää sisäisiä muistiinpanoja ja käytä makroja Gorgias-helpdeskissäsi."
+            },
+            "help-scout": {
+                "name": "Help Scout",
+                "description": "Hae Help Scout -keskusteluja ja hae tukiraportteja."
+            },
+            "front": {
+                "name": "Front",
+                "description": "Lue jaetun saapuneet-kansion keskusteluja, luonnoksia, tunnisteita ja yhteystietoja Frontissa ja vastaa niihin."
+            },
+            "pipedrive": {
+                "name": "Pipedrive",
+                "description": "Lue ja päivitä kauppoja, henkilöitä, liidejä, aktiviteetteja ja muistiinpanoja Pipedrive CRM:ssäsi."
+            },
+            "attio": {
+                "name": "Attio",
+                "description": "Hae ja päivitä tietueita, listoja, muistiinpanoja ja tehtäviä Attio CRM:ssäsi."
+            },
+            "klaviyo": {
+                "name": "Klaviyo",
+                "description": "Lue profiileja, listoja, segmenttejä, kampanjoita, flow'ta ja raportteja Klaviyosta."
+            },
+            "monday": {
+                "name": "monday.com",
+                "description": "Lue ja päivitä tauluja, kohteita ja päivityksiä monday.comissa."
+            },
+            "airtable": {
+                "name": "Airtable",
+                "description": "Lue ja kirjoita baseja, taulukoita ja tietueita Airtablessa."
+            },
+            "paypal": {
+                "name": "PayPal",
+                "description": "Hae laskuja, tilauksia, tapahtumia, riitoja ja lähetysten seurantatietoja PayPalista."
+            },
+            "forms": {
+                "name": "Lomakkeet",
+                "description": "Kerää liidejä oikealla, chatissa täytettävällä lomakkeella sekä varaus- ja kartoituslomakkeilla. Tiedot tarkistetaan ja tallennetaan automaattisesti; kanavilla, jotka eivät voi näyttää lomaketta, tiedot kysytään keskustelussa."
+            },
+            "serpapi": {
+                "name": "SerpApi",
+                "description": "Hae ajantasaisia tuloksia Googlesta, Bingistä, YouTubesta ja muista hakukoneista: uutisia, hintoja, paikkoja. Palvelun tarjoaa SerpApi.",
+                "token_label": "SerpApi API-avain",
+                "token_placeholder": "SerpApi API-avaimesi"
             }
         }
     }

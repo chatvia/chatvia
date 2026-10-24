@@ -114,10 +114,10 @@ function morGoogleMetadata(): OAuthServerMetadata
 
 it('gives each connector its own OAuth app, even on a shared authorization server', function (): void {
     config([
-        'connectors.gmail.oauth_client_id' => 'gmail-app',
-        'connectors.gmail.oauth_client_secret' => 'gmail-secret',
-        'connectors.google-drive.oauth_client_id' => 'drive-app',
-        'connectors.google-drive.oauth_client_secret' => 'drive-secret',
+        'connectors.oauth_apps.gmail.client_id' => 'gmail-app',
+        'connectors.oauth_apps.gmail.client_secret' => 'gmail-secret',
+        'connectors.oauth_apps.google-drive.client_id' => 'drive-app',
+        'connectors.oauth_apps.google-drive.client_secret' => 'drive-secret',
     ]);
     $catalog = app(ConnectorCatalog::class);
     $registrar = app(McpOAuthRegistrar::class);
@@ -132,17 +132,17 @@ it('gives each connector its own OAuth app, even on a shared authorization serve
 });
 
 it('uses a rotated connector secret for the next connection', function (): void {
-    config(['connectors.gmail.oauth_client_id' => 'gmail-app', 'connectors.gmail.oauth_client_secret' => 'old-secret']);
+    config(['connectors.oauth_apps.gmail.client_id' => 'gmail-app', 'connectors.oauth_apps.gmail.client_secret' => 'old-secret']);
     $registrar = app(McpOAuthRegistrar::class);
     $registrar->clientFor(morGoogleMetadata(), app(ConnectorCatalog::class)->find('gmail'));
 
-    config(['connectors.gmail.oauth_client_secret' => 'new-secret']);
+    config(['connectors.oauth_apps.gmail.client_secret' => 'new-secret']);
 
     expect($registrar->clientFor(morGoogleMetadata(), app(ConnectorCatalog::class)->find('gmail'))->client_secret)->toBe('new-secret');
 });
 
 it('refuses a server without dynamic registration when the connector has no OAuth app', function (): void {
-    config(['connectors.gmail.oauth_client_id' => null]);
+    config(['connectors.oauth_apps.gmail.client_id' => null]);
 
     expect(fn () => app(McpOAuthRegistrar::class)->clientFor(morGoogleMetadata(), app(ConnectorCatalog::class)->find('gmail')))
         ->toThrow(McpOAuthException::class, 'requires a pre-registered OAuth client')

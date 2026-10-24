@@ -886,6 +886,7 @@ declare namespace Domain {
                         priority: number;
                         provider: string;
                         logoUrl: string | null;
+                        activityLabel: string | null;
                         authType: string | null;
                         tokenLabel: string | null;
                         tokenHelpUrl: string | null;

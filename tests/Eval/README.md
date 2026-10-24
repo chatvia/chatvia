@@ -1,13 +1,22 @@
 # Evals
 
-Two offline measurement harnesses, both in the `Eval` test suite. They run
-the *real* embeddings and reranker, print a scoreboard, and skip themselves
-without keys. Neither is a pass/fail gate.
+Three offline measurement harnesses, all in the `Eval` test suite. They print
+a scoreboard or a report and skip themselves without what they need (keys, or
+a folder of sample documents). None is a pass/fail gate. Run them with
+`--testsuite=Eval`.
 
 - [Knowledge retrieval](#knowledge-retrieval-eval): does the agent's search find the
   passage that answers a question, and nothing for a question its knowledge
   does not cover?
 - [Tool routing](#tool-routing-eval): does the router give the model the right tool?
+- [Document readers](#document-reader-eval): is the built-in PHP reader of a
+  format good enough for servers without the program it stands in for?
+
+The two retrieval harnesses run the *real* embeddings and reranker
+(`evalUseRealModels()` in `tests/Pest.php`): a provider key given on the
+command line, named after the provider's config block (`SCALEWAYAI_API_KEY`,
+`OPENROUTER_API_KEY`, `COHERE_API_KEY`, `GEMINI_API_KEY`, `VOYAGE_API_KEY`…),
+goes into config, as the admin panel puts it there.
 
 # Tool-routing eval
 
@@ -183,3 +192,27 @@ cover, or the threshold sweep can only say "keep everything".
 The best threshold keeps nearly every right passage and blocks most uncovered
 questions. A reranker's scores have their own scale, so each reranker gets its
 own threshold.
+
+# Document reader eval
+
+`DocumentReaderEvalTest.php` compares the built-in PHP readers
+(`Domain\Knowledge\Document\Conversion\Markdown`) with the program each one
+stands in for: pandoc for DOCX, ODT, RTF, EPUB and FB2, catdoc for DOC and
+catppt for PPT. It needs a folder of sample documents and pandoc, and skips
+without them.
+
+```bash
+EVAL_DOCUMENTS=/path/to/samples vendor/bin/pest --testsuite=Eval --filter=readers
+```
+
+| Env var | What it does |
+|---|---|
+| `EVAL_DOCUMENTS` | the sample folder, read recursively (required) |
+| `EVAL_REPORT` | where the Markdown report goes (default: the temp folder) |
+| `EVAL_OUTPUT` | a folder for each file's two Markdown readings, to diff by hand |
+| `EVAL_CATDOC`, `EVAL_CATPPT` | the catdoc and catppt to compare with, when they are not the ones in the settings |
+| `EVAL_RETRIEVAL` | `1` = also chunk and embed both readings and ask the questions in `EVAL_DOCUMENTS/questions.php` (needs a real embeddings key) |
+
+For each file the report gives how many of the program's words the PHP reader
+kept (recall) and added (precision), whether their order holds, and the
+headings, tables, rows and footnotes on each side.

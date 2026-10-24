@@ -17,7 +17,7 @@ beforeEach(function (): void {
     config(['chatvia.ai.tasks.enhancement' => (string) testLlm('smart-model')->id]);
 });
 
-function chunkerResponse(?array $usage): array
+function chkResponse(?array $usage): array
 {
     $body = [
         'choices' => [[
@@ -38,7 +38,7 @@ function chunkerResponse(?array $usage): array
 }
 
 it('returns the summary, questions and model of the enhancement call', function (): void {
-    Http::fake(['*' => Http::response(chunkerResponse(null))]);
+    Http::fake(['*' => Http::response(chkResponse(null))]);
 
     $chunk = app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Oceans cover most of Earth.', checksum: 'c'));
 
@@ -50,7 +50,7 @@ it('returns the summary, questions and model of the enhancement call', function 
 });
 
 it('does not log the model output, at any level', function (): void {
-    Http::fake(['*' => Http::response(chunkerResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
+    Http::fake(['*' => Http::response(chkResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
 
     // Every log write, whatever its level or channel, raises MessageLogged.
     $logged = [];
@@ -64,7 +64,7 @@ it('does not log the model output, at any level', function (): void {
 });
 
 it('asks for the summary and questions in the page\'s own language', function (): void {
-    Http::fake(['*' => Http::response(chunkerResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
+    Http::fake(['*' => Http::response(chkResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
 
     app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Dania er syv år gammel.', checksum: 'c'));
 

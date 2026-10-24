@@ -13,29 +13,24 @@ it('cuts windows of the size that join back into the text', function (): void {
     $text = str_repeat('The quick brown fox jumps over the lazy dog. ', 20);
     $windows = $measure->windows($text, 16, 0);
 
-    expect(implode('', $windows))->toBe($text);
-
-    foreach ($windows as $window) {
-        expect($measure->length($window))->toBeLessThanOrEqual(16);
-    }
+    expect(implode('', $windows))->toBe($text)
+        ->and(array_map($measure->length(...), $windows))->each->toBeLessThanOrEqual(16);
 });
 
-it('never cuts inside an Arabic letter or an emoji', function (string $text): void {
-    $measure = new TokenMeasure('cl100k_base');
+it('never cuts inside an Arabic letter or an emoji', function (string $text, int $size): void {
+    $windows = new TokenMeasure('cl100k_base')->windows($text, $size, 0);
 
-    foreach ([1, 2, 3, 7] as $size) {
-        $windows = $measure->windows($text, $size, 0);
-
-        expect(implode('', $windows))->toBe($text);
-
-        foreach ($windows as $window) {
-            expect(mb_check_encoding($window, 'UTF-8'))->toBeTrue();
-        }
-    }
+    expect(implode('', $windows))->toBe($text)
+        ->and(array_filter($windows, fn (string $window): bool => ! mb_check_encoding($window, 'UTF-8')))->toBe([]);
 })->with([
     'Arabic' => ['مرحبا بكم في مكتبتنا. نحن نقدم الكتب العربية والإنجليزية للجميع.'],
     'emoji' => ['Family 👨‍👩‍👧 and flags 🇸🇪🇩🇪 and a thumbs up 👍🏽 here.'],
     'Chinese' => ['我们的商店每天营业，欢迎光临。'],
+])->with([
+    'windows of 1 token' => 1,
+    'windows of 2 tokens' => 2,
+    'windows of 3 tokens' => 3,
+    'windows of 7 tokens' => 7,
 ]);
 
 it('repeats the overlap at the start of the next window, and always moves forward', function (): void {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -54,6 +55,21 @@ class ChunkFactory extends Factory
             'chunkable_type' => $source->getMorphClass(),
             'chunkable_id' => $source->getKey(),
         ]);
+    }
+
+    /**
+     * A website chunk that these pages produced: one `chunk_references` row
+     * per page, under the page's morph alias.
+     */
+    public function referencedBy(Model ...$pages): static
+    {
+        return $this->afterCreating(function (Chunk $chunk) use ($pages): void {
+            ChunkReference::query()->insert(array_map(fn (Model $page): array => [
+                'chunk_id' => $chunk->id,
+                'referenceable_type' => $page->getMorphClass(),
+                'referenceable_id' => $page->getKey(),
+            ], array_values($pages)));
+        });
     }
 
     /** The source's summary chunk (`chunk_index` 0). */

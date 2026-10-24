@@ -12,14 +12,14 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
  * blocks and tables kept whole when they fit, and the headings above every
  * chunk repeated at its start.
  */
-function mdSplit(string $markdown, int $size, int $overlap = 0, ?ChunkMeasure $measure = null): array
+function mdsSplit(string $markdown, int $size, int $overlap = 0, ?ChunkMeasure $measure = null): array
 {
     return new MarkdownSplitter(new RecursiveSplitter($measure ?? new CharacterMeasure, $size, $overlap))->split($markdown);
 }
 
 it('keeps a page that fits as one chunk', function (): void {
-    expect(mdSplit("# Help\n\nWelcome.\n\n## Returns\n\nAny item.", 200))->toBe(["# Help\n\nWelcome.\n\n## Returns\n\nAny item."])
-        ->and(mdSplit(" \n\n ", 200))->toBe([]);
+    expect(mdsSplit("# Help\n\nWelcome.\n\n## Returns\n\nAny item.", 200))->toBe(["# Help\n\nWelcome.\n\n## Returns\n\nAny item."])
+        ->and(mdsSplit(" \n\n ", 200))->toBe([]);
 });
 
 it('starts each section with its heading, and packs small sections together', function (): void {
@@ -37,7 +37,7 @@ it('starts each section with its heading, and packs small sections together', fu
         We take cards.
         MD;
 
-    expect(mdSplit($markdown, 80))->toBe([
+    expect(mdsSplit($markdown, 80))->toBe([
         "# Returns\n\nYou can return any item within 30 days of delivery.",
         "# Shipping\n\nWe ship in two days.\n\n# Payment\n\nWe take cards.",
     ]);
@@ -56,7 +56,7 @@ it('repeats the headings above a chunk from the middle of a long section', funct
         Each source may hold a million words. Ask us for more.
         MD;
 
-    $chunks = mdSplit($markdown, 100);
+    $chunks = mdsSplit($markdown, 100);
 
     expect($chunks)->toBe([
         "# Pricing\n## Enterprise\n### Limits\n\nEach workspace has ten agents. Each agent has many sources.",
@@ -71,7 +71,7 @@ it('repeats the headings above a chunk from the middle of a long section', funct
 it('keeps only the closest heading when the headings would take more than half the chunk', function (): void {
     $markdown = "# A very long title for the whole help centre\n\n## Returns\n\nYou can return any item within thirty days. Keep the receipt.";
 
-    expect(mdSplit($markdown, 60))->toBe([
+    expect(mdsSplit($markdown, 60))->toBe([
         "## Returns\n\nYou can return any item within thirty days.",
         "## Returns\n\nKeep the receipt.",
     ]);
@@ -89,8 +89,8 @@ it('does not take a comment inside a code block for a heading', function (): voi
         Then start the app.
         MD;
 
-    expect(mdSplit($markdown, 200))->toBe([$markdown])
-        ->and(mdSplit($markdown, 90))->toBe([
+    expect(mdsSplit($markdown, 200))->toBe([$markdown])
+        ->and(mdsSplit($markdown, 90))->toBe([
             "# Install\n\n```bash\n# Download the files\ncurl -O https://example.com/app.tar.gz\n```",
             "# Install\n\nThen start the app.",
         ]);
@@ -111,7 +111,7 @@ it('finds underlined headings (= for level 1, - for level 2), and keeps a lone r
         Two days.
         MD;
 
-    expect(mdSplit($markdown, 50))->toBe([
+    expect(mdsSplit($markdown, 50))->toBe([
         "Returns\n=======\n\nAny item within 30 days.\n\n---",
         "# Returns\n\nShipping\n--------\n\nTwo days.",
     ]);
@@ -119,7 +119,7 @@ it('finds underlined headings (= for level 1, - for level 2), and keeps a lone r
 
 it('cuts a long code block by lines, with its fences in every part', function (): void {
     $code = implode("\n", array_map(fn (int $line): string => "echo 'line {$line}';", range(1, 12)));
-    $chunks = mdSplit("# Script\n\n```php\n{$code}\n```", 120);
+    $chunks = mdsSplit("# Script\n\n```php\n{$code}\n```", 120);
 
     expect(count($chunks))->toBeGreaterThan(1);
 
@@ -136,9 +136,9 @@ it('keeps a table that fits whole, and repeats the header row in every part of a
     $rows = implode("\n", array_map(fn (int $row): string => "| Shop {$row} | Street {$row} |", range(1, 10)));
     $table = "| Shop | Address |\n|---|---|\n{$rows}";
 
-    expect(mdSplit("# Shops\n\n{$table}\n\nAll shops close on holidays.", 400))->toBe(["# Shops\n\n{$table}\n\nAll shops close on holidays."]);
+    expect(mdsSplit("# Shops\n\n{$table}\n\nAll shops close on holidays.", 400))->toBe(["# Shops\n\n{$table}\n\nAll shops close on holidays."]);
 
-    $chunks = mdSplit("# Shops\n\n{$table}", 120);
+    $chunks = mdsSplit("# Shops\n\n{$table}", 120);
 
     expect(count($chunks))->toBeGreaterThan(1);
 
@@ -151,7 +151,7 @@ it('keeps a table that fits whole, and repeats the header row in every part of a
 it('leaves out a bare heading that only leads into the next section', function (): void {
     $markdown = "# Guide\n\n## Returns\n\n".str_repeat('Any item within 30 days. ', 4);
 
-    expect(mdSplit($markdown, 80))->toBe([
+    expect(mdsSplit($markdown, 80))->toBe([
         "# Guide\n## Returns\n\nAny item within 30 days. Any item within 30 days.",
         "# Guide\n## Returns\n\nAny item within 30 days. Any item within 30 days.",
     ]);
@@ -159,7 +159,7 @@ it('leaves out a bare heading that only leads into the next section', function (
 
 it('splits Arabic Markdown in tokens and characters without cutting a letter', function (ChunkMeasure $measure, int $size): void {
     $markdown = "# مساعدة\n\n## الإرجاع\n\n".str_repeat('يمكنك إرجاع أي منتج خلال ثلاثين يوما. احتفظ بالإيصال. ', 6)."\n\n## الشحن\n\nنشحن خلال يومين 👍🏽.";
-    $chunks = mdSplit($markdown, $size, 0, $measure);
+    $chunks = mdsSplit($markdown, $size, 0, $measure);
 
     expect(count($chunks))->toBeGreaterThan(1);
 
@@ -175,7 +175,7 @@ it('splits Arabic Markdown in tokens and characters without cutting a letter', f
 
 it('splits a crawled page and an ebook into chunks that fit', function (string $markdown): void {
     $measure = new TokenMeasure('cl100k_base');
-    $chunks = mdSplit($markdown, 120, 0, $measure);
+    $chunks = mdsSplit($markdown, 120, 0, $measure);
 
     expect(count($chunks))->toBeGreaterThan(2);
 
@@ -194,7 +194,7 @@ it('splits a crawled page and an ebook into chunks that fit', function (string $
 it('carries the overlap between blocks of a long section', function (): void {
     $markdown = "# Notes\n\nFirst note.\n\nSecond note.\n\nThird note.\n\nFourth note.";
 
-    expect(mdSplit($markdown, 45, 15))->toBe([
+    expect(mdsSplit($markdown, 45, 15))->toBe([
         "# Notes\n\nFirst note.\n\nSecond note.",
         "# Notes\n\nSecond note.\n\nThird note.",
         "# Notes\n\nThird note.\n\nFourth note.",

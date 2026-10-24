@@ -162,13 +162,32 @@ it('gates conversation deletion by agent.chat.delete', function (): void {
         ->assertNotFound();
 });
 
-it('gates file processing by agent.sources.train.files', function (): void {
+// The upload has no file here, so a permitted teammate passes the gate and
+// then fails the validation (422).
+it('gates uploading and processing files by agent.sources.train.files', function (string $route, int $allowedStatus): void {
     $blocked = teammateWithPermissions($this->owner, []);
     $allowed = teammateWithPermissions($this->owner, ['agent.sources.train.files']);
 
-    $this->actingAs($blocked)->postJson(route('agents.sources.files.process', $this->agent))->assertForbidden();
-    $this->actingAs($allowed)->postJson(route('agents.sources.files.process', $this->agent))->assertOk();
-});
+    $this->actingAs($blocked)->postJson(route($route, $this->agent))->assertForbidden();
+    $this->actingAs($allowed)->postJson(route($route, $this->agent))->assertStatus($allowedStatus);
+})->with([
+    'upload' => ['agents.sources.files.upload', 422],
+    'process' => ['agents.sources.files.process', 200],
+]);
+
+it('gates the source pages by their training permission', function (string $permission, string $route): void {
+    $blocked = teammateWithPermissions($this->owner, []);
+    $allowed = teammateWithPermissions($this->owner, [$permission]);
+
+    $this->actingAs($blocked)->get(route($route, $this->agent))->assertForbidden();
+    $this->actingAs($allowed)->get(route($route, $this->agent))->assertOk();
+})->with([
+    'files' => ['agent.sources.train.files', 'agents.sources.files'],
+    'files data' => ['agent.sources.train.files', 'agents.sources.files.data'],
+    'audio' => ['agent.sources.train.audio', 'agents.sources.audio'],
+    'video' => ['agent.sources.train.video', 'agents.sources.video'],
+    'web' => ['agent.sources.train.web', 'agents.sources.web'],
+]);
 
 it('lets the owner through (owners hold every permission)', function (): void {
     $this->actingAs($this->owner)

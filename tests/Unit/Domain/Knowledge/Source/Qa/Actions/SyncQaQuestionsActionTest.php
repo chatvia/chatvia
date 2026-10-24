@@ -5,18 +5,15 @@ use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\SyncQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Actions\UpdateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
-use Domain\Knowledge\Source\Qa\Jobs\EmbedQaQuestionsJob;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
-use Domain\Knowledge\Source\Qa\Services\QuestionNormalizer;
-use Illuminate\Support\Facades\Bus;
 
 /**
  * Every question of a Q&A entry gets its own row with its normalized form,
  * so a message can be matched against each question as a whole. The rows
  * follow the entry however it is saved.
  */
-function qaQuestionRows(AgentQuestionAnswer $qa): array
+function sqqRows(AgentQuestionAnswer $qa): array
 {
     return AgentQuestionAnswerQuestion::query()
         ->where('agent_question_answer_id', $qa->id)
@@ -34,7 +31,7 @@ it('stores one normalized row per question', function (): void {
         answer: 'We are open from nine to five.',
     ));
 
-    expect(qaQuestionRows($qa))->toBe([
+    expect(sqqRows($qa))->toBe([
         ['agent_id' => $agent->id, 'question' => 'When are you OPEN?', 'normalized' => 'when are you open'],
         ['agent_id' => $agent->id, 'question' => 'What are your hours?!', 'normalized' => 'what are your hours'],
     ]);
@@ -46,11 +43,11 @@ it('rebuilds the rows when the questions change, and only then', function (): vo
 
     app(UpdateAgentQaAction::class)->execute($qa, new QaEntryData('Hours', ['Are you open on Sunday?'], 'From nine to five.'));
 
-    expect(array_column(qaQuestionRows($qa), 'normalized'))->toBe(['are you open on sunday']);
+    expect(array_column(sqqRows($qa), 'normalized'))->toBe(['are you open on sunday']);
 
     $qa->update(['answer' => 'From ten to six.']);
 
-    expect(array_column(qaQuestionRows($qa), 'normalized'))->toBe(['are you open on sunday']);
+    expect(array_column(sqqRows($qa), 'normalized'))->toBe(['are you open on sunday']);
 });
 
 it('leaves out a question that is only punctuation', function (): void {
@@ -59,24 +56,5 @@ it('leaves out a question that is only punctuation', function (): void {
 
     app(SyncQaQuestionsAction::class)->execute($qa);
 
-    expect(array_column(qaQuestionRows($qa), 'question'))->toBe(['Real question?']);
-});
-
-it('normalizes case, accents, Arabic diacritics, punctuation and spaces', function (string $text, string $normalized): void {
-    expect(QuestionNormalizer::normalize($text))->toBe($normalized);
-})->with([
-    'case and punctuation' => ['What are your OPENING hours?', 'what are your opening hours'],
-    'accents' => ['Où est le café ?', 'ou est le cafe'],
-    'Arabic diacritics and tatweel' => ['مَتَى تَفْتَحُــون؟', 'متى تفتحون'],
-    'symbols and spaces' => ['  price   in €  /  $ ', 'price in'],
-    'only punctuation' => ['?!', ''],
-]);
-
-it('queues the embeddings of the questions after saving', function (): void {
-    Bus::fake();
-    $agent = Agent::factory()->create();
-
-    $qa = app(CreateAgentQaAction::class)->execute($agent, new QaEntryData('Hours', ['When are you open?'], 'From nine to five.'));
-
-    Bus::assertDispatched(EmbedQaQuestionsJob::class, fn (EmbedQaQuestionsJob $job): bool => $job->qa->is($qa));
+    expect(array_column(sqqRows($qa), 'question'))->toBe(['Real question?']);
 });

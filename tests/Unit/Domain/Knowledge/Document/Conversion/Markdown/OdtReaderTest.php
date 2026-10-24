@@ -80,7 +80,7 @@ it('lists notes at the end and reads text boxes and links', function (): void {
 });
 
 it('refuses a file without content', function (): void {
-    $path = create_temp_file('empty.odt', '');
+    $path = tempTestFile('empty.odt');
     $zip = new ZipArchive;
     $zip->open($path, ZipArchive::OVERWRITE);
     $zip->addFromString('mimetype', 'application/vnd.oasis.opendocument.text');

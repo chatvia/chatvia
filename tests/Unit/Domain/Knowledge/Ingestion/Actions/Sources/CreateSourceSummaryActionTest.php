@@ -21,31 +21,40 @@ beforeEach(function (): void {
     ]);
 });
 
-it('stores the summary chunk with the analysis questions and metadata', function (): void {
-    Http::fake(function (Request $request) {
+/**
+ * The analysis model answers with this document type, language and topics
+ * (and five questions); the summary model answers with $summary.
+ *
+ * @param  list<string>  $topics
+ */
+function cssFakeModels(string $documentType, string $language, array $topics, string $summary): void
+{
+    Http::fake(function (Request $request) use ($documentType, $language, $topics, $summary) {
         if (isset($request['response_format'])) {
             return Http::response([
                 'choices' => [['message' => ['content' => json_encode([
                     'questions' => ['q1', 'q2', 'q3', 'q4', 'q5'],
-                    'document_type' => 'user_manual',
+                    'document_type' => $documentType,
                     'metadata' => [
                         'complexity_level' => 'beginner',
                         'target_audience' => 'end_users',
                         'writing_style' => 'instructional',
                         'estimated_reading_time_minutes' => 3,
-                        'key_topics' => ['setup'],
+                        'key_topics' => $topics,
                         'contains_sensitive_info' => false,
                     ],
-                    'language' => 'en',
+                    'language' => $language,
                     'confidence_score' => 0.9,
                 ])]]],
             ]);
         }
 
-        return Http::response([
-            'choices' => [['message' => ['content' => 'A short summary of the manual.']]],
-        ]);
+        return Http::response(['choices' => [['message' => ['content' => $summary]]]]);
     });
+}
+
+it('stores the summary chunk with the analysis questions and metadata', function (): void {
+    cssFakeModels('user_manual', 'en', ['setup'], 'A short summary of the manual.');
 
     $source = AgentFileFactory::new()->create([
         'filepath' => 'users/x/agents/y/files/manual.pdf',
@@ -100,28 +109,7 @@ it('reads the document with the configured summary and analysis models', functio
         'chatvia.ai.models.analysis' => 'analysis-model-x',
     ]);
 
-    Http::fake(function (Request $request) {
-        if (isset($request['response_format'])) {
-            return Http::response([
-                'choices' => [['message' => ['content' => json_encode([
-                    'questions' => ['q1', 'q2', 'q3', 'q4', 'q5'],
-                    'document_type' => 'faq',
-                    'metadata' => [
-                        'complexity_level' => 'beginner',
-                        'target_audience' => 'end_users',
-                        'writing_style' => 'informative',
-                        'estimated_reading_time_minutes' => 1,
-                        'key_topics' => ['refunds'],
-                        'contains_sensitive_info' => false,
-                    ],
-                    'language' => 'en',
-                    'confidence_score' => 0.9,
-                ])]]],
-            ]);
-        }
-
-        return Http::response(['choices' => [['message' => ['content' => 'Summary.']]]]);
-    });
+    cssFakeModels('faq', 'en', ['refunds'], 'Summary.');
 
     $source = AgentFileFactory::new()->create([
         'filepath' => 'users/x/agents/y/files/faq.pdf',
@@ -137,28 +125,7 @@ it('reads the document with the configured summary and analysis models', functio
 });
 
 it('sends the PDF itself, and asks for the summary in the detected language', function (): void {
-    Http::fake(function (Request $request) {
-        if (isset($request['response_format'])) {
-            return Http::response([
-                'choices' => [['message' => ['content' => json_encode([
-                    'questions' => ['q1', 'q2', 'q3', 'q4', 'q5'],
-                    'document_type' => 'other',
-                    'metadata' => [
-                        'complexity_level' => 'beginner',
-                        'target_audience' => 'general_public',
-                        'writing_style' => 'narrative',
-                        'estimated_reading_time_minutes' => 1,
-                        'key_topics' => ['familie'],
-                        'contains_sensitive_info' => false,
-                    ],
-                    'language' => 'da',
-                    'confidence_score' => 0.9,
-                ])]]],
-            ]);
-        }
-
-        return Http::response(['choices' => [['message' => ['content' => 'Resumé.']]]]);
-    });
+    cssFakeModels('other', 'da', ['familie'], 'Resumé.');
 
     $source = AgentFileFactory::new()->create([
         'filepath' => 'users/x/agents/y/files/dania.pdf',

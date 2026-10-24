@@ -17,8 +17,18 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
+use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
@@ -41,12 +51,16 @@ use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Process\ExecutableFinder;
 use Tests\RefreshTestDatabases;
+use Tests\Support\Files\TempTestFiles;
+use Tests\Support\Knowledge\Document\OldOffice\WordBinaryFile;
 use Tests\Support\Llm\FakeLlmProviders;
 use Tests\TestCase;
 
 pest()
     ->extend(TestCase::class)
     ->use(RefreshTestDatabases::class)
+    // The temp files a test made with tempTestFile() go, passed or failed.
+    ->afterEach(fn () => TempTestFiles::delete())
     ->in('Feature', 'Unit');
 
 // Eval harnesses (e.g. tool-routing retrieval quality) need the full app + a
@@ -404,6 +418,89 @@ function attachAgentTopics(Agent $agent, array $names): array
 function embeddingVector(float $value = 0.1): string
 {
     return '['.implode(',', array_fill(0, app(EmbeddingStorage::class)->dimensions(), $value)).']';
+}
+
+/**
+ * A temp file with $content, named with the extension of $filename. It is
+ * deleted after the test, whether the test passed or failed.
+ */
+function tempTestFile(string $filename, string $content = ''): string
+{
+    return deleteAfterTest(create_temp_file($filename, $content));
+}
+
+/**
+ * Deletes $path after the test, whether the test passed or failed: for a
+ * file a builder wrote ({@see WordBinaryFile::save()}). Returns $path.
+ */
+function deleteAfterTest(string $path): string
+{
+    return TempTestFiles::track($path);
+}
+
+/** A PDF of tests/Fixtures/pdf (plain, or locked with an owner or user password). */
+function pdfFixture(string $name): string
+{
+    return base_path("tests/Fixtures/pdf/{$name}.pdf");
+}
+
+/**
+ * Stores these pages (page 1 first) as the source's chunks the way ingestion
+ * does: through CreateSourceChunksAction, as one group, embedded by the bound
+ * embeddings provider.
+ *
+ * @param  list<string>  $pages
+ */
+function storeSourceChunks(SourceFile|SourceText|SourceWebsite $source, array $pages, ChunkEnhancement $enhancement = ChunkEnhancement::Off): void
+{
+    app(CreateSourceChunksAction::class)->execute(new ChunkPagesData(
+        source: $source,
+        group: new PageGroupData(PageData::fromParts($pages)),
+        enhancement: $enhancement,
+    ));
+}
+
+/**
+ * Swaps the offline fakes for the real models an eval (tests/Eval) measures.
+ * A provider key given on the command line, named after the provider's
+ * config block (SCALEWAYAI_API_KEY, OPENROUTER_API_KEY, COHERE_API_KEY,
+ * GEMINI_API_KEY, VOYAGE_API_KEY…), goes into config, as the admin panel puts
+ * it there; the EVAL_EMBEDDING_* overrides apply ({@see evalEmbeddingOverrides()});
+ * outside calls are allowed; and the configured embeddings provider and
+ * reranker are bound, probed once. Returns the bound embeddings provider.
+ *
+ * @throws RuntimeException before any request, when no key is given
+ * @throws Throwable when the real embeddings cannot be reached (a wrong key, no network)
+ */
+function evalUseRealModels(): EmbeddingsProviderInterface
+{
+    $given = 0;
+
+    foreach (AiProvider::cases() as $provider) {
+        $variable = Str::upper(Str::between($provider->apiKeyConfig(), 'services.', '.')).'_API_KEY';
+
+        if (filled($key = env($variable))) {
+            config([$provider->apiKeyConfig() => $key]);
+            $given++;
+        }
+    }
+
+    if ($given === 0) {
+        throw new RuntimeException('needs a real key: SCALEWAYAI_API_KEY=… (or OPENROUTER_API_KEY=…; COHERE_API_KEY=… for the reranker) vendor/bin/pest --testsuite=Eval');
+    }
+
+    evalEmbeddingOverrides();
+    Http::allowStrayRequests();
+
+    app()->forgetInstance(EmbeddingsProviderInterface::class);
+    $embeddings = app(EmbeddingsProviderInterface::class);
+    $embeddings->embedQuery('health check');
+    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
+
+    app()->forgetInstance(Reranker::class);
+    app()->instance(Reranker::class, app(Reranker::class));
+
+    return $embeddings;
 }
 
 /**

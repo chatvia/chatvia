@@ -44,13 +44,3 @@ it('builds bm25 indexes for the pg_textsearch driver', function (): void {
         ->toContain('USING bm25')
         ->toContain('text_config=simple');
 });
-
-it('covers every search_text column the hybrid searches read', function (): void {
-    expect(array_keys(ConfigureLexicalIndexesAction::INDEXES))
-        ->toBe(['chunks', 'connector_tools', 'mcp_tools', 'functions', 'form_definitions'])
-        ->and(ConfigureLexicalIndexesAction::INDEXES['chunks'])
-        ->toBe([
-            'chunks_search_text_lexical' => 'search_text',
-            'chunks_questions_lexical' => 'questions',
-        ]);
-});

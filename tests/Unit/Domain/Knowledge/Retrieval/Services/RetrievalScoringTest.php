@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use Domain\Knowledge\Retrieval\Services\RetrievalScoring;
 
+/**
+ * RetrievalScoring::plainText() gives the reranker a chunk as plain text: tags
+ * go, their text and the line breaks that carry meaning stay.
+ */
 describe('plainText', function (): void {
     it('removes tag markup but keeps the text inside it', function (): void {
         expect(RetrievalScoring::plainText('Hello <b>bold</b> and <span class="x">Price: €10</span> end'))

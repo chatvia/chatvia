@@ -48,17 +48,14 @@ it('reads the version of each slide the last save left, not an earlier one', fun
 });
 
 it('gives all slides as Markdown, a blank line apart', function (): void {
-    $path = new PowerPointBinaryFile()->slide(['One'])->slide(['Two'])->save();
+    $path = deleteAfterTest(new PowerPointBinaryFile()->slide(['One'])->slide(['Two'])->save());
 
     expect(new PptReader()->toMarkdown($path))->toBe("One\n\nTwo");
-
-    @unlink($path);
 });
 
 it('refuses a password-protected file and a file that is not a presentation', function (): void {
     $locked = new PowerPointBinaryFile()->slide(['Secret'])->encrypted()->save();
-    $other = (string) tempnam(sys_get_temp_dir(), 'ppt');
-    file_put_contents($other, CompoundFileWriter::write(['WordDocument' => 'not a presentation']));
+    $other = tempTestFile('other.ppt', CompoundFileWriter::write(['WordDocument' => 'not a presentation']));
 
     expect(fn (): array => pptrSlides($locked))->toThrow(RuntimeException::class, 'password protected')
         ->and(fn (): array => pptrSlides($other))->toThrow(RuntimeException::class, 'not a PowerPoint presentation');

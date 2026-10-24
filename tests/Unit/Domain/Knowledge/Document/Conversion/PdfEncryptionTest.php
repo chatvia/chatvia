@@ -10,38 +10,33 @@ use Domain\Knowledge\Document\Conversion\PdfInfo;
  * Standard security handler (2: RC4 40-bit, 3: RC4 128-bit, 4: AES-128,
  * 5 and 6: AES-256), with and without object streams.
  */
-function pencFixture(string $name): string
-{
-    return base_path("tests/Fixtures/pdf/{$name}.pdf");
-}
-
 it('finds no encryption in a plain PDF', function (): void {
     $encryption = new PdfEncryption;
 
-    expect($encryption->isEncrypted(pencFixture('plain')))->toBeFalse()
-        ->and($encryption->needsPassword(pencFixture('plain')))->toBeFalse();
+    expect($encryption->isEncrypted(pdfFixture('plain')))->toBeFalse()
+        ->and($encryption->needsPassword(pdfFixture('plain')))->toBeFalse();
 });
 
 it('opens an encrypted PDF whose user password is empty', function (string $fixture): void {
     $encryption = new PdfEncryption;
 
-    expect($encryption->isEncrypted(pencFixture($fixture)))->toBeTrue()
-        ->and($encryption->needsPassword(pencFixture($fixture)))->toBeFalse();
+    expect($encryption->isEncrypted(pdfFixture($fixture)))->toBeTrue()
+        ->and($encryption->needsPassword(pdfFixture($fixture)))->toBeFalse();
 })->with(['owner-r2', 'owner-r3', 'owner-r4', 'owner-r5', 'owner-r6', 'owner-r3-objstm', 'owner-r4-objstm', 'owner-r5-objstm', 'owner-r6-objstm']);
 
 it('needs the password of a PDF with a user password', function (string $fixture): void {
-    expect(new PdfEncryption()->needsPassword(pencFixture($fixture)))->toBeTrue();
+    expect(new PdfEncryption()->needsPassword(pdfFixture($fixture)))->toBeTrue();
 })->with(['user-r2', 'user-r3', 'user-r4', 'user-r5', 'user-r6', 'user-r6-objstm']);
 
 it('counts a PDF with another security handler as locked', function (): void {
-    $path = create_temp_file('pubsec.pdf', "%PDF-1.7\n1 0 obj\n<< /Filter /Adobe.PubSec /V 4 /R 4 >>\nendobj\ntrailer << /Root 2 0 R /Encrypt 1 0 R >>\n%%EOF\n");
+    $path = tempTestFile('pubsec.pdf', "%PDF-1.7\n1 0 obj\n<< /Filter /Adobe.PubSec /V 4 /R 4 >>\nendobj\ntrailer << /Root 2 0 R /Encrypt 1 0 R >>\n%%EOF\n");
 
     expect(new PdfEncryption()->needsPassword($path))->toBeTrue();
 });
 
 it('reads the page tree out of encrypted object streams', function (string $fixture): void {
     $pageTrees = array_filter(
-        new PdfEncryption()->dictionaries(pencFixture($fixture)),
+        new PdfEncryption()->dictionaries(pdfFixture($fixture)),
         fn (array $dictionary): bool => ($dictionary['Type'] ?? null) === '/Pages',
     );
 
@@ -50,7 +45,7 @@ it('reads the page tree out of encrypted object streams', function (string $fixt
 
 it('leaves out the object streams of a PDF it cannot open', function (): void {
     $pageTrees = array_filter(
-        new PdfEncryption()->dictionaries(pencFixture('user-r6-objstm')),
+        new PdfEncryption()->dictionaries(pdfFixture('user-r6-objstm')),
         fn (array $dictionary): bool => ($dictionary['Type'] ?? null) === '/Pages',
     );
 

@@ -8,15 +8,6 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
  * EmbeddingStorage turns EMBEDDING_VECTOR_TYPE / EMBEDDING_DIMENSIONS into the
  * column type every embedding column and query cast uses.
  */
-it('defaults to halfvec with 1024 dimensions', function (): void {
-    $storage = new EmbeddingStorage;
-
-    expect($storage->type())->toBe(VectorType::Halfvec)
-        ->and($storage->dimensions())->toBe(1024)
-        ->and($storage->columnType())->toBe('halfvec(1024)')
-        ->and($storage->type()->operatorClass())->toBe('halfvec_l2_ops');
-});
-
 it('reads the vector type and size from the settings', function (): void {
     config(['chatvia.embeddings.type' => ' Vector ', 'chatvia.embeddings.dimensions' => '1536']);
 

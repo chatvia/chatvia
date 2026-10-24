@@ -7,11 +7,7 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
-use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
-use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
-use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
@@ -19,14 +15,12 @@ use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
-use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 
 /**
  * OFFLINE EVAL — not a pass/fail gate. It measures knowledge retrieval against
@@ -51,43 +45,11 @@ use Illuminate\Support\Facades\Http;
 beforeEach(function (): void {
     // The eval calls the real embeddings and reranker, so it runs only with a
     // key on the command line, and skips before any request without one.
-    $scaleway = env('SCALEWAYAI_API_KEY');
-    $cohere = env('COHERE_API_KEY');
-    $openrouter = env('OPENROUTER_API_KEY');
-
-    if (blank($scaleway) && blank($cohere) && blank($openrouter)) {
-        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… (or COHERE_API_KEY=… / OPENROUTER_API_KEY=…) vendor/bin/pest --testsuite=Eval');
-    }
-
-    if (filled($scaleway)) {
-        config(['services.scalewayai.api_key' => $scaleway]);
-    }
-
-    if (filled($cohere)) {
-        config(['services.cohere.api_key' => $cohere]);
-    }
-
-    if (filled($openrouter)) {
-        config(['services.openrouter.api_key' => $openrouter]);
-    }
-
-    evalEmbeddingOverrides();
-
-    Http::allowStrayRequests();
-
-    app()->forgetInstance(EmbeddingsProviderInterface::class);
-    $provider = app(EmbeddingsProviderInterface::class);
-
     try {
-        $provider->embedQuery('health check');
+        evalUseRealModels();
     } catch (Throwable $e) {
-        $this->markTestSkipped('real embeddings unavailable (configure the embedding provider + API key): '.$e->getMessage());
+        $this->markTestSkipped($e->getMessage());
     }
-
-    app()->instance(EmbeddingsProviderInterface::class, $provider);
-
-    app()->forgetInstance(Reranker::class);
-    app()->instance(Reranker::class, app(Reranker::class));
 
     // The real splitter, as production splits these documents.
     app()->instance(TextSplitter::class, new BuiltinTextSplitter);
@@ -113,23 +75,13 @@ function retrievalEvalAgent(): Agent
     foreach (retrievalEvalDocuments() as $path => $kind) {
         $text = (string) file_get_contents($path);
 
-        $source = SourceText::query()->create([
-            'workspace_id' => $agent->workspace_id,
-            'filepath' => 'eval/'.basename($path),
+        $source = SourceText::factory()->ingested()->attachedTo($agent)->create([
             'excerpt' => mb_substr($text, 0, 200),
             'length' => mb_strlen($text),
             'checksum' => md5($path.$text),
-            'status' => SourceStatus::Completed,
         ]);
-        $agent->texts()->attach($source->id);
 
-        $pages = PageData::fromParts(app(TextSplitter::class)->split($text, $kind));
-
-        app(CreateSourceChunksAction::class)->execute(new ChunkPagesData(
-            source: $source,
-            group: new PageGroupData($pages),
-            enhancement: $enhancement,
-        ));
+        storeSourceChunks($source, app(TextSplitter::class)->split($text, $kind), $enhancement);
     }
 
     return $agent;

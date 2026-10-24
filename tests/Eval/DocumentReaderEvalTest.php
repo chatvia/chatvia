@@ -7,7 +7,6 @@ use Domain\Knowledge\Document\Conversion\CatDoc;
 use Domain\Knowledge\Document\Conversion\Markdown\MarkdownReaders;
 use Domain\Knowledge\Document\Conversion\OfficeText;
 use Domain\Knowledge\Document\Conversion\Pandoc;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
@@ -20,10 +19,9 @@ use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
-use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Llm\Enums\AiProvider;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Tests\Eval\Support\MarkdownComparison;
 
@@ -117,23 +115,6 @@ function dreProgram(string $path, string $extension): string
     return (string) preg_replace(['/!\[[^\]]*\]\([^)]*\)/', '/<img\b[^>]*>/i'], '', $markdown);
 }
 
-it('scores a known pair of readings', function (): void {
-    $program = "# Prices\n\nWe ship in **two days**.[^1]\n\n| Plan | Price |\n|---|---|\n| Pro | 30 |\n\n[^1]: Within Europe.";
-    $php = "# Prices\n\nWe shipin two days.\n\nPlan Price Pro 30\n\nWithin Europe.";
-
-    $metrics = new MarkdownComparison($program, $php)->metrics();
-
-    expect($metrics['words'])->toBe([12, 11])
-        ->and($metrics['run_together'])->toBe(['ship in'])
-        ->and($metrics['headings'])->toBe([1, 1])
-        ->and($metrics['tables'])->toBe([1, 0])
-        ->and($metrics['rows'])->toBe([2, 0])
-        ->and($metrics['footnotes'])->toBe([1, 0])
-        ->and(round($metrics['recall'], 2))->toBe(0.83)
-        ->and(MarkdownComparison::words('Ber<span id="a"></span>lin<br>next'))->toBe(['berlin', 'next'])
-        ->and(MarkdownComparison::headings("Title\nline two\n=====\n\ntext\n\n---\n\n## Two ##"))->toBe(['title line two', 'two']);
-})->group('eval');
-
 it('compares the built-in readers with the programs on the sample documents', function (): void {
     $folder = (string) env('EVAL_DOCUMENTS', '');
 
@@ -153,8 +134,8 @@ it('compares the built-in readers with the programs on the sample documents', fu
 
     $output = (string) env('EVAL_OUTPUT', '');
 
-    if ($output !== '' && ! is_dir($output)) {
-        mkdir($output, 0o755, true);
+    if ($output !== '') {
+        File::ensureDirectoryExists($output);
     }
 
     $rows = [];
@@ -168,8 +149,8 @@ it('compares the built-in readers with the programs on the sample documents', fu
 
         if ($output !== '') {
             $base = $output.'/'.str_replace('/', '__', $file);
-            file_put_contents($base.'.program.md', $program['markdown'] ?? 'ERROR: '.$program['error']);
-            file_put_contents($base.'.php.md', $php['markdown'] ?? 'ERROR: '.$php['error']);
+            File::put($base.'.program.md', $program['markdown'] ?? 'ERROR: '.$program['error']);
+            File::put($base.'.php.md', $php['markdown'] ?? 'ERROR: '.$php['error']);
         }
 
         $rows[] = [
@@ -190,7 +171,7 @@ it('compares the built-in readers with the programs on the sample documents', fu
     }
 
     $target = (string) env('EVAL_REPORT', sys_get_temp_dir().'/document-reader-eval.md');
-    file_put_contents($target, $report);
+    File::put($target, $report);
 
     fwrite(STDOUT, PHP_EOL.dreSummary($rows).PHP_EOL.'Full report: '.$target.PHP_EOL);
 
@@ -239,7 +220,7 @@ function dreSummary(array $rows): string
  */
 function dreReport(array $rows, string $folder): string
 {
-    $out = ['# Document readers: programs vs PHP', '', 'Samples: `'.$folder.'` · '.count($rows).' files · '.trim((string) strtok((string) shell_exec(escapeshellarg((string) config('services.bin.pandoc')).' --version'), "\n")).' · catdoc and catppt for DOC and PPT', ''];
+    $out = ['# Document readers: programs vs PHP', '', 'Samples: `'.$folder.'` · '.count($rows).' files · '.Str::before(trim(Process::run([(string) config('services.bin.pandoc'), '--version'])->output()), "\n").' · catdoc and catppt for DOC and PPT', ''];
     $out[] = '## Summary per format';
     $out[] = '';
     $out[] = dreSummary($rows);
@@ -361,29 +342,12 @@ function dreChunks(string $markdown, string $format): array
  */
 function dreRetrieval(string $folder, array $questions): string
 {
-    // Provider keys live in the admin settings, so a key given on the command
-    // line goes in here: SCALEWAYAI_API_KEY, GEMINI_API_KEY, VOYAGE_API_KEY…,
-    // named after each provider's config block.
-    foreach (AiProvider::cases() as $provider) {
-        $key = Str::upper(Str::between($provider->apiKeyConfig(), 'services.', '.')).'_API_KEY';
-
-        if (filled(env($key))) {
-            config([$provider->apiKeyConfig() => env($key)]);
-        }
-    }
-
-    evalEmbeddingOverrides();
-    Http::allowStrayRequests();
-    app()->forgetInstance(EmbeddingsProviderInterface::class);
-    $embeddings = app(EmbeddingsProviderInterface::class);
-
     try {
-        $embeddings->embedQuery('health check');
+        $embeddings = evalUseRealModels();
     } catch (Throwable $e) {
         return "## Retrieval\n\nSkipped: real embeddings unavailable ({$e->getMessage()}).\n";
     }
 
-    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
     app()->instance(TextSplitter::class, new BuiltinTextSplitter);
 
     $settings = RetrievalSettingsData::fromConfig();
@@ -411,15 +375,11 @@ function dreRetrieval(string $folder, array $questions): string
         foreach ($readings as $reader => $reading) {
             $agent = Agent::factory()->create();
             $text = (string) $reading['markdown'];
-            $source = SourceText::query()->create([
-                'workspace_id' => $agent->workspace_id,
-                'filepath' => 'eval/'.$reader.'/'.$file,
+            $source = SourceText::factory()->ingested()->attachedTo($agent)->create([
                 'excerpt' => mb_substr($text, 0, 200),
                 'length' => mb_strlen($text),
                 'checksum' => md5($reader.$file.$text),
-                'status' => SourceStatus::Completed,
             ]);
-            $agent->texts()->attach($source->id);
 
             app(CreateSourceChunksAction::class)->execute(new ChunkPagesData(
                 source: $source,

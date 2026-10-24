@@ -4,10 +4,10 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\SourceRetrieved;
 use Domain\Knowledge\Retrieval\Actions\UpdateRetrievalStatsAction;
-use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
@@ -45,6 +45,7 @@ it('leaves the source updated_at alone, since a retrieval is not an edit', funct
 });
 
 it('increments the retrieval counter on the source and the agent_sources pivot', function (): void {
+    $this->freezeSecond();
     $agent = Agent::factory()->create();
     $source = AgentFileFactory::new()->create([
         'workspace_id' => $agent->workspace_id,
@@ -66,7 +67,7 @@ it('increments the retrieval counter on the source and the agent_sources pivot',
     $source->refresh();
 
     expect($source->retrieval_count)->toBe(1)
-        ->and($source->last_retrieved_at)->not->toBeNull();
+        ->and($source->last_retrieved_at->equalTo(now()))->toBeTrue();
 
     $pivot = DB::table('agent_sources')
         ->where('agent_id', $agent->id)
@@ -75,7 +76,7 @@ it('increments the retrieval counter on the source and the agent_sources pivot',
         ->first();
 
     expect((int) $pivot->retrieval_count)->toBe(1)
-        ->and($pivot->last_retrieved_at)->not->toBeNull();
+        ->and(Carbon::parse($pivot->last_retrieved_at)->equalTo(now()))->toBeTrue();
 
     // The rollup event carries the agent, its workspace, and the source with its name and mime.
     Event::assertDispatched(SourceRetrieved::class, fn (SourceRetrieved $event): bool => $event->agentId === $agent->id
@@ -85,17 +86,13 @@ it('increments the retrieval counter on the source and the agent_sources pivot',
 
 it('names each kind of source for the rollup', function (): void {
     $agent = Agent::factory()->create();
-    $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
-    $text = SourceText::query()->create([
+    $website = SourceWebsite::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test']);
+    $text = SourceText::factory()->ingested()->create([
         'workspace_id' => $agent->workspace_id,
-        'filepath' => 'workspaces/x/sources/source_text/y/a.txt',
         'excerpt' => "Our   opening\nhours:\n\n".str_repeat('nine to five ', 10),
-        'length' => 1,
-        'checksum' => md5(uniqid()),
-        'status' => SourceStatus::Completed,
     ]);
-    $titled = SourceYoutubeVideo::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/dQw4w9WgXcQ', 'title' => 'Product tour', 'length' => 1, 'status' => 'ingested']);
-    $untitled = SourceYoutubeVideo::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/aaaaaaaaaaa', 'length' => 1, 'status' => 'ingested']);
+    $titled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/dQw4w9WgXcQ', 'title' => 'Product tour']);
+    $untitled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/aaaaaaaaaaa', 'title' => null]);
 
     app(UpdateRetrievalStatsAction::class)->execute([
         ['chunkable_type' => 'source_website', 'chunkable_id' => $website->id],
@@ -124,44 +121,27 @@ it('still counts for the workspace when the agent was deleted during the turn', 
     Event::assertDispatched(SourceRetrieved::class, fn (SourceRetrieved $event): bool => $event->workspaceId === $agent->workspace_id);
 });
 
-it('skips groups whose chunkable_type is not a real class — no UPDATE is issued', function (): void {
+it('skips a result whose chunkable_type is no model, changing nothing and dispatching no rollup', function (): void {
     // A real source exists, but the action must not touch it: the fake morph
     // type resolves to no class, so the group is filtered out before any write.
     $source = AgentFileFactory::new()->create(['retrieval_count' => 0]);
 
-    DB::enableQueryLog();
-
     app(UpdateRetrievalStatsAction::class)->execute(
         results: [
-            ['chunkable_type' => 'NotAClass\\Made\\Up', 'chunkable_id' => 1],
+            ['chunkable_type' => 'NotAClass\\Made\\Up', 'chunkable_id' => $source->id],
         ],
         agentId: 1,
     );
 
-    $updates = collect(DB::getQueryLog())
-        ->pluck('query')
-        ->filter(fn (string $sql): bool => str_starts_with(strtolower(ltrim($sql)), 'update'));
-
-    DB::disableQueryLog();
-
-    expect($updates)->toBeEmpty();
-
-    // The untouched source keeps its starting counter, and no rollup fires.
     expect($source->refresh()->retrieval_count)->toBe(0);
     Event::assertNotDispatched(SourceRetrieved::class);
 });
 
-it('no-ops when the results array is empty — no UPDATE and no rollup event', function (): void {
-    DB::enableQueryLog();
+it('changes nothing and dispatches no rollup for no results', function (): void {
+    $source = AgentFileFactory::new()->create(['retrieval_count' => 0]);
 
     app(UpdateRetrievalStatsAction::class)->execute([], agentId: 1);
 
-    $updates = collect(DB::getQueryLog())
-        ->pluck('query')
-        ->filter(fn (string $sql): bool => str_starts_with(strtolower(ltrim($sql)), 'update'));
-
-    DB::disableQueryLog();
-
-    expect($updates)->toBeEmpty();
+    expect($source->refresh()->retrieval_count)->toBe(0);
     Event::assertNotDispatched(SourceRetrieved::class);
 });

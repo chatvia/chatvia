@@ -19,7 +19,7 @@ use Illuminate\Support\Testing\Fakes\PendingBatchFake;
  */
 
 /** @return list<int> the ids of the new chunks, in order */
-function reindexChunks(SourceFile $file, int $count): array
+function serChunks(SourceFile $file, int $count): array
 {
     return Chunk::factory()->forSource($file)->count($count)
         ->sequence(fn (Sequence $sequence): array => ['chunk_index' => $sequence->index + 1])
@@ -30,7 +30,7 @@ function reindexChunks(SourceFile $file, int $count): array
 it('queues the chunks in ranges of 32 rows, on the ingestion queue', function (): void {
     Bus::fake();
     Chunk::query()->delete();
-    $ids = reindexChunks(AgentFileFactory::new()->create(), 33);
+    $ids = serChunks(AgentFileFactory::new()->create(), 33);
 
     $batch = app(StartEmbeddingReindexAction::class)->execute();
 
@@ -62,7 +62,7 @@ it('starts nothing while nothing is stored as vectors', function (): void {
 
 it('cancels a re-index that still runs before it starts a new one', function (): void {
     Bus::fake();
-    reindexChunks(AgentFileFactory::new()->create(), 2);
+    serChunks(AgentFileFactory::new()->create(), 2);
 
     $first = app(StartEmbeddingReindexAction::class)->execute();
     $second = app(StartEmbeddingReindexAction::class)->execute();

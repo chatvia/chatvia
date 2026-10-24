@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  * Q&A of the agent and marks the reply as revised. Only an assistant reply of
  * this agent can be revised; anything else fails and writes nothing.
  */
-function reviseableReply(Agent $agent, string $role = 'assistant'): Message
+function cqmrReply(Agent $agent, string $role = 'assistant'): Message
 {
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id]);
@@ -23,7 +23,7 @@ function reviseableReply(Agent $agent, string $role = 'assistant'): Message
 
 it('creates a Q&A from the correction and links the reply to it', function (): void {
     $agent = Agent::factory()->create();
-    $reply = reviseableReply($agent);
+    $reply = cqmrReply($agent);
 
     $qa = app(CreateQaFromMessageReviseAction::class)->execute(
         $agent,
@@ -41,7 +41,7 @@ it('creates a Q&A from the correction and links the reply to it', function (): v
 
 it('cuts the title to the first hundred characters of the question', function (): void {
     $agent = Agent::factory()->create();
-    $reply = reviseableReply($agent);
+    $reply = cqmrReply($agent);
     $question = str_repeat('é', 150);
 
     $qa = app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $reply->id, $question, 'Answer');
@@ -52,7 +52,7 @@ it('cuts the title to the first hundred characters of the question', function ()
 
 it('refuses a reply of another agent and writes nothing', function (): void {
     $agent = Agent::factory()->create();
-    $foreignReply = reviseableReply(Agent::factory()->create());
+    $foreignReply = cqmrReply(Agent::factory()->create());
 
     expect(fn () => app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $foreignReply->id, 'Q', 'A'))
         ->toThrow(ModelNotFoundException::class);
@@ -63,7 +63,7 @@ it('refuses a reply of another agent and writes nothing', function (): void {
 
 it('refuses a visitor message', function (): void {
     $agent = Agent::factory()->create();
-    $visitorMessage = reviseableReply($agent, role: 'user');
+    $visitorMessage = cqmrReply($agent, role: 'user');
 
     expect(fn () => app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $visitorMessage->id, 'Q', 'A'))
         ->toThrow(ModelNotFoundException::class);

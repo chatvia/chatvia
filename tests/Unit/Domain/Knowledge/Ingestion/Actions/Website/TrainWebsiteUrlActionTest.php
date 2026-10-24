@@ -5,8 +5,10 @@ use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
+use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
@@ -14,7 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
-use Mockery\MockInterface;
+use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 
 /**
  * TrainWebsiteUrlAction turns one crawled page into chunks and links each
@@ -23,25 +25,29 @@ use Mockery\MockInterface;
  * not re-link or re-fetch chunks one by one, and a changed page leaves no
  * chunk behind that no page uses.
  */
-function trainUrlFakes(array $chunks): void
+/**
+ * Splits every page into these parts. A web page is scraped as Markdown, so
+ * it is split as Markdown ({@see FakeTextSplitter::$kinds}).
+ */
+function twuSplitsInto(string ...$parts): FakeTextSplitter
 {
-    // Web pages are scraped as Markdown, so they are split as Markdown.
-    $splitter = test()->mock(TextSplitter::class);
-    $splitter->shouldReceive('split')->with(Mockery::type('string'), ContentKind::Markdown)->andReturn($chunks);
-    $splitter->shouldReceive('name')->andReturn('builtin');
+    $splitter = FakeTextSplitter::returning(...$parts);
+
+    app()->instance(TextSplitter::class, $splitter);
+
+    return $splitter;
 }
 
-function trainUrlFixture(array $metadata = []): array
+/**
+ * A page of a website of a new agent; FireCrawl answers its scrape with this
+ * metadata.
+ *
+ * @return array{Agent, SourceWebsite, AgentWebsiteUrl}
+ */
+function twuPage(array $metadata = []): array
 {
     $agent = Agent::factory()->create();
-
-    $website = SourceWebsite::create([
-        'workspace_id' => $agent->workspace_id,
-        'url' => 'https://docs.example.test',
-        'status' => 'ingesting',
-    ]);
-    $agent->websites()->attach($website->id);
-
+    $website = SourceWebsite::factory()->processing()->attachedTo($agent)->create(['url' => 'https://docs.example.test']);
     $url = $website->urls()->create(['url' => 'https://docs.example.test/page']);
 
     config()->set('services.firecrawl.endpoint', 'https://firecrawl.test/v2');
@@ -60,8 +66,8 @@ beforeEach(function (): void {
 });
 
 it('links the chunks to the URL using the morph alias', function (): void {
-    trainUrlFakes(['First chunk of the page.', 'Second chunk of the page.']);
-    [$agent, $website, $url] = trainUrlFixture();
+    $splitter = twuSplitsInto('First chunk of the page.', 'Second chunk of the page.');
+    [$agent, $website, $url] = twuPage();
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
@@ -74,14 +80,15 @@ it('links the chunks to the URL using the morph alias', function (): void {
     $firstChunkId = Chunk::query()->where('chunkable_id', $website->id)->value('id');
 
     expect($types)->toBe(['agent_website_url'])
+        ->and($splitter->kinds)->toBe([ContentKind::Markdown])
         ->and($url->chunks()->count())->toBe(2)
         ->and(DB::table('chunk_references')->where('chunk_id', $firstChunkId)->pluck('referenceable_id')->all())
         ->toBe([$url->id]);
 });
 
 it('reuses existing chunks and links on a retrain without duplicating them', function (): void {
-    trainUrlFakes(['First chunk of the page.', 'Second chunk of the page.']);
-    [$agent, $website, $url] = trainUrlFixture();
+    twuSplitsInto('First chunk of the page.', 'Second chunk of the page.');
+    [$agent, $website, $url] = twuPage();
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
@@ -96,15 +103,13 @@ it('reuses existing chunks and links on a retrain without duplicating them', fun
 
 it('enhances the new parts before storing them when enhancement is on', function (): void {
     config(['chatvia.ai.chunker.enhance' => true]);
-    trainUrlFakes(['First chunk of the page.', 'Second chunk of the page.']);
-    [$agent, $website, $url] = trainUrlFixture();
-    Http::fake([
-        'https://firecrawl.test/v2/scrape' => Http::response(['success' => true, 'data' => ['markdown' => 'Page text.', 'metadata' => []]]),
-        '*' => Http::response(['choices' => [['message' => ['content' => json_encode([
-            'summary' => 'About the product.',
-            'questions' => ['What does the product do?'],
-        ])]]], 'usage' => ['prompt_tokens' => 10, 'completion_tokens' => 5]]),
-    ]);
+    twuSplitsInto('First chunk of the page.', 'Second chunk of the page.');
+    [$agent, $website, $url] = twuPage();
+    // The scrape keeps the page's stub; every other call is the model's.
+    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => json_encode([
+        'summary' => 'About the product.',
+        'questions' => ['What does the product do?'],
+    ])]]], 'usage' => ['prompt_tokens' => 10, 'completion_tokens' => 5]])]);
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
@@ -115,15 +120,12 @@ it('enhances the new parts before storing them when enhancement is on', function
 });
 
 it('keeps the index a shared part got when it was first stored', function (): void {
-    [$agent, $website, $url] = trainUrlFixture();
-    trainUrlFakes(['Intro of the first page.', 'Shared footer.']);
+    [$agent, $website, $url] = twuPage();
+    twuSplitsInto('Intro of the first page.', 'Shared footer.');
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
     $other = $website->urls()->create(['url' => 'https://docs.example.test/other']);
-    test()->mock(TextSplitter::class, function (MockInterface $splitter): void {
-        $splitter->shouldReceive('split')->andReturn(['Shared footer.']);
-        $splitter->shouldReceive('name')->andReturn('builtin');
-    });
+    twuSplitsInto('Shared footer.');
 
     app(TrainWebsiteUrlAction::class)->execute($other, $agent);
 
@@ -134,21 +136,18 @@ it('keeps the index a shared part got when it was first stored', function (): vo
 });
 
 it('drops the parts a changed page no longer has and deletes the chunks no page uses', function (): void {
-    [$agent, $website, $url] = trainUrlFixture();
-    trainUrlFakes(['Old part.', 'Shared part.']);
+    [$agent, $website, $url] = twuPage();
+    twuSplitsInto('Old part.', 'Shared part.');
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
     // Another page shares one part, so that chunk must survive.
     $other = $website->urls()->create(['url' => 'https://docs.example.test/other']);
     $shared = Chunk::query()->ofSource($website)->where('checksum', hash('sha256', 'Shared part.'))->sole();
-    DB::table('chunk_references')->insert(['chunk_id' => $shared->id, 'referenceable_type' => $other->getMorphClass(), 'referenceable_id' => $other->id]);
+    ChunkReference::query()->insert(['chunk_id' => $shared->id, 'referenceable_type' => $other->getMorphClass(), 'referenceable_id' => $other->id]);
     $old = Chunk::query()->ofSource($website)->where('checksum', hash('sha256', 'Old part.'))->sole();
 
     // The page changed: it splits into other parts now.
-    test()->mock(TextSplitter::class, function (MockInterface $splitter): void {
-        $splitter->shouldReceive('split')->andReturn(['Shared part.', 'New part.']);
-        $splitter->shouldReceive('name')->andReturn('builtin');
-    });
+    twuSplitsInto('Shared part.', 'New part.');
     $url->update(['checksum' => null]);
     Cache::flush();
 
@@ -161,8 +160,8 @@ it('drops the parts a changed page no longer has and deletes the chunks no page 
 });
 
 it('reports the website progress it is given', function (): void {
-    trainUrlFakes(['Only chunk.']);
-    [$agent, , $url] = trainUrlFixture();
+    twuSplitsInto('Only chunk.');
+    [$agent, , $url] = twuPage();
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent, 50);
 
@@ -170,8 +169,8 @@ it('reports the website progress it is given', function (): void {
 });
 
 it('trains an unchanged page again once the chunk settings change', function (array $change): void {
-    trainUrlFakes(['First chunk of the page.']);
-    [$agent, $website, $url] = trainUrlFixture();
+    twuSplitsInto('First chunk of the page.');
+    [$agent, $website, $url] = twuPage();
     config(['chatvia.ai.chunking' => ['unit' => 'tokens', 'size' => 400, 'overlap' => 0, 'strategies' => ['markdown' => 'markdown']]]);
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
@@ -192,8 +191,8 @@ it('trains an unchanged page again once the chunk settings change', function (ar
 ]);
 
 it('keeps the page title FireCrawl found, to name the page as a source', function (array $metadata, ?string $title): void {
-    trainUrlFakes(['First chunk of the page.']);
-    [$agent, $website, $url] = trainUrlFixture($metadata);
+    twuSplitsInto('First chunk of the page.');
+    [$agent, $website, $url] = twuPage($metadata);
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 

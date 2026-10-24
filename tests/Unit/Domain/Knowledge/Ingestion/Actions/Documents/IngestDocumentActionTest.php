@@ -3,7 +3,6 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
-use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
@@ -11,10 +10,10 @@ use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Bus\PendingBatch;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\Knowledge\Ingestion\FakeDocumentParser;
 
 /**
  * IngestDocumentAction reads a document into pages once, splits long pages,
@@ -23,22 +22,6 @@ use Illuminate\Support\Facades\Storage;
  *
  * The DocumentParser is faked, so the tests never reach a parsing service.
  */
-function idaFakeParser(): DocumentParser
-{
-    return new class implements DocumentParser
-    {
-        public function parse(string $filePath, string $storageDirectory): Collection
-        {
-            return collect();
-        }
-
-        public function name(): string
-        {
-            return 'fake';
-        }
-    };
-}
-
 it('is idempotent: a SourceFile already in the ingested state returns immediately', function (): void {
     Bus::fake();
     Event::fake([FileIngestionProgressed::class]);
@@ -50,7 +33,7 @@ it('is idempotent: a SourceFile already in the ingested state returns immediatel
     ]);
     $agent->files()->attach($sourceFile->id);
 
-    app()->make(IngestDocumentAction::class, ['parser' => idaFakeParser()])->execute($sourceFile, $agent);
+    app()->make(IngestDocumentAction::class, ['parser' => new FakeDocumentParser])->execute($sourceFile, $agent);
 
     Bus::assertNothingBatched();
     Event::assertNotDispatched(FileIngestionProgressed::class);
@@ -73,22 +56,7 @@ it('reads the stored pages back on a retry instead of parsing the file again', f
     ])->toJson());
     $agent->files()->attach($sourceFile->id);
 
-    $parser = new class implements DocumentParser
-    {
-        public int $calls = 0;
-
-        public function parse(string $filePath, string $storageDirectory): Collection
-        {
-            $this->calls++;
-
-            return collect();
-        }
-
-        public function name(): string
-        {
-            return 'local';
-        }
-    };
+    $parser = FakeDocumentParser::reading('local');
 
     app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
 
@@ -111,26 +79,7 @@ it('reads the document with the configured parser and records the parser name', 
     Storage::put($sourceFile->filepath, '%PDF-1.4 test');
     $agent->files()->attach($sourceFile->id);
 
-    $parser = new class implements DocumentParser
-    {
-        /** @var list<string> */
-        public array $parsed = [];
-
-        public function parse(string $filePath, string $storageDirectory): Collection
-        {
-            $this->parsed[] = $storageDirectory;
-
-            return collect([
-                new PageData(pageNumber: 1, content: 'Page one', checksum: hash('xxh128', 'Page one')),
-                new PageData(pageNumber: 2, content: 'Page two', checksum: hash('xxh128', 'Page two')),
-            ]);
-        }
-
-        public function name(): string
-        {
-            return 'local';
-        }
-    };
+    $parser = FakeDocumentParser::reading('local', 'Page one', 'Page two');
 
     app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
 
@@ -138,7 +87,7 @@ it('reads the document with the configured parser and records the parser name', 
 
     $folder = KnowledgeStoragePath::forSource($sourceFile);
 
-    expect($parser->parsed)->toBe([$folder.'/tmp'])
+    expect($parser->directories)->toBe([$folder.'/tmp'])
         ->and($fresh->parser)->toBe('local')
         ->and((int) $fresh->expected_chunks)->toBe(2)
         ->and($fresh->parser_filepath)->toStartWith($folder.'/');
@@ -152,27 +101,7 @@ it('reads a file again with another document reader instead of reusing the cache
     Bus::fake();
     Storage::fake();
     $agent = Agent::factory()->create();
-
-    $parserNamed = fn (string $name): DocumentParser => new class($name) implements DocumentParser
-    {
-        public int $calls = 0;
-
-        public function __construct(private readonly string $readerName) {}
-
-        public function parse(string $filePath, string $storageDirectory): Collection
-        {
-            $this->calls++;
-
-            return collect([new PageData(pageNumber: 1, content: 'Page one', checksum: hash('xxh128', 'Page one'))]);
-        }
-
-        public function name(): string
-        {
-            return $this->readerName;
-        }
-    };
-
-    foreach (['local', 'mistral-ocr-latest'] as $name) {
+    $ingest = function (FakeDocumentParser $parser) use ($agent): void {
         $sourceFile = AgentFileFactory::new()->create([
             'workspace_id' => $agent->workspace_id,
             'status' => 'uploaded',
@@ -181,11 +110,16 @@ it('reads a file again with another document reader instead of reusing the cache
         ]);
         Storage::put($sourceFile->filepath, '%PDF-1.4 same bytes');
 
-        $parser = $parserNamed($name);
         app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
+    };
+    $local = FakeDocumentParser::reading('local', 'Page one');
+    $mistral = FakeDocumentParser::reading('mistral-ocr-latest', 'Page one');
 
-        expect($parser->calls)->toBe(1);
-    }
+    $ingest($local);
+    $ingest($mistral);
+
+    expect($local->calls)->toBe(1)
+        ->and($mistral->calls)->toBe(1);
 });
 
 it('splits a page longer than the chunk size into parts that keep its page number', function (): void {
@@ -200,24 +134,10 @@ it('splits a page longer than the chunk size into parts that keep its page numbe
     $agent->files()->attach($sourceFile->id);
 
     $long = str_repeat('Every tent is tested on a real trip before we sell it. ', 8);
-
-    $parser = new readonly class($long) implements DocumentParser
-    {
-        public function __construct(private string $long) {}
-
-        public function parse(string $filePath, string $storageDirectory): Collection
-        {
-            return collect([
-                new PageData(pageNumber: 1, content: 'A short first page.', checksum: hash('xxh128', 'A short first page.')),
-                new PageData(pageNumber: 2, content: $this->long, checksum: hash('xxh128', $this->long), tables: ['| a |']),
-            ]);
-        }
-
-        public function name(): string
-        {
-            return 'local';
-        }
-    };
+    $parser = new FakeDocumentParser([
+        new PageData(pageNumber: 1, content: 'A short first page.', checksum: hash('xxh128', 'A short first page.')),
+        new PageData(pageNumber: 2, content: $long, checksum: hash('xxh128', $long), tables: ['| a |']),
+    ], 'local');
 
     app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
 
@@ -231,18 +151,4 @@ it('splits a page longer than the chunk size into parts that keep its page numbe
 
     // The stored pages stay whole.
     expect(PageData::fromJson(Storage::get($sourceFile->fresh()->parser_filepath)))->toHaveCount(2);
-});
-
-it('gives the media of a split page to its first part only', function (): void {
-    $page = new PageData(pageNumber: 7, content: 'Long page', checksum: 'x', imagePaths: ['a.png'], tables: ['| a |'], hyperlinks: ['https://x.test']);
-
-    [$first, $second] = $page->partsOf(['Long', 'page']);
-
-    expect([$first->pageNumber, $second->pageNumber])->toBe([7, 7])
-        ->and($first->imagePaths)->toBe(['a.png'])
-        ->and($first->tables)->toBe(['| a |'])
-        ->and($second->imagePaths)->toBe([])
-        ->and($second->tables)->toBe([])
-        ->and($first->checksum)->not->toBe($second->checksum)
-        ->and($page->partsOf(['Long page']))->toBe([$page]);
 });

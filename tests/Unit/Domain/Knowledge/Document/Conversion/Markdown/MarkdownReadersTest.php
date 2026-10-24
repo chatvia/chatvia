@@ -22,20 +22,15 @@ it('knows which formats it reads', function (): void {
 });
 
 it('reads a file with the reader for its extension', function (): void {
-    $path = create_temp_file('book.fb2', '<?xml version="1.0"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><body><section><p>Hello.</p></section></body></FictionBook>');
+    $path = tempTestFile('book.fb2', '<?xml version="1.0"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><body><section><p>Hello.</p></section></body></FictionBook>');
 
     expect(new MarkdownReaders()->toMarkdown($path, 'FB2'))->toBe('Hello.');
-
-    @unlink($path);
 });
 
 it('reads an old Word file and gives an old presentation slide by slide', function (): void {
-    $document = new WordBinaryFile()->paragraph('Hello from Word 97.')->save();
-    $deck = new PowerPointBinaryFile()->slide(['One'])->slide(['Two'])->save();
+    $document = deleteAfterTest(new WordBinaryFile()->paragraph('Hello from Word 97.')->save());
+    $deck = deleteAfterTest(new PowerPointBinaryFile()->slide(['One'])->slide(['Two'])->save());
 
     expect(new MarkdownReaders()->toMarkdown($document, 'DOC'))->toBe('Hello from Word 97.')
         ->and(new MarkdownReaders()->slides($deck))->toBe(['One', 'Two']);
-
-    @unlink($document);
-    @unlink($deck);
 });

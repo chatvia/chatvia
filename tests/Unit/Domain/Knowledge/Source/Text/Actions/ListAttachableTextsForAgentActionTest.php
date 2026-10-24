@@ -2,30 +2,26 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Actions\ListAttachableTextsForAgentAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * The "attach an existing text" list must show the workspace's texts (not just
  * the ones the viewing teammate created), read the excerpt from its column,
  * and cut multibyte excerpts on character boundaries.
  */
-function attachableText(Agent $agent, string $content, string $excerpt): SourceText
+/** A trained text of the agent's workspace, with its content in storage. */
+function latText(Agent $agent, string $content, string $excerpt): SourceText
 {
-    $path = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt';
-    Storage::put($path, $content);
-
-    return SourceText::create([
+    $text = SourceText::factory()->ingested()->create([
         'workspace_id' => $agent->workspace_id,
-        'filepath' => $path,
         'excerpt' => $excerpt,
-        'length' => 1,
         'checksum' => md5($content),
-        'status' => SourceStatus::Completed->value,
     ]);
+    Storage::put($text->filepath, $content);
+
+    return $text;
 }
 
 beforeEach(function (): void {
@@ -36,8 +32,8 @@ it('lists the workspace texts for a teammate, excluding ones already attached', 
     $agent = Agent::factory()->create();
     $teammate = User::factory()->employee($agent->workspace->owner)->create();
 
-    $attachable = attachableText($agent, 'one two three four', 'one two three four');
-    $attached = attachableText($agent, 'already linked text', 'already linked text');
+    $attachable = latText($agent, 'one two three four', 'one two three four');
+    $attached = latText($agent, 'already linked text', 'already linked text');
     $agent->texts()->attach($attached->id);
 
     $rows = app(ListAttachableTextsForAgentAction::class)->execute($teammate, $agent);
@@ -51,7 +47,7 @@ it('cuts a multibyte excerpt on a character boundary', function (): void {
     $agent = Agent::factory()->create();
     $excerpt = str_repeat('مرحبا ', 60); // 360 characters, 2 bytes each
 
-    attachableText($agent, $excerpt, $excerpt);
+    latText($agent, $excerpt, $excerpt);
 
     $row = app(ListAttachableTextsForAgentAction::class)->execute($agent->workspace->owner, $agent)->first();
 
@@ -64,7 +60,7 @@ it('does not list texts from another workspace', function (): void {
     $agent = Agent::factory()->create();
     $otherAgent = Agent::factory()->create();
 
-    attachableText($otherAgent, 'foreign text', 'foreign text');
+    latText($otherAgent, 'foreign text', 'foreign text');
 
     expect(app(ListAttachableTextsForAgentAction::class)->execute($agent->workspace->owner, $agent))->toBeEmpty();
 });

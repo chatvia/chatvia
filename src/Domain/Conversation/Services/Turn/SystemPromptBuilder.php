@@ -58,7 +58,9 @@ class SystemPromptBuilder
      * `$language` is the ISO 639-1 code of the visitor's message when one was
      * detected ({@see ChatContext::$queryLanguage}):
      * the grounding rules then name that language, so reference material
-     * written in another language cannot drag the answer into it.
+     * written in another language cannot drag the answer into it. With none
+     * detected, they name the browser's language for a message too short to
+     * show its own (a lone "summary" next to Danish sources got Danish).
      */
     public function systemPrompt(StreamRequestData $data, ?string $language = null): string
     {
@@ -69,6 +71,7 @@ class SystemPromptBuilder
             ($marker !== null ? Str::trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
                 .Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding', [
                     'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
+                    'browserLanguage' => $this->browserLanguage($data->locale),
                 ]),
             $agent,
             $data->chatterName,
@@ -122,5 +125,23 @@ class SystemPromptBuilder
         }
 
         return $prompt;
+    }
+
+    /**
+     * The English name of the first language in the browser's
+     * `Accept-Language` (`da-DK,da;q=0.9` → Danish), or null without one.
+     */
+    private function browserLanguage(?string $locale): ?string
+    {
+        $tag = Str::of($locale ?? '')->before(',')->before(';')->trim()->toString();
+
+        if (! Str::isMatch('/^[a-z]{2,3}([-_]|$)/i', $tag)) {
+            return null;
+        }
+
+        $code = Locale::getPrimaryLanguage($tag);
+        $name = Locale::getDisplayLanguage($code, 'en');
+
+        return $name !== $code ? $name : null;
     }
 }

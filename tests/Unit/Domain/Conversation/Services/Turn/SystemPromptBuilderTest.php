@@ -15,7 +15,7 @@ use Tests\Support\Conversation\TestChatContext;
  * agent, and tells the model which language to answer in. It goes first in
  * the messages, with the visitor's last message replaced by the enriched one.
  */
-function spbPrompt(Agent $agent, ?string $chatterName, ?string $source = null): string
+function spbPrompt(Agent $agent, ?string $chatterName, ?string $source = null, ?string $locale = null, ?string $language = null): string
 {
     $data = new StreamRequestData(
         agent: $agent,
@@ -24,9 +24,10 @@ function spbPrompt(Agent $agent, ?string $chatterName, ?string $source = null): 
         conversationId: (string) Str::uuid(),
         chatterName: $chatterName,
         source: $source,
+        locale: $locale,
     );
 
-    return app(SystemPromptBuilder::class)->systemPrompt($data);
+    return app(SystemPromptBuilder::class)->systemPrompt($data, $language);
 }
 
 it('tells a protected agent the signed-in chatter name', function (): void {
@@ -83,6 +84,25 @@ it('keeps the generic language rule when no language was detected', function ():
     expect(spbPrompt($agent, null))
         ->toContain("Write your whole answer in the language of the user's message");
 });
+
+it('names the browser language for a message too short to show its own when none was detected', function (): void {
+    $agent = Agent::factory()->create();
+
+    expect(spbPrompt($agent, null, locale: 'da-DK,da;q=0.9'))
+        ->toContain('The visitor\'s browser is set to Danish')
+        ->toContain("answer in\n  Danish.");
+});
+
+it('leaves the browser language out when the message language was detected or the browser sent none', function (?string $locale, ?string $language): void {
+    $agent = Agent::factory()->create();
+
+    expect(spbPrompt($agent, null, locale: $locale, language: $language))->not->toContain('browser is set to');
+})->with([
+    'detected' => ['da-DK', 'en'],
+    'no header' => [null, null],
+    'wildcard' => ['*', null],
+    'unknown code' => ['zz', null],
+]);
 
 it('opens the system prompt with the guardrails leak marker', function (): void {
     $agent = Agent::factory()->create();

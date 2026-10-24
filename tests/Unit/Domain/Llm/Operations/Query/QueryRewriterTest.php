@@ -13,8 +13,8 @@ use Illuminate\Support\Str;
 /**
  * The rewriter turns a follow-up into a full question from the chat before
  * it, asking the model for `<lang>|<question>`. A message with no chat before
- * it needs no call. A reply without the pipe, or a failed call, must fall back
- * gracefully instead of failing the chat turn.
+ * it is asked about only for its language. A reply without the pipe, or a
+ * failed call, must fall back gracefully instead of failing the chat turn.
  */
 beforeEach(function (): void {
     config(['chatvia.ai.query.rewriter.enabled' => true]);
@@ -75,14 +75,21 @@ it('sends the last turns of the chat and the message', function (): void {
         && Str::contains((string) json_encode($request->data()), 'Last message: and how much is it?'));
 });
 
-it('makes no call for a message with no chat before it, or when switched off', function (): void {
+it('asks for the language of a message with no chat before it and keeps the message as the query', function (): void {
+    fakeLlmCompletion('en|summary of the insurance');
+
+    expect(app(QueryRewriter::class)->rewrite('summary', []))
+        ->toEqual(new RewrittenQueryData(language: 'en', query: 'summary'));
+
+    Http::assertSent(fn (Request $request): bool => Str::contains((string) json_encode($request->data()), 'Chat:\\n(no earlier messages)')
+        && Str::contains((string) json_encode($request->data()), 'Last message: summary'));
+});
+
+it('makes no call when switched off', function (array $history): void {
     Http::fake();
-
-    expect(app(QueryRewriter::class)->rewrite('hours?', []))->toEqual(RewrittenQueryData::unchanged('hours?'));
-
     config(['chatvia.ai.query.rewriter.enabled' => false]);
 
-    expect(app(QueryRewriter::class)->rewrite('hours?', qrwHistory()))->toEqual(RewrittenQueryData::unchanged('hours?'));
+    expect(app(QueryRewriter::class)->rewrite('hours?', $history))->toEqual(RewrittenQueryData::unchanged('hours?'));
 
     Http::assertNothingSent();
-});
+})->with(['first message' => [[]], 'follow-up' => [fn (): array => qrwHistory()]]);

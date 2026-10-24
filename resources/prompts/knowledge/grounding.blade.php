@@ -21,4 +21,10 @@ Answer as a knowledgeable person who simply knows these facts. The
 - Write your whole answer in the language of the user's message, even
   when the `<source>` blocks are in another language. Translate the
   facts; never answer in the blocks' language.
+@if ($browserLanguage ?? null)
+
+- The visitor's browser is set to {{ $browserLanguage }}. When the
+  message is too short to show its language, answer in
+  {{ $browserLanguage }}.
+@endif
 @endif

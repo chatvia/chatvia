@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Resources\Workspaces\RelationManagers;
 
 use App\Admin\Pages\DashboardFilters;
+use App\Admin\Settings\ModelLogo;
 use App\Identity\Workspace\Models\Workspace;
 use BackedEnum;
 use Domain\Agent\Models\Agent;
@@ -12,6 +13,7 @@ use Domain\Analytics\Data\Platform\AgentActivityData;
 use Domain\Analytics\Enums\AnalyticsPeriod;
 use Domain\Analytics\Queries\Platform\AgentActivityQuery;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Llm\Models\Llm;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -20,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 /**
@@ -72,7 +75,7 @@ class AgentsRelationManager extends RelationManager
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with('llm')
+                ->with('llm.provider')
                 ->withExists(array_map(
                     fn (): \Closure => fn (Builder $channel): Builder => $channel->where('is_enabled', true),
                     self::CHANNELS,
@@ -94,6 +97,7 @@ class AgentsRelationManager extends RelationManager
                     ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
                 TextColumn::make('llm.name')
                     ->label('Model')
+                    ->formatStateUsing(fn (Agent $record, string $state): HtmlString => new HtmlString($record->llm instanceof Llm ? ModelLogo::forLlm($record->llm) : e($state)))
                     ->placeholder('—'),
                 TextColumn::make('answers_on')
                     ->label('Answers on')

@@ -10,6 +10,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -24,6 +25,9 @@ use Throwable;
  * read when models are added and by the daily sync, never during a chat.
  * Switched off (`chatvia.ai.models_dev.enabled`), unreachable or not listing
  * a model, it gives no facts, and the admin's own switches decide.
+ *
+ * It also has a logo for each lab (who made a model) and each provider: the
+ * admin panel shows a model with its lab's logo, fetched once and kept.
  */
 final class ModelsDevCatalog
 {
@@ -35,8 +39,17 @@ final class ModelsDevCatalog
 
     private const int TIMEOUT_SECONDS = 30;
 
+    private const string LOGO_URL = 'https://models.dev/logos/%s.svg';
+
+    /** A logo: a lab's (`labs/alibaba`) or a provider's (`openrouter`). */
+    public const string LOGO_PATTERN = '(labs/)?[a-z0-9][a-z0-9-]*';
+
+    private const int LOGO_DAYS = 30;
+
+    private const int LOGO_MAX_BYTES = 100_000;
+
     /** The fields of a catalog entry the app reads; the rest is not kept. */
-    private const array FIELDS = ['reasoning', 'reasoning_options', 'temperature', 'tool_call', 'structured_output', 'limit'];
+    private const array FIELDS = ['reasoning', 'reasoning_options', 'temperature', 'tool_call', 'structured_output', 'limit', 'modalities', 'canonical_model_id'];
 
     /**
      * The facts for a model as its provider names it. A server of your own
@@ -90,11 +103,63 @@ final class ModelsDevCatalog
         return array_sum(array_map(count(...), (array) ($facts['providers'] ?? [])));
     }
 
+    /**
+     * The logo of a model as its provider names it: its lab's, read from the
+     * catalog's own id for it (`alibaba/qwen3-235b-a22b` is Alibaba's), else
+     * its provider's. A model on a server of your own that the catalog does
+     * not list has none. Never downloads the catalog.
+     */
+    public function logo(LlmProviderKind $kind, string $modelId): ?string
+    {
+        if (! $this->enabled()) {
+            return null;
+        }
+
+        $entry = $this->find($this->stored(refreshWhenOld: false), $kind, $modelId);
+        $canonical = $entry['canonical_model_id'] ?? ($kind->catalogKey() === null && $entry !== null ? $modelId : null);
+
+        if (is_string($canonical) && Str::contains($canonical, '/')) {
+            return 'labs/'.Str::lower(Str::before($canonical, '/'));
+        }
+
+        return $kind->catalogKey();
+    }
+
+    /**
+     * The SVG of a logo, downloaded once and kept for a month; null when it
+     * could not be read (not tried again for a day).
+     */
+    public function logoSvg(string $logo): ?string
+    {
+        if (preg_match('#^'.self::LOGO_PATTERN.'$#', $logo) !== 1) {
+            return null;
+        }
+
+        $key = "llm:models-dev:logo:{$logo}";
+        $stored = Cache::get($key);
+
+        if (is_string($stored)) {
+            return $stored !== '' ? $stored : null;
+        }
+
+        try {
+            $body = Str::trim(Http::timeout(5)->get(sprintf(self::LOGO_URL, $logo))->throw()->body());
+        } catch (Throwable) {
+            $body = '';
+        }
+
+        $svg = Str::startsWith($body, ['<svg', '<?xml']) && strlen($body) <= self::LOGO_MAX_BYTES ? $body : '';
+
+        Cache::put($key, $svg, $svg !== '' ? now()->addDays(self::LOGO_DAYS) : now()->addDay());
+
+        return $svg !== '' ? $svg : null;
+    }
+
     /** Fetch the catalog now when it changed, whatever its age. */
     public function refresh(): void
     {
         if ($this->enabled()) {
-            $this->fetch((array) Cache::get(self::CACHE_KEY, []));
+            $this->fetch((array) Cache::memo()->get(self::CACHE_KEY, []));
         }
     }
 
@@ -120,7 +185,7 @@ final class ModelsDevCatalog
      */
     private function stored(bool $refreshWhenOld): array
     {
-        $stored = (array) Cache::get(self::CACHE_KEY, []);
+        $stored = (array) Cache::memo()->get(self::CACHE_KEY, []);
         $checkedAt = (int) ($stored['checked_at'] ?? 0);
 
         if ($refreshWhenOld && $checkedAt < now()->subHours(self::MAX_AGE_HOURS)->getTimestamp()) {
@@ -165,7 +230,7 @@ final class ModelsDevCatalog
             $fresh = [...$stored, 'checked_at' => now()->getTimestamp()];
         }
 
-        Cache::forever(self::CACHE_KEY, $fresh);
+        Cache::memo()->forever(self::CACHE_KEY, $fresh);
 
         return $fresh;
     }

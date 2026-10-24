@@ -136,3 +136,51 @@ it('reads nothing while the lookup is off', function (): void {
 
     Http::assertNothingSent();
 });
+
+it('gives a model its lab\'s logo, else its provider\'s', function (): void {
+    Http::fake([ModelsDevCatalog::URL => Http::response([
+        'providers' => [
+            'openrouter' => ['models' => ['qwen/qwen3-235b-a22b' => ['canonical_model_id' => 'alibaba/qwen3-235b-a22b']]],
+            'openai' => ['models' => ['gpt-4.1' => ['tool_call' => true]]],
+        ],
+        'models' => ['alibaba/qwen3-8b' => ['tool_call' => true]],
+    ])]);
+    $catalog = app(ModelsDevCatalog::class);
+    $catalog->refresh();
+
+    expect($catalog->logo(LlmProviderKind::OpenRouter, 'qwen/qwen3-235b-a22b'))->toBe('labs/alibaba')
+        // Its provider made it: the catalog names no other lab.
+        ->and($catalog->logo(LlmProviderKind::OpenAi, 'gpt-4.1'))->toBe('openai')
+        // Not listed: its provider's.
+        ->and($catalog->logo(LlmProviderKind::OpenRouter, 'someone/new-model'))->toBe('openrouter')
+        // A server of your own: the lab of the catalog's general model, none when it is not listed.
+        ->and($catalog->logo(LlmProviderKind::Custom, 'alibaba/qwen3-8b'))->toBe('labs/alibaba')
+        ->and($catalog->logo(LlmProviderKind::Custom, 'llama3.1:8b'))->toBeNull();
+
+    config(['chatvia.ai.models_dev.enabled' => false]);
+
+    expect($catalog->logo(LlmProviderKind::OpenAi, 'gpt-4.1'))->toBeNull();
+});
+
+it('downloads a logo once and keeps it, and refuses anything but an SVG of a known shape', function (): void {
+    Http::fake([
+        'models.dev/logos/labs/alibaba.svg' => Http::response('<svg xmlns="http://www.w3.org/2000/svg"></svg>'),
+        'models.dev/logos/broken.svg' => Http::response('<html>not a logo</html>'),
+    ]);
+    $catalog = app(ModelsDevCatalog::class);
+
+    expect($catalog->logoSvg('labs/alibaba'))->toBe('<svg xmlns="http://www.w3.org/2000/svg"></svg>')
+        ->and($catalog->logoSvg('labs/alibaba'))->toStartWith('<svg')
+        ->and($catalog->logoSvg('broken'))->toBeNull()
+        ->and($catalog->logoSvg('../catalog'))->toBeNull()
+        ->and($catalog->logoSvg('labs/a/b'))->toBeNull();
+
+    Http::assertSentCount(2);
+});
+
+it('says a model reads images when an image is among its inputs, not when it only takes attachments', function (): void {
+    expect(ModelFactsData::fromCatalog(['attachment' => true, 'modalities' => ['input' => ['text', 'image'], 'output' => ['text']]])->readsImages)->toBeTrue()
+        // Takes files, but audio: it does not read images.
+        ->and(ModelFactsData::fromCatalog(['attachment' => true, 'modalities' => ['input' => ['audio'], 'output' => ['text']]])->readsImages)->toBeFalse()
+        ->and(ModelFactsData::fromCatalog(['attachment' => false])->readsImages)->toBeNull();
+});

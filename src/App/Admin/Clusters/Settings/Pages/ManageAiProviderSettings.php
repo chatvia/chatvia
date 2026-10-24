@@ -11,6 +11,7 @@ use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiProviderIcon;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiProviderUsage;
+use App\Admin\Settings\ModelLogo;
 use BackedEnum;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Actions\Catalog\SaveCustomLlmServerAction;
@@ -337,8 +338,9 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
                     ->label('Model for these agents')
                     ->options(Llm::available()
                         ->reject(fn (Llm $llm): bool => $llm->llm_provider_id === $record->id)
-                        ->mapWithKeys(fn (Llm $llm): array => [$llm->id => "{$llm->name} ({$llm->provider->name})"])
+                        ->mapWithKeys(fn (Llm $llm): array => [$llm->id => ModelLogo::forLlm($llm, "{$llm->name} ({$llm->provider->name})")])
                         ->all())
+                    ->allowHtml()
                     ->required()
                     ->native(false),
             ])

@@ -38,7 +38,7 @@ it('finds a section by the label of an option inside it, and names the option', 
     $hit = app(SettingsSearch::class)->search('chunk size')[0];
 
     expect($hit->entry->title)->toBe('Splitting')
-        ->and($hit->options)->toBe(['Chunk size']);
+        ->and($hit->options)->toBe(['Chunk size', 'Smallest chunk']);
 });
 
 it('needs every word, and lets what a page holds complete a section\'s match, never make one', function (): void {

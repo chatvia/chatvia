@@ -11,7 +11,7 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  * Settings → Knowledge: the file types workspaces may upload, website
  * import (Firecrawl), the AI enhancement of chunks (and whether it
  * describes the pictures inside documents). Settings → Splitting: how text
- * is split into chunks (unit, size, overlap, the strategy for each kind of
+ * is split into chunks (unit, size, overlap, smallest chunk, the strategy for each kind of
  * content, the tokenizer). Settings → Search: hybrid search (keywords next
  * to meaning), the results an agent gets, follow-up questions, and the
  * minimum scores. A blank value keeps the default from config.
@@ -48,6 +48,9 @@ class KnowledgeSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.chunking.overlap')]
     public ?int $chunk_overlap = null;
+
+    #[ConfigKey('chatvia.ai.chunking.minimum')]
+    public ?int $chunk_minimum = null;
 
     #[ConfigKey('chatvia.ai.chunking.strategies.markdown')]
     public ?string $markdown_strategy = null;

@@ -292,8 +292,10 @@ return [
     |
     | `tokenizer` is the tiktoken encoding of every token count. `chunking`
     | is how text is split: the unit ("tokens" or "characters"), the size
-    | (null is 400 tokens or 1,600 characters), the overlap, and the strategy
-    | for each kind of content (ContentKind, SplitStrategy).
+    | (null is 400 tokens or 1,600 characters), the overlap, the smallest
+    | chunk the splitter aims for (null is 128 tokens or 512 characters, 0 is
+    | off, at most half the size), and the strategy for each kind of content
+    | (ContentKind, SplitStrategy).
     |
     | `models`: the embedding provider ("qwen", "openai", "openrouter",
     | "google", "cohere", "mistral", "jina" or "voyage"; it must return
@@ -372,6 +374,7 @@ return [
             'unit' => 'tokens',
             'size' => null,
             'overlap' => 0,
+            'minimum' => null,
             'strategies' => [
                 'markdown' => 'markdown',
                 'text' => 'recursive',

@@ -37,7 +37,8 @@ use Throwable;
 
 /**
  * The splitting fields of Settings → Splitting and the "Try splitting"
- * preview: the chunk size and its unit, the strategy for each kind of
+ * preview: the chunk size and its unit, the overlap, the smallest chunk,
+ * the strategy for each kind of
  * content, the tokenizer, and a preview that splits a sample (or the
  * admin's own text) with the options on the page before they are saved.
  */
@@ -66,8 +67,8 @@ trait BuildsChunkingCards
     public ?array $preview = null;
 
     /**
-     * The fields of the Splitting card: unit, size and overlap, the
-     * strategy of each kind of content, and the tokenizer.
+     * The fields of the Splitting card: unit, size, overlap and smallest
+     * chunk, the strategy of each kind of content, and the tokenizer.
      *
      * @return list<Component>
      */
@@ -81,7 +82,7 @@ trait BuildsChunkingCards
                 ->inline()
                 ->live()
                 ->helperText('Tokens are how AI models read text, counted with the tokenizer below. Characters are easier to picture.'),
-            Grid::make(2)->schema([
+            Grid::make(['default' => 1, 'md' => 3])->schema([
                 $this->sizeField('chunk_size', 'Chunk size', fn (ChunkSizeUnit $unit): int => $unit->minSize(), fn (ChunkSizeUnit $unit): int => $unit->maxSize())
                     ->placeholder(fn (Get $get): string => (string) $this->unit($get)->defaultSize())
                     ->helperText(fn (Get $get): string => $this->unit($get) === ChunkSizeUnit::Tokens
@@ -92,6 +93,14 @@ trait BuildsChunkingCards
                     ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
                         if (is_numeric($value) && (int) $value >= $this->chunkSize($get)) {
                             $fail('The overlap must be smaller than the chunk size.');
+                        }
+                    }),
+                $this->sizeField('chunk_minimum', 'Smallest chunk', fn (): int => 0, fn (ChunkSizeUnit $unit): int => intdiv($unit->maxSize(), 2))
+                    ->placeholder(fn (Get $get): string => (string) $this->unit($get)->defaultMinimum())
+                    ->helperText('A shorter last part shares the text of the part before, so tiny chunks are rare. 0 turns it off.')
+                    ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                        if (is_numeric($value) && (int) $value > intdiv($this->chunkSize($get), 2)) {
+                            $fail('The smallest chunk can be at most half the chunk size.');
                         }
                     }),
             ]),
@@ -188,7 +197,7 @@ trait BuildsChunkingCards
         return Str::trim(Str::replace(["\r\n", "\r"], "\n", $text));
     }
 
-    /** Split the sample with the page's (unsaved) unit, size, overlap, strategy and tokenizer. */
+    /** Split the sample with the page's (unsaved) unit, size, overlap, smallest chunk, strategy and tokenizer. */
     private function runPreview(Get $get): void
     {
         $kind = ContentKind::tryFrom((string) $get('preview_kind')) ?? ContentKind::Markdown;
@@ -203,6 +212,7 @@ trait BuildsChunkingCards
                 size: $this->chunkSize($get),
                 overlap: $this->chunkOverlap($get),
                 encoding: $this->tokenizer($get),
+                minimum: $this->chunkMinimum($get),
             );
 
             if ($config->overlap >= $config->size) {
@@ -321,6 +331,14 @@ trait BuildsChunkingCards
         return (int) (KnowledgeSettings::cast('chunk_overlap', $get('chunk_overlap')) ?? $this->defaultValue('chunk_overlap'));
     }
 
+    /** The smallest chunk on the page, else the default, else the unit's default; at most half the size. */
+    private function chunkMinimum(Get $get): int
+    {
+        $minimum = KnowledgeSettings::cast('chunk_minimum', $get('chunk_minimum')) ?? $this->defaultValue('chunk_minimum');
+
+        return ChunkingConfigData::minimumFor(is_numeric($minimum) ? (int) $minimum : $this->unit($get)->defaultMinimum(), $this->chunkSize($get));
+    }
+
     private function tokenizer(Get $get): string
     {
         return TikToken::encoding((string) ($get('tokenizer') ?: $this->defaultValue('tokenizer')));
@@ -331,6 +349,8 @@ trait BuildsChunkingCards
         $config = ChunkingConfigData::forKind(ContentKind::Text);
         $suffix = $config->unit->suffix();
 
-        return sprintf('Up to %d %s · %s', $config->size, $suffix, $config->overlap === 0 ? 'no overlap' : "{$config->overlap} {$suffix} overlap");
+        $range = $config->minimum > 0 ? "{$config->minimum} to {$config->size}" : "Up to {$config->size}";
+
+        return sprintf('%s %s · %s', $range, $suffix, $config->overlap === 0 ? 'no overlap' : "{$config->overlap} {$suffix} overlap");
     }
 }

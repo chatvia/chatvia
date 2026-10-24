@@ -16,7 +16,8 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\SentenceSeparator;
 
 /**
  * The text splitter: splits each kind of content with the strategy, chunk
- * size, overlap and unit set in the admin panel (Settings → Splitting). It
+ * size, overlap, smallest chunk and unit set in the admin panel (Settings →
+ * Splitting). It
  * runs in-process, with no outside service.
  */
 class BuiltinTextSplitter implements TextSplitter
@@ -39,7 +40,7 @@ class BuiltinTextSplitter implements TextSplitter
             return [];
         }
 
-        $splitter = new RecursiveSplitter($config->measure(), $config->size, $config->overlap);
+        $splitter = new RecursiveSplitter($config->measure(), $config->size, $config->overlap, $config->minimum);
 
         if ($config->strategy === SplitStrategy::Markdown) {
             return new MarkdownSplitter($splitter)->split($text);

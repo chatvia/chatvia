@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
  * blocks and tables kept whole when they fit, and the headings above every
  * chunk repeated at its start.
  */
-function mdsSplit(string $markdown, int $size, int $overlap = 0, ?ChunkMeasure $measure = null): array
+function mdsSplit(string $markdown, int $size, int $overlap = 0, ?ChunkMeasure $measure = null, int $minimum = 0): array
 {
-    return new MarkdownSplitter(new RecursiveSplitter($measure ?? new CharacterMeasure, $size, $overlap))->split($markdown);
+    return new MarkdownSplitter(new RecursiveSplitter($measure ?? new CharacterMeasure, $size, $overlap, $minimum))->split($markdown);
 }
 
 it('keeps a page that fits as one chunk', function (): void {
@@ -199,5 +199,17 @@ it('carries the overlap between blocks of a long section', function (): void {
         "# Notes\n\nFirst note.\n\nSecond note.",
         "# Notes\n\nSecond note.\n\nThird note.",
         "# Notes\n\nThird note.\n\nFourth note.",
+    ]);
+});
+
+it('evens out the short last part of a long section', function (): void {
+    $markdown = "# Returns\n\nItems return free. Keep the receipt. Ask us.";
+
+    expect(mdsSplit($markdown, 50))->toBe([
+        "# Returns\n\nItems return free. Keep the receipt.",
+        "# Returns\n\nAsk us.",
+    ])->and(mdsSplit($markdown, 50, minimum: 15))->toBe([
+        "# Returns\n\nItems return free.",
+        "# Returns\n\nKeep the receipt. Ask us.",
     ]);
 });

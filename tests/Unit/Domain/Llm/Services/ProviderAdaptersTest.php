@@ -194,10 +194,3 @@ it('gives a server of your own no account: its row holds its key, and it may hav
     expect($custom->account())->toBeNull()
         ->and($custom->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
 });
-
-it('lets only Mistral read whole PDF documents', function (): void {
-    $readers = array_filter(app(ProviderAdapters::class)->all(), fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments());
-
-    expect(array_map(fn (ProviderAdapter $adapter): LlmProviderKind => $adapter->kind(), array_values($readers)))
-        ->toBe([LlmProviderKind::Mistral]);
-});

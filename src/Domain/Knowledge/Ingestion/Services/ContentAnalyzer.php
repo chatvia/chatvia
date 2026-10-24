@@ -9,16 +9,16 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Enums\AiCallTag;
-use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Exceptions\NoSummaryModelException;
+use Domain\Llm\Services\SourceSummaryModel;
 use Domain\Llm\Services\StructuredCompletion;
 
 /**
  * Classifies a whole document (type, language, audience, likely questions),
  * read as a PDF from a URL (a `data:` URL holding the PDF itself, or a link the
- * provider can open) by the configured document-reading LLM
- * (`chatvia.ai.models.analysis`). The reply must follow a strict JSON schema.
+ * provider can open) by the model for source summaries
+ * ({@see SourceSummaryModel}). The reply must follow a strict JSON schema.
  * The language comes first in it: the model writes the fields in order, and
  * asked for the language last it had already written the questions and
  * topics in a language it guessed, then named that one.
@@ -26,18 +26,18 @@ use Domain\Llm\Services\StructuredCompletion;
 class ContentAnalyzer
 {
     public function __construct(
-        private readonly DocumentLlm $documentLlm,
+        private readonly SourceSummaryModel $models,
         private readonly StructuredCompletion $completion,
     ) {}
 
     /**
-     * @throws DocumentLlmUnavailableException
+     * @throws NoSummaryModelException
      * @throws InvalidStructuredReplyException when the reply holds no JSON
      */
     public function analyze(string $documentUrl): ContentAnalysisData
     {
-        $reply = $this->completion->using($this->documentLlm->provider())->send(new ChatRequestData(
-            model: $this->documentLlm->model((string) config('chatvia.ai.models.analysis')),
+        $reply = $this->completion->send(new ChatRequestData(
+            model: $this->models->model(),
             messages: [
                 ChatMessageData::userWithAttachment(prompt('summarization/system'), [
                     'type' => 'document_url',

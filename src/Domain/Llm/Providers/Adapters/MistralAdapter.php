@@ -43,11 +43,6 @@ final class MistralAdapter extends OpenAiCompatibleAdapter
         return 'https://console.mistral.ai/api-keys';
     }
 
-    public function readsDocuments(): bool
-    {
-        return true;
-    }
-
     public function client(LlmProvider $provider): LlmProviderInterface
     {
         return new Mistral($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');

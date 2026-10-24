@@ -48,11 +48,11 @@ use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ChatFileModel;
-use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\ProviderAdapters;
+use Domain\Llm\Services\SourceSummaryModel;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
@@ -296,15 +296,22 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'none' => 'Off',
                 ], 'Reads the text, scans and tables of PDFs, Word, slides and images while sources are trained. Mistral OCR also reads the pictures inside Word and PowerPoint files; Azure skips them. Excel, CSV, old office files and RTF are read by the app. Off: PDF, Word, slides and images cannot be uploaded.',
                     check: fn (string $reader): ConnectionCheckData => app(DocumentServiceCheck::class)->reader(AiProvider::from($reader))),
-                $this->serviceChoice('document_llm', 'Source summaries', [
-                    'mistral' => 'Mistral',
-                    'none' => 'Off',
-                ], 'Mistral\'s models read each document whole and write a short summary of every source. Off: no summaries.',
-                    check: fn (string $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->wholePdf(AiProvider::from($provider))),
+                $this->toggle('source_summaries_enabled', 'Source summaries',
+                    help: 'A model reads each source whole, as a PDF file, and writes a short summary of it. It also finds the source\'s type, language and likely questions. Two calls per source, while AI enhancement is on (Settings → Knowledge). Off: no summaries; sources are still found by their pages.')
+                    ->live(),
+                $this->modelChoice('source_summaries_model', 'Model for source summaries', unset: fn (): string => $this->automaticLabel(app(SourceSummaryModel::class)->automatic()), only: fn (): array => $this->pdfModels('source_summaries_model'))
+                    ->live()
+                    ->helperText(fn (Get $get): string => $this->summaryModelHelp($get('source_summaries_model')))
+                    ->visible(fn (Get $get): bool => (bool) $get('source_summaries_enabled')),
+                Callout::make('No model reads PDF files')
+                    ->description('Sources get no summary until a model that reads PDF files is added under Chat models.')
+                    ->icon(Heroicon::OutlinedDocumentText)
+                    ->warning()
+                    ->visible(fn (Get $get): bool => (bool) $get('source_summaries_enabled') && $this->pdfModels('source_summaries_model') === []),
                 $this->toggle('chat_files_enabled', 'Chat file uploads',
                     help: 'Lets chatters attach a PDF file or an image in a chat and ask about it, when the agent allows uploads too (agent Setup → Settings → Composer options). Off: no agent can offer uploads.')
                     ->live(),
-                $this->modelChoice('chat_files_model', 'Model for chat file uploads', unset: 'Automatic', only: fn (): array => $this->fileModels('chat_files_model'))
+                $this->modelChoice('chat_files_model', 'Model for chat file uploads', unset: fn (): string => $this->automaticLabel(app(ChatFileModel::class)->automatic()), only: fn (): array => $this->fileModels('chat_files_model'))
                     ->live()
                     ->helperText(fn (Get $get): string => $this->chatFilesHelp($get('chat_files_model')))
                     ->visible(fn (Get $get): bool => (bool) $get('chat_files_enabled')),
@@ -315,8 +322,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->visible(fn (Get $get): bool => (bool) $get('chat_files_enabled') && $this->fileModels('chat_files_model') === []),
             ])->advancedFields(fn (): array => [
                 $this->text('mistral_ocr_model', 'Mistral OCR model'),
-                $this->text('summary_model', 'Summary model', help: 'A Mistral model. Writes the short summary of each source.'),
-                $this->text('analysis_model', 'Analysis model', help: 'A Mistral model. Finds each document\'s type, language, audience and likely questions.'),
             ])->summary(fn (): string => $this->documentsSummary()),
             SettingsCard::make('speech', 'Speech to text', 'Voice input, and audio and video sources.', Heroicon::OutlinedMicrophone, fn (): array => [
                 $this->serviceChoice('transcriber', 'Speech to text', [
@@ -731,9 +736,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
     /**
      * A catalog model, by its id, for one of the app's jobs. Unset uses
-     * the default model.
+     * the default model; $unset is the placeholder that says so.
      */
-    private function modelChoice(string $property, string $label, ?string $help = null, string $unset = 'Same as the default model', ?Closure $only = null): Select
+    private function modelChoice(string $property, string $label, ?string $help = null, string|Closure $unset = 'Same as the default model', ?Closure $only = null): Select
     {
         $options = fn (): array => $this->catalogOptions($only instanceof Closure ? $only() : null);
 
@@ -777,7 +782,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
     /**
      * The help under "Model for chat file uploads": what it does, and, while
-     * none is picked, the model Automatic takes.
+     * none is picked, how Automatic chooses.
      */
     private function chatFilesHelp(mixed $picked): string
     {
@@ -787,11 +792,47 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             return $does;
         }
 
-        $automatic = app(ChatFileModel::class)->automatic();
-
-        return $automatic instanceof Llm
-            ? "{$does} Automatic: {$automatic->name}, the default model if it reads both, else the first one that does."
+        return app(ChatFileModel::class)->automatic() instanceof Llm
+            ? "{$does} Automatic takes the default model if it reads both, else the first one that does."
             : "{$does} Automatic: no model reads both, so uploads are off.";
+    }
+
+    /** The empty choice of a model picker that chooses for itself, with the model it takes now. */
+    private function automaticLabel(?Llm $model): string
+    {
+        return $model instanceof Llm ? "Automatic ({$model->name})" : 'Automatic (no model)';
+    }
+
+    /**
+     * The ids of the models that read PDF files, so they can summarise a
+     * whole source. The model in use stays listed.
+     *
+     * @return list<int>
+     */
+    private function pdfModels(string $property): array
+    {
+        $summaries = app(SourceSummaryModel::class);
+        $ids = Llm::available()->filter(fn (Llm $llm): bool => $summaries->readsPdf($llm))->pluck('id')->all();
+        $inUse = Llm::fromSetting($this->valueInUse($property))?->id;
+
+        return array_values(array_unique($inUse !== null ? [...$ids, $inUse] : $ids));
+    }
+
+    /**
+     * The help under "Model for source summaries": what it does, and, while
+     * none is picked, how Automatic chooses.
+     */
+    private function summaryModelHelp(mixed $picked): string
+    {
+        $does = 'Reads each source whole and writes its summary. Only the models that read PDF files are listed.';
+
+        if (Llm::fromSetting($picked) instanceof Llm) {
+            return $does;
+        }
+
+        return app(SourceSummaryModel::class)->automatic() instanceof Llm
+            ? "{$does} Automatic takes the default model if it reads PDF files, else the first one that does."
+            : "{$does} Automatic: no model reads PDF files, so there are no summaries.";
     }
 
     /**
@@ -1012,12 +1053,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             return app(DocumentReaders::class)->driver();
         }
 
-        if ($property === 'document_llm') {
-            $llm = app(DocumentLlm::class);
-
-            return $llm->isAvailable() ? $llm->slug() : 'none';
-        }
-
         $driver = Str::lower(Str::trim((string) $this->configured($property)));
 
         if ($driver !== '' && $driver !== 'auto') {
@@ -1044,7 +1079,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return AiProvider::tryFrom($this->driverInUse($property))?->label() ?? 'off';
     }
 
-    /** The reader in use, whether summaries are on, and the model for chat files, for the card's summary line. */
+    /** The reader in use, the model for summaries and the model for chat files, for the card's summary line. */
     private function documentsSummary(): string
     {
         $reader = match ($this->driverInUse('document_parser')) {
@@ -1053,7 +1088,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             default => 'off',
         };
 
-        return "Reading: {$reader} · Summaries: ".($this->driverInUse('document_llm') === 'none' ? 'off' : 'on')
+        return "Reading: {$reader} · Summaries: ".(app(SourceSummaryModel::class)->find()->name ?? 'off')
             .' · Chat uploads: '.(app(ChatFileModel::class)->find()->name ?? 'off');
     }
 

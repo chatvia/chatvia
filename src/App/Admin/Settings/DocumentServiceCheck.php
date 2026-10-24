@@ -14,8 +14,7 @@ use Illuminate\Support\Str;
  * Checks a service picked in Settings → AI models → Documents with a real
  * call, with the saved key (Settings → AI providers). Mistral OCR reads a
  * small built-in image, so the OCR model and the account are checked as
- * well as the key; Azure answers for its resource; the Mistral models that
- * read whole PDFs answer for the key.
+ * well as the key; Azure answers for its resource.
  */
 final readonly class DocumentServiceCheck
 {
@@ -28,12 +27,6 @@ final readonly class DocumentServiceCheck
     public function reader(AiProvider $reader): ConnectionCheckData
     {
         return $reader === AiProvider::Mistral ? $this->mistralOcr() : $this->providers->check($reader);
-    }
-
-    /** The models that read whole PDFs, for source summaries. */
-    public function wholePdf(AiProvider $provider): ConnectionCheckData
-    {
-        return $this->providers->check($provider);
     }
 
     private function mistralOcr(): ConnectionCheckData

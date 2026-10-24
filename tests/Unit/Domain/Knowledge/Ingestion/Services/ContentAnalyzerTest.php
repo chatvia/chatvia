@@ -10,10 +10,8 @@ use Illuminate\Support\Facades\Http;
  * and then named that one.
  */
 beforeEach(function (): void {
-    config([
-        'services.mistral.api_key' => 'test-key',
-        'services.mistral.base_url' => 'https://mistral.test/v1',
-    ]);
+    config(['services.mistral.base_url' => 'https://mistral.test/v1']);
+    useSourceSummaries();
 });
 
 it('asks for the document language before the questions and topics', function (): void {

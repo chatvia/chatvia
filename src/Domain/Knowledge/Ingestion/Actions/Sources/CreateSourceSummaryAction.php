@@ -12,30 +12,34 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Llm\Data\Chat\ChatResponseData;
+use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Documents\Summarizer;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\SourceSummaryModel;
 use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
  * Adds the summary chunk (chunk_index 0) of a source: one LLM call classifies
- * the whole document and one summarises it. Skipped when no LLM that can read
- * PDF documents is configured — the source is still searchable by its pages.
+ * the whole document and one summarises it, both with the model for source
+ * summaries. Skipped when summaries are off or no model reads PDF files: the
+ * source is still searchable by its pages.
  */
 class CreateSourceSummaryAction
 {
     public function __construct(
         private readonly ContentAnalyzer $contentAnalyzer,
         private readonly Summarizer $summarizer,
-        private readonly DocumentLlm $documentLlm,
+        private readonly SourceSummaryModel $summaryModel,
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly OfficePdf $officePdf,
     ) {}
 
     public function execute(SourceFile|SourceText|SourceWebsite $source): ?Chunk
     {
-        if (! $this->documentLlm->isAvailable() || $source->summary()->exists()) {
+        $model = $this->summaryModel->find();
+
+        if (! $model instanceof Llm || $source->summary()->exists()) {
             return null;
         }
 
@@ -54,7 +58,7 @@ class CreateSourceSummaryAction
             'summary' => '',
             'questions' => $questions !== '' ? $questions : null,
             'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
-            'chunked_using_model' => config('chatvia.ai.models.summary'),
+            'chunked_using_model' => $model->name,
             'tokens' => TikToken::countTokens($summaryText),
             'embedding' => $this->embeddings->embed($plainSummary, true),
             'search_text' => $plainSummary,

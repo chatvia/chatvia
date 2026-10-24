@@ -26,8 +26,6 @@ use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
 use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
-use Domain\Llm\Providers\Mistral;
-use Domain\Llm\Services\DocumentLlm;
 
 /**
  * Each AI step is bound from config('chatvia.ai.*') in DomainServiceProvider.
@@ -49,15 +47,13 @@ beforeEach(function (): void {
         'chatvia.ai.document_parser' => 'auto',
         'chatvia.ai.reranker' => 'auto',
         'chatvia.ai.transcriber' => 'auto',
-        'chatvia.ai.document_llm' => 'auto',
         'chatvia.ai.models.embedding' => 'qwen',
     ]);
 });
 
 it('uses only local or "off" services when no vendor key is set', function (): void {
     expect(app(DocumentParser::class))->toBeInstanceOf(LocalDocumentParser::class)
-        ->and(app(Transcriber::class))->toBeInstanceOf(NullTranscriber::class)
-        ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
+        ->and(app(Transcriber::class))->toBeInstanceOf(NullTranscriber::class);
 });
 
 it('keeps the hosted services when their keys are set, as in production', function (): void {
@@ -66,27 +62,20 @@ it('keeps the hosted services when their keys are set, as in production', functi
         'services.scalewayai.api_key' => 'scaleway-key',
     ]);
 
-    $documentLlm = app(DocumentLlm::class);
-
     expect(app(DocumentParser::class))->toBeInstanceOf(MistralDocumentParser::class)
         ->and(app(DocumentParser::class)->name())->toBe(config('services.mistral.ocr_model'))
         ->and(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class)
         ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class)
-        ->and(app(EmbeddingsProviderInterface::class)->provider())->toBeInstanceOf(Qwen3::class)
-        ->and($documentLlm->isAvailable())->toBeTrue()
-        ->and($documentLlm->provider())->toBeInstanceOf(Mistral::class)
-        ->and($documentLlm->slug())->toBe('mistral');
+        ->and(app(EmbeddingsProviderInterface::class)->provider())->toBeInstanceOf(Qwen3::class);
 });
 
-it('reads documents with Azure but turns whole-PDF reading off when only Azure is connected', function (): void {
+it('reads documents with Azure when only Azure is connected', function (): void {
     config([
         'services.azure_document_intelligence.key' => 'az-key',
         'services.azure_document_intelligence.endpoint' => 'https://docs.cognitiveservices.azure.com',
     ]);
 
-    // Azure reads documents, but has no models that read a whole PDF.
-    expect(app(DocumentParser::class))->toBeInstanceOf(AzureDocumentParser::class)
-        ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
+    expect(app(DocumentParser::class))->toBeInstanceOf(AzureDocumentParser::class);
 });
 
 it('lets an explicit driver override auto', function (): void {
@@ -96,13 +85,11 @@ it('lets an explicit driver override auto', function (): void {
         'chatvia.ai.document_parser' => 'none',
         'chatvia.ai.transcriber' => 'none',
         'chatvia.ai.reranker' => 'none',
-        'chatvia.ai.document_llm' => 'none',
     ]);
 
     expect(app(DocumentParser::class))->toBeInstanceOf(LocalDocumentParser::class)
         ->and(app(Transcriber::class))->toBeInstanceOf(NullTranscriber::class)
-        ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class)
-        ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
+        ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class);
 });
 
 it('reranks through OpenRouter with its key, when it is connected, by default', function (): void {
@@ -164,15 +151,8 @@ it('fails fast on an unknown driver name', function (string $key, string $contra
     ['document_parser', DocumentParser::class],
     ['reranker', Reranker::class],
     ['transcriber', Transcriber::class],
-    ['document_llm', DocumentLlm::class],
     ['voice', RealtimeCalls::class],
 ]);
-
-it('refuses a document LLM provider that cannot read PDF documents', function (): void {
-    config(['chatvia.ai.document_llm' => 'scaleway']);
-
-    expect(fn (): DocumentLlm => app(DocumentLlm::class))->toThrow(InvalidArgumentException::class, 'Use auto, mistral, none');
-});
 
 it('fails fast when the embedding provider cannot return the size the database stores', function (string $provider, int $stored): void {
     config([

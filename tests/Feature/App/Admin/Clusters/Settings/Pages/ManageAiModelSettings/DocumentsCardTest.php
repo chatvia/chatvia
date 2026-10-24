@@ -3,23 +3,23 @@
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
-use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Models\Llm;
+use Domain\Llm\Services\SourceSummaryModel;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
  * The Documents card of Settings → AI models: document reading (Mistral OCR,
- * Azure Document Intelligence or Off), source summaries (Mistral or Off),
- * and chat file uploads with their model. A new service pick is checked
- * with a real call as it is saved and refused, with the reason, when the
- * call fails. What the pickers share is in ServiceChoicesTest.
+ * Azure Document Intelligence or Off), source summaries and chat file
+ * uploads, each with its model. A new reader is checked with a real call as
+ * it is saved and refused, with the reason, when the call fails. What the pickers share is in ServiceChoicesTest.
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
 
     saveSettings(AiProviderSettings::class, ['mistral_api_key' => null, 'azure_api_key' => null, 'azure_endpoint' => null]);
-    saveSettings(AiSettings::class, ['document_parser' => null, 'document_llm' => null]);
+    saveSettings(AiSettings::class, ['document_parser' => null, 'source_summaries_enabled' => null, 'source_summaries_model' => null]);
 });
 
 it('reads a test image with Mistral OCR before it saves Mistral OCR', function (): void {
@@ -93,18 +93,32 @@ it('refuses Azure when its endpoint does not answer', function (): void {
     expect(savedSetting(AiSettings::class, 'document_parser'))->toBe('none');
 });
 
-it('checks the Mistral key before it turns on summaries and PDF chat', function (): void {
-    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
-    saveSettings(AiSettings::class, ['document_llm' => 'none']);
-    Http::fake(['api.mistral.ai/v1/models' => Http::response(['data' => [['id' => 'mistral-medium-latest', 'capabilities' => ['completion_chat' => true]]]])]);
+it('lists only the models that read PDF files for source summaries, of any provider, and saves the switch and the pick', function (): void {
+    $reads = fn (array $inputs): array => ['reasoning' => false, 'modalities' => ['input' => ['text', ...$inputs]]];
+    testLlm('images-only', attributes: ['capabilities' => $reads(['image'])]);
+    $pdf = testLlm('pdf-only', attributes: ['capabilities' => $reads(['pdf'])]);
+
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)->fillForm(['source_summaries_enabled' => true]);
+
+    expect(array_merge(...array_map(array_keys(...), array_values($page->instance()->form->getFlatFields(withHidden: true)['source_summaries_model']->getOptions()))))->toBe([$pdf->id]);
+
+    $page->fillForm(['source_summaries_model' => (string) $pdf->id])->call('save')->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'source_summaries_model'))->toBe((string) $pdf->id)
+        ->and(app(SourceSummaryModel::class)->find()?->is($pdf))->toBeTrue();
+
+    adminPage(ManageAiModelSettings::class, $this->admin)->fillForm(['source_summaries_enabled' => false])->call('save')->assertHasNoFormErrors();
+
+    expect(savedSetting(AiSettings::class, 'source_summaries_enabled'))->toBeFalse()
+        ->and(app(SourceSummaryModel::class)->isAvailable())->toBeFalse();
+});
+
+it('warns when no model reads PDF files for source summaries', function (): void {
+    testLlm('text-only', attributes: ['capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text']]]]);
 
     adminPage(ManageAiModelSettings::class, $this->admin)
-        ->fillForm(['document_llm' => 'mistral'])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
-    expect(savedSetting(AiSettings::class, 'document_llm'))->toBe('mistral')
-        ->and(app(DocumentLlm::class)->isAvailable())->toBeTrue();
+        ->fillForm(['source_summaries_enabled' => true])
+        ->assertSee('No model reads PDF files');
 });
 
 it('lists only the models that read PDF files and images for chat file uploads, and saves the switch and the pick', function (): void {
@@ -123,4 +137,22 @@ it('lists only the models that read PDF files and images for chat file uploads, 
     adminPage(ManageAiModelSettings::class, $this->admin)->fillForm(['chat_files_enabled' => false])->call('save')->assertHasNoFormErrors();
 
     expect(savedSetting(AiSettings::class, 'chat_files_enabled'))->toBeFalse();
+});
+
+it('names the model Automatic takes in the empty choice of both model pickers', function (): void {
+    $reads = fn (array $inputs): array => ['reasoning' => false, 'modalities' => ['input' => ['text', ...$inputs]]];
+    testLlm('pdf-reader', attributes: ['capabilities' => $reads(['image', 'pdf'])]);
+    config(['chatvia.agent.default_model' => null]);
+
+    $fields = adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['source_summaries_enabled' => true, 'chat_files_enabled' => true])
+        ->instance()->form->getFlatFields(withHidden: true);
+
+    expect($fields['source_summaries_model']->getPlaceholder())->toBe('Automatic (pdf-reader)')
+        ->and($fields['chat_files_model']->getPlaceholder())->toBe('Automatic (pdf-reader)');
+
+    Llm::query()->delete();
+    Llm::flushCatalogCache();
+
+    expect($fields['source_summaries_model']->getPlaceholder())->toBe('Automatic (no model)');
 });

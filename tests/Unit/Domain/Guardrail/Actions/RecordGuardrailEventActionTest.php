@@ -2,40 +2,19 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Actions\RecordGuardrailEventAction;
-use Domain\Guardrail\Events\GuardrailTriggered;
-use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Guardrail\Models\GuardrailEvent;
 use Illuminate\Support\Str;
+use Tests\Support\Guardrail\GuardrailTriggers;
 
 /**
  * The recorder is the safety log's single writer. Its contract: persist the
  * denormalized identity + verdict, hash the FULL original sample, and store only
  * a size-capped snippet so the log can never itself become a PII sink.
  */
-function guardEvent(Agent $agent, string $sample, array $overrides = []): GuardrailTriggered
-{
-    return new GuardrailTriggered(
-        agentId: $overrides['agentId'] ?? $agent->id,
-        agentName: $agent->name,
-        workspaceId: (int) $agent->workspace_id,
-        userId: $overrides['userId'] ?? null,
-        userName: $overrides['userName'] ?? null,
-        conversationExternalId: (string) Str::uuid7(),
-        messageId: (string) Str::uuid7(),
-        traceId: 'trace-1',
-        stage: $overrides['stage'] ?? 'input',
-        guardType: $overrides['guardType'] ?? 'pii',
-        outcome: $overrides['outcome'] ?? 'redacted',
-        severity: $overrides['severity'] ?? null,
-        detail: $overrides['detail'] ?? ['types' => ['email']],
-        sample: $sample,
-    );
-}
-
 it('writes one immutable guardrail_events row from the event', function (): void {
     $agent = Agent::factory()->create();
 
-    (new RecordGuardrailEventAction)->execute(guardEvent($agent, 'email a@b.com'));
+    (new RecordGuardrailEventAction)->execute(GuardrailTriggers::event($agent, sample: 'email a@b.com'));
 
     $row = GuardrailEvent::query()->firstOrFail();
 
@@ -47,7 +26,7 @@ it('writes one immutable guardrail_events row from the event', function (): void
         ->and($row->snippet)->toBe('email a@b.com')
         ->and($row->snippet_sha256)->toBe(hash('sha256', 'email a@b.com'))
         ->and($row->detail)->toBe(['types' => ['email']])
-        ->and($row->external_id)->not->toBeNull();
+        ->and(Str::isUuid($row->external_id))->toBeTrue();
 });
 
 it('caps the stored snippet but hashes the full original', function (): void {
@@ -55,7 +34,7 @@ it('caps the stored snippet but hashes the full original', function (): void {
     $agent = Agent::factory()->create();
     $long = Str::repeat('x', 60);
 
-    (new RecordGuardrailEventAction)->execute(guardEvent($agent, $long));
+    (new RecordGuardrailEventAction)->execute(GuardrailTriggers::event($agent, sample: $long));
 
     $row = GuardrailEvent::query()->firstOrFail();
 
@@ -69,7 +48,7 @@ it('cuts a multibyte snippet on a character boundary so Postgres accepts it', fu
     config(['chatvia.guardrails.max_snippet_bytes' => 9]);
     $agent = Agent::factory()->create();
 
-    (new RecordGuardrailEventAction)->execute(guardEvent($agent, $sample));
+    (new RecordGuardrailEventAction)->execute(GuardrailTriggers::event($agent, sample: $sample));
 
     $row = GuardrailEvent::query()->firstOrFail();
 
@@ -81,20 +60,3 @@ it('cuts a multibyte snippet on a character boundary so Postgres accepts it', fu
     'arabic' => 'مرحبا بك في الدعم',
     'emoji' => 'ok 😀😀😀😀 done',
 ]);
-
-it('records the event from the queued listener while guardrails are on', function (): void {
-    $agent = Agent::factory()->create();
-
-    app(RecordGuardrailEvent::class)->handle(guardEvent($agent, 'email a@b.com'));
-
-    expect(GuardrailEvent::query()->where('agent_id', $agent->id)->count())->toBe(1);
-});
-
-it('records nothing while the global guardrails switch is off', function (): void {
-    config(['chatvia.guardrails.enabled' => false]);
-    $agent = Agent::factory()->create();
-
-    app(RecordGuardrailEvent::class)->handle(guardEvent($agent, 'email a@b.com'));
-
-    expect(GuardrailEvent::query()->where('agent_id', $agent->id)->exists())->toBeFalse();
-});

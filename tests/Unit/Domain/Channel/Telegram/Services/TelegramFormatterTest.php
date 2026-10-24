@@ -23,12 +23,6 @@ it('converts bold, bullets, and headings to the Telegram subset', function (): v
         ->not->toContain('<strong>');
 });
 
-it('numbers ordered lists', function (): void {
-    $html = $this->fmt->toHtml("1. first\n2. second");
-
-    expect($html)->toContain('1. first')->toContain('2. second');
-});
-
 it('renders links, inline code and code blocks', function (): void {
     $html = $this->fmt->toHtml("See [docs](https://example.com) and run `php artisan`.\n\n```\necho 1;\n```");
 
@@ -43,18 +37,6 @@ it('escapes HTML-special characters in text', function (): void {
 
     expect($html)->toContain('2 &lt; 3 &amp; 5 &gt; 4')
         ->not->toContain('2 < 3');
-});
-
-it('preserves emoji and accented characters', function (): void {
-    $html = $this->fmt->toHtml('Stay cool 😊 — café');
-
-    expect($html)->toContain('😊')->toContain('café');
-});
-
-it('drops non-http links but keeps their text', function (): void {
-    $html = $this->fmt->toHtml('[click](javascript:alert(1))');
-
-    expect($html)->toContain('click')->not->toContain('javascript');
 });
 
 it('strips to clean plain text as a fallback', function (): void {

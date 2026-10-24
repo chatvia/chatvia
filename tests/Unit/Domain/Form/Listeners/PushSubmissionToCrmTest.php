@@ -76,7 +76,8 @@ it('posts the submission to the CRM webhook', function (): void {
         ]);
 });
 
-it('sends the same delivery id when the queue retries the event', function (): void {
+it('sends the same body, delivery id and all, when the queue retries the event', function (): void {
+    $this->freezeTime();
     $agent = pstcAgentWithCrm();
     Http::fake([PSTC_URL => Http::response('', 200)]);
     $event = pstcEvent($agent->id);
@@ -85,9 +86,10 @@ it('sends the same delivery id when the queue retries the event', function (): v
     app(PushSubmissionToCrm::class)->handle($event);
     app(PushSubmissionToCrm::class)->handle(unserialize(serialize($event)));
 
-    $ids = Http::recorded()->map(fn (array $pair): mixed => $pair[0]->data()['delivery_id']);
+    [$first, $retry] = Http::recorded()->map(fn (array $pair): array => $pair[0]->data())->all();
 
-    expect($ids->all())->toBe([$event->deliveryId, $event->deliveryId])
+    expect($retry)->toBe($first)
+        ->and($first['delivery_id'])->toBe($event->deliveryId)
         ->and(Str::isUuid($event->deliveryId))->toBeTrue();
 });
 

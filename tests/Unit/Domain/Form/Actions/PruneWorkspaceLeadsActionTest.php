@@ -47,9 +47,11 @@ it('deletes only that workspace\'s submitted leads past its window', function ()
 it('deletes in batches until nothing is left, and a second run deletes nothing', function (): void {
     $agent = Agent::factory()->create();
     pwlSetRetention($agent, 7);
-    foreach (range(1, 5) as $i) {
-        pwlLead($agent, 10 + $i);
-    }
+    pwlLead($agent, 11);
+    pwlLead($agent, 12);
+    pwlLead($agent, 13);
+    pwlLead($agent, 14);
+    pwlLead($agent, 15);
     $kept = pwlLead($agent, 1);
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute(batchSize: 2))->toBe(5)

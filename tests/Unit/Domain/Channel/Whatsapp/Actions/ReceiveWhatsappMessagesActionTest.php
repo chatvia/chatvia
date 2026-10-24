@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Whatsapp\Actions\ReceiveWhatsappMessagesAction;
 use Domain\Channel\Whatsapp\Data\WhatsappInboundMessageData;
 use Domain\Channel\Whatsapp\Jobs\HandleWhatsappMessageJob;
@@ -15,15 +14,8 @@ use Illuminate\Support\Facades\Bus;
  */
 it('remembers queued messages per WhatsApp number', function (): void {
     Bus::fake();
-    $number = fn (string $phoneNumberId): AgentWhatsappNumber => AgentWhatsappNumber::create([
-        'agent_id' => Agent::factory()->create()->id,
-        'access_token' => 'EAAG-wa-token',
-        'phone_number_id' => $phoneNumberId,
-        'waba_id' => '999',
-        'is_enabled' => true,
-    ]);
-    $first = $number('111');
-    $second = $number('222');
+    $first = AgentWhatsappNumber::factory()->create(['phone_number_id' => '111']);
+    $second = AgentWhatsappNumber::factory()->create(['phone_number_id' => '222']);
     $messages = [
         new WhatsappInboundMessageData('111', '4915551234567', 'hello', 'wamid.1', 'Sam'),
         new WhatsappInboundMessageData('222', '4915557654321', 'hi', 'wamid.1', 'Lee'),

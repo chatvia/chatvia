@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Services\TeamsClient;
 use Illuminate\Http\Client\Request;
@@ -15,14 +14,7 @@ use Illuminate\Support\Str;
  * path-encoded URL.
  */
 beforeEach(function (): void {
-    $this->bot = AgentTeamsBot::create([
-        'agent_id' => Agent::factory()->create()->id,
-        'app_id' => 'f5e1f9d2-1111-2222-3333-444455556666',
-        'app_secret' => 'client-secret-value',
-        'tenant_id' => null,
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-    ]);
+    $this->bot = AgentTeamsBot::factory()->create(['app_id' => 'f5e1f9d2-1111-2222-3333-444455556666', 'app_secret' => 'client-secret-value']);
     $this->serviceUrl = 'https://smba.trafficmanager.net/emea/';
     $this->activities = 'https://smba.trafficmanager.net/emea/v3/conversations/a%3A1conv%3Bmessageid%3D7/activities';
 });

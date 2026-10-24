@@ -1,37 +1,39 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Actions\PruneGuardrailEventsAction;
 use Domain\Guardrail\Models\GuardrailEvent;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-function guardrailRow(User $workspace, int $daysAgo): void
+/**
+ * The nightly prune of the safety log: events older than the retention window
+ * are deleted, in batches until none is left; newer ones stay.
+ */
+function pgeEvent(Agent $agent, int $daysAgo): GuardrailEvent
 {
-    GuardrailEvent::query()->create([
-        'agent_name' => 'Bot',
-        'workspace_id' => $workspace->workspace()->id,
-        'stage' => 'input',
-        'guard_type' => 'pii',
-        'outcome' => 'redacted',
-        'created_at' => now()->subDays($daysAgo),
-    ]);
+    return GuardrailEvent::factory()->forAgent($agent)->create(['created_at' => now()->subDays($daysAgo)]);
 }
 
 it('deletes guardrail events older than the window', function (): void {
-    $workspace = User::factory()->create();
-    guardrailRow($workspace, 100);
-    guardrailRow($workspace, 10);
+    $agent = Agent::factory()->create();
+    pgeEvent($agent, 100);
+    $recent = pgeEvent($agent, 10);
 
     expect(app(PruneGuardrailEventsAction::class)->execute(90))->toBe(1)
-        ->and(GuardrailEvent::query()->count())->toBe(1);
+        ->and(GuardrailEvent::query()->pluck('id')->all())->toBe([$recent->id]);
 });
 
 it('deletes in batches until every old event is gone', function (): void {
-    $workspace = User::factory()->create();
-    guardrailRow($workspace, 100);
-    guardrailRow($workspace, 120);
-    guardrailRow($workspace, 150);
-    guardrailRow($workspace, 10);
+    $agent = Agent::factory()->create();
+    pgeEvent($agent, 100);
+    pgeEvent($agent, 120);
+    pgeEvent($agent, 150);
+    $recent = pgeEvent($agent, 10);
+    DB::enableQueryLog();
 
     expect(app(PruneGuardrailEventsAction::class)->execute(90, batchSize: 1))->toBe(3)
-        ->and(GuardrailEvent::query()->where('workspace_id', $workspace->workspace()->id)->count())->toBe(1);
+        // Three batches of one, then one that finds nothing.
+        ->and(collect(DB::getQueryLog())->filter(fn (array $query): bool => Str::startsWith($query['query'], 'delete'))->count())->toBe(4)
+        ->and(GuardrailEvent::query()->pluck('id')->all())->toBe([$recent->id]);
 });

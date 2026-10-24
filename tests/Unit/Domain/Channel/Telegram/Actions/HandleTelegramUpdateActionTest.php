@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Services\Replies\TypingReplyStrategy;
 use Domain\Channel\Telegram\Actions\HandleTelegramUpdateAction;
@@ -11,7 +10,6 @@ use Domain\Channel\Telegram\Services\TelegramAdapter;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Channel\Telegram\FakeTelegramClient;
 
@@ -22,15 +20,7 @@ use Tests\Support\Channel\Telegram\FakeTelegramClient;
  */
 function telegramHandleBot(): AgentTelegramBot
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentTelegramBot::create([
-        'agent_id' => $agent->id,
-        'bot_token' => '123:secret-token',
-        'bot_username' => 'demo_bot',
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-    ]);
+    return AgentTelegramBot::factory()->create(['bot_token' => '123:secret-token']);
 }
 
 /**
@@ -101,13 +91,11 @@ it('answers /start with the default message and never runs the pipeline', functi
 
     telegramHandle($client, $runner, $bot, '777', '/start', 'Sam');
 
-    // Built-in /start defaults to "Hello" — a canned message, not the pipeline.
+    // Built-in /start defaults to "Hello": a canned message, with no "typing…" and no turn run.
     expect($client->sent)->toHaveCount(1)
         ->and($client->sent[0]['text'])->toBe('Hello')
-        ->and($client->sent[0]['text'])->not->toBe('PIPELINE REPLY');
-
-    // Message-mode commands answer instantly — no "typing…", no LLM, nothing counted.
-    expect($client->actions)->toBeEmpty();
+        ->and($client->actions)->toBeEmpty()
+        ->and($runner->received())->toBeNull();
 });
 
 it('runs a prompt-mode command through the agent pipeline', function (): void {

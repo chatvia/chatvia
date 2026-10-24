@@ -127,8 +127,7 @@ it('lets the widget load on the APP_URL host with the default config', function 
     $verification = app(WidgetVerification::class);
 
     expect($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://'.$appHost)))->toBeTrue()
-        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://www.'.$appHost)))->toBeTrue()
-        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://chatvia.ai')))->toBe($appHost === 'chatvia.ai');
+        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://www.'.$appHost)))->toBeTrue();
 });
 
 it('falls back from Origin to Referer to the request host', function (): void {

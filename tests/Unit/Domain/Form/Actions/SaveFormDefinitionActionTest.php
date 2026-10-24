@@ -6,6 +6,10 @@ use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Models\FormDefinition;
 
+/**
+ * Saving a form from the editor: a new form gets a slug derived from its
+ * name, unique within the agent; an edit keeps the slug it has.
+ */
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     $this->agent = makeTeamAgent($this->user, 'Bot');

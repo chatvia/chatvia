@@ -1,12 +1,10 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\Telegram\FakeTelegramClient;
 
 /**
@@ -19,18 +17,10 @@ function telegramRouter(): TelegramCommandRouter
     return new TelegramCommandRouter(app(TelegramChatResolver::class), new FakeTelegramClient);
 }
 
+/** @param  list<array<string, string>>  $commands */
 function telegramRouterBot(array $commands = []): AgentTelegramBot
 {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    return AgentTelegramBot::create([
-        'agent_id' => $agent->id,
-        'bot_token' => '123:secret-token',
-        'bot_username' => 'demo_bot',
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-        'commands' => $commands,
-    ]);
+    return AgentTelegramBot::factory()->create(['commands' => $commands]);
 }
 
 it('lets a plain message fall through to the pipeline', function (): void {

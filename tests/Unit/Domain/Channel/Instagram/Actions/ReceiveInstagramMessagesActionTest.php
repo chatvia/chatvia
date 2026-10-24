@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Instagram\Actions\ReceiveInstagramMessagesAction;
 use Domain\Channel\Instagram\Data\InstagramInboundMessageData;
 use Domain\Channel\Instagram\Jobs\HandleInstagramMessageJob;
@@ -15,16 +14,8 @@ use Illuminate\Support\Facades\Bus;
  */
 it('remembers queued messages per Instagram account', function (): void {
     Bus::fake();
-    $account = fn (string $pageId, string $igId): AgentInstagramAccount => AgentInstagramAccount::create([
-        'agent_id' => Agent::factory()->create()->id,
-        'page_access_token' => 'EAAG-page-token',
-        'page_id' => $pageId,
-        'ig_id' => $igId,
-        'username' => 'acme',
-        'is_enabled' => true,
-    ]);
-    $first = $account('PAGE-1', 'IG-1');
-    $second = $account('PAGE-2', 'IG-2');
+    $first = AgentInstagramAccount::factory()->create(['ig_id' => 'IG-1']);
+    $second = AgentInstagramAccount::factory()->create(['ig_id' => 'IG-2']);
     $messages = [
         new InstagramInboundMessageData('IG-1', 'USER-1', 'hello', 'mid.1'),
         new InstagramInboundMessageData('IG-2', 'USER-2', 'hi', 'mid.1'),

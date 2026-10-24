@@ -7,15 +7,15 @@ use Domain\Channel\Teams\Models\TeamsChat;
 use Domain\Channel\Teams\Services\TeamsAdapter;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
-use Illuminate\Support\Carbon;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Channel\Teams\FakeTeamsClient;
 
 /**
- * The handle Action wires the inbound activity end to end: strip the bot's
- * own @mention, resolve the chat, post a placeholder, stream the reply into
- * it via activity edits, and stamp the chat. The pipeline (real LLM) is
- * stubbed here — this asserts the wiring, not the model's answer.
+ * What the Teams handle Action adds to the shared channel turn: it strips the
+ * bot's own @mention (found through the mention entities), unwraps other
+ * people's mentions, and ignores a message that is only the mention. The
+ * streamed reply itself is covered by StreamingReplyStrategyTest. The
+ * pipeline is the stub runner.
  */
 function teamsHandleBot(): AgentTeamsBot
 {
@@ -52,34 +52,6 @@ function teamsHandleActivity(array $overrides = []): array
         'recipient' => ['id' => '28:f5e1f9d2-1111-2222-3333-444455556666'],
     ], $overrides);
 }
-
-it('posts a placeholder, streams partials into it, and lands the final reply', function (): void {
-    $bot = teamsHandleBot();
-    $client = new FakeTeamsClient;
-    $runner = new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
-
-    $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
-
-    teamsHandle($client, $runner, $bot, teamsHandleActivity());
-
-    // One placeholder post, then a partial edit per push + the final edit.
-    expect($client->posted)->toHaveCount(1)
-        ->and($client->posted[0]['serviceUrl'])->toBe('https://smba.trafficmanager.net/emea/')
-        ->and($client->posted[0]['conversationId'])->toBe('a:1conversation');
-
-    expect($client->updates)->toHaveCount(3)
-        ->and($client->updates[0]['markdown'])->toBe('Hello')
-        ->and($client->updates[1]['markdown'])->toBe('Hello from')
-        ->and($client->updates[2]['markdown'])->toBe('Hello from the agent')
-        ->and($client->updates[2]['activityId'])->toBe($client->nextActivityId);
-
-    expect($runner->received())->toBe('hi there');
-
-    // Made at 10:00, stamped when the reply landed two partials (a minute each) later.
-    $chat = TeamsChat::query()->firstOrFail();
-    expect($chat->conversation_id)->toBe('a:1conversation')
-        ->and($chat->last_message_at->toDateTimeString())->toBe('2026-10-01 10:02:00');
-});
 
 it('strips the bot’s own mention through the mention entity', function (): void {
     $bot = teamsHandleBot();
@@ -147,19 +119,7 @@ it('does nothing when the message is only the mention itself', function (): void
 
     teamsHandle($client, $runner, $bot, $activity);
 
-    expect($client->posted)->toBeEmpty();
-    expect($runner->received())->toBeNull();
-    expect(TeamsChat::query()->count())->toBe(0);
-});
-
-it('bails before the pipeline when the placeholder cannot be posted', function (): void {
-    $bot = teamsHandleBot();
-    $client = new FakeTeamsClient;
-    $client->nextActivityId = null; // bot removed / expired secret
-    $runner = new StubChannelReplyRunner('should never run');
-
-    teamsHandle($client, $runner, $bot, teamsHandleActivity());
-
-    expect($runner->received())->toBeNull();
-    expect($client->updates)->toBeEmpty();
+    expect($client->posted)->toBeEmpty()
+        ->and($runner->received())->toBeNull()
+        ->and(TeamsChat::query()->count())->toBe(0);
 });

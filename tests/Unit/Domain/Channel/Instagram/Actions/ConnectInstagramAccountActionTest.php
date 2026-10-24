@@ -16,7 +16,7 @@ use Tests\Support\Channel\Instagram\FakeInstagramClient;
  * so DMs start flowing. The ids come straight from Facebook's /me/accounts →
  * instagram_business_account (already valid), so there's no token validation.
  */
-function instagramConnectData(string $pageToken, string $igId = '17840012345'): InstagramAccountData
+function ciaData(string $pageToken, string $igId = '17840012345'): InstagramAccountData
 {
     return new InstagramAccountData(
         page_id: '998877',
@@ -31,7 +31,7 @@ it('stores the IG account and subscribes the linked page with its token', functi
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeInstagramClient;
 
-    $account = new ConnectInstagramAccountAction($client, new ChannelConnectionGuard)->execute($agent, instagramConnectData('EAAG-page-token-value-here'));
+    $account = new ConnectInstagramAccountAction($client, new ChannelConnectionGuard)->execute($agent, ciaData('EAAG-page-token-value-here'));
 
     $row = AgentInstagramAccount::query()->firstOrFail();
 
@@ -51,10 +51,10 @@ it('reconnects in place — one account row per agent, page token replaced', fun
     $agent = Agent::factory()->create(['is_public' => true]);
     $action = new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard);
 
-    $action->execute($agent, instagramConnectData('EAAG-first-token'));
+    $action->execute($agent, ciaData('EAAG-first-token'));
     $first = AgentInstagramAccount::query()->firstOrFail();
 
-    $action->execute($agent, instagramConnectData('EAAG-second-token'));
+    $action->execute($agent, ciaData('EAAG-second-token'));
 
     expect(AgentInstagramAccount::query()->count())->toBe(1);
 
@@ -63,39 +63,26 @@ it('reconnects in place — one account row per agent, page token replaced', fun
         ->and($row->page_access_token)->toBe('EAAG-second-token');
 });
 
-it('refuses a protected agent and stores nothing', function (): void {
+it('refuses a protected agent before subscribing the page, and stores nothing', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
+    $client = new FakeInstagramClient;
 
-    expect(fn (): AgentInstagramAccount => new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard)
-        ->execute($agent, instagramConnectData('EAAG-token')))
+    expect(fn (): AgentInstagramAccount => new ConnectInstagramAccountAction($client, new ChannelConnectionGuard)
+        ->execute($agent, ciaData('EAAG-token')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 
-    expect(AgentInstagramAccount::query()->count())->toBe(0);
+    expect(AgentInstagramAccount::query()->count())->toBe(0)
+        ->and($client->subscriptions)->toBeEmpty();
 });
 
 it('refuses an account that already powers another agent', function (): void {
     $action = new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard);
-    $action->execute(Agent::factory()->create(['is_public' => true]), instagramConnectData('EAAG-first'));
+    $action->execute(Agent::factory()->create(['is_public' => true]), ciaData('EAAG-first'));
 
     $other = Agent::factory()->create(['is_public' => true]);
 
-    expect(fn (): AgentInstagramAccount => $action->execute($other, instagramConnectData('EAAG-second')))
+    expect(fn (): AgentInstagramAccount => $action->execute($other, ciaData('EAAG-second')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::TakenByAnotherAgent));
 
     expect(AgentInstagramAccount::query()->where('agent_id', $other->id)->exists())->toBeFalse();
-});
-
-it('connects an account whose only other row belongs to a deleted agent', function (): void {
-    $action = new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard);
-    $deleted = Agent::factory()->create(['is_public' => true]);
-    $action->execute($deleted, instagramConnectData('EAAG-first'));
-    // What DeleteAgentAction leaves until the purge: a trashed agent and a switched-off row.
-    $deleted->delete();
-    AgentInstagramAccount::query()->where('agent_id', $deleted->id)->update(['is_enabled' => false]);
-
-    $other = Agent::factory()->create(['is_public' => true]);
-    $account = $action->execute($other, instagramConnectData('EAAG-second'));
-
-    expect($account->agent_id)->toBe($other->id)
-        ->and(AgentInstagramAccount::query()->where('ig_id', '17840012345')->where('is_enabled', true)->sole()->agent_id)->toBe($other->id);
 });

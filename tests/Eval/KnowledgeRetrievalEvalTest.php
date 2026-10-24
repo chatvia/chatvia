@@ -11,11 +11,13 @@ use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
+use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
@@ -23,6 +25,7 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 
 /**
@@ -46,6 +49,7 @@ use Illuminate\Support\Str;
  *
  * Knobs (env, one run): VECTOR_SEARCH_RELEVANCE_THRESHOLD, VECTOR_SEARCH_MAX_CHUNKS,
  * EVAL_ENRICH=1 (enrich chunks with the Smart model first; needs a chat model),
+ * EVAL_ENRICH_WITHOUT=summary|questions (then take that part back out),
  * EVAL_CHUNK_SIZE and EVAL_CHUNK_MINIMUM (the chunk size and the smallest
  * chunk, in the configured unit), EVAL_SIMILARITY_THRESHOLD (the bar without
  * a reranker).
@@ -129,6 +133,31 @@ function retrievalEvalAgent(): Agent
     return $agent;
 }
 
+/**
+ * Takes one part of the enhancement back out of the agent's chunks, to see
+ * what that part does to the ranking (EVAL_ENRICH_WITHOUT): "summary" embeds
+ * and indexes each chunk's own text without the summary in front;
+ * "questions" drops the generated questions and their embedding, which turns
+ * the two question channels off.
+ */
+function retrievalEvalWithout(Agent $agent, string $part): void
+{
+    $chunks = Chunk::query()->where('workspace_id', $agent->workspace_id)->get();
+
+    if ($part === 'questions') {
+        Chunk::query()->whereKey($chunks->modelKeys())->update(['questions' => null, 'questions_embedding' => null]);
+
+        return;
+    }
+
+    $cast = app(EmbeddingStorage::class)->columnType();
+    $vectors = app(EmbeddingsProviderInterface::class)->embedBatch($chunks->pluck('chunk')->all());
+
+    foreach ($chunks->values() as $index => $chunk) {
+        DB::update("UPDATE chunks SET embedding = ?::{$cast}, search_text = chunk WHERE id = ?", ['['.implode(',', $vectors[$index]).']', $chunk->id]);
+    }
+}
+
 /** The search question of a case: a follow-up goes through the rewriter, with its history. */
 function retrievalEvalQuery(array $case): string
 {
@@ -184,6 +213,11 @@ function retrievalEvalScores(string $query, array $candidates): ?array
 it('measures knowledge retrieval quality against the labelled set', function (): void {
     $cases = require __DIR__.'/fixtures/knowledge/cases.php';
     $agent = retrievalEvalAgent();
+
+    if (env('EVAL_ENRICH') && filled($part = env('EVAL_ENRICH_WITHOUT'))) {
+        retrievalEvalWithout($agent, $part);
+    }
+
     $settings = RetrievalSettingsData::fromConfig();
     $search = app(HybridChunkSearch::class);
     $embeddings = app(EmbeddingsProviderInterface::class);
@@ -191,10 +225,12 @@ it('measures knowledge retrieval quality against the labelled set', function ():
 
     $rows = [];
     $factRows = [];
+    $asked = [];
 
     foreach ($cases as $case) {
         $query = retrievalEvalQuery($case);
         $vector = '['.implode(',', $embeddings->embedQuery($query)).']';
+        $asked[] = ['query' => $query, 'vector' => $vector];
         $scope = $search->scope($agent, $settings->exactMaxChunks);
         $candidates = $search->search($agent, $query, $vector, $pool, $scope, $settings->accuracy);
         $shipped = app(KnowledgeBase::class)->search($agent, $query);
@@ -224,6 +260,11 @@ it('measures knowledge retrieval quality against the labelled set', function ():
 
     retrievalEvalReport($rows, $settings);
     retrievalEvalFactsReport($factRows, $settings);
+
+    if (filled($weights = env('EVAL_CHANNEL_WEIGHTS'))) {
+        retrievalEvalWeightsReport($agent, $cases, $asked, $settings, $pool, (string) $weights);
+    }
+
     retrievalEvalQaReport($agent);
 
     expect(count($rows) + count($factRows))->toBe(count($cases));
@@ -253,6 +294,142 @@ function retrievalEvalFactsRow(array $case, array $candidates, array $shipped): 
         'fact_ranks' => array_map(static fn (string|array $fact): ?int => $rankOf($candidates, $fact), $case['expect']),
         'fact_shipped' => array_map(static fn (string|array $fact): bool => $rankOf($shipped, $fact) !== null, $case['expect']),
     ];
+}
+
+/**
+ * The exact path of HybridChunkSearch with a weight on each channel's vote in
+ * the fusion, to measure a ranking change before it goes into the search.
+ * The same scope, channels and RRF (k = 60); all weights 1 gives the
+ * search's own ranking, and a weight of 0 leaves the channel out.
+ *
+ * @param  array{vector: float, question: float, bm25: float, question_bm25: float}  $weights
+ * @return list<RetrievedChunkData>
+ */
+function retrievalEvalWeightedSearch(Agent $agent, string $query, string $vector, int $limit, array $weights): array
+{
+    $lexical = app(LexicalSearch::class);
+    $cast = app(EmbeddingStorage::class)->columnType();
+    $perChannel = $limit * 3;
+    $columns = ['vector' => 'vector_dist', 'question' => 'question_dist', 'bm25' => 'bm25_dist', 'question_bm25' => 'question_bm25_dist'];
+
+    $ranked = collect($columns)->map(static fn (string $column, string $type): string => <<<SQL
+    SELECT id, ROW_NUMBER() OVER (ORDER BY dist, id) AS rank, '{$type}' AS search_type
+    FROM (SELECT id, {$column} AS dist FROM scope WHERE {$column} IS NOT NULL ORDER BY {$column}, id LIMIT {$perChannel}) t
+SQL)->implode("\n    UNION ALL\n");
+
+    $votes = collect($weights)->map(static fn (float $weight, string $type): string => sprintf("WHEN '%s' THEN %F", $type, $weight))->implode(' ');
+
+    $sql = <<<SQL
+WITH search AS MATERIALIZED (
+    SELECT ?::{$cast} AS vector,
+           {$lexical->queryExpression('chunks_search_text_lexical')} AS chunk_terms,
+           {$lexical->queryExpression('chunks_questions_lexical')} AS question_terms
+),
+scope AS MATERIALIZED (
+    SELECT c.id,
+           c.embedding <-> q.vector AS vector_dist,
+           c.questions_embedding <-> q.vector AS question_dist,
+           NULLIF({$lexical->score('c.search_text', 'q.chunk_terms')}, 0) AS bm25_dist,
+           NULLIF({$lexical->score('c.questions', 'q.question_terms')}, 0) AS question_bm25_dist
+    FROM search q
+    CROSS JOIN agent_sources s
+    JOIN chunks c ON c.chunkable_type = s.sourceable_type AND c.chunkable_id = s.sourceable_id
+    WHERE s.agent_id = ? AND c.workspace_id = ?
+),
+ranked AS (
+{$ranked}
+),
+fused AS (
+    SELECT id, STRING_AGG(DISTINCT search_type, '+') AS search_type, SUM((CASE search_type {$votes} END) / (60 + rank)) AS score
+    FROM ranked
+    GROUP BY id
+)
+SELECT c.id, c.external_id, c.chunk, c.chunk_index, c.chunkable_type, c.chunkable_id, c.metadata, c.tokens,
+       f.search_type, f.score,
+       GREATEST(1 - (c.embedding <=> q.vector), COALESCE(1 - (c.questions_embedding <=> q.vector), 0)) AS similarity
+FROM fused f
+JOIN chunks c USING (id)
+CROSS JOIN search q
+WHERE f.score > 0
+ORDER BY f.score DESC, f.id
+LIMIT ?
+SQL;
+
+    return array_map(RetrievedChunkData::fromRow(...), DB::select($sql, [
+        $vector, $lexical->queryText($query), $lexical->queryText($query), $agent->id, (int) $agent->workspace_id, $limit,
+    ]));
+}
+
+/**
+ * The scoreboard again for each set of channel weights in EVAL_CHANNEL_WEIGHTS
+ * ("vector,question,bm25,question_bm25" sets split by ";", e.g.
+ * "1,1,1,1;1,0.5,1,0.5"), on the same chunks and questions. "Given" is the
+ * similarity check (KnowledgeBase::bySimilarity): the candidates at or above
+ * the bar, in the ranking's order, at most max_chunks; with a reranker on,
+ * the reranker would decide instead, so run this with EVAL_RERANKER=none.
+ *
+ * @param  list<array<string, mixed>>  $cases
+ * @param  list<array{query: string, vector: string}>  $asked
+ */
+function retrievalEvalWeightsReport(Agent $agent, array $cases, array $asked, RetrievalSettingsData $settings, int $pool, string $spec): void
+{
+    $threshold = RelevanceThresholds::knowledgeSimilarity();
+    $pct = static fn (int $part, int $whole): string => $whole === 0 ? '  n/a ' : sprintf('%5.1f%%', 100 * $part / $whole);
+    $holds = static fn (array $chunks, string|array $fact): bool => collect((array) $fact)->contains(static fn (string $text): bool => retrievalEvalRank($chunks, $text) !== null);
+
+    $out = ['', sprintf('=== Channel weights (vector, question, keyword, question keyword) · similarity bar %s ===', $threshold ?? 'none')];
+    $out[] = 'weights               hit@1   hit@5    MRR   answered  uncovered empty  multi-hop facts top 5  multi-hop all given  global facts given';
+
+    foreach (Str::of($spec)->explode(';')->map(static fn (string $set): string => Str::trim($set))->filter() as $set) {
+        $values = Str::of($set)->explode(',')->map(static fn (string $value): float => (float) $value)->all();
+        $weights = ['vector' => $values[0] ?? 1.0, 'question' => $values[1] ?? 1.0, 'bm25' => $values[2] ?? 1.0, 'question_bm25' => $values[3] ?? 1.0];
+
+        $answers = ['n' => 0, 'hit1' => 0, 'hit5' => 0, 'rr' => 0.0, 'given' => 0];
+        $uncovered = ['n' => 0, 'empty' => 0];
+        $multi = ['facts' => 0, 'top5' => 0, 'n' => 0, 'all' => 0];
+        $global = ['facts' => 0, 'given' => 0];
+
+        foreach ($cases as $index => $case) {
+            $candidates = retrievalEvalWeightedSearch($agent, $asked[$index]['query'], $asked[$index]['vector'], $pool, $weights);
+            $given = array_slice(array_values(array_filter($candidates, static fn (RetrievedChunkData $chunk): bool => $threshold === null || ($chunk->similarity ?? 0) >= $threshold)), 0, $settings->maxChunks);
+
+            if (($case['kind'] ?? null) === 'multi-hop') {
+                $all = true;
+
+                foreach ($case['expect'] as $fact) {
+                    $multi['facts']++;
+                    $multi['top5'] += (int) $holds(array_slice($candidates, 0, 5), $fact);
+                    $all = $all && $holds($given, $fact);
+                }
+
+                $multi['n']++;
+                $multi['all'] += (int) $all;
+            } elseif (($case['kind'] ?? null) === 'global') {
+                foreach ($case['expect'] as $fact) {
+                    $global['facts']++;
+                    $global['given'] += (int) $holds($given, $fact);
+                }
+            } elseif ($case['expect'] === null) {
+                $uncovered['n']++;
+                $uncovered['empty'] += (int) ($given === []);
+            } elseif (! isset($case['history'])) {
+                $rank = retrievalEvalRank($candidates, $case['expect']);
+                $answers['n']++;
+                $answers['hit1'] += (int) ($rank === 1);
+                $answers['hit5'] += (int) ($rank !== null && $rank <= 5);
+                $answers['rr'] += $rank !== null ? 1 / $rank : 0.0;
+                $answers['given'] += (int) (retrievalEvalRank($given, $case['expect']) !== null);
+            }
+        }
+
+        $out[] = sprintf('%-20s %s  %s  %.3f   %s       %s              %s               %s               %s',
+            collect($weights)->map(static fn (float $value): string => (string) Number::format($value, maxPrecision: 2))->implode(', '),
+            $pct($answers['hit1'], $answers['n']), $pct($answers['hit5'], $answers['n']), $answers['n'] > 0 ? $answers['rr'] / $answers['n'] : 0.0,
+            $pct($answers['given'], $answers['n']), $pct($uncovered['empty'], $uncovered['n']),
+            $pct($multi['top5'], $multi['facts']), $pct($multi['all'], $multi['n']), $pct($global['given'], $global['facts']));
+    }
+
+    fwrite(STDOUT, implode(PHP_EOL, $out).PHP_EOL);
 }
 
 /**
@@ -377,6 +554,7 @@ function retrievalEvalReport(array $rows, RetrievalSettingsData $settings): void
             : 'similarity, threshold '.(RelevanceThresholds::knowledgeSimilarity() ?? 'none'),
         $settings->maxChunks, config('chatvia.vector.search.hybrid') ? 'on' : 'off');
     $out[] = retrievalEvalChunkLine();
+    $out[] = 'enhancement: '.(env('EVAL_ENRICH') ? 'on'.(filled(env('EVAL_ENRICH_WITHOUT')) ? ', without the '.env('EVAL_ENRICH_WITHOUT') : '') : 'off');
     $out[] = '';
     $out[] = sprintf('Before the check   (%d questions): hit@1 %s  hit@3 %s  hit@5 %s  MRR %.3f',
         count($answers), $pct($hitAt($answers, 1), count($answers)), $pct($hitAt($answers, 3), count($answers)), $pct($hitAt($answers, 5), count($answers)), $mrr($answers));

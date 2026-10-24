@@ -162,6 +162,8 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 | `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
 | `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
+| `EVAL_CHANNEL_WEIGHTS` | extra scoreboards on the same chunks, one per weight set: `vector,question,keyword,question keyword`, sets split by `;` (e.g. `1,1,1,1;1,1,1,0`). Measures a fusion change without touching the search; use with `EVAL_RERANKER=none` |
+| `EVAL_ENRICH_WITHOUT` | with `EVAL_ENRICH`: `summary` embeds and indexes each chunk without its summary, `questions` drops the generated questions (the question channels go quiet) |
 | `EVAL_RERANKER` | the reranker driver of this run; `none` measures an install without one (the similarity check instead) |
 | `EVAL_SIMILARITY_THRESHOLD` | the similarity bar without a reranker; only Qwen3 on Scaleway ships one (0.35), so give it when the same model runs through OpenRouter |
 | `EVAL_CHAT_MODEL` / `EVAL_CHAT_PROVIDER` | the chat model for the app's own tasks (enhancement, follow-up rewrites) for one run, e.g. `google/gemma-4-26b-a4b-it` on `openrouter` (the default provider). Unset, the testing catalog's Scaleway model runs, and without a Scaleway key the follow-up rewrite quietly keeps the question as it is |
@@ -226,7 +228,45 @@ Scaleway has it, `EVAL_SIMILARITY_THRESHOLD=0.35`), same day:
 | Global: facts / every fact given | 71.9% / 14.3% | 68.8% / 14.3% |
 
 Without a reranker nothing lifts the weaker ranking back, so enhancement
-costs answers. The similarity bar also keeps every multi-hop fact the
+costs answers.
+
+Which part of enhancement does it (`EVAL_ENRICH_WITHOUT`, same settings, a
+fresh enhancement each run):
+
+| | Full enhancement | Without the summary | Without the questions |
+|---|---|---|---|
+| Single-fact hit@5 / MRR before the check | 75.7% / 0.656 | 73.0% / 0.686 | **97.3% / 0.921** |
+| Single-fact answered | 91.9% | 89.2% | 94.6% |
+| Multi-hop: facts in top 5 / every fact given | 90.9% / 90.9% | 90.9% / 90.9% | 100.0% / 90.9% |
+
+The generated-question channels (dense and keyword on `questions`) push the
+right chunks down; taking the summary out changes little. With the questions
+out, the summary in front of each chunk gives the best ranking of all runs
+(MRR 0.921 against 0.872 with no enhancement).
+
+Which question channel, and at what weight (`EVAL_CHANNEL_WEIGHTS`, one
+enriched run, so every row ranks the same chunks; weights are vector,
+question, keyword, question keyword; "1, 1, 1, 1" matches the search's own
+numbers in that run):
+
+| Weights | hit@1 | hit@5 | MRR | answered | multi-hop facts top 5 | multi-hop all given | global facts given |
+|---|---|---|---|---|---|---|---|
+| 1, 1, 1, 1 (today) | 62.2% | 78.4% | 0.707 | 86.5% | 90.9% | 81.8% | 71.9% |
+| 1, 0, 1, 1 (no dense questions) | 59.5% | 78.4% | 0.694 | 89.2% | 90.9% | 81.8% | 71.9% |
+| 1, 1, 1, 0 (no keyword questions) | 89.2% | 97.3% | 0.930 | 97.3% | 100.0% | 90.9% | 68.8% |
+| 1, 0, 1, 0 (no questions) | 86.5% | 97.3% | 0.921 | 97.3% | 100.0% | 90.9% | 68.8% |
+| 1, 0.5, 1, 0.5 | 67.6% | 78.4% | 0.734 | 89.2% | 90.9% | 81.8% | 71.9% |
+| 1, 0.25, 1, 0.25 | 67.6% | 86.5% | 0.753 | 89.2% | 95.5% | 81.8% | 71.9% |
+| 1, 1, 1, 0.25 | 67.6% | 94.6% | 0.765 | 94.6% | 95.5% | 81.8% | 71.9% |
+| 1, 0.5, 1, 0 | 89.2% | 97.3% | 0.935 | 97.3% | 100.0% | 90.9% | 68.8% |
+
+The keyword channel on the generated questions does the harm: every chunk
+has questions, and they share words ("What", "How", "Pinewood"), so the
+channel ranks every chunk on weak matches and its vote drowns the others.
+Even at a quarter weight it still costs ranking. The dense question channel
+is neutral to slightly helpful. With 14 chunks every chunk fits in the 25
+the reranker scores, so these numbers say nothing about installs with a
+reranker; a larger set is needed for that. The similarity bar also keeps every multi-hop fact the
 reranker's 0.7 bar drops, and blocks every uncovered question (the reranker
 blocked 57.1%), but it drops broad questions whose chunks each match only a
 little ("all the fees" got nothing).

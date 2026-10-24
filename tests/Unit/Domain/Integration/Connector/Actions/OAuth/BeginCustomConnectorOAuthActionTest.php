@@ -1,17 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginCustomConnectorOAuthAction;
 use Domain\Integration\Connector\Data\Custom\AddCustomConnectorData;
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
 use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
-use Domain\Integration\Connector\Models\ConnectorOAuthClient;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Uri;
+use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 
 /**
  * A custom server added with OAuth carries its name and a slug that is free
@@ -19,22 +15,7 @@ use Illuminate\Support\Uri;
  * pending state.
  */
 it('carries the custom name and a workspace-unique slug in the pending state', function (): void {
-    config(['cache.default' => 'array']);
-
-    $this->mock(McpOAuthDiscoverer::class)->shouldReceive('discover')
-        ->andReturn(OAuthServerMetadata::fromArray('https://auth.example.test', [
-            'authorization_endpoint' => 'https://auth.example.test/authorize',
-            'token_endpoint' => 'https://auth.example.test/token',
-            'code_challenge_methods_supported' => ['S256'],
-        ]));
-    $registrar = $this->mock(McpOAuthRegistrar::class);
-    $registrar->shouldReceive('clientFor')->andReturn(new ConnectorOAuthClient()->forceFill([
-        'auth_server_url' => 'https://auth.example.test',
-        'client_id' => 'client-123',
-        'token_endpoint' => 'https://auth.example.test/token',
-        'authorization_endpoint' => 'https://auth.example.test/authorize',
-    ]));
-    $registrar->shouldReceive('redirectUri')->andReturn('https://chatvia.test/connectors/oauth/callback');
+    PendingConnectorOAuth::stubAuthorizationServer();
 
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
@@ -48,8 +29,7 @@ it('carries the custom name and a workspace-unique slug in the pending state', f
         auth_strategy: ConnectorAuthStrategy::Oauth,
     ), 'binding');
 
-    $query = Uri::of($url)->query()->all();
-    $pending = PendingOAuthState::unseal(Cache::get('oauth:mcp:state:'.$query['state']));
+    $pending = PendingConnectorOAuth::fromAuthorizeUrl($url);
 
     expect($pending?->connectorSlug)->toBeNull()
         ->and($pending?->customName)->toBe('My CRM')

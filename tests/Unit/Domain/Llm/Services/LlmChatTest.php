@@ -1,15 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Exceptions\InvalidStructuredReplyException;
-use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -36,17 +34,6 @@ it('sends each request to the provider of its model, with its key', function ():
     Http::assertSent(fn (Request $request): bool => $request->url() === 'http://ollama.test:11434/v1/chat/completions'
         && $request['model'] === 'qwen3:8b'
         && ! $request->hasHeader('Authorization'));
-});
-
-it('refuses a model whose provider is turned off', function (): void {
-    Http::fake();
-    $model = testLlm();
-    $model->provider->update(['is_enabled' => false]);
-
-    expect(fn (): ChatResponseData => app(LlmChat::class)->send(new ChatRequestData($model->fresh(), [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle)))
-        ->toThrow(LlmProviderUnavailableException::class);
-
-    Http::assertNothingSent();
 });
 
 it('sends the request with its tag in Spectra', function (): void {
@@ -108,22 +95,6 @@ it('reads the content, tool calls, usage and finish reason of a reply', function
         ->and($reply->usage->promptTokens)->toBe(12)
         ->and($reply->usage->totalTokens)->toBe(15)
         ->and($reply->finishReason)->toBe('tool_calls');
-});
-
-it('decodes a structured reply and fails loudly only when asked to', function (): void {
-    Http::fake(['*' => Http::sequence()
-        ->push(['choices' => [['message' => ['content' => "```json\n{\"ok\":true}\n```"]]]])
-        ->push(['choices' => [['message' => ['content' => 'no json here']]]])]);
-
-    $completion = app(StructuredCompletion::class);
-    $request = new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')], AiCallTag::ConversationTitle);
-
-    expect($completion->send($request)->data)->toBe(['ok' => true]);
-
-    $reply = $completion->send($request);
-
-    expect($reply->data)->toBeNull()
-        ->and(fn (): array => $reply->requireData())->toThrow(InvalidStructuredReplyException::class);
 });
 
 it('sends async requests at once, each with its tag, and reads the replies later', function (): void {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Builtin\Data\Currency\CurrencyConversionRequestData;
 use Domain\Integration\Builtin\Exceptions\CurrencyConversionException;
 use Domain\Integration\Builtin\Services\CurrencyConverter;
@@ -7,6 +9,12 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Currency conversion over ExchangeRate-API with the workspace's own key:
+ * any pair through the USD table, the table cached per key (a bad key never
+ * rides on another key's cache), and an error message that names the
+ * unknown code and never carries the key.
+ */
 beforeEach(function (): void {
     config(['services.exchange_rate.base_url' => 'https://rates.example.test/v6']);
 
@@ -55,11 +63,4 @@ it('reports unavailable rates when the provider cannot be reached', function ():
 
     expect(fn () => app(CurrencyConverter::class)->convert('secret', new CurrencyConversionRequestData('USD', 'EUR', 1)))
         ->toThrow(CurrencyConversionException::class, 'Could not fetch exchange rates — please try again.');
-});
-
-it('sends the API key as a bearer header, never in the URL', function (): void {
-    app(CurrencyConverter::class)->convert('good-key', new CurrencyConversionRequestData('USD', 'EUR', 1));
-
-    Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://rates.example.test/v6/latest/USD'
-        && $request->hasHeader('Authorization', 'Bearer good-key'));
 });

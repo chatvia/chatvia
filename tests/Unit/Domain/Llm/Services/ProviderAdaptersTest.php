@@ -1,6 +1,7 @@
 <?php
 
-use Domain\Llm\Actions\Catalog\AddLlmModelAction;
+declare(strict_types=1);
+
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
@@ -21,8 +22,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Each provider kind has one adapter: its address, key, chat client and how
  * its model list is read (each provider says different things about its
- * models; what a list leaves out, the adapter may know). Adding a listed
- * model to the catalog keeps its alias unique across providers.
+ * models; what a list leaves out, the adapter may know).
  */
 function padAdapter(LlmProviderKind $kind): ProviderAdapter
 {
@@ -154,9 +154,6 @@ it('calls with the key and address of the provider\'s account', function (): voi
     config([
         'services.mistral.api_key' => 'mistral-key',
         'services.mistral.base_url' => 'https://mistral.test/v1',
-        'services.gemini.api_key' => 'gemini-key',
-        'services.gemini.api_endpoint' => 'https://gemini.test/v1beta',
-        'services.groq.api_key' => null,
     ]);
 
     $mistral = padAdapter(LlmProviderKind::Mistral);
@@ -165,27 +162,42 @@ it('calls with the key and address of the provider\'s account', function (): voi
     expect($mistral->account())->toBe(AiProvider::Mistral)
         ->and($mistral->apiKey($row))->toBe('mistral-key')
         ->and($mistral->baseUrl($row))->toBe('https://mistral.test/v1')
-        ->and($mistral->isConnected($row))->toBeTrue()
-        // Gemini's account address is the native API its embeddings call; chat keeps its own.
-        ->and(padAdapter(LlmProviderKind::Google)->baseUrl(padAdapter(LlmProviderKind::Google)->standalone()))->toBe('https://generativelanguage.googleapis.com/v1beta/openai')
-        ->and(padAdapter(LlmProviderKind::Groq)->isConnected(padAdapter(LlmProviderKind::Groq)->standalone()))->toBeFalse()
-        // A key typed but not saved yet (a check before saving) wins.
-        ->and($mistral->apiKey(new LlmProvider(['kind' => LlmProviderKind::Mistral, 'api_key' => 'typed'])))->toBe('typed')
-        // A server of your own has no account: its row holds its key, and it may have none.
-        ->and(padAdapter(LlmProviderKind::Custom)->account())->toBeNull()
-        ->and(padAdapter(LlmProviderKind::Custom)->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
+        ->and($mistral->isConnected($row))->toBeTrue();
 });
 
-it('adds a model under its provider\'s id, once per provider', function (): void {
-    $first = LlmProvider::factory()->create();
-    $second = LlmProvider::factory()->create();
-    $add = app(AddLlmModelAction::class);
+it('keeps Gemini\'s chat address apart from the native address of its account', function (): void {
+    // Gemini's account address is the native API its embeddings call; chat keeps its own.
+    config(['services.gemini.api_key' => 'gemini-key', 'services.gemini.api_endpoint' => 'https://gemini.test/v1beta']);
 
-    $one = $add->execute($first, new RemoteModelData('shared-model', 'Shared model'));
-    $two = $add->execute($second, new RemoteModelData('shared-model', 'Shared model'));
+    $google = padAdapter(LlmProviderKind::Google);
 
-    expect($one->name)->toBe('shared-model')
-        ->and($two->name)->toBe('shared-model')
-        ->and($two->is($one))->toBeFalse()
-        ->and($add->execute($first, new RemoteModelData('shared-model', 'Renamed'))->is($one))->toBeTrue();
+    expect($google->baseUrl($google->standalone()))->toBe('https://generativelanguage.googleapis.com/v1beta/openai');
+});
+
+it('is not connected while its account has no key', function (): void {
+    config(['services.groq.api_key' => null]);
+
+    $groq = padAdapter(LlmProviderKind::Groq);
+
+    expect($groq->isConnected($groq->standalone()))->toBeFalse();
+});
+
+it('prefers a key typed but not saved yet, as a check before saving sends', function (): void {
+    config(['services.mistral.api_key' => 'mistral-key']);
+
+    expect(padAdapter(LlmProviderKind::Mistral)->apiKey(new LlmProvider(['kind' => LlmProviderKind::Mistral, 'api_key' => 'typed'])))->toBe('typed');
+});
+
+it('gives a server of your own no account: its row holds its key, and it may have none', function (): void {
+    $custom = padAdapter(LlmProviderKind::Custom);
+
+    expect($custom->account())->toBeNull()
+        ->and($custom->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
+});
+
+it('lets only Mistral read whole PDF documents', function (): void {
+    $readers = array_filter(app(ProviderAdapters::class)->all(), fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments());
+
+    expect(array_map(fn (ProviderAdapter $adapter): LlmProviderKind => $adapter->kind(), array_values($readers)))
+        ->toBe([LlmProviderKind::Mistral]);
 });

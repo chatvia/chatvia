@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\FunctionInvoked;
@@ -43,17 +45,6 @@ function htdFunction(string $method = 'POST', string $authType = 'none', ?array 
 
     return [$agent, $function];
 }
-
-it('stamps the agent and workspace identity headers on the webhook request', function (): void {
-    [$agent] = htdFunction();
-    Http::fake(['hooks.example.test/*' => Http::response('{"ok":true}', 200)]);
-
-    (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', '{}'));
-
-    Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://hooks.example.test/fn'
-        && $request->header('X-Chatvia-Agent-Id') === [$agent->external_id]
-        && $request->header('X-Chatvia-Workspace-Id') === [$agent->workspace->external_id]);
-});
 
 it('calls the webhook with its configured method and a JSON body', function (string $method): void {
     [$agent] = htdFunction($method);

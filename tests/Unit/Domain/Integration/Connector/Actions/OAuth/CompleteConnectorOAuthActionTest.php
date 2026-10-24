@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\CompleteConnectorOAuthAction;
 use Domain\Integration\Connector\Data\OAuth\ConnectorOAuthCallbackData;
@@ -18,10 +20,6 @@ use Tests\Support\Integration\Connector\PendingConnectorOAuth;
  * workspace; a failing catalog sync is kept on the row instead of
  * undoing a connection that worked.
  */
-beforeEach(function (): void {
-    config(['cache.default' => 'array']);
-});
-
 it('rejects an unknown or already-used state', function (): void {
     Http::fake();
 
@@ -33,32 +31,24 @@ it('rejects an unknown or already-used state', function (): void {
     Http::assertNothingSent();
 });
 
-it('rejects a callback from a different user without exchanging the code', function (): void {
+it('rejects a callback from another account or browser session without exchanging the code', function (bool $sameUser, string $binding): void {
     Http::fake();
-    PendingConnectorOAuth::stash('abc', User::factory()->create(), 'binding');
+    $starter = User::factory()->create();
+    PendingConnectorOAuth::stash('abc', $starter, 'binding-a');
 
     expect(fn () => app(CompleteConnectorOAuthAction::class)->execute(
-        User::factory()->create(),
-        new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: 'binding'),
+        $sameUser ? $starter : User::factory()->create(),
+        new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: $binding),
     ))->toThrow(McpOAuthException::class, 'different account or browser');
 
     Http::assertNothingSent();
-});
+    expect(AgentMcpServer::query()->where('workspace_id', $starter->workspace()->id)->exists())->toBeFalse();
+})->with([
+    'another user, same binding' => [false, 'binding-a'],
+    'the same user, another browser' => [true, 'binding-b'],
+]);
 
-it('rejects a callback from another browser session of the same user', function (): void {
-    Http::fake();
-    $user = User::factory()->create();
-    PendingConnectorOAuth::stash('abc', $user, 'binding-a');
-
-    expect(fn () => app(CompleteConnectorOAuthAction::class)->execute(
-        $user,
-        new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: 'binding-b'),
-    ))->toThrow(McpOAuthException::class, 'different account or browser');
-
-    Http::assertNothingSent();
-});
-
-it('saves the tokens under the workspace owner and keeps a catalog failure on the row', function (): void {
+it('saves the tokens under the workspace of the teammate who connects', function (): void {
     Http::fake([
         'auth.example.test/token' => Http::response([
             'access_token' => 'fresh-access',
@@ -67,8 +57,7 @@ it('saves the tokens under the workspace owner and keeps a catalog failure on th
             'scope' => 'read',
         ]),
     ]);
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow(new RuntimeException('tools/list failed'));
-
+    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
     PendingConnectorOAuth::stash('abc', $teammate, 'binding');
@@ -87,13 +76,36 @@ it('saves the tokens under the workspace owner and keeps a catalog failure on th
         ->and($server->oauth_client_id)->toBe('client-123')
         ->and($server->oauth_scopes)->toBe('read')
         ->and($server->timeout_ms)->toBe(AgentMcpServer::DEFAULT_TIMEOUT_MS)
-        ->and($server->last_error)->toBe('tools/list failed');
+        ->and($server->last_error)->toBeNull();
+});
 
-    // Single use: the same state cannot complete twice.
-    expect(fn () => app(CompleteConnectorOAuthAction::class)->execute(
-        $teammate,
+it('keeps a failing catalog sync on the row instead of undoing the connection', function (): void {
+    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
+    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow(new RuntimeException('tools/list failed'));
+    $user = User::factory()->create();
+    PendingConnectorOAuth::stash('abc', $user, 'binding');
+
+    $server = app(CompleteConnectorOAuthAction::class)->execute(
+        $user,
         new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: 'binding'),
-    ))->toThrow(McpOAuthException::class);
+    );
+
+    expect($server->fresh()?->auth_value)->toBe('fresh-access')
+        ->and($server->fresh()?->last_error)->toBe('tools/list failed');
+});
+
+it('uses a state once: the same callback cannot complete twice', function (): void {
+    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
+    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
+    $user = User::factory()->create();
+    PendingConnectorOAuth::stash('abc', $user, 'binding');
+    $callback = new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: 'binding');
+    app(CompleteConnectorOAuthAction::class)->execute($user, $callback);
+
+    expect(fn () => app(CompleteConnectorOAuthAction::class)->execute($user, $callback))
+        ->toThrow(McpOAuthException::class, 'expired or was already used');
+
+    Http::assertSentCount(1);
 });
 
 it('saves a custom server under its carried name and slug', function (): void {

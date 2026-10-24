@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Mcp\Contracts\AccessTokenRefresher;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -12,6 +14,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 use Mockery\MockInterface;
+
+/**
+ * The MCP client speaks JSON-RPC over streamable HTTP: it lists and calls
+ * tools with the session and caller headers, reads JSON or server-sent event
+ * replies and reports a server's errors. A first-party server (one of our
+ * builtins) is reached at the internal URL with a signed request; a
+ * third-party or custom server never is, and is never signed.
+ */
 
 /** A third-party server reached with a bearer token (not saved). */
 function mclServer(): AgentMcpServer

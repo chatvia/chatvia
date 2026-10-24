@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Routing\ToolRelevanceGate;
@@ -8,8 +10,10 @@ use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 
 /**
- * Pure unit coverage for the gate's branching — no DB, no live API. The reranker
- * is mocked so each test pins an exact score distribution and asserts what ships.
+ * The relevance gate keeps only the tools a question needs: those the
+ * reranker scores over the read or the stricter write bar, or, without a
+ * working reranker, those close enough by vector similarity. The reranker is
+ * mocked so each test pins an exact score distribution and asserts what ships.
  */
 function relevanceGateEntry(string $name, string $description = '', bool $mutates = true): ToolEntry
 {
@@ -28,6 +32,36 @@ function relevanceGateWith(Reranker $reranker): ToolRelevanceGate
     return new ToolRelevanceGate($reranker);
 }
 
+/**
+ * A working reranker that scores the candidates once, as given: index => score.
+ *
+ * @param  array<int, float>  $scores
+ */
+function relevanceGateScores(array $scores): Reranker
+{
+    $reranker = Mockery::mock(Reranker::class);
+    $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
+    $reranker->shouldReceive('rerank')->once()->andReturn(array_map(
+        static fn (int $index, float $score): RerankedDocumentData => new RerankedDocumentData($index, $score),
+        array_keys($scores),
+        $scores,
+    ));
+
+    return $reranker;
+}
+
+/** A working reranker whose service fails. */
+function relevanceGateFailing(): Reranker
+{
+    $reranker = Mockery::mock(Reranker::class);
+    $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
+    $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('reranker down'));
+
+    return $reranker;
+}
+
 beforeEach(function (): void {
     config()->set('chatvia.agent.tools.routing.relevance_gate', true);
     // Pin both per-scope bars to a symmetric 0.55 baseline so the generic tests
@@ -39,13 +73,7 @@ beforeEach(function (): void {
 });
 
 it('ships nothing when no candidate clears the threshold (the "Hi" case)', function (): void {
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
-    $reranker->shouldReceive('rerank')->once()->andReturn([
-        new RerankedDocumentData(0, 0.04),
-        new RerankedDocumentData(1, 0.02),
-    ]);
+    $reranker = relevanceGateScores([0 => 0.04, 1 => 0.02]);
 
     $candidates = [
         relevanceGateEntry('get_weather', 'Get the weather forecast for a city'),
@@ -56,14 +84,8 @@ it('ships nothing when no candidate clears the threshold (the "Hi" case)', funct
 });
 
 it('keeps only the tools above the threshold, in reranked order', function (): void {
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
     // Reranker promotes index 1 (weather) and drops index 0 (events) below the bar.
-    $reranker->shouldReceive('rerank')->once()->andReturn([
-        new RerankedDocumentData(1, 0.91),
-        new RerankedDocumentData(0, 0.10),
-    ]);
+    $reranker = relevanceGateScores([1 => 0.91, 0 => 0.10]);
 
     $events = relevanceGateEntry('create_event', 'Schedule a meeting on the calendar');
     $weather = relevanceGateEntry('get_weather', 'Get the weather forecast for a city');
@@ -75,13 +97,7 @@ it('keeps only the tools above the threshold, in reranked order', function (): v
 });
 
 it('keeps multiple tools when several clear the threshold', function (): void {
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
-    $reranker->shouldReceive('rerank')->once()->andReturn([
-        new RerankedDocumentData(0, 0.88),
-        new RerankedDocumentData(1, 0.72),
-    ]);
+    $reranker = relevanceGateScores([0 => 0.88, 1 => 0.72]);
 
     $commits = relevanceGateEntry('list_commits', 'List repository commits');
     $heatmap = relevanceGateEntry('render_heatmap', 'Render a heatmap chart');
@@ -98,14 +114,8 @@ it('holds write tools to a stricter bar than read tools', function (): void {
     config()->set('chatvia.agent.tools.routing.relevance_threshold_read', 0.45);
     config()->set('chatvia.agent.tools.routing.relevance_threshold_write', 0.65);
 
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
     // Both land at 0.55 — between the read bar (0.45) and the write bar (0.65).
-    $reranker->shouldReceive('rerank')->once()->andReturn([
-        new RerankedDocumentData(0, 0.55),
-        new RerankedDocumentData(1, 0.55),
-    ]);
+    $reranker = relevanceGateScores([0 => 0.55, 1 => 0.55]);
 
     $write = relevanceGateEntry('create_refund', 'Refund a charge to a customer', mutates: true);
     $read = relevanceGateEntry('get_charge', 'Retrieve a payment charge', mutates: false);
@@ -118,12 +128,7 @@ it('holds write tools to a stricter bar than read tools', function (): void {
 });
 
 it('treats the threshold as inclusive (>=)', function (): void {
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
-    $reranker->shouldReceive('rerank')->once()->andReturn([
-        new RerankedDocumentData(0, 0.55),
-    ]);
+    $reranker = relevanceGateScores([0 => 0.55]);
 
     $kept = relevanceGateWith($reranker)->gate('exact boundary', [relevanceGateEntry('boundary_tool', 'right on the line')]);
 
@@ -131,10 +136,7 @@ it('treats the threshold as inclusive (>=)', function (): void {
 });
 
 it('passes candidates through unchanged when the reranker throws', function (): void {
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
-    $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('reranker down'));
+    $reranker = relevanceGateFailing();
 
     $candidates = [relevanceGateEntry('get_weather', 'Get the weather forecast')];
 
@@ -209,10 +211,7 @@ it('falls back to the similarity check when the reranker fails', function (): vo
     config()->set('chatvia.agent.tools.routing.similarity_threshold_read', 0.5);
     config()->set('chatvia.agent.tools.routing.similarity_threshold_write', 0.6);
 
-    $reranker = Mockery::mock(Reranker::class);
-    $reranker->shouldReceive('isEnabled')->andReturnTrue();
-    $reranker->shouldReceive('model')->andReturn('test-reranker');
-    $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('down'));
+    $reranker = relevanceGateFailing();
 
     $read = relevanceGateEntry('get_charge', 'Look up a charge', mutates: false);
     $write = relevanceGateEntry('refund_charge', 'Refund a charge', mutates: true);

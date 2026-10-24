@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
@@ -9,8 +11,15 @@ use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Data\ToolName;
 
+/**
+ * Whether a tool call waits for a person's approval: an MCP tool by the
+ * permission the workspace gave it (an unknown tool counts as risky), a
+ * first-party builtin never, a function by its own flag, and nothing at all
+ * when approvals are switched off.
+ */
+
 /** A custom server `test` of the agent's workspace with one own tool `do_thing`; returns the tool's LLM name. */
-function approvalCustomTool(Agent $agent, McpToolPermission $permission): string
+function aplCustomTool(Agent $agent, McpToolPermission $permission): string
 {
     $server = AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'test']);
     McpTool::factory()->for($server, 'mcpServer')->create(['name' => 'do_thing', 'permission' => $permission]);
@@ -23,7 +32,7 @@ function approvalCustomTool(Agent $agent, McpToolPermission $permission): string
  * shared catalog: `create_page` is catalogued with an Approval default, and
  * this workspace's membership carries `$membership`.
  */
-function approvalPresetTool(Agent $agent, McpToolPermission $membership): string
+function aplPresetTool(Agent $agent, McpToolPermission $membership): string
 {
     $server = AgentMcpServer::factory()->preset('notion')->create(['workspace_id' => $agent->workspace_id]);
     $tool = ConnectorTool::factory()->create([
@@ -36,41 +45,36 @@ function approvalPresetTool(Agent $agent, McpToolPermission $membership): string
     return 'mcp__notion__create_page';
 }
 
-function approvalRequired(Agent $agent, string $toolName): bool
+function aplRequired(Agent $agent, string $toolName): bool
 {
     return app(ToolApprovalPolicy::class)->requiresApproval($agent, ToolName::parse($toolName));
 }
 
-it('gates an MCP tool whose permission is Approval', function (): void {
+it('follows the permission of a custom server\'s own tool', function (McpToolPermission $permission, bool $gated): void {
     $agent = Agent::factory()->create();
 
-    expect(approvalRequired($agent, approvalCustomTool($agent, McpToolPermission::Approval)))->toBeTrue();
-});
-
-it('auto-runs an MCP tool whose permission is Allow', function (): void {
-    $agent = Agent::factory()->create();
-
-    expect(approvalRequired($agent, approvalCustomTool($agent, McpToolPermission::Allow)))->toBeFalse();
-});
+    expect(aplRequired($agent, aplCustomTool($agent, $permission)))->toBe($gated);
+})->with([
+    'Approval: gated' => [McpToolPermission::Approval, true],
+    'Allow: runs' => [McpToolPermission::Allow, false],
+]);
 
 it('gates an unknown MCP tool (stale catalog is treated as risky)', function (): void {
     $agent = Agent::factory()->create();
     AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'test']);
 
-    expect(approvalRequired($agent, 'mcp__test__not_catalogued'))->toBeTrue();
+    expect(aplRequired($agent, 'mcp__test__not_catalogued'))->toBeTrue();
 });
 
-it('gates a shared-catalog connector tool whose membership is Approval', function (): void {
+it('follows the workspace membership, not the catalog default, for a shared-catalog connector tool', function (McpToolPermission $membership, bool $gated): void {
     $agent = Agent::factory()->create();
 
-    expect(approvalRequired($agent, approvalPresetTool($agent, McpToolPermission::Approval)))->toBeTrue();
-});
-
-it('reads the workspace membership, not the catalog default, for a shared-catalog connector tool', function (): void {
-    $agent = Agent::factory()->create();
-
-    expect(approvalRequired($agent, approvalPresetTool($agent, McpToolPermission::Allow)))->toBeFalse();
-});
+    // The catalog default is Approval for both.
+    expect(aplRequired($agent, aplPresetTool($agent, $membership)))->toBe($gated);
+})->with([
+    'Approval: gated' => [McpToolPermission::Approval, true],
+    'Allow: runs' => [McpToolPermission::Allow, false],
+]);
 
 it('gates a catalog tool the connector has no membership for', function (): void {
     $agent = Agent::factory()->create();
@@ -79,7 +83,7 @@ it('gates a catalog tool the connector has no membership for', function (): void
     // advertise it, so the policy cannot read a permission for it.
     ConnectorTool::factory()->create(['connector_slug' => 'notion', 'name' => 'create_page', 'default_permission' => McpToolPermission::Allow]);
 
-    expect(approvalRequired($agent, 'mcp__notion__create_page'))->toBeTrue();
+    expect(aplRequired($agent, 'mcp__notion__create_page'))->toBeTrue();
 });
 
 it('matches a membership only to its own connector\'s catalog row', function (): void {
@@ -90,7 +94,7 @@ it('matches a membership only to its own connector\'s catalog row', function ():
     $foreign = ConnectorTool::factory()->create(['connector_slug' => 'stripe', 'name' => 'create_page']);
     $server->connectorTools()->attach($foreign->id, ['permission' => McpToolPermission::Allow]);
 
-    expect(approvalRequired($agent, 'mcp__notion__create_page'))->toBeTrue();
+    expect(aplRequired($agent, 'mcp__notion__create_page'))->toBeTrue();
 });
 
 it('runs a builtin capability tool directly, never gating it', function (): void {
@@ -101,26 +105,22 @@ it('runs a builtin capability tool directly, never gating it', function (): void
     $server = AgentMcpServer::factory()->builtin('forms')->create(['workspace_id' => $agent->workspace_id, 'uses_central_catalog' => false]);
     McpTool::factory()->for($server, 'mcpServer')->create(['name' => 'render_form', 'permission' => McpToolPermission::Approval]);
 
-    expect(approvalRequired($agent, 'mcp__forms__render_form'))->toBeFalse();
+    expect(aplRequired($agent, 'mcp__forms__render_form'))->toBeFalse();
 });
 
-it('gates a function based on its own requires_approval flag', function (): void {
+it('follows a function\'s own requires_approval flag', function (bool $requiresApproval): void {
     $agent = Agent::factory()->create();
-    AgentFunction::factory()->requiringApproval()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'write_thing']);
+    AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'write_thing', 'requires_approval' => $requiresApproval]);
 
-    expect(approvalRequired($agent, 'write_thing'))->toBeTrue();
-});
-
-it('auto-runs a function whose requires_approval flag is off', function (): void {
-    $agent = Agent::factory()->create();
-    AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'write_thing']);
-
-    expect(approvalRequired($agent, 'write_thing'))->toBeFalse();
-});
+    expect(aplRequired($agent, 'write_thing'))->toBe($requiresApproval);
+})->with([
+    'flag on: gated' => true,
+    'flag off: runs' => false,
+]);
 
 it('bypasses approval entirely when the global kill-switch is off', function (): void {
     config(['chatvia.agent.tools.approval_enabled' => false]);
     $agent = Agent::factory()->create();
 
-    expect(approvalRequired($agent, approvalCustomTool($agent, McpToolPermission::Approval)))->toBeFalse();
+    expect(aplRequired($agent, aplCustomTool($agent, McpToolPermission::Approval)))->toBeFalse();
 });

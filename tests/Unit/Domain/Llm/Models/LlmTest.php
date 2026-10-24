@@ -9,7 +9,8 @@ use Domain\Llm\Models\Llm;
  * A model's facts (from the models.dev catalog) decide what the app sends it:
  * the effort value for the effort chosen, whether sampling settings go, and
  * how long a reply it may be asked for. The effort lists below are the
- * catalog's own.
+ * catalog's own. The catalog of usable models is cached, and a provider
+ * change drops the cache.
  */
 function llmWithEfforts(?array $efforts, ?bool $takesTemperature = null): Llm
 {
@@ -73,4 +74,14 @@ it('offers tools only to a model that can call them', function (): void {
         // Not known: offered as asked.
         ->and(llmWithEfforts(null)->callsTools())->toBeTrue()
         ->and(llmWithEfforts(null)->requestSettings($settings))->toBe($settings);
+});
+
+it('flushes the cached catalog of usable models when a provider changes', function (): void {
+    $model = testLlm();
+
+    expect(Llm::available()->contains('id', $model->id))->toBeTrue();
+
+    $model->provider->update(['is_enabled' => false]);
+
+    expect(Llm::available()->contains('id', $model->id))->toBeFalse();
 });

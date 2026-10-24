@@ -52,7 +52,8 @@ beforeEach(function (): void {
     });
 });
 
-it('catalogs global builtins with a global row and capability servers without one', function (): void {
+it('catalogs global builtins with one global row and capability servers without one, however often it runs', function (): void {
+    app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true));
     $result = app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true));
 
     expect(array_map(fn (SyncedBuiltinConnectorData $c): array => [$c->slug, $c->offeredAs, $c->toolsCount], $result->connectors))
@@ -61,7 +62,7 @@ it('catalogs global builtins with a global row and capability servers without on
     expect(AgentMcpServer::query()->whereNull('workspace_id')->pluck('slug')->all())->toBe(['charts'])
         ->and(AgentMcpServer::query()->whereNull('workspace_id')->sole()->url)->toEndWith('/mcp/charts');
 
-    Queue::assertPushed(EmbedConnectorToolsJob::class, 2);
+    Queue::assertPushed(EmbedConnectorToolsJob::class, 4);
 });
 
 it('carries new tools to every workspace server of a builtin and drops every cached pool', function (): void {

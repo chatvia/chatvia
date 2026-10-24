@@ -1,28 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\Agent\DisableAgentCapabilityAction;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 
-beforeEach(function (): void {
-    $this->user = User::factory()->create();
-    $this->agent = makeTeamAgent($this->user, 'Support Bot');
-    AgentMcpServer::factory()->builtin('forms')->attachedTo($this->agent)->create();
-});
+/**
+ * Turning a capability off for one agent only detaches it: the workspace's
+ * server stays for its other agents.
+ */
+it('detaches the capability from the agent and keeps the workspace\'s server', function (): void {
+    $user = User::factory()->create();
+    $agent = makeTeamAgent($user, 'Support Bot');
+    $server = AgentMcpServer::factory()->builtin('forms')->attachedTo($agent)->create();
 
-it('detaches the capability from the agent', function (): void {
-    expect($this->agent->isFormsEnabled())->toBeTrue();
+    app(DisableAgentCapabilityAction::class)->execute($agent, app(ConnectorCatalog::class)->capabilities()->get('forms'));
 
-    $forms = app(ConnectorCatalog::class)->capabilities()->get('forms');
-    app(DisableAgentCapabilityAction::class)->execute($this->agent, $forms);
-
-    expect($this->agent->mcpServers()->where('connector_slug', 'forms')->exists())->toBeFalse();
-});
-
-it('leaves the account-level server rows intact (detaches the pivot only)', function (): void {
-    $forms = app(ConnectorCatalog::class)->capabilities()->get('forms');
-    app(DisableAgentCapabilityAction::class)->execute($this->agent, $forms);
-
-    expect(AgentMcpServer::query()->where('connector_slug', 'forms')->where('workspace_id', $this->user->workspace()->id)->exists())->toBeTrue();
+    expect($agent->mcpServers()->where('connector_slug', 'forms')->exists())->toBeFalse()
+        ->and($server->fresh()?->workspace_id)->toBe($user->workspace()->id);
 });

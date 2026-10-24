@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Exceptions\NoLlmAvailableException;
@@ -53,21 +55,28 @@ it('falls back to the chat model when neither the task nor app tasks have one', 
     expect(app(TaskModels::class)->model(LlmTask::Images)->is($chat))->toBeTrue();
 });
 
-it('skips a picked model that is off, or whose provider is off', function (string $what, string $level): void {
-    $chat = testLlm('chat-model');
-    $shared = testLlm('shared-model');
-    $guardrails = testLlm('guardrails-model');
+it('skips a picked model that is off, or whose provider is off', function (string $pickedFor, string $off, string $expected): void {
+    $models = [
+        'chat' => testLlm('chat-model'),
+        'app tasks' => testLlm('shared-model'),
+        'task' => testLlm('guardrails-model'),
+    ];
     config([
-        'chatvia.agent.default_model' => (string) $chat->id,
-        TaskModels::SHARED_KEY => (string) $shared->id,
-        'chatvia.ai.tasks.guardrails' => $level === 'task' ? (string) $guardrails->id : null,
+        'chatvia.agent.default_model' => (string) $models['chat']->id,
+        TaskModels::SHARED_KEY => (string) $models['app tasks']->id,
+        'chatvia.ai.tasks.guardrails' => $pickedFor === 'task' ? (string) $models['task']->id : null,
     ]);
 
-    $off = $level === 'task' ? $guardrails : $shared;
-    $what === 'model' ? $off->update(['is_enabled' => false]) : $off->provider->update(['is_enabled' => false]);
+    $picked = $models[$pickedFor];
+    $off === 'model' ? $picked->update(['is_enabled' => false]) : $picked->provider->update(['is_enabled' => false]);
 
-    expect(app(TaskModels::class)->model(LlmTask::Guardrails)->is($level === 'task' ? $shared : $chat))->toBeTrue();
-})->with(['model', 'provider'])->with(['task', 'app tasks']);
+    expect(app(TaskModels::class)->model(LlmTask::Guardrails)->is($models[$expected]))->toBeTrue();
+})->with([
+    'the task\'s model is off: the app tasks model' => ['task', 'model', 'app tasks'],
+    'the task\'s provider is off: the app tasks model' => ['task', 'provider', 'app tasks'],
+    'the app tasks model is off: the chat model' => ['app tasks', 'model', 'chat'],
+    'the app tasks provider is off: the chat model' => ['app tasks', 'provider', 'chat'],
+]);
 
 it('uses the first usable model when nothing is picked', function (): void {
     testLlm('a-off-model', attributes: ['is_enabled' => false]);
@@ -98,14 +107,4 @@ it('starts new agents on the chat model', function (): void {
     config(['chatvia.agent.default_model' => (string) $chat->id]);
 
     expect(Agent::factory()->create()->fresh()->llm_id)->toBe($chat->id);
-});
-
-it('flushes the cached catalog when a provider changes', function (): void {
-    $model = testLlm();
-
-    expect(Llm::available()->contains('id', $model->id))->toBeTrue();
-
-    $model->provider->update(['is_enabled' => false]);
-
-    expect(Llm::available()->contains('id', $model->id))->toBeFalse();
 });

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Actions\Agent\SetConnectorAlwaysAvailableAction;
@@ -7,6 +9,11 @@ use Domain\Integration\Mcp\Data\Agent\SetConnectorAlwaysAvailableData;
 use Domain\Integration\Mcp\Exceptions\ConnectorNotAttachedException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Support\Facades\DB;
+
+/**
+ * An attached connector can be marked always-on for an agent, so its tools
+ * skip tool search; any number may be, and only an attached one can.
+ */
 
 /** The agent's `always_available` flag for the server, read from the pivot. */
 function saaAlwaysAvailableOf(Agent $agent, AgentMcpServer $server): bool

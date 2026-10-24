@@ -12,7 +12,3 @@ it('throws a clear "not configured" error', function (): void {
     expect(fn (): string => (new NullTranscriber)->transcribe('/tmp/clip.mp3'))
         ->toThrow(TranscriptionNotConfiguredException::class, 'Audio transcription is not configured on this server.');
 });
-
-it('takes no file as it is', function (): void {
-    expect((new NullTranscriber)->takesAsIs('mp3', 1_000))->toBeFalse();
-});

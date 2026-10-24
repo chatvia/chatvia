@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Form\Jobs\EmbedFormDefinitionJob;
 use Domain\Form\Models\FormDefinition;
 use Domain\Integration\Function\Models\AgentFunction;
@@ -10,8 +12,8 @@ use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
 use Domain\Integration\Tool\Jobs\EmbedFunctionJob;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Bus;
+use Tests\Support\Integration\Tool\ToolVectors;
 
 /**
  * Tool routing compares the question with the tools' vectors, so a new
@@ -19,13 +21,6 @@ use Illuminate\Support\Facades\Bus;
  * (started with the knowledge re-index, see EmbeddingReindexTest). The
  * keyword (BM25) columns do not depend on the model, so they stay.
  */
-
-/** Whether the row has lost its dense vector and kept its keyword vector. */
-function reembedClearedDenseOnly(Model $row): bool
-{
-    return $row->newQuery()->whereKey($row->getKey())->whereNull('embedding')->whereNotNull('search_text')->exists();
-}
-
 it('clears the dense vectors, keeps the keyword vectors and queues an embed job for every tool', function (): void {
     $vector = app(EmbeddingsProviderInterface::class)->embed('a tool', true);
     $bm25 = 'a tool';
@@ -42,10 +37,10 @@ it('clears the dense vectors, keeps the keyword vectors and queues an embed job 
 
     app(ReembedToolVectorsAction::class)->execute();
 
-    expect(reembedClearedDenseOnly($connectorTool))->toBeTrue()
-        ->and(reembedClearedDenseOnly($mcpTool))->toBeTrue()
-        ->and(reembedClearedDenseOnly($function))->toBeTrue()
-        ->and(reembedClearedDenseOnly($form))->toBeTrue();
+    expect(ToolVectors::of($connectorTool))->toBe(['dense' => false, 'keyword' => true])
+        ->and(ToolVectors::of($mcpTool))->toBe(['dense' => false, 'keyword' => true])
+        ->and(ToolVectors::of($function))->toBe(['dense' => false, 'keyword' => true])
+        ->and(ToolVectors::of($form))->toBe(['dense' => false, 'keyword' => true]);
 
     Bus::assertDispatched(EmbedConnectorToolsJob::class, fn (EmbedConnectorToolsJob $job): bool => $job->connectorSlug === 'acme');
     Bus::assertDispatched(EmbedMcpToolsJob::class, fn (EmbedMcpToolsJob $job): bool => $job->mcpServerId === $mcpTool->mcp_server_id);

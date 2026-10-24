@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Data\McpToolResultData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
@@ -36,12 +38,14 @@ beforeEach(function (): void {
     $this->args = json_encode(['email' => 'jane@example.com', 'phone' => '+4712345678']);
 });
 
-it('records a successful call with the catalog description and no error', function (): void {
+it('returns the tool text and records the call with the catalog description and no error', function (): void {
     McpTool::factory()->for($this->server, 'mcpServer')->allowed()->create(['name' => 'lookup', 'description' => 'Finds a customer by email']);
     $this->client->shouldReceive('callTool')->andReturn(McpToolResultData::fromEnvelope(['content' => [['type' => 'text', 'text' => 'ok']]]));
 
-    app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
+    expect($result->text)->toBe('ok')
+        ->and($result->isError)->toBeFalse();
     Event::assertDispatched(McpToolInvoked::class, fn (McpToolInvoked $event): bool => $event->error === null
         && $event->agentId === $this->agent->id
         && $event->workspaceId === (int) $this->agent->workspace_id
@@ -91,35 +95,19 @@ it('hides transport details from the model and the logs', function (): void {
     Event::assertDispatched(McpToolInvoked::class, fn (McpToolInvoked $event): bool => $event->error === 'Could not reach MCP server: cURL error 7 for https://crm.example.test/mcp?token=SECRET-TOKEN');
 });
 
-it('passes an error the MCP server itself reported through to the model', function (): void {
-    $this->client->shouldReceive('callTool')->andThrow(
-        McpException::reportedByServer('MCP error from tools/call: Unknown customer email', 'Unknown customer email'),
-    );
+it('tells the model only what is safe of a failed call', function (Throwable $failure, string $shown, string $hidden): void {
+    $this->client->shouldReceive('callTool')->andThrow($failure);
 
     $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
-    expect($result->text)->toContain('Unknown customer email');
-});
-
-it('reports an HTTP failure by status only', function (): void {
-    $this->client->shouldReceive('callTool')->andThrow(
-        new McpException('MCP server returned HTTP 502: <html>internal stack trace</html>', 502),
-    );
-
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
-
-    expect($result->text)->toContain('HTTP 502')
-        ->and($result->text)->not->toContain('stack trace');
-});
-
-it('gives a generic message for unexpected failures', function (): void {
-    $this->client->shouldReceive('callTool')->andThrow(new RuntimeException('SQLSTATE[42P01] relation "secret_table" does not exist'));
-
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
-
-    expect($result->text)->not->toContain('secret_table')
-        ->and($result->text)->toContain('failed unexpectedly');
-});
+    expect($result->isError)->toBeTrue()
+        ->and($result->text)->toContain($shown)
+        ->and($result->text)->not->toContain($hidden);
+})->with([
+    'an error the server reported: passed through' => [McpException::reportedByServer('MCP error from tools/call: Unknown customer email', 'Unknown customer email'), 'Unknown customer email', 'MCP error from tools/call'],
+    'an HTTP failure: by status only' => [new McpException('MCP server returned HTTP 502: <html>internal stack trace</html>', 502), 'HTTP 502', 'stack trace'],
+    'anything unexpected: a generic message' => [new RuntimeException('SQLSTATE[42P01] relation "secret_table" does not exist'), 'failed unexpectedly', 'secret_table'],
+]);
 
 it('refuses a name without both a server slug and a tool, without calling the server', function (string $name): void {
     $this->client->shouldNotReceive('callTool');
@@ -129,19 +117,6 @@ it('refuses a name without both a server slug and a tool, without calling the se
     expect($result->isError)->toBeTrue()
         ->and($result->text)->toBe("Tool error: Tool \"{$name}\" is not a recognized MCP tool.");
 })->with(['mcp__crm', 'mcp____lookup', 'mcp__crm__']);
-
-it('hands the model the tool text and the UI the renderable blocks', function (): void {
-    $this->client->shouldReceive('callTool')->andReturn(McpToolResultData::fromEnvelope([
-        'content' => [['type' => 'text', 'text' => 'chart ready']],
-        'structuredContent' => ['echarts_option' => ['series' => []]],
-    ]));
-
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
-
-    expect($result->text)->toBe('chart ready')
-        ->and($result->isError)->toBeFalse()
-        ->and($result->artifacts)->toBe([['kind' => 'echarts_option', 'data' => ['series' => []]]]);
-});
 
 it('marks a failure the tool reports itself as a tool error', function (): void {
     $this->client->shouldReceive('callTool')->andReturn(McpToolResultData::fromEnvelope([
@@ -155,34 +130,27 @@ it('marks a failure the tool reports itself as a tool error', function (): void 
         ->and($result->isError)->toBeTrue();
 });
 
-it('refuses a tool the workspace blocked, without calling the server', function (): void {
+it('refuses a tool the workspace blocked, without calling the server', function (Closure $block, string $name): void {
     // The catalog hides blocked tools, but the model can replay one from the
     // turn history.
-    McpTool::factory()->for($this->server, 'mcpServer')->blocked()->create(['name' => 'lookup']);
+    $block($this->agent, $this->server);
     $this->client->shouldNotReceive('callTool');
 
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named($name, $this->args));
 
     expect($result->isError)->toBeTrue()
-        ->and($result->text)->toBe('Tool error: Tool "mcp__crm__lookup" is blocked.');
+        ->and($result->text)->toBe("Tool error: Tool \"{$name}\" is blocked.");
     Event::assertNotDispatched(McpToolInvoked::class);
-});
+})->with([
+    'an own tool of a custom server' => [fn (Agent $agent, AgentMcpServer $server): McpTool => McpTool::factory()->for($server, 'mcpServer')->blocked()->create(['name' => 'lookup']), 'mcp__crm__lookup'],
+    'a preset tool by its workspace membership' => [function (Agent $agent): void {
+        $notion = AgentMcpServer::factory()->preset('notion')->attachedTo($agent)->create();
+        $notion->connectorTools()->attach(ConnectorTool::factory()->create(['connector_slug' => 'notion', 'name' => 'search'])->id, ['permission' => McpToolPermission::Blocked->value]);
+    }, 'mcp__notion__search'],
+]);
 
-it('refuses a preset tool whose workspace membership is blocked, without calling the server', function (): void {
-    $notion = AgentMcpServer::factory()->preset('notion')->attachedTo($this->agent)->create();
-    $search = ConnectorTool::factory()->create(['connector_slug' => 'notion', 'name' => 'search']);
-    $notion->connectorTools()->attach($search->id, ['permission' => McpToolPermission::Blocked->value]);
-    $this->client->shouldNotReceive('callTool');
-
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__notion__search', $this->args));
-
-    expect($result->isError)->toBeTrue()
-        ->and($result->text)->toBe('Tool error: Tool "mcp__notion__search" is blocked.');
-    Event::assertNotDispatched(McpToolInvoked::class);
-});
-
-it('refuses a server of the workspace that is not attached to the agent, without calling it', function (): void {
-    AgentMcpServer::factory()->create(['workspace_id' => $this->agent->workspace_id, 'slug' => 'billing']);
+it('refuses a server the agent may not call, without calling it', function (Closure $billing): void {
+    $billing($this->agent);
     $this->client->shouldNotReceive('callTool');
 
     $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__billing__charge', $this->args));
@@ -190,15 +158,7 @@ it('refuses a server of the workspace that is not attached to the agent, without
     expect($result->isError)->toBeTrue()
         ->and($result->text)->toBe('Tool error: MCP server "billing" is not attached to this agent or is disabled.');
     Event::assertNotDispatched(McpToolInvoked::class);
-});
-
-it('refuses an attached server that is disabled, without calling it', function (): void {
-    AgentMcpServer::factory()->disabled()->attachedTo($this->agent)->create(['slug' => 'billing']);
-    $this->client->shouldNotReceive('callTool');
-
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__billing__charge', $this->args));
-
-    expect($result->isError)->toBeTrue()
-        ->and($result->text)->toBe('Tool error: MCP server "billing" is not attached to this agent or is disabled.');
-    Event::assertNotDispatched(McpToolInvoked::class);
-});
+})->with([
+    'a server of the workspace, not attached' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'billing']),
+    'attached but disabled' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->disabled()->attachedTo($agent)->create(['slug' => 'billing']),
+]);

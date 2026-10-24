@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Anthropic;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Tests\Support\Llm\GuzzleRecorder;
 
 /**
  * Claude through Anthropic's own Messages API: the key in its own header,
@@ -33,14 +30,11 @@ function anthropicClient(): Anthropic
  */
 function anthropicStreamBodies(array $replies, array $settings = []): array
 {
-    $history = [];
-    $stack = HandlerStack::create(new MockHandler($replies));
-    $stack->push(Middleware::history($history));
-    app()->instance(Client::class, new Client(['handler' => $stack]));
+    $recorder = GuzzleRecorder::answering(...$replies);
 
     anthropicClient()->stream('claude-sonnet-4-5', [['role' => 'user', 'content' => 'Hi']], $settings);
 
-    return array_map(static fn (array $entry): array => json_decode((string) $entry['request']->getBody(), true), $history);
+    return $recorder->bodies();
 }
 
 function anthropicRefusal(): Response
@@ -55,18 +49,15 @@ it('calls with its own key header and API version, not a bearer key', function (
 });
 
 it('streams a turn to /messages in Messages form', function (): void {
-    $history = [];
-    $stack = HandlerStack::create(new MockHandler([new Response(200, [], "event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n")]));
-    $stack->push(Middleware::history($history));
-    app()->instance(Client::class, new Client(['handler' => $stack]));
+    $recorder = GuzzleRecorder::answering(new Response(200, [], "event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"));
 
     $reply = anthropicClient()->stream('claude-sonnet-5-5', [['role' => 'system', 'content' => 'Be brief.'], ['role' => 'user', 'content' => 'Hi']], [
         'reasoning_effort' => 'medium',
         Anthropic::SHOW_REASONING => true,
     ]);
 
-    $request = $history[0]['request'];
-    $body = json_decode((string) $request->getBody(), true);
+    $request = $recorder->request();
+    $body = $recorder->body();
 
     expect((string) $request->getUri())->toBe('https://api.anthropic.test/v1/messages')
         ->and($request->getHeaderLine('x-api-key'))->toBe('sk-ant-test')
@@ -125,7 +116,7 @@ it('asks a single call again on a thinking budget, and fails on other errors', f
         ->push(['error' => ['message' => 'overloaded']], 529);
 
     expect(anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => [], 'reasoning_effort' => 'medium'])->json('choices.0.message.content'))->toBe('ok')
-        ->and(fn () => anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => []]))->toThrow(RequestException::class);
+        ->and(fn (): Illuminate\Http\Client\Response => anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => []]))->toThrow(RequestException::class);
 });
 
 it('reads an async call\'s reply as a Chat Completions reply', function (): void {

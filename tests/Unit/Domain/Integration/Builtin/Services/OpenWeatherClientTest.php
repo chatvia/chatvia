@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Builtin\Enums\WeatherUnit;
 use Domain\Integration\Builtin\Exceptions\WeatherLookupException;
 use Domain\Integration\Builtin\Services\OpenWeatherClient;
@@ -7,6 +9,11 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Current weather from OpenWeather with the workspace's own key: the report
+ * read from the reply (optional fields filled in), a failed lookup explained,
+ * and a connection error that never shows the key-bearing URL.
+ */
 beforeEach(function (): void {
     config(['services.openweather.base_url' => 'https://weather.example.test/data/2.5/']);
 });

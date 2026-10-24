@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Builtin\Data\Perplexity\PerplexityAgentRequestData;
 use Domain\Integration\Builtin\Data\Perplexity\PerplexitySonarRequestData;
 use Domain\Integration\Builtin\Exceptions\PerplexityException;
@@ -7,6 +9,12 @@ use Domain\Integration\Builtin\Services\PerplexityClient;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Perplexity's Sonar and Agent APIs with the workspace's own key, sent only
+ * as a bearer token: answers without their reasoning, sources without
+ * duplicates, a sandbox run read back, and an upstream error or empty answer
+ * turned into one clear failure.
+ */
 beforeEach(function (): void {
     config([
         'services.perplexity.base_url' => 'https://perplexity.example.test/',

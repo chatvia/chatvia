@@ -98,6 +98,7 @@ class EvalAgentRunner
                 latencyMs: (int) round((microtime(true) - $started) * 1000),
                 traceId: $context->assistantMessageId,
                 toolCalls: $context->capturedToolCalls,
+                sourceRefs: $this->sourceRefs($context->sources),
             );
         } catch (Throwable $e) {
             // The case is recorded as failed with this message; report it too so
@@ -164,6 +165,22 @@ class EvalAgentRunner
     {
         return $sources
             ->map(static fn (RetrievedSourceData $source): string => $source->label)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The distinct sources the answer was given, as `{morph alias}:{id}`, so
+     * the Evals page can tell which of the agent's sources the cases test.
+     *
+     * @param  Collection<int, RetrievedSourceData>  $sources
+     * @return list<string>
+     */
+    private function sourceRefs(Collection $sources): array
+    {
+        return $sources
+            ->map(static fn (RetrievedSourceData $source): string => $source->sourceable_type.':'.$source->sourceable_id)
             ->unique()
             ->values()
             ->all();

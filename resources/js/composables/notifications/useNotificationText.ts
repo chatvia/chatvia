@@ -16,6 +16,7 @@ import {
     ServerOff,
     ShieldAlert,
     ShieldOff,
+    TriangleAlert,
     UserPlus,
     type LucideIcon,
 } from 'lucide-vue-next';
@@ -48,6 +49,7 @@ const LOOKS: Record<NotificationKind, NotificationLook> = {
     message_limit_reached: { icon: Gauge, tone: 'bg-red-500/15 text-red-600 dark:text-red-400' },
     rate_limit_exceeded: { icon: Gauge, tone: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
     eval_run_finished: { icon: BadgeCheck, tone: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
+    eval_regressed: { icon: TriangleAlert, tone: 'bg-red-500/15 text-red-600 dark:text-red-400' },
     data_export_ready: { icon: Download, tone: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
     ai_model_unavailable: { icon: ServerOff, tone: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
 };
@@ -191,6 +193,11 @@ export function useNotificationText() {
                           title: t('notifications.kinds.eval_run_finished.title', vars),
                           body: t('notifications.kinds.eval_run_finished.body', vars),
                       };
+            case 'eval_regressed':
+                return {
+                    title: t('notifications.kinds.eval_regressed.title', vars),
+                    body: t('notifications.kinds.eval_regressed.body', vars, Number(content.subject ?? 0)),
+                };
             case 'data_export_ready':
                 return {
                     title: t('notifications.kinds.data_export_ready.title'),

@@ -1044,6 +1044,17 @@
                 "running": "Läuft",
                 "completed": "Abgeschlossen",
                 "failed": "Fehlgeschlagen"
+            },
+            "safety": {
+                "title": "Sicherheitsnetz",
+                "description": "Finde eine Änderung, die eine Antwort kaputt macht, bevor Besucher es tun.",
+                "auto_run": "Evals nach Änderungen ausführen",
+                "auto_run_help": "Ein Lauf startet 10 Minuten nachdem sich Modell, Anweisungen, Q&A oder Wissen des Agenten ändern. Schlägt ein Fall fehl, der vorher bestanden hat, bekommen alle, die die Evals sehen, eine Benachrichtigung. Jeder Fall zählt als eine Nachricht.",
+                "coverage": "Quellen, die die Evals testen",
+                "coverage_none": "Führe die Evals einmal aus, um zu sehen, welche Quellen sie testen.",
+                "coverage_count": "Der letzte Lauf hat {tested} von {total} Quellen genutzt.",
+                "untested": "Diese Quellen erreicht noch kein Fall:",
+                "add_cases": "Fälle aus dem Wissen hinzufügen"
             }
         },
         "identity_verification": {
@@ -4283,6 +4294,10 @@
             "ai_model_unavailable": {
                 "title": "{subject} ist bei {detail} nicht mehr verfügbar",
                 "body": "Die eigenen Aufgaben der App, die es nutzten, verwenden jetzt ein anderes Modell. Wähle im Admin-Bereich unter Einstellungen → KI-Modelle ein neues."
+            },
+            "eval_regressed": {
+                "title": "Evals haben bei {agent} ein Problem gefunden",
+                "body": "Ein Fall, der vorher bestanden hat, schlägt jetzt fehl: {detail}. | {subject} Fälle, die vorher bestanden haben, schlagen jetzt fehl, z. B. {detail}."
             }
         },
         "clear_all": "Alle löschen",

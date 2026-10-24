@@ -1044,6 +1044,17 @@
                 "running": "W toku",
                 "completed": "Zakończony",
                 "failed": "Nieudany"
+            },
+            "safety": {
+                "title": "Siatka bezpieczeństwa",
+                "description": "Wyłap zmianę, która psuje odpowiedź, zanim zauważą ją odwiedzający.",
+                "auto_run": "Uruchamiaj ewaluacje po zmianach",
+                "auto_run_help": "Przebieg startuje 10 minut po zmianie modelu, instrukcji, Q&A lub wiedzy agenta. Jeśli przypadek, który wcześniej przechodził, teraz nie przechodzi, osoby widzące ewaluacje dostają powiadomienie. Każdy przypadek liczy się jako jedna wiadomość.",
+                "coverage": "Źródła testowane przez ewaluacje",
+                "coverage_none": "Uruchom ewaluacje raz, aby zobaczyć, które źródła testują.",
+                "coverage_count": "Ostatni przebieg użył {tested} z {total} źródeł.",
+                "untested": "Żaden przypadek nie dociera jeszcze do tych źródeł:",
+                "add_cases": "Dodaj przypadki z wiedzy"
             }
         },
         "identity_verification": {
@@ -4283,6 +4294,10 @@
             "ai_model_unavailable": {
                 "title": "{subject} nie jest już dostępny u {detail}",
                 "body": "Zadania aplikacji, które go używały, używają teraz innego modelu. Wybierz nowy w panelu administracyjnym, w Ustawienia → Modele AI."
+            },
+            "eval_regressed": {
+                "title": "Ewaluacje znalazły problem w {agent}",
+                "body": "Przypadek, który wcześniej przechodził, teraz nie przechodzi: {detail}. | {subject} przypadków, które wcześniej przechodziły, teraz nie przechodzi, np. {detail}."
             }
         },
         "clear_all": "Wyczyść wszystkie",

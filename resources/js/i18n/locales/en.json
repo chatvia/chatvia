@@ -1044,6 +1044,17 @@
                 "running": "Running",
                 "completed": "Completed",
                 "failed": "Failed"
+            },
+            "safety": {
+                "title": "Safety net",
+                "description": "Catch a change that breaks an answer before visitors do.",
+                "auto_run": "Run evals after changes",
+                "auto_run_help": "A run starts 10 minutes after the agent's model, instructions, Q&A or knowledge change. If a case that passed before now fails, the people who see the evals get a notification. Every case counts as one message.",
+                "coverage": "Sources the evals test",
+                "coverage_none": "Run the evals once to see which sources they test.",
+                "coverage_count": "The last run used {tested} of {total} sources.",
+                "untested": "No case reaches these sources yet:",
+                "add_cases": "Add cases from knowledge"
             }
         },
         "identity_verification": {
@@ -4283,6 +4294,10 @@
             "ai_model_unavailable": {
                 "title": "{subject} is no longer available from {detail}",
                 "body": "The app's own tasks that used it now use another model. Pick a new one in the admin panel, under Settings → AI models."
+            },
+            "eval_regressed": {
+                "title": "Evals found a problem on {agent}",
+                "body": "A case that passed before now fails: {detail}. | {subject} cases that passed before now fail, such as {detail}."
             }
         },
         "clear_all": "Clear all",

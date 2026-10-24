@@ -1044,6 +1044,17 @@
                 "running": "Kjører",
                 "completed": "Fullført",
                 "failed": "Mislyktes"
+            },
+            "safety": {
+                "title": "Sikkerhetsnett",
+                "description": "Fang opp en endring som ødelegger et svar før de besøkende gjør det.",
+                "auto_run": "Kjør evalueringer etter endringer",
+                "auto_run_help": "En kjøring starter 10 minutter etter at agentens modell, instruksjoner, Q&A eller kunnskap endres. Hvis et tilfelle som besto før nå feiler, får de som ser evalueringene et varsel. Hvert tilfelle teller som én melding.",
+                "coverage": "Kilder evalueringene tester",
+                "coverage_none": "Kjør evalueringene én gang for å se hvilke kilder de tester.",
+                "coverage_count": "Siste kjøring brukte {tested} av {total} kilder.",
+                "untested": "Ingen tilfeller når disse kildene ennå:",
+                "add_cases": "Legg til tilfeller fra kunnskap"
             }
         },
         "identity_verification": {
@@ -4283,6 +4294,10 @@
             "ai_model_unavailable": {
                 "title": "{subject} er ikke lenger tilgjengelig hos {detail}",
                 "body": "Appens egne oppgaver som brukte den, bruker nå en annen modell. Velg en ny i administrasjonspanelet under Innstillinger → AI-modeller."
+            },
+            "eval_regressed": {
+                "title": "Evalueringene fant et problem hos {agent}",
+                "body": "Et tilfelle som besto før, feiler nå: {detail}. | {subject} tilfeller som besto før, feiler nå, for eksempel {detail}."
             }
         },
         "clear_all": "Fjern alle",

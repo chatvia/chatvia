@@ -40,6 +40,7 @@ class EvalResult extends Model
             'has_passed' => 'boolean',
             'score' => 'float',
             'sources_used' => 'array',
+            'source_refs' => 'array',
             'tools_called' => 'array',
             'actual_output_truncated' => 'boolean',
         ];

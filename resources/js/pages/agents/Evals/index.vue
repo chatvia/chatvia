@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Eval suite page for one agent: the list of test cases, the run history with
-// live progress, and the dialogs to add, edit and delete them. Viewing needs
+// live progress, the safety net (automatic runs, source coverage), and the
+// dialogs to add, edit and delete them. Viewing needs
 // `agent.evals.view`; changing anything needs `agent.evals.manage`.
 import {
     AlertDialog,
@@ -26,6 +27,7 @@ import EvalCaseDialog from './EvalCaseDialog.vue';
 import EvalCasesSection from './EvalCasesSection.vue';
 import EvalKnowledgeDialog from './EvalKnowledgeDialog.vue';
 import EvalRunsSection from './EvalRunsSection.vue';
+import EvalSafetyNetSection from './EvalSafetyNetSection.vue';
 import type { EvalAgent, EvalCase, EvalRun, KnowledgeQuestion } from './types';
 import { useLiveEvalRuns } from './useLiveEvalRuns';
 
@@ -34,6 +36,9 @@ interface Props {
     cases: EvalCase[];
     runs: EvalRun[];
     scorerTypes: string[];
+    // Which knowledge sources the last finished run drew on; null before the first.
+    coverage: Domain.Evaluation.Data.Resources.EvalSourceCoverageData | null;
+    autoRun: boolean;
     // Optional prop — absent until the "From knowledge" dialog triggers a partial reload.
     knowledgeQuestions?: KnowledgeQuestion[];
 }
@@ -174,6 +179,14 @@ const clearRuns = () => {
                     />
 
                     <EvalRunsSection :runs="runs" :can-manage="canManage" @open="openRun" @delete="confirmDeleteRun" @clear="isClearOpen = true" />
+
+                    <EvalSafetyNetSection
+                        :agent-external-id="props.agent.external_id"
+                        :auto-run="props.autoRun"
+                        :coverage="props.coverage"
+                        :can-manage="canManage"
+                        @from-knowledge="isKnowledgeOpen = true"
+                    />
                 </div>
             </div>
         </TooltipProvider>

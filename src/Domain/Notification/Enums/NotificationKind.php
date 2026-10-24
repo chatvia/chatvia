@@ -26,6 +26,7 @@ enum NotificationKind: string
     case MessageLimitReached = 'message_limit_reached';
     case RateLimitExceeded = 'rate_limit_exceeded';
     case EvalRunFinished = 'eval_run_finished';
+    case EvalRegressed = 'eval_regressed';
     case DataExportReady = 'data_export_ready';
     case AiModelUnavailable = 'ai_model_unavailable';
 
@@ -45,6 +46,7 @@ enum NotificationKind: string
             self::MessageLimitReached,
             self::RateLimitExceeded => NotificationCategory::Usage,
             self::EvalRunFinished,
+            self::EvalRegressed,
             self::DataExportReady => NotificationCategory::Reports,
         };
     }

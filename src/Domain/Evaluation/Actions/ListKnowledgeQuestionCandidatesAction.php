@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  * case-insensitively; questions already used as a case input are flagged so
  * the UI disables them.
  *
- * Mining decrypts up to ~200 chunk rows, so callers fetch this lazily (the
+ * Mining reads up to ~200 chunk rows, so callers fetch this lazily (the
  * Evals page wires it behind an `Inertia::optional`, not first load).
  */
 class ListKnowledgeQuestionCandidatesAction

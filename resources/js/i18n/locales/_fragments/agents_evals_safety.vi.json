@@ -1,0 +1,25 @@
+{
+    "notifications": {
+        "kinds": {
+            "eval_regressed": {
+                "title": "Đánh giá phát hiện sự cố ở {agent}",
+                "body": "Một trường hợp trước đây đạt nay không đạt: {detail}. | {subject} trường hợp trước đây đạt nay không đạt, chẳng hạn {detail}."
+            }
+        }
+    },
+    "agents": {
+        "evals": {
+            "safety": {
+                "title": "Lưới an toàn",
+                "description": "Phát hiện thay đổi làm hỏng câu trả lời trước khi khách nhận ra.",
+                "auto_run": "Chạy đánh giá sau khi thay đổi",
+                "auto_run_help": "Một lần chạy bắt đầu 10 phút sau khi mô hình, hướng dẫn, Hỏi & Đáp hoặc kiến thức của tác tử thay đổi. Nếu một trường hợp trước đây đạt nay không đạt, người xem đánh giá sẽ nhận thông báo. Mỗi trường hợp tính là một tin nhắn.",
+                "coverage": "Nguồn mà đánh giá kiểm tra",
+                "coverage_none": "Chạy đánh giá một lần để xem chúng kiểm tra những nguồn nào.",
+                "coverage_count": "Lần chạy gần nhất dùng {tested} trên {total} nguồn.",
+                "untested": "Chưa có trường hợp nào chạm tới các nguồn này:",
+                "add_cases": "Thêm trường hợp từ kiến thức"
+            }
+        }
+    }
+}

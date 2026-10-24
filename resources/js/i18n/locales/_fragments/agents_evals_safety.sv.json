@@ -1,0 +1,25 @@
+{
+    "notifications": {
+        "kinds": {
+            "eval_regressed": {
+                "title": "Utvärderingarna hittade ett problem hos {agent}",
+                "body": "Ett fall som klarade sig förut misslyckas nu: {detail}. | {subject} fall som klarade sig förut misslyckas nu, till exempel {detail}."
+            }
+        }
+    },
+    "agents": {
+        "evals": {
+            "safety": {
+                "title": "Skyddsnät",
+                "description": "Hitta en ändring som förstör ett svar innan besökarna gör det.",
+                "auto_run": "Kör utvärderingar efter ändringar",
+                "auto_run_help": "En körning startar 10 minuter efter att agentens modell, instruktioner, Q&A eller kunskap ändras. Om ett fall som klarade sig förut nu misslyckas får de som ser utvärderingarna en avisering. Varje fall räknas som ett meddelande.",
+                "coverage": "Källor som utvärderingarna testar",
+                "coverage_none": "Kör utvärderingarna en gång för att se vilka källor de testar.",
+                "coverage_count": "Senaste körningen använde {tested} av {total} källor.",
+                "untested": "Inget fall når de här källorna än:",
+                "add_cases": "Lägg till fall från kunskap"
+            }
+        }
+    }
+}

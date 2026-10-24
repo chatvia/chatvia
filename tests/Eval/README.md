@@ -162,6 +162,8 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 | `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
 | `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
+| `EVAL_RERANKER` | the reranker driver of this run; `none` measures an install without one (the similarity check instead) |
+| `EVAL_SIMILARITY_THRESHOLD` | the similarity bar without a reranker; only Qwen3 on Scaleway ships one (0.35), so give it when the same model runs through OpenRouter |
 | `EVAL_CHAT_MODEL` / `EVAL_CHAT_PROVIDER` | the chat model for the app's own tasks (enhancement, follow-up rewrites) for one run, e.g. `google/gemma-4-26b-a4b-it` on `openrouter` (the default provider). Unset, the testing catalog's Scaleway model runs, and without a Scaleway key the follow-up rewrite quietly keeps the question as it is |
 | `EVAL_CHUNK_SIZE` | the chunk size of this run, in the configured unit (tokens by default) |
 | `EVAL_CHUNK_MINIMUM` | the smallest chunk of this run, same unit; `0` turns it off |
@@ -211,6 +213,23 @@ same either way. Enhancement makes the hybrid ranking before the check worse
 it by lifting the right chunks back from ranks 6 to 13. With a real rewrite,
 follow-ups go from 75% to 100% hit@5; the first run had no working rewrite
 model, so the rewrite kept each follow-up as it was.
+
+Without a reranker (`EVAL_RERANKER=none`, similarity bar 0.35 as Qwen3 on
+Scaleway has it, `EVAL_SIMILARITY_THRESHOLD=0.35`), same day:
+
+| | Enhancement off | Enhancement on |
+|---|---|---|
+| Single-fact hit@5 / MRR before the check | 97.3% / 0.872 | 78.4% / 0.727 |
+| Single-fact answered after the check | 94.6% | 91.9% |
+| Uncovered left empty | 100.0% | 100.0% |
+| Multi-hop: facts / every fact given | 100.0% / 100.0% | 90.9% / 81.8% |
+| Global: facts / every fact given | 71.9% / 14.3% | 68.8% / 14.3% |
+
+Without a reranker nothing lifts the weaker ranking back, so enhancement
+costs answers. The similarity bar also keeps every multi-hop fact the
+reranker's 0.7 bar drops, and blocks every uncovered question (the reranker
+blocked 57.1%), but it drops broad questions whose chunks each match only a
+little ("all the fees" got nothing).
 
 Every multi-hop fact the model missed ranked in the top 5: the relevance check
 dropped it, not the search. With only 14 chunks the top 10 is most of the

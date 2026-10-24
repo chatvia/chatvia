@@ -600,11 +600,16 @@ function evalUseRealModels(): EmbeddingsProviderInterface
 /**
  * Which reranker the offline evals (tests/Eval) use, as env overrides for one
  * run: EVAL_RERANK_URL (a server with the common /rerank API, such as
- * https://api.jina.ai/v1), EVAL_RERANK_MODEL and EVAL_RERANK_KEY. Unset, the
- * configured reranker runs.
+ * https://api.jina.ai/v1), EVAL_RERANK_MODEL and EVAL_RERANK_KEY; or
+ * EVAL_RERANKER, a driver of RerankerFactory::DRIVERS ("none" measures an
+ * install without a reranker). Unset, the configured reranker runs.
  */
 function evalRerankOverrides(): void
 {
+    if (filled($driver = env('EVAL_RERANKER'))) {
+        config(['chatvia.ai.reranker' => $driver]);
+    }
+
     if (blank($url = env('EVAL_RERANK_URL'))) {
         return;
     }

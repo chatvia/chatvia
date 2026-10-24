@@ -47,7 +47,8 @@ use Illuminate\Support\Str;
  * Knobs (env, one run): VECTOR_SEARCH_RELEVANCE_THRESHOLD, VECTOR_SEARCH_MAX_CHUNKS,
  * EVAL_ENRICH=1 (enrich chunks with the Smart model first; needs a chat model),
  * EVAL_CHUNK_SIZE and EVAL_CHUNK_MINIMUM (the chunk size and the smallest
- * chunk, in the configured unit).
+ * chunk, in the configured unit), EVAL_SIMILARITY_THRESHOLD (the bar without
+ * a reranker).
  */
 beforeEach(function (): void {
     // The eval calls the real embeddings and reranker, so it runs only with a
@@ -65,6 +66,13 @@ beforeEach(function (): void {
         if (filled($value = env($variable))) {
             config(["chatvia.ai.chunking.{$setting}" => (int) $value]);
         }
+    }
+
+    // The similarity bar without a reranker. Only Qwen3 on Scaleway ships a
+    // measured one (0.35), so the same model through another provider needs
+    // it given to match a default install.
+    if (filled($threshold = env('EVAL_SIMILARITY_THRESHOLD'))) {
+        config(['chatvia.vector.search.similarity_threshold' => (float) $threshold]);
     }
 });
 

@@ -9,6 +9,7 @@ use App\Admin\Settings\ChannelSettings;
 use App\Admin\Settings\ConnectorSettings;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SecuritySettings;
 use App\Admin\Settings\SignInSettings;
@@ -44,6 +45,7 @@ return [
         BrandSettings::class,
         WorkspaceSettings::class,
         PlatformSettings::class,
+        ObservabilitySettings::class,
         StorageSettings::class,
         SecuritySettings::class,
     ],

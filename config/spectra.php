@@ -46,7 +46,7 @@ return [
     |
     | In Chatvia this is the "installed" switch, read once while Spectra
     | boots: false leaves out its dashboard and watchers. Whether it records
-    | is the admin panel's Settings → Platform → Spectra switch, which
+    | is the admin panel's Settings → Observability → Spectra switch, which
     | ToolRecording copies over this key after boot.
     |
     */
@@ -161,9 +161,12 @@ return [
         | includes sampling settings, response formats, etc. When unset, it
         | follows the store_prompts setting.
         |
+        | On in Chatvia, so the admin panel's switch (Settings → Observability)
+        | starts from a value of its own.
+        |
         */
 
-        'store_request_data' => env('SPECTRA_STORE_REQUEST_DATA'),
+        'store_request_data' => env('SPECTRA_STORE_REQUEST_DATA', true),
 
         /*
         |--------------------------------------------------------------------------
@@ -511,7 +514,7 @@ return [
         |
         */
 
-        'layout' => env('SPECTRA_DASHBOARD_LAYOUT', 'text'),
+        'layout' => env('SPECTRA_DASHBOARD_LAYOUT', 'full'),
 
         /*
         |--------------------------------------------------------------------------

@@ -45,7 +45,7 @@ enum StaffTool: string
         return match ($this) {
             self::Horizon => __('See the background jobs: what waits in the queue, what runs now and what failed. Retry a failed job, and check that the workers keep up.'),
             self::Pulse => __('See how the app performs: slow pages, slow database queries and jobs, errors, and the people and jobs that use the server most.'),
-            self::Spectra => __('See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.'),
+            self::Spectra => __('See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Observability → Spectra is on.'),
         };
     }
 

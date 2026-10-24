@@ -1,11 +1,13 @@
 <?php
 
+use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ToolRecording;
 use Laravel\Pulse\Facades\Pulse;
 
 /**
- * Settings → Platform turns the recording of Pulse and Spectra on and off.
+ * Settings → Observability turns the recording of Pulse and Spectra on and
+ * off.
  * Both tools read their own switch only while they boot, so ToolRecording
  * applies the saved choice after every settings apply. PULSE_ENABLED and
  * SPECTRA_ENABLED in .env still leave a tool out entirely. The tests boot
@@ -40,7 +42,7 @@ it('records both tools while their switches are as shipped', function (): void {
 it('follows the saved switches', function (): void {
     trBooted();
 
-    saveSettings(PlatformSettings::class, ['pulse_enabled' => false, 'spectra_enabled' => true]);
+    saveSettings(ObservabilitySettings::class, ['pulse_enabled' => false, 'spectra_enabled' => true]);
 
     expect(config('spectra.enabled'))->toBeTrue();
     Pulse::shouldHaveReceived('stopRecording')->once();
@@ -49,7 +51,7 @@ it('follows the saved switches', function (): void {
 it('keeps a tool that .env leaves out from recording', function (): void {
     $tools = trBooted(pulse: false, spectra: false);
 
-    saveSettings(PlatformSettings::class, ['pulse_enabled' => true, 'spectra_enabled' => true]);
+    saveSettings(ObservabilitySettings::class, ['pulse_enabled' => true, 'spectra_enabled' => true]);
 
     expect(config('spectra.enabled'))->toBeFalse()
         ->and($tools->pulseInstalled())->toBeFalse()

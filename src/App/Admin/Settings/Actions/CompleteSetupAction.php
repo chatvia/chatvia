@@ -13,6 +13,7 @@ use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SetupStatus;
@@ -38,7 +39,8 @@ use InvalidArgumentException;
  * with the task models it brings ({@see TaskModelPreset}), the model for
  * image descriptions (none turns image descriptions off), the embedding service and
  * model, the reranker, the document reader, the Firecrawl key, speech to
- * text, voice conversations, where files are kept, and how email is sent. A service left at "Not now" is turned
+ * text, voice conversations, where files are kept, how email is sent, and
+ * whether Spectra records AI calls. A service left at "Not now" is turned
  * off, so "Automatic" does not turn it on. Agents made before any model
  * was added (the demo data) get the default model. Then the setup is
  * marked done. A value that still equals its default
@@ -56,6 +58,7 @@ final readonly class CompleteSetupAction
         private KnowledgeSettings $knowledge,
         private StorageSettings $storage,
         private MailSettings $mail,
+        private ObservabilitySettings $observability,
         private PlatformSettings $platform,
         private SettingsConfig $config,
     ) {}
@@ -141,11 +144,14 @@ final readonly class CompleteSetupAction
                 $this->saveMail($data->mail);
             }
 
+            $this->set($this->observability, 'spectra_enabled', $data->recordAiCalls);
+
             $this->providers->save();
             $this->ai->save();
             $this->knowledge->save();
             $this->storage->save();
             $this->mail->save();
+            $this->observability->save();
 
             $this->platform->setup_status = SetupStatus::Completed->value;
             $this->platform->save();

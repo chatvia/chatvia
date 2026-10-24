@@ -16,6 +16,16 @@ Exceptions: streamed text deltas (a lone space or newline is real output, so com
 ## Choose boring code over clever code
 Prefer an early return, `if` or `match` to nested ternaries, and drop the `else` after a `return`. More lines for more clarity is a good trade. Reach for the framework helper first: `abort_if()` / `abort_unless()`, `findOrFail()`, `Cache::remember()`, and `Str`, `Arr`, collections, `File`, `Process`, `Http` as `.ai/rules/laravel-first.md` lists.
 
+## Pipe a value through plain PHP calls with |>
+When one value goes through two or more calls in a row, chain them with the pipe operator (`|>`). Don't nest the calls, and don't assign the same variable again after each step. Put each step on its own line, starting with `|>`. A function that takes only the value is a first-class callable: `|> trim(...)`. Any other step is a typed arrow function in parentheses (PHP requires them): `|> (static fn (string $text): string => …)`. Name the parameter for what it holds, not `$x`.
+Use a `Str::of()` or collection chain instead when Laravel covers every step (`.ai/rules/laravel-first.md`). Use the pipe when a step has no Laravel version (`html_entity_decode()`, `preg_replace()` with a list of patterns). Don't pipe a single call. Keep a variable when its name explains a step.
+
+```php
+$text = $html
+    |> strip_tags(...)
+    |> (static fn (string $text): string => html_entity_decode($text, ENT_QUOTES | ENT_HTML5));
+```
+
 ## Build only what is needed now
 Add an interface, factory, manager or wrapper class only for a second real implementation, a test fake, or a context boundary. A class that wraps one call is noise: no `GetAgentsAction` around `Agent::query()->active()->get()`. A well-named scope called from a controller is already clean.
 

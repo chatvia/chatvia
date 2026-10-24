@@ -11,6 +11,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
  * than the conversation retention sent with it.
  */
 beforeEach(function (): void {
+    withEnterpriseLicense();
     $this->owner = User::factory()->create();
     ownerTeam($this->owner);
 });

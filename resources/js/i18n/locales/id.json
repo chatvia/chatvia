@@ -3337,6 +3337,13 @@
                 "tool_calls": "Panggilan alat",
                 "security": "Keamanan"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Fitur Enterprise",
+            "locked_body": "Aturan jaringan, retensi data khusus, dan webhook SIEM memerlukan lisensi Enterprise di instalasi ChatVia.ai ini. Pengaturan yang tersimpan tetap ada, tetapi baru berlaku setelah instalasi memilikinya.",
+            "export_csv": "Ekspor CSV",
+            "export_locked": "Mengekspor log audit memerlukan lisensi Enterprise."
         }
     },
     "app": {

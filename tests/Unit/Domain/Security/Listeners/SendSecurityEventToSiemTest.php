@@ -46,6 +46,7 @@ function sseQueued(CallQueuedListener $job): bool
 }
 
 beforeEach(function (): void {
+    withEnterpriseLicense();
     Queue::fake();
     $this->owner = User::factory()->create();
 });

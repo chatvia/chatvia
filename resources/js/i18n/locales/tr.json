@@ -3337,6 +3337,13 @@
                 "tool_calls": "Araç çağrıları",
                 "security": "Güvenlik"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Enterprise özellikleri",
+            "locked_body": "Ağ kuralları, özel veri saklama ve SIEM webhook'u bu ChatVia.ai kurulumunda Enterprise lisansı gerektirir. Kaydedilen ayarlarınız korunur, ancak kurulumun lisansı olana kadar uygulanmaz.",
+            "export_csv": "CSV dışa aktar",
+            "export_locked": "Denetim günlüğünü dışa aktarmak Enterprise lisansı gerektirir."
         }
     },
     "app": {

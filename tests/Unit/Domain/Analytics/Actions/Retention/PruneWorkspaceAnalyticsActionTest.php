@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Actions\Retention\PruneWorkspaceAnalyticsAction;
 use Domain\Analytics\Enums\AnalyticsEventType;
@@ -62,6 +63,8 @@ function pwaRetention(int $workspaceId, ?int $days): void
     WorkspaceSecurityPolicy::forWorkspace($workspaceId)->update(['retention_analytics_days' => $days]);
 }
 
+beforeEach(fn () => withEnterpriseLicense());
+
 it('deletes the workspace\'s older rows from every analytics table, feedback included', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
     pwaRetention($workspace, 60);
@@ -105,6 +108,16 @@ it('never uses a window below the configured floor', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
     pwaRetention($workspace, 5); // below the 30-day floor
     pwaSeed($workspace, daysAgo: 20);
+
+    expect(app(PruneWorkspaceAnalyticsAction::class)->execute())->toBe(0)
+        ->and(pwaCounts($workspace))->each->toBe(1);
+});
+
+it('keeps every analytics row without an Enterprise license', function (): void {
+    $workspace = User::factory()->create()->workspace()->id;
+    pwaRetention($workspace, 60);
+    pwaSeed($workspace, daysAgo: 90);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
 
     expect(app(PruneWorkspaceAnalyticsAction::class)->execute())->toBe(0)
         ->and(pwaCounts($workspace))->each->toBe(1);

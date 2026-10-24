@@ -317,6 +317,13 @@
             "siem": {
                 "help": "Vidarebefordra varje säkerhetshändelse till ditt SIEM i realtid, signerad så att du kan verifiera att den kom från ChatVia.ai."
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Enterprise-funktioner",
+            "locked_body": "Nätverksregler, egen datalagring och SIEM-webhooken kräver en Enterprise-licens på den här ChatVia.ai-installationen. Dina sparade inställningar finns kvar, men de gäller först när installationen har en.",
+            "export_csv": "Exportera CSV",
+            "export_locked": "Export av granskningsloggen kräver en Enterprise-licens."
         }
     }
 }

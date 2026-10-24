@@ -34,9 +34,21 @@ final class LicenseKeys
     /** Acme Ltd's key activated for $domains (as bought with none). */
     public static function activatedFor(string ...$domains): string
     {
-        return LicenseSignature::sign(
-            new LicenseKey(self::ID, 'Acme Ltd', array_values($domains), [LicenseFeature::HideCredit], '2026-10-15'),
-            self::SECRET_KEY,
-        );
+        return self::sign(array_values($domains), [LicenseFeature::HideCredit]);
+    }
+
+    /** Acme Ltd's Enterprise key activated for $domains. */
+    public static function enterpriseFor(string ...$domains): string
+    {
+        return self::sign(array_values($domains), [LicenseFeature::HideCredit, LicenseFeature::Enterprise]);
+    }
+
+    /**
+     * @param  list<string>  $domains
+     * @param  list<LicenseFeature>  $features
+     */
+    private static function sign(array $domains, array $features): string
+    {
+        return LicenseSignature::sign(new LicenseKey(self::ID, 'Acme Ltd', $domains, $features, '2026-10-15'), self::SECRET_KEY);
     }
 }

@@ -3337,6 +3337,13 @@
                 "tool_calls": "Lệnh gọi công cụ",
                 "security": "Bảo mật"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Tính năng Enterprise",
+            "locked_body": "Quy tắc mạng, thời gian lưu dữ liệu tùy chỉnh và webhook SIEM cần giấy phép Enterprise trên bản cài ChatVia.ai này. Cài đặt đã lưu vẫn được giữ, nhưng chỉ có hiệu lực khi bản cài có giấy phép.",
+            "export_csv": "Xuất CSV",
+            "export_locked": "Xuất nhật ký kiểm tra cần giấy phép Enterprise."
         }
     },
     "app": {

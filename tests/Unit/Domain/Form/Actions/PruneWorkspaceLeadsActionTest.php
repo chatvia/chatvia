@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\PruneWorkspaceLeadsAction;
 use Domain\Form\Enums\FormSubmissionStatus;
@@ -26,6 +27,8 @@ function pwlSetRetention(Agent $agent, ?int $days): void
 {
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_leads_days' => $days]);
 }
+
+beforeEach(fn () => withEnterpriseLicense());
 
 it('deletes only that workspace\'s submitted leads past its window', function (): void {
     $agent = Agent::factory()->create();
@@ -67,4 +70,14 @@ it('never uses a window below the configured floor', function (): void {
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(0)
         ->and(FormSubmission::query()->whereKey($lead->id)->exists())->toBeTrue();
+});
+
+it('keeps every lead without an Enterprise license', function (): void {
+    $agent = Agent::factory()->create();
+    pwlSetRetention($agent, 30);
+    $old = pwlLead($agent, 45);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(0)
+        ->and(FormSubmission::query()->whereKey($old->id)->exists())->toBeTrue();
 });

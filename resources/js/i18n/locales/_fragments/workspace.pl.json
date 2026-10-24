@@ -317,6 +317,13 @@
             "siem": {
                 "help": "Przekazuj każde zdarzenie bezpieczeństwa do Twojego SIEM w czasie rzeczywistym, podpisane, abyś mógł zweryfikować, że pochodzi z ChatVia.ai."
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "Funkcje Enterprise",
+            "locked_body": "Reguły sieci, własny okres przechowywania danych i webhook SIEM wymagają licencji Enterprise w tej instalacji ChatVia.ai. Zapisane ustawienia zostają, ale zaczną działać dopiero, gdy instalacja będzie ją mieć.",
+            "export_csv": "Eksportuj CSV",
+            "export_locked": "Eksport dziennika audytu wymaga licencji Enterprise."
         }
     }
 }

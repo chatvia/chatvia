@@ -20,9 +20,11 @@ use App\Http\Controllers\Settings\Connector\Provisioning\SalesforceConnectContro
 use App\Http\Controllers\Settings\Function\FunctionAgentController;
 use App\Http\Controllers\Settings\Function\FunctionController;
 use App\Http\Controllers\Settings\Function\ToggleFunctionController;
+use App\Http\Controllers\Settings\Governance\ExportToolCallAuditController;
 use App\Http\Controllers\Settings\Governance\GovernanceAuditController;
 use App\Http\Controllers\Settings\Prompt\PromptController;
 use App\Http\Controllers\Settings\Security\BlockedVisitorController;
+use App\Http\Controllers\Settings\Security\ExportSecurityAuditLogController;
 use App\Http\Controllers\Settings\Security\SecurityAuditController;
 use App\Http\Controllers\Settings\Security\SecurityPolicyController;
 use App\Http\Controllers\Team\Crud\TeamDeleteController;
@@ -140,6 +142,7 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
     // gated by the `account.governance` team permission.
     Route::middleware('team.permission:account.governance')->group(function (): void {
         Route::get('my/workspace/governance', GovernanceAuditController::class)->name('governance.audit');
+        Route::get('my/workspace/governance/export', ExportToolCallAuditController::class)->middleware('license.enterprise')->name('governance.export');
     });
 
     // Security & Compliance — workspace-wide network access control (IP
@@ -147,10 +150,12 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
     // `account.security`.
     Route::middleware('team.permission:account.security')->group(function (): void {
         Route::get('my/workspace/security', [SecurityPolicyController::class, 'edit'])->name('security.edit');
-        Route::put('my/workspace/security', [SecurityPolicyController::class, 'update'])->name('security.update');
+        // The settings on this page are Enterprise features; the page itself stays open.
+        Route::put('my/workspace/security', [SecurityPolicyController::class, 'update'])->middleware('license.enterprise')->name('security.update');
 
         // Read-only security audit log viewer.
         Route::get('my/workspace/security/audit', SecurityAuditController::class)->name('security.audit');
+        Route::get('my/workspace/security/audit/export', ExportSecurityAuditLogController::class)->middleware('license.enterprise')->name('security.audit.export');
 
         // Remove a visitor block (blocks are made from an agent's Guardrails activity).
         Route::delete('my/workspace/security/blocked-visitors/{blockedVisitor}', [BlockedVisitorController::class, 'destroy'])->name('security.blocked-visitors.destroy');

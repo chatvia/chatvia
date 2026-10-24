@@ -13,6 +13,7 @@ use Domain\Notification\Data\NotificationSummaryData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Middleware;
+use Support\License\Entitlements;
 
 /**
  * Inertia root for the dashboard and the rest of the `web` group: the props
@@ -102,6 +103,9 @@ class HandleInertiaRequests extends Middleware
             'features' => $user ? [
                 'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
             ] : [],
+            // Whether this install has an Enterprise key: the Security and
+            // Governance pages lock their Enterprise features without one.
+            'enterprise' => $user instanceof User && app(Entitlements::class)->enterprise(),
             // The knowledge file types this install accepts (Settings →
             // Ingestion), each with the extensions this server can read, for
             // the upload pages and the sources menu. An object even when empty.

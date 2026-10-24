@@ -15,6 +15,7 @@ use Filament\Actions\Action;
 use Filament\Schemas\Components\Callout;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
+use Support\License\LicenseFeature;
 use Support\License\LicenseKey;
 
 /**
@@ -139,13 +140,15 @@ class ManageBrandSettings extends AdminSettingsPage
     private function licenseCallout(): Callout
     {
         return Callout::make(fn (): string => match ($this->savedStatus()) {
-            LicenseStatus::Valid => 'Licensed to '.$this->license()->read($this->savedKey())?->licensee,
+            LicenseStatus::Valid => $this->licenseType().' license, licensed to '.$this->license()->read($this->savedKey())?->licensee,
             LicenseStatus::Missing => 'Hiding the credit needs a license',
             default => 'The license is not active here',
         })
             ->description(fn (): string => match ($this->savedStatus()) {
-                LicenseStatus::Valid => 'You can hide the credit.',
-                LicenseStatus::Missing => 'A license costs $399, one time, and never expires.',
+                LicenseStatus::Valid => $this->licenseType() === 'Enterprise'
+                    ? 'You can hide the credit, and the Enterprise features are on. It renews every year at chatvia.ai.'
+                    : 'You can hide the credit.',
+                LicenseStatus::Missing => 'A Branding license costs $199, one time, and never expires. An Enterprise license costs $1,490 a year: it also hides the credit and turns on the Enterprise security features.',
                 LicenseStatus::Invalid => 'The saved key is not valid. The credit stays on until you add a valid key.',
                 default => 'Paste your license key below and save to activate it. The credit stays on until then.',
             })
@@ -171,6 +174,12 @@ class ManageBrandSettings extends AdminSettingsPage
                     ->openUrlInNewTab()
                     ->visible(fn (): bool => filled(config('chatvia.license.manage_url'))),
             ]);
+    }
+
+    /** "Enterprise" or "Branding", by what the saved key unlocks. */
+    private function licenseType(): string
+    {
+        return $this->license()->allows($this->savedKey(), LicenseFeature::Enterprise) ? 'Enterprise' : 'Branding';
     }
 
     /**

@@ -3338,6 +3338,13 @@
                 "tool_calls": "فراخوانی ابزار",
                 "security": "امنیت"
             }
+        },
+        "enterprise": {
+            "badge": "Enterprise",
+            "locked_title": "ویژگی‌های Enterprise",
+            "locked_body": "قوانین شبکه، نگهداری سفارشی داده‌ها و وب‌هوک SIEM به مجوز Enterprise روی این نصب ChatVia.ai نیاز دارند. تنظیمات ذخیره‌شده‌ی شما حفظ می‌شوند، اما تا زمانی که نصب مجوز نداشته باشد اعمال نمی‌شوند.",
+            "export_csv": "خروجی CSV",
+            "export_locked": "خروجی گرفتن از گزارش ممیزی به مجوز Enterprise نیاز دارد."
         }
     },
     "app": {

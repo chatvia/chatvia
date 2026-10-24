@@ -7,13 +7,15 @@ namespace Domain\Analytics\Actions\Retention;
 use Carbon\CarbonInterface;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Support\License\Entitlements;
 
 /**
  * Deletes a workspace's analytics older than the analytics retention it chose
  * in its security policy: the raw events, the hourly and daily rollups, the
  * per-conversation metrics and the first-seen sessions. Workspaces that left
  * it blank keep the install defaults ({@see PruneAnalyticsEventsAction} trims
- * only the raw events). Unlike that install-wide prune, old feedback events go
+ * only the raw events), and so does every workspace while the install has no
+ * Enterprise key (custom retention is an Enterprise feature). Unlike that install-wide prune, old feedback events go
  * too: the workspace asked for all of its older analytics to be deleted.
  *
  * Rows go in batches, so one run never holds a huge delete. Most of these
@@ -44,6 +46,7 @@ class PruneWorkspaceAnalyticsAction
 
     public function __construct(
         private readonly AnalyticsDatabase $analytics,
+        private readonly Entitlements $entitlements,
     ) {}
 
     /**
@@ -51,6 +54,10 @@ class PruneWorkspaceAnalyticsAction
      */
     public function execute(int $batchSize = 10000): int
     {
+        if (! $this->entitlements->enterprise()) {
+            return 0;
+        }
+
         // Never below the floor, even for a value saved before it was raised.
         $floor = (int) config('chatvia.retention.analytics_floor_days', 30);
 

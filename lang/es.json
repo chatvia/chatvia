@@ -530,5 +530,6 @@
     "Your admin has turned reasoning off.": "Tu administrador ha desactivado el razonamiento.",
     "Data, vector and keyword search": "Datos, búsqueda vectorial y por palabras clave",
     "Background jobs": "Tareas en segundo plano",
-    "What each model supports": "Lo que admite cada modelo"
+    "What each model supports": "Lo que admite cada modelo",
+    "This needs an Enterprise license.": "Esto necesita una licencia Enterprise."
 }

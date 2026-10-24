@@ -4,11 +4,13 @@
 import AuditTable from '@/components/governance/AuditTable.vue';
 import type { AuditPaginator } from '@/components/governance/types';
 import AuditTabs from '@/components/governance/AuditTabs.vue';
+import ExportCsvButton from '@/components/license/ExportCsvButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
-import { audit } from '@/routes/governance';
+import { audit, exportMethod } from '@/routes/governance';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
@@ -20,9 +22,20 @@ interface Props {
     filters: { outcome: string | null; agent_id: number | null; connector: string | null };
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const { t } = useI18n();
+
+// The export takes the filters as they are applied (the page URL).
+const exportUrl = computed(() =>
+    exportMethod.url({
+        query: {
+            outcome: props.filters.outcome ?? undefined,
+            connector: props.filters.connector ?? undefined,
+            agent_id: props.filters.agent_id ?? undefined,
+        },
+    }),
+);
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.governance.breadcrumb'), href: '/my/workspace/governance' }];
 </script>
@@ -34,9 +47,12 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.governance.breadcru
         <WorkspaceLayout width="wide">
             <div class="w-full space-y-6">
                 <AuditTabs active="tools" />
-                <p class="text-muted-foreground text-sm">
-                    {{ t('workspace.governance.description') }}
-                </p>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-muted-foreground text-sm">
+                        {{ t('workspace.governance.description') }}
+                    </p>
+                    <ExportCsvButton :href="exportUrl" />
+                </div>
 
                 <AuditTable
                     :rows="rows"

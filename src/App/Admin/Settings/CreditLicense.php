@@ -16,7 +16,7 @@ use Support\License\LicenseSignature;
  * {@see LicenseFeature::HideCredit} and be activated for the host of
  * `app.url`. A key as bought names no domain; {@see LicenseActivation} swaps
  * it for one that does. {@see SettingsConfig} keeps the credit on unless this
- * says yes.
+ * says yes, and turns the Enterprise features on only when it allows them.
  */
 final readonly class CreditLicense
 {
@@ -42,6 +42,12 @@ final readonly class CreditLicense
     public function allowsHidingCredit(?string $key): bool
     {
         return $this->status($key) === LicenseStatus::Valid;
+    }
+
+    /** Whether $key is valid on this install and unlocks $feature. */
+    public function allows(?string $key, LicenseFeature $feature): bool
+    {
+        return $this->allowsHidingCredit($key) && $this->read($key)?->allows($feature) === true;
     }
 
     /** The terms of a key signed for Chatvia, whatever domain it names. */

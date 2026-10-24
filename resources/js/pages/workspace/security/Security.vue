@@ -1,10 +1,12 @@
 <script setup lang="ts">
 // Workspace Security settings: network access control (IP allowlist and
 // country rules), data retention and the SIEM webhook, saved together with one
-// button.
+// button. All three need an Enterprise license; blocked visitors do not.
 import type { BlockedVisitor } from '@/api/blocking';
+import EnterpriseNotice from '@/components/license/EnterpriseNotice.vue';
 import BlockedVisitorsCard from '@/components/security/BlockedVisitorsCard.vue';
 import { Button } from '@/components/ui/button';
+import { useEnterprise } from '@/composables/useEnterprise';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
@@ -35,7 +37,12 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
 
+const { enterprise } = useEnterprise();
+
 const canManage = computed(() => hasPermission('account.security'));
+// The network, retention and SIEM settings are Enterprise features: without a
+// key they show their saved values but cannot change.
+const canEdit = computed(() => canManage.value && enterprise.value);
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.security.breadcrumb'), href: '/my/workspace/security' }];
 
@@ -62,12 +69,14 @@ const dropBlock = (blockId: string) => {
                     <p class="text-muted-foreground mt-1 text-sm">{{ t('workspace.security.description') }}</p>
                 </div>
 
+                <EnterpriseNotice v-if="!enterprise" />
+
                 <NetworkAccessCard
                     v-model:ip-allowlist-mode="form.ip_allowlist_mode"
                     v-model:ip-allowlist="form.ip_allowlist"
                     v-model:geo-mode="form.geo_mode"
                     v-model:geo-countries="form.geo_countries"
-                    :can-manage="canManage"
+                    :can-manage="canEdit"
                     :countries="props.countries"
                     :current-country="props.current_country"
                     :errors="form.errors"
@@ -79,7 +88,7 @@ const dropBlock = (blockId: string) => {
                     v-model:audit-days="form.retention_audit_days"
                     v-model:analytics-days="form.retention_analytics_days"
                     v-model:anonymize-days="form.anonymize_after_days"
-                    :can-manage="canManage"
+                    :can-manage="canEdit"
                     :limits="props.limits"
                     :errors="form.errors"
                 />
@@ -88,11 +97,11 @@ const dropBlock = (blockId: string) => {
                     v-model:enabled="form.webhook_enabled"
                     v-model:url="form.webhook_url"
                     v-model:secret="form.webhook_secret"
-                    :can-manage="canManage"
+                    :can-manage="canEdit"
                     :errors="form.errors"
                 />
 
-                <div v-if="canManage" class="flex justify-end">
+                <div v-if="canEdit" class="flex justify-end">
                     <Button :disabled="form.processing" @click="save">
                         <LoaderCircle v-if="form.processing" class="me-2 h-4 w-4 animate-spin" />
                         <Save v-else class="me-2 h-4 w-4" />

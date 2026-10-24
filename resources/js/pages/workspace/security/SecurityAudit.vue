@@ -9,15 +9,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AuditTabs from '@/components/governance/AuditTabs.vue';
+import ExportCsvButton from '@/components/license/ExportCsvButton.vue';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { audit as securityAudit } from '@/routes/security';
+import { exportMethod as exportSecurityAudit } from '@/routes/security/audit';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { ShieldCheck, User } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface Row {
@@ -70,6 +72,17 @@ const applyFilters = () => {
     );
 };
 
+// The export takes the filters as they are applied (the page URL), not the
+// selects before they reload.
+const exportUrl = computed(() =>
+    exportSecurityAudit.url({
+        query: {
+            category: props.filters.category ?? undefined,
+            outcome: props.filters.outcome ?? undefined,
+        },
+    }),
+);
+
 const go = (url: string | null) => {
     if (url) router.get(url, {}, { preserveScroll: true, preserveState: true });
 };
@@ -106,7 +119,7 @@ const prettyMetadata = (row: Row): string => {
                 <p class="text-muted-foreground text-sm">{{ t('workspace.security_audit.description') }}</p>
 
                 <!-- Filters -->
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <Select v-model="category" @update:model-value="applyFilters">
                         <SelectTrigger class="w-52">
                             <SelectValue :placeholder="t('workspace.security_audit.all_categories')" />
@@ -125,6 +138,9 @@ const prettyMetadata = (row: Row): string => {
                             <SelectItem v-for="o in outcomes" :key="o" :value="o" class="capitalize">{{ o }}</SelectItem>
                         </SelectContent>
                     </Select>
+                    <div class="ms-auto">
+                        <ExportCsvButton :href="exportUrl" />
+                    </div>
                 </div>
 
                 <div class="bg-card rounded-lg border">

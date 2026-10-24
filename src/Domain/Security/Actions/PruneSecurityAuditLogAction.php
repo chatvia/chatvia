@@ -8,12 +8,15 @@ use Carbon\CarbonInterface;
 use Domain\Security\Models\SecurityAuditLog;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Database\Eloquent\Builder;
+use Support\License\Entitlements;
 
 /**
  * Deletes security audit rows past their retention window. A workspace that
  * set its own (shorter) audit retention uses it — never below the configured
  * floor (`chatvia.security_audit.retention_floor_days`), a mandated minimum;
- * every other workspace uses the default window.
+ * every other workspace uses the default window. Custom retention is an
+ * Enterprise feature: without an Enterprise key every workspace uses the
+ * default window, and the saved overrides apply again once a key is added.
  *
  * Rows go in batches, so one run never holds a huge delete. A workspace's
  * rows are found through its `(workspace_id, created_at)` index, the rest
@@ -21,16 +24,21 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class PruneSecurityAuditLogAction
 {
+    public function __construct(
+        private readonly Entitlements $entitlements,
+    ) {}
+
     /**
      * @return int how many rows were deleted
      */
     public function execute(int $defaultDays, int $batchSize = 10000): int
     {
         $floor = (int) config('chatvia.security_audit.retention_floor_days', 30);
+        $enterprise = $this->entitlements->enterprise();
 
-        $overrides = WorkspaceSecurityPolicy::query()
-            ->whereNotNull('retention_audit_days')
-            ->pluck('retention_audit_days', 'workspace_id');
+        $overrides = $enterprise
+            ? WorkspaceSecurityPolicy::query()->whereNotNull('retention_audit_days')->pluck('retention_audit_days', 'workspace_id')
+            : collect();
 
         $deleted = 0;
 
@@ -46,9 +54,11 @@ class PruneSecurityAuditLogAction
         // workspaces set an override.
         $deleted += $this->deleteOlder(
             now()->subDays($defaultDays),
-            fn (Builder $query): Builder => $query->whereNotIn('workspace_id', WorkspaceSecurityPolicy::query()
-                ->select('workspace_id')
-                ->whereNotNull('retention_audit_days')),
+            fn (Builder $query): Builder => $enterprise
+                ? $query->whereNotIn('workspace_id', WorkspaceSecurityPolicy::query()
+                    ->select('workspace_id')
+                    ->whereNotNull('retention_audit_days'))
+                : $query,
             $batchSize,
         );
 

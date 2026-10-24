@@ -142,6 +142,22 @@ it('shows the credit when it is on, with or without a key', function (): void {
     expect(config('chatvia.powered_by'))->toBeTrue();
 });
 
+it('unlocks the Enterprise features only with an Enterprise key activated for this domain', function (?string $key, bool $enterprise): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'https://chat.acme.com']);
+
+    $settings = app(BrandSettings::class);
+    $settings->license_key = $key;
+    $settings->save();
+
+    expect(config('chatvia.license.enterprise'))->toBe($enterprise);
+})->with([
+    'Enterprise key for this domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.acme.com'), true],
+    'Branding key for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), false],
+    'Enterprise key for another domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.other.com'), false],
+    'no key' => [null, false],
+]);
+
 it('stores secrets encrypted and other values in plain JSON', function (): void {
     $settings = app(SignInSettings::class);
     $settings->google_client_id = 'visible-id';

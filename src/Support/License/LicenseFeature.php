@@ -12,4 +12,11 @@ enum LicenseFeature: string
 {
     /** Hides the "Powered by …" credit under hosted chats and widgets. */
     case HideCredit = 'hide_credit';
+
+    /**
+     * Unlocks the Enterprise security features: SIEM delivery, the network
+     * allowlist, audit-log export and workspace data retention. A yearly key
+     * that chatvia.ai stops reporting active once its subscription ends.
+     */
+    case Enterprise = 'enterprise';
 }

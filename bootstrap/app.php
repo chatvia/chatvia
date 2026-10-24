@@ -3,6 +3,7 @@
 use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
+use App\Http\Middleware\Access\EnsureEnterpriseLicense;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
@@ -106,6 +107,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,
+            'license.enterprise' => EnsureEnterpriseLicense::class,
         ]);
 
         // `guest` routes: a visitor already signed in on the chat's login page

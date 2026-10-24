@@ -114,16 +114,26 @@ it('shows who the saved key is licensed to', function (): void {
     $settings->save();
 
     adminPage(ManageBrandSettings::class, $this->admin)
-        ->assertSee('Licensed to Acme Ltd')
+        ->assertSee('Branding license, licensed to Acme Ltd')
         ->assertSee('Manage license')
         ->assertDontSee('Buy a license')
         ->assertDontSee(LicenseKeys::activatedFor('chat.acme.com'));
 });
 
+it('says when the saved key is an Enterprise license', function (): void {
+    $settings = mbsSaved();
+    $settings->license_key = LicenseKeys::enterpriseFor('chat.acme.com');
+    $settings->save();
+
+    adminPage(ManageBrandSettings::class, $this->admin)
+        ->assertSee('Enterprise license, licensed to Acme Ltd')
+        ->assertSee('the Enterprise features are on');
+});
+
 it('offers to buy or manage a license while there is none', function (): void {
     adminPage(ManageBrandSettings::class, $this->admin)
         ->assertSee('Hiding the credit needs a license')
-        ->assertSee('A license costs $399, one time, and never expires.')
+        ->assertSee('A Branding license costs $199, one time, and never expires.')
         ->assertSee('Buy a license')
         ->assertSee('Manage license');
 });

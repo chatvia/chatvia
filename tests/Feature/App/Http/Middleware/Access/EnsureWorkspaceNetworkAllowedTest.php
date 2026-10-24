@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Services\IP2Country;
 use Domain\Membership\Team\Services\TeamService;
@@ -16,6 +17,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
  * no bypass for an admin, and new rules applying on the next request.
  */
 beforeEach(function (): void {
+    withEnterpriseLicense();
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
 });
@@ -106,4 +108,17 @@ it('applies a new allowlist on the next request after the policy is saved', func
         ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
         ->get(route('security.edit'))
         ->assertForbidden();
+});
+
+it('does not enforce saved rules without an Enterprise license, and keeps them', function (): void {
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
+    $policy->update(['ip_allowlist_mode' => 'dashboard', 'ip_allowlist' => ['203.0.113.0/24'], 'geo_mode' => 'off']);
+    saveSettings(BrandSettings::class, ['license_key' => null]);
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->get(route('security.edit'))
+        ->assertOk();
+
+    expect($policy->fresh()->ip_allowlist)->toBe(['203.0.113.0/24']);
 });

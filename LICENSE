@@ -24,9 +24,17 @@ subject to the following conditions:
    channels (such as Slack or WhatsApp) or the API, where the Software does
    not draw the interface.
 
-3. If you do not meet condition 2, the permission granted above ends
-   automatically. It comes back if you restore the credit, or get a license
-   key, within 30 days after you learn of the breach.
+3. Enterprise features. The Enterprise features of the Software (sending
+   security events to a SIEM, the network allowlist and country rules,
+   exporting the audit logs, and workspace data-retention settings) may only
+   be used while the install holds an active ChatVia.ai Enterprise license key
+   for its domain (https://chatvia.ai/license). You may not change the
+   Software, by any means, to use them without one.
+
+4. If you do not meet condition 2 or 3, the permission granted above ends
+   automatically. It comes back if you restore the credit, stop using the
+   Enterprise features, or get a license key, within 30 days after you learn
+   of the breach.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

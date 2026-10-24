@@ -11,6 +11,7 @@
 |
 */
 
+use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
@@ -46,6 +47,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ReadsClassAttributes;
+use Illuminate\Support\Uri;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
@@ -54,6 +56,7 @@ use Tests\RefreshTestDatabases;
 use Tests\Support\Files\TempTestFiles;
 use Tests\Support\Identity\SharedId;
 use Tests\Support\Knowledge\Document\OldOffice\WordBinaryFile;
+use Tests\Support\License\LicenseKeys;
 use Tests\Support\Llm\FakeLlmProviders;
 use Tests\TestCase;
 
@@ -385,6 +388,20 @@ function saveSettings(string $class, array $values): void
     app($class)->fill($values)->save();
 
     app()->forgetScopedInstances();
+}
+
+/**
+ * Gives this install an Enterprise license: an Enterprise test key activated
+ * for the host of `app.url`, saved as the admin panel saves it, so the flag
+ * survives every later SettingsConfig apply (before jobs, after saves).
+ */
+function withEnterpriseLicense(): void
+{
+    LicenseKeys::trust();
+
+    saveSettings(BrandSettings::class, [
+        'license_key' => LicenseKeys::enterpriseFor((string) Uri::of((string) config('app.url'))->host()),
+    ]);
 }
 
 /**

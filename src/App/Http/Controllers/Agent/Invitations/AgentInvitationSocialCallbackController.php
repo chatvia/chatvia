@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
+use Support\Http\PublicUrl;
 use Throwable;
 
 /**
@@ -61,7 +62,7 @@ class AgentInvitationSocialCallbackController
             $driver = Socialite::driver($providerEnum->value);
             $socialUser = $driver
                 ->stateless()
-                ->redirectUrl(route('agents.invitation.social.callback', ['provider' => $providerEnum->value]))
+                ->redirectUrl(PublicUrl::route('agents.invitation.social.callback', ['provider' => $providerEnum->value]))
                 ->user();
         } catch (Throwable $e) {
             report($e);

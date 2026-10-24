@@ -7,6 +7,7 @@ use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
+use Support\Http\PublicUrl;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -35,7 +36,7 @@ class AgentInvitationSocialStartController
 
         return $driver
             ->stateless()
-            ->redirectUrl(route('agents.invitation.social.callback', ['provider' => $providerEnum->value]))
+            ->redirectUrl(PublicUrl::route('agents.invitation.social.callback', ['provider' => $providerEnum->value]))
             ->redirect();
     }
 }

@@ -3,8 +3,14 @@
 use App\Admin\InitialsAvatarProvider;
 use Illuminate\Support\Str;
 
+/**
+ * The admin panel draws each person's avatar from their initials, as an SVG
+ * data URL made on the server: no third-party avatar service sees the names,
+ * and markup in a name never reaches the SVG.
+ */
+
 /** The SVG inside the avatar's data URL. */
-function avatarSvg(string $name): string
+function iapSvg(string $name): string
 {
     $url = (new InitialsAvatarProvider)->forName($name);
 
@@ -14,7 +20,7 @@ function avatarSvg(string $name): string
 }
 
 it('draws the first and last initials', function (string $name, string $initials): void {
-    expect(avatarSvg($name))->toContain(">{$initials}</text>");
+    expect(iapSvg($name))->toContain(">{$initials}</text>");
 })->with([
     'two words' => ['Demo Admin', 'DA'],
     'three words' => ['Anna Maria Berg', 'AB'],
@@ -25,7 +31,7 @@ it('draws the first and last initials', function (string $name, string $initials
 ]);
 
 it('keeps markup in a name out of the SVG', function (): void {
-    $svg = avatarSvg('<script>alert(1)</script>');
+    $svg = iapSvg('<script>alert(1)</script>');
 
     expect($svg)->toContain('>S</text>')
         ->and($svg)->not->toContain('<script')

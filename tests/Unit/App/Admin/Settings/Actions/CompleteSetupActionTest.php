@@ -81,7 +81,7 @@ it('adds the model for quick tasks and gives the large tasks the default model',
         ->and(savedSetting(AiSettings::class, 'guardrails_model'))->toBeNull();
 });
 
-it('describes images with the model that reads them, and turns image descriptions off without one', function (): void {
+it('describes images with the model that reads them', function (): void {
     app(CompleteSetupAction::class)->execute(completeSetupData([
         'visionModel' => new RemoteModelData(id: 'mistral-small-3.2-24b-instruct-2506', name: 'Mistral Small', features: ['vision' => true]),
     ]));
@@ -89,11 +89,13 @@ it('describes images with the model that reads them, and turns image description
     expect(savedSetting(AiSettings::class, 'images_model'))->toBe((string) Llm::query()->where('name', 'mistral-small-3.2-24b-instruct-2506')->value('id'))
         // On is the default, so it stays unsaved.
         ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeNull();
+});
 
-    saveSettings(PlatformSettings::class, ['setup_status' => null]);
+it('turns image descriptions off without a model that reads images', function (): void {
     app(CompleteSetupAction::class)->execute(completeSetupData());
 
-    expect(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
+    expect(savedSetting(AiSettings::class, 'images_model'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'describe_images'))->toBeFalse();
 });
 
 it('leaves the task models unset without a model for quick tasks', function (): void {

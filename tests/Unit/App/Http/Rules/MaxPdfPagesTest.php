@@ -4,6 +4,7 @@ use App\Http\Rules\MaxPdfPages;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Validator;
+use Tests\Support\Files\FakePdf;
 
 /**
  * MaxPdfPages caps the pages of a chat-attachment PDF, as pdfinfo counts
@@ -15,16 +16,10 @@ function mppValidator(mixed $file): Illuminate\Validation\Validator
     return Validator::make(['file' => $file], ['file' => [new MaxPdfPages(max: 10)]]);
 }
 
-/** A small file whose header makes it read as a PDF. */
-function mppPdf(): UploadedFile
-{
-    return UploadedFile::fake()->createWithContent('doc.pdf', "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF");
-}
-
 it('fails when the PDF has more pages than the limit', function (): void {
     Process::fake(['*' => Process::result("Pages:          11\n")]);
 
-    $validator = mppValidator(mppPdf());
+    $validator = mppValidator(FakePdf::upload());
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->first('file'))->toBe('This PDF has 11 pages — the limit is 10.');
@@ -33,13 +28,13 @@ it('fails when the PDF has more pages than the limit', function (): void {
 it('passes when the PDF is within the page limit', function (): void {
     Process::fake(['*' => Process::result("Pages:          10\n")]);
 
-    expect(mppValidator(mppPdf())->passes())->toBeTrue();
+    expect(mppValidator(FakePdf::upload())->passes())->toBeTrue();
 });
 
 it('fails with a generic reason when pdfinfo cannot read the PDF', function (): void {
     Process::fake(['*' => Process::result(output: '', errorOutput: "Syntax Error: Couldn't read xref table", exitCode: 1)]);
 
-    $validator = mppValidator(mppPdf());
+    $validator = mppValidator(FakePdf::upload());
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->first('file'))->toBe('We couldn\'t read this PDF. Please try a different file.');
@@ -48,7 +43,7 @@ it('fails with a generic reason when pdfinfo cannot read the PDF', function (): 
 it('leaves a locked PDF to UnlockedPdf', function (): void {
     Process::fake(['*' => Process::result(output: '', errorOutput: 'Command Line Error: Incorrect password', exitCode: 1)]);
 
-    expect(mppValidator(mppPdf())->passes())->toBeTrue();
+    expect(mppValidator(FakePdf::upload())->passes())->toBeTrue();
 });
 
 it('skips values that are not PDFs without running pdfinfo', function (string|UploadedFile $value): void {

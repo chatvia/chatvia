@@ -3,6 +3,11 @@
 use App\Admin\Settings\LlmTaskText;
 use Domain\Llm\Enums\LlmTask;
 
+/**
+ * The names, explanations and groups of the app tasks on the Models for app
+ * tasks card: every task has its text and one group, and the quick-task
+ * groups hold only the small jobs the model for quick tasks does.
+ */
 it('names and explains every app task, and lists each in one group', function (): void {
     foreach (LlmTask::appTasks() as $task) {
         expect(LlmTaskText::label($task))->not->toBeEmpty()

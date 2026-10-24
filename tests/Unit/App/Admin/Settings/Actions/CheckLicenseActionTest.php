@@ -11,7 +11,7 @@ use Tests\Support\License\LicenseKeys;
  * CheckLicenseAction, the daily license check: a key chatvia.ai still has
  * active for this domain stays, an outage at chatvia.ai changes nothing, and
  * without a key nothing is asked. Removing a deactivated key is in
- * tests/Feature/Admin/CheckLicenseCommandTest.php.
+ * tests/Feature/App/Console/Commands/License/CheckLicenseTest.php.
  */
 beforeEach(function (): void {
     LicenseKeys::trust();

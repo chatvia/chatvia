@@ -13,21 +13,16 @@ function wsGib(float $gib): int
     return (int) ($gib * 1024 ** 3);
 }
 
-it('keeps the defaults of the 4 GB reference server', function (): void {
-    $workers = new WorkerSizing()->recommend(new ServerResources(wsGib(4), null, 2));
+it('keeps the defaults on the 4 GB reference server and never goes below them', function (int $gib, int $cpus): void {
+    $workers = new WorkerSizing()->recommend(new ServerResources(wsGib($gib), null, $cpus));
 
     expect($workers->bySupervisor())->toBe([
         'chat' => 6, 'ingestion' => 4, 'analytics' => 2, 'media' => 1, 'voice' => 3,
     ]);
-});
-
-it('never goes below the defaults on a tiny server', function (): void {
-    $workers = new WorkerSizing()->recommend(new ServerResources(wsGib(1), null, 1));
-
-    expect($workers->bySupervisor())->toBe([
-        'chat' => 6, 'ingestion' => 4, 'analytics' => 2, 'media' => 1, 'voice' => 3,
-    ]);
-});
+})->with([
+    'the reference server' => [4, 2],
+    'a tiny server' => [1, 1],
+]);
 
 it('scales up with the memory of the machine', function (): void {
     $workers = new WorkerSizing()->recommend(new ServerResources(wsGib(16), null, 8));

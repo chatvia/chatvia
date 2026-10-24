@@ -3,47 +3,18 @@
 use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
 use Illuminate\Process\PendingProcess;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
+use Tests\Support\Files\ProgramFolder;
 
 /**
- * ServerProgramFinder tells the Programs card whether this server finds a
- * program (file checks only: a file that cannot be run is no program), and
- * detects a program's full path with `which`, also in the folders the PATH
- * of the web server may miss.
+ * ServerProgramFinder detects a program's full path with `which` for the
+ * Programs card, also in the folders the PATH of the web server may miss,
+ * and keeps only a path the field would take. Whether a path leads to a
+ * program is Executable's file check (ExecutableTest).
  */
 beforeEach(function (): void {
-    $this->folder = sys_get_temp_dir().'/chatvia-finder-'.uniqid();
-    File::ensureDirectoryExists($this->folder);
-
-    file_put_contents("{$this->folder}/pdfinfo", "#!/bin/sh\nexit 0\n");
-    chmod("{$this->folder}/pdfinfo", 0755);
-    file_put_contents("{$this->folder}/pandoc", 'not a program');
-    chmod("{$this->folder}/pandoc", 0644);
-
-    $this->path = getenv('PATH');
-});
-
-afterEach(function (): void {
-    putenv("PATH={$this->path}");
-    File::deleteDirectory($this->folder);
-});
-
-it('finds a full path only when it leads to a program', function (): void {
-    $finder = new ServerProgramFinder;
-
-    expect($finder->find("{$this->folder}/pdfinfo"))->toBe("{$this->folder}/pdfinfo")
-        ->and($finder->find("{$this->folder}/pandoc"))->toBeNull()
-        ->and($finder->find("{$this->folder}/ffmpeg"))->toBeNull();
-});
-
-it('finds a program name on the PATH', function (): void {
-    putenv("PATH=/nowhere:{$this->folder}");
-    $finder = new ServerProgramFinder;
-
-    expect($finder->find('pdfinfo'))->toBe("{$this->folder}/pdfinfo")
-        ->and($finder->find('pandoc'))->toBeNull();
+    $this->folder = ProgramFolder::make(['pdfinfo'], notRunnable: ['pandoc']);
 });
 
 it('detects a program with which, also in the usual folders', function (): void {

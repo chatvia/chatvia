@@ -18,7 +18,7 @@ use Tests\Support\Integration\Tool\ToolVectors;
 /**
  * Tool routing compares the question with the tools' vectors, so a new
  * embedding provider or model (Settings → AI models) embeds every tool again
- * (started with the knowledge re-index, see EmbeddingReindexTest). The
+ * (started with the knowledge re-index, see ReindexEmbeddingsActionTest). The
  * keyword (BM25) columns do not depend on the model, so they stay.
  */
 it('clears the dense vectors, keeps the keyword vectors and queues an embed job for every tool', function (): void {

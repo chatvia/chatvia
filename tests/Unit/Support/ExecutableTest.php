@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\File;
 use Support\Executable;
+use Tests\Support\Files\ProgramFolder;
 
 /**
  * Executable finds the program a configured path leads to, by file checks
@@ -9,20 +9,12 @@ use Support\Executable;
  * on the PATH.
  */
 beforeEach(function (): void {
-    $this->folder = sys_get_temp_dir().'/chatvia-executable-'.uniqid();
-    File::ensureDirectoryExists($this->folder);
-
-    file_put_contents("{$this->folder}/pdfinfo", "#!/bin/sh\nexit 0\n");
-    chmod("{$this->folder}/pdfinfo", 0755);
-    file_put_contents("{$this->folder}/pandoc", 'not a program');
-    chmod("{$this->folder}/pandoc", 0644);
-
+    $this->folder = ProgramFolder::make(['pdfinfo'], notRunnable: ['pandoc']);
     $this->path = getenv('PATH');
 });
 
 afterEach(function (): void {
     putenv("PATH={$this->path}");
-    File::deleteDirectory($this->folder);
 });
 
 it('finds a full path only when it leads to a program', function (): void {

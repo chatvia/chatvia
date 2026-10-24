@@ -5,7 +5,7 @@ use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Tests\Support\Http\BufferedSseResponder;
 
 /**
  * The App-layer SSE transport: the domain yields StreamEvents, this turns them
@@ -18,7 +18,8 @@ use Illuminate\Support\Str;
  * Run the loop respond() hands a generator to and return what it wrote.
  * respond() first closes every output buffer (the test runner's too) so the
  * stream reaches the browser at once, which a test cannot capture, so the
- * loop is run on its own here.
+ * loop is run on its own here, through the private method (respond()
+ * offers no way in that leaves the buffers alone).
  */
 function sseOutput(Generator $events): string
 {
@@ -33,21 +34,6 @@ function sseOutput(Generator $events): string
     }
 
     return $output;
-}
-
-/**
- * The decoded envelopes of an SSE body.
- *
- * @return list<array<string, mixed>>
- */
-function sseEnvelopes(string $output): array
-{
-    return Str::of($output)
-        ->explode("\n\n")
-        ->filter(static fn (string $line): bool => Str::startsWith($line, 'data: '))
-        ->map(static fn (string $line): array => json_decode(Str::after($line, 'data: '), true, flags: JSON_THROW_ON_ERROR))
-        ->values()
-        ->all();
 }
 
 beforeEach(function (): void {
@@ -74,7 +60,7 @@ it('numbers the events from zero in the order they come', function (): void {
         yield StreamEvent::done('msg-1', 'stop');
     })());
 
-    $envelopes = sseEnvelopes($output);
+    $envelopes = BufferedSseResponder::events($output);
 
     expect(array_column($envelopes, 'seq'))->toBe([0, 1, 2])
         ->and(array_column($envelopes, 'type'))->toBe(['delta', 'delta', 'done'])
@@ -88,7 +74,7 @@ it('skips and logs an event it cannot encode, then carries on', function (): voi
         yield StreamEvent::delta('msg-1', 'after');
     })());
 
-    $envelopes = sseEnvelopes($output);
+    $envelopes = BufferedSseResponder::events($output);
 
     expect(array_column($envelopes, 'seq'))->toBe([0, 2])
         ->and(array_column(array_column($envelopes, 'data'), 'text'))->toBe(['before', 'after']);
@@ -106,7 +92,7 @@ it('logs and reports a crash of the event generator and stops', function (): voi
         throw new RuntimeException('provider exploded');
     })());
 
-    expect(array_column(sseEnvelopes($output), 'seq'))->toBe([0]);
+    expect(array_column(BufferedSseResponder::events($output), 'seq'))->toBe([0]);
 
     Log::shouldHaveReceived('error')->once()->with('SSE stream generator crashed', [
         'exception' => RuntimeException::class,
@@ -122,7 +108,7 @@ it('treats a disconnect the generator handled itself as a normal end', function 
         throw new ClientDisconnected;
     })());
 
-    expect(array_column(sseEnvelopes($output), 'seq'))->toBe([0]);
+    expect(array_column(BufferedSseResponder::events($output), 'seq'))->toBe([0]);
 
     Log::shouldNotHaveReceived('error');
     Exceptions::assertNothingReported();

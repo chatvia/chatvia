@@ -3,7 +3,13 @@
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Http\Request;
 
-function requestWithCountryHeader(?string $cfCountry, string $remoteAddr = '172.70.1.1'): Request
+/**
+ * `$request->country()`, the visitor's country: Cloudflare's CF-IPCountry
+ * header when the peer is Cloudflare or a trusted proxy, otherwise the
+ * geolocated IP of the real visitor (CF-Connecting-IP), never of the edge.
+ * Cloudflare's "no country" values fall back to the geolocation.
+ */
+function rmRequest(?string $cfCountry, string $remoteAddr = '172.70.1.1'): Request
 {
     // The default REMOTE_ADDR is a Cloudflare edge IP (172.64.0.0/13), so the
     // CF-* headers count as genuine.
@@ -17,7 +23,7 @@ function requestWithCountryHeader(?string $cfCountry, string $remoteAddr = '172.
 }
 
 it('returns the lowercased Cloudflare visitor country', function (): void {
-    expect(requestWithCountryHeader('IQ')->country())->toBe('iq');
+    expect(rmRequest('IQ')->country())->toBe('iq');
 });
 
 it('ignores Cloudflare non-country sentinels and falls back to geolocation', function (string $sentinel): void {
@@ -25,13 +31,13 @@ it('ignores Cloudflare non-country sentinels and falls back to geolocation', fun
     $guard->shouldReceive('countryFor')->once()->with('172.70.1.1')->andReturnNull();
     app()->instance(NetworkAccessGuard::class, $guard);
 
-    expect(requestWithCountryHeader($sentinel)->country())->toBeNull();
+    expect(rmRequest($sentinel)->country())->toBeNull();
 })->with(['XX', 'T1']);
 
 it('returns null when there is no country header and the IP is unresolvable', function (): void {
     // A direct connection from a private IP: no CF headers to trust, and the
     // geo-IP fallback resolves a private IP to null without any lookup.
-    expect(requestWithCountryHeader(null, '127.0.0.1')->country())->toBeNull();
+    expect(rmRequest(null, '127.0.0.1')->country())->toBeNull();
 });
 
 it('geolocates the real visitor from CF-Connecting-IP, never the Cloudflare edge', function (): void {

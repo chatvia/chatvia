@@ -7,15 +7,21 @@ use Illuminate\Support\Facades\Cache;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
+/**
+ * Each start of `schedule:run` is noted as the scheduler's heartbeat, and
+ * no other command is. The scheduler runs on when the cache is down.
+ */
 function rshStarting(string $command): CommandStarting
 {
     return new CommandStarting($command, new ArrayInput([]), new NullOutput);
 }
 
 it('notes each start of schedule:run', function (): void {
+    $this->freezeTime();
+
     event(rshStarting('schedule:run'));
 
-    expect(SchedulerHeartbeat::lastRunAt())->not->toBeNull();
+    expect(SchedulerHeartbeat::lastRunAt()?->getTimestamp())->toBe(now()->getTimestamp());
 });
 
 it('ignores every other command', function (): void {

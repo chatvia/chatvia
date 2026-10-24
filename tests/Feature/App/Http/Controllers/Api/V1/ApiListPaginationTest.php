@@ -119,23 +119,15 @@ it('answers a short list whole and clamps a per_page below one up to one item', 
 it('starts again at the first page for a cursor it did not hand out', function (string $list): void {
     [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);
 
-    // The column the list's own cursor carries, e.g. `agents.id`.
+    // The column the list's own cursor carries, e.g. `agents.id`, with a
+    // value of the wrong kind: the query would fail on it. The other shapes
+    // of a foreign cursor are in CursorPageTest.
     $handedOut = Cursor::fromEncoded($this->withToken($this->token)->getJson($uri.'?per_page=1')->json('next_cursor'));
-    $column = array_key_first($handedOut->toArray());
+    $foreign = new Cursor([array_key_first($handedOut->toArray()) => 'abc'])->encode();
 
-    $foreign = [
-        'not-a-cursor',
-        new Cursor(['other' => 1])->encode(),
-        new Cursor([$column => 'abc'])->encode(),
-        new Cursor([$column => 1, 'other' => 1])->encode(),
-        new Cursor([$column => $handedOut->parameter($column)], pointsToNextItems: false)->encode(),
-    ];
+    $page = $this->withToken($this->token)->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $foreign])->value())->assertOk();
 
-    foreach ($foreign as $cursor) {
-        $page = $this->withToken($this->token)->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $cursor])->value())->assertOk();
-
-        expect(array_column($page->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2));
-    }
+    expect(array_column($page->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2));
 })->with('paged lists');
 
 it('defaults to 25 items and caps per_page at 100', function (): void {

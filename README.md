@@ -738,6 +738,14 @@ removes everything.
 - Found a security problem? Please report it privately; see
   [SECURITY.md](SECURITY.md).
 - Changes are listed in [CHANGELOG.md](CHANGELOG.md).
-- ChatVia.ai is free and source-available under the [ChatVia.ai License](LICENSE).
-  You may use, change and run it. The "Powered by ChatVia.ai" credit must stay
-  under every chat unless the install has a [license key](https://chatvia.ai/license).
+- ChatVia.ai is free and source-available under the [ChatVia.ai License](LICENSE),
+  for individuals and companies. You may use, change and run it. Three
+  [license keys](https://chatvia.ai/license) add more:
+  - **Branding** ($199, one time): hides the "Powered by ChatVia.ai" credit.
+    Without a key, the credit must stay under every chat.
+  - **Enterprise** ($1,490 a year): also turns on the Enterprise features
+    (SIEM delivery, the network allowlist and country rules, audit-log export
+    and data retention), with priority email support.
+  - **SaaS** ($9,999 a year): Enterprise, plus the right to sell ChatVia.ai to
+    other people and companies as a hosted service. Running it for your own
+    company does not need one.

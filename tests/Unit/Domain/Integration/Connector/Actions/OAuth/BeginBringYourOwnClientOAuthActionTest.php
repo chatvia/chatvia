@@ -1,21 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginBringYourOwnClientOAuthAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Uri;
+use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 
 /**
  * A workspace-registered OAuth client drives PKCE straight off the supplied
  * client id + endpoints — no discovery, no dynamic registration.
  */
-beforeEach(function (): void {
-    config(['cache.default' => 'array']);
-});
-
 it('builds a PKCE authorize URL from the supplied client + endpoints', function (): void {
     $connector = ConnectorData::fromArray(config('connectors.salesforce'));
     $user = User::factory()->create();
@@ -40,8 +37,7 @@ it('builds a PKCE authorize URL from the supplied client + endpoints', function 
         ->and($url)->toContain('scope=mcp_api%20refresh_token')
         ->and($url)->toContain('redirect_uri=');
 
-    $query = Uri::of($url)->query()->all();
-    $pending = PendingOAuthState::unseal(Cache::get('oauth:mcp:state:'.$query['state']));
+    $pending = PendingConnectorOAuth::fromAuthorizeUrl($url);
 
     // The client travels with the flow so the callback can store it on the row.
     expect($pending?->clientId)->toBe('CONSUMER_KEY_123')

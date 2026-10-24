@@ -3,6 +3,8 @@
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Actions\Catalog\SyncBuiltinConnectorsAction;
+use Domain\Integration\Mcp\Data\Catalog\SyncBuiltinConnectorsData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
@@ -10,15 +12,17 @@ use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * The registry compiles an agent's whole tool pool: the own `mcp_tools` rows
  * of its attached custom servers, the shared catalog tools its attached
  * preset servers reach through their memberships, and its attached webhook
  * functions. The pool is cached per agent, and the tool access policy relies
- * on the compile step to keep blocked tools away from the model.
+ * on the compile step to keep blocked tools away from the model. Pivot writes
+ * fire no Eloquent events, so attaching or detaching a connector or function
+ * drops the cached pool itself: the next turn sees the change at once.
  */
 
 /** @return list<string> */
@@ -98,6 +102,12 @@ it('keeps a disabled function out of the pool', function (): void {
     expect(toolRegistryPoolOf($agent))->toBe(['lookup_order']);
 });
 
+it('offers no built-in server an agent has not attached, though the global catalog holds them', function (): void {
+    app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true));
+
+    expect(toolRegistryPoolOf(Agent::factory()->create()))->toBe([]);
+});
+
 it('keeps servers and functions that are not attached to the agent out of the pool', function (): void {
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
@@ -136,7 +146,7 @@ it('serves the second call from the cache without querying the tool tables', fun
     $second = $registry->for($agent);
     $toolQueries = collect(DB::getQueryLog())
         ->pluck('query')
-        ->filter(fn (string $sql): bool => preg_match('/\b(mcp_tools|connector_tools|functions)\b/', $sql) === 1);
+        ->filter(fn (string $sql): bool => Str::isMatch('/\b(mcp_tools|connector_tools|functions)\b/', $sql));
     DB::disableQueryLog();
 
     expect($first)->toHaveCount(3)
@@ -159,10 +169,40 @@ it('compiles the pool again once the agent is forgotten', function (): void {
     expect(toolRegistryPoolOf($agent))->toBe([]);
 });
 
-it('forget busts the per-agent cache', function (): void {
-    Cache::put('agent:tools:v2:42', ['x'], 60);
+it('reflects a connector attach and detach at once, despite the cached pool', function (): void {
+    $agent = Agent::factory()->create();
+    $server = AgentMcpServer::factory()->forOwner($agent->workspace->owner)->create(['slug' => 'crm']);
+    McpTool::factory()->for($server, 'mcpServer')->allowed()->create(['name' => 'list_deals']);
+    expect(toolRegistryPoolOf($agent))->toBe([]);
 
-    app(ToolRegistry::class)->forget(42);
+    $agent->attachConnector($server);
+    expect(toolRegistryPoolOf($agent))->toBe(['mcp__crm__list_deals']);
 
-    expect(Cache::get('agent:tools:v2:42'))->toBeNull();
+    $agent->detachConnector($server);
+    expect(toolRegistryPoolOf($agent))->toBe([]);
+});
+
+it('reflects a function attach and detach at once, despite the cached pool', function (): void {
+    $agent = Agent::factory()->create();
+    $function = AgentFunction::factory()->forOwner($agent->workspace->owner)->create(['internal_name' => 'lookup_order']);
+    expect(toolRegistryPoolOf($agent))->toBe([]);
+
+    $agent->attachFunction($function);
+    expect(toolRegistryPoolOf($agent))->toBe(['lookup_order']);
+
+    $agent->detachFunction($function);
+    expect(toolRegistryPoolOf($agent))->toBe([]);
+});
+
+it('drops the cached pool when an attached connector is deleted', function (): void {
+    $agent = Agent::factory()->create();
+    $server = AgentMcpServer::factory()->attachedTo($agent)->create(['slug' => 'crm']);
+    McpTool::factory()->for($server, 'mcpServer')->allowed()->create(['name' => 'list_deals']);
+    expect(toolRegistryPoolOf($agent))->toBe(['mcp__crm__list_deals']);
+
+    // The pivot rows go with the server (cascade), so the observer must read
+    // the attached agents before the delete.
+    $server->delete();
+
+    expect(toolRegistryPoolOf($agent))->toBe([]);
 });

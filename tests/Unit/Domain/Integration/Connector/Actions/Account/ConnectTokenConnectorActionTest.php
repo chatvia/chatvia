@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\Account\ConnectTokenConnectorAction;
 use Domain\Integration\Connector\Data\Account\ConnectTokenConnectorData;
@@ -59,20 +61,6 @@ it('connects a no-auth capability without credentials', function (): void {
         ->and($result->server->auth_value)->toBeNull();
 });
 
-it('removes a first connect whose catalog sync fails, with a message the user can act on', function (): void {
-    $owner = User::factory()->create();
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')
-        ->andThrow(new McpException('MCP server returned HTTP 401: nope', 401));
-
-    expect(fn () => app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData(
-        user: $owner,
-        connector: ctcConnector('weather'),
-        token: 'bad-token',
-    )))->toThrow(McpException::class, 'The server rejected the token (401 Unauthorized).');
-
-    expect($owner->workspace()->mcpServers()->count())->toBe(0);
-});
-
 it('restores the previous token when a token swap fails', function (): void {
     $owner = User::factory()->create();
     $sync = $this->mock(SyncMcpServerCatalogAction::class);
@@ -89,16 +77,19 @@ it('restores the previous token when a token swap fails', function (): void {
     expect($server->auth_value)->toBe('good-token');
 });
 
-it('explains a failed first connect in words the user can act on', function (string $raw, string $shown): void {
+it('removes a failed first connect and explains it in words the user can act on', function (McpException $failure, string $shown): void {
     $owner = User::factory()->create();
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow(new McpException($raw));
+    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow($failure);
 
     expect(fn () => app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, ctcConnector('weather'), 'tok')))
         ->toThrow(McpException::class, $shown);
+
+    expect($owner->workspace()->mcpServers()->count())->toBe(0);
 })->with([
-    'forbidden' => ['MCP server returned HTTP 403: forbidden', 'The token is valid but does not have permission to call this MCP server (403).'],
-    'not found' => ['MCP server returned HTTP 404: not found', 'The connector endpoint returned 404. The service may have moved — please report this.'],
-    'anything else' => ['tools/list returned malformed JSON', 'tools/list returned malformed JSON'],
+    'unauthorized' => [new McpException('MCP server returned HTTP 401: nope', 401), 'The server rejected the token (401 Unauthorized).'],
+    'forbidden' => [new McpException('MCP server returned HTTP 403: forbidden'), 'The token is valid but does not have permission to call this MCP server (403).'],
+    'not found' => [new McpException('MCP server returned HTTP 404: not found'), 'The connector endpoint returned 404. The service may have moved — please report this.'],
+    'anything else' => [new McpException('tools/list returned malformed JSON'), 'tools/list returned malformed JSON'],
 ]);
 
 it('connects to the workspace\'s own URL when one is given, else the connector\'s', function (): void {

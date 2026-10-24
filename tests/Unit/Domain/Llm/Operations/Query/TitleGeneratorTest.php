@@ -1,12 +1,12 @@
 <?php
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+declare(strict_types=1);
+
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
-use GuzzleHttp\Psr7\Response as Psr7Response;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Str;
+use Tests\Support\Llm\CannedLlmProvider;
 
 /**
  * Conversation titles: the model's reply is cleaned to one short line, and the
@@ -24,18 +24,12 @@ it('cleans the reply to a short title', function (): void {
 
 it('gives the model room to reason before it writes the title', function (): void {
     testLlm();
-    $sent = null;
-
-    $provider = Mockery::mock(LlmProviderInterface::class);
-    $provider->shouldReceive('completion')->once()->andReturnUsing(function (array $data) use (&$sent): Response {
-        $sent = $data;
-
-        return new Response(new Psr7Response(200, [], json_encode(['choices' => [['message' => ['content' => "Sunday Opening Hours\n\n"]]]])));
-    });
+    $provider = CannedLlmProvider::answering("Sunday Opening Hours\n\n");
 
     $title = new TitleGenerator(app(LlmChat::class)->using($provider), app(TaskModels::class))
         ->generate("When are you open on Sunday?\nFrom nine to five.");
 
     expect($title)->toBe('Sunday Opening Hours')
-        ->and($sent['max_tokens'] ?? $sent['max_completion_tokens'] ?? 0)->toBeGreaterThanOrEqual(300);
+        ->and($provider->completions)->toHaveCount(1)
+        ->and($provider->completions[0]['max_tokens'] ?? $provider->completions[0]['max_completion_tokens'] ?? 0)->toBeGreaterThanOrEqual(300);
 });

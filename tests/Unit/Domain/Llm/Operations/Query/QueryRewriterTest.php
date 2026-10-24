@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Http\Client\Request;
@@ -18,13 +20,8 @@ beforeEach(function (): void {
     config(['chatvia.ai.query.rewriter.enabled' => true]);
 });
 
-function fakeRewriterReply(?string $content): void
-{
-    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => $content]]]])]);
-}
-
 /** A short chat before the message. */
-function rewriterHistory(): array
+function qrwHistory(): array
 {
     return [
         ['role' => 'user', 'content' => 'How long does express delivery take?'],
@@ -33,46 +30,46 @@ function rewriterHistory(): array
 }
 
 it('splits a well-formed reply into language and query', function (): void {
-    fakeRewriterReply('fr|quels sont les horaires ?');
+    fakeLlmCompletion('fr|quels sont les horaires ?');
 
-    expect(app(QueryRewriter::class)->rewrite('horaires ?', rewriterHistory()))
+    expect(app(QueryRewriter::class)->rewrite('horaires ?', qrwHistory()))
         ->toEqual(new RewrittenQueryData(language: 'fr', query: 'quels sont les horaires ?'));
 });
 
 it('keeps pipes that are part of the rewritten query', function (): void {
-    fakeRewriterReply('en|compare plan A | plan B');
+    fakeLlmCompletion('en|compare plan A | plan B');
 
-    expect(app(QueryRewriter::class)->rewrite('A vs B', rewriterHistory()))
+    expect(app(QueryRewriter::class)->rewrite('A vs B', qrwHistory()))
         ->toEqual(new RewrittenQueryData(language: 'en', query: 'compare plan A | plan B'));
 });
 
 it('uses the reply as the query when it has no language prefix', function (): void {
-    fakeRewriterReply('what are the opening hours?');
+    fakeLlmCompletion('what are the opening hours?');
 
-    expect(app(QueryRewriter::class)->rewrite('hours?', rewriterHistory()))
+    expect(app(QueryRewriter::class)->rewrite('hours?', qrwHistory()))
         ->toEqual(new RewrittenQueryData(language: null, query: 'what are the opening hours?'));
 });
 
 it('falls back to the original query on an empty reply', function (?string $reply): void {
-    fakeRewriterReply($reply);
+    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => $reply]]]])]);
 
-    expect(app(QueryRewriter::class)->rewrite('hours?', rewriterHistory())->query)->toBe('hours?');
+    expect(app(QueryRewriter::class)->rewrite('hours?', qrwHistory())->query)->toBe('hours?');
 })->with(['empty' => [''], 'null' => [null], 'only a language' => ['en|']]);
 
 it('reports a failed call and keeps the original query', function (): void {
     Exceptions::fake();
     Http::fake(['*' => Http::response('upstream error', 500)]);
 
-    expect(app(QueryRewriter::class)->rewrite('hours?', rewriterHistory()))
+    expect(app(QueryRewriter::class)->rewrite('hours?', qrwHistory()))
         ->toEqual(RewrittenQueryData::unchanged('hours?'));
 
     Exceptions::assertReported(RequestException::class);
 });
 
 it('sends the last turns of the chat and the message', function (): void {
-    fakeRewriterReply('en|How much does express delivery cost?');
+    fakeLlmCompletion('en|How much does express delivery cost?');
 
-    expect(app(QueryRewriter::class)->rewrite('and how much is it?', rewriterHistory())->query)->toBe('How much does express delivery cost?');
+    expect(app(QueryRewriter::class)->rewrite('and how much is it?', qrwHistory())->query)->toBe('How much does express delivery cost?');
 
     Http::assertSent(fn (Request $request): bool => Str::contains((string) json_encode($request->data()), 'Visitor: How long does express delivery take?\\nAgent: One to two working days.')
         && Str::contains((string) json_encode($request->data()), 'Last message: and how much is it?'));
@@ -85,7 +82,7 @@ it('makes no call for a message with no chat before it, or when switched off', f
 
     config(['chatvia.ai.query.rewriter.enabled' => false]);
 
-    expect(app(QueryRewriter::class)->rewrite('hours?', rewriterHistory()))->toEqual(RewrittenQueryData::unchanged('hours?'));
+    expect(app(QueryRewriter::class)->rewrite('hours?', qrwHistory()))->toEqual(RewrittenQueryData::unchanged('hours?'));
 
     Http::assertNothingSent();
 });

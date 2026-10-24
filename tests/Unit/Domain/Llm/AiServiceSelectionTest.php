@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
@@ -14,26 +16,15 @@ use Domain\Knowledge\Embedding\Rerank\CompatibleReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Embedding\Voyage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
-use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
-use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Contracts\Transcriber;
-use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Exceptions\LlmProviderUnavailableException;
-use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
-use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Services\DocumentLlm;
-use Domain\Llm\Services\LlmProviders;
-use Domain\Llm\Services\ProviderAdapters;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Each AI step is bound from config('chatvia.ai.*') in DomainServiceProvider.
@@ -45,7 +36,6 @@ beforeEach(function (): void {
     // TestCase pins offline fakes; these tests check the real bindings.
     app()->forgetInstance(EmbeddingsProviderInterface::class);
     app()->forgetInstance(Reranker::class);
-    app()->forgetInstance(TextSplitter::class);
 
     config([
         'services.mistral.api_key' => null,
@@ -96,11 +86,6 @@ it('reads documents with Azure but turns whole-PDF reading off when only Azure i
         ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
 });
 
-it('always splits text with the built-in splitter, which needs no outside service', function (): void {
-    expect(app(TextSplitter::class))->toBeInstanceOf(BuiltinTextSplitter::class)
-        ->and(app(TextSplitter::class)->name())->toBe('builtin');
-});
-
 it('lets an explicit driver override auto', function (): void {
     config([
         'services.mistral.api_key' => 'mistral-key',
@@ -147,19 +132,15 @@ it('uses the chosen reranker and model', function (string $driver, array $config
     'a self-hosted server' => ['custom', ['chatvia.ai.rerank.custom.url' => 'http://reranker:8000/v1', 'chatvia.ai.rerank.custom.model' => 'Qwen/Qwen3-Reranker-4B'], 'Qwen/Qwen3-Reranker-4B'],
 ]);
 
-it('transcribes with OpenAI Whisper when chosen, or when only an OpenAI key is set', function (): void {
-    config(['services.openai.api_key' => 'openai-key']);
+it('transcribes with the service whose key is set, unless one is chosen', function (array $config, string $transcriber): void {
+    config($config);
 
-    expect(app(Transcriber::class))->toBeInstanceOf(OpenAiTranscriber::class);
-
-    config(['services.scalewayai.api_key' => 'scaleway-key']);
-
-    expect(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class);
-
-    config(['chatvia.ai.transcriber' => 'openai']);
-
-    expect(app(Transcriber::class))->toBeInstanceOf(OpenAiTranscriber::class);
-});
+    expect(app(Transcriber::class))->toBeInstanceOf($transcriber);
+})->with([
+    'only an OpenAI key' => [['services.openai.api_key' => 'openai-key'], OpenAiTranscriber::class],
+    'OpenAI and Scaleway keys' => [['services.openai.api_key' => 'openai-key', 'services.scalewayai.api_key' => 'scaleway-key'], ScalewayTranscriber::class],
+    'OpenAI chosen' => [['services.openai.api_key' => 'openai-key', 'services.scalewayai.api_key' => 'scaleway-key', 'chatvia.ai.transcriber' => 'openai'], OpenAiTranscriber::class],
+]);
 
 it('fails fast on an unknown driver name', function (string $key, string $contract): void {
     config(["chatvia.ai.{$key}" => 'llamaparse']);
@@ -176,37 +157,6 @@ it('refuses a document LLM provider that cannot read PDF documents', function ()
     config(['chatvia.ai.document_llm' => 'scaleway']);
 
     expect(fn (): DocumentLlm => app(DocumentLlm::class))->toThrow(InvalidArgumentException::class, 'Use auto, mistral, none');
-});
-
-it('refuses a provider that is off, or one without its key', function (LlmProvider $provider): void {
-    expect(fn (): LlmProviderInterface => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
-})->with([
-    'turned off' => fn (): LlmProvider => LlmProvider::factory()->disabled()->make(),
-    'no key' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->make(),
-]);
-
-it('lets only a server of your own keep a key and an address on its row', function (): void {
-    // In a savepoint, so the refused insert leaves the test's transaction usable.
-    expect(fn (): LlmProvider => DB::transaction(fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->create(['api_key' => 'scw-key'])))
-        ->toThrow(QueryException::class, 'llm_providers_key_on_custom_only');
-
-    expect(LlmProvider::factory()->create(['api_key' => 'local-key'])->fresh()->api_key)->toBe('local-key');
-});
-
-it('saves every provider kind past the CHECK constraint on llm_providers.kind', function (): void {
-    // The column is an enum, which Postgres keeps as a CHECK constraint built
-    // from LlmProviderKind when the table was created: a kind added later
-    // cannot be saved until the schema is built again.
-    foreach (LlmProviderKind::cases() as $kind) {
-        expect(LlmProvider::factory()->kind($kind)->create()->fresh()->kind)->toBe($kind);
-    }
-});
-
-it('lets only Mistral read whole PDF documents', function (): void {
-    $readers = array_filter(app(ProviderAdapters::class)->all(), fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments());
-
-    expect(array_map(fn (ProviderAdapter $adapter): LlmProviderKind => $adapter->kind(), array_values($readers)))
-        ->toBe([LlmProviderKind::Mistral]);
 });
 
 it('fails fast when the embedding provider cannot return the size the database stores', function (string $provider, int $stored): void {

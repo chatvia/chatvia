@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
@@ -62,12 +64,12 @@ it('does not rate-limit a different tool on the same agent', function (): void {
         ->and($policy->decide($agent, ToolName::parse('tool_b')))->toBe(ToolAccessDecision::Allow);
 });
 
-it('treats a non-positive limit as unlimited', function (): void {
-    config(['chatvia.governance.tool_rate_limit' => 0]);
+it('treats a non-positive limit as unlimited', function (int $limit): void {
+    config(['chatvia.governance.tool_rate_limit' => $limit]);
     $agent = Agent::factory()->create();
     $policy = new ToolAccessPolicy(tapFakeApprovalPolicy(false), new ToolRateLimiter);
 
-    foreach (range(1, 5) as $ignored) {
-        expect($policy->decide($agent, ToolName::parse('unlimited')))->toBe(ToolAccessDecision::Allow);
-    }
-});
+    $decisions = array_map(fn (int $call): ToolAccessDecision => $policy->decide($agent, ToolName::parse('unlimited')), range(1, 5));
+
+    expect($decisions)->each->toBe(ToolAccessDecision::Allow);
+})->with(['zero' => 0, 'negative' => -1]);

@@ -10,36 +10,19 @@ use Domain\Llm\Models\Llm;
 
 /**
  * The app's own tasks (guardrails, titles, rewrites...) send a body fitted to
- * the model: no temperature to a model that takes none, no longer a reply
- * than it writes, a JSON schema in the prompt for a model that cannot be held
- * to one, and the least thinking a reasoning model takes, since these tasks
- * need none.
+ * the model by Llm::requestSettings() (tested there), and a JSON schema in the
+ * prompt for a model that cannot be held to one.
  */
 function crdPayload(Llm $model): array
 {
     return new ChatRequestData($model, [ChatMessageData::user('Hi')], AiCallTag::Guardrails, temperature: 0.0)->toPayload();
 }
 
-it('asks a reasoning model for its least thinking and no temperature', function (): void {
+it('fits the body to the model: a reasoning model gets its least thinking and no temperature', function (): void {
     $payload = crdPayload(new Llm(['name' => 'gpt-6-luna', 'capabilities' => modelsDevEntry(['none', 'low', 'medium'], temperature: false)]));
 
     expect($payload['reasoning_effort'])->toBe('none')
         ->and($payload)->not->toHaveKey('temperature');
-});
-
-it('sends a model the catalog does not know as it is', function (): void {
-    $payload = crdPayload(new Llm(['name' => 'my-server-model']));
-
-    expect($payload['temperature'])->toBe(0.0)
-        ->and($payload)->not->toHaveKey('reasoning_effort');
-});
-
-it('asks for no longer a reply than the model writes', function (): void {
-    $model = new Llm(['name' => 'small-model', 'capabilities' => ['reasoning' => false, 'temperature' => true, 'limit' => ['output' => 2048]]]);
-
-    $payload = new ChatRequestData($model, [ChatMessageData::user('Hi')], AiCallTag::ChunkEnhancement, maxTokens: 8096)->toPayload();
-
-    expect($payload['max_tokens'])->toBe(2048);
 });
 
 it('asks for a JSON reply in the prompt when the model cannot be held to a schema', function (): void {

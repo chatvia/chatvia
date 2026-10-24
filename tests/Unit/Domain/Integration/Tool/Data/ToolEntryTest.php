@@ -5,6 +5,11 @@ declare(strict_types=1);
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolKind;
 
+/**
+ * A tool of the agent's pool, as the registry hands it to routing and
+ * dispatch: which servers an MCP tool may come from, and its JSON-schema
+ * column read as an array.
+ */
 function toolEntryNamed(string $name, ToolKind $kind): ToolEntry
 {
     return new ToolEntry(kind: $kind, sourceId: 'x:'.$name, name: $name, description: '', parameters: []);

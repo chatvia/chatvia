@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
@@ -68,12 +70,10 @@ it('picks the first listed model that reads images, and none when no preset is l
         ->and($presets->visionModel(null, [$model('llava', vision: true)]))->toBeNull();
 });
 
-it('recommends chat, quick-task and image models for every provider with chat models', function (): void {
-    foreach (AiProvider::cases() as $provider) {
-        $chats = $provider->can(AiCapability::Chat);
+it('recommends chat, quick-task and image models for every provider with chat models, and none for the others', function (AiProvider $provider): void {
+    $chats = $provider->can(AiCapability::Chat);
 
-        expect($provider->presetChatModels() !== [])->toBe($chats, $provider->value)
-            ->and($provider->presetQuickTaskModels() !== [])->toBe($chats, $provider->value)
-            ->and($provider->presetVisionModels() !== [])->toBe($chats, $provider->value);
-    }
-});
+    expect($provider->presetChatModels() !== [])->toBe($chats)
+        ->and($provider->presetQuickTaskModels() !== [])->toBe($chats)
+        ->and($provider->presetVisionModels() !== [])->toBe($chats);
+})->with(AiProvider::cases());

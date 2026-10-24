@@ -9,12 +9,15 @@ use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Laravel\Mcp\Server\Testing\TestResponse;
 
 /**
  * Calls Chatvia's own built-in MCP servers (`/mcp/*`) as the tool loop does:
  * a JSON-RPC body with the X-Chatvia-* identity headers, signed like
  * McpClient signs them. For a tool called directly (`Server::tool()`), the
- * caller is resolved from the same headers as the middleware resolves it.
+ * caller is resolved from the same headers as the middleware resolves it,
+ * and its result is read as the pretty JSON the snapshots keep.
  */
 final class InternalMcp
 {
@@ -63,6 +66,48 @@ final class InternalMcp
     public static function actAsWorkspace(?Workspace $workspace): void
     {
         self::actWith('/mcp/account-analytics', $workspace instanceof Workspace ? ['X-Chatvia-Workspace-Id' => $workspace->external_id] : []);
+    }
+
+    /**
+     * The JSON-RPC `result` of a tool called directly, or its `error`.
+     *
+     * @return array<string, mixed>
+     */
+    public static function result(TestResponse $response): array
+    {
+        // laravel/mcp keeps the JSON-RPC response to itself; its assertions
+        // read one part at a time, a snapshot needs the whole result.
+        $body = (fn (): array => $this->response->toArray())->call($response);
+
+        return $body['result'] ?? $body['error'];
+    }
+
+    /** The result of a tool called directly, as pretty JSON. */
+    public static function resultJson(TestResponse $response): string
+    {
+        return self::prettyJson(self::result($response));
+    }
+
+    /**
+     * The result of a tool called directly plus every outside request it
+     * sent (method, URL, Authorization header, body), as pretty JSON: both
+     * sides of a tool that wraps a third-party API.
+     */
+    public static function resultWithRequestsJson(TestResponse $response): string
+    {
+        $requests = Http::recorded()->map(fn (array $pair): array => [
+            'method' => $pair[0]->method(),
+            'url' => $pair[0]->url(),
+            'authorization' => $pair[0]->header('Authorization')[0] ?? null,
+            'body' => $pair[0]->data(),
+        ])->all();
+
+        return self::prettyJson(['requests' => $requests, 'result' => self::result($response)]);
+    }
+
+    private static function prettyJson(mixed $value): string
+    {
+        return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 
     /**

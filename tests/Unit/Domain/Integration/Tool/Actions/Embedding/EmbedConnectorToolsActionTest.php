@@ -1,19 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Tool\Actions\Embedding\EmbedConnectorToolsAction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Tests\Support\Integration\Tool\ToolVectors;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
-function connectorToolIsEmbedded(ConnectorTool $tool): bool
-{
-    $row = ConnectorTool::query()
-        ->whereKey($tool->id)
-        ->selectRaw('embedding IS NOT NULL AND search_text IS NOT NULL AS embedded')
-        ->first();
-
-    return (bool) $row->embedded;
-}
+/**
+ * Embedding a connector's shared catalog rows: only that connector's rows
+ * that have no vectors yet, each with the connector's name and description
+ * as context (from the MCP registry for a builtin).
+ */
 
 /** A fresh embeddings fake, bound for the action; it records what it embeds. */
 function ectRecordingEmbedder(): FakeEmbeddingsProvider
@@ -31,9 +30,9 @@ it('embeds the shared catalog rows of one connector only', function (): void {
 
     app(EmbedConnectorToolsAction::class)->execute('acme-crm');
 
-    expect(connectorToolIsEmbedded($first))->toBeTrue()
-        ->and(connectorToolIsEmbedded($second))->toBeTrue()
-        ->and(connectorToolIsEmbedded($other))->toBeFalse();
+    expect(ToolVectors::embedded($first))->toBeTrue()
+        ->and(ToolVectors::embedded($second))->toBeTrue()
+        ->and(ToolVectors::embedded($other))->toBeFalse();
 });
 
 it('skips rows that are already embedded, so later connects pay nothing', function (): void {

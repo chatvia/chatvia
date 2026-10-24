@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
@@ -8,6 +10,13 @@ use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+
+/**
+ * Getting an OAuth client for a connector: registered once per connector and
+ * authorization server through dynamic client registration (RFC 7591), with
+ * its secrets kept only encrypted, or the connector's own OAuth app when it
+ * has one.
+ */
 
 /**
  * Metadata of an authorization server that supports dynamic client

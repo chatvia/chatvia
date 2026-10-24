@@ -1,9 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
 
+/**
+ * Every outgoing tool call (MCP server or webhook function) says who is
+ * calling in the X-Chatvia-* headers: the agent and its workspace always,
+ * the conversation and the signed-in chatter when they are known.
+ */
 it('maps the agent and workspace external ids to identity headers', function (): void {
     $workspace = Workspace::factory()->create();
 

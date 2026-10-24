@@ -20,6 +20,7 @@ final class RequireSetup
     /** The panel routes an admin can open before the setup is done. */
     private const array OPEN_ROUTES = [
         'filament.admin.setup',
+        'filament.admin.model-logo',
         'filament.admin.auth.logout',
         'filament.admin.auth.profile',
         'filament.admin.auth.multi-factor-authentication.*',

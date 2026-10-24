@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Admin;
 
 use App\Admin\Pages\Setup;
+use App\Admin\Settings\ModelLogoController;
 use App\Identity\Workspace\Models\User;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
@@ -122,6 +124,9 @@ class AdminPanelProvider extends PanelProvider
                 // A simple (centered) page, so it is routed here rather than
                 // discovered.
                 Route::get('setup', Setup::class)->name('setup');
+                Route::get('model-logos/{logo}.svg', ModelLogoController::class)
+                    ->where('logo', ModelsDevCatalog::LOGO_PATTERN)
+                    ->name('model-logo');
             });
     }
 }

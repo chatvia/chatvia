@@ -19,6 +19,7 @@ enum AiCallTag: string
     case ChatReply = 'chat-reply';
     case FollowUpRewrite = 'follow-up-rewrite';
     case ToolRouting = 'tool-routing';
+    case KnowledgeSearch = 'knowledge-search';
     case Guardrails = 'guardrails';
     case SearchEmbedding = 'search-embedding';
     case Rerank = 'rerank';

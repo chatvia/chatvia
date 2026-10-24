@@ -10,6 +10,7 @@ use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Queue;
+use Spectra\Spectra;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 use Tests\Support\Knowledge\Embedding\FakeReranker;
 
@@ -18,8 +19,9 @@ use Tests\Support\Knowledge\Embedding\FakeReranker;
  * meaning first, through the relevance check. A reranker failure is reported
  * and falls back to the basic similarity check, capped at max_chunks; without
  * a reranker the similarity check gates; the results fit the context budget;
- * an agent without chunks costs no embedding call; and counting the
- * retrieval is left to the turn.
+ * an agent without chunks costs no embedding call; its calls are tagged
+ * `knowledge-search` in Spectra; and counting the retrieval is left to the
+ * turn.
  */
 beforeEach(function (): void {
     config([
@@ -103,6 +105,30 @@ it('reports a reranker failure and returns at most max_chunks results', function
         ->and(count($results))->toBeLessThanOrEqual(2);
 
     Exceptions::assertReported(RuntimeException::class);
+});
+
+it('tags its rerank as a knowledge search in Spectra', function (): void {
+    Queue::fake();
+    config(['spectra.enabled' => true]);
+    $agent = kbAgentWithPages(3);
+
+    $reranker = new class extends FakeReranker
+    {
+        /** @var list<string> */
+        public array $tags = [];
+
+        public function rerank(string $query, array $documents, ?int $topN = null): array
+        {
+            $this->tags = app(Spectra::class)->startRequest('cohere', 'rerank-test')->tags;
+
+            return parent::rerank($query, $documents, $topN);
+        }
+    };
+    app()->instance(Reranker::class, $reranker);
+
+    app(KnowledgeBase::class)->search($agent, 'largest ocean');
+
+    expect($reranker->tags)->toBe(['knowledge-search']);
 });
 
 it('leaves counting the retrieval to the turn that uses the results', function (): void {

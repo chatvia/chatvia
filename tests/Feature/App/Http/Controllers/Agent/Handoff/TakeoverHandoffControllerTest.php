@@ -18,18 +18,13 @@ beforeEach(function (): void {
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
 });
 
-function thcConversation(Agent $agent, HandoffStatus $status = HandoffStatus::Pending, ?int $heldBy = null): Conversation
-{
-    return Conversation::factory()->withoutTitle()->create(['agent_id' => $agent->id, 'handoff_status' => $status, 'handoff_user_id' => $heldBy, 'is_visible' => true]);
-}
-
 function thcTakeover(Agent $agent, Conversation $conversation): string
 {
     return route('agents.handoff.takeover', ['agent' => $agent->external_id, 'conversation' => $conversation->external_id]);
 }
 
 it('takes a waiting conversation over for the operator', function (): void {
-    $conversation = thcConversation($this->agent);
+    $conversation = Conversation::factory()->forAgent($this->agent)->visible()->handedOff(HandoffStatus::Pending)->create();
 
     $this->actingAs($this->owner)
         ->postJson(thcTakeover($this->agent, $conversation))
@@ -43,7 +38,7 @@ it('takes a waiting conversation over for the operator', function (): void {
 
 it('reports a conflict when another operator already holds the conversation', function (): void {
     $colleague = User::factory()->employee($this->owner)->create();
-    $conversation = thcConversation($this->agent, HandoffStatus::Human, $colleague->id);
+    $conversation = Conversation::factory()->forAgent($this->agent)->visible()->handedOff(HandoffStatus::Human, $colleague)->create();
 
     $this->actingAs($this->owner)
         ->postJson(thcTakeover($this->agent, $conversation))
@@ -53,7 +48,7 @@ it('reports a conflict when another operator already holds the conversation', fu
 });
 
 it('404s a conversation of another agent of the workspace', function (): void {
-    $foreign = thcConversation(makeTeamAgent($this->owner, 'Other Bot'));
+    $foreign = Conversation::factory()->forAgent(makeTeamAgent($this->owner, 'Other Bot'))->visible()->handedOff(HandoffStatus::Pending)->create();
 
     $this->actingAs($this->owner)
         ->postJson(thcTakeover($this->agent, $foreign))

@@ -2,7 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Form\Actions\EnableFormsCapabilityAction;
-use Domain\Form\Models\FormDefinition;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 
 /**
  * Adding a form turns the agent's Forms capability on: the workspace's forms
@@ -11,15 +11,7 @@ use Domain\Form\Models\FormDefinition;
 it('turns Forms on for the agent, once', function (): void {
     $user = User::factory()->create();
     $agent = makeTeamAgent($user, 'Support Bot');
-    $user->workspace()->mcpServers()->create([
-        'connector_slug' => FormDefinition::CAPABILITY_SLUG,
-        'category' => 'builtin',
-        'name' => 'Forms',
-        'slug' => 'forms',
-        'url' => config('app.url').'/mcp/forms',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    AgentMcpServer::factory()->forOwner($user)->formsCapability()->create();
 
     app(EnableFormsCapabilityAction::class)->execute($agent);
     app(EnableFormsCapabilityAction::class)->execute($agent);

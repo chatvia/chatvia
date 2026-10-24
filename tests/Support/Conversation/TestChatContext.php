@@ -11,12 +11,14 @@ use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Str;
+use ReflectionClass;
 
 /**
  * Builds the context of one chat turn the way TurnContextFactory does, for
- * tests that drive a streaming source, the tool loop or the knowledge step
- * without the turn set-up in front of them. A new agent, model, session and
- * conversation are used for anything not given.
+ * tests that drive a streaming source, the tool loop, the knowledge step or
+ * the guardrail recorder without the turn set-up in front of them. A new
+ * agent, model, session and conversation are used for anything not given.
+ * {@see bare()} builds one with no turn behind it, for a stream transformer.
  */
 final class TestChatContext
 {
@@ -24,6 +26,9 @@ final class TestChatContext
      * @param  list<array<string, mixed>>|null  $llmMessages  the history sent to the model; the message alone when null
      * @param  string|null  $messageForLlm  the message with its reference material; the message itself when null
      * @param  string|null  $queryLanguage  the language the question was written in, when the turn detected it
+     * @param  int|null  $actorUserId  the staff account behind the turn (a preview); null for a visitor or a chatter
+     * @param  string|null  $ipAddress  the visitor's IP address, as the request gave it
+     * @param  string|null  $userAgent  the visitor's browser, as the request gave it
      */
     public static function make(
         ?Agent $agent = null,
@@ -38,6 +43,9 @@ final class TestChatContext
         ?int $chatterId = null,
         ?string $messageForLlm = null,
         ?string $queryLanguage = null,
+        ?int $actorUserId = null,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
     ): ChatContext {
         $llm ??= Llm::factory()->create();
 
@@ -47,7 +55,10 @@ final class TestChatContext
             externalSessionId: $externalSessionId ?? (string) Str::uuid(),
             conversationId: $conversationId ?? (string) Str::uuid(),
             chatterId: $chatterId,
+            actorUserId: $actorUserId,
             streamSources: $streamSources,
+            ipAddress: $ipAddress,
+            userAgent: $userAgent,
             requestId: $requestId ?? 'req_'.Str::random(12),
         );
 
@@ -67,5 +78,24 @@ final class TestChatContext
             assistantMessageId: (string) Str::uuid(),
             queryLanguage: $queryLanguage,
         );
+    }
+
+    /**
+     * A context with no turn behind it, for a stream transformer: built
+     * without its constructor, which needs a whole chat turn, and holding
+     * only what the transformer reads. No agent, model or session is made.
+     *
+     * @param  list<string>  $offeredToolNames
+     */
+    public static function bare(bool $showsReasoning = false, array $offeredToolNames = []): ChatContext
+    {
+        $reflection = new ReflectionClass(ChatContext::class);
+        $context = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('sources')->setValue($context, collect());
+        $reflection->getProperty('assistantMessageId')->setValue($context, 'asst-test');
+        $context->offeredToolNames = $offeredToolNames;
+        $context->showsReasoning = $showsReasoning;
+
+        return $context;
     }
 }

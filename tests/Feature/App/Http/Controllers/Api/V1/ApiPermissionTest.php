@@ -3,6 +3,7 @@
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Conversation\Models\Conversation;
@@ -232,7 +233,7 @@ function apiPermWrites(): array
             $agent($a), [], fn (): bool => AgentQuestionAnswer::query()->where('agent_id', $a->id)->doesntExist(),
         ]],
         'delete a Q&A' => ['api.v1.agents.sources.qas.destroy', 'agent.sources.delete', 204, function (User $owner, Agent $a) use ($agent): array {
-            $qa = AgentQuestionAnswer::create(['agent_id' => $a->id, 'title' => 'Refunds', 'questions' => 'Can I get a refund?', 'answer' => 'Within 30 days, yes.']);
+            $qa = AgentQuestionAnswerFactory::new()->attachedTo($a)->create();
 
             return [$agent($a, ['qa' => $qa->external_id]), [], fn (): bool => AgentQuestionAnswer::query()->whereKey($qa->id)->exists()];
         }],
@@ -441,7 +442,7 @@ describe('agent access', function (): void {
     })->with([
         "the submissions of another agent's form" => ['api.v1.agents.forms.submissions.index', fn (Agent $other): array => ['form' => FormDefinition::factory()->forAgent($other)->create()->external_id], []],
         "another agent's Q&A" => ['api.v1.agents.sources.qas.destroy', fn (Agent $other): array => [
-            'qa' => AgentQuestionAnswer::create(['agent_id' => $other->id, 'title' => 'T', 'questions' => 'Q?', 'answer' => 'A long enough answer.'])->external_id,
+            'qa' => AgentQuestionAnswerFactory::new()->attachedTo($other)->create()->external_id,
         ], []],
         "a message to another agent's conversation" => ['api.v1.agents.conversations.messages.store', fn (Agent $other): array => [
             'conversation' => Conversation::factory()->create(['agent_id' => $other->id])->external_id,

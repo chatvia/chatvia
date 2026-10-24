@@ -3,6 +3,7 @@
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Jobs\PurgeAgentJob;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\HandoffStatus;
@@ -21,7 +22,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * The permission sweep of the agent routes. Each route answers 403 to a
@@ -37,19 +37,6 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner);
 });
-
-/**
- * Every agent permission except the given one.
- *
- * @return list<string>
- */
-function aprAllAgentPermissionsBut(string $permission): array
-{
-    return array_values(array_filter(
-        array_keys(config('team-permissions.permissions')),
-        fn (string $code): bool => Str::startsWith($code, 'agent.') && $code !== $permission,
-    ));
-}
 
 // [permission, method, route name, parameters after {agent}, body, status once allowed]
 dataset('agent routes', [
@@ -83,7 +70,7 @@ dataset('agent routes', [
     // Live chat: the waiting list shows the visitor's name, email and last
     // message, so it and mark-read need agent.chat.view, like the chat log.
     'waiting list' => ['agent.chat.view', 'GET', 'agents.handoff.pending', [], [], 200],
-    'mark read' => ['agent.chat.view', 'POST', 'agents.handoff.mark-read', fn (): array => [Conversation::factory()->create(['agent_id' => $this->agent->id, 'handoff_status' => HandoffStatus::Pending])->external_id], [], 201],
+    'mark read' => ['agent.chat.view', 'POST', 'agents.handoff.mark-read', fn (): array => [Conversation::factory()->forAgent($this->agent)->handedOff(HandoffStatus::Pending)->create()->external_id], [], 201],
     // Analytics pages and their data, with the permission the agent menu uses to show them
     'overview page' => ['agent.analytics.chats', 'GET', 'agents.analytics', [], [], 200],
     'overview data' => ['agent.analytics.chats', 'GET', 'agents.analytics.data', [], [], 200],
@@ -115,7 +102,7 @@ dataset('agent routes', [
 it('refuses a teammate without the route\'s permission and lets one with it through', function (string $permission, string $method, string $route, array $parameters, array $body, int $allowedStatus): void {
     $url = route($route, [$this->agent, ...$parameters]);
 
-    $this->actingAs(teammateWithPermissions($this->owner, aprAllAgentPermissionsBut($permission)))
+    $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut($permission)))
         ->json($method, $url, $body)
         ->assertForbidden();
     $this->actingAs(teammateWithPermissions($this->owner, [$permission]))
@@ -127,7 +114,7 @@ describe('knowledge sources', function (): void {
     it('gates reading and editing a text or Q&A pair by its training permission', function (string $perm, string $showRoute, string $updateRoute, string $kind): void {
         $blocked = teammateWithPermissions($this->owner, []);
         $allowed = teammateWithPermissions($this->owner, [$perm]);
-        $record = $kind === 'text' ? aprText($this->agent) : aprQa($this->agent);
+        $record = $kind === 'text' ? aprText($this->agent) : AgentQuestionAnswerFactory::new()->attachedTo($this->agent)->create();
 
         // Route binding resolves the record before the gate, so an unknown id
         // is a 404 for everyone; with a real record, a blocked teammate stops
@@ -168,7 +155,7 @@ describe('knowledge sources', function (): void {
     });
 
     it('gates the Q&A delete route by agent.sources.delete', function (): void {
-        $qa = aprQa($this->agent);
+        $qa = AgentQuestionAnswerFactory::new()->attachedTo($this->agent)->create();
 
         // Route binding resolves `{qa}` before the gate, so probe with a real
         // row: a blocked teammate stops at the gate; an unknown id 404s.
@@ -258,7 +245,7 @@ describe('chat log', function (): void {
     // Revising an answer writes a Q&A entry, so it needs the Q&A training
     // permission on top of reading the chat log.
     it('refuses to revise an answer for a teammate who may read the chat log but not train Q&A, and writes nothing', function (): void {
-        $this->actingAs(teammateWithPermissions($this->owner, aprAllAgentPermissionsBut('agent.sources.train.qa')))
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.qa')))
             ->postJson(route('agents.logs.revise-answer', $this->agent), $this->revision)
             ->assertForbidden();
 
@@ -298,7 +285,7 @@ describe('setup', function (): void {
     ]);
 
     it('refuses a teammate without the permission and changes nothing', function (string $method, string $route, string $permission, array $body, int $allowed, Closure $changed): void {
-        $this->actingAs(teammateWithPermissions($this->owner, aprAllAgentPermissionsBut($permission), $this->agent->team))
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut($permission), $this->agent->team))
             ->json($method, route($route, $this->agent), $body)
             ->assertForbidden();
 
@@ -324,7 +311,7 @@ describe('chatters', function (): void {
     it('keeps a teammate without agent.chatters.manage off every route of the page', function (): void {
         $this->chatter->agents()->attach($this->agent->id, ['workspace_id' => $this->agent->workspace_id]);
         $granted = Chatter::factory()->ofWorkspace($this->owner)->create();
-        $teammate = teammateWithPermissions($this->owner, aprAllAgentPermissionsBut('agent.chatters.manage'));
+        $teammate = teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.chatters.manage'));
 
         $this->actingAs($teammate)->postJson(route('agents.chatters.store', $this->agent), ['email' => 'new-chatter@example.test'])->assertForbidden();
         $this->actingAs($teammate)->postJson(route('agents.chatters.grant', [$this->agent, $granted->external_id]))->assertForbidden();
@@ -359,7 +346,7 @@ describe('evals', function (): void {
     });
 
     it('needs agent.evals.manage to write: viewing is not enough', function (): void {
-        $viewer = teammateWithPermissions($this->owner, aprAllAgentPermissionsBut('agent.evals.manage'));
+        $viewer = teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.evals.manage'));
         $body = ['name' => 'X', 'input' => 'Y', 'scorer_type' => 'contains', 'scorer_config' => ['value' => 'z']];
 
         $this->actingAs($viewer)->postJson(route('agents.evals.cases.store', $this->agent), $body)->assertForbidden();
@@ -397,7 +384,7 @@ describe('topics', function (): void {
 
     it('keeps a teammate without agent.topics.manage from managing topics', function (): void {
         aprSuggestion($this->agent, 'shipping');
-        $teammate = teammateWithPermissions($this->owner, aprAllAgentPermissionsBut('agent.topics.manage'));
+        $teammate = teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.topics.manage'));
 
         $this->actingAs($teammate)->postJson(route('agents.topics.store', $this->agent), ['topic' => 'New', 'description' => 'x'])->assertForbidden();
         $this->actingAs($teammate)->patchJson(route('agents.topics.update', [$this->agent, $this->topic]), ['topic' => 'Renamed', 'description' => 'x'])->assertForbidden();
@@ -427,11 +414,11 @@ describe('topics', function (): void {
 describe('live chat', function (): void {
     beforeEach(function (): void {
         Event::fake([HandedOff::class]);
-        $this->conversation = Conversation::factory()->withoutTitle()->create(['agent_id' => $this->agent->id, 'handoff_status' => HandoffStatus::Pending, 'is_visible' => true]);
+        $this->conversation = Conversation::factory()->forAgent($this->agent)->visible()->handedOff(HandoffStatus::Pending)->create();
     });
 
     it('refuses the takeover to a teammate without agent.chat.takeover', function (): void {
-        $this->actingAs(teammateWithPermissions($this->owner, aprAllAgentPermissionsBut('agent.chat.takeover')))
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.chat.takeover')))
             ->postJson(aprHandoff('agents.handoff.takeover', $this->agent, $this->conversation))
             ->assertForbidden();
 
@@ -493,15 +480,4 @@ function aprSuggestions(Agent $agent): Builder
 function aprHandoff(string $name, Agent $agent, Conversation $conversation): string
 {
     return route($name, ['agent' => $agent->external_id, 'conversation' => $conversation->external_id]);
-}
-
-/** One curated Q&A entry of the agent for the gate probes. */
-function aprQa(Agent $agent): AgentQuestionAnswer
-{
-    return AgentQuestionAnswer::create([
-        'agent_id' => $agent->id,
-        'title' => 'Refunds',
-        'answer' => 'Refunds take 5 business days.',
-        'questions' => 'How long do refunds take?',
-    ]);
 }

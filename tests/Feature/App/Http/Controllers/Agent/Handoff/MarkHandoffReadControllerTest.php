@@ -11,7 +11,7 @@ use Domain\Conversation\Models\Conversation;
 it('404s a conversation of another agent of the workspace', function (): void {
     $owner = User::factory()->create();
     $agent = makeTeamAgent($owner, 'Support Bot');
-    $foreign = Conversation::factory()->withoutTitle()->create(['agent_id' => makeTeamAgent($owner, 'Other Bot')->id, 'handoff_status' => HandoffStatus::Pending]);
+    $foreign = Conversation::factory()->forAgent(makeTeamAgent($owner, 'Other Bot'))->handedOff(HandoffStatus::Pending)->create();
 
     $this->actingAs($owner)
         ->postJson(route('agents.handoff.mark-read', ['agent' => $agent->external_id, 'conversation' => $foreign->external_id]))

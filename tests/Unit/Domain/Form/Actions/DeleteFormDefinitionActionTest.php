@@ -6,6 +6,7 @@ use Domain\Form\Actions\EnableFormsCapabilityAction;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,15 +20,7 @@ beforeEach(function (): void {
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 
     // The workspace-level forms server already exists, so enabling is a pure attach.
-    $this->user->workspace()->mcpServers()->create([
-        'connector_slug' => FormDefinition::CAPABILITY_SLUG,
-        'category' => 'builtin',
-        'name' => 'Forms',
-        'slug' => 'forms',
-        'url' => config('app.url').'/mcp/forms',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    AgentMcpServer::factory()->forOwner($this->user)->formsCapability()->create();
 });
 
 it('turns Forms off only when the last form is deleted', function (): void {

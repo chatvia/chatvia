@@ -17,9 +17,9 @@ use Domain\Llm\Models\Llm;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Services\VisitorFingerprint;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\Conversation\StreamTurn;
+use Tests\Support\Identity\SharedId;
 
 /**
  * The per-turn gates {@see ChatStreamService} runs before any model work, for
@@ -40,14 +40,13 @@ function cssgVisitorTurn(Agent $agent, string $ip, array $request = []): array
 }
 
 /**
- * The owner of a new workspace whose id is free in `chatters` too, so a
- * test can give a chatter the same id. Taking the next value of both
- * sequences means neither table can hold it.
+ * The owner of a new workspace whose id is free in `chatters` too
+ * ({@see SharedId::workspaceAndChatter()}), so a test can give a chatter the
+ * same id.
  */
 function cssgOwnerOfWorkspaceWithChatterFreeId(): User
 {
-    $id = (int) DB::scalar("select greatest(nextval(pg_get_serial_sequence('workspaces', 'id')), nextval(pg_get_serial_sequence('chatters', 'id')))");
-    $workspace = Workspace::factory()->create(['id' => $id]);
+    $workspace = Workspace::factory()->create(['id' => SharedId::workspaceAndChatter()]);
     $owner = User::factory()
         ->afterMaking(fn (User $user): User => $user->setRelation('factoryWorkspace', $workspace))
         ->create();

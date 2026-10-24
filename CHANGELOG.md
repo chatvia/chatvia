@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-This is the first open-source release. The list below groups the changes by
+This is the first public release. The list below groups the changes by
 theme.
 
 ### Search runs on plain PostgreSQL (VectorChord replaced)
@@ -345,9 +345,11 @@ theme.
   cannot use up the agent's limit for everyone. The default is 8 messages a
   minute; it also applies on the messaging channels.
 
-### Open source
+### License
 
-- ChatVia.ai is open source under the [MIT License](LICENSE).
+- ChatVia.ai is free and source-available under the [ChatVia.ai License](LICENSE):
+  the MIT terms plus one condition. The "Powered by ChatVia.ai" credit must
+  stay under every chat unless the install has a license key.
 - Community files: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`
   and issue forms (bug report, feature request, documentation). The project
   does not accept pull requests: a workflow closes those from outside the

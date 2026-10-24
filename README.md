@@ -5,11 +5,11 @@
 <h1 align="center">ChatVia.ai</h1>
 
 <p align="center">
-  An open-source platform for AI chat agents that answer from your own knowledge base.
+  A free, self-hosted platform for AI chat agents that answer from your own knowledge base.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-ChatVia.ai-blue.svg" alt="ChatVia.ai License"></a>
   <img src="https://img.shields.io/badge/PHP-8.5-777bb4.svg" alt="PHP 8.5">
   <img src="https://img.shields.io/badge/Laravel-13-ff2d20.svg" alt="Laravel 13">
   <img src="https://img.shields.io/badge/PostgreSQL-18-336791.svg" alt="PostgreSQL 18">
@@ -738,4 +738,6 @@ removes everything.
 - Found a security problem? Please report it privately; see
   [SECURITY.md](SECURITY.md).
 - Changes are listed in [CHANGELOG.md](CHANGELOG.md).
-- ChatVia.ai is open-source software licensed under the [MIT License](LICENSE).
+- ChatVia.ai is free and source-available under the [ChatVia.ai License](LICENSE).
+  You may use, change and run it. The "Powered by ChatVia.ai" credit must stay
+  under every chat unless the install has a [license key](https://chatvia.ai/license).

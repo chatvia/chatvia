@@ -7,6 +7,7 @@ use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageSettings;
@@ -24,7 +25,10 @@ use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\ModelsDevCatalog;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Support\Enums\GridDirection;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -34,7 +38,7 @@ use Tests\Support\Admin\FakeRedisAndHorizon;
 
 /**
  * The admin setup of a new install: every panel page leads to it until it is
- * done or skipped. "Connect AI": a provider and its key, checked by reading
+ * done or skipped. "AI provider": the main provider and its key, checked by reading
  * its model list; a provider that makes no embeddings of the stored size
  * also needs an embedding service and its key. "Models": the chat models
  * and the model for quick tasks (the provider's recommended ones picked),
@@ -97,7 +101,7 @@ function setupServicesRunning(array $states = []): array
 function setupFakeScaleway(int $dimensions): void
 {
     Http::fake([
-        'api.scaleway.ai/*/models' => Http::response(['data' => [['id' => 'gpt-oss-120b'], ['id' => 'mistral-small-3.2-24b-instruct-2506']]]),
+        'api.scaleway.ai/*/models' => Http::response(['data' => [['id' => 'gpt-oss-120b'], ['id' => 'gemma-4-26b-a4b-it']]]),
         'api.scaleway.ai/*/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $dimensions, 0.1)]]]),
     ]);
 }
@@ -124,7 +128,7 @@ function setupFakeOpenRouter(int $dimensions): void
         'openrouter.ai/api/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $dimensions, 0.1)]]]),
         'openrouter.ai/api/v1/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]]),
         'openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]),
-        'openrouter.ai/api/v1/models' => Http::response(['data' => [
+        'openrouter.ai/api/v1/models/user' => Http::response(['data' => [
             [
                 'id' => 'meta-llama/llama-4-maverick',
                 'name' => 'Llama 4 Maverick',
@@ -207,7 +211,13 @@ it('opens on the server step and checks the services ChatVia.ai runs on', functi
         ->assertSee('Checking each service…')
         ->call('checkServer')
         ->assertSet('server', fn (array $server): bool => array_keys($server) === ['database', 'redis', 'queue', 'scheduler', 'realtime', 'model_details'])
-        ->assertSee(['Database', 'Redis', 'Queue', 'Scheduler', 'Live updates', 'Model details']);
+        ->assertSee(['PostgreSQL', 'Redis', 'Laravel Horizon', 'Scheduler', 'Laravel Reverb', 'models.dev']);
+});
+
+it('links the models.dev row to the site once its list is read', function (): void {
+    adminPage(Setup::class, $this->admin)
+        ->set('server', [...setupServicesRunning(), Service::ModelDetails->value => new ServiceStatusData(ServiceState::Running, 'Model details loaded.')->toArray()])
+        ->assertSeeHtml('<a href="https://models.dev" target="_blank" rel="noopener noreferrer" class="cv-service__link">models.dev</a>');
 });
 
 it('says why pg_textsearch matters and what to do to get it', function (): void {
@@ -230,7 +240,7 @@ it('asks before going on with a service down, and goes on once agreed', function
         ->assertSee(['One service is down.', 'Horizon is not running.', 'php artisan horizon'])
         ->goToNextWizardStep()
         ->assertActionMounted('serverDown')
-        ->assertMountedActionModalSee(['Continue with a service down?', 'Down: Queue.', 'Continue anyway', 'Fix it first'])
+        ->assertMountedActionModalSee(['Continue with a service down?', 'Down: Laravel Horizon.', 'Continue anyway', 'Fix it first'])
         ->callMountedAction()
         ->assertWizardCurrentStep(2)
         ->assertSet('serverDownConfirmed', true);
@@ -270,11 +280,11 @@ it('checks the key with the provider\'s model list before the next step', functi
         // The recommended model the provider lists (gpt-oss-120b is not
         // one), for chat, quick tasks and image descriptions.
         ->assertFormSet([
-            'chat_models' => ['mistral-small-3.2-24b-instruct-2506'],
-            'default_model' => 'mistral-small-3.2-24b-instruct-2506',
-            'quick_task_model' => 'mistral-small-3.2-24b-instruct-2506',
+            'chat_models' => ['gemma-4-26b-a4b-it'],
+            'default_model' => 'gemma-4-26b-a4b-it',
+            'quick_task_model' => 'gemma-4-26b-a4b-it',
             'describe_images' => true,
-            'vision_model' => 'mistral-small-3.2-24b-instruct-2506',
+            'vision_model' => 'gemma-4-26b-a4b-it',
         ])
         ->assertFormFieldVisible('vision_model');
 
@@ -289,13 +299,14 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
         'architecture' => ['input_modalities' => ['text', 'image'], 'output_modalities' => ['text']],
         'supported_parameters' => $tools ? ['tools'] : ['temperature'],
     ];
-    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models' => Http::response(['data' => [
-        $model('meta-llama/llama-4-maverick'),
+    Http::fake(['openrouter.ai/api/v1/key' => Http::response(['data' => ['label' => 'sk-or-v1-tes...']]), 'openrouter.ai/api/v1/models/user' => Http::response(['data' => [
+        $model('google/gemma-4-26b-a4b-it'),
         $model('openai/gpt-oss-120b'),
-        $model('qwen/qwen3-235b-a22b-2507', tools: false),
-        $model('qwen/qwen3-next-80b-a3b-instruct'),
+        $model('deepseek/deepseek-v4.1-flash', tools: false),
+        $model('deepseek/deepseek-v4-flash'),
+        $model('mistralai/mistral-large-2512'),
         $model('openai/gpt-4.1'),
-        $model('openai/gpt-4.1-mini'),
+        $model('openai/gpt-6-luna'),
     ]])]);
 
     setupPage($this->admin)
@@ -304,21 +315,21 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
         ->assertWizardCurrentStep(3)
         // One per maker, default first; a model that cannot call tools is
         // passed over for the next of its maker, a maker with none listed
-        // (Mistral) is left out, and a model that is no preset (gpt-oss-120b)
-        // is not picked.
+        // (Qwen) is left out, and a model that is no preset (gpt-oss-120b,
+        // Mistral Large) is not picked.
         ->assertFormSet([
-            'chat_models' => ['qwen/qwen3-next-80b-a3b-instruct', 'openai/gpt-4.1', 'meta-llama/llama-4-maverick'],
-            'default_model' => 'qwen/qwen3-next-80b-a3b-instruct',
-            'quick_task_model' => 'openai/gpt-4.1-mini',
+            'chat_models' => ['deepseek/deepseek-v4-flash', 'openai/gpt-4.1', 'google/gemma-4-26b-a4b-it'],
+            'default_model' => 'deepseek/deepseek-v4-flash',
+            'quick_task_model' => 'openai/gpt-6-luna',
             'describe_images' => true,
-            'vision_model' => 'openai/gpt-4.1-mini',
+            'vision_model' => 'openai/gpt-6-luna',
         ]);
 });
 
 it('stops on the first step when OpenRouter refuses the key, although its model list is public', function (): void {
     Http::fake([
         'openrouter.ai/api/v1/key' => Http::response(['error' => ['message' => 'User not found.', 'code' => 401]], 401),
-        'openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
+        'openrouter.ai/api/v1/models/user' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
     ]);
 
     setupPage($this->admin)
@@ -376,7 +387,7 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->fillForm(['chat_models' => ['mistral-small-3.2-24b-instruct-2506']])
+        ->fillForm(['chat_models' => ['gemma-4-26b-a4b-it']])
         ->call('complete')
         ->assertHasNoFormErrors()
         ->assertRedirect(Filament::getUrl());
@@ -388,7 +399,7 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->and(LlmProvider::query()->where('kind', LlmProviderKind::Scaleway)->count())->toBe(1)
         ->and($provider->api_key)->toBeNull()
         ->and($provider->base_url)->toBeNull()
-        ->and($model->name)->toBe('mistral-small-3.2-24b-instruct-2506')
+        ->and($model->name)->toBe('gemma-4-26b-a4b-it')
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-test')
         // The default embedding service and model stay unsaved.
         ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBeNull()
@@ -561,7 +572,7 @@ it('starts the reranker on OpenRouter with the key of the first step, from its l
         ->assertWizardCurrentStep(3)
         ->assertFormSet(['reranker' => 'openrouter', 'openrouter_rerank_model' => 'cohere/rerank-4-pro'])
         ->assertFormFieldHidden('rerank_api_key')
-        ->assertSee('Uses the OpenRouter key you entered in Connect AI');
+        ->assertSee('Uses the OpenRouter key you entered in AI provider');
 
     // The strongest first (OpenRouter's live list adds the others it has).
     $models = array_keys($page->instance()->form->getFlatFields(withHidden: true)['openrouter_rerank_model']->getOptions());
@@ -613,7 +624,7 @@ it('reranks with the Cohere key typed for the embeddings', function (): void {
         ->goToWizardStep(3)
         ->fillForm(['embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test', 'reranker' => 'cohere'])
         ->assertFormFieldHidden('rerank_api_key')
-        ->assertSee('Uses the Cohere key you entered in Models')
+        ->assertSee('Uses the Cohere key above')
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -704,14 +715,14 @@ it('lets agents use several chat models, one of them the default', function (): 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->fillForm(['chat_models' => ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506'], 'default_model' => 'mistral-small-3.2-24b-instruct-2506'])
+        ->fillForm(['chat_models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it'], 'default_model' => 'gemma-4-26b-a4b-it'])
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    $added = Llm::query()->whereIn('name', ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506'])->where('is_enabled', true)->get();
+    $added = Llm::query()->whereIn('name', ['gpt-oss-120b', 'gemma-4-26b-a4b-it'])->where('is_enabled', true)->get();
 
     expect($added)->toHaveCount(2)
-        ->and(Llm::query()->whereKey(savedSetting(AiSettings::class, 'default_agent_model'))->value('name'))->toBe('mistral-small-3.2-24b-instruct-2506');
+        ->and(Llm::query()->whereKey(savedSetting(AiSettings::class, 'default_agent_model'))->value('name'))->toBe('gemma-4-26b-a4b-it');
 });
 
 it('changes the chat models in a list with boxes to tick, keeping the default one of them', function (): void {
@@ -720,13 +731,13 @@ it('changes the chat models in a list with boxes to tick, keeping the default on
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->assertFormSet(['chat_models' => ['mistral-small-3.2-24b-instruct-2506']])
+        ->assertFormSet(['chat_models' => ['gemma-4-26b-a4b-it']])
         // The suggested model shows as a badge, with the button that changes it.
-        ->assertSeeInOrder(['Models agents can use', 'mistral-small-3.2-24b-instruct-2506', 'Manage models'])
-        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506']])
+        ->assertSeeInOrder(['Models agents can use', 'gemma-4-26b-a4b-it', 'Manage models'])
+        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it']])
         ->assertHasNoActionErrors()
         // The model chosen before keeps its place, and stays the default.
-        ->assertFormSet(['chat_models' => ['mistral-small-3.2-24b-instruct-2506', 'gpt-oss-120b'], 'default_model' => 'mistral-small-3.2-24b-instruct-2506'])
+        ->assertFormSet(['chat_models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b'], 'default_model' => 'gemma-4-26b-a4b-it'])
         ->assertFormFieldVisible('default_model')
         ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b']])
         // The default was taken out: the model left takes its place.
@@ -740,23 +751,170 @@ it('lists the chosen chat models first, then the suggested ones, then the rest',
     Http::fake(['api.scaleway.ai/*/models' => Http::response(['data' => [
         ['id' => 'gpt-oss-120b'],
         ['id' => 'llama-3.3-70b-instruct'],
-        ['id' => 'mistral-small-3.2-24b-instruct-2506'],
+        ['id' => 'gemma-4-26b-a4b-it'],
     ]])]);
     setupFakeScaleway($this->dimensions);
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->assertFormSet(['chat_models' => ['llama-3.3-70b-instruct', 'mistral-small-3.2-24b-instruct-2506']])
-        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506']])
+        ->assertFormSet(['chat_models' => ['gemma-4-26b-a4b-it', 'llama-3.3-70b-instruct']])
+        ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it']])
         ->mountAction('manageChatModels')
-        ->assertSchemaStateSet(['models' => ['mistral-small-3.2-24b-instruct-2506', 'gpt-oss-120b']], 'mountedActionSchema0');
+        ->assertSchemaStateSet(['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']], 'mountedActionSchema0')
+        ->assertMountedActionModalSeeHtml(['cv-model-picker__count', ' of 3 models picked']);
 
     $list = $page->instance()->getSchema('mountedActionSchema0')->getFlatFields()['models'];
 
-    expect(array_keys($list->getOptions()))->toBe(['mistral-small-3.2-24b-instruct-2506', 'gpt-oss-120b', 'llama-3.3-70b-instruct'])
+    // One column, row by row: CSS columns scroll sideways in a list of fixed height.
+    expect($list->getGridDirection())->toBe(GridDirection::Row)
+        ->and(array_keys($list->getOptions()))->toBe(['gemma-4-26b-a4b-it', 'gpt-oss-120b', 'llama-3.3-70b-instruct'])
         ->and($list->getDescription('llama-3.3-70b-instruct'))->toBe('Suggested: calls tools well')
         ->and($list->hasDescription('gpt-oss-120b'))->toBeFalse();
+});
+
+it('warns when a chosen chat model cannot call tools, and still keeps it', function (): void {
+    config(['chatvia.ai.models_dev.enabled' => true]);
+    Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['scaleway' => ['models' => [
+        'gpt-oss-120b' => ['tool_call' => false, 'canonical_model_id' => 'openai/gpt-oss-120b'],
+        'gemma-4-26b-a4b-it' => ['tool_call' => true],
+    ]]], 'models' => []])]);
+    setupFakeScaleway($this->dimensions);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->assertSet('modelsWithoutTools', ['gpt-oss-120b'])
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it']])
+        ->assertDontSee('cannot call tools')
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->assertFormSet(['chat_models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->assertSee(['gpt-oss-120b cannot call tools', 'Tools will not work for agents that use it', 'No tool calling: tools will not work']);
+
+    $list = $page->mountAction('manageChatModels')->instance()->getSchema('mountedActionSchema0')->getFlatFields()['models'];
+
+    expect($list->getDescription('gpt-oss-120b'))->toBe('No tool calling: tools will not work')
+        // Each model with its lab's logo, else its provider's.
+        ->and($list->getOptions()['gpt-oss-120b'])->toContain('/admin/model-logos/labs/openai.svg')
+        ->and($list->getOptions()['gemma-4-26b-a4b-it'])->toContain('/admin/model-logos/scaleway.svg');
+});
+
+it('lists only the models that read images for image descriptions', function (): void {
+    config(['chatvia.ai.models_dev.enabled' => true]);
+    Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['scaleway' => ['models' => [
+        'gpt-oss-120b' => ['modalities' => ['input' => ['text'], 'output' => ['text']]],
+        'gemma-4-26b-a4b-it' => ['modalities' => ['input' => ['text', 'image'], 'output' => ['text']]],
+    ]]], 'models' => []])]);
+    setupFakeScaleway($this->dimensions);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['describe_images' => true]);
+
+    $field = $page->instance()->form->getFlatFields(withHidden: true)['vision_model'];
+
+    expect(array_keys($field->getOptions()))->toBe(['gemma-4-26b-a4b-it']);
+});
+
+it('lists only the models that read PDF files and images for chat file uploads, off without a recommended one', function (): void {
+    config(['chatvia.ai.models_dev.enabled' => true]);
+    Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['scaleway' => ['models' => [
+        'gpt-oss-120b' => ['modalities' => ['input' => ['text', 'image'], 'output' => ['text']]],
+        'gemma-4-26b-a4b-it' => ['modalities' => ['input' => ['text', 'image', 'pdf'], 'output' => ['text']]],
+    ]]], 'models' => []])]);
+    setupFakeScaleway($this->dimensions);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        // Scaleway has no recommended model that reads PDF files.
+        ->assertFormSet(['chat_files' => false, 'files_model' => null])
+        ->fillForm(['chat_files' => true]);
+
+    $field = $page->instance()->form->getFlatFields(withHidden: true)['files_model'];
+
+    expect(array_keys($field->getOptions()))->toBe(['gemma-4-26b-a4b-it']);
+});
+
+it('tests each chosen chat model as the test window opens: it answers, is busy, or says why not', function (): void {
+    setupFakeScaleway($this->dimensions);
+    Http::fake(['api.scaleway.ai/v1/chat/completions' => fn (Request $request) => match ($request['model']) {
+        'gpt-oss-120b' => Http::response(['error' => ['message' => 'Model not found']], 404),
+        'llama-3.3-70b-instruct' => Http::response(['error' => ['message' => 'Rate limit exceeded']], 429),
+        default => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => 'OK'], 'finish_reason' => 'stop']]]),
+    }]);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b', 'llama-3.3-70b-instruct']])
+        ->mountAction(TestAction::make('testChat')->schemaComponent('chat', schema: 'form'))
+        ->assertActionMounted(TestAction::make('testChat')->schemaComponent('chat', schema: 'form'));
+
+    $page->call('testModel', 'chat', 'gemma-4-26b-a4b-it')->assertReturned(['state' => 'passed', 'message' => null]);
+    $page->call('testModel', 'chat', 'gpt-oss-120b')->assertReturned(['state' => 'failed', 'message' => 'The model did not answer (error 404): Model not found']);
+    $page->call('testModel', 'chat', 'llama-3.3-70b-instruct')->assertReturned([
+        'state' => 'busy',
+        'message' => 'Busy right now (error 429): the provider is limiting requests. Test again in a minute. Rate limit exceeded',
+    ]);
+    // Only the chosen models are asked.
+    $page->call('testModel', 'chat', 'made-up-model')->assertReturned(['state' => 'failed', 'message' => 'This is not one of the models to test.']);
+
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/chat/completions') && $request->hasHeader('Authorization', 'Bearer scw-test'));
+});
+
+it('lists what it tests in the test window, each waiting for its turn', function (): void {
+    $html = view('filament.setup.model-tests', ['section' => 'chat', 'image' => null, 'rows' => [
+        ['key' => 'qwen/qwen3', 'label' => '<b>Qwen3</b>'],
+        ['key' => 'gpt-oss-120b', 'label' => 'gpt-oss-120b'],
+    ]])->render();
+
+    expect($html)->toContain('<b>Qwen3</b>', 'gpt-oss-120b', '$wire.testModel(\'chat\', key)', 'cv-model-test__spinner');
+});
+
+it('tests the embedding model with the key typed', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['embedding_provider' => 'qwen'])
+        ->assertActionVisible(TestAction::make('testEmbeddings')->schemaComponent('embeddings', schema: 'form'))
+        ->call('testModel', 'embeddings', 'embeddings')
+        ->assertReturned(['state' => 'passed', 'message' => null]);
+});
+
+it('shows the model for image descriptions a cat, and gives its description', function (): void {
+    setupFakeScaleway($this->dimensions);
+    Http::fake(['api.scaleway.ai/v1/chat/completions' => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => "A cartoon orange cat\n smiling."], 'finish_reason' => 'stop']]])]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['describe_images' => true, 'vision_model' => 'gemma-4-26b-a4b-it'])
+        ->call('testModel', 'images', 'gemma-4-26b-a4b-it')
+        ->assertReturned(['state' => 'passed', 'message' => 'A cartoon orange cat smiling.']);
+
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/chat/completions')
+        && Str::startsWith((string) data_get($request->data(), 'messages.0.content.1.image_url.url'), 'data:image/png;base64,'));
+});
+
+it('sends the model for chat file uploads a one-page PDF file, and gives its summary', function (): void {
+    setupFakeScaleway($this->dimensions);
+    Http::fake(['api.scaleway.ai/v1/chat/completions' => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => "The bakery's hours,\n orders and delivery."], 'finish_reason' => 'stop']]])]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['chat_files' => true, 'files_model' => 'gemma-4-26b-a4b-it'])
+        ->assertFormComponentActionVisible('files_model', 'testFiles')
+        ->call('testModel', 'files', 'gemma-4-26b-a4b-it')
+        ->assertReturned(['state' => 'passed', 'message' => "The bakery's hours, orders and delivery."]);
+
+    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/chat/completions')
+        && data_get($request->data(), 'messages.0.content.1.file.filename') === 'chat-file.pdf'
+        && Str::startsWith((string) data_get($request->data(), 'messages.0.content.1.file.file_data'), 'data:application/pdf;base64,'));
 });
 
 it('names each model in the list, with its id under the name', function (): void {
@@ -771,7 +929,7 @@ it('names each model in the list, with its id under the name', function (): void
         ->getSchema('mountedActionSchema0')
         ->getFlatFields()['models'];
 
-    expect($list->getOptions())->toBe(['meta-llama/llama-4-maverick' => 'Llama 4 Maverick'])
+    expect(array_map(fn (string $label): string => Str::of($label)->stripTags()->toString(), $list->getOptions()))->toBe(['meta-llama/llama-4-maverick' => 'Llama 4 Maverick'])
         ->and($list->getDescription('meta-llama/llama-4-maverick'))->toBe('meta-llama/llama-4-maverick · Suggested: calls tools well');
 });
 
@@ -831,7 +989,7 @@ it('warns before going on without a document reader, and goes on once agreed', f
     $page->fillForm(['document_reader' => 'azure'])->fillForm(['document_reader' => 'none'])->assertSet('noReaderConfirmed', false);
 });
 
-it('stops on the documents step when Azure refuses the key', function (): void {
+it('stops on the ingestion step when Azure refuses the key', function (): void {
     setupFakeScaleway($this->dimensions);
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['error' => ['code' => '401']], 401)]);
 
@@ -852,7 +1010,7 @@ it('reads documents with the Mistral key of the first step', function (): void {
         ->assertFormSet(['document_reader' => 'mistral'])
         ->goToWizardStep(3)
         ->goToWizardStep(4)
-        ->assertSee('Uses the Mistral key you entered in Connect AI')
+        ->assertSee('Uses the Mistral key you entered in AI provider')
         ->assertFormFieldHidden('document_api_key')
         ->goToWizardStep(5)
         ->assertHasNoFormErrors()
@@ -869,7 +1027,7 @@ it('starts every optional service on "Not now" and storage on this server, whate
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway'])
         ->assertFormSet(['reranker' => 'none', 'document_reader' => 'none', 'website_import' => 'none', 'transcriber' => 'none', 'voice' => 'none', 'storage_driver' => 'local', 'mailer' => 'log'])
-        ->assertSee(['PDFs, Office files and images', 'Importing websites', 'Audio and video files', 'Live calls with agents', 'Mailer'])
+        ->assertSee(['Documents and websites', 'Speech to text and live calls', 'Mailer', 'A log of every AI call'])
         ->assertDontSee('Optional:');
 });
 
@@ -896,15 +1054,18 @@ it('imports websites with Firecrawl, with its key checked', function (): void {
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->goToWizardStep(5)
-        ->callMountedAction()
+        ->goToWizardStep(4)
         ->assertSee('To learn from a website, agents need Firecrawl.')
         ->assertFormFieldHidden('firecrawl_api_key')
         ->fillForm(['website_import' => 'firecrawl'])
-        ->goToWizardStep(6)
+        ->goToWizardStep(5)
         ->assertHasFormErrors(['firecrawl_api_key' => 'required'])
         ->fillForm(['firecrawl_api_key' => 'fc-test'])
-        ->goToWizardStep(6)
+        ->goToWizardStep(5)
+        // The key works; the step still asks about the missing document reader.
+        ->assertActionMounted('noReader')
+        ->callMountedAction()
+        ->assertWizardCurrentStep(5)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -915,14 +1076,15 @@ it('imports websites with Firecrawl, with its key checked', function (): void {
         && $request->header('Authorization') === ['Bearer fc-test']);
 });
 
-it('stops on the websites step when Firecrawl refuses the key', function (): void {
+it('stops on the ingestion step when Firecrawl refuses the key', function (): void {
     setupFakeScaleway($this->dimensions);
     Http::fake(['api.firecrawl.dev/*' => Http::response(['success' => false, 'error' => 'Unauthorized: Invalid token'], 401)]);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'website_import' => 'firecrawl', 'firecrawl_api_key' => 'wrong'])
-        ->goToWizardStep(6)
-        ->assertHasFormErrors(['firecrawl_api_key']);
+        ->goToWizardStep(5)
+        ->assertHasFormErrors(['firecrawl_api_key'])
+        ->assertActionNotMounted('noReader');
 });
 
 it('turns speech to text on with the key of the first step', function (): void {
@@ -931,12 +1093,13 @@ it('turns speech to text on with the key of the first step', function (): void {
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->goToWizardStep(6)
+        ->set('noReaderConfirmed', true)
+        ->goToWizardStep(5)
         ->assertSee('Agents can then learn from audio and video files and search what is said in them')
         ->fillForm(['transcriber' => 'scaleway'])
-        ->assertSee('Uses the Scaleway AI key you entered in Connect AI')
+        ->assertSee('Uses the Scaleway AI key you entered in AI provider')
         ->assertFormFieldHidden('transcription_api_key')
-        ->goToWizardStep(7)
+        ->goToWizardStep(6)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -952,10 +1115,10 @@ it('asks for the key of a speech service on another account, and checks it', fun
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'transcriber' => 'openai'])
         ->assertFormFieldVisible('transcription_api_key')
         ->goToWizardStep(3)
-        ->goToWizardStep(7)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['transcription_api_key' => 'required'])
         ->fillForm(['transcription_api_key' => 'sk-openai'])
-        ->goToWizardStep(7)
+        ->goToWizardStep(6)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -986,13 +1149,13 @@ it('uses a saved key without asking for it again', function (): void {
         ->assertSee(['Uses your saved Cohere key', 'Uses your saved OpenAI key', 'You can change it in Settings']);
 });
 
-it('stops on the speech step when the service refuses its key', function (): void {
+it('stops on the voice step when the speech service refuses its key', function (): void {
     setupFakeScaleway($this->dimensions);
     Http::fake(['api.openai.com/*' => Http::response(['error' => ['message' => 'Incorrect API key']], 401)]);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'transcriber' => 'openai', 'transcription_api_key' => 'wrong'])
-        ->goToWizardStep(7)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['transcription_api_key']);
 });
 
@@ -1005,11 +1168,12 @@ it('turns voice conversations on with the OpenAI key of the first step, and expl
     setupPage($this->admin)
         ->fillForm(['provider' => 'openai', 'api_key' => 'sk-openai'])
         ->goToWizardStep(3)
-        ->goToWizardStep(7)
+        ->set('noReaderConfirmed', true)
+        ->goToWizardStep(5)
         ->assertSee(['This uses the OpenAI Realtime API, so it needs an OpenAI key', 'Each agent still turns calls on in its own setup'])
         ->assertFormSet(['voice' => 'none'])
         ->fillForm(['voice' => 'openai'])
-        ->assertSee('Uses the OpenAI key you entered in Connect AI')
+        ->assertSee('Uses the OpenAI key you entered in AI provider')
         ->assertFormFieldHidden('voice_api_key')
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -1025,12 +1189,59 @@ it('asks for an OpenAI key for voice conversations on another provider, and chec
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'voice' => 'openai'])
         ->assertFormFieldVisible('voice_api_key')
         ->goToWizardStep(3)
-        ->goToWizardStep(8)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['voice_api_key' => 'required'])
         ->fillForm(['voice_api_key' => 'wrong'])
-        ->goToWizardStep(8)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['voice_api_key'])
         ->assertDispatched('form-validation-error');
+});
+
+it('asks for an OpenAI key once when speech to text and voice conversations both use it', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'transcriber' => 'openai', 'voice' => 'openai'])
+        ->assertFormFieldVisible('transcription_api_key')
+        ->assertFormFieldHidden('voice_api_key')
+        ->assertSee('Uses the OpenAI key above')
+        ->goToWizardStep(3)
+        ->goToWizardStep(6)
+        ->assertHasFormErrors(['transcription_api_key' => 'required']);
+});
+
+it('records AI calls with Spectra by default, and says what Spectra is', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->assertFormSet(['observability' => 'spectra'])
+        ->assertSee(['Spectra keeps a log of every call ChatVia.ai makes to an AI service', 'Record AI calls with Spectra', 'Settings → Observability'])
+        ->assertDontSee('Spectra is left out of this install')
+        ->goToWizardStep(3)
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    // On is the default: it stays unsaved, so the default keeps applying.
+    expect(savedSetting(ObservabilitySettings::class, 'spectra_enabled'))->toBeNull();
+});
+
+it('turns Spectra off when the admin chooses "Not now"', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'observability' => 'none'])
+        ->goToWizardStep(3)
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(ObservabilitySettings::class, 'spectra_enabled'))->toBeFalse();
+});
+
+it('starts on "Not now" for Spectra once an admin turned it off in Settings', function (): void {
+    saveSettings(ObservabilitySettings::class, ['spectra_enabled' => false]);
+
+    setupPage($this->admin)->assertFormSet(['observability' => 'none']);
 });
 
 it('keeps the storage and the mailer an admin saved in Settings', function (): void {
@@ -1045,7 +1256,7 @@ it('asks for S3 details, and stops when the storage does not work', function ():
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
-        ->goToWizardStep(9)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['s3_region', 's3_key', 's3_secret', 's3_bucket'])
         ->fillForm([
             's3_endpoint' => 'http://127.0.0.1:9',
@@ -1054,7 +1265,7 @@ it('asks for S3 details, and stops when the storage does not work', function ():
             's3_secret' => 'secret',
             's3_bucket' => 'files',
         ])
-        ->goToWizardStep(9)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['s3_bucket']);
 });
 
@@ -1082,25 +1293,26 @@ it('ends on a final step with the choices made, and where the defaults are chang
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->fillForm(['chat_models' => ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506'], 'default_model' => 'mistral-small-3.2-24b-instruct-2506'])
-        ->goToWizardStep(10)
+        ->fillForm(['chat_models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it'], 'default_model' => 'gemma-4-26b-a4b-it'])
+        ->goToWizardStep(9)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(10)
+        ->assertWizardCurrentStep(9)
         ->assertSeeInOrder([
             'Complete', 'Check your choices, then press',
             'Your choices',
             'AI provider', 'Scaleway AI',
-            'Chat models', 'gpt-oss-120b, mistral-small-3.2-24b-instruct-2506 (default)',
-            'Model for quick tasks', 'mistral-small-3.2-24b-instruct-2506',
-            'Image descriptions', 'mistral-small-3.2-24b-instruct-2506',
+            'Chat models', 'gpt-oss-120b, gemma-4-26b-a4b-it (default)',
+            'Model for quick tasks', 'gemma-4-26b-a4b-it',
+            'Image descriptions', 'gemma-4-26b-a4b-it',
             'Embeddings', 'Qwen3 on Scaleway AI', config('services.scalewayai.embedding_model'),
             'Reranker', 'Not now',
-            'Documents', 'Not now',
-            'Websites', 'Not now',
+            'Document reader', 'Not now',
+            'Website import', 'Not now',
             'Speech to text', 'Not now',
             'Voice conversations', 'Not now',
             'Storage', 'This server',
             'Mailer', 'Not now',
+            'Observability', 'Spectra',
             'Default values',
             'Knowledge', 'How texts are split into chunks',
             'AI models', 'More chat models, and a model for each app task',

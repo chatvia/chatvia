@@ -6,6 +6,11 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Support\Str;
 
+/**
+ * A form's leads as CSV: submitted answers under the field labels, only the
+ * chosen ones, newest first, and never a value a spreadsheet would run as a
+ * formula.
+ */
 beforeEach(function (): void {
     $this->freezeTime();
     $this->user = User::factory()->create();
@@ -22,10 +27,11 @@ beforeEach(function (): void {
  */
 function escvRows(string $csv): array
 {
-    return array_map(
-        static fn (string $line): array => str_getcsv($line, escape: '\\'),
-        explode("\n", Str::rtrim($csv, "\n")),
-    );
+    return Str::of($csv)
+        ->rtrim("\n")
+        ->explode("\n")
+        ->map(static fn (string $line): array => str_getcsv($line, escape: '\\'))
+        ->all();
 }
 
 function escvSubmitted(FormDefinition $form, string $name, string $email = 'x@y.com'): FormSubmission

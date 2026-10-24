@@ -21,7 +21,7 @@ it('stores the bot when Entra accepts the credentials', function (): void {
     $bot = new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard)
         ->execute($agent, new ConnectTeamsData('f5e1f9d2-1111-2222-3333-444455556666', 'client-secret-value'));
 
-    expect($bot)->not->toBeNull()
+    expect($bot->is(AgentTeamsBot::query()->sole()))->toBeTrue()
         ->and($bot->agent_id)->toBe($agent->id)
         ->and($bot->app_id)->toBe('f5e1f9d2-1111-2222-3333-444455556666')
         ->and($bot->tenant_id)->toBeNull()

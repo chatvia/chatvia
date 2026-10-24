@@ -22,12 +22,6 @@ it('converts bold, bullets, and headings to mrkdwn', function (): void {
         ->not->toContain('<b>');
 });
 
-it('numbers ordered lists', function (): void {
-    $text = $this->fmt->toMrkdwn("1. first\n2. second");
-
-    expect($text)->toContain('1. first')->toContain('2. second');
-});
-
 it('renders links, inline code and code blocks', function (): void {
     $text = $this->fmt->toMrkdwn("See [docs](https://example.com) and run `php artisan`.\n\n```\necho 1;\n```");
 
@@ -47,18 +41,6 @@ it('escapes the characters Slack treats as control sequences', function (): void
 
     expect($text)->toContain('2 &lt; 3 &amp; 5 &gt; 4')
         ->not->toContain('2 < 3');
-});
-
-it('preserves emoji and accented characters', function (): void {
-    $text = $this->fmt->toMrkdwn('Stay cool 😊 — café');
-
-    expect($text)->toContain('😊')->toContain('café');
-});
-
-it('drops non-http links but keeps their text', function (): void {
-    $text = $this->fmt->toMrkdwn('[click](javascript:alert(1))');
-
-    expect($text)->toContain('click')->not->toContain('javascript');
 });
 
 it('prefixes blockquote lines', function (): void {

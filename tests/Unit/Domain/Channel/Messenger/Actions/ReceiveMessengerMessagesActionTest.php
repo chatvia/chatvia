@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Messenger\Actions\ReceiveMessengerMessagesAction;
 use Domain\Channel\Messenger\Data\MessengerInboundMessageData;
 use Domain\Channel\Messenger\Jobs\HandleMessengerMessageJob;
@@ -15,15 +14,8 @@ use Illuminate\Support\Facades\Bus;
  */
 it('remembers queued messages per Page', function (): void {
     Bus::fake();
-    $page = fn (string $pageId): AgentMessengerPage => AgentMessengerPage::create([
-        'agent_id' => Agent::factory()->create()->id,
-        'page_access_token' => 'EAAG-page-token',
-        'page_id' => $pageId,
-        'page_name' => 'Acme',
-        'is_enabled' => true,
-    ]);
-    $first = $page('PAGE-1');
-    $second = $page('PAGE-2');
+    $first = AgentMessengerPage::factory()->create(['page_id' => 'PAGE-1']);
+    $second = AgentMessengerPage::factory()->create(['page_id' => 'PAGE-2']);
     $messages = [
         new MessengerInboundMessageData('PAGE-1', 'USER-1', 'hello', 'mid.1'),
         new MessengerInboundMessageData('PAGE-2', 'USER-2', 'hi', 'mid.1'),

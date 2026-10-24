@@ -23,11 +23,10 @@ it('connects an app with a fresh webhook secret and records the bot identity', f
 
     $app = new ConnectSlackAppAction($client, new ChannelConnectionGuard)->execute($agent, new ConnectSlackData('xoxb-1111-token-value', 'signing-secret-value-12345678'));
 
-    expect($app)->not->toBeNull();
-
     $row = AgentSlackApp::query()->firstOrFail();
 
-    expect($row->agent_id)->toBe($agent->id)
+    expect($app->is($row))->toBeTrue()
+        ->and($row->agent_id)->toBe($agent->id)
         ->and($row->team_name)->toBe('Acme Inc')
         ->and($row->bot_user_id)->toBe('U0BOT')
         ->and($row->is_enabled)->toBeTrue()

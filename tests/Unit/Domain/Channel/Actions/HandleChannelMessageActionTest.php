@@ -2,6 +2,9 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Actions\HandleChannelMessageAction;
+use Domain\Channel\Instagram\Models\AgentInstagramAccount;
+use Domain\Channel\Instagram\Services\InstagramAdapter;
+use Domain\Channel\Instagram\Services\InstagramThreadResolver;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Models\MessengerThread;
 use Domain\Channel\Messenger\Services\MessengerAdapter;
@@ -10,12 +13,17 @@ use Domain\Channel\Services\ChannelReplyRunner;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Services\SlackAdapter;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
+use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
+use Domain\Channel\Whatsapp\Services\WhatsappAdapter;
+use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Illuminate\Support\Carbon;
+use Tests\Support\Channel\Instagram\FakeInstagramClient;
 use Tests\Support\Channel\Messenger\FakeMessengerClient;
 use Tests\Support\Channel\Slack\FakeSlackClient;
 use Tests\Support\Channel\StubChannelReplyRunner;
+use Tests\Support\Channel\Whatsapp\FakeWhatsappClient;
 
 /**
  * The shared channel turn, resolved from the container as the channel jobs get
@@ -24,7 +32,8 @@ use Tests\Support\Channel\StubChannelReplyRunner;
  * then the chat is stamped. The pipeline is the stub runner, so this checks the
  * turn around it, not the model's answer. Each chat is resolved once before
  * the turn, at an earlier time, so the stamp the turn writes can be told apart
- * from the one written when the chat was created.
+ * from the one written when the chat was created. The reply strategies have
+ * their own tests (Services/Replies).
  */
 beforeEach(function (): void {
     $this->runner = new StubChannelReplyRunner('Hello from the agent');
@@ -32,109 +41,102 @@ beforeEach(function (): void {
     $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
 });
 
-function hcmMessengerPage(bool $public = true): AgentMessengerPage
+function hcmSlack(FakeSlackClient $client): SlackAdapter
 {
-    return AgentMessengerPage::factory()
-        ->forAgent(Agent::factory()->create(['is_public' => $public]))
-        ->create(['page_access_token' => 'EAAG-page-token']);
+    $app = AgentSlackApp::factory()->create(['bot_token' => 'xoxb-bot-token']);
+
+    return new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, 'C123CHAN');
 }
 
-function hcmSlackApp(): AgentSlackApp
-{
-    return AgentSlackApp::factory()->create(['bot_token' => 'xoxb-bot-token']);
-}
-
-it('answers a typing channel with one whole reply in the sender’s chat and stamps it', function (): void {
-    $page = hcmMessengerPage();
-    $client = new FakeMessengerClient;
-    $resolver = new MessengerThreadResolver(app(StartConversationAction::class), $client);
-    $thread = $resolver->resolve($page, '24680');
+it('answers a typing channel with one whole reply to the sender, in their chat, and stamps it', function (Closure $channel, ConversationSource $source, string $prefix, array $typing, array $sent): void {
+    [$adapter, $client] = $channel();
+    $chat = $adapter->resolveConversation();
     $this->travelTo(Carbon::parse('2026-10-01 10:05:00'));
 
-    app(HandleChannelMessageAction::class)->execute(new MessengerAdapter($client, $resolver, $page, '24680'), 'hi there');
+    app(HandleChannelMessageAction::class)->execute($adapter, 'hi there');
 
-    expect($client->typing)->toBe([['token' => 'EAAG-page-token', 'psid' => '24680']])
-        ->and($client->sent)->toBe([['token' => 'EAAG-page-token', 'psid' => '24680', 'markdown' => 'Hello from the agent']]);
+    expect($client->typing)->toBe([$typing])
+        ->and($client->sent)->toBe([$sent]);
 
     // The pipeline answers in the chat's own Session + Conversation.
     $turn = $this->runner->turn;
-    expect($turn->agent->is($page->agent))->toBeTrue()
-        ->and($turn->sessionExternalId)->toBe($thread->session->external_id)
-        ->and($turn->conversationExternalId)->toBe($thread->conversation->external_id)
+    expect($turn->agent->is($adapter->agent()))->toBeTrue()
+        ->and($turn->sessionExternalId)->toBe($chat->sessionExternalId())
+        ->and($turn->conversationExternalId)->toBe($chat->conversationExternalId())
         ->and($turn->message)->toBe('hi there')
-        ->and($turn->source)->toBe(ConversationSource::Messenger);
+        ->and($turn->source)->toBe($source)
+        ->and($turn->requestIdPrefix)->toBe($prefix)
+        ->and($chat::query()->count())->toBe(1)
+        ->and($chat->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
+})->with([
+    'Messenger' => [
+        function (): array {
+            $client = new FakeMessengerClient;
+            $page = AgentMessengerPage::factory()->create(['page_access_token' => 'EAAG-page-token']);
 
-    expect(MessengerThread::query()->count())->toBe(1)
-        ->and($thread->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
-});
+            return [new MessengerAdapter($client, new MessengerThreadResolver(app(StartConversationAction::class), $client), $page, '24680'), $client];
+        },
+        ConversationSource::Messenger,
+        'msgr_',
+        ['token' => 'EAAG-page-token', 'psid' => '24680'],
+        ['token' => 'EAAG-page-token', 'psid' => '24680', 'markdown' => 'Hello from the agent'],
+    ],
+    'Instagram' => [
+        function (): array {
+            $client = new FakeInstagramClient;
+            $account = AgentInstagramAccount::factory()->create(['page_access_token' => 'IGAA-page-token']);
 
-it('streams on an editable channel: a placeholder, the reply edited into it, and the chat stamped', function (): void {
-    $app = hcmSlackApp();
+            return [new InstagramAdapter($client, new InstagramThreadResolver(app(StartConversationAction::class), $client), $account, '5550001234'), $client];
+        },
+        ConversationSource::Instagram,
+        'ig_',
+        ['token' => 'IGAA-page-token', 'igsid' => '5550001234'],
+        ['token' => 'IGAA-page-token', 'igsid' => '5550001234', 'markdown' => 'Hello from the agent'],
+    ],
+    'WhatsApp, marking the inbound message read' => [
+        function (): array {
+            $client = new FakeWhatsappClient;
+            $number = AgentWhatsappNumber::factory()->create(['access_token' => 'EAAG-wa-token', 'phone_number_id' => '111222333444555']);
+
+            return [new WhatsappAdapter($client, app(WhatsappChatResolver::class), $number, '4915551234567', 'wamid.IN1', 'Sam'), $client];
+        },
+        ConversationSource::Whatsapp,
+        'wa_',
+        ['token' => 'EAAG-wa-token', 'phoneNumberId' => '111222333444555', 'messageId' => 'wamid.IN1'],
+        ['token' => 'EAAG-wa-token', 'phoneNumberId' => '111222333444555', 'to' => '4915551234567', 'markdown' => 'Hello from the agent'],
+    ],
+]);
+
+it('stamps the chat once a streamed reply lands', function (): void {
     $client = new FakeSlackClient;
-    $resolver = new SlackChannelResolver(app(StartConversationAction::class), $client);
-    $channel = $resolver->resolve($app, 'C123CHAN');
+    $channel = hcmSlack($client);
+    $chat = $channel->resolveConversation();
     $this->travelTo(Carbon::parse('2026-10-01 10:05:00'));
 
-    app(HandleChannelMessageAction::class)->execute(new SlackAdapter($client, $resolver, $app, 'C123CHAN'), 'hi there');
+    app(HandleChannelMessageAction::class)->execute($channel, 'hi there');
 
-    expect($client->posted)->toBe([['token' => 'xoxb-bot-token', 'channelId' => 'C123CHAN', 'markdown' => '_Thinking…_', 'threadTs' => null]])
-        ->and($client->updates)->toBe([['token' => 'xoxb-bot-token', 'channelId' => 'C123CHAN', 'ts' => $client->nextTs, 'markdown' => 'Hello from the agent']])
-        ->and($this->runner->received())->toBe('hi there')
-        ->and($channel->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
+    expect(array_column($client->updates, 'markdown'))->toBe(['Hello from the agent'])
+        ->and($chat->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
 });
 
-it('skips a partial that comes sooner than the channel’s edit throttle allows', function (): void {
-    // Slack takes an edit every 1.5 seconds; these partials come a second apart.
-    app()->instance(ChannelReplyRunner::class, new StubChannelReplyRunner('Hello from the agent', ['Hel', 'Hello', 'Hello there'], secondsBetweenPartials: 1));
-    $app = hcmSlackApp();
-    $client = new FakeSlackClient;
-
-    app(HandleChannelMessageAction::class)->execute(new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, 'C123CHAN'), 'hi there');
-
-    expect(array_column($client->updates, 'markdown'))->toBe(['Hello', 'Hello from the agent']);
-});
-
-it('skips a partial whose text is the same as the one it pushed last', function (): void {
-    app()->instance(ChannelReplyRunner::class, new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello ', 'Hello there']));
-    $app = hcmSlackApp();
-    $client = new FakeSlackClient;
-
-    app(HandleChannelMessageAction::class)->execute(new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, 'C123CHAN'), 'hi there');
-
-    expect(array_column($client->updates, 'markdown'))->toBe(['Hello', 'Hello there', 'Hello from the agent']);
-});
-
-it('keeps "typing…" on while the agent works, showing it again only once the channel’s refresh is due', function (): void {
-    // Messenger clears the indicator after 15 seconds; progress comes every 10.
-    app()->instance(ChannelReplyRunner::class, new StubChannelReplyRunner('Hello from the agent', ['a', 'b', 'c'], secondsBetweenPartials: 10));
-    $page = hcmMessengerPage();
-    $client = new FakeMessengerClient;
-
-    app(HandleChannelMessageAction::class)->execute(new MessengerAdapter($client, new MessengerThreadResolver(app(StartConversationAction::class), $client), $page, '24680'), 'hi there');
-
-    // Once when the message lands, once 20 seconds in.
-    expect($client->typing)->toHaveCount(2)
-        ->and($client->sent)->toHaveCount(1);
-});
-
-it('runs no turn and leaves the chat unstamped when the placeholder cannot be posted', function (): void {
-    $app = hcmSlackApp();
+it('leaves the chat unstamped when the placeholder cannot be posted', function (): void {
     $client = new FakeSlackClient;
     $client->nextTs = null;
-    $resolver = new SlackChannelResolver(app(StartConversationAction::class), $client);
-    $channel = $resolver->resolve($app, 'C123CHAN');
+    $channel = hcmSlack($client);
+    $chat = $channel->resolveConversation();
     $this->travelTo(Carbon::parse('2026-10-01 10:05:00'));
 
-    app(HandleChannelMessageAction::class)->execute(new SlackAdapter($client, $resolver, $app, 'C123CHAN'), 'hi there');
+    app(HandleChannelMessageAction::class)->execute($channel, 'hi there');
 
     expect($this->runner->received())->toBeNull()
-        ->and($client->updates)->toBe([])
-        ->and($channel->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:00:00');
+        ->and($chat->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:00:00');
 });
 
 it('stops at the access gate for a protected agent: one notice, no chat stored, no turn run', function (): void {
-    $page = hcmMessengerPage(public: false);
     $client = new FakeMessengerClient;
+    $page = AgentMessengerPage::factory()
+        ->forAgent(Agent::factory()->create(['is_public' => false]))
+        ->create(['page_access_token' => 'EAAG-page-token']);
 
     app(HandleChannelMessageAction::class)->execute(
         new MessengerAdapter($client, new MessengerThreadResolver(app(StartConversationAction::class), $client), $page, '24680'),

@@ -6,6 +6,11 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * The form editor's "Rewrite" button: the model turns the owner's note on
+ * when to show a form into a clear instruction for the agent. The model is
+ * faked at its HTTP call.
+ */
 it('returns the rewritten instruction from the model', function (): void {
     fakeLlmCompletion('Show this form when the visitor asks to book a demo or speak with sales.');
 

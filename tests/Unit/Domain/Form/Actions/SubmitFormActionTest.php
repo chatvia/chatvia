@@ -16,7 +16,15 @@ use Domain\Form\Models\FormSubmission;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Pest\Expectation;
 
+/**
+ * Submitting an inline form: the submission is claimed once (a second submit,
+ * or one after the time limit, is refused with its reason), the answers are
+ * stored as plaintext under the schema's keys only, the message that showed
+ * the form flips to submitted, and the same answers from a second render are
+ * kept once.
+ */
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     $this->agent = makeTeamAgent($this->user, 'Bot');
@@ -51,6 +59,7 @@ function sfaFormMessage(Conversation $conversation, FormSubmission $submission):
 }
 
 it('submits a form: claims and stores the answers as plaintext', function (): void {
+    $this->freezeTime();
     Event::fake([FormSubmitted::class]);
     $submission = sfaPendingSubmission($this);
 
@@ -64,13 +73,13 @@ it('submits a form: claims and stores the answers as plaintext', function (): vo
         // The submit endpoints send this result as the JSON response body.
         ->and($result->toArray())->toBe([
             'status' => 'submitted',
-            'success_message' => $this->definition->success_message ?: 'Thanks — your details have been received.',
+            'success_message' => 'Thanks — we will be in touch shortly.',
             'submitted_values' => ['name' => 'Jane', 'email' => 'jane@acme.com', 'message' => 'Hello'],
         ]);
 
     $submission->refresh();
     expect($submission->status)->toBe(FormSubmissionStatus::Submitted)
-        ->and($submission->submitted_at)->not->toBeNull()
+        ->and($submission->submitted_at->toDateTimeString())->toBe(now()->toDateTimeString())
         ->and($submission->email)->toBe('jane@acme.com')
         ->and($submission->name)->toBe('Jane');
 
@@ -91,12 +100,9 @@ it('rejects a double submit (already submitted)', function (): void {
 it('rejects an expired form as expired', function (): void {
     $submission = sfaPendingSubmission($this, now()->subHour());
 
-    try {
-        app(SubmitFormAction::class)->execute(new SubmitFormData($submission, $this->conversation, ['name' => 'Jane', 'email' => 'jane@acme.com']));
-        $this->fail('Expected FormNotClaimableException');
-    } catch (FormNotClaimableException $e) {
-        expect($e->reason)->toBe(FormClaimFailure::Expired);
-    }
+    expect(fn () => app(SubmitFormAction::class)->execute(new SubmitFormData($submission, $this->conversation, ['name' => 'Jane', 'email' => 'jane@acme.com'])))
+        ->toThrow(fn (FormNotClaimableException $e): Expectation => expect($e->reason)->toBe(FormClaimFailure::Expired))
+        ->and($submission->fresh()->status)->toBe(FormSubmissionStatus::Pending);
 });
 
 it('flips the owning message artifact to submitted for reload state', function (): void {

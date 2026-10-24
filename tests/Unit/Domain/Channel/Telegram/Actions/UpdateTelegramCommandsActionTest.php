@@ -1,13 +1,11 @@
 <?php
 
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Actions\UpdateTelegramCommandsAction;
 use Domain\Channel\Telegram\Data\TelegramCommandData;
 use Domain\Channel\Telegram\Data\UpdateTelegramCommandsData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\Telegram\FakeTelegramClient;
 
 /**
@@ -15,14 +13,7 @@ use Tests\Support\Channel\Telegram\FakeTelegramClient;
  * (built-ins merged with the stored overrides + customs) with Telegram.
  */
 it('stores the commands and re-registers the Telegram menu', function (): void {
-    $agent = Agent::factory()->create();
-    $bot = AgentTelegramBot::create([
-        'agent_id' => $agent->id,
-        'bot_token' => '123:secret-token',
-        'bot_username' => 'demo_bot',
-        'webhook_secret' => Str::random(48),
-        'is_enabled' => true,
-    ]);
+    $bot = AgentTelegramBot::factory()->create();
 
     $client = new FakeTelegramClient;
     $action = new UpdateTelegramCommandsAction(new TelegramCommandRouter(app(TelegramChatResolver::class), $client));
@@ -36,7 +27,7 @@ it('stores the commands and re-registers the Telegram menu', function (): void {
     expect($bot->fresh()->commands)->toHaveCount(2)
         ->and($bot->fresh()->commands[1])->toMatchArray(['command' => 'pricing', 'type' => 'prompt']);
 
-    // Menu re-registered: edited /start, the merged reset/help defaults, then customs.
+    // Re-registered once, with the new command; TelegramCommandRouterTest owns the menu's order.
     expect($client->commands)->toHaveCount(1)
-        ->and(array_column($client->commands[0]['commands'], 'command'))->toBe(['start', 'reset', 'help', 'pricing']);
+        ->and(array_column($client->commands[0]['commands'], 'command'))->toContain('pricing');
 });

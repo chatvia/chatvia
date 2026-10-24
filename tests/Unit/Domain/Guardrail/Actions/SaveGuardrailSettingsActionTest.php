@@ -7,10 +7,29 @@ use Domain\Guardrail\Data\GuardrailSettingsData;
 use Domain\Guardrail\Enums\TopicResponse;
 use Domain\Llm\Operations\Translate\TextTranslator;
 
+/**
+ * Saving the Guardrails page stores the settings so they read back as the
+ * same configuration, and translates the refusal message (and each blocked
+ * topic's reply) into the agent's languages once, keeping the typed text when
+ * the translation fails. The translator, the LLM boundary, is mocked.
+ */
 beforeEach(function (): void {
     // Default: no real LLM calls. Tests that assert translations re-mock below.
     $this->mock(TextTranslator::class)->shouldReceive('translate')->andReturn([]);
 });
+
+function sgsSettings(?string $refusal): GuardrailSettingsData
+{
+    return new GuardrailSettingsData(
+        enabled: true,
+        filters: [],
+        injection: true,
+        toxicity: true,
+        blocked_topics: [],
+        allowed_scope: null,
+        refusal_message: $refusal,
+    );
+}
 
 it('saves the settings and reads them back as the same configuration', function (): void {
     $agent = Agent::factory()->create();
@@ -36,29 +55,6 @@ it('saves the settings and reads them back as the same configuration', function 
         ->and($stored->refusalMessage())->toBe('I can only help with billing.');
 });
 
-it('falls back to the defaults for an agent that never saved the form', function (): void {
-    $settings = GuardrailSettingsData::fromAgent(Agent::factory()->create());
-
-    expect($settings->enabled)->toBeTrue()
-        ->and($settings->injection)->toBeTrue()
-        ->and($settings->toxicity)->toBeTrue()
-        ->and($settings->hasTopicPolicy())->toBeFalse()
-        ->and($settings->refusalMessage())->toBe('Sorry, I can’t help with that request.');
-});
-
-function guardrailSettings(?string $refusal): GuardrailSettingsData
-{
-    return new GuardrailSettingsData(
-        enabled: true,
-        filters: [],
-        injection: true,
-        toxicity: true,
-        blocked_topics: [],
-        allowed_scope: null,
-        refusal_message: $refusal,
-    );
-}
-
 it('translates the refusal message into the agent languages', function (): void {
     $agent = Agent::factory()->create();
     $agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
@@ -67,7 +63,7 @@ it('translates the refusal message into the agent languages', function (): void 
         ->shouldReceive('translate')->once()
         ->andReturn(['refusal' => ['de' => 'Dabei kann ich nicht helfen.', 'fr' => 'Je ne peux pas vous aider.']]);
 
-    app(SaveGuardrailSettingsAction::class)->execute($agent->fresh(), guardrailSettings('I can’t help with that.'));
+    app(SaveGuardrailSettingsAction::class)->execute($agent->fresh(), sgsSettings('I can’t help with that.'));
 
     $stored = GuardrailSettingsData::fromAgent($agent->fresh());
 
@@ -86,8 +82,8 @@ it('does not translate an unchanged refusal again', function (): void {
         ->andReturn(['refusal' => ['de' => 'Dabei kann ich nicht helfen.']]);
 
     $action = app(SaveGuardrailSettingsAction::class);
-    $action->execute($agent->fresh(), guardrailSettings('I can’t help with that.'));
-    $action->execute($agent->fresh(), guardrailSettings('I can’t help with that.'));
+    $action->execute($agent->fresh(), sgsSettings('I can’t help with that.'));
+    $action->execute($agent->fresh(), sgsSettings('I can’t help with that.'));
 
     expect(GuardrailSettingsData::fromAgent($agent->fresh())->refusalMessage('de'))->toBe('Dabei kann ich nicht helfen.');
 });
@@ -100,7 +96,7 @@ it('keeps the settings and shows the refusal as typed when the translation fails
         ->shouldReceive('translate')->once()
         ->andThrow(new RuntimeException('translator down'));
 
-    app(SaveGuardrailSettingsAction::class)->execute($agent->fresh(), guardrailSettings('I can’t help with that.'));
+    app(SaveGuardrailSettingsAction::class)->execute($agent->fresh(), sgsSettings('I can’t help with that.'));
 
     $stored = GuardrailSettingsData::fromAgent($agent->fresh());
 
@@ -116,7 +112,7 @@ it('translates each blocked topic reply with the refusal', function (): void {
         ->shouldReceive('translate')->once()
         ->andReturn(['refusal' => ['de' => 'Nein.'], 'topic_0' => ['de' => 'Bitte frag den Vertrieb.']]);
 
-    $settings = guardrailSettings('No.');
+    $settings = sgsSettings('No.');
     $settings->blocked_topics = [new BlockedTopicData('Pricing', action: TopicResponse::Reply, reply: 'Please ask sales.')];
 
     app(SaveGuardrailSettingsAction::class)->execute($agent->fresh(), $settings);

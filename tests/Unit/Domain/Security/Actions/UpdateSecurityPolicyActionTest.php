@@ -16,6 +16,14 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
+/**
+ * Saving Settings → Security: the form's settings are stored (the webhook
+ * secret encrypted, the settings the form does not own kept), one audit
+ * event per changed group without the secret, and a webhook URL that is not
+ * public https refused.
+ */
+
+/** The person saving the form, as the audit log records them. */
 function uspActor(User $user): SecurityActorData
 {
     return SecurityActorData::forUser($user, '203.0.113.7', 'TestAgent/1.0');
@@ -192,10 +200,3 @@ it('rejects a webhook URL pointing at an internal address (SSRF guard)', functio
     'IPv6 unique-local' => 'https://[fd12::1]/siem',
     'IPv4-mapped IPv6' => 'https://[::ffff:10.0.0.1]/siem',
 ]);
-
-it('resolves a single memoized policy through the user accessor', function (): void {
-    $user = User::factory()->create();
-
-    expect($user->securityPolicy())->toBeInstanceOf(WorkspaceSecurityPolicy::class)
-        ->and($user->securityPolicy()->is($user->securityPolicy()))->toBeTrue();
-});

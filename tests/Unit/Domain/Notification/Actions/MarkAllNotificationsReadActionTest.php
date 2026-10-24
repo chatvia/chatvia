@@ -6,6 +6,10 @@ use Domain\Notification\Events\UserNotificationsRead;
 use Domain\Notification\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
+/**
+ * Marking all read marks one person's unread notifications read and clears
+ * their badge; with nothing to mark it sends nothing.
+ */
 beforeEach(function (): void {
     Event::fake([UserNotificationsRead::class]);
 });

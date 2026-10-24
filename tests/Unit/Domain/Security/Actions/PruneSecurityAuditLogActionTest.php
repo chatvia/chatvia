@@ -5,10 +5,16 @@ use Domain\Security\Actions\PruneSecurityAuditLogAction;
 use Domain\Security\Models\SecurityAuditLog;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 
-function psaRow(User $workspace, int $daysAgo): void
+/**
+ * Security audit rows past their retention go: each workspace's own window
+ * (never below the floor), the default for the rest, in batches.
+ */
+
+/** An audit row of the owner's workspace, $daysAgo days old. */
+function psaRow(User $owner, int $daysAgo): void
 {
     SecurityAuditLog::query()->forceCreate([
-        'workspace_id' => $workspace->workspace()->id,
+        'workspace_id' => $owner->workspace()->id,
         'action' => 'auth.login',
         'created_at' => now()->subDays($daysAgo),
     ]);

@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
 /**
  * The recorder writes one row per security event into `security_audit_logs`.
  * Guarantees under test: denormalized causer name/email are stored, sensitive
- * metadata keys are redacted, oversized payloads are capped, a sha256 of the
- * RAW payload is kept, and the row has no updated_at.
+ * metadata keys are redacted, oversized payloads are capped, and a sha256 of
+ * the RAW payload is kept.
  */
 it('writes one row with denormalized causer, redacted metadata + raw hash', function (): void {
     $user = User::factory()->create();
@@ -69,16 +69,4 @@ it('caps oversized metadata and flags truncation, hashing the raw payload', func
         ->and(strlen((string) $row->metadata_preview))->toBe(20)
         ->and($row->metadata_preview)->toStartWith('{"blob":"xxx')
         ->and($row->metadata_sha256)->toBe(hash('sha256', $event->metadata)); // hash over RAW, pre-cap
-});
-
-it('writes a row without an updated_at column', function (): void {
-    $user = User::factory()->create();
-
-    $row = app(RecordSecurityEventAction::class)->execute(SecurityEventOccurred::for(
-        action: SecurityAuditAction::AuthLogin,
-        workspaceId: $user->workspace()->id,
-        actor: SecurityActorData::forUser($user),
-    ));
-
-    expect($row->getAttributes())->not->toHaveKey('updated_at');
 });

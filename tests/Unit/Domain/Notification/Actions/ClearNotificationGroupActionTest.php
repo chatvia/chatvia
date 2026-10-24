@@ -5,6 +5,10 @@ use Domain\Notification\Events\UserNotificationsRead;
 use Domain\Notification\Models\UserNotification;
 use Illuminate\Support\Facades\Event;
 
+/**
+ * Clearing a group (e.g. a handoff someone took over) marks its unread rows
+ * read for everyone who has them and tells each person's tabs.
+ */
 it('marks a group read for everyone who has it and tells each of them', function (): void {
     Event::fake([UserNotificationsRead::class]);
 

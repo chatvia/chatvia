@@ -7,9 +7,9 @@ namespace Tests\Support\Files;
 use Illuminate\Support\Facades\File;
 
 /**
- * The temp files the running test made ({@see tempTestFile()},
- * {@see deleteAfterTest()}). Pest.php deletes them after every test, so a
- * failed assertion leaves none behind.
+ * The temp files and folders the running test made ({@see tempTestFile()},
+ * {@see deleteAfterTest()}, {@see ProgramFolder}). Pest.php deletes them
+ * after every test, so a failed assertion leaves none behind.
  */
 final class TempTestFiles
 {
@@ -25,7 +25,9 @@ final class TempTestFiles
 
     public static function delete(): void
     {
-        File::delete(self::$paths);
+        foreach (self::$paths as $path) {
+            File::isDirectory($path) ? File::deleteDirectory($path) : File::delete($path);
+        }
 
         self::$paths = [];
     }

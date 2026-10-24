@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-/*
+/**
  * Server-side translations: the English-as-key `lang/{locale}.json` files that
  * back `__()` in mail, notifications, validation and flash messages. A string
  * missing from a locale silently falls back to English, so these checks keep
@@ -15,8 +16,8 @@ use Illuminate\Support\Str;
 $translationFiles = function (): array {
     $files = [];
 
-    foreach (glob(lang_path('*.json')) ?: [] as $path) {
-        $files[basename($path, '.json')] = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+    foreach (File::glob(lang_path('*.json')) as $path) {
+        $files[File::name($path)] = json_decode(File::get($path), true, flags: JSON_THROW_ON_ERROR);
     }
 
     return $files;
@@ -97,8 +98,8 @@ it('translates every literal __() string in src/ and the views into every locale
             $path = (string) $file;
 
             $keys = match (true) {
-                Str::endsWith($path, '.blade.php') => $keysInBlade((string) file_get_contents($path)),
-                Str::endsWith($path, '.php') => $keysInPhp((string) file_get_contents($path)),
+                Str::endsWith($path, '.blade.php') => $keysInBlade(File::get($path)),
+                Str::endsWith($path, '.php') => $keysInPhp(File::get($path)),
                 default => [],
             };
 

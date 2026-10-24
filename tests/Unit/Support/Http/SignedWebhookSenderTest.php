@@ -1,16 +1,19 @@
 <?php
 
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Support\Exceptions\UnsafeUrlException;
+use Support\Http\SafeUrl;
 use Support\Http\SignedWebhookSender;
 use Support\Http\WebhookSignature;
 
 /**
  * The shared sender behind the SIEM and CRM webhooks: it signs the exact body
  * it sends, re-checks the URL against SSRF at send time (outside local/testing),
- * and treats any non-2xx answer — including a redirect it refuses to follow —
+ * connects to the addresses it checked (no second DNS lookup), and treats
+ * any non-2xx answer — including a redirect it refuses to follow —
  * as a failed delivery.
  */
 it('posts the payload signed with the shared webhook signature', function (): void {
@@ -58,3 +61,26 @@ it('refuses internal targets at send time outside local and testing', function (
     'IPv6 unique-local literal' => 'https://[fd00::1]/hook',
     'IPv4-mapped IPv6 loopback' => 'https://[::ffff:127.0.0.1]/hook',
 ]);
+
+it('sends a webhook to the address that was checked, even if DNS changes afterwards', function (): void {
+    app()['env'] = 'production';
+    $answers = [['93.184.216.34'], ['10.0.0.5']];
+    SafeUrl::resolveHostsUsing(function (string $host) use (&$answers): array {
+        return array_shift($answers) ?? ['10.0.0.5'];
+    });
+
+    $pinned = null;
+    Http::fake(function (ClientRequest $request, array $options) use (&$pinned): PromiseInterface {
+        $pinned = $options['curl'][CURLOPT_RESOLVE] ?? null;
+
+        return Http::response('', 200);
+    });
+
+    try {
+        app(SignedWebhookSender::class)->send('https://hooks.example.com/in', 'e', [], 's');
+    } finally {
+        SafeUrl::resolveHostsUsing(null);
+    }
+
+    expect($pinned)->toBe(['hooks.example.com:443:93.184.216.34']);
+});

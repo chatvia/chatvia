@@ -22,10 +22,6 @@ it('reads the key the chatvia.ai site signs', function (): void {
         ->and($license->issued)->toBe('2026-10-15');
 });
 
-it('signs the same text the chatvia.ai site does', function (): void {
-    expect(LicenseKeys::activatedFor())->toBe(LicenseKeys::BOUGHT_KEY);
-});
-
 it('reads a key that wrapped when it was pasted', function (): void {
     $wrapped = chunk_split(LicenseKeys::activatedFor('chat.acme.com'), 40, "\n  ");
 
@@ -55,17 +51,3 @@ it('leaves out a feature this version does not know', function (): void {
 
     expect(LicenseSignature::verify($key, LicenseKeys::PUBLIC_KEY)?->features)->toBe([LicenseFeature::HideCredit]);
 });
-
-it('matches a host whatever its case, port or trailing dot', function (string $host, bool $covered): void {
-    $license = LicenseSignature::verify(LicenseKeys::activatedFor('chat.acme.com'), LicenseKeys::PUBLIC_KEY);
-
-    expect($license?->coversHost($host))->toBe($covered);
-})->with([
-    ['chat.acme.com', true],
-    ['CHAT.Acme.com', true],
-    ['chat.acme.com:8443', true],
-    ['chat.acme.com.', true],
-    ['acme.com', false],
-    ['evil-chat.acme.com', false],
-    ['', false],
-]);

@@ -36,7 +36,7 @@ code is organised, the conventions, and the words we use.
 
 ## Development setup
 
-The [README](README.md#getting-started) has the full steps. In short:
+The full steps follow below. In short:
 
 ```bash
 docker compose up -d          # PostgreSQL (with the search extensions), Redis, Mailpit
@@ -48,14 +48,348 @@ php artisan migrate --seed
 composer dev                  # app server, queue worker, logs and Vite
 ```
 
-You need PHP 8.5, Composer 2 and Node 22. The system tools listed in the
-README (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) are optional: without
+You need PHP 8.5, Composer 2 and Node 22. The system tools listed under
+[Requirements](#requirements) (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) are optional: without
 one, the app does its work itself or refuses only the files it cannot read.
 Tests of a tool skip when it is not installed.
 
 With only Docker on your machine, use Laravel Sail instead: it runs the app,
 the queue worker, the scheduler, Reverb and Pulse's server stats in
-containers, with every system tool installed. See [Develop with Laravel Sail](README.md#develop-with-laravel-sail).
+containers, with every system tool installed. See [Develop with Laravel Sail](#develop-with-laravel-sail).
+
+### Requirements
+
+- **PHP 8.5** with these extensions: `dom`, `fileinfo`, `intl`, `libxml`,
+  `openssl` and `pdo` (required by `composer.json`), plus `pdo_pgsql`, `redis`,
+  `mbstring`, `curl`, `zip`, `gd`, `exif` and `pcntl`.
+- **Composer 2**
+- **Node.js 22.18** or newer, npm and **git** (to download and build the chat
+  widget)
+- **PostgreSQL 17 or 18** with [pgvector](https://github.com/pgvector/pgvector)
+  (`vector`). [pg_textsearch](https://github.com/timescale/pg_textsearch) is
+  recommended for true BM25 keyword ranking, but optional: it must be preloaded
+  into the server, so on a managed database (where that is not possible)
+  keyword search falls back to PostgreSQL's built-in full-text search
+  (`SEARCH_LEXICAL_DRIVER=auto` picks this up). The easiest way is the
+  `ghcr.io/chatvia/postgres` Docker image (see below).
+- **Redis** 7 or newer
+- **System tools** for some file types. They are all optional: without one,
+  the app does its work itself, or refuses only the files it cannot read. So
+  ChatVia.ai also runs on a host that does not let you install programs:
+  - [pandoc](https://pandoc.org/): EPUB books and Word (`.docx`) files. Without it, the app reads
+    them itself. The app reads RTF files itself; pandoc is only a backup for them.
+  - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): only a backup
+    for old Word (`.doc`) and PowerPoint (`.ppt`) files, which the app reads itself. PowerPoint
+    (`.pptx`) and Excel (`.xlsx`) files need no extra program either.
+  - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files. `pdfinfo`
+    counts their pages and finds locked ones; without it, the app does this itself. `pdftotext` is
+    only a backup: the document reader reads PDF files.
+  - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): makes audio and video small enough for
+    speech to text. Without it, only recordings the speech-to-text service takes as they are (such
+    as an MP3 under 25 MB) can be uploaded. Without `ffprobe`, the app measures recordings itself.
+  - [WeasyPrint](https://weasyprint.org/) (`weasyprint`): exporting a chat as PDF, and summaries
+    of office files. Without it, pick Cloudflare Browser Rendering or a
+    [Gotenberg](https://gotenberg.dev/) server as the PDF maker in the admin panel
+    (Settings → Platform → PDF maker).
+
+  If a tool is not on the `PATH` of the web server or the queue worker (for
+  example Homebrew's `/opt/homebrew/bin` on a Mac), set its full path in the
+  admin panel: **Settings → Platform → Programs**.
+
+**External AI services.** ChatVia.ai calls AI models through OpenAI-compatible
+APIs. You need a chat provider and an embedding provider. The default
+configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
+and others) for chat and embeddings. Other chat providers: OpenRouter,
+OpenAI, Anthropic, Mistral, Google Gemini, Groq, or your own OpenAI-compatible
+server.
+OpenRouter, OpenAI, Mistral and Google Gemini make embeddings with the same
+key.
+Reranking uses OpenRouter or Cohere. PDF, Word, slides and images are read by
+Mistral OCR or Azure Document Intelligence; without one of them, those files
+cannot be uploaded. Text is split into chunks inside ChatVia.ai, by tokens or by
+characters (**Settings → Splitting**). Website import uses Firecrawl. Each
+API key is entered once in the admin panel (**Settings → AI providers**), and
+the models in **Settings → AI models**, not in `.env`; see
+[AI providers](https://chatvia.ai/docs/guide/installation#6-add-your-api-keys).
+
+### Getting started
+
+#### 1. Start PostgreSQL, Redis and Mailpit with Docker
+
+The repository has a `docker-compose.yml` for the services the app needs. The
+app itself runs on your machine. To run the app in Docker as well, skip to
+[Develop with Laravel Sail](#develop-with-laravel-sail).
+
+```bash
+docker compose up -d
+docker compose ps        # wait until the services are "healthy"
+```
+
+| Service | Address | Notes |
+|---|---|---|
+| PostgreSQL 18 | `127.0.0.1:5432` | user `chatvia`, password `password`, databases `chatvia` and `testing` |
+| Redis | `127.0.0.1:6379` | no password |
+| Mailpit | SMTP `127.0.0.1:1025`, web UI <http://localhost:8025> | catches all e-mail |
+
+These credentials are for local development only. If a port is already in
+use, change it with `FORWARD_DB_PORT`, `FORWARD_REDIS_PORT`,
+`FORWARD_MAILPIT_PORT` or `FORWARD_MAILPIT_DASHBOARD_PORT`, for example
+`FORWARD_DB_PORT=5433 docker compose up -d`. `docker compose down -v` deletes
+all data.
+
+<details>
+<summary><strong>Without Docker</strong></summary>
+
+1. Install PostgreSQL 17 or 18 with pgvector, and (recommended) the
+   `pg_textsearch` extension from its
+   [releases](https://github.com/timescale/pg_textsearch/releases). On a
+   managed database without it, keyword search uses PostgreSQL's built-in
+   full-text search instead.
+2. With pg_textsearch, load it in `postgresql.conf` and restart PostgreSQL:
+
+   ```
+   shared_preload_libraries = 'pg_textsearch'
+   ```
+
+3. Create a role and the two databases. The first migration runs
+   `CREATE EXTENSION`, so the role needs the rights to do that (in development,
+   a superuser is simplest):
+
+   ```sql
+   CREATE ROLE chatvia LOGIN SUPERUSER PASSWORD 'password';
+   CREATE DATABASE chatvia OWNER chatvia;
+   CREATE DATABASE testing OWNER chatvia;
+   ```
+
+4. Install Redis 7 or newer. For e-mail, use Mailpit or set `MAIL_MAILER=log`.
+
+</details>
+
+#### 2. Install the app
+
+```bash
+git clone <repository-url> chatvia
+cd chatvia
+
+composer install
+npm ci
+npm run shakomako:build
+
+cp .env.example .env
+php artisan key:generate
+```
+
+`npm run shakomako:build` downloads and builds the chat widget into
+`public/shakomako`; see [The widget](#the-widget).
+
+#### 3. Configure `.env`
+
+`.env.example` lists what the app needs to start, each with a short comment.
+Everything else (API keys, AI services, mail, storage, brand) is set later in
+the admin panel, under **Settings**. The default values in `.env.example`
+work with the Docker services above:
+
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=chatvia
+DB_USERNAME=chatvia
+DB_PASSWORD=password
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+```
+
+The `MAIL_*` lines are only a preset for the Mailpit Docker service. The
+normal place for e-mail is the admin panel (**Settings → Email**); a value
+saved there wins over `.env`.
+
+Redis keeps the queues, the cache, the chat memory and the sign-in sessions.
+Each one has its own Redis database (`REDIS_DB`, `REDIS_CACHE_DB`,
+`REDIS_CHAT_DB` and `REDIS_SESSION_DB`), so clearing the cache does not sign
+anyone out.
+
+Then set `BUILTIN_MCP_SECRET` to a long random string (the built-in tools need
+it).
+
+**Before the first migration**, decide how the database stores embeddings:
+`EMBEDDING_VECTOR_TYPE` (`halfvec`, the default, or `vector`) and
+`EMBEDDING_DIMENSIONS` (default `1024`). The tables are created with these
+values, so you cannot change them later. The app stops with an error when they
+no longer match the database (`php artisan chatvia:search:check-embedding-storage`).
+
+Sign-up, the message limit of new workspaces and how long conversations are
+kept are set later in the admin panel (**Settings → Workspaces**), not in
+`.env`.
+
+#### 4. Create the database schema and demo data
+
+```bash
+php artisan chatvia:db:create-tool-databases
+php artisan migrate --seed
+php artisan storage:link
+```
+
+The first command creates the databases of Pulse and Spectra
+(`DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`, by default `pulse` and
+`spectra`) when they are missing; the Docker services create them on their
+first start. The first migration installs the PostgreSQL extensions. The
+seeders load the list of AI models and, outside production, create a demo
+admin account (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, by default
+`admin@example.com` / `password`) with sample data; see
+`database/seeders/DatabaseSeeder.php`.
+
+#### 5. Add your API keys
+
+Sign in to the admin panel at `/admin` with the demo admin account and open
+**Settings → AI providers**. Enter the key of your chat and embedding
+provider (with the defaults, one Scaleway key covers both). Then add the
+built-in tools (charts, forms, weather, currency, web search) to the tool
+catalog:
+
+```bash
+php artisan chatvia:mcp:sync-builtin
+```
+
+### Running the app
+
+During development you need these processes:
+
+| Process | Command | What it does |
+|---|---|---|
+| Web server | `php artisan serve` (or Herd / Valet) | serves the app |
+| Vite | `npm run dev` | builds the frontend with hot reload |
+| Queues | `php artisan horizon` | runs background jobs (ingestion, AI replies on channels, analytics, exports) |
+| WebSockets | `php artisan reverb:start` | live updates, for example ingestion progress |
+| Scheduler | `php artisan schedule:work` | cleanup and other scheduled tasks |
+| Server stats (optional) | `php artisan pulse:check` | CPU, memory and disk on Pulse's Servers card (`/pulse`) |
+
+`composer dev` starts the web server, a simple queue worker, the log viewer
+(`php artisan pail`) and Vite together. Its worker only reads the `default`
+queue, so start `php artisan horizon` as well when you work on ingestion,
+channels or exports: jobs use several named queues (see `config/horizon.php`).
+
+**Messaging channels on your machine.** Slack, Teams, Telegram, WhatsApp,
+Messenger and Instagram can only call a public HTTPS URL. Use a tunnel (for
+example [cloudflared](https://github.com/cloudflare/cloudflared)) to your local
+site, point the channel's webhook at the tunnel URL, and keep Horizon running,
+because replies are sent from queued jobs. Messaging channels only work with
+public agents.
+
+### Develop with Laravel Sail
+
+[Laravel Sail](https://laravel.com/docs/sail) runs everything in Docker: the
+app, Horizon, the scheduler, Reverb and Pulse's server stats, next to the
+PostgreSQL, Redis and Mailpit services above. You only need Docker. The image
+has every system tool (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) installed.
+
+Sail is for development only. It uses `docker-compose.yml` (project
+`chatvia-dev`) and `docker/sail/Dockerfile`; the production image, its compose
+file and CI do not use either.
+
+1. Install the PHP packages. With PHP on your machine, run `composer install`.
+   Without it, use Composer's Docker image:
+
+   ```bash
+   docker run --rm -v "$(pwd):/app" -w /app composer:2 install --ignore-platform-reqs --no-scripts
+   ```
+
+2. Create `.env` and turn Sail on:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   In `.env`, uncomment `COMPOSE_PROFILES=sail` and `APP_PORT=8000`. The
+   `postgres` container creates its database, user and password from
+   `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` the first time it starts.
+
+3. Start the containers. The first start builds the image, which takes a few
+   minutes:
+
+   ```bash
+   vendor/bin/sail up -d
+   ```
+
+4. Set up the app inside the containers:
+
+   ```bash
+   vendor/bin/sail composer install
+   vendor/bin/sail artisan key:generate
+   vendor/bin/sail npm ci
+   vendor/bin/sail npm run shakomako:build
+   vendor/bin/sail artisan chatvia:db:create-tool-databases
+   vendor/bin/sail artisan migrate --seed
+   vendor/bin/sail artisan storage:link
+   ```
+
+   Set `BUILTIN_MCP_SECRET` in `.env`, run `vendor/bin/sail restart`, then
+   add your API keys as in [step 5](#5-add-your-api-keys), with
+   `vendor/bin/sail artisan chatvia:mcp:sync-builtin`.
+
+5. Start Vite and open <http://localhost:8000>:
+
+   ```bash
+   vendor/bin/sail npm run dev
+   ```
+
+| Container | What it runs | On your machine |
+|---|---|---|
+| `laravel.test` | the web server, and Vite when you start it | <http://localhost:8000>, Vite on port 5173 |
+| `horizon` | queued jobs | |
+| `scheduler` | scheduled tasks | |
+| `reverb` | WebSockets | `ws://localhost:8080` |
+| `pulse` | Pulse's server stats (`pulse:check`) | |
+| `postgres`, `redis`, `mailpit` | as above | as above |
+
+#### Where the settings live
+
+**In `.env`.** You set these:
+
+- The database: `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD`. The
+  `postgres` container creates this database and user the first time it
+  starts. If you change them later, the existing database keeps the old values;
+  `vendor/bin/sail down -v` deletes all data, so the next start creates them
+  again. The tests expect the defaults (`chatvia` / `password`, see
+  `phpunit.xml`).
+- Sail and the ports on your machine: `COMPOSE_PROFILES`, `APP_PORT`,
+  `FORWARD_REVERB_PORT`, `VITE_PORT` and the `FORWARD_*_PORT` settings of the
+  services.
+- Everything else, as without Sail (`APP_KEY`, `BUILTIN_MCP_SECRET` and so on).
+
+**In `docker-compose.yml`.** These are set for you. Do not copy them into
+`.env`:
+
+- How the containers find each other: `DB_HOST=postgres`, `REDIS_HOST=redis`,
+  `MAIL_HOST=mailpit`, `REVERB_HOST=reverb` and
+  `BUILTIN_MCP_INTERNAL_URL=http://laravel.test`.
+- The addresses your browser uses: `APP_URL` (`http://localhost:` and
+  `APP_PORT`) and the Reverb address (`localhost:` and `FORWARD_REVERB_PORT`).
+
+Inside the containers, these values win over `.env`. So one `.env` works with
+Sail and without it: `.env` keeps `DB_HOST=127.0.0.1` for when the app runs on
+your machine. After you change `.env`, run `vendor/bin/sail restart`.
+
+#### Good to know
+
+- Horizon loads the code once. After you change code that runs in a queued
+  job, run `vendor/bin/sail restart horizon`.
+- `node_modules` is shared with your machine, and some packages are built for
+  one system. After `sail npm ci`, run `npm ci` again before you use
+  `npm run dev` outside Sail.
+- Do not run Horizon or Reverb on your machine at the same time: two workers
+  would take jobs from the same Redis. If port 8080 or 5173 is in use (for
+  example by Herd's Reverb), set `FORWARD_REVERB_PORT` or `VITE_PORT`.
+- Tests: `vendor/bin/sail artisan test --compact`. Stop everything with
+  `vendor/bin/sail down` (your data is kept).
 
 ## Making a change
 
@@ -217,6 +551,91 @@ then tag the widget release: every build takes the newest release.
   and the helpers in `tests/Pest.php` rather than building models by hand. A
   helper function you declare in a test file is global, so give it a short
   prefix of its own (`cscChunk()`), or two files will clash.
+
+## Testing the installers
+
+### Test the Docker install
+
+You can test the production image (`Dockerfile`) and the installer on your
+machine before you tag a release. Nothing is pushed to the registry. This is
+not Sail: it runs the same setup people get from `install.sh`, with the code
+built into the image.
+
+1. Build the image:
+
+   ```bash
+   docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t chatvia-local:dev .
+   ```
+
+2. Run the installer from this repository:
+
+   ```bash
+   CHATVIA_COMPOSE_URL="file://$PWD/docker/compose.yaml" CHATVIA_MANAGE_URL="file://$PWD/docker/manage" bash install.sh --no-pull --image chatvia-local --version dev --dir ~/chatvia-test
+   ```
+
+`--no-pull` uses the image on your machine. The two `CHATVIA_*_URL`
+variables make the installer use your copies of `docker/compose.yaml` and
+`docker/manage`. Without them, it downloads these files from GitHub, and you
+do not test your changes. Add `--dry-run` to see the questions and the output
+without starting anything.
+
+The test install is the Compose project `chatvia`. It shares no containers,
+data or ports with Sail (`chatvia-dev`), so both can run at the same time. It
+publishes only the app port: 8899, or the next free port.
+
+After a change:
+
+- **App code:** build the image again (step 1, same tag), then run
+  `docker compose up -d` in `~/chatvia-test`. Compose sees the new image and
+  restarts the containers.
+- **`install.sh`, `docker/compose.yaml` or `docker/manage`:** run step 2 again
+  in the same folder. This tests the upgrade.
+- **A fresh install:** run `docker compose down -v` in `~/chatvia-test` (this
+  deletes its data), delete the folder, then run step 2 again.
+
+### Test the complete installation
+
+The complete installation (`install.sh --complete`) sets up a whole Ubuntu
+26.04 server. A throwaway VPS is the real test. On your machine, a container
+with systemd stands in for one:
+
+1. Build an image with systemd, from a folder with this `Dockerfile`:
+
+   ```dockerfile
+   FROM ubuntu:26.04
+   RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+         systemd systemd-sysv dbus curl ca-certificates git sudo openssh-server iproute2
+   STOPSIGNAL SIGRTMIN+3
+   CMD ["/sbin/init"]
+   ```
+
+   ```bash
+   docker build -t chatvia-server .
+   ```
+
+2. Start it, with this repository inside:
+
+   ```bash
+   docker run -d --name chatvia-server --privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --tmpfs /run --tmpfs /run/lock -p 8088:80 -v "$PWD:/src/chatvia:ro" chatvia-server
+   ```
+
+3. Give it a copy of your commits to deploy, then run the installer from
+   this repository:
+
+   ```bash
+   docker exec chatvia-server bash -c 'git config --system --add safe.directory "*" && git clone -q --bare /src/chatvia /srv/chatvia.git'
+   ```
+
+   ```bash
+   docker exec -it -e CHATVIA_REPO=/srv/chatvia.git chatvia-server bash /src/chatvia/install.sh --complete --version main --domain 127.0.0.1
+   ```
+
+ChatVia.ai then answers on <http://localhost:8088>. Run step 3's last command
+again to test an upgrade; to deploy newer commits, clone them again first.
+Without a widget release, add `-e SHAKOMAKO_VERSION=main` to it. The frontend
+build needs about 3 GB of memory next to the running app: give Docker enough,
+or the container's systemd stops the installer. `docker rm -f chatvia-server`
+removes everything.
 
 ## Code conventions (short version)
 

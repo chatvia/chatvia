@@ -133,6 +133,41 @@ it('lets the admin mark a model models.dev does not list as reasoning, and let a
         ->and(savedSetting(AiSettings::class, 'allow_reasoning'))->toBeTrue();
 });
 
+it('turns reasoning off for a model models.dev says can reason, and keeps it off through the next sync', function (): void {
+    forgetModelsDevCatalog();
+    Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['openrouter' => ['models' => [
+        'qwen/qwen3-235b-a22b' => ['reasoning' => true],
+    ]]], 'models' => []])]);
+    $model = Llm::factory()->withReasoning()->create([
+        'name' => 'qwen/qwen3-235b-a22b',
+        'llm_provider_id' => LlmProvider::factory()->kind(LlmProviderKind::OpenRouter),
+    ]);
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->call('updateTableColumnState', 'reasons', (string) $model->getKey(), false);
+
+    $model->refresh();
+    $model->update(['capabilities' => ['reasoning' => true]]);
+
+    expect($model->refresh()->reasons())->toBeFalse()
+        ->and($model->canReason())->toBeTrue();
+});
+
+it('locks the "Reasons" switch of a model models.dev says cannot reason, with a tooltip that says why', function (): void {
+    forgetModelsDevCatalog();
+    Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['openrouter' => ['models' => [
+        'meta-llama/llama-4-maverick' => ['reasoning' => false],
+        'qwen/qwen3-235b-a22b' => ['reasoning' => true],
+    ]]], 'models' => []])]);
+    $provider = LlmProvider::factory()->kind(LlmProviderKind::OpenRouter)->create();
+    Llm::factory()->for($provider, 'provider')->create(['name' => 'meta-llama/llama-4-maverick']);
+    Llm::factory()->for($provider, 'provider')->withReasoning()->create(['name' => 'qwen/qwen3-235b-a22b']);
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->assertSeeHtml('This model cannot reason, says models.dev.')
+        ->assertSeeHtml('On: the model may think before it answers');
+});
+
 it('adds several models at once', function (): void {
     modelsFakeOpenRouter();
 

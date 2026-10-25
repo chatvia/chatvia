@@ -22,7 +22,7 @@ use App\Admin\Settings\TaskModelPreset;
 use Domain\Agent\Actions\Settings\AssignModelToAgentsWithoutOneAction;
 use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
-use Domain\Llm\Actions\Catalog\AddLlmModelAction;
+use Domain\Llm\Actions\Catalog\AddPresetLlmModelAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Actions\Catalog\SaveCustomLlmServerAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
@@ -51,7 +51,7 @@ final readonly class CompleteSetupAction
     public function __construct(
         private EnsureLlmProviderAction $ensureProvider,
         private SaveCustomLlmServerAction $saveServer,
-        private AddLlmModelAction $addModel,
+        private AddPresetLlmModelAction $addModel,
         private AssignModelToAgentsWithoutOneAction $assignModel,
         private AiProviderSettings $providers,
         private AiSettings $ai,

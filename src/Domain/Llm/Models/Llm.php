@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Cache;
  * @property string $name
  * @property array<string, mixed>|null $capabilities
  * @property bool $is_enabled
+ * @property bool $is_reasoning_enabled
  * @property Carbon|null $unlisted_at
  * @property-read LlmProvider $provider
  * @property Carbon|null $created_at
@@ -51,7 +52,8 @@ use Illuminate\Support\Facades\Cache;
  * effort values it takes, whether it takes a temperature, calls tools and
  * keeps to a JSON schema, and its longest reply, so the app sends each model
  * only what it takes instead of guessing from its name. For a model the catalog does not list, the admin says
- * whether it reasons, and the other settings go as asked. An admin adds
+ * whether it reasons, and the other settings go as asked. The admin may also
+ * turn reasoning off for a model that can reason (`is_reasoning_enabled`). An admin adds
  * the models an install may use; agents and the app's own tasks pick theirs
  * from it, and every call to a model goes to its provider.
  */
@@ -77,6 +79,7 @@ class Llm extends Model
         return [
             'capabilities' => 'json',
             'is_enabled' => 'boolean',
+            'is_reasoning_enabled' => 'boolean',
             'unlisted_at' => 'datetime',
         ];
     }
@@ -84,6 +87,7 @@ class Llm extends Model
     #[\Override]
     protected $attributes = [
         'is_enabled' => true,
+        'is_reasoning_enabled' => true,
     ];
 
     /**
@@ -228,10 +232,19 @@ class Llm extends Model
         return $this->facts()?->takesResponseSchema !== false;
     }
 
-    /** Whether the model thinks before it answers, so agents may set how hard. */
-    public function reasons(): bool
+    /** Whether the model can think before it answers, as its facts say. */
+    public function canReason(): bool
     {
         return $this->facts()?->reasoning ?? false;
+    }
+
+    /**
+     * Whether the model thinks before it answers, so agents may set how hard:
+     * it can, and the admin has not turned reasoning off for it.
+     */
+    public function reasons(): bool
+    {
+        return $this->is_reasoning_enabled && $this->canReason();
     }
 
     /**

@@ -54,7 +54,10 @@ it('shows the service in use, marks each provider connected or not, and greys ou
 
     $field = scField(adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet([$property => $provider->value]), $property);
 
-    expect($field->getOptions())->toBe($options)
+    // Each label is HTML: the provider's logo, or an icon, before the name.
+    expect(collect($field->getOptions())->map(fn (string $label): string => Str::of($label)->stripTags()->trim()->toString())->all())->toBe($options)
+        ->and($field->getOptions())->each->toStartWith('<span class="cv-model-label">')
+        ->and($field->isHtmlAllowed())->toBeTrue()
         ->and($field->canSelectPlaceholder())->toBeFalse()
         ->and(array_keys(array_filter($options, fn (string $label, string $value): bool => $field->isOptionDisabled($value, $label), ARRAY_FILTER_USE_BOTH)))->toBe($disabled);
 })->with([

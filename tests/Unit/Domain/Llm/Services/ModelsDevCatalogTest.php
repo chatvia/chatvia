@@ -42,7 +42,7 @@ function mdCatalog(): array
 }
 
 beforeEach(function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
 });
 
 it('gives each model the facts its provider lists', function (): void {
@@ -128,15 +128,6 @@ it('gives no facts when the catalog cannot be read, and waits a day to try again
     Http::assertSentCount(1);
 });
 
-it('reads nothing while the lookup is off', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => false]);
-    Http::fake();
-
-    expect(app(ModelsDevCatalog::class)->facts(LlmProviderKind::OpenAi, 'gpt-6-luna'))->toBeNull();
-
-    Http::assertNothingSent();
-});
-
 it('gives a model its lab\'s logo, else its provider\'s', function (): void {
     Http::fake([ModelsDevCatalog::URL => Http::response([
         'providers' => [
@@ -151,19 +142,17 @@ it('gives a model its lab\'s logo, else its provider\'s', function (): void {
     expect($catalog->logo(LlmProviderKind::OpenRouter, 'qwen/qwen3-235b-a22b'))->toBe('labs/alibaba')
         // Its provider made it: the catalog names no other lab.
         ->and($catalog->logo(LlmProviderKind::OpenAi, 'gpt-4.1'))->toBe('openai')
-        // Not listed: its provider's.
+        // Not listed: the lab of a listed model with the same prefix, else its provider's.
+        ->and($catalog->logo(LlmProviderKind::OpenRouter, 'qwen/qwen3-reranker-8b'))->toBe('labs/alibaba')
         ->and($catalog->logo(LlmProviderKind::OpenRouter, 'someone/new-model'))->toBe('openrouter')
+        // A lab on its own API.
+        ->and($catalog->labLogo('Cohere'))->toBe('labs/cohere')
         // A server of your own: the lab of the catalog's general model, none when it is not listed.
         ->and($catalog->logo(LlmProviderKind::Custom, 'alibaba/qwen3-8b'))->toBe('labs/alibaba')
         ->and($catalog->logo(LlmProviderKind::Custom, 'llama3.1:8b'))->toBeNull()
         // A provider itself: its own logo, none for a server of your own.
         ->and($catalog->providerLogo(LlmProviderKind::OpenRouter))->toBe('openrouter')
         ->and($catalog->providerLogo(LlmProviderKind::Custom))->toBeNull();
-
-    config(['chatvia.ai.models_dev.enabled' => false]);
-
-    expect($catalog->logo(LlmProviderKind::OpenAi, 'gpt-4.1'))->toBeNull()
-        ->and($catalog->providerLogo(LlmProviderKind::OpenAi))->toBeNull();
 });
 
 it('downloads a logo once and keeps it, and refuses anything but an SVG of a known shape', function (): void {

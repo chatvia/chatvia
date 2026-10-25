@@ -23,8 +23,8 @@ use Throwable;
  * The catalog (several MB) is fetched at most once a day, and only when it
  * changed (ETag); only the facts the app uses are kept, in the cache. It is
  * read when models are added and by the daily sync, never during a chat.
- * Switched off (`chatvia.ai.models_dev.enabled`), unreachable or not listing
- * a model, it gives no facts, and the admin's own switches decide.
+ * It is always read: there is no switch. Unreachable or not listing a
+ * model, it gives no facts, and the admin's own switches decide.
  *
  * It also has a logo for each lab (who made a model) and each provider: the
  * admin panel shows a model with its lab's logo, fetched once and kept.
@@ -33,7 +33,7 @@ final class ModelsDevCatalog
 {
     public const string URL = 'https://models.dev/catalog.json?type=all';
 
-    private const string CACHE_KEY = 'llm:models-dev:facts';
+    public const string CACHE_KEY = 'llm:models-dev:facts';
 
     private const int MAX_AGE_HOURS = 24;
 
@@ -67,13 +67,13 @@ final class ModelsDevCatalog
      * The model's catalog entry, cut to the fields the app reads
      * (`reasoning`, `reasoning_options`, `temperature`, `tool_call`,
      * `structured_output`, `limit`), for the model's row to keep. Null when
-     * it is not listed or the lookup is off.
+     * it is not listed.
      *
      * @return array<string, mixed>|null
      */
     public function entry(LlmProviderKind $kind, string $modelId): ?array
     {
-        return $this->enabled() ? $this->find($this->stored(refreshWhenOld: true), $kind, $modelId) : null;
+        return $this->find($this->stored(refreshWhenOld: true), $kind, $modelId);
     }
 
     /**
@@ -84,20 +84,15 @@ final class ModelsDevCatalog
      */
     public function storedEntry(LlmProviderKind $kind, string $modelId): ?array
     {
-        return $this->enabled() ? $this->find($this->stored(refreshWhenOld: false), $kind, $modelId) : null;
+        return $this->find($this->stored(refreshWhenOld: false), $kind, $modelId);
     }
 
     /**
      * How many models the stored catalog lists for the providers the app
      * connects to, read again when a day old; 0 when it could not be read
-     * or the lookup is off.
      */
     public function listedModels(): int
     {
-        if (! $this->enabled()) {
-            return 0;
-        }
-
         $facts = $this->stored(refreshWhenOld: true);
 
         return array_sum(array_map(count(...), (array) ($facts['providers'] ?? [])));
@@ -106,29 +101,39 @@ final class ModelsDevCatalog
     /**
      * The logo of a model as its provider names it: its lab's, read from the
      * catalog's own id for it (`alibaba/qwen3-235b-a22b` is Alibaba's), else
-     * its provider's. A model on a server of your own that the catalog does
-     * not list has none. Never downloads the catalog.
+     * its provider's. A model the catalog does not list (a reranker or an
+     * embedding model: it lists chat models only) takes the lab of a listed
+     * model with the same prefix on that provider (`qwen/qwen3-reranker-8b`
+     * is Alibaba's too). A model on a server of your own that the catalog
+     * does not list has none. Never downloads the catalog.
      */
     public function logo(LlmProviderKind $kind, string $modelId): ?string
     {
-        if (! $this->enabled()) {
-            return null;
-        }
-
-        $entry = $this->find($this->stored(refreshWhenOld: false), $kind, $modelId);
+        $facts = $this->stored(refreshWhenOld: false);
+        $entry = $this->find($facts, $kind, $modelId);
         $canonical = $entry['canonical_model_id'] ?? ($kind->catalogKey() === null && $entry !== null ? $modelId : null);
 
         if (is_scalar($canonical) && Str::contains((string) $canonical, '/')) {
             return 'labs/'.Str::lower(Str::before((string) $canonical, '/'));
         }
 
-        return $kind->catalogKey();
+        $lab = $entry === null && Str::contains($modelId, '/')
+            ? $this->labsByPrefix($facts, $kind)[Str::before($modelId, '/')] ?? null
+            : null;
+
+        return $lab !== null ? "labs/{$lab}" : $kind->catalogKey();
+    }
+
+    /** The logo of a lab by its models.dev name (`cohere`), for a model on its own API that the catalog does not list. */
+    public function labLogo(string $lab): string
+    {
+        return 'labs/'.Str::lower($lab);
     }
 
     /** The logo of a provider itself (`openrouter`); a server of your own has none. */
     public function providerLogo(LlmProviderKind $kind): ?string
     {
-        return $this->enabled() ? $kind->catalogKey() : null;
+        return $kind->catalogKey();
     }
 
     /**
@@ -165,9 +170,7 @@ final class ModelsDevCatalog
     /** Fetch the catalog now when it changed, whatever its age. */
     public function refresh(): void
     {
-        if ($this->enabled()) {
-            $this->fetch((array) Cache::memo()->get(self::CACHE_KEY, []));
-        }
+        $this->fetch((array) Cache::memo()->get(self::CACHE_KEY, []));
     }
 
     /**
@@ -182,9 +185,25 @@ final class ModelsDevCatalog
         return is_array($entry) ? $entry : null;
     }
 
-    private function enabled(): bool
+    /**
+     * The lab behind each model id prefix a provider uses (`qwen` => `alibaba`),
+     * read from the models it lists.
+     *
+     * @param  array<string, mixed>  $facts
+     * @return array<string, string>
+     */
+    private function labsByPrefix(array $facts, LlmProviderKind $kind): array
     {
-        return filter_var(config('chatvia.ai.models_dev.enabled', true), FILTER_VALIDATE_BOOL);
+        $key = $kind->catalogKey();
+
+        return collect($key !== null ? (array) ($facts['providers'][$key] ?? []) : [])
+            ->filter(fn (mixed $entry, string|int $id): bool => is_array($entry)
+                && Str::contains((string) $id, '/')
+                && Str::contains((string) ($entry['canonical_model_id'] ?? ''), '/'))
+            ->mapWithKeys(fn (array $entry, string|int $id): array => [
+                Str::before((string) $id, '/') => Str::lower(Str::before((string) $entry['canonical_model_id'], '/')),
+            ])
+            ->all();
     }
 
     /**

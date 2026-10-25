@@ -5,10 +5,12 @@ namespace Tests;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Faker\Factory;
 use Faker\Generator;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\ParallelTesting;
 use Tests\Support\Database\ParallelTestDatabases;
@@ -84,9 +86,11 @@ abstract class TestCase extends BaseTestCase
         // cover it switch it on themselves.
         config(['chatvia.ai.chunker.enhance' => false]);
 
-        // Adding a model reads the models.dev catalog; tests that cover it
-        // switch it on themselves.
-        config(['chatvia.ai.models_dev.enabled' => false]);
+        // Models read their facts from the models.dev catalog, which is
+        // always on. Each test starts with an empty one that never goes
+        // stale, so none downloads it; tests that cover it call
+        // forgetModelsDevCatalog() and fake the download.
+        Cache::memo()->forever(ModelsDevCatalog::CACHE_KEY, ['checked_at' => now()->addYears(100)->getTimestamp()]);
 
         // The seeded catalog is Scaleway AI's: its models can be used only
         // while that account has a key. Speech to text stays off, as it was

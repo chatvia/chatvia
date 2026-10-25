@@ -523,7 +523,6 @@
     "Outgoing email": "Lähtevä sähköposti",
     "Models": "Mallit",
     "Model details": "Mallien tiedot",
-    "Switched off in Settings → AI models.": "Pois päältä kohdassa Asetukset → Tekoälymallit.",
     "Could not read models.dev.": "models.dev-palvelua ei voitu lukea.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Mallit pitävät \"Reasons\"-kytkimensä, kunnes luettelo voidaan lukea. Uusi yritys kerran päivässä.",
     "Model details loaded.": "Mallien tiedot ladattu.",

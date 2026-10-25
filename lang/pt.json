@@ -523,7 +523,6 @@
     "Outgoing email": "E-mail de saída",
     "Models": "Modelos",
     "Model details": "Detalhes dos modelos",
-    "Switched off in Settings → AI models.": "Desativado em Definições → Modelos de IA.",
     "Could not read models.dev.": "Não foi possível ler o models.dev.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Os modelos mantêm o interruptor \"Reasons\" até que seja possível ler. Nova tentativa uma vez por dia.",
     "Model details loaded.": "Detalhes dos modelos carregados.",

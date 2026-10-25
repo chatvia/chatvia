@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 /**
  * Runs the daily sync of the models' facts from the models.dev catalog
  * ({@see SyncLlmFactsAction}): whether each model reasons, its effort values
- * and whether it takes a temperature. Does nothing while the lookup is off.
+ * and whether it takes a temperature.
  */
 #[Description('Update each model\'s facts (reasoning, effort values, temperature) from the models.dev catalog.')]
 #[Signature('chatvia:llm:sync-facts')]

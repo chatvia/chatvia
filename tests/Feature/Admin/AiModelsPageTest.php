@@ -146,7 +146,7 @@ it('adds several models at once', function (): void {
 });
 
 it('warns about a model that cannot call tools while adding it, still adds it, and marks it in the list', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['openrouter' => ['models' => [
         'qwen/qwen3-235b-a22b' => ['tool_call' => false],
         'meta-llama/llama-4-maverick' => ['tool_call' => true],
@@ -207,7 +207,7 @@ it('keeps Add off until a model is picked', function (): void {
 });
 
 it('shows every chat provider and the servers of your own, the ones without a key greyed out', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     connectAiProviders(AiProvider::Groq);
     Http::fake(['api.groq.com/*' => Http::response(['data' => []])]);
     $server = LlmProvider::factory()->create(['name' => 'Office Ollama']);

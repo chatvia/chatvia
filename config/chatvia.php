@@ -341,13 +341,6 @@ return [
             'enabled' => false,
         ],
 
-        // Whether the app reads each model's facts (does it reason, which
-        // effort values, does it take a temperature) from the models.dev
-        // catalog (Settings → AI models). Off: the admin's switches decide.
-        'models_dev' => [
-            'enabled' => true,
-        ],
-
         'document_parser' => 'auto',
         'reranker' => 'auto',
         'rerank' => [

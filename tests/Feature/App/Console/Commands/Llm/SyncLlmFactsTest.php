@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
  * tested there) and says how many models it updated.
  */
 it('syncs the model facts from the command line', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['openai' => ['models' => [
         'gpt-6-luna' => ['reasoning' => true, 'temperature' => false, 'reasoning_options' => [['type' => 'effort', 'values' => ['none', 'low', 'high']]]],
     ]]], 'models' => []]), '*' => Http::response(['choices' => []])]);

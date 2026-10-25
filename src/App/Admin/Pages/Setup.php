@@ -397,6 +397,7 @@ class Setup extends SimplePage
                 baseUrl: (string) $state['server_url'],
                 apiKey: $this->filled($state, 'api_key'),
             ),
+            chatEndpoint: $account?->needsBaseUrl() ? $this->filled($state, 'chat_endpoint') : null,
             quickTaskModel: $this->listedChoice($state, 'quick_task_model'),
             visionModel: (bool) ($state['describe_images'] ?? false) ? $this->listedChoice($state, 'vision_model') : null,
             filesModel: (bool) ($state['chat_files'] ?? false) ? $this->listedChoice($state, 'files_model') : null,
@@ -895,6 +896,15 @@ class Setup extends SimplePage
                     ->url($url, shouldOpenInNewTab: true))
                 ->live(onBlur: true)
                 ->afterStateUpdated(fn () => $this->forgetList()),
+            TextInput::make('chat_endpoint')
+                ->label('Endpoint')
+                ->url()
+                ->helperText(fn (Get $get): ?string => AiProvider::tryFrom((string) $get('provider'))?->baseUrlHelp())
+                ->required(fn (Get $get): bool => blank(config(AiProvider::tryFrom((string) $get('provider'))?->baseUrlConfig() ?? '')))
+                ->placeholder(fn (Get $get): ?string => config(AiProvider::tryFrom((string) $get('provider'))?->baseUrlConfig() ?? '') ?: null)
+                ->visible(fn (Get $get): bool => (bool) AiProvider::tryFrom((string) $get('provider'))?->needsBaseUrl())
+                ->live(onBlur: true)
+                ->afterStateUpdated(fn () => $this->forgetList()),
         ];
     }
 
@@ -957,7 +967,8 @@ class Setup extends SimplePage
         return [
             Select::make('embedding_model')
                 ->label('Embedding model')
-                ->options(fn (): array => app(OpenRouterEmbeddingModels::class)->options($this->storedDimensions()))
+                ->options(fn (): array => ModelLogo::labels(app(OpenRouterEmbeddingModels::class)->options($this->storedDimensions()), LlmProviderKind::OpenRouter))
+                ->allowHtml()
                 ->searchable()
                 ->required()
                 ->helperText($help)
@@ -1010,14 +1021,16 @@ class Setup extends SimplePage
             $this->serviceKeyField('rerank_api_key', 'reranker', 'getRerankKey'),
             Select::make('openrouter_rerank_model')
                 ->label('Model')
-                ->options(fn (): array => app(RerankModelCatalog::class)->openRouterOptions())
+                ->options(fn (): array => ModelLogo::labels(app(RerankModelCatalog::class)->openRouterOptions(), LlmProviderKind::OpenRouter))
+                ->allowHtml()
                 ->searchable()
                 ->required($chosen(AiProvider::OpenRouter->value))
                 ->helperText('The strongest first. The list comes from OpenRouter, so new rerankers show up here.')
                 ->visible($chosen(AiProvider::OpenRouter->value)),
             Select::make('cohere_rerank_model')
                 ->label('Model')
-                ->options(fn (): array => app(RerankModelCatalog::class)->cohereOptions())
+                ->options(fn (): array => collect(app(RerankModelCatalog::class)->cohereOptions())->map(fn (string $name): string => ModelLogo::forLab($name, 'cohere'))->all())
+                ->allowHtml()
                 ->native(false)
                 ->selectablePlaceholder(false)
                 ->required($chosen(AiProvider::Cohere->value))
@@ -1175,8 +1188,8 @@ class Setup extends SimplePage
                 ->visible(fn (): bool => $this->models === []),
             TextInput::make('chat_model_id')
                 ->label('Model')
-                ->placeholder('For example llama3.1:8b')
-                ->helperText('The model\'s name exactly as your provider writes it. You can add more later in Settings → AI models.')
+                ->placeholder(fn (Get $get): string => $this->modelNameHelp($get) !== null ? 'For example gpt-4.1' : 'For example llama3.1:8b')
+                ->helperText(fn (Get $get): string => ($this->modelNameHelp($get) ?? 'The model\'s name exactly as your provider writes it.').' You can add more later in Settings → AI models.')
                 ->required(fn (): bool => $this->models === [])
                 ->maxLength(255)
                 ->visible(fn (): bool => $this->models === []),
@@ -1608,7 +1621,12 @@ class Setup extends SimplePage
         }
 
         if (in_array($this->listStatus, [ModelListStatus::KeyRefused->value, ModelListStatus::Unreachable->value], true)) {
-            $field = ! $this->account($state) instanceof AiProvider && $this->listStatus === ModelListStatus::Unreachable->value ? 'data.server_url' : 'data.api_key';
+            $field = match (true) {
+                $this->listStatus !== ModelListStatus::Unreachable->value => 'data.api_key',
+                ! $this->account($state) instanceof AiProvider => 'data.server_url',
+                (bool) $this->account($state)?->needsBaseUrl() => 'data.chat_endpoint',
+                default => 'data.api_key',
+            };
 
             throw ValidationException::withMessages([$field => $this->listMessage]);
         }
@@ -1891,7 +1909,9 @@ class Setup extends SimplePage
         $list = app(ModelListing::class)->list($draft);
 
         $this->listStatus = $list->status->value;
-        $this->listMessage = $list->message($this->providerLabel($state['provider'] ?? null), $adapter->baseUrl($draft));
+        $this->listMessage = $list->status === ModelListStatus::Empty && $adapter->modelNameHelp() !== null
+            ? null
+            : $list->message($this->providerLabel($state['provider'] ?? null), $adapter->baseUrl($draft));
 
         Cache::put($this->modelCacheKey(), collect($list->models)->keyBy('id')->map(fn (RemoteModelData $model): array => $model->toArray())->all(), now()->addMinutes(10));
 
@@ -2144,6 +2164,12 @@ class Setup extends SimplePage
         return $this->account($state)?->chatKind() ?? LlmProviderKind::Custom;
     }
 
+    /** How to name a model of a provider whose models are typed, not listed (Azure deployments). */
+    private function modelNameHelp(Get $get): ?string
+    {
+        return app(ProviderAdapters::class)->for($this->chatKind(['provider' => $get('provider')]))->modelNameHelp();
+    }
+
     /**
      * The account of the service chosen in a field: null for none, a server
      * of your own, or an embedding service the provider makes itself.
@@ -2330,7 +2356,9 @@ class Setup extends SimplePage
         return new LlmProvider([
             'kind' => $this->chatKind($state),
             'name' => $account?->label() ?? (string) ($state['server_name'] ?? 'Server'),
-            'base_url' => $account instanceof AiProvider ? null : Str::rtrim((string) ($state['server_url'] ?? ''), '/'),
+            'base_url' => $account instanceof AiProvider
+                ? ($account->needsBaseUrl() ? $this->filled($state, 'chat_endpoint') : null)
+                : Str::rtrim((string) ($state['server_url'] ?? ''), '/'),
             'api_key' => $this->filled($state, 'api_key'),
         ]);
     }
@@ -2342,7 +2370,7 @@ class Setup extends SimplePage
      */
     private function fingerprint(array $state): string
     {
-        return hash('sha256', implode("\n", [$state['provider'] ?? '', $state['server_url'] ?? '', $state['api_key'] ?? '']));
+        return hash('sha256', implode("\n", [$state['provider'] ?? '', $state['server_url'] ?? '', $state['chat_endpoint'] ?? '', $state['api_key'] ?? '']));
     }
 
     private function forgetList(): void

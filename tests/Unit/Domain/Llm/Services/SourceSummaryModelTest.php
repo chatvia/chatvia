@@ -17,7 +17,7 @@ function ssmModel(string $name, array $inputs, LlmProviderKind $kind = LlmProvid
 }
 
 beforeEach(function (): void {
-    config(['chatvia.ai.source_summaries.enabled' => true, 'chatvia.ai.source_summaries.model' => null, 'chatvia.agent.default_model' => null, 'chatvia.ai.models_dev.enabled' => false]);
+    config(['chatvia.ai.source_summaries.enabled' => true, 'chatvia.ai.source_summaries.model' => null, 'chatvia.agent.default_model' => null]);
 });
 
 it('uses the picked model while it reads PDF files, whatever its provider', function (LlmProviderKind $kind): void {

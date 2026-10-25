@@ -22,7 +22,7 @@ class PerplexityResearchTool extends PerplexitySonarTool
 {
     protected function model(): string
     {
-        return (string) config('services.perplexity.research_model', 'sonar-reasoning-pro');
+        return (string) config('services.perplexity.research_model');
     }
 
     protected function systemPrompt(): ?string

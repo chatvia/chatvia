@@ -82,6 +82,6 @@ class Voyage extends AbstractEmbeddingsProvider
 
     protected function getModel(): string
     {
-        return config('services.voyage.embedding_model') ?: 'voyage-4';
+        return (string) config('services.voyage.embedding_model');
     }
 }

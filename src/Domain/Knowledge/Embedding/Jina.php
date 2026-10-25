@@ -50,6 +50,6 @@ class Jina extends AbstractEmbeddingsProvider
 
     protected function getModel(): string
     {
-        return config('services.jina.embedding_model', 'jina-embeddings-v3');
+        return (string) config('services.jina.embedding_model');
     }
 }

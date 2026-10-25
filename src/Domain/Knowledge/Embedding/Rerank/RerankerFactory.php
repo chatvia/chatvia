@@ -56,7 +56,7 @@ class RerankerFactory
         return new CompatibleReranker(
             baseUrl: 'https://openrouter.ai/api/v1',
             apiKey: $apiKey ?? config(AiProvider::OpenRouter->apiKeyConfig()),
-            model: (string) ($model ?? config('chatvia.ai.rerank.openrouter_model') ?: RerankModelCatalog::DEFAULT_OPENROUTER),
+            model: (string) ($model ?? config('chatvia.ai.rerank.openrouter_model')),
             timeoutSeconds: $this->timeout(),
         );
     }
@@ -66,7 +66,7 @@ class RerankerFactory
         return new CompatibleReranker(
             baseUrl: Str::rtrim((string) config('services.cohere.api_endpoint', 'https://api.cohere.com/v2'), '/'),
             apiKey: $apiKey ?? config('services.cohere.api_key'),
-            model: (string) ($model ?? config('services.cohere.rerank_model') ?: 'rerank-v4.0-pro'),
+            model: (string) ($model ?? config('services.cohere.rerank_model')),
             extraPayload: ['max_tokens_per_doc' => 1000],
             timeoutSeconds: $this->timeout(),
         );

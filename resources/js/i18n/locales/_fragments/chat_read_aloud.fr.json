@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Lire à voix haute",
+        "stop_reading": "Arrêter la lecture",
+        "read_aloud_loading": "Préparation de l’audio…",
+        "read_aloud_failed": "La réponse n’a pas pu être lue à voix haute."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Lire les réponses à voix haute",
+                "read_aloud_hint": "Affiche sous chaque réponse du chat hébergé un bouton haut-parleur qui la lit à voix haute.",
+                "read_aloud_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer la lecture à voix haute dans le panneau d’administration.",
+                "read_aloud_aria": "Combien coûte la lecture à voix haute ?",
+                "read_aloud_help_title": "Lecture à voix haute",
+                "read_aloud_help_1": "L’utilisateur appuie sur le haut-parleur sous une réponse pour l’écouter. Les liens sont lus par leur texte ; le code et les graphiques sont ignorés.",
+                "read_aloud_help_2": "Chaque réponse est lue une seule fois par le service vocal puis enregistrée : la réécouter ne coûte rien. La lecture à voix haute ne compte pas comme un message.",
+                "read_aloud_voice_label": "Voix de lecture"
+            }
+        }
+    }
+}

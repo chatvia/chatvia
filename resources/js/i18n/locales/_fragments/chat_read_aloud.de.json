@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Vorlesen",
+        "stop_reading": "Vorlesen beenden",
+        "read_aloud_loading": "Audio wird vorbereitet…",
+        "read_aloud_failed": "Die Antwort konnte nicht vorgelesen werden."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Antworten vorlesen",
+                "read_aloud_hint": "Unter jeder Antwort im gehosteten Chat eine Lautsprecher-Schaltfläche zeigen, die sie als Sprache abspielt.",
+                "read_aloud_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann das Vorlesen im Admin-Bereich einschalten.",
+                "read_aloud_aria": "Was kostet das Vorlesen?",
+                "read_aloud_help_title": "Vorlesen",
+                "read_aloud_help_1": "Ein Chatter tippt auf den Lautsprecher unter einer Antwort, um sie zu hören. Links werden als ihr Text gelesen; Code und Diagramme werden übersprungen.",
+                "read_aloud_help_2": "Jede Antwort wird einmal vom Sprachdienst gelesen und gespeichert, erneutes Abspielen kostet nichts. Vorlesen zählt nicht als Nachricht.",
+                "read_aloud_voice_label": "Vorlesestimme"
+            }
+        }
+    }
+}

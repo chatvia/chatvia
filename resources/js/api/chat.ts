@@ -150,6 +150,11 @@ export function sendMessageFeedback(
     });
 }
 
+/** A reply read aloud, as an MP3 file (saved on the server, so a second play costs nothing). */
+export function fetchMessageSpeech(conversationId: string, messageId: string): Promise<Blob> {
+    return get<Blob>(chat.messages.speech.url({ conversationId, messageId }), { responseType: 'blob' });
+}
+
 /** Deletes a message and its paired reply (or prompt). */
 export function deleteMessage(conversationId: string, messageId: string | number): Promise<void> {
     return del(chat.messages.delete.url(), {

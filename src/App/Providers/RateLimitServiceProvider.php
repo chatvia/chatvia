@@ -144,6 +144,19 @@ class RateLimitServiceProvider extends ServiceProvider
             return $limits;
         });
 
+        // Reading a hosted-chat reply aloud; a saved reply costs nothing, a
+        // new one is a paid call to the speech service.
+        RateLimiter::for('chat-speech', function (Request $request): array {
+            $limits = [Limit::perMinute(20)->by('chat-speech|account|'.$this->chatAccountKey($request))];
+            $agent = HostedChatAgent::from($request);
+
+            if ($agent instanceof Agent) {
+                $limits[] = Limit::perMinute(120)->by('chat-speech|agent|'.$agent->id);
+            }
+
+            return $limits;
+        });
+
         // Starting a hosted-chat voice call (see `widget-voice`).
         RateLimiter::for('chat-voice', function (Request $request): array {
             $limits = [Limit::perMinute(5)->by('chat-voice|account|'.$this->chatAccountKey($request))];

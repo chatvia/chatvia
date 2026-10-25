@@ -20,6 +20,7 @@ final class AiProviderIcon
         return asset(match ($provider) {
             AiProvider::Scaleway => 'images/llms/scaleway.svg',
             AiProvider::OpenRouter => 'images/llms/openrouter.svg',
+            AiProvider::ElevenLabs => 'images/llms/elevenlabs.svg',
             AiProvider::OpenAi => 'images/llms/gpt.svg',
             AiProvider::Mistral => 'images/llms/mistral.svg',
             AiProvider::Google => 'images/llms/gemini.svg',

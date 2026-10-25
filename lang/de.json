@@ -531,5 +531,9 @@
     "Data, vector and keyword search": "Daten, Vektor- und Stichwortsuche",
     "Background jobs": "Hintergrundjobs",
     "What each model supports": "Was jedes Modell unterstützt",
-    "This needs an Enterprise license.": "Dafür ist eine Enterprise-Lizenz nötig."
+    "This needs an Enterprise license.": "Dafür ist eine Enterprise-Lizenz nötig.",
+    "Read aloud": "Vorlesen",
+    "Play agent replies as speech": "Antworten der Agenten als Sprache abspielen",
+    "Reading aloud is not available right now.": "Vorlesen ist gerade nicht verfügbar.",
+    "The reply could not be read aloud. Please try again.": "Die Antwort konnte nicht vorgelesen werden. Bitte versuche es erneut."
 }

@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "例如：价格已过时。",
         "feedback_comment_send": "发送",
         "feedback_comment_skip": "跳过",
-        "feedback_comment_thanks": "感谢你的反馈。"
+        "feedback_comment_thanks": "感谢你的反馈。",
+        "read_aloud": "朗读",
+        "stop_reading": "停止朗读",
+        "read_aloud_loading": "正在准备音频…",
+        "read_aloud_failed": "无法朗读这条回复。"
     },
     "errors": {
         "message_limit_reached": "已达到消息上限",
@@ -1906,7 +1910,15 @@
                 "sources_list": "回答下方的列表",
                 "sources_list_hint": "每个回答下方的按钮会列出其使用的知识。",
                 "sources_citations": "编号引用",
-                "sources_citations_hint": "每个句子后的小编号可打开其来源，回答下方附编号列表。适用于托管聊天、小组件和 API；语音和即时通讯应用会省略编号。"
+                "sources_citations_hint": "每个句子后的小编号可打开其来源，回答下方附编号列表。适用于托管聊天、小组件和 API；语音和即时通讯应用会省略编号。",
+                "read_aloud_label": "朗读回复",
+                "read_aloud_hint": "在托管聊天的每条回复下方显示一个扬声器按钮，将其以语音播放。",
+                "read_aloud_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启朗读。",
+                "read_aloud_aria": "朗读如何计费？",
+                "read_aloud_help_title": "朗读",
+                "read_aloud_help_1": "聊天者点击回复下方的扬声器即可收听。链接只读文字，代码和图表会被跳过。",
+                "read_aloud_help_2": "每条回复只由语音服务朗读一次并保存，因此再次播放不产生费用。朗读不计为消息。",
+                "read_aloud_voice_label": "朗读声音"
             },
             "bubbles_title": "聊天气泡",
             "bubbles_description": "显示在挂件启动器旁的快捷消息提示。",
@@ -2065,10 +2077,8 @@
             "bubbles_remove": "移除气泡",
             "bubbles_empty": "暂无聊天气泡。",
             "bubbles_translate_empty": "请先添加气泡，然后再进行翻译。",
-            "model_picker_title": "模型",
             "model_picker_description": "此智能体用来回答的 AI 模型。由管理员决定这个列表中有哪些模型（管理面板 → Settings → AI models）。",
             "model_placeholder": "选择模型",
-            "model_default": "默认",
             "model_empty": "暂无模型。管理员可在管理面板的 Settings → AI models 中添加。",
             "reasoning_title": "推理",
             "reasoning_description": "模型在回答前思考的程度。思考得越多，越能处理难题，但回答会更慢，费用也更高。聊天用户会在回答上方看到灰色的推理过程。",

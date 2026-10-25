@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Zum Beispiel: Der Preis ist veraltet.",
         "feedback_comment_send": "Senden",
         "feedback_comment_skip": "Überspringen",
-        "feedback_comment_thanks": "Danke für dein Feedback."
+        "feedback_comment_thanks": "Danke für dein Feedback.",
+        "read_aloud": "Vorlesen",
+        "stop_reading": "Vorlesen beenden",
+        "read_aloud_loading": "Audio wird vorbereitet…",
+        "read_aloud_failed": "Die Antwort konnte nicht vorgelesen werden."
     },
     "errors": {
         "message_limit_reached": "Nachrichtenlimit erreicht",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Liste unter der Antwort",
                 "sources_list_hint": "Ein Button unter jeder Antwort listet das genutzte Wissen auf.",
                 "sources_citations": "Nummerierte Quellenangaben",
-                "sources_citations_hint": "Eine kleine Zahl nach jedem Satz öffnet seine Quelle, mit einer nummerierten Liste unter der Antwort. Gehosteter Chat, Widget und API; Sprache und Messenger lassen die Zahlen weg."
+                "sources_citations_hint": "Eine kleine Zahl nach jedem Satz öffnet seine Quelle, mit einer nummerierten Liste unter der Antwort. Gehosteter Chat, Widget und API; Sprache und Messenger lassen die Zahlen weg.",
+                "read_aloud_label": "Antworten vorlesen",
+                "read_aloud_hint": "Unter jeder Antwort im gehosteten Chat eine Lautsprecher-Schaltfläche zeigen, die sie als Sprache abspielt.",
+                "read_aloud_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann das Vorlesen im Admin-Bereich einschalten.",
+                "read_aloud_aria": "Was kostet das Vorlesen?",
+                "read_aloud_help_title": "Vorlesen",
+                "read_aloud_help_1": "Ein Chatter tippt auf den Lautsprecher unter einer Antwort, um sie zu hören. Links werden als ihr Text gelesen; Code und Diagramme werden übersprungen.",
+                "read_aloud_help_2": "Jede Antwort wird einmal vom Sprachdienst gelesen und gespeichert, erneutes Abspielen kostet nichts. Vorlesen zählt nicht als Nachricht.",
+                "read_aloud_voice_label": "Vorlesestimme"
             },
             "bubbles_title": "Chat-Blasen",
             "bubbles_description": "Schnelle Nachrichtenvorschläge, die neben dem Starter des Widgets angezeigt werden.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Chat-Blase entfernen",
             "bubbles_empty": "Noch keine Chat-Blasen vorhanden.",
             "bubbles_translate_empty": "Fügen Sie zuerst eine Chat-Blase hinzu, um sie zu übersetzen.",
-            "model_picker_title": "Modell",
             "model_picker_description": "Das KI-Modell, mit dem dieser Agent antwortet. Ein Admin legt fest, welche Modelle in dieser Liste stehen (Admin-Bereich → Settings → AI models).",
             "model_placeholder": "Modell wählen",
-            "model_default": "Standard",
             "model_empty": "Noch keine Modelle. Ein Admin fügt sie im Admin-Bereich unter Settings → AI models hinzu.",
             "reasoning_title": "Überlegungen",
             "reasoning_description": "Wie gründlich das Modell nachdenkt, bevor es antwortet. Mehr Nachdenken hilft bei schwierigen Fragen, aber die Antworten kommen langsamer und kosten mehr. Chatter sehen die Überlegungen in Grau über der Antwort.",

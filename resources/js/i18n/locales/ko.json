@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "예: 가격이 오래되었습니다.",
         "feedback_comment_send": "보내기",
         "feedback_comment_skip": "건너뛰기",
-        "feedback_comment_thanks": "의견을 주셔서 감사합니다."
+        "feedback_comment_thanks": "의견을 주셔서 감사합니다.",
+        "read_aloud": "소리 내어 읽기",
+        "stop_reading": "읽기 중지",
+        "read_aloud_loading": "오디오 준비 중…",
+        "read_aloud_failed": "답변을 소리 내어 읽지 못했습니다."
     },
     "errors": {
         "message_limit_reached": "메시지 한도에 도달했습니다",
@@ -1906,7 +1910,15 @@
                 "sources_list": "답변 아래 목록",
                 "sources_list_hint": "각 답변 아래 버튼이 사용한 지식을 보여 줍니다.",
                 "sources_citations": "번호 인용",
-                "sources_citations_hint": "각 문장 뒤의 작은 번호를 누르면 출처가 열리고, 답변 아래에 번호 목록이 붙습니다. 호스팅 채팅, 위젯, API에서 표시되며, 음성과 메신저 앱에서는 번호를 생략합니다."
+                "sources_citations_hint": "각 문장 뒤의 작은 번호를 누르면 출처가 열리고, 답변 아래에 번호 목록이 붙습니다. 호스팅 채팅, 위젯, API에서 표시되며, 음성과 메신저 앱에서는 번호를 생략합니다.",
+                "read_aloud_label": "답변 소리 내어 읽기",
+                "read_aloud_hint": "호스팅된 채팅의 각 답변 아래에 음성으로 재생하는 스피커 버튼을 표시합니다.",
+                "read_aloud_unavailable": "이 서버에 설정되지 않았습니다. 관리자가 관리자 패널에서 소리 내어 읽기를 켤 수 있습니다.",
+                "read_aloud_aria": "소리 내어 읽기 요금은 어떻게 되나요?",
+                "read_aloud_help_title": "소리 내어 읽기",
+                "read_aloud_help_1": "채터가 답변 아래 스피커를 눌러 듣습니다. 링크는 그 텍스트로 읽고, 코드와 차트는 건너뜁니다.",
+                "read_aloud_help_2": "각 답변은 음성 서비스가 한 번 읽고 저장하므로 다시 재생해도 비용이 들지 않습니다. 소리 내어 읽기는 메시지로 계산되지 않습니다.",
+                "read_aloud_voice_label": "읽기 음성"
             },
             "bubbles_title": "채팅 말풍선",
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",
@@ -2065,10 +2077,8 @@
             "bubbles_remove": "말풍선 제거",
             "bubbles_empty": "아직 채팅 말풍선이 없습니다.",
             "bubbles_translate_empty": "번역하려면 먼저 말풍선을 추가하세요.",
-            "model_picker_title": "모델",
             "model_picker_description": "이 에이전트가 답변에 사용하는 AI 모델입니다. 이 목록에 들어갈 모델은 관리자가 선택합니다(관리자 패널 → Settings → AI models).",
             "model_placeholder": "모델 선택",
-            "model_default": "기본값",
             "model_empty": "아직 모델이 없습니다. 관리자가 관리자 패널의 Settings → AI models에서 추가합니다.",
             "reasoning_title": "추론",
             "reasoning_description": "모델이 답하기 전에 얼마나 깊이 생각할지 정합니다. 더 많이 생각하면 어려운 질문에 도움이 되지만, 답변이 느려지고 비용이 더 듭니다. 채팅 사용자는 답변 위에 회색으로 추론을 봅니다.",

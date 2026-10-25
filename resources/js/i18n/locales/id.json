@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Contoh: harganya sudah tidak berlaku.",
         "feedback_comment_send": "Kirim",
         "feedback_comment_skip": "Lewati",
-        "feedback_comment_thanks": "Terima kasih atas masukan Anda."
+        "feedback_comment_thanks": "Terima kasih atas masukan Anda.",
+        "read_aloud": "Bacakan",
+        "stop_reading": "Berhenti membaca",
+        "read_aloud_loading": "Menyiapkan audio…",
+        "read_aloud_failed": "Balasan tidak dapat dibacakan."
     },
     "errors": {
         "message_limit_reached": "Batas pesan tercapai",
@@ -1906,7 +1910,15 @@
                 "sources_list": "Daftar di bawah jawaban",
                 "sources_list_hint": "Tombol di bawah setiap jawaban menampilkan pengetahuan yang dipakainya.",
                 "sources_citations": "Kutipan bernomor",
-                "sources_citations_hint": "Angka kecil setelah setiap kalimat membuka sumbernya, dengan daftar bernomor di bawah jawaban. Chat yang di-host, widget, dan API; suara dan aplikasi pesan menghilangkan angkanya."
+                "sources_citations_hint": "Angka kecil setelah setiap kalimat membuka sumbernya, dengan daftar bernomor di bawah jawaban. Chat yang di-host, widget, dan API; suara dan aplikasi pesan menghilangkan angkanya.",
+                "read_aloud_label": "Bacakan balasan",
+                "read_aloud_hint": "Tampilkan tombol speaker di bawah setiap balasan di chat yang dihosting untuk memutarnya sebagai suara.",
+                "read_aloud_unavailable": "Belum diatur di server ini. Admin dapat menyalakan fitur bacakan di panel admin.",
+                "read_aloud_aria": "Bagaimana biaya fitur bacakan?",
+                "read_aloud_help_title": "Bacakan",
+                "read_aloud_help_1": "Pengguna menekan speaker di bawah balasan untuk mendengarnya. Tautan dibaca sebagai katanya; kode dan grafik dilewati.",
+                "read_aloud_help_2": "Setiap balasan dibaca sekali oleh layanan suara lalu disimpan, jadi memutarnya lagi tidak ada biaya. Fitur bacakan tidak dihitung sebagai pesan.",
+                "read_aloud_voice_label": "Suara pembaca"
             },
             "bubbles_title": "Gelembung Obrolan",
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",
@@ -2065,10 +2077,8 @@
             "bubbles_remove": "Hapus gelembung",
             "bubbles_empty": "Belum ada gelembung obrolan.",
             "bubbles_translate_empty": "Tambahkan gelembung terlebih dahulu untuk menerjemahkannya.",
-            "model_picker_title": "Model",
             "model_picker_description": "Model AI yang dipakai agen ini untuk menjawab. Admin memilih model mana yang ada di daftar ini (panel admin → Settings → AI models).",
             "model_placeholder": "Pilih model",
-            "model_default": "Bawaan",
             "model_empty": "Belum ada model. Admin menambahkannya di panel admin, di Settings → AI models.",
             "reasoning_title": "Penalaran",
             "reasoning_description": "Seberapa keras model berpikir sebelum menjawab. Berpikir lebih banyak membantu untuk pertanyaan sulit, tetapi jawaban datang lebih lambat dan biayanya lebih tinggi. Pengguna chat melihat penalaran berwarna abu-abu di atas jawaban.",

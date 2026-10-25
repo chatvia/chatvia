@@ -10,8 +10,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * The API key (and address) of each AI provider account, set once in
  * Settings → AI providers and used for everything the provider does here:
- * its chat models, embeddings, speech to text, documents and reranking
- * ({@see AiProvider}). What runs on which provider is in {@see AiSettings}.
+ * its chat models, embeddings, speech to text, reading aloud, documents and
+ * reranking ({@see AiProvider}). What runs on which provider is in {@see AiSettings}.
  */
 class AiProviderSettings extends AdminSettings
 {
@@ -23,6 +23,12 @@ class AiProviderSettings extends AdminSettings
 
     #[ConfigKey('services.openrouter.api_key'), ShouldBeEncrypted]
     public ?string $openrouter_api_key = null;
+
+    #[ConfigKey('services.elevenlabs.api_key'), ShouldBeEncrypted]
+    public ?string $elevenlabs_api_key = null;
+
+    #[ConfigKey('services.elevenlabs.endpoint')]
+    public ?string $elevenlabs_endpoint = null;
 
     #[ConfigKey('services.openai.api_key'), ShouldBeEncrypted]
     public ?string $openai_api_key = null;

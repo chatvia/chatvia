@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Esimerkiksi: hinta on vanhentunut.",
         "feedback_comment_send": "Lähetä",
         "feedback_comment_skip": "Ohita",
-        "feedback_comment_thanks": "Kiitos palautteestasi."
+        "feedback_comment_thanks": "Kiitos palautteestasi.",
+        "read_aloud": "Lue ääneen",
+        "stop_reading": "Lopeta lukeminen",
+        "read_aloud_loading": "Valmistellaan ääntä…",
+        "read_aloud_failed": "Vastausta ei voitu lukea ääneen."
     },
     "errors": {
         "message_limit_reached": "Viestiraja saavutettu",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Luettelo vastauksen alla",
                 "sources_list_hint": "Painike jokaisen vastauksen alla luettelee sen käyttämän tiedon.",
                 "sources_citations": "Numeroidut lähdeviitteet",
-                "sources_citations_hint": "Pieni numero jokaisen lauseen perässä avaa sen lähteen, ja vastauksen alla on numeroitu luettelo. Isännöity chat, widget ja API; ääni ja viestisovellukset jättävät numerot pois."
+                "sources_citations_hint": "Pieni numero jokaisen lauseen perässä avaa sen lähteen, ja vastauksen alla on numeroitu luettelo. Isännöity chat, widget ja API; ääni ja viestisovellukset jättävät numerot pois.",
+                "read_aloud_label": "Lue vastaukset ääneen",
+                "read_aloud_hint": "Näytä isännöidyssä chatissa jokaisen vastauksen alla kaiutinpainike, joka toistaa sen puheena.",
+                "read_aloud_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa ääneen lukemisen käyttöön hallintapaneelissa.",
+                "read_aloud_aria": "Mitä ääneen lukeminen maksaa?",
+                "read_aloud_help_title": "Lue ääneen",
+                "read_aloud_help_1": "Keskustelija painaa vastauksen alla olevaa kaiutinta kuullakseen sen. Linkit luetaan sanoinaan; koodi ja kaaviot ohitetaan.",
+                "read_aloud_help_2": "Puhepalvelu lukee jokaisen vastauksen kerran ja se tallennetaan, joten uudelleen toistaminen ei maksa mitään. Ääneen lukeminen ei lasketa viestiksi.",
+                "read_aloud_voice_label": "Lukuääni"
             },
             "bubbles_title": "Chat-kuplat",
             "bubbles_description": "Pikaviestikehotukset, jotka näytetään widgetin käynnistimen vieressä.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Poista kupla",
             "bubbles_empty": "Ei vielä chat-kuplia.",
             "bubbles_translate_empty": "Lisää ensin kupla, jotta voit kääntää sen.",
-            "model_picker_title": "Malli",
             "model_picker_description": "Tekoälymalli, jolla tämä agentti vastaa. Ylläpitäjä valitsee, mitkä mallit ovat tällä listalla (hallintapaneeli → Settings → AI models).",
             "model_placeholder": "Valitse malli",
-            "model_default": "Oletus",
             "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models.",
             "reasoning_title": "Päättely",
             "reasoning_description": "Kuinka paljon malli miettii ennen vastaamista. Enemmän miettimistä auttaa vaikeissa kysymyksissä, mutta vastaukset tulevat hitaammin ja maksavat enemmän. Keskustelijat näkevät päättelyn harmaana vastauksen yläpuolella.",

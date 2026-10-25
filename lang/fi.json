@@ -531,5 +531,9 @@
     "Data, vector and keyword search": "Tiedot, vektori- ja avainsanahaku",
     "Background jobs": "Taustatyöt",
     "What each model supports": "Mitä kukin malli tukee",
-    "This needs an Enterprise license.": "Tämä tarvitsee Enterprise-lisenssin."
+    "This needs an Enterprise license.": "Tämä tarvitsee Enterprise-lisenssin.",
+    "Read aloud": "Lue ääneen",
+    "Play agent replies as speech": "Toistaa agenttien vastaukset puheena",
+    "Reading aloud is not available right now.": "Ääneen lukeminen ei ole nyt käytettävissä.",
+    "The reply could not be read aloud. Please try again.": "Vastausta ei voitu lukea ääneen. Yritä uudelleen."
 }

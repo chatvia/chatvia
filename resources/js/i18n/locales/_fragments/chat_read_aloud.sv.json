@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Läs upp",
+        "stop_reading": "Sluta läsa",
+        "read_aloud_loading": "Förbereder ljud…",
+        "read_aloud_failed": "Svaret kunde inte läsas upp."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Läs upp svar",
+                "read_aloud_hint": "Visa en högtalarknapp under varje svar i den värdade chatten som spelar upp det som tal.",
+                "read_aloud_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på uppläsning i adminpanelen.",
+                "read_aloud_aria": "Vad kostar uppläsning?",
+                "read_aloud_help_title": "Läs upp",
+                "read_aloud_help_1": "En chattare trycker på högtalaren under ett svar för att höra det. Länkar läses som sina ord; kod och diagram hoppas över.",
+                "read_aloud_help_2": "Varje svar läses en gång av taltjänsten och sparas, så det kostar inget att spela upp det igen. Uppläsning räknas inte som ett meddelande.",
+                "read_aloud_voice_label": "Uppläsningsröst"
+            }
+        }
+    }
+}

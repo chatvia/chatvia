@@ -354,6 +354,7 @@ return [
         ],
         'transcriber' => 'auto',
         'voice' => 'auto',
+        'speaker' => 'auto',
         'chat_files' => [
             'enabled' => true,
             'model' => null,

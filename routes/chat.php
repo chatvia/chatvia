@@ -33,6 +33,7 @@ use App\Http\Controllers\Chat\Messages\AttachmentDeleteController;
 use App\Http\Controllers\Chat\Messages\MessageDeleteController;
 use App\Http\Controllers\Chat\Messages\MessageFeedbackController;
 use App\Http\Controllers\Chat\Messages\MessageRegenerateController;
+use App\Http\Controllers\Chat\Messages\MessageSpeechController;
 use App\Http\Controllers\Chat\Stream\ChatStreamController;
 use App\Http\Controllers\Chat\Tools\ResolveToolApprovalController;
 use App\Http\Controllers\Chat\Transcription\ChatTranscriptionController;
@@ -116,6 +117,10 @@ Route::prefix('chat/{agentSlug}')
             Route::patch('messages/feedback', MessageFeedbackController::class)->name('chat.messages.feedback');
             Route::delete('messages', MessageDeleteController::class)->name('chat.messages.delete');
             Route::post('messages/regenerate', MessageRegenerateController::class)->name('chat.messages.regenerate');
+            // A reply read aloud, saved once, so playing it again costs nothing.
+            Route::get('conversations/{conversationId}/messages/{messageId}/speech', MessageSpeechController::class)
+                ->whereUuid(['conversationId', 'messageId'])
+                ->middleware('throttle:chat-speech')->name('chat.messages.speech');
             Route::post('messages/attachments', AttachmentController::class)->middleware('throttle:chat-stream')->name('chat.messages.attachments.store');
             Route::delete('messages/attachments/{attachment}', AttachmentDeleteController::class)->name('chat.messages.attachments.delete');
 

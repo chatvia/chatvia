@@ -53,6 +53,8 @@ interface Props {
     allowVoiceInput?: boolean;
     /** Whether the composer offers voice conversations: the owner turned them on and the server has them set up. */
     voiceConversation?: boolean;
+    /** Whether replies get a speaker button: the owner turned it on and the server has text to speech set up. */
+    readAloud?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,6 +79,7 @@ const props = withDefaults(defineProps<Props>(), {
     uploadAccept: 'application/pdf',
     allowVoiceInput: false,
     voiceConversation: false,
+    readAloud: false,
 });
 
 const { t } = useI18n();
@@ -188,6 +191,7 @@ onMounted(async () => {
                             :active-calls="activeCalls"
                             :sources-for="transcript.sourcesFor"
                             :cite-sources="resolvedAppearance.sources_display === 'citations'"
+                            :read-aloud="readAloud"
                             :artifacts-for="transcript.artifactsFor"
                             :approvals-for="approvals.approvalsFor"
                             :resolving-approval-ids="resolvingApprovalIds"

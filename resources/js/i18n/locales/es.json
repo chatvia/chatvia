@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Por ejemplo: el precio está desactualizado.",
         "feedback_comment_send": "Enviar",
         "feedback_comment_skip": "Omitir",
-        "feedback_comment_thanks": "Gracias por tus comentarios."
+        "feedback_comment_thanks": "Gracias por tus comentarios.",
+        "read_aloud": "Leer en voz alta",
+        "stop_reading": "Dejar de leer",
+        "read_aloud_loading": "Preparando el audio…",
+        "read_aloud_failed": "No se pudo leer la respuesta en voz alta."
     },
     "errors": {
         "message_limit_reached": "Límite de mensajes alcanzado",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Lista bajo la respuesta",
                 "sources_list_hint": "Un botón bajo cada respuesta muestra el conocimiento que usó.",
                 "sources_citations": "Citas numeradas",
-                "sources_citations_hint": "Un número pequeño tras cada frase abre su fuente, con una lista numerada bajo la respuesta. Chat alojado, widget y API; la voz y las apps de mensajería omiten los números."
+                "sources_citations_hint": "Un número pequeño tras cada frase abre su fuente, con una lista numerada bajo la respuesta. Chat alojado, widget y API; la voz y las apps de mensajería omiten los números.",
+                "read_aloud_label": "Leer las respuestas en voz alta",
+                "read_aloud_hint": "Muestra un botón de altavoz bajo cada respuesta del chat alojado que la reproduce como voz.",
+                "read_aloud_unavailable": "No está configurado en este servidor. Un administrador puede activar la lectura en voz alta en el panel de administración.",
+                "read_aloud_aria": "¿Cuánto cuesta leer en voz alta?",
+                "read_aloud_help_title": "Leer en voz alta",
+                "read_aloud_help_1": "El usuario pulsa el altavoz bajo una respuesta para escucharla. Los enlaces se leen por su texto; el código y los gráficos se omiten.",
+                "read_aloud_help_2": "El servicio de voz lee cada respuesta una sola vez y se guarda, así que volver a reproducirla no cuesta nada. Leer en voz alta no cuenta como mensaje.",
+                "read_aloud_voice_label": "Voz de lectura"
             },
             "bubbles_title": "Burbujas de chat",
             "bubbles_description": "Mensajes de inicio rápido que se muestran junto al lanzador del widget.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Eliminar burbuja",
             "bubbles_empty": "Aún no hay burbujas de chat.",
             "bubbles_translate_empty": "Primero agrega una burbuja para poder traducirla.",
-            "model_picker_title": "Modelo",
             "model_picker_description": "El modelo de IA con el que responde este agente. Un administrador elige qué modelos aparecen en esta lista (panel de administración → Settings → AI models).",
             "model_placeholder": "Elige un modelo",
-            "model_default": "Predeterminado",
             "model_empty": "Aún no hay modelos. Un administrador los añade en el panel de administración, en Settings → AI models.",
             "reasoning_title": "Razonamiento",
             "reasoning_description": "Cuánto piensa el modelo antes de responder. Pensar más ayuda con las preguntas difíciles, pero las respuestas llegan más despacio y cuestan más. Los usuarios ven el razonamiento en gris encima de la respuesta.",

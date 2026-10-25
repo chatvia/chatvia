@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Leer en voz alta",
+        "stop_reading": "Dejar de leer",
+        "read_aloud_loading": "Preparando el audio…",
+        "read_aloud_failed": "No se pudo leer la respuesta en voz alta."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Leer las respuestas en voz alta",
+                "read_aloud_hint": "Muestra un botón de altavoz bajo cada respuesta del chat alojado que la reproduce como voz.",
+                "read_aloud_unavailable": "No está configurado en este servidor. Un administrador puede activar la lectura en voz alta en el panel de administración.",
+                "read_aloud_aria": "¿Cuánto cuesta leer en voz alta?",
+                "read_aloud_help_title": "Leer en voz alta",
+                "read_aloud_help_1": "El usuario pulsa el altavoz bajo una respuesta para escucharla. Los enlaces se leen por su texto; el código y los gráficos se omiten.",
+                "read_aloud_help_2": "El servicio de voz lee cada respuesta una sola vez y se guarda, así que volver a reproducirla no cuesta nada. Leer en voz alta no cuenta como mensaje.",
+                "read_aloud_voice_label": "Voz de lectura"
+            }
+        }
+    }
+}

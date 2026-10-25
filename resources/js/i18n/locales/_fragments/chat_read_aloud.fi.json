@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Lue ääneen",
+        "stop_reading": "Lopeta lukeminen",
+        "read_aloud_loading": "Valmistellaan ääntä…",
+        "read_aloud_failed": "Vastausta ei voitu lukea ääneen."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Lue vastaukset ääneen",
+                "read_aloud_hint": "Näytä isännöidyssä chatissa jokaisen vastauksen alla kaiutinpainike, joka toistaa sen puheena.",
+                "read_aloud_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa ääneen lukemisen käyttöön hallintapaneelissa.",
+                "read_aloud_aria": "Mitä ääneen lukeminen maksaa?",
+                "read_aloud_help_title": "Lue ääneen",
+                "read_aloud_help_1": "Keskustelija painaa vastauksen alla olevaa kaiutinta kuullakseen sen. Linkit luetaan sanoinaan; koodi ja kaaviot ohitetaan.",
+                "read_aloud_help_2": "Puhepalvelu lukee jokaisen vastauksen kerran ja se tallennetaan, joten uudelleen toistaminen ei maksa mitään. Ääneen lukeminen ei lasketa viestiksi.",
+                "read_aloud_voice_label": "Lukuääni"
+            }
+        }
+    }
+}

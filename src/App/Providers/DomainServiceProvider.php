@@ -106,6 +106,7 @@ use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\RealtimeCalls;
+use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
@@ -113,7 +114,10 @@ use Domain\Llm\Events\LlmCallRefused;
 use Domain\Llm\Events\LlmUnlisted;
 use Domain\Llm\Listeners\NotifyAdminsOfUnlistedLlm;
 use Domain\Llm\Listeners\QueueLlmListingCheck;
+use Domain\Llm\Operations\Media\ElevenLabsSpeaker;
+use Domain\Llm\Operations\Media\NullSpeaker;
 use Domain\Llm\Operations\Media\NullTranscriber;
+use Domain\Llm\Operations\Media\OpenAiSpeaker;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
@@ -259,6 +263,13 @@ class DomainServiceProvider extends ServiceProvider
             'openai' => $app->make(OpenAiRealtimeCalls::class),
             'none' => $app->make(NullRealtimeCalls::class),
             default => throw $this->unknownAiDriver('voice', ['openai', 'none']),
+        });
+
+        $this->app->bind(fn ($app): Speaker => match ($this->aiDriver('speaker', auto: AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none')) {
+            'elevenlabs' => $app->make(ElevenLabsSpeaker::class),
+            'openai' => $app->make(OpenAiSpeaker::class),
+            'none' => $app->make(NullSpeaker::class),
+            default => throw $this->unknownAiDriver('speaker', ['elevenlabs', 'openai', 'none']),
         });
     }
 

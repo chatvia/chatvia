@@ -14,6 +14,7 @@ use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\ConversationRetention;
 use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Form\Models\FormSubmission;
@@ -228,6 +229,9 @@ class Conversation extends Model
     {
         static::deleting(static function (Conversation $conversation): void {
             $conversation->cascadeAttachmentDeletes();
+
+            // Replies read aloud are files too, kept per conversation.
+            app(MessageSpeechFiles::class)->forgetConversations([$conversation]);
 
             // Flush every Redis entry tagged with this conversation
             // (messages, sources, ...) so the cache matches the DB on

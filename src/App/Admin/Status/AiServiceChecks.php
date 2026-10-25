@@ -46,6 +46,7 @@ final class AiServiceChecks
                 AiService::Documents => $this->onProvider($service, AiCapability::Documents),
                 AiService::Speech => $this->onProvider($service, AiCapability::Speech),
                 AiService::Voice => $this->onProvider($service, AiCapability::Voice),
+                AiService::ReadAloud => $this->onProvider($service, AiCapability::TextToSpeech),
                 AiService::WebPages => $this->webPages(),
             };
         } catch (Throwable $e) {

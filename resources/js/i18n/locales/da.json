@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "For eksempel: prisen er forældet.",
         "feedback_comment_send": "Send",
         "feedback_comment_skip": "Spring over",
-        "feedback_comment_thanks": "Tak for din feedback."
+        "feedback_comment_thanks": "Tak for din feedback.",
+        "read_aloud": "Læs højt",
+        "stop_reading": "Stop oplæsning",
+        "read_aloud_loading": "Forbereder lyd…",
+        "read_aloud_failed": "Svaret kunne ikke læses højt."
     },
     "errors": {
         "message_limit_reached": "Beskedgrænse nået",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Liste under svaret",
                 "sources_list_hint": "En knap under hvert svar viser den viden, det brugte.",
                 "sources_citations": "Nummererede kildehenvisninger",
-                "sources_citations_hint": "Et lille tal efter hver sætning åbner dens kilde, med en nummereret liste under svaret. Hosted chat, widget og API; tale og beskedapps udelader tallene."
+                "sources_citations_hint": "Et lille tal efter hver sætning åbner dens kilde, med en nummereret liste under svaret. Hosted chat, widget og API; tale og beskedapps udelader tallene.",
+                "read_aloud_label": "Læs svar højt",
+                "read_aloud_hint": "Vis en højttalerknap under hvert svar i den hostede chat, som afspiller det som tale.",
+                "read_aloud_unavailable": "Ikke sat op på denne server. En administrator kan slå oplæsning til i adminpanelet.",
+                "read_aloud_aria": "Hvad koster oplæsning?",
+                "read_aloud_help_title": "Læs højt",
+                "read_aloud_help_1": "En chatter trykker på højttaleren under et svar for at høre det. Links læses som deres ord; kode og diagrammer springes over.",
+                "read_aloud_help_2": "Hvert svar læses én gang af taletjenesten og gemmes, så det koster intet at afspille det igen. Oplæsning tæller ikke som en besked.",
+                "read_aloud_voice_label": "Oplæsningsstemme"
             },
             "bubbles_title": "Chatbobler",
             "bubbles_description": "Hurtige beskedforslag, der vises ved siden af widgetens startknap.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Fjern boble",
             "bubbles_empty": "Ingen chatbobler endnu.",
             "bubbles_translate_empty": "Tilføj først en boble for at kunne oversætte den.",
-            "model_picker_title": "Model",
             "model_picker_description": "Den AI-model, som denne agent svarer med. En administrator vælger, hvilke modeller der er på listen (adminpanelet → Settings → AI models).",
             "model_placeholder": "Vælg en model",
-            "model_default": "Standard",
             "model_empty": "Ingen modeller endnu. En administrator tilføjer dem i adminpanelet under Settings → AI models.",
             "reasoning_title": "Overvejelser",
             "reasoning_description": "Hvor meget modellen tænker, før den svarer. Mere tænkning hjælper med svære spørgsmål, men svarene kommer langsommere og koster mere. Chattere ser tankerne i gråt over svaret.",

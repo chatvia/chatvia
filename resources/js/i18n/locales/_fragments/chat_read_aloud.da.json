@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Læs højt",
+        "stop_reading": "Stop oplæsning",
+        "read_aloud_loading": "Forbereder lyd…",
+        "read_aloud_failed": "Svaret kunne ikke læses højt."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Læs svar højt",
+                "read_aloud_hint": "Vis en højttalerknap under hvert svar i den hostede chat, som afspiller det som tale.",
+                "read_aloud_unavailable": "Ikke sat op på denne server. En administrator kan slå oplæsning til i adminpanelet.",
+                "read_aloud_aria": "Hvad koster oplæsning?",
+                "read_aloud_help_title": "Læs højt",
+                "read_aloud_help_1": "En chatter trykker på højttaleren under et svar for at høre det. Links læses som deres ord; kode og diagrammer springes over.",
+                "read_aloud_help_2": "Hvert svar læses én gang af taletjenesten og gemmes, så det koster intet at afspille det igen. Oplæsning tæller ikke som en besked.",
+                "read_aloud_voice_label": "Oplæsningsstemme"
+            }
+        }
+    }
+}

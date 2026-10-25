@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "For eksempel: prisen er utdatert.",
         "feedback_comment_send": "Send",
         "feedback_comment_skip": "Hopp over",
-        "feedback_comment_thanks": "Takk for tilbakemeldingen."
+        "feedback_comment_thanks": "Takk for tilbakemeldingen.",
+        "read_aloud": "Les høyt",
+        "stop_reading": "Stopp opplesning",
+        "read_aloud_loading": "Gjør klar lyd…",
+        "read_aloud_failed": "Svaret kunne ikke leses høyt."
     },
     "errors": {
         "message_limit_reached": "Meldingsgrensen er nådd",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Liste under svaret",
                 "sources_list_hint": "En knapp under hvert svar viser kunnskapen det brukte.",
                 "sources_citations": "Nummererte kildehenvisninger",
-                "sources_citations_hint": "Et lite tall etter hver setning åpner kilden, med en nummerert liste under svaret. Vertet chat, widget og API; tale og meldingsapper utelater tallene."
+                "sources_citations_hint": "Et lite tall etter hver setning åpner kilden, med en nummerert liste under svaret. Vertet chat, widget og API; tale og meldingsapper utelater tallene.",
+                "read_aloud_label": "Les svar høyt",
+                "read_aloud_hint": "Vis en høyttalerknapp under hvert svar i den hostede chatten som spiller det av som tale.",
+                "read_aloud_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på opplesning i adminpanelet.",
+                "read_aloud_aria": "Hva koster opplesning?",
+                "read_aloud_help_title": "Les høyt",
+                "read_aloud_help_1": "En chatter trykker på høyttaleren under et svar for å høre det. Lenker leses som ordene sine; kode og diagrammer hoppes over.",
+                "read_aloud_help_2": "Hvert svar leses én gang av taletjenesten og lagres, så det koster ingenting å spille det av igjen. Opplesning teller ikke som en melding.",
+                "read_aloud_voice_label": "Opplesningsstemme"
             },
             "bubbles_title": "Snakkebobler",
             "bubbles_description": "Raske meldingsprompt som vises ved siden av widgetens åpningsknapp.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Fjern boble",
             "bubbles_empty": "Ingen snakkebobler ennå.",
             "bubbles_translate_empty": "Legg til en boble først for å oversette den.",
-            "model_picker_title": "Modell",
             "model_picker_description": "AI-modellen denne agenten svarer med. En administrator velger hvilke modeller som står på listen (adminpanelet → Settings → AI models).",
             "model_placeholder": "Velg en modell",
-            "model_default": "Standard",
             "model_empty": "Ingen modeller ennå. En administrator legger dem til i adminpanelet under Settings → AI models.",
             "reasoning_title": "Resonnering",
             "reasoning_description": "Hvor mye modellen tenker før den svarer. Mer tenking hjelper med vanskelige spørsmål, men svarene kommer saktere og koster mer. Chattere ser resonneringen i grått over svaret.",

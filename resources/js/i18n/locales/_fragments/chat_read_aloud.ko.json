@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "소리 내어 읽기",
+        "stop_reading": "읽기 중지",
+        "read_aloud_loading": "오디오 준비 중…",
+        "read_aloud_failed": "답변을 소리 내어 읽지 못했습니다."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "답변 소리 내어 읽기",
+                "read_aloud_hint": "호스팅된 채팅의 각 답변 아래에 음성으로 재생하는 스피커 버튼을 표시합니다.",
+                "read_aloud_unavailable": "이 서버에 설정되지 않았습니다. 관리자가 관리자 패널에서 소리 내어 읽기를 켤 수 있습니다.",
+                "read_aloud_aria": "소리 내어 읽기 요금은 어떻게 되나요?",
+                "read_aloud_help_title": "소리 내어 읽기",
+                "read_aloud_help_1": "채터가 답변 아래 스피커를 눌러 듣습니다. 링크는 그 텍스트로 읽고, 코드와 차트는 건너뜁니다.",
+                "read_aloud_help_2": "각 답변은 음성 서비스가 한 번 읽고 저장하므로 다시 재생해도 비용이 들지 않습니다. 소리 내어 읽기는 메시지로 계산되지 않습니다.",
+                "read_aloud_voice_label": "읽기 음성"
+            }
+        }
+    }
+}

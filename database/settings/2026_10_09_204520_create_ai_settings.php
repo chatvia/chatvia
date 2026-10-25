@@ -24,6 +24,7 @@ return new class extends SettingsMigration
             $group->add('document_parser');
             $group->add('transcriber');
             $group->add('voice');
+            $group->add('speaker');
             $group->add('chat_files_enabled');
             $group->add('chat_files_model');
             $group->add('source_summaries_enabled');
@@ -58,6 +59,10 @@ return new class extends SettingsMigration
             $group->add('openai_transcription_model');
             $group->add('openai_realtime_model');
             $group->add('openai_realtime_voice');
+            $group->add('openai_speech_model');
+            $group->add('openai_speech_voice');
+            $group->add('elevenlabs_speech_model');
+            $group->add('elevenlabs_speech_voice');
             $group->add('openai_realtime_transcription_model');
             $group->add('voice_max_call_minutes');
             $group->add('gemini_embedding_model');

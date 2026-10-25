@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "読み上げ",
+        "stop_reading": "読み上げを停止",
+        "read_aloud_loading": "音声を準備中…",
+        "read_aloud_failed": "返信を読み上げられませんでした。"
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "返信を読み上げる",
+                "read_aloud_hint": "ホストされたチャットの各返信の下に、音声で再生するスピーカーボタンを表示します。",
+                "read_aloud_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで読み上げをオンにできます。",
+                "read_aloud_aria": "読み上げの料金は？",
+                "read_aloud_help_title": "読み上げ",
+                "read_aloud_help_1": "チャット相手は返信の下のスピーカーを押して聞きます。リンクは文字として読まれ、コードとグラフは読み飛ばされます。",
+                "read_aloud_help_2": "各返信は音声サービスが一度だけ読み上げて保存するため、再生し直しても費用はかかりません。読み上げはメッセージとして数えられません。",
+                "read_aloud_voice_label": "読み上げの声"
+            }
+        }
+    }
+}

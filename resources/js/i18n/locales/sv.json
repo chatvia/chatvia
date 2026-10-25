@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Till exempel: priset är inaktuellt.",
         "feedback_comment_send": "Skicka",
         "feedback_comment_skip": "Hoppa över",
-        "feedback_comment_thanks": "Tack för din feedback."
+        "feedback_comment_thanks": "Tack för din feedback.",
+        "read_aloud": "Läs upp",
+        "stop_reading": "Sluta läsa",
+        "read_aloud_loading": "Förbereder ljud…",
+        "read_aloud_failed": "Svaret kunde inte läsas upp."
     },
     "errors": {
         "message_limit_reached": "Meddelandegränsen har nåtts",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Lista under svaret",
                 "sources_list_hint": "En knapp under varje svar visar kunskapen det använde.",
                 "sources_citations": "Numrerade källhänvisningar",
-                "sources_citations_hint": "En liten siffra efter varje mening öppnar dess källa, med en numrerad lista under svaret. Hostad chatt, widget och API; röst och meddelandeappar utelämnar siffrorna."
+                "sources_citations_hint": "En liten siffra efter varje mening öppnar dess källa, med en numrerad lista under svaret. Hostad chatt, widget och API; röst och meddelandeappar utelämnar siffrorna.",
+                "read_aloud_label": "Läs upp svar",
+                "read_aloud_hint": "Visa en högtalarknapp under varje svar i den värdade chatten som spelar upp det som tal.",
+                "read_aloud_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på uppläsning i adminpanelen.",
+                "read_aloud_aria": "Vad kostar uppläsning?",
+                "read_aloud_help_title": "Läs upp",
+                "read_aloud_help_1": "En chattare trycker på högtalaren under ett svar för att höra det. Länkar läses som sina ord; kod och diagram hoppas över.",
+                "read_aloud_help_2": "Varje svar läses en gång av taltjänsten och sparas, så det kostar inget att spela upp det igen. Uppläsning räknas inte som ett meddelande.",
+                "read_aloud_voice_label": "Uppläsningsröst"
             },
             "bubbles_title": "Chattbubblor",
             "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetens startknapp.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Ta bort bubbla",
             "bubbles_empty": "Inga chattbubblor ännu.",
             "bubbles_translate_empty": "Lägg först till en bubbla för att kunna översätta den.",
-            "model_picker_title": "Modell",
             "model_picker_description": "AI-modellen som den här agenten svarar med. En administratör väljer vilka modeller som finns i listan (adminpanelen → Settings → AI models).",
             "model_placeholder": "Välj en modell",
-            "model_default": "Standard",
             "model_empty": "Inga modeller ännu. En administratör lägger till dem i adminpanelen under Settings → AI models.",
             "reasoning_title": "Resonemang",
             "reasoning_description": "Hur mycket modellen tänker innan den svarar. Mer tänkande hjälper med svåra frågor, men svaren kommer långsammare och kostar mer. Chattare ser resonemanget i grått ovanför svaret.",

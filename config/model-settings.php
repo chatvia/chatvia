@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Llm\Enums\RealtimeVoice;
 
 return [
@@ -76,6 +77,12 @@ return [
                 // set in the admin panel (RealtimeVoice).
                 'allow_voice_conversation' => false,
                 'voice' => RealtimeVoice::DEFAULT,
+                // A speaker button on each reply (Hosted Chat) reads it
+                // aloud. Off by default, and only shown while text to speech
+                // is set up (chatvia.ai.speaker). `read_aloud_voice` is the
+                // agent's own voice, or `default` for the admin's.
+                'allow_read_aloud' => false,
+                'read_aloud_voice' => ReadAloudAvailability::DEFAULT_VOICE,
                 // How answers show the knowledge they used (SourcesDisplay):
                 // `hidden`, `list` (the "N Sources" list under an answer) or
                 // `citations` (numbered markers in the text that open their
@@ -271,6 +278,9 @@ return [
             'allow_voice_input' => ['nullable', 'boolean'],
             'allow_voice_conversation' => ['nullable', 'boolean'],
             'voice' => ['nullable', 'string', 'in:'.implode(',', RealtimeVoice::agentChoices())],
+            'allow_read_aloud' => ['nullable', 'boolean'],
+            // A voice id of the service in use; one it no longer has falls back to the default.
+            'read_aloud_voice' => ['nullable', 'string', 'max:100'],
             'sources_display' => ['nullable', 'in:hidden,list,citations'],
             'text_translations' => ['nullable', 'array'],
             'text_overrides' => ['nullable', 'array'],

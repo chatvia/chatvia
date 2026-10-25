@@ -12,7 +12,7 @@ body:
     id: where
     attributes:
       label: Where?
-      description: The page, file or section, for example a link, `README.md#requirements` or a help page in the dashboard.
+      description: The page, file or section, for example a link, a `chatvia.ai/docs` page or a help page in the dashboard.
     validations:
       required: true
 

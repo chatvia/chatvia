@@ -7,7 +7,7 @@ use Illuminate\Testing\TestResponse;
 use Tests\Support\Widget\EmbeddedWidget;
 
 /**
- * DELETE /widget/conversations follows the agent's chat deletion mode: `end`
+ * DELETE /widget/conversations follows the install's chat deletion mode: `end`
  * (the default) refuses, `hide` clears the conversation from the widget and
  * keeps it for the chat log, `delete` erases it. It clears nothing of another
  * agent, and a conversation id that is not a UUID is unknown, never "clear
@@ -43,7 +43,7 @@ it('refuses to remove anything while visitors may only end chats', function (boo
 })->with(['one chat' => false, 'all chats' => true]);
 
 it('clears one conversation from the widget but keeps it for the chat log', function (): void {
-    $this->agent->setSetting('chat_deletion_mode', 'hide', 'widget');
+    config(['chatvia.widget.chat_deletion_mode' => 'hide']);
     $boot = EmbeddedWidget::boot($this->agent);
 
     cdcRemove($this->agent, $boot)
@@ -56,7 +56,7 @@ it('clears one conversation from the widget but keeps it for the chat log', func
 });
 
 it('erases the conversation when visitors may delete chats', function (bool $all): void {
-    $this->agent->setSetting('chat_deletion_mode', 'delete', 'widget');
+    config(['chatvia.widget.chat_deletion_mode' => 'delete']);
     $boot = EmbeddedWidget::boot($this->agent);
 
     cdcRemove($this->agent, $boot, $all)->assertOk();
@@ -69,7 +69,7 @@ it('erases the conversation when visitors may delete chats', function (bool $all
 })->with(['one chat' => false, 'all chats' => true]);
 
 it('clears nothing for a conversation of another agent or an id that is not a UUID', function (Closure $conversationId): void {
-    $this->agent->setSetting('chat_deletion_mode', 'hide', 'widget');
+    config(['chatvia.widget.chat_deletion_mode' => 'hide']);
     $boot = EmbeddedWidget::boot($this->agent);
     $other = Agent::factory()->create(['is_public' => true]);
     EmbeddedWidget::allowSite($other);

@@ -4,11 +4,13 @@ use App\Admin\Clusters\Settings\Pages\ManageWidgetSettings;
 use App\Admin\Settings\WidgetSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
+use Domain\Widget\Enums\ChatDeletionMode;
 
 /**
  * Settings → Widget: the Chat Widget on every agent of the install. Where its
- * script loads from, its reply limits, and whether its header says "AI
- * assistant" (on until an admin turns it off).
+ * script loads from, its reply limits, whether its header says "AI
+ * assistant" (on until an admin turns it off), and what a visitor's "remove
+ * this chat" does (ending the chat until an admin picks another way).
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
@@ -78,4 +80,22 @@ it('saves the reply limits and the extra sites', function (): void {
     expect(config('chatvia.widget.extra_allowed_origins'))->toBe('example.com, shop.example.com')
         ->and(config('chatvia.widget.stream_per_agent_per_minute'))->toBe(30)
         ->and(config('chatvia.widget.stream_per_agent_per_hour'))->toBe(600);
+});
+
+it('lets the admin choose what removing a chat does, ending it by default', function (): void {
+    adminPage(ManageWidgetSettings::class, $this->admin)
+        ->assertSee('Removing chats')
+        ->fillForm(['chat_deletion_mode' => 'hide'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(WidgetSettings::class, 'chat_deletion_mode'))->toBe('hide')
+        ->and(app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()))->chat_deletion_mode)->toBe(ChatDeletionMode::Hide);
+});
+
+it('refuses a removal mode it does not know', function (): void {
+    adminPage(ManageWidgetSettings::class, $this->admin)
+        ->fillForm(['chat_deletion_mode' => 'archive'])
+        ->call('save')
+        ->assertHasFormErrors(['chat_deletion_mode']);
 });

@@ -136,10 +136,6 @@
                 "theme": "Tema",
                 "live_chat": "Live Chat",
                 "live_chat_hint": "Låt besökare koppla om till en människa. Fungerar bara på webbplatswidgeten.",
-                "chat_deletion": "Ta bort chattar",
-                "chat_deletion_hint_end": "Besökare kan avsluta en chatt och starta en ny. Alla chattar finns kvar i deras historik och i din chattlogg.",
-                "chat_deletion_hint_hide": "Besökare kan ta bort chattar från sin egen historik. Du behåller dem i din chattlogg.",
-                "chat_deletion_hint_delete": "Besökare kan radera chattar. De raderas från deras historik och från din chattlogg och kan inte återställas.",
                 "open_on_load": "Öppna automatiskt vid sidladdning",
                 "delay_ms": "Fördröjning (ms)",
                 "allowed_sites": "Tillåtna webbplatser",
@@ -208,10 +204,7 @@
                 "placement_top": "Övre mitten",
                 "placement_top_right": "Övre höger",
                 "placement_bottom": "Nedre mitten",
-                "placement_bottom_right": "Nedre höger",
-                "chat_deletion_end": "Bara avsluta chatt",
-                "chat_deletion_hide": "Ta bort från besökarens historik",
-                "chat_deletion_delete": "Radera permanent"
+                "placement_bottom_right": "Nedre höger"
             },
             "sections": {
                 "branding_color": "Färgtema",

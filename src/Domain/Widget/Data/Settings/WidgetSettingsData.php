@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Domain\Widget\Data\Settings;
 
 use Domain\Agent\Data\ModelChoice\OfferedModelData;
-use Domain\Agent\Enums\ChatDeletionMode;
 use Domain\Agent\Enums\SourcesDisplay;
+use Domain\Widget\Enums\ChatDeletionMode;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -96,7 +96,8 @@ class WidgetSettingsData extends Data
         // What the widget's "remove this chat" does: `end` (the widget offers
         // only "End chat", which starts a new chat; DELETE is refused), `hide`
         // (the chat leaves the visitor's history, the chat log keeps it) or
-        // `delete` (erased). The widget words its menu and dialogs to match.
+        // `delete` (erased). One choice for the whole install, in the admin
+        // panel's Settings → Widget; the widget words its menu to match.
         public ChatDeletionMode $chat_deletion_mode,
         // Whether the header says "AI assistant" while the agent answers (EU
         // AI Act Art. 50). One switch for the whole install, in the admin

@@ -1961,11 +1961,7 @@
                 "allowed_sites_help": "これらのオリジンのみがウィジェットを読み込めます。",
                 "keyboard_trigger": "キーボードトリガー",
                 "placement": "配置",
-                "language_switcher": "言語切り替え",
-                "chat_deletion": "チャットの削除",
-                "chat_deletion_hint_end": "訪問者はチャットを終了して新しいチャットを始められます。すべてのチャットは訪問者の履歴とチャットログに残ります。",
-                "chat_deletion_hint_hide": "訪問者は自分の履歴からチャットを削除できます。チャットログには残ります。",
-                "chat_deletion_hint_delete": "訪問者はチャットを削除できます。訪問者の履歴とチャットログの両方から消去され、復元できません。"
+                "language_switcher": "言語切り替え"
             },
             "embed": {
                 "surface_preview": "画面プレビュー"
@@ -2026,10 +2022,7 @@
                 "placement_top": "上部中央",
                 "placement_top_right": "右上",
                 "placement_bottom": "下部中央",
-                "placement_bottom_right": "右下",
-                "chat_deletion_end": "チャットの終了のみ",
-                "chat_deletion_hide": "訪問者の履歴から削除",
-                "chat_deletion_delete": "完全に削除"
+                "placement_bottom_right": "右下"
             },
             "sections": {
                 "branding_color": "カラーテーマ",

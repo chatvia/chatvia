@@ -1962,11 +1962,7 @@
                 "allowed_sites_help": "Seules ces origines sont autorisées à charger le widget.",
                 "keyboard_trigger": "Raccourci clavier",
                 "placement": "Emplacement",
-                "language_switcher": "Sélecteur de langue",
-                "chat_deletion": "Suppression des chats",
-                "chat_deletion_hint_end": "Les visiteurs peuvent terminer un chat et en commencer un nouveau. Chaque chat reste dans leur historique et dans votre journal des chats.",
-                "chat_deletion_hint_hide": "Les visiteurs peuvent retirer des chats de leur propre historique. Vous les conservez dans votre journal des chats.",
-                "chat_deletion_hint_delete": "Les visiteurs peuvent supprimer des chats. Ils sont effacés de leur historique et de votre journal des chats, sans possibilité de récupération."
+                "language_switcher": "Sélecteur de langue"
             },
             "embed": {
                 "surface_preview": "Aperçu de la surface"
@@ -2027,10 +2023,7 @@
                 "placement_top": "Centré en haut",
                 "placement_top_right": "En haut à droite",
                 "placement_bottom": "Centré en bas",
-                "placement_bottom_right": "En bas à droite",
-                "chat_deletion_end": "Terminer le chat uniquement",
-                "chat_deletion_hide": "Retirer de l'historique du visiteur",
-                "chat_deletion_delete": "Supprimer définitivement"
+                "placement_bottom_right": "En bas à droite"
             },
             "sections": {
                 "branding_color": "Thème de couleur",

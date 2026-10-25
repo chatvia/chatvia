@@ -1962,11 +1962,7 @@
                 "allowed_sites_help": "Only these origins are allowed to load the widget.",
                 "keyboard_trigger": "Keyboard trigger",
                 "placement": "Placement",
-                "language_switcher": "Language switcher",
-                "chat_deletion": "Removing chats",
-                "chat_deletion_hint_end": "Visitors can end a chat and start a new one. Every chat stays in their history and in your chat log.",
-                "chat_deletion_hint_hide": "Visitors can remove chats from their own history. You keep them in your chat log.",
-                "chat_deletion_hint_delete": "Visitors can delete chats. They are erased from their history and from your chat log, and can't be recovered."
+                "language_switcher": "Language switcher"
             },
             "embed": {
                 "surface_preview": "Surface preview"
@@ -2027,10 +2023,7 @@
                 "placement_top": "Top center",
                 "placement_top_right": "Top right",
                 "placement_bottom": "Bottom center",
-                "placement_bottom_right": "Bottom right",
-                "chat_deletion_end": "End chat only",
-                "chat_deletion_hide": "Remove from visitor's history",
-                "chat_deletion_delete": "Delete permanently"
+                "placement_bottom_right": "Bottom right"
             },
             "sections": {
                 "branding_color": "Color Theme",

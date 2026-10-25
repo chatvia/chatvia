@@ -1962,11 +1962,7 @@
                 "allowed_sites_help": "Kun disse opprinnelsene er tillatt å laste widgeten.",
                 "keyboard_trigger": "Tastaturtrigger",
                 "placement": "Plassering",
-                "language_switcher": "Språkvelger",
-                "chat_deletion": "Fjerne chatter",
-                "chat_deletion_hint_end": "Besøkende kan avslutte en chat og starte en ny. Alle chatter blir i historikken deres og i chatloggen din.",
-                "chat_deletion_hint_hide": "Besøkende kan fjerne chatter fra sin egen historikk. Du beholder dem i chatloggen din.",
-                "chat_deletion_hint_delete": "Besøkende kan slette chatter. De slettes fra historikken deres og fra chatloggen din, og kan ikke gjenopprettes."
+                "language_switcher": "Språkvelger"
             },
             "embed": {
                 "surface_preview": "Flateforhåndsvisning"
@@ -2027,10 +2023,7 @@
                 "placement_top": "Topp midten",
                 "placement_top_right": "Øverst til høyre",
                 "placement_bottom": "Bunn midten",
-                "placement_bottom_right": "Nederst til høyre",
-                "chat_deletion_end": "Bare avslutt chat",
-                "chat_deletion_hide": "Fjern fra den besøkendes historikk",
-                "chat_deletion_delete": "Slett permanent"
+                "placement_bottom_right": "Nederst til høyre"
             },
             "sections": {
                 "branding_color": "Fargetema",

@@ -14,6 +14,7 @@ return new class extends SettingsMigration
     {
         $this->migrator->inGroup('widget', function (SettingsBlueprint $group): void {
             $group->add('ai_disclosure');
+            $group->add('chat_deletion_mode');
         });
     }
 

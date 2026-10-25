@@ -25,18 +25,7 @@
             "reasoning_low": "低",
             "reasoning_medium": "中",
             "reasoning_high": "高",
-            "reasoning_locked": "管理员已为所有智能体关闭推理(管理面板 → 设置 → AI 模型)。",
-            "behavior": {
-                "chat_deletion": "移除聊天",
-                "chat_deletion_hint_end": "访客可以结束聊天并开始新的聊天。所有聊天都会保留在他们的历史记录和你的聊天日志中。",
-                "chat_deletion_hint_hide": "访客可以从自己的历史记录中移除聊天。聊天仍保留在你的聊天日志中。",
-                "chat_deletion_hint_delete": "访客可以删除聊天。聊天会从他们的历史记录和你的聊天日志中清除,且无法恢复。"
-            },
-            "options": {
-                "chat_deletion_end": "仅结束聊天",
-                "chat_deletion_hide": "从访客历史中移除",
-                "chat_deletion_delete": "永久删除"
-            }
+            "reasoning_locked": "管理员已为所有智能体关闭推理(管理面板 → 设置 → AI 模型)。"
         }
     }
 }

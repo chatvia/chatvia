@@ -25,18 +25,7 @@
             "reasoning_low": "낮음",
             "reasoning_medium": "보통",
             "reasoning_high": "높음",
-            "reasoning_locked": "관리자가 모든 에이전트의 추론을 껐습니다(관리자 패널 → 설정 → AI 모델).",
-            "behavior": {
-                "chat_deletion": "채팅 제거",
-                "chat_deletion_hint_end": "방문자는 채팅을 종료하고 새 채팅을 시작할 수 있습니다. 모든 채팅은 방문자의 기록과 채팅 로그에 남습니다.",
-                "chat_deletion_hint_hide": "방문자는 자신의 기록에서 채팅을 제거할 수 있습니다. 채팅 로그에는 그대로 남습니다.",
-                "chat_deletion_hint_delete": "방문자는 채팅을 삭제할 수 있습니다. 방문자의 기록과 채팅 로그에서 지워지며 복구할 수 없습니다."
-            },
-            "options": {
-                "chat_deletion_end": "채팅 종료만",
-                "chat_deletion_hide": "방문자 기록에서 제거",
-                "chat_deletion_delete": "영구 삭제"
-            }
+            "reasoning_locked": "관리자가 모든 에이전트의 추론을 껐습니다(관리자 패널 → 설정 → AI 모델)."
         }
     }
 }

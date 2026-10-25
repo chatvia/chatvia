@@ -49,9 +49,7 @@ it('lists the models the chatter may pick, the agent\'s own first', function ():
 });
 
 it('tells the widget what removing a chat does, ending it by default', function (?string $stored, string $sent): void {
-    if ($stored !== null) {
-        $this->agent->setSetting('chat_deletion_mode', $stored, 'widget');
-    }
+    config(['chatvia.widget.chat_deletion_mode' => $stored]);
 
     $this->withHeaders(EmbeddedWidget::headers($this->agent))
         ->getJson('/widget/agents/settings')

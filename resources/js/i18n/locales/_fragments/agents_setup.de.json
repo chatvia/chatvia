@@ -136,10 +136,6 @@
                 "theme": "Design",
                 "live_chat": "Live-Chat",
                 "live_chat_hint": "Besucher können an einen Menschen übergeben. Funktioniert nur mit dem Website-Widget.",
-                "chat_deletion": "Chats entfernen",
-                "chat_deletion_hint_end": "Besucher können einen Chat beenden und einen neuen beginnen. Jeder Chat bleibt in ihrem Verlauf und in Ihrem Chatprotokoll.",
-                "chat_deletion_hint_hide": "Besucher können Chats aus ihrem eigenen Verlauf entfernen. Im Chatprotokoll bleiben sie Ihnen erhalten.",
-                "chat_deletion_hint_delete": "Besucher können Chats löschen. Sie werden aus ihrem Verlauf und aus Ihrem Chatprotokoll gelöscht und lassen sich nicht wiederherstellen.",
                 "open_on_load": "Beim Laden der Seite automatisch öffnen",
                 "delay_ms": "Verzögerung (ms)",
                 "allowed_sites": "Erlaubte Websites",
@@ -208,10 +204,7 @@
                 "placement_top": "Oben Mitte",
                 "placement_top_right": "Oben rechts",
                 "placement_bottom": "Unten Mitte",
-                "placement_bottom_right": "Unten rechts",
-                "chat_deletion_end": "Nur Chat beenden",
-                "chat_deletion_hide": "Aus dem Verlauf des Besuchers entfernen",
-                "chat_deletion_delete": "Endgültig löschen"
+                "placement_bottom_right": "Unten rechts"
             },
             "sections": {
                 "branding_color": "Farbdesign",

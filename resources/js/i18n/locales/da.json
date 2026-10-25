@@ -1962,11 +1962,7 @@
                 "allowed_sites_help": "Kun disse origins har lov til at indlæse widget'en.",
                 "keyboard_trigger": "Tastaturgenvej",
                 "placement": "Placering",
-                "language_switcher": "Sprogskifter",
-                "chat_deletion": "Fjernelse af chats",
-                "chat_deletion_hint_end": "Besøgende kan afslutte en chat og starte en ny. Alle chats bliver i deres historik og i din chatlog.",
-                "chat_deletion_hint_hide": "Besøgende kan fjerne chats fra deres egen historik. Du beholder dem i din chatlog.",
-                "chat_deletion_hint_delete": "Besøgende kan slette chats. De slettes fra deres historik og fra din chatlog og kan ikke gendannes."
+                "language_switcher": "Sprogskifter"
             },
             "embed": {
                 "surface_preview": "Overfladeforhåndsvisning"
@@ -2027,10 +2023,7 @@
                 "placement_top": "Øverst centreret",
                 "placement_top_right": "Øverst til højre",
                 "placement_bottom": "Nederst centreret",
-                "placement_bottom_right": "Nederst til højre",
-                "chat_deletion_end": "Kun afslut chat",
-                "chat_deletion_hide": "Fjern fra besøgendes historik",
-                "chat_deletion_delete": "Slet permanent"
+                "placement_bottom_right": "Nederst til højre"
             },
             "sections": {
                 "branding_color": "Farvetema",

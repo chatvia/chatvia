@@ -25,18 +25,7 @@
             "reasoning_low": "低",
             "reasoning_medium": "中",
             "reasoning_high": "高",
-            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。",
-            "behavior": {
-                "chat_deletion": "チャットの削除",
-                "chat_deletion_hint_end": "訪問者はチャットを終了して新しいチャットを始められます。すべてのチャットは訪問者の履歴とチャットログに残ります。",
-                "chat_deletion_hint_hide": "訪問者は自分の履歴からチャットを削除できます。チャットログには残ります。",
-                "chat_deletion_hint_delete": "訪問者はチャットを削除できます。訪問者の履歴とチャットログの両方から消去され、復元できません。"
-            },
-            "options": {
-                "chat_deletion_end": "チャットの終了のみ",
-                "chat_deletion_hide": "訪問者の履歴から削除",
-                "chat_deletion_delete": "完全に削除"
-            }
+            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。"
         }
     }
 }

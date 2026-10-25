@@ -14,6 +14,7 @@ use Domain\Llm\Services\ChatFileModel;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsData;
 use Domain\Widget\Data\Settings\WidgetSettingsReverbData;
+use Domain\Widget\Enums\ChatDeletionMode;
 use Illuminate\Support\Collection;
 
 /**
@@ -97,7 +98,7 @@ class BuildWidgetSettingsAction
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             sources_display: $agent->sourcesDisplay(),
             handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
-            chat_deletion_mode: $agent->chatDeletionMode(),
+            chat_deletion_mode: ChatDeletionMode::inUse(),
             ai_disclosure: (bool) config('chatvia.widget.ai_disclosure', true),
             // Uploads need a model that reads files; it decides the types.
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->fileModel->isAvailable(),

@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Källhänvisningar",
+                        "help": "Kontrollerar att varje avsnitt som svaret hänvisar till verkligen stöder meningen. För agenter som anger källor. Godkänd när 80 % av hänvisningarna håller."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Källhänvisningar"
+            }
+        }
+    }
+}

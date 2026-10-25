@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Quellenangaben",
+                        "help": "Prüft, ob jede zitierte Passage den Satz, für den sie angegeben ist, wirklich stützt. Für Agenten, die ihre Quellen angeben. Bestanden, wenn 80 % der Angaben stimmen."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Quellenangaben"
+            }
+        }
+    }
+}

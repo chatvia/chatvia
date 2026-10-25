@@ -5,12 +5,7 @@
                 "replies_saved": "Đã lưu tùy chọn câu trả lời",
                 "replies_error": "Không thể lưu tùy chọn câu trả lời"
             },
-            "settings": {
-                "replies_title": "Câu trả lời",
-                "replies_description": "Chọn nội dung hiển thị bên dưới mỗi câu trả lời.",
-                "show_sources_label": "Hiển thị nguồn",
-                "show_sources_hint": "Hiển thị một nút bên dưới mỗi câu trả lời, liệt kê kiến thức đã dùng."
-            },
+            "settings": {},
             "model_picker_title": "Mô hình",
             "model_picker_description": "Mô hình AI mà trợ lý AI này dùng để trả lời. Quản trị viên chọn những mô hình có trong danh sách này (trang quản trị → Settings → AI models).",
             "model_placeholder": "Chọn mô hình",

@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Källor",
+                "sources_description": "Hur varje svar visar den kunskap det använde.",
+                "sources_hidden": "Dolda",
+                "sources_hidden_hint": "Svaren visar inga källor. De lämnar aldrig servern.",
+                "sources_list": "Lista under svaret",
+                "sources_list_hint": "En knapp under varje svar visar kunskapen det använde.",
+                "sources_citations": "Numrerade källhänvisningar",
+                "sources_citations_hint": "En liten siffra efter varje mening öppnar dess källa, med en numrerad lista under svaret. Hostad chatt, widget och API; röst och meddelandeappar utelämnar siffrorna."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Öppna källan"
+    }
+}

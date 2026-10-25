@@ -169,7 +169,8 @@
         "open_link": "Buka {label}",
         "passage_count": "{count} bagian | {count} bagian",
         "relevance": "Relevansi {score}",
-        "passage_removed": "Bagian ini sudah dihapus dari basis pengetahuan."
+        "passage_removed": "Bagian ini sudah dihapus dari basis pengetahuan.",
+        "open_source": "Buka sumber"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1019,6 +1020,10 @@
                     "tool_call": {
                         "label": "Pemanggilan alat",
                         "help": "Memeriksa apakah agen memanggil alat yang diharapkan — tanpa menjalankannya."
+                    },
+                    "citations": {
+                        "label": "Kutipan",
+                        "help": "Memeriksa bahwa setiap bagian yang dikutip jawaban benar-benar mendukung kalimatnya. Untuk agen yang mengutip sumber. Lulus jika 80% kutipan tepat."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Kecocokan persis",
                 "json_schema": "Skema JSON",
                 "llm_judge": "Juri LLM",
-                "tool_call": "Pemanggilan alat"
+                "tool_call": "Pemanggilan alat",
+                "citations": "Kutipan"
             },
             "statuses": {
                 "running": "Berjalan",
@@ -1882,10 +1888,14 @@
                 "voice_label": "Suara",
                 "voice_default": "Bawaan ({voice})",
                 "voice_input_unavailable": "Belum diatur di server ini. Admin dapat menyalakan ucapan ke teks di panel admin.",
-                "replies_title": "Balasan",
-                "replies_description": "Pilih apa yang muncul di bawah setiap jawaban.",
-                "show_sources_label": "Tampilkan sumber",
-                "show_sources_hint": "Tampilkan tombol di bawah setiap jawaban yang mencantumkan pengetahuan yang digunakannya."
+                "sources_title": "Sumber",
+                "sources_description": "Cara setiap jawaban menampilkan pengetahuan yang dipakainya.",
+                "sources_hidden": "Disembunyikan",
+                "sources_hidden_hint": "Jawaban tidak menampilkan sumber. Sumber tidak pernah keluar dari server.",
+                "sources_list": "Daftar di bawah jawaban",
+                "sources_list_hint": "Tombol di bawah setiap jawaban menampilkan pengetahuan yang dipakainya.",
+                "sources_citations": "Kutipan bernomor",
+                "sources_citations_hint": "Angka kecil setelah setiap kalimat membuka sumbernya, dengan daftar bernomor di bawah jawaban. Chat yang di-host, widget, dan API; suara dan aplikasi pesan menghilangkan angkanya."
             },
             "bubbles_title": "Gelembung Obrolan",
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",

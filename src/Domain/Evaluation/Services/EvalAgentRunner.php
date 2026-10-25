@@ -99,6 +99,7 @@ class EvalAgentRunner
                 traceId: $context->assistantMessageId,
                 toolCalls: $context->capturedToolCalls,
                 sourceRefs: $this->sourceRefs($context->sources),
+                blocks: $context->sources->map(static fn (RetrievedSourceData $source): string => $source->content)->values()->all(),
             );
         } catch (Throwable $e) {
             // The case is recorded as failed with this message; report it too so

@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Kilder",
+                "sources_description": "Hvordan hvert svar viser kunnskapen det brukte.",
+                "sources_hidden": "Skjult",
+                "sources_hidden_hint": "Svarene viser ingen kilder. De forlater aldri serveren.",
+                "sources_list": "Liste under svaret",
+                "sources_list_hint": "En knapp under hvert svar viser kunnskapen det brukte.",
+                "sources_citations": "Nummererte kildehenvisninger",
+                "sources_citations_hint": "Et lite tall etter hver setning åpner kilden, med en nummerert liste under svaret. Vertet chat, widget og API; tale og meldingsapper utelater tallene."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Åpne kilden"
+    }
+}

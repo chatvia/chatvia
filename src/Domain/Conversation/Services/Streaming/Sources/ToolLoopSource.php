@@ -17,6 +17,7 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
+use Domain\Conversation\Services\Turn\CitationMarkers;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\AbstractLlmProvider;
@@ -319,6 +320,9 @@ abstract class ToolLoopSource
         // `replace` event tells the client to swap what it already streamed.
         // A held answer was never streamed: it is sent now, in one piece.
         $corrected = $this->applyOutputGuard($context);
+        // Made-up or irregular citation markers are fixed before the answer
+        // is stored; the client then swaps in the fixed text too.
+        $corrected = $this->citations()->clean($context) ?? $corrected;
 
         if ($this->holdsAnswer($context)) {
             if ($context->streamedMessage !== '') {
@@ -442,6 +446,8 @@ abstract class ToolLoopSource
             return;
         }
 
+        $this->citations()->clean($context);
+
         try {
             $this->replyRecorder->recordCompletedReply($context);
         } catch (Throwable $e) {
@@ -472,6 +478,16 @@ abstract class ToolLoopSource
         } catch (Throwable $e) {
             report($e);
         }
+    }
+
+    /**
+     * The citation cleaner, resolved when first used: the sources that extend
+     * this class pass the constructor's arguments one by one, so it is not
+     * one of them.
+     */
+    private function citations(): CitationMarkers
+    {
+        return app(CitationMarkers::class);
     }
 
     /**

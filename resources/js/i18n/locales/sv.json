@@ -169,7 +169,8 @@
         "open_link": "Öppna {label}",
         "passage_count": "{count} avsnitt | {count} avsnitt",
         "relevance": "Relevans {score}",
-        "passage_removed": "Det här avsnittet har sedan dess tagits bort från kunskapsbasen."
+        "passage_removed": "Det här avsnittet har sedan dess tagits bort från kunskapsbasen.",
+        "open_source": "Öppna källan"
     },
     "home": {
         "logo_alt": "Logotyp",
@@ -1018,6 +1019,10 @@
                     "tool_call": {
                         "label": "Verktygsanrop",
                         "help": "Kontrollerar att agenten anropar det förväntade verktyget — utan att köra det."
+                    },
+                    "citations": {
+                        "label": "Källhänvisningar",
+                        "help": "Kontrollerar att varje avsnitt som svaret hänvisar till verkligen stöder meningen. För agenter som anger källor. Godkänd när 80 % av hänvisningarna håller."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Exakt matchning",
                 "json_schema": "JSON-schema",
                 "llm_judge": "LLM-domare",
-                "tool_call": "Verktygsanrop"
+                "tool_call": "Verktygsanrop",
+                "citations": "Källhänvisningar"
             },
             "statuses": {
                 "running": "Körs",
@@ -1882,11 +1888,15 @@
                 "voice_label": "Röst",
                 "voice_default": "Standard ({voice})",
                 "voice_input_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på tal till text i adminpanelen.",
-                "replies_title": "Svar",
-                "replies_description": "Välj vad som visas under varje svar.",
-                "show_sources_label": "Visa källor",
-                "show_sources_hint": "Visa en knapp under varje svar som listar kunskapen svaret bygger på.",
-                "file_uploads_unavailable": "Avstängt på den här servern. En administratör kan slå på filuppladdning i chatten i adminpanelen under Inställningar → AI-modeller."
+                "file_uploads_unavailable": "Avstängt på den här servern. En administratör kan slå på filuppladdning i chatten i adminpanelen under Inställningar → AI-modeller.",
+                "sources_title": "Källor",
+                "sources_description": "Hur varje svar visar den kunskap det använde.",
+                "sources_hidden": "Dolda",
+                "sources_hidden_hint": "Svaren visar inga källor. De lämnar aldrig servern.",
+                "sources_list": "Lista under svaret",
+                "sources_list_hint": "En knapp under varje svar visar kunskapen det använde.",
+                "sources_citations": "Numrerade källhänvisningar",
+                "sources_citations_hint": "En liten siffra efter varje mening öppnar dess källa, med en numrerad lista under svaret. Hostad chatt, widget och API; röst och meddelandeappar utelämnar siffrorna."
             },
             "bubbles_title": "Chattbubblor",
             "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetens startknapp.",

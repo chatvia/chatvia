@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Enums\SourcesDisplay;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 
 /**
@@ -39,6 +40,16 @@ it('ships the notice in the visitor\'s language, and none when it is empty', fun
 
     expect($settings->notice)->toBe('Antworten können falsch sein.')
         ->and($settings->text_translations['notice'] ?? null)->toBe(['de' => 'Antworten können falsch sein.']);
+});
+
+it('tells the widget whether the agent shows or cites its sources', function (): void {
+    $agent = createAgent(User::factory()->create());
+
+    expect(app(BuildWidgetSettingsAction::class)->execute($agent)->sources_display)->toBe(SourcesDisplay::Hidden);
+
+    $agent->setSetting('sources_display', 'citations', 'appearance');
+
+    expect(app(BuildWidgetSettingsAction::class)->execute($agent->fresh())->sources_display)->toBe(SourcesDisplay::Citations);
 });
 
 it('marks both embed surfaces enabled by default', function (): void {

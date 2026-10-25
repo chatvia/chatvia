@@ -52,9 +52,9 @@ export function useSetupGeneralSettings(
             onSuccess: reloadPreview,
         });
 
-    // Reply options. Sources start hidden: the button under small talk confuses chatters.
+    // How answers show their sources. Hidden by default: sources under small talk confuse chatters.
     const repliesForm = useForm({
-        show_sources: appearance.boolean('show_sources', false),
+        sources_display: appearance.string('sources_display') || 'hidden',
     });
     const isSavingReplies = ref(false);
     const saveReplies = (): void =>

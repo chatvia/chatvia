@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Citações",
+                        "help": "Verifica se cada trecho citado pela resposta realmente sustenta a frase em que é citado. Para agentes que citam as fontes. Passa quando 80% das citações estão corretas."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Citações"
+            }
+        }
+    }
+}

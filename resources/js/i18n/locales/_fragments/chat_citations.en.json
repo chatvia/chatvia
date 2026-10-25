@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Sources",
+                "sources_description": "How each answer shows the knowledge it used.",
+                "sources_hidden": "Hidden",
+                "sources_hidden_hint": "Answers show no sources. They never leave the server.",
+                "sources_list": "List under the answer",
+                "sources_list_hint": "A button under each answer lists the knowledge it used.",
+                "sources_citations": "Numbered citations",
+                "sources_citations_hint": "A small number after each sentence opens its source, with a numbered list under the answer. Hosted chat, widget and API; voice and messaging apps leave the numbers out."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Open the source"
+    }
+}

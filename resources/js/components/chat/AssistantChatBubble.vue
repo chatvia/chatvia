@@ -26,7 +26,9 @@ import { useClipboard } from '@vueuse/core';
 import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { citedSources } from '@/lib/citations';
 import AssistantMessageBody from './AssistantMessageBody.vue';
+import CitedSourcesList from './CitedSourcesList.vue';
 import ReasoningBlock from './ReasoningBlock.vue';
 import SourcesDialog from './SourcesDialog.vue';
 import ToolApprovalCard from './ToolApprovalCard.vue';
@@ -47,6 +49,8 @@ const props = defineProps<{
     activeCalls?: ActiveToolCall[];
     hideFeedback?: boolean;
     sources?: MessageSource[];
+    /** The agent cites its sources: `[n]` markers become chips, with a numbered source list. */
+    citeSources?: boolean;
     /**
      * Structured tool-call artifacts of this turn (ECharts options, forms),
      * from the SSE `tool` end-phase payload. Rendered above the markdown,
@@ -77,6 +81,10 @@ const WIRE_FEEDBACK: Record<Feedback, MessageFeedbackValue> = { 'thumbs-up': 'po
 
 const feedback = ref<Feedback | null>(null);
 const isRegenerating = ref(false);
+
+// The sources the answer cites, numbered as its chips are.
+const cited = computed(() => citedSources(props.message.content ?? '', props.sources ?? []));
+const showsCitations = computed(() => !!props.citeSources && cited.value.ordered.some((entry) => entry.number !== null));
 
 /** The longest note the server keeps (RecordMessageFeedbackAction::COMMENT_MAX_LENGTH). */
 const COMMENT_MAX_LENGTH = 1000;
@@ -179,7 +187,10 @@ async function deleteMessage() {
                 :is-streaming="isStreaming ?? false"
                 :isRTL="isRTL ?? false"
                 :message-id="message.id ? String(message.id) : undefined"
+                :sources="sources ?? []"
+                :cite="!!citeSources"
             />
+            <CitedSourcesList v-if="showsCitations && !isStreaming" :cited="cited" />
             <!-- Empty body: dots while the model thinks, or the branded tool-call
                  stack while it calls an MCP server or webhook. Hidden while an
                  approval card is pending, since the card is the content then,
@@ -292,7 +303,7 @@ async function deleteMessage() {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <SourcesDialog v-if="sources && sources.length > 0" :sources="sources" />
+                    <SourcesDialog v-if="sources && sources.length > 0 && !showsCitations" :sources="sources" />
                 </div>
             </div>
 

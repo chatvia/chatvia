@@ -24,8 +24,11 @@ class MessageTurnData extends Data
          */
         public TurnMessageData $message,
         /**
-         * The knowledge sources the reply cited (label and public link only).
-         * Empty when the agent does not show sources.
+         * The knowledge sources the reply drew on, best first: label, kind,
+         * public link, page, how many passages, `blocks` (the numbers that
+         * `[n]` citation markers in `message.content` point to, when the
+         * agent cites its sources) and `excerpt` (the start of the best
+         * passage). Empty when the agent neither shows nor cites sources.
          *
          * @var list<array<string, mixed>>
          */

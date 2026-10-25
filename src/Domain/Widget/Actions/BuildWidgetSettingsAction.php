@@ -93,6 +93,7 @@ class BuildWidgetSettingsAction
             composer_placeholder: $text['composer_placeholder'] ?? null,
             notice: filled($text['notice'] ?? null) ? $text['notice'] : null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
+            sources_display: $agent->sourcesDisplay(),
             handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
             // Uploads need a model that reads files; it decides the types.
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->fileModel->isAvailable(),

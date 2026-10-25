@@ -5,12 +5,15 @@
  * the markdown pipeline live in one place.
  *
  * Owns: the marked instance + plugin config, streaming-aware debounced
- * render, code-block copy buttons, and the artifact-kind → component map.
+ * render, code-block copy buttons, the artifact-kind → component map, and,
+ * when `cite` is on, the `[n]` citation chips and the source card they open.
  *
  * Does NOT own: feedback/copy buttons on the message itself, sources,
  * tool-call indicators, regenerate/edit affordances, avatars, bubble
  * styling. Those stay in the wrappers.
  */
+import { citedSources, withCitationChips } from '@/lib/citations';
+import type { MessageSource } from '@/types/chat';
 import type { ToolArtifact } from '@/types/stream';
 import { useClipboard } from '@vueuse/core';
 import DOMPurify from 'dompurify';
@@ -22,6 +25,7 @@ import { markedHighlight } from 'marked-highlight';
 import markedKatex from 'marked-katex-extension';
 import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import CitationCard from './CitationCard.vue';
 import EChartBlock from './EChartBlock.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
 
@@ -90,9 +94,14 @@ const props = withDefaults(
         // inline-form renderer so a submit can stamp the read-only state back
         // onto this message for reload.
         messageId?: string;
+        // The answer's sources and whether its `[n]` markers become citation chips.
+        sources?: MessageSource[];
+        cite?: boolean;
     }>(),
     {
         artifacts: () => [],
+        sources: () => [],
+        cite: false,
         isStreaming: false,
         isRTL: false,
     },
@@ -165,8 +174,12 @@ function stripOrphanImagePlaceholders(content: string): string {
     return content.replace(ORPHAN_IMAGE_PLACEHOLDER, '').replace(/\n{3,}/g, '\n\n');
 }
 
+const cited = computed(() => citedSources(props.content ?? '', props.sources ?? []));
+const citesSources = computed(() => props.cite && (props.sources ?? []).some((source) => (source.blocks ?? []).length > 0));
+
 function formatMessage(content: string): string {
-    const cleaned = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
+    const withImages = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
+    const cleaned = citesSources.value ? withCitationChips(withImages, cited.value, props.isStreaming) : withImages;
     const result = marked.parse(cleaned);
     const html = typeof result === 'string' ? result : '';
 
@@ -230,6 +243,68 @@ onUnmounted(() => {
 });
 
 const bodyRef = ref<HTMLElement>();
+
+// ---- Citation cards ---------------------------------------------------------
+// A chip opens its source's card on hover, focus or tap; the card stays while
+// the pointer moves onto it, and closes shortly after it leaves both.
+
+const openCitation = ref<{ source: MessageSource; number: number; anchor: DOMRect } | null>(null);
+let closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+function citeChip(event: Event): HTMLElement | null {
+    const target = event.target as HTMLElement | null;
+    return target?.closest?.('sup.cite') ?? null;
+}
+
+function showCitation(chip: HTMLElement) {
+    const number = Number(chip.dataset.cite);
+    const entry = cited.value.ordered.find((item) => item.number === number);
+    if (!entry) return;
+
+    keepCitation();
+    openCitation.value = { source: entry.source, number, anchor: chip.getBoundingClientRect() };
+}
+
+function keepCitation() {
+    if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+    }
+}
+
+function scheduleCloseCitation() {
+    keepCitation();
+    closeTimer = setTimeout(() => (openCitation.value = null), 200);
+}
+
+function closeCitation() {
+    keepCitation();
+    openCitation.value = null;
+}
+
+function onCiteHover(event: Event) {
+    const chip = citeChip(event);
+    if (chip) showCitation(chip);
+}
+
+function onCiteLeave(event: Event) {
+    if (citeChip(event)) scheduleCloseCitation();
+}
+
+function onCiteClick(event: Event) {
+    const chip = citeChip(event);
+    if (!chip) return;
+    event.preventDefault();
+    showCitation(chip);
+}
+
+// A card left open would point at a chip that has moved away.
+const closeOnScroll = () => closeCitation();
+onMounted(() => window.addEventListener('scroll', closeOnScroll, true));
+onUnmounted(() => {
+    window.removeEventListener('scroll', closeOnScroll, true);
+    keepCitation();
+});
 
 /**
  * Streaming fade, as in ChatGPT: each piece of text that arrives fades in on
@@ -391,11 +466,58 @@ onMounted(() => {
             v-bind="ARTIFACT_RENDERERS[artifact.kind].toProps(artifact.data)"
             :message-id="artifact.kind === 'form' ? messageId : undefined"
         />
-        <div v-if="content" id="chat-ai-responses" ref="bodyRef" v-html="renderedHtml" />
+        <div
+            v-if="content"
+            id="chat-ai-responses"
+            ref="bodyRef"
+            v-html="renderedHtml"
+            @mouseover="onCiteHover"
+            @mouseout="onCiteLeave"
+            @focusin="onCiteHover"
+            @focusout="onCiteLeave"
+            @click="onCiteClick"
+            @keydown.enter="onCiteClick"
+            @keydown.esc="closeCitation"
+        />
+        <CitationCard
+            v-if="openCitation"
+            :source="openCitation.source"
+            :number="openCitation.number"
+            :anchor="openCitation.anchor"
+            @enter="keepCitation"
+            @leave="scheduleCloseCitation"
+        />
     </div>
 </template>
 
 <style scoped>
+/* Citation chips: a small number after the sentence it backs. */
+:deep(sup.cite) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    margin-inline-start: 0.2rem;
+    padding: 0 0.3rem;
+    border-radius: 9999px;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+    vertical-align: super;
+    cursor: pointer;
+    transition: background-color 120ms;
+}
+
+:deep(sup.cite:hover),
+:deep(sup.cite:focus-visible) {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+    outline: none;
+}
+
 /* Streaming reveal: each newly arrived stretch of text fades in (see
    applyStreamFade). The spans are added to v-html content, which carries no
    scope attribute, hence :deep. */

@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "来源",
+                "sources_description": "每个回答如何展示其使用的知识。",
+                "sources_hidden": "隐藏",
+                "sources_hidden_hint": "回答不显示来源，来源不会离开服务器。",
+                "sources_list": "回答下方的列表",
+                "sources_list_hint": "每个回答下方的按钮会列出其使用的知识。",
+                "sources_citations": "编号引用",
+                "sources_citations_hint": "每个句子后的小编号可打开其来源，回答下方附编号列表。适用于托管聊天、小组件和 API；语音和即时通讯应用会省略编号。"
+            }
+        }
+    },
+    "sources": {
+        "open_source": "打开来源"
+    }
+}

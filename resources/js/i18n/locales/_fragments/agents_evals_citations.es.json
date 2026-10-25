@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Citas",
+                        "help": "Comprueba que cada pasaje que cita la respuesta respalda de verdad la frase en la que se cita. Para agentes que citan sus fuentes. Pasa cuando el 80 % de las citas son correctas."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Citas"
+            }
+        }
+    }
+}

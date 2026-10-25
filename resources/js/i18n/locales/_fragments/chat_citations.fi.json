@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Lähteet",
+                "sources_description": "Miten kukin vastaus näyttää käyttämänsä tiedon.",
+                "sources_hidden": "Piilotettu",
+                "sources_hidden_hint": "Vastaukset eivät näytä lähteitä. Ne eivät koskaan lähde palvelimelta.",
+                "sources_list": "Luettelo vastauksen alla",
+                "sources_list_hint": "Painike jokaisen vastauksen alla luettelee sen käyttämän tiedon.",
+                "sources_citations": "Numeroidut lähdeviitteet",
+                "sources_citations_hint": "Pieni numero jokaisen lauseen perässä avaa sen lähteen, ja vastauksen alla on numeroitu luettelo. Isännöity chat, widget ja API; ääni ja viestisovellukset jättävät numerot pois."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Avaa lähde"
+    }
+}

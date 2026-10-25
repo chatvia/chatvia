@@ -1,11 +1,13 @@
 <script setup lang="ts">
 /**
  * Read-only message body for the chat log and the live-chat (handoff) panel:
- * the rendered markdown with its chart/form artifacts, or a waiting indicator
- * while the message is still empty. Prompts are rendered by the callers.
+ * the rendered markdown with its chart/form artifacts and citation chips, or
+ * a waiting indicator while the message is still empty. Prompts are rendered
+ * by the callers.
  */
 import AssistantMessageBody from '@/components/chat/AssistantMessageBody.vue';
 import WaitingIndicator from '@/components/chat/WaitingIndicator.vue';
+import type { MessageSource } from '@/types/chat';
 import type { ToolArtifact } from '@/types/stream';
 
 // Callers pass a ChatLogMessageData row; only these fields are read.
@@ -14,6 +16,8 @@ interface MessageLike {
     role: string;
     content: string;
     artifacts?: ToolArtifact[] | null;
+    // The chat log's stored sources: `[n]` markers in the answer become chips.
+    sources?: MessageSource[];
 }
 
 defineProps<{
@@ -37,6 +41,8 @@ defineProps<{
                         :content="message.content"
                         :artifacts="message.artifacts ?? undefined"
                         :message-id="message.id ? String(message.id) : undefined"
+                        :sources="message.sources ?? []"
+                        :cite="(message.sources ?? []).length > 0"
                     />
                     <WaitingIndicator v-else />
                 </div>

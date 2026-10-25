@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Sumber",
+                "sources_description": "Cara setiap jawaban menampilkan pengetahuan yang dipakainya.",
+                "sources_hidden": "Disembunyikan",
+                "sources_hidden_hint": "Jawaban tidak menampilkan sumber. Sumber tidak pernah keluar dari server.",
+                "sources_list": "Daftar di bawah jawaban",
+                "sources_list_hint": "Tombol di bawah setiap jawaban menampilkan pengetahuan yang dipakainya.",
+                "sources_citations": "Kutipan bernomor",
+                "sources_citations_hint": "Angka kecil setelah setiap kalimat membuka sumbernya, dengan daftar bernomor di bawah jawaban. Chat yang di-host, widget, dan API; suara dan aplikasi pesan menghilangkan angkanya."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Buka sumber"
+    }
+}

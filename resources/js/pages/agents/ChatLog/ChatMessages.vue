@@ -7,6 +7,7 @@
  */
 import MessageCard from '@/components/chat/MessageCard.vue';
 import SourcesDialog from '@/components/chat/SourcesDialog.vue';
+import { citedSources } from '@/lib/citations';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -65,6 +66,11 @@ function getTraceUrl(message: Message): string | null {
     const base = (page.props as { spectraTraceUrl?: string | null }).spectraTraceUrl;
     if (!base || !message.trace_id) return null;
     return `${base}?trace_id=${message.trace_id}`;
+}
+
+// The sources in the order the answer cites them, each with its chip's number.
+function orderedSources(message: Message) {
+    return citedSources(message.content, message.sources).ordered.map(({ source, number }) => ({ ...source, citation: number }));
 }
 
 function getTotalTokens(message: Message): number | null {
@@ -180,7 +186,7 @@ function goToPage(offset: number) {
 
                             <!-- The knowledge behind an answer, to tell a search miss from a model mistake -->
                             <template v-if="m.role === 'assistant' && m.sources.length > 0">
-                                <SourcesDialog :sources="m.sources" compact />
+                                <SourcesDialog :sources="orderedSources(m)" compact />
                                 <span class="text-muted-foreground/30">•</span>
                             </template>
                             <template v-else-if="m.role === 'assistant' && !m.is_response_from_qa">

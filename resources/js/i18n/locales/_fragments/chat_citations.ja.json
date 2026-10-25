@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "出典",
+                "sources_description": "各回答が使ったナレッジの示し方。",
+                "sources_hidden": "非表示",
+                "sources_hidden_hint": "回答に出典を表示しません。出典がサーバーから出ることはありません。",
+                "sources_list": "回答の下に一覧",
+                "sources_list_hint": "各回答の下のボタンで、使ったナレッジを一覧表示します。",
+                "sources_citations": "番号付きの出典",
+                "sources_citations_hint": "各文の後の小さな番号から出典が開き、回答の下に番号付きの一覧が付きます。ホスト型チャット、ウィジェット、APIで表示され、音声やメッセージアプリでは番号を省きます。"
+            }
+        }
+    },
+    "sources": {
+        "open_source": "出典を開く"
+    }
+}

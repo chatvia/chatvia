@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Kildehenvisninger",
+                        "help": "Tjekker, at hver passage, svaret henviser til, faktisk understøtter sætningen. Til agenter, der henviser til kilder. Bestået, når 80 % af henvisningerne holder."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Kildehenvisninger"
+            }
+        }
+    }
+}

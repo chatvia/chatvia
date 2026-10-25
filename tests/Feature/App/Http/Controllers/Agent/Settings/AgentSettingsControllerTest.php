@@ -91,20 +91,26 @@ it('refuses a voice that does not exist', function (): void {
         ->assertJsonValidationErrors('voice');
 });
 
-it('saves the switch that shows the sources under an answer', function (): void {
+it('saves how the answers show their sources, and refuses an unknown way', function (): void {
     expect($this->agent->showsSources())->toBeFalse();
 
     $this->actingAs($this->owner)
-        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['show_sources' => true])
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['sources_display' => 'citations'])
         ->assertOk();
 
-    expect($this->agent->fresh()->showsSources())->toBeTrue();
+    expect($this->agent->fresh()->citesSources())->toBeTrue()
+        ->and($this->agent->fresh()->showsSources())->toBeTrue();
 
     $this->actingAs($this->owner)
-        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['show_sources' => false])
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['sources_display' => 'hidden'])
         ->assertOk();
 
     expect($this->agent->fresh()->showsSources())->toBeFalse();
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['sources_display' => 'popup'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('sources_display');
 });
 
 it('saves the UI languages the owner picks', function (): void {

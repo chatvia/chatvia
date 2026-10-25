@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Lähdeviitteet",
+                        "help": "Tarkistaa, että jokainen vastauksen viittaama katkelma todella tukee lausetta, johon se liittyy. Lähteisiin viittaaville agenteille. Läpäisee, kun 80 % viitteistä pitää."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Lähdeviitteet"
+            }
+        }
+    }
+}

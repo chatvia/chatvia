@@ -32,8 +32,10 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // Account deletion lives on its own page so the destructive flow has the
         // user's full attention. Two-factor: re-enter the password (request) →
         // open the signed email link (confirm, 30-min expiry) → final explicit
-        // click (destroy). Workspace owners only (`workspace.owner`).
-        Route::middleware('workspace.owner')->group(function (): void {
+        // click (destroy). Workspace owners only (`workspace.owner`), and only
+        // while the admin lets owners delete their account (Settings →
+        // Workspaces → Owner account).
+        Route::middleware(['workspace.owner', 'account.option:deletion'])->group(function (): void {
             Route::get('delete-account', [DeleteAccountController::class, 'edit'])->name('delete');
             Route::post('delete-account', RequestAccountDeletionController::class)
                 ->middleware('throttle:5,60,account-deletion')
@@ -61,13 +63,17 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
         // GDPR Art. 15/20 — let the user request a copy of their personal data
         // and download it for 24 hours before it's pruned by
-        // `chatvia:prune:data-exports`.
-        Route::get('data-export', [DataExportController::class, 'edit'])->name('data-export.edit');
-        Route::post('data-export', [DataExportController::class, 'store'])
-            ->middleware('throttle:5,60,data-export')
-            ->name('data-export.store');
+        // `chatvia:prune:data-exports`. The page and the request need the
+        // admin's switch (Settings → Workspaces → Owner account); the download
+        // does not, so the emailed link of an export an admin started works.
+        Route::middleware('account.option:data_export')->group(function (): void {
+            Route::get('data-export', [DataExportController::class, 'edit'])->name('data-export.edit');
+            Route::post('data-export', [DataExportController::class, 'store'])
+                ->middleware('throttle:5,60,data-export')
+                ->name('data-export.store');
+            Route::delete('data-export/{export}', [DataExportController::class, 'destroy'])->name('data-export.destroy');
+        });
         Route::get('data-export/{export}/download', DownloadDataExportController::class)->name('data-export.download');
-        Route::delete('data-export/{export}', [DataExportController::class, 'destroy'])->name('data-export.destroy');
 
         // Date & time preference — its form lives on the Profile page (merged from
         // the former standalone Preferences page), so only the write endpoint remains.

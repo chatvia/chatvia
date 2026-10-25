@@ -15,6 +15,8 @@ return new class extends SettingsMigration
         $this->migrator->inGroup('workspaces', function (SettingsBlueprint $group): void {
             $group->add('registration_enabled');
             $group->add('new_workspace_message_limit');
+            $group->add('owner_data_export');
+            $group->add('owner_account_deletion');
             $group->add('retention_days');
             $group->add('retention_floor_days');
             $group->add('notification_retention_days');

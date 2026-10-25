@@ -49,3 +49,15 @@ it('refuses to download an export that is not ready', function (string $state): 
     'past its download window' => 'expired',
     'still being prepared' => 'processing',
 ]);
+
+it('still downloads an export while owners may not request one, for the link an admin\'s export emails', function (): void {
+    config(['chatvia.account.data_export' => false]);
+    Storage::disk('local')->put('data-exports/admin.zip', 'pretend-zip-bytes');
+    $export = DataExport::factory()->ready('data-exports/admin.zip')->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('account.data-export.download', $export))
+        ->assertOk();
+
+    expect($response->streamedContent())->toBe('pretend-zip-bytes');
+});

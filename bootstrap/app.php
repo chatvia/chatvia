@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\Access\EnsureAccountOptionIsOn;
 use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
@@ -117,6 +118,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'workspace.scope' => ScopeRequestToWorkspace::class,
             'api.owner' => EnsureApiWorkspaceOwner::class,
             'workspace.owner' => EnsureWorkspaceOwner::class,
+            'account.option' => EnsureAccountOptionIsOn::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,

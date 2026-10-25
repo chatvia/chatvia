@@ -103,6 +103,13 @@ class HandleInertiaRequests extends Middleware
             'features' => $user ? [
                 'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
             ] : [],
+            // Whether the owner may download their data and delete their
+            // account from the Account area (Settings → Workspaces → Owner
+            // account); the routes answer 404 while a switch is off.
+            'accountOptions' => $user instanceof User ? [
+                'data_export' => (bool) (config('chatvia.account.data_export') ?? true),
+                'deletion' => (bool) (config('chatvia.account.deletion') ?? true),
+            ] : null,
             // Whether this install has an Enterprise key: the Security and
             // Governance pages lock their Enterprise features without one.
             'enterprise' => $user instanceof User && app(Entitlements::class)->enterprise(),

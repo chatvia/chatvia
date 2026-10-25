@@ -5,7 +5,8 @@ use App\Admin\Settings\WorkspaceSettings;
 
 /**
  * Settings → Workspaces: whether people may sign up, the message limit of a
- * new workspace, and how long conversations and notifications are kept, with
+ * new workspace, whether owners may download their data or delete their
+ * account, and how long conversations and notifications are kept, with
  * a floor no workspace may go below.
  */
 beforeEach(function (): void {
@@ -17,6 +18,7 @@ it('shows the workspace values in use', function (): void {
         ->assertSee('Sign-up open · no message limit')
         ->assertSee('Kept 366 days')
         ->assertSee('Sign-up and limits')
+        ->assertSee('Download on · Delete on')
         ->assertSchemaStateSet(['registration_enabled' => true, 'new_workspace_message_limit' => null]);
 });
 
@@ -67,4 +69,20 @@ it('keeps notifications for the days an admin chooses, at least one', function (
 
     expect(savedSetting(WorkspaceSettings::class, 'notification_retention_days'))->toBe(14)
         ->and(config('chatvia.notifications.retention_days'))->toBe(14);
+});
+
+it('saves the owner account switches', function (): void {
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
+        ->fillForm(['owner_data_export' => false, 'owner_account_deletion' => false])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageWorkspaceSettings::getUrl())
+        ->assertSee('Download off · Delete off');
+
+    expect(savedSetting(WorkspaceSettings::class, 'owner_data_export'))->toBeFalse()
+        ->and(savedSetting(WorkspaceSettings::class, 'owner_account_deletion'))->toBeFalse()
+        ->and(config('chatvia.account.data_export'))->toBeFalse()
+        ->and(config('chatvia.account.deletion'))->toBeFalse();
 });

@@ -51,3 +51,16 @@ it('deletes the account and signs out once confirmed', function (): void {
     expect(User::query()->whereKey($this->owner->id)->exists())->toBeFalse()
         ->and(auth()->check())->toBeFalse();
 });
+
+it('hides every step of the deletion while owners may not delete their account', function (): void {
+    config(['chatvia.account.deletion' => false]);
+
+    $this->actingAs($this->owner)->get(route('account.delete'))->assertNotFound();
+    $this->actingAs($this->owner)->post(route('account.delete.request'), ['password' => 'password'])->assertNotFound();
+    $this->actingAs($this->owner)
+        ->withSession(['account_deletion_confirmed_at' => now()->timestamp])
+        ->delete(route('account.destroy'))
+        ->assertNotFound();
+
+    expect(User::query()->whereKey($this->owner->id)->exists())->toBeTrue();
+});

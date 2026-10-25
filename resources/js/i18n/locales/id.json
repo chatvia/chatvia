@@ -1860,7 +1860,9 @@
                 "replies_saved": "Opsi balasan disimpan",
                 "replies_error": "Tidak dapat menyimpan opsi balasan",
                 "domain_verified": "Domain khusus terverifikasi",
-                "domain_verify_error": "Tidak dapat memverifikasi domain"
+                "domain_verify_error": "Tidak dapat memverifikasi domain",
+                "feedback_saved": "Opsi umpan balik disimpan",
+                "feedback_error": "Tidak dapat menyimpan opsi umpan balik"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_1": "Pengguna menekan speaker di bawah balasan untuk mendengarnya. Tautan dibaca sebagai katanya; kode dan grafik dilewati.",
                 "read_aloud_help_2": "Setiap balasan dibaca sekali oleh layanan suara lalu disimpan, jadi memutarnya lagi tidak ada biaya. Fitur bacakan tidak dihitung sebagai pesan.",
                 "read_aloud_voice_label": "Suara pembaca",
-                "file_uploads_unavailable": "Nonaktif di server ini. Admin dapat mengaktifkan unggahan file di chat melalui panel admin, di Settings → AI models."
+                "file_uploads_unavailable": "Nonaktif di server ini. Admin dapat mengaktifkan unggahan file di chat melalui panel admin, di Settings → AI models.",
+                "feedback_title": "Umpan balik",
+                "feedback_description": "Apa yang bisa disampaikan pengguna tentang sebuah jawaban.",
+                "feedback_comment_label": "Tanyakan apa yang salah",
+                "feedback_comment_hint": "Setelah jempol ke bawah, tampilkan kotak tempat pengguna bisa menulis apa yang salah. Jempol ke bawah tetap disimpan."
             },
             "bubbles_title": "Gelembung Obrolan",
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",

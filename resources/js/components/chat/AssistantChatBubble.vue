@@ -67,6 +67,8 @@ const props = defineProps<{
     citeSources?: boolean;
     /** The agent reads replies aloud: a speaker button plays a finished reply. */
     readAloud?: boolean;
+    /** The agent asks what was wrong: a thumbs-down opens the optional note box. */
+    feedbackComment: boolean;
     /**
      * Structured tool-call artifacts of this turn (ECharts options, forms),
      * from the SSE `tool` end-phase payload. Rendered above the markdown,
@@ -104,7 +106,8 @@ const showsCitations = computed(() => !!props.citeSources && cited.value.ordered
 
 /** The longest note the server keeps (RecordMessageFeedbackAction::COMMENT_MAX_LENGTH). */
 const COMMENT_MAX_LENGTH = 1000;
-// The note box opens after a fresh thumbs-down and closes once sent or skipped.
+// The note box opens after a fresh thumbs-down (unless the agent asks for no
+// note) and closes once sent or skipped.
 const isCommentOpen = ref(false);
 const comment = ref('');
 const isSendingComment = ref(false);
@@ -192,7 +195,7 @@ async function provideFeedback(type: Feedback) {
     try {
         await sendMessageFeedback(props.conversationId, persistedId.value, next ? WIRE_FEEDBACK[next] : null);
         if (next !== null) emit('feedbackProvided', persistedId.value, next);
-        if (next === 'thumbs-down') {
+        if (next === 'thumbs-down' && props.feedbackComment) {
             comment.value = '';
             isCommentOpen.value = true;
         }
@@ -432,7 +435,7 @@ async function deleteMessage() {
             </div>
 
             <form
-                v-if="isCommentOpen && feedback === 'thumbs-down'"
+                v-if="feedbackComment && isCommentOpen && feedback === 'thumbs-down'"
                 class="bg-muted/40 mt-2 flex max-w-md flex-col gap-2 rounded-xl border p-3"
                 @submit.prevent="sendComment"
             >

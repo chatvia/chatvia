@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Tilbakemelding",
+                "feedback_description": "Hva chattere kan fortelle deg om et svar.",
+                "feedback_comment_label": "Spør hva som var feil",
+                "feedback_comment_hint": "Etter en tommel ned vises en boks der chatteren kan skrive hva som var feil. Tommel ned lagres uansett."
+            },
+            "toasts": {
+                "feedback_saved": "Tilbakemeldingsvalg lagret",
+                "feedback_error": "Kunne ikke lagre tilbakemeldingsvalg"
+            }
+        }
+    }
+}

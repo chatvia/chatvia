@@ -106,6 +106,7 @@ class BuildWidgetSettingsAction
             // Dictation is written down by the server: no speech-to-text, no mic.
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true) && $this->transcriber->isEnabled(),
             voice_conversation: $this->voice->isOnFor($agent),
+            feedback_comment: $agent->acceptsFeedbackComments(),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
             reverb: $this->reverb(),
             models: $this->offeredModels->for($agent),

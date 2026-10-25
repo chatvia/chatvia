@@ -9,7 +9,8 @@ use Tests\Support\Conversation\HostedChatVisitor;
 
 /**
  * The visitor rates a reply in a conversation of their own chat session; a
- * rating sent for another visitor's conversation changes nothing.
+ * rating sent for another visitor's conversation changes nothing. A note on
+ * a thumbs-down is kept only while the agent asks for one.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
@@ -40,6 +41,18 @@ it('keeps the visitor\'s note on a thumbs-down', function (): void {
         ->assertOk();
 
     expect($reply->fresh()->feedback_comment)->toBe('The opening hours are old.');
+});
+
+it('keeps the thumbs-down but drops the note while the agent asks for none', function (): void {
+    $this->agent->setSetting('allow_feedback_comment', false, 'appearance');
+    $id = HostedChatVisitor::startConversation($this->agent);
+    $reply = Message::factory()->fromAssistant()->create(['chat_conversation_id' => Conversation::query()->firstWhere('external_id', $id)->id]);
+
+    $this->patchJson($this->url, ['conversation_id' => $id, 'message_id' => $reply->external_id, 'feedback' => 'negative', 'comment' => 'The opening hours are old.'])
+        ->assertOk();
+
+    expect($reply->fresh()->feedback)->toBe(MessageFeedback::Negative)
+        ->and($reply->fresh()->feedback_comment)->toBeNull();
 });
 
 it('rejects a note longer than the limit', function (): void {

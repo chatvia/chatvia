@@ -1860,7 +1860,9 @@
                 "replies_saved": "Antwortoptionen gespeichert",
                 "replies_error": "Antwortoptionen konnten nicht gespeichert werden",
                 "domain_verified": "Benutzerdefinierte Domain bestätigt",
-                "domain_verify_error": "Domain konnte nicht bestätigt werden"
+                "domain_verify_error": "Domain konnte nicht bestätigt werden",
+                "feedback_saved": "Feedback-Optionen gespeichert",
+                "feedback_error": "Feedback-Optionen konnten nicht gespeichert werden"
             },
             "settings": {
                 "composer_title": "Composer-Optionen",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Vorlesen",
                 "read_aloud_help_1": "Ein Chatter tippt auf den Lautsprecher unter einer Antwort, um sie zu hören. Links werden als ihr Text gelesen; Code und Diagramme werden übersprungen.",
                 "read_aloud_help_2": "Jede Antwort wird einmal vom Sprachdienst gelesen und gespeichert, erneutes Abspielen kostet nichts. Vorlesen zählt nicht als Nachricht.",
-                "read_aloud_voice_label": "Vorlesestimme"
+                "read_aloud_voice_label": "Vorlesestimme",
+                "feedback_title": "Feedback",
+                "feedback_description": "Was Chatter dir zu einer Antwort sagen können.",
+                "feedback_comment_label": "Fragen, was falsch war",
+                "feedback_comment_hint": "Nach einem Daumen nach unten erscheint ein Feld, in das der Chatter schreiben kann, was falsch war. Der Daumen nach unten wird in jedem Fall gespeichert."
             },
             "bubbles_title": "Chat-Blasen",
             "bubbles_description": "Schnelle Nachrichtenvorschläge, die neben dem Starter des Widgets angezeigt werden.",

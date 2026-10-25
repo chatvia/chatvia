@@ -1860,7 +1860,9 @@
                 "replies_saved": "Vastausasetukset tallennettu",
                 "replies_error": "Vastausasetuksia ei voitu tallentaa",
                 "domain_verified": "Mukautettu verkkotunnus vahvistettu",
-                "domain_verify_error": "Verkkotunnusta ei voitu vahvistaa"
+                "domain_verify_error": "Verkkotunnusta ei voitu vahvistaa",
+                "feedback_saved": "Palauteasetukset tallennettu",
+                "feedback_error": "Palauteasetuksia ei voitu tallentaa"
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Lue ääneen",
                 "read_aloud_help_1": "Keskustelija painaa vastauksen alla olevaa kaiutinta kuullakseen sen. Linkit luetaan sanoinaan; koodi ja kaaviot ohitetaan.",
                 "read_aloud_help_2": "Puhepalvelu lukee jokaisen vastauksen kerran ja se tallennetaan, joten uudelleen toistaminen ei maksa mitään. Ääneen lukeminen ei lasketa viestiksi.",
-                "read_aloud_voice_label": "Lukuääni"
+                "read_aloud_voice_label": "Lukuääni",
+                "feedback_title": "Palaute",
+                "feedback_description": "Mitä keskustelijat voivat kertoa sinulle vastauksesta.",
+                "feedback_comment_label": "Kysy, mikä meni vikaan",
+                "feedback_comment_hint": "Peukku alas -arvion jälkeen näytetään kenttä, johon keskustelija voi kirjoittaa, mikä meni vikaan. Peukku alas tallennetaan joka tapauksessa."
             },
             "bubbles_title": "Chat-kuplat",
             "bubbles_description": "Pikaviestikehotukset, jotka näytetään widgetin käynnistimen vieressä.",

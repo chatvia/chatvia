@@ -29,6 +29,8 @@ const props = defineProps<{
     citeSources?: boolean;
     /** Replies get a speaker button that reads them aloud. */
     readAloud?: boolean;
+    /** A thumbs-down opens the optional "What was wrong?" note. */
+    feedbackComment: boolean;
     artifactsFor: (message: Message) => ToolArtifact[];
     approvalsFor: (assistantMessageId: MessageId | null | undefined) => ToolApprovalCall[];
     resolvingApprovalIds: string[];
@@ -127,6 +129,7 @@ function promptIdBefore(index: number): MessageId | undefined {
                     :sources="sourcesFor(message)"
                     :cite-sources="citeSources"
                     :read-aloud="readAloud"
+                    :feedback-comment="feedbackComment"
                     :artifacts="artifactsFor(message)"
                     :conversation-id="conversationId"
                     :hide-feedback="isMessageStreaming(message)"

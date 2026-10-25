@@ -292,6 +292,16 @@ class Agent extends Model
     }
 
     /**
+     * Whether a chatter may add a note to a thumbs-down ("What was wrong?",
+     * Setup → Settings → Feedback). Off keeps the rating but drops the note.
+     * Defaults to on.
+     */
+    public function acceptsFeedbackComments(): bool
+    {
+        return (bool) ($this->settings('appearance')->get('allow_feedback_comment') ?? true);
+    }
+
+    /**
      * Whether staff may take over this agent's Chat Widget chats (Setup →
      * Widget → Talk to a human). Defaults to on.
      */

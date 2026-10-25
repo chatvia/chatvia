@@ -13,7 +13,7 @@ use Domain\Llm\Services\ChatFileModel;
  * The page props every hosted-chat page shares (the standalone chat and the
  * iframe embed): the appearance with its per-language texts — the page picks
  * the visitor's language itself, so the header switcher can change it live —
- * the owner's embed choices, and which composer buttons to show.
+ * the owner's embed choices, and which composer and reply buttons to show.
  */
 final readonly class HostedChatPageProps
 {
@@ -54,6 +54,8 @@ final readonly class HostedChatPageProps
             // The speaker button on replies: on for the agent and set up on
             // this install.
             'readAloud' => $agent instanceof Agent && $this->readAloud->isOnFor($agent),
+            // Whether a thumbs-down opens the optional "What was wrong?" note.
+            'feedbackComment' => $agent instanceof Agent && $agent->acceptsFeedbackComments(),
             // The models the chatter may pick from; empty hides the picker.
             'models' => $agent instanceof Agent ? $this->offeredModels->for($agent) : [],
             'removeSidebar' => $embed?->get('remove_sidebar'),

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Opinie",
+                "feedback_description": "Co rozmówcy mogą Ci powiedzieć o odpowiedzi.",
+                "feedback_comment_label": "Pytaj, co było nie tak",
+                "feedback_comment_hint": "Po kciuku w dół pokaż pole, w którym rozmówca może napisać, co było nie tak. Kciuk w dół jest zapisywany w każdym przypadku."
+            },
+            "toasts": {
+                "feedback_saved": "Zapisano opcje opinii",
+                "feedback_error": "Nie udało się zapisać opcji opinii"
+            }
+        }
+    }
+}

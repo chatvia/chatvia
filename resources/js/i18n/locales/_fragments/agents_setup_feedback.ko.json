@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "피드백",
+                "feedback_description": "채터가 답변에 대해 알려 줄 수 있는 내용입니다.",
+                "feedback_comment_label": "무엇이 잘못됐는지 묻기",
+                "feedback_comment_hint": "싫어요를 누르면 채터가 무엇이 잘못됐는지 적을 수 있는 입력란을 보여 줍니다. 싫어요는 어느 경우든 저장됩니다."
+            },
+            "toasts": {
+                "feedback_saved": "피드백 옵션을 저장했습니다",
+                "feedback_error": "피드백 옵션을 저장하지 못했습니다"
+            }
+        }
+    }
+}

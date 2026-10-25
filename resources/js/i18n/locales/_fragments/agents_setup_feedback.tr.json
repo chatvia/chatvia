@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Geri bildirim",
+                "feedback_description": "Sohbet edenlerin bir yanıt hakkında size söyleyebilecekleri.",
+                "feedback_comment_label": "Neyin yanlış olduğunu sor",
+                "feedback_comment_hint": "Beğenmeme sonrasında sohbet edenin neyin yanlış olduğunu yazabileceği bir kutu göster. Beğenmeme her durumda kaydedilir."
+            },
+            "toasts": {
+                "feedback_saved": "Geri bildirim seçenekleri kaydedildi",
+                "feedback_error": "Geri bildirim seçenekleri kaydedilemedi"
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Avaliações",
+                "feedback_description": "O que os utilizadores podem dizer sobre uma resposta.",
+                "feedback_comment_label": "Perguntar o que estava errado",
+                "feedback_comment_hint": "Depois de um polegar para baixo, mostra uma caixa onde o utilizador pode escrever o que estava errado. O polegar para baixo é guardado de qualquer forma."
+            },
+            "toasts": {
+                "feedback_saved": "Opções de avaliação guardadas",
+                "feedback_error": "Não foi possível guardar as opções de avaliação"
+            }
+        }
+    }
+}

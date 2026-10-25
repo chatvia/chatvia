@@ -1860,7 +1860,9 @@
                 "replies_saved": "Yanıt seçenekleri kaydedildi",
                 "replies_error": "Yanıt seçenekleri kaydedilemedi",
                 "domain_verified": "Özel alan adı doğrulandı",
-                "domain_verify_error": "Alan adı doğrulanamadı"
+                "domain_verify_error": "Alan adı doğrulanamadı",
+                "feedback_saved": "Geri bildirim seçenekleri kaydedildi",
+                "feedback_error": "Geri bildirim seçenekleri kaydedilemedi"
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_1": "Sohbet eden kişi bir yanıtı dinlemek için altındaki hoparlöre basar. Bağlantılar metinleriyle okunur; kod ve grafikler atlanır.",
                 "read_aloud_help_2": "Her yanıt ses hizmeti tarafından bir kez okunur ve kaydedilir, bu yüzden yeniden oynatmak ücretsizdir. Sesli okuma mesaj olarak sayılmaz.",
                 "read_aloud_voice_label": "Okuma sesi",
-                "file_uploads_unavailable": "Bu sunucuda kapalı. Bir yönetici, sohbette dosya yüklemeyi yönetici panelinde Settings → AI models bölümünden açabilir."
+                "file_uploads_unavailable": "Bu sunucuda kapalı. Bir yönetici, sohbette dosya yüklemeyi yönetici panelinde Settings → AI models bölümünden açabilir.",
+                "feedback_title": "Geri bildirim",
+                "feedback_description": "Sohbet edenlerin bir yanıt hakkında size söyleyebilecekleri.",
+                "feedback_comment_label": "Neyin yanlış olduğunu sor",
+                "feedback_comment_hint": "Beğenmeme sonrasında sohbet edenin neyin yanlış olduğunu yazabileceği bir kutu göster. Beğenmeme her durumda kaydedilir."
             },
             "bubbles_title": "Sohbet Balonları",
             "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri.",

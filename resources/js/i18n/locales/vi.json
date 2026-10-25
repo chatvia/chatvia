@@ -1860,7 +1860,9 @@
                 "replies_saved": "Đã lưu tùy chọn câu trả lời",
                 "replies_error": "Không thể lưu tùy chọn câu trả lời",
                 "domain_verified": "Đã xác minh tên miền tùy chỉnh",
-                "domain_verify_error": "Không thể xác minh tên miền"
+                "domain_verify_error": "Không thể xác minh tên miền",
+                "feedback_saved": "Đã lưu tùy chọn phản hồi",
+                "feedback_error": "Không thể lưu tùy chọn phản hồi"
             },
             "settings": {
                 "composer_title": "Tùy chọn ô soạn tin",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_1": "Người trò chuyện bấm loa dưới câu trả lời để nghe. Liên kết được đọc theo chữ; mã và biểu đồ được bỏ qua.",
                 "read_aloud_help_2": "Mỗi câu trả lời được dịch vụ giọng nói đọc một lần rồi lưu lại, nên phát lại không tốn phí. Đọc to không được tính là tin nhắn.",
                 "read_aloud_voice_label": "Giọng đọc",
-                "file_uploads_unavailable": "Đã tắt trên máy chủ này. Quản trị viên có thể bật tải tệp lên trong cuộc trò chuyện tại bảng quản trị, mục Settings → AI models."
+                "file_uploads_unavailable": "Đã tắt trên máy chủ này. Quản trị viên có thể bật tải tệp lên trong cuộc trò chuyện tại bảng quản trị, mục Settings → AI models.",
+                "feedback_title": "Phản hồi",
+                "feedback_description": "Những gì người trò chuyện có thể cho bạn biết về một câu trả lời.",
+                "feedback_comment_label": "Hỏi điều gì chưa đúng",
+                "feedback_comment_hint": "Sau khi bấm không thích, hiển thị một ô để người trò chuyện viết điều gì chưa đúng. Lượt không thích vẫn được lưu trong mọi trường hợp."
             },
             "bubbles_title": "Bong bóng chat",
             "bubbles_description": "Các gợi ý tin nhắn nhanh hiển thị bên cạnh trình khởi chạy widget.",

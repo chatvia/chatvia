@@ -91,6 +91,11 @@ return [
                 // talk confuse chatters, so owners opt in. Hidden means the
                 // sources never leave the server.
                 'sources_display' => 'hidden',
+                // After a thumbs-down, the chat asks "What was wrong?" with an
+                // optional note box (Hosted Chat; sent to the widget too). On
+                // by default; off keeps the thumbs-down but asks for no note,
+                // and the server drops a note sent anyway.
+                'allow_feedback_comment' => true,
                 // Per-locale copies of the text strings above
                 // (chat_window_title / welcome_message / composer_placeholder / notice).
                 // The base values stay the source/default; these hold the
@@ -218,11 +223,13 @@ return [
                 'opening_hours' => null,
             ],
             // Per-agent AI-safety guards (Guardrails page). On by default, so a
-            // new agent is protected from the start. PII redaction is regex (the
-            // filter list defaults to PiiFilterType::defaults()); injection,
+            // new agent is protected from the start: injection and toxicity
+            // checks on, PII redaction off (turning it on picks
+            // PiiFilterType::defaults()). PII redaction is regex; injection,
             // toxicity and topics use one open-weight classifier call.
             'guardrails' => [
                 'enabled' => true,
+                'filters' => [],          // PII filter keys; empty = PII redaction off
                 'pii_actions' => [],      // filter key => mask|block; a missing key masks
                 'custom_patterns' => [],  // owner patterns: {name, pattern, action}
                 'allowlist' => [],        // values the PII filters never mask (besides the business contacts)
@@ -289,6 +296,7 @@ return [
             // A voice id of the service in use; one it no longer has falls back to the default.
             'read_aloud_voice' => ['nullable', 'string', 'max:100'],
             'sources_display' => ['nullable', 'in:hidden,list,citations'],
+            'allow_feedback_comment' => ['nullable', 'boolean'],
             'text_translations' => ['nullable', 'array'],
             'text_overrides' => ['nullable', 'array'],
             'enabled_languages' => ['nullable', 'array'],

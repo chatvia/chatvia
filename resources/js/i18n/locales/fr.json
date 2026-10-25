@@ -1860,7 +1860,9 @@
                 "replies_saved": "Options de réponse enregistrées",
                 "replies_error": "Impossible d'enregistrer les options de réponse",
                 "domain_verified": "Domaine personnalisé vérifié",
-                "domain_verify_error": "Impossible de vérifier le domaine"
+                "domain_verify_error": "Impossible de vérifier le domaine",
+                "feedback_saved": "Options d’avis enregistrées",
+                "feedback_error": "Impossible d’enregistrer les options d’avis"
             },
             "settings": {
                 "composer_title": "Options du compositeur",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Lecture à voix haute",
                 "read_aloud_help_1": "L’utilisateur appuie sur le haut-parleur sous une réponse pour l’écouter. Les liens sont lus par leur texte ; le code et les graphiques sont ignorés.",
                 "read_aloud_help_2": "Chaque réponse est lue une seule fois par le service vocal puis enregistrée : la réécouter ne coûte rien. La lecture à voix haute ne compte pas comme un message.",
-                "read_aloud_voice_label": "Voix de lecture"
+                "read_aloud_voice_label": "Voix de lecture",
+                "feedback_title": "Avis",
+                "feedback_description": "Ce que les utilisateurs peuvent vous dire sur une réponse.",
+                "feedback_comment_label": "Demander ce qui n’allait pas",
+                "feedback_comment_hint": "Après un pouce vers le bas, affiche une zone où l’utilisateur peut écrire ce qui n’allait pas. Le pouce vers le bas est enregistré dans tous les cas."
             },
             "bubbles_title": "Bulles de chat",
             "bubbles_description": "Invitations rapides affichées à côté du lanceur du widget.",

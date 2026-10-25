@@ -60,6 +60,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Documentation
+    |--------------------------------------------------------------------------
+    |
+    | The docs on ChatVia.ai's own site. Each settings card links to its part
+    | of the admin panel docs, under /guide/admin-panel/settings/.
+    |
+    */
+
+    'docs_url' => env('CHATVIA_URI', 'https://chatvia.ai').'/docs',
+
+    /*
+    |--------------------------------------------------------------------------
     | Tracking Code
     |--------------------------------------------------------------------------
     |

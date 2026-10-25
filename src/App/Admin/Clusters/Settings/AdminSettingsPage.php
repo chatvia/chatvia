@@ -41,10 +41,11 @@ use Throwable;
 /**
  * One page of the admin panel's Settings, for one settings class: every card
  * ({@see SettingsCard}) as a collapsible section with its icon, description,
- * a service's status, and its fields, each with a "?" that explains it in
- * plain words; one Save button that stays in view, and an outline that jumps to a
- * section. The everyday cards come first; technical cards follow under an
- * "Advanced" heading, closed. The rules every page shares:
+ * a service's status, a link to its docs, and its fields, each with a "?"
+ * that explains it in plain words; one Save button that stays in view, and
+ * an outline that jumps to a section. The everyday cards come first;
+ * technical cards follow under an "Advanced" heading, closed. The rules
+ * every page shares:
  *
  * - Secrets are write-only. The panel never receives a saved secret, a blank
  *   input keeps it, and the trash button next to the input removes it.
@@ -380,10 +381,11 @@ abstract class AdminSettingsPage extends Page
     }
 
     /**
-     * One card as a collapsible section: a service's status (or a warning)
-     * and the provider console in its header, its fields, the URLs to register with the provider, and
-     * its closed "Advanced" part. An advanced card always starts closed; an
-     * everyday card remembers whether the admin closed it.
+     * One card as a collapsible section: a service's status (or a warning),
+     * the provider console and the docs in its header, its fields, the URLs
+     * to register with the provider, and its closed "Advanced" part. An
+     * advanced card always starts closed; an everyday card remembers whether
+     * the admin closed it.
      */
     private function section(SettingsCard $card): Section
     {
@@ -416,12 +418,29 @@ abstract class AdminSettingsPage extends Page
                         ->tooltip($card->consoleLabel === null ? 'Open the provider console' : null)
                         ->url($card->consoleUrl, shouldOpenInNewTab: true),
                 ]),
+                Action::make('docs_'.$card->key)
+                    ->label('Docs')
+                    ->icon(Heroicon::OutlinedBookOpen)
+                    ->link()
+                    ->size(Size::Small)
+                    ->color('gray')
+                    ->tooltip('Read about these options in the docs')
+                    ->url($this->docsUrl($card), shouldOpenInNewTab: true),
             ])
             ->schema([
                 ...($card->fields)(),
                 ...$this->callbackUrls($card),
                 ...$this->advancedPart($card),
             ]);
+    }
+
+    /**
+     * The card's part of the admin panel docs: the page's own docs page, at
+     * the heading that has the card's title.
+     */
+    public function docsUrl(SettingsCard $card): string
+    {
+        return config('chatvia.docs_url').'/guide/admin-panel/settings/'.static::getSlug().'#'.Str::slug($card->title);
     }
 
     /**

@@ -1,0 +1,391 @@
+{
+    "ai-models#chat": [
+        "Default model for new agents",
+        "Messages of history",
+        "Let agents reason",
+        "Let chatters pick a model"
+    ],
+    "ai-models#documents": [
+        "Document reading",
+        "Source summaries",
+        "Model for source summaries",
+        "Describe images",
+        "Model for image descriptions",
+        "Chat file uploads",
+        "Model for chat file uploads",
+        "Mistral OCR model"
+    ],
+    "ai-models#embeddings": [
+        "Service",
+        "Model"
+    ],
+    "ai-models#models-for-app-tasks": [
+        "Model for quick tasks",
+        "Follow-up questions",
+        "Tool picking",
+        "Guardrails",
+        "Conversation titles",
+        "Conversation analysis",
+        "Conversation starters",
+        "Translating agent texts",
+        "Form descriptions",
+        "Hosted chat addresses",
+        "AI enhancement",
+        "Tables",
+        "Evaluation judge"
+    ],
+    "ai-models#read-aloud": [
+        "Read aloud",
+        "Default voice",
+        "OpenAI model",
+        "ElevenLabs model"
+    ],
+    "ai-models#reranker": [
+        "Reranker",
+        "OpenRouter model",
+        "Cohere model",
+        "Address",
+        "API key",
+        "Model"
+    ],
+    "ai-models#speech-to-text": [
+        "Speech to text",
+        "Scaleway AI model",
+        "OpenAI model"
+    ],
+    "ai-models#voice-conversations": [
+        "Voice conversations",
+        "Default voice",
+        "Longest call, in minutes",
+        "Model",
+        "Transcription model"
+    ],
+    "ai-providers#anthropic": [
+        "API key"
+    ],
+    "ai-providers#azure-document-intelligence": [
+        "API key",
+        "Endpoint"
+    ],
+    "ai-providers#azure-openai": [
+        "API key",
+        "Endpoint"
+    ],
+    "ai-providers#cohere": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#elevenlabs": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#google-gemini": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#groq": [
+        "API key"
+    ],
+    "ai-providers#jina": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#mistral": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#openai": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#openrouter": [
+        "API key"
+    ],
+    "ai-providers#scaleway-ai": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#voyage-ai": [
+        "API key",
+        "Address"
+    ],
+    "ai-providers#your-own-servers": [],
+    "branding#hire-me": [],
+    "branding#powered-by": [
+        "Show the credit",
+        "License key"
+    ],
+    "channels#instagram": [
+        "App ID",
+        "App secret",
+        "Webhook verify token",
+        "Login configuration ID",
+        "Another redirect URL"
+    ],
+    "channels#messenger": [
+        "App ID",
+        "App secret",
+        "Webhook verify token",
+        "Login configuration ID",
+        "Another redirect URL"
+    ],
+    "channels#whatsapp": [
+        "App ID",
+        "App secret",
+        "Webhook verify token",
+        "Login configuration ID",
+        "Number registration PIN"
+    ],
+    "connectors#asana": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#box": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#exchangerate-api": [
+        "Address"
+    ],
+    "connectors#front": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#github": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#gmail": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#google-calendar": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#google-drive": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#hubspot": [
+        "Client ID",
+        "Client secret"
+    ],
+    "connectors#openweather": [
+        "Address"
+    ],
+    "connectors#perplexity": [
+        "Address",
+        "Search model",
+        "Ask model",
+        "Research model"
+    ],
+    "connectors#slack": [
+        "Client ID",
+        "Client secret"
+    ],
+    "email#sending": [
+        "Send email with",
+        "Host",
+        "Port",
+        "Encryption",
+        "Username",
+        "Password",
+        "Access key ID",
+        "Secret access key",
+        "Region",
+        "Domain",
+        "API key",
+        "Server API token",
+        "Account ID",
+        "API token",
+        "Sender address",
+        "Sender name"
+    ],
+    "knowledge#ai-enhancement": [
+        "Enhance files and web pages",
+        "Enhance text sources"
+    ],
+    "knowledge#file-types": [
+        "Accepted file types"
+    ],
+    "knowledge#website-import": [
+        "Firecrawl API key",
+        "Address",
+        "Pages per minute"
+    ],
+    "observability#pulse": [
+        "Record app health"
+    ],
+    "observability#spectra": [
+        "Record AI calls",
+        "Keep AI calls for (days)"
+    ],
+    "observability#traces": [
+        "One trace per request",
+        "Join incoming traces",
+        "Keep the request ID"
+    ],
+    "observability#what-spectra-saves": [
+        "Prompts",
+        "System prompts",
+        "Replies",
+        "Tools",
+        "Request data",
+        "Embeddings"
+    ],
+    "platform#alerts": [
+        "Alert email"
+    ],
+    "platform#development": [
+        "Logs page"
+    ],
+    "platform#ip2location": [
+        "API key",
+        "Address"
+    ],
+    "platform#language": [
+        "Default language"
+    ],
+    "platform#pdf-maker": [
+        "Make PDFs with",
+        "Account ID",
+        "API token",
+        "Address",
+        "Username",
+        "Password"
+    ],
+    "platform#programs": [
+        "pdfinfo",
+        "pdftotext",
+        "pandoc",
+        "catdoc",
+        "catppt",
+        "ffmpeg",
+        "ffprobe",
+        "weasyprint"
+    ],
+    "platform#queue-workers": [
+        "Chat",
+        "Files and websites",
+        "Analytics",
+        "Audio and video",
+        "Live voice calls"
+    ],
+    "platform#tracking-code": [
+        "Code"
+    ],
+    "search#ambiguous-questions": [
+        "Understand follow-up questions",
+        "Ask back when a message is unclear",
+        "Say what the agent can help with"
+    ],
+    "search#finding-answers": [
+        "Hybrid search",
+        "Results per question"
+    ],
+    "search#fine-tuning": [
+        "Search mode",
+        "Most tokens per question",
+        "Leave out weak matches",
+        "Minimum score (reranker)",
+        "Minimum similarity (no reranker)",
+        "Saved answers: minimum similarity"
+    ],
+    "security#guardrails": [
+        "Guardrails",
+        "Days to keep the guardrail log",
+        "Longest visitor message (characters)"
+    ],
+    "security#security-audit-log": [
+        "Keep the security audit log",
+        "Days to keep the security log",
+        "Fewest days a workspace may choose"
+    ],
+    "security#security-headers": [
+        "Content Security Policy",
+        "Report address"
+    ],
+    "security#tool-calls": [
+        "Tool rounds per answer",
+        "Ask before tools that make changes",
+        "Days to keep the tool-call log",
+        "Calls per tool",
+        "Time window (seconds)",
+        "Longest tool result (characters)",
+        "Minutes an approval stays open"
+    ],
+    "security#turnstile-bot-check": [
+        "Site key",
+        "Secret key",
+        "Check sign-up",
+        "Check sign-in",
+        "Check password reset"
+    ],
+    "sign-in#github": [
+        "Client ID",
+        "Client secret",
+        "Another redirect URL"
+    ],
+    "sign-in#google": [
+        "Client ID",
+        "Client secret",
+        "Another redirect URL"
+    ],
+    "sign-in#microsoft": [
+        "Client ID",
+        "Client secret",
+        "Another redirect URL"
+    ],
+    "sign-in#slack": [
+        "Client ID",
+        "Client secret",
+        "Another redirect URL"
+    ],
+    "splitting#splitting": [
+        "Measure in",
+        "Chunk size",
+        "Overlap",
+        "Smallest chunk",
+        "Markdown",
+        "Text",
+        "Transcript",
+        "Tokenizer"
+    ],
+    "splitting#try-splitting": [
+        "Split as",
+        "Preview text"
+    ],
+    "storage#where-files-are-kept": [
+        "Store files in",
+        "Endpoint",
+        "Region",
+        "Access key ID",
+        "Secret access key",
+        "Bucket",
+        "Use path-style addresses"
+    ],
+    "widget#ai-disclosure": [
+        "Show \"AI assistant\" in the header"
+    ],
+    "widget#removing-chats": [
+        "When a visitor removes a chat"
+    ],
+    "widget#sites-and-limits": [
+        "Sites every widget may load on",
+        "Widget script address",
+        "Replies per agent per minute",
+        "Replies per agent per hour"
+    ],
+    "workspaces#conversations": [
+        "Days to keep conversations",
+        "Fewest days a workspace may choose"
+    ],
+    "workspaces#notifications": [
+        "Days to keep notifications"
+    ],
+    "workspaces#sign-up-and-limits": [
+        "Open sign-up",
+        "Monthly message limit of new workspaces"
+    ]
+}

@@ -34,7 +34,7 @@ final readonly class RemoveLlmModelAction
         }
 
         if (! $replacement instanceof Llm && Agent::query()->where('llm_id', $model->id)->exists()) {
-            throw new InvalidArgumentException("Agents answer with {$model->name}: pick a model for them first.");
+            throw new InvalidArgumentException("Agents answer with {$model->displayName()}: pick a model for them first.");
         }
 
         DB::transaction(function () use ($model, $replacement): void {

@@ -78,10 +78,10 @@ final class ModelLogo
         return self::withMark($name, route('filament.admin.model-logo', ['logo' => app(ModelsDevCatalog::class)->labLogo($lab)], absolute: false));
     }
 
-    /** A catalog model's label: its name, or the text given, with its logo. */
+    /** A catalog model's label: its name for people, or the text given, with its logo. */
     public static function forLlm(Llm $llm, ?string $text = null): string
     {
-        return self::label($text ?? $llm->name, $llm->provider->kind, $llm->name);
+        return self::label($text ?? $llm->displayName(), $llm->provider->kind, $llm->name);
     }
 
     private static function withMark(string $name, ?string $url): string

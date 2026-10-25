@@ -169,7 +169,8 @@
         "open_link": "{label} 열기",
         "passage_count": "발췌 {count}개 | 발췌 {count}개",
         "relevance": "관련성 {score}",
-        "passage_removed": "이 구절은 이후 지식 베이스에서 삭제되었습니다."
+        "passage_removed": "이 구절은 이후 지식 베이스에서 삭제되었습니다.",
+        "open_source": "출처 열기"
     },
     "home": {
         "logo_alt": "로고",
@@ -1019,6 +1020,10 @@
                     "tool_call": {
                         "label": "도구 호출",
                         "help": "에이전트가 예상 도구를 호출하는지 확인합니다 — 실행하지는 않습니다."
+                    },
+                    "citations": {
+                        "label": "인용",
+                        "help": "답변이 인용한 각 구절이 해당 문장을 실제로 뒷받침하는지 확인합니다. 출처를 표시하는 에이전트용입니다. 인용의 80%가 맞으면 통과합니다."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "정확히 일치",
                 "json_schema": "JSON 스키마",
                 "llm_judge": "LLM 심사",
-                "tool_call": "도구 호출"
+                "tool_call": "도구 호출",
+                "citations": "인용"
             },
             "statuses": {
                 "running": "실행 중",
@@ -1882,10 +1888,14 @@
                 "voice_label": "목소리",
                 "voice_default": "기본값 ({voice})",
                 "voice_input_unavailable": "이 서버에는 설정되어 있지 않습니다. 관리자가 관리자 패널에서 음성 텍스트 변환을 켤 수 있습니다.",
-                "replies_title": "답변",
-                "replies_description": "각 답변 아래에 표시할 항목을 선택하세요.",
-                "show_sources_label": "소스 표시",
-                "show_sources_hint": "각 답변 아래에 사용된 지식을 보여 주는 버튼을 표시합니다."
+                "sources_title": "출처",
+                "sources_description": "각 답변이 사용한 지식을 보여 주는 방식입니다.",
+                "sources_hidden": "숨김",
+                "sources_hidden_hint": "답변에 출처를 표시하지 않습니다. 출처는 서버 밖으로 나가지 않습니다.",
+                "sources_list": "답변 아래 목록",
+                "sources_list_hint": "각 답변 아래 버튼이 사용한 지식을 보여 줍니다.",
+                "sources_citations": "번호 인용",
+                "sources_citations_hint": "각 문장 뒤의 작은 번호를 누르면 출처가 열리고, 답변 아래에 번호 목록이 붙습니다. 호스팅 채팅, 위젯, API에서 표시되며, 음성과 메신저 앱에서는 번호를 생략합니다."
             },
             "bubbles_title": "채팅 말풍선",
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",

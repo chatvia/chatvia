@@ -25,7 +25,7 @@ it('hides the remembered sources while the agent does not show sources', functio
 });
 
 it('returns the sources when the agent shows them', function (): void {
-    $this->agent->setSetting('show_sources', true, 'appearance');
+    $this->agent->setSetting('sources_display', 'list', 'appearance');
 
     $this->getJson($this->sources)
         ->assertOk()

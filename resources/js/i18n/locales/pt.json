@@ -169,7 +169,8 @@
         "open_link": "Abrir {label}",
         "passage_count": "{count} trecho | {count} trechos",
         "relevance": "Relevância {score}",
-        "passage_removed": "Este trecho já foi removido da base de conhecimento."
+        "passage_removed": "Este trecho já foi removido da base de conhecimento.",
+        "open_source": "Abrir a fonte"
     },
     "home": {
         "logo_alt": "Logotipo",
@@ -1018,6 +1019,10 @@
                     "tool_call": {
                         "label": "Chamada de ferramenta",
                         "help": "Verifica se o agente invoca a ferramenta esperada — sem a executar."
+                    },
+                    "citations": {
+                        "label": "Citações",
+                        "help": "Verifica se cada trecho citado pela resposta realmente sustenta a frase em que é citado. Para agentes que citam as fontes. Passa quando 80% das citações estão corretas."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Correspondência exata",
                 "json_schema": "JSON schema",
                 "llm_judge": "Juiz LLM",
-                "tool_call": "Chamada de ferramenta"
+                "tool_call": "Chamada de ferramenta",
+                "citations": "Citações"
             },
             "statuses": {
                 "running": "Em execução",
@@ -1882,11 +1888,15 @@
                 "voice_label": "Voz",
                 "voice_default": "Predefinida ({voice})",
                 "voice_input_unavailable": "Não está configurado neste servidor. Um administrador pode ativar a conversão de voz em texto no painel de administração.",
-                "replies_title": "Respostas",
-                "replies_description": "Escolha o que aparece por baixo de cada resposta.",
-                "show_sources_label": "Mostrar fontes",
-                "show_sources_hint": "Mostrar por baixo de cada resposta um botão que lista o conhecimento utilizado.",
-                "file_uploads_unavailable": "Desativado neste servidor. Um administrador pode ativar o envio de arquivos no chat no painel de administração, em Configurações → Modelos de IA."
+                "file_uploads_unavailable": "Desativado neste servidor. Um administrador pode ativar o envio de arquivos no chat no painel de administração, em Configurações → Modelos de IA.",
+                "sources_title": "Fontes",
+                "sources_description": "Como cada resposta mostra o conhecimento que usou.",
+                "sources_hidden": "Ocultas",
+                "sources_hidden_hint": "As respostas não mostram fontes. Elas nunca saem do servidor.",
+                "sources_list": "Lista abaixo da resposta",
+                "sources_list_hint": "Um botão abaixo de cada resposta lista o conhecimento usado.",
+                "sources_citations": "Citações numeradas",
+                "sources_citations_hint": "Um número pequeno após cada frase abre a fonte, com uma lista numerada abaixo da resposta. Chat hospedado, widget e API; voz e apps de mensagens omitem os números."
             },
             "bubbles_title": "Balões de Chat",
             "bubbles_description": "Sugestões de mensagens rápidas apresentadas junto ao lançador do widget.",

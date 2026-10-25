@@ -12,6 +12,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * pass/fail verdict. `ToolCall` is different in kind: it grades the agent's
  * INTENDED tool call (name + arguments) rather than any text answer — the eval
  * never executes the tool, so it costs nothing and has no side effects.
+ * `Citations` asks the judge model whether each passage the answer cites
+ * really supports the sentence it is cited for (for agents that cite).
  */
 #[TypeScript]
 enum ScorerType: string
@@ -22,4 +24,5 @@ enum ScorerType: string
     case JsonSchema = 'json_schema';
     case LlmJudge = 'llm_judge';
     case ToolCall = 'tool_call';
+    case Citations = 'citations';
 }

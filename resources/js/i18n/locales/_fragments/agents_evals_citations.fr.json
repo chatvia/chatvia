@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Citations",
+                        "help": "Vérifie que chaque passage cité par la réponse étaye vraiment la phrase où il est cité. Pour les agents qui citent leurs sources. Réussit quand 80 % des citations tiennent."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Citations"
+            }
+        }
+    }
+}

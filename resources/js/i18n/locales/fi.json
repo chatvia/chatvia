@@ -169,7 +169,8 @@
         "open_link": "Avaa {label}",
         "passage_count": "{count} katkelma | {count} katkelmaa",
         "relevance": "Osuvuus {score}",
-        "passage_removed": "Tämä katkelma on sittemmin poistettu tietokannasta."
+        "passage_removed": "Tämä katkelma on sittemmin poistettu tietokannasta.",
+        "open_source": "Avaa lähde"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1018,6 +1019,10 @@
                     "tool_call": {
                         "label": "Työkalukutsu",
                         "help": "Tarkistaa, että agentti kutsuu odotettua työkalua — suorittamatta sitä."
+                    },
+                    "citations": {
+                        "label": "Lähdeviitteet",
+                        "help": "Tarkistaa, että jokainen vastauksen viittaama katkelma todella tukee lausetta, johon se liittyy. Lähteisiin viittaaville agenteille. Läpäisee, kun 80 % viitteistä pitää."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Tarkka vastaavuus",
                 "json_schema": "JSON-skeema",
                 "llm_judge": "LLM-tuomari",
-                "tool_call": "Työkalukutsu"
+                "tool_call": "Työkalukutsu",
+                "citations": "Lähdeviitteet"
             },
             "statuses": {
                 "running": "Käynnissä",
@@ -1882,11 +1888,15 @@
                 "voice_label": "Ääni",
                 "voice_default": "Oletus ({voice})",
                 "voice_input_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa puheentunnistuksen käyttöön hallintapaneelissa.",
-                "replies_title": "Vastaukset",
-                "replies_description": "Valitse, mitä jokaisen vastauksen alla näytetään.",
-                "show_sources_label": "Näytä lähteet",
-                "show_sources_hint": "Näytä jokaisen vastauksen alla painike, joka luettelee vastauksessa käytetyn tiedon.",
-                "file_uploads_unavailable": "Pois päältä tällä palvelimella. Ylläpitäjä voi ottaa tiedostojen latauksen chatissa käyttöön hallintapaneelissa kohdassa Asetukset → Tekoälymallit."
+                "file_uploads_unavailable": "Pois päältä tällä palvelimella. Ylläpitäjä voi ottaa tiedostojen latauksen chatissa käyttöön hallintapaneelissa kohdassa Asetukset → Tekoälymallit.",
+                "sources_title": "Lähteet",
+                "sources_description": "Miten kukin vastaus näyttää käyttämänsä tiedon.",
+                "sources_hidden": "Piilotettu",
+                "sources_hidden_hint": "Vastaukset eivät näytä lähteitä. Ne eivät koskaan lähde palvelimelta.",
+                "sources_list": "Luettelo vastauksen alla",
+                "sources_list_hint": "Painike jokaisen vastauksen alla luettelee sen käyttämän tiedon.",
+                "sources_citations": "Numeroidut lähdeviitteet",
+                "sources_citations_hint": "Pieni numero jokaisen lauseen perässä avaa sen lähteen, ja vastauksen alla on numeroitu luettelo. Isännöity chat, widget ja API; ääni ja viestisovellukset jättävät numerot pois."
             },
             "bubbles_title": "Chat-kuplat",
             "bubbles_description": "Pikaviestikehotukset, jotka näytetään widgetin käynnistimen vieressä.",

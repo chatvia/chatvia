@@ -169,7 +169,8 @@
         "open_link": "{label} öffnen",
         "passage_count": "{count} Abschnitt | {count} Abschnitte",
         "relevance": "Relevanz {score}",
-        "passage_removed": "Dieser Abschnitt wurde inzwischen aus der Wissensbasis entfernt."
+        "passage_removed": "Dieser Abschnitt wurde inzwischen aus der Wissensbasis entfernt.",
+        "open_source": "Quelle öffnen"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1018,6 +1019,10 @@
                     "tool_call": {
                         "label": "Tool-Aufruf",
                         "help": "Prüft, ob der Agent das erwartete Tool aufruft – ohne es auszuführen."
+                    },
+                    "citations": {
+                        "label": "Quellenangaben",
+                        "help": "Prüft, ob jede zitierte Passage den Satz, für den sie angegeben ist, wirklich stützt. Für Agenten, die ihre Quellen angeben. Bestanden, wenn 80 % der Angaben stimmen."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Exakte Übereinstimmung",
                 "json_schema": "JSON-Schema",
                 "llm_judge": "LLM-Richter",
-                "tool_call": "Tool-Aufruf"
+                "tool_call": "Tool-Aufruf",
+                "citations": "Quellenangaben"
             },
             "statuses": {
                 "running": "Läuft",
@@ -1882,11 +1888,15 @@
                 "voice_label": "Stimme",
                 "voice_default": "Standard ({voice})",
                 "voice_input_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann Sprache-zu-Text im Admin-Bereich einschalten.",
-                "replies_title": "Antworten",
-                "replies_description": "Wählen Sie, was unter jeder Antwort angezeigt wird.",
-                "show_sources_label": "Quellen anzeigen",
-                "show_sources_hint": "Zeigen Sie unter jeder Antwort eine Schaltfläche an, die das verwendete Wissen auflistet.",
-                "file_uploads_unavailable": "Auf diesem Server ausgeschaltet. Ein Administrator kann Datei-Uploads im Chat im Admin-Bereich unter Einstellungen → KI-Modelle einschalten."
+                "file_uploads_unavailable": "Auf diesem Server ausgeschaltet. Ein Administrator kann Datei-Uploads im Chat im Admin-Bereich unter Einstellungen → KI-Modelle einschalten.",
+                "sources_title": "Quellen",
+                "sources_description": "Wie jede Antwort das genutzte Wissen zeigt.",
+                "sources_hidden": "Ausgeblendet",
+                "sources_hidden_hint": "Antworten zeigen keine Quellen. Sie verlassen den Server nie.",
+                "sources_list": "Liste unter der Antwort",
+                "sources_list_hint": "Ein Button unter jeder Antwort listet das genutzte Wissen auf.",
+                "sources_citations": "Nummerierte Quellenangaben",
+                "sources_citations_hint": "Eine kleine Zahl nach jedem Satz öffnet seine Quelle, mit einer nummerierten Liste unter der Antwort. Gehosteter Chat, Widget und API; Sprache und Messenger lassen die Zahlen weg."
             },
             "bubbles_title": "Chat-Blasen",
             "bubbles_description": "Schnelle Nachrichtenvorschläge, die neben dem Starter des Widgets angezeigt werden.",

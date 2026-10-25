@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Trích dẫn",
+                        "help": "Kiểm tra mỗi đoạn được trích dẫn có thật sự hỗ trợ câu tương ứng. Dành cho tác tử trích dẫn nguồn. Đạt khi 80% trích dẫn đúng."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Trích dẫn"
+            }
+        }
+    }
+}

@@ -47,6 +47,7 @@ final class TestChatContext
         ?string $ipAddress = null,
         ?string $userAgent = null,
         ?string $clarifyingQuestion = null,
+        ?string $source = null,
     ): ChatContext {
         $llm ??= Llm::factory()->create();
 
@@ -61,6 +62,7 @@ final class TestChatContext
             ipAddress: $ipAddress,
             userAgent: $userAgent,
             requestId: $requestId ?? 'req_'.Str::random(12),
+            source: $source,
         );
 
         return new ChatContext(

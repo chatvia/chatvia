@@ -122,6 +122,8 @@ it('sends the sources of the answer before done when the client shows sources', 
             'url' => 'https://shop.test/returns',
             'page' => null,
             'passages' => 1,
+            'blocks' => [1],
+            'excerpt' => 'Returns are free within 30 days.',
         ]])
         ->and(collect(app(RequestDedupeStore::class)->find($context->requestData->requestId)->sources)->toArray())
         ->toBe(collect($sources->data['sources'])->toArray());

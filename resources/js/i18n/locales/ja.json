@@ -169,7 +169,8 @@
         "open_link": "{label} を開く",
         "passage_count": "{count} 件の抜粋 | {count} 件の抜粋",
         "relevance": "関連度 {score}",
-        "passage_removed": "この箇所はその後ナレッジベースから削除されました。"
+        "passage_removed": "この箇所はその後ナレッジベースから削除されました。",
+        "open_source": "出典を開く"
     },
     "home": {
         "logo_alt": "ロゴ",
@@ -1019,6 +1020,10 @@
                     "tool_call": {
                         "label": "ツール呼び出し",
                         "help": "エージェントが想定どおりのツールを呼び出すかをチェックします。実際には実行しません。"
+                    },
+                    "citations": {
+                        "label": "出典",
+                        "help": "回答が引用した各箇所が、その文を本当に裏付けているかを確認します。出典を示すエージェント向け。出典の80%が正しければ合格です。"
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "完全一致",
                 "json_schema": "JSON スキーマ",
                 "llm_judge": "LLM 審査員",
-                "tool_call": "ツール呼び出し"
+                "tool_call": "ツール呼び出し",
+                "citations": "出典"
             },
             "statuses": {
                 "running": "実行中",
@@ -1882,10 +1888,14 @@
                 "voice_label": "声",
                 "voice_default": "デフォルト（{voice}）",
                 "voice_input_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで音声文字変換をオンにできます。",
-                "replies_title": "返信",
-                "replies_description": "各回答の下に表示する内容を選びます。",
-                "show_sources_label": "ソースを表示",
-                "show_sources_hint": "各回答の下に、使用したナレッジを一覧表示するボタンを表示します。"
+                "sources_title": "出典",
+                "sources_description": "各回答が使ったナレッジの示し方。",
+                "sources_hidden": "非表示",
+                "sources_hidden_hint": "回答に出典を表示しません。出典がサーバーから出ることはありません。",
+                "sources_list": "回答の下に一覧",
+                "sources_list_hint": "各回答の下のボタンで、使ったナレッジを一覧表示します。",
+                "sources_citations": "番号付きの出典",
+                "sources_citations_hint": "各文の後の小さな番号から出典が開き、回答の下に番号付きの一覧が付きます。ホスト型チャット、ウィジェット、APIで表示され、音声やメッセージアプリでは番号を省きます。"
             },
             "bubbles_title": "チャットバブル",
             "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。",

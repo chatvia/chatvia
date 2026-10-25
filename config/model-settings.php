@@ -76,11 +76,14 @@ return [
                 // set in the admin panel (RealtimeVoice).
                 'allow_voice_conversation' => false,
                 'voice' => RealtimeVoice::DEFAULT,
-                // The "N Sources" button under an answer (Hosted Chat, Chat
-                // Widget, voice transcripts). Off by default: a list of
-                // knowledge sources under small talk confuses chatters, so
-                // owners opt in. Off means the sources never leave the server.
-                'show_sources' => false,
+                // How answers show the knowledge they used (SourcesDisplay):
+                // `hidden`, `list` (the "N Sources" list under an answer) or
+                // `citations` (numbered markers in the text that open their
+                // source, with a numbered list under the answer; Hosted Chat,
+                // Chat Widget, API). Hidden by default: sources under small
+                // talk confuse chatters, so owners opt in. Hidden means the
+                // sources never leave the server.
+                'sources_display' => 'hidden',
                 // Per-locale copies of the text strings above
                 // (chat_window_title / welcome_message / composer_placeholder / notice).
                 // The base values stay the source/default; these hold the
@@ -268,7 +271,7 @@ return [
             'allow_voice_input' => ['nullable', 'boolean'],
             'allow_voice_conversation' => ['nullable', 'boolean'],
             'voice' => ['nullable', 'string', 'in:'.implode(',', RealtimeVoice::agentChoices())],
-            'show_sources' => ['nullable', 'boolean'],
+            'sources_display' => ['nullable', 'in:hidden,list,citations'],
             'text_translations' => ['nullable', 'array'],
             'text_overrides' => ['nullable', 'array'],
             'enabled_languages' => ['nullable', 'array'],

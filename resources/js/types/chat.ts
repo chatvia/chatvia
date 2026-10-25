@@ -57,6 +57,12 @@ export interface MessageSource {
     url: string | null;
     page: number | null;
     passages?: number;
+    /** The reference blocks this source was: what an answer's `[n]` citation markers point to. */
+    blocks?: number[];
+    /** The start of its best passage, for the citation card. */
+    excerpt?: string | null;
+    /** Chat log only: the number of its citation chip in the answer; null when the answer does not cite it. */
+    citation?: number | null;
     /** Chat log only (staff): how relevant the search found the passage. */
     score?: number | null;
     /** Chat log only (staff): the start of the passage; null once it is removed from the knowledge base. */
@@ -114,6 +120,8 @@ export interface ChatAppearance {
     avatar?: string | null;
     logo?: string | null;
     composer_placeholder?: string | null;
+    /** How answers show their sources: `hidden`, `list` or `citations` (numbered markers in the text). */
+    sources_display?: string;
     /** Optional short notice under the composer (what the agent covers, that answers can be wrong). */
     notice?: string | null;
     allow_file_uploads?: boolean;

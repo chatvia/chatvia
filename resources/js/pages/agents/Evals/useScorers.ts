@@ -3,7 +3,7 @@
  * case dialog show the same scorer in several places, so the lookups live here.
  * Unknown types fall back to the raw type name (label) or nothing (help, icon).
  */
-import { Braces, Equal, Regex, Scale, Search, Wrench } from 'lucide-vue-next';
+import { Braces, Equal, Quote, Regex, Scale, Search, Wrench } from 'lucide-vue-next';
 import type { Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -14,6 +14,7 @@ const SCORER_ICONS: Record<string, Component> = {
     json_schema: Braces,
     llm_judge: Scale,
     tool_call: Wrench,
+    citations: Quote,
 };
 
 // Shorter names used on the run detail page, where space is tighter.
@@ -24,6 +25,7 @@ const SHORT_LABEL_KEYS: Record<string, string> = {
     json_schema: 'agents.evals.scorers.json_schema',
     llm_judge: 'agents.evals.scorers.llm_judge',
     tool_call: 'agents.evals.scorers.tool_call',
+    citations: 'agents.evals.scorers.citations',
 };
 
 /** The lucide icon for a scorer type, or undefined for an unknown type. */

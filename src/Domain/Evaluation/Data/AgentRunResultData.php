@@ -21,6 +21,7 @@ final readonly class AgentRunResultData
      * @param  list<string>  $toolsCalled
      * @param  list<array{name: string, arguments: string}>  $toolCalls
      * @param  list<string>  $sourceRefs  the sources behind the answer as `{morph alias}:{id}`, for eval coverage
+     * @param  list<string>  $blocks  the text of each numbered reference block the agent was given, in order (what `[n]` citations point to)
      */
     public function __construct(
         public string $answer,
@@ -32,6 +33,7 @@ final readonly class AgentRunResultData
         public ?string $error = null,
         public array $toolCalls = [],
         public array $sourceRefs = [],
+        public array $blocks = [],
     ) {}
 
     public function failed(): bool

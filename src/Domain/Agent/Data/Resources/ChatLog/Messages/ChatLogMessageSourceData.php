@@ -31,6 +31,8 @@ class ChatLogMessageSourceData extends Data
         public ?int $page,
         public int $passages,
         public int $rank,
+        /** @var list<int> the reference block it was ([rank + 1]): what the answer's `[n]` markers point to */
+        public array $blocks,
         public ?float $score,
         // Null when the chunk is gone (its source was retrained or deleted).
         public ?string $preview,
@@ -46,6 +48,7 @@ class ChatLogMessageSourceData extends Data
             page: $source->page,
             passages: 1,
             rank: $source->rank,
+            blocks: [$source->rank + 1],
             score: $source->score,
             preview: $source->chunk !== null
                 ? Str::of($source->chunk->chunk)->squish()->limit(self::PREVIEW_LENGTH, preserveWords: true)->value()

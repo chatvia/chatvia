@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Kutipan",
+                        "help": "Memeriksa bahwa setiap bagian yang dikutip jawaban benar-benar mendukung kalimatnya. Untuk agen yang mengutip sumber. Lulus jika 80% kutipan tepat."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Kutipan"
+            }
+        }
+    }
+}

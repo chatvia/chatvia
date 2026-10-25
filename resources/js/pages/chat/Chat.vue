@@ -187,6 +187,7 @@ onMounted(async () => {
                             :has-active-calls="hasActiveCalls"
                             :active-calls="activeCalls"
                             :sources-for="transcript.sourcesFor"
+                            :cite-sources="resolvedAppearance.sources_display === 'citations'"
                             :artifacts-for="transcript.artifactsFor"
                             :approvals-for="approvals.approvalsFor"
                             :resolving-approval-ids="resolvingApprovalIds"

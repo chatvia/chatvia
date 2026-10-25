@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "출처",
+                "sources_description": "각 답변이 사용한 지식을 보여 주는 방식입니다.",
+                "sources_hidden": "숨김",
+                "sources_hidden_hint": "답변에 출처를 표시하지 않습니다. 출처는 서버 밖으로 나가지 않습니다.",
+                "sources_list": "답변 아래 목록",
+                "sources_list_hint": "각 답변 아래 버튼이 사용한 지식을 보여 줍니다.",
+                "sources_citations": "번호 인용",
+                "sources_citations_hint": "각 문장 뒤의 작은 번호를 누르면 출처가 열리고, 답변 아래에 번호 목록이 붙습니다. 호스팅 채팅, 위젯, API에서 표시되며, 음성과 메신저 앱에서는 번호를 생략합니다."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "출처 열기"
+    }
+}

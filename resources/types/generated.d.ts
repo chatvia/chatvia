@@ -274,6 +274,7 @@ declare namespace Domain {
                             page: number | null;
                             passages: number;
                             rank: number;
+                            blocks: number[];
                             score: number | null;
                             preview: string | null;
                         };
@@ -460,6 +461,7 @@ declare namespace Domain {
             }
         }
         namespace Enums {
+            export type SourcesDisplay = 'hidden' | 'list' | 'citations';
             export type UnansweredFilter = 'all' | 'not_found' | 'thumbs_down';
         }
         namespace Prompt {
@@ -772,7 +774,7 @@ declare namespace Domain {
         }
         namespace Enums {
             export type EvalRunStatus = 'running' | 'completed' | 'failed';
-            export type ScorerType = 'contains' | 'regex' | 'exact' | 'json_schema' | 'llm_judge' | 'tool_call';
+            export type ScorerType = 'contains' | 'regex' | 'exact' | 'json_schema' | 'llm_judge' | 'tool_call' | 'citations';
         }
     }
     namespace Form {
@@ -1534,6 +1536,7 @@ declare namespace Domain {
                     composer_placeholder: string | null;
                     notice: string | null;
                     privacy_policy_url: string | null;
+                    sources_display: Domain.Agent.Enums.SourcesDisplay;
                     handoff_enabled: boolean;
                     allow_file_uploads: boolean;
                     upload_accept: string[];

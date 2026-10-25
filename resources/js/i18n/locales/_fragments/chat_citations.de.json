@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Quellen",
+                "sources_description": "Wie jede Antwort das genutzte Wissen zeigt.",
+                "sources_hidden": "Ausgeblendet",
+                "sources_hidden_hint": "Antworten zeigen keine Quellen. Sie verlassen den Server nie.",
+                "sources_list": "Liste unter der Antwort",
+                "sources_list_hint": "Ein Button unter jeder Antwort listet das genutzte Wissen auf.",
+                "sources_citations": "Nummerierte Quellenangaben",
+                "sources_citations_hint": "Eine kleine Zahl nach jedem Satz öffnet seine Quelle, mit einer nummerierten Liste unter der Antwort. Gehosteter Chat, Widget und API; Sprache und Messenger lassen die Zahlen weg."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Quelle öffnen"
+    }
+}

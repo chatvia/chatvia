@@ -169,7 +169,8 @@
         "open_link": "打开 {label}",
         "passage_count": "{count} 个片段 | {count} 个片段",
         "relevance": "相关度 {score}",
-        "passage_removed": "此段落之后已从知识库中删除。"
+        "passage_removed": "此段落之后已从知识库中删除。",
+        "open_source": "打开来源"
     },
     "home": {
         "logo_alt": "标志",
@@ -1019,6 +1020,10 @@
                     "tool_call": {
                         "label": "工具调用",
                         "help": "检查智能体是否调用了预期工具——但不实际运行它。"
+                    },
+                    "citations": {
+                        "label": "引用",
+                        "help": "检查回答引用的每段内容是否确实支持其所在的句子。适用于标注来源的代理。80% 的引用正确即通过。"
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "完全匹配",
                 "json_schema": "JSON 架构",
                 "llm_judge": "LLM 评判员",
-                "tool_call": "工具调用"
+                "tool_call": "工具调用",
+                "citations": "引用"
             },
             "statuses": {
                 "running": "运行中",
@@ -1882,10 +1888,14 @@
                 "voice_label": "声音",
                 "voice_default": "默认（{voice}）",
                 "voice_input_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启语音转文字。",
-                "replies_title": "回复",
-                "replies_description": "选择在每条回答下方显示的内容。",
-                "show_sources_label": "显示来源",
-                "show_sources_hint": "在每条回答下方显示一个按钮，列出该回答用到的知识。"
+                "sources_title": "来源",
+                "sources_description": "每个回答如何展示其使用的知识。",
+                "sources_hidden": "隐藏",
+                "sources_hidden_hint": "回答不显示来源，来源不会离开服务器。",
+                "sources_list": "回答下方的列表",
+                "sources_list_hint": "每个回答下方的按钮会列出其使用的知识。",
+                "sources_citations": "编号引用",
+                "sources_citations_hint": "每个句子后的小编号可打开其来源，回答下方附编号列表。适用于托管聊天、小组件和 API；语音和即时通讯应用会省略编号。"
             },
             "bubbles_title": "聊天气泡",
             "bubbles_description": "显示在挂件启动器旁的快捷消息提示。",

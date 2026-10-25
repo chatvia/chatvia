@@ -102,7 +102,7 @@ it('names each source and gives the clients only its label, kind, link and page'
         ->relevance->toBe(0.5)
         ->sourceable_type->toBe('source_text')
         ->sourceable_id->toBe(999_999)
-        ->and($source->forClient(passages: 1)->toArray())->toBe(['id' => 'ext-5', 'label' => 'Unknown source', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 1])
+        ->and($source->forClient(passages: 1, block: 1)->toArray())->toBe(['id' => 'ext-5', 'label' => 'Unknown source', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 1, 'blocks' => [1], 'excerpt' => 'Only text'])
         ->and($context->payload->message_for_llm)->toBe("### User Question:\nHours?\n\n### Reference material\n<source id=\"1\">\nOnly text\n</source>\n");
 });
 

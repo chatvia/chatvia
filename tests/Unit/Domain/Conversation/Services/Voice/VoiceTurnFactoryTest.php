@@ -16,7 +16,7 @@ it('keeps the sources of spoken answers on the server by default', function (): 
 
 it('lists the sources of spoken answers when the agent shows them', function (): void {
     $agent = Agent::factory()->create();
-    $agent->setSetting('show_sources', true, 'appearance');
+    $agent->setSetting('sources_display', 'list', 'appearance');
 
     expect(app(VoiceTurnFactory::class)->request(VoiceCalls::data($agent), $agent)->streamSources)->toBeTrue();
 });

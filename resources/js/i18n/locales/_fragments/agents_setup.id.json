@@ -5,12 +5,7 @@
                 "replies_saved": "Opsi balasan disimpan",
                 "replies_error": "Tidak dapat menyimpan opsi balasan"
             },
-            "settings": {
-                "replies_title": "Balasan",
-                "replies_description": "Pilih apa yang muncul di bawah setiap jawaban.",
-                "show_sources_label": "Tampilkan sumber",
-                "show_sources_hint": "Tampilkan tombol di bawah setiap jawaban yang mencantumkan pengetahuan yang digunakannya."
-            },
+            "settings": {},
             "model_picker_title": "Model",
             "model_picker_description": "Model AI yang dipakai agen ini untuk menjawab. Admin memilih model mana yang ada di daftar ini (panel admin → Settings → AI models).",
             "model_placeholder": "Pilih model",

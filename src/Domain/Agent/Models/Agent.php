@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use Database\Factories\AgentFactory;
 use Domain\Agent\Concerns\HasSettings;
+use Domain\Agent\Enums\SourcesDisplay;
 use Domain\Agent\Events\AgentToolsChanged;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Agent\Prompt\Models\AgentPrompt;
@@ -240,13 +241,26 @@ class Agent extends Model
     }
 
     /**
-     * Whether chatters see the knowledge sources under an answer (Setup →
-     * Settings → Replies). Off by default, so an agent with no stored
-     * `show_sources` setting keeps its sources on the server.
+     * How the agent's answers show the knowledge they used ({@see SourcesDisplay}).
+     */
+    public function sourcesDisplay(): SourcesDisplay
+    {
+        return SourcesDisplay::tryFrom((string) $this->settings('appearance')->get('sources_display')) ?? SourcesDisplay::Hidden;
+    }
+
+    /**
+     * Whether the chat clients get an answer's sources: as a list, or for its
+     * citations. Hidden keeps them on the server.
      */
     public function showsSources(): bool
     {
-        return (bool) $this->settings('appearance')->get('show_sources', false);
+        return $this->sourcesDisplay() !== SourcesDisplay::Hidden;
+    }
+
+    /** Whether the agent marks each sentence with the source it came from ("five days [1]"). */
+    public function citesSources(): bool
+    {
+        return $this->sourcesDisplay() === SourcesDisplay::Citations;
     }
 
     /**

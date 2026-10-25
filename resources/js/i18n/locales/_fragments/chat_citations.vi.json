@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Nguồn",
+                "sources_description": "Cách mỗi câu trả lời hiển thị kiến thức đã dùng.",
+                "sources_hidden": "Ẩn",
+                "sources_hidden_hint": "Câu trả lời không hiện nguồn. Nguồn không bao giờ rời máy chủ.",
+                "sources_list": "Danh sách dưới câu trả lời",
+                "sources_list_hint": "Một nút dưới mỗi câu trả lời liệt kê kiến thức đã dùng.",
+                "sources_citations": "Trích dẫn đánh số",
+                "sources_citations_hint": "Một số nhỏ sau mỗi câu mở nguồn của câu đó, kèm danh sách đánh số dưới câu trả lời. Chat được lưu trữ, widget và API; giọng nói và ứng dụng nhắn tin bỏ các số."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Mở nguồn"
+    }
+}

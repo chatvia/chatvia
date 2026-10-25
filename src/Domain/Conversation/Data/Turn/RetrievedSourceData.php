@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Data\Turn;
 
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
 /**
@@ -38,9 +39,10 @@ class RetrievedSourceData extends Data
     /**
      * A turn's sources as the chat clients show them under an answer: one
      * entry per place the answer drew on (a source, a PDF page, a website
-     * page), best first, with how many of its passages were used. The chunks
-     * of one source share its name, so one entry per chunk would list the
-     * same name again and again.
+     * page), best first, with how many of its passages were used and which
+     * numbered reference blocks they were (the turn's sources are the blocks,
+     * in order). The chunks of one source share its name, so one entry per
+     * chunk would list the same name again and again.
      *
      * @param  iterable<int, self>  $sources  best first
      * @return list<SourceRefData>
@@ -50,23 +52,29 @@ class RetrievedSourceData extends Data
         /** @var array<string, SourceRefData> $entries */
         $entries = [];
 
+        $block = 0;
+
         foreach ($sources as $source) {
+            $block++;
             $key = implode('|', [$source->sourceable_type, $source->sourceable_id, $source->url, $source->page]);
 
             // The first (best) chunk names the entry; later chunks only count.
             $entries[$key] = isset($entries[$key])
-                ? $entries[$key]->withAnotherPassage()
-                : $source->forClient(passages: 1);
+                ? $entries[$key]->withAnotherPassage($block)
+                : $source->forClient(passages: 1, block: $block);
         }
 
         return array_values($entries);
     }
 
+    /** How much of the best passage a citation card quotes. */
+    private const int EXCERPT_LENGTH = 220;
+
     /**
-     * One chunk's source as the chat clients show it: no chunk text and no
-     * internal ids.
+     * One chunk's source as the chat clients show it: no internal ids, and of
+     * the text only the start, for the citation card.
      */
-    public function forClient(int $passages): SourceRefData
+    public function forClient(int $passages, int $block): SourceRefData
     {
         return new SourceRefData(
             id: $this->external_id,
@@ -75,6 +83,8 @@ class RetrievedSourceData extends Data
             url: $this->url,
             page: $this->page,
             passages: $passages,
+            blocks: [$block],
+            excerpt: Str::of($this->content)->replaceMatches('/!\[[^\]]*\]\([^)]*\)/', '')->squish()->limit(self::EXCERPT_LENGTH, preserveWords: true)->value() ?: null,
         );
     }
 }

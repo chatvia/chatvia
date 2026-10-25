@@ -72,6 +72,7 @@ class SystemPromptBuilder
                 .Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding', [
                     'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
                     'browserLanguage' => $this->browserLanguage($data->locale),
+                    'cite' => $agent->citesSources() && CitationMarkers::shownOn($data),
                 ]),
             $agent,
             $data->chatterName,

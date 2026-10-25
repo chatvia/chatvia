@@ -10,6 +10,7 @@ import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
 import SetupSectionHeading from '@/components/agents/setup/SetupSectionHeading.vue';
 import SetupSwitchRow from '@/components/agents/setup/SetupSwitchRow.vue';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
@@ -79,6 +80,9 @@ const help = computed(() => ({
         paragraphs: [t('agents.setup.settings.topics_help_1'), t('agents.setup.settings.topics_help_2')],
     },
 }));
+
+// The ways an answer can show its sources (SourcesDisplay), each with a label and hint key.
+const SOURCES_DISPLAY: Domain.Agent.Enums.SourcesDisplay[] = ['hidden', 'list', 'citations'];
 </script>
 
 <template>
@@ -137,18 +141,23 @@ const help = computed(() => ({
 
         <Separator />
 
-        <!-- Reply options — what chatters see under an answer. -->
+        <!-- Sources — how an answer shows the knowledge it used. -->
         <form @submit.prevent="saveReplies" class="space-y-3">
-            <SetupSectionHeading :title="t('agents.setup.settings.replies_title')" :description="t('agents.setup.settings.replies_description')" />
-            <div class="divide-y rounded-md border">
-                <SetupSwitchRow
-                    id="show-sources"
-                    v-model="repliesForm.show_sources"
-                    :label="t('agents.setup.settings.show_sources_label')"
-                    :hint="t('agents.setup.settings.show_sources_hint')"
-                    :disabled="locked"
-                />
-            </div>
+            <SetupSectionHeading :title="t('agents.setup.settings.sources_title')" :description="t('agents.setup.settings.sources_description')" />
+            <RadioGroup v-model="repliesForm.sources_display" :disabled="locked" class="divide-y rounded-md border">
+                <label
+                    v-for="option in SOURCES_DISPLAY"
+                    :key="option"
+                    :for="`sources-display-${option}`"
+                    class="hover:bg-muted/40 flex cursor-pointer items-start gap-3 p-4 transition"
+                >
+                    <RadioGroupItem :id="`sources-display-${option}`" :value="option" class="mt-0.5" />
+                    <span class="min-w-0 space-y-1">
+                        <span class="block text-sm font-medium">{{ t(`agents.setup.settings.sources_${option}`) }}</span>
+                        <span class="text-muted-foreground block text-sm">{{ t(`agents.setup.settings.sources_${option}_hint`) }}</span>
+                    </span>
+                </label>
+            </RadioGroup>
             <SetupSaveFooter submit :saving="isSavingReplies" />
         </form>
 

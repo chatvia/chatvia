@@ -20,6 +20,7 @@ class ScorerRegistry
         private readonly JsonSchemaScorer $jsonSchema,
         private readonly LlmJudgeScorer $llmJudge,
         private readonly ToolCallScorer $toolCall,
+        private readonly CitationScorer $citations,
     ) {}
 
     public function for(ScorerType $type): ScorerInterface
@@ -31,6 +32,7 @@ class ScorerRegistry
             ScorerType::JsonSchema => $this->jsonSchema,
             ScorerType::LlmJudge => $this->llmJudge,
             ScorerType::ToolCall => $this->toolCall,
+            ScorerType::Citations => $this->citations,
         };
     }
 }

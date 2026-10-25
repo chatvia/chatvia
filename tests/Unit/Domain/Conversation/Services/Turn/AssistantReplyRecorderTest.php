@@ -176,7 +176,7 @@ it('remembers only what the clients may see, for a client that shows sources', f
         ->withScope(new ChatScopeData($request->agent, $request->externalSessionId, $request->conversationId))
         ->getSources();
 
-    expect(collect($sources[$context->assistantMessageId])->toArray())->toBe([['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null, 'passages' => 1]]);
+    expect(collect($sources[$context->assistantMessageId])->toArray())->toBe([['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null, 'passages' => 1, 'blocks' => [1], 'excerpt' => 'Returns are free.']]);
 });
 
 it('remembers the chunks of one source as one source, but stores every chunk', function (): void {

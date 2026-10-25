@@ -169,7 +169,8 @@
         "open_link": "Åpne {label}",
         "passage_count": "{count} utdrag | {count} utdrag",
         "relevance": "Relevans {score}",
-        "passage_removed": "Denne passasjen er siden fjernet fra kunnskapsbasen."
+        "passage_removed": "Denne passasjen er siden fjernet fra kunnskapsbasen.",
+        "open_source": "Åpne kilden"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1018,6 +1019,10 @@
                     "tool_call": {
                         "label": "Verktøykall",
                         "help": "Sjekker at agenten kaller det forventede verktøyet — uten å kjøre det."
+                    },
+                    "citations": {
+                        "label": "Kildehenvisninger",
+                        "help": "Sjekker at hver passasje svaret henviser til faktisk støtter setningen. For agenter som oppgir kilder. Bestått når 80 % av henvisningene holder."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Eksakt samsvar",
                 "json_schema": "JSON-skjema",
                 "llm_judge": "LLM-dommer",
-                "tool_call": "Verktøykall"
+                "tool_call": "Verktøykall",
+                "citations": "Kildehenvisninger"
             },
             "statuses": {
                 "running": "Kjører",
@@ -1882,11 +1888,15 @@
                 "voice_label": "Stemme",
                 "voice_default": "Standard ({voice})",
                 "voice_input_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på tale til tekst i adminpanelet.",
-                "replies_title": "Svar",
-                "replies_description": "Velg hva som vises under hvert svar.",
-                "show_sources_label": "Vis kilder",
-                "show_sources_hint": "Vis en knapp under hvert svar som lister opp kunnskapen svaret bygger på.",
-                "file_uploads_unavailable": "Slått av på denne serveren. En administrator kan slå på filopplasting i chat i adminpanelet under Innstillinger → AI-modeller."
+                "file_uploads_unavailable": "Slått av på denne serveren. En administrator kan slå på filopplasting i chat i adminpanelet under Innstillinger → AI-modeller.",
+                "sources_title": "Kilder",
+                "sources_description": "Hvordan hvert svar viser kunnskapen det brukte.",
+                "sources_hidden": "Skjult",
+                "sources_hidden_hint": "Svarene viser ingen kilder. De forlater aldri serveren.",
+                "sources_list": "Liste under svaret",
+                "sources_list_hint": "En knapp under hvert svar viser kunnskapen det brukte.",
+                "sources_citations": "Nummererte kildehenvisninger",
+                "sources_citations_hint": "Et lite tall etter hver setning åpner kilden, med en nummerert liste under svaret. Vertet chat, widget og API; tale og meldingsapper utelater tallene."
             },
             "bubbles_title": "Snakkebobler",
             "bubbles_description": "Raske meldingsprompt som vises ved siden av widgetens åpningsknapp.",

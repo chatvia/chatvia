@@ -104,6 +104,20 @@ it('leaves the browser language out when the message language was detected or th
     'unknown code' => ['zz', null],
 ]);
 
+it('asks an agent that cites for block numbers, only where chips can show', function (): void {
+    $agent = Agent::factory()->create();
+
+    expect(spbPrompt($agent, null))->toContain('never mention the blocks')
+        ->not->toContain("add the block's number");
+
+    $agent->setSetting('sources_display', 'citations', 'appearance');
+    $citing = $agent->fresh();
+
+    expect(spbPrompt($citing, null))->toContain("add the block's number")
+        ->not->toContain('never mention the blocks')
+        ->and(spbPrompt($citing, null, 'telegram'))->toContain('never mention the blocks');
+});
+
 it('opens the system prompt with the guardrails leak marker', function (): void {
     $agent = Agent::factory()->create();
     $marker = app(GuardrailService::class)->leakMarker($agent);

@@ -70,7 +70,9 @@ function sourceTitle(source: MessageSource, index: number): string {
                 <ul class="space-y-2">
                     <li v-for="(source, index) in sources" :key="source.id ?? index" class="min-w-0 rounded-lg border p-3">
                         <div class="flex min-w-0 items-center gap-3">
-                            <Badge variant="secondary" class="shrink-0 text-xs">{{ index + 1 }}</Badge>
+                            <Badge variant="secondary" class="shrink-0 text-xs">{{
+                                source.citation === undefined ? index + 1 : (source.citation ?? '–')
+                            }}</Badge>
                             <component :is="kindIcons[source.kind] ?? FileText" class="text-muted-foreground h-4 w-4 shrink-0" />
                             <!-- The inner dir="auto" cuts a name at its own end (the left of an Arabic one); the outer span keeps the row's direction for me-auto. -->
                             <span class="me-auto flex min-w-0">

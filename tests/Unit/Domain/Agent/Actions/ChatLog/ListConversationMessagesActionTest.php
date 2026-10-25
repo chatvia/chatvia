@@ -71,6 +71,7 @@ it('lists the knowledge a reply was given, best first, with a short preview of e
 
     expect($message->sources)->toHaveCount(2)
         ->and($best->rank)->toBe(0)
+        ->and($best->blocks)->toBe([1])
         ->and($best->label)->toBe('Policy.pdf')
         ->and($best->kind)->toBe(SourceKind::File)
         ->and($best->page)->toBe(3)

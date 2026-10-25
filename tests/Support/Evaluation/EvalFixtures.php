@@ -34,8 +34,9 @@ final class EvalFixtures
      *
      * @param  list<array{name: string, arguments: string}>  $toolCalls
      * @param  list<string>  $sources
+     * @param  list<string>  $blocks  the reference blocks the agent was given, for the citations check
      */
-    public static function run(string $answer = '', array $toolCalls = [], ?string $error = null, array $sources = [], ?int $tokens = 10, string $traceId = 'trace'): AgentRunResultData
+    public static function run(string $answer = '', array $toolCalls = [], ?string $error = null, array $sources = [], ?int $tokens = 10, string $traceId = 'trace', array $blocks = []): AgentRunResultData
     {
         return new AgentRunResultData(
             answer: $answer,
@@ -46,6 +47,7 @@ final class EvalFixtures
             traceId: $traceId,
             error: $error,
             toolCalls: $toolCalls,
+            blocks: $blocks,
         );
     }
 }

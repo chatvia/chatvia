@@ -169,7 +169,8 @@
         "open_link": "Mở {label}",
         "passage_count": "{count} đoạn | {count} đoạn",
         "relevance": "Mức liên quan {score}",
-        "passage_removed": "Đoạn này đã bị xóa khỏi cơ sở kiến thức."
+        "passage_removed": "Đoạn này đã bị xóa khỏi cơ sở kiến thức.",
+        "open_source": "Mở nguồn"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1019,6 +1020,10 @@
                     "tool_call": {
                         "label": "Lệnh gọi công cụ",
                         "help": "Kiểm tra xem trợ lý AI có gọi đúng công cụ mong đợi không — mà không chạy nó."
+                    },
+                    "citations": {
+                        "label": "Trích dẫn",
+                        "help": "Kiểm tra mỗi đoạn được trích dẫn có thật sự hỗ trợ câu tương ứng. Dành cho tác tử trích dẫn nguồn. Đạt khi 80% trích dẫn đúng."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Khớp chính xác",
                 "json_schema": "Lược đồ JSON",
                 "llm_judge": "Giám khảo LLM",
-                "tool_call": "Lệnh gọi công cụ"
+                "tool_call": "Lệnh gọi công cụ",
+                "citations": "Trích dẫn"
             },
             "statuses": {
                 "running": "Đang chạy",
@@ -1882,10 +1888,14 @@
                 "voice_label": "Giọng",
                 "voice_default": "Mặc định ({voice})",
                 "voice_input_unavailable": "Chưa được thiết lập trên máy chủ này. Quản trị viên có thể bật chuyển giọng nói thành văn bản trong trang quản trị.",
-                "replies_title": "Câu trả lời",
-                "replies_description": "Chọn nội dung hiển thị bên dưới mỗi câu trả lời.",
-                "show_sources_label": "Hiển thị nguồn",
-                "show_sources_hint": "Hiển thị một nút bên dưới mỗi câu trả lời, liệt kê kiến thức đã dùng."
+                "sources_title": "Nguồn",
+                "sources_description": "Cách mỗi câu trả lời hiển thị kiến thức đã dùng.",
+                "sources_hidden": "Ẩn",
+                "sources_hidden_hint": "Câu trả lời không hiện nguồn. Nguồn không bao giờ rời máy chủ.",
+                "sources_list": "Danh sách dưới câu trả lời",
+                "sources_list_hint": "Một nút dưới mỗi câu trả lời liệt kê kiến thức đã dùng.",
+                "sources_citations": "Trích dẫn đánh số",
+                "sources_citations_hint": "Một số nhỏ sau mỗi câu mở nguồn của câu đó, kèm danh sách đánh số dưới câu trả lời. Chat được lưu trữ, widget và API; giọng nói và ứng dụng nhắn tin bỏ các số."
             },
             "bubbles_title": "Bong bóng chat",
             "bubbles_description": "Các gợi ý tin nhắn nhanh hiển thị bên cạnh trình khởi chạy widget.",

@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Cytowania",
+                        "help": "Sprawdza, czy każdy cytowany fragment naprawdę potwierdza zdanie, przy którym go podano. Dla agentów podających źródła. Zaliczony, gdy 80% cytowań się zgadza."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Cytowania"
+            }
+        }
+    }
+}

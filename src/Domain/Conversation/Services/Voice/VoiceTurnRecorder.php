@@ -7,6 +7,7 @@ namespace Domain\Conversation\Services\Voice;
 use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
+use Domain\Conversation\Services\Turn\CitationMarkers;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
@@ -31,6 +32,7 @@ final readonly class VoiceTurnRecorder
         private AssistantReplyRecorder $replies,
         private GuardrailService $guardrails,
         private GuardrailRecorder $guardrailRecorder,
+        private CitationMarkers $citations,
     ) {}
 
     /**
@@ -74,6 +76,9 @@ final readonly class VoiceTurnRecorder
             $context->appendStreamedMessage($guard->text);
             $this->guardrailRecorder->record($context, $guard->text, $guard);
         }
+
+        // A spoken answer shows no citation markers.
+        $this->citations->clean($context);
 
         $this->replies->recordCompletedReply($context);
         $turn->replyStored = true;

@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "引用",
+                        "help": "检查回答引用的每段内容是否确实支持其所在的句子。适用于标注来源的代理。80% 的引用正确即通过。"
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "引用"
+            }
+        }
+    }
+}

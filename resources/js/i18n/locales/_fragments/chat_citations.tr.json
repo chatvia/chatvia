@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Kaynaklar",
+                "sources_description": "Her yanıtın kullandığı bilgiyi nasıl gösterdiği.",
+                "sources_hidden": "Gizli",
+                "sources_hidden_hint": "Yanıtlar kaynak göstermez. Kaynaklar sunucudan hiç çıkmaz.",
+                "sources_list": "Yanıtın altında liste",
+                "sources_list_hint": "Her yanıtın altındaki bir düğme kullanılan bilgiyi listeler.",
+                "sources_citations": "Numaralı alıntılar",
+                "sources_citations_hint": "Her cümlenin sonundaki küçük numara kaynağını açar ve yanıtın altında numaralı bir liste bulunur. Barındırılan sohbet, pencere öğesi ve API; ses ve mesajlaşma uygulamaları numaraları göstermez."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Kaynağı aç"
+    }
+}

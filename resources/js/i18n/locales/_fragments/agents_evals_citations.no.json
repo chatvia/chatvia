@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Kildehenvisninger",
+                        "help": "Sjekker at hver passasje svaret henviser til faktisk støtter setningen. For agenter som oppgir kilder. Bestått når 80 % av henvisningene holder."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Kildehenvisninger"
+            }
+        }
+    }
+}

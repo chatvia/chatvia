@@ -1,0 +1,19 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "sources_title": "Źródła",
+                "sources_description": "Jak każda odpowiedź pokazuje użytą wiedzę.",
+                "sources_hidden": "Ukryte",
+                "sources_hidden_hint": "Odpowiedzi nie pokazują źródeł. Nigdy nie opuszczają serwera.",
+                "sources_list": "Lista pod odpowiedzią",
+                "sources_list_hint": "Przycisk pod każdą odpowiedzią pokazuje użytą wiedzę.",
+                "sources_citations": "Numerowane cytowania",
+                "sources_citations_hint": "Mała liczba po każdym zdaniu otwiera jego źródło, a pod odpowiedzią jest numerowana lista. Czat hostowany, widżet i API; głos i komunikatory pomijają liczby."
+            }
+        }
+    },
+    "sources": {
+        "open_source": "Otwórz źródło"
+    }
+}

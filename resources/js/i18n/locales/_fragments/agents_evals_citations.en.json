@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Citations",
+                        "help": "Checks that each passage the answer cites really supports the sentence it is cited for. For agents that cite their sources. Passes when 80% of the citations hold."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Citations"
+            }
+        }
+    }
+}

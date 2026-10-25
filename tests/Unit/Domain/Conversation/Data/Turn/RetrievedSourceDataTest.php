@@ -25,7 +25,7 @@ function rsdSource(int $id, string $type, int $sourceId, string $label, SourceKi
     );
 }
 
-it('lists the chunks of one source once, with how many passages were used', function (): void {
+it('lists the chunks of one source once, with how many passages were used and which blocks they were', function (): void {
     $sources = collect([
         rsdSource(1, 'source_text', 4, 'أعلن المتحدث العسكري', SourceKind::Text),
         rsdSource(2, 'source_text', 4, 'أعلن المتحدث العسكري', SourceKind::Text),
@@ -34,8 +34,8 @@ it('lists the chunks of one source once, with how many passages were used', func
     ]);
 
     expect(collect(RetrievedSourceData::forClients($sources))->toArray())->toBe([
-        ['id' => 'chunk-1', 'label' => 'أعلن المتحدث العسكري', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 3],
-        ['id' => 'chunk-3', 'label' => 'guide.docx', 'kind' => 'file', 'url' => null, 'page' => null, 'passages' => 1],
+        ['id' => 'chunk-1', 'label' => 'أعلن المتحدث العسكري', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 3, 'blocks' => [1, 2, 4], 'excerpt' => 'Passage 1'],
+        ['id' => 'chunk-3', 'label' => 'guide.docx', 'kind' => 'file', 'url' => null, 'page' => null, 'passages' => 1, 'blocks' => [3], 'excerpt' => 'Passage 3'],
     ]);
 });
 

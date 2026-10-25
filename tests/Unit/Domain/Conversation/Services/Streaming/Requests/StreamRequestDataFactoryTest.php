@@ -34,7 +34,7 @@ it('hides the sources of answers by default', function (): void {
 
 it('streams the sources of answers to the hosted chat and the widget when the agent shows them', function (): void {
     $agent = Agent::factory()->create();
-    $agent->setSetting('show_sources', true, 'appearance');
+    $agent->setSetting('sources_display', 'list', 'appearance');
 
     [$hosted, $widget] = srdfRequests($agent);
 

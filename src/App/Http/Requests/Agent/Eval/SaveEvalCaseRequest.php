@@ -39,6 +39,7 @@ class SaveEvalCaseRequest extends FormRequest
             'scorer_config.required.*' => ['string', 'max:128'],
             'scorer_config.tool' => ['nullable', 'required_if:scorer_type,tool_call', 'string', 'max:255'],
             'scorer_config.arguments' => ['nullable', 'string', 'max:4000', $this->jsonObjectRule()],
+            'scorer_config.min_supported' => ['nullable', 'numeric', 'min:0', 'max:1'],
             'expected_output' => ['nullable', 'required_if:scorer_type,exact', 'string', 'max:8000'],
             'active' => ['sometimes', 'boolean'],
         ];

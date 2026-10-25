@@ -169,7 +169,8 @@
         "open_link": "{label} aç",
         "passage_count": "{count} bölüm | {count} bölüm",
         "relevance": "Alaka {score}",
-        "passage_removed": "Bu bölüm o zamandan beri bilgi tabanından kaldırıldı."
+        "passage_removed": "Bu bölüm o zamandan beri bilgi tabanından kaldırıldı.",
+        "open_source": "Kaynağı aç"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1019,6 +1020,10 @@
                     "tool_call": {
                         "label": "Araç çağrısı",
                         "help": "Asistanın beklenen aracı çağırdığını denetler — onu çalıştırmadan."
+                    },
+                    "citations": {
+                        "label": "Alıntılar",
+                        "help": "Yanıtın alıntıladığı her bölümün ilgili cümleyi gerçekten desteklediğini kontrol eder. Kaynak gösteren ajanlar için. Alıntıların %80'i doğruysa geçer."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Tam eşleşme",
                 "json_schema": "JSON şeması",
                 "llm_judge": "LLM hakem",
-                "tool_call": "Araç çağrısı"
+                "tool_call": "Araç çağrısı",
+                "citations": "Alıntılar"
             },
             "statuses": {
                 "running": "Çalışıyor",
@@ -1882,10 +1888,14 @@
                 "voice_label": "Ses",
                 "voice_default": "Varsayılan ({voice})",
                 "voice_input_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici konuşmayı metne çevirmeyi yönetim panelinden açabilir.",
-                "replies_title": "Yanıtlar",
-                "replies_description": "Her yanıtın altında nelerin görüneceğini seçin.",
-                "show_sources_label": "Kaynakları göster",
-                "show_sources_hint": "Her yanıtın altında, kullandığı bilgileri listeleyen bir düğme gösterin."
+                "sources_title": "Kaynaklar",
+                "sources_description": "Her yanıtın kullandığı bilgiyi nasıl gösterdiği.",
+                "sources_hidden": "Gizli",
+                "sources_hidden_hint": "Yanıtlar kaynak göstermez. Kaynaklar sunucudan hiç çıkmaz.",
+                "sources_list": "Yanıtın altında liste",
+                "sources_list_hint": "Her yanıtın altındaki bir düğme kullanılan bilgiyi listeler.",
+                "sources_citations": "Numaralı alıntılar",
+                "sources_citations_hint": "Her cümlenin sonundaki küçük numara kaynağını açar ve yanıtın altında numaralı bir liste bulunur. Barındırılan sohbet, pencere öğesi ve API; ses ve mesajlaşma uygulamaları numaraları göstermez."
             },
             "bubbles_title": "Sohbet Balonları",
             "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri.",

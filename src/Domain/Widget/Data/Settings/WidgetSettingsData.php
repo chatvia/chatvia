@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Widget\Data\Settings;
 
+use Domain\Agent\Enums\SourcesDisplay;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -81,6 +82,11 @@ class WidgetSettingsData extends Data
         // owner sets in Setup → Info — an extra layer of data-protection
         // transparency the customer controls per agent.
         public ?string $privacy_policy_url,
+        // How to show an answer's sources (the stream's `sources` event):
+        // `hidden` (none are sent), `list` (a "Sources" list) or `citations`
+        // (numbered `[n]` chips in the text that open the source; each source
+        // lists the `blocks` its markers point to).
+        public SourcesDisplay $sources_display,
         // Whether visitors can hand off to a human (Live Chat). Widget-only; the
         // widget hides the "Talk to a human" affordance when false. Already
         // ANDed with the workspace's handoff capability on the server.

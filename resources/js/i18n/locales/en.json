@@ -169,7 +169,8 @@
         "open_link": "Open {label}",
         "passage_count": "{count} passage | {count} passages",
         "relevance": "Relevance {score}",
-        "passage_removed": "This passage has since been removed from the knowledge base."
+        "passage_removed": "This passage has since been removed from the knowledge base.",
+        "open_source": "Open the source"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1018,6 +1019,10 @@
                     "tool_call": {
                         "label": "Tool call",
                         "help": "Checks the agent calls the expected tool — without running it."
+                    },
+                    "citations": {
+                        "label": "Citations",
+                        "help": "Checks that each passage the answer cites really supports the sentence it is cited for. For agents that cite their sources. Passes when 80% of the citations hold."
                     }
                 },
                 "toasts": {
@@ -1038,7 +1043,8 @@
                 "exact": "Exact match",
                 "json_schema": "JSON schema",
                 "llm_judge": "LLM judge",
-                "tool_call": "Tool call"
+                "tool_call": "Tool call",
+                "citations": "Citations"
             },
             "statuses": {
                 "running": "Running",
@@ -1882,11 +1888,15 @@
                 "voice_label": "Voice",
                 "voice_default": "Default ({voice})",
                 "voice_input_unavailable": "Not set up on this server. An admin can turn on speech to text in the admin panel.",
-                "replies_title": "Replies",
-                "replies_description": "Choose what appears under each answer.",
-                "show_sources_label": "Show sources",
-                "show_sources_hint": "Show a button under each answer that lists the knowledge it used.",
-                "file_uploads_unavailable": "Off on this server. An admin can turn on chat file uploads in the admin panel, under Settings → AI models."
+                "file_uploads_unavailable": "Off on this server. An admin can turn on chat file uploads in the admin panel, under Settings → AI models.",
+                "sources_title": "Sources",
+                "sources_description": "How each answer shows the knowledge it used.",
+                "sources_hidden": "Hidden",
+                "sources_hidden_hint": "Answers show no sources. They never leave the server.",
+                "sources_list": "List under the answer",
+                "sources_list_hint": "A button under each answer lists the knowledge it used.",
+                "sources_citations": "Numbered citations",
+                "sources_citations_hint": "A small number after each sentence opens its source, with a numbered list under the answer. Hosted chat, widget and API; voice and messaging apps leave the numbers out."
             },
             "bubbles_title": "Chat Bubbles",
             "bubbles_description": "Quick message prompts shown next to the widget launcher.",

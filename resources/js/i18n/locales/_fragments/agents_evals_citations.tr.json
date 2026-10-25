@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "scorers": {
+                    "citations": {
+                        "label": "Alıntılar",
+                        "help": "Yanıtın alıntıladığı her bölümün ilgili cümleyi gerçekten desteklediğini kontrol eder. Kaynak gösteren ajanlar için. Alıntıların %80'i doğruysa geçer."
+                    }
+                }
+            },
+            "scorers": {
+                "citations": "Alıntılar"
+            }
+        }
+    }
+}

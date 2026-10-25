@@ -14,6 +14,7 @@ use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SecuritySettings;
 use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\StorageSettings;
+use App\Admin\Settings\WidgetSettings;
 use App\Admin\Settings\WorkspaceSettings;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeInterfaceCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeZoneCast;
@@ -48,6 +49,7 @@ return [
         ObservabilitySettings::class,
         StorageSettings::class,
         SecuritySettings::class,
+        WidgetSettings::class,
     ],
 
     'setting_class_path' => app_path('Admin/Settings'),

@@ -772,6 +772,10 @@ return [
     'widget' => [
         'script_url_embed' => '/shakomako/embed.js',
 
+        // Whether the widget header says the visitor is talking to an AI
+        // assistant (EU AI Act Art. 50). Admin panel → Settings → Widget.
+        'ai_disclosure' => true,
+
         'reverb' => [
             'host' => env('VITE_REVERB_HOST'),
             'port' => env('VITE_REVERB_PORT'),

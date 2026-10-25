@@ -13,7 +13,10 @@
 # Build:  docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t chatvia .
 # The release workflow (.github/workflows/docker.yml) builds it for every v* tag.
 
-ARG PHP_IMAGE=serversideup/php:8.5-fpm-nginx-trixie-v5.0.0
+# PHP 8.5.12 or newer (composer.json): check-platform-reqs below fails the
+# build on an older one. The tag names the patch release, so raising it is a
+# change here, not a rebuild that happens to pull a newer image.
+ARG PHP_IMAGE=serversideup/php:8.5.12-fpm-nginx-trixie-v5.0.3
 ARG NODE_IMAGE=node:22-trixie-slim
 # Shakomako, the chat widget, lives in its own repository;
 # `npm run shakomako:build` (scripts/build-shakomako.mjs) reads SHAKOMAKO_REPO

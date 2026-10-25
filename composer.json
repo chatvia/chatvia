@@ -15,7 +15,7 @@
     ],
     "license": "LicenseRef-ChatVia.ai",
     "require": {
-        "php": "^8.5",
+        "php": ">=8.5.12",
         "ext-dom": "*",
         "ext-fileinfo": "*",
         "ext-intl": "*",

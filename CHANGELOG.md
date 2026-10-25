@@ -477,6 +477,11 @@ theme.
 - **Redis 8.** The Docker stack runs `redis:8.10-alpine`, and the complete
   installation takes the newest Redis from packages.redis.io when it carries
   that Ubuntu release (Ubuntu 26.04's own Redis 8 otherwise).
+- **PHP 8.5.12 or newer.** The complete installation takes PHP from Ondřej
+  Surý's PPA (`ppa:ondrej/php`), which carries each PHP release soon after it
+  is out, and stops before it changes anything when the PPA has no packages
+  for the server's Ubuntu release. An upgrade brings PHP to the newest 8.5
+  release first. The Docker image is built on `serversideup/php` 8.5.12.
 - **fail2ban protects SSH** on the complete installation: repeated failed
   sign-ins ban the address, read from the systemd journal.
 - Docker upgrades: `.env` names the exact version an install runs (the

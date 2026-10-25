@@ -1961,7 +1961,11 @@
                 "allowed_sites_help": "Chỉ những nguồn gốc này mới được phép tải widget.",
                 "keyboard_trigger": "Phím tắt kích hoạt",
                 "placement": "Vị trí đặt",
-                "language_switcher": "Trình chuyển ngôn ngữ"
+                "language_switcher": "Trình chuyển ngôn ngữ",
+                "chat_deletion": "Xóa cuộc trò chuyện",
+                "chat_deletion_hint_end": "Khách truy cập có thể kết thúc cuộc trò chuyện và bắt đầu cuộc mới. Mọi cuộc trò chuyện vẫn còn trong lịch sử của họ và trong nhật ký trò chuyện của bạn.",
+                "chat_deletion_hint_hide": "Khách truy cập có thể xóa cuộc trò chuyện khỏi lịch sử của chính họ. Bạn vẫn giữ chúng trong nhật ký trò chuyện.",
+                "chat_deletion_hint_delete": "Khách truy cập có thể xóa vĩnh viễn cuộc trò chuyện. Chúng bị xóa khỏi lịch sử của họ và nhật ký trò chuyện của bạn, không thể khôi phục."
             },
             "embed": {
                 "surface_preview": "Xem trước bề mặt"
@@ -2022,7 +2026,10 @@
                 "placement_top": "Trên cùng giữa",
                 "placement_top_right": "Trên bên phải",
                 "placement_bottom": "Dưới cùng giữa",
-                "placement_bottom_right": "Dưới bên phải"
+                "placement_bottom_right": "Dưới bên phải",
+                "chat_deletion_end": "Chỉ kết thúc trò chuyện",
+                "chat_deletion_hide": "Xóa khỏi lịch sử của khách",
+                "chat_deletion_delete": "Xóa vĩnh viễn"
             },
             "sections": {
                 "branding_color": "Bảng màu",

@@ -1962,7 +1962,11 @@
                 "allowed_sites_help": "Nur diese Ursprünge dürfen das Widget laden.",
                 "keyboard_trigger": "Tastaturkürzel",
                 "placement": "Platzierung",
-                "language_switcher": "Sprachumschalter"
+                "language_switcher": "Sprachumschalter",
+                "chat_deletion": "Chats entfernen",
+                "chat_deletion_hint_end": "Besucher können einen Chat beenden und einen neuen beginnen. Jeder Chat bleibt in ihrem Verlauf und in Ihrem Chatprotokoll.",
+                "chat_deletion_hint_hide": "Besucher können Chats aus ihrem eigenen Verlauf entfernen. Im Chatprotokoll bleiben sie Ihnen erhalten.",
+                "chat_deletion_hint_delete": "Besucher können Chats löschen. Sie werden aus ihrem Verlauf und aus Ihrem Chatprotokoll gelöscht und lassen sich nicht wiederherstellen."
             },
             "embed": {
                 "surface_preview": "Oberflächen-Vorschau"
@@ -2023,7 +2027,10 @@
                 "placement_top": "Oben Mitte",
                 "placement_top_right": "Oben rechts",
                 "placement_bottom": "Unten Mitte",
-                "placement_bottom_right": "Unten rechts"
+                "placement_bottom_right": "Unten rechts",
+                "chat_deletion_end": "Nur Chat beenden",
+                "chat_deletion_hide": "Aus dem Verlauf des Besuchers entfernen",
+                "chat_deletion_delete": "Endgültig löschen"
             },
             "sections": {
                 "branding_color": "Farbdesign",

@@ -139,6 +139,8 @@ return [
                 'bubbles' => [],
                 'language' => 'auto',
                 'handoff_enabled' => true,
+                // What a visitor's "remove this chat" does (ChatDeletionMode).
+                'chat_deletion_mode' => 'end',
             ],
             'embed' => [
                 'remove_sidebar' => false,
@@ -313,6 +315,7 @@ return [
             'language' => ['nullable', 'string'],
             'bubbles' => ['nullable', 'array'],
             'handoff_enabled' => ['nullable', 'boolean'],
+            'chat_deletion_mode' => ['nullable', 'in:end,hide,delete'],
         ],
         'embed' => [
             'remove_sidebar' => ['nullable', 'boolean'],

@@ -25,7 +25,18 @@
             "reasoning_low": "Düşük",
             "reasoning_medium": "Orta",
             "reasoning_high": "Yüksek",
-            "reasoning_locked": "Yöneticiniz tüm ajanlar için akıl yürütmeyi kapattı (yönetim paneli → Ayarlar → Yapay zekâ modelleri)."
+            "reasoning_locked": "Yöneticiniz tüm ajanlar için akıl yürütmeyi kapattı (yönetim paneli → Ayarlar → Yapay zekâ modelleri).",
+            "behavior": {
+                "chat_deletion": "Sohbetleri kaldırma",
+                "chat_deletion_hint_end": "Ziyaretçiler bir sohbeti bitirip yenisini başlatabilir. Her sohbet onların geçmişinde ve sohbet kaydınızda kalır.",
+                "chat_deletion_hint_hide": "Ziyaretçiler sohbetleri kendi geçmişlerinden kaldırabilir. Sohbetler sohbet kaydınızda kalır.",
+                "chat_deletion_hint_delete": "Ziyaretçiler sohbetleri silebilir. Sohbetler hem onların geçmişinden hem de sohbet kaydınızdan silinir ve geri getirilemez."
+            },
+            "options": {
+                "chat_deletion_end": "Yalnızca sohbeti bitir",
+                "chat_deletion_hide": "Ziyaretçinin geçmişinden kaldır",
+                "chat_deletion_delete": "Kalıcı olarak sil"
+            }
         }
     }
 }

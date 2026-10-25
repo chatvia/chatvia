@@ -457,6 +457,7 @@ declare namespace Domain {
             }
         }
         namespace Enums {
+            export type ChatDeletionMode = 'end' | 'hide' | 'delete';
             export type SourcesDisplay = 'hidden' | 'list' | 'citations';
         }
         namespace Prompt {
@@ -1536,6 +1537,7 @@ declare namespace Domain {
                     privacy_policy_url: string | null;
                     sources_display: Domain.Agent.Enums.SourcesDisplay;
                     handoff_enabled: boolean;
+                    chat_deletion_mode: Domain.Agent.Enums.ChatDeletionMode;
                     ai_disclosure: boolean;
                     allow_file_uploads: boolean;
                     upload_accept: string[];

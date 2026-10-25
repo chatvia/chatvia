@@ -3,33 +3,73 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\WidgetHeaders;
+use Illuminate\Testing\TestResponse;
 use Tests\Support\Widget\EmbeddedWidget;
 
 /**
- * DELETE /widget/conversations clears one conversation from the widget and
- * keeps it for the chat log. It clears nothing of another agent, and a
- * conversation id that is not a UUID is unknown, never "clear them all".
+ * DELETE /widget/conversations follows the agent's chat deletion mode: `end`
+ * (the default) refuses, `hide` clears the conversation from the widget and
+ * keeps it for the chat log, `delete` erases it. It clears nothing of another
+ * agent, and a conversation id that is not a UUID is unknown, never "clear
+ * them all".
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
     EmbeddedWidget::allowSite($this->agent);
 });
 
-it('clears one conversation from the widget but keeps it for the chat log', function (): void {
+/** Removes the booted conversation, or every one of the session without an id. */
+function cdcRemove(Agent $agent, array $boot, bool $all = false): TestResponse
+{
+    $headers = [WidgetHeaders::SESSION_ID => $boot['session_id']];
+
+    if (! $all) {
+        $headers[WidgetHeaders::CONVERSATION_ID] = $boot['conversation_id'];
+    }
+
+    return test()->withHeaders(EmbeddedWidget::headers($agent, $headers))->deleteJson('/widget/conversations');
+}
+
+it('refuses to remove anything while visitors may only end chats', function (bool $all): void {
     $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
-        WidgetHeaders::SESSION_ID => $boot['session_id'],
-        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
-    ]))
-        ->deleteJson('/widget/conversations')
+    cdcRemove($this->agent, $boot, $all)
+        ->assertForbidden()
+        ->assertJson(['error' => 'Removing chats is turned off']);
+
+    $conversation = Conversation::query()->where('external_id', $boot['conversation_id'])->first();
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->cleared_at)->toBeNull();
+})->with(['one chat' => false, 'all chats' => true]);
+
+it('clears one conversation from the widget but keeps it for the chat log', function (): void {
+    $this->agent->setSetting('chat_deletion_mode', 'hide', 'widget');
+    $boot = EmbeddedWidget::boot($this->agent);
+
+    cdcRemove($this->agent, $boot)
         ->assertOk()
         ->assertJson(['success' => true]);
 
-    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->value('cleared_at'))->not->toBeNull();
+    $conversation = Conversation::query()->where('external_id', $boot['conversation_id'])->first();
+    expect($conversation->cleared_at)->not->toBeNull()
+        ->and($conversation->deleted_by)->toBe(Conversation::DELETED_BY_VISITOR);
 });
 
+it('erases the conversation when visitors may delete chats', function (bool $all): void {
+    $this->agent->setSetting('chat_deletion_mode', 'delete', 'widget');
+    $boot = EmbeddedWidget::boot($this->agent);
+
+    cdcRemove($this->agent, $boot, $all)->assertOk();
+
+    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->exists())->toBeFalse();
+
+    $erased = Conversation::withTrashed()->where('external_id', $boot['conversation_id'])->first();
+    expect($erased->trashed())->toBeTrue()
+        ->and($erased->deleted_by)->toBe(Conversation::DELETED_BY_VISITOR);
+})->with(['one chat' => false, 'all chats' => true]);
+
 it('clears nothing for a conversation of another agent or an id that is not a UUID', function (Closure $conversationId): void {
+    $this->agent->setSetting('chat_deletion_mode', 'hide', 'widget');
     $boot = EmbeddedWidget::boot($this->agent);
     $other = Agent::factory()->create(['is_public' => true]);
     EmbeddedWidget::allowSite($other);

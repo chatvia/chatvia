@@ -136,6 +136,10 @@
                 "theme": "Teema",
                 "live_chat": "Live Chat",
                 "live_chat_hint": "Anna vierailijoiden siirtää chat ihmiselle. Toimii vain verkkosivuston widgetissä.",
+                "chat_deletion": "Keskustelujen poistaminen",
+                "chat_deletion_hint_end": "Kävijät voivat lopettaa keskustelun ja aloittaa uuden. Kaikki keskustelut säilyvät heidän historiassaan ja keskustelulokissasi.",
+                "chat_deletion_hint_hide": "Kävijät voivat poistaa keskusteluja omasta historiastaan. Ne säilyvät keskustelulokissasi.",
+                "chat_deletion_hint_delete": "Kävijät voivat poistaa keskusteluja. Ne poistetaan heidän historiastaan ja keskustelulokistasi, eikä niitä voi palauttaa.",
                 "open_on_load": "Avaa automaattisesti sivun latautuessa",
                 "delay_ms": "Viive (ms)",
                 "allowed_sites": "Sallitut sivustot",
@@ -204,7 +208,10 @@
                 "placement_top": "Ylös keskelle",
                 "placement_top_right": "Ylhäällä oikealla",
                 "placement_bottom": "Alas keskelle",
-                "placement_bottom_right": "Alhaalla oikealla"
+                "placement_bottom_right": "Alhaalla oikealla",
+                "chat_deletion_end": "Vain keskustelun lopetus",
+                "chat_deletion_hide": "Poisto kävijän historiasta",
+                "chat_deletion_delete": "Pysyvä poisto"
             },
             "sections": {
                 "branding_color": "Väriteema",

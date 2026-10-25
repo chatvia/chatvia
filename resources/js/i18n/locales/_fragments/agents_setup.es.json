@@ -136,6 +136,10 @@
                 "theme": "Tema",
                 "live_chat": "Chat en vivo",
                 "live_chat_hint": "Permite que los visitantes transfieran la conversación a un humano. Solo funciona en el widget del sitio web.",
+                "chat_deletion": "Quitar chats",
+                "chat_deletion_hint_end": "Los visitantes pueden finalizar un chat y empezar uno nuevo. Cada chat sigue en su historial y en tu registro de chats.",
+                "chat_deletion_hint_hide": "Los visitantes pueden quitar chats de su propio historial. Tú los conservas en tu registro de chats.",
+                "chat_deletion_hint_delete": "Los visitantes pueden eliminar chats. Se borran de su historial y de tu registro de chats, y no se pueden recuperar.",
                 "open_on_load": "Abrir automáticamente al cargar la página",
                 "delay_ms": "Retraso (ms)",
                 "allowed_sites": "Sitios permitidos",
@@ -204,7 +208,10 @@
                 "placement_top": "Centro superior",
                 "placement_top_right": "Superior derecha",
                 "placement_bottom": "Centro inferior",
-                "placement_bottom_right": "Inferior derecha"
+                "placement_bottom_right": "Inferior derecha",
+                "chat_deletion_end": "Solo finalizar chat",
+                "chat_deletion_hide": "Quitar del historial del visitante",
+                "chat_deletion_delete": "Eliminar definitivamente"
             },
             "sections": {
                 "branding_color": "Tema de color",

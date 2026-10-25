@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "Korvaa uudella versiolla",
+                "replace_started": "Korvataan {name}. Se opetetaan uudelleen hetken päästä.",
+                "replace_failed": "Tiedostoa ei voitu korvata. Yritä uudelleen."
+            }
+        }
+    }
+}

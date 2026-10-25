@@ -57,18 +57,44 @@ it('reads one page per slide, in slide order, even past slide 9', function (): v
 
 });
 
-it('reads one page per sheet, as a Markdown table with formulas calculated', function (): void {
+it('reads each sheet row as a labelled line, with formulas calculated', function (): void {
     $spreadsheet = new Spreadsheet;
     $prices = $spreadsheet->getActiveSheet()->setTitle('Prices');
-    $prices->fromArray([['Plan', 'Price'], ['Starter', 49], ['Pro | Team', 199], ['Total', '=SUM(B2:B3)']]);
+    $prices->fromArray([['Price list 2026'], ['Plan', 'Price', ''], ['Starter', 49, ''], ['Pro | Team', 199, 'popular'], ['Total', '=SUM(B3:B4)']]);
     $spreadsheet->createSheet()->setTitle('Empty');
 
     $path = tempTestFile('book.xlsx', '');
     new Xlsx($spreadsheet)->save($path);
 
     expect(app(OfficeText::class)->pages($path, 'xlsx'))->toBe([
-        "## Prices\n\n| Plan | Price |\n| --- | --- |\n| Starter | 49 |\n| Pro \\| Team | 199 |\n| Total | 248 |",
+        "## Prices\n\nPrice list 2026\nPlan: Starter · Price: 49\nPlan: Pro | Team · Price: 199 · Column 3: popular\nPlan: Total · Price: 248",
         '## Empty',
+    ]);
+
+});
+
+it('cuts a long sheet into pages between rows, each naming its rows', function (): void {
+    $spreadsheet = new Spreadsheet;
+    $sheet = $spreadsheet->getActiveSheet()->setTitle('Products');
+    $sheet->fromArray([['Name', 'Description'], ...array_map(fn (int $n): array => ["Item {$n}", Str::repeat('x', 90)], range(1, 60))]);
+
+    $path = tempTestFile('long.xlsx', '');
+    new Xlsx($spreadsheet)->save($path);
+
+    $pages = app(OfficeText::class)->pages($path, 'xlsx');
+
+    expect($pages)->toHaveCount(3)
+        ->and($pages[0])->toStartWith('## Products (rows 1–')
+        ->and($pages[2])->toEndWith('Name: Item 60 · Description: '.Str::repeat('x', 90))
+        ->and(collect($pages)->every(fn (string $page): bool => Str::length($page) <= OfficeText::CHARS_PER_PAGE + 200))->toBeTrue();
+
+});
+
+it('reads a CSV file as labelled lines, finding its separator and quoted values', function (): void {
+    $path = tempTestFile('plans.csv', "Plan;Price;Notes\nStarter;49;\n\"Pro; Team\";199;\"most\nchosen\"\n");
+
+    expect(app(OfficeText::class)->pages($path, 'csv'))->toBe([
+        "Plan: Starter · Price: 49\nPlan: Pro; Team · Price: 199 · Notes: most chosen",
     ]);
 
 });

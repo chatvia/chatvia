@@ -1314,7 +1314,10 @@
                 "summary_formatting": "書式要素",
                 "summary_sensitive_title": "機密情報を検出しました",
                 "summary_sensitive_description": "このドキュメントには機密情報または非公開情報が含まれている可能性があります。",
-                "summary_empty": "このファイルの概要データはありません。"
+                "summary_empty": "このファイルの概要データはありません。",
+                "replace_file": "新しいバージョンに置き換える",
+                "replace_started": "{name} を置き換えています。まもなく再トレーニングされます。",
+                "replace_failed": "ファイルを置き換えられませんでした。もう一度お試しください。"
             },
             "text": {
                 "load_failed": "テキストエントリの読み込みに失敗しました",

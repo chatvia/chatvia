@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Informação Sensível Detetada",
                 "summary_sensitive_description": "Este documento pode conter informação sensível ou confidencial.",
                 "summary_empty": "Não há dados de resumo disponíveis para este ficheiro.",
-                "uploads_off": "O administrador desativou o carregamento destes tipos de ficheiro."
+                "uploads_off": "O administrador desativou o carregamento destes tipos de ficheiro.",
+                "replace_file": "Substituir por uma nova versão",
+                "replace_started": "Substituindo {name}. Ele será treinado de novo em instantes.",
+                "replace_failed": "Não foi possível substituir o arquivo. Tente novamente."
             },
             "text": {
                 "load_failed": "Falha ao carregar a entrada de texto",

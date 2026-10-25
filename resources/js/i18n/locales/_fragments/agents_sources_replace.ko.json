@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "새 버전으로 교체",
+                "replace_started": "{name}을(를) 교체하는 중입니다. 곧 다시 학습됩니다.",
+                "replace_failed": "파일을 교체하지 못했습니다. 다시 시도해 주세요."
+            }
+        }
+    }
+}

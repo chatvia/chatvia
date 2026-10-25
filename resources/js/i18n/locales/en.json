@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Sensitive Information Detected",
                 "summary_sensitive_description": "This document may contain sensitive or confidential information.",
                 "summary_empty": "No summary data available for this file.",
-                "uploads_off": "The administrator turned off uploads of these file types."
+                "uploads_off": "The administrator turned off uploads of these file types.",
+                "replace_file": "Replace with a new version",
+                "replace_started": "Replacing {name}. It trains again in a moment.",
+                "replace_failed": "Could not replace the file. Please try again."
             },
             "text": {
                 "load_failed": "Failed to load text entry",

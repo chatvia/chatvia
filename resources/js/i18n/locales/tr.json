@@ -1314,7 +1314,10 @@
                 "summary_formatting": "Biçimlendirme Öğeleri",
                 "summary_sensitive_title": "Hassas Bilgi Tespit Edildi",
                 "summary_sensitive_description": "Bu belge hassas veya gizli bilgiler içerebilir.",
-                "summary_empty": "Bu dosya için özet verisi bulunmuyor."
+                "summary_empty": "Bu dosya için özet verisi bulunmuyor.",
+                "replace_file": "Yeni bir sürümle değiştir",
+                "replace_started": "{name} değiştiriliyor. Birazdan yeniden eğitilecek.",
+                "replace_failed": "Dosya değiştirilemedi. Lütfen tekrar deneyin."
             },
             "text": {
                 "load_failed": "Metin girişi yüklenemedi",

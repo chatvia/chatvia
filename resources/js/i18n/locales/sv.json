@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Känslig information hittades",
                 "summary_sensitive_description": "Det här dokumentet kan innehålla känslig eller konfidentiell information.",
                 "summary_empty": "Ingen sammanfattningsdata tillgänglig för den här filen.",
-                "uploads_off": "Administratören har stängt av uppladdning av dessa filtyper."
+                "uploads_off": "Administratören har stängt av uppladdning av dessa filtyper.",
+                "replace_file": "Ersätt med en ny version",
+                "replace_started": "Ersätter {name}. Den tränas om om en stund.",
+                "replace_failed": "Det gick inte att ersätta filen. Försök igen."
             },
             "text": {
                 "load_failed": "Det gick inte att läsa in textposten",

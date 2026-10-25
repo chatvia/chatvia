@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Arkaluonteista tietoa havaittu",
                 "summary_sensitive_description": "Tämä asiakirja saattaa sisältää arkaluonteisia tai luottamuksellisia tietoja.",
                 "summary_empty": "Tälle tiedostolle ei ole saatavilla yhteenvetotietoja.",
-                "uploads_off": "Ylläpitäjä on poistanut näiden tiedostotyyppien lataamisen käytöstä."
+                "uploads_off": "Ylläpitäjä on poistanut näiden tiedostotyyppien lataamisen käytöstä.",
+                "replace_file": "Korvaa uudella versiolla",
+                "replace_started": "Korvataan {name}. Se opetetaan uudelleen hetken päästä.",
+                "replace_failed": "Tiedostoa ei voitu korvata. Yritä uudelleen."
             },
             "text": {
                 "load_failed": "Tekstimerkinnän lataaminen epäonnistui",

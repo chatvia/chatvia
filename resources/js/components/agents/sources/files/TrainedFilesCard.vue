@@ -29,6 +29,7 @@ const emit = defineEmits<{
     attach: [];
     loadMore: [];
     summary: [file: SourceFile];
+    replace: [file: SourceFile];
     remove: [file: SourceFile];
 }>();
 
@@ -71,6 +72,7 @@ const { t } = useI18n();
                             :file="file"
                             :is-busy="isBusy"
                             @summary="emit('summary', $event)"
+                            @replace="emit('replace', $event)"
                             @remove="emit('remove', $event)"
                         />
                     </div>

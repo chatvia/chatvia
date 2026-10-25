@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Følsomme oplysninger registreret",
                 "summary_sensitive_description": "Dette dokument kan indeholde følsomme eller fortrolige oplysninger.",
                 "summary_empty": "Ingen oversigtsdata tilgængelig for denne fil.",
-                "uploads_off": "Administratoren har slået upload af disse filtyper fra."
+                "uploads_off": "Administratoren har slået upload af disse filtyper fra.",
+                "replace_file": "Erstat med en ny version",
+                "replace_started": "Erstatter {name}. Den trænes igen om et øjeblik.",
+                "replace_failed": "Filen kunne ikke erstattes. Prøv igen."
             },
             "text": {
                 "load_failed": "Det lykkedes ikke at indlæse tekstindgang",

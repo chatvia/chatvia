@@ -1314,7 +1314,10 @@
                 "summary_formatting": "Elemen Pemformatan",
                 "summary_sensitive_title": "Informasi Sensitif Terdeteksi",
                 "summary_sensitive_description": "Dokumen ini mungkin berisi informasi sensitif atau rahasia.",
-                "summary_empty": "Tidak ada data ringkasan untuk file ini."
+                "summary_empty": "Tidak ada data ringkasan untuk file ini.",
+                "replace_file": "Ganti dengan versi baru",
+                "replace_started": "Mengganti {name}. File akan dilatih ulang sebentar lagi.",
+                "replace_failed": "File tidak dapat diganti. Silakan coba lagi."
             },
             "text": {
                 "load_failed": "Gagal memuat entri teks",

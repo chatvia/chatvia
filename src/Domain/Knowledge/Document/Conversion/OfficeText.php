@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use RuntimeException;
+use SplFileObject;
+use SplTempFileObject;
 use Support\Executable;
 use Throwable;
 use ZipArchive;
@@ -26,17 +28,20 @@ use ZipArchive;
  *                      are only a backup for a file they cannot read
  *  - PPT, PPTX       → one page per slide, read straight from the file
  *                      (catppt is a backup for a .ppt the reader cannot read)
- *  - XLSX            → one page per sheet, as a Markdown table (PhpSpreadsheet)
- *  - TXT, MD, CSV    → the file itself
+ *  - XLSX, CSV       → one labelled line per row ("Plan: Pro · Price: 199"),
+ *                      in pages cut between rows, so every chunk keeps the
+ *                      column names (PhpSpreadsheet for XLSX)
+ *  - TXT, MD         → the file itself
  *
  * For RTF, DOC and PPT the built-in readers go first: compared on sample
  * files (tests/Eval/DocumentReaderEvalTest.php) they kept every word the
  * programs found, while pandoc drops the footnotes and tables of RTF files,
  * and catdoc and catppt can show text that a later save replaced.
  *
- * Slides and sheets are real pages. The other formats have no pages of their
- * own, so their text is cut into pages of about {@see CHARS_PER_PAGE}
- * characters at paragraph breaks; a page count is then an estimate.
+ * Slides are real pages; a sheet is one page, or more when it is long. The
+ * other formats have no pages of their own, so their text is cut into pages
+ * of about {@see CHARS_PER_PAGE} characters at paragraph breaks; a page count
+ * is then an estimate.
  */
 class OfficeText
 {
@@ -60,7 +65,7 @@ class OfficeText
         'txt' => 'plain',
         'md' => 'plain',
         'markdown' => 'plain',
-        'csv' => 'plain',
+        'csv' => 'csv',
     ];
 
     /** The program that can also read each format (its `services.bin` key). */
@@ -108,6 +113,7 @@ class OfficeText
             'old-slides' => $this->oldSlides($path),
             'slides' => $this->slides($path),
             'sheets' => $this->sheets($path),
+            'csv' => $this->records(null, $this->csvRows($path)),
             'plain' => $this->paginate($this->plainText($path)),
             default => throw new InvalidArgumentException("Unsupported office format: {$extension}"),
         };
@@ -323,9 +329,7 @@ class OfficeText
             $pages = [];
 
             foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
-                $table = $this->markdownTable($sheet->toArray(null, true, false, false));
-
-                $pages[] = Str::trim('## '.$sheet->getTitle()."\n\n".$table);
+                $pages = [...$pages, ...$this->records($sheet->getTitle(), $sheet->toArray(null, true, false, false))];
             }
 
             return $pages;
@@ -335,9 +339,17 @@ class OfficeText
     }
 
     /**
+     * A table as labelled lines, one per row ("Plan: Pro · Price: 199"), in
+     * pages of about {@see CHARS_PER_PAGE} characters cut between rows. The
+     * first row with two or more values names the columns; single-value rows
+     * above it (a title) are kept as text. A table of one row, or of one
+     * column, is kept as plain lines. Each page starts with the sheet's name
+     * and, when there are several, the rows it holds.
+     *
      * @param  array<int, array<int, mixed>>  $rows
+     * @return list<string>
      */
-    private function markdownTable(array $rows): string
+    private function records(?string $title, array $rows): array
     {
         $cells = array_values(array_filter(
             array_map(fn (array $row): array => array_map($this->cell(...), $row), $rows),
@@ -345,22 +357,124 @@ class OfficeText
         ));
 
         if ($cells === []) {
-            return '';
+            return [filled($title) ? '## '.$title : ''];
         }
 
-        $width = max(array_map($this->usedWidth(...), $cells));
-        $lines = [];
+        $lead = [];
 
-        foreach ($cells as $number => $row) {
-            $row = array_pad(array_slice($row, 0, $width), $width, '');
-            $lines[] = '| '.implode(' | ', $row).' |';
+        while ($cells !== [] && $this->filled(reset($cells)) < 2) {
+            $lead[] = implode(' ', array_filter(array_shift($cells), static fn (string $cell): bool => $cell !== ''));
+        }
 
-            if ($number === 0) {
-                $lines[] = '|'.Str::repeat(' --- |', $width);
+        $header = array_shift($cells);
+        $lines = $header === null
+            ? []
+            : ($cells === [] ? [implode(' · ', array_filter($header, static fn (string $cell): bool => $cell !== ''))] : array_map(fn (array $row): string => $this->record($header, $row), $cells));
+
+        return $this->pagesOfRows($title, $lead, $lines);
+    }
+
+    /**
+     * One row as "Column: value" pairs; an empty value is left out, a column
+     * without a name is called by its number.
+     *
+     * @param  list<string>  $header
+     * @param  list<string>  $row
+     */
+    private function record(array $header, array $row): string
+    {
+        $pairs = [];
+
+        foreach ($row as $index => $value) {
+            if ($value === '') {
+                continue;
+            }
+
+            $name = ($header[$index] ?? '') !== '' ? $header[$index] : 'Column '.($index + 1);
+            $pairs[] = $name.': '.$value;
+        }
+
+        return implode(' · ', $pairs);
+    }
+
+    /**
+     * @param  list<string>  $lead  text above the table, on the first page
+     * @param  list<string>  $lines  one line per row
+     * @return list<string>
+     */
+    private function pagesOfRows(?string $title, array $lead, array $lines): array
+    {
+        $chunks = [];
+        $current = [];
+        $length = 0;
+        $first = 1;
+
+        foreach (array_values(array_filter($lines, static fn (string $line): bool => $line !== '')) as $number => $line) {
+            if ($current !== [] && $length + Str::length($line) > self::CHARS_PER_PAGE) {
+                $chunks[] = [$first, $number, $current];
+                $current = [];
+                $length = 0;
+                $first = $number + 1;
+            }
+
+            $current[] = $line;
+            $length += Str::length($line) + 1;
+        }
+
+        if ($current !== [] || $chunks === []) {
+            $chunks[] = [$first, $first + count($current) - 1, $current];
+        }
+
+        $pages = [];
+
+        foreach ($chunks as $index => [$from, $to, $rows]) {
+            $heading = filled($title) ? '## '.$title : '';
+
+            if (count($chunks) > 1) {
+                $heading = Str::trim($heading.' (rows '.$from.'–'.$to.')');
+            }
+
+            $body = [...($index === 0 ? $lead : []), ...$rows];
+            $pages[] = Str::trim($heading."\n\n".implode("\n", $body));
+        }
+
+        return $pages;
+    }
+
+    /**
+     * A CSV file's rows. The separator is the one of comma, semicolon and tab
+     * the first line uses most; quoted values may hold the separator and
+     * line breaks.
+     *
+     * @return list<list<string>>
+     */
+    private function csvRows(string $path): array
+    {
+        $text = $this->plainText($path);
+        $firstLine = Str::before(Str::replace("\r\n", "\n", $text), "\n");
+        $separator = collect([',', ';', "\t"])->sortByDesc(static fn (string $candidate): int => Str::substrCount($firstLine, $candidate))->first();
+
+        $file = new SplTempFileObject;
+        $file->fwrite($text);
+        $file->rewind();
+        $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::READ_AHEAD);
+        $file->setCsvControl($separator, '"', '');
+
+        $rows = [];
+
+        foreach ($file as $row) {
+            if (is_array($row) && $row !== [null]) {
+                $rows[] = array_map(static fn (mixed $value): string => (string) $value, $row);
             }
         }
 
-        return implode("\n", $lines);
+        return $rows;
+    }
+
+    /** @param  list<string>  $row */
+    private function filled(array $row): int
+    {
+        return count(array_filter($row, static fn (string $cell): bool => $cell !== ''));
     }
 
     private function cell(mixed $value): string
@@ -371,20 +485,6 @@ class OfficeText
 
         $text = is_scalar($value) ? (string) $value : '';
 
-        return Str::trim(Str::replace(['|', "\r\n", "\n", "\r"], ['\\|', ' ', ' ', ' '], $text));
-    }
-
-    /**
-     * @param  list<string>  $row
-     */
-    private function usedWidth(array $row): int
-    {
-        for ($column = count($row); $column > 0; $column--) {
-            if ($row[$column - 1] !== '') {
-                return $column;
-            }
-        }
-
-        return 1;
+        return Str::trim(Str::replace(["\r\n", "\n", "\r"], ' ', $text));
     }
 }

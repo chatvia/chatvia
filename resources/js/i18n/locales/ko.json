@@ -1314,7 +1314,10 @@
                 "summary_formatting": "서식 요소",
                 "summary_sensitive_title": "민감한 정보 감지됨",
                 "summary_sensitive_description": "이 문서에는 민감하거나 기밀인 정보가 포함되어 있을 수 있습니다.",
-                "summary_empty": "이 파일에 대한 요약 데이터가 없습니다."
+                "summary_empty": "이 파일에 대한 요약 데이터가 없습니다.",
+                "replace_file": "새 버전으로 교체",
+                "replace_started": "{name}을(를) 교체하는 중입니다. 곧 다시 학습됩니다.",
+                "replace_failed": "파일을 교체하지 못했습니다. 다시 시도해 주세요."
             },
             "text": {
                 "load_failed": "텍스트 항목을 불러오지 못했습니다",

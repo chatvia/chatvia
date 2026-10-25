@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "Substituir por uma nova versão",
+                "replace_started": "Substituindo {name}. Ele será treinado de novo em instantes.",
+                "replace_failed": "Não foi possível substituir o arquivo. Tente novamente."
+            }
+        }
+    }
+}

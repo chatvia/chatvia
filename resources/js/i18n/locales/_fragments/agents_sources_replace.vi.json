@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "Thay bằng phiên bản mới",
+                "replace_started": "Đang thay {name}. Tệp sẽ được huấn luyện lại trong giây lát.",
+                "replace_failed": "Không thể thay tệp. Vui lòng thử lại."
+            }
+        }
+    }
+}

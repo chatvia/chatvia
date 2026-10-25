@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "Ganti dengan versi baru",
+                "replace_started": "Mengganti {name}. File akan dilatih ulang sebentar lagi.",
+                "replace_failed": "File tidak dapat diganti. Silakan coba lagi."
+            }
+        }
+    }
+}

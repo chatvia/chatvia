@@ -401,8 +401,8 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->and($provider->base_url)->toBeNull()
         ->and($model->name)->toBe('gemma-4-26b-a4b-it')
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-test')
-        // The default embedding service and model stay unsaved.
-        ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBeNull()
+        // The chosen embedding service is saved; its default model stays unsaved.
+        ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('qwen')
         ->and(savedSetting(AiSettings::class, 'scaleway_embedding_model'))->toBeNull()
         ->and(savedSetting(PlatformSettings::class, 'setup_status'))->toBe('completed')
         ->and($model->isAvailable())->toBeTrue()

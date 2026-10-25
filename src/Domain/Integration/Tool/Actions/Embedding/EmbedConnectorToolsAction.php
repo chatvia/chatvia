@@ -8,6 +8,7 @@ use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -55,6 +56,10 @@ class EmbedConnectorToolsAction
                     'embedding' => $this->embeddings->embed($text),
                     'search_text' => $text,
                 ])->save();
+            } catch (EmbeddingServiceMissingException) {
+                // Before the setup picks a service: every row would fail the
+                // same way. The setup's last step embeds them.
+                return;
             } catch (Throwable $e) {
                 Log::warning('Connector tool embedding failed', [
                     'connector_tool_id' => $tool->id,

@@ -92,6 +92,12 @@ readonly NATIVE_CONF="/etc/chatvia/install.conf"
 readonly NATIVE_LOG="/var/log/chatvia-install.log"
 readonly NATIVE_BACKUPS="/var/backups/chatvia"
 readonly NATIVE_PHP="8.5"
+# PHP comes from Ondřej Surý's PPA (ppa:ondrej/php), which carries each PHP
+# release soon after it is out; Ubuntu's own php8.5 keeps the version the
+# Ubuntu release shipped with. NATIVE_MIN_PHP matches composer.json.
+readonly NATIVE_MIN_PHP="8.5.12"
+readonly PHP_PPA_URL="https://ppa.launchpadcontent.net/ondrej/php/ubuntu"
+readonly PHP_PPA_KEY="B8DC7E53946656EFBCE4C1DD71DAEAAB4AD4CAB6"
 readonly NATIVE_PG="18"
 readonly PG_TEXTSEARCH_VERSION="1.5.1"
 readonly DEPLOYER_VERSION="^8.0"
@@ -2071,7 +2077,7 @@ native_target() {
 }
 
 native_check_system() {
-    local id='' version='' name='' arch
+    local id='' version='' name='' codename='' arch
     if [ -r /etc/os-release ]; then
         # shellcheck source=/dev/null
         id=$(. /etc/os-release && printf '%s' "${ID:-}")
@@ -2079,6 +2085,8 @@ native_check_system() {
         version=$(. /etc/os-release && printf '%s' "${VERSION_ID:-}")
         # shellcheck source=/dev/null
         name=$(. /etc/os-release && printf '%s' "${PRETTY_NAME:-}")
+        # shellcheck source=/dev/null
+        codename=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}")
     fi
     name=${name:-$(uname -s)}
     if [ "$OS" != linux ] || [ "$id" != ubuntu ] || [ "$version" != "$NATIVE_UBUNTU" ]; then
@@ -2102,7 +2110,19 @@ native_check_system() {
         die 'systemd does not run here (is this a container?).' \
             'The complete installation needs a whole server or VPS. Install with Docker instead (--docker).'
     fi
+    if ! php_ppa_carries "$codename"; then
+        if [ "$DRY_RUN" = 1 ]; then
+            warn "ppa:ondrej/php has no packages for Ubuntu $NATIVE_UBUNTU yet: a real install stops here. $(dim '(dry run)')"
+            return
+        fi
+        die "ChatVia.ai needs PHP $NATIVE_MIN_PHP or newer, from ppa:ondrej/php. It has no packages for Ubuntu $NATIVE_UBUNTU ($codename) yet, or this server cannot reach it." \
+            "Install with Docker (--docker) for now, or run this installer again once the PPA carries Ubuntu $NATIVE_UBUNTU."
+    fi
     ok "$name $(dim "($arch)")"
+}
+
+php_ppa_carries() {
+    [ -n "$1" ] && curl -fsI --max-time 10 "$PHP_PPA_URL/dists/$1/Release" >/dev/null 2>&1
 }
 
 # The complete installation changes the whole server, so it runs as root.
@@ -2441,6 +2461,7 @@ native_run_steps() {
     fi
     run_step 'Updating the system packages' native_update_system || native_failed
     run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
+    run_step 'Adding ppa:ondrej/php for the newest PHP' native_add_php_repo || native_failed
     run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
     run_step 'Installing Node.js 22' native_install_node || native_failed
     run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
@@ -2533,20 +2554,69 @@ native_add_redis_repo() {
     apt_get update
 }
 
-native_install_packages() {
+# Written by hand: add-apt-repository is not on every minimal server. The
+# key is the PPA's signing key, checked by its fingerprint. Its packages are
+# newer than Ubuntu's, so apt takes them without a pin.
+native_add_php_repo() {
+    local release keyring=/usr/share/keyrings/ondrej-php.asc
+    # shellcheck source=/dev/null
+    release=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}")
+    apt_get install gnupg
+    curl -fsSL --max-time 30 \
+        "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x$PHP_PPA_KEY" -o "$keyring.new"
+    if ! gpg --show-keys --with-colons "$keyring.new" | grep -q "^fpr:*:$PHP_PPA_KEY:"; then
+        rm -f "$keyring.new"
+        echo "The key from keyserver.ubuntu.com is not the PPA's signing key ($PHP_PPA_KEY)."
+        return 1
+    fi
+    mv "$keyring.new" "$keyring"
+    printf 'deb [signed-by=%s] %s %s main\n' "$keyring" "$PHP_PPA_URL" "$release" \
+        >/etc/apt/sources.list.d/ondrej-php.list
+    apt_get update
+}
+
+native_php_packages() {
     local php=php$NATIVE_PHP
+    printf '%s\n' "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
+        "$php-curl" "$php-zip" "$php-gd" "$php-xml"
+}
+
+# The PPA carries other PHP versions too: /usr/bin/php stays on this one,
+# which Supervisor, cron and Deployer run.
+native_check_php() {
+    local have
+    update-alternatives --set php "/usr/bin/php$NATIVE_PHP"
+    have=$("php$NATIVE_PHP" -r 'echo PHP_VERSION;')
+    if ! version_at_least "$have" "$NATIVE_MIN_PHP"; then
+        echo "PHP $have is installed, but ChatVia.ai needs $NATIVE_MIN_PHP or newer."
+        return 1
+    fi
+    php -v
+}
+
+native_install_packages() {
     # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
     # PDF exports, and the Noto fonts give it every script. Node.js is the
     # next step.
+    # shellcheck disable=SC2046
     apt_get install \
         git curl unzip ca-certificates cron ufw \
-        "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
-        "$php-curl" "$php-zip" "$php-gd" "$php-xml" composer \
+        $(native_php_packages) composer \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
         "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk
-    php -v
+    native_check_php
     composer --version
+}
+
+# An upgrade brings PHP up to the newest release first: a new ChatVia.ai may
+# need it. Installs from before the PPA get it here.
+native_update_php() {
+    native_add_php_repo
+    # shellcheck disable=SC2046
+    apt_get install $(native_php_packages)
+    native_check_php
+    systemctl restart "php$NATIVE_PHP-fpm"
 }
 
 # Node.js builds the frontend and Shakomako, the chat widget. Shakomako's
@@ -3435,6 +3505,8 @@ native_upgrade() {
     if [ "$installed" != "$new" ]; then info "Version $installed $S_ARROW $(bold "$new")"; fi
 
     native_refresh_deploy_file
+    run_step "Updating PHP $NATIVE_PHP from ppa:ondrej/php" native_update_php ||
+        die 'PHP could not be updated, so nothing was upgraded.' "See why: $LOG"
     run_step 'Backing up the database' native_backup ||
         die 'The backup failed, so nothing was upgraded.' "See why: $LOG"
     run_step "Deploying ChatVia.ai $new" native_upgrade_deploy ||

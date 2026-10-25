@@ -24,7 +24,7 @@ use Throwable;
  * One search runs in three phases, each timed for the logs:
  *
  *   1. embed the query (cached per query and model);
- *   2. run the four-channel hybrid SQL ({@see HybridChunkSearch}) for a pool
+ *   2. run the three-channel hybrid SQL ({@see HybridChunkSearch}) for a pool
  *      of candidates: exactly over the agent's own chunks when it has few,
  *      through the vector and lexical indexes when it has many;
  *   3. the relevance check narrows the pool to `max_chunks`: the reranker's

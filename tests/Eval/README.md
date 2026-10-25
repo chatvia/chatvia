@@ -162,7 +162,7 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 | `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
 | `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
-| `EVAL_CHANNEL_WEIGHTS` | extra scoreboards on the same chunks, one per weight set: `vector,question,keyword,question keyword`, sets split by `;` (e.g. `1,1,1,1;1,1,1,0`). Measures a fusion change without touching the search; use with `EVAL_RERANKER=none` |
+| `EVAL_CHANNEL_WEIGHTS` | extra scoreboards on the same chunks, one per weight set: `vector,question,keyword`, sets split by `;` (e.g. `1,1,1;1,0.5,1`). Measures a fusion change without touching the search; use with `EVAL_RERANKER=none` |
 | `EVAL_ENRICH_WITHOUT` | with `EVAL_ENRICH`: `summary` embeds and indexes each chunk without its summary, `questions` drops the generated questions (the question channels go quiet) |
 | `EVAL_RERANKER` | the reranker driver of this run; `none` measures an install without one (the similarity check instead) |
 | `EVAL_SIMILARITY_THRESHOLD` | the similarity bar without a reranker; only Qwen3 on Scaleway ships one (0.35), so give it when the same model runs through OpenRouter |
@@ -228,7 +228,10 @@ Scaleway has it, `EVAL_SIMILARITY_THRESHOLD=0.35`), same day:
 | Global: facts / every fact given | 71.9% / 14.3% | 68.8% / 14.3% |
 
 Without a reranker nothing lifts the weaker ranking back, so enhancement
-costs answers.
+costs answers. The similarity bar also keeps every multi-hop fact the
+reranker's 0.7 bar drops, and blocks every uncovered question (the reranker
+blocked 57.1%), but it drops broad questions whose chunks each match only a
+little ("all the fees" got nothing).
 
 Which part of enhancement does it (`EVAL_ENRICH_WITHOUT`, same settings, a
 fresh enhancement each run):
@@ -244,10 +247,11 @@ right chunks down; taking the summary out changes little. With the questions
 out, the summary in front of each chunk gives the best ranking of all runs
 (MRR 0.921 against 0.872 with no enhancement).
 
-Which question channel, and at what weight (`EVAL_CHANNEL_WEIGHTS`, one
-enriched run, so every row ranks the same chunks; weights are vector,
-question, keyword, question keyword; "1, 1, 1, 1" matches the search's own
-numbers in that run):
+Which question channel, and at what weight (`EVAL_CHANNEL_WEIGHTS`, measured
+while the search still had a keyword channel on the questions; one enriched
+run, so every row ranks the same chunks; weights are vector, question,
+keyword, question keyword; "1, 1, 1, 1" matches the search's own numbers in
+that run):
 
 | Weights | hit@1 | hit@5 | MRR | answered | multi-hop facts top 5 | multi-hop all given | global facts given |
 |---|---|---|---|---|---|---|---|
@@ -266,10 +270,23 @@ channel ranks every chunk on weak matches and its vote drowns the others.
 Even at a quarter weight it still costs ranking. The dense question channel
 is neutral to slightly helpful. With 14 chunks every chunk fits in the 25
 the reranker scores, so these numbers say nothing about installs with a
-reranker; a larger set is needed for that. The similarity bar also keeps every multi-hop fact the
-reranker's 0.7 bar drops, and blocks every uncovered question (the reranker
-blocked 57.1%), but it drops broad questions whose chunks each match only a
-little ("all the fees" got nothing).
+reranker; a larger set is needed for that.
+
+After the keyword channel on the questions was removed from the search
+(2026-10-25, same settings as above):
+
+| | Enriched, no reranker | Not enriched, no reranker | Enriched, reranker |
+|---|---|---|---|
+| Single-fact hit@5 / MRR before the check | 97.3% / 0.948 (was 78.4% / 0.707) | 97.3% / 0.869 | 97.3% / 0.907 (was 73.0% / 0.693) |
+| Single-fact answered | 97.3% (was 86.5%) | 97.3% | 100.0% |
+| Uncovered left empty | 100.0% | 100.0% | 57.1% |
+| Multi-hop: facts / every fact given | 95.5% / 90.9% (was 90.9% / 81.8%) | 100.0% / 100.0% | 86.4% / 72.7% |
+| Global: facts / every fact given | 71.9% / 14.3% | 71.9% / 14.3% | 81.2% / 28.6% |
+
+Enhancement now helps: the best ranking of every run (MRR 0.948). In the
+same run the question vectors still earn their place (weights 1, 0, 1 give
+MRR 0.921, 1, 0.5, 1 give 0.935). With the reranker, what the model gets is
+as before, since it scores all 14 chunks either way.
 
 Every multi-hop fact the model missed ranked in the top 5: the relevance check
 dropped it, not the search. With only 14 chunks the top 10 is most of the

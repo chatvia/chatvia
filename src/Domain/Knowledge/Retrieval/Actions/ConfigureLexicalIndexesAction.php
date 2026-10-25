@@ -20,10 +20,7 @@ final readonly class ConfigureLexicalIndexesAction
 {
     /** Every lexical index: table => [index name => text column]. */
     public const array INDEXES = [
-        'chunks' => [
-            'chunks_search_text_lexical' => 'search_text',
-            'chunks_questions_lexical' => 'questions',
-        ],
+        'chunks' => ['chunks_search_text_lexical' => 'search_text'],
         'connector_tools' => ['connector_tools_search_text_lexical' => 'search_text'],
         'mcp_tools' => ['mcp_tools_search_text_lexical' => 'search_text'],
         'functions' => ['functions_search_text_lexical' => 'search_text'],

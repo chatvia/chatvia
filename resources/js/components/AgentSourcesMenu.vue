@@ -3,7 +3,7 @@
  * The knowledge-source links (Files, Text, Q&A, Web, Audio, Video) of the agent
  * sidebar, filtered by the teammate's permissions and suffixed with counts.
  * Audio and Video hide while the admin has that file type turned off, and Web
- * while no website import service is set up, unless the agent already has
+ * while no web scraper is set up, unless the agent already has
  * such sources. Renders through a slot so the sidebar can use it as a
  * dropdown or a submenu.
  */
@@ -57,7 +57,7 @@ interface SourceMenuItem {
     permission: string;
     /** The file type the page uploads, when it uploads only one. */
     fileType?: KnowledgeFileType;
-    /** Needs the website import service (Settings → Knowledge → Website import). */
+    /** Needs the web scraper (Settings → Knowledge → Web scraper). */
     importsWebsites?: boolean;
 }
 

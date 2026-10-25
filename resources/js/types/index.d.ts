@@ -76,7 +76,7 @@ export interface SharedData extends PageProps {
     // Ingestion), each with its extensions. Read through useKnowledgeFileTypes().
     knowledgeFileTypes: Partial<Record<Domain.Knowledge.Source.File.Enums.KnowledgeFileType, string[]>>;
     // Whether websites can be imported as knowledge (Settings → Knowledge →
-    // Website import is set up).
+    // Web scraper is set up).
     canImportWebsites?: boolean;
 
     // Where every agent's hosted chat lives (`{chatBaseUrl}/{slug}`).

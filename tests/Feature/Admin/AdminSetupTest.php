@@ -1333,7 +1333,7 @@ it('ends on a final step with the choices made, and where the defaults are chang
             'Embeddings', 'Qwen3 on Scaleway AI', config('services.scalewayai.embedding_model'),
             'Reranker', 'Not now',
             'Document reader', 'Not now',
-            'Website import', 'Not now',
+            'Web scraper', 'Not now',
             'Speech to text', 'Not now',
             'Voice conversations', 'Not now',
             'Storage', 'This server',

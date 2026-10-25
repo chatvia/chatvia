@@ -20,7 +20,7 @@ use Spatie\LaravelData\Data;
  * descriptions are off), the model for chat file uploads (null: chat file
  * uploads are off), the embedding service and model (with its account's
  * key when that is another account), the reranker, the document reader,
- * the Firecrawl key for website import, speech to text, voice
+ * the Firecrawl key for the web scraper, speech to text, voice
  * conversations, where files are kept, how email is sent, and whether
  * Spectra records AI calls.
  *

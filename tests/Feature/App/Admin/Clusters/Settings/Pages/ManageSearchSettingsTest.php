@@ -23,7 +23,7 @@ it('shows the everyday cards first, and the fine-tuning under Advanced', functio
             'Technical options. The defaults suit most installs.',
             'Fine-tuning', 'Search mode',
         ])
-        ->assertDontSee(['File types', 'Website import']);
+        ->assertDontSee(['File types', 'Web scraper']);
 });
 
 it('uses the basic similarity check while no reranker is set up', function (): void {

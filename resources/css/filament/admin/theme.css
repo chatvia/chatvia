@@ -1806,7 +1806,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 /* -------------------------------------------------------------------------
- * Chatvia views: the setup's last step (done, and a list of names and values)
+ * Chatvia views: the setup's last step, and a list of names and values
  * ---------------------------------------------------------------------- */
 
 .cv-setup-complete {
@@ -1853,6 +1853,18 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     & strong {
         font-weight: 600;
         color: var(--cv-text);
+    }
+}
+
+.cv-setup-complete__link {
+    margin-top: 0.25rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--primary-500);
+    overflow-wrap: anywhere;
+
+    &:hover {
+        text-decoration: underline;
     }
 }
 

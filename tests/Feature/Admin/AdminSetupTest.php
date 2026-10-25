@@ -1313,36 +1313,18 @@ it('sends email with the provider set up, or warns that nobody gets email', func
         ->and(savedSetting(MailSettings::class, 'from_address'))->toBe('support@acme.test');
 });
 
-it('ends on a final step with the choices made, and where the defaults are changed', function (): void {
+it('ends on a final step that says congratulations and links to the workspace sign-in', function (): void {
     setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
-        ->fillForm(['chat_models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it'], 'default_model' => 'gemma-4-26b-a4b-it'])
+        ->fillForm(['chat_models' => ['gpt-oss-120b'], 'default_model' => 'gpt-oss-120b'])
         ->goToWizardStep(9)
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(9)
-        ->assertSeeInOrder([
-            'Complete', 'Check your choices, then press',
-            'Your choices',
-            'AI provider', 'Scaleway AI',
-            'Chat models', 'gpt-oss-120b, gemma-4-26b-a4b-it (default)',
-            'Model for quick tasks', 'gemma-4-26b-a4b-it',
-            'Image descriptions', 'gemma-4-26b-a4b-it',
-            'Embeddings', 'Qwen3 on Scaleway AI', config('services.scalewayai.embedding_model'),
-            'Reranker', 'Not now',
-            'Document reader', 'Not now',
-            'Web scraper', 'Not now',
-            'Speech to text', 'Not now',
-            'Voice conversations', 'Not now',
-            'Storage', 'This server',
-            'Mailer', 'Not now',
-            'Observability', 'Spectra',
-            'Default values',
-            'Knowledge', 'How texts are split into chunks',
-            'AI models', 'More chat models, and a model for each app task',
-        ])
+        ->assertSeeInOrder(['Congratulations', 'Finish setup', '/login'])
+        ->assertDontSee(['Your choices', 'Default values'])
         ->call('complete')
         ->assertHasNoFormErrors();
 

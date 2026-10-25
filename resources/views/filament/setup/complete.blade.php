@@ -1,10 +1,11 @@
-{{-- The top of the setup's last step: a checkmark, and what Finish does. --}}
+{{-- The setup's last step: done, and where the admin signs in to their workspace after Finish setup. --}}
 <div class="cv-setup-complete">
     <span class="cv-setup-complete__check">
         <x-filament::icon icon="heroicon-m-check" />
     </span>
-    <h2 class="cv-setup-complete__title">Complete</h2>
+    <h2 class="cv-setup-complete__title">Congratulations</h2>
     <p class="cv-setup-complete__text">
-        Everything ChatVia.ai needs is set. Check your choices, then press <strong>Finish setup</strong> to save them.
+        ChatVia.ai is ready. Press <strong>Finish setup</strong> to save, then sign in to your workspace to create your first agent:
     </p>
+    <a class="cv-setup-complete__link" href="{{ $loginUrl }}" target="_blank" rel="noopener">{{ $loginUrl }}</a>
 </div>

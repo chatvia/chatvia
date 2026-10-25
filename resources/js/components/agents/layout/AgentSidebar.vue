@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * The agent area's left sidebar: logo and collapse controls, the top links,
- * the permission-filtered management groups and the owner-only Danger Zone.
+ * the permission-filtered management groups and the Danger Zone (`agent.delete`).
  * Rename and delete only emit `action`; the layout owns those dialogs.
  * Collapsing is driven by the surrounding SidebarProvider; the expand button
  * shown while collapsed emits `toggle`.
@@ -173,7 +173,7 @@ onMounted(async () => {
                 </SidebarMenu>
             </SidebarGroup>
 
-            <!-- Danger Zone, pinned to the bottom (mt-auto) when the sidebar is short. Owners only. -->
+            <!-- Danger Zone, pinned to the bottom (mt-auto) when the sidebar is short. Needs `agent.delete`. -->
             <div v-if="dangerZoneItems.length" class="mt-auto">
                 <div class="px-2 py-2">
                     <div class="border-border border-t"></div>

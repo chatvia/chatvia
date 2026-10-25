@@ -17,7 +17,8 @@ declare(strict_types=1);
  *   about the whole collection, so the facts are spread wide.
  *
  * The documents are resources/chunking/{markdown.md,text.txt,transcript.txt}
- * and fixtures/knowledge/arabic.md.
+ * and fixtures/knowledge/{arabic.md,catalogue.md,terms.txt,trips.md,riyadh.md}:
+ * one made-up outdoor shop, so questions can join facts across documents.
  */
 return [
     // The help centre (Markdown).
@@ -65,6 +66,50 @@ return [
     ['query' => 'كم يوماً لدي لإرجاع المنتج؟', 'expect' => 'خلال ١٤ يوماً'],
     ['query' => 'Do you accept Apple Pay in the Riyadh store?', 'expect' => 'آبل باي'],
 
+    // The product catalogue (Markdown). Several products look alike (Trail 1,
+    // 2 and 3; five sleeping bags), so the ranking has to tell them apart.
+    ['query' => 'How heavy is the Trail 3?', 'expect' => '2.9 kg'],
+    ['query' => 'How many pegs come with the Basecamp 4?', 'expect' => '| Pegs | 18 |'],
+    ['query' => 'What does the Summit 2 cost?', 'expect' => '| Price | 749 |'],
+    ['query' => 'What is the comfort temperature of the Ember -18?', 'expect' => 'Goose down, 800 fill power | -11 °C'],
+    ['query' => 'How much warmer does a silk liner make my sleeping bag?', 'expect' => 'adds about 2 °C'],
+    ['query' => 'Which sleeping mat do I need for camping on snow?', 'expect' => 'On snow, choose 5 or more'],
+    ['query' => 'Why should I not blow up my air mat with my mouth?', 'expect' => 'Breath brings moisture into the mat'],
+    ['query' => 'How do I measure my back length for a backpack?', 'expect' => 'from the bony point at the base of your neck'],
+    ['query' => 'Can I order gas cartridges online?', 'expect' => 'Gas cartridges cannot be sent by post'],
+    ['query' => 'How much does the Storm Jacket weigh?', 'expect' => 'It weighs 420 g in size M'],
+    ['query' => 'Is the down in your sleeping bags taken from live birds?', 'expect' => 'Responsible Down Standard'],
+    ['query' => 'Do you sell climbing ropes?', 'expect' => 'We do not sell climbing gear'],
+    ['query' => 'How bright is the Glow 600 headlamp?', 'expect' => '600 lumens'],
+
+    // The terms of sale, Trail Club, rental and Second Trail (plain text).
+    ['query' => 'How many Trail Club points do I get per euro?', 'expect' => 'You get 1 point for every euro you spend'],
+    ['query' => 'How much do I need to spend to become a Gold member?', 'expect' => 'Gold: from 1,500 spent in twelve months'],
+    ['query' => 'How long is a Pinewood gift card valid?', 'expect' => 'Gift cards are valid for three years'],
+    ['query' => 'When does the summer sale start?', 'expect' => 'first Monday of July'],
+    ['query' => 'How much deposit do you take when I rent a tent?', 'expect' => '50 for each tent'],
+    ['query' => 'When do I have to bring back a weekend rental?', 'expect' => 'ends on Monday before 12:00'],
+    ['query' => 'What do I get if I sell you a jacket that is like new?', 'expect' => 'You get 40% of the current shop price as store credit'],
+    ['query' => 'What warranty does second-hand gear have?', 'expect' => 'It has a warranty of one year'],
+    ['query' => 'My parcel arrived with a crushed box, what should I do?', 'expect' => 'take a photo of the box before you open it'],
+    ['query' => 'Do you match a lower price from another shop?', 'expect' => 'within 14 days after you bought it from us'],
+
+    // The guided trips and courses (Markdown).
+    ['query' => 'How many people go on a guided trip?', 'expect' => 'at least 4 and at most 10 people'],
+    ['query' => 'How old do I have to be to join a guided trip?', 'expect' => 'The minimum age is 16'],
+    ['query' => 'What do I get back if I cancel a trip 20 days before it starts?', 'expect' => 'Between 30 and 14 days, you get 50% back'],
+    ['query' => 'When is the free course on pitching a tent?', 'expect' => 'On the first Saturday of every month from April to October'],
+    ['query' => 'How much is the map and compass course?', 'expect' => 'City centre shop, then outdoors | 35'],
+    ['query' => 'Where does the High route trip start?', 'expect' => 'the train station at Fennhausen'],
+    ['query' => 'Does the winter trip go ahead when the avalanche danger is high?', 'expect' => 'avalanche warning level is 3 or higher'],
+
+    // The Riyadh store guide (Arabic Markdown), once asked in English.
+    ['query' => 'ما ساعات عمل المتجر في رمضان؟', 'expect' => 'من الساعة الثامنة مساءً حتى الساعة الثانية فجراً'],
+    ['query' => 'كم مبلغ التأمين عند استئجار خيمة؟', 'expect' => '٢٠٠ ريال لكل خيمة'],
+    ['query' => 'كم يستغرق التوصيل إلى جدة؟', 'expect' => 'من ثلاثة إلى خمسة أيام عمل'],
+    ['query' => 'كم سعر تغيير سحاب باب الخيمة؟', 'expect' => 'تغيير سحّاب باب الخيمة | ٧٠ ريالاً'],
+    ['query' => 'How do I keep my tent pegged down in sand?', 'expect' => 'أوتاد الرمل العريضة'],
+
     // Not covered: nothing should come back.
     ['query' => 'hi', 'expect' => null],
     ['query' => 'thanks, bye!', 'expect' => null],
@@ -73,6 +118,9 @@ return [
     ['query' => 'مرحبا', 'expect' => null],
     ['query' => 'Who won the football world cup in 2018?', 'expect' => null],
     ['query' => 'How do I reset my wifi router?', 'expect' => null],
+    ['query' => 'Can you recommend a good pizza place nearby?', 'expect' => null],
+    ['query' => 'How do I change a flat tyre on my car?', 'expect' => null],
+    ['query' => 'What will the weather be like in Oslo tomorrow?', 'expect' => null],
 
     // Follow-ups: only the history says what they are about.
     ['query' => 'and how much is it?', 'history' => ['How long does express delivery take?'], 'expect' => '9.95'],
@@ -93,6 +141,19 @@ return [
     ['query' => 'How long does a repair take in the summer, and where do I send the repair form?', 'kind' => 'multi-hop', 'expect' => ['up to three weeks', 'send it to our workshop with the form inside']],
     ['query' => 'How many pegs should the Trail 2 have, and how far from the tent do the guy lines go?', 'kind' => 'multi-hop', 'expect' => ['There should be twelve', 'about one metre']],
     ['query' => 'طلبت بقيمة ١٥٠ ريالاً وسأدفع عند الاستلام، كم أدفع فوق سعر الطلب؟', 'kind' => 'multi-hop', 'expect' => ['٢٥ ريالاً', '١٥ ريالاً']],
+    // Across documents: a trip names the gear or the shop, another document
+    // has its price or opening hours.
+    ['query' => 'What does the tent you lend on the Winter plateau trip cost to buy?', 'kind' => 'multi-hop', 'expect' => ['Summit 2 tent (shared by two people)', '| Price | 749 |']],
+    ['query' => 'Which of your sleeping bags is warm enough for the High route, and what does it cost?', 'kind' => 'multi-hop', 'expect' => ['comfort temperature of -4 °C or lower', 'Duck down, 600 fill power | -4 °C']],
+    ['query' => 'When does the shop where the First night outdoors trip meets open on Saturdays?', 'kind' => 'multi-hop', 'expect' => ['the Lakeside shop, at 9:00 on Saturday', 'Monday to Saturday, 9:00 to 18:00']],
+    ['query' => 'Where can I sell back my old tent, and when is that shop open?', 'kind' => 'multi-hop', 'expect' => ['You can bring Second Trail items to the Lakeside shop only', 'Monday to Saturday, 9:00 to 18:00']],
+    ['query' => 'As a Gold member, what do I pay the workshop to replace a broken tent pole section?', 'kind' => 'multi-hop', 'expect' => ['10% off all repairs', ['Broken tent pole section | 12', 'broken section of a tent pole costs 12']]],
+    ['query' => 'Where do we meet for the Winter plateau trip, and is that shop open on public holidays?', 'kind' => 'multi-hop', 'expect' => ['the Airport shop, at 7:00 on Thursday', 'except the airport shop']],
+    ['query' => 'Is the Lark 0 sleeping bag warm enough for the First night outdoors trip?', 'kind' => 'multi-hop', 'expect' => ['comfort temperature of 5 °C or lower', 'Lark 0 | Synthetic | 5 °C']],
+    ['query' => 'What R-value does my mat need for Lakes and ridges, and which of your insulated air mats meets it?', 'kind' => 'multi-hop', 'expect' => ['R-value of at least 3', 'Air with insulation | 4.6']],
+    ['query' => 'I rented a two-person tent last weekend. What will a Trail 2 cost me if I buy it now?', 'kind' => 'multi-hop', 'expect' => ['we take the rental price off the buying price', '| Price | 379 |']],
+    ['query' => 'As a Silver member, do I pay for standard delivery on a 40 euro order?', 'kind' => 'multi-hop', 'expect' => ['free standard delivery on every order, without the minimum of 60', '4.95, free from 60']],
+    ['query' => 'كم أدفع لاستئجار خيمة لشخصين عطلة نهاية الأسبوع مع التأمين؟', 'kind' => 'multi-hop', 'expect' => ['خيمة لشخصين | ٤٥ ريالاً | ٨٥ ريالاً', '٢٠٠ ريال لكل خيمة']],
 
     // Global: about the whole collection, so the facts are spread over many
     // chunks (more than the model gets for one question).
@@ -103,4 +164,9 @@ return [
     ['query' => 'What topics does your help centre cover?', 'kind' => 'global', 'expect' => ['## Orders', '## Delivery', '## Returns and refunds', '## Product care', '## Your account and privacy', '## Gear rental']],
     ['query' => 'What do customers most often need to know about returns, refunds and the warranty?', 'kind' => 'global', 'expect' => ['within 30 days of delivery', 'five to ten working days', 'warranty of three years', 'faded colour']],
     ['query' => 'لخّص لي كل ما يجب أن أعرفه عن متجر الرياض.', 'kind' => 'global', 'expect' => ['من السبت إلى الخميس', 'خلال يومين إلى أربعة أيام', 'خلال ١٤ يوماً', 'آبل باي']],
+    ['query' => 'Compare all your tents and their prices for me.', 'kind' => 'global', 'expect' => ['| Price | 289 |', '| Price | 379 |', '| Price | 469 |', '| Price | 649 |', '| Price | 749 |']],
+    ['query' => 'What are all the ways I can save money at Pinewood?', 'kind' => 'global', 'expect' => ['You get 1 point for every euro you spend', 'Students get 10% off', 'we take the rental price off the buying price', 'You get 40% of the current shop price as store credit', 'Trip members get 15% off that gear']],
+    ['query' => 'Which guided trips do you offer, and what do they cost?', 'kind' => 'global', 'expect' => ['169 per person', '349 per person', '690 per person', '595 per person']],
+    ['query' => 'What do I need to know before I rent gear from you?', 'kind' => 'global', 'expect' => ['at least 18 years old', '50 for each tent', 'ends on Monday before 12:00', 'cleaning fee of 15', 'Lakeside and city centre shops']],
+    ['query' => 'ما الخدمات التي يقدمها متجر الرياض في موسم التخييم؟', 'kind' => 'global', 'expect' => ['نوفر خدمة الحجز المسبق للتأجير', 'خيمة صحراوية لأربعة أشخاص', 'أساسيات التخييم في البر', 'مدة الإصلاح المعتادة خمسة أيام عمل']],
 ];

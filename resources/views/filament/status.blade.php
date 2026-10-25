@@ -1,8 +1,10 @@
 {{--
     The admin panel's Status page: a banner with the overall state and a
     "Check again" button, a card per service, a row per AI (or other
-    outside) service with the logos of the providers it runs on, and the
-    environment as `php artisan about` tells it.
+    outside) service with the logos of the providers it runs on, a check
+    mark once it is set up and a link to its card in Settings, a row per
+    site the install reads from (models.dev), and the environment as
+    `php artisan about` tells it.
 
     The checks start once the page is open: the services first, then the
     outside services, which wait on other servers. Until a check answers,
@@ -11,6 +13,7 @@
 
     @var list<array{0: \App\Admin\Status\Service, 1: ?\App\Admin\Status\Data\ServiceStatusData}> $services
     @var list<array{0: \App\Admin\Status\AiService, 1: ?\App\Admin\Status\Data\ServiceStatusData}> $aiServices
+    @var list<array{0: \App\Admin\Status\Service, 1: ?\App\Admin\Status\Data\ServiceStatusData}> $outsideServices
     @var list<\App\Admin\Status\Data\EnvironmentGroupData> $environment
     @var ?\App\Admin\Status\ServiceState $overall
     @var string $headline
@@ -78,7 +81,7 @@
 
         <div class="cv-status-list">
             @foreach ($aiServices as [$service, $status])
-                <div class="cv-status-row" data-ai-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
+                <div class="cv-status-row cv-status-row--change" data-ai-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
                     <span class="cv-service__icon">
                         <x-filament::icon :icon="$service->icon()" />
                     </span>
@@ -106,7 +109,43 @@
                         @endif
                     </div>
 
-                    @include('filament.status.state', ['status' => $status, 'label' => $status?->state->outsideServiceLabel()])
+                    @include('filament.status.outside-state', ['status' => $status])
+
+                    <div class="cv-status-row__change">
+                        <x-filament::link :href="$service->settingsUrl()" color="gray" size="sm">
+                            {{ __('Change') }}
+                        </x-filament::link>
+                    </div>
+                </div>
+            @endforeach
+
+            @foreach ($outsideServices as [$service, $status])
+                <div class="cv-status-row cv-status-row--change" data-outside-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
+                    <span class="cv-service__icon">
+                        <x-filament::icon :icon="$service->icon()" />
+                    </span>
+
+                    <div class="cv-status-row__name">
+                        <h3 class="cv-service__title">{{ $service->label() }}</h3>
+                        <p class="cv-service__description">
+                            {{ $status !== null && $status->state !== \App\Admin\Status\ServiceState::Running ? $status->summary : $service->descriptionHtml() }}
+                        </p>
+                    </div>
+
+                    <div class="cv-status-row__providers">
+                        @if ($status === null)
+                            <span class="cv-skeleton cv-skeleton--short" aria-hidden="true"></span>
+                        @else
+                            @foreach ($status->facts as $fact)
+                                <span class="cv-status-fact">{{ $fact }}</span>
+                            @endforeach
+                        @endif
+                    </div>
+
+                    @include('filament.status.outside-state', ['status' => $status])
+
+                    {{-- Nothing to set up: the cell keeps the check marks in line. --}}
+                    <div class="cv-status-row__change"></div>
                 </div>
             @endforeach
         </div>

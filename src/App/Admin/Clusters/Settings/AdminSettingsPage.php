@@ -294,7 +294,7 @@ abstract class AdminSettingsPage extends Page
                 title: $card->title,
                 page: $page,
                 description: $card->description,
-                url: static::getUrl().'#'.$this->sectionId($card),
+                url: static::cardUrl($card->key),
                 icon: $card->icon,
                 options: $this->optionLabels($card),
                 pageDescription: static::description(),
@@ -359,10 +359,24 @@ abstract class AdminSettingsPage extends Page
         $this->form->fill($this->formValues(array_merge(...array_map($this->propertiesOf(...), $this->visibleCards()))));
     }
 
+    /**
+     * The page opened on one card: the page opens the card, scrolls to it and
+     * rings it (resources/views/filament/settings/outline.blade.php).
+     */
+    public static function cardUrl(string $key): string
+    {
+        return static::getUrl().'#'.static::sectionIdFor($key);
+    }
+
     /** The HTML id of a card's section, unique across the Settings pages. */
     private function sectionId(SettingsCard $card): string
     {
-        return static::getSlug().'-'.$card->key;
+        return static::sectionIdFor($card->key);
+    }
+
+    protected static function sectionIdFor(string $key): string
+    {
+        return static::getSlug().'-'.$key;
     }
 
     /**

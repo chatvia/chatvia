@@ -99,6 +99,36 @@ it('calls a service running and an outside service set up', function (): void {
         ->assertSeeInOrder(['PostgreSQL', 'Running', 'Chat models', 'Set up']);
 });
 
+it('lists the model catalog with the AI and other services, not as a service card', function (): void {
+    $listed = ['state' => 'running', 'summary' => 'Model details loaded.', 'facts' => ['686 models listed'], 'providers' => []];
+
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', [Service::ModelDetails->value => $listed])
+        ->assertSeeInOrder(['AI and other services', 'Chat models', 'Model catalog', 'What each model supports, from', '686 models listed', 'Environment'])
+        ->assertDontSeeHtml('<article class="cv-service" data-service="model_details"')
+        ->assertSeeHtml('<a href="https://models.dev" target="_blank" rel="noopener noreferrer" class="cv-service__link">models.dev</a>');
+});
+
+it('marks an outside service that is set up with a check, and links each to its card in Settings', function (): void {
+    $running = ['state' => 'running', 'summary' => 'Connected.', 'facts' => [], 'providers' => []];
+    $off = ['state' => 'off', 'summary' => 'Not set up.', 'facts' => [], 'providers' => []];
+
+    $page = Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', ['database' => $running])
+        ->set('aiServices', ['chat' => $running, 'web_pages' => $off])
+        ->assertSeeHtml('<span class="cv-state-check" title="Set up">')
+        ->assertSeeInOrder(['Web pages', 'Off', 'Change']);
+
+    foreach (AiService::cases() as $service) {
+        $page->assertSeeHtml('href="'.e($service->settingsUrl()).'"');
+    }
+
+    expect(AiService::Chat->settingsUrl())->toEndWith('/settings/ai-models#ai-models-models')
+        ->and(AiService::WebPages->settingsUrl())->toEndWith('/settings/knowledge#knowledge-website_import');
+});
+
 it('finds the database with the extensions the search needs', function (): void {
     $status = app(ServiceChecks::class)->check(Service::Database);
 

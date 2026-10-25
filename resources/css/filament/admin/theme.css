@@ -2985,8 +2985,8 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     color: var(--cv-text);
 }
 
-/* A service named after a site (models.dev): its title links there, opened
- * in a new tab. */
+/* The site a service comes from (models.dev), linked in its description and
+ * opened in a new tab. */
 .cv-service__link {
     color: inherit;
     text-decoration: underline;
@@ -3233,6 +3233,29 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     color: color-mix(in oklab, var(--warning-600) 85%, var(--cv-text));
 }
 
+/* A row with a "Change" link to its card in Settings, after its state. */
+.cv-status-row--change {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+}
+
+.cv-status-row__change {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 3.5rem;
+}
+
+/* An outside service that is set up: a check mark, not a badge. */
+.cv-state-check {
+    display: inline-flex;
+    flex: none;
+    color: var(--success-500);
+
+    & svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
 .cv-status-row__providers {
     display: flex;
     flex-wrap: wrap;
@@ -3259,19 +3282,25 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 @media (max-width: 40rem) {
-    .cv-status-row {
+    .cv-status-row,
+    .cv-status-row--change {
         grid-template-columns: auto minmax(0, 1fr) auto;
     }
 
-    .cv-status-row > .cv-state {
+    .cv-status-row > :is(.cv-state, .cv-state-check) {
         grid-row: 1;
         grid-column: 3;
     }
 
     .cv-status-row__providers,
-    .cv-status-row__details {
+    .cv-status-row__details,
+    .cv-status-row__change {
         grid-column: 2 / -1;
         justify-content: flex-start;
+    }
+
+    .cv-status-row__change:empty {
+        display: none;
     }
 }
 

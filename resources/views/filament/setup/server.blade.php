@@ -41,15 +41,9 @@
                 @include('filament.status.service-icon', ['service' => $service])
 
                 <div class="cv-status-row__name">
-                    <h3 class="cv-service__title">
-                        @if ($service->url() !== null)
-                            <a href="{{ $service->url() }}" target="_blank" rel="noopener noreferrer" class="cv-service__link">{{ $service->label() }}</a>
-                        @else
-                            {{ $service->label() }}
-                        @endif
-                    </h3>
+                    <h3 class="cv-service__title">{{ $service->label() }}</h3>
                     <p class="cv-service__description">
-                        {{ $status !== null && $status->state !== \App\Admin\Status\ServiceState::Running ? $status->summary : $service->description() }}
+                        {{ $status !== null && $status->state !== \App\Admin\Status\ServiceState::Running ? $status->summary : $service->descriptionHtml() }}
                     </p>
                 </div>
 

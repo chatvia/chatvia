@@ -430,7 +430,7 @@ class Setup extends SimplePage
         Notification::make()
             ->success()
             ->title('ChatVia.ai is ready')
-            ->body("New agents answer with {$model->name}.")
+            ->body("New agents answer with {$model->displayName()}.")
             ->send();
 
         $this->redirect(Filament::getUrl());

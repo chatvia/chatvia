@@ -99,6 +99,15 @@ class Llm extends Model
     }
 
     /**
+     * The model's name for people (`DeepSeek V4.1 Flash`), as models.dev
+     * writes it; its name at the provider when the catalog does not list it.
+     */
+    public function displayName(): string
+    {
+        return app(ModelsDevCatalog::class)->displayName($this->provider->kind, $this->name) ?? $this->name;
+    }
+
+    /**
      * Whether the model may be picked: it and its provider are on, the
      * provider has its key, and it still serves the model (see
      * {@see CheckLlmListingAction}).

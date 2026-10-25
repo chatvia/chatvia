@@ -440,11 +440,16 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->label('Model')
                     ->formatStateUsing(fn (Llm $model): HtmlString => new HtmlString(ModelLogo::forLlm($model)))
                     ->suffix(fn (Llm $model): string => (string) $model->id === (string) $this->valueInUse('default_agent_model') ? ' · default' : '')
-                    ->description(fn (Llm $model): ?string => match (true) {
-                        $model->unlisted_at !== null => 'No longer served by its provider',
-                        ! $model->callsTools() => 'No tool calling: tools will not work',
-                        default => null,
-                    }),
+                    // Its name at the provider under its name for people, as
+                    // the agents' model picker shows it, then any warning.
+                    ->description(fn (Llm $model): ?HtmlString => ($lines = array_filter([
+                        $model->displayName() === $model->name ? null : $model->name,
+                        match (true) {
+                            $model->unlisted_at !== null => 'No longer served by its provider',
+                            ! $model->callsTools() => 'No tool calling: tools will not work',
+                            default => null,
+                        },
+                    ])) === [] ? null : new HtmlString(implode('<br>', array_map(e(...), $lines)))),
                 TextColumn::make('provider.name')
                     ->label('Provider')
                     ->description(fn (Llm $model): ?string => $model->provider->is_enabled && $model->provider->isConnected() ? null : 'Not connected')
@@ -567,7 +572,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->map(fn (string $id): Llm => app(AddLlmModelAction::class)->execute($provider, $listed->get($id) ?? new RemoteModelData($id, $id)));
 
                 $added->count() === 1
-                    ? Notification::make()->success()->title("{$added->first()->name} added")->body('Agents can pick it now.')->send()
+                    ? Notification::make()->success()->title("{$added->first()->displayName()} added")->body('Agents can pick it now.')->send()
                     : Notification::make()->success()->title("{$added->count()} models added")->body('Agents can pick them now.')->send();
             });
     }
@@ -644,7 +649,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->disabled(fn (Llm $record): bool => $this->agentsUsing($record) > 0 && $this->replacements($record) === [])
             ->tooltip(fn (Llm $record): ?string => $this->agentsUsing($record) > 0 && $this->replacements($record) === [] ? 'Agents use it: add another model first.' : null)
             ->requiresConfirmation()
-            ->modalHeading(fn (Llm $record): string => "Remove {$record->name}?")
+            ->modalHeading(fn (Llm $record): string => "Remove {$record->displayName()}?")
             ->modalDescription(fn (Llm $record): string => ($agents = $this->agentsUsing($record)) > 0
                 ? "{$agents} ".Str::plural('agent', $agents).' answer with it. Pick the model they use from now on.'
                 : 'Agents can no longer pick it. You can add it again later.')
@@ -662,7 +667,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 app(RemoveLlmModelAction::class)->execute($record, isset($data['replacement']) ? Llm::query()->find($data['replacement']) : null);
                 $this->fillCards();
 
-                Notification::make()->success()->title("{$record->name} removed")->send();
+                Notification::make()->success()->title("{$record->displayName()} removed")->send();
             });
     }
 
@@ -820,7 +825,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         return Llm::available()
             ->reject(fn (Llm $other): bool => $other->is($model))
-            ->mapWithKeys(fn (Llm $other): array => [$other->id => ModelLogo::forLlm($other, "{$other->name} ({$other->provider->name})")])
+            ->mapWithKeys(fn (Llm $other): array => [$other->id => ModelLogo::forLlm($other, "{$other->displayName()} ({$other->provider->name})")])
             ->all();
     }
 
@@ -833,7 +838,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         $unlisted = fn (): Collection => Llm::catalog()->filter(fn (Llm $llm): bool => $llm->is_enabled && $llm->unlisted_at !== null);
 
-        return Callout::make(fn (): string => Arr::join($unlisted()->map(fn (Llm $llm): string => $llm->name.' ('.$llm->provider->name.')')->all(), ', ', ' and ')
+        return Callout::make(fn (): string => Arr::join($unlisted()->map(fn (Llm $llm): string => $llm->displayName().' ('.$llm->provider->name.')')->all(), ', ', ' and ')
             .(count($unlisted()) === 1 ? ' is' : ' are').' no longer served')
             ->description('The provider refused calls to it and no longer lists it, so the pickers hide it, and the app\'s own tasks that used it now use another model. Agents that use it cannot answer. Pick another model where it is still set. It comes back on its own once the provider serves it again.')
             ->icon(Heroicon::OutlinedExclamationTriangle)
@@ -849,7 +854,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             return 'No models yet';
         }
 
-        $default = $this->catalogName($this->valueInUse('default_agent_model')) ?? Llm::available()->first()?->name;
+        $default = $this->catalogName($this->valueInUse('default_agent_model')) ?? Llm::available()->first()?->displayName();
 
         return $count.' '.Str::plural('model', $count).' · default: '.$default;
     }
@@ -919,7 +924,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** The empty choice of a model picker that chooses for itself, with the model it takes now. */
     private function automaticLabel(?Llm $model): string
     {
-        return $model instanceof Llm ? "Automatic ({$model->name})" : 'Automatic (no model)';
+        return $model instanceof Llm ? "Automatic ({$model->displayName()})" : 'Automatic (no model)';
     }
 
     /**
@@ -1017,7 +1022,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $model = app(ApplyRecommendedTaskModelsAction::class)->execute($chat->provider, $small, $chat, $this->recommendedVisionModel());
                 $this->fillCards();
 
-                Notification::make()->success()->title("{$model->name} does the quick tasks now")->send();
+                Notification::make()->success()->title("{$model->displayName()} does the quick tasks now")->send();
             });
     }
 
@@ -1102,7 +1107,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
     private function catalogName(mixed $value): ?string
     {
-        return Llm::fromSetting($value)?->name;
+        return Llm::fromSetting($value)?->displayName();
     }
 
     // --- Services ----------------------------------------------------------------
@@ -1229,9 +1234,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             default => 'off',
         };
 
-        return "Reading: {$reader} · Summaries: ".(app(SourceSummaryModel::class)->find()->name ?? 'off')
-            .' · Images: '.((bool) $this->valueInUse('describe_images') ? (app(TaskModels::class)->find(LlmTask::Images)->name ?? 'off') : 'off')
-            .' · Chat uploads: '.(app(ChatFileModel::class)->find()->name ?? 'off');
+        return "Reading: {$reader} · Summaries: ".(app(SourceSummaryModel::class)->find()?->displayName() ?? 'off')
+            .' · Images: '.((bool) $this->valueInUse('describe_images') ? (app(TaskModels::class)->find(LlmTask::Images)?->displayName() ?? 'off') : 'off')
+            .' · Chat uploads: '.(app(ChatFileModel::class)->find()?->displayName() ?? 'off');
     }
 
     /**

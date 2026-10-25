@@ -411,6 +411,7 @@
     "The expected arguments must be a valid JSON object.": "يجب أن تكون الوسائط المتوقعة كائن JSON صالحًا.",
     "The message could not be answered.": "تعذّرت الإجابة عن الرسالة.",
     "The selected user id is invalid.": "معرّف المستخدم المحدد غير صالح.",
+    "This user has no access to the agent.": "هذا المستخدم ليس لديه وصول إلى الوكيل.",
     "This user is already a member of the team.": "هذا المستخدم عضو في الفريق بالفعل.",
     "Use lowercase letters, digits, and underscores only (max 32 characters).": "استخدم أحرفًا صغيرة وأرقامًا وشرطات سفلية فقط (بحد أقصى 32 حرفًا).",
     "You can't use the platform's own host as a custom domain.": "لا يمكنك استخدام مضيف المنصة نفسه كنطاق مخصص.",

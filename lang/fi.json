@@ -411,6 +411,7 @@
     "The expected arguments must be a valid JSON object.": "Odotettujen argumenttien on oltava kelvollinen JSON-objekti.",
     "The message could not be answered.": "Viestiin ei voitu vastata.",
     "The selected user id is invalid.": "Valittu käyttäjätunniste on virheellinen.",
+    "This user has no access to the agent.": "Tällä käyttäjällä ei ole pääsyä agenttiin.",
     "This user is already a member of the team.": "Tämä käyttäjä on jo tiimin jäsen.",
     "Use lowercase letters, digits, and underscores only (max 32 characters).": "Käytä vain pieniä kirjaimia, numeroita ja alaviivoja (enintään 32 merkkiä).",
     "You can't use the platform's own host as a custom domain.": "Alustan omaa isäntää ei voi käyttää mukautettuna verkkotunnuksena.",

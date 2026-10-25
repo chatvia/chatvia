@@ -143,8 +143,8 @@ use Livewire\Attributes\Renderless;
  * 8. Observability: Spectra, the log of every AI call (the default), or
  *    none. What it saves of each call is changed in Settings →
  *    Observability.
- * 9. Final: "Complete", the choices made, and where the rest (chunking,
- *    search…), which keeps its default values, is changed.
+ * 9. Final: "Congratulations", and a link to the workspace sign-in page
+ *    for after Finish setup.
  *
  * Each step starts on the safe choice ("Not now", "This server", Spectra
  * on) unless it is set up already: what `.env` suggests is not a choice. The one
@@ -768,78 +768,12 @@ class Setup extends SimplePage
     private function finalStep(): Step
     {
         return Step::make('Final')
-            ->description('Check and finish')
+            ->description('Finish and sign in')
             ->icon(Heroicon::OutlinedCheckBadge)
             ->schema([
-                View::make('filament.setup.complete'),
-                Section::make('Your choices')
-                    ->description('What Finish setup saves.')
-                    ->icon(Heroicon::OutlinedClipboardDocumentCheck)
-                    ->schema([
-                        View::make('filament.setup.summary')
-                            ->viewData(fn (Get $get): array => ['rows' => $this->choices($get)]),
-                    ]),
-                Section::make('Default values')
-                    ->description('Everything else starts with default values that suit most installs. You can change them at any time in Settings.')
-                    ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
-                    ->schema([
-                        View::make('filament.setup.summary')
-                            ->viewData(['rows' => [
-                                'Settings → Knowledge' => 'The AI enhancement of sources, and the file types people can upload.',
-                                'Settings → Splitting' => 'How texts are split into chunks.',
-                                'Settings → Search' => 'Hybrid search, results per question, follow-up questions and the minimum scores.',
-                                'Settings → AI models' => 'More chat models, and a model for each app task.',
-                                'Settings → Branding' => 'The "Powered by ChatVia.ai" credit under hosted chats and widgets.',
-                                'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
-                                'Settings → Sign-in' => 'Sign-in with other accounts.',
-                                'Settings → Security' => 'The bot check on public forms, guardrails, tool call limits and the security log.',
-                                'Settings → Observability' => 'Pulse, and what Spectra saves of each AI call and for how many days.',
-                            ]]),
-                    ]),
+                View::make('filament.setup.complete')
+                    ->viewData(['loginUrl' => route('login')]),
             ]);
-    }
-
-    /**
-     * What each step chose, in plain words, for the last step.
-     *
-     * @return array<string, string>
-     */
-    private function choices(Get $get): array
-    {
-        $chosen = array_values(array_filter((array) $get('chat_models'), filled(...)));
-        $models = $chosen === []
-            ? (string) $get('chat_model_id')
-            : implode(', ', array_map(
-                fn (string $id): string => ($this->models[$id] ?? $id).($id === $get('default_model') && count($chosen) > 1 ? ' (default)' : ''),
-                $chosen,
-            ));
-        $embedding = $this->embeddingProvider($get);
-        $mailer = MailProvider::tryFrom((string) $get('mailer'));
-
-        return [
-            'AI provider' => $get('provider') === self::CUSTOM ? (string) $get('server_name') : $this->providerLabel($get('provider')),
-            'Chat models' => $models,
-            'Model for quick tasks' => filled($get('quick_task_model')) && $this->models !== []
-                ? ($this->models[$get('quick_task_model')] ?? (string) $get('quick_task_model'))
-                : 'Same as the chat model',
-            'Image descriptions' => (bool) $get('describe_images') && filled($get('vision_model')) && $this->models !== []
-                ? ($this->models[$get('vision_model')] ?? (string) $get('vision_model'))
-                : 'Off',
-            'Chat file uploads' => (bool) $get('chat_files') && filled($get('files_model')) && $this->models !== []
-                ? ($this->models[$get('files_model')] ?? (string) $get('files_model'))
-                : 'Off',
-            'Embeddings' => $embedding instanceof EmbeddingProvider
-                ? $embedding->label().(filled($get('embedding_model')) ? " · {$get('embedding_model')}" : '')
-                : 'Already set up',
-            'Reranker' => $this->rerankerSummary(),
-            'Document reader' => AiProvider::tryFrom((string) $get('document_reader'))?->label() ?? 'Not now',
-            'Web scraper' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
-            'Speech to text' => AiProvider::tryFrom((string) $get('transcriber'))?->label() ?? 'Not now',
-            'Voice conversations' => ($voice = AiProvider::tryFrom((string) $get('voice'))) instanceof AiProvider ? "{$voice->label()} Realtime" : 'Not now',
-            'Storage' => $get('storage_driver') === 's3' ? 'S3-compatible storage' : 'This server',
-            'Mailer' => ! $mailer instanceof MailProvider || $mailer === MailProvider::Log ? 'Not now' : $mailer->label(),
-            'Observability' => $get('observability') === self::NOT_NOW ? 'Not now' : 'Spectra',
-        ];
     }
 
     /**
@@ -1058,19 +992,6 @@ class Setup extends SimplePage
                 ->helperText('Only when your server asks for one. Stored encrypted.')
                 ->visible($chosen(self::CUSTOM)),
         ];
-    }
-
-    /** The reranker chosen, in plain words, for the last step. */
-    private function rerankerSummary(): string
-    {
-        $reranker = $this->rerankerData($this->form->getRawState());
-
-        return match ($reranker->driver) {
-            AiProvider::OpenRouter->value => "OpenRouter · {$reranker->model}",
-            AiProvider::Cohere->value => "Cohere · {$reranker->model}",
-            self::CUSTOM => "Your own server · {$reranker->model}",
-            default => 'Not now',
-        };
     }
 
     /**

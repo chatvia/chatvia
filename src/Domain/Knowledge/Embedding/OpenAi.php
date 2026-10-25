@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Support\Http\ProviderRetry;
 
 /**
  * Embeddings from OpenAI's API (`services.openai`): the text-embedding-3
@@ -37,7 +37,7 @@ class OpenAi extends AbstractEmbeddingsProvider
         $vectors = [];
 
         foreach (array_chunk(array_values($texts), self::BATCH_SIZE) as $batch) {
-            $data = (array) Http::withToken($this->getApiKey())
+            $data = (array) ProviderRetry::request()->withToken($this->getApiKey())
                 ->throw()
                 ->post($this->endpoint('/embeddings'), [
                     'model' => $this->getModel(),

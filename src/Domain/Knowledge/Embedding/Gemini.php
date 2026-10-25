@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Support\Http\ProviderRetry;
 
 /**
  * Embeddings from Google's Gemini API (`services.gemini`), gemini-embedding-001
@@ -59,7 +59,7 @@ class Gemini extends AbstractEmbeddingsProvider
         $vectors = [];
 
         foreach (array_chunk($texts, self::BATCH_SIZE) as $batch) {
-            $embeddings = (array) Http::withHeaders(['x-goog-api-key' => $this->getApiKey()])
+            $embeddings = (array) ProviderRetry::request()->withHeaders(['x-goog-api-key' => $this->getApiKey()])
                 ->throw()
                 ->post($this->endpoint("/{$model}:batchEmbedContents"), [
                     'requests' => array_map(fn (string $text): array => [

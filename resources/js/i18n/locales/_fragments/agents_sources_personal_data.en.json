@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "May hold personal data",
+                "personal_data_found": "Found {kinds} in {count} part. Visitors could be shown it: replace or remove the file if they must not. | Found {kinds} in {count} parts. Visitors could be shown them: replace or remove the file if they must not."
+            }
+        }
+    }
+}

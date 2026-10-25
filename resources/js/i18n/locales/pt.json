@@ -1317,7 +1317,9 @@
                 "uploads_off": "O administrador desativou o carregamento destes tipos de ficheiro.",
                 "replace_file": "Substituir por uma nova versão",
                 "replace_started": "Substituindo {name}. Ele será treinado de novo em instantes.",
-                "replace_failed": "Não foi possível substituir o arquivo. Tente novamente."
+                "replace_failed": "Não foi possível substituir o arquivo. Tente novamente.",
+                "personal_data_title": "Pode conter dados pessoais",
+                "personal_data_found": "Encontrado {kinds} em {count} parte. Os visitantes podem vê-lo: substitua ou remova o arquivo se não devem. | Encontrado {kinds} em {count} partes. Os visitantes podem vê-los: substitua ou remova o arquivo se não devem."
             },
             "text": {
                 "load_failed": "Falha ao carregar a entrada de texto",

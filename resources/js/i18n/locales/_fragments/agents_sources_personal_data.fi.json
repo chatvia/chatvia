@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Voi sisältää henkilötietoja",
+                "personal_data_found": "Löytyi {kinds} {count} osasta. Kävijät voivat nähdä sen: korvaa tai poista tiedosto, jos he eivät saa. | Löytyi {kinds} {count} osasta. Kävijät voivat nähdä ne: korvaa tai poista tiedosto, jos he eivät saa."
+            }
+        }
+    }
+}

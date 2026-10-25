@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "可能含有个人数据",
+                "personal_data_found": "在 {count} 个部分中发现 {kinds}。访客可能会看到它：如果不应如此，请替换或删除文件。 | 在 {count} 个部分中发现 {kinds}。访客可能会看到它们：如果不应如此，请替换或删除文件。"
+            }
+        }
+    }
+}

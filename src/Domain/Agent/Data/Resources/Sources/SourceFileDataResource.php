@@ -11,7 +11,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * A knowledge file as the Knowledge page lists it: name, type, size, training
- * status and progress, and how many agents use it.
+ * status and progress, how many agents use it, and any card numbers or
+ * similar identifiers found in it.
  */
 #[TypeScript]
 class SourceFileDataResource extends Data
@@ -27,6 +28,14 @@ class SourceFileDataResource extends Data
         public int $progress,
         public int $agents_count,
         public CarbonInterface $created_at,
+        /**
+         * Card numbers, IBANs or US SSNs found in the trained file (filter
+         * keys), and in how many of its parts; empty when none.
+         *
+         * @var list<string>
+         */
+        public array $personal_data = [],
+        public int $personal_data_parts = 0,
     ) {}
 
     public static function fromFile(SourceFile $file): self
@@ -42,6 +51,8 @@ class SourceFileDataResource extends Data
             progress: $file->ingestionProgress(),
             agents_count: $file->agents_count ?? 0,
             created_at: $file->created_at,
+            personal_data: array_values((array) ($file->metadata['personal_data']['types'] ?? [])),
+            personal_data_parts: (int) ($file->metadata['personal_data']['parts'] ?? 0),
         );
     }
 }

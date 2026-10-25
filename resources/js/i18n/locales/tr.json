@@ -1317,7 +1317,9 @@
                 "summary_empty": "Bu dosya için özet verisi bulunmuyor.",
                 "replace_file": "Yeni bir sürümle değiştir",
                 "replace_started": "{name} değiştiriliyor. Birazdan yeniden eğitilecek.",
-                "replace_failed": "Dosya değiştirilemedi. Lütfen tekrar deneyin."
+                "replace_failed": "Dosya değiştirilemedi. Lütfen tekrar deneyin.",
+                "personal_data_title": "Kişisel veri içerebilir",
+                "personal_data_found": "{count} bölümde {kinds} bulundu. Ziyaretçiler görebilir: görmemeleri gerekiyorsa dosyayı değiştirin veya kaldırın. | {count} bölümde {kinds} bulundu. Ziyaretçiler görebilir: görmemeleri gerekiyorsa dosyayı değiştirin veya kaldırın."
             },
             "text": {
                 "load_failed": "Metin girişi yüklenemedi",

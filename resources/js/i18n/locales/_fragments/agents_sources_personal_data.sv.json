@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Kan innehålla personuppgifter",
+                "personal_data_found": "Hittade {kinds} i {count} del. Besökare kan få se det: ersätt eller ta bort filen om de inte får. | Hittade {kinds} i {count} delar. Besökare kan få se dem: ersätt eller ta bort filen om de inte får."
+            }
+        }
+    }
+}

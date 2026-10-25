@@ -1317,7 +1317,9 @@
                 "uploads_off": "Administratören har stängt av uppladdning av dessa filtyper.",
                 "replace_file": "Ersätt med en ny version",
                 "replace_started": "Ersätter {name}. Den tränas om om en stund.",
-                "replace_failed": "Det gick inte att ersätta filen. Försök igen."
+                "replace_failed": "Det gick inte att ersätta filen. Försök igen.",
+                "personal_data_title": "Kan innehålla personuppgifter",
+                "personal_data_found": "Hittade {kinds} i {count} del. Besökare kan få se det: ersätt eller ta bort filen om de inte får. | Hittade {kinds} i {count} delar. Besökare kan få se dem: ersätt eller ta bort filen om de inte får."
             },
             "text": {
                 "load_failed": "Det gick inte att läsa in textposten",

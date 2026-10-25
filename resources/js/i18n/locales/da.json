@@ -1317,7 +1317,9 @@
                 "uploads_off": "Administratoren har slået upload af disse filtyper fra.",
                 "replace_file": "Erstat med en ny version",
                 "replace_started": "Erstatter {name}. Den trænes igen om et øjeblik.",
-                "replace_failed": "Filen kunne ikke erstattes. Prøv igen."
+                "replace_failed": "Filen kunne ikke erstattes. Prøv igen.",
+                "personal_data_title": "Kan indeholde persondata",
+                "personal_data_found": "Fandt {kinds} i {count} del. Besøgende kan få det vist: erstat eller fjern filen, hvis de ikke må. | Fandt {kinds} i {count} dele. Besøgende kan få dem vist: erstat eller fjern filen, hvis de ikke må."
             },
             "text": {
                 "load_failed": "Det lykkedes ikke at indlæse tekstindgang",

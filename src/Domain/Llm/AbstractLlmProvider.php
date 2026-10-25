@@ -13,6 +13,7 @@ use Illuminate\Http\Client\Promises\LazyPromise;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\ResponseInterface;
+use Support\Http\ProviderRetry;
 use Throwable;
 
 /**
@@ -93,7 +94,9 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     {
         $data = $this->preparePayload($this->withFileParts($data));
 
-        return $this->client()
+        // Background tasks (summaries, enhancement, translations) use this;
+        // a moment's rate limit is waited out rather than failing the task.
+        return ProviderRetry::on($this->client())
             ->timeout(600)
             ->post($this->getCompletionEndpoint(), $data)
             ->throw();

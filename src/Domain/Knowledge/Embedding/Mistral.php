@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
-use Illuminate\Support\Facades\Http;
+use Support\Http\ProviderRetry;
 
 /**
  * Embeddings from Mistral's hosted API (`services.mistral`).
@@ -11,7 +11,7 @@ class Mistral extends AbstractEmbeddingsProvider
 {
     public function embed(string $text, bool $returnAsText = false): string|array
     {
-        $response = Http::withHeaders([
+        $response = ProviderRetry::request()->withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer '.$this->getApiKey(),
         ])

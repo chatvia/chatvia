@@ -1317,7 +1317,9 @@
                 "uploads_off": "L'administrateur a désactivé l'importation de ces types de fichiers.",
                 "replace_file": "Remplacer par une nouvelle version",
                 "replace_started": "Remplacement de {name}. Il sera réentraîné dans un instant.",
-                "replace_failed": "Impossible de remplacer le fichier. Veuillez réessayer."
+                "replace_failed": "Impossible de remplacer le fichier. Veuillez réessayer.",
+                "personal_data_title": "Peut contenir des données personnelles",
+                "personal_data_found": "{kinds} trouvé dans {count} partie. Les visiteurs pourraient le voir : remplacez ou supprimez le fichier s'ils ne doivent pas. | {kinds} trouvés dans {count} parties. Les visiteurs pourraient les voir : remplacez ou supprimez le fichier s'ils ne doivent pas."
             },
             "text": {
                 "load_failed": "Échec du chargement de l'entrée textuelle",

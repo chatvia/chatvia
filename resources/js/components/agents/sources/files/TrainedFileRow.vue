@@ -3,6 +3,7 @@
  * One file of the agent's knowledge base: name, type, status icon, size,
  * length and date, a progress bar while it trains, and buttons to view its
  * summary (once trained), to replace it with a new version and to remove it.
+ * A file holding card numbers, IBANs or similar shows a warning.
  */
 import type { SourceFile } from '@/api/fileSources';
 import IngestionProgressBar from '@/components/common/IngestionProgressBar.vue';
@@ -11,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFileFormatting } from '@/composables/agents/sources/files/useFileFormatting';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { CheckCircle, FileText, FileUp, Info, LoaderCircle, Trash2, XCircle } from 'lucide-vue-next';
+import { CheckCircle, FileText, FileUp, Info, LoaderCircle, ShieldAlert, Trash2, XCircle } from 'lucide-vue-next';
 import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -39,6 +40,9 @@ const STATUS_ICONS: Record<string, { icon: Component; class: string; labelKey: s
 
 const statusIcon = computed(() => STATUS_ICONS[props.file.status]);
 const isShared = computed(() => (props.file.agents_count ?? 0) > 1);
+
+// The kinds of identifier found, in the Guardrails page's own words.
+const personalDataKinds = computed(() => (props.file.personal_data ?? []).map((kind) => t(`agents.guardrails.filter_labels.${kind}`)).join(', '));
 </script>
 
 <template>
@@ -58,6 +62,27 @@ const isShared = computed(() => (props.file.agents_count ?? 0) > 1);
                             </TooltipTrigger>
                             <TooltipContent>
                                 <p>{{ t(statusIcon.labelKey) }}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider v-if="(file.personal_data ?? []).length > 0">
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <div class="flex items-center" :aria-label="t('agents.sources.files.personal_data_title')">
+                                    <ShieldAlert class="h-4 w-4 flex-shrink-0 text-amber-500" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent class="max-w-xs">
+                                <p class="font-medium">{{ t('agents.sources.files.personal_data_title') }}</p>
+                                <p>
+                                    {{
+                                        t(
+                                            'agents.sources.files.personal_data_found',
+                                            { kinds: personalDataKinds, count: file.personal_data_parts },
+                                            file.personal_data_parts,
+                                        )
+                                    }}
+                                </p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

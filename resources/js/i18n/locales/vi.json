@@ -1317,7 +1317,9 @@
                 "summary_empty": "Không có dữ liệu tóm tắt cho tệp này.",
                 "replace_file": "Thay bằng phiên bản mới",
                 "replace_started": "Đang thay {name}. Tệp sẽ được huấn luyện lại trong giây lát.",
-                "replace_failed": "Không thể thay tệp. Vui lòng thử lại."
+                "replace_failed": "Không thể thay tệp. Vui lòng thử lại.",
+                "personal_data_title": "Có thể chứa dữ liệu cá nhân",
+                "personal_data_found": "Tìm thấy {kinds} trong {count} phần. Khách có thể thấy nội dung này: hãy thay hoặc xóa tệp nếu họ không được thấy. | Tìm thấy {kinds} trong {count} phần. Khách có thể thấy chúng: hãy thay hoặc xóa tệp nếu họ không được thấy."
             },
             "text": {
                 "load_failed": "Không thể tải mục văn bản",

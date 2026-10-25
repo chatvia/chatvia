@@ -22,7 +22,7 @@ class PerplexityAskTool extends PerplexitySonarTool
 {
     protected function model(): string
     {
-        return (string) config('services.perplexity.ask_model', 'sonar-pro');
+        return (string) config('services.perplexity.ask_model');
     }
 
     protected function systemPrompt(): ?string

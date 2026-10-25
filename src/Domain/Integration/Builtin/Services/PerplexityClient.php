@@ -57,7 +57,7 @@ class PerplexityClient
     public function agent(string $apiKey, PerplexityAgentRequestData $request): PerplexityAnswerData
     {
         $payload = [
-            'model' => (string) config('services.perplexity.agent_model', 'perplexity/sonar'),
+            'model' => (string) config('services.perplexity.agent_model'),
             'input' => $request->input,
             'tools' => [['type' => $request->toolType]],
         ];

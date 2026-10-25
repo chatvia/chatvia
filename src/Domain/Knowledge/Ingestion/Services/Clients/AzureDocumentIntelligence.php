@@ -36,7 +36,7 @@ class AzureDocumentIntelligence
      */
     public function analyze(string $path): Collection
     {
-        $model = (string) config('services.azure_document_intelligence.model', 'prebuilt-layout');
+        $model = (string) config('services.azure_document_intelligence.model');
 
         $started = $this->client()
             ->timeout(120)

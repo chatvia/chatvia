@@ -46,6 +46,6 @@ class Cohere extends AbstractEmbeddingsProvider
 
     protected function getModel(): string
     {
-        return config('services.cohere.embedding_model', 'embed-v4.0');
+        return (string) config('services.cohere.embedding_model');
     }
 }

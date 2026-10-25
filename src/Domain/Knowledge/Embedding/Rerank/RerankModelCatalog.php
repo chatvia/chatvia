@@ -37,9 +37,6 @@ final class RerankModelCatalog
         'rerank-v4.0-fast' => ['label' => 'Cohere Rerank 4 Fast', 'note' => 'Faster and cheaper than Pro.'],
     ];
 
-    /** The default model on OpenRouter. */
-    public const string DEFAULT_OPENROUTER = 'cohere/rerank-4-pro';
-
     /** For models nobody has measured yet: drop only what is clearly unrelated. */
     private const array GENERIC = ['knowledge' => 0.30, 'tool_read' => 0.30, 'tool_write' => 0.40];
 

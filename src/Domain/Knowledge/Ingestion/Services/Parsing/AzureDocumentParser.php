@@ -75,7 +75,7 @@ class AzureDocumentParser implements DocumentParser
     /** The layout model, such as "azure:prebuilt-layout". */
     public function name(): string
     {
-        return 'azure:'.config('services.azure_document_intelligence.model', 'prebuilt-layout');
+        return 'azure:'.config('services.azure_document_intelligence.model');
     }
 
     /**

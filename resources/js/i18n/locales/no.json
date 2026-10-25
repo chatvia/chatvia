@@ -38,7 +38,10 @@
         "upload_limit_reached": "Du kan legge ved opptil {count} fil | Du kan legge ved opptil {count} filer",
         "send_message": "Send melding",
         "stop_streaming": "Stopp genereringen",
-        "start_voice_call": "Snakk med stemmen"
+        "start_voice_call": "Snakk med stemmen",
+        "model_picker": "Modell: {model}",
+        "model_picker_title": "Svar med",
+        "model_default": "Standard"
     },
     "header": {
         "toggle_sidebar": "Vis/skjul sidepanel",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Send",
         "feedback_comment_skip": "Hopp over",
         "feedback_comment_thanks": "Takk for tilbakemeldingen.",
+        "regenerate_try_again": "Prøv igjen",
+        "regenerate_with_model": "Prøv igjen med",
+        "answered_by": "Besvart av {model}",
         "read_aloud": "Les høyt",
         "stop_reading": "Stopp opplesning",
         "read_aloud_loading": "Gjør klar lyd…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Fjern boble",
             "bubbles_empty": "Ingen snakkebobler ennå.",
             "bubbles_translate_empty": "Legg til en boble først for å oversette den.",
+            "model_picker_title": "Modell",
             "model_picker_description": "AI-modellen denne agenten svarer med. En administrator velger hvilke modeller som står på listen (adminpanelet → Settings → AI models).",
             "model_placeholder": "Velg en modell",
+            "model_default": "Standard",
             "model_empty": "Ingen modeller ennå. En administrator legger dem til i adminpanelet under Settings → AI models.",
             "reasoning_title": "Resonnering",
             "reasoning_description": "Hvor mye modellen tenker før den svarer. Mer tenking hjelper med vanskelige spørsmål, men svarene kommer saktere og koster mer. Chattere ser resonneringen i grått over svaret.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "Administratoren din har slått av resonnering for alle agenter (adminpanel → Innstillinger → AI-modeller).",
             "model_no_tools": "Ingen verktøykall",
             "model_no_tools_title": "Denne modellen kan ikke kalle verktøy",
-            "model_no_tools_description": "Verktøy vil ikke fungere: agenten svarer uten dem. Velg en annen modell hvis agenten trenger verktøyene sine."
+            "model_no_tools_description": "Verktøy vil ikke fungere: agenten svarer uten dem. Velg en annen modell hvis agenten trenger verktøyene sine.",
+            "multi_model": "Flere modeller",
+            "multi_model_help": "Velg flere modeller. Chattere velger da hvilken som svarer, i den hostede chatten, chat-widgeten og kommandolinjen, for hver melding og når de ber om et nytt svar.",
+            "multi_model_placeholder": "Velg modeller",
+            "multi_model_hint": "Den første modellen svarer til en chatter velger en annen. Velg minst to, ellers ser chattere ingen velger."
         },
         "topics_index": {
             "title": "Emner",

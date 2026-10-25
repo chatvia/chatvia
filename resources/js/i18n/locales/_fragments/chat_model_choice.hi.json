@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "मॉडल: {model}",
+        "model_picker_title": "इससे जवाब दें",
+        "model_default": "डिफ़ॉल्ट"
+    },
+    "messages": {
+        "regenerate_try_again": "फिर से कोशिश करें",
+        "regenerate_with_model": "इससे फिर से कोशिश करें",
+        "answered_by": "{model} ने जवाब दिया"
+    }
+}

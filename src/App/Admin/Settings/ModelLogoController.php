@@ -10,6 +10,8 @@ use Illuminate\Http\Response;
 /**
  * Serves a model's logo from models.dev, kept by the app ({@see ModelsDevCatalog::logoSvg()}).
  * The SVG can never run a script: it is sent with a policy that blocks them.
+ * Any site may load it: the widget draws it as a CSS mask, which browsers
+ * fetch with CORS, and a logo holds nothing private.
  */
 final class ModelLogoController
 {
@@ -24,6 +26,7 @@ final class ModelLogoController
             'Cache-Control' => 'private, max-age=604800',
             'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'",
             'X-Content-Type-Options' => 'nosniff',
+            'Access-Control-Allow-Origin' => '*',
         ]);
     }
 }

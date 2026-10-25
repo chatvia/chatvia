@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "مدل: {model}",
+        "model_picker_title": "پاسخ با",
+        "model_default": "پیش‌فرض"
+    },
+    "messages": {
+        "regenerate_try_again": "دوباره امتحان کنید",
+        "regenerate_with_model": "دوباره امتحان با",
+        "answered_by": "پاسخ از {model}"
+    }
+}

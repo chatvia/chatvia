@@ -13,6 +13,7 @@ import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import HeroIcon from '@/components/common/HeroIcon.vue';
 import { chatPages } from '@/composables/chat/chatPages';
+import { provideChatModelChoice, type OfferedModel } from '@/composables/chat/useChatModelChoice';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
 import { normalizeLocale } from '@/i18n';
 import { resolveStarters } from '@/lib/appearanceText';
@@ -46,6 +47,8 @@ interface Props {
     allowVoiceInput?: boolean;
     /** Whether the composer offers voice conversations: the owner turned them on and the server has them set up. */
     voiceConversation?: boolean;
+    /** The models the chatter may pick from; empty hides the picker. */
+    models?: OfferedModel[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -72,6 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
     uploadAccept: 'application/pdf',
     allowVoiceInput: false,
     voiceConversation: false,
+    models: () => [],
 });
 
 const { t, locale: i18nLocale } = useI18n();
@@ -84,6 +88,9 @@ const selectedStarter = ref('');
 const resolvedStarters = computed(() => resolveStarters(starters.value, normalizeLocale(i18nLocale.value)));
 
 // Uploads need an agent to scope them to; without one the composer hides the upload button.
+// The first reply streams on the conversation page, which reads the same remembered pick.
+provideChatModelChoice(props.agent_id ?? 'none', () => props.models);
+
 const uploadEndpoint = computed(() => (props.agent_id ? storeAttachment.url() : undefined));
 const uploadHeaders = computed(() => (props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined));
 const deleteEndpoint = computed(() => (props.agent_id ? (attachmentId: string) => deleteAttachment.url({ attachment: attachmentId }) : undefined));

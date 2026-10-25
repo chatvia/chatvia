@@ -32,6 +32,8 @@ class ChatStreamRequest extends FormRequest
             'message' => ['required', 'string', 'max:'.config('chatvia.guardrails.max_message_chars')],
             'updated_message_info' => ['nullable', 'array'],
             'request_id' => ['nullable', 'string', 'uuid'],
+            // The model the chatter picked; one the agent does not offer falls back to its own.
+            'model_id' => ['nullable', 'integer'],
         ];
     }
 

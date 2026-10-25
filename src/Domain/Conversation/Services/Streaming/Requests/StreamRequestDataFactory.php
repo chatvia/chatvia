@@ -47,7 +47,7 @@ class StreamRequestDataFactory
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
-                model: $this->resolveModel($agent),
+                model: $this->resolveModel($agent, $this->pickedModel($request)),
                 message: $request->input('message'),
                 createdAt: $request->input('created_at'),
                 attachments: $this->attachments($request),
@@ -92,7 +92,7 @@ class StreamRequestDataFactory
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
-                model: $this->resolveModel($agent),
+                model: $this->resolveModel($agent, $this->pickedModel($request)),
                 message: $request->input('content'),
                 attachments: $this->attachments($request),
             ),
@@ -229,17 +229,24 @@ class StreamRequestDataFactory
     }
 
     /**
-     * The model the agent answers with ({@see AgentModel}): its own, or the
-     * default one while it has none. Downstream code (StreamRequestMessageData,
+     * The model the agent answers with ({@see AgentModel}): the one the
+     * chatter picked when the agent offers it, else its own, or the default
+     * one while it has none. Downstream code (StreamRequestMessageData,
      * ChatService, LlmSource) treats `model` as non-nullable, so fail fast
      * with a clear error when no model can answer at all, rather than letting
      * a typed null surface deep in the streaming pipeline.
      */
-    private function resolveModel(Agent $agent): Llm
+    private function resolveModel(Agent $agent, ?int $pickedId = null): Llm
     {
-        return $this->models->for($agent) ?? throw new RuntimeException(
+        return $this->models->forTurn($agent, $pickedId) ?? throw new RuntimeException(
             "Agent {$agent->external_id} has no model, and no model can answer. Add a model in the admin panel (Settings → AI models)."
         );
+    }
+
+    /** The model the chatter picked for this message (the hosted chat's or the widget's picker), if any. */
+    private function pickedModel(Request $request): ?int
+    {
+        return $request->filled('model_id') ? $request->integer('model_id') : null;
     }
 
     private function referrer(Request $request): ?string

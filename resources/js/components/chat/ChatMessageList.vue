@@ -38,7 +38,7 @@ const emit = defineEmits<{
     messageEdited: [userMessageId: MessageId, assistantMessageId: MessageId | undefined, newContent: string];
     messageDeleted: [id: MessageId];
     attachmentDeleted: [messageId: MessageId, attachmentId: string];
-    regenerate: [userMessageId: MessageId, assistantMessageId: MessageId, onDone: () => void];
+    regenerate: [userMessageId: MessageId, assistantMessageId: MessageId, onDone: () => void, modelId?: number];
     retry: [index: number];
     approveTool: [call: ToolApprovalCall];
     denyTool: [call: ToolApprovalCall];
@@ -140,7 +140,7 @@ function promptIdBefore(index: number): MessageId | undefined {
                     :pending-approvals="approvalsFor(message.id)"
                     :resolving-approval-ids="resolvingApprovalIds"
                     @message-deleted="(id) => emit('messageDeleted', id)"
-                    @regenerate="(userId, assistantId, onDone) => emit('regenerate', userId, assistantId, onDone)"
+                    @regenerate="(userId, assistantId, onDone, modelId) => emit('regenerate', userId, assistantId, onDone, modelId)"
                     @approve-tool="(call) => emit('approveTool', call)"
                     @deny-tool="(call) => emit('denyTool', call)"
                 />

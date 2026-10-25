@@ -2,14 +2,17 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Llm\Enums\LlmProviderKind;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia;
 
 /**
  * Setup → Model: the page lists the models an admin made available (Settings
- * → AI models) with their provider's logo, marks the default, preselects the
- * agent's own model (or the default while it has none), and shows the saved
- * generation settings and reasoning effort.
+ * → AI models) with their provider's logo, their models.dev name and maker's
+ * logo, marks the default, preselects the agent's own model (or the default
+ * while it has none), and shows the saved generation settings and reasoning
+ * effort.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -40,6 +43,23 @@ it('gives each model its provider logo, and none for a server of your own', func
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('catalog', fn (Collection $catalog): bool => $catalog->firstWhere('id', $routed->id)['provider_icon'] === asset('images/llms/openrouter.svg')
                 && $catalog->firstWhere('id', $this->other->id)['provider_icon'] === null));
+});
+
+it('gives each model the name and maker\'s logo the hosted chat shows, and none for an unlisted one', function (): void {
+    $routed = testLlm('openai/gpt-test', LlmProviderKind::OpenRouter);
+    Cache::memo()->forever(ModelsDevCatalog::CACHE_KEY, [
+        'checked_at' => now()->addYears(100)->getTimestamp(),
+        'providers' => ['openrouter' => ['openai/gpt-test' => ['name' => 'GPT Test', 'canonical_model_id' => 'openai/gpt-test']]],
+    ]);
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.setup', $this->agent->external_id))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('catalog', fn (Collection $catalog): bool => $catalog->firstWhere('id', $routed->id)['display_name'] === 'GPT Test'
+                && $catalog->firstWhere('id', $routed->id)['logo'] === route('model-logo', ['logo' => 'labs/openai'])
+                && $catalog->firstWhere('id', $this->other->id)['display_name'] === null
+                && $catalog->firstWhere('id', $this->other->id)['logo'] === null));
 });
 
 it('says which models cannot call tools, so the picker can warn', function (): void {

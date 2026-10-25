@@ -49,7 +49,7 @@ final class ModelsDevCatalog
     private const int LOGO_MAX_BYTES = 100_000;
 
     /** The fields of a catalog entry the app reads; the rest is not kept. */
-    private const array FIELDS = ['reasoning', 'reasoning_options', 'temperature', 'tool_call', 'structured_output', 'limit', 'modalities', 'canonical_model_id'];
+    private const array FIELDS = ['name', 'reasoning', 'reasoning_options', 'temperature', 'tool_call', 'structured_output', 'limit', 'modalities', 'canonical_model_id'];
 
     /**
      * The facts for a model as its provider names it. A server of your own
@@ -64,8 +64,8 @@ final class ModelsDevCatalog
     }
 
     /**
-     * The model's catalog entry, cut to the fields the app reads
-     * (`reasoning`, `reasoning_options`, `temperature`, `tool_call`,
+     * The model's catalog entry, cut to the fields the app reads (`name`,
+     * `reasoning`, `reasoning_options`, `temperature`, `tool_call`,
      * `structured_output`, `limit`), for the model's row to keep. Null when
      * it is not listed.
      *
@@ -85,6 +85,18 @@ final class ModelsDevCatalog
     public function storedEntry(LlmProviderKind $kind, string $modelId): ?array
     {
         return $this->find($this->stored(refreshWhenOld: false), $kind, $modelId);
+    }
+
+    /**
+     * The model's name for people (`DeepSeek V4.1 Flash`), as the catalog
+     * last downloaded writes it; null when it is not listed. Never downloads:
+     * chatters' model pickers read it while a page is served.
+     */
+    public function displayName(LlmProviderKind $kind, string $modelId): ?string
+    {
+        $name = $this->storedEntry($kind, $modelId)['name'] ?? null;
+
+        return is_scalar($name) && filled((string) $name) ? (string) $name : null;
     }
 
     /**

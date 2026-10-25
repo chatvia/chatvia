@@ -8,9 +8,10 @@ use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Facades\Http;
 
 /**
- * A model's logo: the app serves it from models.dev to signed-in admins (so
- * their browsers never call models.dev), and names it before the model's
- * name wherever the admin panel shows a model.
+ * A model's logo: the app serves it from models.dev (so browsers never call
+ * models.dev) to signed-in admins and, for the chatters' model pickers, to
+ * anyone; and names it before the model's name wherever the admin panel
+ * shows a model.
  */
 beforeEach(function (): void {
     forgetModelsDevCatalog();
@@ -39,6 +40,15 @@ it('gives no logo models.dev does not have, nor to a guest', function (): void {
     auth('admin')->logout();
 
     $this->get('/admin/model-logos/labs/alibaba.svg')->assertRedirect();
+});
+
+it('serves a logo to anyone on any site for the chatters\' model pickers', function (): void {
+    $this->get('/model-logos/labs/alibaba.svg')
+        ->assertOk()
+        ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'")
+        ->assertHeader('Access-Control-Allow-Origin', '*');
+
+    $this->get('/model-logos/labs/nobody.svg')->assertNotFound();
 });
 
 it('puts the lab\'s logo before the model\'s name', function (): void {

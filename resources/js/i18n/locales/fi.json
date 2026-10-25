@@ -38,7 +38,10 @@
         "upload_limit_reached": "Voit liittää enintään {count} tiedoston | Voit liittää enintään {count} tiedostoa",
         "send_message": "Lähetä viesti",
         "stop_streaming": "Lopeta luominen",
-        "start_voice_call": "Puhu äänellä"
+        "start_voice_call": "Puhu äänellä",
+        "model_picker": "Malli: {model}",
+        "model_picker_title": "Vastaa mallilla",
+        "model_default": "Oletus"
     },
     "header": {
         "toggle_sidebar": "Näytä tai piilota sivupalkki",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Lähetä",
         "feedback_comment_skip": "Ohita",
         "feedback_comment_thanks": "Kiitos palautteestasi.",
+        "regenerate_try_again": "Yritä uudelleen",
+        "regenerate_with_model": "Yritä uudelleen mallilla",
+        "answered_by": "Vastasi {model}",
         "read_aloud": "Lue ääneen",
         "stop_reading": "Lopeta lukeminen",
         "read_aloud_loading": "Valmistellaan ääntä…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Poista kupla",
             "bubbles_empty": "Ei vielä chat-kuplia.",
             "bubbles_translate_empty": "Lisää ensin kupla, jotta voit kääntää sen.",
+            "model_picker_title": "Malli",
             "model_picker_description": "Tekoälymalli, jolla tämä agentti vastaa. Ylläpitäjä valitsee, mitkä mallit ovat tällä listalla (hallintapaneeli → Settings → AI models).",
             "model_placeholder": "Valitse malli",
+            "model_default": "Oletus",
             "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models.",
             "reasoning_title": "Päättely",
             "reasoning_description": "Kuinka paljon malli miettii ennen vastaamista. Enemmän miettimistä auttaa vaikeissa kysymyksissä, mutta vastaukset tulevat hitaammin ja maksavat enemmän. Keskustelijat näkevät päättelyn harmaana vastauksen yläpuolella.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "Ylläpitäjä on poistanut päättelyn käytöstä kaikilta agenteilta (hallintapaneeli → Asetukset → Tekoälymallit).",
             "model_no_tools": "Ei työkalukutsuja",
             "model_no_tools_title": "Tämä malli ei osaa kutsua työkaluja",
-            "model_no_tools_description": "Työkalut eivät toimi: agentti vastaa ilman niitä. Valitse toinen malli, jos agentti tarvitsee työkalujaan."
+            "model_no_tools_description": "Työkalut eivät toimi: agentti vastaa ilman niitä. Valitse toinen malli, jos agentti tarvitsee työkalujaan.",
+            "multi_model": "Monta mallia",
+            "multi_model_help": "Valitse useita malleja. Keskustelijat valitsevat sitten, mikä vastaa, isännöidyssä chatissa, chat-widgetissä ja komentopalkissa, jokaiselle viestille ja uutta vastausta pyytäessään.",
+            "multi_model_placeholder": "Valitse mallit",
+            "multi_model_hint": "Ensimmäinen malli vastaa, kunnes keskustelija valitsee toisen. Valitse vähintään kaksi, muuten keskustelijat eivät näe valitsinta."
         },
         "topics_index": {
             "title": "Aiheet",

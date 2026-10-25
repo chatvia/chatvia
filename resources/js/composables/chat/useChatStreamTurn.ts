@@ -37,6 +37,8 @@ interface StreamTurnDeps {
     conversationId: string;
     transcript: ChatMessages;
     scroll: ChatScroll;
+    /** The model the chatter picked (sent as `model_id`); null answers with the agent's own. */
+    modelId?: () => number | null;
 }
 
 /** Home sends the visitor here with `?new=1` right after creating the conversation. */
@@ -60,7 +62,7 @@ function newRequestId(): string {
     return window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-export function useChatStreamTurn({ conversationId, transcript, scroll }: StreamTurnDeps) {
+export function useChatStreamTurn({ conversationId, transcript, scroll, modelId = () => null }: StreamTurnDeps) {
     const { t } = useI18n();
     const bus = useChatEventBus();
     const stream = useChatStream();
@@ -97,12 +99,19 @@ export function useChatStreamTurn({ conversationId, transcript, scroll }: Stream
         streamingAssistantId.value = null;
         approvals.reset();
 
+        // The reply shows the logo of the model asked for (Multi-model); a
+        // reload reads the stored one.
+        const model = modelId();
+        const reply = transcript.messages.value[options.assistantIndex];
+        if (reply && model !== null) reply.llm_id = model;
+
         const payload = JSON.stringify({
             message: options.message,
             save_user_message_immediately: options.saveUserMessageImmediately ?? false,
             created_at: options.createdAt ?? null,
             request_id: requestId,
             attachments: options.attachments ?? [],
+            model_id: model,
         });
 
         stream.start(

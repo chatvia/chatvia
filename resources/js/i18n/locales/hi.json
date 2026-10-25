@@ -38,7 +38,10 @@
         "upload_limit_reached": "आप अधिकतम {count} फ़ाइल अटैच कर सकते हैं | आप अधिकतम {count} फ़ाइलें अटैच कर सकते हैं",
         "send_message": "संदेश भेजें",
         "stop_streaming": "जनरेट करना रोकें",
-        "start_voice_call": "आवाज़ से बात करें"
+        "start_voice_call": "आवाज़ से बात करें",
+        "model_picker": "मॉडल: {model}",
+        "model_picker_title": "इससे जवाब दें",
+        "model_default": "डिफ़ॉल्ट"
     },
     "header": {
         "toggle_sidebar": "साइडबार टॉगल करें",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "भेजें",
         "feedback_comment_skip": "छोड़ें",
         "feedback_comment_thanks": "आपकी प्रतिक्रिया के लिए धन्यवाद।",
+        "regenerate_try_again": "फिर से कोशिश करें",
+        "regenerate_with_model": "इससे फिर से कोशिश करें",
+        "answered_by": "{model} ने जवाब दिया",
         "read_aloud": "ज़ोर से पढ़ें",
         "stop_reading": "पढ़ना रोकें",
         "read_aloud_loading": "ऑडियो तैयार हो रहा है…",
@@ -2077,8 +2083,10 @@
             "bubbles_remove": "बबल हटाएं",
             "bubbles_empty": "अभी तक कोई चैट बबल नहीं।",
             "bubbles_translate_empty": "अनुवाद करने के लिए पहले एक बबल जोड़ें।",
+            "model_picker_title": "मॉडल",
             "model_picker_description": "वह AI मॉडल जिससे यह एजेंट उत्तर देता है। एडमिन तय करता है कि इस सूची में कौन-से मॉडल हों (एडमिन पैनल → Settings → AI models)।",
             "model_placeholder": "मॉडल चुनें",
+            "model_default": "डिफ़ॉल्ट",
             "model_empty": "अभी कोई मॉडल नहीं। एडमिन इन्हें एडमिन पैनल में Settings → AI models के अंतर्गत जोड़ता है।",
             "reasoning_title": "तर्क",
             "reasoning_description": "जवाब देने से पहले मॉडल कितना सोचे। ज़्यादा सोचने से कठिन सवालों में मदद मिलती है, लेकिन जवाब धीमे आते हैं और ज़्यादा महँगे होते हैं। चैट करने वाले जवाब के ऊपर तर्क को धूसर रंग में देखते हैं।",
@@ -2089,7 +2097,11 @@
             "reasoning_locked": "आपके एडमिन ने सभी एजेंट के लिए तर्क बंद कर दिया है (एडमिन पैनल → सेटिंग्स → AI मॉडल)।",
             "model_no_tools": "टूल कॉल नहीं",
             "model_no_tools_title": "यह मॉडल टूल कॉल नहीं कर सकता",
-            "model_no_tools_description": "टूल काम नहीं करेंगे: एजेंट उनके बिना जवाब देगा। अगर एजेंट को अपने टूल चाहिए, तो कोई दूसरा मॉडल चुनें।"
+            "model_no_tools_description": "टूल काम नहीं करेंगे: एजेंट उनके बिना जवाब देगा। अगर एजेंट को अपने टूल चाहिए, तो कोई दूसरा मॉडल चुनें।",
+            "multi_model": "मल्टी-मॉडल",
+            "multi_model_help": "कई मॉडल चुनें। फिर चैटर्स होस्टेड चैट, चैट विजेट और कमांड बार में हर संदेश और नए जवाब के लिए चुनते हैं कि कौन सा मॉडल जवाब दे।",
+            "multi_model_placeholder": "मॉडल चुनें",
+            "multi_model_hint": "पहला मॉडल तब तक जवाब देता है जब तक चैटर कोई दूसरा न चुने। कम से कम दो चुनें, वरना चैटर्स को चयनकर्ता नहीं दिखेगा।"
         },
         "topics_index": {
             "title": "विषय",

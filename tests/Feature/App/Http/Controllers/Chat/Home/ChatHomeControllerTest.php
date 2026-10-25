@@ -8,7 +8,8 @@ use Inertia\Testing\AssertableInertia as Assert;
  * The hosted chat page gets from the server which composer features to show,
  * so it never offers what the server would refuse: uploads only with a model
  * that reads PDFs, voice calls and dictation only while they are set up and
- * on for the agent, and the visitor language switcher with the owner's list.
+ * on for the agent, the visitor language switcher with the owner's list, and
+ * the models the chatter may pick while Multi-model is on.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
@@ -71,4 +72,19 @@ it('tells the chat page which composer features to show', function (Closure $arr
     'languages, picked by the owner' => [function (Agent $agent): void {
         $agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
     }, 'enabledLanguages', ['de', 'fr']],
+]);
+
+it('lists the models the chatter may pick only while Multi-model is on', function (bool $admin, int $count): void {
+    $own = testLlm('own-model');
+    $other = testLlm('other-model');
+    $this->agent->forceFill(['llm_id' => $own->id])->saveQuietly();
+    config(['chatvia.ai.chatter_model_choice' => $admin]);
+    $this->agent->setSetting('enabled', true, 'model_choice');
+    $this->agent->setSetting('models', [$other->id], 'model_choice');
+
+    $this->get('/chat/'.$this->agent->slug)
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->has('models', $count));
+})->with([
+    'admin allows it' => [true, 2],
+    'admin does not' => [false, 0],
 ]);

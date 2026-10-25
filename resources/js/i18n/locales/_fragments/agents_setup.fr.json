@@ -114,6 +114,10 @@
             "model_no_tools": "Pas d'appel d'outils",
             "model_no_tools_title": "Ce modèle ne peut pas appeler d'outils",
             "model_no_tools_description": "Les outils ne fonctionneront pas : l'agent répond sans eux. Choisissez un autre modèle si l'agent a besoin de ses outils.",
+            "multi_model": "Multi-modèle",
+            "multi_model_help": "Choisissez plusieurs modèles. Les utilisateurs choisissent alors lequel répond, dans le chat hébergé, le widget de chat et la barre de commande, pour chaque message et quand ils demandent une nouvelle réponse.",
+            "multi_model_placeholder": "Choisir des modèles",
+            "multi_model_hint": "Le premier modèle répond tant qu'un utilisateur n'en choisit pas un autre. Choisissez-en au moins deux, sinon les utilisateurs ne voient pas de sélecteur.",
             "behavior": {
                 "hosted_title": "Comportement du chat hébergé",
                 "hosted_description": "Options d'iframe pour la surface de chat hébergé intégrée.",

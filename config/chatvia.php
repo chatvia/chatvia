@@ -341,6 +341,10 @@ return [
             'enabled' => false,
         ],
 
+        // Whether agents may let chatters pick the model of each message
+        // (Settings → AI models). Off: every agent answers with its own model.
+        'chatter_model_choice' => false,
+
         'document_parser' => 'auto',
         'reranker' => 'auto',
         'rerank' => [

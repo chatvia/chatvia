@@ -167,6 +167,13 @@ return [
             'reasoning' => [
                 'effort' => 'off',
             ],
+            // The models chatters may pick from besides the agent's own
+            // (llms ids), saved with the model (UpdateAgentLlmAction), used
+            // only while the admin lets agents offer a choice (AgentModel).
+            'model_choice' => [
+                'enabled' => false,
+                'models' => [],
+            ],
             // Per-agent data & insight switches (Setup → Settings).
             //  - chatlog: master switch for persisting conversations, on by
             //    default. Off stops StoreMessageJob, so nothing is logged — and

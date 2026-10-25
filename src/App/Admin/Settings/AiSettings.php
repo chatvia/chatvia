@@ -118,6 +118,9 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.reasoning.enabled')]
     public ?bool $allow_reasoning = null;
 
+    #[ConfigKey('chatvia.ai.chatter_model_choice')]
+    public ?bool $chatter_model_choice = null;
+
     #[ConfigKey('services.scalewayai.embedding_model')]
     public ?string $scaleway_embedding_model = null;
 

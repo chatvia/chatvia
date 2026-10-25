@@ -114,6 +114,10 @@
             "model_no_tools": "Ingen verktøykall",
             "model_no_tools_title": "Denne modellen kan ikke kalle verktøy",
             "model_no_tools_description": "Verktøy vil ikke fungere: agenten svarer uten dem. Velg en annen modell hvis agenten trenger verktøyene sine.",
+            "multi_model": "Flere modeller",
+            "multi_model_help": "Velg flere modeller. Chattere velger da hvilken som svarer, i den hostede chatten, chat-widgeten og kommandolinjen, for hver melding og når de ber om et nytt svar.",
+            "multi_model_placeholder": "Velg modeller",
+            "multi_model_hint": "Den første modellen svarer til en chatter velger en annen. Velg minst to, ellers ser chattere ingen velger.",
             "behavior": {
                 "hosted_title": "Atferd for Hosted Chat",
                 "hosted_description": "Iframe-innstillinger for den innebygde Hosted Chat-flaten.",

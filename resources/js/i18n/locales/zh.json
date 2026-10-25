@@ -38,7 +38,10 @@
         "upload_limit_reached": "最多可附加 {count} 个文件 | 最多可附加 {count} 个文件",
         "send_message": "发送消息",
         "stop_streaming": "停止生成",
-        "start_voice_call": "用语音交谈"
+        "start_voice_call": "用语音交谈",
+        "model_picker": "模型：{model}",
+        "model_picker_title": "回答模型",
+        "model_default": "默认"
     },
     "header": {
         "toggle_sidebar": "切换侧边栏",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "发送",
         "feedback_comment_skip": "跳过",
         "feedback_comment_thanks": "感谢你的反馈。",
+        "regenerate_try_again": "重试",
+        "regenerate_with_model": "换个模型重试",
+        "answered_by": "由 {model} 回答",
         "read_aloud": "朗读",
         "stop_reading": "停止朗读",
         "read_aloud_loading": "正在准备音频…",
@@ -2077,8 +2083,10 @@
             "bubbles_remove": "移除气泡",
             "bubbles_empty": "暂无聊天气泡。",
             "bubbles_translate_empty": "请先添加气泡，然后再进行翻译。",
+            "model_picker_title": "模型",
             "model_picker_description": "此智能体用来回答的 AI 模型。由管理员决定这个列表中有哪些模型（管理面板 → Settings → AI models）。",
             "model_placeholder": "选择模型",
+            "model_default": "默认",
             "model_empty": "暂无模型。管理员可在管理面板的 Settings → AI models 中添加。",
             "reasoning_title": "推理",
             "reasoning_description": "模型在回答前思考的程度。思考得越多，越能处理难题，但回答会更慢，费用也更高。聊天用户会在回答上方看到灰色的推理过程。",
@@ -2089,7 +2097,11 @@
             "reasoning_locked": "管理员已为所有智能体关闭推理(管理面板 → 设置 → AI 模型)。",
             "model_no_tools": "不支持工具调用",
             "model_no_tools_title": "此模型无法调用工具",
-            "model_no_tools_description": "工具将无法使用：智能体会在不使用工具的情况下回答。如果智能体需要工具，请选择其他模型。"
+            "model_no_tools_description": "工具将无法使用：智能体会在不使用工具的情况下回答。如果智能体需要工具，请选择其他模型。",
+            "multi_model": "多模型",
+            "multi_model_help": "选择多个模型。聊天用户随后可以在托管聊天、聊天小组件和命令栏中，为每条消息以及重新生成回答时选择由哪个模型回答。",
+            "multi_model_placeholder": "选择模型",
+            "multi_model_hint": "在聊天用户选择其他模型之前，由第一个模型回答。请至少选择两个，否则聊天用户看不到选择器。"
         },
         "topics_index": {
             "title": "主题",

@@ -131,6 +131,10 @@
             "model_no_tools": "No tool calling",
             "model_no_tools_title": "This model cannot call tools",
             "model_no_tools_description": "Tools will not work: the agent answers without them. Pick another model if the agent needs its tools.",
+            "multi_model": "Multi-model",
+            "multi_model_help": "Pick several models. Chatters then choose which one answers, in the hosted chat, the chat widget and the command bar, for each message and when they ask for a new answer.",
+            "multi_model_placeholder": "Choose models",
+            "multi_model_hint": "The first model answers until a chatter picks another. Pick at least two, or chatters see no picker.",
             "behavior": {
                 "hosted_title": "Hosted Chat behaviour",
                 "hosted_description": "Iframe options for the embedded Hosted Chat surface.",

@@ -9,7 +9,8 @@ use Spatie\LaravelData\Data;
 
 /**
  * The model an agent answers with (its catalog id) and the generation
- * settings to store with it, including how hard it reasons.
+ * settings to store with it, including how hard it reasons, and the other
+ * models chatters may pick from while the choice is on.
  */
 class UpdateAgentLlmData extends Data
 {
@@ -21,5 +22,8 @@ class UpdateAgentLlmData extends Data
         public float $presence_penalty,
         public float $frequency_penalty,
         public ReasoningEffort $reasoning_effort = ReasoningEffort::Off,
+        public bool $model_choice_enabled = false,
+        /** @var list<int> */
+        public array $offered_model_ids = [],
     ) {}
 }

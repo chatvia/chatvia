@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "モデル: {model}",
+        "model_picker_title": "回答に使うモデル",
+        "model_default": "デフォルト"
+    },
+    "messages": {
+        "regenerate_try_again": "もう一度試す",
+        "regenerate_with_model": "別のモデルで再試行",
+        "answered_by": "{model} が回答"
+    }
+}

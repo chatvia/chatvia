@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /**
- * The chat composer: a growing textarea with file upload, voice input, the
- * voice-conversation button and a send/stop button. Used by the hosted chat's Home and Chat pages; the page
+ * The chat composer: a growing textarea with file upload, the model picker
+ * (when the agent offers a choice), voice input, the voice-conversation
+ * button and a send/stop button. Used by the hosted chat's Home and Chat pages; the page
  * decides where uploads go and what happens with the sent message.
  */
+import ChatModelPicker from '@/components/chat/ChatModelPicker.vue';
 import ComposerAttachmentChips from '@/components/chat/ComposerAttachmentChips.vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -260,8 +262,9 @@ async function toggleRecording() {
                         rows="1"
                     />
 
-                    <!-- Right: voice + send/stop. -->
+                    <!-- Right: model picker (when the agent offers a choice), voice + send/stop. -->
                     <div class="flex items-center gap-1">
+                        <ChatModelPicker :disabled="disabled || isThinking" />
                         <!-- Voice recording button — hidden when the agent disables voice. -->
                         <Tooltip v-if="allowVoiceInput && isVoiceSupported && !isThinking && !disabled">
                             <TooltipTrigger as-child>

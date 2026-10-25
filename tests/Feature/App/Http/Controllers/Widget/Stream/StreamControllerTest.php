@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Responses\SseResponder;
 use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Support\Str;
+use Tests\Support\Http\BufferedSseResponder;
+use Tests\Support\Llm\ScriptedLlmProvider;
 use Tests\Support\Widget\EmbeddedWidget;
 
 /**
@@ -14,7 +17,8 @@ use Tests\Support\Widget\EmbeddedWidget;
  * (as JSON, even when the widget does not ask for it), and refuses a session
  * that is not the caller's:
  * one of another agent, or, on a protected agent, one of another signed-in
- * chatter. The turn itself is covered by the ChatStreamService tests.
+ * chatter. It answers with the model the chatter picked when the agent
+ * offers it. The turn itself is covered by the ChatStreamService tests.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
@@ -87,4 +91,27 @@ it('refuses to stream on the session of another chatter of a protected agent', f
         ->assertForbidden();
 
     expect(Message::query()->count())->toBe($messagesBefore);
+});
+
+it('answers with the model the chatter picked when the agent offers it', function (): void {
+    $own = testLlm('own-model');
+    $offered = testLlm('offered-model');
+    $this->agent->forceFill(['llm_id' => $own->id])->saveQuietly();
+    config(['chatvia.ai.chatter_model_choice' => true]);
+    $this->agent->setSetting('enabled', true, 'model_choice');
+    $this->agent->setSetting('models', [$offered->id], 'model_choice');
+    $llm = ScriptedLlmProvider::answering('The answer.');
+    bindFakeLlmProvider($llm);
+    app()->instance(SseResponder::class, new BufferedSseResponder);
+    $boot = EmbeddedWidget::boot($this->agent);
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
+        WidgetHeaders::SESSION_ID => $boot['session_id'],
+        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
+    ]))
+        ->post('/widget/stream', ['content' => 'Hello', 'model_id' => $offered->id], ['Accept' => 'text/event-stream'])
+        ->assertOk()
+        ->streamedContent();
+
+    expect($llm->sentModels)->toBe(['offered-model']);
 });

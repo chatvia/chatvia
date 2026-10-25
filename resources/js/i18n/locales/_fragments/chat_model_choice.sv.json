@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "Modell: {model}",
+        "model_picker_title": "Svara med",
+        "model_default": "Standard"
+    },
+    "messages": {
+        "regenerate_try_again": "Försök igen",
+        "regenerate_with_model": "Försök igen med",
+        "answered_by": "Besvarat av {model}"
+    }
+}

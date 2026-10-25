@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "النموذج: {model}",
+        "model_picker_title": "أجب باستخدام",
+        "model_default": "افتراضي"
+    },
+    "messages": {
+        "regenerate_try_again": "حاول مرة أخرى",
+        "regenerate_with_model": "حاول مرة أخرى باستخدام",
+        "answered_by": "أجاب {model}"
+    }
+}

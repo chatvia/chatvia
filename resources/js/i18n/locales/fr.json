@@ -38,7 +38,10 @@
         "upload_limit_reached": "Vous pouvez joindre jusqu'à {count} fichier | Vous pouvez joindre jusqu'à {count} fichiers",
         "send_message": "Envoyer le message",
         "stop_streaming": "Arrêter la génération",
-        "start_voice_call": "Parler à voix haute"
+        "start_voice_call": "Parler à voix haute",
+        "model_picker": "Modèle : {model}",
+        "model_picker_title": "Répondre avec",
+        "model_default": "Par défaut"
     },
     "header": {
         "toggle_sidebar": "Afficher/masquer le panneau latéral",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Envoyer",
         "feedback_comment_skip": "Passer",
         "feedback_comment_thanks": "Merci pour votre retour.",
+        "regenerate_try_again": "Réessayer",
+        "regenerate_with_model": "Réessayer avec",
+        "answered_by": "Répondu par {model}",
         "read_aloud": "Lire à voix haute",
         "stop_reading": "Arrêter la lecture",
         "read_aloud_loading": "Préparation de l’audio…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Supprimer la bulle",
             "bubbles_empty": "Aucune bulle de chat pour l'instant.",
             "bubbles_translate_empty": "Ajoutez d'abord une bulle pour pouvoir la traduire.",
+            "model_picker_title": "Modèle",
             "model_picker_description": "Le modèle d'IA avec lequel cet agent répond. Un administrateur choisit les modèles de cette liste (panneau d'administration → Settings → AI models).",
             "model_placeholder": "Choisir un modèle",
+            "model_default": "Par défaut",
             "model_empty": "Aucun modèle pour l'instant. Un administrateur les ajoute dans le panneau d'administration, sous Settings → AI models.",
             "reasoning_title": "Raisonnement",
             "reasoning_description": "À quel point le modèle réfléchit avant de répondre. Plus de réflexion aide pour les questions difficiles, mais les réponses arrivent plus lentement et coûtent plus cher. Les utilisateurs voient le raisonnement en gris au-dessus de la réponse.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "Votre administrateur a désactivé le raisonnement pour tous les agents (panneau d'administration → Paramètres → Modèles d'IA).",
             "model_no_tools": "Pas d'appel d'outils",
             "model_no_tools_title": "Ce modèle ne peut pas appeler d'outils",
-            "model_no_tools_description": "Les outils ne fonctionneront pas : l'agent répond sans eux. Choisissez un autre modèle si l'agent a besoin de ses outils."
+            "model_no_tools_description": "Les outils ne fonctionneront pas : l'agent répond sans eux. Choisissez un autre modèle si l'agent a besoin de ses outils.",
+            "multi_model": "Multi-modèle",
+            "multi_model_help": "Choisissez plusieurs modèles. Les utilisateurs choisissent alors lequel répond, dans le chat hébergé, le widget de chat et la barre de commande, pour chaque message et quand ils demandent une nouvelle réponse.",
+            "multi_model_placeholder": "Choisir des modèles",
+            "multi_model_hint": "Le premier modèle répond tant qu'un utilisateur n'en choisit pas un autre. Choisissez-en au moins deux, sinon les utilisateurs ne voient pas de sélecteur."
         },
         "topics_index": {
             "title": "Sujets",

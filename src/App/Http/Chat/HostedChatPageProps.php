@@ -3,6 +3,7 @@
 namespace App\Http\Chat;
 
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\OfferedModels;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Llm\Contracts\Transcriber;
@@ -21,6 +22,7 @@ final readonly class HostedChatPageProps
         private VoiceAvailability $voice,
         private Transcriber $transcriber,
         private ReadAloudAvailability $readAloud,
+        private OfferedModels $offeredModels,
     ) {}
 
     /**
@@ -52,6 +54,8 @@ final readonly class HostedChatPageProps
             // The speaker button on replies: on for the agent and set up on
             // this install.
             'readAloud' => $agent instanceof Agent && $this->readAloud->isOnFor($agent),
+            // The models the chatter may pick from; empty hides the picker.
+            'models' => $agent instanceof Agent ? $this->offeredModels->for($agent) : [],
             'removeSidebar' => $embed?->get('remove_sidebar'),
             'hideSidebarOnPageLoad' => $embed?->get('hide_sidebar_on_page_load'),
             'enableThemeSwitcher' => $embed?->get('enable_theme_switcher'),

@@ -38,7 +38,10 @@
         "upload_limit_reached": "Sie können bis zu {count} Datei anhängen | Sie können bis zu {count} Dateien anhängen",
         "send_message": "Nachricht senden",
         "stop_streaming": "Generierung stoppen",
-        "start_voice_call": "Per Sprache sprechen"
+        "start_voice_call": "Per Sprache sprechen",
+        "model_picker": "Modell: {model}",
+        "model_picker_title": "Antworten mit",
+        "model_default": "Standard"
     },
     "header": {
         "toggle_sidebar": "Seitenleiste umschalten",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Senden",
         "feedback_comment_skip": "Überspringen",
         "feedback_comment_thanks": "Danke für dein Feedback.",
+        "regenerate_try_again": "Erneut versuchen",
+        "regenerate_with_model": "Erneut versuchen mit",
+        "answered_by": "Beantwortet von {model}",
         "read_aloud": "Vorlesen",
         "stop_reading": "Vorlesen beenden",
         "read_aloud_loading": "Audio wird vorbereitet…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Chat-Blase entfernen",
             "bubbles_empty": "Noch keine Chat-Blasen vorhanden.",
             "bubbles_translate_empty": "Fügen Sie zuerst eine Chat-Blase hinzu, um sie zu übersetzen.",
+            "model_picker_title": "Modell",
             "model_picker_description": "Das KI-Modell, mit dem dieser Agent antwortet. Ein Admin legt fest, welche Modelle in dieser Liste stehen (Admin-Bereich → Settings → AI models).",
             "model_placeholder": "Modell wählen",
+            "model_default": "Standard",
             "model_empty": "Noch keine Modelle. Ein Admin fügt sie im Admin-Bereich unter Settings → AI models hinzu.",
             "reasoning_title": "Überlegungen",
             "reasoning_description": "Wie gründlich das Modell nachdenkt, bevor es antwortet. Mehr Nachdenken hilft bei schwierigen Fragen, aber die Antworten kommen langsamer und kosten mehr. Chatter sehen die Überlegungen in Grau über der Antwort.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "Dein Admin hat die Überlegungen für alle Agenten ausgeschaltet (Admin-Bereich → Einstellungen → KI-Modelle).",
             "model_no_tools": "Keine Tool-Aufrufe",
             "model_no_tools_title": "Dieses Modell kann keine Tools aufrufen",
-            "model_no_tools_description": "Tools funktionieren nicht: Der Agent antwortet ohne sie. Wählen Sie ein anderes Modell, wenn der Agent seine Tools braucht."
+            "model_no_tools_description": "Tools funktionieren nicht: Der Agent antwortet ohne sie. Wählen Sie ein anderes Modell, wenn der Agent seine Tools braucht.",
+            "multi_model": "Mehrere Modelle",
+            "multi_model_help": "Wähle mehrere Modelle. Chatter wählen dann, welches antwortet, im gehosteten Chat, im Chat-Widget und in der Befehlsleiste, für jede Nachricht und wenn sie eine neue Antwort anfordern.",
+            "multi_model_placeholder": "Modelle wählen",
+            "multi_model_hint": "Das erste Modell antwortet, bis ein Chatter ein anderes wählt. Wähle mindestens zwei, sonst sehen Chatter keine Auswahl."
         },
         "topics_index": {
             "title": "Themen",

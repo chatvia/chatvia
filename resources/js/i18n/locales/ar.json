@@ -38,7 +38,10 @@
         "upload_limit_reached": "يمكنك إرفاق {count} ملف | يمكنك إرفاق {count} ملفات",
         "send_message": "إرسال الرسالة",
         "stop_streaming": "إيقاف التوليد",
-        "start_voice_call": "تحدث بالصوت"
+        "start_voice_call": "تحدث بالصوت",
+        "model_picker": "النموذج: {model}",
+        "model_picker_title": "أجب باستخدام",
+        "model_default": "افتراضي"
     },
     "header": {
         "toggle_sidebar": "إظهار/إخفاء الشريط الجانبي",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "إرسال",
         "feedback_comment_skip": "تخطٍّ",
         "feedback_comment_thanks": "شكرًا على ملاحظاتك.",
+        "regenerate_try_again": "حاول مرة أخرى",
+        "regenerate_with_model": "حاول مرة أخرى باستخدام",
+        "answered_by": "أجاب {model}",
         "read_aloud": "قراءة بصوت عالٍ",
         "stop_reading": "إيقاف القراءة",
         "read_aloud_loading": "جارٍ تجهيز الصوت…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "إزالة الفقاعة",
             "bubbles_empty": "لا توجد فقاعات دردشة بعد.",
             "bubbles_translate_empty": "أضف فقاعة أولًا لترجمتها.",
+            "model_picker_title": "النموذج",
             "model_picker_description": "نموذج الذكاء الاصطناعي الذي يجيب به هذا الوكيل. يختار المسؤول النماذج الموجودة في هذه القائمة (لوحة الإدارة ← Settings → AI models).",
             "model_placeholder": "اختر نموذجًا",
+            "model_default": "افتراضي",
             "model_empty": "لا توجد نماذج بعد. يضيفها المسؤول في لوحة الإدارة، ضمن Settings → AI models.",
             "reasoning_title": "التفكير",
             "reasoning_description": "مدى تفكير النموذج قبل أن يجيب. التفكير الأكثر يساعد في الأسئلة الصعبة، لكن الإجابات تأتي أبطأ وتكلف أكثر. يرى المحادثون التفكير باللون الرمادي فوق الإجابة.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "أوقف المسؤول التفكير لجميع الوكلاء (لوحة الإدارة ← الإعدادات ← نماذج الذكاء الاصطناعي).",
             "model_no_tools": "لا يستدعي الأدوات",
             "model_no_tools_title": "لا يستطيع هذا النموذج استدعاء الأدوات",
-            "model_no_tools_description": "لن تعمل الأدوات: سيجيب الوكيل بدونها. اختر نموذجًا آخر إذا كان الوكيل يحتاج إلى أدواته."
+            "model_no_tools_description": "لن تعمل الأدوات: سيجيب الوكيل بدونها. اختر نموذجًا آخر إذا كان الوكيل يحتاج إلى أدواته.",
+            "multi_model": "تعدد النماذج",
+            "multi_model_help": "اختر عدة نماذج. يختار المحادثون بعد ذلك النموذج الذي يجيب، في الدردشة المستضافة وأداة الدردشة وشريط الأوامر، لكل رسالة وعند طلب إجابة جديدة.",
+            "multi_model_placeholder": "اختر النماذج",
+            "multi_model_hint": "يجيب النموذج الأول حتى يختار المحادث نموذجاً آخر. اختر نموذجين على الأقل، وإلا فلن يرى المحادثون أداة الاختيار."
         },
         "topics_index": {
             "title": "المواضيع",

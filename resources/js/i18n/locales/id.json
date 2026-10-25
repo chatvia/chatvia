@@ -38,7 +38,10 @@
         "upload_limit_reached": "Anda dapat melampirkan hingga {count} berkas | Anda dapat melampirkan hingga {count} berkas",
         "send_message": "Kirim pesan",
         "stop_streaming": "Hentikan pembuatan",
-        "start_voice_call": "Bicara dengan suara"
+        "start_voice_call": "Bicara dengan suara",
+        "model_picker": "Model: {model}",
+        "model_picker_title": "Jawab dengan",
+        "model_default": "Bawaan"
     },
     "header": {
         "toggle_sidebar": "Alihkan sidebar",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Kirim",
         "feedback_comment_skip": "Lewati",
         "feedback_comment_thanks": "Terima kasih atas masukan Anda.",
+        "regenerate_try_again": "Coba lagi",
+        "regenerate_with_model": "Coba lagi dengan",
+        "answered_by": "Dijawab oleh {model}",
         "read_aloud": "Bacakan",
         "stop_reading": "Berhenti membaca",
         "read_aloud_loading": "Menyiapkan audio…",
@@ -2077,8 +2083,10 @@
             "bubbles_remove": "Hapus gelembung",
             "bubbles_empty": "Belum ada gelembung obrolan.",
             "bubbles_translate_empty": "Tambahkan gelembung terlebih dahulu untuk menerjemahkannya.",
+            "model_picker_title": "Model",
             "model_picker_description": "Model AI yang dipakai agen ini untuk menjawab. Admin memilih model mana yang ada di daftar ini (panel admin → Settings → AI models).",
             "model_placeholder": "Pilih model",
+            "model_default": "Bawaan",
             "model_empty": "Belum ada model. Admin menambahkannya di panel admin, di Settings → AI models.",
             "reasoning_title": "Penalaran",
             "reasoning_description": "Seberapa keras model berpikir sebelum menjawab. Berpikir lebih banyak membantu untuk pertanyaan sulit, tetapi jawaban datang lebih lambat dan biayanya lebih tinggi. Pengguna chat melihat penalaran berwarna abu-abu di atas jawaban.",
@@ -2089,7 +2097,11 @@
             "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI).",
             "model_no_tools": "Tanpa pemanggilan alat",
             "model_no_tools_title": "Model ini tidak dapat memanggil alat",
-            "model_no_tools_description": "Alat tidak akan berfungsi: agen menjawab tanpa alat. Pilih model lain jika agen membutuhkan alatnya."
+            "model_no_tools_description": "Alat tidak akan berfungsi: agen menjawab tanpa alat. Pilih model lain jika agen membutuhkan alatnya.",
+            "multi_model": "Multi-model",
+            "multi_model_help": "Pilih beberapa model. Pengguna chat lalu memilih model yang menjawab, di chat yang di-host, widget chat, dan bilah perintah, untuk setiap pesan dan saat meminta jawaban baru.",
+            "multi_model_placeholder": "Pilih model",
+            "multi_model_hint": "Model pertama menjawab sampai pengguna chat memilih yang lain. Pilih setidaknya dua, atau pengguna chat tidak melihat pemilih."
         },
         "topics_index": {
             "title": "Topik",

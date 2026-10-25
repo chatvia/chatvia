@@ -168,6 +168,7 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
 | `EVAL_CHANNEL_WEIGHTS` | extra scoreboards on the same chunks, one per weight set: `vector,question,keyword`, sets split by `;` (e.g. `1,1,1;1,0.5,1`). Measures a fusion change without touching the search; use with `EVAL_RERANKER=none` |
 | `EVAL_ENRICH_WITHOUT` | with `EVAL_ENRICH`: `summary` embeds and indexes each chunk without its summary, `questions` drops the generated questions (the question channels go quiet) |
+| `EVAL_SPLIT` | `1` = also split each question into the separate questions it asks (with the chat model) and rerank each part on its own; prints today's check next to it. Needs a reranker |
 | `EVAL_RERANKER` | the reranker driver of this run; `none` measures an install without one (the similarity check instead) |
 | `EVAL_SIMILARITY_THRESHOLD` | the similarity bar without a reranker; only Qwen3 on Scaleway ships one (0.35), so give it when the same model runs through OpenRouter |
 | `EVAL_CHAT_MODEL` / `EVAL_CHAT_PROVIDER` | the chat model for the app's own tasks (enhancement, follow-up rewrites) for one run, e.g. `google/gemma-4-26b-a4b-it` on `openrouter` (the default provider). Unset, the testing catalog's Scaleway model runs, and without a Scaleway key the follow-up rewrite quietly keeps the question as it is |
@@ -234,6 +235,14 @@ What it says:
   90.9% of questions with every fact), because it scores each chunk against
   the whole two-part question. It is better on global questions (50% against
   25%), where many chunks each match a little.
+- Splitting compound questions does not win that back (`EVAL_SPLIT=1`,
+  reranker at 0.75): the model split 13 of the 22 multi-hop questions and
+  none of the others, but reranking each part on its own and taking turns
+  gave 77.3% of multi-hop questions every fact, against 81.8% today, with
+  everything else the same. Half of these questions are bridges ("when is
+  *that* shop open?"): the second part means nothing without the answer to
+  the first, so a split cannot rank it, and the other nine are one question
+  that needs two facts, which no split changes.
 - Search misses left: "Apple Pay in the Riyadh store" (an English question
   for an Arabic chunk, rank 23 to 24) and pegging a tent in sand (an English
   question for an Arabic tip, not among the candidates). Cross-language

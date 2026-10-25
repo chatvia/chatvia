@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Enums\ChatDeletionMode;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
 use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
+use Domain\Conversation\Actions\Removal\DeleteConversationAction;
+use Domain\Conversation\Actions\Removal\DeleteSessionConversationsAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
@@ -16,10 +19,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * The widget's "clear chat" (one conversation, named by X-CONVERSATION-ID) and
- * "clear all" (no conversation header). This is a view reset, not erasure: the
- * conversation stays in the customer's chat log. Only the owner/admin delete
- * path (AdminDeleteConversationAction) erases content.
+ * The widget's "remove chat" (one conversation, named by X-CONVERSATION-ID) and
+ * "remove all" (no conversation header). The agent's ChatDeletionMode decides
+ * what that means: `end` refuses (the visitor can only start a new chat), `hide`
+ * is a view reset that keeps the conversation in the customer's chat log, and
+ * `delete` erases it as the owner's delete does.
  */
 class ConversationDeleteController
 {
@@ -31,11 +35,21 @@ class ConversationDeleteController
         WidgetVerification $widgetVerification,
         ClearConversationForVisitorAction $clearConversation,
         ClearSessionConversationsForVisitorAction $clearSession,
+        DeleteConversationAction $deleteConversation,
+        DeleteSessionConversationsAction $deleteSession,
     ): JsonResponse|WidgetAckData {
         $sessionId = $this->widgetSessionId($request);
 
         if ($sessionId === null) {
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // The widget hides the action in this mode; a direct call is refused
+        // here, so the owner's choice to keep every chat holds.
+        $mode = $agent->chatDeletionMode();
+
+        if ($mode === ChatDeletionMode::End) {
+            return response()->json(['error' => 'Removing chats is turned off'], JsonResponse::HTTP_FORBIDDEN);
         }
 
         $viewer = $this->widgetViewer($request);
@@ -51,7 +65,9 @@ class ConversationDeleteController
         $scope = new ChatScopeData($agent, $sessionId);
 
         if ($conversationId === null) {
-            $clearSession->execute($scope);
+            $mode === ChatDeletionMode::Delete
+                ? $deleteSession->execute($scope, Conversation::DELETED_BY_VISITOR)
+                : $clearSession->execute($scope);
 
             return new WidgetAckData;
         }
@@ -63,7 +79,9 @@ class ConversationDeleteController
             return response()->json(['error' => 'Invalid thread'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $clearConversation->execute($scope->forConversation($conversationId));
+        $mode === ChatDeletionMode::Delete
+            ? $deleteConversation->execute($scope->forConversation($conversationId), Conversation::DELETED_BY_VISITOR)
+            : $clearConversation->execute($scope->forConversation($conversationId));
 
         return new WidgetAckData;
     }

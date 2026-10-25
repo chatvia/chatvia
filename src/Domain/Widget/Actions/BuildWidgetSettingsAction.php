@@ -97,6 +97,7 @@ class BuildWidgetSettingsAction
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             sources_display: $agent->sourcesDisplay(),
             handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
+            chat_deletion_mode: $agent->chatDeletionMode(),
             ai_disclosure: (bool) config('chatvia.widget.ai_disclosure', true),
             // Uploads need a model that reads files; it decides the types.
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->fileModel->isAvailable(),

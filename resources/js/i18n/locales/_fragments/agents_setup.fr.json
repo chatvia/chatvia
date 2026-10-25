@@ -136,6 +136,10 @@
                 "theme": "Thème",
                 "live_chat": "Chat en direct",
                 "live_chat_hint": "Permettre aux visiteurs de passer à un agent humain. Fonctionne uniquement sur le widget de site web.",
+                "chat_deletion": "Suppression des chats",
+                "chat_deletion_hint_end": "Les visiteurs peuvent terminer un chat et en commencer un nouveau. Chaque chat reste dans leur historique et dans votre journal des chats.",
+                "chat_deletion_hint_hide": "Les visiteurs peuvent retirer des chats de leur propre historique. Vous les conservez dans votre journal des chats.",
+                "chat_deletion_hint_delete": "Les visiteurs peuvent supprimer des chats. Ils sont effacés de leur historique et de votre journal des chats, sans possibilité de récupération.",
                 "open_on_load": "Ouvrir automatiquement au chargement de la page",
                 "delay_ms": "Délai (ms)",
                 "allowed_sites": "Sites autorisés",
@@ -204,7 +208,10 @@
                 "placement_top": "Centré en haut",
                 "placement_top_right": "En haut à droite",
                 "placement_bottom": "Centré en bas",
-                "placement_bottom_right": "En bas à droite"
+                "placement_bottom_right": "En bas à droite",
+                "chat_deletion_end": "Terminer le chat uniquement",
+                "chat_deletion_hide": "Retirer de l'historique du visiteur",
+                "chat_deletion_delete": "Supprimer définitivement"
             },
             "sections": {
                 "branding_color": "Thème de couleur",

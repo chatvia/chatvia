@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use Database\Factories\AgentFactory;
 use Domain\Agent\Concerns\HasSettings;
+use Domain\Agent\Enums\ChatDeletionMode;
 use Domain\Agent\Enums\SourcesDisplay;
 use Domain\Agent\Events\AgentToolsChanged;
 use Domain\Agent\Observers\AgentObserver;
@@ -296,6 +297,15 @@ class Agent extends Model
     public function handoffEnabled(): bool
     {
         return (bool) $this->settings('widget')->get('handoff_enabled', true);
+    }
+
+    /**
+     * What a visitor's "remove this chat" does in the Chat Widget (Setup →
+     * Widget → Removing chats). Defaults to ending the chat, which keeps it.
+     */
+    public function chatDeletionMode(): ChatDeletionMode
+    {
+        return ChatDeletionMode::tryFrom((string) $this->settings('widget')->get('chat_deletion_mode')) ?? ChatDeletionMode::End;
     }
 
     /**

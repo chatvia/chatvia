@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Widget\Data\Settings;
 
 use Domain\Agent\Data\ModelChoice\OfferedModelData;
+use Domain\Agent\Enums\ChatDeletionMode;
 use Domain\Agent\Enums\SourcesDisplay;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -92,6 +93,11 @@ class WidgetSettingsData extends Data
         // widget hides the "Talk to a human" affordance when false. Already
         // ANDed with the workspace's handoff capability on the server.
         public bool $handoff_enabled,
+        // What the widget's "remove this chat" does: `end` (the widget offers
+        // only "End chat", which starts a new chat; DELETE is refused), `hide`
+        // (the chat leaves the visitor's history, the chat log keeps it) or
+        // `delete` (erased). The widget words its menu and dialogs to match.
+        public ChatDeletionMode $chat_deletion_mode,
         // Whether the header says "AI assistant" while the agent answers (EU
         // AI Act Art. 50). One switch for the whole install, in the admin
         // panel's Settings → Widget; "Human agent" shows either way.

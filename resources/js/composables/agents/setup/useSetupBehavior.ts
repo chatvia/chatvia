@@ -52,6 +52,7 @@ export function useSetupBehavior({ agentId, reloadPreview }: SetupSectionDeps, e
         language: widget.string('language', 'auto'),
         sites: widget.list<string>('sites'),
         handoff_enabled: widget.boolean('handoff_enabled', true),
+        chat_deletion_mode: widget.string('chat_deletion_mode', 'end'),
     });
     const isSavingWidget = ref(false);
     const saveWidget = (): void => saveGroup(widgetForm, 'widget', isSavingWidget, 'agents.setup.toasts.widget_saved');
@@ -123,7 +124,14 @@ export function useBehaviorOptions() {
         { value: 'dark', label: t('agents.setup.options.theme_dark') },
     ]);
 
-    return { triggerOptions, placementOptions, positionOptions, windowSizeOptions, themeOptions };
+    // What a visitor's "remove this chat" does (ChatDeletionMode).
+    const chatDeletionOptions = computed<SelectOption[]>(() => [
+        { value: 'end', label: t('agents.setup.options.chat_deletion_end') },
+        { value: 'hide', label: t('agents.setup.options.chat_deletion_hide') },
+        { value: 'delete', label: t('agents.setup.options.chat_deletion_delete') },
+    ]);
+
+    return { triggerOptions, placementOptions, positionOptions, windowSizeOptions, themeOptions, chatDeletionOptions };
 }
 
 /** A code → name language map as select options, in the map's order. */

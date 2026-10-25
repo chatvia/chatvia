@@ -7,7 +7,7 @@ use Tests\Support\Widget\EmbeddedWidget;
 /**
  * The widget's settings tell it which voice features to show: the dictation
  * mic only while speech to text is set up, the voice button only while voice
- * calls are; and which models the chatter may pick.
+ * calls are; which models the chatter may pick; and what removing a chat does.
  */
 beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
@@ -47,3 +47,19 @@ it('lists the models the chatter may pick, the agent\'s own first', function ():
         ->assertJsonPath('models.0.is_default', true)
         ->assertJsonPath('models.1.id', $other->id);
 });
+
+it('tells the widget what removing a chat does, ending it by default', function (?string $stored, string $sent): void {
+    if ($stored !== null) {
+        $this->agent->setSetting('chat_deletion_mode', $stored, 'widget');
+    }
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
+        ->getJson('/widget/agents/settings')
+        ->assertOk()
+        ->assertJsonPath('chat_deletion_mode', $sent);
+})->with([
+    'not set' => [null, 'end'],
+    'hide' => ['hide', 'hide'],
+    'delete' => ['delete', 'delete'],
+    'an unknown value' => ['archive', 'end'],
+]);

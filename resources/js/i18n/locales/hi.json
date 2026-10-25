@@ -1961,7 +1961,11 @@
                 "allowed_sites_help": "केवल इन मूल साइटों को विजेट लोड करने की अनुमति है।",
                 "keyboard_trigger": "कीबोर्ड ट्रिगर",
                 "placement": "प्लेसमेंट",
-                "language_switcher": "भाषा स्विचर"
+                "language_switcher": "भाषा स्विचर",
+                "chat_deletion": "चैट हटाना",
+                "chat_deletion_hint_end": "विज़िटर चैट समाप्त करके नई चैट शुरू कर सकते हैं। हर चैट उनके इतिहास और आपके चैट लॉग में बनी रहती है।",
+                "chat_deletion_hint_hide": "विज़िटर अपने इतिहास से चैट हटा सकते हैं। आपके चैट लॉग में वे बनी रहती हैं।",
+                "chat_deletion_hint_delete": "विज़िटर चैट मिटा सकते हैं। वे उनके इतिहास और आपके चैट लॉग से मिट जाती हैं और वापस नहीं लाई जा सकतीं।"
             },
             "embed": {
                 "surface_preview": "सतह पूर्वावलोकन"
@@ -2022,7 +2026,10 @@
                 "placement_top": "ऊपर मध्य में",
                 "placement_top_right": "ऊपर दाएं",
                 "placement_bottom": "नीचे मध्य में",
-                "placement_bottom_right": "नीचे दाएं"
+                "placement_bottom_right": "नीचे दाएं",
+                "chat_deletion_end": "केवल चैट समाप्त करें",
+                "chat_deletion_hide": "विज़िटर के इतिहास से हटाएँ",
+                "chat_deletion_delete": "स्थायी रूप से मिटाएँ"
             },
             "sections": {
                 "branding_color": "रंग थीम",

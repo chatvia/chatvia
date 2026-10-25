@@ -1961,7 +1961,11 @@
                 "allowed_sites_help": "Widget'ı yüklemesine yalnızca bu kaynaklara izin verilir.",
                 "keyboard_trigger": "Klavye tetikleyicisi",
                 "placement": "Yerleşim",
-                "language_switcher": "Dil değiştirici"
+                "language_switcher": "Dil değiştirici",
+                "chat_deletion": "Sohbetleri kaldırma",
+                "chat_deletion_hint_end": "Ziyaretçiler bir sohbeti bitirip yenisini başlatabilir. Her sohbet onların geçmişinde ve sohbet kaydınızda kalır.",
+                "chat_deletion_hint_hide": "Ziyaretçiler sohbetleri kendi geçmişlerinden kaldırabilir. Sohbetler sohbet kaydınızda kalır.",
+                "chat_deletion_hint_delete": "Ziyaretçiler sohbetleri silebilir. Sohbetler hem onların geçmişinden hem de sohbet kaydınızdan silinir ve geri getirilemez."
             },
             "embed": {
                 "surface_preview": "Yüzey önizlemesi"
@@ -2022,7 +2026,10 @@
                 "placement_top": "Üst orta",
                 "placement_top_right": "Sağ üst",
                 "placement_bottom": "Alt orta",
-                "placement_bottom_right": "Sağ alt"
+                "placement_bottom_right": "Sağ alt",
+                "chat_deletion_end": "Yalnızca sohbeti bitir",
+                "chat_deletion_hide": "Ziyaretçinin geçmişinden kaldır",
+                "chat_deletion_delete": "Kalıcı olarak sil"
             },
             "sections": {
                 "branding_color": "Renk Teması",

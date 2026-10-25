@@ -25,7 +25,18 @@
             "reasoning_low": "Thấp",
             "reasoning_medium": "Trung bình",
             "reasoning_high": "Cao",
-            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI)."
+            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI).",
+            "behavior": {
+                "chat_deletion": "Xóa cuộc trò chuyện",
+                "chat_deletion_hint_end": "Khách truy cập có thể kết thúc cuộc trò chuyện và bắt đầu cuộc mới. Mọi cuộc trò chuyện vẫn còn trong lịch sử của họ và trong nhật ký trò chuyện của bạn.",
+                "chat_deletion_hint_hide": "Khách truy cập có thể xóa cuộc trò chuyện khỏi lịch sử của chính họ. Bạn vẫn giữ chúng trong nhật ký trò chuyện.",
+                "chat_deletion_hint_delete": "Khách truy cập có thể xóa vĩnh viễn cuộc trò chuyện. Chúng bị xóa khỏi lịch sử của họ và nhật ký trò chuyện của bạn, không thể khôi phục."
+            },
+            "options": {
+                "chat_deletion_end": "Chỉ kết thúc trò chuyện",
+                "chat_deletion_hide": "Xóa khỏi lịch sử của khách",
+                "chat_deletion_delete": "Xóa vĩnh viễn"
+            }
         }
     }
 }

@@ -1961,7 +1961,11 @@
                 "allowed_sites_help": "Hanya origin ini yang diizinkan memuat widget.",
                 "keyboard_trigger": "Pemicu keyboard",
                 "placement": "Penempatan",
-                "language_switcher": "Pengalih bahasa"
+                "language_switcher": "Pengalih bahasa",
+                "chat_deletion": "Menghapus obrolan",
+                "chat_deletion_hint_end": "Pengunjung dapat mengakhiri obrolan dan memulai yang baru. Setiap obrolan tetap ada di riwayat mereka dan di log obrolan Anda.",
+                "chat_deletion_hint_hide": "Pengunjung dapat menghapus obrolan dari riwayat mereka sendiri. Obrolan tetap tersimpan di log obrolan Anda.",
+                "chat_deletion_hint_delete": "Pengunjung dapat menghapus obrolan secara permanen. Obrolan dihapus dari riwayat mereka dan dari log obrolan Anda, dan tidak dapat dipulihkan."
             },
             "embed": {
                 "surface_preview": "Pratinjau permukaan"
@@ -2022,7 +2026,10 @@
                 "placement_top": "Tengah atas",
                 "placement_top_right": "Kanan atas",
                 "placement_bottom": "Tengah bawah",
-                "placement_bottom_right": "Kanan bawah"
+                "placement_bottom_right": "Kanan bawah",
+                "chat_deletion_end": "Hanya akhiri obrolan",
+                "chat_deletion_hide": "Hapus dari riwayat pengunjung",
+                "chat_deletion_delete": "Hapus permanen"
             },
             "sections": {
                 "branding_color": "Tema Warna",

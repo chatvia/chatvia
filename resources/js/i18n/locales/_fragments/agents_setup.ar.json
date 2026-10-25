@@ -153,6 +153,10 @@
                 "theme": "السمة",
                 "live_chat": "الدردشة المباشرة",
                 "live_chat_hint": "اسمح للزوار بالتحويل إلى موظف بشري. يعمل على أداة الموقع فقط.",
+                "chat_deletion": "إزالة المحادثات",
+                "chat_deletion_hint_end": "يمكن للزوار إنهاء المحادثة وبدء محادثة جديدة. تبقى كل محادثة في سجلهم وفي سجل المحادثات لديك.",
+                "chat_deletion_hint_hide": "يمكن للزوار إزالة المحادثات من سجلهم. وتبقى لديك في سجل المحادثات.",
+                "chat_deletion_hint_delete": "يمكن للزوار حذف المحادثات. تُمحى من سجلهم ومن سجل المحادثات لديك، ولا يمكن استعادتها.",
                 "open_on_load": "الفتح تلقائياً عند تحميل الصفحة",
                 "delay_ms": "التأخير (مللي ثانية)",
                 "allowed_sites": "المواقع المسموح بها",
@@ -221,7 +225,10 @@
                 "placement_top": "أعلى الوسط",
                 "placement_top_right": "أعلى يمين",
                 "placement_bottom": "أسفل الوسط",
-                "placement_bottom_right": "أسفل يمين"
+                "placement_bottom_right": "أسفل يمين",
+                "chat_deletion_end": "إنهاء المحادثة فقط",
+                "chat_deletion_hide": "إزالة من سجل الزائر",
+                "chat_deletion_delete": "حذف نهائي"
             },
             "sections": {
                 "branding_color": "سمة اللون",

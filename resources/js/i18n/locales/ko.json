@@ -1961,7 +1961,11 @@
                 "allowed_sites_help": "이 출처에서만 위젯을 로드할 수 있습니다.",
                 "keyboard_trigger": "키보드 트리거",
                 "placement": "배치",
-                "language_switcher": "언어 전환기"
+                "language_switcher": "언어 전환기",
+                "chat_deletion": "채팅 제거",
+                "chat_deletion_hint_end": "방문자는 채팅을 종료하고 새 채팅을 시작할 수 있습니다. 모든 채팅은 방문자의 기록과 채팅 로그에 남습니다.",
+                "chat_deletion_hint_hide": "방문자는 자신의 기록에서 채팅을 제거할 수 있습니다. 채팅 로그에는 그대로 남습니다.",
+                "chat_deletion_hint_delete": "방문자는 채팅을 삭제할 수 있습니다. 방문자의 기록과 채팅 로그에서 지워지며 복구할 수 없습니다."
             },
             "embed": {
                 "surface_preview": "화면 미리보기"
@@ -2022,7 +2026,10 @@
                 "placement_top": "상단 중앙",
                 "placement_top_right": "오른쪽 상단",
                 "placement_bottom": "하단 중앙",
-                "placement_bottom_right": "오른쪽 하단"
+                "placement_bottom_right": "오른쪽 하단",
+                "chat_deletion_end": "채팅 종료만",
+                "chat_deletion_hide": "방문자 기록에서 제거",
+                "chat_deletion_delete": "영구 삭제"
             },
             "sections": {
                 "branding_color": "색상 테마",

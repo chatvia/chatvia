@@ -65,7 +65,9 @@ class LlmSource extends ToolLoopSource
     {
         $model = $context->requestData->message->model;
 
-        return $model->reasons() ? $context->requestData->agent->reasoningEffort($model) : null;
+        // A model the admin stopped from reasoning still gets Off, so it
+        // thinks as little as it can instead of at its provider's default.
+        return $model->canReason() ? $context->requestData->agent->reasoningEffort($model) : null;
     }
 
     protected function logLabel(): string

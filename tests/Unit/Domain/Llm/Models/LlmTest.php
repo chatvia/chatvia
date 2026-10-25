@@ -35,6 +35,18 @@ it('sends the value the model takes for each effort', function (?array $efforts,
     'not known, an effort goes as named' => [null, ReasoningEffort::Medium, 'medium'],
 ]);
 
+it('reasons only while the admin has not turned reasoning off', function (): void {
+    $model = new Llm(['name' => 'model', 'capabilities' => ['reasoning' => true]]);
+
+    expect($model->reasons())->toBeTrue();
+
+    $model->is_reasoning_enabled = false;
+
+    expect($model->reasons())->toBeFalse()
+        ->and($model->canReason())->toBeTrue()
+        ->and(new Llm(['name' => 'model', 'capabilities' => ['reasoning' => false]])->reasons())->toBeFalse();
+});
+
 it('leaves out the sampling settings of a model that takes no temperature', function (): void {
     $settings = ['temperature' => 0.2, 'top_p' => 0.9, 'top_k' => 40, 'presence_penalty' => 0.1, 'frequency_penalty' => 0.1, 'tools' => []];
 

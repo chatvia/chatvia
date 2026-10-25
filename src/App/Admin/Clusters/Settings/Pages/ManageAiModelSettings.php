@@ -80,6 +80,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -255,7 +256,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->withHelp($this->integer('history_messages', 'Messages of history', min: 1, max: 50),
                     'How many recent messages of a conversation an agent reads each time it answers, in typed chats and voice calls. More helps with follow-up questions, but each answer costs more.'),
                 $this->toggle('allow_reasoning', 'Let agents reason',
-                    'Models marked "Reasons" can think before they answer. With this on, each agent picks how hard in its AI model settings: Off, Low, Medium or High. Every agent starts at Off. Chatters see the thinking in grey above the answer, and can fold it away. More thinking gives better answers to hard questions, but they come slower and cost more. OpenAI\'s own API sends a summary of the thinking, once OpenAI has verified your organization. With this off, every agent is at Off.'),
+                    'Models with "Reasons" on can think before they answer. With this on, each agent picks how hard in its AI model settings: Off, Low, Medium or High. Every agent starts at Off. Chatters see the thinking in grey above the answer, and can fold it away. More thinking gives better answers to hard questions, but they come slower and cost more. OpenAI\'s own API sends a summary of the thinking, once OpenAI has verified your organization. With this off, every agent is at Off.'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
                 $this->reindexCallout(),
@@ -411,18 +412,24 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->label('Provider')
                     ->description(fn (Llm $model): ?string => $model->provider->is_enabled && $model->provider->isConnected() ? null : 'Not connected')
                     ->color(fn (Llm $model): string => $model->provider->is_enabled && $model->provider->isConnected() ? 'gray' : 'warning'),
-                // The catalog decides for a model it lists; for any other
-                // model the admin says whether it reasons.
+                // Whether the model may reason. The catalog says whether a
+                // model it lists can, so the switch locks off for one that
+                // cannot; for any other model the admin also says whether it can.
                 ToggleColumn::make('reasons')
                     ->label('Reasons')
                     ->getStateUsing(fn (Llm $record): bool => $record->reasons())
-                    ->updateStateUsing(fn (Llm $record, bool $state) => $record->update([
-                        'capabilities' => [...(array) $record->capabilities, 'reasoning' => $state],
-                    ]))
-                    ->disabled(fn (Llm $record): bool => $this->listedOnModelsDev($record))
-                    ->tooltip(fn (Llm $record): string => $this->listedOnModelsDev($record)
-                        ? 'From models.dev, which lists this model.'
-                        : 'The model thinks before it answers. Agents can set how hard only for these models.'),
+                    ->updateStateUsing(fn (Llm $record, bool $state) => $record->update($this->listedOnModelsDev($record)
+                        ? ['is_reasoning_enabled' => $state]
+                        : ['is_reasoning_enabled' => $state, 'capabilities' => [...(array) $record->capabilities, 'reasoning' => $state]]))
+                    ->disabled(fn (Llm $record): bool => $this->cannotReason($record))
+                    ->tooltip(fn (Llm $record): ?string => $this->cannotReason($record)
+                        ? null
+                        : 'On: the model may think before it answers, and agents can set how hard. Off: it thinks as little as it can.')
+                    // A disabled switch takes no pointer events, so its own
+                    // tooltip never opens: the locked one sits on the wrapper.
+                    ->extraAttributes(fn (Llm $record): array => $this->cannotReason($record)
+                        ? ['x-tooltip' => '{ content: '.Js::from('This model cannot reason, says models.dev.').', theme: $store.theme }']
+                        : []),
                 TextColumn::make('agents_count')
                     ->label('Agents'),
             ])
@@ -563,6 +570,12 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private function listedOnModelsDev(Llm $record): bool
     {
         return app(ModelsDevCatalog::class)->entry($record->provider->kind, $record->name) !== null;
+    }
+
+    /** Whether models.dev lists the model and says it cannot reason. */
+    private function cannotReason(Llm $record): bool
+    {
+        return ! $record->canReason() && $this->listedOnModelsDev($record);
     }
 
     /**

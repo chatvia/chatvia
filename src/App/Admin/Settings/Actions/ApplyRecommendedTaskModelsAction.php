@@ -6,7 +6,7 @@ namespace App\Admin\Settings\Actions;
 
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\TaskModelPreset;
-use Domain\Llm\Actions\Catalog\AddLlmModelAction;
+use Domain\Llm\Actions\Catalog\AddPresetLlmModelAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class ApplyRecommendedTaskModelsAction
 {
     public function __construct(
-        private AddLlmModelAction $addModel,
+        private AddPresetLlmModelAction $addModel,
         private AiSettings $ai,
     ) {}
 

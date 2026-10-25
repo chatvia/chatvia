@@ -12,23 +12,24 @@ use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Carbon;
 
 /**
- * A banner on top of the admin dashboard that says whether every service
- * the Status page checks is fine: "All systems operational", or what is
- * down or needs a look, with a link to the Status page for the details.
+ * A one-line alert on top of the admin dashboard when a service the Status
+ * page checks is down, with a link to the Status page for the details.
+ * Services that only need a look stay on the Status page, so the dashboard
+ * is not crowded by setup notes; while all is well, nothing shows.
  *
- * It opens at once and checks after: the services first, then the outside
- * services, which wait on other servers (the same order as the Status page).
- * It leaves the page filters alone, so changing them does not check again.
+ * It checks once the dashboard is open: the services first, then the
+ * outside services, which wait on other servers (the same order as the
+ * Status page). It leaves the page filters alone, so changing them does
+ * not check again.
  */
 class ServiceStatusBanner extends Widget
 {
     #[\Override]
     protected static ?int $sort = 0;
 
-    /** It shows "Checking…" on its own, so it needs no lazy placeholder. */
+    /** It shows nothing until a check finds a service down, so it needs no lazy placeholder. */
     #[\Override]
     protected static bool $isLazy = false;
 
@@ -44,9 +45,6 @@ class ServiceStatusBanner extends Widget
     /** @var array<string, array<string, mixed>> The checked outside services, by {@see AiService} value. */
     public array $aiServices = [];
 
-    /** When the services were last checked (ISO 8601). */
-    public ?string $checkedAt = null;
-
     /** Only staff who may open the Status page see what it found. */
     #[\Override]
     public static function canView(): bool
@@ -56,11 +54,9 @@ class ServiceStatusBanner extends Widget
 
     public function checkServices(ServiceChecks $checks): void
     {
-        $this->aiServices = [];
         $this->services = collect(Service::cases())
             ->mapWithKeys(fn (Service $service): array => [$service->value => $checks->check($service)->toArray()])
             ->all();
-        $this->checkedAt = now()->toIso8601String();
     }
 
     public function checkAiServices(AiServiceChecks $checks): void
@@ -71,55 +67,31 @@ class ServiceStatusBanner extends Widget
     }
 
     /**
-     * @return array{overall: ?ServiceState, headline: string, subline: string, issues: list<array{0: string, 1: ServiceStatusData}>, statusUrl: string}
+     * @return array{down: list<string>, statusUrl: string}
      */
     #[\Override]
     protected function getViewData(): array
     {
-        $issues = [...$this->issues(Service::cases(), $this->services), ...$this->issues(AiService::cases(), $this->aiServices)];
-        $down = count(array_filter($issues, fn (array $issue): bool => $issue[1]->state === ServiceState::Down));
-        $warnings = count($issues) - $down;
-        $stillChecking = $this->checkedAt === null || $this->aiServices === [];
-
-        [$overall, $headline] = match (true) {
-            $down > 0 => [ServiceState::Down, trans_choice(':count service is down|:count services are down', $down)],
-            $warnings > 0 => [ServiceState::Warning, trans_choice(':count service needs a look|:count services need a look', $warnings)],
-            $stillChecking => [null, __('Checking…')],
-            default => [ServiceState::Running, __('All systems operational')],
-        };
-
         return [
-            'overall' => $overall,
-            'headline' => $headline,
-            'subline' => match (true) {
-                $this->checkedAt === null => __('Asking each service how it is.'),
-                $this->aiServices === [] => __('Still checking the AI services…'),
-                default => __('Checked at :time', ['time' => Carbon::parse($this->checkedAt)->timezone((string) config('app.timezone'))->format('H:i:s')]),
-            },
-            'issues' => $issues,
+            'down' => [...$this->down(Service::cases(), $this->services), ...$this->down(AiService::cases(), $this->aiServices)],
             'statusUrl' => Status::getUrl(),
         ];
     }
 
     /**
-     * The checked services that are down or need a look, with their label.
+     * The labels of the checked services that are down.
      *
      * @param  list<Service|AiService>  $cases
      * @param  array<string, array<string, mixed>>  $results
-     * @return list<array{0: string, 1: ServiceStatusData}>
+     * @return list<string>
      */
-    private function issues(array $cases, array $results): array
+    private function down(array $cases, array $results): array
     {
-        $issues = [];
-
-        foreach ($cases as $service) {
-            $status = isset($results[$service->value]) ? ServiceStatusData::from($results[$service->value]) : null;
-
-            if ($status instanceof ServiceStatusData && in_array($status->state, [ServiceState::Down, ServiceState::Warning], true)) {
-                $issues[] = [$service->label(), $status];
-            }
-        }
-
-        return $issues;
+        return collect($cases)
+            ->filter(fn (Service|AiService $service): bool => isset($results[$service->value])
+                && ServiceStatusData::from($results[$service->value])->state === ServiceState::Down)
+            ->map(fn (Service|AiService $service): string => $service->label())
+            ->values()
+            ->all();
     }
 }

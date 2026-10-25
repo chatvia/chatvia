@@ -379,7 +379,6 @@
     ":count service is down|:count services are down": ":count tjeneste er nede|:count tjenester er nede",
     ":count service needs a look|:count services need a look": ":count tjeneste bør tjekkes|:count tjenester bør tjekkes",
     "Everything is running": "Alt kører",
-    "All systems operational": "Alle systemer kører",
     "View status": "Se status",
     "Checked at :time": "Tjekket kl. :time",
     "Still checking the AI services…": "Tjekker stadig AI-tjenesterne…",

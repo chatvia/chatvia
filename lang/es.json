@@ -379,7 +379,6 @@
     ":count service is down|:count services are down": ":count servicio está caído|:count servicios están caídos",
     ":count service needs a look|:count services need a look": ":count servicio requiere atención|:count servicios requieren atención",
     "Everything is running": "Todo funciona",
-    "All systems operational": "Todos los sistemas funcionan",
     "View status": "Ver estado",
     "Checked at :time": "Comprobado a las :time",
     "Still checking the AI services…": "Aún se están comprobando los servicios de IA…",

@@ -82,6 +82,7 @@ it('counts the services that are down in the banner', function (): void {
         ->set('checkedAt', now()->toIso8601String())
         ->set('services', ['database' => $running, 'queue' => $down, 'scheduler' => $down])
         ->set('aiServices', ['chat' => $warning])
+        ->assertDontSee('display: none', false)
         ->assertSee('2 services are down')
         ->set('services', ['database' => $running])
         ->assertSee('1 service needs a look')
@@ -410,52 +411,55 @@ it('reloads the saved settings from the Caches card', function (): void {
 });
 
 /*
- * The dashboard's status banner: the same checks, said in one line, with
- * the services that are not fine listed and a link to this page.
+ * The dashboard's status alert: one line, only while a service is down,
+ * naming those services and linking to this page.
  */
 
-it('puts a status banner on the dashboard that checks once it is open', function (): void {
+it('puts a hidden status alert on the dashboard that checks once it is open', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get(Dashboard::getUrl())
         ->assertOk()
-        ->assertSee('Asking each service how it is.')
-        ->assertSee('href="'.Status::getUrl().'"', false);
+        ->assertSee('$wire.checkServices()', false)
+        ->assertDontSee('View status');
 });
 
-it('says every system is operational once both checks found nothing wrong', function (): void {
+it('shows nothing while every service is running or only needs a look', function (): void {
     Http::fake();
 
     $banner = Livewire::actingAs($this->admin, 'admin')->test(ServiceStatusBanner::class)
         ->set('services', [])
-        ->call('checkServices')
-        ->assertSee('Still checking the AI services…')
-        ->assertDontSee('All systems operational');
+        ->call('checkServices');
 
     expect(array_keys($banner->get('services')))->toBe(array_map(fn (Service $service): string => $service->value, Service::cases()));
 
     $running = ['state' => 'running', 'summary' => 'Answers.', 'facts' => [], 'providers' => []];
-    $off = ['state' => 'off', 'summary' => 'Not set up.', 'facts' => [], 'providers' => []];
+    $warning = ['state' => 'warning', 'summary' => 'Emails go to the log.', 'facts' => [], 'providers' => []];
 
-    $banner->set('services', ['database' => $running, 'email' => $off])
-        ->set('aiServices', ['chat' => $running, 'voice' => $off])
-        ->assertSee('All systems operational')
-        ->assertSee('Checked at');
+    $banner->set('services', ['database' => $running, 'email' => $warning])
+        ->set('aiServices', ['reranking' => $warning])
+        ->assertSee('display: none', false)
+        ->assertDontSee('View status')
+        ->assertDontSee('Emails go to the log.');
 });
 
-it('lists what is down or needs a look on the banner', function (): void {
+it('names only the services that are down on the alert', function (): void {
     $running = ['state' => 'running', 'summary' => 'Answers.', 'facts' => [], 'providers' => []];
+    $down = ['state' => 'down', 'summary' => 'Horizon is not running.', 'facts' => [], 'providers' => []];
 
     Livewire::actingAs($this->admin, 'admin')->test(ServiceStatusBanner::class)
-        ->set('checkedAt', now()->toIso8601String())
         ->set('services', [
             'database' => $running,
-            'queue' => ['state' => 'down', 'summary' => 'Horizon is not running.', 'facts' => [], 'providers' => []],
+            'queue' => $down,
+            'email' => ['state' => 'warning', 'summary' => 'Emails go to the log.', 'facts' => [], 'providers' => []],
         ])
-        ->set('aiServices', ['reranking' => ['state' => 'warning', 'summary' => 'The key was turned down.', 'facts' => [], 'providers' => []]])
-        ->assertSee('1 service is down')
-        ->assertSeeInOrder(['Laravel Horizon', 'Horizon is not running.', 'Reranking', 'The key was turned down.'])
+        ->set('aiServices', ['reranking' => $down])
+        ->assertDontSee('display: none', false)
+        ->assertSee('2 services are down')
+        ->assertSeeInOrder(['Laravel Horizon', 'Reranking', 'View status'])
+        ->assertSee('href="'.Status::getUrl().'"', false)
+        ->assertDontSee('Horizon is not running.')
         ->assertDontSee('PostgreSQL')
-        ->assertDontSee('All systems operational');
+        ->assertDontSee('Email');
 });
 
 it('leaves the banner out for anyone who may not open the Status page', function (): void {

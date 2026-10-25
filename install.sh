@@ -32,6 +32,8 @@
 #   --dry-run           show what would happen and change nothing
 #   --count-install     send the anonymous install count  CHATVIA_COUNT_INSTALL=yes
 #   --no-count-install  do not send it, without asking    CHATVIA_COUNT_INSTALL=no
+#   --news-email EMAIL  get news about ChatVia.ai there   CHATVIA_NEWS_EMAIL
+#   --no-news-email     do not ask for one                CHATVIA_NEWS_EMAIL=no
 #   -h, --help          show this help
 #
 # Only with Docker:
@@ -60,6 +62,7 @@
 #   CHATVIA_SWAP                  complete: yes or no to add swap (else: when memory is low)
 #   CHATVIA_INSTALLER_URL         complete: where to download this installer to run it with sudo
 #   CHATVIA_COUNT_URL             where to send the install count
+#   CHATVIA_NEWS_URL              where to send the e-mail for news
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -78,6 +81,7 @@ readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly INSTALL_COUNT_URL="https://chatvia.ai/api/installs"
+readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
 
 # The complete installation. The pg_textsearch version matches the one the
 # Docker install's Postgres image (docker/postgres/Dockerfile) carries.
@@ -426,17 +430,19 @@ input_box() {
 }
 
 # ask VAR "Question" [--default TEXT] [--placeholder TEXT] [--hint TEXT]
-#     [--check FN] [--status FN] [--complete FN]
+#     [--check FN] [--status FN] [--complete FN] [--optional LABEL]
 #   --default      the answer when Enter is pressed on an empty line
 #   --placeholder  an example, shown greyed out; not an answer
 #   --check FN     runs on Enter; returns 1 with the reason in INVALID
 #   --status FN    runs after every key; puts a short note in STATUS
 #   --complete FN  runs on Tab; puts the result in COMPLETED, the other
 #                  matches in CHOICES
+#   --optional     Enter on an empty line skips the question: VAR is empty
+#                  and LABEL is shown as the answer
 ask() {
     local var=$1 label=$2
     shift 2
-    local default='' placeholder='' hint='' check='' status='' complete=''
+    local default='' placeholder='' hint='' check='' status='' complete='' optional=''
     while [ $# -ge 2 ]; do
         case $1 in
             --default) default=$2 ;;
@@ -445,6 +451,7 @@ ask() {
             --check) check=$2 ;;
             --status) status=$2 ;;
             --complete) complete=$2 ;;
+            --optional) optional=$2 ;;
         esac
         shift 2
     done
@@ -461,6 +468,7 @@ ask() {
             IFS= read -r answer </dev/tty || no_input
             answer=${answer:-$default}
             INVALID='Type an answer first.'
+            if [ -z "$answer" ] && [ -n "$optional" ]; then break; fi
             if [ -n "$answer" ] && { [ -z "$check" ] || "$check" "$answer"; }; then break; fi
             printf '  %s  %s\n' "$WARN" "$INVALID"
         done
@@ -499,6 +507,8 @@ ask() {
                 help='Enter to use it, Tab to change it'
             elif [ -n "$value" ] && [ -n "$complete" ]; then
                 help='Tab to complete'
+            elif [ -z "$value" ] && [ -n "$optional" ]; then
+                help='Enter to skip'
             fi
             sym=$ACTIVE rail=$ACTIVE_BAR border=$C_ACCENT foot="$ACTIVE_END${help:+  $C_DIM$help$C_RESET}"
         fi
@@ -517,7 +527,9 @@ ask() {
             enter)
                 answer=${value:-$default}
                 INVALID=''
-                if [ -z "$answer" ]; then
+                if [ -z "$answer" ] && [ -n "$optional" ]; then
+                    break
+                elif [ -z "$answer" ]; then
                     error='Type an answer first.'
                 elif [ -z "$check" ] || "$check" "$answer"; then
                     break
@@ -546,7 +558,7 @@ ask() {
         esac
     done
 
-    answer_drawn "$label" "$answer"
+    answer_drawn "$label" "${answer:-$optional}"
     printf -v "$var" '%s' "$answer"
 }
 
@@ -1682,6 +1694,34 @@ count_install() {
         "${CHATVIA_COUNT_URL:-$INSTALL_COUNT_URL}" >/dev/null 2>&1 || true
 }
 
+# An e-mail address for news about ChatVia.ai (new versions and other
+# updates), sent to chatvia.ai on its own, apart from the install count.
+# Only after a first install finishes, and only an address the person typed
+# or gave with --news-email: --yes alone never sends one. A failed send is
+# ignored.
+send_news_email() {
+    [ "$DRY_RUN" = 0 ] || return 0
+    local email=${CHATVIA_NEWS_EMAIL:-}
+    case $email in
+        no | false | 0) return 0 ;;
+        '')
+            [ "$INTERACTIVE" = 1 ] || return 0
+            ask email 'Your e-mail for ChatVia.ai news (optional)' \
+                --placeholder 'you@example.com' --optional 'Skipped' \
+                --hint 'New versions and other updates. Kept apart from the install count.' \
+                --check valid_email
+            [ -n "$email" ] || return 0
+            ;;
+        *) valid_email "$email" || return 0 ;;
+    esac
+    email=${email//\\/\\\\}
+    email=${email//\"/\\\"}
+    curl -fsS -o /dev/null --max-time 5 -X POST \
+        -H 'Content-Type: application/json' -H 'Accept: application/json' \
+        --data "{\"email\":\"$email\"}" \
+        "${CHATVIA_NEWS_URL:-$NEWS_EMAIL_URL}" >/dev/null 2>&1 || true
+}
+
 show_finish() {
     local folder title open admin email password saved='' n=1
     folder=$(pretty_path "$INSTALL_DIR")
@@ -1725,6 +1765,7 @@ show_finish() {
     info "./manage                 $(dim 'every command')"
 
     count_install
+    send_news_email
     offer_browser
     outro "$(dim "Guide: $CHATVIA_DOCS")"
 }
@@ -3430,6 +3471,7 @@ native_show_finish() {
     info "Install log  $NATIVE_LOG"
 
     count_install
+    send_news_email
     offer_browser
     outro "$(dim "Guide: $NATIVE_DOCS")"
 }
@@ -3606,6 +3648,8 @@ parse_args() {
             --dry-run) DRY_RUN=1 ;;
             --count-install) CHATVIA_COUNT_INSTALL=yes ;;
             --no-count-install) CHATVIA_COUNT_INSTALL=no ;;
+            --news-email) CHATVIA_NEWS_EMAIL=${2:?--news-email needs an address}; shift ;;
+            --no-news-email) CHATVIA_NEWS_EMAIL=no ;;
             -h | --help) usage; exit 0 ;;
             *) die "Unknown option: $1" 'See --help.' ;;
         esac

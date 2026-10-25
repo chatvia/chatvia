@@ -29,67 +29,21 @@ inside PostgreSQL. It is designed to work with open-weight models.
 ## Documentation
 
 Everything you need to install, run and use ChatVia.ai is at
-**[chatvia.ai/docs](https://chatvia.ai/docs/)**.
+**[chatvia.ai/docs](https://chatvia.ai/docs/)**. See all features at
+[chatvia.ai/features](https://chatvia.ai/features).
 
-## Features
+- [Introduction](https://chatvia.ai/docs/guide/introduction) and [quick start](https://chatvia.ai/docs/guide/quick-start)
+- [Installation](https://chatvia.ai/docs/guide/installation): with [Docker](https://chatvia.ai/docs/guide/installation/docker), on [Ubuntu](https://chatvia.ai/docs/guide/installation/ubuntu) or [from source](https://chatvia.ai/docs/guide/installation/from-source)
+- [Core concepts](https://chatvia.ai/docs/guide/core-concepts) and [how it works](https://chatvia.ai/docs/guide/how-it-works)
+- [Agents](https://chatvia.ai/docs/guide/agents/create): [persona](https://chatvia.ai/docs/guide/agents/persona), [models](https://chatvia.ai/docs/guide/agents/models) and the [playground](https://chatvia.ai/docs/guide/agents/playground)
+- [Knowledge sources](https://chatvia.ai/docs/guide/sources/overview) and [search](https://chatvia.ai/docs/guide/how-it-works/search)
+- Tools: [MCP connectors](https://chatvia.ai/docs/guide/tools/connectors) and [functions](https://chatvia.ai/docs/guide/tools/functions)
+- Where people chat: the [widget](https://chatvia.ai/docs/embed/widget), a [full page](https://chatvia.ai/docs/embed/full-page), [Microsoft Teams](https://chatvia.ai/docs/guide/channels/msteams), [WhatsApp](https://chatvia.ai/docs/guide/channels/whatsapp) and [Instagram](https://chatvia.ai/docs/guide/channels/instagram)
+- Conversations: [chat logs](https://chatvia.ai/docs/guide/chat/logs), [leads](https://chatvia.ai/docs/guide/chat/leads), [analytics](https://chatvia.ai/docs/guide/chat/analytics) and [human handoff](https://chatvia.ai/docs/guide/chat/handoff)
+- Your account: [teams](https://chatvia.ai/docs/guide/account/teams), [API keys](https://chatvia.ai/docs/guide/account/api-keys) and [message limits](https://chatvia.ai/docs/guide/account/message-limits)
 
-**Agents**
-- Persona and instructions, model settings, branding, conversation starters
-  and a playground to test changes.
-- Guardrails for prompt injection, off-topic questions, toxic content and
-  personal data.
-- Evaluations: test sets that score an agent's answers with an LLM judge.
-
-**Knowledge base**
-- Sources: documents (PDF, Word, PowerPoint, Excel, CSV, RTF, text, Markdown,
-  EPUB), images (OCR), audio and video (transcription), web pages, text
-  snippets and Q&A pairs.
-- Ingestion runs in background queues and reports progress live.
-- Hybrid search: vector search ([pgvector](https://github.com/pgvector/pgvector) HNSW)
-  and keyword search ([pg_textsearch](https://github.com/timescale/pg_textsearch) BM25,
-  falling back to PostgreSQL's own full-text search), merged and reranked.
-
-**Tools**
-- Functions: call your own HTTP endpoints (webhooks).
-- MCP: connect any Model Context Protocol server, or a ready-made connector
-  that signs in with OAuth.
-- Approval step for risky tool calls, rate limits and an audit log of every
-  tool call.
-
-**Where people chat**
-- Hosted chat page, embeddable chat widget and command bar.
-- Messaging channels: Slack, Microsoft Teams, Telegram, WhatsApp, Messenger
-  and Instagram.
-- Public REST API with bearer tokens and OpenAPI docs.
-
-**Conversations**
-- Chat logs, leads, analytics and topics, user feedback, human handoff,
-  forms inside the chat, and export to PDF.
-
-**Workspaces**
-- Teams with roles and permissions, sign-in with two-factor authentication,
-  passkeys or social login, and workspace security settings (for example an
-  IP allowlist).
-- Every workspace gets every feature. Optional monthly message limits: per
-  workspace and per chatter.
-- An admin panel and a dashboard translated into many languages, including
-  right-to-left languages.
-
-## Built with
-
-| Part | Technology |
-|---|---|
-| Backend | PHP 8.5, Laravel 13 |
-| Frontend | Inertia, Vue 3, TypeScript, Tailwind CSS 4, shadcn-vue, Vite |
-| Database | PostgreSQL 18 with pgvector; `pg_textsearch` for BM25 keyword search where available |
-| Queues and cache | Redis, Laravel Horizon |
-| Real-time updates | Laravel Reverb (WebSockets) and server-sent events for streamed answers |
-| Admin panel | Filament |
-| Tests | Pest |
-
-[ARCHITECTURE.md](ARCHITECTURE.md) explains how the code is organised.
-[CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up a development copy
-and check a change.
+To work on the code, read [ARCHITECTURE.md](ARCHITECTURE.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing, security and license
 

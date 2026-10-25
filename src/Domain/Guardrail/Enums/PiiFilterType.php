@@ -40,7 +40,8 @@ enum PiiFilterType: string
     }
 
     /**
-     * On for a freshly-enabled agent. The common identifiers (email, IBAN,
+     * Picked when PII redaction is first turned on (a new agent has it off).
+     * The common identifiers (email, IBAN,
      * card, US SSN, phone) are on; region-specific national IDs are opt-in
      * (they overlap with ordinary numbers, so a workspace should choose them
      * deliberately), and so are IP addresses, which technical support often

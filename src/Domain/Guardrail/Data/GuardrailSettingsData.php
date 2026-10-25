@@ -18,8 +18,8 @@ use Spatie\LaravelData\Data;
  * shows them; `toSettings()` is the key→value map persisted via
  * Agent::setSetting.
  *
- * Defaults for an agent that never saved the form: guards on, the default PII
- * filters (masked), injection and toxicity checks on and blocking, no topic
+ * Defaults for an agent that never saved the form: guards on, PII redaction
+ * off, injection and toxicity checks on and blocking, no topic
  * policy, nothing on the PII allowlist, the generic refusal message, the
  * agent's answers checked too, answers streamed as they are written, and no
  * alert emails.
@@ -74,7 +74,7 @@ class GuardrailSettingsData extends Data
     public static function fromAgent(Agent $agent): self
     {
         $settings = $agent->settings('guardrails');
-        $filters = $settings->get('filters', PiiFilterType::defaults());
+        $filters = $settings->get('filters', []);
 
         return new self(
             enabled: (bool) $settings->get('enabled', true),

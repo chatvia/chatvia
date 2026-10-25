@@ -14,7 +14,8 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 /**
  * Email (and broadcast) that a data export is ready to download. It also
- * lands in the person's notification center, opening the data export page.
+ * lands in the person's notification center, opening the data export page,
+ * or the download itself while owners may not open that page.
  */
 class DataExportReadyNotification extends InboxNotification
 {
@@ -39,9 +40,12 @@ class DataExportReadyNotification extends InboxNotification
 
     public function toInbox(User $notifiable): NotificationMessageData
     {
-        return $this->message(new NotificationContentData(
-            url: route('account.data-export.edit', absolute: false),
-        ));
+        // While owners may not open the data export page, the entry downloads the ZIP.
+        $url = (bool) (config('chatvia.account.data_export') ?? true)
+            ? route('account.data-export.edit', absolute: false)
+            : route('account.data-export.download', $this->export, absolute: false);
+
+        return $this->message(new NotificationContentData(url: $url));
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 /**
- * Open sign-up, the monthly message limit a new workspace starts with, how
- * long conversations are kept (a workspace may choose fewer days, never fewer
- * than the minimum), and how long the dashboard keeps notifications.
+ * Open sign-up, the monthly message limit a new workspace starts with,
+ * whether an owner may download their data or delete their account from the
+ * dashboard, how long conversations are kept (a workspace may choose fewer
+ * days, never fewer than the minimum), and how long the dashboard keeps
+ * notifications.
  */
 class WorkspaceSettings extends AdminSettings
 {
@@ -16,6 +18,12 @@ class WorkspaceSettings extends AdminSettings
 
     #[ConfigKey('chatvia.message_limits.new_workspace')]
     public ?int $new_workspace_message_limit = null;
+
+    #[ConfigKey('chatvia.account.data_export')]
+    public ?bool $owner_data_export = null;
+
+    #[ConfigKey('chatvia.account.deletion')]
+    public ?bool $owner_account_deletion = null;
 
     #[ConfigKey('chatvia.retention.conversations_days')]
     public ?int $retention_days = null;

@@ -51,3 +51,14 @@ it('refuses a second request while an export is being prepared', function (): vo
 
     Queue::assertNothingPushed();
 });
+
+it('hides the page and the request while owners may not download their data', function (): void {
+    Queue::fake();
+    config(['chatvia.account.data_export' => false]);
+
+    $this->actingAs($this->user)->get(route('account.data-export.edit'))->assertNotFound();
+    $this->actingAs($this->user)->post(route('account.data-export.store'))->assertNotFound();
+
+    expect(DataExport::query()->where('user_id', $this->user->id)->exists())->toBeFalse();
+    Queue::assertNothingPushed();
+});

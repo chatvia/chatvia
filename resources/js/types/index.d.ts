@@ -69,6 +69,10 @@ export interface SharedData extends PageProps {
     // Install-wide switches for unfinished features (`chatvia.features`), keyed
     // by name (e.g. `youtube_sources`). Read them through `useFeature()`.
     features: Record<string, boolean>;
+    // Whether the owner may download their data and delete their account in
+    // the Account area (admin Settings → Workspaces → Owner account). Null
+    // when nobody is signed in.
+    accountOptions: { data_export: boolean; deletion: boolean } | null;
     // Whether this install has an Enterprise key: Security and Governance
     // unlock their Enterprise features with it.
     enterprise: boolean;

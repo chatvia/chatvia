@@ -387,6 +387,10 @@
     "workspaces#notifications": [
         "Days to keep notifications"
     ],
+    "workspaces#owner-account": [
+        "Let owners download their data",
+        "Let owners delete their account"
+    ],
     "workspaces#sign-up-and-limits": [
         "Open sign-up",
         "Monthly message limit of new workspaces"

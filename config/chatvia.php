@@ -104,6 +104,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Owner Account
+    |--------------------------------------------------------------------------
+    |
+    | Whether a workspace owner may download a copy of their data
+    | (`data_export`) or delete their account (`deletion`) from the
+    | dashboard's Account area. Off hides the page and its routes answer 404;
+    | a platform admin can still do both on the workspace's page. Set in the
+    | admin panel (Settings → Workspaces); the values here are the defaults.
+    |
+    */
+
+    'account' => [
+        'data_export' => true,
+        'deletion' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Admin Panel
     |--------------------------------------------------------------------------
     |

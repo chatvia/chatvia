@@ -13,8 +13,8 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Open sign-up, the message limit of new workspaces, and how long
- * conversations are kept.
+ * Open sign-up, the message limit of new workspaces, what an owner may do
+ * with their own account, and how long conversations are kept.
  */
 class ManageWorkspaceSettings extends AdminSettingsPage
 {
@@ -35,7 +35,7 @@ class ManageWorkspaceSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Sign-up, message limits and how long chats are kept.';
+        return 'Sign-up, message limits, owner accounts and how long chats are kept.';
     }
 
     public static function overviewGroup(): string
@@ -66,6 +66,16 @@ class ManageWorkspaceSettings extends AdminSettingsPage
                 'Sign-up %s · %s',
                 $this->valueInUse('registration_enabled') ? 'open' : 'closed',
                 (int) $this->valueInUse('new_workspace_message_limit') === 0 ? 'no message limit' : $this->valueInUse('new_workspace_message_limit').' messages a month',
+            )),
+            SettingsCard::make('owner_account', 'Owner account', 'What a workspace owner can do with their own account in the dashboard.', Heroicon::OutlinedUserCircle, fn (): array => [
+                $this->toggle('owner_data_export', 'Let owners download their data',
+                    help: 'Shows "Download my data" in the owner\'s account settings, where they get a ZIP of their workspace\'s data. Off hides it. You can still export a workspace\'s data on its page under Workspaces.'),
+                $this->toggle('owner_account_deletion', 'Let owners delete their account',
+                    help: 'Shows "Delete account" in the owner\'s account settings, where they delete their workspace and all its data. Off hides it. You can still delete a workspace on its page under Workspaces.'),
+            ])->summary(fn (): string => sprintf(
+                'Download %s · Delete %s',
+                $this->valueInUse('owner_data_export') ? 'on' : 'off',
+                $this->valueInUse('owner_account_deletion') ? 'on' : 'off',
             )),
             SettingsCard::make('conversations', 'Conversations', 'How long conversations are kept.', Heroicon::OutlinedClock, fn (): array => [
                 $this->integer('retention_days', 'Days to keep conversations',

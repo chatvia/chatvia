@@ -1,12 +1,13 @@
 <script setup lang="ts">
 // Shell of the Account area: the side navigation (owner-only entries are
-// hidden from teammates) and a narrow or wide content column.
+// hidden from teammates, and the data export and deletion entries while the
+// admin has switched them off) and a narrow or wide content column.
 import Heading from '@/components/Heading.vue';
 import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useSocialProviders } from '@/composables/useSocialProviders';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import account from '@/routes/account';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Bell, Download, Fingerprint, Lock, Share2, Smartphone, Trash2, User, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -26,12 +27,16 @@ interface NavItem {
     // Only when the admin has set up at least one sign-in provider
     // (Settings → Sign-in); with none there is nothing to connect.
     needsSocialProvider?: boolean;
+    // Only while the admin lets owners do it (Settings → Workspaces → Owner
+    // account); the route answers 404 otherwise.
+    accountOption?: 'data_export' | 'deletion';
     variant?: 'default' | 'danger';
 }
 
 const { isOwner } = useTeamPermissions();
 const { current } = useCurrentRoute();
 const { hasAny: hasAnySocialProvider } = useSocialProviders();
+const page = usePage();
 
 const allItems: NavItem[] = [
     { title: 'account.nav.profile', name: 'account.profile.edit', href: account.profile.edit.url(), icon: User },
@@ -40,14 +45,31 @@ const allItems: NavItem[] = [
     { title: 'account.nav.two_factor', name: 'account.two-factor.edit', href: account.twoFactor.edit.url(), icon: Smartphone },
     { title: 'account.nav.passkeys', name: 'account.passkeys.edit', href: account.passkeys.edit.url(), icon: Fingerprint },
     { title: 'account.nav.social', name: 'account.social.edit', href: account.social.edit.url(), icon: Share2, needsSocialProvider: true },
-    { title: 'account.nav.data_export', name: 'account.data-export.edit', href: account.dataExport.edit.url(), icon: Download, ownerOnly: true },
-    { title: 'account.nav.delete', name: 'account.delete', href: account.delete.url(), icon: Trash2, variant: 'danger', ownerOnly: true },
+    {
+        title: 'account.nav.data_export',
+        name: 'account.data-export.edit',
+        href: account.dataExport.edit.url(),
+        icon: Download,
+        ownerOnly: true,
+        accountOption: 'data_export',
+    },
+    {
+        title: 'account.nav.delete',
+        name: 'account.delete',
+        href: account.delete.url(),
+        icon: Trash2,
+        variant: 'danger',
+        ownerOnly: true,
+        accountOption: 'deletion',
+    },
 ];
 
 const items = computed<NavItem[]>(() =>
     allItems.filter(
         (item) =>
-            (!item.ownerOnly || isOwner.value) && (!item.needsSocialProvider || hasAnySocialProvider(['google', 'microsoft', 'slack', 'github'])),
+            (!item.ownerOnly || isOwner.value) &&
+            (!item.needsSocialProvider || hasAnySocialProvider(['google', 'microsoft', 'slack', 'github'])) &&
+            (!item.accountOption || (page.props.accountOptions?.[item.accountOption] ?? false)),
     ),
 );
 

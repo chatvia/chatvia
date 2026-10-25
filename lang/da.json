@@ -531,5 +531,9 @@
     "Data, vector and keyword search": "Data, vektor- og nøgleordssøgning",
     "Background jobs": "Baggrundsjob",
     "What each model supports": "Hvad hver model understøtter",
-    "This needs an Enterprise license.": "Dette kræver en Enterprise-licens."
+    "This needs an Enterprise license.": "Dette kræver en Enterprise-licens.",
+    "Read aloud": "Læs højt",
+    "Play agent replies as speech": "Afspil agenters svar som tale",
+    "Reading aloud is not available right now.": "Oplæsning er ikke tilgængelig lige nu.",
+    "The reply could not be read aloud. Please try again.": "Svaret kunne ikke læses højt. Prøv igen."
 }

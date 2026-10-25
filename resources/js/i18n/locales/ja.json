@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "例：価格が古くなっています。",
         "feedback_comment_send": "送信",
         "feedback_comment_skip": "スキップ",
-        "feedback_comment_thanks": "フィードバックをありがとうございます。"
+        "feedback_comment_thanks": "フィードバックをありがとうございます。",
+        "read_aloud": "読み上げ",
+        "stop_reading": "読み上げを停止",
+        "read_aloud_loading": "音声を準備中…",
+        "read_aloud_failed": "返信を読み上げられませんでした。"
     },
     "errors": {
         "message_limit_reached": "メッセージの上限に達しました",
@@ -1906,7 +1910,15 @@
                 "sources_list": "回答の下に一覧",
                 "sources_list_hint": "各回答の下のボタンで、使ったナレッジを一覧表示します。",
                 "sources_citations": "番号付きの出典",
-                "sources_citations_hint": "各文の後の小さな番号から出典が開き、回答の下に番号付きの一覧が付きます。ホスト型チャット、ウィジェット、APIで表示され、音声やメッセージアプリでは番号を省きます。"
+                "sources_citations_hint": "各文の後の小さな番号から出典が開き、回答の下に番号付きの一覧が付きます。ホスト型チャット、ウィジェット、APIで表示され、音声やメッセージアプリでは番号を省きます。",
+                "read_aloud_label": "返信を読み上げる",
+                "read_aloud_hint": "ホストされたチャットの各返信の下に、音声で再生するスピーカーボタンを表示します。",
+                "read_aloud_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで読み上げをオンにできます。",
+                "read_aloud_aria": "読み上げの料金は？",
+                "read_aloud_help_title": "読み上げ",
+                "read_aloud_help_1": "チャット相手は返信の下のスピーカーを押して聞きます。リンクは文字として読まれ、コードとグラフは読み飛ばされます。",
+                "read_aloud_help_2": "各返信は音声サービスが一度だけ読み上げて保存するため、再生し直しても費用はかかりません。読み上げはメッセージとして数えられません。",
+                "read_aloud_voice_label": "読み上げの声"
             },
             "bubbles_title": "チャットバブル",
             "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。",
@@ -2065,10 +2077,8 @@
             "bubbles_remove": "バブルを削除",
             "bubbles_empty": "チャットバブルはまだありません。",
             "bubbles_translate_empty": "翻訳するには、まずバブルを追加してください。",
-            "model_picker_title": "モデル",
             "model_picker_description": "このエージェントが回答に使うAIモデルです。このリストに載せるモデルは管理者が選びます（管理パネル → Settings → AI models）。",
             "model_placeholder": "モデルを選択",
-            "model_default": "デフォルト",
             "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。",
             "reasoning_title": "推論",
             "reasoning_description": "モデルが答える前にどれだけ考えるかです。よく考えると難しい質問に強くなりますが、回答は遅くなり、費用も増えます。チャット利用者には、回答の上に推論がグレーで表示されます。",

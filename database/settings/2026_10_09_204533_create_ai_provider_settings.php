@@ -18,6 +18,8 @@ return new class extends SettingsMigration
             $group->addEncrypted('scaleway_api_key');
             $group->add('scaleway_endpoint');
             $group->addEncrypted('openrouter_api_key');
+            $group->addEncrypted('elevenlabs_api_key');
+            $group->add('elevenlabs_endpoint');
             $group->addEncrypted('openai_api_key');
             $group->add('openai_api_endpoint');
             $group->addEncrypted('mistral_api_key');

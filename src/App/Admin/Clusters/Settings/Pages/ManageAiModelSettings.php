@@ -38,9 +38,11 @@ use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Actions\Catalog\CheckLlmListingAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Actions\Catalog\SyncLlmFactsAction;
+use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Data\Catalog\ModelFactsData;
 use Domain\Llm\Data\Catalog\ModelListData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Data\Speech\SpeechVoiceData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
@@ -50,6 +52,7 @@ use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ChatFileModel;
+use Domain\Llm\Services\ElevenLabsVoices;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ModelsDevCatalog;
@@ -375,6 +378,38 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->text('openai_realtime_transcription_model', 'Transcription model',
                     help: 'Writes down what the visitor says, for the chat log: gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
+            SettingsCard::make('read_aloud', 'Read aloud', 'Agent replies played as speech in the hosted chat.', Heroicon::OutlinedSpeakerWave, fn (): array => [
+                $this->serviceChoice('speaker', 'Read aloud', [
+                    'elevenlabs' => 'ElevenLabs',
+                    'openai' => 'OpenAI Realtime',
+                    'none' => 'Off',
+                ], 'Each agent still turns it on (Setup → Settings → Composer options). A reply is read once; playing it again costs nothing.',
+                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
+                    ->live(),
+                Callout::make('OpenAI reads with its realtime model')
+                    ->description('It talks rather than reads, so each reading is checked against the reply and read again once when the words differ. ElevenLabs reads the text as it is.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('speaker') === 'openai'),
+                $this->choice('openai_speech_voice', 'Default voice', collect(RealtimeVoice::cases())->mapWithKeys(fn (RealtimeVoice $voice): array => [$voice->value => $voice->label()])->all(),
+                    help: 'Agents read with it unless they pick their own. Marin and Cedar sound the most natural.')
+                    ->visible(fn (Get $get): bool => $get('speaker') === 'openai'),
+                $this->choice('elevenlabs_speech_voice', 'Default voice', collect(app(ElevenLabsVoices::class)->all())->mapWithKeys(fn (SpeechVoiceData $voice): array => [$voice->id => $voice->label])->all(),
+                    help: 'Any voice of your ElevenLabs account. Agents read with it unless they pick their own; they choose from a few professional voices that speak many languages. Empty uses the first of those.')
+                    ->searchable()
+                    ->visible(fn (Get $get): bool => $get('speaker') === 'elevenlabs'),
+            ])->advancedFields(fn (): array => [
+                $this->choice('openai_speech_model', 'OpenAI model', [
+                    'gpt-realtime-2.1-mini' => 'GPT Realtime 2.1 mini',
+                    'gpt-realtime-2.1' => 'GPT Realtime 2.1 (costs more)',
+                ]),
+                $this->choice('elevenlabs_speech_model', 'ElevenLabs model', [
+                    'eleven_flash_v2_5' => 'Flash v2.5 (fast, cheapest, 32 languages)',
+                    'eleven_v4_turbo' => 'v4 Turbo (fast, 90+ languages)',
+                    'eleven_v4' => 'v4 (best quality, 90+ languages)',
+                    'eleven_multilingual_v2' => 'Multilingual v2 (29 languages)',
+                ]),
+            ])->summary(fn (): string => $this->readAloudSummary()),
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),
                 $this->withHelp($this->modelChoice('task_model', 'Model for quick tasks'),
@@ -1166,6 +1201,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             'reranker' => app(RerankerFactory::class)->autoDriver(),
             'transcriber' => AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none',
             'voice' => AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none',
+            'speaker' => AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none',
             default => throw new InvalidArgumentException("{$property} is not a service choice."),
         };
     }
@@ -1253,6 +1289,17 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $provider = $this->providerInUse('voice');
 
         return $provider === 'off' ? $provider : $provider.' · '.RealtimeVoice::configured()->label();
+    }
+
+    /** The service that reads replies aloud, with its default voice. */
+    private function readAloudSummary(): string
+    {
+        $provider = $this->providerInUse('speaker');
+        $speaker = app(Speaker::class);
+        $voice = $speaker->defaultVoice();
+        $name = array_find($speaker->voices(), fn (SpeechVoiceData $choice): bool => $choice->id === $voice)?->label;
+
+        return $provider === 'off' || blank($name) ? $provider : $provider.' · '.$name;
     }
 
     private function embeddingSummary(): string

@@ -11,7 +11,7 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * What runs on which AI provider (Settings → AI models): which service
  * handles each step (embeddings, reranking, document reading, speech to
- * text, voice conversations), the models those services call, and the
+ * text, voice conversations, reading aloud), the models those services call, and the
  * catalog model behind each of the app's own tasks ({@see LlmTask}: one
  * shared model, and one per task). The providers' keys are in
  * {@see AiProviderSettings}; chat models are rows (`llms`). The services are
@@ -48,6 +48,9 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.voice')]
     public ?string $voice = null;
+
+    #[ConfigKey('chatvia.ai.speaker')]
+    public ?string $speaker = null;
 
     #[ConfigKey('chatvia.ai.chat_files.enabled')]
     public ?bool $chat_files_enabled = null;
@@ -153,6 +156,18 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('services.openai.realtime_transcription_model')]
     public ?string $openai_realtime_transcription_model = null;
+
+    #[ConfigKey('services.openai.speech_model')]
+    public ?string $openai_speech_model = null;
+
+    #[ConfigKey('services.openai.speech_voice')]
+    public ?string $openai_speech_voice = null;
+
+    #[ConfigKey('services.elevenlabs.speech_model')]
+    public ?string $elevenlabs_speech_model = null;
+
+    #[ConfigKey('services.elevenlabs.speech_voice')]
+    public ?string $elevenlabs_speech_voice = null;
 
     #[ConfigKey('chatvia.voice.max_call_minutes')]
     public ?int $voice_max_call_minutes = null;

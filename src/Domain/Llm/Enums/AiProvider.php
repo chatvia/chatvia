@@ -15,12 +15,14 @@ use Domain\Llm\Services\ModelPresets;
  *
  * The order of the cases is the order "Automatic" tries them in: speech to
  * text uses Scaleway AI before OpenAI, reranking OpenRouter before Cohere,
- * document reading Mistral before Azure.
+ * document reading Mistral before Azure, reading aloud ElevenLabs (which
+ * reads the text as it is) before OpenAI (whose realtime model talks).
  */
 enum AiProvider: string
 {
     case Scaleway = 'scaleway';
     case OpenRouter = 'openrouter';
+    case ElevenLabs = 'elevenlabs';
     case OpenAi = 'openai';
     case Mistral = 'mistral';
     case Google = 'google';
@@ -40,7 +42,8 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech],
             self::OpenRouter => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Reranking],
-            self::OpenAi => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech, AiCapability::Voice],
+            self::ElevenLabs => [AiCapability::TextToSpeech],
+            self::OpenAi => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech, AiCapability::Voice, AiCapability::TextToSpeech],
             self::Mistral => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Documents],
             self::Google => [AiCapability::Chat, AiCapability::Embeddings],
             self::Groq => [AiCapability::Chat],
@@ -63,6 +66,7 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => 'Scaleway AI',
             self::OpenRouter => 'OpenRouter',
+            self::ElevenLabs => 'ElevenLabs',
             self::OpenAi => 'OpenAI',
             self::Mistral => 'Mistral',
             self::Google => 'Google Gemini',
@@ -82,6 +86,7 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => 'Open models hosted in Europe.',
             self::OpenRouter => 'Hundreds of models from many companies, with one key.',
+            self::ElevenLabs => 'Natural voices in many languages, for reading replies aloud.',
             self::OpenAi => 'The GPT models.',
             self::Mistral => 'Mistral\'s models, and reading of documents and PDFs.',
             self::Google => 'The Gemini models.',
@@ -101,6 +106,7 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => 'services.scalewayai.api_key',
             self::OpenRouter => 'services.openrouter.api_key',
+            self::ElevenLabs => 'services.elevenlabs.api_key',
             self::OpenAi => 'services.openai.api_key',
             self::Mistral => 'services.mistral.api_key',
             self::Google => 'services.gemini.api_key',
@@ -119,6 +125,7 @@ enum AiProvider: string
     {
         return match ($this) {
             self::Scaleway => 'services.scalewayai.endpoint',
+            self::ElevenLabs => 'services.elevenlabs.endpoint',
             self::OpenAi => 'services.openai.api_endpoint',
             self::Mistral => 'services.mistral.base_url',
             self::Google => 'services.gemini.api_endpoint',
@@ -137,6 +144,7 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => 'https://console.scaleway.com/iam/api-keys',
             self::OpenRouter => 'https://openrouter.ai/settings/keys',
+            self::ElevenLabs => 'https://elevenlabs.io/app/settings/api-keys',
             self::OpenAi => 'https://platform.openai.com/api-keys',
             self::Mistral => 'https://console.mistral.ai/api-keys',
             self::Google => 'https://aistudio.google.com/apikey',
@@ -162,7 +170,7 @@ enum AiProvider: string
             self::Groq => LlmProviderKind::Groq,
             self::Anthropic => LlmProviderKind::Anthropic,
             self::AzureOpenAi => LlmProviderKind::Azure,
-            self::Cohere, self::Jina, self::Voyage, self::Azure => null,
+            self::ElevenLabs, self::Cohere, self::Jina, self::Voyage, self::Azure => null,
         };
     }
 
@@ -244,7 +252,7 @@ enum AiProvider: string
                 ['llama-3.3-70b-versatile'],
             ],
             self::Anthropic => [['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6']],
-            self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 
@@ -267,7 +275,7 @@ enum AiProvider: string
             self::Google => ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['openai/gpt-oss-20b'],
             self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
-            self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 
@@ -289,7 +297,7 @@ enum AiProvider: string
             self::Google => ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['qwen/qwen3.8-27b', 'qwen/qwen3.6-27b', 'meta-llama/llama-4-scout-17b-16e-instruct'],
             self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
-            self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 
@@ -311,7 +319,7 @@ enum AiProvider: string
             self::Mistral => ['mistral-large-2512', 'ministral-14b-2512'],
             self::Google => ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'],
             self::Anthropic => ['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6'],
-            self::Scaleway, self::Groq, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::Scaleway, self::ElevenLabs, self::Groq, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
         };
     }
 }

@@ -3,7 +3,7 @@
  * One assistant reply in the hosted chat: the model's thinking (when the
  * agent reasons, live only), the rendered answer, a "still working"
  * indicator (dots or the tool-call stack), any tool calls awaiting approval,
- * and the action row (copy, feedback, delete, regenerate, sources). After a
+ * and the action row (copy, read aloud, feedback, delete, regenerate, sources). After a
  * thumbs-down, an optional note on what was wrong.
  */
 import { deleteMessage as deleteMessageRequest, sendMessageFeedback, type MessageFeedbackValue } from '@/api/chat';
@@ -20,12 +20,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useReadAloud } from '@/composables/chat/useReadAloud';
 import type { ActiveToolCall, Message, MessageSource } from '@/types/chat';
 import type { ToolApprovalCall, ToolArtifact } from '@/types/stream';
 import { useClipboard } from '@vueuse/core';
-import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2, X } from 'lucide-vue-next';
+import { Check, Copy, Loader2, RefreshCw, Square, ThumbsDown, ThumbsUp, Trash2, Volume2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 import { citedSources } from '@/lib/citations';
 import AssistantMessageBody from './AssistantMessageBody.vue';
 import CitedSourcesList from './CitedSourcesList.vue';
@@ -51,6 +53,8 @@ const props = defineProps<{
     sources?: MessageSource[];
     /** The agent cites its sources: `[n]` markers become chips, with a numbered source list. */
     citeSources?: boolean;
+    /** The agent reads replies aloud: a speaker button plays a finished reply. */
+    readAloud?: boolean;
     /**
      * Structured tool-call artifacts of this turn (ECharts options, forms),
      * from the SSE `tool` end-phase payload. Rendered above the markdown,
@@ -111,6 +115,31 @@ watch(
     },
     { immediate: true },
 );
+
+const {
+    status: readAloudStatus,
+    play: playAloud,
+    stop: stopReading,
+} = useReadAloud(() => (persistedId.value === null ? null : String(persistedId.value)));
+// Only a saved reply (its id is a uuid; a voice-call stub has 0) that has finished.
+const canReadAloud = computed(() => !!props.readAloud && !!props.conversationId && typeof props.message.id === 'string' && !props.isStreaming);
+
+/** Plays the reply, or stops it while it loads or plays. */
+async function toggleReadAloud() {
+    if (readAloudStatus.value !== 'idle') {
+        stopReading();
+
+        return;
+    }
+
+    if (!canReadAloud.value || persistedId.value === null || !props.conversationId) return;
+
+    try {
+        await playAloud(props.conversationId, String(persistedId.value));
+    } catch {
+        toast.error(t('messages.read_aloud_failed'));
+    }
+}
 
 function regenerate() {
     if (persistedId.value === null || props.userMessageId === undefined || !props.conversationId) return;
@@ -237,6 +266,28 @@ async function deleteMessage() {
                     >
                         <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
                         <Copy v-else class="h-3.5 w-3.5" />
+                    </Button>
+
+                    <Button
+                        v-if="canReadAloud"
+                        size="icon"
+                        variant="ghost"
+                        class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
+                        :class="{ '!text-foreground': readAloudStatus !== 'idle' }"
+                        :aria-pressed="readAloudStatus !== 'idle'"
+                        :aria-label="
+                            readAloudStatus === 'idle'
+                                ? t('messages.read_aloud')
+                                : readAloudStatus === 'loading'
+                                  ? t('messages.read_aloud_loading')
+                                  : t('messages.stop_reading')
+                        "
+                        :title="readAloudStatus === 'idle' ? t('messages.read_aloud') : t('messages.stop_reading')"
+                        @click="toggleReadAloud"
+                    >
+                        <Loader2 v-if="readAloudStatus === 'loading'" class="h-3.5 w-3.5 animate-spin" />
+                        <Square v-else-if="readAloudStatus === 'playing'" class="h-3 w-3 fill-current" />
+                        <Volume2 v-else class="h-3.5 w-3.5" />
                     </Button>
 
                     <Button

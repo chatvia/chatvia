@@ -17,11 +17,14 @@ use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Checks an AI provider's key, the one typed or else the saved one: a chat
  * provider by reading its model list, Cohere and Jina with a test
- * embedding, Azure with a call to its resource. Only a refused key or a provider
+ * embedding, Azure with a call to its resource, ElevenLabs by reading its
+ * model list. Only a refused key or a provider
  * that cannot be reached counts as not connected.
  */
 final readonly class AiProviderCheck
@@ -48,6 +51,10 @@ final readonly class AiProviderCheck
 
         if ($provider === AiProvider::Azure) {
             return $this->checkAzure((string) $key, filled($baseUrl) ? $baseUrl : config($provider->baseUrlConfig() ?? ''));
+        }
+
+        if ($provider === AiProvider::ElevenLabs) {
+            return $this->checkElevenLabs((string) $key, (string) (filled($baseUrl) ? $baseUrl : config('services.elevenlabs.endpoint')));
         }
 
         $kind = $provider->chatKind();
@@ -95,6 +102,25 @@ final readonly class AiProviderCheck
         $limit = $response->json('customDocumentModels.limit');
 
         return is_numeric($limit) && (int) $limit < self::AZURE_STANDARD_MODEL_LIMIT;
+    }
+
+    /** The model list takes any ElevenLabs key, whatever the key may do. */
+    private function checkElevenLabs(string $key, string $endpoint): ConnectionCheckData
+    {
+        try {
+            $response = Http::withHeaders(['xi-api-key' => $key])
+                ->acceptJson()
+                ->timeout(15)
+                ->get(Str::rtrim($endpoint, '/').'/models');
+        } catch (ConnectionException) {
+            return new ConnectionCheckData(false, message: "{$endpoint} could not be reached.");
+        }
+
+        return match (true) {
+            $response->successful() => new ConnectionCheckData(true),
+            in_array($response->status(), [401, 403], true) => new ConnectionCheckData(false, true, 'ElevenLabs refused the key. Check that you copied all of it.'),
+            default => new ConnectionCheckData(false, message: "ElevenLabs answered with an error ({$response->status()})."),
+        };
     }
 
     /** Azure needs its endpoint as well as its key: a call to the resource checks both. */

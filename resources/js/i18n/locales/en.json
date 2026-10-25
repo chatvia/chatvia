@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "For example: the price is out of date.",
         "feedback_comment_send": "Send",
         "feedback_comment_skip": "Skip",
-        "feedback_comment_thanks": "Thanks for your feedback."
+        "feedback_comment_thanks": "Thanks for your feedback.",
+        "read_aloud": "Read aloud",
+        "stop_reading": "Stop reading",
+        "read_aloud_loading": "Preparing audio…",
+        "read_aloud_failed": "The reply could not be read aloud."
     },
     "errors": {
         "message_limit_reached": "Message limit reached",
@@ -1907,7 +1911,15 @@
                 "sources_list": "List under the answer",
                 "sources_list_hint": "A button under each answer lists the knowledge it used.",
                 "sources_citations": "Numbered citations",
-                "sources_citations_hint": "A small number after each sentence opens its source, with a numbered list under the answer. Hosted chat, widget and API; voice and messaging apps leave the numbers out."
+                "sources_citations_hint": "A small number after each sentence opens its source, with a numbered list under the answer. Hosted chat, widget and API; voice and messaging apps leave the numbers out.",
+                "read_aloud_label": "Read replies aloud",
+                "read_aloud_hint": "Show a speaker button under each reply in the hosted chat that plays it as speech.",
+                "read_aloud_unavailable": "Not set up on this server. An admin can turn on reading aloud in the admin panel.",
+                "read_aloud_aria": "How is reading aloud charged?",
+                "read_aloud_help_title": "Read aloud",
+                "read_aloud_help_1": "A chatter presses the speaker under a reply to hear it. Links are read as their words; code and charts are skipped.",
+                "read_aloud_help_2": "Each reply is read by the speech service once and saved, so playing it again costs nothing. Reading aloud does not count as a message.",
+                "read_aloud_voice_label": "Reading voice"
             },
             "bubbles_title": "Chat Bubbles",
             "bubbles_description": "Quick message prompts shown next to the widget launcher.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Remove bubble",
             "bubbles_empty": "No chat bubbles yet.",
             "bubbles_translate_empty": "Add a bubble first to translate it.",
-            "model_picker_title": "Model",
             "model_picker_description": "The AI model this agent answers with. An admin chooses which models are on this list (admin panel → Settings → AI models).",
             "model_placeholder": "Choose a model",
-            "model_default": "Default",
             "model_empty": "No models yet. An admin adds them in the admin panel, under Settings → AI models.",
             "reasoning_title": "Reasoning",
             "reasoning_description": "How hard the model thinks before it answers. More thinking helps with hard questions, but answers come slower and cost more. Chatters see the thinking in grey above the answer.",

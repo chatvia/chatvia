@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Örneğin: fiyat güncel değil.",
         "feedback_comment_send": "Gönder",
         "feedback_comment_skip": "Atla",
-        "feedback_comment_thanks": "Geri bildiriminiz için teşekkürler."
+        "feedback_comment_thanks": "Geri bildiriminiz için teşekkürler.",
+        "read_aloud": "Sesli oku",
+        "stop_reading": "Okumayı durdur",
+        "read_aloud_loading": "Ses hazırlanıyor…",
+        "read_aloud_failed": "Yanıt sesli okunamadı."
     },
     "errors": {
         "message_limit_reached": "Mesaj sınırına ulaşıldı",
@@ -1906,7 +1910,15 @@
                 "sources_list": "Yanıtın altında liste",
                 "sources_list_hint": "Her yanıtın altındaki bir düğme kullanılan bilgiyi listeler.",
                 "sources_citations": "Numaralı alıntılar",
-                "sources_citations_hint": "Her cümlenin sonundaki küçük numara kaynağını açar ve yanıtın altında numaralı bir liste bulunur. Barındırılan sohbet, pencere öğesi ve API; ses ve mesajlaşma uygulamaları numaraları göstermez."
+                "sources_citations_hint": "Her cümlenin sonundaki küçük numara kaynağını açar ve yanıtın altında numaralı bir liste bulunur. Barındırılan sohbet, pencere öğesi ve API; ses ve mesajlaşma uygulamaları numaraları göstermez.",
+                "read_aloud_label": "Yanıtları sesli oku",
+                "read_aloud_hint": "Barındırılan sohbette her yanıtın altında onu sesli oynatan bir hoparlör düğmesi göster.",
+                "read_aloud_unavailable": "Bu sunucuda ayarlanmamış. Bir yönetici sesli okumayı yönetim panelinden açabilir.",
+                "read_aloud_aria": "Sesli okuma nasıl ücretlendirilir?",
+                "read_aloud_help_title": "Sesli okuma",
+                "read_aloud_help_1": "Sohbet eden kişi bir yanıtı dinlemek için altındaki hoparlöre basar. Bağlantılar metinleriyle okunur; kod ve grafikler atlanır.",
+                "read_aloud_help_2": "Her yanıt ses hizmeti tarafından bir kez okunur ve kaydedilir, bu yüzden yeniden oynatmak ücretsizdir. Sesli okuma mesaj olarak sayılmaz.",
+                "read_aloud_voice_label": "Okuma sesi"
             },
             "bubbles_title": "Sohbet Balonları",
             "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri.",
@@ -2065,10 +2077,8 @@
             "bubbles_remove": "Balonu kaldır",
             "bubbles_empty": "Henüz sohbet balonu yok.",
             "bubbles_translate_empty": "Çevirmek için önce bir balon ekleyin.",
-            "model_picker_title": "Model",
             "model_picker_description": "Bu asistanın yanıt verirken kullandığı AI modeli. Bu listede hangi modellerin olacağını bir yönetici seçer (yönetim paneli → Settings → AI models).",
             "model_placeholder": "Bir model seçin",
-            "model_default": "Varsayılan",
             "model_empty": "Henüz model yok. Bir yönetici bunları yönetim panelinde, Settings → AI models altında ekler.",
             "reasoning_title": "Akıl yürütme",
             "reasoning_description": "Modelin yanıt vermeden önce ne kadar düşüneceği. Daha çok düşünmek zor sorularda yardımcı olur, ancak yanıtlar daha yavaş gelir ve daha pahalıya mal olur. Sohbet edenler, akıl yürütmeyi yanıtın üstünde gri renkte görür.",

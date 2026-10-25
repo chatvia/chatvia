@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * Setup → Settings: agent-wide switches that aren't tied to one surface —
- * composer options (with voice conversations and the agent's voice), reply
+ * composer options (with voice conversations, reading replies aloud and the
+ * agent's voices), reply
  * options (the sources under an answer), the chat log, and which
  * conversation analytics run.
  * Each group is its own form with its own Save button.
@@ -24,6 +25,7 @@ const {
     isSavingComposer,
     saveComposer,
     voice,
+    readAloud,
     fileUploadsAvailable,
     repliesForm,
     isSavingReplies,
@@ -48,11 +50,30 @@ const fileUploads = computed({
 /** A voice's name as shown: "Marin". */
 const voiceName = (voice: string): string => voice.charAt(0).toUpperCase() + voice.slice(1);
 
+/** The name of the default read-aloud voice, by its id (ElevenLabs ids are not names). */
+const readAloudDefaultName = computed(
+    (): string => readAloud.choices.find((choice) => choice.id === readAloud.default)?.label ?? voiceName(readAloud.default),
+);
+
+// A voice the service no longer has is shown as the default, which is what plays.
+const readAloudVoice = computed({
+    get: (): string =>
+        readAloud.choices.some((choice) => choice.id === composerForm.read_aloud_voice) ? composerForm.read_aloud_voice : 'default',
+    set: (value: string): void => {
+        composerForm.read_aloud_voice = value;
+    },
+});
+
 const help = computed(() => ({
     voiceConversation: {
         ariaLabel: t('agents.setup.settings.voice_conversation_aria'),
         title: t('agents.setup.settings.voice_conversation_help_title'),
         paragraphs: [t('agents.setup.settings.voice_conversation_help_1'), t('agents.setup.settings.voice_conversation_help_2')],
+    },
+    readAloud: {
+        ariaLabel: t('agents.setup.settings.read_aloud_aria'),
+        title: t('agents.setup.settings.read_aloud_help_title'),
+        paragraphs: [t('agents.setup.settings.read_aloud_help_1'), t('agents.setup.settings.read_aloud_help_2')],
     },
     fileUploads: {
         ariaLabel: t('agents.setup.settings.file_uploads_aria'),
@@ -131,6 +152,34 @@ const SOURCES_DISPLAY: Domain.Agent.Enums.SourcesDisplay[] = ['hidden', 'list', 
                                     t('agents.setup.settings.voice_default', { voice: voiceName(voice.default) })
                                 }}</SelectItem>
                                 <SelectItem v-for="choice in voice.choices" :key="choice" :value="choice">{{ voiceName(choice) }}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <div>
+                    <SetupSwitchRow
+                        id="allow-read-aloud"
+                        v-model="composerForm.allow_read_aloud"
+                        :label="t('agents.setup.settings.read_aloud_label')"
+                        :hint="readAloud.available ? t('agents.setup.settings.read_aloud_hint') : t('agents.setup.settings.read_aloud_unavailable')"
+                        :help="help.readAloud"
+                        :disabled="locked || !readAloud.available"
+                    />
+                    <!-- The voice replies are read with, shown while reading aloud is on. -->
+                    <div
+                        v-if="readAloud.available && composerForm.allow_read_aloud && readAloud.choices.length > 0"
+                        class="flex items-center justify-between gap-3 px-4 pb-3"
+                    >
+                        <Label for="agent-read-aloud-voice" class="text-muted-foreground text-sm">{{
+                            t('agents.setup.settings.read_aloud_voice_label')
+                        }}</Label>
+                        <Select v-model="readAloudVoice" :disabled="locked">
+                            <SelectTrigger id="agent-read-aloud-voice" class="w-48">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="default">{{ t('agents.setup.settings.voice_default', { voice: readAloudDefaultName }) }}</SelectItem>
+                                <SelectItem v-for="choice in readAloud.choices" :key="choice.id" :value="choice.id">{{ choice.label }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

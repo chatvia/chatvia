@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "朗读",
+        "stop_reading": "停止朗读",
+        "read_aloud_loading": "正在准备音频…",
+        "read_aloud_failed": "无法朗读这条回复。"
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "朗读回复",
+                "read_aloud_hint": "在托管聊天的每条回复下方显示一个扬声器按钮，将其以语音播放。",
+                "read_aloud_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启朗读。",
+                "read_aloud_aria": "朗读如何计费？",
+                "read_aloud_help_title": "朗读",
+                "read_aloud_help_1": "聊天者点击回复下方的扬声器即可收听。链接只读文字，代码和图表会被跳过。",
+                "read_aloud_help_2": "每条回复只由语音服务朗读一次并保存，因此再次播放不产生费用。朗读不计为消息。",
+                "read_aloud_voice_label": "朗读声音"
+            }
+        }
+    }
+}

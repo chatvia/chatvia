@@ -32,7 +32,7 @@ import { useSetupBranding } from '@/composables/agents/setup/useSetupBranding';
 import { useSetupBubbles } from '@/composables/agents/setup/useSetupBubbles';
 import { provideSetupContext } from '@/composables/agents/setup/useSetupContext';
 import { useSetupDomain } from '@/composables/agents/setup/useSetupDomain';
-import { useSetupGeneralSettings, type SetupVoiceOptions } from '@/composables/agents/setup/useSetupGeneralSettings';
+import { useSetupGeneralSettings, type SetupReadAloudOptions, type SetupVoiceOptions } from '@/composables/agents/setup/useSetupGeneralSettings';
 import { useSetupLanguages } from '@/composables/agents/setup/useSetupLanguages';
 import { useSetupModel } from '@/composables/agents/setup/useSetupModel';
 import { useSetupPreview } from '@/composables/agents/setup/useSetupPreview';
@@ -74,6 +74,7 @@ interface Props {
     defaultAnalytics: Record<string, unknown>;
 
     voice: SetupVoiceOptions;
+    readAloud: SetupReadAloudOptions;
     /** Chat file uploads are on for this install and a model reads them; without it the switch is off and locked. */
     fileUploadsAvailable: boolean;
 
@@ -116,7 +117,7 @@ provideSetupContext({
     locked,
     preview,
     text: useSetupText(deps, appearance),
-    generalSettings: useSetupGeneralSettings(deps, appearance, analytics, props.voice, props.fileUploadsAvailable),
+    generalSettings: useSetupGeneralSettings(deps, appearance, analytics, props.voice, props.readAloud, props.fileUploadsAvailable),
     languages: useSetupLanguages(deps, appearance, () => props.availableLanguages),
     starters: useSetupStarters(deps, props.starters),
     bubbles: useSetupBubbles(deps, props.bubbles),

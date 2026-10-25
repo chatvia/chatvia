@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Read aloud",
+        "stop_reading": "Stop reading",
+        "read_aloud_loading": "Preparing audio…",
+        "read_aloud_failed": "The reply could not be read aloud."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Read replies aloud",
+                "read_aloud_hint": "Show a speaker button under each reply in the hosted chat that plays it as speech.",
+                "read_aloud_unavailable": "Not set up on this server. An admin can turn on reading aloud in the admin panel.",
+                "read_aloud_aria": "How is reading aloud charged?",
+                "read_aloud_help_title": "Read aloud",
+                "read_aloud_help_1": "A chatter presses the speaker under a reply to hear it. Links are read as their words; code and charts are skipped.",
+                "read_aloud_help_2": "Each reply is read by the speech service once and saved, so playing it again costs nothing. Reading aloud does not count as a message.",
+                "read_aloud_voice_label": "Reading voice"
+            }
+        }
+    }
+}

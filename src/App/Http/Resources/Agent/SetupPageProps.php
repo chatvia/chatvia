@@ -11,10 +11,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Data\Resources\AgentPromptPickerData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\Services\AgentModel;
+use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Data\LlmModelData;
+use Domain\Llm\Data\Speech\SpeechVoiceData;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
@@ -37,6 +40,8 @@ final readonly class SetupPageProps
         private VoiceAvailability $voice,
         private Transcriber $transcriber,
         private ChatFileModel $chatFiles,
+        private ReadAloudAvailability $readAloud,
+        private Speaker $speaker,
     ) {}
 
     /**
@@ -91,6 +96,19 @@ final readonly class SetupPageProps
                 'available' => $this->voice->isSetUp(),
                 'default' => RealtimeVoice::configured()->value,
                 'choices' => array_column(RealtimeVoice::cases(), 'value'),
+            ],
+
+            // Read aloud (Settings → Composer options): whether this install
+            // has a text-to-speech service, its default voice, and the
+            // voices an agent may pick instead (ids and names: ElevenLabs
+            // voices are the account's own).
+            'readAloud' => [
+                'available' => $this->readAloud->isSetUp(),
+                'default' => $this->speaker->defaultVoice(),
+                'choices' => array_map(
+                    fn (SpeechVoiceData $voice): array => ['id' => $voice->id, 'label' => $voice->label],
+                    $this->readAloud->isSetUp() ? $this->speaker->voices() : [],
+                ),
             ],
 
             // File uploads (Settings → Composer options): whether this

@@ -19,6 +19,7 @@ enum AiService: string
     case Documents = 'documents';
     case Speech = 'speech';
     case Voice = 'voice';
+    case ReadAloud = 'read_aloud';
     case WebPages = 'web_pages';
 
     public function label(): string
@@ -30,6 +31,7 @@ enum AiService: string
             self::Documents => __('Document reading'),
             self::Speech => __('Speech to text'),
             self::Voice => __('Voice conversations'),
+            self::ReadAloud => __('Read aloud'),
             self::WebPages => __('Web pages'),
         };
     }
@@ -43,6 +45,7 @@ enum AiService: string
             self::Documents => __('Read PDFs, scans and office files'),
             self::Speech => __('Turn recordings and voice notes into text'),
             self::Voice => __('Talk with agents in real time'),
+            self::ReadAloud => __('Play agent replies as speech'),
             self::WebPages => __('Firecrawl reads websites for knowledge'),
         };
     }
@@ -56,6 +59,7 @@ enum AiService: string
             self::Documents => Heroicon::OutlinedDocumentText,
             self::Speech => Heroicon::OutlinedMicrophone,
             self::Voice => Heroicon::OutlinedPhone,
+            self::ReadAloud => Heroicon::OutlinedSpeakerWave,
             self::WebPages => Heroicon::OutlinedGlobeAlt,
         };
     }

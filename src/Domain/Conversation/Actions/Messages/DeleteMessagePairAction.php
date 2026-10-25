@@ -6,17 +6,20 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 
 /**
  * Removes a message and the one before it (the question and its answer) from
- * the visitor's live history, and deletes the files uploaded with them so
- * they do not linger after the visitor erased the turn. The chat-log rows
+ * the visitor's live history, and deletes the files uploaded with them and
+ * the answer read aloud, so they do not linger after the visitor erased the
+ * turn. The chat-log rows
  * stay for the workspace.
  */
 class DeleteMessagePairAction
 {
     public function __construct(
         private readonly ChatMemory $memory,
+        private readonly MessageSpeechFiles $speechFiles,
     ) {}
 
     public function execute(ChatScopeData $scope, string $messageId): void
@@ -42,6 +45,12 @@ class DeleteMessagePairAction
         }
 
         $this->deleteUploadedFiles($removedIds);
+
+        if ($scope->conversationId !== null) {
+            foreach ($removedIds as $removedId) {
+                $this->speechFiles->forgetMessage($scope->agent, $scope->conversationId, $removedId);
+            }
+        }
 
         $memory->saveMessages(array_values($messages));
     }

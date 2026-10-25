@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Przeczytaj na głos",
+        "stop_reading": "Zatrzymaj czytanie",
+        "read_aloud_loading": "Przygotowywanie dźwięku…",
+        "read_aloud_failed": "Nie udało się przeczytać odpowiedzi na głos."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Czytaj odpowiedzi na głos",
+                "read_aloud_hint": "Pokaż pod każdą odpowiedzią w hostowanym czacie przycisk głośnika, który odtwarza ją jako mowę.",
+                "read_aloud_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć czytanie na głos w panelu administracyjnym.",
+                "read_aloud_aria": "Ile kosztuje czytanie na głos?",
+                "read_aloud_help_title": "Czytanie na głos",
+                "read_aloud_help_1": "Rozmówca naciska głośnik pod odpowiedzią, aby ją usłyszeć. Linki są czytane jako ich tekst; kod i wykresy są pomijane.",
+                "read_aloud_help_2": "Każda odpowiedź jest czytana przez usługę mowy raz i zapisywana, więc ponowne odtworzenie nic nie kosztuje. Czytanie na głos nie liczy się jako wiadomość.",
+                "read_aloud_voice_label": "Głos czytania"
+            }
+        }
+    }
+}

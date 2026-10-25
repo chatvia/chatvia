@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Bacakan",
+        "stop_reading": "Berhenti membaca",
+        "read_aloud_loading": "Menyiapkan audio…",
+        "read_aloud_failed": "Balasan tidak dapat dibacakan."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Bacakan balasan",
+                "read_aloud_hint": "Tampilkan tombol speaker di bawah setiap balasan di chat yang dihosting untuk memutarnya sebagai suara.",
+                "read_aloud_unavailable": "Belum diatur di server ini. Admin dapat menyalakan fitur bacakan di panel admin.",
+                "read_aloud_aria": "Bagaimana biaya fitur bacakan?",
+                "read_aloud_help_title": "Bacakan",
+                "read_aloud_help_1": "Pengguna menekan speaker di bawah balasan untuk mendengarnya. Tautan dibaca sebagai katanya; kode dan grafik dilewati.",
+                "read_aloud_help_2": "Setiap balasan dibaca sekali oleh layanan suara lalu disimpan, jadi memutarnya lagi tidak ada biaya. Fitur bacakan tidak dihitung sebagai pesan.",
+                "read_aloud_voice_label": "Suara pembaca"
+            }
+        }
+    }
+}

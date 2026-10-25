@@ -27,6 +27,8 @@ const props = defineProps<{
     sourcesFor: (message: Message) => MessageSource[];
     /** The agent cites its sources inline. */
     citeSources?: boolean;
+    /** Replies get a speaker button that reads them aloud. */
+    readAloud?: boolean;
     artifactsFor: (message: Message) => ToolArtifact[];
     approvalsFor: (assistantMessageId: MessageId | null | undefined) => ToolApprovalCall[];
     resolvingApprovalIds: string[];
@@ -124,6 +126,7 @@ function promptIdBefore(index: number): MessageId | undefined {
                     :user-message-id="promptIdBefore(index)"
                     :sources="sourcesFor(message)"
                     :cite-sources="citeSources"
+                    :read-aloud="readAloud"
                     :artifacts="artifactsFor(message)"
                     :conversation-id="conversationId"
                     :hide-feedback="isMessageStreaming(message)"

@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Sesli oku",
+        "stop_reading": "Okumayı durdur",
+        "read_aloud_loading": "Ses hazırlanıyor…",
+        "read_aloud_failed": "Yanıt sesli okunamadı."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Yanıtları sesli oku",
+                "read_aloud_hint": "Barındırılan sohbette her yanıtın altında onu sesli oynatan bir hoparlör düğmesi göster.",
+                "read_aloud_unavailable": "Bu sunucuda ayarlanmamış. Bir yönetici sesli okumayı yönetim panelinden açabilir.",
+                "read_aloud_aria": "Sesli okuma nasıl ücretlendirilir?",
+                "read_aloud_help_title": "Sesli okuma",
+                "read_aloud_help_1": "Sohbet eden kişi bir yanıtı dinlemek için altındaki hoparlöre basar. Bağlantılar metinleriyle okunur; kod ve grafikler atlanır.",
+                "read_aloud_help_2": "Her yanıt ses hizmeti tarafından bir kez okunur ve kaydedilir, bu yüzden yeniden oynatmak ücretsizdir. Sesli okuma mesaj olarak sayılmaz.",
+                "read_aloud_voice_label": "Okuma sesi"
+            }
+        }
+    }
+}

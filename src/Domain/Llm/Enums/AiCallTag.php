@@ -44,6 +44,9 @@ enum AiCallTag: string
     case DocumentReading = 'document-reading';
     case Transcription = 'transcription';
 
+    // Reading a reply aloud.
+    case ReadAloud = 'read-aloud';
+
     // Everything else.
     case AnalyticsAssistant = 'analytics-assistant';
     case Evaluation = 'evaluation';

@@ -146,7 +146,11 @@
         "feedback_comment_placeholder": "Na przykład: cena jest nieaktualna.",
         "feedback_comment_send": "Wyślij",
         "feedback_comment_skip": "Pomiń",
-        "feedback_comment_thanks": "Dziękujemy za opinię."
+        "feedback_comment_thanks": "Dziękujemy za opinię.",
+        "read_aloud": "Przeczytaj na głos",
+        "stop_reading": "Zatrzymaj czytanie",
+        "read_aloud_loading": "Przygotowywanie dźwięku…",
+        "read_aloud_failed": "Nie udało się przeczytać odpowiedzi na głos."
     },
     "errors": {
         "message_limit_reached": "Osiągnięto limit wiadomości",
@@ -1907,7 +1911,15 @@
                 "sources_list": "Lista pod odpowiedzią",
                 "sources_list_hint": "Przycisk pod każdą odpowiedzią pokazuje użytą wiedzę.",
                 "sources_citations": "Numerowane cytowania",
-                "sources_citations_hint": "Mała liczba po każdym zdaniu otwiera jego źródło, a pod odpowiedzią jest numerowana lista. Czat hostowany, widżet i API; głos i komunikatory pomijają liczby."
+                "sources_citations_hint": "Mała liczba po każdym zdaniu otwiera jego źródło, a pod odpowiedzią jest numerowana lista. Czat hostowany, widżet i API; głos i komunikatory pomijają liczby.",
+                "read_aloud_label": "Czytaj odpowiedzi na głos",
+                "read_aloud_hint": "Pokaż pod każdą odpowiedzią w hostowanym czacie przycisk głośnika, który odtwarza ją jako mowę.",
+                "read_aloud_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć czytanie na głos w panelu administracyjnym.",
+                "read_aloud_aria": "Ile kosztuje czytanie na głos?",
+                "read_aloud_help_title": "Czytanie na głos",
+                "read_aloud_help_1": "Rozmówca naciska głośnik pod odpowiedzią, aby ją usłyszeć. Linki są czytane jako ich tekst; kod i wykresy są pomijane.",
+                "read_aloud_help_2": "Każda odpowiedź jest czytana przez usługę mowy raz i zapisywana, więc ponowne odtworzenie nic nie kosztuje. Czytanie na głos nie liczy się jako wiadomość.",
+                "read_aloud_voice_label": "Głos czytania"
             },
             "bubbles_title": "Dymki czatu",
             "bubbles_description": "Szybkie podpowiedzi wiadomości wyświetlane obok przycisku uruchamiającego widget.",
@@ -2066,10 +2078,8 @@
             "bubbles_remove": "Usuń dymek",
             "bubbles_empty": "Brak dymków czatu.",
             "bubbles_translate_empty": "Najpierw dodaj dymek, aby go przetłumaczyć.",
-            "model_picker_title": "Model",
             "model_picker_description": "Model AI, którym odpowiada ten agent. Administrator wybiera, które modele są na tej liście (panel administracyjny → Settings → AI models).",
             "model_placeholder": "Wybierz model",
-            "model_default": "Domyślny",
             "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models.",
             "reasoning_title": "Rozumowanie",
             "reasoning_description": "Jak mocno model myśli, zanim odpowie. Więcej myślenia pomaga przy trudnych pytaniach, ale odpowiedzi przychodzą wolniej i kosztują więcej. Rozmówcy widzą rozumowanie na szaro nad odpowiedzią.",

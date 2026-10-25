@@ -1,7 +1,7 @@
 /**
  * The Settings section: agent-wide switches that aren't tied to one surface.
  * Composer options (file uploads, voice input, voice conversations and the
- * agent's voice) and the reply options (the sources under an answer) live in
+ * agent's voice, reading replies aloud and its voice) and the reply options (the sources under an answer) live in
  * the `appearance` group;
  * the chat log and the analytics dimensions live in the `analytics` group.
  * The chat log is the analytics' master switch: with nothing stored there is
@@ -25,23 +25,36 @@ export interface SetupVoiceOptions {
     choices: string[];
 }
 
+/** What this install offers for reading replies aloud (sent by the Setup page). */
+export interface SetupReadAloudOptions {
+    /** Text to speech is set up (Settings → AI models); without it the switch is off and locked. */
+    available: boolean;
+    /** The id of the voice agents read with unless they pick their own. */
+    default: string;
+    /** The voices of the service in use (ElevenLabs voices are the account's own). */
+    choices: { id: string; label: string }[];
+}
+
 export function useSetupGeneralSettings(
     { agentId, reloadPreview }: SetupSectionDeps,
     appearance: SettingsReader,
     analytics: SettingsReader,
     voice: SetupVoiceOptions,
+    readAloud: SetupReadAloudOptions,
     fileUploadsAvailable: boolean,
 ) {
     const { t } = useI18n();
     const settingsUrl = (group: 'appearance' | 'analytics') => updateSettings.url({ agent: agentId(), group });
 
     // Composer affordances — on by default; owners can hide the paperclip / mic.
-    // Voice conversations start off: a call costs far more than a message.
+    // Voice conversations and reading aloud start off: they cost far more than a message.
     const composerForm = useForm({
         allow_file_uploads: appearance.boolean('allow_file_uploads', true),
         allow_voice_input: appearance.boolean('allow_voice_input', true),
         allow_voice_conversation: appearance.boolean('allow_voice_conversation', false),
         voice: appearance.string('voice', 'default'),
+        allow_read_aloud: appearance.boolean('allow_read_aloud', false),
+        read_aloud_voice: appearance.string('read_aloud_voice', 'default'),
     });
     const isSavingComposer = ref(false);
     const saveComposer = (): void =>
@@ -128,6 +141,7 @@ export function useSetupGeneralSettings(
         isSavingComposer,
         saveComposer,
         voice,
+        readAloud,
         fileUploadsAvailable,
         repliesForm,
         isSavingReplies,

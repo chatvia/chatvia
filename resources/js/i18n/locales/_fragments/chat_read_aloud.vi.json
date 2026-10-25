@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "read_aloud": "Đọc to",
+        "stop_reading": "Dừng đọc",
+        "read_aloud_loading": "Đang chuẩn bị âm thanh…",
+        "read_aloud_failed": "Không thể đọc to câu trả lời."
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "read_aloud_label": "Đọc to câu trả lời",
+                "read_aloud_hint": "Hiển thị nút loa dưới mỗi câu trả lời trong chat được lưu trữ để phát thành giọng nói.",
+                "read_aloud_unavailable": "Chưa được thiết lập trên máy chủ này. Quản trị viên có thể bật đọc to trong bảng quản trị.",
+                "read_aloud_aria": "Đọc to được tính phí thế nào?",
+                "read_aloud_help_title": "Đọc to",
+                "read_aloud_help_1": "Người trò chuyện bấm loa dưới câu trả lời để nghe. Liên kết được đọc theo chữ; mã và biểu đồ được bỏ qua.",
+                "read_aloud_help_2": "Mỗi câu trả lời được dịch vụ giọng nói đọc một lần rồi lưu lại, nên phát lại không tốn phí. Đọc to không được tính là tin nhắn.",
+                "read_aloud_voice_label": "Giọng đọc"
+            }
+        }
+    }
+}

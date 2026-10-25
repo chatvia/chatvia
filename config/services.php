@@ -126,11 +126,14 @@ return [
         'embedding_model' => env('VOYAGE_EMBEDDING_MODEL', 'voyage-4'),
     ],
 
-    // Embeddings, speech to text and voice conversations; OpenAI chat models
-    // are added as a provider. The realtime_* keys are the voice calls
-    // (Settings → AI models → Voice conversations): the speech-to-speech
-    // model, the voice agents speak with unless they pick their own, and the
-    // model that writes down what the visitor says.
+    // Embeddings, speech to text, voice conversations and reading aloud;
+    // OpenAI chat models are added as a provider. The realtime_* keys are the
+    // voice calls (Settings → AI models → Voice conversations): the
+    // speech-to-speech model, the voice agents speak with unless they pick
+    // their own, and the model that writes down what the visitor says. The
+    // speech_* keys read replies aloud (Settings → AI models → Read aloud)
+    // through the realtime model: OpenAI ends its speech endpoint's models
+    // on 6 January 2027.
     'openai' => [
         'api_key' => null,
         'api_endpoint' => 'https://api.openai.com/v1',
@@ -139,6 +142,18 @@ return [
         'realtime_model' => 'gpt-realtime-2.1',
         'realtime_voice' => 'marin',
         'realtime_transcription_model' => 'gpt-4o-mini-transcribe',
+        'speech_model' => 'gpt-realtime-2.1-mini',
+        'speech_voice' => 'marin',
+    ],
+
+    // Reads agent replies aloud (Settings → AI models → Read aloud). Voices
+    // belong to the account, so an empty voice uses its first recommended
+    // one. The endpoint changes only for ElevenLabs' regional servers.
+    'elevenlabs' => [
+        'api_key' => null,
+        'endpoint' => 'https://api.elevenlabs.io/v1',
+        'speech_model' => 'eleven_flash_v2_5',
+        'speech_voice' => null,
     ],
 
     // Google Gemini embeddings (the Gemini API, not Vertex AI). Gemini chat

@@ -303,6 +303,17 @@
             "members": "Chatters"
         },
         "security": {
+            "description": "Controlos de segurança para todo o espaço de trabalho. Restrinja quem pode aceder ao seu painel e à API por rede: endereços IP e países fiáveis.",
+            "network": {
+                "help": "Restrinja o acesso ao painel e à API a endereços IP e países fiáveis. Quando desativado, qualquer pessoa com um login válido ou uma chave de API pode entrar a partir de qualquer lugar."
+            },
+            "ip": {
+                "help": "Só estes endereços podem aceder ao painel e à API. Deixe vazio para permitir qualquer IP (as regras por país continuam a aplicar-se). Não pode guardar uma lista que exclua o seu endereço atual.",
+                "dialog_description": "Adicione os endereços IP ou intervalos CIDR autorizados a aceder ao seu painel e à API. Exemplo: 203.0.113.4 ou 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Permita ou bloqueie o acesso ao painel e à API com base no país do visitante."
+            },
             "retention": {
                 "leads": "Leads (dias)",
                 "leads_help": "Elimina os leads mais antigos do que este número de dias.",

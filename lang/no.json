@@ -506,7 +506,7 @@
     "The :disk disk failed.": "Disken :disk feilet.",
     "It could not save a file and read it back.": "Den kunne ikke lagre en fil og lese den igjen.",
     "Emails go to the log.": "E-post går til loggen.",
-    "They are not sent. Set up email in Settings → Email.": "Den sendes ikke. Sett opp e-post under Innstillinger → E-post.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "Den sendes ikke. Lenkene for innlogging og passord i dem skrives til loggfilen, så hold den privat. Sett opp e-post under Innstillinger → E-post.",
     "Sends with :service.": "Sender med :service.",
     "It is not tested here, as that would send an email.": "Det testes ikke her, fordi det ville sende en e-post.",
     "The mail server does not answer.": "E-postserveren svarer ikke.",
@@ -538,5 +538,9 @@
     "Read aloud": "Les høyt",
     "Play agent replies as speech": "Spill av agentenes svar som tale",
     "Reading aloud is not available right now.": "Opplesning er ikke tilgjengelig akkurat nå.",
-    "The reply could not be read aloud. Please try again.": "Svaret kunne ikke leses høyt. Prøv igjen."
+    "The reply could not be read aloud. Please try again.": "Svaret kunne ikke leses høyt. Prøv igjen.",
+    "Add a custom domain first.": "Legg til et eget domene først.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Vi fant ikke TXT-posten for dette domenet ennå. DNS-endringer kan ta tid, så prøv igjen senere.",
+    "This domain can't be used. Choose another domain.": "Dette domenet kan ikke brukes. Velg et annet domene.",
+    "Custom domain verified.": "Det egne domenet er bekreftet."
 }

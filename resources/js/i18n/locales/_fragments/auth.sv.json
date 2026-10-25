@@ -163,6 +163,14 @@
             "card_title": "Inbjudan har gått ut",
             "contact_owner": "Kontakta teamägaren för att begära en ny inbjudan.",
             "go_to_login": "Gå till inloggning"
+        },
+        "switch_chat_account": {
+            "head": "Byt konto",
+            "description": "Den här länken loggar in dig i den här chatten med ett annat konto.",
+            "signed_in_as": "Du är inloggad som {name} just nu.",
+            "continue_as": "Fortsätt som {name}",
+            "stay_as": "Förbli inloggad som {name}",
+            "cancel": "Avbryt"
         }
     }
 }

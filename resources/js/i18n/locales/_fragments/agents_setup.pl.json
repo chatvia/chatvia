@@ -39,6 +39,8 @@
                 "domain_saved": "Domena niestandardowa zapisana",
                 "domain_removed": "Domena niestandardowa usunięta",
                 "domain_error": "Nie można zapisać domeny",
+                "domain_verified": "Domena niestandardowa zweryfikowana",
+                "domain_verify_error": "Nie można zweryfikować domeny",
                 "copy_error": "Nie można skopiować do schowka",
                 "colors_saved": "Kolory zapisane",
                 "colors_error": "Nie można zapisać kolorów",
@@ -159,7 +161,12 @@
                 "dns_hint": "Zmiany DNS mogą potrwać do 24 godzin, zanim się rozpropagują. Gdy zostanie rozwiązane, Twoi odwiedzający będą widzieć hostowany czat tego agenta na Twojej domenie.",
                 "step2": "Krok 2 — Wprowadź domenę, którą wskazałeś na nas",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Wprowadź pełną nazwę hosta bez schematu — np. chat.example.com."
+                "hostname_hint": "Wprowadź pełną nazwę hosta bez schematu — np. chat.example.com.",
+                "step3": "Krok 3: potwierdź rekordem TXT, że domena należy do Ciebie",
+                "pending": "Domena {domain} nie jest jeszcze aktywna. Dodaj powyższy rekord TXT u swojego dostawcy DNS, a następnie wybierz Zweryfikuj. Zmiany DNS mogą chwilę potrwać.",
+                "active": "Działa pod adresem {domain}.",
+                "verify": "Zweryfikuj",
+                "verifying": "Weryfikowanie…"
             },
             "preview": {
                 "title": "Podgląd na żywo",

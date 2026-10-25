@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "No se pudo eliminar el avatar",
                 "logo_remove_error": "No se pudo eliminar el logo",
                 "replies_saved": "Opciones de respuesta guardadas",
-                "replies_error": "No se pudieron guardar las opciones de respuesta"
+                "replies_error": "No se pudieron guardar las opciones de respuesta",
+                "domain_verified": "Dominio personalizado verificado",
+                "domain_verify_error": "No se pudo verificar el dominio"
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "Los cambios de DNS pueden tardar hasta 24 horas en propagarse. Una vez que se resuelva, tus visitantes verán el chat alojado de este agente en tu dominio.",
                 "step2": "Paso 2 — Ingresa el dominio que apuntaste hacia nosotros",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Ingresa el nombre de host completo sin esquema — p. ej., chat.example.com."
+                "hostname_hint": "Ingresa el nombre de host completo sin esquema — p. ej., chat.example.com.",
+                "step3": "Paso 3: demuestra que el dominio es tuyo con un registro TXT",
+                "pending": "{domain} aún no está activo. Agrega el registro TXT de arriba en tu proveedor de DNS y luego selecciona Verificar. Los cambios de DNS pueden tardar un poco.",
+                "active": "Activo en {domain}.",
+                "verify": "Verificar",
+                "verifying": "Verificando…"
             },
             "preview": {
                 "title": "Vista previa en vivo",
@@ -2575,6 +2582,14 @@
             "card_title": "Invitación expirada",
             "contact_owner": "Por favor contacta al administrador del equipo para solicitar una nueva invitación.",
             "go_to_login": "Ir al inicio de sesión"
+        },
+        "switch_chat_account": {
+            "head": "Cambiar de cuenta",
+            "description": "Este enlace te inicia sesión en este chat con otra cuenta.",
+            "signed_in_as": "Ahora has iniciado sesión como {name}.",
+            "continue_as": "Continuar como {name}",
+            "stay_as": "Seguir como {name}",
+            "cancel": "Cancelar"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Seguridad",
             "title": "Seguridad",
-            "description": "Controles de seguridad para todo el espacio de trabajo. Restringe quién puede acceder a tu panel por red: direcciones IP y países de confianza.",
+            "description": "Controles de seguridad para todo el espacio de trabajo. Restringe quién puede acceder a tu panel y a la API por red: direcciones IP y países de confianza.",
             "save": "Guardar cambios",
             "saved": "Ajustes de seguridad guardados",
             "save_error": "No se pudieron guardar tus ajustes de seguridad",
@@ -3316,15 +3331,15 @@
             "done": "Listo",
             "network": {
                 "title": "Control de acceso a la red",
-                "help": "Restringe el acceso al panel a direcciones IP y países de confianza. Cuando está desactivado, cualquier persona con un inicio de sesión válido puede acceder desde cualquier lugar."
+                "help": "Restringe el acceso al panel y a la API a direcciones IP y países de confianza. Cuando está desactivado, cualquier persona con un inicio de sesión válido o una clave de API puede entrar desde cualquier lugar."
             },
             "ip": {
                 "title": "Direcciones IP permitidas",
-                "help": "Solo estas direcciones pueden acceder al panel. Déjalo vacío para permitir cualquier IP (las reglas por país siguen aplicándose). No puedes guardar una lista que excluya tu dirección actual.",
+                "help": "Solo estas direcciones pueden acceder al panel y a la API. Déjalo vacío para permitir cualquier IP (las reglas por país siguen aplicándose). No puedes guardar una lista que excluya tu dirección actual.",
                 "empty": "Sin restricción de IP",
                 "manage": "Gestionar IP permitidas",
                 "dialog_title": "Direcciones IP permitidas",
-                "dialog_description": "Añade las direcciones IP o rangos CIDR autorizados para acceder a tu panel. Ejemplo: 203.0.113.4 o 203.0.113.0/24.",
+                "dialog_description": "Añade las direcciones IP o rangos CIDR autorizados para acceder a tu panel y a la API. Ejemplo: 203.0.113.4 o 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Añadir dirección",
                 "remove": "Eliminar dirección",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Reglas por país",
-                "help": "Permite o bloquea el acceso al panel según el país del visitante.",
+                "help": "Permite o bloquea el acceso al panel y a la API según el país del visitante.",
                 "allow": "Permitir solo estos",
                 "deny": "Bloquear estos",
                 "empty": "No hay países seleccionados",

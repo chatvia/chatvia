@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings\Chatter;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\InviteWorkspaceChatterData;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,7 +15,8 @@ use Illuminate\Validation\Validator;
  * Validates a workspace-level member invite: an email plus at least one agent
  * to grant access to. Agents are resolved against the caller's workspace and
  * limited to **protected** agents — public agents have no per-member access, so
- * they can't be assigned.
+ * they can't be assigned — that the caller may manage: a teammate only hands
+ * out the agents their team role reaches.
  */
 class InviteWorkspaceChatterRequest extends FormRequest
 {
@@ -59,7 +61,8 @@ class InviteWorkspaceChatterRequest extends FormRequest
                 $requested = $this->safe()->collect('agents')->filter()->unique();
 
                 // Every requested id must resolve to a protected agent in the
-                // workspace, otherwise the selection is stale or out of bounds.
+                // workspace that the caller may manage, otherwise the
+                // selection is stale or out of bounds.
                 if ($this->resolveAgents()->count() !== $requested->count()) {
                     $validator->errors()->add(
                         'agents',
@@ -95,10 +98,14 @@ class InviteWorkspaceChatterRequest extends FormRequest
 
         $ids = $this->collect('agents')->filter()->unique()->all();
 
+        $access = app(AgentAccessPolicy::class);
+
         return $this->resolvedAgents = $user->workspace()
             ->agents()
             ->where('is_public', false)
             ->whereIn('external_id', $ids)
-            ->get();
+            ->get()
+            ->filter(fn (Agent $agent): bool => $access->canManage($user, $agent))
+            ->values();
     }
 }

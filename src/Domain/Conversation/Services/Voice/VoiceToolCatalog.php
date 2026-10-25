@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Voice;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Voice\VoiceToolLabelData;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
@@ -20,8 +22,10 @@ use Illuminate\Support\Str;
  * The tools a voice call offers: knowledge search first (a call has no
  * reference material pasted into the question, so the model looks things up
  * itself), then the agent's own tools. A tool that needs a person's approval
- * is offered too: there is nothing to click in a call, so the visitor says
- * yes out loud ({@see VoiceToolApprovals}). Tools whose result has to be
+ * is offered to a signed-in chatter or staff account: there is nothing to
+ * click in a call, so they say yes out loud ({@see VoiceToolApprovals}). An
+ * anonymous visitor never gets one, since the call would run with the
+ * workspace's own connector credentials. Tools whose result has to be
  * seen (charts, forms: connectors marked `voice: false`) and tools the
  * surface does not allow are left out.
  *
@@ -38,14 +42,17 @@ final readonly class VoiceToolCatalog
         private SurfaceToolFilter $surfaceFilter,
         private ConnectorCatalog $catalog,
         private ToolDisplayResolver $display,
+        private ToolApprovalPolicy $approvalPolicy,
     ) {}
 
     /**
-     * The agent's tools the call offers, by name.
+     * The agent's tools the call offers, by name. `$viewer` is the signed-in
+     * caller; null for an anonymous visitor, who gets no tool that needs
+     * approval.
      *
      * @return array<string, ToolEntry>
      */
-    public function for(Agent $agent, string $conversationId): array
+    public function for(Agent $agent, string $conversationId, ?ChatViewerData $viewer = null): array
     {
         $screenOnly = $this->catalog->all()
             ->reject(static fn (ConnectorData $connector): bool => $connector->voice)
@@ -64,7 +71,8 @@ final readonly class VoiceToolCatalog
             if ($entry->name === self::KNOWLEDGE_TOOL
                 || isset($tools[$entry->name])
                 || ! $entry->toolName()->isValidForLlm()
-                || ($screenOnly !== [] && Str::startsWith($entry->name, $screenOnly))) {
+                || ($screenOnly !== [] && Str::startsWith($entry->name, $screenOnly))
+                || (! $viewer instanceof ChatViewerData && $this->approvalPolicy->requiresApproval($agent, $entry->toolName()))) {
                 continue;
             }
 

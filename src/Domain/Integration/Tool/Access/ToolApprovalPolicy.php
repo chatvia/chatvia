@@ -66,17 +66,17 @@ class ToolApprovalPolicy
             return false;
         }
 
-        $slug = $tool->serverSlug ?? '';
+        $server = $this->servers->forWorkspace((int) $agent->workspace_id, $tool->serverSlug ?? '');
 
-        // First-party builtin capabilities (charts, forms, leads) run directly —
-        // they are safe, no-auth Chatvia tools and never gate on approval.
-        if ($this->catalog->isBuiltinSlug($slug)) {
+        if (! $server instanceof AgentMcpServer) {
             return false;
         }
 
-        $server = $this->servers->forWorkspace((int) $agent->workspace_id, $slug);
-
-        if (! $server instanceof AgentMcpServer) {
+        // First-party builtin capabilities (charts, forms, leads) run directly —
+        // they are safe, no-auth Chatvia tools and never gate on approval. Read
+        // off the row's connector, never its slug: a custom server's slug is
+        // the name the workspace chose.
+        if ($this->catalog->isBuiltinServer($server)) {
             return false;
         }
 

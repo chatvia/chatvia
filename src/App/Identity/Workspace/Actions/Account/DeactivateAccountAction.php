@@ -9,6 +9,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Switch an account off with an optional reason (shown to admins on the Members
@@ -19,6 +20,12 @@ use Illuminate\Support\Facades\DB;
  * access too, and the workspace's agents stop answering on every surface and
  * channel ({@see WorkspaceActivation}). Members already off keep their original
  * timestamp. Deactivating a single member (chatter/employee) does not cascade.
+ *
+ * Open sessions end on their next request: the dashboard (EnsureCanAccessDashboard),
+ * the hosted chat (LogoutDeactivatedUser) and the widget (its session tokens)
+ * check the switch every time. Every account switched off also gets a new
+ * remember-me token, so a "remember me" cookie from before never signs it in
+ * again, not even after it is reactivated.
  */
 class DeactivateAccountAction
 {
@@ -32,10 +39,11 @@ class DeactivateAccountAction
         $workspace = $user instanceof User && $user->isWorkspaceOwner() ? $user->workspace() : null;
 
         DB::transaction(function () use ($user, $workspace, $reason, $now): void {
-            $user->update([
+            $user->forceFill([
                 'deactivated_at' => $now,
                 'deactivation_reason' => $reason,
-            ]);
+                'remember_token' => Str::random(60),
+            ])->save();
 
             if ($workspace instanceof Workspace) {
                 $teammates = User::query()->whereIn('id', $workspace->teammates()->select('users.id'));
@@ -44,6 +52,8 @@ class DeactivateAccountAction
                     $accounts->whereNull('deactivated_at')->update([
                         'deactivated_at' => $now,
                         'deactivation_reason' => $reason,
+                        // One random token per row, made by the database.
+                        'remember_token' => DB::raw('gen_random_uuid()::text'),
                     ]);
                 }
             }

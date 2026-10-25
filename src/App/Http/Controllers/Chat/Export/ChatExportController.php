@@ -68,8 +68,9 @@ readonly class ChatExportController
         return [$message];
     }
 
+    /** The transcript as a file download; the temporary copy is deleted once it is sent. */
     private function download(string $content, string $filename): BinaryFileResponse
     {
-        return response()->download(create_temp_file($filename, $content), $filename);
+        return response()->download(create_temp_file($filename, $content), $filename)->deleteFileAfterSend();
     }
 }

@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Kunne ikke fjerne avataren",
                 "logo_remove_error": "Kunne ikke fjerne logoen",
                 "replies_saved": "Svarinnstillinger lagret",
-                "replies_error": "Kunne ikke lagre svarinnstillinger"
+                "replies_error": "Kunne ikke lagre svarinnstillinger",
+                "domain_verified": "Egendefinert domene bekreftet",
+                "domain_verify_error": "Kunne ikke bekrefte domenet"
             },
             "settings": {
                 "composer_title": "Skrivefeltinnstillinger",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "DNS-endringer kan ta opptil 24 timer å spre seg. Når det er løst, vil besøkende se denne agentens Hosted Chat på domenet ditt.",
                 "step2": "Steg 2 — Skriv inn domenet du pekte mot oss",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Skriv inn det fullstendige vertsnavnet uten protokoll — f.eks. chat.example.com."
+                "hostname_hint": "Skriv inn det fullstendige vertsnavnet uten protokoll — f.eks. chat.example.com.",
+                "step3": "Steg 3: bevis med en TXT-post at du eier domenet",
+                "pending": "{domain} er ikke aktivt ennå. Legg til TXT-posten ovenfor hos DNS-leverandøren din, og velg deretter Bekreft. DNS-endringer kan ta litt tid.",
+                "active": "Aktivt på {domain}.",
+                "verify": "Bekreft",
+                "verifying": "Bekrefter…"
             },
             "preview": {
                 "title": "Live forhåndsvisning",
@@ -2575,6 +2582,14 @@
             "card_title": "Invitasjon utløpt",
             "contact_owner": "Kontakt teamets eier for å be om en ny invitasjon.",
             "go_to_login": "Gå til innlogging"
+        },
+        "switch_chat_account": {
+            "head": "Bytt konto",
+            "description": "Denne lenken logger deg inn i denne chatten med en annen konto.",
+            "signed_in_as": "Du er logget inn som {name} nå.",
+            "continue_as": "Fortsett som {name}",
+            "stay_as": "Forbli logget inn som {name}",
+            "cancel": "Avbryt"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Sikkerhet",
             "title": "Sikkerhet",
-            "description": "Sikkerhetskontroller for hele arbeidsområdet. Begrens hvem som kan nå dashbordet ditt etter nettverk — pålitelige IP-adresser og land.",
+            "description": "Sikkerhetskontroller for hele arbeidsområdet. Begrens hvem som kan nå dashbordet ditt og API-et etter nettverk: pålitelige IP-adresser og land.",
             "save": "Lagre endringer",
             "saved": "Sikkerhetsinnstillingene er lagret",
             "save_error": "Kunne ikke lagre sikkerhetsinnstillingene dine",
@@ -3316,15 +3331,15 @@
             "done": "Ferdig",
             "network": {
                 "title": "Nettverkstilgangskontroll",
-                "help": "Begrens dashbordtilgang til pålitelige IP-adresser og land. Når dette er av, kan alle med en gyldig pålogging logge på fra hvor som helst."
+                "help": "Begrens tilgangen til dashbordet og API-et til pålitelige IP-adresser og land. Når dette er av, kan alle med en gyldig pålogging eller API-nøkkel komme inn fra hvor som helst."
             },
             "ip": {
                 "title": "Tillatte IP-adresser",
-                "help": "Bare disse adressene kan nå dashbordet. La feltet stå tomt for å tillate alle IP-er (landregler gjelder fortsatt). Du kan ikke lagre en liste som utelater din nåværende adresse.",
+                "help": "Bare disse adressene kan nå dashbordet og API-et. La feltet stå tomt for å tillate alle IP-er (landregler gjelder fortsatt). Du kan ikke lagre en liste som utelater din nåværende adresse.",
                 "empty": "Ingen IP-begrensning",
                 "manage": "Administrer tillatte IP-er",
                 "dialog_title": "Tillatte IP-adresser",
-                "dialog_description": "Legg til IP-adressene eller CIDR-områdene som har tillatelse til å nå dashbordet ditt. Eksempel: 203.0.113.4 eller 203.0.113.0/24.",
+                "dialog_description": "Legg til IP-adressene eller CIDR-områdene som har tillatelse til å nå dashbordet ditt og API-et. Eksempel: 203.0.113.4 eller 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Legg til adresse",
                 "remove": "Fjern adresse",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Landregler",
-                "help": "Tillat eller blokker dashbordtilgang basert på den besøkendes land.",
+                "help": "Tillat eller blokker tilgang til dashbordet og API-et basert på den besøkendes land.",
                 "allow": "Tillat bare disse",
                 "deny": "Blokker disse",
                 "empty": "Ingen land valgt",

@@ -72,7 +72,7 @@ class StreamRequestDataFactory
             referrerUrl: $this->referrer($request),
             pageUrl: $request->url(),
             locale: $this->locale($request),
-            requestId: $request->input('request_id'),
+            requestId: $this->scopedRequestId('chat', $request->input('request_id'), $agent->external_id, $externalSessionId, $conversationId),
         );
     }
 
@@ -119,7 +119,7 @@ class StreamRequestDataFactory
             referrerUrl: $this->referrer($request),
             pageUrl: $request->input('page_url'),
             locale: $request->input('locale') ?: $request->header('accept-language'),
-            requestId: $request->input('request_id') ?? $request->header('X-REQUEST-ID'),
+            requestId: $this->scopedRequestId('widget', $request->input('request_id') ?? $request->header('X-REQUEST-ID'), $agent->external_id, $sessionId, $threadId),
         );
     }
 
@@ -247,6 +247,22 @@ class StreamRequestDataFactory
     private function pickedModel(Request $request): ?int
     {
         return $request->filled('model_id') ? $request->integer('model_id') : null;
+    }
+
+    /**
+     * The client's request id scoped to the surface, agent, session and
+     * conversation it was sent for. Replay snapshots are looked up by this id
+     * before any ownership check, so a request id seen elsewhere (a log, a
+     * shared screen) must never replay another visitor's answer. The client
+     * part is capped so the scoped id fits the audit columns.
+     */
+    private function scopedRequestId(string $surface, mixed $requestId, string ...$scope): ?string
+    {
+        if (! is_scalar($requestId) || blank($requestId)) {
+            return null;
+        }
+
+        return collect([$surface, ...$scope, Str::substr((string) $requestId, 0, 64)])->implode('.');
     }
 
     private function referrer(Request $request): ?string

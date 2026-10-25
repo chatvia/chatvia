@@ -163,6 +163,14 @@
             "card_title": "Invitation expirée",
             "contact_owner": "Veuillez contacter le responsable de l'équipe pour demander une nouvelle invitation.",
             "go_to_login": "Aller à la connexion"
+        },
+        "switch_chat_account": {
+            "head": "Changer de compte",
+            "description": "Ce lien vous connecte à cette conversation avec un autre compte.",
+            "signed_in_as": "Vous êtes actuellement connecté en tant que {name}.",
+            "continue_as": "Continuer en tant que {name}",
+            "stay_as": "Rester connecté en tant que {name}",
+            "cancel": "Annuler"
         }
     }
 }

@@ -35,10 +35,8 @@ readonly class TranscribeAudioController
         abort_if(! $verification->verifySessionExternalId($this->widgetSessionId($request), $agent, $this->widgetViewer($request)), JsonResponse::HTTP_FORBIDDEN, 'Invalid session id');
         abort_if(! (bool) ($agent->settings('appearance')->get('allow_voice_input') ?? true), JsonResponse::HTTP_FORBIDDEN, 'Voice input is off for this agent');
 
-        $audio = $request->file('audio');
-
         try {
-            $text = $transcribe->execute((string) $audio->getRealPath(), $audio->getClientOriginalExtension());
+            $text = $transcribe->execute((string) $request->audio()->getRealPath(), $request->voiceNoteFormat());
         } catch (TranscriptionNotConfiguredException) {
             // Not a failure to retry: this install has no speech-to-text service.
             return response()->json(['message' => 'Voice input is not available'], JsonResponse::HTTP_SERVICE_UNAVAILABLE);

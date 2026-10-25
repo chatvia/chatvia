@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Tidak dapat menghapus avatar",
                 "logo_remove_error": "Tidak dapat menghapus logo",
                 "replies_saved": "Opsi balasan disimpan",
-                "replies_error": "Tidak dapat menyimpan opsi balasan"
+                "replies_error": "Tidak dapat menyimpan opsi balasan",
+                "domain_verified": "Domain khusus terverifikasi",
+                "domain_verify_error": "Tidak dapat memverifikasi domain"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -1924,7 +1926,8 @@
                 "read_aloud_help_title": "Bacakan",
                 "read_aloud_help_1": "Pengguna menekan speaker di bawah balasan untuk mendengarnya. Tautan dibaca sebagai katanya; kode dan grafik dilewati.",
                 "read_aloud_help_2": "Setiap balasan dibaca sekali oleh layanan suara lalu disimpan, jadi memutarnya lagi tidak ada biaya. Fitur bacakan tidak dihitung sebagai pesan.",
-                "read_aloud_voice_label": "Suara pembaca"
+                "read_aloud_voice_label": "Suara pembaca",
+                "file_uploads_unavailable": "Nonaktif di server ini. Admin dapat mengaktifkan unggahan file di chat melalui panel admin, di Settings → AI models."
             },
             "bubbles_title": "Gelembung Obrolan",
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",
@@ -1977,7 +1980,12 @@
                 "dns_hint": "Perubahan DNS dapat memakan waktu hingga 24 jam untuk menyebar. Setelah teratasi, pengunjung Anda akan melihat Hosted Chat agen ini di domain Anda.",
                 "step2": "Langkah 2 — Masukkan domain yang Anda arahkan ke kami",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Masukkan nama host lengkap tanpa skema — mis. chat.example.com."
+                "hostname_hint": "Masukkan nama host lengkap tanpa skema — mis. chat.example.com.",
+                "step3": "Langkah 3: buktikan bahwa domain ini milik Anda dengan catatan TXT",
+                "pending": "{domain} belum aktif. Tambahkan catatan TXT di atas di penyedia DNS Anda, lalu pilih Verifikasi. Perubahan DNS bisa memakan waktu.",
+                "active": "Aktif di {domain}.",
+                "verify": "Verifikasi",
+                "verifying": "Memverifikasi…"
             },
             "preview": {
                 "title": "Pratinjau Langsung",
@@ -2574,6 +2582,14 @@
             "card_title": "Undangan Kedaluwarsa",
             "contact_owner": "Silakan hubungi pemilik tim untuk meminta undangan baru.",
             "go_to_login": "Buka Halaman Masuk"
+        },
+        "switch_chat_account": {
+            "head": "Ganti akun",
+            "description": "Tautan ini memasukkan Anda ke chat ini dengan akun lain.",
+            "signed_in_as": "Saat ini Anda masuk sebagai {name}.",
+            "continue_as": "Lanjutkan sebagai {name}",
+            "stay_as": "Tetap masuk sebagai {name}",
+            "cancel": "Batal"
         }
     },
     "teams": {
@@ -3307,7 +3323,7 @@
         "security": {
             "breadcrumb": "Keamanan",
             "title": "Keamanan",
-            "description": "Kontrol keamanan tingkat ruang kerja. Batasi siapa yang dapat mengakses dasbor Anda berdasarkan jaringan — alamat IP dan negara tepercaya.",
+            "description": "Kontrol keamanan tingkat ruang kerja. Batasi siapa yang dapat mengakses dasbor Anda dan API berdasarkan jaringan: alamat IP dan negara tepercaya.",
             "save": "Simpan perubahan",
             "saved": "Pengaturan keamanan disimpan",
             "save_error": "Tidak dapat menyimpan pengaturan keamanan Anda",
@@ -3315,15 +3331,15 @@
             "done": "Selesai",
             "network": {
                 "title": "Kontrol akses jaringan",
-                "help": "Batasi akses dasbor ke alamat IP dan negara tepercaya. Saat nonaktif, siapa pun dengan login yang valid dapat masuk dari mana saja."
+                "help": "Batasi akses ke dasbor dan API hanya untuk alamat IP dan negara tepercaya. Saat nonaktif, siapa pun dengan login atau kunci API yang valid dapat masuk dari mana saja."
             },
             "ip": {
                 "title": "Alamat IP yang diizinkan",
-                "help": "Hanya alamat ini yang dapat mengakses dasbor. Biarkan kosong untuk mengizinkan IP apa pun (aturan negara tetap berlaku). Anda tidak dapat menyimpan daftar yang mengecualikan alamat Anda saat ini.",
+                "help": "Hanya alamat ini yang dapat mengakses dasbor dan API. Biarkan kosong untuk mengizinkan IP apa pun (aturan negara tetap berlaku). Anda tidak dapat menyimpan daftar yang mengecualikan alamat Anda saat ini.",
                 "empty": "Tidak ada pembatasan IP",
                 "manage": "Kelola IP yang diizinkan",
                 "dialog_title": "Alamat IP yang diizinkan",
-                "dialog_description": "Tambahkan alamat IP atau rentang CIDR yang diizinkan mengakses dasbor Anda. Contoh: 203.0.113.4 atau 203.0.113.0/24.",
+                "dialog_description": "Tambahkan alamat IP atau rentang CIDR yang diizinkan mengakses dasbor Anda dan API. Contoh: 203.0.113.4 atau 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Tambah alamat",
                 "remove": "Hapus alamat",
@@ -3331,7 +3347,7 @@
             },
             "geo": {
                 "title": "Aturan negara",
-                "help": "Izinkan atau blokir akses dasbor berdasarkan negara pengunjung.",
+                "help": "Izinkan atau blokir akses ke dasbor dan API berdasarkan negara pengunjung.",
                 "allow": "Hanya izinkan ini",
                 "deny": "Blokir ini",
                 "empty": "Tidak ada negara yang dipilih",

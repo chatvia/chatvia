@@ -16,11 +16,11 @@ use Illuminate\Database\Eloquent\Collection;
  * that is free in the workspace, and nothing left behind when the first
  * catalog sync fails.
  */
-function accData(User $user, ConnectorAuthStrategy $strategy, ?string $token = null): AddCustomConnectorData
+function accData(User $user, ConnectorAuthStrategy $strategy, ?string $token = null, string $name = 'My CRM'): AddCustomConnectorData
 {
     return new AddCustomConnectorData(
         user: $user,
-        name: 'My CRM',
+        name: $name,
         url: 'https://crm.example.test/mcp',
         auth_strategy: $strategy,
         token: $token,
@@ -63,3 +63,16 @@ it('removes the server again when its first catalog sync fails', function (): vo
 
     expect($owner->workspace()->mcpServers()->count())->toBe(0);
 });
+
+it('never gives a custom server the slug of a builtin or catalog connector', function (string $name, string $slug): void {
+    $owner = User::factory()->create();
+    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
+
+    $result = app(AddCustomConnectorAction::class)->execute(accData($owner, ConnectorAuthStrategy::None, name: $name));
+
+    expect($result->server->slug)->toBe($slug);
+})->with([
+    'the builtin forms' => ['Forms', 'forms_2'],
+    'the builtin charts' => ['Charts', 'charts_2'],
+    'a catalog connector' => ['Notion', 'notion_2'],
+]);

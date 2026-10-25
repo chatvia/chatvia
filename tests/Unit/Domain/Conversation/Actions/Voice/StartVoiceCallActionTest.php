@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Voice\StartVoiceCallAction;
@@ -14,6 +15,10 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
+use Domain\Integration\Tool\Access\ToolApprovalPolicy;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Services\VisitorFingerprint;
@@ -79,6 +84,31 @@ it('opens the call, keeps it and sends a worker to join it', function (): void {
 
     Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls'));
     Queue::assertPushed(JoinVoiceCallJob::class, fn (JoinVoiceCallJob $job): bool => $job->call->call_id === $started->call_id);
+});
+
+it('offers a tool that needs approval to a signed-in caller only', function (): void {
+    $tool = 'mcp__stripe__send_stripe_feedback';
+    $this->mock(ToolRegistry::class)->shouldReceive('for')->andReturn([
+        new ToolEntry(ToolKind::Mcp, '1', $tool, 'Send feedback to Stripe.', ['type' => 'object', 'properties' => []]),
+    ]);
+    $this->mock(ToolApprovalPolicy::class)->shouldReceive('requiresApproval')->andReturn(true);
+    $chatter = Chatter::factory()->ofWorkspace($this->agent->workspace)->create();
+    $offered = fn (): bool => Http::recorded()->contains(fn (array $pair): bool => Str::contains($pair[0]->body(), $tool));
+
+    $visitorCall = app(StartVoiceCallAction::class)->execute(svcCaller(), 'v=0 offer');
+    expect($offered())->toBeFalse();
+
+    // The only worker slot went to the visitor's call.
+    app(VoiceCallSlots::class)->release($visitorCall->call_id);
+    $caller = new VoiceCallerData(
+        agent: $this->agent,
+        surface: ConversationSource::HostedChat,
+        sessionId: $this->session->external_id,
+        conversationId: $this->conversation->external_id,
+        chatterId: $chatter->id,
+    );
+    app(StartVoiceCallAction::class)->execute($caller, 'v=0 offer');
+    expect($offered())->toBeTrue();
 });
 
 it('never lets a call run longer than the hard cap, whatever the setting says', function (): void {

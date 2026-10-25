@@ -52,6 +52,8 @@
                 "domain_saved": "Custom domain saved",
                 "domain_removed": "Custom domain removed",
                 "domain_error": "Could not save domain",
+                "domain_verified": "Custom domain verified",
+                "domain_verify_error": "Could not verify the domain",
                 "copy_error": "Could not copy to clipboard",
                 "colors_saved": "Colors saved",
                 "colors_error": "Could not save colors",
@@ -176,7 +178,12 @@
                 "dns_hint": "DNS changes can take up to 24 hours to propagate. Once it resolves, your visitors will see this agent's Hosted Chat on your domain.",
                 "step2": "Step 2 — Enter the domain you pointed at us",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Enter the full hostname without scheme — e.g. chat.example.com."
+                "hostname_hint": "Enter the full hostname without scheme — e.g. chat.example.com.",
+                "step3": "Step 3: prove you own the domain with a TXT record",
+                "pending": "{domain} is not live yet. Add the TXT record above at your DNS provider, then select Verify. DNS changes can take a while.",
+                "active": "Live on {domain}.",
+                "verify": "Verify",
+                "verifying": "Verifying…"
             },
             "preview": {
                 "title": "Live Preview",

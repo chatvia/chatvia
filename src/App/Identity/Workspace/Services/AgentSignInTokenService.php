@@ -19,11 +19,15 @@ use Throwable;
  * Two interchangeable schemes are accepted in the same slot; the customer picks
  * whichever fits their backend. Both are signed with the agent's `auth_secret`
  * (≥256 bits — see {@see Agent::regenerateAuthSecret()}), both are stateless,
- * and both go through the same downstream access checks.
+ * and both go through the same downstream access checks. A credential signed
+ * with the secret names a chatter only; staff credentials (the Live Preview,
+ * an owner's API link) are minted here with the server-only staff key.
  *
  *  1. **JWT (HS256)** — the default. Standard JSON Web Token with three
  *     registered claims plus one optional custom claim:
- *       - sub: the chatter's or staff account's external_id (who to log in)
+ *       - sub: the chatter's external_id (who to log in). A staff account
+ *              (owner or teammate) is accepted only in a credential the
+ *              server minted, signed with the staff key ({@see staffKey()}).
  *       - aud: the agent's external_id (which agent the token is good for)
  *       - exp: absolute Unix expiry
  *       - ctx: optional context tag the dashboard preview uses to mark a token
@@ -102,7 +106,7 @@ class AgentSignInTokenService
             $payload['ctx'] = $ctx;
         }
 
-        $token = JWT::encode($payload, $agent->ensureAuthSecret(), self::ALGORITHM);
+        $token = JWT::encode($payload, $this->signingKey($user, $agent), self::ALGORITHM);
 
         return ['token' => $token, 'expires_at' => $expiresAt];
     }
@@ -124,7 +128,7 @@ class AgentSignInTokenService
 
         $userId = $user->external_id;
         $exp = $expiresAt->getTimestamp();
-        $sig = hash_hmac('sha256', $userId.'.'.$exp, $agent->ensureAuthSecret());
+        $sig = hash_hmac('sha256', $userId.'.'.$exp, $this->signingKey($user, $agent));
 
         return [
             'token' => self::HMAC_PREFIX.$userId.'.'.$exp.'.'.$sig,
@@ -134,8 +138,9 @@ class AgentSignInTokenService
 
     /**
      * Verify a credential against an agent and resolve it to the account it was
-     * minted for — a chatter of the agent's workspace granted the agent, the
-     * agent's owner, or a teammate with permission to reach the agent — or
+     * minted for — a chatter of the agent's workspace granted the agent, or
+     * (for a server-minted credential) the agent's owner or a teammate with
+     * permission to reach the agent — or
      * null when the signature, audience, expiry, or access check fails (or
      * the account has no signing secret yet).
      *
@@ -162,10 +167,47 @@ class AgentSignInTokenService
             return null;
         }
 
+        // The agent's own secret signs chatters only; a staff account needs
+        // the staff key, which only the server can derive.
+        return $this->verifySigned($token, $agent, $secret, Chatter::class)
+            ?? $this->verifySigned($token, $agent, $this->staffKey($secret), User::class);
+    }
+
+    /**
+     * The key a credential for this account is signed with: the agent's
+     * `auth_secret` for a chatter, the server-only staff key for staff.
+     */
+    private function signingKey(Chatter|User $user, Agent $agent): string
+    {
+        $secret = $agent->ensureAuthSecret();
+
+        return $user instanceof User ? $this->staffKey($secret) : $secret;
+    }
+
+    /**
+     * Teammates with `agent.identity.manage` can read the agent's secret, so a
+     * credential signed with it must never log anyone in as staff: they could
+     * otherwise sign in to the chat as the owner. Staff credentials are signed
+     * with this key instead, derived from the secret and the app key.
+     */
+    private function staffKey(string $secret): string
+    {
+        return hash_hmac('sha256', 'agent-sign-in-staff|'.$secret, (string) config('app.key'));
+    }
+
+    /**
+     * Verify a credential of either scheme with one key and resolve its
+     * subject, which must be an account of the given class.
+     *
+     * @param  class-string<Chatter|User>  $accountClass
+     * @return array{user: Chatter|User, ctx: ?string}|null
+     */
+    private function verifySigned(string $token, Agent $agent, string $key, string $accountClass): ?array
+    {
         // Dispatch on the scheme tag. A JWT always starts with `eyJ`, so the
         // `cvh1.` prefix is unambiguous.
         if (Str::startsWith($token, self::HMAC_PREFIX)) {
-            $sub = $this->verifyHmacSubject($token, $secret);
+            $sub = $this->verifyHmacSubject($token, $key);
 
             if ($sub === null) {
                 return null;
@@ -173,14 +215,14 @@ class AgentSignInTokenService
 
             // HMAC credentials carry no `ctx` — the playground tag is a
             // JWT-only, dashboard-minted concern.
-            return $this->resolveSubject($agent, $sub, null);
+            return $this->resolveSubject($agent, $sub, null, $accountClass);
         }
 
         try {
             // Pinning the key to HS256 makes the library reject any other
             // algorithm (including "none"), closing the algorithm-confusion
             // hole. This also verifies the signature and the `exp` claim.
-            $payload = JWT::decode($token, new Key($secret, self::ALGORITHM));
+            $payload = JWT::decode($token, new Key($key, self::ALGORITHM));
         } catch (Throwable) {
             // Fail closed: any malformed, tampered, expired, or wrong-secret
             // token resolves to "not signed in".
@@ -204,7 +246,7 @@ class AgentSignInTokenService
 
         $ctx = isset($payload->ctx) ? (string) $payload->ctx : null;
 
-        return $this->resolveSubject($agent, (string) $payload->sub, $ctx);
+        return $this->resolveSubject($agent, (string) $payload->sub, $ctx, $accountClass);
     }
 
     /**
@@ -266,9 +308,10 @@ class AgentSignInTokenService
      * deactivation gate. Shared by both schemes so authorization stays
      * identical; only authentication differs.
      *
+     * @param  class-string<Chatter|User>  $accountClass
      * @return array{user: Chatter|User, ctx: ?string}|null
      */
-    private function resolveSubject(Agent $agent, string $sub, ?string $ctx): ?array
+    private function resolveSubject(Agent $agent, string $sub, ?string $ctx, string $accountClass): ?array
     {
         // `external_id` is a Postgres uuid column, so a non-UUID `sub` (a
         // customer signing their own internal id like "2" instead of the
@@ -283,11 +326,9 @@ class AgentSignInTokenService
         // its agent grants, staff through ownership or their team role
         // (User::canAccessAgent → TeamService). Membership alone is NOT
         // sufficient.
-        $account = Chatter::query()
-            ->where('workspace_id', $agent->workspace_id)
-            ->where('external_id', $sub)
-            ->first()
-            ?? $agent->workspace->members()->where('users.external_id', $sub)->first();
+        $account = $accountClass === Chatter::class
+            ? Chatter::query()->where('workspace_id', $agent->workspace_id)->where('external_id', $sub)->first()
+            : $agent->workspace->members()->where('users.external_id', $sub)->first();
 
         if (! $account?->canAccessAgent($agent)) {
             return null;

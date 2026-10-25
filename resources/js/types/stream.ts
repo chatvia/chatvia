@@ -99,7 +99,6 @@ export interface StreamToolData {
     // The tool's argument JSON (sent on 'start' and 'awaiting_approval') —
     // shown in the approval card so the user can judge what will run.
     args?: string;
-    result?: unknown;
     // Display metadata, sent on phase: 'start' / 'awaiting_approval'. Drives
     // the branded loading indicator (icon + service name) in the chat bubble.
     kind?: 'mcp' | 'function';

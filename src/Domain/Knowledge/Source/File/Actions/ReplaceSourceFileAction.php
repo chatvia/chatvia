@@ -17,6 +17,7 @@ use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -49,7 +50,11 @@ class ReplaceSourceFileAction
         $analysis = $this->analyzer->analyze($upload->path, $upload->extension());
         $oldPaths = array_filter([$sourceFile->filepath, $sourceFile->parser_filepath]);
 
-        $path = Storage::putFile(KnowledgeStoragePath::forSource($sourceFile), new File($upload->path));
+        $path = Storage::putFileAs(
+            KnowledgeStoragePath::forSource($sourceFile),
+            new File($upload->path),
+            Str::random(40).'.'.$upload->storedExtension(),
+        );
 
         try {
             DB::transaction(function () use ($sourceFile, $upload, $path, $analysis): void {

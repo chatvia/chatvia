@@ -11,12 +11,13 @@ use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Voice\VoiceToolResultData;
 use Domain\Conversation\Enums\VoiceToolOutcome;
 use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
+use Domain\Conversation\Services\Tooling\ToolCallFactory;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Tooling\ToolResultGuard;
 use Domain\Conversation\Services\Turn\KnowledgeEnricher;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
-use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
@@ -31,7 +32,8 @@ use Illuminate\Support\Str;
  * tool's chip in the call view). Knowledge search goes through the
  * typed turn's lookup (Q&A, search, relevance check, injection scan); every
  * other tool goes through the same governance as a typed turn — the access
- * decision, the rate limit, the dispatcher and the audit log.
+ * decision, the rate limit, the dispatcher, the audit log and the injection
+ * guard on the result ({@see ToolResultGuard}).
  *
  * A tool that needs a person's approval runs only through {@see runApproved()},
  * once the visitor has said yes out loud ({@see VoiceToolApprovals}); the
@@ -61,6 +63,8 @@ final readonly class VoiceToolRunner
         private ToolAccessPolicy $access,
         private ToolApprovalPolicy $approvalPolicy,
         private ToolCallAuditTrail $audit,
+        private ToolResultGuard $resultGuard,
+        private ToolCallFactory $calls,
     ) {}
 
     /**
@@ -137,12 +141,10 @@ final readonly class VoiceToolRunner
         $context = $turn->context;
         $startedAt = microtime(true);
 
-        $result = $this->dispatcher->dispatch($context->requestData->agent, ToolCallData::named(
-            $call->name,
-            $call->arguments,
-            $context->requestData->conversationId,
-            $context->requestData->chatterExternalId,
-        ));
+        $result = $this->dispatcher->dispatch(
+            $context->requestData->agent,
+            $this->calls->make($context->requestData, $call->name, $call->arguments),
+        );
 
         $context->toolCallNames[] = $call->name;
         $this->audit->record(
@@ -155,8 +157,10 @@ final readonly class VoiceToolRunner
             decisionNote: $decisionNote,
         );
 
+        // As on a typed turn, the result passes the injection guard before
+        // the model reads it.
         return new VoiceToolResultData(
-            Str::limit($result->text, self::MAX_RESULT_LENGTH),
+            Str::limit($this->resultGuard->guarded($context, $call->name, $result->text), self::MAX_RESULT_LENGTH),
             $result->isError ? VoiceToolOutcome::Failed : VoiceToolOutcome::Done,
         );
     }

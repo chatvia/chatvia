@@ -10,8 +10,11 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Dispatch\ToolArgumentValidator;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
+use Domain\Integration\Tool\Exceptions\InvalidToolArgumentsException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -28,6 +31,12 @@ use Throwable;
  * auth (bearer, custom header, or an HMAC signature), and returns the response
  * text to the model. Failures come back as tool errors, never exceptions.
  *
+ * The model's arguments are checked against the function's parameters first
+ * ({@see ToolArgumentValidator}). A webhook URL often holds a secret (a hook
+ * path, an `api_key` query), so the model only ever reads a fixed sentence
+ * about a failed call, and the stored `last_error` and the log keep the
+ * error with every URL cut down to its host.
+ *
  * The `X-Chatvia-*` header names are a public contract that customers' webhook
  * receivers check, so they keep this name even when the product is rebranded.
  */
@@ -36,6 +45,19 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     public const string TIMESTAMP_HEADER = 'X-Chatvia-Timestamp';
 
     public const string SIGNATURE_HEADER = 'X-Chatvia-Signature';
+
+    /** What the model reads when the webhook cannot be reached. */
+    public const string UNREACHABLE_RESULT = 'the webhook could not be reached. Try again later.';
+
+    /** What the model reads when the call failed in any other way. */
+    public const string FAILED_RESULT = 'the webhook call failed unexpectedly. Try again later.';
+
+    /** Longest error kept on the function row and in the log. */
+    private const int MAX_ERROR_LENGTH = 500;
+
+    public function __construct(
+        private readonly ToolArgumentValidator $validator = new ToolArgumentValidator,
+    ) {}
 
     public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
     {
@@ -51,6 +73,12 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             return $this->error('Invalid arguments JSON from the model.');
         }
 
+        try {
+            $args = $this->validator->validated($function->parameters_schema?->getArrayCopy() ?? [], $args);
+        } catch (InvalidToolArgumentsException $e) {
+            return $this->error($e->getMessage());
+        }
+
         // Dispatch-time SSRF guard: re-validate the (DNS-resolved) host right
         // before connecting, connect to the address that was checked and
         // disable redirect following, so a webhook that passed save-time
@@ -61,7 +89,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         } catch (UnsafeUrlException $e) {
             $this->record($function, $agent, error: 'blocked unsafe webhook url');
 
-            return $this->error('webhook URL is not allowed: '.$e->getMessage());
+            return $this->error('the webhook address of this function is not allowed.');
         }
 
         $method = $function->webhook_method;
@@ -149,16 +177,30 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
             return ToolDispatchResult::text($truncated);
         } catch (Throwable $e) {
-            $message = $e->getMessage();
+            $message = $this->withoutUrls($e->getMessage());
             $this->record($function, $agent, error: $message);
             Log::warning('Tool dispatch failed', [
                 'agent' => $agent->id,
                 'function' => $function->internal_name,
+                'exception' => $e::class,
                 'error' => $message,
             ]);
 
-            return $this->error($message);
+            return $this->error($e instanceof ConnectionException ? self::UNREACHABLE_RESULT : self::FAILED_RESULT);
         }
+    }
+
+    /**
+     * The error text with every URL cut down to its scheme and host: an HTTP
+     * client error quotes the full request URL, whose path or query may be
+     * the webhook's secret.
+     */
+    private function withoutUrls(string $message): string
+    {
+        return Str::of($message)
+            ->replaceMatches('~\b(https?://)(?:[^\s/?#@"\'<>]*@)?([^\s/?#"\'<>]+)[^\s"\'<>]*~i', '$1$2/[redacted]')
+            ->limit(self::MAX_ERROR_LENGTH)
+            ->toString();
     }
 
     /**

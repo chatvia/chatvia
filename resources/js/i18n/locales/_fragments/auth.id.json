@@ -1,0 +1,12 @@
+{
+    "auth": {
+        "switch_chat_account": {
+            "head": "Ganti akun",
+            "description": "Tautan ini memasukkan Anda ke chat ini dengan akun lain.",
+            "signed_in_as": "Saat ini Anda masuk sebagai {name}.",
+            "continue_as": "Lanjutkan sebagai {name}",
+            "stay_as": "Tetap masuk sebagai {name}",
+            "cancel": "Batal"
+        }
+    }
+}

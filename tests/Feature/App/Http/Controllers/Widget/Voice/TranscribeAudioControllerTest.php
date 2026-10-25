@@ -63,6 +63,32 @@ it('needs a recording', function (): void {
         ->assertJsonValidationErrors('audio');
 });
 
+it('refuses a file that is not a recording in a browser audio format', function (UploadedFile $file): void {
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
+        ->postJson('/widget/transcribe', ['audio' => $file])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('audio');
+})->with([
+    'a playlist named like audio' => [fn (): UploadedFile => UploadedFile::fake()->create('recording.webm', 1, 'text/plain')],
+    'audio under another name' => [fn (): UploadedFile => UploadedFile::fake()->create('recording.m3u8', 12, 'audio/webm')],
+    'a video format no recorder writes' => [fn (): UploadedFile => UploadedFile::fake()->create('recording.mov', 12, 'video/quicktime')],
+]);
+
+it('names the working copy by the detected format, never by the uploaded name', function (): void {
+    $extensions = [];
+    app()->instance(Transcriber::class, new FakeTranscriber('Hello there', function (string $extension) use (&$extensions): bool {
+        $extensions[] = $extension;
+
+        return true;
+    }));
+
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
+        ->postJson('/widget/transcribe', ['audio' => UploadedFile::fake()->create('recording.webm', 12, 'audio/mp4')])
+        ->assertOk();
+
+    expect($extensions)->toBe(['mp4']);
+});
+
 it('answers 503 while no speech-to-text service is set up', function (): void {
     app()->instance(Transcriber::class, app(NullTranscriber::class));
 

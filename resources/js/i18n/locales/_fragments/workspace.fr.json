@@ -303,6 +303,17 @@
             "members": "Chatters"
         },
         "security": {
+            "description": "Contrôles de sécurité à l'échelle de l'espace de travail. Restreignez l'accès à votre tableau de bord et à l'API par réseau : adresses IP et pays de confiance.",
+            "network": {
+                "help": "Restreignez l'accès au tableau de bord et à l'API aux adresses IP et pays de confiance. Lorsque c'est désactivé, toute personne disposant d'identifiants valides ou d'une clé API peut accéder depuis n'importe où."
+            },
+            "ip": {
+                "help": "Seules ces adresses peuvent accéder au tableau de bord et à l'API. Laissez vide pour autoriser n'importe quelle IP (les règles par pays s'appliquent toujours). Vous ne pouvez pas enregistrer une liste qui exclut votre adresse actuelle.",
+                "dialog_description": "Ajoutez les adresses IP ou plages CIDR autorisées à accéder à votre tableau de bord et à l'API. Exemple : 203.0.113.4 ou 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Autorisez ou bloquez l'accès au tableau de bord et à l'API selon le pays du visiteur."
+            },
             "retention": {
                 "leads": "Prospects (jours)",
                 "leads_help": "Supprime les prospects de plus de ce nombre de jours.",

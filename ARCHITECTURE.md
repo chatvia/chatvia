@@ -975,8 +975,7 @@ Everything an admin may want to change lives in the admin panel under
 and endpoints, e-mail, file storage, brand, default language, CSP, the
 widget, retention and limits. `.env` keeps only what the app needs before it
 can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
-`VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`
-(error reports must work before the database loads), `BUILTIN_MCP_SECRET`
+`VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
 install), `TRUSTED_PROXIES`, and `CHATVIA_URI` (ChatVia.ai's own site,
 chatvia.ai by default, the base of the `chatvia.license.*` URLs: where license

@@ -18,6 +18,7 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
@@ -61,7 +62,8 @@ dataset('agent routes', [
     'trained websites to link' => ['agent.sources.train.web', 'GET', 'agents.sources.trained-websites.index', [], [], 200],
     // Leads (an empty bulk delete deletes nothing and redirects back)
     'submissions' => ['agent.leads.view', 'GET', 'agents.forms.submissions.index', fn (): array => [FormDefinition::factory()->forAgent($this->agent)->create()], [], 200],
-    'submissions delete' => ['agent.leads.view', 'DELETE', 'agents.forms.submissions.destroy', fn (): array => [FormDefinition::factory()->forAgent($this->agent)->create()], [], 302],
+    // Deleting leads is managing lead capture, more than viewing them.
+    'submissions delete' => ['agent.leads.settings', 'DELETE', 'agents.forms.submissions.destroy', fn (): array => [FormDefinition::factory()->forAgent($this->agent)->create()], [], 302],
     'submissions export' => ['agent.leads.export', 'GET', 'agents.forms.submissions.export', fn (): array => [FormDefinition::factory()->forAgent($this->agent)->create()], [], 200],
     'lead settings' => ['agent.leads.settings', 'PATCH', 'agents.leads.settings', [], [], 422],
     // Chat log ({conversation} is looked up by external id after the gate)
@@ -229,6 +231,69 @@ describe('knowledge sources', function (): void {
             ->postJson(route('agents.sources.trained-websites.unlink', [$this->agent, 999999]))
             ->assertNotFound();
     });
+
+    // A website is a workspace record, so `can.access.agent` lets any of the
+    // workspace's websites through; each route must also find it on the agent.
+    it('answers 404 for a website of another agent and leaves it alone', function (string $method, string $route, bool $withPage, array $body): void {
+        Bus::fake();
+        $website = SourceWebsite::factory()->ingested()->attachedTo(makeTeamAgent($this->owner, 'Other'))->create();
+        $page = $website->urls()->create(['url' => $website->url.'/page']);
+        $parameters = [$this->agent, $website, ...($withPage ? [$page] : [])];
+        $body = array_map(fn (mixed $value): mixed => $value === 'PAGE_ID' ? [$page->id] : $value, $body);
+
+        $this->actingAs($this->owner)->json($method, route($route, $parameters), $body)->assertNotFound();
+
+        expect(SourceWebsite::query()->whereKey($website->id)->exists())->toBeTrue()
+            ->and($website->fresh()->refresh_interval)->toBe($website->refresh_interval)
+            ->and($website->urls()->whereKey($page->id)->exists())->toBeTrue();
+        Bus::assertNothingDispatched();
+    })->with([
+        'update' => ['PATCH', 'agents.sources.websites.update', false, ['refresh_interval' => 'weekly']],
+        'delete' => ['DELETE', 'agents.sources.websites.destroy', false, []],
+        'train' => ['POST', 'agents.sources.websites.train', false, ['recrawl' => true]],
+        'retrain a page' => ['POST', 'agents.sources.websites.links.retrain', true, []],
+        'delete a page' => ['DELETE', 'agents.sources.websites.links.destroy', true, []],
+        'delete pages' => ['POST', 'agents.sources.websites.links.bulk-destroy', false, ['link_ids' => 'PAGE_ID']],
+    ]);
+
+    it('gates a file summary by agent.sources.train.files and only shows the agent\'s own files', function (): void {
+        $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
+        $this->agent->files()->attach($file->id);
+        $otherFile = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
+        makeTeamAgent($this->owner, 'Other')->files()->attach($otherFile->id);
+
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.files')))
+            ->getJson(route('agents.agent.files.summary', [$this->agent, $file]))
+            ->assertForbidden();
+
+        $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.files']);
+        $this->actingAs($trainer)->getJson(route('agents.agent.files.summary', [$this->agent, $file]))->assertOk();
+        $this->actingAs($trainer)->getJson(route('agents.agent.files.summary', [$this->agent, $otherFile]))->assertNotFound();
+    });
+
+    it('gates YouTube videos by agent.sources.train.video and removing one by agent.sources.delete', function (): void {
+        config(['chatvia.features.youtube_sources' => true]);
+        $video = SourceYoutubeVideo::factory()->ingested()->attachedTo($this->agent)->create();
+
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.video')))
+            ->getJson(route('agents.sources.youtube.index', $this->agent))
+            ->assertForbidden();
+        $this->actingAs(teammateWithPermissions($this->owner, ['agent.sources.train.video']))
+            ->getJson(route('agents.sources.youtube.index', $this->agent))
+            ->assertOk();
+
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.video')))
+            ->postJson(route('agents.sources.youtube.store', $this->agent), [])
+            ->assertForbidden();
+        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.video')))
+            ->postJson(route('agents.sources.youtube.retrain', [$this->agent, $video]))
+            ->assertForbidden();
+
+        $this->actingAs(teammateWithPermissions($this->owner, ['agent.sources.train.video']))
+            ->deleteJson(route('agents.sources.youtube.destroy', [$this->agent, $video]))
+            ->assertForbidden();
+        expect(SourceYoutubeVideo::query()->whereKey($video->id)->exists())->toBeTrue();
+    });
 });
 
 describe('chat log', function (): void {
@@ -275,7 +340,7 @@ describe('setup', function (): void {
         'update the persona' => ['PATCH', 'agents.update', 'agent.setup', ['system_instructions' => 'Answer in one line.'], 200,
             fn (Agent $agent): bool => $agent->system_instructions === 'Answer in one line.'],
         'set the custom domain' => ['PATCH', 'agents.domain.update', 'agent.setup', ['domain' => 'chat.acme-bot.test'], 302,
-            fn (Agent $agent): bool => $agent->domain === 'chat.acme-bot.test'],
+            fn (Agent $agent): bool => $agent->pending_domain === 'chat.acme-bot.test'],
         'open it to the internet' => ['PATCH', 'agents.security.update', 'agent.setup', ['is_public' => true], 302,
             fn (Agent $agent): bool => $agent->is_public === true],
         'renew the signing secret' => ['POST', 'agents.identity.regenerate', 'agent.identity.manage', [], 302,

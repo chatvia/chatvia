@@ -15,9 +15,9 @@ use Filament\Support\Icons\Heroicon;
 /**
  * The install's protections and their logs: the bot check (Cloudflare
  * Turnstile) of the sign-up, sign-in and password reset forms, the
- * guardrails, the tool-call log and rate limit, the security audit log, and
- * the security headers. Each log's retention sits on the card of what it
- * records.
+ * guardrails, the tool-call log and rate limit, the security audit log, the
+ * security headers, and whether outgoing requests may reach private network
+ * addresses. Each log's retention sits on the card of what it records.
  */
 class ManageSecuritySettings extends AdminSettingsPage
 {
@@ -129,6 +129,11 @@ class ManageSecuritySettings extends AdminSettingsPage
                     help: 'Browser rules that block risky content and stop other sites from showing your dashboard and sign-in pages inside theirs. Enforce turns them fully on.'),
                 $this->url('csp_report_uri', 'Report address', help: 'Optional. Browsers send a report here each time the rules block, or would block, something.'),
             ])->summary(fn (): string => self::CSP_MODES[(string) $this->valueInUse('csp_mode')] ?? $this->shown($this->valueInUse('csp_mode')))
+                ->advanced(),
+            SettingsCard::make('private_network', 'Private network addresses', 'Whether webhooks, MCP servers and website crawls may reach this server or your private network.', Heroicon::OutlinedServerStack, fn (): array => [
+                $this->toggle('allow_private_addresses', 'Allow private network addresses',
+                    help: 'For local development only. On lets agents call addresses such as localhost or 192.168.x.x. Off blocks them, so nobody can use an agent to reach machines behind your firewall.'),
+            ])->summary(fn (): string => $this->valueInUse('allow_private_addresses') ? 'Allowed' : 'Blocked')
                 ->advanced(),
         ];
     }

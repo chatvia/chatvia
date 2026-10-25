@@ -7,7 +7,8 @@ use Illuminate\Support\Str;
 
 /**
  * Build a CSV of a form's submissions — one column per defined field plus a
- * submitted-at timestamp. Values are visitor-controlled, so each cell is
+ * submitted-at timestamp. Values are visitor-controlled and labels can be
+ * written by a tool or the model, so every cell, the header row included, is
  * formula-injection-safe (a leading =,+,-,@,tab,CR is prefixed with a quote).
  */
 class ExportSubmissionsCsvAction
@@ -36,7 +37,7 @@ class ExportSubmissionsCsvAction
         }
 
         $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, [...array_map(fn (string $k): string => $labels[$k] ?? $k, $fields), 'Submitted at'], escape: '\\');
+        fputcsv($handle, [...array_map(fn (string $k): string => $this->csvSafe($labels[$k] ?? $k), $fields), 'Submitted at'], escape: '\\');
 
         foreach ($query->cursor() as $submission) {
             $row = [];

@@ -27,6 +27,9 @@ final readonly class ApprovalContextData
         // The text streamed before the pause. Stored for the record; a resumed
         // turn starts a fresh answer.
         public string $preface,
+        // The signed-in chatter's public id, so an approved call still tells
+        // the webhook or MCP server which chatter is talking.
+        public ?string $chatterExternalId = null,
     ) {}
 
     public static function fromContext(ChatContext $context): self
@@ -45,6 +48,7 @@ final readonly class ApprovalContextData
             source: $request->source,
             streamSources: $request->streamSources,
             preface: $context->streamedMessage,
+            chatterExternalId: $request->chatterExternalId,
         );
     }
 
@@ -65,6 +69,7 @@ final readonly class ApprovalContextData
             source: $stored['source'] ?? null,
             streamSources: (bool) ($stored['stream_sources'] ?? false),
             preface: (string) ($stored['preface'] ?? ''),
+            chatterExternalId: $stored['chatter_external_id'] ?? null,
         );
     }
 
@@ -87,6 +92,7 @@ final readonly class ApprovalContextData
             'source' => $this->source,
             'stream_sources' => $this->streamSources,
             'preface' => $this->preface,
+            'chatter_external_id' => $this->chatterExternalId,
         ];
     }
 }

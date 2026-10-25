@@ -55,3 +55,18 @@ it('refuses a host that resolves to an internal address', function (): void {
 
     SafeUrl::pinnedClientOptions('https://hooks.example.com/in');
 })->throws(UnsafeUrlException::class);
+
+it('refuses an internal address when the install runs with APP_ENV=local', function (): void {
+    app()['env'] = 'local';
+
+    SafeUrl::assert('http://127.0.0.1:8080/mcp');
+})->throws(UnsafeUrlException::class);
+
+it('allows private addresses only when an admin allowed them', function (): void {
+    app()['env'] = 'local';
+    config(['chatvia.security.allow_private_addresses' => true]);
+
+    SafeUrl::assert('http://127.0.0.1:8080/mcp');
+
+    expect(SafeUrl::pinnedClientOptions('http://127.0.0.1:8080/mcp'))->toBe(['allow_redirects' => false]);
+});

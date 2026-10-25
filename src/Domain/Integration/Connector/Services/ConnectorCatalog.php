@@ -6,6 +6,7 @@ use Domain\Integration\Connector\Catalog\Connector;
 use Domain\Integration\Connector\Catalog\PreRegisteredOAuthConnector;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -88,14 +89,45 @@ class ConnectorCatalog
     }
 
     /**
-     * Whether a server slug belongs to a first-party builtin (charts, forms,
+     * Whether a connector slug belongs to a first-party builtin (charts, forms,
      * leads). These are safe, no-auth, Chatvia-hosted tools — they run without
-     * an approval gate and are excluded from the governance audit. Resolves by
-     * slug.
+     * an approval gate and are excluded from the governance audit. Takes a
+     * CONNECTOR slug; for a server row use {@see isBuiltinServer()}.
      */
     public function isBuiltinSlug(string $slug): bool
     {
         return $this->find($slug)?->serverCategory() === McpServerCategory::Builtin;
+    }
+
+    /**
+     * Whether a server row is a first-party builtin. Decided by the row's
+     * `connector_slug`, which only the app sets, never by its `slug`: a
+     * custom server's slug comes from the name the workspace picked.
+     */
+    public function isBuiltinServer(?AgentMcpServer $server): bool
+    {
+        return filled($server?->connector_slug) && $this->isBuiltinSlug($server->connector_slug);
+    }
+
+    /**
+     * Server slugs a custom server may not take: the slug every catalog
+     * connector's server gets, so a custom server can never pass for one
+     * (builtins skip approval and the audit) or block it from connecting.
+     *
+     * @return list<string>
+     */
+    public function reservedServerSlugs(): array
+    {
+        $catalogSlugs = $this->definitions()->keys();
+        $builtinSlugs = collect((array) config('mcp.builtin', []))->pluck('slug');
+        $capabilitySlugs = collect((array) config('mcp.capabilities', []))->pluck('slug');
+
+        return $catalogSlugs->merge($builtinSlugs)->merge($capabilitySlugs)
+            ->filter()
+            ->map(static fn (mixed $slug): string => AgentMcpServer::makeSlug((string) $slug))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

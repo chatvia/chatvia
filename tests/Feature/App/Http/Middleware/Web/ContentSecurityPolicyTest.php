@@ -11,7 +11,8 @@ use Illuminate\Support\Str;
  * admin picks (`chatvia.security.csp`: off, report-only, enforce), checked on
  * probe routes that mount it, plus one real page to show it runs in the `web`
  * group. The hosted chat may be framed anywhere; the dashboard only by
- * itself.
+ * itself, in every mode (clickjacking). HSTS goes out on secure production
+ * requests in every mode too.
  */
 beforeEach(function (): void {
     Route::middleware(ContentSecurityPolicy::class)
@@ -105,14 +106,16 @@ describe('enforce mode', function (): void {
 });
 
 describe('report-only mode', function (): void {
-    it('only reports, and sends no header that could block a page', function (): void {
+    beforeEach(function (): void {
         config(['chatvia.security.csp' => ContentSecurityPolicy::MODE_REPORT_ONLY]);
+    });
 
+    it('only reports the policy, but still enforces same-origin framing', function (): void {
         $response = $this->get('/_csp-probe');
 
         $response->assertHeader('Content-Security-Policy-Report-Only');
-        $response->assertHeaderMissing('Content-Security-Policy');
-        $response->assertHeaderMissing('X-Frame-Options');
+        $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+        $response->assertHeader('Content-Security-Policy', "frame-ancestors 'self'");
         $response->assertHeaderMissing('Strict-Transport-Security');
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
 
@@ -121,30 +124,55 @@ describe('report-only mode', function (): void {
             ->toContain("frame-ancestors 'self'");
     });
 
+    it('lets any site frame the embeddable chat', function (): void {
+        $response = $this->get('/_csp-chat-probe');
+
+        $response->assertHeaderMissing('X-Frame-Options');
+        $response->assertHeaderMissing('Content-Security-Policy');
+        expect($response->headers->get('Content-Security-Policy-Report-Only'))->toContain('frame-ancestors *');
+    });
+
     it('treats an unknown mode as report-only rather than enforcing it', function (): void {
         config(['chatvia.security.csp' => 'enforced-typo']);
 
         $response = $this->get('/_csp-probe');
 
         $response->assertHeader('Content-Security-Policy-Report-Only');
-        $response->assertHeaderMissing('Content-Security-Policy');
+        $response->assertHeader('Content-Security-Policy', "frame-ancestors 'self'");
+    });
+
+    it('sends HSTS on a secure request in production', function (): void {
+        app()['env'] = 'production';
+
+        $this->get('https://localhost/_csp-probe')
+            ->assertHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+    });
+
+    it('sends no HSTS over plain HTTP, even in production', function (): void {
+        app()['env'] = 'production';
+
+        $this->get('http://localhost/_csp-probe')->assertHeaderMissing('Strict-Transport-Security');
     });
 });
 
-it('sends no security headers when switched off', function (): void {
+it('only sends the framing and HSTS headers when switched off', function (): void {
     config(['chatvia.security.csp' => ContentSecurityPolicy::MODE_OFF]);
+    app()['env'] = 'production';
 
-    $response = $this->get('/_csp-probe');
+    $response = $this->get('https://localhost/_csp-probe');
 
-    $response->assertHeaderMissing('Content-Security-Policy');
+    $response->assertHeader('Content-Security-Policy', "frame-ancestors 'self'");
+    $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+    $response->assertHeader('Strict-Transport-Security');
     $response->assertHeaderMissing('Content-Security-Policy-Report-Only');
     $response->assertHeaderMissing('X-Content-Type-Options');
 });
 
-it('is registered on real web pages', function (): void {
+it('is registered on real web pages, and keeps the sign-in page unframeable', function (): void {
     config(['chatvia.security.csp' => ContentSecurityPolicy::MODE_REPORT_ONLY]);
 
     $this->get(route('login'))
         ->assertOk()
-        ->assertHeader('Content-Security-Policy-Report-Only');
+        ->assertHeader('Content-Security-Policy-Report-Only')
+        ->assertHeader('X-Frame-Options', 'SAMEORIGIN');
 });

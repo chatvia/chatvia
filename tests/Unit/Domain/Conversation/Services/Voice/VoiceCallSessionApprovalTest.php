@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\ToolCallCompleted;
@@ -35,7 +36,9 @@ beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
     // Guardrails off, so the real guards return the words unchanged without a classifier call.
     $this->agent->setSetting('enabled', false, 'guardrails');
-    $this->call = VoiceCalls::started(Conversation::factory()->forAgent($this->agent)->hostedChat()->create());
+    // Only a signed-in chatter (or staff) is offered actions that need a yes.
+    $this->chatter = Chatter::factory()->ofWorkspace($this->agent->workspace)->create();
+    $this->call = VoiceCalls::started(Conversation::factory()->forAgent($this->agent)->hostedChat()->create(), chatter: $this->chatter);
 
     $this->tool = 'mcp__stripe__send_stripe_feedback';
     $this->mock(ToolRegistry::class)->shouldReceive('for')->andReturn([
@@ -150,4 +153,19 @@ it('lets the model act on the answer instead of forcing a search', function (): 
     $session->received(RealtimeEvents::committed('item_2'));
 
     expect(array_last($connection->ofType('response.create'))['response'])->toBe(['metadata' => ['turn' => 'item_2']]);
+});
+
+it('never offers an anonymous visitor an action that needs a yes', function (): void {
+    $this->dispatcher->shouldNotReceive('dispatch');
+    $call = VoiceCalls::started(Conversation::factory()->forAgent($this->agent)->hostedChat()->create(), 'rtc_visitor');
+    $session = app(VoiceCallSession::class)->for($call, $this->agent);
+    $session->opened($connection = new RecordingVoiceConnection);
+
+    RealtimeEvents::visitorSays($session, 'item_1', 'Send Stripe a thank-you note.');
+    $session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+    RealtimeEvents::visitorSays($session, 'item_2', 'Yes, send it.');
+    $session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+
+    expect(array_column(array_column($connection->ofType('conversation.item.create'), 'item'), 'output'))
+        ->each->toContain('is not one of the tools available to you');
 });

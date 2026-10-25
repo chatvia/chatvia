@@ -22,4 +22,9 @@ final class NoToolSelector extends ToolSelector
     {
         return [];
     }
+
+    public function selectForVisitorTurn(Agent $agent, string $userMessage, ?string $conversationId): array
+    {
+        return [];
+    }
 }

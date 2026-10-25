@@ -54,6 +54,10 @@ class AgentWebsiteController
 
     public function update(UpdateAgentWebsiteRequest $request, Agent $agent, SourceWebsite $website, SetWebsiteRefreshIntervalAction $setRefresh): void
     {
+        // {website} binds by id inside the workspace: it must also be one of
+        // this agent's websites, or a teammate on this agent could change
+        // another agent's.
+        abort_unless($agent->websites()->whereKey($website->id)->exists(), 404);
         abort_if($request->user()->cannot('update', $website), 404);
 
         $setRefresh->execute($website, $request->refreshInterval());
@@ -61,6 +65,10 @@ class AgentWebsiteController
 
     public function destroy(Request $request, Agent $agent, SourceWebsite $website, DeleteSourceWebsiteAction $delete): void
     {
+        // {website} binds by id inside the workspace: it must also be one of
+        // this agent's websites, or a teammate on this agent could change
+        // another agent's.
+        abort_unless($agent->websites()->whereKey($website->id)->exists(), 404);
         abort_if($request->user()->cannot('delete', $website), 404);
 
         $delete->execute($website);

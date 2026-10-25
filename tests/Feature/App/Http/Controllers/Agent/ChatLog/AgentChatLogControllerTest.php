@@ -7,7 +7,7 @@ use Inertia\Testing\AssertableInertia;
 /*
  * The chat log offers a "trace" link into Spectra only to a viewer who may
  * actually open /spectra: an active admin signed in to the admin panel's own
- * guard, or the staff of a workspace an admin granted Spectra access.
+ * guard, or the owner of a workspace an admin granted Spectra access.
  * Spectra shows every workspace's AI calls, so everyone else gets null,
  * which hides the link.
  */
@@ -36,7 +36,7 @@ it('offers the Spectra trace link to an admin signed in to the admin panel', fun
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('spectraTraceUrl', url('spectra/requests')));
 });
 
-it('offers the Spectra trace link to the staff of a workspace granted Spectra access', function (): void {
+it('offers the Spectra trace link to the owner of a workspace granted Spectra access', function (): void {
     $this->owner->workspace()->update(['spectra_access' => true]);
 
     $this->actingAs($this->owner)

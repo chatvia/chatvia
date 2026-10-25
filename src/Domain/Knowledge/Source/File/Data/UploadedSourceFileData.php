@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Source\File\Data;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Spatie\LaravelData\Data;
+use Symfony\Component\Mime\MimeTypes;
 
 /**
  * A file the owner uploaded as knowledge, described without the HTTP upload
@@ -30,6 +31,21 @@ final class UploadedSourceFileData extends Data
     public function extension(): string
     {
         return file_extension($this->originalName);
+    }
+
+    /**
+     * The extension the stored copy gets. A document keeps its own extension,
+     * which is already on the supported list; audio and video take the one
+     * their detected type names. It is never guessed from a document's bytes,
+     * so a text file holding HTML is not stored as `.html`.
+     */
+    public function storedExtension(): string
+    {
+        if (SourceFileTypes::isDocument($this->originalName)) {
+            return $this->extension();
+        }
+
+        return MimeTypes::getDefault()->getExtensions($this->mimeType)[0] ?? 'bin';
     }
 
     /**

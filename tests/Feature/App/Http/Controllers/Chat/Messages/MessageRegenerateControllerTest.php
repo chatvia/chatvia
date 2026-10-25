@@ -49,7 +49,7 @@ it('answers 403 on a private agent when the signed-in chatter does not own the c
     $owner = Chatter::factory()->grantedTo($agent)->create();
     $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Intruder'))->refresh();
     $conversation = Conversation::factory()->forAgent($agent)->ofChatter($owner)->hostedChat()->create();
-    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
 
     $this->actingAs($intruder, 'chat')
         ->postJson("/chat/{$agent->external_id}/messages/regenerate", mrcPayload($conversation->external_id))

@@ -1,6 +1,17 @@
 {
     "workspace": {
         "security": {
+            "description": "Kontrol keamanan tingkat ruang kerja. Batasi siapa yang dapat mengakses dasbor Anda dan API berdasarkan jaringan: alamat IP dan negara tepercaya.",
+            "network": {
+                "help": "Batasi akses ke dasbor dan API hanya untuk alamat IP dan negara tepercaya. Saat nonaktif, siapa pun dengan login atau kunci API yang valid dapat masuk dari mana saja."
+            },
+            "ip": {
+                "help": "Hanya alamat ini yang dapat mengakses dasbor dan API. Biarkan kosong untuk mengizinkan IP apa pun (aturan negara tetap berlaku). Anda tidak dapat menyimpan daftar yang mengecualikan alamat Anda saat ini.",
+                "dialog_description": "Tambahkan alamat IP atau rentang CIDR yang diizinkan mengakses dasbor Anda dan API. Contoh: 203.0.113.4 atau 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Izinkan atau blokir akses ke dasbor dan API berdasarkan negara pengunjung."
+            },
             "retention": {
                 "leads": "Prospek (hari)",
                 "leads_help": "Hapus prospek yang lebih lama dari sekian hari ini.",

@@ -90,3 +90,19 @@ it('does not cascade when a teammate is deactivated', function (): void {
         ->and($chatter->fresh()->isDeactivated())->toBeFalse()
         ->and($workspace->fresh()->isDeactivated())->toBeFalse();
 });
+
+it('gives every account it switches off a new remember-me token', function (): void {
+    // A "remember me" cookie from before must not sign anyone back in, not
+    // even once the workspace is reactivated.
+    $workspace = User::factory()->create(['remember_token' => 'owner-token']);
+    $employee = User::factory()->employee($workspace)->create(['remember_token' => 'employee-token']);
+    $chatter = Chatter::factory()->ofWorkspace($workspace)->create(['remember_token' => 'chatter-token']);
+    $other = Chatter::factory()->ofWorkspace($workspace)->create(['remember_token' => 'other-token']);
+
+    app(DeactivateAccountAction::class)->execute($workspace, 'abuse');
+
+    $tokens = [$workspace->fresh()->remember_token, $employee->fresh()->remember_token, $chatter->fresh()->remember_token, $other->fresh()->remember_token];
+
+    expect($tokens)->each->not->toBeIn(['owner-token', 'employee-token', 'chatter-token', 'other-token'])
+        ->and(array_unique($tokens))->toHaveCount(4);
+});

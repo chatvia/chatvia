@@ -3,6 +3,7 @@
 namespace App\Http\Auth;
 
 use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Actions\Account\ClaimUnverifiedAccountAction;
 use App\Identity\Workspace\Actions\Sessions\SendMagicLinkAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
@@ -18,6 +19,11 @@ use MagicLink\Actions\ActionAbstract;
  * and signs in to that chat instead of the dashboard; it names either a staff
  * account (`userId`) or a chatter (`chatterId`), whose ids come from different
  * tables.
+ *
+ * Opening the link proves the email, so a staff account that was never
+ * verified is claimed first ({@see ClaimUnverifiedAccountAction}): someone
+ * who registered the address before its owner loses the password and any
+ * sign-in they set up.
  */
 class MagicLinkSignIn extends ActionAbstract
 {
@@ -39,6 +45,10 @@ class MagicLinkSignIn extends ActionAbstract
 
         if (! $user instanceof User) {
             return redirect()->route('login');
+        }
+
+        if (! $user->isDeactivated()) {
+            app(ClaimUnverifiedAccountAction::class)->execute($user);
         }
 
         if ($this->agentId !== null) {

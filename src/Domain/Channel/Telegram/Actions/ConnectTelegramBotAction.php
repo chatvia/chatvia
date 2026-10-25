@@ -13,8 +13,9 @@ use Illuminate\Support\Str;
 
 /**
  * Connects (or reconnects) a Telegram bot to an agent: validates the token with
- * Telegram, stores it (encrypted) with a fresh webhook secret, and registers our
- * webhook with Telegram. Throws {@see ChannelConnectException} when the agent
+ * Telegram, stores it (encrypted) with a fresh webhook secret (in the webhook
+ * URL) and a separate header secret (Telegram sends it back in a header on
+ * every update), and registers our webhook with Telegram. Throws {@see ChannelConnectException} when the agent
  * is protected or Telegram rejects the token.
  *
  * Webhook registration is best-effort — on a non-public host (local dev) Telegram
@@ -40,6 +41,7 @@ class ConnectTelegramBotAction
         }
 
         $secret = Str::random(48);
+        $headerSecret = Str::random(64);
 
         $bot = AgentTelegramBot::updateOrCreate(
             ['agent_id' => $agent->id],
@@ -47,11 +49,12 @@ class ConnectTelegramBotAction
                 'bot_token' => $data->botToken,
                 'bot_username' => $me['username'],
                 'webhook_secret' => $secret,
+                'header_secret' => $headerSecret,
                 'is_enabled' => true,
             ],
         );
 
-        $this->client->setWebhook($data->botToken, route('telegram.webhook', ['secret' => $secret]), $secret);
+        $this->client->setWebhook($data->botToken, route('telegram.webhook', ['secret' => $secret]), $headerSecret);
 
         // Surface the command menu (built-ins + any commands kept across a
         // reconnect) in Telegram's "/" autocomplete.

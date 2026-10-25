@@ -8,8 +8,9 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 
 /**
  * EnsureWorkspaceNetworkAllowed runs on every web request of a signed-in
- * person and refuses one from outside the workspace's network rules with a
- * 403, before the page is rendered. These tests drive it through Settings →
+ * person, and on every public API call made with a bearer token, and refuses
+ * one from outside the workspace's network rules with a 403, before the page
+ * is rendered. These tests drive it through Settings →
  * Security, a page the owner otherwise reaches. The decision itself is
  * NetworkAccessGuard's and NetworkRulesData's, tested on their own; this
  * file covers the wiring: the request's address, the visitor's country (from
@@ -122,3 +123,16 @@ it('does not enforce saved rules without an Enterprise license, and keeps them',
 
     expect($policy->fresh()->ip_allowlist)->toBe(['203.0.113.0/24']);
 });
+
+it('applies the workspace rules to a public API call made with a bearer token', function (string $address, int $status): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update(['ip_allowlist_mode' => 'dashboard', 'ip_allowlist' => ['203.0.113.0/24'], 'geo_mode' => 'off']);
+    $token = $this->owner->createToken('account')->plainTextToken;
+
+    $this->withToken($token)
+        ->withServerVariables(['REMOTE_ADDR' => $address])
+        ->getJson('/api/v1/agents')
+        ->assertStatus($status);
+})->with([
+    'an address outside the allowlist' => ['198.51.100.7', 403],
+    'an address inside the allowlist' => ['203.0.113.9', 200],
+]);

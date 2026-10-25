@@ -1,0 +1,12 @@
+{
+    "auth": {
+        "switch_chat_account": {
+            "head": "Hesap değiştir",
+            "description": "Bu bağlantı, bu sohbete başka bir hesapla giriş yapmanızı sağlar.",
+            "signed_in_as": "Şu anda {name} olarak giriş yaptınız.",
+            "continue_as": "{name} olarak devam et",
+            "stay_as": "{name} olarak oturumda kal",
+            "cancel": "İptal"
+        }
+    }
+}

@@ -22,6 +22,7 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
+use App\Http\Middleware\Web\UseAppUrlForUnknownHosts;
 use Domain\Conversation\Exceptions\ConversationNotHeldException;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Exceptions\VoiceCallRefusedException;
@@ -35,9 +36,9 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-use Spatie\LaravelFlare\Facades\Flare;
 use Support\Exceptions\DomainValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -74,7 +75,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // hosted chat's own session cookie and `chat` guard.
         $middleware->prepend(UseHostedChatSession::class);
 
+        // Links are built on APP_URL unless the request came to APP_URL's
+        // host or an agent's custom domain, so a forged Host header cannot
+        // move an e-mailed sign-in link to another site. Appended: it runs
+        // after TrustProxies has settled which host the request is for.
+        $middleware->append(UseAppUrlForUnknownHosts::class);
+
         $middleware->web(append: [
+            // Ends every other session of an account whose password changed
+            // (a change, a reset, a social or magic-link claim): each session
+            // keeps a hash of the password it signed in with. On /chat this
+            // covers the `chat` guard; UseSignedInChatGuard runs the same
+            // check for `chat_staff`, once that guard is the default.
+            AuthenticateSession::class,
             RedirectCustomDomainToChat::class,
             HandleAppearance::class,
             SetLocale::class,
@@ -110,6 +123,13 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'license.enterprise' => EnsureEnterpriseLicense::class,
         ]);
 
+        // A chat session that was ended (AuthenticateSession) goes back to
+        // that chat's login page; anywhere else to the dashboard login. Once
+        // `chat.agent` has run, the slug comes from the URL defaults it sets.
+        $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('chat/*')
+            ? route('chat.login.show', array_filter(['agentSlug' => $request->route('agentSlug')]))
+            : route('login'));
+
         // `guest` routes: a visitor already signed in on the chat's login page
         // goes back to that chat; anywhere else to the dashboard.
         $middleware->redirectUsersTo(fn (Request $request): string => $request->is('chat/*')
@@ -131,8 +151,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // loaded, so env() would see nothing here.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        Flare::handles($exceptions);
-
         // The public API always answers errors as JSON, even when a client
         // leaves out `Accept: application/json`: a 401 or a 422, never a
         // redirect to the login page or back to a form.

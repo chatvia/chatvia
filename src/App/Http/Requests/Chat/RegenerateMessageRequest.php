@@ -58,7 +58,7 @@ class RegenerateMessageRequest extends FormRequest
         $viewer = HostedChatViewer::data();
 
         if ($agent->is_public === false && $viewer instanceof ChatViewerData) {
-            return ChatCache::isOwnedBy($conversationId, $viewer, $agent->workspaceExternalId());
+            return ChatCache::isOwnedBy($conversationId, $viewer, $agent);
         }
 
         return true;

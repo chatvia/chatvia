@@ -8,6 +8,7 @@ use App\Identity\Chatter\Actions\DeleteChatterAction;
 use App\Identity\Chatter\Actions\UpdateChatterAccessAction;
 use App\Identity\Chatter\Data\WorkspaceChatterRowData;
 use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\InviteWorkspaceChatterAction;
 use Domain\Membership\Agent\Data\Resources\ChatterInvitationLinkData;
@@ -34,7 +35,7 @@ class SettingsChatterController
     /**
      * @return Response|array{data: DataCollection<int, WorkspaceChatterRowData>}
      */
-    public function index(Request $request): Response|array
+    public function index(Request $request, AgentAccessPolicy $access): Response|array
     {
         if ($request->wantsJson()) {
             $chatters = $request->user()->workspace()
@@ -47,14 +48,14 @@ class SettingsChatterController
             return ['data' => WorkspaceChatterRowData::collect($chatters, DataCollection::class)];
         }
 
-        // Protected agents the owner can invite a new member into — public
-        // agents have no per-member access, so they're never selectable.
-        $agents = $request->user()->workspace()
-            ->agents()
-            ->where('is_public', false)
-            ->orderBy('agents.name')
-            ->get(['agents.external_id', 'agents.name'])
+        // Protected agents the viewer may invite a new member into: public
+        // agents have no per-member access, and a teammate only hands out the
+        // agents their team role reaches.
+        $agents = $access->manageableAgents($request->user())
+            ->reject(fn (Agent $agent): bool => $agent->is_public)
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->map(fn (Agent $agent): array => ['external_id' => $agent->external_id, 'name' => $agent->name])
+            ->values()
             ->all();
 
         return Inertia::render('workspace/people/Chatters', [

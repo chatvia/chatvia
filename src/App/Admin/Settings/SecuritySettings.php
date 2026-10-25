@@ -12,8 +12,9 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  * forms (Cloudflare Turnstile, {@see BotCheck}) and the forms it covers, the
  * guardrails master switch and the longest visitor message, the tool-call limits (rate, rounds per answer,
  * result size) and approval switch, the security headers
- * (Content Security Policy), the security audit log, and how long the
- * guardrail, tool-call and security logs are kept.
+ * (Content Security Policy), whether outgoing requests may reach private
+ * network addresses, the security audit log, and how long the guardrail,
+ * tool-call and security logs are kept.
  */
 class SecuritySettings extends AdminSettings
 {
@@ -67,6 +68,9 @@ class SecuritySettings extends AdminSettings
 
     #[ConfigKey('chatvia.security.csp_report_uri')]
     public ?string $csp_report_uri = null;
+
+    #[ConfigKey('chatvia.security.allow_private_addresses')]
+    public ?bool $allow_private_addresses = null;
 
     #[ConfigKey('chatvia.security_audit.enabled')]
     public ?bool $security_audit_enabled = null;

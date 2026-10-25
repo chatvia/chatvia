@@ -2,6 +2,10 @@
 
 use App\Http\Responses\SseResponder;
 use App\Identity\Workspace\Models\MessageLimit;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Domain\Conversation\Actions\Sessions\StartChatSessionAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
@@ -77,6 +81,18 @@ it('streams the reply as SSE when asked, by the flag or the Accept header', func
     expect($events->where('type', 'delta')->pluck('data.text')->implode(''))->toBe('Streamed')
         ->and($events->where('type', 'done')->last()['data']['reason'])->toBe('complete');
 })->with(['flag', 'header']);
+
+it('never takes a message into a conversation that was not opened over the API', function (ConversationSource $source): void {
+    bindFakeLlmProvider(ScriptedLlmProvider::answering('Leaked'));
+    $sessionId = app(StartChatSessionAction::class)->execute($this->agent, null);
+    $conversation = app(StartConversationAction::class)->execute(new ChatScopeData($this->agent, $sessionId), $source);
+
+    $this->withToken($this->token)
+        ->postJson("{$this->base}/conversations/{$conversation->external_id}/messages", ['message' => 'Hi'])
+        ->assertNotFound();
+
+    expect(Message::query()->where('chat_conversation_id', $conversation->id)->exists())->toBeFalse();
+})->with([ConversationSource::Widget, ConversationSource::HostedChat]);
 
 it('answers 429 message_limit_reached once the workspace used its monthly messages', function (): void {
     MessageLimit::factory()->forWorkspace($this->owner->workspace())->reached()->create();

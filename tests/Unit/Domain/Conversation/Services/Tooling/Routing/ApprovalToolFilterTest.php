@@ -66,3 +66,10 @@ it('keeps every tool when the turn has no conversation, or an unknown one', func
     expect(approvalFilterNames($this->filter->apply(new Agent, $this->entries, null)))->toHaveCount(3)
         ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, (string) Str::uuid())))->toHaveCount(3);
 });
+
+it('drops tools that need approval for an anonymous visitor on any surface', function (): void {
+    $definitions = array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $this->entries);
+
+    expect(array_column(array_column($this->filter->withoutGated(new Agent, $definitions), 'function'), 'name'))
+        ->toBe(['mcp__stripe__list_customers']);
+});

@@ -115,7 +115,10 @@ it('runs an auto-approved webhook tool mid-stream and persists the assistant rep
     expect($toolEvents->pluck('data.phase')->all())->toBe(['start', 'end'])
         ->and($toolEvents[0]['data']['name'])->toBe('get_order_status')
         ->and($toolEvents[0]['data']['args'])->toBe('{"order_id":"1234"}')
-        ->and($toolEvents[1]['data']['result'])->toContain('shipped');
+        // The tool's raw result is for the model only, never the browser.
+        ->and($toolEvents[1]['data'])->not->toHaveKey('result')
+        ->and($response->streamedContent())->not->toContain('"status":"shipped"')
+        ->and($response->streamedContent())->not->toContain('\\"status\\":\\"shipped\\"');
 
     $answer = $events->where('type', 'delta')->pluck('data.text')->implode('');
     expect($answer)->toBe('Your order 1234 has shipped.');

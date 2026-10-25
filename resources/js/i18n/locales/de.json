@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Der Avatar konnte nicht entfernt werden",
                 "logo_remove_error": "Das Logo konnte nicht entfernt werden",
                 "replies_saved": "Antwortoptionen gespeichert",
-                "replies_error": "Antwortoptionen konnten nicht gespeichert werden"
+                "replies_error": "Antwortoptionen konnten nicht gespeichert werden",
+                "domain_verified": "Benutzerdefinierte Domain bestätigt",
+                "domain_verify_error": "Domain konnte nicht bestätigt werden"
             },
             "settings": {
                 "composer_title": "Composer-Optionen",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "DNS-Änderungen können bis zu 24 Stunden dauern, bis sie sich verbreiten. Sobald die Auflösung erfolgt, sehen Ihre Besucher den gehosteten Chat dieses Agenten auf Ihrer Domain.",
                 "step2": "Schritt 2 — Geben Sie die Domain ein, die Sie auf uns gezeigt haben",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Geben Sie den vollständigen Hostnamen ohne Schema ein — z. B. chat.example.com."
+                "hostname_hint": "Geben Sie den vollständigen Hostnamen ohne Schema ein — z. B. chat.example.com.",
+                "step3": "Schritt 3: Weisen Sie mit einem TXT-Eintrag nach, dass Ihnen die Domain gehört",
+                "pending": "{domain} ist noch nicht aktiv. Fügen Sie den TXT-Eintrag oben bei Ihrem DNS-Anbieter hinzu und wählen Sie dann „Bestätigen“. DNS-Änderungen können eine Weile dauern.",
+                "active": "Aktiv unter {domain}.",
+                "verify": "Bestätigen",
+                "verifying": "Wird bestätigt…"
             },
             "preview": {
                 "title": "Live-Vorschau",
@@ -2575,6 +2582,14 @@
             "card_title": "Einladung abgelaufen",
             "contact_owner": "Bitte wenden Sie sich an den Team-Inhaber, um eine neue Einladung anzufordern.",
             "go_to_login": "Zur Anmeldung"
+        },
+        "switch_chat_account": {
+            "head": "Konto wechseln",
+            "description": "Dieser Link meldet Sie mit einem anderen Konto in diesem Chat an.",
+            "signed_in_as": "Sie sind gerade als {name} angemeldet.",
+            "continue_as": "Weiter als {name}",
+            "stay_as": "Als {name} angemeldet bleiben",
+            "cancel": "Abbrechen"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Sicherheit",
             "title": "Sicherheit",
-            "description": "Workspace-weite Sicherheitseinstellungen. Beschränken Sie den Netzwerkzugriff auf Ihr Dashboard — vertrauenswürdige IP-Adressen und Länder.",
+            "description": "Workspace-weite Sicherheitseinstellungen. Beschränken Sie den Netzwerkzugriff auf Ihr Dashboard und die API: vertrauenswürdige IP-Adressen und Länder.",
             "save": "Änderungen speichern",
             "saved": "Sicherheitseinstellungen gespeichert",
             "save_error": "Ihre Sicherheitseinstellungen konnten nicht gespeichert werden",
@@ -3316,15 +3331,15 @@
             "done": "Fertig",
             "network": {
                 "title": "Netzwerkzugriffskontrolle",
-                "help": "Beschränken Sie den Dashboard-Zugriff auf vertrauenswürdige IP-Adressen und Länder. Wenn deaktiviert, kann sich jeder mit einer gültigen Anmeldung von überall aus anmelden."
+                "help": "Beschränken Sie den Zugriff auf das Dashboard und die API auf vertrauenswürdige IP-Adressen und Länder. Wenn deaktiviert, kommt jeder mit einer gültigen Anmeldung oder einem API-Schlüssel von überall aus hinein."
             },
             "ip": {
                 "title": "Zugelassene IP-Adressen",
-                "help": "Nur diese Adressen können das Dashboard erreichen. Leer lassen, um jede IP zuzulassen (Länderregeln gelten weiterhin). Sie können keine Liste speichern, die Ihre aktuelle Adresse ausschließt.",
+                "help": "Nur diese Adressen können das Dashboard und die API erreichen. Leer lassen, um jede IP zuzulassen (Länderregeln gelten weiterhin). Sie können keine Liste speichern, die Ihre aktuelle Adresse ausschließt.",
                 "empty": "Keine IP-Beschränkung",
                 "manage": "Zugelassene IPs verwalten",
                 "dialog_title": "Zugelassene IP-Adressen",
-                "dialog_description": "Fügen Sie die IP-Adressen oder CIDR-Bereiche hinzu, die Ihr Dashboard erreichen dürfen. Beispiel: 203.0.113.4 oder 203.0.113.0/24.",
+                "dialog_description": "Fügen Sie die IP-Adressen oder CIDR-Bereiche hinzu, die Ihr Dashboard und die API erreichen dürfen. Beispiel: 203.0.113.4 oder 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Adresse hinzufügen",
                 "remove": "Adresse entfernen",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Länderregeln",
-                "help": "Erlauben oder sperren Sie den Dashboard-Zugriff je nach Land des Besuchers.",
+                "help": "Erlauben oder sperren Sie den Zugriff auf das Dashboard und die API je nach Land des Besuchers.",
                 "allow": "Nur diese erlauben",
                 "deny": "Diese sperren",
                 "empty": "Keine Länder ausgewählt",

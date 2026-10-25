@@ -506,7 +506,7 @@
     "The :disk disk failed.": "Disken :disk misslyckades.",
     "It could not save a file and read it back.": "Den kunde inte spara en fil och läsa tillbaka den.",
     "Emails go to the log.": "E-post hamnar i loggen.",
-    "They are not sent. Set up email in Settings → Email.": "Den skickas inte. Ställ in e-post under Inställningar → E-post.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "Den skickas inte. Länkarna för inloggning och lösenord i dem skrivs till loggfilen, så håll den privat. Ställ in e-post under Inställningar → E-post.",
     "Sends with :service.": "Skickar med :service.",
     "It is not tested here, as that would send an email.": "Det testas inte här, eftersom det skulle skicka ett e-postmeddelande.",
     "The mail server does not answer.": "E-postservern svarar inte.",
@@ -538,5 +538,9 @@
     "Read aloud": "Läs upp",
     "Play agent replies as speech": "Spela upp agenternas svar som tal",
     "Reading aloud is not available right now.": "Uppläsning är inte tillgänglig just nu.",
-    "The reply could not be read aloud. Please try again.": "Svaret kunde inte läsas upp. Försök igen."
+    "The reply could not be read aloud. Please try again.": "Svaret kunde inte läsas upp. Försök igen.",
+    "Add a custom domain first.": "Lägg först till en egen domän.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Vi hittade inte TXT-posten för den här domänen än. DNS-ändringar kan ta tid, så försök igen senare.",
+    "This domain can't be used. Choose another domain.": "Den här domänen kan inte användas. Välj en annan domän.",
+    "Custom domain verified.": "Den egna domänen är verifierad."
 }

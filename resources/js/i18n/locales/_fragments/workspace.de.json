@@ -303,6 +303,17 @@
             "members": "Chatter"
         },
         "security": {
+            "description": "Workspace-weite Sicherheitseinstellungen. Beschränken Sie den Netzwerkzugriff auf Ihr Dashboard und die API: vertrauenswürdige IP-Adressen und Länder.",
+            "network": {
+                "help": "Beschränken Sie den Zugriff auf das Dashboard und die API auf vertrauenswürdige IP-Adressen und Länder. Wenn deaktiviert, kommt jeder mit einer gültigen Anmeldung oder einem API-Schlüssel von überall aus hinein."
+            },
+            "ip": {
+                "help": "Nur diese Adressen können das Dashboard und die API erreichen. Leer lassen, um jede IP zuzulassen (Länderregeln gelten weiterhin). Sie können keine Liste speichern, die Ihre aktuelle Adresse ausschließt.",
+                "dialog_description": "Fügen Sie die IP-Adressen oder CIDR-Bereiche hinzu, die Ihr Dashboard und die API erreichen dürfen. Beispiel: 203.0.113.4 oder 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Erlauben oder sperren Sie den Zugriff auf das Dashboard und die API je nach Land des Besuchers."
+            },
             "retention": {
                 "leads": "Leads (Tage)",
                 "leads_help": "Löscht Leads, die älter als diese Anzahl von Tagen sind.",

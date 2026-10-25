@@ -308,3 +308,42 @@ it('introduces the client as chatvia on initialize', function (): void {
     Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'initialize'
         && $request->data()['params']['clientInfo']['name'] === 'chatvia');
 });
+
+it('renders chart blocks only from our own charts server, never from a custom server', function (?string $connectorSlug, int $blocks): void {
+    Http::fake(function (ClientRequest $request): PromiseInterface {
+        $body = $request->data();
+
+        return match ($body['method'] ?? '') {
+            'initialize' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => []]),
+            'tools/call' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => [
+                'content' => [['type' => 'text', 'text' => 'chart']],
+                'structuredContent' => ['echarts_option' => ['tooltip' => ['formatter' => '<img src=x onerror=alert(1)>']]],
+            ]]),
+            default => Http::response('', 202),
+        };
+    });
+
+    $result = app(McpClient::class)->callTool(mclInternalServer($connectorSlug), 'render-bar-chart', []);
+
+    expect($result->artifacts())->toHaveCount($blocks);
+})->with([
+    'the builtin charts server' => ['charts', 1],
+    'a custom server at the same URL' => [null, 0],
+]);
+
+it('renders no chart blocks from a third-party server', function (): void {
+    Http::fake(function (ClientRequest $request): PromiseInterface {
+        $body = $request->data();
+
+        return match ($body['method'] ?? '') {
+            'initialize' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => []]),
+            'tools/call' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => [
+                'content' => [['type' => 'text', 'text' => 'chart']],
+                'structuredContent' => ['echarts_option' => ['title' => ['link' => 'javascript:alert(1)']]],
+            ]]),
+            default => Http::response('', 202),
+        };
+    });
+
+    expect(app(McpClient::class)->callTool(mclServer(), 'ping', [])->artifacts())->toBe([]);
+});

@@ -15,21 +15,22 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Enforces a workspace's network-access policy (IP allowlist + geo) on the
- * authenticated dashboard. Appended to the `web` group, so it runs on every web
- * request but no-ops unless ALL of: there's an authenticated user, their
- * workspace has a policy row, and at least one control (IP allowlist or geo)
- * is on.
+ * authenticated dashboard and the public API. Appended to the `web` group and
+ * set on the authenticated `/api/v1` group, so it runs on every such request
+ * but no-ops unless ALL of: there's an authenticated user (a session, or the
+ * owner of the API bearer token), their workspace has a policy row, and at
+ * least one control (IP allowlist or geo) is on.
  *
  * Anti-lockout lives at the write boundary — the security-policy FormRequest
  * rejects rules that would block the saver — so a workspace can't fence itself
  * out via the UI. Platform admins get no bypass: on the dashboard they only
  * reach their own workspace, so its rules apply to them like anyone else.
  *
- * Scope: this guards the web/Inertia dashboard surface — full page loads,
- * Inertia partial reloads, and the dashboard broadcasting/auth endpoint (all in
- * the `web` group). The customer `/api/v1` surface lives in the `api` group and
- * is NOT covered yet, so a session-cookie-authenticated request from a blocked
- * country can still reach the same workspace data through the API.
+ * Scope: the web/Inertia dashboard surface (full page loads, Inertia partial
+ * reloads, the dashboard broadcasting/auth endpoint) and every authenticated
+ * `/api/v1` call, so a bearer token used from a blocked network is refused
+ * like a dashboard session. Agents' chats are not covered: visitors chat from
+ * anywhere.
  *
  * Network rules are an Enterprise feature. Without an Enterprise key they are
  * not enforced (it fails open, so a lapsed key locks nobody out), and the
@@ -44,7 +45,9 @@ class EnsureWorkspaceNetworkAllowed
 
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        // On the API the person is the owner of the bearer token, which only
+        // the `sanctum` guard knows when this runs before `auth:sanctum`.
+        $user = $request->user() ?? $request->user('sanctum');
 
         if (! $user instanceof User || ! $this->entitlements->enterprise()) {
             return $next($request);

@@ -12,14 +12,20 @@ use Symfony\Component\HttpFoundation\Response;
  * Security headers for every page in the `web` group (dashboard and the
  * hosted chat).
  *
- * The mode comes from `chatvia.security.csp` (Settings → Security):
- *  - `off`          no headers at all.
+ * Two headers go out in every mode, as they never break a page of the app:
+ *  - framing: a page that is not the embeddable hosted chat may only be
+ *    framed by the app itself (X-Frame-Options plus an enforced
+ *    `frame-ancestors 'self'`), so no other site can lay it under a fake one
+ *    (clickjacking).
+ *  - HSTS, on a secure request in production. Plain-HTTP and local installs
+ *    never get it.
+ *
+ * The rest of the policy follows `chatvia.security.csp` (Settings → Security):
+ *  - `off`          only the two headers above.
  *  - `report-only`  (default) the policy goes out as
- *                   Content-Security-Policy-Report-Only, and the headers that
- *                   block (X-Frame-Options, HSTS) are left out. Browsers only
- *                   report what the policy would block, so no page can break.
- *  - `enforce`      Content-Security-Policy, X-Frame-Options, and HSTS in
- *                   production over HTTPS.
+ *                   Content-Security-Policy-Report-Only: browsers only report
+ *                   what it would block, so no page can break.
+ *  - `enforce`      the policy goes out as Content-Security-Policy.
  *
  * The policy is deliberately small. It has no script-src / style-src /
  * connect-src / font-src / frame-src: the app needs 'unsafe-inline' (Alpine,
@@ -37,9 +43,21 @@ class ContentSecurityPolicy
 
     public const string MODE_ENFORCE = 'enforce';
 
+    private const string FRAME_ANCESTORS_SELF = "frame-ancestors 'self'";
+
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
+
+        // The hosted-chat surface (/chat/{agent}: every route is named
+        // `chat.*`) is built to be embedded in third-party iframes. The auth
+        // pages (login / magic-link) are the exception: a cross-origin-framable
+        // login form is a clickjacking/UI-redress target, so those stay
+        // same-origin only, like the dashboard.
+        $embeddable = $request->routeIs('chat.*') && ! $request->routeIs('chat.login*', 'chat.magic-link*');
+
+        self::applyFraming($response, $embeddable);
+        self::applyHsts($request, $response);
 
         $mode = (string) config('chatvia.security.csp', self::MODE_REPORT_ONLY);
 
@@ -57,25 +75,8 @@ class ContentSecurityPolicy
             // pages can be served from another host (e.g. www) than APP_URL,
             // which is where their forms post.
             'form-action '.$this->sources(["'self'"], [config('app.url')]),
+            $embeddable ? 'frame-ancestors *' : self::FRAME_ANCESTORS_SELF,
         ];
-
-        // The hosted-chat surface (/chat/{agent} — every route is named
-        // `chat.*`) is built to be embedded in third-party iframes. The auth
-        // pages (login / magic-link) are the exception: a cross-origin-framable
-        // login form is a clickjacking/UI-redress target, so those stay
-        // same-origin only. Everything else (dashboard + marketing on the apex)
-        // is same-origin too.
-        $embeddable = $request->routeIs('chat.*') && ! $request->routeIs('chat.login*', 'chat.magic-link*');
-
-        $directives[] = $embeddable ? 'frame-ancestors *' : "frame-ancestors 'self'";
-
-        if ($enforce) {
-            if ($embeddable) {
-                $response->headers->remove('X-Frame-Options');
-            } else {
-                $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
-            }
-        }
 
         // Defence-in-depth against prompt-injection image exfiltration on the
         // hosted-chat surface: even though the assistant renderer already
@@ -102,6 +103,8 @@ class ContentSecurityPolicy
             $directives[] = 'report-uri '.$reportUri;
         }
 
+        // In enforce mode the full policy replaces the framing-only one; in
+        // report-only mode it goes next to it, and only reports.
         $response->headers->set(
             $enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only',
             implode('; ', $directives),
@@ -111,14 +114,42 @@ class ContentSecurityPolicy
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // HSTS: force HTTPS for two years incl. subdomains. Only when enforcing,
-        // and only over a secure connection in production so local/dev (http)
-        // is unaffected.
-        if ($enforce && $request->secure() && app()->isProduction()) {
-            $response->headers->set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+        return $response;
+    }
+
+    /**
+     * Same-origin framing only, enforced whatever the CSP mode: X-Frame-Options
+     * for older browsers and `frame-ancestors 'self'`, which newer ones
+     * prefer. An embeddable page gets neither, so any site can frame it. A
+     * response that carries a policy of its own (a served SVG) keeps it. Also
+     * used by the admin panel, which has no other CSP.
+     */
+    public static function applyFraming(Response $response, bool $embeddable = false): void
+    {
+        if ($embeddable) {
+            $response->headers->remove('X-Frame-Options');
+
+            return;
         }
 
-        return $response;
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+
+        if (! $response->headers->has('Content-Security-Policy')) {
+            $response->headers->set('Content-Security-Policy', self::FRAME_ANCESTORS_SELF);
+        }
+    }
+
+    /**
+     * HSTS: browsers use HTTPS for the host and its subdomains for two years.
+     * Only on a secure request in production, so a plain-HTTP install (a first
+     * Docker run on localhost) or local development never gets it, as a
+     * browser would then refuse that address over HTTP.
+     */
+    public static function applyHsts(Request $request, Response $response): void
+    {
+        if ($request->secure() && app()->isProduction()) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+        }
     }
 
     /**

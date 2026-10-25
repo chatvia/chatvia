@@ -51,19 +51,21 @@ class TranscriptionAudio
     /**
      * Runs `$use` with the file to send: the one at `$path` (its extension
      * names its format), or a compressed copy that is deleted afterwards.
+     * `$inputFormat` pins the ffmpeg demuxer for a file whose format is known
+     * (a visitor's voice note), so ffmpeg never guesses one from its content.
      *
      * @template T
      *
      * @param  Closure(string): T  $use
      * @return T
      */
-    public function withPrepared(string $path, Closure $use): mixed
+    public function withPrepared(string $path, Closure $use, ?string $inputFormat = null): mixed
     {
         if ($this->takesAsIs($path, pathinfo($path, PATHINFO_EXTENSION))) {
             return $use($path);
         }
 
-        $compressed = $this->compressor->process($path);
+        $compressed = $this->compressor->process($path, inputFormat: $inputFormat);
 
         try {
             return $use($compressed);

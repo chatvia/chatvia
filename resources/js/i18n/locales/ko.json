@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "아바타를 제거할 수 없습니다",
                 "logo_remove_error": "로고를 삭제할 수 없습니다",
                 "replies_saved": "답변 옵션이 저장되었습니다",
-                "replies_error": "답변 옵션을 저장하지 못했습니다"
+                "replies_error": "답변 옵션을 저장하지 못했습니다",
+                "domain_verified": "사용자 지정 도메인이 확인되었습니다",
+                "domain_verify_error": "도메인을 확인할 수 없습니다"
             },
             "settings": {
                 "composer_title": "입력창 옵션",
@@ -1924,7 +1926,8 @@
                 "read_aloud_help_title": "소리 내어 읽기",
                 "read_aloud_help_1": "채터가 답변 아래 스피커를 눌러 듣습니다. 링크는 그 텍스트로 읽고, 코드와 차트는 건너뜁니다.",
                 "read_aloud_help_2": "각 답변은 음성 서비스가 한 번 읽고 저장하므로 다시 재생해도 비용이 들지 않습니다. 소리 내어 읽기는 메시지로 계산되지 않습니다.",
-                "read_aloud_voice_label": "읽기 음성"
+                "read_aloud_voice_label": "읽기 음성",
+                "file_uploads_unavailable": "이 서버에서는 꺼져 있습니다. 관리자는 관리자 패널의 Settings → AI models에서 채팅 파일 업로드를 켤 수 있습니다."
             },
             "bubbles_title": "채팅 말풍선",
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",
@@ -1977,7 +1980,12 @@
                 "dns_hint": "DNS 변경 사항이 전파되는 데 최대 24시간이 걸릴 수 있습니다. 확인되면 방문자에게 이 에이전트의 Hosted Chat이 직접 보유한 도메인에 표시됩니다.",
                 "step2": "2단계 — 저희 쪽으로 연결한 도메인 입력",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "스킴 없이 전체 호스트명을 입력하세요 — 예: chat.example.com."
+                "hostname_hint": "스킴 없이 전체 호스트명을 입력하세요 — 예: chat.example.com.",
+                "step3": "3단계: TXT 레코드로 도메인 소유권 증명",
+                "pending": "{domain}은(는) 아직 활성화되지 않았습니다. DNS 공급자에서 위의 TXT 레코드를 추가한 다음 확인을 선택하세요. DNS 변경 사항이 반영되기까지 시간이 걸릴 수 있습니다.",
+                "active": "{domain}에서 활성화되었습니다.",
+                "verify": "확인",
+                "verifying": "확인 중…"
             },
             "preview": {
                 "title": "실시간 미리보기",
@@ -2574,6 +2582,14 @@
             "card_title": "초대 만료됨",
             "contact_owner": "새 초대를 요청하려면 팀 소유자에게 문의하세요.",
             "go_to_login": "로그인으로 이동"
+        },
+        "switch_chat_account": {
+            "head": "계정 전환",
+            "description": "이 링크를 사용하면 다른 계정으로 이 채팅에 로그인합니다.",
+            "signed_in_as": "현재 {name}(으)로 로그인되어 있습니다.",
+            "continue_as": "{name}(으)로 계속",
+            "stay_as": "{name}(으)로 로그인 유지",
+            "cancel": "취소"
         }
     },
     "teams": {
@@ -3307,7 +3323,7 @@
         "security": {
             "breadcrumb": "보안",
             "title": "보안",
-            "description": "워크스페이스 전체 보안 제어. 신뢰할 수 있는 IP 주소와 국가별로 대시보드에 접근할 수 있는 대상을 네트워크 단위로 제한하세요.",
+            "description": "워크스페이스 전체 보안 제어. 신뢰할 수 있는 IP 주소와 국가를 기준으로 대시보드와 API에 접근할 수 있는 대상을 네트워크 단위로 제한하세요.",
             "save": "변경 사항 저장",
             "saved": "보안 설정이 저장되었습니다",
             "save_error": "보안 설정을 저장할 수 없습니다",
@@ -3315,15 +3331,15 @@
             "done": "완료",
             "network": {
                 "title": "네트워크 접근 제어",
-                "help": "신뢰할 수 있는 IP 주소와 국가로 대시보드 접근을 제한합니다. 꺼져 있으면 유효한 로그인 정보가 있는 누구나 어디서든 로그인할 수 있습니다."
+                "help": "대시보드와 API 접근을 신뢰할 수 있는 IP 주소와 국가로 제한합니다. 꺼져 있으면 유효한 로그인 정보나 API 키가 있는 누구나 어디서든 접근할 수 있습니다."
             },
             "ip": {
                 "title": "허용된 IP 주소",
-                "help": "이 주소만 대시보드에 접근할 수 있습니다. 모든 IP를 허용하려면 비워 두세요(국가 규칙은 계속 적용됩니다). 현재 주소를 제외하는 목록은 저장할 수 없습니다.",
+                "help": "이 주소만 대시보드와 API에 접근할 수 있습니다. 모든 IP를 허용하려면 비워 두세요(국가 규칙은 계속 적용됩니다). 현재 주소를 제외하는 목록은 저장할 수 없습니다.",
                 "empty": "IP 제한 없음",
                 "manage": "허용된 IP 관리",
                 "dialog_title": "허용된 IP 주소",
-                "dialog_description": "대시보드에 접근할 수 있는 IP 주소 또는 CIDR 범위를 추가하세요. 예: 203.0.113.4 또는 203.0.113.0/24.",
+                "dialog_description": "대시보드와 API에 접근할 수 있는 IP 주소 또는 CIDR 범위를 추가하세요. 예: 203.0.113.4 또는 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "주소 추가",
                 "remove": "주소 제거",
@@ -3331,7 +3347,7 @@
             },
             "geo": {
                 "title": "국가 규칙",
-                "help": "방문자의 국가를 기준으로 대시보드 접근을 허용하거나 차단합니다.",
+                "help": "방문자의 국가를 기준으로 대시보드와 API 접근을 허용하거나 차단합니다.",
                 "allow": "이 국가만 허용",
                 "deny": "이 국가 차단",
                 "empty": "선택된 국가 없음",

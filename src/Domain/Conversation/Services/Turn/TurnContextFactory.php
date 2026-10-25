@@ -129,6 +129,7 @@ class TurnContextFactory
             conversationId: $checkpoint->conversation_external_id,
             chatterId: $saved->chatterId,
             chatterName: $saved->chatterName,
+            chatterExternalId: $saved->chatterExternalId,
             actorUserId: $saved->actorUserId,
             actorName: $saved->actorName,
             streamSources: $saved->streamSources,

@@ -64,7 +64,7 @@ it('answers 404 on a private agent when the requester does not own the conversat
     $owner = Chatter::factory()->grantedTo($agent)->create();
     $intruder = Chatter::factory()->grantedTo($agent)->create();
     $attachment = madcAttachment(Session::factory()->forChatter($owner)->create(['agent_id' => $agent->id]));
-    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
+    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
 
     $this->actingAs($intruder, 'chat')->delete(madcUrl($agent, $attachment))->assertNotFound();
 
@@ -75,7 +75,7 @@ it('lets the chatter who owns the conversation delete on a private agent', funct
     $agent = Agent::factory()->create(['is_public' => false]);
     $owner = Chatter::factory()->grantedTo($agent)->create();
     $attachment = madcAttachment(Session::factory()->forChatter($owner)->create(['agent_id' => $agent->id]));
-    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
+    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
 
     $this->actingAs($owner, 'chat')->delete(madcUrl($agent, $attachment))->assertNoContent();
 
@@ -87,7 +87,7 @@ it('lets a staff member delete on a private agent they opened from the dashboard
     $agent = Agent::factory()->create(['is_public' => false]);
     $staff = $agent->workspace->owner;
     $attachment = madcAttachment(Session::factory()->forUser($staff)->create(['agent_id' => $agent->id]));
-    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::staff($staff->id), $agent->workspaceExternalId());
+    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::staff($staff->id), $agent);
 
     $this->actingAs($staff, 'chat_staff')->delete(madcUrl($agent, $attachment))->assertNoContent();
 

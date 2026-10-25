@@ -4,6 +4,7 @@ namespace App\Http\Middleware\Auth;
 
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatViewer;
+use App\Http\Chat\PendingChatSignIn;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Closure;
 use Domain\Agent\Models\Agent;
@@ -21,7 +22,10 @@ use Symfony\Component\HttpFoundation\Response;
  * the chat group.
  *
  * Either way the request is redirected to the same address without the token,
- * so the spent token never lingers in the address bar or the history.
+ * so the spent token never lingers in the address bar or the history. When
+ * the browser is already signed in to the chat as someone else, the person
+ * confirms the switch first ({@see PendingChatSignIn}); e-mailed magic links
+ * end here too, so they get the same step.
  */
 class AuthenticateChatterUsingToken
 {
@@ -46,6 +50,12 @@ class AuthenticateChatterUsingToken
         // chat's access rules then send a still-anonymous visitor to login.
         if ($agent instanceof Agent) {
             $account = $this->authTokenService->consume($request->string('auth_token')->toString(), $agent);
+
+            // The token is spent either way; someone else signed in confirms
+            // the switch first.
+            if ($account !== null && PendingChatSignIn::wouldReplace($account)) {
+                return PendingChatSignIn::hold($request, $account, $agent);
+            }
 
             if ($account !== null) {
                 HostedChatViewer::signIn($account);

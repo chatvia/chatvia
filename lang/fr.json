@@ -506,7 +506,7 @@
     "The :disk disk failed.": "Le disque :disk a échoué.",
     "It could not save a file and read it back.": "Il n’a pas pu enregistrer un fichier et le relire.",
     "Emails go to the log.": "Les e-mails vont dans le journal.",
-    "They are not sent. Set up email in Settings → Email.": "Ils ne sont pas envoyés. Configurez l’e-mail dans Réglages → E-mail.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "Ils ne sont pas envoyés. Leurs liens de connexion et de mot de passe sont écrits dans le fichier journal : gardez-le privé. Configurez l’e-mail dans Réglages → E-mail.",
     "Sends with :service.": "Envoie avec :service.",
     "It is not tested here, as that would send an email.": "Ce n’est pas testé ici, car cela enverrait un e-mail.",
     "The mail server does not answer.": "Le serveur de mail ne répond pas.",
@@ -538,5 +538,9 @@
     "Read aloud": "Lecture à voix haute",
     "Play agent replies as speech": "Lire les réponses des agents à voix haute",
     "Reading aloud is not available right now.": "La lecture à voix haute n’est pas disponible pour le moment.",
-    "The reply could not be read aloud. Please try again.": "La réponse n’a pas pu être lue à voix haute. Veuillez réessayer."
+    "The reply could not be read aloud. Please try again.": "La réponse n’a pas pu être lue à voix haute. Veuillez réessayer.",
+    "Add a custom domain first.": "Ajoutez d'abord un domaine personnalisé.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Nous n'avons pas encore trouvé l'enregistrement TXT de ce domaine. Les changements DNS peuvent prendre du temps, réessayez plus tard.",
+    "This domain can't be used. Choose another domain.": "Ce domaine ne peut pas être utilisé. Choisissez un autre domaine.",
+    "Custom domain verified.": "Domaine personnalisé vérifié."
 }

@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Impossible de supprimer l’avatar",
                 "logo_remove_error": "Impossible de supprimer le logo",
                 "replies_saved": "Options de réponse enregistrées",
-                "replies_error": "Impossible d'enregistrer les options de réponse"
+                "replies_error": "Impossible d'enregistrer les options de réponse",
+                "domain_verified": "Domaine personnalisé vérifié",
+                "domain_verify_error": "Impossible de vérifier le domaine"
             },
             "settings": {
                 "composer_title": "Options du compositeur",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "Les modifications DNS peuvent prendre jusqu'à 24 heures pour se propager. Une fois résolu, vos visiteurs verront le chat hébergé de cet agent sur votre domaine.",
                 "step2": "Étape 2 — Saisissez le domaine que vous avez pointé vers nous",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Saisissez le nom d'hôte complet sans le schéma — ex. chat.example.com."
+                "hostname_hint": "Saisissez le nom d'hôte complet sans le schéma — ex. chat.example.com.",
+                "step3": "Étape 3 : prouvez que le domaine vous appartient avec un enregistrement TXT",
+                "pending": "{domain} n'est pas encore actif. Ajoutez l'enregistrement TXT ci-dessus chez votre fournisseur DNS, puis sélectionnez Vérifier. Les changements DNS peuvent prendre un certain temps.",
+                "active": "Actif sur {domain}.",
+                "verify": "Vérifier",
+                "verifying": "Vérification…"
             },
             "preview": {
                 "title": "Aperçu en direct",
@@ -2575,6 +2582,14 @@
             "card_title": "Invitation expirée",
             "contact_owner": "Veuillez contacter le responsable de l'équipe pour demander une nouvelle invitation.",
             "go_to_login": "Aller à la connexion"
+        },
+        "switch_chat_account": {
+            "head": "Changer de compte",
+            "description": "Ce lien vous connecte à cette conversation avec un autre compte.",
+            "signed_in_as": "Vous êtes actuellement connecté en tant que {name}.",
+            "continue_as": "Continuer en tant que {name}",
+            "stay_as": "Rester connecté en tant que {name}",
+            "cancel": "Annuler"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Sécurité",
             "title": "Sécurité",
-            "description": "Contrôles de sécurité à l'échelle de l'espace de travail. Restreignez l'accès à votre tableau de bord par réseau — adresses IP et pays de confiance.",
+            "description": "Contrôles de sécurité à l'échelle de l'espace de travail. Restreignez l'accès à votre tableau de bord et à l'API par réseau : adresses IP et pays de confiance.",
             "save": "Enregistrer les modifications",
             "saved": "Paramètres de sécurité enregistrés",
             "save_error": "Impossible d'enregistrer vos paramètres de sécurité",
@@ -3316,15 +3331,15 @@
             "done": "Terminé",
             "network": {
                 "title": "Contrôle d'accès réseau",
-                "help": "Restreignez l'accès au tableau de bord aux adresses IP et pays de confiance. Lorsque c'est désactivé, toute personne disposant d'identifiants valides peut se connecter depuis n'importe où."
+                "help": "Restreignez l'accès au tableau de bord et à l'API aux adresses IP et pays de confiance. Lorsque c'est désactivé, toute personne disposant d'identifiants valides ou d'une clé API peut accéder depuis n'importe où."
             },
             "ip": {
                 "title": "Adresses IP autorisées",
-                "help": "Seules ces adresses peuvent accéder au tableau de bord. Laissez vide pour autoriser n'importe quelle IP (les règles par pays s'appliquent toujours). Vous ne pouvez pas enregistrer une liste qui exclut votre adresse actuelle.",
+                "help": "Seules ces adresses peuvent accéder au tableau de bord et à l'API. Laissez vide pour autoriser n'importe quelle IP (les règles par pays s'appliquent toujours). Vous ne pouvez pas enregistrer une liste qui exclut votre adresse actuelle.",
                 "empty": "Aucune restriction d'IP",
                 "manage": "Gérer les IP autorisées",
                 "dialog_title": "Adresses IP autorisées",
-                "dialog_description": "Ajoutez les adresses IP ou plages CIDR autorisées à accéder à votre tableau de bord. Exemple : 203.0.113.4 ou 203.0.113.0/24.",
+                "dialog_description": "Ajoutez les adresses IP ou plages CIDR autorisées à accéder à votre tableau de bord et à l'API. Exemple : 203.0.113.4 ou 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Ajouter une adresse",
                 "remove": "Supprimer l'adresse",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Règles par pays",
-                "help": "Autorisez ou bloquez l'accès au tableau de bord selon le pays du visiteur.",
+                "help": "Autorisez ou bloquez l'accès au tableau de bord et à l'API selon le pays du visiteur.",
                 "allow": "Autoriser uniquement ces pays",
                 "deny": "Bloquer ces pays",
                 "empty": "Aucun pays sélectionné",

@@ -4,11 +4,13 @@ use App\Identity\Workspace\Actions\Social\SocialLoginAction;
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Which staff account a social sign-in reaches: the one linked to the
  * identity, or the one with the same email when the provider says it is
- * verified (then linked for next time). Nothing else.
+ * verified (then linked for next time; an unverified one is claimed first so
+ * whoever registered it loses their way in). Nothing else.
  */
 it('signs in the account already linked to the provider identity', function (): void {
     $user = User::factory()->create();
@@ -37,4 +39,28 @@ it('refuses to link an email the provider says is not verified', function (): vo
 
 it('finds no account for an unknown identity without an email', function (): void {
     expect(app(SocialLoginAction::class)->execute(SocialProvider::Slack, 'sl-1', null))->toBeNull();
+});
+
+it('claims a same-email account that was never verified before linking it', function (): void {
+    // Someone registered the address first and knows its password: that
+    // password, and the social link they added, must stop working.
+    $user = User::factory()->unverified()->create(['email' => 'early@example.test', 'password' => 'squatter-password']);
+    UserSocial::query()->create(['user_id' => $user->id, 'provider' => SocialProvider::Github, 'provider_id' => 'gh-squatter']);
+
+    $found = app(SocialLoginAction::class)->execute(SocialProvider::Google, 'g-owner', 'early@example.test', emailVerified: true);
+
+    $user->refresh();
+
+    expect($found?->is($user))->toBeTrue()
+        ->and($user->hasVerifiedEmail())->toBeTrue()
+        ->and(Hash::check('squatter-password', $user->password))->toBeFalse()
+        ->and($user->socials()->pluck('provider_id')->all())->toBe(['g-owner']);
+});
+
+it('keeps the password of a verified account it links', function (): void {
+    $user = User::factory()->create(['email' => 'kept@example.test', 'password' => 'own-password']);
+
+    app(SocialLoginAction::class)->execute(SocialProvider::Google, 'g-kept', 'kept@example.test', emailVerified: true);
+
+    expect(Hash::check('own-password', $user->fresh()->password))->toBeTrue();
 });

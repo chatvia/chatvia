@@ -303,6 +303,17 @@
             "members": "Chatterit"
         },
         "security": {
+            "description": "Koko työtilan kattavat tietoturva-asetukset. Rajoita verkon perusteella, kuka voi käyttää hallintapaneeliasi ja API:a: luotetut IP-osoitteet ja maat.",
+            "network": {
+                "help": "Rajoita pääsy hallintapaneeliin ja API:in luotettuihin IP-osoitteisiin ja maihin. Kun pois päältä, kuka tahansa kelvollisilla kirjautumistiedoilla tai API-avaimella pääsee sisään mistä tahansa."
+            },
+            "ip": {
+                "help": "Vain nämä osoitteet pääsevät hallintapaneeliin ja API:in. Jätä tyhjäksi salliaksesi kaikki IP-osoitteet (maakohtaiset säännöt ovat silti voimassa). Et voi tallentaa luetteloa, joka sulkee pois nykyisen osoitteesi.",
+                "dialog_description": "Lisää IP-osoitteet tai CIDR-alueet, joilla on pääsy hallintapaneeliisi ja API:in. Esimerkki: 203.0.113.4 tai 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Salli tai estä pääsy hallintapaneeliin ja API:in kävijän maan perusteella."
+            },
             "retention": {
                 "leads": "Liidit (päivää)",
                 "leads_help": "Poista liidit, jotka ovat vanhempia kuin näin monta päivää.",

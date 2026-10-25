@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Avatarin poistaminen epäonnistui",
                 "logo_remove_error": "Logon poistaminen epäonnistui",
                 "replies_saved": "Vastausasetukset tallennettu",
-                "replies_error": "Vastausasetuksia ei voitu tallentaa"
+                "replies_error": "Vastausasetuksia ei voitu tallentaa",
+                "domain_verified": "Mukautettu verkkotunnus vahvistettu",
+                "domain_verify_error": "Verkkotunnusta ei voitu vahvistaa"
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "DNS-muutosten leviäminen voi kestää jopa 24 tuntia. Kun se on selvitetty, vierailijasi näkevät tämän agentin isännöidyn chatin verkkotunnuksellasi.",
                 "step2": "Vaihe 2 — Syötä meille osoittamasi verkkotunnus",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Syötä täydellinen isäntänimi ilman schemaa — esim. chat.example.com."
+                "hostname_hint": "Syötä täydellinen isäntänimi ilman schemaa — esim. chat.example.com.",
+                "step3": "Vaihe 3: todista TXT-tietueella, että verkkotunnus on sinun",
+                "pending": "{domain} ei ole vielä käytössä. Lisää yllä oleva TXT-tietue DNS-palveluntarjoajallesi ja valitse sitten Vahvista. DNS-muutokset voivat viedä jonkin aikaa.",
+                "active": "Käytössä osoitteessa {domain}.",
+                "verify": "Vahvista",
+                "verifying": "Vahvistetaan…"
             },
             "preview": {
                 "title": "Live-esikatselu",
@@ -2575,6 +2582,14 @@
             "card_title": "Kutsu on vanhentunut",
             "contact_owner": "Pyydä tiimin omistajalta uutta kutsua.",
             "go_to_login": "Siirry kirjautumiseen"
+        },
+        "switch_chat_account": {
+            "head": "Vaihda tiliä",
+            "description": "Tämä linkki kirjaa sinut tähän chattiin toisella tilillä.",
+            "signed_in_as": "Olet nyt kirjautunut käyttäjänä {name}.",
+            "continue_as": "Jatka käyttäjänä {name}",
+            "stay_as": "Pysy kirjautuneena käyttäjänä {name}",
+            "cancel": "Peruuta"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Tietoturva",
             "title": "Tietoturva",
-            "description": "Koko työtilan kattavat tietoturva-asetukset. Rajoita verkon perusteella, kuka voi käyttää hallintapaneeliasi — luotetut IP-osoitteet ja maat.",
+            "description": "Koko työtilan kattavat tietoturva-asetukset. Rajoita verkon perusteella, kuka voi käyttää hallintapaneeliasi ja API:a: luotetut IP-osoitteet ja maat.",
             "save": "Tallenna muutokset",
             "saved": "Tietoturva-asetukset tallennettu",
             "save_error": "Tietoturva-asetuksia ei voitu tallentaa",
@@ -3316,15 +3331,15 @@
             "done": "Valmis",
             "network": {
                 "title": "Verkon pääsynhallinta",
-                "help": "Rajoita hallintapaneelin pääsy luotettuihin IP-osoitteisiin ja maihin. Kun pois päältä, kuka tahansa kelvollisilla kirjautumistiedoilla voi kirjautua sisään mistä tahansa."
+                "help": "Rajoita pääsy hallintapaneeliin ja API:in luotettuihin IP-osoitteisiin ja maihin. Kun pois päältä, kuka tahansa kelvollisilla kirjautumistiedoilla tai API-avaimella pääsee sisään mistä tahansa."
             },
             "ip": {
                 "title": "Sallitut IP-osoitteet",
-                "help": "Vain nämä osoitteet pääsevät hallintapaneeliin. Jätä tyhjäksi salliaksesi kaikki IP-osoitteet (maakohtaiset säännöt ovat silti voimassa). Et voi tallentaa luetteloa, joka sulkee pois nykyisen osoitteesi.",
+                "help": "Vain nämä osoitteet pääsevät hallintapaneeliin ja API:in. Jätä tyhjäksi salliaksesi kaikki IP-osoitteet (maakohtaiset säännöt ovat silti voimassa). Et voi tallentaa luetteloa, joka sulkee pois nykyisen osoitteesi.",
                 "empty": "Ei IP-rajoitusta",
                 "manage": "Hallitse sallittuja IP-osoitteita",
                 "dialog_title": "Sallitut IP-osoitteet",
-                "dialog_description": "Lisää IP-osoitteet tai CIDR-alueet, joilla on pääsy hallintapaneeliisi. Esimerkki: 203.0.113.4 tai 203.0.113.0/24.",
+                "dialog_description": "Lisää IP-osoitteet tai CIDR-alueet, joilla on pääsy hallintapaneeliisi ja API:in. Esimerkki: 203.0.113.4 tai 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Lisää osoite",
                 "remove": "Poista osoite",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Maakohtaiset säännöt",
-                "help": "Salli tai estä hallintapaneelin käyttö kävijän maan perusteella.",
+                "help": "Salli tai estä pääsy hallintapaneeliin ja API:in kävijän maan perusteella.",
                 "allow": "Salli vain nämä",
                 "deny": "Estä nämä",
                 "empty": "Ei valittuja maita",

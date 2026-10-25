@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Nie można usunąć awatara",
                 "logo_remove_error": "Nie można usunąć logo",
                 "replies_saved": "Opcje odpowiedzi zapisane",
-                "replies_error": "Nie można zapisać opcji odpowiedzi"
+                "replies_error": "Nie można zapisać opcji odpowiedzi",
+                "domain_verified": "Domena niestandardowa zweryfikowana",
+                "domain_verify_error": "Nie można zweryfikować domeny"
             },
             "settings": {
                 "composer_title": "Opcje kompozytora",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "Zmiany DNS mogą potrwać do 24 godzin, zanim się rozpropagują. Gdy zostanie rozwiązane, Twoi odwiedzający będą widzieć hostowany czat tego agenta na Twojej domenie.",
                 "step2": "Krok 2 — Wprowadź domenę, którą wskazałeś na nas",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Wprowadź pełną nazwę hosta bez schematu — np. chat.example.com."
+                "hostname_hint": "Wprowadź pełną nazwę hosta bez schematu — np. chat.example.com.",
+                "step3": "Krok 3: potwierdź rekordem TXT, że domena należy do Ciebie",
+                "pending": "Domena {domain} nie jest jeszcze aktywna. Dodaj powyższy rekord TXT u swojego dostawcy DNS, a następnie wybierz Zweryfikuj. Zmiany DNS mogą chwilę potrwać.",
+                "active": "Działa pod adresem {domain}.",
+                "verify": "Zweryfikuj",
+                "verifying": "Weryfikowanie…"
             },
             "preview": {
                 "title": "Podgląd na żywo",
@@ -2575,6 +2582,14 @@
             "card_title": "Zaproszenie wygasło",
             "contact_owner": "Skontaktuj się z właścicielem zespołu, aby poprosić o nowe zaproszenie.",
             "go_to_login": "Przejdź do logowania"
+        },
+        "switch_chat_account": {
+            "head": "Zmień konto",
+            "description": "Ten link loguje Cię do tego czatu na inne konto.",
+            "signed_in_as": "Jesteś teraz zalogowany jako {name}.",
+            "continue_as": "Kontynuuj jako {name}",
+            "stay_as": "Pozostań zalogowany jako {name}",
+            "cancel": "Anuluj"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Bezpieczeństwo",
             "title": "Bezpieczeństwo",
-            "description": "Ustawienia bezpieczeństwa dla całego obszaru roboczego. Ogranicz, kto może uzyskać dostęp do pulpitu na poziomie sieci — zaufane adresy IP i kraje.",
+            "description": "Ustawienia bezpieczeństwa dla całego obszaru roboczego. Ogranicz, kto może uzyskać dostęp do pulpitu i API na poziomie sieci: zaufane adresy IP i kraje.",
             "save": "Zapisz zmiany",
             "saved": "Ustawienia bezpieczeństwa zapisane",
             "save_error": "Nie udało się zapisać ustawień bezpieczeństwa",
@@ -3316,15 +3331,15 @@
             "done": "Gotowe",
             "network": {
                 "title": "Kontrola dostępu sieciowego",
-                "help": "Ogranicz dostęp do pulpitu do zaufanych adresów IP i krajów. Gdy wyłączone, każdy z prawidłowymi danymi logowania może zalogować się z dowolnego miejsca."
+                "help": "Ogranicz dostęp do pulpitu i API do zaufanych adresów IP i krajów. Gdy wyłączone, każdy z prawidłowymi danymi logowania lub kluczem API może wejść z dowolnego miejsca."
             },
             "ip": {
                 "title": "Dozwolone adresy IP",
-                "help": "Tylko te adresy mogą uzyskać dostęp do pulpitu. Pozostaw puste, aby zezwolić na dowolny adres IP (reguły krajów nadal obowiązują). Nie możesz zapisać listy, która wyklucza Twój bieżący adres.",
+                "help": "Tylko te adresy mogą uzyskać dostęp do pulpitu i API. Pozostaw puste, aby zezwolić na dowolny adres IP (reguły krajów nadal obowiązują). Nie możesz zapisać listy, która wyklucza Twój bieżący adres.",
                 "empty": "Brak ograniczeń IP",
                 "manage": "Zarządzaj dozwolonymi adresami IP",
                 "dialog_title": "Dozwolone adresy IP",
-                "dialog_description": "Dodaj adresy IP lub zakresy CIDR, które mogą uzyskać dostęp do pulpitu. Przykład: 203.0.113.4 lub 203.0.113.0/24.",
+                "dialog_description": "Dodaj adresy IP lub zakresy CIDR, które mogą uzyskać dostęp do pulpitu i API. Przykład: 203.0.113.4 lub 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Dodaj adres",
                 "remove": "Usuń adres",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Reguły krajów",
-                "help": "Zezwalaj lub blokuj dostęp do pulpitu na podstawie kraju odwiedzającego.",
+                "help": "Zezwalaj lub blokuj dostęp do pulpitu i API na podstawie kraju odwiedzającego.",
                 "allow": "Zezwól tylko na te",
                 "deny": "Zablokuj te",
                 "empty": "Nie wybrano krajów",

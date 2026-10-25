@@ -1,0 +1,12 @@
+{
+    "auth": {
+        "switch_chat_account": {
+            "head": "Chuyển tài khoản",
+            "description": "Liên kết này đăng nhập bạn vào cuộc trò chuyện này bằng một tài khoản khác.",
+            "signed_in_as": "Bạn đang đăng nhập với tên {name}.",
+            "continue_as": "Tiếp tục với tên {name}",
+            "stay_as": "Giữ đăng nhập với tên {name}",
+            "cancel": "Hủy"
+        }
+    }
+}

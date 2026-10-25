@@ -297,6 +297,9 @@
         "Days to keep the guardrail log",
         "Longest visitor message (characters)"
     ],
+    "security#private-network-addresses": [
+        "Allow private network addresses"
+    ],
     "security#security-audit-log": [
         "Keep the security audit log",
         "Days to keep the security log",

@@ -506,7 +506,7 @@
     "The :disk disk failed.": "Der Datenträger :disk ist ausgefallen.",
     "It could not save a file and read it back.": "Er konnte keine Datei speichern und zurücklesen.",
     "Emails go to the log.": "E-Mails landen im Log.",
-    "They are not sent. Set up email in Settings → Email.": "Sie werden nicht gesendet. Richten Sie E-Mail unter Einstellungen → E-Mail ein.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "Sie werden nicht gesendet. Die Anmelde- und Passwort-Links darin werden in die Logdatei geschrieben, halten Sie sie also privat. Richten Sie E-Mail unter Einstellungen → E-Mail ein.",
     "Sends with :service.": "Sendet mit :service.",
     "It is not tested here, as that would send an email.": "Das wird hier nicht getestet, da dabei eine E-Mail gesendet würde.",
     "The mail server does not answer.": "Der Mailserver antwortet nicht.",
@@ -538,5 +538,9 @@
     "Read aloud": "Vorlesen",
     "Play agent replies as speech": "Antworten der Agenten als Sprache abspielen",
     "Reading aloud is not available right now.": "Vorlesen ist gerade nicht verfügbar.",
-    "The reply could not be read aloud. Please try again.": "Die Antwort konnte nicht vorgelesen werden. Bitte versuche es erneut."
+    "The reply could not be read aloud. Please try again.": "Die Antwort konnte nicht vorgelesen werden. Bitte versuche es erneut.",
+    "Add a custom domain first.": "Fügen Sie zuerst eine eigene Domain hinzu.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Wir haben den TXT-Eintrag für diese Domain noch nicht gefunden. DNS-Änderungen können eine Weile dauern, versuchen Sie es später erneut.",
+    "This domain can't be used. Choose another domain.": "Diese Domain kann nicht verwendet werden. Wählen Sie eine andere Domain.",
+    "Custom domain verified.": "Eigene Domain bestätigt."
 }

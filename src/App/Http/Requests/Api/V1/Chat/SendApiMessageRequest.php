@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Chat;
 
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
- * A message sent to an agent over the public API. Carries no `toData()`:
+ * A message sent to an agent over the public API, into a conversation opened
+ * over the API. Any other conversation of the agent (hosted chat, widget, a
+ * channel) answers 404: a turn loads the whole thread into the model and
+ * writes into it, which would let an API caller read and post into a
+ * visitor's chat without the `agent.chat.view` permission. Carries no `toData()`:
  * the stream DTO is built by StreamRequestDataFactory::forApi(), the one
  * sanctioned Request-to-domain bridge, so the mapping exists only once.
  */
@@ -16,6 +23,10 @@ class SendApiMessageRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $conversation = $this->route('conversation');
+
+        abort_unless($conversation instanceof Conversation && $conversation->source === ConversationSource::Api, Response::HTTP_NOT_FOUND);
+
         return true;
     }
 

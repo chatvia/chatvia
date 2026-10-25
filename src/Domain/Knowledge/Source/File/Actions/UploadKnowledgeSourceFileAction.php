@@ -56,8 +56,12 @@ class UploadKnowledgeSourceFileAction
             'external_id' => (string) Str::uuid7(),
         ]);
 
-        // Stored under a random name with the extension guessed from the content.
-        $path = Storage::putFile(KnowledgeStoragePath::forSource($sourceFile), new File($upload->path));
+        // Stored under a random name with the extension of the accepted type.
+        $path = Storage::putFileAs(
+            KnowledgeStoragePath::forSource($sourceFile),
+            new File($upload->path),
+            Str::random(40).'.'.$upload->storedExtension(),
+        );
 
         try {
             return DB::transaction(function () use ($sourceFile, $agent, $upload, $path, $status, $analysis): SourceFile {

@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Não foi possível remover o avatar",
                 "logo_remove_error": "Não foi possível remover o logótipo",
                 "replies_saved": "Opções de resposta guardadas",
-                "replies_error": "Não foi possível guardar as opções de resposta"
+                "replies_error": "Não foi possível guardar as opções de resposta",
+                "domain_verified": "Domínio personalizado verificado",
+                "domain_verify_error": "Não foi possível verificar o domínio"
             },
             "settings": {
                 "composer_title": "Opções do compositor",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "As alterações de DNS podem demorar até 24 horas a propagar-se. Assim que for resolvido, os seus visitantes verão o Chat Alojado deste agente no seu domínio.",
                 "step2": "Passo 2 — Introduza o domínio que apontou para nós",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Introduza o hostname completo sem esquema — ex.: chat.example.com."
+                "hostname_hint": "Introduza o hostname completo sem esquema — ex.: chat.example.com.",
+                "step3": "Passo 3: prove que o domínio é seu com um registo TXT",
+                "pending": "{domain} ainda não está ativo. Adicione o registo TXT acima no seu fornecedor de DNS e depois selecione Verificar. As alterações de DNS podem demorar algum tempo.",
+                "active": "Ativo em {domain}.",
+                "verify": "Verificar",
+                "verifying": "A verificar…"
             },
             "preview": {
                 "title": "Pré-visualização em Direto",
@@ -2575,6 +2582,14 @@
             "card_title": "Convite Expirado",
             "contact_owner": "Por favor, contacte o proprietário da equipa para solicitar um novo convite.",
             "go_to_login": "Ir para o início de sessão"
+        },
+        "switch_chat_account": {
+            "head": "Mudar de conta",
+            "description": "Esta ligação inicia sessão neste chat com outra conta.",
+            "signed_in_as": "Tem sessão iniciada como {name} neste momento.",
+            "continue_as": "Continuar como {name}",
+            "stay_as": "Manter sessão como {name}",
+            "cancel": "Cancelar"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Segurança",
             "title": "Segurança",
-            "description": "Controlos de segurança para todo o espaço de trabalho. Restrinja quem pode aceder ao seu painel por rede — endereços IP e países fiáveis.",
+            "description": "Controlos de segurança para todo o espaço de trabalho. Restrinja quem pode aceder ao seu painel e à API por rede: endereços IP e países fiáveis.",
             "save": "Guardar alterações",
             "saved": "Definições de segurança guardadas",
             "save_error": "Não foi possível guardar as suas definições de segurança",
@@ -3316,15 +3331,15 @@
             "done": "Concluído",
             "network": {
                 "title": "Controlo de acesso à rede",
-                "help": "Restrinja o acesso ao painel a endereços IP e países fiáveis. Quando desativado, qualquer pessoa com um login válido pode iniciar sessão a partir de qualquer lugar."
+                "help": "Restrinja o acesso ao painel e à API a endereços IP e países fiáveis. Quando desativado, qualquer pessoa com um login válido ou uma chave de API pode entrar a partir de qualquer lugar."
             },
             "ip": {
                 "title": "Endereços IP permitidos",
-                "help": "Só estes endereços podem aceder ao painel. Deixe vazio para permitir qualquer IP (as regras por país continuam a aplicar-se). Não pode guardar uma lista que exclua o seu endereço atual.",
+                "help": "Só estes endereços podem aceder ao painel e à API. Deixe vazio para permitir qualquer IP (as regras por país continuam a aplicar-se). Não pode guardar uma lista que exclua o seu endereço atual.",
                 "empty": "Sem restrição de IP",
                 "manage": "Gerir IPs permitidos",
                 "dialog_title": "Endereços IP permitidos",
-                "dialog_description": "Adicione os endereços IP ou intervalos CIDR autorizados a aceder ao seu painel. Exemplo: 203.0.113.4 ou 203.0.113.0/24.",
+                "dialog_description": "Adicione os endereços IP ou intervalos CIDR autorizados a aceder ao seu painel e à API. Exemplo: 203.0.113.4 ou 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Adicionar endereço",
                 "remove": "Remover endereço",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Regras por país",
-                "help": "Permita ou bloqueie o acesso ao painel com base no país do visitante.",
+                "help": "Permita ou bloqueie o acesso ao painel e à API com base no país do visitante.",
                 "allow": "Permitir apenas estes",
                 "deny": "Bloquear estes",
                 "empty": "Nenhum país selecionado",

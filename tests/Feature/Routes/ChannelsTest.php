@@ -106,6 +106,23 @@ describe('the chat presence channel', function (): void {
             ->assertJsonStructure(['auth', 'channel_data']);
     });
 
+    it('authorizes a teammate who may view the agent\'s chats', function (): void {
+        $conversation = Conversation::factory()->forAgent($this->agent)->create();
+        $teammate = teammateWithPermissions($this->owner, ['agent.chat.view'], $this->agent->team);
+
+        chnAuthAs($teammate, "presence-chat.{$conversation->external_id}")
+            ->assertOk()
+            ->assertJsonStructure(['auth', 'channel_data']);
+    });
+
+    it('denies a teammate with agent access but without the chat view permission', function (): void {
+        $conversation = Conversation::factory()->forAgent($this->agent)->create();
+        $teammate = teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.chat.view'), $this->agent->team);
+
+        chnAuthAs($teammate, "presence-chat.{$conversation->external_id}")
+            ->assertForbidden();
+    });
+
     it('denies a conversation belonging to another workspace agent', function (): void {
         // The factory chain provisions its own session → agent → workspace.
         $foreign = Conversation::factory()->create();

@@ -6,6 +6,7 @@ namespace App\Admin;
 
 use App\Admin\Pages\Setup;
 use App\Admin\Settings\ModelLogoController;
+use App\Http\Middleware\Web\DenyCrossOriginFraming;
 use App\Identity\Workspace\Models\User;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
@@ -106,6 +107,9 @@ class AdminPanelProvider extends PanelProvider
                     ->navigationSort(99)
             )
             ->middleware([
+                // The admin panel runs outside the `web` group, so it gets
+                // the always-on framing and HSTS headers here.
+                DenyCrossOriginFraming::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,

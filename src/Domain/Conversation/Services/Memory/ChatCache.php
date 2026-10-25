@@ -162,52 +162,60 @@ class ChatCache
     }
 
     /**
-     * Cache key proving `$viewer` owns `$conversationId`. The key itself
-     * encodes the (viewer, conversation) pair — a different viewer resolves
-     * to a different key, so a `has()` under the wrong viewer is a cache
-     * miss. The viewer key carries its kind (`chatter:5` / `user:5`), so a
-     * chatter and a staff account with the same id never share a marker.
-     * Guests bucket under `guest`.
+     * Cache key proving `$viewer` owns `$conversationId` on `$agentExternalId`.
+     * The key itself encodes the (agent, viewer, conversation) triple: a
+     * different viewer, or the same conversation id presented to another
+     * agent, resolves to a different key, so the `has()` misses. The viewer
+     * key carries its kind (`chatter:5` / `user:5`), so a chatter and a staff
+     * account with the same id never share a marker. Guests bucket under
+     * `guest`.
      */
-    public static function ownerKey(?ChatViewerData $viewer, string $conversationId): string
+    public static function ownerKey(string $agentExternalId, ?ChatViewerData $viewer, string $conversationId): string
     {
         $owner = $viewer?->key() ?? 'guest';
 
-        return "owner:{$owner}:{$conversationId}";
+        return "owner:{$agentExternalId}:{$owner}:{$conversationId}";
     }
 
     /**
-     * Stamp an ownership marker for (viewer, conversation). Tagged with both
-     * the per-conversation tag (so it gets swept by `flushConversation` when
-     * the conversation is deleted) and the workspace tag (so account teardown
-     * sweeps it too — see {@see self::workspaceTag()}). Stored `forever`
-     * because chatters on protected agents keep their conversations until
-     * explicitly deleted — matching how {@see StartChatSessionAction}
-     * stores a signed-in chatter's session, which is exactly why the workspace tag
-     * matters: without it these markers never expire and outlive the deleted
-     * workspace. `$workspaceExternalId` is the agent owner's external id
-     * ({@see Agent::workspaceExternalId()}).
+     * Stamp an ownership marker for (agent, viewer, conversation). Tagged with
+     * the per-conversation tag (swept by `flushConversation` when the
+     * conversation is deleted), the workspace tag (swept by account teardown,
+     * see {@see self::workspaceTag()}) and the agent tag (swept by
+     * {@see PurgeAgentAction}). Stored `forever` because chatters on protected
+     * agents keep their conversations until explicitly deleted, matching how
+     * {@see StartChatSessionAction} stores a signed-in chatter's session;
+     * without the workspace and agent tags these markers would outlive what
+     * they point at.
      */
-    public static function rememberOwner(string $conversationId, ?ChatViewerData $viewer, string $workspaceExternalId): void
+    public static function rememberOwner(string $conversationId, ?ChatViewerData $viewer, Agent $agent): void
     {
-        Cache::driver('chat')
-            ->tags([self::conversationTag($conversationId), self::workspaceTag($workspaceExternalId)])
-            ->forever(self::ownerKey($viewer, $conversationId), true);
+        self::ownerTags($conversationId, $agent)
+            ->forever(self::ownerKey($agent->external_id, $viewer, $conversationId), true);
     }
 
     /**
-     * True iff the ownership marker for (viewer, conversation) exists — i.e. the
-     * same viewer created it. Wrong viewer → different key → miss.
-     * `$workspaceExternalId` must be the same agent-owner external id passed to
-     * {@see self::rememberOwner()}; the tag set is part of the lookup
-     * namespace, so a mismatch reads as a miss (→ a spurious 403 on protected
-     * agents).
+     * True iff the ownership marker for (agent, viewer, conversation) exists,
+     * i.e. the same viewer created it on the same agent. A wrong viewer or a
+     * wrong agent reads as a miss.
      */
-    public static function isOwnedBy(string $conversationId, ?ChatViewerData $viewer, string $workspaceExternalId): bool
+    public static function isOwnedBy(string $conversationId, ?ChatViewerData $viewer, Agent $agent): bool
     {
-        return Cache::driver('chat')
-            ->tags([self::conversationTag($conversationId), self::workspaceTag($workspaceExternalId)])
-            ->has(self::ownerKey($viewer, $conversationId));
+        return self::ownerTags($conversationId, $agent)
+            ->has(self::ownerKey($agent->external_id, $viewer, $conversationId));
+    }
+
+    /**
+     * The tag set of an ownership marker. Readers and writers must share it:
+     * the ordered tag set is part of the lookup namespace.
+     */
+    private static function ownerTags(string $conversationId, Agent $agent): TaggedCache
+    {
+        return Cache::driver('chat')->tags([
+            self::conversationTag($conversationId),
+            self::workspaceTag($agent->workspaceExternalId()),
+            self::agentTag($agent->external_id),
+        ]);
     }
 
     public function generateConversationKey(string $conversationId): string

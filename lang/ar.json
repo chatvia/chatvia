@@ -506,7 +506,7 @@
     "The :disk disk failed.": "فشل القرص :disk.",
     "It could not save a file and read it back.": "لم يتمكن من حفظ ملف وقراءته مرة أخرى.",
     "Emails go to the log.": "الرسائل تذهب إلى السجل.",
-    "They are not sent. Set up email in Settings → Email.": "لا تُرسل. اضبط البريد في الإعدادات ← البريد.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "لا تُرسل. تُكتب روابط تسجيل الدخول وكلمة المرور التي فيها في ملف السجل، فأبقه خاصًا. اضبط البريد في الإعدادات ← البريد.",
     "Sends with :service.": "يرسل عبر :service.",
     "It is not tested here, as that would send an email.": "لا يُختبر هنا، لأن ذلك يرسل رسالة.",
     "The mail server does not answer.": "خادم البريد لا يستجيب.",
@@ -538,5 +538,9 @@
     "Read aloud": "القراءة بصوت عالٍ",
     "Play agent replies as speech": "تشغيل ردود الوكلاء كلامًا مسموعًا",
     "Reading aloud is not available right now.": "القراءة بصوت عالٍ غير متاحة الآن.",
-    "The reply could not be read aloud. Please try again.": "تعذّرت قراءة الرد بصوت عالٍ. يُرجى المحاولة مرة أخرى."
+    "The reply could not be read aloud. Please try again.": "تعذّرت قراءة الرد بصوت عالٍ. يُرجى المحاولة مرة أخرى.",
+    "Add a custom domain first.": "أضف نطاقًا مخصصًا أولًا.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "لم نعثر على سجل TXT لهذا النطاق بعد. قد تستغرق تغييرات DNS بعض الوقت، لذا حاول مرة أخرى لاحقًا.",
+    "This domain can't be used. Choose another domain.": "لا يمكن استخدام هذا النطاق. اختر نطاقًا آخر.",
+    "Custom domain verified.": "تم التحقق من النطاق المخصص."
 }

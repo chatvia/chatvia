@@ -6,6 +6,7 @@ use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\Conversation\TestChatContext;
 use Tests\Support\Conversation\Tooling\FakeToolApprovalPolicy;
@@ -78,7 +79,8 @@ it('runs an ungated tool call and continues to a final answer', function (): voi
 });
 
 it('pauses the whole turn and stores a pending checkpoint when a tool call needs approval', function (): void {
-    $context = TestChatContext::make();
+    // Signed in: only a chatter or staff may approve.
+    $context = TestChatContext::make(chatterId: 1);
     $dispatcher = new RecordingToolDispatcher;
     $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx): Generator {
         $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'delete_user', 'arguments' => '{}'];
@@ -97,6 +99,50 @@ it('pauses the whole turn and stores a pending checkpoint when a tool call needs
         ->and(array_column($checkpoint->pending_calls, 'name'))->toBe(['delete_user'])
         // The stream ends with an awaiting_approval `done`.
         ->and(array_last($events)->data['reason'])->toBe('awaiting_approval');
+});
+
+it('refuses a gated call at once for an anonymous visitor, without a checkpoint', function (): void {
+    $context = TestChatContext::make();
+    $dispatcher = new RecordingToolDispatcher;
+    $round = 0;
+    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx) use (&$round): Generator {
+        if ($round++ === 0) {
+            $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'delete_user', 'arguments' => '{}'];
+        }
+        yield StreamEvent::delta($ctx->assistantMessageId, 'x');
+    });
+    $runner = ToolLoop::runner($transformer, $dispatcher, FakeToolApprovalPolicy::gatingEverything());
+
+    $llmMessages = [['role' => 'user', 'content' => 'delete me']];
+    $generator = $runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('delete_user'));
+    $events = iterator_to_array($generator, preserve_keys: false);
+
+    $toolMessages = array_values(array_filter($llmMessages, fn (array $m): bool => ($m['role'] ?? null) === 'tool'));
+    expect($generator->getReturn())->toBeFalse()
+        ->and($dispatcher->calls)->toBe([])
+        ->and(ToolApprovalCheckpoint::query()->count())->toBe(0)
+        ->and(array_column($toolMessages, 'content'))->toBe([ToolLoopRunner::SIGN_IN_REQUIRED_RESULT])
+        ->and(collect($events)->where('type', EventType::Tool)->pluck('data.phase')->all())->not->toContain('awaiting_approval');
+});
+
+it('never streams the tool result text to the client, only status and artifacts', function (): void {
+    $context = TestChatContext::make();
+    $dispatcher = new RecordingToolDispatcher('{"email":"jane@example.test","balance":1200}');
+    $round = 0;
+    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx) use (&$round): Generator {
+        if ($round++ === 0) {
+            $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'get_customer', 'arguments' => '{}'];
+        }
+        yield StreamEvent::delta($ctx->assistantMessageId, 'x');
+    });
+    $runner = ToolLoop::runner($transformer, $dispatcher, FakeToolApprovalPolicy::gatingNothing());
+
+    $llmMessages = [['role' => 'user', 'content' => 'who am I?']];
+    $events = iterator_to_array($runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('get_customer')), preserve_keys: false);
+
+    $end = collect($events)->first(fn (StreamEvent $event): bool => $event->type === EventType::Tool && $event->data['phase'] === 'end');
+    expect($end->data)->not->toHaveKey('result')
+        ->and(json_encode(array_map(fn (StreamEvent $event): array => $event->data, $events)))->not->toContain('jane@example.test');
 });
 
 it('stops at the configured round cap and then answers without tools', function (): void {

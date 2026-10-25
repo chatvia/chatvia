@@ -303,6 +303,17 @@
             "members": "Czatowicze"
         },
         "security": {
+            "description": "Ustawienia bezpieczeństwa dla całego obszaru roboczego. Ogranicz, kto może uzyskać dostęp do pulpitu i API na poziomie sieci: zaufane adresy IP i kraje.",
+            "network": {
+                "help": "Ogranicz dostęp do pulpitu i API do zaufanych adresów IP i krajów. Gdy wyłączone, każdy z prawidłowymi danymi logowania lub kluczem API może wejść z dowolnego miejsca."
+            },
+            "ip": {
+                "help": "Tylko te adresy mogą uzyskać dostęp do pulpitu i API. Pozostaw puste, aby zezwolić na dowolny adres IP (reguły krajów nadal obowiązują). Nie możesz zapisać listy, która wyklucza Twój bieżący adres.",
+                "dialog_description": "Dodaj adresy IP lub zakresy CIDR, które mogą uzyskać dostęp do pulpitu i API. Przykład: 203.0.113.4 lub 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Zezwalaj lub blokuj dostęp do pulpitu i API na podstawie kraju odwiedzającego."
+            },
             "retention": {
                 "leads": "Leady (dni)",
                 "leads_help": "Usuwaj leady starsze niż tyle dni.",

@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Kunne ikke fjerne avataren",
                 "logo_remove_error": "Kunne ikke fjerne logoet",
                 "replies_saved": "Svarindstillinger gemt",
-                "replies_error": "Kunne ikke gemme svarindstillinger"
+                "replies_error": "Kunne ikke gemme svarindstillinger",
+                "domain_verified": "Brugerdefineret domæne bekræftet",
+                "domain_verify_error": "Kunne ikke bekræfte domænet"
             },
             "settings": {
                 "composer_title": "Composer-indstillinger",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "DNS-ændringer kan tage op til 24 timer at slå igennem. Når det er aktivt, vil dine besøgende se denne agents hostede chat på dit domæne.",
                 "step2": "Trin 2 — Angiv det domæne, du pegede mod os",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Angiv det fulde hostnavn uden scheme – f.eks. chat.example.com."
+                "hostname_hint": "Angiv det fulde hostnavn uden scheme – f.eks. chat.example.com.",
+                "step3": "Trin 3: bevis med en TXT-post, at du ejer domænet",
+                "pending": "{domain} er ikke aktivt endnu. Tilføj TXT-posten ovenfor hos din DNS-udbyder, og vælg derefter Bekræft. DNS-ændringer kan tage noget tid.",
+                "active": "Aktivt på {domain}.",
+                "verify": "Bekræft",
+                "verifying": "Bekræfter…"
             },
             "preview": {
                 "title": "Live forhåndsvisning",
@@ -2575,6 +2582,14 @@
             "card_title": "Invitation udløbet",
             "contact_owner": "Kontakt venligst teamejeren for at anmode om en ny invitation.",
             "go_to_login": "Gå til login"
+        },
+        "switch_chat_account": {
+            "head": "Skift konto",
+            "description": "Dette link logger dig ind i denne chat med en anden konto.",
+            "signed_in_as": "Du er logget ind som {name} lige nu.",
+            "continue_as": "Fortsæt som {name}",
+            "stay_as": "Forbliv logget ind som {name}",
+            "cancel": "Annuller"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Sikkerhed",
             "title": "Sikkerhed",
-            "description": "Sikkerhedskontroller for hele workspacet. Begræns hvem der kan tilgå dit dashboard ud fra netværk — betroede IP-adresser og lande.",
+            "description": "Sikkerhedskontroller for hele workspacet. Begræns hvem der kan tilgå dit dashboard og API’et ud fra netværk: betroede IP-adresser og lande.",
             "save": "Gem ændringer",
             "saved": "Sikkerhedsindstillinger gemt",
             "save_error": "Dine sikkerhedsindstillinger kunne ikke gemmes",
@@ -3316,15 +3331,15 @@
             "done": "Færdig",
             "network": {
                 "title": "Netværksadgangskontrol",
-                "help": "Begræns dashboardadgang til betroede IP-adresser og lande. Når dette er slået fra, kan alle med et gyldigt login logge ind hvor som helst fra."
+                "help": "Begræns adgangen til dashboardet og API’et til betroede IP-adresser og lande. Når dette er slået fra, kan alle med et gyldigt login eller en API-nøgle komme ind hvor som helst fra."
             },
             "ip": {
                 "title": "Tilladte IP-adresser",
-                "help": "Kun disse adresser kan tilgå dashboardet. Lad feltet stå tomt for at tillade enhver IP (landeregler gælder stadig). Du kan ikke gemme en liste, der udelukker din nuværende adresse.",
+                "help": "Kun disse adresser kan tilgå dashboardet og API’et. Lad feltet stå tomt for at tillade enhver IP (landeregler gælder stadig). Du kan ikke gemme en liste, der udelukker din nuværende adresse.",
                 "empty": "Ingen IP-begrænsning",
                 "manage": "Administrer tilladte IP'er",
                 "dialog_title": "Tilladte IP-adresser",
-                "dialog_description": "Tilføj de IP-adresser eller CIDR-intervaller, der må tilgå dit dashboard. Eksempel: 203.0.113.4 eller 203.0.113.0/24.",
+                "dialog_description": "Tilføj de IP-adresser eller CIDR-intervaller, der må tilgå dit dashboard og API’et. Eksempel: 203.0.113.4 eller 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Tilføj adresse",
                 "remove": "Fjern adresse",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Landeregler",
-                "help": "Tillad eller bloker dashboardadgang baseret på den besøgendes land.",
+                "help": "Tillad eller bloker adgang til dashboardet og API’et baseret på den besøgendes land.",
                 "allow": "Tillad kun disse",
                 "deny": "Bloker disse",
                 "empty": "Ingen lande valgt",

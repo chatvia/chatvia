@@ -90,7 +90,7 @@ it('refuses to delete on a private agent when the signed-in chatter does not own
     $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Intruder'))->refresh();
 
     $conversation = adcConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
     $attachment = Attachment::factory()->forConversation($conversation)->stored()->create();
 
     $this->actingAs($intruder, 'chat')->delete(adcUrl($agent, $attachment))->assertForbidden();
@@ -107,7 +107,7 @@ it('lets the rightful owner delete on a private agent', function (): void {
     $owner = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Owner'))->refresh();
 
     $conversation = adcConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
     $attachment = Attachment::factory()->forConversation($conversation)->stored()->create();
 
     $this->actingAs($owner, 'chat')->delete(adcUrl($agent, $attachment))->assertNoContent();

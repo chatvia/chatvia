@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Ubesvaret",
+                "select_unanswered": "Vælg",
+                "all_conversations": "Alle samtaler",
+                "unanswered_help": "Alle ubesvarede omfatter tommel ned. Svar, du allerede har rettet, er udeladt."
+            },
+            "unanswered": {
+                "needs_look": "Alle ubesvarede",
+                "not_found": "Ingen viden fundet",
+                "count": "{count} ubesvaret svar på denne side | {count} ubesvarede svar på denne side",
+                "none_on_page": "Ingen ubesvarede svar på denne side.",
+                "next": "Næste",
+                "add_answer": "Tilføj det rigtige svar"
+            }
+        }
+    }
+}

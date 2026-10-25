@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /**
  * Filters dialog of the chat log (date range, confidence, channel, feedback,
- * country, topic, sentiment, tone). Selections live in `useChatLog`; "Apply"
+ * country, topic, sentiment, tone, unanswered replies). Selections live in `useChatLog`; "Apply"
  * reloads the conversation list.
  */
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ const {
     selectedConfidenceScore,
     selectedFeedback,
     selectedSource,
+    selectedUnanswered,
     dateRange,
     hasActiveFilters,
     applyFilters,
@@ -188,6 +189,22 @@ const {
                                 <SelectItem value="satisfied">😊 {{ t('agents.chatlog.tone.satisfied') }}</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    <!-- Unanswered: replies with no knowledge found (or a thumbs-down) that nobody revised yet -->
+                    <div class="space-y-2">
+                        <Label for="unanswered-filter" class="text-sm font-medium">{{ t('agents.chatlog.filters.unanswered') }}</Label>
+                        <Select v-model="selectedUnanswered">
+                            <SelectTrigger id="unanswered-filter" class="w-full">
+                                <SelectValue :placeholder="t('agents.chatlog.filters.select_unanswered')" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_conversations') }}</SelectItem>
+                                <SelectItem value="needs_look">{{ t('agents.chatlog.unanswered.needs_look') }}</SelectItem>
+                                <SelectItem value="not_found">{{ t('agents.chatlog.unanswered.not_found') }}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p class="text-muted-foreground text-xs">{{ t('agents.chatlog.filters.unanswered_help') }}</p>
                     </div>
                 </div>
             </div>

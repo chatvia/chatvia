@@ -459,7 +459,11 @@
                 "select_sentiment": "Sélectionner un sentiment",
                 "select_tone": "Sélectionner un ton",
                 "clear_all": "Tout effacer",
-                "close": "Appliquer les filtres"
+                "close": "Appliquer les filtres",
+                "unanswered": "Sans réponse",
+                "select_unanswered": "Choisir",
+                "all_conversations": "Toutes les conversations",
+                "unanswered_help": "Toutes sans réponse inclut les pouces vers le bas. Les réponses déjà revues sont exclues."
             },
             "messages": {
                 "select_conversation": "Sélectionnez une conversation pour afficher les messages",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Impossible de charger le pouls de la conversation. Veuillez réessayer."
             },
             "refresh_messages": "Actualiser les messages",
-            "delete_conversation": "Supprimer la conversation"
+            "delete_conversation": "Supprimer la conversation",
+            "unanswered": {
+                "needs_look": "Toutes sans réponse",
+                "not_found": "Aucune connaissance trouvée",
+                "count": "{count} réponse à revoir sur cette page | {count} réponses à revoir sur cette page",
+                "none_on_page": "Aucune réponse à revoir sur cette page.",
+                "next": "Suivante",
+                "add_answer": "Ajouter la bonne réponse"
+            }
         },
         "guardrails": {
             "title": "Garde-fous",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Ajoutez des fonctionnalités avancées au chat — comme des graphiques interactifs",
             "forms": "Formulaires",
             "forms_tooltip": "Créez des formulaires que votre agent affiche dans la conversation",
-            "blocked": "Bloqués",
-            "unanswered": "Sans réponse"
+            "blocked": "Bloqués"
         },
         "create_modal": {
             "title": "Créer un agent",
@@ -2375,26 +2386,6 @@
             "empty": "Aucune soumission pour l'instant.",
             "submitted_at": "Envoyé le",
             "deleted": "Soumission supprimée"
-        },
-        "unanswered": {
-            "title": "Sans réponse",
-            "description": "Questions pour lesquelles l'agent n'a trouvé aucune connaissance, et réponses que les visiteurs ont jugées mauvaises. Ajoutez la bonne réponse pour combler le manque.",
-            "chatlog_off": "Le journal des conversations est désactivé pour cet agent, aucune nouvelle réponse n'est donc enregistrée ici.",
-            "filter_all": "Toutes",
-            "filter_not_found": "Aucune connaissance",
-            "filter_thumbs_down": "Pouce vers le bas",
-            "include_revised": "Afficher les révisées",
-            "load_error": "Impossible de charger la liste.",
-            "try_again": "Réessayer",
-            "empty": "Rien ici. Chaque question récente a trouvé une réponse.",
-            "reason_not_found": "Aucune connaissance",
-            "reason_thumbs_down": "Pouce vers le bas",
-            "revised": "Révisée",
-            "question": "Question",
-            "answer": "Réponse",
-            "no_question": "(question introuvable)",
-            "add_answer": "Ajouter la bonne réponse",
-            "open_conversation": "Ouvrir la conversation"
         }
     },
     "auth": {

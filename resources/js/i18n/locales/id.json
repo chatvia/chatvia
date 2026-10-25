@@ -459,7 +459,11 @@
                 "select_sentiment": "Pilih sentimen",
                 "select_tone": "Pilih nada",
                 "clear_all": "Hapus semua",
-                "close": "Terapkan filter"
+                "close": "Terapkan filter",
+                "unanswered": "Belum terjawab",
+                "select_unanswered": "Pilih",
+                "all_conversations": "Semua percakapan",
+                "unanswered_help": "Semua belum terjawab termasuk jempol ke bawah. Balasan yang sudah Anda revisi tidak ditampilkan."
             },
             "messages": {
                 "select_conversation": "Pilih percakapan untuk melihat pesan",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Tidak dapat memuat pulse percakapan. Silakan coba lagi."
             },
             "refresh_messages": "Muat ulang pesan",
-            "delete_conversation": "Hapus percakapan"
+            "delete_conversation": "Hapus percakapan",
+            "unanswered": {
+                "needs_look": "Semua belum terjawab",
+                "not_found": "Tidak ada pengetahuan ditemukan",
+                "count": "{count} balasan belum terjawab di halaman ini | {count} balasan belum terjawab di halaman ini",
+                "none_on_page": "Tidak ada balasan belum terjawab di halaman ini.",
+                "next": "Berikutnya",
+                "add_answer": "Tambahkan jawaban yang benar"
+            }
         },
         "guardrails": {
             "title": "Pagar Pengaman",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif",
             "forms": "Formulir",
             "forms_tooltip": "Buat formulir yang ditampilkan agen Anda di dalam obrolan",
-            "blocked": "Diblokir",
-            "unanswered": "Belum terjawab"
+            "blocked": "Diblokir"
         },
         "create_modal": {
             "title": "Buat Agen",
@@ -2374,26 +2385,6 @@
             "empty": "Belum ada pengiriman.",
             "submitted_at": "Dikirim",
             "deleted": "Pengiriman dihapus"
-        },
-        "unanswered": {
-            "title": "Belum terjawab",
-            "description": "Pertanyaan yang tidak ditemukan pengetahuannya oleh agen, dan jawaban yang ditandai buruk oleh pengunjung. Tambahkan jawaban yang benar untuk menutup celahnya.",
-            "chatlog_off": "Log chat dimatikan untuk agen ini, jadi balasan baru tidak disimpan di sini.",
-            "filter_all": "Semua",
-            "filter_not_found": "Pengetahuan tidak ditemukan",
-            "filter_thumbs_down": "Jempol ke bawah",
-            "include_revised": "Tampilkan yang direvisi",
-            "load_error": "Daftar tidak dapat dimuat.",
-            "try_again": "Coba lagi",
-            "empty": "Tidak ada apa pun. Setiap pertanyaan terbaru menemukan jawaban.",
-            "reason_not_found": "Pengetahuan tidak ditemukan",
-            "reason_thumbs_down": "Jempol ke bawah",
-            "revised": "Direvisi",
-            "question": "Pertanyaan",
-            "answer": "Jawaban",
-            "no_question": "(pertanyaan tidak ditemukan)",
-            "add_answer": "Tambahkan jawaban yang benar",
-            "open_conversation": "Buka percakapan"
         }
     },
     "auth": {

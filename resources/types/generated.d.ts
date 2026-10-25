@@ -247,6 +247,7 @@ declare namespace Domain {
                             feedback: string | null;
                             feedback_comment: string | null;
                             is_response_from_qa: boolean;
+                            not_found: boolean;
                             response_time_ms: number | null;
                             prompt_tokens: number | null;
                             completion_tokens: number | null;
@@ -334,19 +335,6 @@ declare namespace Domain {
                         };
                         export type ChatLogTopicsResourceData = {
                             topics: Domain.Agent.Data.Resources.ChatLog.Topics.ChatLogTopicData[];
-                        };
-                    }
-                    namespace Unanswered {
-                        export type UnansweredQuestionData = {
-                            message_id: string;
-                            conversation_id: string;
-                            question: string;
-                            answer: string;
-                            not_found: boolean;
-                            thumbs_down: boolean;
-                            feedback_comment: string | null;
-                            revised: boolean;
-                            created_at: string;
                         };
                     }
                 }
@@ -462,7 +450,6 @@ declare namespace Domain {
         }
         namespace Enums {
             export type SourcesDisplay = 'hidden' | 'list' | 'citations';
-            export type UnansweredFilter = 'all' | 'not_found' | 'thumbs_down';
         }
         namespace Prompt {
             namespace Data {
@@ -684,6 +671,7 @@ declare namespace Domain {
                 | 'playground'
                 | 'handoff';
             export type MessageRole = 'user' | 'assistant' | 'agent';
+            export type UnansweredFilter = 'needs_look' | 'not_found';
         }
         namespace Topic {
             namespace Data {

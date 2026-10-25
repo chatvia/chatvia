@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Sem resposta",
+                "select_unanswered": "Selecionar",
+                "all_conversations": "Todas as conversas",
+                "unanswered_help": "Todas sem resposta inclui polegares para baixo. Respostas já revisadas ficam de fora."
+            },
+            "unanswered": {
+                "needs_look": "Todas sem resposta",
+                "not_found": "Nenhum conhecimento encontrado",
+                "count": "{count} resposta sem solução nesta página | {count} respostas sem solução nesta página",
+                "none_on_page": "Nenhuma resposta sem solução nesta página.",
+                "next": "Próxima",
+                "add_answer": "Adicionar a resposta certa"
+            }
+        }
+    }
+}

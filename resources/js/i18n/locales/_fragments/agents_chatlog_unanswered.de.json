@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Unbeantwortet",
+                "select_unanswered": "Auswählen",
+                "all_conversations": "Alle Unterhaltungen",
+                "unanswered_help": "Alle unbeantworteten umfasst auch Daumen runter. Bereits überarbeitete Antworten fehlen."
+            },
+            "unanswered": {
+                "needs_look": "Alle unbeantworteten",
+                "not_found": "Kein Wissen gefunden",
+                "count": "{count} unbeantwortete Antwort auf dieser Seite | {count} unbeantwortete Antworten auf dieser Seite",
+                "none_on_page": "Keine unbeantworteten Antworten auf dieser Seite.",
+                "next": "Weiter",
+                "add_answer": "Richtige Antwort hinzufügen"
+            }
+        }
+    }
+}

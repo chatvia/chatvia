@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Obesvarat",
+                "select_unanswered": "Välj",
+                "all_conversations": "Alla konversationer",
+                "unanswered_help": "Alla obesvarade inkluderar tummen ner. Svar du redan har rättat visas inte."
+            },
+            "unanswered": {
+                "needs_look": "Alla obesvarade",
+                "not_found": "Ingen kunskap hittades",
+                "count": "{count} obesvarat svar på den här sidan | {count} obesvarade svar på den här sidan",
+                "none_on_page": "Inga obesvarade svar på den här sidan.",
+                "next": "Nästa",
+                "add_answer": "Lägg till rätt svar"
+            }
+        }
+    }
+}

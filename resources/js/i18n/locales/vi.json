@@ -459,7 +459,11 @@
                 "select_sentiment": "Chọn cảm xúc",
                 "select_tone": "Chọn giọng điệu",
                 "clear_all": "Xóa tất cả",
-                "close": "Áp dụng bộ lọc"
+                "close": "Áp dụng bộ lọc",
+                "unanswered": "Chưa trả lời",
+                "select_unanswered": "Chọn",
+                "all_conversations": "Tất cả cuộc trò chuyện",
+                "unanswered_help": "Tất cả chưa trả lời gồm cả lượt không thích. Các câu trả lời bạn đã sửa sẽ không hiện."
             },
             "messages": {
                 "select_conversation": "Chọn một cuộc trò chuyện để xem tin nhắn",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Không thể tải nhịp cảm xúc cuộc trò chuyện. Vui lòng thử lại."
             },
             "refresh_messages": "Làm mới tin nhắn",
-            "delete_conversation": "Xóa cuộc trò chuyện"
+            "delete_conversation": "Xóa cuộc trò chuyện",
+            "unanswered": {
+                "needs_look": "Tất cả chưa trả lời",
+                "not_found": "Không tìm thấy kiến thức",
+                "count": "{count} câu trả lời chưa giải quyết trên trang này | {count} câu trả lời chưa giải quyết trên trang này",
+                "none_on_page": "Không có câu trả lời chưa giải quyết trên trang này.",
+                "next": "Tiếp",
+                "add_answer": "Thêm câu trả lời đúng"
+            }
         },
         "guardrails": {
             "title": "Quy tắc kiểm soát",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Thêm các tính năng nâng cao vào cuộc trò chuyện — như biểu đồ tương tác",
             "forms": "Biểu mẫu",
             "forms_tooltip": "Tạo các biểu mẫu mà trợ lý AI của bạn hiển thị trong cuộc trò chuyện",
-            "blocked": "Đã chặn",
-            "unanswered": "Chưa trả lời"
+            "blocked": "Đã chặn"
         },
         "create_modal": {
             "title": "Tạo trợ lý AI",
@@ -2374,26 +2385,6 @@
             "empty": "Chưa có lượt gửi nào.",
             "submitted_at": "Đã gửi",
             "deleted": "Đã xóa lượt gửi"
-        },
-        "unanswered": {
-            "title": "Chưa trả lời",
-            "description": "Các câu hỏi mà tác tử không tìm thấy kiến thức, và câu trả lời bị khách đánh giá là tệ. Thêm câu trả lời đúng để lấp chỗ trống.",
-            "chatlog_off": "Nhật ký trò chuyện đang tắt cho tác tử này, nên câu trả lời mới không được lưu ở đây.",
-            "filter_all": "Tất cả",
-            "filter_not_found": "Không tìm thấy kiến thức",
-            "filter_thumbs_down": "Không thích",
-            "include_revised": "Hiện mục đã sửa",
-            "load_error": "Không tải được danh sách.",
-            "try_again": "Thử lại",
-            "empty": "Không có gì ở đây. Mọi câu hỏi gần đây đều có câu trả lời.",
-            "reason_not_found": "Không tìm thấy kiến thức",
-            "reason_thumbs_down": "Không thích",
-            "revised": "Đã sửa",
-            "question": "Câu hỏi",
-            "answer": "Câu trả lời",
-            "no_question": "(không tìm thấy câu hỏi)",
-            "add_answer": "Thêm câu trả lời đúng",
-            "open_conversation": "Mở cuộc trò chuyện"
         }
     },
     "auth": {

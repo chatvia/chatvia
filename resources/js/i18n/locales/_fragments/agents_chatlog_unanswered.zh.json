@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "未回答",
+                "select_unanswered": "选择",
+                "all_conversations": "所有对话",
+                "unanswered_help": "“全部未回答”也包括点踩。已修订的回复不会显示。"
+            },
+            "unanswered": {
+                "needs_look": "全部未回答",
+                "not_found": "未找到知识",
+                "count": "本页有 {count} 条未回答的回复 | 本页有 {count} 条未回答的回复",
+                "none_on_page": "本页没有未回答的回复。",
+                "next": "下一个",
+                "add_answer": "添加正确答案"
+            }
+        }
+    }
+}

@@ -459,7 +459,11 @@
                 "select_sentiment": "Vælg stemning",
                 "select_tone": "Vælg tone",
                 "clear_all": "Ryd alle",
-                "close": "Anvend filtre"
+                "close": "Anvend filtre",
+                "unanswered": "Ubesvaret",
+                "select_unanswered": "Vælg",
+                "all_conversations": "Alle samtaler",
+                "unanswered_help": "Alle ubesvarede omfatter tommel ned. Svar, du allerede har rettet, er udeladt."
             },
             "messages": {
                 "select_conversation": "Vælg en samtale for at se beskeder",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Kunne ikke hente samtalepuls. Prøv igen."
             },
             "refresh_messages": "Opdater beskeder",
-            "delete_conversation": "Slet samtale"
+            "delete_conversation": "Slet samtale",
+            "unanswered": {
+                "needs_look": "Alle ubesvarede",
+                "not_found": "Ingen viden fundet",
+                "count": "{count} ubesvaret svar på denne side | {count} ubesvarede svar på denne side",
+                "none_on_page": "Ingen ubesvarede svar på denne side.",
+                "next": "Næste",
+                "add_answer": "Tilføj det rigtige svar"
+            }
         },
         "guardrails": {
             "title": "Sikkerhedsregler",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Tilføj avancerede muligheder til chatten — som interaktive diagrammer",
             "forms": "Formularer",
             "forms_tooltip": "Byg formularer, som din agent viser i chatten",
-            "blocked": "Blokerede",
-            "unanswered": "Ubesvarede"
+            "blocked": "Blokerede"
         },
         "create_modal": {
             "title": "Opret agent",
@@ -2375,26 +2386,6 @@
             "empty": "Ingen indsendelser endnu.",
             "submitted_at": "Indsendt",
             "deleted": "Indsendelse slettet"
-        },
-        "unanswered": {
-            "title": "Ubesvarede",
-            "description": "Spørgsmål, agenten ikke fandt viden til, og svar, som besøgende markerede som dårlige. Tilføj det rigtige svar for at lukke hullet.",
-            "chatlog_off": "Chatloggen er slået fra for denne agent, så nye svar gemmes ikke her.",
-            "filter_all": "Alle",
-            "filter_not_found": "Ingen viden fundet",
-            "filter_thumbs_down": "Tommel ned",
-            "include_revised": "Vis reviderede",
-            "load_error": "Listen kunne ikke indlæses.",
-            "try_again": "Prøv igen",
-            "empty": "Intet her. Alle nylige spørgsmål fandt et svar.",
-            "reason_not_found": "Ingen viden fundet",
-            "reason_thumbs_down": "Tommel ned",
-            "revised": "Revideret",
-            "question": "Spørgsmål",
-            "answer": "Svar",
-            "no_question": "(intet spørgsmål fundet)",
-            "add_answer": "Tilføj det rigtige svar",
-            "open_conversation": "Åbn samtale"
         }
     },
     "auth": {

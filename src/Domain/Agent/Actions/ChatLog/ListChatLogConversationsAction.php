@@ -36,6 +36,7 @@ class ListChatLogConversationsAction
             ->filterByConfidenceScore($filters->confidenceScore)
             ->filterByFeedback($filters->feedback)
             ->filterBySource($filters->source)
+            ->filterByUnanswered($filters->unanswered)
             ->filterByOnlineStatus($filters->onlineOnly)
             ->withCount('messages')
             ->latestActivityPage(self::PER_PAGE, $filters->cursor);

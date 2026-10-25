@@ -3,7 +3,9 @@
  * Messages tab of the chat log: the selected conversation's transcript (with
  * search highlighting), per-message tone, sentiment, confidence, the knowledge
  * behind each answer, tokens, feedback and the visitor's note on it, the
- * "Revise" shortcut, and paging.
+ * "Revise" shortcut, and paging. While the "Unanswered" filter is on, the
+ * rest of the conversation fades so the replies it matched and their
+ * questions stand out, and a bar jumps from one to the next.
  */
 import MessageCard from '@/components/chat/MessageCard.vue';
 import SourcesDialog from '@/components/chat/SourcesDialog.vue';
@@ -12,8 +14,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { usePage } from '@inertiajs/vue3';
-import { Activity, AudioLines, LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { Activity, ArrowDown, AudioLines, CircleHelp, LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
 
@@ -35,6 +37,9 @@ const {
     messages,
     isLoadingMessages,
     search,
+    selectedUnanswered,
+    unansweredMessageIds,
+    isUnansweredReply,
     fetchMessages,
     formatTimeAgo,
     formatFullDateTime,
@@ -95,6 +100,28 @@ function openReviseDialog(message: Message) {
     emit('open-revise', message);
 }
 
+const unansweredFilterOn = computed(() => selectedUnanswered.value !== 'all');
+const unansweredReplies = computed(() => messages.value.filter((message) => isUnansweredReply(message)));
+
+const listEl = ref<HTMLElement | null>(null);
+// The reply the "Next" button scrolled to last; the next press goes one further.
+const focusedReply = ref(-1);
+
+function scrollToReply(index: number) {
+    const replies = listEl.value?.querySelectorAll<HTMLElement>('[data-unanswered-reply]') ?? [];
+    if (replies.length === 0) return;
+    focusedReply.value = index % replies.length;
+    replies[focusedReply.value].scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// A conversation opened with the filter on starts at its first unanswered reply.
+watch(isLoadingMessages, async (loading) => {
+    focusedReply.value = -1;
+    if (loading || !unansweredFilterOn.value) return;
+    await nextTick();
+    scrollToReply(0);
+});
+
 const hasMorePages = computed(() => (messagesData.value?.last_page ?? 0) > 1);
 
 function goToPage(offset: number) {
@@ -126,8 +153,39 @@ function goToPage(offset: number) {
         </div>
 
         <!-- Messages List -->
-        <div v-else class="space-y-5 px-6 py-5">
-            <div v-for="m in messages" :key="m.id">
+        <div v-else ref="listEl" class="space-y-5 px-6 py-5">
+            <!-- The "Unanswered" filter's matches on this page -->
+            <div
+                v-if="unansweredFilterOn"
+                class="bg-background/95 text-muted-foreground sticky top-0 z-10 flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs backdrop-blur"
+            >
+                <CircleHelp class="h-3.5 w-3.5 shrink-0" />
+                <span class="flex-1">
+                    {{
+                        unansweredReplies.length > 0
+                            ? t('agents.chatlog.unanswered.count', { count: unansweredReplies.length }, unansweredReplies.length)
+                            : t('agents.chatlog.unanswered.none_on_page')
+                    }}
+                </span>
+                <Button
+                    v-if="unansweredReplies.length > 0"
+                    variant="ghost"
+                    size="sm"
+                    class="h-6 px-2 text-xs"
+                    @click="scrollToReply(focusedReply + 1)"
+                >
+                    <ArrowDown class="me-1 h-3 w-3" />
+                    {{ t('agents.chatlog.unanswered.next') }}
+                </Button>
+            </div>
+
+            <div
+                v-for="m in messages"
+                :key="m.id"
+                class="transition-opacity"
+                :class="{ 'opacity-30 hover:opacity-100': unansweredFilterOn && !unansweredMessageIds.has(m.id) }"
+                :data-unanswered-reply="isUnansweredReply(m) ? '' : undefined"
+            >
                 <div class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
                     <div class="flex max-w-[75%] flex-col gap-2" :class="m.role === 'user' ? 'items-end' : 'items-start'">
                         <!-- Message Bubble -->
@@ -138,6 +196,18 @@ function goToPage(offset: number) {
                             <div v-if="search" v-html="highlightText(m.content, search)" class="prose dark:prose-invert max-w-none"></div>
                             <div v-else-if="m.role === 'user'" class="text-base leading-relaxed break-words whitespace-pre-wrap">{{ m.content }}</div>
                             <MessageCard v-else :message="m" />
+                        </div>
+
+                        <!-- Why the "Unanswered" filter matched this reply -->
+                        <div v-if="isUnansweredReply(m)" class="flex flex-wrap items-center gap-2 px-1 text-xs">
+                            <span v-if="m.not_found" class="text-muted-foreground inline-flex items-center gap-1">
+                                <CircleHelp class="h-3 w-3" />
+                                {{ t('agents.chatlog.unanswered.not_found') }}
+                            </span>
+                            <Button v-if="canReviseAnswer" variant="outline" size="sm" class="h-7 px-2.5 text-xs" @click="openReviseDialog(m)">
+                                <RotateCcw class="me-1 h-3 w-3" />
+                                {{ t('agents.chatlog.unanswered.add_answer') }}
+                            </Button>
                         </div>
 
                         <!-- Meta Information -->
@@ -278,8 +348,8 @@ function goToPage(offset: number) {
                                 </div>
                             </template>
 
-                            <!-- Q&A Status (for assistant) -->
-                            <template v-if="m.role === 'assistant'">
+                            <!-- Q&A Status (for assistant); an unanswered reply has its own button above -->
+                            <template v-if="m.role === 'assistant' && (m.is_response_from_qa || m.agent_question_answer_id || !isUnansweredReply(m))">
                                 <span class="text-muted-foreground/30">•</span>
                                 <span
                                     v-if="m.is_response_from_qa"

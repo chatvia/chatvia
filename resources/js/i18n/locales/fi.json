@@ -459,7 +459,11 @@
                 "select_sentiment": "Valitse tunnelma",
                 "select_tone": "Valitse sävy",
                 "clear_all": "Tyhjennä kaikki",
-                "close": "Käytä suodattimia"
+                "close": "Käytä suodattimia",
+                "unanswered": "Vastaamaton",
+                "select_unanswered": "Valitse",
+                "all_conversations": "Kaikki keskustelut",
+                "unanswered_help": "Kaikki vastaamattomat sisältää myös peukut alas. Jo korjatut vastaukset jätetään pois."
             },
             "messages": {
                 "select_conversation": "Valitse keskustelu nähdäksesi viestit",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Keskustelupulssia ei voitu ladata. Yritä uudelleen."
             },
             "refresh_messages": "Päivitä viestit",
-            "delete_conversation": "Poista keskustelu"
+            "delete_conversation": "Poista keskustelu",
+            "unanswered": {
+                "needs_look": "Kaikki vastaamattomat",
+                "not_found": "Tietoa ei löytynyt",
+                "count": "{count} vastaamaton vastaus tällä sivulla | {count} vastaamatonta vastausta tällä sivulla",
+                "none_on_page": "Ei vastaamattomia vastauksia tällä sivulla.",
+                "next": "Seuraava",
+                "add_answer": "Lisää oikea vastaus"
+            }
         },
         "guardrails": {
             "title": "Turvarajat",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Lisää chattiin monipuolisia ominaisuuksia — kuten interaktiivisia kaavioita",
             "forms": "Lomakkeet",
             "forms_tooltip": "Luo lomakkeita, jotka agenttisi näyttää keskustelussa",
-            "blocked": "Estetyt",
-            "unanswered": "Vastaamatta"
+            "blocked": "Estetyt"
         },
         "create_modal": {
             "title": "Luo agentti",
@@ -2375,26 +2386,6 @@
             "empty": "Ei vielä lähetyksiä.",
             "submitted_at": "Lähetetty",
             "deleted": "Lähetys poistettu"
-        },
-        "unanswered": {
-            "title": "Vastaamatta",
-            "description": "Kysymykset, joihin agentti ei löytänyt tietoa, ja vastaukset, jotka kävijät merkitsivät huonoiksi. Lisää oikea vastaus aukon täyttämiseksi.",
-            "chatlog_off": "Keskusteluloki on pois päältä tällä agentilla, joten uusia vastauksia ei tallenneta tähän.",
-            "filter_all": "Kaikki",
-            "filter_not_found": "Tietoa ei löytynyt",
-            "filter_thumbs_down": "Peukku alas",
-            "include_revised": "Näytä korjatut",
-            "load_error": "Luetteloa ei voitu ladata.",
-            "try_again": "Yritä uudelleen",
-            "empty": "Ei mitään. Jokainen viimeaikainen kysymys sai vastauksen.",
-            "reason_not_found": "Tietoa ei löytynyt",
-            "reason_thumbs_down": "Peukku alas",
-            "revised": "Korjattu",
-            "question": "Kysymys",
-            "answer": "Vastaus",
-            "no_question": "(kysymystä ei löytynyt)",
-            "add_answer": "Lisää oikea vastaus",
-            "open_conversation": "Avaa keskustelu"
         }
     },
     "auth": {

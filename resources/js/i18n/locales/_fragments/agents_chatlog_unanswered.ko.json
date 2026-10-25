@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "미답변",
+                "select_unanswered": "선택",
+                "all_conversations": "모든 대화",
+                "unanswered_help": "모든 미답변에는 싫어요도 포함됩니다. 이미 수정한 답변은 제외됩니다."
+            },
+            "unanswered": {
+                "needs_look": "모든 미답변",
+                "not_found": "지식을 찾지 못함",
+                "count": "이 페이지의 미답변 응답 {count}개 | 이 페이지의 미답변 응답 {count}개",
+                "none_on_page": "이 페이지에 미답변 응답이 없습니다.",
+                "next": "다음",
+                "add_answer": "올바른 답변 추가"
+            }
+        }
+    }
+}

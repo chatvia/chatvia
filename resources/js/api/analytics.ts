@@ -1,12 +1,10 @@
 /**
  * Agent analytics API: the overview numbers, the per-day tone and sentiment
  * breakdowns, the per-agent analytics switches and the country names the
- * world map shows, and the replies that need a look (Unanswered). Pages under
- * resources/js/pages/agents (Analytics, Tone, Sentiment, Topics, Unanswered)
- * read through these functions instead of calling axios.
+ * world map shows. Pages under resources/js/pages/agents (Analytics, Tone,
+ * Sentiment, Topics) read through these functions instead of calling axios.
  */
 import analytics from '@/routes/agents/analytics';
-import unanswered from '@/routes/agents/analytics/unanswered';
 import sentiment from '@/routes/agents/sentiment';
 import settings from '@/routes/agents/settings';
 import tone from '@/routes/agents/tone';
@@ -81,26 +79,4 @@ export function fetchSentimentBreakdown(agentId: string): Promise<SentimentBreak
 /** Every country with its translated name, sorted by name. */
 export function fetchCountryNames(): Promise<CountryName[]> {
     return get<CountryName[]>(countries.list.url());
-}
-
-export type UnansweredQuestion = Domain.Agent.Data.Resources.ChatLog.Unanswered.UnansweredQuestionData;
-
-/** One page of the "Unanswered" list, as Laravel's paginator sends it. */
-export interface UnansweredQuestionsPage {
-    data: UnansweredQuestion[];
-    current_page: number;
-    last_page: number;
-    total: number;
-}
-
-/** Replies with no knowledge found or a thumbs-down, newest first. */
-export function fetchUnansweredQuestions(
-    agentId: string,
-    options: { filter: Domain.Agent.Enums.UnansweredFilter; includeRevised: boolean; page: number },
-): Promise<UnansweredQuestionsPage> {
-    return get<UnansweredQuestionsPage>(
-        unanswered.data.url(agentId, {
-            query: { filter: options.filter, include_revised: options.includeRevised ? 1 : 0, page: options.page },
-        }),
-    );
 }

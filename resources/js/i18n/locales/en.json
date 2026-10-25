@@ -459,7 +459,11 @@
                 "select_sentiment": "Select sentiment",
                 "select_tone": "Select tone",
                 "clear_all": "Clear all",
-                "close": "Apply filters"
+                "close": "Apply filters",
+                "unanswered": "Unanswered",
+                "select_unanswered": "Select",
+                "all_conversations": "All conversations",
+                "unanswered_help": "All unanswered includes thumbs down. Replies you already revised are left out."
             },
             "messages": {
                 "select_conversation": "Select a conversation to view messages",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Could not load conversation pulse. Please try again."
             },
             "refresh_messages": "Refresh messages",
-            "delete_conversation": "Delete conversation"
+            "delete_conversation": "Delete conversation",
+            "unanswered": {
+                "needs_look": "All unanswered",
+                "not_found": "No knowledge found",
+                "count": "{count} unanswered reply on this page | {count} unanswered replies on this page",
+                "none_on_page": "No unanswered replies on this page.",
+                "next": "Next",
+                "add_answer": "Add the right answer"
+            }
         },
         "guardrails": {
             "title": "Guardrails",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Add rich features to the chat — like interactive charts",
             "forms": "Forms",
             "forms_tooltip": "Build forms your agent shows in the chat",
-            "blocked": "Blocked",
-            "unanswered": "Unanswered"
+            "blocked": "Blocked"
         },
         "create_modal": {
             "title": "Create Agent",
@@ -2375,26 +2386,6 @@
             "empty": "No submissions yet.",
             "submitted_at": "Submitted",
             "deleted": "Submission deleted"
-        },
-        "unanswered": {
-            "title": "Unanswered",
-            "description": "Questions the agent found no knowledge for, and answers visitors marked as bad. Add the right answer to fill the gap.",
-            "chatlog_off": "The chat log is off for this agent, so no new replies are stored here.",
-            "filter_all": "All",
-            "filter_not_found": "No knowledge found",
-            "filter_thumbs_down": "Thumbs down",
-            "include_revised": "Show revised",
-            "load_error": "Could not load the list.",
-            "try_again": "Try again",
-            "empty": "Nothing here. Every recent question found an answer.",
-            "reason_not_found": "No knowledge found",
-            "reason_thumbs_down": "Thumbs down",
-            "revised": "Revised",
-            "question": "Question",
-            "answer": "Answer",
-            "no_question": "(no question found)",
-            "add_answer": "Add the right answer",
-            "open_conversation": "Open conversation"
         }
     },
     "auth": {

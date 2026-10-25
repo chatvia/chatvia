@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Belum terjawab",
+                "select_unanswered": "Pilih",
+                "all_conversations": "Semua percakapan",
+                "unanswered_help": "Semua belum terjawab termasuk jempol ke bawah. Balasan yang sudah Anda revisi tidak ditampilkan."
+            },
+            "unanswered": {
+                "needs_look": "Semua belum terjawab",
+                "not_found": "Tidak ada pengetahuan ditemukan",
+                "count": "{count} balasan belum terjawab di halaman ini | {count} balasan belum terjawab di halaman ini",
+                "none_on_page": "Tidak ada balasan belum terjawab di halaman ini.",
+                "next": "Berikutnya",
+                "add_answer": "Tambahkan jawaban yang benar"
+            }
+        }
+    }
+}

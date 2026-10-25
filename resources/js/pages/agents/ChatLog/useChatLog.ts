@@ -71,6 +71,8 @@ const selectedCountry = ref<string>(ALL);
 const selectedConfidenceScore = ref<string>(ALL);
 const selectedFeedback = ref<string>(ALL);
 const selectedSource = ref<string>(ALL);
+// 'needs_look' | 'not_found' (Domain.Conversation.Enums.UnansweredFilter) or ALL.
+const selectedUnanswered = ref<string>(ALL);
 const dateRange = ref<{ start: string; end: string } | undefined>(undefined);
 const showFiltersDialog = ref(false);
 const onlineOnly = ref(false);
@@ -90,6 +92,7 @@ const selectFilters = {
     confidence_score: selectedConfidenceScore,
     feedback: selectedFeedback,
     source: selectedSource,
+    unanswered: selectedUnanswered,
 } as const;
 
 function resetFilters() {
@@ -199,6 +202,36 @@ export function useChatLog() {
         () => Object.values(selectFilters).filter((filter) => filter.value !== ALL).length + (dateRange.value !== undefined ? 1 : 0),
     );
     const hasActiveFilters = computed(() => activeFilterCount.value > 0);
+
+    /**
+     * Whether a message is one the "Unanswered" filter looks for, so the
+     * conversation can point it out: an unrevised reply (not a playground
+     * test) with no knowledge found or, for "needs a look", a thumbs-down.
+     * The rules mirror ConversationQueryBuilder::filterByUnanswered().
+     */
+    function isUnansweredReply(message: ChatLogMessage): boolean {
+        const filter = selectedUnanswered.value;
+        if (filter === ALL || message.role !== 'assistant' || message.agent_question_answer_id || message.source === 'playground') return false;
+
+        return message.not_found || (filter === 'needs_look' && message.feedback === 'negative');
+    }
+
+    /**
+     * The ids of the messages to point out: each unanswered reply and the
+     * visitor question it answered (the visitor message just before it).
+     */
+    const unansweredMessageIds = computed<Set<string>>(() => {
+        const ids = new Set<string>();
+        const list = messagesData.value?.data ?? [];
+        list.forEach((message, index) => {
+            if (!isUnansweredReply(message)) return;
+            ids.add(message.id);
+            const question = list.slice(0, index).findLast((candidate) => candidate.role === 'user');
+            if (question) ids.add(question.id);
+        });
+
+        return ids;
+    });
 
     function syncCurrentConversationData() {
         const found = conversations.value?.find((conversation) => conversation.conversation_id === currentConversationId.value);
@@ -404,6 +437,7 @@ export function useChatLog() {
         selectedConfidenceScore,
         selectedFeedback,
         selectedSource,
+        selectedUnanswered,
         dateRange,
         showFiltersDialog,
         onlineOnly,
@@ -421,8 +455,10 @@ export function useChatLog() {
         messages,
         hasActiveFilters,
         activeFilterCount,
+        unansweredMessageIds,
 
         // Actions
+        isUnansweredReply,
         fetchConversations,
         loadMoreConversations,
         fetchMessages,

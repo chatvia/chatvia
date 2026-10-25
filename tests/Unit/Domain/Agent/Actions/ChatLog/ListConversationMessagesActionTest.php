@@ -152,3 +152,18 @@ it('reports a live handoff with the operator', function (): void {
         ->and($handoff->admin_id)->toBe($operator->id)
         ->and($handoff->admin_name)->toBe($operator->name);
 });
+
+it('flags a reply for which no knowledge was found, but not a Q&A match', function (): void {
+    $agent = Agent::factory()->create();
+    $conversation = lcmConversation($agent);
+    $at = now()->subMinutes(5);
+    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $conversation->id, 'has_llm_found_answer' => false, 'created_at' => $at]);
+    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $conversation->id, 'has_llm_found_answer' => false, 'is_response_from_qa' => true, 'created_at' => $at->copy()->addMinute()]);
+    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $conversation->id, 'has_llm_found_answer' => true, 'created_at' => $at->copy()->addMinutes(2)]);
+
+    $flags = collect(app(ListConversationMessagesAction::class)->execute($agent, $conversation)->messages->items())
+        ->map(fn (ChatLogMessageData $m): bool => $m->not_found)
+        ->all();
+
+    expect($flags)->toBe([true, false, false]);
+});

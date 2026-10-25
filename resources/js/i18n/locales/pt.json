@@ -459,7 +459,11 @@
                 "select_sentiment": "Selecionar sentimento",
                 "select_tone": "Selecionar tom",
                 "clear_all": "Limpar tudo",
-                "close": "Aplicar filtros"
+                "close": "Aplicar filtros",
+                "unanswered": "Sem resposta",
+                "select_unanswered": "Selecionar",
+                "all_conversations": "Todas as conversas",
+                "unanswered_help": "Todas sem resposta inclui polegares para baixo. Respostas já revisadas ficam de fora."
             },
             "messages": {
                 "select_conversation": "Selecione uma conversa para ver as mensagens",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Não foi possível carregar o pulse da conversa. Por favor tente novamente."
             },
             "refresh_messages": "Atualizar mensagens",
-            "delete_conversation": "Eliminar conversa"
+            "delete_conversation": "Eliminar conversa",
+            "unanswered": {
+                "needs_look": "Todas sem resposta",
+                "not_found": "Nenhum conhecimento encontrado",
+                "count": "{count} resposta sem solução nesta página | {count} respostas sem solução nesta página",
+                "none_on_page": "Nenhuma resposta sem solução nesta página.",
+                "next": "Próxima",
+                "add_answer": "Adicionar a resposta certa"
+            }
         },
         "guardrails": {
             "title": "Guardrails",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Adicione funcionalidades avançadas ao chat — como gráficos interativos",
             "forms": "Formulários",
             "forms_tooltip": "Crie formulários que o seu agente mostra na conversa",
-            "blocked": "Bloqueados",
-            "unanswered": "Sem resposta"
+            "blocked": "Bloqueados"
         },
         "create_modal": {
             "title": "Criar Agente",
@@ -2375,26 +2386,6 @@
             "empty": "Ainda não há submissões.",
             "submitted_at": "Submetido",
             "deleted": "Submissão eliminada"
-        },
-        "unanswered": {
-            "title": "Sem resposta",
-            "description": "Perguntas para as quais o agente não encontrou conhecimento e respostas que os visitantes marcaram como ruins. Adicione a resposta certa para fechar a lacuna.",
-            "chatlog_off": "O registro de chat está desligado para este agente, então novas respostas não são salvas aqui.",
-            "filter_all": "Todas",
-            "filter_not_found": "Sem conhecimento",
-            "filter_thumbs_down": "Polegar para baixo",
-            "include_revised": "Mostrar revisadas",
-            "load_error": "Não foi possível carregar a lista.",
-            "try_again": "Tentar novamente",
-            "empty": "Nada aqui. Toda pergunta recente encontrou resposta.",
-            "reason_not_found": "Sem conhecimento",
-            "reason_thumbs_down": "Polegar para baixo",
-            "revised": "Revisada",
-            "question": "Pergunta",
-            "answer": "Resposta",
-            "no_question": "(pergunta não encontrada)",
-            "add_answer": "Adicionar a resposta certa",
-            "open_conversation": "Abrir conversa"
         }
     },
     "auth": {

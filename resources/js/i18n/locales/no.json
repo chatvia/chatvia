@@ -459,7 +459,11 @@
                 "select_sentiment": "Velg sentiment",
                 "select_tone": "Velg tone",
                 "clear_all": "Fjern alle",
-                "close": "Bruk filtre"
+                "close": "Bruk filtre",
+                "unanswered": "Ubesvart",
+                "select_unanswered": "Velg",
+                "all_conversations": "Alle samtaler",
+                "unanswered_help": "Alle ubesvarte inkluderer tommel ned. Svar du allerede har rettet, er utelatt."
             },
             "messages": {
                 "select_conversation": "Velg en samtale for å se meldinger",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Kunne ikke laste samtalepuls. Prøv igjen."
             },
             "refresh_messages": "Oppdater meldinger",
-            "delete_conversation": "Slett samtale"
+            "delete_conversation": "Slett samtale",
+            "unanswered": {
+                "needs_look": "Alle ubesvarte",
+                "not_found": "Ingen kunnskap funnet",
+                "count": "{count} ubesvart svar på denne siden | {count} ubesvarte svar på denne siden",
+                "none_on_page": "Ingen ubesvarte svar på denne siden.",
+                "next": "Neste",
+                "add_answer": "Legg til riktig svar"
+            }
         },
         "guardrails": {
             "title": "Sikkerhetssperrer",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Legg til avanserte muligheter i chatten — som interaktive diagrammer",
             "forms": "Skjemaer",
             "forms_tooltip": "Bygg skjemaer agenten din viser i chatten",
-            "blocked": "Blokkerte",
-            "unanswered": "Ubesvarte"
+            "blocked": "Blokkerte"
         },
         "create_modal": {
             "title": "Opprett agent",
@@ -2375,26 +2386,6 @@
             "empty": "Ingen innsendinger ennå.",
             "submitted_at": "Sendt inn",
             "deleted": "Innsending slettet"
-        },
-        "unanswered": {
-            "title": "Ubesvarte",
-            "description": "Spørsmål agenten ikke fant kunnskap til, og svar besøkende merket som dårlige. Legg til riktig svar for å tette hullet.",
-            "chatlog_off": "Chatloggen er slått av for denne agenten, så nye svar lagres ikke her.",
-            "filter_all": "Alle",
-            "filter_not_found": "Ingen kunnskap funnet",
-            "filter_thumbs_down": "Tommel ned",
-            "include_revised": "Vis reviderte",
-            "load_error": "Kunne ikke laste listen.",
-            "try_again": "Prøv igjen",
-            "empty": "Ingenting her. Alle nylige spørsmål fant et svar.",
-            "reason_not_found": "Ingen kunnskap funnet",
-            "reason_thumbs_down": "Tommel ned",
-            "revised": "Revidert",
-            "question": "Spørsmål",
-            "answer": "Svar",
-            "no_question": "(fant ikke spørsmålet)",
-            "add_answer": "Legg til riktig svar",
-            "open_conversation": "Åpne samtale"
         }
     },
     "auth": {

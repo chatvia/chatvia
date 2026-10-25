@@ -459,7 +459,11 @@
                 "select_sentiment": "感情を選択",
                 "select_tone": "トーンを選択",
                 "clear_all": "すべてクリア",
-                "close": "フィルターを適用"
+                "close": "フィルターを適用",
+                "unanswered": "未回答",
+                "select_unanswered": "選択",
+                "all_conversations": "すべての会話",
+                "unanswered_help": "「すべての未回答」には低評価も含まれます。修正済みの返信は除外されます。"
             },
             "messages": {
                 "select_conversation": "メッセージを表示する会話を選択してください",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "会話のパルスを読み込めませんでした。もう一度お試しください。"
             },
             "refresh_messages": "メッセージを更新",
-            "delete_conversation": "会話を削除"
+            "delete_conversation": "会話を削除",
+            "unanswered": {
+                "needs_look": "すべての未回答",
+                "not_found": "ナレッジが見つかりません",
+                "count": "このページに未回答の返信が{count}件 | このページに未回答の返信が{count}件",
+                "none_on_page": "このページに未回答の返信はありません。",
+                "next": "次へ",
+                "add_answer": "正しい回答を追加"
+            }
         },
         "guardrails": {
             "title": "ガードレール",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "高度な機能をチャットに追加 — インタラクティブなチャートなど",
             "forms": "フォーム",
             "forms_tooltip": "エージェントがチャットに表示するフォームを作成",
-            "blocked": "ブロック中",
-            "unanswered": "未回答"
+            "blocked": "ブロック中"
         },
         "create_modal": {
             "title": "エージェントを作成",
@@ -2374,26 +2385,6 @@
             "empty": "送信内容はまだありません。",
             "submitted_at": "送信日時",
             "deleted": "送信内容を削除しました"
-        },
-        "unanswered": {
-            "title": "未回答",
-            "description": "エージェントがナレッジを見つけられなかった質問と、訪問者が悪いと評価した回答です。正しい回答を追加して不足を補いましょう。",
-            "chatlog_off": "このエージェントのチャットログはオフのため、新しい返信はここに保存されません。",
-            "filter_all": "すべて",
-            "filter_not_found": "ナレッジなし",
-            "filter_thumbs_down": "低評価",
-            "include_revised": "修正済みを表示",
-            "load_error": "一覧を読み込めませんでした。",
-            "try_again": "再試行",
-            "empty": "ここには何もありません。最近の質問はすべて回答が見つかりました。",
-            "reason_not_found": "ナレッジなし",
-            "reason_thumbs_down": "低評価",
-            "revised": "修正済み",
-            "question": "質問",
-            "answer": "回答",
-            "no_question": "（質問が見つかりません）",
-            "add_answer": "正しい回答を追加",
-            "open_conversation": "会話を開く"
         }
     },
     "auth": {

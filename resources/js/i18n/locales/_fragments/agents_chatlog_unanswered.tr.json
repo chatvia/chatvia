@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Yanıtsız",
+                "select_unanswered": "Seç",
+                "all_conversations": "Tüm konuşmalar",
+                "unanswered_help": "Tüm yanıtsızlar olumsuz oyları da kapsar. Zaten düzelttiğiniz yanıtlar gösterilmez."
+            },
+            "unanswered": {
+                "needs_look": "Tüm yanıtsızlar",
+                "not_found": "Bilgi bulunamadı",
+                "count": "Bu sayfada {count} yanıtsız cevap | Bu sayfada {count} yanıtsız cevap",
+                "none_on_page": "Bu sayfada yanıtsız cevap yok.",
+                "next": "Sonraki",
+                "add_answer": "Doğru yanıtı ekle"
+            }
+        }
+    }
+}

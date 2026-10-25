@@ -43,6 +43,7 @@ export interface ChatLogConversationFilters {
     confidence_score?: string;
     feedback?: string;
     source?: string;
+    unanswered?: string;
     online_only?: boolean;
     start_date?: string;
     end_date?: string;

@@ -8,7 +8,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, Circle, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
+import { Calendar, Circle, CircleHelp, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getSourceIcon } from './sourceMeta';
@@ -32,6 +32,7 @@ const {
     selectedConfidenceScore,
     selectedFeedback,
     selectedSource,
+    selectedUnanswered,
     dateRange,
     onlineOnly,
     fetchConversations,
@@ -84,7 +85,7 @@ async function refreshConversations() {
     }
 }
 
-type FilterChip = 'topic' | 'sentiment' | 'tone' | 'country' | 'confidence' | 'feedback' | 'source' | 'dateRange';
+type FilterChip = 'topic' | 'sentiment' | 'tone' | 'country' | 'confidence' | 'feedback' | 'source' | 'unanswered' | 'dateRange';
 
 const filterRefs = {
     topic: selectedTopic,
@@ -94,6 +95,7 @@ const filterRefs = {
     confidence: selectedConfidenceScore,
     feedback: selectedFeedback,
     source: selectedSource,
+    unanswered: selectedUnanswered,
 } as const;
 
 function clearFilter(filter: FilterChip) {
@@ -231,6 +233,18 @@ function clearFilter(filter: FilterChip) {
                     <button
                         @click="clearFilter('feedback')"
                         class="ms-1 cursor-pointer hover:opacity-70"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
+                </Badge>
+
+                <Badge v-if="selectedUnanswered !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
+                    <CircleHelp class="h-3 w-3" />
+                    {{ selectedUnanswered === 'not_found' ? t('agents.chatlog.unanswered.not_found') : t('agents.chatlog.unanswered.needs_look') }}
+                    <button
+                        @click="clearFilter('unanswered')"
+                        class="hover:text-foreground ms-1 cursor-pointer"
                         :aria-label="t('agents.chatlog.sidebar.remove_filter')"
                     >
                         <X class="h-3 w-3" />

@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Unanswered",
+                "select_unanswered": "Select",
+                "all_conversations": "All conversations",
+                "unanswered_help": "All unanswered includes thumbs down. Replies you already revised are left out."
+            },
+            "unanswered": {
+                "needs_look": "All unanswered",
+                "not_found": "No knowledge found",
+                "count": "{count} unanswered reply on this page | {count} unanswered replies on this page",
+                "none_on_page": "No unanswered replies on this page.",
+                "next": "Next",
+                "add_answer": "Add the right answer"
+            }
+        }
+    }
+}

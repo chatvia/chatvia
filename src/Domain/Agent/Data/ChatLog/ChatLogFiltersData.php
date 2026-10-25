@@ -24,6 +24,7 @@ class ChatLogFiltersData extends Data
         public ?string $confidenceScore = null,
         public ?string $feedback = null,
         public ?string $source = null,
+        public ?string $unanswered = null,
         public bool $onlineOnly = false,
     ) {}
 }

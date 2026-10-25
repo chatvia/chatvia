@@ -411,6 +411,7 @@
     "The expected arguments must be a valid JSON object.": "آرگومان‌های مورد انتظار باید یک شیء JSON معتبر باشند.",
     "The message could not be answered.": "پاسخ دادن به پیام ممکن نشد.",
     "The selected user id is invalid.": "شناسه کاربر انتخاب‌شده نامعتبر است.",
+    "This user has no access to the agent.": "این کاربر به این عامل دسترسی ندارد.",
     "This user is already a member of the team.": "این کاربر از قبل عضو تیم است.",
     "Use lowercase letters, digits, and underscores only (max 32 characters).": "فقط از حروف کوچک، ارقام و زیرخط استفاده کنید (حداکثر ۳۲ نویسه).",
     "You can't use the platform's own host as a custom domain.": "نمی‌توانید میزبان خود پلتفرم را به‌عنوان دامنه سفارشی استفاده کنید.",

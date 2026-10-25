@@ -66,3 +66,40 @@ it("rejects another workspace's agent as a plain field error", function (): void
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['agent_id', 'user_id']);
 });
+
+it('rejects a chatter who has no access to the agent, as the link would never sign them in', function (): void {
+    $stranger = Chatter::factory()->create(['workspace_id' => $this->agent->workspace_id]);
+
+    $this->withToken($this->token)
+        ->postJson('/api/v1/chatters/sign', ['agent_id' => $this->agent->external_id, 'user_id' => $stranger->external_id])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['user_id']);
+});
+
+it("refuses a teammate's key a link that signs in the owner or another teammate, but signs in the teammate", function (): void {
+    $teammate = teammateWithPermissions($this->owner, ['account.chatters.manage', 'agent.chat.view']);
+    $otherTeammate = teammateWithPermissions($this->owner, ['agent.chat.view']);
+    $teammateToken = $teammate->createToken('account')->plainTextToken;
+
+    foreach ([$this->owner, $otherTeammate] as $staff) {
+        $this->withToken($teammateToken)
+            ->postJson('/api/v1/chatters/sign', ['agent_id' => $this->agent->external_id, 'user_id' => $staff->external_id])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['user_id']);
+    }
+
+    $this->withToken($teammateToken)
+        ->postJson('/api/v1/chatters/sign', ['agent_id' => $this->agent->external_id, 'user_id' => $teammate->external_id])
+        ->assertCreated();
+    $this->withToken($teammateToken)
+        ->postJson('/api/v1/chatters/sign', ['agent_id' => $this->agent->external_id, 'user_id' => $this->chatter->external_id])
+        ->assertCreated();
+});
+
+it("lets the owner's key sign in a teammate who can reach the agent", function (): void {
+    $teammate = teammateWithPermissions($this->owner, ['agent.chat.view']);
+
+    $this->withToken($this->token)
+        ->postJson('/api/v1/chatters/sign', ['agent_id' => $this->agent->external_id, 'user_id' => $teammate->external_id])
+        ->assertCreated();
+});

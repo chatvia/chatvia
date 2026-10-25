@@ -411,6 +411,7 @@
     "The expected arguments must be a valid JSON object.": "De forventede argumentene må være et gyldig JSON-objekt.",
     "The message could not be answered.": "Meldingen kunne ikke besvares.",
     "The selected user id is invalid.": "Den valgte bruker-ID-en er ugyldig.",
+    "This user has no access to the agent.": "Denne brukeren har ikke tilgang til agenten.",
     "This user is already a member of the team.": "Denne brukeren er allerede medlem av teamet.",
     "Use lowercase letters, digits, and underscores only (max 32 characters).": "Bruk bare små bokstaver, sifre og understreker (maks 32 tegn).",
     "You can't use the platform's own host as a custom domain.": "Du kan ikke bruke plattformens egen vert som egendefinert domene.",

@@ -411,6 +411,7 @@
     "The expected arguments must be a valid JSON object.": "Oczekiwane argumenty muszą być prawidłowym obiektem JSON.",
     "The message could not be answered.": "Nie udało się odpowiedzieć na wiadomość.",
     "The selected user id is invalid.": "Wybrany identyfikator użytkownika jest nieprawidłowy.",
+    "This user has no access to the agent.": "Ten użytkownik nie ma dostępu do agenta.",
     "This user is already a member of the team.": "Ten użytkownik jest już członkiem zespołu.",
     "Use lowercase letters, digits, and underscores only (max 32 characters).": "Używaj tylko małych liter, cyfr i podkreśleń (maks. 32 znaki).",
     "You can't use the platform's own host as a custom domain.": "Nie możesz użyć hosta samej platformy jako domeny niestandardowej.",

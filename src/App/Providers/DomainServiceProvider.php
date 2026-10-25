@@ -74,7 +74,6 @@ use Domain\Integration\Tool\Dispatch\RoutingToolDispatcher;
 use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Document\Conversion\BuiltinPdfInspector;
 use Domain\Knowledge\Document\Conversion\PdfInfo;
-use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
@@ -82,6 +81,7 @@ use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
 use Domain\Knowledge\Embedding\Rerank\RerankerFactory;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\TaggedEmbeddings;
+use Domain\Knowledge\Embedding\UnconfiguredEmbeddings;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Events\SourceTrained;
@@ -208,9 +208,15 @@ class DomainServiceProvider extends ServiceProvider
     private function registerAiServices(): void
     {
         $this->app->bind(function ($app): EmbeddingsProviderInterface {
-            $provider = $app->make(
-                EmbeddingProvider::tryFrom((string) config('chatvia.ai.models.embedding'))?->providerClass() ?? Cohere::class,
-            );
+            $configured = EmbeddingProvider::configured();
+
+            // Only the admin's choice picks the service: none chosen yet
+            // means no embeddings, never a fallback to some other service.
+            if ($configured === null) {
+                return $app->make(UnconfiguredEmbeddings::class);
+            }
+
+            $provider = $app->make($configured->providerClass());
 
             // The vector columns have a fixed size: fail here with a clear
             // message instead of on the first insert or search.

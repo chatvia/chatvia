@@ -6,6 +6,7 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -49,6 +50,10 @@ class EmbedMcpToolsAction
                     'embedding' => $this->embeddings->embed($text),
                     'search_text' => $text,
                 ])->save();
+            } catch (EmbeddingServiceMissingException) {
+                // No service is picked yet: every row would fail the same
+                // way. The next refresh tries again.
+                return;
             } catch (Throwable $e) {
                 Log::warning('MCP tool embedding failed', [
                     'tool_id' => $tool->id,

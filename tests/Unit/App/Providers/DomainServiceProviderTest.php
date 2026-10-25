@@ -6,6 +6,7 @@ use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
+use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
 use Domain\Knowledge\Embedding\Gemini;
 use Domain\Knowledge\Embedding\Jina;
 use Domain\Knowledge\Embedding\Mistral as MistralEmbeddings;
@@ -14,6 +15,7 @@ use Domain\Knowledge\Embedding\OpenRouter as OpenRouterEmbeddings;
 use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\CompatibleReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
+use Domain\Knowledge\Embedding\UnconfiguredEmbeddings;
 use Domain\Knowledge\Embedding\Voyage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
@@ -191,4 +193,19 @@ it('asks the embedding provider for the size the database stores', function (str
     'openrouter 1536' => ['openrouter', OpenRouterEmbeddings::class, 1536],
     'gemini 768' => ['google', Gemini::class, 768],
     'voyage 2048' => ['voyage', Voyage::class, 2048],
+]);
+
+it('embeds nothing until the admin picks an embedding service', function (?string $provider): void {
+    config(['chatvia.ai.models.embedding' => $provider]);
+
+    $embeddings = app(EmbeddingsProviderInterface::class);
+
+    expect($embeddings)->toBeInstanceOf(UnconfiguredEmbeddings::class)
+        ->and($embeddings->getDimensions())->toBe((int) config('chatvia.embeddings.dimensions'))
+        ->and(fn (): array => $embeddings->embed('hello'))->toThrow(EmbeddingServiceMissingException::class)
+        ->and(fn (): array => $embeddings->embedQuery('hello'))->toThrow(EmbeddingServiceMissingException::class)
+        ->and(fn (): array => $embeddings->embedBatch(['hello']))->toThrow(EmbeddingServiceMissingException::class);
+})->with([
+    'nothing saved' => [null],
+    'an unknown value' => ['retired-service'],
 ]);

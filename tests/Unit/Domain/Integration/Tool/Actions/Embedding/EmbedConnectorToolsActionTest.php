@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Tool\Actions\Embedding\EmbedConnectorToolsAction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\UnconfiguredEmbeddings;
+use Illuminate\Support\Facades\Log;
 use Tests\Support\Integration\Tool\ToolVectors;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
@@ -57,4 +59,16 @@ it('embeds a builtin connector name and description from the MCP registry', func
     app(EmbedConnectorToolsAction::class)->execute('acme-crm');
 
     expect($embedder->texts)->toBe(["Acme CRM\nCustomer records\n\nlookup\n\nFind a customer"]);
+});
+
+it('stops quietly before the setup picks an embedding service', function (): void {
+    app()->instance(EmbeddingsProviderInterface::class, app(UnconfiguredEmbeddings::class));
+    $tool = ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'lookup']);
+    ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'update']);
+    Log::spy();
+
+    app(EmbedConnectorToolsAction::class)->execute('acme-crm');
+
+    expect(ToolVectors::embedded($tool))->toBeFalse();
+    Log::shouldNotHaveReceived('warning');
 });

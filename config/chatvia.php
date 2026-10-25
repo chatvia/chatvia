@@ -329,8 +329,8 @@ return [
     |
     | `models`: the embedding provider ("qwen", "openai", "openrouter",
     | "google", "cohere", "mistral", "jina" or "voyage"; it must return
-    | `embeddings.dimensions`
-    | dimensions).
+    | `embeddings.dimensions` dimensions). Null until the admin picks one:
+    | then nothing is embedded.
     |
     | `query.rewriter` turns a follow-up ("and the price?") into a full
     | question for the knowledge search: one quick-task model call per follow-up.
@@ -413,7 +413,7 @@ return [
         ],
 
         'models' => [
-            'embedding' => 'qwen',
+            'embedding' => null,
         ],
 
         'query' => [

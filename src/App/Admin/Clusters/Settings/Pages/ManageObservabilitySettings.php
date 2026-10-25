@@ -96,26 +96,26 @@ class ManageObservabilitySettings extends AdminSettingsPage
     {
         return [
             SettingsCard::make('pulse', 'Pulse', 'The app\'s health: slow pages, queries and jobs, errors, queues and the servers.', Heroicon::OutlinedHeart, fn (): array => [
-                $this->recordingToggle('pulse_enabled', 'Record app health', help: 'Data older than 7 days is removed.'),
+                $this->recordingToggle('pulse_enabled', 'Record app health', help: 'Records slow pages, errors, queues and server load to show in Pulse. Data older than 7 days is deleted.'),
             ])->summary(fn (): string => $this->recordingSummary('pulse_enabled'))
                 ->console($this->toolUrl(StaffTool::Pulse), 'Open Pulse'),
             SettingsCard::make('spectra', 'Spectra', 'A log of every AI call: the model, the tokens, the cost and the time it took.', Heroicon::OutlinedCpuChip, fn (): array => [
                 $this->recordingToggle('spectra_enabled', 'Record AI calls'),
-                $this->integer('spectra_retention_days', 'Keep AI calls for (days)', help: 'Older calls are removed every night.', min: 1, max: 3650),
+                $this->integer('spectra_retention_days', 'Keep AI calls for (days)', help: 'AI calls older than this are deleted once a day.', min: 1, max: 3650),
             ])->summary(fn (): string => $this->recordingSummary('spectra_enabled'))
                 ->console($this->toolUrl(StaffTool::Spectra), 'Open Spectra'),
             SettingsCard::make('saved', 'What Spectra saves', 'Besides the counts, costs and times, which Spectra always keeps.', Heroicon::OutlinedDocumentText, fn (): array => [
-                $this->toggle('spectra_store_prompts', 'Prompts', help: 'The messages sent to the AI, which include what visitors and chatters write.'),
-                $this->toggle('spectra_store_system_prompts', 'System prompts', help: 'The instructions of each agent, with the parts of your knowledge found for the question.'),
-                $this->toggle('spectra_store_responses', 'Replies', help: 'What the AI answered.'),
-                $this->toggle('spectra_store_tools', 'Tools', help: 'The tools the AI was offered. They can be long.'),
-                $this->toggle('spectra_store_request_data', 'Request data', help: 'The whole request sent to the AI service: the prompts again, plus settings such as the temperature.'),
-                $this->toggle('spectra_store_embeddings', 'Embeddings', help: 'The numbers of each embedding. They are large and rarely useful, so they are left out by default.'),
+                $this->toggle('spectra_store_prompts', 'Prompts', help: 'Saves the messages sent to the AI, which include what people write in chats.'),
+                $this->toggle('spectra_store_system_prompts', 'System prompts', help: 'Saves each agent\'s instructions, along with the parts of your knowledge found for the question.'),
+                $this->toggle('spectra_store_responses', 'Replies', help: 'Saves what the AI answered.'),
+                $this->toggle('spectra_store_tools', 'Tools', help: 'Saves the list of tools the AI could use. It can be long.'),
+                $this->toggle('spectra_store_request_data', 'Request data', help: 'Saves the whole request sent to the AI service. That repeats the prompts and adds settings such as the temperature.'),
+                $this->toggle('spectra_store_embeddings', 'Embeddings', help: 'Saves the numbers that search uses to compare meaning. They are large and rarely useful, so this is off by default.'),
             ])->summary(fn (): string => $this->savedSummary()),
             SettingsCard::make('traces', 'Traces', 'How Spectra groups AI calls, so the calls of one reply show as one chain.', Heroicon::OutlinedLink, fn (): array => [
-                $this->toggle('spectra_trace_per_request', 'One trace per request', help: 'Every AI call of one page request, job or command shares a trace, and so do the jobs it starts. Off gives each call a trace of its own.'),
-                $this->toggle('spectra_use_traceparent', 'Join incoming traces', help: 'When a request comes with a W3C "traceparent" header, as from an OpenTelemetry proxy, its AI calls join that trace.'),
-                $this->toggle('spectra_capture_request_id', 'Keep the request ID', help: 'Saves the X-Request-ID header of the page request with each call, to find it in the server logs.'),
+                $this->toggle('spectra_trace_per_request', 'One trace per request', help: 'Groups the AI calls of one page visit or background job, so they show as one chain. Off shows each call on its own.'),
+                $this->toggle('spectra_use_traceparent', 'Join incoming traces', help: 'When another monitoring tool sends a trace ID with a request, the AI calls of that request join its trace.'),
+                $this->toggle('spectra_capture_request_id', 'Keep the request ID', help: 'Saves the ID of the page request with each AI call, so you can find the same request in the server logs.'),
             ])->advanced(),
         ];
     }
@@ -138,7 +138,7 @@ class ManageObservabilitySettings extends AdminSettingsPage
     private function recordingToggle(string $property, string $label, ?string $help = null): Toggle
     {
         if (! $this->installed($property)) {
-            return $this->toggle($property, $label, help: self::TOOL_SWITCHES[$property].'=false in .env leaves this tool out of the install, so it cannot record.')
+            return $this->toggle($property, $label, help: 'The server\'s .env file has '.self::TOOL_SWITCHES[$property].'=false, which leaves this tool out, so it cannot record.')
                 ->disabled();
         }
 

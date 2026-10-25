@@ -75,38 +75,35 @@ trait BuildsChunkingCards
     private function splittingFields(): array
     {
         return [
-            ToggleButtons::make('chunk_unit')
+            $this->withHelp(ToggleButtons::make('chunk_unit')
                 ->label('Measure in')
                 ->options(collect(ChunkSizeUnit::cases())->mapWithKeys(fn (ChunkSizeUnit $unit): array => [$unit->value => $unit->label()])->all())
                 ->in(array_column(ChunkSizeUnit::cases(), 'value'))
                 ->inline()
-                ->live()
-                ->helperText('Tokens are how AI models read text, counted with the tokenizer below. Characters are easier to picture.'),
+                ->live(), 'Tokens are the word pieces AI models read. Characters are single letters, which are easier to picture.'),
             Grid::make(['default' => 1, 'md' => 3])->schema([
                 $this->sizeField('chunk_size', 'Chunk size', fn (ChunkSizeUnit $unit): int => $unit->minSize(), fn (ChunkSizeUnit $unit): int => $unit->maxSize())
                     ->placeholder(fn (Get $get): string => (string) $this->unit($get)->defaultSize())
                     ->helperText(fn (Get $get): string => $this->unit($get) === ChunkSizeUnit::Tokens
-                        ? 'The largest a chunk may be. 300 to 500 tokens suits most agents.'
-                        : 'The largest a chunk may be. 1,200 to 2,000 characters suits most agents.'),
-                $this->sizeField('chunk_overlap', 'Overlap', fn (): int => 0, fn (ChunkSizeUnit $unit): int => $unit->maxOverlap())
-                    ->helperText('Repeated from the end of one chunk at the start of the next. Most text needs none.')
+                        ? 'The longest a chunk can be. 300 to 500 tokens suits most agents.'
+                        : 'The longest a chunk can be. 1,200 to 2,000 characters suits most agents.'),
+                $this->withHelp($this->sizeField('chunk_overlap', 'Overlap', fn (): int => 0, fn (ChunkSizeUnit $unit): int => $unit->maxOverlap())
                     ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
                         if (is_numeric($value) && (int) $value >= $this->chunkSize($get)) {
                             $fail('The overlap must be smaller than the chunk size.');
                         }
-                    }),
-                $this->sizeField('chunk_minimum', 'Smallest chunk', fn (): int => 0, fn (ChunkSizeUnit $unit): int => intdiv($unit->maxSize(), 2))
+                    }), 'Repeats the end of each chunk at the start of the next one. Most texts need none.'),
+                $this->withHelp($this->sizeField('chunk_minimum', 'Smallest chunk', fn (): int => 0, fn (ChunkSizeUnit $unit): int => intdiv($unit->maxSize(), 2))
                     ->placeholder(fn (Get $get): string => (string) $this->unit($get)->defaultMinimum())
-                    ->helperText('A shorter last part shares the text of the part before, so tiny chunks are rare. 0 turns it off.')
                     ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
                         if (is_numeric($value) && (int) $value > intdiv($this->chunkSize($get), 2)) {
                             $fail('The smallest chunk can be at most half the chunk size.');
                         }
-                    }),
+                    }), 'If the last chunk of a text is shorter than this, it takes some text from the one before. 0 turns this off.'),
             ]),
             ...array_map($this->strategyField(...), ContentKind::cases()),
             $this->choice('tokenizer', 'Tokenizer', TikToken::ENCODINGS,
-                help: 'Counts tokens: the chunk size when it is in tokens, and the size of every stored chunk. cl100k_base suits most models.'),
+                help: 'Decides how tokens are counted, for the chunk size and for every saved chunk. cl100k_base suits most models.'),
             Text::make('PDF, Word, slides, spreadsheets and images make one chunk per page; a page longer than the chunk size is split as Text.')
                 ->color('gray')
                 ->size(TextSize::Small),

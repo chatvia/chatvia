@@ -57,13 +57,6 @@ final class SettingsCard
     public ?Closure $chips = null;
 
     /**
-     * The help file behind the card's "?" button, when cards built by one
-     * helper (a provider per card) share it; null uses the card's key. See
-     * {@see AdminSettingsPage::helpOf()}.
-     */
-    public ?string $helpFile = null;
-
-    /**
      * @param  Closure(): list<Component>  $fields  The fields of the panel.
      */
     private function __construct(
@@ -168,14 +161,6 @@ final class SettingsCard
     public function chips(Closure $chips): self
     {
         $this->chips = $chips;
-
-        return $this;
-    }
-
-    /** Share one help file between the cards a helper builds, with `{title}` filled in per card. */
-    public function helpFile(string $name): self
-    {
-        $this->helpFile = $name;
 
         return $this;
     }

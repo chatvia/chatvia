@@ -67,9 +67,17 @@ it('lists the advanced cards last, closed, under their own heading', function ()
     $this->actingAs($this->admin, 'admin')
         ->get(ManageSearchSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['Finding answers', 'Unclear and follow-up questions', 'Technical options. The defaults suit most installs.', 'search-tuning'])
+        ->assertSeeInOrder(['Finding answers', 'Ambiguous questions', 'Technical options. The defaults suit most installs.', 'search-tuning'])
         ->assertSeeText('Save changes')
         ->assertDontSee('cv-outline__save');
+});
+
+it('explains each option in a "?" next to its label, not the whole card', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageSearchSettings::getUrl())
+        ->assertOk()
+        ->assertSee('Finds answers by meaning and by exact words.')
+        ->assertDontSee('What do these options do?');
 });
 
 it('lets an admin without two-factor authentication change the values', function (): void {

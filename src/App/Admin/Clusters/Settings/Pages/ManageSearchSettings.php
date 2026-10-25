@@ -60,35 +60,35 @@ class ManageSearchSettings extends AdminSettingsPage
         return [
             SettingsCard::make('finding', 'Finding answers', 'Search by meaning and by keywords, and how many results an agent gets.', Heroicon::OutlinedMagnifyingGlass, fn (): array => [
                 $this->toggle('hybrid_search', 'Hybrid search',
-                    help: 'Search by meaning and by keywords together. Finds names, codes and rare words better. Off searches by meaning only. You can change this at any time.'),
-                $this->integer('max_chunks', 'Results per question', help: 'How many parts of the sources an agent gets for one question.', min: 1, max: 20),
+                    help: 'Finds answers by meaning and by exact words. Helps with names, codes and rare words. Off finds by meaning only.'),
+                $this->integer('max_chunks', 'Results per question', help: 'How many pieces of your sources the agent reads to answer one question.', min: 1, max: 20),
             ])->summary(fn (): string => sprintf(
                 'Hybrid search %s · %s results per question',
                 $this->shown($this->valueInUse('hybrid_search')),
                 $this->shown($this->valueInUse('max_chunks')),
             )),
-            SettingsCard::make('questions', 'Unclear and follow-up questions', 'How a short follow-up, like "and the price?", is searched, and what the agent says when nothing is found.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
+            SettingsCard::make('questions', 'Ambiguous questions', 'How a short follow-up, like "and the price?", is searched, and what the agent says when nothing is found.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
                 $this->toggle('query_rewriter', 'Understand follow-up questions',
-                    help: 'An AI step turns a follow-up ("and the price?") into a full question from the chat before it, only for the search. One model call per follow-up. The model is set in Settings → AI models → Models for app tasks.'),
+                    help: 'Turns a short follow-up like "and the price?" into a full question, so the search finds the right answer. Uses one extra AI call.'),
                 $this->toggle('query_clarify', 'Ask back when a message is unclear',
-                    help: 'The same AI step spots a message too vague to search, like a bare number. When nothing is found, the agent asks what the visitor means instead of saying it has no answer. Needs "Understand follow-up questions".'),
+                    help: 'When a message is too vague to search, the agent asks what the visitor means instead of saying it has no answer. Needs "Understand follow-up questions".'),
                 $this->toggle('scope_hint', 'Say what the agent can help with',
-                    help: 'When nothing in the knowledge matches, the agent is told the names of its sources, so it can tell the visitor what it can help with.'),
+                    help: 'When nothing in the sources matches, the agent tells the visitor what topics it can help with.'),
             ])->summary(fn (): string => 'Understand follow-up questions '.$this->shown($this->valueInUse('query_rewriter'))
                 .' · ask back '.$this->shown($this->valueInUse('query_clarify'))
                 .' · say what it can help with '.$this->shown($this->valueInUse('scope_hint'))),
             SettingsCard::make('tuning', 'Fine-tuning', 'Search speed, how much text an agent gets, and the minimum scores.', Heroicon::OutlinedAdjustmentsHorizontal, fn (): array => [
                 $this->choice('search_mode', 'Search mode', self::SEARCH_MODES,
-                    help: sprintf('Only for agents with more than %s parts in their sources. Smaller ones are always searched in full.', number_format((int) config('chatvia.vector.search.exact_max_chunks')))),
-                $this->integer('max_context_tokens', 'Most tokens per question', help: 'The most text the results of one question may add, in tokens. Lower-ranked results past it are left out; the best one always goes in. 0 means no limit.', min: 0, max: 32000),
+                    help: sprintf('Trade speed for accuracy on big knowledge bases, over %s pieces. Smaller ones are always searched in full.', number_format((int) config('chatvia.vector.search.exact_max_chunks')))),
+                $this->integer('max_context_tokens', 'Most tokens per question', help: 'The most text the results may add to one question, in tokens. A token is about four letters. The best result always goes in. 0 means no limit.', min: 0, max: 32000),
                 $this->toggle('relevance_check', 'Leave out weak matches',
-                    help: 'Results that do not match the question well are left out, so "hello" gets none. When off, agents always get the top results.'),
-                $this->decimal('relevance_threshold', 'Minimum score (reranker)', help: 'The reranker\'s score, from 0 to 1. Higher keeps fewer, closer results. Empty uses the value set for the model.', min: 0, max: 1)
+                    help: 'Skips results that barely match the question, so a message like "hello" gets none. Off always sends the top results.'),
+                $this->decimal('relevance_threshold', 'Minimum score (reranker)', help: 'How well a result must match to be used, from 0 to 1. Higher keeps fewer but better results. Empty uses the model\'s own value.', min: 0, max: 1)
                     ->placeholder(fn (): string => $this->hasReranker() ? (string) RerankModelCatalog::thresholds(app(Reranker::class)->model())->knowledge : '')
                     ->disabled(fn (): bool => ! $this->hasReranker()),
-                $this->decimal('similarity_threshold', 'Minimum similarity (no reranker)', help: 'For the basic check, without a reranker: how close in meaning, from 0 to 1. Empty uses the value measured for your embedding model; a model never measured gets no check.', min: 0, max: 1)
+                $this->decimal('similarity_threshold', 'Minimum similarity (no reranker)', help: 'Used when no reranker is set up. How close in meaning a result must be, from 0 to 1. Empty uses the value tested for your model.', min: 0, max: 1)
                     ->placeholder(fn (): string => (string) (EmbeddingProvider::configured()?->similarityThresholds()?->knowledge ?? 'No check')),
-                $this->decimal('qa_similarity_threshold', 'Saved answers: minimum similarity', help: 'A message gets a saved Q&A answer when it is one of its questions, or this close to one in meaning (0 to 1). Higher is safer: the saved answer is sent word for word. Empty uses the value measured for your embedding model.', min: 0, max: 1)
+                $this->decimal('qa_similarity_threshold', 'Saved answers: minimum similarity', help: 'How close a message must be to a saved question to get its saved answer, from 0 to 1. Higher is safer, since the answer is sent word for word.', min: 0, max: 1)
                     ->placeholder(fn (): string => (string) (EmbeddingProvider::configured()?->qaSimilarityThreshold() ?? 'Whole questions only')),
             ])->summary(fn (): string => (self::SEARCH_MODES[(string) $this->valueInUse('search_mode')] ?? 'Balanced').' · '.match (true) {
                 ! (bool) $this->valueInUse('relevance_check') => 'weak matches kept',

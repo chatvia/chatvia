@@ -1045,8 +1045,8 @@ How it works:
 - **Adding an option.** Add a nullable property with `#[ConfigKey]` to the
   right class, a line to its settings migration, and a field to its card
   (under Advanced when only a few admins need it). Give the config key a
-  default in config/*.php, and add a line to the card's help file in
-  `resources/help/settings/`.
+  default in config/*.php, and give the field a short `help:` in plain
+  words: it shows as the "?" tooltip next to the option's label.
 - **Chunking.** Every text is split in-process by `BuiltinTextSplitter`
   (`Knowledge\Ingestion\Services\Chunking`); there is no outside service.
   The strategy follows the kind of content (`ContentKind`): Markdown (web
@@ -1226,7 +1226,7 @@ app.
   (Reverb) settings from the widget settings response
   (`chatvia.widget.reverb`).
 - The app points to `embed.js` with `chatvia.widget.script_url_embed`: the copy
-  in `public/shakomako`, unless the admin panel (**Settings → Platform**) names another one.
+  in `public/shakomako`, unless the admin panel (**Settings → Widget**) names another one.
 
 See the widget's README for embed options.
 

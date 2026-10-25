@@ -81,8 +81,8 @@ class ManageBrandSettings extends AdminSettingsPage
                 $this->toggle('powered_by_enabled', 'Show the credit')
                     ->disabled(fn (): bool => ! $this->licensed())
                     ->formatStateUsing(fn (?bool $state): bool => $this->licensed() ? $state !== false : true)
-                    ->helperText(fn (): ?string => $this->licensed() ? null : 'Add a license key below to turn the credit off.'),
-                $this->secret('license_key', 'License key', 'Paste the whole key from your email. Saving it activates the license at chatvia.ai.', required: false),
+                    ->helperText(fn (): ?string => $this->licensed() ? null : 'Add a license key below to hide the credit.'),
+                $this->secret('license_key', 'License key', 'Paste the whole key from your email. Saving it activates the license for this site at chatvia.ai.', required: false),
                 $this->licenseCallout(),
             ])->summary(fn (): string => $this->summary()),
             SettingsCard::make('hire_me', 'Hire me', 'Custom features, setup and support from the developer of ChatVia.ai.', Heroicon::OutlinedBriefcase, fn (): array => [

@@ -3499,7 +3499,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
         -webkit-line-clamp: 2;
     }
 
-    /* The status, the console link and the "?" button stay on one line: only the status shrinks. */
+    /* The status and the console link stay on one line: only the status shrinks. */
     & .fi-section-header-after-ctn > .fi-sc {
         flex-wrap: nowrap;
 

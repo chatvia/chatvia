@@ -255,13 +255,13 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->unlistedCallout(),
                 EmbeddedTable::make(),
                 $this->withHelp($this->modelChoice('default_agent_model', 'Default model for new agents', unset: 'The first model on the list'),
-                    'New agents answer with this model until they pick their own. The analytics assistant uses it too. Empty: the first model on the list.'),
+                    'New agents use this model until you pick another one for them. The analytics assistant uses it too. Empty uses the first model on the list.'),
                 $this->withHelp($this->integer('history_messages', 'Messages of history', min: 1, max: 50),
-                    'How many recent messages of a conversation an agent reads each time it answers, in typed chats and voice calls. More helps with follow-up questions, but each answer costs more.'),
+                    'How many recent messages an agent reads before each reply, in chats and voice calls. More helps with follow-up questions, but each reply costs more.'),
                 $this->toggle('allow_reasoning', 'Let agents reason',
-                    'Models with "Reasons" on can think before they answer. With this on, each agent picks how hard in its AI model settings: Off, Low, Medium or High. Every agent starts at Off. Chatters see the thinking in grey above the answer, and can fold it away. More thinking gives better answers to hard questions, but they come slower and cost more. OpenAI\'s own API sends a summary of the thinking, once OpenAI has verified your organization. With this off, every agent is at Off.'),
+                    'Lets models marked "Reasons" think before they answer. Each agent sets how hard. Hard questions get better answers, but replies come slower and cost more.'),
                 $this->toggle('chatter_model_choice', 'Let chatters pick a model',
-                    'With this on, each agent can turn on Multi-model (agent Setup → Model) and pick several of the models above. Chatters then pick one in the hosted chat, the chat widget and the command bar, for each message and when they ask for a new answer. With this off, every agent answers with its own model.'),
+                    'Lets chatters pick one of several models for each message. Each agent turns this on and picks the models in Setup → Model.'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
                 $this->reindexCallout(),
@@ -279,12 +279,12 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'cohere' => 'Cohere Rerank',
                     'custom' => 'Self-hosted',
                     'none' => 'Off (a basic similarity check)',
-                ], 'OpenRouter and Cohere use their keys from AI providers.',
+                ], 'Checks which search results and tools really fit the question, so agents use only those. OpenRouter and Cohere use their key from AI providers.',
                     check: fn (string $driver, Get $get): ConnectionCheckData => app(RerankerCheck::class)->check($this->rerankerPicked($driver, $get)),
                     changed: fn (string $driver, Get $get): bool => $this->rerankerPicked($driver, $get)->toArray() !== $this->rerankerInUse()->toArray())
                     ->live(),
                 $this->choice('openrouter_rerank_model', 'OpenRouter model', $openRouterRerankers = app(RerankModelCatalog::class)->openRouterOptions(),
-                    help: 'The strongest first. Each model has its own scores, so its own relevance bar.')
+                    help: 'Listed strongest first. Each model scores matches in its own way, so each has its own cutoff for what counts as relevant.')
                     ->options(ModelLogo::labels($openRouterRerankers, LlmProviderKind::OpenRouter))
                     ->allowHtml()
                     ->searchable()
@@ -295,11 +295,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->allowHtml()
                     ->visible(fn (Get $get): bool => $get('reranker') === 'cohere'),
                 $this->url('rerank_custom_url', 'Address',
-                    help: 'A server with the common /rerank API (vLLM, Infinity, Jina-compatible), such as http://reranker:8000/v1.')
+                    help: 'The address of your own reranking server, such as http://reranker:8000/v1. It must answer at /rerank, as vLLM and Infinity servers do.')
                     ->visible(fn (Get $get): bool => $get('reranker') === 'custom'),
-                $this->secret('rerank_custom_key', 'API key', help: 'Only when your server asks for one.', required: false)
+                $this->secret('rerank_custom_key', 'API key', help: 'Fill this in only if your server needs a key.', required: false)
                     ->visible(fn (Get $get): bool => $get('reranker') === 'custom'),
-                $this->text('rerank_custom_model', 'Model', help: 'The model name your server serves, such as Qwen/Qwen3-Reranker-4B.')
+                $this->text('rerank_custom_model', 'Model', help: 'The model\'s name as your server lists it, such as Qwen/Qwen3-Reranker-4B.')
                     ->visible(fn (Get $get): bool => $get('reranker') === 'custom'),
             ])->summary(fn (): string => $this->rerankerSummary()),
             SettingsCard::make('documents', 'Documents', 'How PDFs, office files and images are read.', Heroicon::OutlinedDocumentMagnifyingGlass, fn (): array => [
@@ -307,10 +307,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'mistral' => 'Mistral OCR',
                     'azure' => 'Azure Document Intelligence',
                     'none' => 'Off',
-                ], 'Reads the text, scans and tables of PDFs, Word, slides and images while sources are trained. Mistral OCR also reads the pictures inside Word and PowerPoint files; Azure skips them. Excel, CSV, old office files and RTF are read by the app. Off: PDF, Word, slides and images cannot be uploaded.',
+                ], 'Reads the text and tables in PDFs, Word files, slides and images, even scanned pages. Off means those files cannot be added as sources.',
                     check: fn (string $reader): ConnectionCheckData => app(DocumentServiceCheck::class)->reader(AiProvider::from($reader))),
                 $this->toggle('source_summaries_enabled', 'Source summaries',
-                    help: 'A model reads each source whole, as a PDF file, and writes a short summary of it. It also finds the source\'s type, language and likely questions. Two calls per source, while AI enhancement is on (Settings → Knowledge). Off: no summaries; sources are still found by their pages.')
+                    help: 'A model reads each whole source and writes a short summary of it. It runs while AI enhancement is on in Settings → Knowledge.')
                     ->live(),
                 $this->modelChoice('source_summaries_model', 'Model for source summaries', unset: fn (): string => $this->automaticLabel(app(SourceSummaryModel::class)->automatic()), only: fn (): array => $this->pdfModels('source_summaries_model'))
                     ->live()
@@ -322,9 +322,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->warning()
                     ->visible(fn (Get $get): bool => (bool) $get('source_summaries_enabled') && $this->pdfModels('source_summaries_model') === []),
                 $this->toggle('describe_images', 'Describe images',
-                    help: 'A model describes the pictures inside PDF files and other documents, so search can find what they show. It runs while AI enhancement is on (Settings → Knowledge). The setup turns this off when your AI provider has no model that reads images. Off: pictures are skipped, and the text is still read.')
+                    help: 'A model describes the pictures in your documents, so search can find what they show. It runs while AI enhancement is on in Settings → Knowledge.')
                     ->live(),
-                $this->modelChoice('images_model', 'Model for image descriptions', help: 'Only the models that read images are listed.', unset: 'Same as the model for quick tasks', only: fn (): array => $this->imageModels('images_model'))
+                $this->modelChoice('images_model', 'Model for image descriptions', help: 'Only models that can read images are listed.', unset: 'Same as the model for quick tasks', only: fn (): array => $this->imageModels('images_model'))
                     ->visible(fn (Get $get): bool => (bool) $get('describe_images')),
                 Callout::make('No model reads images')
                     ->description('Pictures are not described until a model that reads images is added under Chat models.')
@@ -332,7 +332,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->warning()
                     ->visible(fn (Get $get): bool => (bool) $get('describe_images') && $this->imageModels('images_model') === []),
                 $this->toggle('chat_files_enabled', 'Chat file uploads',
-                    help: 'Lets chatters attach a PDF file or an image in a chat and ask about it, when the agent allows uploads too (agent Setup → Settings → Composer options). Off: no agent can offer uploads.')
+                    help: 'Lets chatters attach a PDF or an image and ask about it. Each agent must allow uploads too, in Setup → Settings → Composer options.')
                     ->live(),
                 $this->modelChoice('chat_files_model', 'Model for chat file uploads', unset: fn (): string => $this->automaticLabel(app(ChatFileModel::class)->automatic()), only: fn (): array => $this->fileModels('chat_files_model'))
                     ->live()
@@ -351,41 +351,41 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'scaleway' => 'Scaleway AI Whisper',
                     'openai' => 'OpenAI Whisper',
                     'none' => 'Off',
-                ], 'Off hides audio and video files from the sources.',
+                ], 'Turns speech into text, for voice input in chats and for audio and video sources. Off means audio and video files cannot be added.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider))),
             ])->advancedFields(fn (): array => [
                 $this->text('scaleway_transcription_model', 'Scaleway AI model'),
                 $this->text('openai_transcription_model', 'OpenAI model',
-                    help: 'whisper-1, or gpt-4o-transcribe. Files up to 25 MB, about an hour and a half of audio.'),
+                    help: 'For example whisper-1 or gpt-4o-transcribe. It takes files up to 25 MB, about an hour and a half of audio.'),
             ])->summary(fn (): string => $this->providerInUse('transcriber')),
             SettingsCard::make('voice', 'Voice conversations', 'Live spoken calls with an agent, in the hosted chat and the chat widget.', Heroicon::OutlinedSpeakerWave, fn (): array => [
                 $this->serviceChoice('voice', 'Voice conversations', [
                     'openai' => 'OpenAI Realtime',
                     'none' => 'Off',
-                ], 'Each agent still turns them on (Setup → Settings → Composer options). A call costs much more than a typed chat.',
+                ], 'Each agent must also turn calls on, in Setup → Settings → Composer options. A call costs much more than a typed chat.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider))),
                 $this->choice('openai_realtime_voice', 'Default voice', collect(RealtimeVoice::cases())->mapWithKeys(fn (RealtimeVoice $voice): array => [$voice->value => $voice->label()])->all(),
-                    help: 'Agents speak with it unless they pick their own. Marin and Cedar sound the most natural.'),
-                $this->integer('voice_max_call_minutes', 'Longest call, in minutes', help: 'The agent says goodbye and hangs up then.', min: 1, max: 25),
+                    help: 'Agents speak in this voice unless they have their own. Marin and Cedar sound the most natural.'),
+                $this->integer('voice_max_call_minutes', 'Longest call, in minutes', help: 'When a call gets this long, the agent says goodbye and hangs up.', min: 1, max: 25),
             ])->advancedFields(fn (): array => [
                 $this->choice('openai_realtime_model', 'Model', $realtimeModels = [
                     'gpt-realtime-2.1' => 'GPT Realtime 2.1',
                     'gpt-realtime-2.1-mini' => 'GPT Realtime 2.1 mini (cheaper)',
                     'gpt-realtime-2' => 'GPT Realtime 2',
                     'gpt-realtime' => 'GPT Realtime',
-                ], help: 'The mini model costs less, but follows instructions and calls tools less well.')
+                ], help: 'The mini model costs less, but it follows instructions and uses tools less well.')
                     ->options(ModelLogo::labels($realtimeModels, LlmProviderKind::OpenAi))
                     ->native(false)
                     ->allowHtml(),
                 $this->text('openai_realtime_transcription_model', 'Transcription model',
-                    help: 'Writes down what the visitor says, for the chat log: gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
+                    help: 'Writes down what the visitor says, so it shows in the chat log. For example gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
             SettingsCard::make('read_aloud', 'Read aloud', 'Agent replies played as speech in the hosted chat.', Heroicon::OutlinedSpeakerWave, fn (): array => [
                 $this->serviceChoice('speaker', 'Read aloud', [
                     'elevenlabs' => 'ElevenLabs',
                     'openai' => 'OpenAI Realtime',
                     'none' => 'Off',
-                ], 'Each agent still turns it on (Setup → Settings → Composer options). A reply is read once; playing it again costs nothing.',
+                ], 'Each agent must also turn it on, in Setup → Settings → Composer options. Each reply is paid for once, so playing it again is free.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
                     ->live(),
                 Callout::make('OpenAI reads with its realtime model')
@@ -394,10 +394,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->info()
                     ->visible(fn (Get $get): bool => $get('speaker') === 'openai'),
                 $this->choice('openai_speech_voice', 'Default voice', collect(RealtimeVoice::cases())->mapWithKeys(fn (RealtimeVoice $voice): array => [$voice->value => $voice->label()])->all(),
-                    help: 'Agents read with it unless they pick their own. Marin and Cedar sound the most natural.')
+                    help: 'Agents read replies in this voice unless they have their own. Marin and Cedar sound the most natural.')
                     ->visible(fn (Get $get): bool => $get('speaker') === 'openai'),
                 $this->choice('elevenlabs_speech_voice', 'Default voice', collect(app(ElevenLabsVoices::class)->all())->mapWithKeys(fn (SpeechVoiceData $voice): array => [$voice->id => $voice->label])->all(),
-                    help: 'Any voice of your ElevenLabs account. Agents read with it unless they pick their own; they choose from a few professional voices that speak many languages. Empty uses the first of those.')
+                    help: 'Agents read replies in this voice unless they have their own. Pick any voice in your ElevenLabs account, or leave it empty for a ready-made one.')
                     ->searchable()
                     ->visible(fn (Get $get): bool => $get('speaker') === 'elevenlabs'),
             ])->advancedFields(fn (): array => [
@@ -415,7 +415,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),
                 $this->withHelp($this->modelChoice('task_model', 'Model for quick tasks'),
-                    'Every task below without its own model uses this one: guardrails, follow-up questions, titles and other small jobs. A small, fast model suits them. Empty: the default model for new agents.'),
+                    'Does small jobs like chat titles, safety checks and follow-up questions, unless a task below has its own model. A small, fast model suits them.'),
                 ...array_map(fn (string $group, array $tasks): Fieldset => Fieldset::make($group)
                     ->columns(1)
                     ->schema(array_map($this->taskChoice(...), $tasks)), array_keys(LlmTaskText::GROUPS), LlmTaskText::GROUPS),
@@ -499,9 +499,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->modalDescription('Pick a provider, then tick the chat models agents can use.')
             ->modalWidth(Width::TwoExtraLarge)
             ->schema([
-                Select::make('source')
+                $this->withHelp(Select::make('source')
                     ->label('Provider')
-                    ->helperText('Providers without a key are greyed out: add it in AI providers.')
                     ->options(fn (): array => collect($this->sources())
                         ->map(fn (string $name, string $source): string => ModelLogo::forProvider(
                             $this->isConnected($source) ? $name : "{$name} (no key yet)",
@@ -517,7 +516,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->afterStateUpdated(function (Set $set): void {
                         $set('models', []);
                         $set('model_id', null);
-                    }),
+                    }), 'Providers without a key are greyed out. Add their key in Settings → AI providers.'),
                 Callout::make(fn (Get $get): ?string => $this->listOf($get('source'))?->message($this->sourceLabel($get('source')), $this->sourceAddress($get('source'))))
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning()
@@ -867,14 +866,13 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         $options = fn (): array => $this->catalogOptions($only instanceof Closure ? $only() : null);
 
-        return Select::make($property)
+        return $this->withHelp(Select::make($property)
             ->label($label)
-            ->helperText($help)
             ->options($options)
             ->allowHtml()
             ->in(fn (): array => array_merge(...array_map(array_keys(...), array_values($options()))))
             ->searchable()
-            ->placeholder($unset);
+            ->placeholder($unset), $help);
     }
 
     // --- Models for app tasks ----------------------------------------------------
@@ -910,15 +908,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
      */
     private function chatFilesHelp(mixed $picked): string
     {
-        $does = 'Answers about the PDF file or image a chatter attaches when the agent\'s own model cannot read files; an agent whose model reads both answers itself. Only the models that read both are listed.';
+        $does = 'Answers about an attached file when the agent\'s own model cannot read it. Only models that read both PDFs and images are listed.';
 
         if (Llm::fromSetting($picked) instanceof Llm) {
             return $does;
         }
 
         return app(ChatFileModel::class)->automatic() instanceof Llm
-            ? "{$does} Automatic takes the default model if it reads both, else the first one that does."
-            : "{$does} Automatic: no model reads both, so uploads are off.";
+            ? "{$does} Automatic uses the default model if it reads both, or else the first one that does."
+            : "{$does} Automatic finds no model that reads both, so uploads are off.";
     }
 
     /** The empty choice of a model picker that chooses for itself, with the model it takes now. */
@@ -948,15 +946,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
      */
     private function summaryModelHelp(mixed $picked): string
     {
-        $does = 'Reads each source whole and writes its summary. Only the models that read PDF files are listed.';
+        $does = 'Only models that can read PDF files are listed.';
 
         if (Llm::fromSetting($picked) instanceof Llm) {
             return $does;
         }
 
         return app(SourceSummaryModel::class)->automatic() instanceof Llm
-            ? "{$does} Automatic takes the default model if it reads PDF files, else the first one that does."
-            : "{$does} Automatic: no model reads PDF files, so there are no summaries.";
+            ? "{$does} Automatic uses the default model if it reads PDF files, or else the first one that does."
+            : "{$does} Automatic finds no model that reads PDF files, so sources get no summaries.";
     }
 
     /**
@@ -1366,12 +1364,12 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->mapWithKeys(fn (EmbeddingProvider $provider): array => [$provider->value => $provider->label().($provider->account()->isConnected() ? '' : ' (not connected)')])
             ->all();
 
-        return $this->choice('embedding_provider', 'Service', $providers)
+        return $this->choice('embedding_provider', 'Service', $providers,
+            help: 'Its provider must be connected in AI providers. It must also match the data size this install stores, or it cannot be saved.')
             ->options(collect($providers)->map(fn (string $name, string $value): string => OptionLabel::provider($name, EmbeddingProvider::from($value)->account()))->all())
             ->native(false)
             ->allowHtml()
             ->live()
-            ->helperText('It must return the vector size this install stores. Its provider must be connected.')
             ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
                 $provider = EmbeddingProvider::tryFrom((string) $value);
 
@@ -1409,10 +1407,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ->live()
             : $this->text($property, 'Model')->live(onBlur: true);
 
-        return $field
-            ->helperText($listed
-                ? 'OpenRouter\'s embedding models. "Test embeddings" checks that the saved one returns the size this install stores.'
-                : 'The model\'s name exactly as the service writes it.')
+        return $this->withHelp($field, $listed
+            ? 'Recommended models come first. "Test embeddings" checks that the saved model works with this install.'
+            : 'The model\'s name, written exactly as the service lists it.')
             ->visible(fn (Get $get): bool => ($get('embedding_provider') ?: $this->defaultValue('embedding_provider')) === $provider->value);
     }
 

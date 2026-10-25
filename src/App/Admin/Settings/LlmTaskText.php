@@ -69,18 +69,18 @@ final class LlmTaskText
     private static function text(LlmTask $task): array
     {
         return match ($task) {
-            LlmTask::FollowUp => ['Follow-up questions', 'Turns a short follow-up, like "and the price?", into a full question for the search. Runs before the reply, so pick a small, fast model. Turned on in Settings → Search → Follow-up questions.'],
-            LlmTask::ToolRouting => ['Tool picking', 'When an agent could change data with the tools of more than one connector, picks the connector a message is about. Runs before the reply, so pick a small, fast model.'],
-            LlmTask::Guardrails => ['Guardrails', 'Checks each message for prompt injection, off-topic questions and toxicity, when an agent has these checks on. Runs before the reply, so pick a small, fast model.'],
+            LlmTask::FollowUp => ['Follow-up questions', 'Turns a short follow-up like "and the price?" into a full question for the search. It runs before each reply, so a small, fast model suits it.'],
+            LlmTask::ToolRouting => ['Tool picking', 'When an agent has tools from several connectors, picks the one a message is about. It runs before each reply, so a small, fast model suits it.'],
+            LlmTask::Guardrails => ['Guardrails', 'Checks messages for tricks, off-topic questions and abuse when an agent has these checks on. It runs before each reply, so a small, fast model suits it.'],
             LlmTask::Titles => ['Conversation titles', 'Writes a short title for each conversation from its first messages.'],
-            LlmTask::ConversationAnalysis => ['Conversation analysis', 'Finds the topics, sentiment, tone and language of conversations, for Analytics. The model must be able to reply in a fixed JSON format.'],
+            LlmTask::ConversationAnalysis => ['Conversation analysis', 'Finds the topics, mood and language of conversations for Analytics. The model must support structured JSON replies.'],
             LlmTask::Starters => ['Conversation starters', 'Suggests conversation starters for an agent, when asked in its setup.'],
             LlmTask::Translation => ['Translating agent texts', 'Translates an agent\'s title, welcome message and message box hint into each language when they are saved.'],
             LlmTask::FormText => ['Form descriptions', 'Rewrites the description of a form, when asked in the form editor.'],
-            LlmTask::ChatAddress => ['Hosted chat addresses', 'Suggests a short address for an agent\'s hosted chat (/chat/…).'],
-            LlmTask::Enhancement => ['AI enhancement', 'Writes a summary and the likely questions for each part of a file or web page while sources are trained. One call per part, so large files make many calls. Turned on in Settings → Knowledge → AI enhancement.'],
+            LlmTask::ChatAddress => ['Hosted chat addresses', 'Suggests a short web address for an agent\'s hosted chat.'],
+            LlmTask::Enhancement => ['AI enhancement', 'Writes a summary and likely questions for each part of a file or web page. Large files make many calls. Turned on in Settings → Knowledge.'],
             LlmTask::Tables => ['Tables', 'Turns the tables inside documents into plain text, so search can find what they say.'],
-            LlmTask::Images => ['Image descriptions', 'Describes the pictures inside PDF files and other documents, so search can find them. Needs a model that reads images. Turned on in Settings → AI models → Documents → Describe images.'],
+            LlmTask::Images => ['Image descriptions', 'Describes the pictures in documents so search can find them. Needs a model that reads images. Turned on in Settings → AI models → Describe images.'],
             LlmTask::EvalJudge => ['Evaluation judge', 'Scores an agent\'s answers in evaluations. A stronger model gives fairer scores.'],
             LlmTask::Chat => throw new InvalidArgumentException('The chat model is "Default model for new agents".'),
         };

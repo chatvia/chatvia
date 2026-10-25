@@ -52,9 +52,9 @@ class ManageChannelSettings extends AdminSettingsPage
             SettingsCard::make('whatsapp', 'WhatsApp', 'Meta app for WhatsApp Embedded Signup and the Cloud API.', asset('images/logos/channels/whatsapp.svg'), fn (): array => [
                 ...$this->appFields('whatsapp'),
                 $this->text('whatsapp_config_id', 'Login configuration ID',
-                    help: 'The Facebook Login for Business configuration that Embedded Signup opens.', required: true),
+                    help: 'The ID of the Facebook Login for Business setup in your Meta app. It opens when a workspace connects WhatsApp.', required: true),
                 $this->secret('whatsapp_register_pin', 'Number registration PIN',
-                    help: 'Six digits used to register connected numbers for the Cloud API. Do not use 000000.', required: false)
+                    help: 'Six digits Meta needs to register each connected WhatsApp number. Any six digits except 000000.', required: false)
                     ->rules(['nullable', 'digits:6', 'not_in:000000']),
             ])
                 ->required('whatsapp_app_id', 'whatsapp_app_secret', 'whatsapp_webhook_verify_token', 'whatsapp_config_id')
@@ -70,9 +70,9 @@ class ManageChannelSettings extends AdminSettingsPage
         ])
             ->advancedFields(fn (): array => [
                 $this->text("{$channel}_config_id", 'Login configuration ID',
-                    help: 'Facebook Login for Business configuration. Without it the classic permission request is used.'),
+                    help: 'A Facebook Login for Business setup from your Meta app. Without it, people see the classic permission screen when they connect.'),
                 $this->url("{$channel}_redirect", 'Another redirect URL',
-                    help: 'Leave empty to use the URL shown. It must be a valid OAuth redirect URI in the Meta app.'),
+                    help: 'Leave it empty to use the address shown. If you set one, add it to the allowed redirect addresses of your Meta app.'),
             ])
             ->required("{$channel}_app_id", "{$channel}_app_secret", "{$channel}_webhook_verify_token")
             ->console(self::META_CONSOLE)
@@ -86,7 +86,7 @@ class ManageChannelSettings extends AdminSettingsPage
             $this->text("{$channel}_app_id", 'App ID', required: true),
             $this->secret("{$channel}_app_secret", 'App secret'),
             $this->secret("{$channel}_webhook_verify_token", 'Webhook verify token',
-                help: 'Any random string. Paste the same value in the webhook settings of the Meta app.'),
+                help: 'Any random text you choose. Paste the same text in the webhook settings of your Meta app.'),
         ];
     }
 }

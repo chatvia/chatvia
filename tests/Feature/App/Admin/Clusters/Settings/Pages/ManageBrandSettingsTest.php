@@ -87,7 +87,7 @@ it('refuses text that is not a key without asking chatvia.ai', function (): void
 it('greys out the switch and keeps the credit on without a license', function (): void {
     adminPage(ManageBrandSettings::class, $this->admin)
         ->assertFormFieldDisabled('powered_by_enabled')
-        ->assertSee('Add a license key below to turn the credit off.')
+        ->assertSee('Add a license key below to hide the credit.')
         ->fillForm(['powered_by_enabled' => false])
         ->call('save')
         ->assertHasNoFormErrors();

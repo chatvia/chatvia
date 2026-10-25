@@ -80,6 +80,16 @@ it('explains each option in a "?" next to its label, not the whole card', functi
         ->assertDontSee('What do these options do?');
 });
 
+it('links each card to its part of the admin panel docs', function (): void {
+    config(['chatvia.docs_url' => 'https://chatvia.ai/docs']);
+
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageSearchSettings::getUrl())
+        ->assertOk()
+        ->assertSee('https://chatvia.ai/docs/guide/admin-panel/settings/search#finding-answers', escape: false)
+        ->assertSee('https://chatvia.ai/docs/guide/admin-panel/settings/search#ambiguous-questions', escape: false);
+});
+
 it('lets an admin without two-factor authentication change the values', function (): void {
     saveSettings(SignInSettings::class, ['google_client_id' => 'client-id-shown']);
 

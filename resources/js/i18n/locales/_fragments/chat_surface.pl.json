@@ -13,6 +13,15 @@
             "http_status": "Serwer zwrócił status {status}.",
             "interrupted": "Połączenie zostało przerwane.",
             "malformed": "Otrzymano nieprawidłowe dane z serwera."
+        },
+        "image_viewer": {
+            "title": "Przeglądarka obrazów",
+            "previous": "Poprzedni obraz",
+            "next": "Następny obraz",
+            "open_original": "Otwórz w nowej karcie",
+            "counter": "{current} z {total}",
+            "view": "Pokaż obraz",
+            "view_named": "Pokaż obraz: {name}"
         }
     },
     "messages": {

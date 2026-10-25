@@ -124,7 +124,16 @@
             "interrupted": "连接已中断。",
             "malformed": "从服务器收到无效数据。"
         },
-        "limit_resets_next_month": "下个月即可再次发送消息。"
+        "limit_resets_next_month": "下个月即可再次发送消息。",
+        "image_viewer": {
+            "title": "图片查看器",
+            "previous": "上一张图片",
+            "next": "下一张图片",
+            "open_original": "在新标签页中打开",
+            "counter": "第 {current} 张，共 {total} 张",
+            "view": "查看图片",
+            "view_named": "查看图片：{name}"
+        }
     },
     "messages": {
         "send": "发送",

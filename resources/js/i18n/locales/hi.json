@@ -124,7 +124,16 @@
             "interrupted": "कनेक्शन बाधित हो गया।",
             "malformed": "सर्वर से अमान्य डेटा मिला।"
         },
-        "limit_resets_next_month": "आप अगले महीने फिर से संदेश भेज सकते हैं।"
+        "limit_resets_next_month": "आप अगले महीने फिर से संदेश भेज सकते हैं।",
+        "image_viewer": {
+            "title": "छवि दर्शक",
+            "previous": "पिछली छवि",
+            "next": "अगली छवि",
+            "open_original": "नए टैब में खोलें",
+            "counter": "{total} में से {current}",
+            "view": "छवि देखें",
+            "view_named": "छवि देखें: {name}"
+        }
     },
     "messages": {
         "send": "भेजें",

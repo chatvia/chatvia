@@ -13,6 +13,15 @@
             "http_status": "Der Server hat den Status {status} zurückgegeben.",
             "interrupted": "Die Verbindung wurde unterbrochen.",
             "malformed": "Ungültige Daten vom Server erhalten."
+        },
+        "image_viewer": {
+            "title": "Bildanzeige",
+            "previous": "Vorheriges Bild",
+            "next": "Nächstes Bild",
+            "open_original": "In neuem Tab öffnen",
+            "counter": "{current} von {total}",
+            "view": "Bild ansehen",
+            "view_named": "Bild ansehen: {name}"
         }
     },
     "messages": {

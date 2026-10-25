@@ -124,7 +124,16 @@
             "interrupted": "Yhteys katkesi.",
             "malformed": "Palvelimelta saatiin virheellisiä tietoja."
         },
-        "limit_resets_next_month": "Voit lähettää viestejä taas ensi kuussa."
+        "limit_resets_next_month": "Voit lähettää viestejä taas ensi kuussa.",
+        "image_viewer": {
+            "title": "Kuvankatselin",
+            "previous": "Edellinen kuva",
+            "next": "Seuraava kuva",
+            "open_original": "Avaa uudessa välilehdessä",
+            "counter": "{current}/{total}",
+            "view": "Näytä kuva",
+            "view_named": "Näytä kuva: {name}"
+        }
     },
     "messages": {
         "send": "Lähetä",

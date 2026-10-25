@@ -13,6 +13,15 @@
             "http_status": "Server returned status {status}.",
             "interrupted": "The connection was interrupted.",
             "malformed": "Received malformed data from the server."
+        },
+        "image_viewer": {
+            "title": "Image viewer",
+            "previous": "Previous image",
+            "next": "Next image",
+            "open_original": "Open in a new tab",
+            "counter": "{current} of {total}",
+            "view": "View image",
+            "view_named": "View image: {name}"
         }
     },
     "messages": {

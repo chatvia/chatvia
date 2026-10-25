@@ -13,6 +13,15 @@
             "http_status": "Le serveur a renvoyé le statut {status}.",
             "interrupted": "La connexion a été interrompue.",
             "malformed": "Données invalides reçues du serveur."
+        },
+        "image_viewer": {
+            "title": "Visionneuse d'images",
+            "previous": "Image précédente",
+            "next": "Image suivante",
+            "open_original": "Ouvrir dans un nouvel onglet",
+            "counter": "{current} sur {total}",
+            "view": "Voir l'image",
+            "view_named": "Voir l'image : {name}"
         }
     },
     "messages": {

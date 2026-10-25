@@ -124,7 +124,16 @@
             "interrupted": "اتصال قطع شد.",
             "malformed": "داده‌های نامعتبر از سرور دریافت شد."
         },
-        "limit_resets_next_month": "ماه آینده می‌توانید دوباره پیام بفرستید."
+        "limit_resets_next_month": "ماه آینده می‌توانید دوباره پیام بفرستید.",
+        "image_viewer": {
+            "title": "نمایشگر تصویر",
+            "previous": "تصویر قبلی",
+            "next": "تصویر بعدی",
+            "open_original": "باز کردن در برگه جدید",
+            "counter": "{current} از {total}",
+            "view": "مشاهده تصویر",
+            "view_named": "مشاهده تصویر: {name}"
+        }
     },
     "messages": {
         "send": "ارسال",

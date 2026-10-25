@@ -124,7 +124,16 @@
             "interrupted": "接続が中断されました。",
             "malformed": "サーバーから不正なデータを受信しました。"
         },
-        "limit_resets_next_month": "来月になると、再びメッセージを送信できます。"
+        "limit_resets_next_month": "来月になると、再びメッセージを送信できます。",
+        "image_viewer": {
+            "title": "画像ビューアー",
+            "previous": "前の画像",
+            "next": "次の画像",
+            "open_original": "新しいタブで開く",
+            "counter": "{current} / {total}",
+            "view": "画像を表示",
+            "view_named": "画像を表示: {name}"
+        }
     },
     "messages": {
         "send": "送信",

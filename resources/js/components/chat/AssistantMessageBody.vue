@@ -6,7 +6,8 @@
  *
  * Owns: the marked instance + plugin config, streaming-aware debounced
  * render, code-block copy buttons, the artifact-kind → component map, and,
- * when `cite` is on, the `[n]` citation chips and the source card they open.
+ * when `cite` is on, the `[n]` citation chips and the source card they open,
+ * and the gallery an image opens in when clicked.
  *
  * Does NOT own: feedback/copy buttons on the message itself, sources,
  * tool-call indicators, regenerate/edit affordances, avatars, bubble
@@ -27,6 +28,7 @@ import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch 
 import { useI18n } from 'vue-i18n';
 import CitationCard from './CitationCard.vue';
 import EChartBlock from './EChartBlock.vue';
+import ImageLightbox, { type LightboxImage } from './ImageLightbox.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
 
 const props = withDefaults(
@@ -252,6 +254,45 @@ function onCiteClick(event: Event) {
     showCitation(chip);
 }
 
+// ---- Image gallery ----------------------------------------------------------
+// An image in the answer opens full size, with the answer's other images one
+// arrow away. The list is read when it opens, so a re-render while streaming
+// does not move the gallery.
+
+const lightboxImages = ref<LightboxImage[]>([]);
+const lightboxIndex = ref<number | null>(null);
+
+function answerImages(): HTMLImageElement[] {
+    return Array.from(bodyRef.value?.querySelectorAll('img') ?? []);
+}
+
+function openImage(event: Event): boolean {
+    const image = (event.target as HTMLElement | null)?.closest?.('img');
+    if (!image || !bodyRef.value?.contains(image)) return false;
+
+    event.preventDefault();
+    const images = answerImages();
+    lightboxImages.value = images.map((img) => ({ src: img.currentSrc || img.src, alt: img.alt }));
+    lightboxIndex.value = Math.max(images.indexOf(image), 0);
+
+    return true;
+}
+
+/** Lets keyboard users open an image: each one becomes a focusable button. */
+function markZoomableImages() {
+    for (const image of answerImages()) {
+        if (image.dataset.zoomable) continue;
+        image.dataset.zoomable = 'true';
+        image.tabIndex = 0;
+        image.setAttribute('role', 'button');
+        image.setAttribute('aria-label', image.alt ? t('chat.image_viewer.view_named', { name: image.alt }) : t('chat.image_viewer.view'));
+    }
+}
+
+function onBodyClick(event: Event) {
+    if (!openImage(event)) onCiteClick(event);
+}
+
 // A card left open would point at a chip that has moved away.
 const closeOnScroll = () => closeCitation();
 onMounted(() => window.addEventListener('scroll', closeOnScroll, true));
@@ -344,9 +385,17 @@ watch(
     { immediate: true },
 );
 
-// Runs after v-html replaced the body, so it works on the fresh nodes.
-watch(renderedHtml, applyStreamFade, { flush: 'post' });
 const { t } = useI18n();
+
+// Runs after v-html replaced the body, so it works on the fresh nodes.
+watch(
+    renderedHtml,
+    () => {
+        applyStreamFade();
+        markZoomableImages();
+    },
+    { flush: 'post' },
+);
 const { copy } = useClipboard({ legacy: true });
 
 const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
@@ -403,7 +452,10 @@ watch(
 
 onMounted(() => {
     if (props.content) {
-        nextTick(() => setupCodeBlockCopyButtons());
+        nextTick(() => {
+            setupCodeBlockCopyButtons();
+            markZoomableImages();
+        });
     }
 });
 </script>
@@ -429,8 +481,9 @@ onMounted(() => {
             @mouseout="onCiteLeave"
             @focusin="onCiteHover"
             @focusout="onCiteLeave"
-            @click="onCiteClick"
-            @keydown.enter="onCiteClick"
+            @click="onBodyClick"
+            @keydown.enter="onBodyClick"
+            @keydown.space="openImage"
             @keydown.esc="closeCitation"
         />
         <CitationCard
@@ -441,6 +494,7 @@ onMounted(() => {
             @enter="keepCitation"
             @leave="scheduleCloseCitation"
         />
+        <ImageLightbox v-model:index="lightboxIndex" :images="lightboxImages" :is-r-t-l="isRTL" />
     </div>
 </template>
 
@@ -470,6 +524,22 @@ onMounted(() => {
     background-color: var(--accent);
     color: var(--accent-foreground);
     outline: none;
+}
+
+/* Answer images open in the gallery. */
+:deep(img[data-zoomable]) {
+    cursor: zoom-in;
+    border-radius: 0.5rem;
+    transition: opacity 120ms;
+}
+
+:deep(img[data-zoomable]:hover) {
+    opacity: 0.9;
+}
+
+:deep(img[data-zoomable]:focus-visible) {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
 }
 
 /* Streaming reveal: each newly arrived stretch of text fades in (see

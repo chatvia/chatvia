@@ -13,6 +13,15 @@
             "http_status": "O servidor devolveu o estado {status}.",
             "interrupted": "A ligação foi interrompida.",
             "malformed": "Foram recebidos dados inválidos do servidor."
+        },
+        "image_viewer": {
+            "title": "Visualizador de imagens",
+            "previous": "Imagem anterior",
+            "next": "Próxima imagem",
+            "open_original": "Abrir numa nova aba",
+            "counter": "{current} de {total}",
+            "view": "Ver imagem",
+            "view_named": "Ver imagem: {name}"
         }
     },
     "messages": {

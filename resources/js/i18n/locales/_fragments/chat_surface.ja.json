@@ -13,6 +13,15 @@
             "http_status": "サーバーがステータス {status} を返しました。",
             "interrupted": "接続が中断されました。",
             "malformed": "サーバーから不正なデータを受信しました。"
+        },
+        "image_viewer": {
+            "title": "画像ビューアー",
+            "previous": "前の画像",
+            "next": "次の画像",
+            "open_original": "新しいタブで開く",
+            "counter": "{current} / {total}",
+            "view": "画像を表示",
+            "view_named": "画像を表示: {name}"
         }
     },
     "messages": {

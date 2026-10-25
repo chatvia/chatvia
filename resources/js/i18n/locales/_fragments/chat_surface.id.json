@@ -13,6 +13,15 @@
             "http_status": "Server mengembalikan status {status}.",
             "interrupted": "Koneksi terputus.",
             "malformed": "Menerima data tidak valid dari server."
+        },
+        "image_viewer": {
+            "title": "Penampil gambar",
+            "previous": "Gambar sebelumnya",
+            "next": "Gambar berikutnya",
+            "open_original": "Buka di tab baru",
+            "counter": "{current} dari {total}",
+            "view": "Lihat gambar",
+            "view_named": "Lihat gambar: {name}"
         }
     },
     "messages": {

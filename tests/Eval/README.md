@@ -225,7 +225,11 @@ What it says:
   reranker (MRR 0.867 → 0.906).
 - The reranker's 0.7 bar lets 3 of 10 uncovered questions through. Its sweep
   puts the best balance at 0.75 (98.6% of right passages kept, 90% of
-  uncovered blocked), on both the plain and the enriched set.
+  uncovered blocked), on both the plain and the enriched set. The bar is now
+  0.75 (`RerankModelCatalog`): re-run with it, uncovered left empty goes from
+  70% to 90%, and answered, multi-hop and global stay the same (plain 95.8%,
+  enriched 97.2%), with pg_textsearch and with the built-in full-text search
+  (`SEARCH_LEXICAL_DRIVER=postgres`, answered 95.8%).
 - The reranker drops multi-hop facts the similarity bar keeps (81.8% against
   90.9% of questions with every fact), because it scores each chunk against
   the whole two-part question. It is better on global questions (50% against

@@ -295,9 +295,9 @@ export function useAgentNavigation() {
         ].filter((group) => group.items.length > 0),
     );
 
-    // Danger Zone — deleting the agent, owners only.
+    // Danger Zone — deleting the agent, for whoever holds `agent.delete` (as the route).
     const dangerZoneItems = computed<AgentNavActionItem[]>(() => {
-        if (!isOwner.value) return [];
+        if (!hasPermission('agent.delete')) return [];
 
         return [
             {

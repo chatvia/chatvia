@@ -7,6 +7,7 @@ namespace Domain\Conversation\Data\Turn;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
+use Support\Text\MarkdownText;
 
 /**
  * One knowledge chunk retrieved for a turn: its text (for the model), how
@@ -72,7 +73,7 @@ class RetrievedSourceData extends Data
 
     /**
      * One chunk's source as the chat clients show it: no internal ids, and of
-     * the text only the start, for the citation card.
+     * the text only the start, as plain text, for the citation card.
      */
     public function forClient(int $passages, int $block): SourceRefData
     {
@@ -84,7 +85,7 @@ class RetrievedSourceData extends Data
             page: $this->page,
             passages: $passages,
             blocks: [$block],
-            excerpt: Str::of($this->content)->replaceMatches('/!\[[^\]]*\]\([^)]*\)/', '')->squish()->limit(self::EXCERPT_LENGTH, preserveWords: true)->value() ?: null,
+            excerpt: Str::limit(MarkdownText::plain($this->content), self::EXCERPT_LENGTH, preserveWords: true) ?: null,
         );
     }
 }

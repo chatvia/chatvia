@@ -472,7 +472,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 Callout::make(fn (Get $get): ?string => $this->listOf($get('source'))?->message($this->sourceLabel($get('source')), $this->sourceAddress($get('source'))))
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning()
-                    ->visible(fn (Get $get): bool => filled($get('source')) && $this->listOf($get('source'))?->status !== ModelListStatus::Listed),
+                    ->visible(fn (Get $get): bool => filled($get('source')) && $this->listOf($get('source'))?->status !== ModelListStatus::Listed && ! $this->typesModelNames($get('source'))),
                 ModelPicker::make('models')
                     ->label('Models')
                     ->options(function (Get $get): array {
@@ -497,8 +497,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->visible(fn (Get $get): bool => $this->pickedWithoutTools($get) !== []),
                 TextInput::make('model_id')
                     ->label('Model')
-                    ->placeholder('For example llama3.1:8b')
-                    ->helperText('The model\'s name exactly as your provider writes it.')
+                    ->placeholder(fn (Get $get): string => $this->typesModelNames($get('source')) ? 'For example gpt-4.1' : 'For example llama3.1:8b')
+                    ->helperText(fn (Get $get): string => $this->modelNameHelp($get('source')) ?? 'The model\'s name exactly as your provider writes it.')
                     ->required()
                     ->maxLength(255)
                     ->live(debounce: 300)
@@ -665,6 +665,20 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ])->filter()->implode(' · ')])
             ->filter()
             ->all();
+    }
+
+    /** How to name a model of a source whose models are typed, not listed (Azure deployments). */
+    private function modelNameHelp(mixed $source): ?string
+    {
+        $draft = $this->draftOf($source);
+
+        return $draft instanceof LlmProvider ? app(ProviderAdapters::class)->for($draft->kind)->modelNameHelp() : null;
+    }
+
+    /** Whether a source's models are typed by name: an empty list is then no warning. */
+    private function typesModelNames(mixed $source): bool
+    {
+        return $this->modelNameHelp($source) !== null && $this->listOf($source)?->status === ModelListStatus::Empty;
     }
 
     /** The provider row a source names: the account's (made when missing) or a server of your own. */

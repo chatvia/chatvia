@@ -242,7 +242,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         $card = SettingsCard::make($provider->value, $provider->label(), $provider->description(), AiProviderIcon::of($provider), fn (): array => [
             $this->secret($key, 'API key'),
             ...($provider->needsBaseUrl() && $address !== null ? [
-                $this->url($address, 'Endpoint', help: 'Your resource\'s endpoint, from the Azure portal, such as https://my-resource.cognitiveservices.azure.com.', required: true),
+                $this->url($address, 'Endpoint', help: $provider->baseUrlHelp(), required: true),
             ] : []),
         ])
             ->required(...array_filter([$key, $provider->needsBaseUrl() ? $address : null]))

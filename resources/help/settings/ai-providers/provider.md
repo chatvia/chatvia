@@ -8,6 +8,8 @@ After you add a key:
 - Add the provider's chat models in **Settings → AI models**.
 - To use its other services (embeddings, reranking, documents, speech to text, voice), choose it in **Settings → AI models**. There, each list marks the providers that are connected.
 
-**Tip:** One provider is enough to start. Scaleway AI, OpenRouter, OpenAI, Mistral and Google Gemini also make embeddings; with Groq or Anthropic you need a second provider for them.
+**Tip:** One provider is enough to start. Scaleway AI, OpenRouter, OpenAI, Mistral and Google Gemini also make embeddings; with Groq, Anthropic or Azure OpenAI you need a second provider for them.
 
 **Azure Document Intelligence:** use the standard tier (S0). The free tier (F0) reads only the first 2 pages of each file, and files up to 4 MB; the connection check warns when it sees one.
+
+**Azure OpenAI:** enter the key and the endpoint of one Azure resource (Azure OpenAI or Microsoft Foundry). In **Settings → AI models**, add each model by its deployment name. Name a deployment after its model (for example `gpt-4.1`), so the app knows what it can do. Claude deployments are not supported here: use the Anthropic provider for them.

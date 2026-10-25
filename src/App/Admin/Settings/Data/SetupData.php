@@ -24,10 +24,11 @@ use Spatie\LaravelData\Data;
  * conversations, where files are kept, how email is sent, and whether
  * Spectra records AI calls.
  *
- * A null key keeps the saved one. A null embedding provider keeps the one
- * in use (sources are trained with it already); a null embedding model the
- * saved one. A null reader, speech or voice service turns that service off ("Not
- * now"). A null reranker, storage or mail leaves those settings as they are.
+ * A null key (or endpoint, for Azure OpenAI) keeps the saved one. A null
+ * embedding provider keeps the one in use (sources are trained with it
+ * already); a null embedding model the saved one. A null reader, speech or
+ * voice service turns that service off ("Not now"). A null reranker,
+ * storage or mail leaves those settings as they are.
  */
 final class SetupData extends Data
 {
@@ -41,6 +42,7 @@ final class SetupData extends Data
         public array $chatModels,
         public string $defaultModel,
         public ?CustomLlmServerData $server = null,
+        public ?string $chatEndpoint = null,
         public ?RemoteModelData $quickTaskModel = null,
         public ?RemoteModelData $visionModel = null,
         public ?RemoteModelData $filesModel = null,

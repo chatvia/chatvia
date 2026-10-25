@@ -244,6 +244,11 @@ function connectAiProviders(AiProvider ...$providers): void
 {
     foreach ($providers === [] ? AiProvider::cases() : $providers as $provider) {
         config([$provider->apiKeyConfig() => 'test-key']);
+
+        // A chat account on a resource of its own (Azure OpenAI) calls nothing without its endpoint.
+        if ($provider->needsBaseUrl() && $provider->chatKind() instanceof LlmProviderKind) {
+            config([$provider->baseUrlConfig() => "https://{$provider->value}.test"]);
+        }
     }
 }
 

@@ -692,6 +692,32 @@ it('adds a server of your own and takes a typed model name when it lists none', 
         ->and($server->llms()->sole()->name)->toBe('llama3.1:8b');
 });
 
+it('saves the Azure OpenAI endpoint with its key and takes a typed deployment name', function (): void {
+    Http::fake([
+        'res.openai.azure.com/openai/v1/models' => Http::response(['data' => [['id' => 'gpt-4.1']]]),
+        'api.cohere.com/v2/embed' => Http::response(['embeddings' => ['float' => [array_fill(0, $this->dimensions, 0.1)]]]),
+    ]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'azure_openai', 'api_key' => 'az-test', 'chat_endpoint' => 'https://res.openai.azure.com/', 'embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test'])
+        ->goToWizardStep(3)
+        ->assertHasNoFormErrors()
+        ->assertFormFieldVisible('chat_model_id')
+        ->fillForm(['chat_model_id' => 'gpt-4.1'])
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    $provider = LlmProvider::query()->where('kind', LlmProviderKind::Azure)->sole();
+
+    expect(savedSetting(AiProviderSettings::class, 'azure_openai_api_key'))->toBe('az-test')
+        ->and(savedSetting(AiProviderSettings::class, 'azure_openai_endpoint'))->toBe('https://res.openai.azure.com')
+        ->and($provider->base_url)->toBeNull()
+        ->and($provider->llms()->sole()->name)->toBe('gpt-4.1');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://res.openai.azure.com/openai/v1/models'
+        && $request->header('api-key') === ['az-test']);
+});
+
 it('keeps the embedding service once sources are trained', function (): void {
     Chunk::factory()->create(['chunk' => 'Trained text.']);
     setupFakeOpenRouter($this->dimensions);

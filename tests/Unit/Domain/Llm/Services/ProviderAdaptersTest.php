@@ -42,7 +42,7 @@ function padListedModels(LlmProviderKind $kind, array $rows): array
 
 it('has an adapter for every kind, in picker order', function (): void {
     expect(array_map(fn (ProviderAdapter $adapter): string => $adapter->kind()->value, app(ProviderAdapters::class)->all()))
-        ->toBe(['openrouter', 'openai', 'anthropic', 'google', 'mistral', 'groq', 'scaleway', 'custom']);
+        ->toBe(['openrouter', 'openai', 'anthropic', 'google', 'mistral', 'groq', 'scaleway', 'azure', 'custom']);
 });
 
 it('builds each kind\'s chat client at its own or default address', function (LlmProviderKind $kind, string $client, string $address): void {

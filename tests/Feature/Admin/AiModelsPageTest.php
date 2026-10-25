@@ -250,6 +250,22 @@ it('takes a typed model name from a server that lists none', function (): void {
     expect($server->llms()->sole()->name)->toBe('llama3.1:8b');
 });
 
+it('takes an Azure OpenAI deployment by name, with no warning that none is listed', function (): void {
+    connectAiProviders(AiProvider::AzureOpenAi);
+    Http::fake(['azure_openai.test/openai/v1/models' => Http::response(['data' => [['id' => 'gpt-4.1']]])]);
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->mountAction(TestAction::make('addModel')->table())
+        ->fillForm(['source' => 'account:azure_openai'])
+        ->assertMountedActionModalSee('The deployment name, as Azure shows it under Deployments.')
+        ->assertMountedActionModalDontSee('lists no chat models')
+        ->fillForm(['model_id' => 'gpt-4.1'])
+        ->callMountedAction()
+        ->assertHasNoActionErrors();
+
+    expect(LlmProvider::query()->where('kind', LlmProviderKind::Azure)->sole()->llms()->sole()->name)->toBe('gpt-4.1');
+});
+
 it('removes a model, moving its agents and the tasks that used it', function (): void {
     $old = testLlm('old-model');
     $new = testLlm('new-model');

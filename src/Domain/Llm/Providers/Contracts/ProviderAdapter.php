@@ -44,6 +44,12 @@ interface ProviderAdapter
 
     public function needsApiKey(): bool;
 
+    /**
+     * Help under the field where an admin types a model's name, for a
+     * provider whose models are typed rather than picked from its list.
+     */
+    public function modelNameHelp(): ?string;
+
     /** Where an admin creates an API key, if the provider has such a page. */
     public function keysUrl(): ?string;
 

@@ -84,11 +84,12 @@ it('picks the first listed model that reads PDF files and images and calls tools
 });
 
 it('recommends a model for chat file uploads for every provider with one that reads PDF files', function (AiProvider $provider): void {
-    expect($provider->presetFileModels() !== [])->toBe($provider->can(AiCapability::Chat) && ! in_array($provider, [AiProvider::Scaleway, AiProvider::Groq], true));
+    expect($provider->presetFileModels() !== [])->toBe($provider->can(AiCapability::Chat) && ! in_array($provider, [AiProvider::Scaleway, AiProvider::Groq, AiProvider::AzureOpenAi], true));
 })->with(AiProvider::cases());
 
 it('recommends chat, quick-task and image models for every provider with chat models, and none for the others', function (AiProvider $provider): void {
-    $chats = $provider->can(AiCapability::Chat);
+    // Azure OpenAI's models are deployments the admin names, so there is nothing to recommend.
+    $chats = $provider->can(AiCapability::Chat) && $provider !== AiProvider::AzureOpenAi;
 
     expect($provider->presetChatModels() !== [])->toBe($chats)
         ->and($provider->presetQuickTaskModels() !== [])->toBe($chats)

@@ -92,6 +92,10 @@ class WidgetSettingsData extends Data
         // widget hides the "Talk to a human" affordance when false. Already
         // ANDed with the workspace's handoff capability on the server.
         public bool $handoff_enabled,
+        // Whether the header says "AI assistant" while the agent answers (EU
+        // AI Act Art. 50). One switch for the whole install, in the admin
+        // panel's Settings → Widget; "Human agent" shows either way.
+        public bool $ai_disclosure,
         // Whether to show the paperclip / attach-file button in the composer.
         // Owners turn this off when the agent shouldn't accept uploads (e.g.
         // FAQ-only, compliance). Default true.

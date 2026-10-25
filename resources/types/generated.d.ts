@@ -1536,6 +1536,7 @@ declare namespace Domain {
                     privacy_policy_url: string | null;
                     sources_display: Domain.Agent.Enums.SourcesDisplay;
                     handoff_enabled: boolean;
+                    ai_disclosure: boolean;
                     allow_file_uploads: boolean;
                     upload_accept: string[];
                     allow_voice_input: boolean;

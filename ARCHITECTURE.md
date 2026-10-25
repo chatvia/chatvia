@@ -1046,7 +1046,10 @@ How it works:
   right class, a line to its settings migration, and a field to its card
   (under Advanced when only a few admins need it). Give the config key a
   default in config/*.php, and give the field a short `help:` in plain
-  words: it shows as the "?" tooltip next to the option's label.
+  words: it shows as the "?" tooltip next to the option's label. Explain
+  it in the admin panel docs too, in `../chatvia-landing`
+  (`docs/guide/admin-panel/settings/{page}.md`, under the card's title), and
+  rewrite `SettingsDocsTest`'s fixture with `SETTINGS_DOCS_WRITE=1`.
 - **Chunking.** Every text is split in-process by `BuiltinTextSplitter`
   (`Knowledge\Ingestion\Services\Chunking`); there is no outside service.
   The strategy follows the kind of content (`ContentKind`): Markdown (web

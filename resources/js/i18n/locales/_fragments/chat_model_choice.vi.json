@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "Mô hình: {model}",
+        "model_picker_title": "Trả lời bằng",
+        "model_default": "Mặc định"
+    },
+    "messages": {
+        "regenerate_try_again": "Thử lại",
+        "regenerate_with_model": "Thử lại với",
+        "answered_by": "Trả lời bởi {model}"
+    }
+}

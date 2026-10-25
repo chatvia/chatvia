@@ -38,7 +38,10 @@
         "upload_limit_reached": "Możesz załączyć maksymalnie {count} plik | Możesz załączyć maksymalnie {count} pliki",
         "send_message": "Wyślij wiadomość",
         "stop_streaming": "Zatrzymaj generowanie",
-        "start_voice_call": "Mów głosem"
+        "start_voice_call": "Mów głosem",
+        "model_picker": "Model: {model}",
+        "model_picker_title": "Odpowiadaj modelem",
+        "model_default": "Domyślny"
     },
     "header": {
         "toggle_sidebar": "Przełącz panel boczny",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Wyślij",
         "feedback_comment_skip": "Pomiń",
         "feedback_comment_thanks": "Dziękujemy za opinię.",
+        "regenerate_try_again": "Spróbuj ponownie",
+        "regenerate_with_model": "Spróbuj ponownie z",
+        "answered_by": "Odpowiedź: {model}",
         "read_aloud": "Przeczytaj na głos",
         "stop_reading": "Zatrzymaj czytanie",
         "read_aloud_loading": "Przygotowywanie dźwięku…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Usuń dymek",
             "bubbles_empty": "Brak dymków czatu.",
             "bubbles_translate_empty": "Najpierw dodaj dymek, aby go przetłumaczyć.",
+            "model_picker_title": "Model",
             "model_picker_description": "Model AI, którym odpowiada ten agent. Administrator wybiera, które modele są na tej liście (panel administracyjny → Settings → AI models).",
             "model_placeholder": "Wybierz model",
+            "model_default": "Domyślny",
             "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models.",
             "reasoning_title": "Rozumowanie",
             "reasoning_description": "Jak mocno model myśli, zanim odpowie. Więcej myślenia pomaga przy trudnych pytaniach, ale odpowiedzi przychodzą wolniej i kosztują więcej. Rozmówcy widzą rozumowanie na szaro nad odpowiedzią.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "Administrator wyłączył rozumowanie dla wszystkich agentów (panel administracyjny → Ustawienia → Modele AI).",
             "model_no_tools": "Brak wywołań narzędzi",
             "model_no_tools_title": "Ten model nie potrafi wywoływać narzędzi",
-            "model_no_tools_description": "Narzędzia nie będą działać: agent odpowiada bez nich. Wybierz inny model, jeśli agent potrzebuje swoich narzędzi."
+            "model_no_tools_description": "Narzędzia nie będą działać: agent odpowiada bez nich. Wybierz inny model, jeśli agent potrzebuje swoich narzędzi.",
+            "multi_model": "Wiele modeli",
+            "multi_model_help": "Wybierz kilka modeli. Rozmówcy wybierają wtedy, który odpowiada, w czacie hostowanym, widżecie czatu i pasku poleceń, dla każdej wiadomości i przy prośbie o nową odpowiedź.",
+            "multi_model_placeholder": "Wybierz modele",
+            "multi_model_hint": "Pierwszy model odpowiada, dopóki rozmówca nie wybierze innego. Wybierz co najmniej dwa, inaczej rozmówcy nie zobaczą wyboru."
         },
         "topics_index": {
             "title": "Tematy",

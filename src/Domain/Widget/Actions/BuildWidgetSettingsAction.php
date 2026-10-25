@@ -5,6 +5,7 @@ namespace Domain\Widget\Actions;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AppearanceTextResolver;
+use Domain\Agent\Services\OfferedModels;
 use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
@@ -44,6 +45,7 @@ class BuildWidgetSettingsAction
         private readonly AppearanceTextResolver $appearanceText,
         private readonly ChatFileModel $fileModel,
         private readonly VoiceAvailability $voice,
+        private readonly OfferedModels $offeredModels,
         private readonly Transcriber $transcriber,
         private readonly WorkspaceActivation $activation,
     ) {}
@@ -103,6 +105,7 @@ class BuildWidgetSettingsAction
             voice_conversation: $this->voice->isOnFor($agent),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
             reverb: $this->reverb(),
+            models: $this->offeredModels->for($agent),
         );
     }
 

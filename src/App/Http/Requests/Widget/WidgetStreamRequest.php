@@ -29,6 +29,8 @@ class WidgetStreamRequest extends FormRequest
     {
         return [
             'content' => ['nullable', 'string', 'max:'.config('chatvia.guardrails.max_message_chars')],
+            // The model the chatter picked; one the agent does not offer falls back to its own.
+            'model_id' => ['nullable', 'integer'],
         ];
     }
 

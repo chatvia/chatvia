@@ -38,7 +38,10 @@
         "upload_limit_reached": "En fazla {count} dosya ekleyebilirsiniz | En fazla {count} dosya ekleyebilirsiniz",
         "send_message": "Mesaj gönder",
         "stop_streaming": "Oluşturmayı durdur",
-        "start_voice_call": "Sesle konuş"
+        "start_voice_call": "Sesle konuş",
+        "model_picker": "Model: {model}",
+        "model_picker_title": "Şununla yanıtla",
+        "model_default": "Varsayılan"
     },
     "header": {
         "toggle_sidebar": "Kenar çubuğunu aç/kapat",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Gönder",
         "feedback_comment_skip": "Atla",
         "feedback_comment_thanks": "Geri bildiriminiz için teşekkürler.",
+        "regenerate_try_again": "Tekrar dene",
+        "regenerate_with_model": "Şununla tekrar dene",
+        "answered_by": "Yanıtlayan: {model}",
         "read_aloud": "Sesli oku",
         "stop_reading": "Okumayı durdur",
         "read_aloud_loading": "Ses hazırlanıyor…",
@@ -2077,8 +2083,10 @@
             "bubbles_remove": "Balonu kaldır",
             "bubbles_empty": "Henüz sohbet balonu yok.",
             "bubbles_translate_empty": "Çevirmek için önce bir balon ekleyin.",
+            "model_picker_title": "Model",
             "model_picker_description": "Bu asistanın yanıt verirken kullandığı AI modeli. Bu listede hangi modellerin olacağını bir yönetici seçer (yönetim paneli → Settings → AI models).",
             "model_placeholder": "Bir model seçin",
+            "model_default": "Varsayılan",
             "model_empty": "Henüz model yok. Bir yönetici bunları yönetim panelinde, Settings → AI models altında ekler.",
             "reasoning_title": "Akıl yürütme",
             "reasoning_description": "Modelin yanıt vermeden önce ne kadar düşüneceği. Daha çok düşünmek zor sorularda yardımcı olur, ancak yanıtlar daha yavaş gelir ve daha pahalıya mal olur. Sohbet edenler, akıl yürütmeyi yanıtın üstünde gri renkte görür.",
@@ -2089,7 +2097,11 @@
             "reasoning_locked": "Yöneticiniz tüm ajanlar için akıl yürütmeyi kapattı (yönetim paneli → Ayarlar → Yapay zekâ modelleri).",
             "model_no_tools": "Araç çağrısı yok",
             "model_no_tools_title": "Bu model araç çağıramaz",
-            "model_no_tools_description": "Araçlar çalışmaz: ajan onlarsız yanıt verir. Ajanın araçlarına ihtiyacı varsa başka bir model seçin."
+            "model_no_tools_description": "Araçlar çalışmaz: ajan onlarsız yanıt verir. Ajanın araçlarına ihtiyacı varsa başka bir model seçin.",
+            "multi_model": "Çoklu model",
+            "multi_model_help": "Birkaç model seçin. Sohbet edenler barındırılan sohbette, sohbet widget'ında ve komut çubuğunda, her mesaj için ve yeni bir yanıt istediklerinde hangi modelin yanıtlayacağını seçer.",
+            "multi_model_placeholder": "Model seçin",
+            "multi_model_hint": "Sohbet eden başka bir model seçene kadar ilk model yanıtlar. En az iki model seçin, yoksa sohbet edenler seçiciyi görmez."
         },
         "topics_index": {
             "title": "Konular",

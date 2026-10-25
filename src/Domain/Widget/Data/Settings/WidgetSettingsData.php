@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Widget\Data\Settings;
 
+use Domain\Agent\Data\ModelChoice\OfferedModelData;
 use Domain\Agent\Enums\SourcesDisplay;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -116,5 +117,10 @@ class WidgetSettingsData extends Data
         // Where this server's live chat (Reverb) runs. The widget uses it for
         // any value its embed tag and its build do not set.
         public WidgetSettingsReverbData $reverb,
+        // The models the chatter may pick from in the composer, the agent's
+        // own first; empty (the choice off for the install or the agent)
+        // hides the picker. The pick goes back as the stream's `model_id`.
+        /** @var list<OfferedModelData> */
+        public array $models = [],
     ) {}
 }

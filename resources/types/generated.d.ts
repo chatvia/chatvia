@@ -145,6 +145,14 @@ declare namespace App {
 declare namespace Domain {
     namespace Agent {
         namespace Data {
+            namespace ModelChoice {
+                export type OfferedModelData = {
+                    id: number;
+                    name: string;
+                    logo: string | null;
+                    is_default: boolean;
+                };
+            }
             namespace Resources {
                 namespace Account {
                     export type AgentResourceData = {
@@ -1128,6 +1136,8 @@ declare namespace Domain {
                 is_selected: boolean;
                 provider_icon: string | null;
                 calls_tools: boolean;
+                display_name: string | null;
+                logo: string | null;
             };
         }
         namespace Enums {
@@ -1532,6 +1542,7 @@ declare namespace Domain {
                     voice_conversation: boolean;
                     max_files_per_chat: number;
                     reverb: Domain.Widget.Data.Settings.WidgetSettingsReverbData;
+                    models: Domain.Agent.Data.ModelChoice.OfferedModelData[];
                 };
                 export type WidgetSettingsReverbData = {
                     key: string | null;

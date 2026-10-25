@@ -22,6 +22,7 @@ use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\ChatFileModel;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Uri;
 
@@ -42,6 +43,7 @@ final readonly class SetupPageProps
         private ChatFileModel $chatFiles,
         private ReadAloudAvailability $readAloud,
         private Speaker $speaker,
+        private ModelsDevCatalog $modelsDev,
     ) {}
 
     /**
@@ -62,6 +64,8 @@ final readonly class SetupPageProps
                 $model,
                 selected: $model->id === $selectedModel,
                 providerIcon: AiProviderIcon::forKind($model->provider->kind),
+                displayName: $this->modelsDev->displayName($model->provider->kind, $model->name),
+                logo: $this->modelLogo($model),
             ))
             ->values()
             ->all();
@@ -139,6 +143,13 @@ final readonly class SetupPageProps
             // reason at all (else the picker is shown off and locked).
             'reasoningEffort' => (string) $agent->settings('reasoning')->get('effort'),
             'reasoningAllowed' => (bool) config('chatvia.ai.reasoning.enabled'),
+            // The other models chatters may pick from, and whether the admin
+            // lets agents offer a choice at all (else the switch is locked).
+            'modelChoice' => [
+                'enabled' => (bool) $agent->settings('model_choice')->get('enabled'),
+                'models' => collect((array) $agent->settings('model_choice')->get('models'))->map(fn (mixed $id): int => (int) $id)->values()->all(),
+            ],
+            'modelChoiceAllowed' => (bool) config('chatvia.ai.chatter_model_choice'),
 
             'availableLanguages' => config('chatvia.languages'),
 
@@ -149,5 +160,13 @@ final readonly class SetupPageProps
                 'cname_target' => (string) Uri::of((string) config('app.url'))->host(),
             ],
         ];
+    }
+
+    /** The URL of the logo of the model's maker (as the hosted chat's picker shows it), or null. */
+    private function modelLogo(Llm $model): ?string
+    {
+        $logo = $this->modelsDev->logo($model->provider->kind, $model->name);
+
+        return $logo !== null ? route('model-logo', ['logo' => $logo]) : null;
     }
 }

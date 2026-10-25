@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "Модель: {model}",
+        "model_picker_title": "Отвечать моделью",
+        "model_default": "По умолчанию"
+    },
+    "messages": {
+        "regenerate_try_again": "Повторить",
+        "regenerate_with_model": "Повторить с моделью",
+        "answered_by": "Ответила модель {model}"
+    }
+}

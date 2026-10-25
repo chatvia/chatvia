@@ -64,6 +64,7 @@ it('keeps only the fields the app reads', function (): void {
     Http::fake([ModelsDevCatalog::URL => Http::response(mdCatalog(), 200, ['ETag' => '"v1"'])]);
 
     expect(app(ModelsDevCatalog::class)->entry(LlmProviderKind::OpenAi, 'gpt-6-luna'))->toBe([
+        'name' => 'GPT-6 Luna',
         'reasoning' => true,
         'temperature' => false,
         'reasoning_options' => [['type' => 'effort', 'values' => ['none', 'low', 'medium', 'high', 'xhigh', 'max']]],
@@ -116,6 +117,19 @@ it('reads a stored entry without downloading', function (): void {
 
     expect($catalog->storedEntry(LlmProviderKind::OpenAi, 'gpt-6-luna')['limit'] ?? null)->toBe(['context' => 400000, 'output' => 128000]);
     Http::assertSentCount(1);
+});
+
+it('names a model for people as the stored catalog does, never downloading', function (): void {
+    Http::fake([ModelsDevCatalog::URL => Http::response(mdCatalog(), 200, ['ETag' => '"v1"'])]);
+    $catalog = app(ModelsDevCatalog::class);
+
+    expect($catalog->displayName(LlmProviderKind::OpenAi, 'gpt-6-luna'))->toBeNull();
+    Http::assertNothingSent();
+
+    $catalog->refresh();
+
+    expect($catalog->displayName(LlmProviderKind::OpenAi, 'gpt-6-luna'))->toBe('GPT-6 Luna')
+        ->and($catalog->displayName(LlmProviderKind::OpenAi, 'gpt-4.1-mini'))->toBeNull();
 });
 
 it('gives no facts when the catalog cannot be read, and waits a day to try again', function (): void {

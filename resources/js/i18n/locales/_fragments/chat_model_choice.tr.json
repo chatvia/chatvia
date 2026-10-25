@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "Model: {model}",
+        "model_picker_title": "Şununla yanıtla",
+        "model_default": "Varsayılan"
+    },
+    "messages": {
+        "regenerate_try_again": "Tekrar dene",
+        "regenerate_with_model": "Şununla tekrar dene",
+        "answered_by": "Yanıtlayan: {model}"
+    }
+}

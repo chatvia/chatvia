@@ -38,7 +38,10 @@
         "upload_limit_reached": "Du kan vedhæfte op til {count} fil | Du kan vedhæfte op til {count} filer",
         "send_message": "Send besked",
         "stop_streaming": "Stop generering",
-        "start_voice_call": "Tal med stemmen"
+        "start_voice_call": "Tal med stemmen",
+        "model_picker": "Model: {model}",
+        "model_picker_title": "Svar med",
+        "model_default": "Standard"
     },
     "header": {
         "toggle_sidebar": "Vis/skjul sidepanel",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Send",
         "feedback_comment_skip": "Spring over",
         "feedback_comment_thanks": "Tak for din feedback.",
+        "regenerate_try_again": "Prøv igen",
+        "regenerate_with_model": "Prøv igen med",
+        "answered_by": "Besvaret af {model}",
         "read_aloud": "Læs højt",
         "stop_reading": "Stop oplæsning",
         "read_aloud_loading": "Forbereder lyd…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Fjern boble",
             "bubbles_empty": "Ingen chatbobler endnu.",
             "bubbles_translate_empty": "Tilføj først en boble for at kunne oversætte den.",
+            "model_picker_title": "Model",
             "model_picker_description": "Den AI-model, som denne agent svarer med. En administrator vælger, hvilke modeller der er på listen (adminpanelet → Settings → AI models).",
             "model_placeholder": "Vælg en model",
+            "model_default": "Standard",
             "model_empty": "Ingen modeller endnu. En administrator tilføjer dem i adminpanelet under Settings → AI models.",
             "reasoning_title": "Overvejelser",
             "reasoning_description": "Hvor meget modellen tænker, før den svarer. Mere tænkning hjælper med svære spørgsmål, men svarene kommer langsommere og koster mere. Chattere ser tankerne i gråt over svaret.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "Din administrator har slået overvejelser fra for alle agenter (adminpanel → Indstillinger → AI-modeller).",
             "model_no_tools": "Ingen værktøjskald",
             "model_no_tools_title": "Denne model kan ikke kalde værktøjer",
-            "model_no_tools_description": "Værktøjer virker ikke: agenten svarer uden dem. Vælg en anden model, hvis agenten har brug for sine værktøjer."
+            "model_no_tools_description": "Værktøjer virker ikke: agenten svarer uden dem. Vælg en anden model, hvis agenten har brug for sine værktøjer.",
+            "multi_model": "Flere modeller",
+            "multi_model_help": "Vælg flere modeller. Chattere vælger så, hvilken der svarer, i den hostede chat, chatwidgeten og kommandolinjen, for hver besked og når de beder om et nyt svar.",
+            "multi_model_placeholder": "Vælg modeller",
+            "multi_model_hint": "Den første model svarer, indtil en chatter vælger en anden. Vælg mindst to, ellers ser chattere ingen vælger."
         },
         "topics_index": {
             "title": "Emner",

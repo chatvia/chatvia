@@ -9,10 +9,11 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Set the agent's single LLM, its hyperparameters and its reasoning effort.
- * The model lives as a column on the agent itself (`llm_id`); the
- * hyperparameters live in the `llm_settings` settings group, the effort in
- * `reasoning`. Tells the evals the agent's answers may have changed.
+ * Set the agent's single LLM, its hyperparameters, its reasoning effort and
+ * the models chatters may pick from. The model lives as a column on the agent
+ * itself (`llm_id`); the hyperparameters live in the `llm_settings` settings
+ * group, the effort in `reasoning`, the choice in `model_choice`. Tells the
+ * evals the agent's answers may have changed.
  */
 class UpdateAgentLlmAction
 {
@@ -29,6 +30,8 @@ class UpdateAgentLlmAction
             $agent->setSetting('presence_penalty', $data->presence_penalty, 'llm_settings');
             $agent->setSetting('frequency_penalty', $data->frequency_penalty, 'llm_settings');
             $agent->setSetting('effort', $data->reasoning_effort->value, 'reasoning');
+            $agent->setSetting('enabled', $data->model_choice_enabled, 'model_choice');
+            $agent->setSetting('models', array_values(array_unique($data->offered_model_ids)), 'model_choice');
         });
 
         AgentAnswersChanged::dispatch($agent->id);

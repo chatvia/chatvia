@@ -38,7 +38,10 @@
         "upload_limit_reached": "Pode anexar até {count} ficheiro | Pode anexar até {count} ficheiros",
         "send_message": "Enviar mensagem",
         "stop_streaming": "Parar a geração",
-        "start_voice_call": "Falar por voz"
+        "start_voice_call": "Falar por voz",
+        "model_picker": "Modelo: {model}",
+        "model_picker_title": "Responder com",
+        "model_default": "Padrão"
     },
     "header": {
         "toggle_sidebar": "Alternar barra lateral",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "Enviar",
         "feedback_comment_skip": "Pular",
         "feedback_comment_thanks": "Obrigado pelo seu feedback.",
+        "regenerate_try_again": "Tentar novamente",
+        "regenerate_with_model": "Tentar novamente com",
+        "answered_by": "Respondido por {model}",
         "read_aloud": "Ler em voz alta",
         "stop_reading": "Parar leitura",
         "read_aloud_loading": "A preparar o áudio…",
@@ -2078,8 +2084,10 @@
             "bubbles_remove": "Remover balão",
             "bubbles_empty": "Ainda não existem balões de chat.",
             "bubbles_translate_empty": "Adicione primeiro um balão para o poder traduzir.",
+            "model_picker_title": "Modelo",
             "model_picker_description": "O modelo de IA com que este agente responde. Um administrador escolhe quais modelos aparecem nesta lista (painel de administração → Settings → AI models).",
             "model_placeholder": "Escolha um modelo",
+            "model_default": "Predefinido",
             "model_empty": "Ainda não há modelos. Um administrador adiciona-os no painel de administração, em Settings → AI models.",
             "reasoning_title": "Raciocínio",
             "reasoning_description": "Quanto o modelo pensa antes de responder. Pensar mais ajuda nas perguntas difíceis, mas as respostas chegam mais devagar e custam mais. Os utilizadores veem o raciocínio a cinzento acima da resposta.",
@@ -2090,7 +2098,11 @@
             "reasoning_locked": "O seu administrador desligou o raciocínio para todos os agentes (painel de administração → Definições → Modelos de IA).",
             "model_no_tools": "Sem chamada de ferramentas",
             "model_no_tools_title": "Este modelo não consegue chamar ferramentas",
-            "model_no_tools_description": "As ferramentas não vão funcionar: o agente responde sem elas. Escolha outro modelo se o agente precisar das suas ferramentas."
+            "model_no_tools_description": "As ferramentas não vão funcionar: o agente responde sem elas. Escolha outro modelo se o agente precisar das suas ferramentas.",
+            "multi_model": "Multimodelo",
+            "multi_model_help": "Escolha vários modelos. Os usuários escolhem então qual responde, no chat hospedado, no widget de chat e na barra de comandos, em cada mensagem e ao pedir uma nova resposta.",
+            "multi_model_placeholder": "Escolher modelos",
+            "multi_model_hint": "O primeiro modelo responde até que um usuário escolha outro. Escolha pelo menos dois, ou os usuários não verão o seletor."
         },
         "topics_index": {
             "title": "Tópicos",

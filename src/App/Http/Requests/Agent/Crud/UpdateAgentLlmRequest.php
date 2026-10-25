@@ -12,11 +12,12 @@ use Illuminate\Validation\Rule;
 
 /**
  * Validates the agent's model choice, its sampling settings (temperature,
- * top-k, top-p, presence and frequency penalty) and its reasoning effort.
- * The model must be one that may be picked (it and its provider are on), or
- * the agent's current one. A new effort other than Off is refused while
- * the admin does not let agents reason. Agent access and the `agent.setup`
- * permission are checked by the route middleware.
+ * top-k, top-p, presence and frequency penalty), its reasoning effort and
+ * the models it offers chatters. The model, and each offered one, must be
+ * one that may be picked (it and its provider are on), or one the agent
+ * already uses. A new effort other than Off, and turning the chatters'
+ * choice on, are refused while the admin does not allow them. Agent access
+ * and the `agent.setup` permission are checked by the route middleware.
  */
 class UpdateAgentLlmRequest extends FormRequest
 {
@@ -55,6 +56,24 @@ class UpdateAgentLlmRequest extends FormRequest
                     $fail(__('Your admin has turned reasoning off.'));
                 }
             }],
+            // While the admin does not let agents offer a choice, it can only
+            // be turned off or kept as it is (it then waits, unused).
+            'model_choice_enabled' => ['sometimes', 'boolean', function (string $attribute, mixed $value, Closure $fail) use ($agent): void {
+                $kept = (bool) $agent->settings('model_choice')->get('enabled');
+
+                if ($this->boolean('model_choice_enabled') && ! $kept && ! (bool) config('chatvia.ai.chatter_model_choice')) {
+                    $fail(__('Your admin does not let chatters pick a model.'));
+                }
+            }],
+            'offered_model_ids' => ['sometimes', 'array', 'max:20'],
+            'offered_model_ids.*' => ['integer', 'distinct', function (string $attribute, mixed $value, Closure $fail) use ($agent): void {
+                $model = Llm::catalog()->firstWhere('id', (int) $value);
+                $kept = collect((array) $agent->settings('model_choice')->get('models'))->contains((int) $value);
+
+                if (! $model instanceof Llm || (! $model->isAvailable() && ! $kept)) {
+                    $fail(__('Pick one of the available models.'));
+                }
+            }],
         ];
     }
 
@@ -68,6 +87,8 @@ class UpdateAgentLlmRequest extends FormRequest
             presence_penalty: (float) $this->input('presence_penalty'),
             frequency_penalty: (float) $this->input('frequency_penalty'),
             reasoning_effort: $this->enum('reasoning_effort', ReasoningEffort::class) ?? ReasoningEffort::Off,
+            model_choice_enabled: $this->boolean('model_choice_enabled'),
+            offered_model_ids: collect((array) $this->input('offered_model_ids', []))->map(fn (mixed $id): int => (int) $id)->values()->all(),
         );
     }
 }

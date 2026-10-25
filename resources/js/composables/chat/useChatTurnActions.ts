@@ -17,6 +17,8 @@ import { isNewConversationVisit, type ChatStreamTurn } from './useChatStreamTurn
 
 interface TurnActionDeps {
     conversationId: string;
+    /** Switches the chatter's picked model, for a regenerate with another model. */
+    pickModel?: (id: number) => void;
     /** On the iframe-embed pages, whose "new chat" screen is the embed one. */
     embedded: boolean;
     transcript: ChatMessages;
@@ -24,7 +26,7 @@ interface TurnActionDeps {
     scroll: ChatScroll;
 }
 
-export function useChatTurnActions({ conversationId, embedded, transcript, turn, scroll }: TurnActionDeps) {
+export function useChatTurnActions({ conversationId, pickModel, embedded, transcript, turn, scroll }: TurnActionDeps) {
     const { t } = useI18n();
 
     const goToNewChat = () => router.visit(chatPages(embedded).home());
@@ -40,7 +42,10 @@ export function useChatTurnActions({ conversationId, embedded, transcript, turn,
         return reissue(userMessageId, assistantMessageId, newContent);
     }
 
-    async function regenerate(userMessageId: MessageId, assistantMessageId: MessageId, onDone?: () => void) {
+    /** With a model id the new answer (and the chatter's later messages) use that model. */
+    async function regenerate(userMessageId: MessageId, assistantMessageId: MessageId, onDone?: () => void, modelId?: number) {
+        if (modelId !== undefined) pickModel?.(modelId);
+
         try {
             await reissue(userMessageId, assistantMessageId);
         } finally {

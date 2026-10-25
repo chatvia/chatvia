@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "Malli: {model}",
+        "model_picker_title": "Vastaa mallilla",
+        "model_default": "Oletus"
+    },
+    "messages": {
+        "regenerate_try_again": "Yritä uudelleen",
+        "regenerate_with_model": "Yritä uudelleen mallilla",
+        "answered_by": "Vastasi {model}"
+    }
+}

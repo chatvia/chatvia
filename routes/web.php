@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Admin\Settings\ModelLogoController;
 use App\Http\Controllers\Agent\Chunks\AgentChunkImageViewController;
 use App\Http\Controllers\Auth\Social\GithubAuthController;
 use App\Http\Controllers\Auth\Social\GithubCallbackAuthController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Chat\Messages\AttachmentViewController;
 use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Facades\Route;
 
 // `/` has no landing page: guests go to the login form, signed-in users to
@@ -53,6 +55,13 @@ Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewCo
 Route::get('attachments/{attachment}', AttachmentViewController::class)
     ->middleware('signed:relative')
     ->name('attachments.view');
+
+// A model maker's logo (models.dev), for the model pickers chatters see in
+// the hosted chat and the widget. Public: logos hold nothing of a workspace.
+Route::get('model-logos/{logo}.svg', ModelLogoController::class)
+    ->where('logo', ModelsDevCatalog::LOGO_PATTERN)
+    ->middleware('throttle:120,1,model-logos')
+    ->name('model-logo');
 
 // Serves a tenant's uploaded knowledge-base file. Requires auth; the controller
 // additionally scopes the file to the caller's workspace (cross-tenant IDOR).

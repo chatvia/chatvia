@@ -43,6 +43,8 @@ export interface Message {
     errorRetryable?: boolean;
     /** The model's thinking while this reply streamed. Live only: never stored, so gone after a reload. */
     reasoning?: string;
+    /** The catalog model that wrote this reply; shown with Multi-model on. */
+    llm_id?: number | null;
 }
 
 /**

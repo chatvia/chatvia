@@ -114,6 +114,10 @@
             "model_no_tools": "Keine Tool-Aufrufe",
             "model_no_tools_title": "Dieses Modell kann keine Tools aufrufen",
             "model_no_tools_description": "Tools funktionieren nicht: Der Agent antwortet ohne sie. Wählen Sie ein anderes Modell, wenn der Agent seine Tools braucht.",
+            "multi_model": "Mehrere Modelle",
+            "multi_model_help": "Wähle mehrere Modelle. Chatter wählen dann, welches antwortet, im gehosteten Chat, im Chat-Widget und in der Befehlsleiste, für jede Nachricht und wenn sie eine neue Antwort anfordern.",
+            "multi_model_placeholder": "Modelle wählen",
+            "multi_model_hint": "Das erste Modell antwortet, bis ein Chatter ein anderes wählt. Wähle mindestens zwei, sonst sehen Chatter keine Auswahl.",
             "behavior": {
                 "hosted_title": "Verhalten des gehosteten Chats",
                 "hosted_description": "Iframe-Optionen für die eingebettete gehostete Chat-Oberfläche.",

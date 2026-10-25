@@ -251,7 +251,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     protected function cards(): array
     {
         return [
-            SettingsCard::make('models', 'Models agents can use', 'Add models from your connected providers. Each agent picks one of them.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
+            SettingsCard::make('models', 'Chat', 'The models that write your agents\' replies in chats. Each agent uses one of them.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
                 $this->unlistedCallout(),
                 EmbeddedTable::make(),
                 $this->withHelp($this->modelChoice('default_agent_model', 'Default model for new agents', unset: 'The first model on the list'),
@@ -260,6 +260,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'How many recent messages of a conversation an agent reads each time it answers, in typed chats and voice calls. More helps with follow-up questions, but each answer costs more.'),
                 $this->toggle('allow_reasoning', 'Let agents reason',
                     'Models with "Reasons" on can think before they answer. With this on, each agent picks how hard in its AI model settings: Off, Low, Medium or High. Every agent starts at Off. Chatters see the thinking in grey above the answer, and can fold it away. More thinking gives better answers to hard questions, but they come slower and cost more. OpenAI\'s own API sends a summary of the thinking, once OpenAI has verified your organization. With this off, every agent is at Off.'),
+                $this->toggle('chatter_model_choice', 'Let chatters pick a model',
+                    'With this on, each agent can turn on Multi-model (agent Setup → Model) and pick several of the models above. Chatters then pick one in the hosted chat, the chat widget and the command bar, for each message and when they ask for a new answer. With this off, every agent answers with its own model.'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
                 $this->reindexCallout(),
@@ -423,7 +425,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         ];
     }
 
-    // --- Models agents can use ---------------------------------------------------
+    // --- Chat --------------------------------------------------------------------
 
     public function table(Table $table): Table
     {

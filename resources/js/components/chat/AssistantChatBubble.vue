@@ -3,7 +3,8 @@
  * One assistant reply in the hosted chat: the model's thinking (when the
  * agent reasons, live only), the rendered answer, a "still working"
  * indicator (dots or the tool-call stack), any tool calls awaiting approval,
- * and the action row (copy, read aloud, feedback, delete, regenerate, sources). After a
+ * and the action row (copy, read aloud, feedback, delete, regenerate (a menu
+ * of models when the agent offers a choice), sources). After a
  * thumbs-down, an optional note on what was wrong.
  */
 import { deleteMessage as deleteMessageRequest, sendMessageFeedback, type MessageFeedbackValue } from '@/api/chat';
@@ -19,7 +20,17 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useChatModelChoice } from '@/composables/chat/useChatModelChoice';
 import { useReadAloud } from '@/composables/chat/useReadAloud';
 import type { ActiveToolCall, Message, MessageSource } from '@/types/chat';
 import type { ToolApprovalCall, ToolArtifact } from '@/types/stream';
@@ -30,6 +41,7 @@ import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { citedSources } from '@/lib/citations';
 import AssistantMessageBody from './AssistantMessageBody.vue';
+import ChatModelLogo from './ChatModelLogo.vue';
 import CitedSourcesList from './CitedSourcesList.vue';
 import ReasoningBlock from './ReasoningBlock.vue';
 import SourcesDialog from './SourcesDialog.vue';
@@ -73,7 +85,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     messageDeleted: [id: MessageId];
     feedbackProvided: [id: MessageId, type: Feedback];
-    regenerate: [userMessageId: MessageId, assistantMessageId: MessageId, onDone: () => void];
+    regenerate: [userMessageId: MessageId, assistantMessageId: MessageId, onDone: () => void, modelId?: number];
     approveTool: [call: ToolApprovalCall];
     denyTool: [call: ToolApprovalCall];
 }>();
@@ -141,14 +153,31 @@ async function toggleReadAloud() {
     }
 }
 
-function regenerate() {
+/** With a model id the new answer comes from that model (the agent offers a choice). */
+function regenerate(modelId?: number) {
     if (persistedId.value === null || props.userMessageId === undefined || !props.conversationId) return;
 
     isRegenerating.value = true;
-    emit('regenerate', props.userMessageId, persistedId.value, () => {
-        isRegenerating.value = false;
-    });
+    emit(
+        'regenerate',
+        props.userMessageId,
+        persistedId.value,
+        () => {
+            isRegenerating.value = false;
+        },
+        modelId,
+    );
 }
+
+// Offering models turns the regenerate button into a menu: try again with
+// the current pick, or with another model.
+const modelChoice = useChatModelChoice();
+const regenerateModels = computed(() => modelChoice?.models.value ?? []);
+
+/** With Multi-model on, the model that wrote this reply, shown at the end of the action row. */
+const answeredBy = computed(() =>
+    regenerateModels.value.length > 1 ? (regenerateModels.value.find((model) => model.id === props.message.llm_id) ?? null) : null,
+);
 
 /** Clicking the active thumb again clears it. A failed save resets the thumbs. */
 async function provideFeedback(type: Feedback) {
@@ -339,18 +368,62 @@ async function deleteMessage() {
                         </AlertDialogContent>
                     </AlertDialog>
 
+                    <DropdownMenu v-if="userMessageId !== undefined && regenerateModels.length > 1">
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
+                                :disabled="isRegenerating"
+                                :title="t('messages.regenerate_tooltip')"
+                                :aria-label="t('messages.regenerate_tooltip')"
+                            >
+                                <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" class="w-64">
+                            <DropdownMenuItem class="gap-2" @select="regenerate()">
+                                <RefreshCw class="size-4" />
+                                {{ t('messages.regenerate_try_again') }}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel class="text-muted-foreground text-xs font-normal">{{
+                                t('messages.regenerate_with_model')
+                            }}</DropdownMenuLabel>
+                            <DropdownMenuItem v-for="model in regenerateModels" :key="model.id" class="gap-2" @select="regenerate(model.id)">
+                                <ChatModelLogo :logo="model.logo" />
+                                <span class="truncate">{{ model.name }}</span>
+                                <Check v-if="model.id === modelChoice?.modelId.value" class="ms-auto size-4" />
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
-                        v-if="userMessageId !== undefined"
+                        v-else-if="userMessageId !== undefined"
                         size="icon"
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
                         :disabled="isRegenerating"
-                        @click="regenerate"
+                        @click="regenerate()"
                         :title="t('messages.regenerate_tooltip')"
                         :aria-label="t('messages.regenerate_tooltip')"
                     >
                         <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
                     </Button>
+                    <!-- Multi-model: the logo of the model that wrote this reply; its name in the tooltip. -->
+                    <TooltipProvider v-if="answeredBy" :delay-duration="200">
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <span
+                                    tabindex="0"
+                                    class="text-muted-foreground hover:text-foreground flex h-7 w-7 items-center justify-center rounded-md"
+                                    :aria-label="t('messages.answered_by', { model: answeredBy.name })"
+                                >
+                                    <ChatModelLogo :logo="answeredBy.logo" />
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">{{ t('messages.answered_by', { model: answeredBy.name }) }}</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
 
                 <div class="flex items-center gap-2">

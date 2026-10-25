@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "Modèle : {model}",
+        "model_picker_title": "Répondre avec",
+        "model_default": "Par défaut"
+    },
+    "messages": {
+        "regenerate_try_again": "Réessayer",
+        "regenerate_with_model": "Réessayer avec",
+        "answered_by": "Répondu par {model}"
+    }
+}

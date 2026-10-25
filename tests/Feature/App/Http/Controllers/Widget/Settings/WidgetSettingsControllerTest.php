@@ -7,7 +7,7 @@ use Tests\Support\Widget\EmbeddedWidget;
 /**
  * The widget's settings tell it which voice features to show: the dictation
  * mic only while speech to text is set up, the voice button only while voice
- * calls are.
+ * calls are; and which models the chatter may pick.
  */
 beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
@@ -31,3 +31,19 @@ it('tells the widget which voice features to show', function (array $config, str
     'voice button, voice calls set up' => [[], 'voice_conversation', true],
     'voice button, voice calls not set up' => [['chatvia.ai.voice' => 'none'], 'voice_conversation', false],
 ]);
+
+it('lists the models the chatter may pick, the agent\'s own first', function (): void {
+    $own = testLlm('own-model');
+    $other = testLlm('other-model');
+    $this->agent->forceFill(['llm_id' => $own->id])->saveQuietly();
+    config(['chatvia.ai.chatter_model_choice' => true]);
+    $this->agent->setSetting('enabled', true, 'model_choice');
+    $this->agent->setSetting('models', [$other->id], 'model_choice');
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
+        ->getJson('/widget/agents/settings')
+        ->assertOk()
+        ->assertJsonPath('models.0.id', $own->id)
+        ->assertJsonPath('models.0.is_default', true)
+        ->assertJsonPath('models.1.id', $other->id);
+});

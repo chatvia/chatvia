@@ -7,8 +7,10 @@ use Illuminate\Testing\TestResponse;
 
 /**
  * Setup → Model saves the agent's model (one an admin made available), its
- * generation settings and its reasoning effort. While the admin does not let
- * agents reason, only Off or the effort saved before can be sent.
+ * generation settings, its reasoning effort and, with Multi-model, the other
+ * models chatters may pick. While the admin does not let agents reason, only
+ * Off or the effort saved before can be sent; while the admin does not allow
+ * Multi-model, it cannot be turned on.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -75,3 +77,38 @@ it('still saves the effort saved before, or Off, while the admin does not let ag
 
     expect($this->agent->fresh()->settings('reasoning')->get('effort'))->toBe($effort);
 })->with(['the saved one' => 'high', 'off' => 'off']);
+
+it('saves Multi-model and the other models chatters may pick', function (): void {
+    config(['chatvia.ai.chatter_model_choice' => true]);
+    $other = testLlm('third-model');
+
+    ualSave($this->owner, $this->agent, $this->model, [
+        'model_choice_enabled' => true,
+        'offered_model_ids' => [$other->id],
+    ])->assertSessionHasNoErrors();
+
+    $choice = $this->agent->fresh()->settings('model_choice');
+
+    expect($choice->get('enabled'))->toBeTrue()
+        ->and($choice->get('models'))->toBe([$other->id]);
+});
+
+it('refuses to turn Multi-model on while the admin does not allow it', function (): void {
+    config(['chatvia.ai.chatter_model_choice' => false]);
+
+    ualSave($this->owner, $this->agent, $this->model, ['model_choice_enabled' => true])
+        ->assertSessionHasErrors('model_choice_enabled');
+
+    expect($this->agent->fresh()->settings('model_choice')->get('enabled'))->toBeFalse();
+});
+
+it('refuses a picked model that is not available', function (): void {
+    config(['chatvia.ai.chatter_model_choice' => true]);
+    $off = testLlm('off-model');
+    $off->provider->forceFill(['is_enabled' => false])->save();
+
+    ualSave($this->owner, $this->agent, $this->model, [
+        'model_choice_enabled' => true,
+        'offered_model_ids' => [$off->id],
+    ])->assertSessionHasErrors('offered_model_ids.0');
+});

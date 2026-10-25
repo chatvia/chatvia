@@ -114,6 +114,10 @@
             "model_no_tools": "Sem chamada de ferramentas",
             "model_no_tools_title": "Este modelo não consegue chamar ferramentas",
             "model_no_tools_description": "As ferramentas não vão funcionar: o agente responde sem elas. Escolha outro modelo se o agente precisar das suas ferramentas.",
+            "multi_model": "Multimodelo",
+            "multi_model_help": "Escolha vários modelos. Os usuários escolhem então qual responde, no chat hospedado, no widget de chat e na barra de comandos, em cada mensagem e ao pedir uma nova resposta.",
+            "multi_model_placeholder": "Escolher modelos",
+            "multi_model_hint": "O primeiro modelo responde até que um usuário escolha outro. Escolha pelo menos dois, ou os usuários não verão o seletor.",
             "behavior": {
                 "hosted_title": "Comportamento do Chat Alojado",
                 "hosted_description": "Opções de iframe para a superfície de Chat Alojado incorporado.",

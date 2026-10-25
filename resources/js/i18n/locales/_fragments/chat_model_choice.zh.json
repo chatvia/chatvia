@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "model_picker": "模型：{model}",
+        "model_picker_title": "回答模型",
+        "model_default": "默认"
+    },
+    "messages": {
+        "regenerate_try_again": "重试",
+        "regenerate_with_model": "换个模型重试",
+        "answered_by": "由 {model} 回答"
+    }
+}

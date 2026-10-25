@@ -114,6 +114,10 @@
             "model_no_tools": "Inga verktygsanrop",
             "model_no_tools_title": "Den här modellen kan inte anropa verktyg",
             "model_no_tools_description": "Verktyg fungerar inte: agenten svarar utan dem. Välj en annan modell om agenten behöver sina verktyg.",
+            "multi_model": "Flera modeller",
+            "multi_model_help": "Välj flera modeller. Chattare väljer då vilken som svarar, i den hostade chatten, chattwidgeten och kommandofältet, för varje meddelande och när de ber om ett nytt svar.",
+            "multi_model_placeholder": "Välj modeller",
+            "multi_model_hint": "Den första modellen svarar tills en chattare väljer en annan. Välj minst två, annars ser chattare ingen väljare.",
             "behavior": {
                 "hosted_title": "Beteende för Hosted Chat",
                 "hosted_description": "Iframe-alternativ för den inbäddade Hosted Chat-ytan.",

@@ -13,6 +13,7 @@ import ChatMessageList from '@/components/chat/ChatMessageList.vue';
 import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import { useChatMessages } from '@/composables/chat/useChatMessages';
+import { provideChatModelChoice, type OfferedModel } from '@/composables/chat/useChatModelChoice';
 import { useChatScroll } from '@/composables/chat/useChatScroll';
 import { isNewConversationVisit, useChatStreamTurn } from '@/composables/chat/useChatStreamTurn';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
@@ -55,6 +56,8 @@ interface Props {
     voiceConversation?: boolean;
     /** Whether replies get a speaker button: the owner turned it on and the server has text to speech set up. */
     readAloud?: boolean;
+    /** The models the chatter may pick from; empty hides the picker. */
+    models?: OfferedModel[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -80,6 +83,7 @@ const props = withDefaults(defineProps<Props>(), {
     allowVoiceInput: false,
     voiceConversation: false,
     readAloud: false,
+    models: () => [],
 });
 
 const { t } = useI18n();
@@ -90,9 +94,11 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const transcriptContent = ref<HTMLElement | null>(null);
 const scroll = useChatScroll(messagesContainer, transcriptContent);
 const transcript = useChatMessages(props.conversation_id);
-const turn = useChatStreamTurn({ conversationId: props.conversation_id, transcript, scroll });
+const modelChoice = provideChatModelChoice(props.agent_id, () => props.models);
+const turn = useChatStreamTurn({ conversationId: props.conversation_id, transcript, scroll, modelId: () => modelChoice.modelId.value });
 const actions = useChatTurnActions({
     conversationId: props.conversation_id,
+    pickModel: modelChoice.pick,
     embedded: props.embedded,
     transcript,
     turn,

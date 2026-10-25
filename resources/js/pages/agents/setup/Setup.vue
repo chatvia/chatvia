@@ -34,7 +34,7 @@ import { provideSetupContext } from '@/composables/agents/setup/useSetupContext'
 import { useSetupDomain } from '@/composables/agents/setup/useSetupDomain';
 import { useSetupGeneralSettings, type SetupReadAloudOptions, type SetupVoiceOptions } from '@/composables/agents/setup/useSetupGeneralSettings';
 import { useSetupLanguages } from '@/composables/agents/setup/useSetupLanguages';
-import { useSetupModel } from '@/composables/agents/setup/useSetupModel';
+import { useSetupModel, type ModelChoice } from '@/composables/agents/setup/useSetupModel';
 import { useSetupPreview } from '@/composables/agents/setup/useSetupPreview';
 import { useSetupSections } from '@/composables/agents/setup/useSetupSections';
 import { useSetupStarters } from '@/composables/agents/setup/useSetupStarters';
@@ -86,6 +86,9 @@ interface Props {
     /** How hard the agent reasons (off, low, medium, high), and whether the admin lets agents reason at all. */
     reasoningEffort: string | null;
     reasoningAllowed: boolean;
+    /** Which other models chatters may pick from, and whether the admin lets agents offer a choice at all. */
+    modelChoice: ModelChoice;
+    modelChoiceAllowed: boolean;
 
     availableLanguages: Record<string, string>;
 
@@ -121,7 +124,7 @@ provideSetupContext({
     languages: useSetupLanguages(deps, appearance, () => props.availableLanguages),
     starters: useSetupStarters(deps, props.starters),
     bubbles: useSetupBubbles(deps, props.bubbles),
-    model: useSetupModel(deps, props.selectedModel, props.llmSettings, props.reasoningEffort),
+    model: useSetupModel(deps, props.selectedModel, props.llmSettings, props.reasoningEffort, props.modelChoice),
     branding: useSetupBranding(deps, appearance, () => props.appearanceSettings),
     behavior: useSetupBehavior(
         deps,
@@ -178,6 +181,7 @@ provideSetupContext({
                                     :catalog="catalog"
                                     :default-model="defaultModel"
                                     :reasoning-allowed="reasoningAllowed"
+                                    :model-choice-allowed="modelChoiceAllowed"
                                 />
                                 <SetupBrandingPanel v-if="activeSection === 'branding'" />
 

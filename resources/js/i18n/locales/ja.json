@@ -38,7 +38,10 @@
         "upload_limit_reached": "添付できるファイルは最大 {count} 件です | 添付できるファイルは最大 {count} 件です",
         "send_message": "メッセージを送信",
         "stop_streaming": "生成を停止",
-        "start_voice_call": "音声で話す"
+        "start_voice_call": "音声で話す",
+        "model_picker": "モデル: {model}",
+        "model_picker_title": "回答に使うモデル",
+        "model_default": "デフォルト"
     },
     "header": {
         "toggle_sidebar": "サイドバーを切り替え",
@@ -147,6 +150,9 @@
         "feedback_comment_send": "送信",
         "feedback_comment_skip": "スキップ",
         "feedback_comment_thanks": "フィードバックをありがとうございます。",
+        "regenerate_try_again": "もう一度試す",
+        "regenerate_with_model": "別のモデルで再試行",
+        "answered_by": "{model} が回答",
         "read_aloud": "読み上げ",
         "stop_reading": "読み上げを停止",
         "read_aloud_loading": "音声を準備中…",
@@ -2077,8 +2083,10 @@
             "bubbles_remove": "バブルを削除",
             "bubbles_empty": "チャットバブルはまだありません。",
             "bubbles_translate_empty": "翻訳するには、まずバブルを追加してください。",
+            "model_picker_title": "モデル",
             "model_picker_description": "このエージェントが回答に使うAIモデルです。このリストに載せるモデルは管理者が選びます（管理パネル → Settings → AI models）。",
             "model_placeholder": "モデルを選択",
+            "model_default": "デフォルト",
             "model_empty": "モデルはまだありません。管理者が管理パネルの Settings → AI models で追加します。",
             "reasoning_title": "推論",
             "reasoning_description": "モデルが答える前にどれだけ考えるかです。よく考えると難しい質問に強くなりますが、回答は遅くなり、費用も増えます。チャット利用者には、回答の上に推論がグレーで表示されます。",
@@ -2089,7 +2097,11 @@
             "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。",
             "model_no_tools": "ツール呼び出し非対応",
             "model_no_tools_title": "このモデルはツールを呼び出せません",
-            "model_no_tools_description": "ツールは動作しません。エージェントはツールなしで回答します。エージェントにツールが必要な場合は、別のモデルを選んでください。"
+            "model_no_tools_description": "ツールは動作しません。エージェントはツールなしで回答します。エージェントにツールが必要な場合は、別のモデルを選んでください。",
+            "multi_model": "マルチモデル",
+            "multi_model_help": "複数のモデルを選びます。チャット利用者は、ホスト型チャット、チャットウィジェット、コマンドバーで、メッセージごとと新しい回答を求めるときに、どのモデルが回答するかを選べます。",
+            "multi_model_placeholder": "モデルを選択",
+            "multi_model_hint": "チャット利用者が別のモデルを選ぶまで、最初のモデルが回答します。2 つ以上選んでください。1 つだけだと選択肢は表示されません。"
         },
         "topics_index": {
             "title": "トピック",

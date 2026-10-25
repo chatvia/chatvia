@@ -114,6 +114,10 @@
             "model_no_tools": "Brak wywołań narzędzi",
             "model_no_tools_title": "Ten model nie potrafi wywoływać narzędzi",
             "model_no_tools_description": "Narzędzia nie będą działać: agent odpowiada bez nich. Wybierz inny model, jeśli agent potrzebuje swoich narzędzi.",
+            "multi_model": "Wiele modeli",
+            "multi_model_help": "Wybierz kilka modeli. Rozmówcy wybierają wtedy, który odpowiada, w czacie hostowanym, widżecie czatu i pasku poleceń, dla każdej wiadomości i przy prośbie o nową odpowiedź.",
+            "multi_model_placeholder": "Wybierz modele",
+            "multi_model_hint": "Pierwszy model odpowiada, dopóki rozmówca nie wybierze innego. Wybierz co najmniej dwa, inaczej rozmówcy nie zobaczą wyboru.",
             "behavior": {
                 "hosted_title": "Zachowanie hostowanego czatu",
                 "hosted_description": "Opcje iframe dla osadzonej powierzchni hostowanego czatu.",

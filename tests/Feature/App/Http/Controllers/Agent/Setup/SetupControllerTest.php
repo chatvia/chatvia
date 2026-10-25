@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Collection;
@@ -12,7 +13,8 @@ use Inertia\Testing\AssertableInertia;
  * → AI models) with their provider's logo, their models.dev name and maker's
  * logo, marks the default, preselects the agent's own model (or the default
  * while it has none), and shows the saved generation settings and reasoning
- * effort.
+ * effort. The workspace's prompt library goes only to someone who may set the
+ * agent up or manage the library.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -108,4 +110,17 @@ it('locks the file-upload switch while the install has no chat file uploads', fu
         useChatFiles(false);
     }, false],
     'no model reads files' => [function (): void {}, false],
+]);
+
+it('sends the prompt library only to someone who may set the agent up or manage prompts', function (array $permissions, int $count): void {
+    AgentPrompt::factory()->create(['workspace_id' => $this->owner->workspace()->id]);
+
+    $this->actingAs(teammateWithPermissions($this->owner, $permissions))
+        ->get(route('agents.setup', $this->agent->external_id))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('prompts', $count));
+})->with([
+    'agent access only' => [['agent.chat.view'], 0],
+    'agent.setup' => [['agent.setup'], 1],
+    'account.prompts' => [['account.prompts'], 1],
 ]);

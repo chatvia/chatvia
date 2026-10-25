@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\TeamPermissionPolicy;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Facades\Broadcast;
@@ -59,6 +60,8 @@ Broadcast::channel('agents.{externalId}.evals', function (User $user, string $ex
 |
 | These channels support both authenticated users (admins/staff) and widget users
 | (via session-based auth). The widget will connect with a session token.
+| Staff join the conversation's live view, so they need the same
+| `agent.chat.view` permission the dashboard's chat log asks for.
 |
 */
 Broadcast::channel('chat.{conversationId}', function ($user, $conversationId): false|array {
@@ -79,7 +82,8 @@ Broadcast::channel('chat.{conversationId}', function ($user, $conversationId): f
         return false;
     }
 
-    if (! Gate::forUser($user)->allows('access-agent', $agent)) {
+    if (! Gate::forUser($user)->allows('access-agent', $agent)
+        || ! app(TeamPermissionPolicy::class)->allowsOnAgent($user, $agent, 'agent.chat.view')) {
         return false;
     }
 

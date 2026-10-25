@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
+use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Process;
 
 /**
@@ -43,6 +44,35 @@ it('turns audio and video of any format into a short MP3', function (string $ext
     'flac' => ['flac', false],
     'mov' => ['mov', true],
     'mkv' => ['mkv', true],
+]);
+
+it('reads a voice note with the demuxer it is told to use', function (): void {
+    $recording = acRecording('webm');
+
+    $mp3 = deleteAfterTest(app(AudioCompressor::class)->process($recording, inputFormat: 'webm'));
+
+    expect($mp3)->toEndWith('.mp3');
+});
+
+it('never reads a file as another format than the one it is told', function (): void {
+    // An HLS playlist saved under an audio name: ffmpeg would follow its
+    // entries if it picked the demuxer from the content.
+    $playlist = tempTestFile('recording.webm', "#EXTM3U\n#EXTINF:1,\nhttp://example.invalid/a.ts\n");
+
+    expect(fn (): string => app(AudioCompressor::class)->process($playlist, inputFormat: 'webm'))
+        ->toThrow(RuntimeException::class, 'Compression failed');
+});
+
+it('lets ffmpeg open local files only, with the demuxer it is told when there is one', function (?string $inputFormat, array $demuxer): void {
+    Process::fake();
+    $recording = tempTestFile('recording.webm', 'bytes');
+
+    app(AudioCompressor::class)->process($recording, inputFormat: $inputFormat);
+
+    Process::assertRan(fn (PendingProcess $process): bool => array_slice($process->command, 1, 4 + count($demuxer) + 2) === ['-v', 'error', '-protocol_whitelist', 'file', ...$demuxer, '-i', $recording]);
+})->with([
+    'a voice note' => ['webm', ['-f', 'webm']],
+    'a knowledge file' => [null, []],
 ]);
 
 it('fails on a file ffmpeg cannot read, and leaves no MP3 behind', function (): void {

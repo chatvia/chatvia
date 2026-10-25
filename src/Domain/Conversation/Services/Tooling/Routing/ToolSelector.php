@@ -22,7 +22,8 @@ use Throwable;
  *   - Union the agent's "always on" connector tools (AlwaysAvailableToolResolver).
  *   - Union sticky tools from recent assistant turns of the conversation.
  *   - Drop tools the conversation's surface can't render (SurfaceToolFilter),
- *     and tools that need approval where no one can approve (ApprovalToolFilter).
+ *     and tools that need approval where no one can approve (ApprovalToolFilter;
+ *     for an anonymous visitor, {@see selectForVisitorTurn()}).
  *   - Flatten the result to the OpenAI `tools` shape LlmSource expects.
  *
  * Fallback: any failure in routing (embedding API down, malformed
@@ -99,6 +100,20 @@ class ToolSelector
         ]);
 
         return $this->toOpenAiTools($shipped);
+    }
+
+    /**
+     * The tools for a turn with no signed-in person (an anonymous visitor):
+     * those of {@see selectForTurn()} without any that need approval, since
+     * only a signed-in chatter or staff account may approve a call.
+     *
+     * @return array<int, array<string, mixed>> OpenAI tool definitions
+     */
+    public function selectForVisitorTurn(Agent $agent, string $userMessage, ?string $conversationId): array
+    {
+        $definitions = $this->selectForTurn($agent, $userMessage, $conversationId);
+
+        return $definitions === [] ? [] : $this->approvalFilter->withoutGated($agent, $definitions);
     }
 
     /**

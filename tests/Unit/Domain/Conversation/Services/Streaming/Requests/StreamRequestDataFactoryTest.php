@@ -87,3 +87,40 @@ it('marks a widget turn from the dashboard playground', function (): void {
     expect($factory->forWidget($request, $agent, 's', 't', isPlayground: true)->source)->toBe('playground')
         ->and($factory->forWidget($request, $agent, 's', 't', isPlayground: false)->source)->toBeNull();
 });
+
+it('scopes the client request id to the agent, session and conversation it was sent for', function (): void {
+    $agent = Agent::factory()->create();
+    $other = Agent::factory()->create();
+    $factory = app(StreamRequestDataFactory::class);
+    $id = '0199c0de-0000-7000-8000-000000000001';
+
+    $chat = fn (Agent $agent, string $session, string $conversation): ?string => $factory->forChat(
+        Request::create('/chat', 'POST', ['message' => 'Hi', 'request_id' => $id]), $agent, $session, $conversation,
+    )->requestId;
+    $widget = fn (Agent $agent, string $session, string $thread): ?string => $factory->forWidget(
+        Request::create('/widget', 'POST', ['content' => 'Hi'], server: ['HTTP_X_REQUEST_ID' => $id]), $agent, $session, $thread, isPlayground: false,
+    )->requestId;
+
+    $ids = [
+        $chat($agent, 's1', 'c1'),
+        $chat($other, 's1', 'c1'),
+        $chat($agent, 's2', 'c1'),
+        $chat($agent, 's1', 'c2'),
+        $widget($agent, 's1', 'c1'),
+        $widget($other, 's1', 'c1'),
+        $widget($agent, 's2', 'c1'),
+    ];
+
+    expect($ids)->each->toEndWith($id)
+        ->and(collect($ids)->unique())->toHaveCount(count($ids))
+        ->and($chat($agent, 's1', 'c1'))->toBe($ids[0]);
+});
+
+it('leaves a turn without a client request id unscoped', function (): void {
+    $agent = Agent::factory()->create();
+
+    [$hosted, $widget] = srdfRequests($agent);
+
+    expect($hosted->requestId)->toBeNull()
+        ->and($widget->requestId)->toBeNull();
+});

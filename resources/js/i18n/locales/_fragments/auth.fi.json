@@ -163,6 +163,14 @@
             "card_title": "Kutsu on vanhentunut",
             "contact_owner": "Pyydä tiimin omistajalta uutta kutsua.",
             "go_to_login": "Siirry kirjautumiseen"
+        },
+        "switch_chat_account": {
+            "head": "Vaihda tiliä",
+            "description": "Tämä linkki kirjaa sinut tähän chattiin toisella tilillä.",
+            "signed_in_as": "Olet nyt kirjautunut käyttäjänä {name}.",
+            "continue_as": "Jatka käyttäjänä {name}",
+            "stay_as": "Pysy kirjautuneena käyttäjänä {name}",
+            "cancel": "Peruuta"
         }
     }
 }

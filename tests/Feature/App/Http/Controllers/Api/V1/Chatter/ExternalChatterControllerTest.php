@@ -9,7 +9,8 @@ use Tests\Support\Api\ActsAsApiOwner;
  * password, granted the agents the request names. An email the workspace
  * already uses is a field error; which other emails are allowed is
  * CreateChatterAction's rule and is tested there. One agent that is not the
- * workspace's refuses the whole request.
+ * workspace's, or that a calling teammate's role does not reach, refuses the
+ * whole request.
  */
 uses(ActsAsApiOwner::class);
 
@@ -101,4 +102,17 @@ it("refuses the whole request when one agent is another workspace's and creates 
         ->assertJsonMissingValidationErrors(['agent_ids.0']);
 
     expect(Chatter::where('email', 'jane@example.test')->where('workspace_id', $this->owner->workspace()->id)->exists())->toBeFalse();
+});
+
+it('refuses a teammate a chatter for an agent their role does not reach', function (): void {
+    $reached = createAgent($this->owner);
+    $teammate = teammateWithPermissions($this->owner, ['account.chatters.manage'], allAgents: false, agentExternalIds: [$reached->external_id]);
+
+    $this->withToken($teammate->createToken('account')->plainTextToken)
+        ->postJson('/api/v1/chatters', eccBody([$reached->external_id, $this->agent->external_id]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['agent_ids.1'])
+        ->assertJsonMissingValidationErrors(['agent_ids.0']);
+
+    expect(Chatter::where('email', 'jane@example.test')->exists())->toBeFalse();
 });

@@ -58,7 +58,6 @@
         "smalot/pdfparser": "^2.12",
         "socialiteproviders/microsoft": "^4.7",
         "spatie/laravel-data": "^4.15",
-        "spatie/laravel-flare": "^3.0",
         "spatie/laravel-pdf": "^2.0",
         "spatie/laravel-permission": "^8.3",
         "spatie/laravel-settings": "^3.9",

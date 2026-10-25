@@ -25,7 +25,8 @@ beforeEach(function (): void {
 });
 
 it('runs a stored call only when it is approved or ungated, and gives the model its result', function (bool $gated, array $decisions, array $ran, string $result): void {
-    $context = TestChatContext::make();
+    // A signed-in chatter: only they (or staff) may approve.
+    $context = TestChatContext::make(chatterId: 1);
     $dispatcher = new RecordingToolDispatcher;
     $runner = ToolLoop::runner(ScriptedStreamTransformer::silent(), $dispatcher, $gated ? FakeToolApprovalPolicy::gatingEverything() : FakeToolApprovalPolicy::gatingNothing());
 
@@ -43,6 +44,17 @@ it('runs a stored call only when it is approved or ungated, and gives the model 
     'gated and approved' => [true, ['call_1' => ToolApprovalDecision::Approve], ['get_weather'], 'result of get_weather'],
     'ungated, without a decision' => [false, [], ['get_weather'], 'result of get_weather'],
 ]);
+
+it('runs no gated call an anonymous visitor approved', function (): void {
+    $dispatcher = new RecordingToolDispatcher;
+    $runner = ToolLoop::runner(ScriptedStreamTransformer::silent(), $dispatcher, FakeToolApprovalPolicy::gatingEverything());
+
+    $llmMessages = [];
+    iterator_to_array($runner->applyPendingCalls(TestChatContext::make(), $llmMessages, [ToolLoop::pendingCall('create_refund', gated: true)], ['call_1' => ToolApprovalDecision::Approve]), preserve_keys: false);
+
+    expect($dispatcher->calls)->toBe([])
+        ->and($llmMessages[0]['content'])->toBe(ToolLoopRunner::DENIED_RESULT);
+});
 
 it('streams no tool events for a denied call', function (): void {
     $runner = ToolLoop::runner(ScriptedStreamTransformer::silent(), new RecordingToolDispatcher, FakeToolApprovalPolicy::gatingEverything());

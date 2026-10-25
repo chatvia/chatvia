@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Det gick inte att ta bort avataren",
                 "logo_remove_error": "Det gick inte att ta bort logotypen",
                 "replies_saved": "Svarsinställningar sparade",
-                "replies_error": "Det gick inte att spara svarsinställningarna"
+                "replies_error": "Det gick inte att spara svarsinställningarna",
+                "domain_verified": "Anpassad domän verifierad",
+                "domain_verify_error": "Det gick inte att verifiera domänen"
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "DNS-ändringar kan ta upp till 24 timmar att spridas. När det löser sig kommer dina besökare att se den här agentens Hosted Chat på din domän.",
                 "step2": "Steg 2 — Ange den domän du pekade mot oss",
                 "placeholder": "chatt.example.com",
-                "hostname_hint": "Ange det fullständiga värdnamnet utan schema — t.ex. chatt.example.com."
+                "hostname_hint": "Ange det fullständiga värdnamnet utan schema — t.ex. chatt.example.com.",
+                "step3": "Steg 3: visa med en TXT-post att du äger domänen",
+                "pending": "{domain} är inte aktiv än. Lägg till TXT-posten ovan hos din DNS-leverantör och välj sedan Verifiera. DNS-ändringar kan ta en stund.",
+                "active": "Aktiv på {domain}.",
+                "verify": "Verifiera",
+                "verifying": "Verifierar…"
             },
             "preview": {
                 "title": "Liveförhandsvisning",
@@ -2575,6 +2582,14 @@
             "card_title": "Inbjudan har gått ut",
             "contact_owner": "Kontakta teamägaren för att begära en ny inbjudan.",
             "go_to_login": "Gå till inloggning"
+        },
+        "switch_chat_account": {
+            "head": "Byt konto",
+            "description": "Den här länken loggar in dig i den här chatten med ett annat konto.",
+            "signed_in_as": "Du är inloggad som {name} just nu.",
+            "continue_as": "Fortsätt som {name}",
+            "stay_as": "Förbli inloggad som {name}",
+            "cancel": "Avbryt"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Säkerhet",
             "title": "Säkerhet",
-            "description": "Säkerhetskontroller för hela arbetsytan. Begränsa vem som kan nå din instrumentpanel via nätverk — betrodda IP-adresser och länder.",
+            "description": "Säkerhetskontroller för hela arbetsytan. Begränsa vem som kan nå din instrumentpanel och API:et via nätverk: betrodda IP-adresser och länder.",
             "save": "Spara ändringar",
             "saved": "Säkerhetsinställningar sparade",
             "save_error": "Kunde inte spara dina säkerhetsinställningar",
@@ -3316,15 +3331,15 @@
             "done": "Klar",
             "network": {
                 "title": "Nätverksåtkomstkontroll",
-                "help": "Begränsa åtkomsten till instrumentpanelen till betrodda IP-adresser och länder. När avstängt kan vem som helst med en giltig inloggning logga in var som helst ifrån."
+                "help": "Begränsa åtkomsten till instrumentpanelen och API:et till betrodda IP-adresser och länder. När avstängt kan vem som helst med en giltig inloggning eller API-nyckel komma in var som helst ifrån."
             },
             "ip": {
                 "title": "Tillåtna IP-adresser",
-                "help": "Endast dessa adresser kan nå instrumentpanelen. Lämna tomt för att tillåta alla IP (landsregler gäller fortfarande). Du kan inte spara en lista som utesluter din nuvarande adress.",
+                "help": "Endast dessa adresser kan nå instrumentpanelen och API:et. Lämna tomt för att tillåta alla IP (landsregler gäller fortfarande). Du kan inte spara en lista som utesluter din nuvarande adress.",
                 "empty": "Ingen IP-begränsning",
                 "manage": "Hantera tillåtna IP-adresser",
                 "dialog_title": "Tillåtna IP-adresser",
-                "dialog_description": "Lägg till de IP-adresser eller CIDR-intervall som tillåts nå din instrumentpanel. Exempel: 203.0.113.4 eller 203.0.113.0/24.",
+                "dialog_description": "Lägg till de IP-adresser eller CIDR-intervall som tillåts nå din instrumentpanel och API:et. Exempel: 203.0.113.4 eller 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Lägg till adress",
                 "remove": "Ta bort adress",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Landsregler",
-                "help": "Tillåt eller blockera åtkomst till instrumentpanelen baserat på besökarens land.",
+                "help": "Tillåt eller blockera åtkomst till instrumentpanelen och API:et baserat på besökarens land.",
                 "allow": "Tillåt endast dessa",
                 "deny": "Blockera dessa",
                 "empty": "Inga länder valda",

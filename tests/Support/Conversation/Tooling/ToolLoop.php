@@ -9,10 +9,9 @@ use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
+use Domain\Conversation\Services\Tooling\ToolCallFactory;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
-use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Conversation\Services\Tooling\ToolResultGuard;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Access\ToolRateLimiter;
@@ -55,10 +54,10 @@ final class ToolLoop
             },
             accessPolicy: new ToolAccessPolicy($policy, new ToolRateLimiter),
             approvalStore: new ToolApprovalStore,
-            auditTrail: new ToolCallAuditTrail(app(ConnectorCatalog::class)),
-            guardrails: app(GuardrailService::class),
-            guardrailRecorder: app(GuardrailRecorder::class),
+            auditTrail: new ToolCallAuditTrail,
+            resultGuard: app(ToolResultGuard::class),
             tags: new AiCallTags,
+            calls: new ToolCallFactory,
         );
     }
 

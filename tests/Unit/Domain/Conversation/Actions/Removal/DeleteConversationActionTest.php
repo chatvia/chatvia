@@ -6,6 +6,7 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -66,4 +67,17 @@ it('leaves a conversation of another session or agent alone', function (): void 
     expect(dcaStoredText($this->message))->toBe('My card number is 4242 4242 4242 4242')
         ->and($row->trashed())->toBeFalse()
         ->and($row->deleted_by)->toBeNull();
+});
+
+it('keeps the live memory of a conversation it did not erase', function (): void {
+    $memory = new ChatCache($this->conversation->session->external_id, $this->conversation->agent);
+    $memory->put('context', ['kept'], $this->conversation->external_id);
+
+    app(DeleteConversationAction::class)->execute(dcaScope($this->conversation, session: Session::factory()->create(['agent_id' => $this->conversation->agent_id])), 'user');
+
+    expect($memory->get('context', null, $this->conversation->external_id))->toBe(['kept']);
+
+    app(DeleteConversationAction::class)->execute(dcaScope($this->conversation), 'user');
+
+    expect($memory->get('context', null, $this->conversation->external_id))->toBeNull();
 });

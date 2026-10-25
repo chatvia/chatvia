@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Widget\Conversations;
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
 use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
 use Domain\Conversation\Actions\Removal\DeleteConversationAction;
@@ -33,6 +34,7 @@ class ConversationDeleteController
         Request $request,
         #[WidgetAgent] Agent $agent,
         WidgetVerification $widgetVerification,
+        FindWidgetConversationAction $findConversation,
         ClearConversationForVisitorAction $clearConversation,
         ClearSessionConversationsForVisitorAction $clearSession,
         DeleteConversationAction $deleteConversation,
@@ -72,10 +74,11 @@ class ConversationDeleteController
             return new WidgetAckData;
         }
 
-        // The conversation must belong to THIS agent (and, on a protected
-        // agent, to the signed-in chatter), so faking X-AGENT-ID or
-        // X-SESSION-ID cannot clear a conversation of another agent or chatter.
-        if (! $widgetVerification->verifyConversationId($conversationId, $agent, $viewer) instanceof Conversation) {
+        // The conversation must belong to THIS agent, THIS session and, on a
+        // protected agent, the signed-in chatter, so faking X-AGENT-ID or
+        // X-SESSION-ID cannot clear a conversation of another agent, visitor
+        // or chatter.
+        if (! $findConversation->execute($conversationId, $sessionId, $agent, $viewer) instanceof Conversation) {
             return response()->json(['error' => 'Invalid thread'], JsonResponse::HTTP_NOT_FOUND);
         }
 

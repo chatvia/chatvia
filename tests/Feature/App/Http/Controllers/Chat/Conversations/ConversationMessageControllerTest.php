@@ -31,7 +31,10 @@ it('never lets a chatter open a staff member\'s conversation when their ids are 
     $agent = createAgent(User::factory()->create(), ['slug' => Str::lower(Str::random(12)), 'is_public' => false]);
     // One id taken from both id sequences, so neither table already holds it.
     $id = sharedStaffAndChatterId();
-    $staff = User::factory()->employee($agent->workspace->owner)->create(['id' => $id]);
+    // A teammate whose role reaches the agent, so they may chat with it.
+    $team = ownerTeam($agent->workspace->owner);
+    $staff = User::factory()->employee($agent->workspace->owner)->create(['id' => $id, 'current_team_id' => $team->id]);
+    $team->members()->attach($staff->id, ['role_id' => teamRole($team)->id]);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $id]);
     $viewer = ChatViewerData::staff($staff->id);
 

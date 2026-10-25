@@ -9,7 +9,7 @@ use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Integration\Mcp\Models\McpTool;
 
 /**
- * Resolves a tool's stored permission (+ description) for a given server,
+ * Resolves a tool's stored permission (+ description and input schema) for a given server,
  * branching on the server's storage shape:
  *
  *   - preset/builtin → the per-workspace `connector_tool_mcp_server` membership joined to
@@ -39,7 +39,7 @@ class McpToolPermissionResolver
         $tool = $server->connectorTools()
             ->where('connector_tools.connector_slug', $server->connector_slug)
             ->where('connector_tools.name', $toolName)
-            ->first(['connector_tools.id', 'connector_tools.description']);
+            ->first(['connector_tools.id', 'connector_tools.description', 'connector_tools.input_schema']);
 
         if ($tool === null) {
             return null;
@@ -48,14 +48,14 @@ class McpToolPermissionResolver
         /** @var McpServerTool $membership */
         $membership = $tool->getRelation('pivot');
 
-        return new ResolvedMcpTool($membership->permission, $tool->description);
+        return new ResolvedMcpTool($membership->permission, $tool->description, $tool->input_schema);
     }
 
     private function fromOwnTools(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
     {
         /** @var McpTool|null $tool */
-        $tool = $server->tools()->where('name', $toolName)->first(['permission', 'description']);
+        $tool = $server->tools()->where('name', $toolName)->first(['permission', 'description', 'input_schema']);
 
-        return $tool !== null ? new ResolvedMcpTool($tool->permission, $tool->description) : null;
+        return $tool !== null ? new ResolvedMcpTool($tool->permission, $tool->description, $tool->input_schema) : null;
     }
 }

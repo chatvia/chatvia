@@ -292,7 +292,7 @@
         "security": {
             "breadcrumb": "Security",
             "title": "Security",
-            "description": "Workspace-wide security controls. Restrict who can reach your dashboard by network — trusted IP addresses and countries.",
+            "description": "Workspace-wide security controls. Restrict who can reach your dashboard and the API by network: trusted IP addresses and countries.",
             "save": "Save changes",
             "saved": "Security settings saved",
             "save_error": "Could not save your security settings",
@@ -300,15 +300,15 @@
             "done": "Done",
             "network": {
                 "title": "Network access control",
-                "help": "Restrict dashboard access to trusted IP addresses and countries. When off, anyone with a valid login can sign in from anywhere."
+                "help": "Restrict access to the dashboard and the API to trusted IP addresses and countries. When off, anyone with a valid login or API key can get in from anywhere."
             },
             "ip": {
                 "title": "Allowed IP addresses",
-                "help": "Only these addresses can reach the dashboard. Leave empty to allow any IP (country rules still apply). You can't save a list that excludes your current address.",
+                "help": "Only these addresses can reach the dashboard and the API. Leave empty to allow any IP (country rules still apply). You can't save a list that excludes your current address.",
                 "empty": "No IP restriction",
                 "manage": "Manage allowed IPs",
                 "dialog_title": "Allowed IP addresses",
-                "dialog_description": "Add the IP addresses or CIDR ranges allowed to reach your dashboard. Example: 203.0.113.4 or 203.0.113.0/24.",
+                "dialog_description": "Add the IP addresses or CIDR ranges allowed to reach your dashboard and the API. Example: 203.0.113.4 or 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Add address",
                 "remove": "Remove address",
@@ -316,7 +316,7 @@
             },
             "geo": {
                 "title": "Country rules",
-                "help": "Allow or block dashboard access based on the visitor's country.",
+                "help": "Allow or block access to the dashboard and the API based on the visitor's country.",
                 "allow": "Allow only these",
                 "deny": "Block these",
                 "empty": "No countries selected",

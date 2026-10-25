@@ -8,10 +8,12 @@ use Domain\Analytics\Events\FunctionInvoked;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Services\HttpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
@@ -40,6 +42,10 @@ function htdFunction(string $method = 'POST', string $authType = 'none', ?array 
         'webhook_method' => $method,
         'auth_type' => $authType,
         'auth_config' => $authConfig,
+        'parameters_schema' => [
+            'type' => 'object',
+            'properties' => ['order_id' => ['type' => 'string'], 'page' => ['type' => 'integer']],
+        ],
         ...$overrides,
     ]);
 
@@ -258,4 +264,47 @@ it('connects to the webhook address it checked, not a fresh DNS answer', functio
     }
 
     expect($pinned)->toBe(['hooks.example.test:443:93.184.216.34']);
+});
+
+it('drops argument keys the function does not declare', function (): void {
+    [$agent] = htdFunction();
+    Http::fake(['hooks.example.test/*' => Http::response('{"ok":true}', 200)]);
+
+    (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', '{"order_id":"ORD-1","admin":true}'));
+
+    Http::assertSent(fn (ClientRequest $request): bool => $request->body() === '{"order_id":"ORD-1"}');
+});
+
+it('refuses arguments of the wrong type or missing a required key, and sends nothing', function (string $arguments, string $problem): void {
+    [$agent] = htdFunction(overrides: ['parameters_schema' => [
+        'type' => 'object',
+        'properties' => ['order_id' => ['type' => 'string'], 'page' => ['type' => 'integer']],
+        'required' => ['order_id'],
+    ]]);
+    Http::fake();
+
+    $result = (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', $arguments));
+
+    Http::assertNothingSent();
+    expect($result->isError)->toBeTrue()
+        ->and($result->text)->toContain($problem);
+})->with([
+    'missing' => ['{"page":2}', '"order_id" is required'],
+    'wrong type' => ['{"order_id":"ORD-1","page":"two"}', '"page" must be of type integer'],
+]);
+
+it('keeps the webhook URL out of a transport error', function (): void {
+    [$agent, $function] = htdFunction(overrides: ['webhook_url' => 'https://hooks.example.test/catch/123/s3cr3t?api_key=k3y']);
+    Http::fake(fn () => throw new ConnectionException('cURL error 28: Operation timed out for https://hooks.example.test/catch/123/s3cr3t?api_key=k3y'));
+    Log::spy();
+
+    $result = (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', '{}'));
+
+    expect($result->isError)->toBeTrue()
+        ->and($result->text)->toBe('Tool error: '.HttpToolDispatcher::UNREACHABLE_RESULT)
+        ->and($function->fresh()->last_error)->toContain('https://hooks.example.test/[redacted]')
+        ->not->toContain('s3cr3t')
+        ->not->toContain('k3y');
+
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $message, array $context): bool => ! Str::contains(json_encode($context), ['s3cr3t', 'k3y']));
 });

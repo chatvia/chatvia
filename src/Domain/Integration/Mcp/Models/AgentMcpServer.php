@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use Database\Factories\AgentMcpServerFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpTransport;
@@ -302,14 +303,17 @@ class AgentMcpServer extends Model implements AttachableToAgents
      * A slug for a new server that no other server of this workspace uses
      * yet: the name's slug, or the slug with `_2`, `_3`, … appended. Slugs are
      * unique per workspace, and the slug is the routing prefix of every tool
-     * name, so a clash would mix two servers' tools.
+     * name, so a clash would mix two servers' tools. A catalog connector's
+     * slug is never handed out either ({@see ConnectorCatalog::reservedServerSlugs()}),
+     * so a custom server named "Charts" can never pass for the builtin one.
      */
     public static function uniqueSlugFor(Workspace $owner, string $name): string
     {
         $base = self::makeSlug($name);
         $slug = $base;
+        $reserved = resolve(ConnectorCatalog::class)->reservedServerSlugs();
 
-        for ($suffix = 2; $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
+        for ($suffix = 2; in_array($slug, $reserved, true) || $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
             $slug = Str::substr($base, 0, 38).'_'.$suffix;
         }
 

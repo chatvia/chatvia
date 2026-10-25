@@ -1,0 +1,12 @@
+{
+    "auth": {
+        "switch_chat_account": {
+            "head": "切换账户",
+            "description": "此链接会用另一个账户让你登录此聊天。",
+            "signed_in_as": "你当前以 {name} 的身份登录。",
+            "continue_as": "以 {name} 的身份继续",
+            "stay_as": "保持以 {name} 的身份登录",
+            "cancel": "取消"
+        }
+    }
+}

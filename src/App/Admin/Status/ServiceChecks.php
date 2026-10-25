@@ -372,7 +372,7 @@ final readonly class ServiceChecks
             return new ServiceStatusData(ServiceState::Warning, __('Emails go to the log.'), checks: [
                 new ServiceCheckData(__('Mailer'), Str::headline($transport), CheckMark::Warning),
                 $from,
-            ], hint: __('They are not sent. Set up email in Settings → Email.'));
+            ], hint: __('They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.'));
         }
 
         $mailerCheck = new ServiceCheckData(__('Mailer'), $transport === 'smtp' ? 'SMTP' : Str::headline($transport));

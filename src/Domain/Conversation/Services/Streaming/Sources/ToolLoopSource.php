@@ -166,8 +166,9 @@ abstract class ToolLoopSource
      * The turn's candidate tools, in OpenAI shape; none for a model that
      * cannot call tools, which then answers without them. Approval is
      * communicated to the model by a single system note (see
-     * injectToolSystemNote), not by annotating each tool — so this stays a
-     * pure pass-through with no per-candidate-tool policy lookups.
+     * injectToolSystemNote), not by annotating each tool. A turn with no
+     * signed-in person gets no tool that needs approval: only a chatter or
+     * staff account may approve one.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -177,11 +178,11 @@ abstract class ToolLoopSource
             return [];
         }
 
-        return $this->toolSelector->selectForTurn(
-            $context->requestData->agent,
-            $context->payload->message,
-            $context->requestData->conversationId,
-        );
+        $request = $context->requestData;
+
+        return ToolLoopRunner::personCanApprove($context)
+            ? $this->toolSelector->selectForTurn($request->agent, $context->payload->message, $request->conversationId)
+            : $this->toolSelector->selectForVisitorTurn($request->agent, $context->payload->message, $request->conversationId);
     }
 
     /**

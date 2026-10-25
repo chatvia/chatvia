@@ -87,3 +87,15 @@ it('neutralizes a visitor value that a spreadsheet would run as a formula', func
     'tab' => "\t=1+1",
     'carriage return' => "\r=1+1",
 ]);
+
+it('neutralizes a field label that a spreadsheet would run as a formula', function (): void {
+    $this->form->update(['schema' => [
+        ['key' => 'name', 'label' => '=HYPERLINK("https://attacker.test","Name")', 'type' => 'text'],
+        ['key' => 'email', 'label' => 'Email', 'type' => 'email'],
+    ]]);
+    escvSubmitted($this->form, 'Jane');
+
+    $rows = escvRows(app(ExportSubmissionsCsvAction::class)->execute($this->form->refresh()));
+
+    expect($rows[0])->toBe(['\'=HYPERLINK("https://attacker.test","Name")', 'Email', 'Submitted at']);
+});

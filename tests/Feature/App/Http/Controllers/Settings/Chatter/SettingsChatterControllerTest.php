@@ -6,7 +6,8 @@
  * monthly message cap on their own `message_limits.chatter_id` row and the
  * deactivation switch). The chatter is created inside the inviting workspace
  * only; an email a chatter of another workspace uses is invited like any new
- * email, and the answer never hints that it exists elsewhere.
+ * email, and the answer never hints that it exists elsewhere. A teammate only
+ * offers and grants the agents their team role reaches.
  */
 
 use App\Identity\Chatter\Models\Chatter;
@@ -90,6 +91,40 @@ describe('store', function (): void {
         'a public agent' => 'public',
         "another workspace's agent" => 'foreign',
     ]);
+});
+
+describe('team role', function (): void {
+    // A teammate whose role reaches one agent only.
+    beforeEach(function (): void {
+        $this->otherAgent = Agent::factory()->create(['workspace_id' => $this->owner->workspace()->id, 'team_id' => ownerTeam($this->owner)->id, 'is_public' => false, 'name' => 'Zed']);
+        $this->agent->forceFill(['team_id' => ownerTeam($this->owner)->id, 'name' => 'Abe'])->save();
+        $this->teammate = teammateWithPermissions($this->owner, ['account.chatters.manage'], allAgents: false, agentExternalIds: [$this->agent->external_id]);
+    });
+
+    it('offers a teammate only the agents their role reaches', function (): void {
+        $this->actingAs($this->teammate)
+            ->get(route('people.chatters.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->where('agents', [['external_id' => $this->agent->external_id, 'name' => 'Abe']]));
+    });
+
+    it('refuses a teammate an invite to an agent their role does not reach', function (): void {
+        $this->actingAs($this->teammate)
+            ->post(route('people.chatters.invite'), ['email' => 'newbie@example.com', 'agents' => [$this->agent->external_id, $this->otherAgent->external_id]])
+            ->assertSessionHasErrors('agents');
+
+        expect(Chatter::query()->where('email', 'newbie@example.com')->exists())->toBeFalse();
+    });
+
+    it('lets a teammate invite to an agent their role reaches', function (): void {
+        Event::fake([AgentChatterInvited::class]);
+
+        $this->actingAs($this->teammate)
+            ->post(route('people.chatters.invite'), ['email' => 'newbie@example.com', 'agents' => [$this->agent->external_id]])
+            ->assertSessionHasNoErrors();
+
+        expect(Chatter::query()->where('email', 'newbie@example.com')->exists())->toBeTrue();
+    });
 });
 
 describe('update', function (): void {

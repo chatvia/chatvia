@@ -31,7 +31,7 @@ import { useSetupBehavior } from '@/composables/agents/setup/useSetupBehavior';
 import { useSetupBranding } from '@/composables/agents/setup/useSetupBranding';
 import { useSetupBubbles } from '@/composables/agents/setup/useSetupBubbles';
 import { provideSetupContext } from '@/composables/agents/setup/useSetupContext';
-import { useSetupDomain } from '@/composables/agents/setup/useSetupDomain';
+import { useSetupDomain, type SetupDomainContext } from '@/composables/agents/setup/useSetupDomain';
 import { useSetupGeneralSettings, type SetupReadAloudOptions, type SetupVoiceOptions } from '@/composables/agents/setup/useSetupGeneralSettings';
 import { useSetupLanguages } from '@/composables/agents/setup/useSetupLanguages';
 import { useSetupModel, type ModelChoice } from '@/composables/agents/setup/useSetupModel';
@@ -92,10 +92,7 @@ interface Props {
 
     availableLanguages: Record<string, string>;
 
-    domain: {
-        value: string | null;
-        cname_target: string;
-    };
+    domain: SetupDomainContext;
 }
 
 const props = defineProps<Props>();

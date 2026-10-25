@@ -26,9 +26,10 @@ it('updates the chatter name when no password change is requested', function ():
     expect($chatter->fresh()->name)->toBe('New Name');
 });
 
-it('updates the password when the current password matches', function (): void {
+it('updates the password when the current password matches and rotates the remember-me token', function (): void {
     $chatter = Chatter::factory()->create([
         'password' => Hash::make('current-pass'),
+        'remember_token' => 'old-remember-token',
     ]);
 
     app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
@@ -37,7 +38,8 @@ it('updates the password when the current password matches', function (): void {
         newPassword: 'brand-new-pass',
     ));
 
-    expect(Hash::check('brand-new-pass', $chatter->fresh()->password))->toBeTrue();
+    expect(Hash::check('brand-new-pass', $chatter->fresh()->password))->toBeTrue()
+        ->and($chatter->fresh()->remember_token)->not->toBe('old-remember-token');
 });
 
 it('throws ValidationException when the current password is wrong', function (): void {

@@ -39,6 +39,8 @@
                 "domain_saved": "Egendefinert domene lagret",
                 "domain_removed": "Egendefinert domene fjernet",
                 "domain_error": "Kunne ikke lagre domene",
+                "domain_verified": "Egendefinert domene bekreftet",
+                "domain_verify_error": "Kunne ikke bekrefte domenet",
                 "copy_error": "Kunne ikke kopiere til utklippstavlen",
                 "colors_saved": "Farger lagret",
                 "colors_error": "Kunne ikke lagre farger",
@@ -159,7 +161,12 @@
                 "dns_hint": "DNS-endringer kan ta opptil 24 timer å spre seg. Når det er løst, vil besøkende se denne agentens Hosted Chat på domenet ditt.",
                 "step2": "Steg 2 — Skriv inn domenet du pekte mot oss",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Skriv inn det fullstendige vertsnavnet uten protokoll — f.eks. chat.example.com."
+                "hostname_hint": "Skriv inn det fullstendige vertsnavnet uten protokoll — f.eks. chat.example.com.",
+                "step3": "Steg 3: bevis med en TXT-post at du eier domenet",
+                "pending": "{domain} er ikke aktivt ennå. Legg til TXT-posten ovenfor hos DNS-leverandøren din, og velg deretter Bekreft. DNS-endringer kan ta litt tid.",
+                "active": "Aktivt på {domain}.",
+                "verify": "Bekreft",
+                "verifying": "Bekrefter…"
             },
             "preview": {
                 "title": "Live forhåndsvisning",

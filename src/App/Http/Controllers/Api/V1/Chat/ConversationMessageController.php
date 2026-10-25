@@ -69,6 +69,10 @@ class ConversationMessageController
      * event format. Tool calls that need a person's approval are not available
      * over the API; such tools are skipped.
      *
+     * Only a conversation created with "Create conversation" takes messages.
+     * A conversation from the hosted chat, the widget or a channel answers
+     * 404.
+     *
      * Resending the same `request_id` within a few minutes replays the
      * finished reply instead of generating (and counting) a new one.
      */

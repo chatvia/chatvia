@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Could not remove the avatar",
                 "logo_remove_error": "Could not remove the logo",
                 "replies_saved": "Reply options saved",
-                "replies_error": "Could not save reply options"
+                "replies_error": "Could not save reply options",
+                "domain_verified": "Custom domain verified",
+                "domain_verify_error": "Could not verify the domain"
             },
             "settings": {
                 "composer_title": "Composer options",
@@ -1978,7 +1980,12 @@
                 "dns_hint": "DNS changes can take up to 24 hours to propagate. Once it resolves, your visitors will see this agent's Hosted Chat on your domain.",
                 "step2": "Step 2 — Enter the domain you pointed at us",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Enter the full hostname without scheme — e.g. chat.example.com."
+                "hostname_hint": "Enter the full hostname without scheme — e.g. chat.example.com.",
+                "step3": "Step 3: prove you own the domain with a TXT record",
+                "pending": "{domain} is not live yet. Add the TXT record above at your DNS provider, then select Verify. DNS changes can take a while.",
+                "active": "Live on {domain}.",
+                "verify": "Verify",
+                "verifying": "Verifying…"
             },
             "preview": {
                 "title": "Live Preview",
@@ -2575,6 +2582,14 @@
             "card_title": "Invitation Expired",
             "contact_owner": "Please contact the team owner to request a new invitation.",
             "go_to_login": "Go to Login"
+        },
+        "switch_chat_account": {
+            "head": "Switch account",
+            "description": "This link signs you in to this chat with another account.",
+            "signed_in_as": "You are signed in as {name} right now.",
+            "continue_as": "Continue as {name}",
+            "stay_as": "Stay signed in as {name}",
+            "cancel": "Cancel"
         }
     },
     "teams": {
@@ -3308,7 +3323,7 @@
         "security": {
             "breadcrumb": "Security",
             "title": "Security",
-            "description": "Workspace-wide security controls. Restrict who can reach your dashboard by network — trusted IP addresses and countries.",
+            "description": "Workspace-wide security controls. Restrict who can reach your dashboard and the API by network: trusted IP addresses and countries.",
             "save": "Save changes",
             "saved": "Security settings saved",
             "save_error": "Could not save your security settings",
@@ -3316,15 +3331,15 @@
             "done": "Done",
             "network": {
                 "title": "Network access control",
-                "help": "Restrict dashboard access to trusted IP addresses and countries. When off, anyone with a valid login can sign in from anywhere."
+                "help": "Restrict access to the dashboard and the API to trusted IP addresses and countries. When off, anyone with a valid login or API key can get in from anywhere."
             },
             "ip": {
                 "title": "Allowed IP addresses",
-                "help": "Only these addresses can reach the dashboard. Leave empty to allow any IP (country rules still apply). You can't save a list that excludes your current address.",
+                "help": "Only these addresses can reach the dashboard and the API. Leave empty to allow any IP (country rules still apply). You can't save a list that excludes your current address.",
                 "empty": "No IP restriction",
                 "manage": "Manage allowed IPs",
                 "dialog_title": "Allowed IP addresses",
-                "dialog_description": "Add the IP addresses or CIDR ranges allowed to reach your dashboard. Example: 203.0.113.4 or 203.0.113.0/24.",
+                "dialog_description": "Add the IP addresses or CIDR ranges allowed to reach your dashboard and the API. Example: 203.0.113.4 or 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Add address",
                 "remove": "Remove address",
@@ -3332,7 +3347,7 @@
             },
             "geo": {
                 "title": "Country rules",
-                "help": "Allow or block dashboard access based on the visitor's country.",
+                "help": "Allow or block access to the dashboard and the API based on the visitor's country.",
                 "allow": "Allow only these",
                 "deny": "Block these",
                 "empty": "No countries selected",

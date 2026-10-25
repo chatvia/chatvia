@@ -62,6 +62,19 @@ it('exports a conversation as plain text, with the Markdown rendered away', func
         ->not->toContain('<p>');
 });
 
+it('deletes the temporary copy of a text export once it is sent', function (string $type): void {
+    $response = $this->get("{$this->export}?type={$type}")->assertOk();
+    $path = $response->baseResponse->getFile()->getPathname();
+
+    expect(file_exists($path))->toBeTrue();
+
+    ob_start();
+    $response->baseResponse->sendContent();
+    ob_end_clean();
+
+    expect(file_exists($path))->toBeFalse();
+})->with(['markdown', 'text']);
+
 it('exports a single message of the conversation', function (): void {
     $response = $this->get("{$this->export}?type=markdown&messageId=answer-1")
         ->assertOk();

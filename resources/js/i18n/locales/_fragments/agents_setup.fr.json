@@ -39,6 +39,8 @@
                 "domain_saved": "Domaine personnalisé enregistré",
                 "domain_removed": "Domaine personnalisé supprimé",
                 "domain_error": "Impossible d'enregistrer le domaine",
+                "domain_verified": "Domaine personnalisé vérifié",
+                "domain_verify_error": "Impossible de vérifier le domaine",
                 "copy_error": "Impossible de copier dans le presse-papier",
                 "colors_saved": "Couleurs enregistrées",
                 "colors_error": "Impossible d'enregistrer les couleurs",
@@ -159,7 +161,12 @@
                 "dns_hint": "Les modifications DNS peuvent prendre jusqu'à 24 heures pour se propager. Une fois résolu, vos visiteurs verront le chat hébergé de cet agent sur votre domaine.",
                 "step2": "Étape 2 — Saisissez le domaine que vous avez pointé vers nous",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Saisissez le nom d'hôte complet sans le schéma — ex. chat.example.com."
+                "hostname_hint": "Saisissez le nom d'hôte complet sans le schéma — ex. chat.example.com.",
+                "step3": "Étape 3 : prouvez que le domaine vous appartient avec un enregistrement TXT",
+                "pending": "{domain} n'est pas encore actif. Ajoutez l'enregistrement TXT ci-dessus chez votre fournisseur DNS, puis sélectionnez Vérifier. Les changements DNS peuvent prendre un certain temps.",
+                "active": "Actif sur {domain}.",
+                "verify": "Vérifier",
+                "verifying": "Vérification…"
             },
             "preview": {
                 "title": "Aperçu en direct",

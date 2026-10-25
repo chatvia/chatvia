@@ -12,8 +12,11 @@ use InvalidArgumentException;
  * Erases one conversation: wipes the text of its messages, records who
  * deleted it, and soft-deletes it — which also deletes its uploaded files.
  * The conversation then leaves the live memory and the
- * visitor's list. A conversation that is already gone (a repeated request, or
- * the prune got there first) is only forgotten by the memory.
+ * visitor's list. A conversation that is not this session's, or is already
+ * gone (a repeated request, or the prune got there first), is only dropped
+ * from this session's list: its live memory is shared by conversation id, so
+ * flushing it for another session's conversation would wipe that visitor's
+ * context.
  *
  * This is erasure. A visitor clearing their own widget uses
  * {@see ClearConversationForVisitorAction} instead, which keeps the content
@@ -30,14 +33,14 @@ class DeleteConversationAction
         $conversationId = $scope->conversationId
             ?? throw new InvalidArgumentException('A conversation id is required to delete a conversation.');
 
-        DB::transaction(function () use ($scope, $conversationId, $deletedBy): void {
+        $deleted = DB::transaction(function () use ($scope, $conversationId, $deletedBy): bool {
             $conversation = Conversation::query()
                 ->inSession($scope->sessionId, $scope->agent->id)
                 ->where('external_id', $conversationId)
                 ->first();
 
             if ($conversation === null) {
-                return;
+                return false;
             }
 
             // Erase the text now: the row itself goes with the trash purge.
@@ -49,11 +52,15 @@ class DeleteConversationAction
                 $conversation->update(['deleted_by' => $deletedBy]);
             }
 
-            $conversation->delete();
+            return (bool) $conversation->delete();
         });
 
         $memory = $this->memory->withScope($scope);
-        $memory->flushConversation($conversationId);
+
+        if ($deleted) {
+            $memory->flushConversation($conversationId);
+        }
+
         $memory->forgetConversation($conversationId);
     }
 }

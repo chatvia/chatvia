@@ -506,7 +506,7 @@
     "The :disk disk failed.": "Disken :disk fejlede.",
     "It could not save a file and read it back.": "Den kunne ikke gemme en fil og læse den igen.",
     "Emails go to the log.": "E-mails går til loggen.",
-    "They are not sent. Set up email in Settings → Email.": "De sendes ikke. Opsæt e-mail under Indstillinger → E-mail.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "De sendes ikke. Links til login og adgangskode i dem skrives i logfilen, så hold den privat. Opsæt e-mail under Indstillinger → E-mail.",
     "Sends with :service.": "Sender med :service.",
     "It is not tested here, as that would send an email.": "Det testes ikke her, da det ville sende en e-mail.",
     "The mail server does not answer.": "Mailserveren svarer ikke.",
@@ -538,5 +538,9 @@
     "Read aloud": "Læs højt",
     "Play agent replies as speech": "Afspil agenters svar som tale",
     "Reading aloud is not available right now.": "Oplæsning er ikke tilgængelig lige nu.",
-    "The reply could not be read aloud. Please try again.": "Svaret kunne ikke læses højt. Prøv igen."
+    "The reply could not be read aloud. Please try again.": "Svaret kunne ikke læses højt. Prøv igen.",
+    "Add a custom domain first.": "Tilføj et brugerdefineret domæne først.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Vi kunne ikke finde TXT-posten for dette domæne endnu. DNS-ændringer kan tage tid, så prøv igen senere.",
+    "This domain can't be used. Choose another domain.": "Dette domæne kan ikke bruges. Vælg et andet domæne.",
+    "Custom domain verified.": "Det brugerdefinerede domæne er bekræftet."
 }

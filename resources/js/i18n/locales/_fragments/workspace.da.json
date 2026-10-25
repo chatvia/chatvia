@@ -303,6 +303,17 @@
             "members": "Chattere"
         },
         "security": {
+            "description": "Sikkerhedskontroller for hele workspacet. Begræns hvem der kan tilgå dit dashboard og API’et ud fra netværk: betroede IP-adresser og lande.",
+            "network": {
+                "help": "Begræns adgangen til dashboardet og API’et til betroede IP-adresser og lande. Når dette er slået fra, kan alle med et gyldigt login eller en API-nøgle komme ind hvor som helst fra."
+            },
+            "ip": {
+                "help": "Kun disse adresser kan tilgå dashboardet og API’et. Lad feltet stå tomt for at tillade enhver IP (landeregler gælder stadig). Du kan ikke gemme en liste, der udelukker din nuværende adresse.",
+                "dialog_description": "Tilføj de IP-adresser eller CIDR-intervaller, der må tilgå dit dashboard og API’et. Eksempel: 203.0.113.4 eller 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Tillad eller bloker adgang til dashboardet og API’et baseret på den besøgendes land."
+            },
             "retention": {
                 "leads": "Leads (dage)",
                 "leads_help": "Slet leads, der er ældre end dette antal dage.",

@@ -12,9 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
+import { sanitizeUntrustedHtml } from '@/lib/sanitizeHtml';
 import { logs } from '@/routes/agents';
 import { Link, router } from '@inertiajs/vue3';
-import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { User } from 'lucide-vue-next';
 import { Marked } from 'marked';
@@ -133,14 +133,13 @@ const markedResult = new Marked(
 ).use({ gfm: true });
 
 // The result is attacker-influenceable tool output rendered in a privileged
-// admin view, so sanitize and forbid <img> — that closes the zero-click
-// image-exfiltration channel without depending on the global DOMPurify hook
-// registered by AssistantMessageBody (which may not be loaded on this page).
+// admin view, so sanitize it like any untrusted HTML and forbid <img> too:
+// this view never needs images.
 const renderedResult = computed<string>(() => {
     const text = selected.value?.result_text ?? '';
     if (!text) return '';
     const html = markedResult.parse(text);
-    return DOMPurify.sanitize(typeof html === 'string' ? html : '', { ADD_ATTR: ['target'], FORBID_TAGS: ['img'] });
+    return sanitizeUntrustedHtml(typeof html === 'string' ? html : '', ['img']);
 });
 
 // account viewer column span (Cause + Agent + Tool + Connector + Outcome + Latency = 6),

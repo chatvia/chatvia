@@ -163,6 +163,14 @@
             "card_title": "Convite Expirado",
             "contact_owner": "Por favor, contacte o proprietário da equipa para solicitar um novo convite.",
             "go_to_login": "Ir para o início de sessão"
+        },
+        "switch_chat_account": {
+            "head": "Mudar de conta",
+            "description": "Esta ligação inicia sessão neste chat com outra conta.",
+            "signed_in_as": "Tem sessão iniciada como {name} neste momento.",
+            "continue_as": "Continuar como {name}",
+            "stay_as": "Manter sessão como {name}",
+            "cancel": "Cancelar"
         }
     }
 }

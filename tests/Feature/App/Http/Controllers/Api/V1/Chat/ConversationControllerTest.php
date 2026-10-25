@@ -36,7 +36,7 @@ it('opens a conversation on the api surface with the title it was given, hidden 
 });
 
 it('opens the conversation for the chatter it names', function (): void {
-    $chatter = Chatter::factory()->ofWorkspace($this->owner)->create();
+    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
 
     $id = $this->withToken($this->token)
         ->postJson($this->uri, ['chatter_id' => $chatter->external_id])
@@ -44,6 +44,17 @@ it('opens the conversation for the chatter it names', function (): void {
         ->json('data.id');
 
     expect(Conversation::query()->where('external_id', $id)->sole()->session->chatter_id)->toBe($chatter->id);
+});
+
+it('rejects a chatter of the workspace who has no access to the agent as a field error', function (): void {
+    $chatter = Chatter::factory()->ofWorkspace($this->owner)->create();
+
+    $this->withToken($this->token)
+        ->postJson($this->uri, ['chatter_id' => $chatter->external_id])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['chatter_id']);
+
+    expect(Conversation::query()->where('agent_id', $this->agent->id)->exists())->toBeFalse();
 });
 
 it("rejects another workspace's chatter as a field error", function (): void {

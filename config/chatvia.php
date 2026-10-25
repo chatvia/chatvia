@@ -812,10 +812,14 @@ return [
     | Security Headers
     |--------------------------------------------------------------------------
     |
-    | `csp` is "off" (no security headers), "report-only" (browsers only
-    | report what the policy would block) or "enforce" (the policy, plus
-    | X-Frame-Options and, in production over HTTPS, HSTS). `csp_report_uri`
-    | receives the reports. `turnstile` lists the public forms that ask for
+    | `csp` is "off" (no policy), "report-only" (browsers only report what
+    | the policy would block) or "enforce" (browsers apply it). In every mode
+    | the pages other than the embeddable hosted chat may only be framed by
+    | the app itself, and HSTS goes out in production over HTTPS.
+    | `csp_report_uri` receives the reports. `allow_private_addresses` lets
+    | server-side requests to webhooks, MCP servers and crawled sites reach
+    | private and loopback addresses (for local development; off by
+    | default). `turnstile` lists the public forms that ask for
     | the Cloudflare Turnstile bot check once its keys are saved. All are set
     | in the admin panel (Settings → Security).
     |
@@ -824,6 +828,7 @@ return [
     'security' => [
         'csp' => 'report-only',
         'csp_report_uri' => null,
+        'allow_private_addresses' => false,
 
         'turnstile' => [
             'sign_up' => true,

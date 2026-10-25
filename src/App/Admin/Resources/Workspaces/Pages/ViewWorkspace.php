@@ -383,7 +383,8 @@ class ViewWorkspace extends ViewRecord
     /**
      * Grant or take back the workspace's access to Spectra (the AI call log).
      * Spectra is install-wide, so the grant modal warns that the workspace's
-     * staff will see every workspace's AI calls, not just their own.
+     * owner will see every workspace's AI calls, not just their own. The
+     * grant covers the owner only, never the teammates.
      */
     private function spectraAccessAction(): Action
     {
@@ -395,8 +396,8 @@ class ViewWorkspace extends ViewRecord
             ->requiresConfirmation()
             ->modalHeading(fn (): string => $granted() ? 'Take back Spectra access?' : 'Allow this workspace to open Spectra?')
             ->modalDescription(fn (): string => $granted()
-                ? 'The workspace\'s owner and teammates can no longer open Spectra or see trace links in their chat logs. Nothing already recorded is removed.'
-                : 'Everyone in this workspace can open Spectra and will see every AI call made on this install — every workspace\'s prompts, replies and costs, not just their own. Allow it only for a workspace you trust with that.')
+                ? 'The workspace\'s owner can no longer open Spectra or see trace links in the chat logs. Nothing already recorded is removed.'
+                : 'The owner of this workspace can open Spectra and will see every AI call made on this install: every workspace\'s prompts, replies and costs, not just their own. Teammates cannot. Allow it only for a workspace owner you trust with that.')
             ->modalSubmitActionLabel(fn (): string => $granted() ? 'Take back' : 'Allow')
             ->color(fn (): string => $granted() ? 'gray' : 'warning')
             ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled())

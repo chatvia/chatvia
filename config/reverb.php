@@ -90,6 +90,11 @@ return [
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 10_000),
+                // Typing whispers (`client-typing`) are relayed only from a
+                // connection subscribed to the channel. Reverb's own fallback
+                // is 'all', which lets any socket holding the public app key
+                // push events into a chat it never joined.
+                'accept_client_events_from' => 'members',
             ],
             // Optional second application served by the same Reverb process —
             // e.g. another site on the same server. Only registered when

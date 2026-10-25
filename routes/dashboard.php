@@ -9,8 +9,6 @@ use App\Http\Controllers\Dashboard\DashboardStatsController;
 use App\Http\Controllers\Inbox\InboxController;
 use App\Http\Controllers\Inbox\InboxConversationController;
 use App\Http\Controllers\Inbox\InboxWaitingCountController;
-use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesDownload;
-use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesListController;
 use App\Http\Controllers\Notification\ClearNotificationsController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Notification\NotificationFeedController;
@@ -33,9 +31,6 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
     Route::get('my/inbox', [InboxController::class, 'index'])->name('inbox');
     Route::get('my/inbox/conversations', [InboxConversationController::class, 'index'])->name('inbox.conversations');
     Route::get('my/inbox/waiting-count', InboxWaitingCountController::class)->name('inbox.waiting-count');
-
-    Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');
-    Route::get('my/knowledge-base/download/{sourceFile}', KnowledgeFilesDownload::class)->name('knowledge-base.download');
 
     // The notification center: the full page, the bell's feed, marking
     // notifications read and clearing them. Each person only ever reaches

@@ -39,6 +39,8 @@
                 "domain_saved": "Dominio personalizado guardado",
                 "domain_removed": "Dominio personalizado eliminado",
                 "domain_error": "No se pudo guardar el dominio",
+                "domain_verified": "Dominio personalizado verificado",
+                "domain_verify_error": "No se pudo verificar el dominio",
                 "copy_error": "No se pudo copiar al portapapeles",
                 "colors_saved": "Colores guardados",
                 "colors_error": "No se pudieron guardar los colores",
@@ -159,7 +161,12 @@
                 "dns_hint": "Los cambios de DNS pueden tardar hasta 24 horas en propagarse. Una vez que se resuelva, tus visitantes verán el chat alojado de este agente en tu dominio.",
                 "step2": "Paso 2 — Ingresa el dominio que apuntaste hacia nosotros",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Ingresa el nombre de host completo sin esquema — p. ej., chat.example.com."
+                "hostname_hint": "Ingresa el nombre de host completo sin esquema — p. ej., chat.example.com.",
+                "step3": "Paso 3: demuestra que el dominio es tuyo con un registro TXT",
+                "pending": "{domain} aún no está activo. Agrega el registro TXT de arriba en tu proveedor de DNS y luego selecciona Verificar. Los cambios de DNS pueden tardar un poco.",
+                "active": "Activo en {domain}.",
+                "verify": "Verificar",
+                "verifying": "Verificando…"
             },
             "preview": {
                 "title": "Vista previa en vivo",

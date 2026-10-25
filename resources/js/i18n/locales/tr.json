@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Avatar kaldırılamadı",
                 "logo_remove_error": "Logo kaldırılamadı",
                 "replies_saved": "Yanıt seçenekleri kaydedildi",
-                "replies_error": "Yanıt seçenekleri kaydedilemedi"
+                "replies_error": "Yanıt seçenekleri kaydedilemedi",
+                "domain_verified": "Özel alan adı doğrulandı",
+                "domain_verify_error": "Alan adı doğrulanamadı"
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
@@ -1924,7 +1926,8 @@
                 "read_aloud_help_title": "Sesli okuma",
                 "read_aloud_help_1": "Sohbet eden kişi bir yanıtı dinlemek için altındaki hoparlöre basar. Bağlantılar metinleriyle okunur; kod ve grafikler atlanır.",
                 "read_aloud_help_2": "Her yanıt ses hizmeti tarafından bir kez okunur ve kaydedilir, bu yüzden yeniden oynatmak ücretsizdir. Sesli okuma mesaj olarak sayılmaz.",
-                "read_aloud_voice_label": "Okuma sesi"
+                "read_aloud_voice_label": "Okuma sesi",
+                "file_uploads_unavailable": "Bu sunucuda kapalı. Bir yönetici, sohbette dosya yüklemeyi yönetici panelinde Settings → AI models bölümünden açabilir."
             },
             "bubbles_title": "Sohbet Balonları",
             "bubbles_description": "Widget başlatıcısının yanında gösterilen hızlı mesaj istemleri.",
@@ -1977,7 +1980,12 @@
                 "dns_hint": "DNS değişikliklerinin yayılması 24 saate kadar sürebilir. Çözümlendiğinde ziyaretçileriniz bu asistanın Hosted Chat hizmetini sizin alan adınızda görür.",
                 "step2": "2. Adım — Bize yönlendirdiğiniz alan adını girin",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Tam ana makine adını şema olmadan girin — ör. chat.example.com."
+                "hostname_hint": "Tam ana makine adını şema olmadan girin — ör. chat.example.com.",
+                "step3": "3. Adım: Alan adının size ait olduğunu bir TXT kaydıyla kanıtlayın",
+                "pending": "{domain} henüz yayında değil. Yukarıdaki TXT kaydını DNS sağlayıcınıza ekleyin, ardından Doğrula'yı seçin. DNS değişikliklerinin geçerli olması biraz zaman alabilir.",
+                "active": "{domain} üzerinde yayında.",
+                "verify": "Doğrula",
+                "verifying": "Doğrulanıyor…"
             },
             "preview": {
                 "title": "Canlı Önizleme",
@@ -2574,6 +2582,14 @@
             "card_title": "Davetin Süresi Doldu",
             "contact_owner": "Yeni bir davet istemek için lütfen ekip sahibiyle iletişime geçin.",
             "go_to_login": "Giriş Ekranına Git"
+        },
+        "switch_chat_account": {
+            "head": "Hesap değiştir",
+            "description": "Bu bağlantı, bu sohbete başka bir hesapla giriş yapmanızı sağlar.",
+            "signed_in_as": "Şu anda {name} olarak giriş yaptınız.",
+            "continue_as": "{name} olarak devam et",
+            "stay_as": "{name} olarak oturumda kal",
+            "cancel": "İptal"
         }
     },
     "teams": {
@@ -3307,7 +3323,7 @@
         "security": {
             "breadcrumb": "Güvenlik",
             "title": "Güvenlik",
-            "description": "Çalışma alanı genelinde güvenlik denetimleri. Kontrol panelinize kimlerin ağ üzerinden erişebileceğini kısıtlayın — güvenilir IP adresleri ve ülkeler.",
+            "description": "Çalışma alanı genelinde güvenlik denetimleri. Kontrol panelinize ve API'ye kimlerin ağ üzerinden erişebileceğini kısıtlayın: güvenilir IP adresleri ve ülkeler.",
             "save": "Değişiklikleri kaydet",
             "saved": "Güvenlik ayarları kaydedildi",
             "save_error": "Güvenlik ayarlarınız kaydedilemedi",
@@ -3315,15 +3331,15 @@
             "done": "Bitti",
             "network": {
                 "title": "Ağ erişim denetimi",
-                "help": "Kontrol paneli erişimini güvenilir IP adresleri ve ülkelerle sınırlandırın. Kapalıyken, geçerli bir girişe sahip herkes her yerden oturum açabilir."
+                "help": "Kontrol paneline ve API'ye erişimi güvenilir IP adresleri ve ülkelerle sınırlandırın. Kapalıyken, geçerli bir girişe veya API anahtarına sahip herkes her yerden erişebilir."
             },
             "ip": {
                 "title": "İzin verilen IP adresleri",
-                "help": "Kontrol paneline yalnızca bu adresler erişebilir. Herhangi bir IP'ye izin vermek için boş bırakın (ülke kuralları yine de geçerlidir). Mevcut adresinizi hariç tutan bir listeyi kaydedemezsiniz.",
+                "help": "Kontrol paneline ve API'ye yalnızca bu adresler erişebilir. Herhangi bir IP'ye izin vermek için boş bırakın (ülke kuralları yine de geçerlidir). Mevcut adresinizi hariç tutan bir listeyi kaydedemezsiniz.",
                 "empty": "IP kısıtlaması yok",
                 "manage": "İzin verilen IP'leri yönet",
                 "dialog_title": "İzin verilen IP adresleri",
-                "dialog_description": "Kontrol panelinize erişmesine izin verilen IP adreslerini veya CIDR aralıklarını ekleyin. Örnek: 203.0.113.4 veya 203.0.113.0/24.",
+                "dialog_description": "Kontrol panelinize ve API'ye erişmesine izin verilen IP adreslerini veya CIDR aralıklarını ekleyin. Örnek: 203.0.113.4 veya 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Adres ekle",
                 "remove": "Adresi kaldır",
@@ -3331,7 +3347,7 @@
             },
             "geo": {
                 "title": "Ülke kuralları",
-                "help": "Kontrol paneli erişimine ziyaretçinin ülkesine göre izin verin veya engelleyin.",
+                "help": "Kontrol paneline ve API'ye erişime ziyaretçinin ülkesine göre izin verin veya engelleyin.",
                 "allow": "Yalnızca bunlara izin ver",
                 "deny": "Bunları engelle",
                 "empty": "Hiçbir ülke seçilmedi",

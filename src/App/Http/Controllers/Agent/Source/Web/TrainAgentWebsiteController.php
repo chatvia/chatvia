@@ -22,6 +22,10 @@ class TrainAgentWebsiteController
         RecrawlSourceWebsiteAction $recrawl,
         RetrainSourceWebsiteAction $retrain,
     ): RedirectResponse {
+        // {website} binds by id inside the workspace: it must also be one of
+        // this agent's websites, or a teammate on this agent could change
+        // another agent's.
+        abort_unless($agent->websites()->whereKey($website->id)->exists(), 404);
         abort_if($request->user()->cannot('update', $website), 404);
 
         if ($request->recrawl()) {

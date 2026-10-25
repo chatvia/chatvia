@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 
 /**
  * Receives Telegram bot updates. The {secret} path segment is the per-bot
- * `webhook_secret` (routes to the agent); Telegram also echoes it in the
- * X-Telegram-Bot-Api-Secret-Token header, which we verify. Verified updates go
+ * `webhook_secret` (routes to the agent); the X-Telegram-Bot-Api-Secret-Token
+ * header must carry the bot's separate `header_secret`, so the URL alone
+ * cannot forge an update. Verified updates go
  * to {@see ReceiveTelegramUpdateAction}, which de-duplicates and queues them so
  * the webhook returns immediately. Always replies 200 — a non-2xx makes
  * Telegram retry, and an unknown/spoofed secret should just be a silent no-op.
@@ -26,7 +27,7 @@ class TelegramWebhookController
             ->where('is_enabled', true)
             ->first();
 
-        if ($bot !== null && hash_equals($bot->webhook_secret, (string) $request->header('X-Telegram-Bot-Api-Secret-Token'))) {
+        if ($bot !== null && hash_equals($bot->header_secret, (string) $request->header('X-Telegram-Bot-Api-Secret-Token'))) {
             $receive->execute($bot, TelegramUpdateData::fromPayload($request->all()));
         }
 

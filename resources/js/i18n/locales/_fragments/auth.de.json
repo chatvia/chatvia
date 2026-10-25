@@ -163,6 +163,14 @@
             "card_title": "Einladung abgelaufen",
             "contact_owner": "Bitte wenden Sie sich an den Team-Inhaber, um eine neue Einladung anzufordern.",
             "go_to_login": "Zur Anmeldung"
+        },
+        "switch_chat_account": {
+            "head": "Konto wechseln",
+            "description": "Dieser Link meldet Sie mit einem anderen Konto in diesem Chat an.",
+            "signed_in_as": "Sie sind gerade als {name} angemeldet.",
+            "continue_as": "Weiter als {name}",
+            "stay_as": "Als {name} angemeldet bleiben",
+            "cancel": "Abbrechen"
         }
     }
 }

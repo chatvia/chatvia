@@ -16,6 +16,7 @@ use App\Http\Controllers\Chat\Messages\AttachmentViewController;
 use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
+use App\Http\Middleware\Web\ContentSecurityPolicy;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Facades\Route;
 
@@ -63,10 +64,13 @@ Route::get('model-logos/{logo}.svg', ModelLogoController::class)
     ->middleware('throttle:120,1,model-logos')
     ->name('model-logo');
 
-// Serves a tenant's uploaded knowledge-base file. Requires auth; the controller
-// additionally scopes the file to the caller's workspace (cross-tenant IDOR).
+// Serves a tenant's uploaded knowledge-base file. Requires a dashboard
+// account; the controller scopes the file to the caller's workspace and agents.
+// It sends its own sandboxing Content-Security-Policy, which the app-wide one
+// would replace.
 Route::get('external/files/{type}/{externalId}', SourceFileViewController::class)
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can.access.dashboard'])
+    ->withoutMiddleware(ContentSecurityPolicy::class)
     ->name('external.source.files.view');
 
 // Global OAuth callback for MCP connectors. The `state` query param carries
@@ -75,7 +79,7 @@ Route::get('external/files/{type}/{externalId}', SourceFileViewController::class
 Route::get(
     'connectors/oauth/callback',
     ConnectorOAuthCallbackController::class,
-)->middleware(['web', 'auth', 'throttle:30,1,connector-oauth-callback'])->name('connectors.oauth.callback');
+)->middleware(['web', 'auth', 'can.access.dashboard', 'throttle:30,1,connector-oauth-callback'])->name('connectors.oauth.callback');
 
 // The end-user chat (its own widget i18n + iframe embedding), transactional/email
 // + invitation links (auth.php), and dev endpoints.

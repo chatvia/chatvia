@@ -79,7 +79,8 @@ final readonly class StreamEvent
     /**
      * Tool-call lifecycle event. `phase` ({@see ToolCallPhase}) is one of:
      *   - Start            — the LLM has emitted a complete tool call; about to dispatch
-     *   - End              — the dispatch finished (with `result` or `error`)
+     *   - End              — the dispatch finished. Chat turns never send the
+     *                        tool's `result` text: it is for the model only.
      *   - AwaitingApproval — the call is gated by human-in-the-loop approval
      *                        and will not run until the user approves it
      *

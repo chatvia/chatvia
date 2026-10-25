@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { index as formsIndex } from '@/routes/agents/forms';
 import { destroy as destroySubmissions, exportMethod as exportSubmissions } from '@/routes/agents/forms/submissions';
@@ -38,6 +39,11 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
+const { hasPermission } = useTeamPermissions();
+
+// Deleting leads is part of managing lead capture; exporting has its own permission.
+const canDelete = computed(() => hasPermission('agent.leads.settings'));
+const canExport = computed(() => hasPermission('agent.leads.export'));
 
 const search = ref('');
 // Cap the visible columns so wide forms stay readable; the CSV has them all.
@@ -96,7 +102,7 @@ function remove(s: Submission): void {
                             <CardTitle>{{ form.name }}</CardTitle>
                             <CardDescription>{{ t('agents.submissions.count', { n: submissions.length }) }}</CardDescription>
                         </div>
-                        <Button variant="outline" :disabled="submissions.length === 0" @click="exportCsv">
+                        <Button v-if="canExport" variant="outline" :disabled="submissions.length === 0" @click="exportCsv">
                             <Download class="me-1 h-4 w-4" /> {{ t('agents.submissions.export') }}
                         </Button>
                     </div>
@@ -116,14 +122,14 @@ function remove(s: Submission): void {
                                 <TableRow>
                                     <TableHead v-for="col in columns" :key="col.key" class="h-11 ps-5">{{ col.label }}</TableHead>
                                     <TableHead class="h-11">{{ t('agents.submissions.submitted_at') }}</TableHead>
-                                    <TableHead class="h-11 w-12 pe-5" />
+                                    <TableHead v-if="canDelete" class="h-11 w-12 pe-5" />
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-for="s in filtered" :key="s.external_id">
                                     <TableCell v-for="col in columns" :key="col.key" class="ps-5">{{ cell(s, col.key) }}</TableCell>
                                     <TableCell class="text-muted-foreground text-xs">{{ when(s) }}</TableCell>
-                                    <TableCell class="pe-5">
+                                    <TableCell v-if="canDelete" class="pe-5">
                                         <Button variant="ghost" size="icon" :aria-label="t('common.delete')" @click="pendingDelete = s"
                                             ><Trash2 class="h-4 w-4"
                                         /></Button>

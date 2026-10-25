@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * A Telegram bot connected to a new public agent, switched on, with a
- * webhook secret of its own.
+ * webhook secret and a header secret of its own.
  *
  * @extends Factory<AgentTelegramBot>
  */
@@ -30,6 +30,7 @@ class AgentTelegramBotFactory extends Factory
             'bot_token' => '123456:'.Str::random(35),
             'bot_username' => 'acme_support_bot',
             'webhook_secret' => Str::random(48),
+            'header_secret' => Str::random(64),
             'is_enabled' => true,
         ];
     }

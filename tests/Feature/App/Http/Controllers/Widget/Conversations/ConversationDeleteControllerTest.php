@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Testing\TestResponse;
 use Tests\Support\Widget\EmbeddedWidget;
@@ -88,3 +89,24 @@ it('clears nothing for a conversation of another agent or an id that is not a UU
     'another agent’s conversation' => [fn (array $foreign): string => $foreign['conversation_id']],
     'an id that is not a UUID' => [fn (): string => 'nope'],
 ]);
+
+it('never removes or forgets a conversation of another visitor of the same agent', function (string $mode): void {
+    config(['chatvia.widget.chat_deletion_mode' => $mode]);
+    $mine = EmbeddedWidget::boot($this->agent);
+    $theirs = EmbeddedWidget::boot($this->agent);
+    $theirMemory = new ChatCache($theirs['session_id'], $this->agent);
+    $theirMemory->put('context', ['kept'], $theirs['conversation_id']);
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
+        WidgetHeaders::SESSION_ID => $mine['session_id'],
+        WidgetHeaders::CONVERSATION_ID => $theirs['conversation_id'],
+    ]))
+        ->deleteJson('/widget/conversations')
+        ->assertNotFound()
+        ->assertJson(['error' => 'Invalid thread']);
+
+    $conversation = Conversation::query()->where('external_id', $theirs['conversation_id'])->first();
+    expect($conversation)->not->toBeNull()
+        ->and($conversation->cleared_at)->toBeNull()
+        ->and($theirMemory->get('context', null, $theirs['conversation_id']))->toBe(['kept']);
+})->with(['hide', 'delete']);

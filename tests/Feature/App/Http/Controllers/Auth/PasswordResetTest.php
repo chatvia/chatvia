@@ -1,6 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\UserSocial;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Inertia\Testing\AssertableInertia;
@@ -10,7 +12,7 @@ use Inertia\Testing\AssertableInertia;
  * FortifyServiceProvider sets up and our ResetUserPassword step): the page
  * comes with the token and email filled in, a valid token sets the new
  * password and leaves the person signed out, and the new password must be
- * strong and confirmed.
+ * strong and confirmed. An account nobody verified is claimed first.
  */
 beforeEach(function (): void {
     $this->user = User::factory()->create(['email' => 'test@example.com', 'password' => Hash::make('old-password')]);
@@ -53,3 +55,23 @@ it('refuses a new password that is missing, unconfirmed or too short', function 
     'not confirmed' => ['new-password', 'different-password'],
     'too short' => ['123', '123'],
 ]);
+
+it('verifies an account nobody verified yet and drops the social sign-ins added before', function (): void {
+    // The reset link proved the email; whoever registered it first must not
+    // keep a way in.
+    $this->user->forceFill(['email_verified_at' => null])->save();
+    UserSocial::query()->create(['user_id' => $this->user->id, 'provider' => SocialProvider::Github, 'provider_id' => 'gh-squatter']);
+
+    $this->post(route('password.update'), [
+        'token' => $this->token,
+        'email' => 'test@example.com',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ])->assertRedirect(route('login'));
+
+    $user = $this->user->fresh();
+
+    expect($user->hasVerifiedEmail())->toBeTrue()
+        ->and($user->socials()->exists())->toBeFalse()
+        ->and(Hash::check('new-password', $user->password))->toBeTrue();
+});

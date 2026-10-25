@@ -505,8 +505,8 @@ theme.
   Secrets are encrypted and never sent back to the browser. A blank field
   keeps its default, which `.env` can still preset (optional). `.env` keeps
   only what the app needs to start (database, Redis, drivers, Reverb and so
-  on), plus the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`,
-  the built-in tools' secret and address (`BUILTIN_MCP_*`) and
+  on), plus the embedding storage, the Bunny CDN `assets` disk, the
+  built-in tools' secret and address (`BUILTIN_MCP_*`) and
   `TRUSTED_PROXIES`.
 - **Program paths are set in the admin panel** (**Settings → Platform →
   Programs**): pdfinfo, pdftotext, pandoc, catdoc, catppt, ffmpeg, ffprobe

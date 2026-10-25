@@ -178,7 +178,7 @@ class WorkspaceResource extends Resource
                             ->badge()
                             ->state(fn (Workspace $record): string => $record->spectra_access ? 'Allowed' : 'Not allowed')
                             ->color(fn (string $state): string => $state === 'Allowed' ? 'warning' : 'gray')
-                            ->tooltip('Whether the workspace\'s staff may open Spectra, which shows every workspace\'s AI calls.'),
+                            ->tooltip('Whether the workspace\'s owner may open Spectra, which shows every workspace\'s AI calls.'),
                     ]),
                 Section::make('People')
                     ->description('Who works in the workspace and who chats with its agents.')

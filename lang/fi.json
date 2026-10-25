@@ -506,7 +506,7 @@
     "The :disk disk failed.": "Levy :disk epäonnistui.",
     "It could not save a file and read it back.": "Se ei voinut tallentaa tiedostoa ja lukea sitä takaisin.",
     "Emails go to the log.": "Sähköpostit menevät lokiin.",
-    "They are not sent. Set up email in Settings → Email.": "Niitä ei lähetetä. Määritä sähköposti kohdassa Asetukset → Sähköposti.",
+    "They are not sent. The sign-in and password links in them are written to the log file, so keep it private. Set up email in Settings → Email.": "Niitä ei lähetetä. Niiden kirjautumis- ja salasanalinkit kirjoitetaan lokitiedostoon, joten pidä se yksityisenä. Määritä sähköposti kohdassa Asetukset → Sähköposti.",
     "Sends with :service.": "Lähettää palvelulla :service.",
     "It is not tested here, as that would send an email.": "Sitä ei testata täällä, koska se lähettäisi sähköpostin.",
     "The mail server does not answer.": "Sähköpostipalvelin ei vastaa.",
@@ -538,5 +538,9 @@
     "Read aloud": "Lue ääneen",
     "Play agent replies as speech": "Toistaa agenttien vastaukset puheena",
     "Reading aloud is not available right now.": "Ääneen lukeminen ei ole nyt käytettävissä.",
-    "The reply could not be read aloud. Please try again.": "Vastausta ei voitu lukea ääneen. Yritä uudelleen."
+    "The reply could not be read aloud. Please try again.": "Vastausta ei voitu lukea ääneen. Yritä uudelleen.",
+    "Add a custom domain first.": "Lisää ensin oma verkkotunnus.",
+    "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Emme löytäneet vielä tämän verkkotunnuksen TXT-tietuetta. DNS-muutokset voivat viedä aikaa, joten yritä myöhemmin uudelleen.",
+    "This domain can't be used. Choose another domain.": "Tätä verkkotunnusta ei voi käyttää. Valitse toinen verkkotunnus.",
+    "Custom domain verified.": "Oma verkkotunnus vahvistettu."
 }

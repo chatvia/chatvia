@@ -1858,7 +1858,9 @@
                 "avatar_remove_error": "Không thể xóa ảnh đại diện",
                 "logo_remove_error": "Không thể xóa logo",
                 "replies_saved": "Đã lưu tùy chọn câu trả lời",
-                "replies_error": "Không thể lưu tùy chọn câu trả lời"
+                "replies_error": "Không thể lưu tùy chọn câu trả lời",
+                "domain_verified": "Đã xác minh tên miền tùy chỉnh",
+                "domain_verify_error": "Không thể xác minh tên miền"
             },
             "settings": {
                 "composer_title": "Tùy chọn ô soạn tin",
@@ -1924,7 +1926,8 @@
                 "read_aloud_help_title": "Đọc to",
                 "read_aloud_help_1": "Người trò chuyện bấm loa dưới câu trả lời để nghe. Liên kết được đọc theo chữ; mã và biểu đồ được bỏ qua.",
                 "read_aloud_help_2": "Mỗi câu trả lời được dịch vụ giọng nói đọc một lần rồi lưu lại, nên phát lại không tốn phí. Đọc to không được tính là tin nhắn.",
-                "read_aloud_voice_label": "Giọng đọc"
+                "read_aloud_voice_label": "Giọng đọc",
+                "file_uploads_unavailable": "Đã tắt trên máy chủ này. Quản trị viên có thể bật tải tệp lên trong cuộc trò chuyện tại bảng quản trị, mục Settings → AI models."
             },
             "bubbles_title": "Bong bóng chat",
             "bubbles_description": "Các gợi ý tin nhắn nhanh hiển thị bên cạnh trình khởi chạy widget.",
@@ -1977,7 +1980,12 @@
                 "dns_hint": "Các thay đổi DNS có thể mất tới 24 giờ để lan truyền. Sau khi nó phân giải, khách truy cập của bạn sẽ thấy Hosted Chat của trợ lý AI này trên tên miền của bạn.",
                 "step2": "Bước 2 — Nhập tên miền bạn đã trỏ về chúng tôi",
                 "placeholder": "chat.example.com",
-                "hostname_hint": "Nhập tên máy chủ đầy đủ không kèm giao thức — ví dụ chat.example.com."
+                "hostname_hint": "Nhập tên máy chủ đầy đủ không kèm giao thức — ví dụ chat.example.com.",
+                "step3": "Bước 3: chứng minh bạn sở hữu tên miền bằng bản ghi TXT",
+                "pending": "{domain} chưa hoạt động. Thêm bản ghi TXT ở trên tại nhà cung cấp DNS của bạn, rồi chọn Xác minh. Thay đổi DNS có thể mất một lúc.",
+                "active": "Đang hoạt động trên {domain}.",
+                "verify": "Xác minh",
+                "verifying": "Đang xác minh…"
             },
             "preview": {
                 "title": "Xem trước trực tiếp",
@@ -2574,6 +2582,14 @@
             "card_title": "Lời mời đã hết hạn",
             "contact_owner": "Vui lòng liên hệ chủ sở hữu nhóm để yêu cầu lời mời mới.",
             "go_to_login": "Đến trang đăng nhập"
+        },
+        "switch_chat_account": {
+            "head": "Chuyển tài khoản",
+            "description": "Liên kết này đăng nhập bạn vào cuộc trò chuyện này bằng một tài khoản khác.",
+            "signed_in_as": "Bạn đang đăng nhập với tên {name}.",
+            "continue_as": "Tiếp tục với tên {name}",
+            "stay_as": "Giữ đăng nhập với tên {name}",
+            "cancel": "Hủy"
         }
     },
     "teams": {
@@ -3307,7 +3323,7 @@
         "security": {
             "breadcrumb": "Bảo mật",
             "title": "Bảo mật",
-            "description": "Các kiểm soát bảo mật toàn không gian làm việc. Hạn chế ai có thể truy cập bảng điều khiển của bạn theo mạng — các địa chỉ IP và quốc gia tin cậy.",
+            "description": "Các kiểm soát bảo mật toàn không gian làm việc. Hạn chế ai có thể truy cập bảng điều khiển và API của bạn theo mạng: các địa chỉ IP và quốc gia tin cậy.",
             "save": "Lưu thay đổi",
             "saved": "Đã lưu cài đặt bảo mật",
             "save_error": "Không thể lưu cài đặt bảo mật của bạn",
@@ -3315,15 +3331,15 @@
             "done": "Xong",
             "network": {
                 "title": "Kiểm soát truy cập mạng",
-                "help": "Hạn chế truy cập bảng điều khiển theo các địa chỉ IP và quốc gia tin cậy. Khi tắt, bất kỳ ai có thông tin đăng nhập hợp lệ đều có thể đăng nhập từ bất kỳ đâu."
+                "help": "Hạn chế truy cập bảng điều khiển và API theo các địa chỉ IP và quốc gia tin cậy. Khi tắt, bất kỳ ai có thông tin đăng nhập hoặc khóa API hợp lệ đều có thể truy cập từ bất kỳ đâu."
             },
             "ip": {
                 "title": "Các địa chỉ IP được phép",
-                "help": "Chỉ những địa chỉ này mới có thể truy cập bảng điều khiển. Để trống để cho phép mọi IP (quy tắc quốc gia vẫn áp dụng). Bạn không thể lưu danh sách loại trừ địa chỉ hiện tại của bạn.",
+                "help": "Chỉ những địa chỉ này mới có thể truy cập bảng điều khiển và API. Để trống để cho phép mọi IP (quy tắc quốc gia vẫn áp dụng). Bạn không thể lưu danh sách loại trừ địa chỉ hiện tại của bạn.",
                 "empty": "Không hạn chế IP",
                 "manage": "Quản lý IP được phép",
                 "dialog_title": "Địa chỉ IP được phép",
-                "dialog_description": "Thêm các địa chỉ IP hoặc dải CIDR được phép truy cập bảng điều khiển của bạn. Ví dụ: 203.0.113.4 hoặc 203.0.113.0/24.",
+                "dialog_description": "Thêm các địa chỉ IP hoặc dải CIDR được phép truy cập bảng điều khiển và API của bạn. Ví dụ: 203.0.113.4 hoặc 203.0.113.0/24.",
                 "placeholder": "203.0.113.0/24",
                 "add": "Thêm địa chỉ",
                 "remove": "Xóa địa chỉ",
@@ -3331,7 +3347,7 @@
             },
             "geo": {
                 "title": "Quy tắc theo quốc gia",
-                "help": "Cho phép hoặc chặn truy cập bảng điều khiển dựa trên quốc gia của khách truy cập.",
+                "help": "Cho phép hoặc chặn truy cập bảng điều khiển và API dựa trên quốc gia của khách truy cập.",
                 "allow": "Chỉ cho phép các quốc gia này",
                 "deny": "Chặn các quốc gia này",
                 "empty": "Chưa chọn quốc gia nào",

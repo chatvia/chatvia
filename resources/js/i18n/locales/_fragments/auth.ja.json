@@ -1,0 +1,12 @@
+{
+    "auth": {
+        "switch_chat_account": {
+            "head": "アカウントを切り替える",
+            "description": "このリンクを使うと、別のアカウントでこのチャットにサインインします。",
+            "signed_in_as": "現在 {name} としてサインインしています。",
+            "continue_as": "{name} として続ける",
+            "stay_as": "{name} のままにする",
+            "cancel": "キャンセル"
+        }
+    }
+}

@@ -29,13 +29,13 @@ use Symfony\Component\HttpFoundation\Response;
  *  3. A protected agent (`is_public = false`) needs a signed-in chatter or
  *     staff account ({@see HostedChatViewer}): guests
  *     go to the chat login.
- *  4. A signed-in user on a protected agent must be allowed in:
- *     - on a conversation route (`{conversationId}`), they must own that
- *       conversation (the owner marker the chat memory stamps on create);
- *     - on any other route, they must have access to the agent itself.
- *     One chat session serves every agent, so without the second check a
- *     chatter granted agent A could open private agent B by changing the
- *     `/chat/{agentSlug}` segment.
+ *  4. A signed-in user on a protected agent must have access to the agent
+ *     itself on every route, and on a conversation route (`{conversationId}`)
+ *     must also own that conversation on this agent (the owner marker the
+ *     chat memory stamps on create). One chat session serves every agent, so
+ *     without the agent check a chatter granted agent A could open private
+ *     agent B by changing the `/chat/{agentSlug}` segment, and a revoked
+ *     account could keep chatting through an old conversation id.
  *
  * The login and appearance routes are outside this group. Deactivated
  * accounts are signed out earlier in the group by
@@ -78,16 +78,14 @@ class EnsureChatIsAccessible
 
     private function authorizeSignedInAccount(Request $request, Agent $agent, Chatter|User $account): void
     {
+        abort_unless($account->canAccessAgent($agent), Response::HTTP_FORBIDDEN, __('You do not have access to this agent.'));
+
         $conversationId = $request->route('conversationId');
 
-        // Another account's conversation answers like an unknown id, so its id
-        // does not tell that it exists.
+        // Another account's conversation, or one started on another agent,
+        // answers like an unknown id, so its id does not tell that it exists.
         if (! blank($conversationId)) {
-            abort_unless(ChatCache::isOwnedBy($conversationId, HostedChatViewer::data(), $agent->workspaceExternalId()), Response::HTTP_NOT_FOUND);
-
-            return;
+            abort_unless(ChatCache::isOwnedBy($conversationId, HostedChatViewer::data(), $agent), Response::HTTP_NOT_FOUND);
         }
-
-        abort_unless($account->canAccessAgent($agent), Response::HTTP_FORBIDDEN, __('You do not have access to this agent.'));
     }
 }

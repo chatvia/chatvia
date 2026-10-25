@@ -163,6 +163,14 @@
             "card_title": "Zaproszenie wygasło",
             "contact_owner": "Skontaktuj się z właścicielem zespołu, aby poprosić o nowe zaproszenie.",
             "go_to_login": "Przejdź do logowania"
+        },
+        "switch_chat_account": {
+            "head": "Zmień konto",
+            "description": "Ten link loguje Cię do tego czatu na inne konto.",
+            "signed_in_as": "Jesteś teraz zalogowany jako {name}.",
+            "continue_as": "Kontynuuj jako {name}",
+            "stay_as": "Pozostań zalogowany jako {name}",
+            "cancel": "Anuluj"
         }
     }
 }

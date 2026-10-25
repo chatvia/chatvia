@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Voice;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Voice\VoiceCallData;
 use Domain\Conversation\Data\Voice\VoiceToolResultData;
@@ -118,11 +119,24 @@ final class VoiceCallSession implements RealtimeCallHandler
         $session = clone $this;
         $session->call = $call;
         $session->request = $this->factory->request($call, $agent);
-        $session->tools = $this->catalog->for($agent, $call->conversation_id);
+        $session->tools = $this->catalog->for($agent, $call->conversation_id, self::viewer($call));
         $session->approvals = new VoiceToolApprovals;
         $session->searchesKnowledge = Chunk::query()->hasContentForAgent($agent);
 
         return $session;
+    }
+
+    /**
+     * The signed-in person on the call, null for an anonymous visitor. Only
+     * a signed-in person is offered tools that need a yes.
+     */
+    private static function viewer(VoiceCallData $call): ?ChatViewerData
+    {
+        return match (true) {
+            $call->chatter_id !== null => ChatViewerData::chatter($call->chatter_id),
+            $call->actor_user_id !== null => ChatViewerData::staff($call->actor_user_id),
+            default => null,
+        };
     }
 
     public function opened(RealtimeConnection $connection): void

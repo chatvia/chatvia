@@ -17,7 +17,8 @@ use Tests\Support\Integration\Connector\PendingConnectorOAuth;
  * The connector OAuth callback over HTTP: it hands the signed-in user and the
  * browser session's binding to CompleteConnectorOAuthAction (whose state
  * checks are unit-tested) and turns the outcome into a flash on the
- * connector settings.
+ * connector settings. A deactivated account's open session is signed out
+ * instead, like on every dashboard route.
  */
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -128,3 +129,16 @@ it('redirects home when the state or the code is missing', function (array $quer
     'no state' => [['code' => 'auth-code']],
     'no code' => [['state' => 'valid-state']],
 ]);
+
+it('signs out a deactivated account instead of completing the flow', function (): void {
+    $this->mock(CompleteConnectorOAuthAction::class, function (MockInterface $mock): void {
+        $mock->shouldNotReceive('execute');
+    });
+    $this->user->forceFill(['deactivated_at' => now()])->save();
+
+    $this->actingAs($this->user)
+        ->get(route('connectors.oauth.callback', ['state' => 'valid-state', 'code' => 'auth-code']))
+        ->assertRedirect(route('login'));
+
+    $this->assertGuest();
+});

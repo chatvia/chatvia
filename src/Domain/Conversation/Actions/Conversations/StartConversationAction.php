@@ -58,7 +58,7 @@ class StartConversationAction
 
         // Lets the hosted chat confirm that the signed-in viewer owns this
         // conversation without a database join (see ChatCache::rememberOwner).
-        ChatCache::rememberOwner($conversation->external_id, $scope->viewer, $agent->workspaceExternalId());
+        ChatCache::rememberOwner($conversation->external_id, $scope->viewer, $agent);
 
         $memory->saveConversations([
             ...$conversations,

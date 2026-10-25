@@ -1,6 +1,17 @@
 {
     "workspace": {
         "security": {
+            "description": "Các kiểm soát bảo mật toàn không gian làm việc. Hạn chế ai có thể truy cập bảng điều khiển và API của bạn theo mạng: các địa chỉ IP và quốc gia tin cậy.",
+            "network": {
+                "help": "Hạn chế truy cập bảng điều khiển và API theo các địa chỉ IP và quốc gia tin cậy. Khi tắt, bất kỳ ai có thông tin đăng nhập hoặc khóa API hợp lệ đều có thể truy cập từ bất kỳ đâu."
+            },
+            "ip": {
+                "help": "Chỉ những địa chỉ này mới có thể truy cập bảng điều khiển và API. Để trống để cho phép mọi IP (quy tắc quốc gia vẫn áp dụng). Bạn không thể lưu danh sách loại trừ địa chỉ hiện tại của bạn.",
+                "dialog_description": "Thêm các địa chỉ IP hoặc dải CIDR được phép truy cập bảng điều khiển và API của bạn. Ví dụ: 203.0.113.4 hoặc 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Cho phép hoặc chặn truy cập bảng điều khiển và API dựa trên quốc gia của khách truy cập."
+            },
             "retention": {
                 "leads": "Khách hàng tiềm năng (ngày)",
                 "leads_help": "Xóa khách hàng tiềm năng cũ hơn số ngày này.",

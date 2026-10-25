@@ -60,22 +60,22 @@ it('flushes the deleted chatter chat memory (session + ownership marker) and lea
 
     // The chatter's session + conversation, seeded exactly as the app writes:
     // session-data under [workspace, agent, session]; ownership marker (forever)
-    // under [conversation, workspace].
+    // under [conversation, workspace, agent].
     $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
     $conversation = Conversation::factory()->withTitle('Chatter chat')->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
     Cache::driver('chat')->tags(ChatCache::sessionTags($workspace->external_id, $agent->external_id, $session->external_id))->forever($session->external_id, ['conversations' => []]);
-    ChatCache::rememberOwner($conversation->external_id, $viewer, $workspace->external_id);
+    ChatCache::rememberOwner($conversation->external_id, $viewer, $agent);
 
     // A sibling's session in the same workspace must survive.
     $siblingSession = ChatSession::factory()->forChatter($sibling)->create(['agent_id' => $agent->id]);
     Cache::driver('chat')->tags(ChatCache::sessionTags($workspace->external_id, $agent->external_id, $siblingSession->external_id))->forever($siblingSession->external_id, ['conversations' => []]);
 
-    expect(ChatCache::isOwnedBy($conversation->external_id, $viewer, $workspace->external_id))->toBeTrue();
+    expect(ChatCache::isOwnedBy($conversation->external_id, $viewer, $agent))->toBeTrue();
 
     app(DeleteChatterAction::class)->execute($chatter);
 
     expect(Cache::driver('chat')->tags(ChatCache::sessionTags($workspace->external_id, $agent->external_id, $session->external_id))->has($session->external_id))->toBeFalse()
-        ->and(ChatCache::isOwnedBy($conversation->external_id, $viewer, $workspace->external_id))->toBeFalse()
+        ->and(ChatCache::isOwnedBy($conversation->external_id, $viewer, $agent))->toBeFalse()
         ->and(Cache::driver('chat')->tags(ChatCache::sessionTags($workspace->external_id, $agent->external_id, $siblingSession->external_id))->has($siblingSession->external_id))->toBeTrue()
         ->and(ChatSession::whereKey($session->id)->exists())->toBeFalse()
         ->and(ChatSession::whereKey($siblingSession->id)->exists())->toBeTrue();
@@ -93,7 +93,7 @@ it('keeps the sessions of a staff account whose id equals the chatter id', funct
     $staffSession = ChatSession::factory()->create(['agent_id' => $agent->id, 'user_id' => $staff->id]);
     $staffConversation = Conversation::factory()->withTitle('Staff preview')->create(['chat_session_id' => $staffSession->id, 'source' => ConversationSource::HostedChat]);
     $staffViewer = ChatViewerData::staff($staff->id);
-    ChatCache::rememberOwner($staffConversation->external_id, $staffViewer, $workspace->external_id);
+    ChatCache::rememberOwner($staffConversation->external_id, $staffViewer, $agent);
 
     app(DeleteChatterAction::class)->execute($chatter);
 
@@ -101,7 +101,7 @@ it('keeps the sessions of a staff account whose id equals the chatter id', funct
         ->and(ChatSession::whereKey($staffSession->id)->exists())->toBeTrue()
         ->and(Conversation::whereKey($staffConversation->id)->exists())->toBeTrue()
         ->and(User::whereKey($staff->id)->exists())->toBeTrue()
-        ->and(ChatCache::isOwnedBy($staffConversation->external_id, $staffViewer, $workspace->external_id))->toBeTrue();
+        ->and(ChatCache::isOwnedBy($staffConversation->external_id, $staffViewer, $agent))->toBeTrue();
 });
 
 it('wipes the attachment files of the deleted chatter\'s conversations', function (): void {

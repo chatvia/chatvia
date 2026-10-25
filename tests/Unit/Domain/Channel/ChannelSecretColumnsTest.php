@@ -28,5 +28,6 @@ it('stores the channel credential encrypted', function (string $model, string $c
     'Slack signing secret' => [AgentSlackApp::class, 'signing_secret'],
     'Teams client secret' => [AgentTeamsBot::class, 'app_secret'],
     'Telegram bot token' => [AgentTelegramBot::class, 'bot_token'],
+    'Telegram header secret' => [AgentTelegramBot::class, 'header_secret'],
     'WhatsApp access token' => [AgentWhatsappNumber::class, 'access_token'],
 ]);

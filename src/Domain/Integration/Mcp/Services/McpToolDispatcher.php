@@ -13,7 +13,9 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Dispatch\ToolArgumentValidator;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
+use Domain\Integration\Tool\Exceptions\InvalidToolArgumentsException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -24,7 +26,9 @@ use Throwable;
  * The tool name is the prefixed form `mcp__{server_slug}__{tool}` (see
  * ToolName). The slug finds the right server row, then `tools/call` runs via
  * McpClient. Failures are returned as user-facing error strings (never
- * thrown) so the LLM can recover gracefully.
+ * thrown) so the LLM can recover gracefully. The model's arguments are
+ * checked against the tool's listed input schema first
+ * ({@see ToolArgumentValidator}).
  */
 class McpToolDispatcher implements ToolDispatcherInterface
 {
@@ -32,6 +36,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         private readonly McpClient $client,
         private readonly McpToolPermissionResolver $permissions,
         private readonly McpServerLookup $servers,
+        private readonly ToolArgumentValidator $validator = new ToolArgumentValidator,
     ) {}
 
     public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
@@ -62,6 +67,12 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $arguments = $this->decodeArgs($call->arguments);
         if ($arguments === null) {
             return $this->error('Invalid arguments JSON from the model.');
+        }
+
+        try {
+            $arguments = $this->validator->validated($catalogEntry->inputSchema ?? [], $arguments);
+        } catch (InvalidToolArgumentsException $e) {
+            return $this->error($e->getMessage());
         }
 
         return $this->invoke($agent, $call, $server, $catalogEntry, $arguments);

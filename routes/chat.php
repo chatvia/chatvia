@@ -9,6 +9,7 @@ use App\Http\Controllers\Chat\Auth\ChatProfileUpdateController;
 use App\Http\Controllers\Chat\Auth\ChatResetPasswordController;
 use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\Auth\ChatShowResetPasswordController;
+use App\Http\Controllers\Chat\Auth\ChatSwitchAccountController;
 use App\Http\Controllers\Chat\Auth\ChatterAgentController;
 use App\Http\Controllers\Chat\Conversations\ChatDeleteAllConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationController;
@@ -77,6 +78,13 @@ Route::prefix('chat/{agentSlug}')
                 ->middleware('throttle:6,1,chat-password-reset')
                 ->name('chat.password.update');
         });
+
+        // A sign-in link opened while someone else is signed in to the chat
+        // waits here for a "Continue as …?" (PendingChatSignIn). Outside the
+        // `chat` group: the account signed in now may not reach this agent.
+        Route::get('switch-account', [ChatSwitchAccountController::class, 'show'])->name('chat.switch-account.show');
+        Route::post('switch-account', [ChatSwitchAccountController::class, 'store'])->name('chat.switch-account.store');
+        Route::delete('switch-account', [ChatSwitchAccountController::class, 'destroy'])->name('chat.switch-account.destroy');
 
         Route::middleware('chat')->group(function (): void {
             Route::get('/', ChatHomeController::class)->name('chat.home');

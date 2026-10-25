@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Conversation\Voice;
 
+use App\Identity\Chatter\Models\Chatter;
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -28,8 +29,8 @@ final class VoiceCalls
 {
     private bool $refusesNewCalls = false;
 
-    /** A ten-minute hosted-chat call of the agent, started now. */
-    public static function data(Agent $agent, string $sessionId = 'session-1', string $conversationId = 'conversation-1', string $providerCallId = 'rtc_test'): VoiceCallData
+    /** A ten-minute hosted-chat call of the agent, started now; by a signed-in chatter when one is given. */
+    public static function data(Agent $agent, string $sessionId = 'session-1', string $conversationId = 'conversation-1', string $providerCallId = 'rtc_test', ?Chatter $chatter = null): VoiceCallData
     {
         return new VoiceCallData(
             call_id: Str::uuid7()->toString(),
@@ -43,13 +44,16 @@ final class VoiceCalls
             voice: 'marin',
             started_at: now()->getTimestamp(),
             max_seconds: 600,
+            chatter_id: $chatter?->id,
+            chatter_name: $chatter?->name,
+            chatter_external_id: $chatter?->external_id,
         );
     }
 
-    /** The call of the conversation's visitor, kept in the call store as a started call is. */
-    public static function started(Conversation $conversation, string $providerCallId = 'rtc_test'): VoiceCallData
+    /** The call of the conversation's visitor (or signed-in chatter), kept in the call store as a started call is. */
+    public static function started(Conversation $conversation, string $providerCallId = 'rtc_test', ?Chatter $chatter = null): VoiceCallData
     {
-        $call = self::data($conversation->agent, $conversation->session->external_id, $conversation->external_id, $providerCallId);
+        $call = self::data($conversation->agent, $conversation->session->external_id, $conversation->external_id, $providerCallId, $chatter);
         app(VoiceCallStore::class)->put($call);
 
         return $call;

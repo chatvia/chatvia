@@ -19,10 +19,8 @@ class ChatTranscriptionController
         TranscribeAudioRequest $request,
         TranscribeAudioAction $transcribe,
     ): JsonResponse {
-        $audio = $request->file('audio');
-
         try {
-            $text = $transcribe->execute((string) $audio->getRealPath(), $audio->getClientOriginalExtension());
+            $text = $transcribe->execute((string) $request->audio()->getRealPath(), $request->voiceNoteFormat());
         } catch (TranscriptionNotConfiguredException) {
             // Not a failure to retry: this install has no speech-to-text service.
             return response()->json(['message' => __('Voice input is not available right now.')], 503);

@@ -163,6 +163,14 @@
             "card_title": "Invitación expirada",
             "contact_owner": "Por favor contacta al administrador del equipo para solicitar una nueva invitación.",
             "go_to_login": "Ir al inicio de sesión"
+        },
+        "switch_chat_account": {
+            "head": "Cambiar de cuenta",
+            "description": "Este enlace te inicia sesión en este chat con otra cuenta.",
+            "signed_in_as": "Ahora has iniciado sesión como {name}.",
+            "continue_as": "Continuar como {name}",
+            "stay_as": "Seguir como {name}",
+            "cancel": "Cancelar"
         }
     }
 }

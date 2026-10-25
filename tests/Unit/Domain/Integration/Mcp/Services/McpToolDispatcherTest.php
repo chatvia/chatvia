@@ -162,3 +162,29 @@ it('refuses a server the agent may not call, without calling it', function (Clos
     'a server of the workspace, not attached' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'billing']),
     'attached but disabled' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->disabled()->attachedTo($agent)->create(['slug' => 'billing']),
 ]);
+
+it('sends only the arguments the tool\'s input schema declares', function (): void {
+    McpTool::factory()->for($this->server, 'mcpServer')->allowed()->create([
+        'name' => 'lookup',
+        'input_schema' => ['type' => 'object', 'properties' => ['email' => ['type' => 'string']], 'required' => ['email']],
+    ]);
+    $this->client->shouldReceive('callTool')
+        ->withArgs(fn (AgentMcpServer $server, string $tool, array $arguments): bool => $arguments === ['email' => 'jane@example.com'])
+        ->once()
+        ->andReturn(McpToolResultData::fromEnvelope(['content' => [['type' => 'text', 'text' => 'ok']]]));
+
+    expect(app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args))->text)->toBe('ok');
+});
+
+it('refuses arguments that do not fit the tool\'s input schema, without calling the server', function (): void {
+    McpTool::factory()->for($this->server, 'mcpServer')->allowed()->create([
+        'name' => 'lookup',
+        'input_schema' => ['type' => 'object', 'properties' => ['limit' => ['type' => 'integer']], 'required' => ['limit']],
+    ]);
+    $this->client->shouldNotReceive('callTool');
+
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', '{"limit":"ten"}'));
+
+    expect($result->isError)->toBeTrue()
+        ->and($result->text)->toContain('"limit" must be of type integer');
+});

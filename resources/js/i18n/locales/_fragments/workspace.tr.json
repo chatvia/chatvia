@@ -1,6 +1,17 @@
 {
     "workspace": {
         "security": {
+            "description": "Çalışma alanı genelinde güvenlik denetimleri. Kontrol panelinize ve API'ye kimlerin ağ üzerinden erişebileceğini kısıtlayın: güvenilir IP adresleri ve ülkeler.",
+            "network": {
+                "help": "Kontrol paneline ve API'ye erişimi güvenilir IP adresleri ve ülkelerle sınırlandırın. Kapalıyken, geçerli bir girişe veya API anahtarına sahip herkes her yerden erişebilir."
+            },
+            "ip": {
+                "help": "Kontrol paneline ve API'ye yalnızca bu adresler erişebilir. Herhangi bir IP'ye izin vermek için boş bırakın (ülke kuralları yine de geçerlidir). Mevcut adresinizi hariç tutan bir listeyi kaydedemezsiniz.",
+                "dialog_description": "Kontrol panelinize ve API'ye erişmesine izin verilen IP adreslerini veya CIDR aralıklarını ekleyin. Örnek: 203.0.113.4 veya 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Kontrol paneline ve API'ye erişime ziyaretçinin ülkesine göre izin verin veya engelleyin."
+            },
             "retention": {
                 "leads": "Potansiyel müşteriler (gün)",
                 "leads_help": "Bu kadar günden eski potansiyel müşterileri silin.",

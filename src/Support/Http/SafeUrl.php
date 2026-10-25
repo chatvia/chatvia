@@ -18,8 +18,10 @@ use Support\Exceptions\UnsafeUrlException;
  *  - host must not resolve to a private / loopback / link-local / reserved IP
  *    (cloud metadata 169.254.169.254, 127.0.0.0/8, RFC1918, ::1, fc00::/7, …)
  *
- * In the `local` environment the IP check is skipped so developers can hit
- * localhost mock servers; production and all other environments are enforced.
+ * The IP check is on whatever APP_ENV says. It is skipped only while the
+ * test suite runs (which never looks up DNS), or when an admin allows private
+ * addresses for local development (Settings → Security,
+ * `chatvia.security.allow_private_addresses`).
  * Redirect following must be disabled by the caller (see clientOptions()) so a
  * public host cannot 30x-redirect into an internal address after validation.
  *
@@ -53,8 +55,7 @@ final class SafeUrl
      * send it with: redirects off and, when the host is a name, the name
      * pinned to the addresses that were just checked (curl's CURLOPT_RESOLVE).
      * The URL keeps its host name, so TLS certificate checks and SNI work as
-     * usual. In local and testing, where the address check is skipped,
-     * nothing is pinned.
+     * usual. When the address check is skipped, nothing is pinned.
      *
      * @return array<string, mixed>
      *
@@ -87,8 +88,7 @@ final class SafeUrl
 
     /**
      * Runs every check and returns the addresses the host resolved to, all of
-     * them public. Empty in local and testing, where the address check is
-     * skipped.
+     * them public. Empty when the address check is skipped.
      *
      * @return list<string>
      *
@@ -112,9 +112,7 @@ final class SafeUrl
             throw new UnsafeUrlException('The URL host is malformed.');
         }
 
-        // Allow localhost/private targets in local + automated tests so dev mock
-        // servers and the suite work; production/staging are enforced.
-        if (app()->environment('local', 'testing')) {
+        if (self::skipsAddressCheck()) {
             return [];
         }
 
@@ -130,6 +128,18 @@ final class SafeUrl
         }
 
         return $ips;
+    }
+
+    /**
+     * The suite fakes every HTTP call and must not look up DNS; a test that
+     * checks addresses switches the environment away from `testing`. An
+     * install never skips the check because of APP_ENV (a forgotten
+     * APP_ENV=local would switch off the SSRF guard), only when an admin
+     * allows private addresses.
+     */
+    private static function skipsAddressCheck(): bool
+    {
+        return app()->runningUnitTests() || config('chatvia.security.allow_private_addresses') === true;
     }
 
     /**

@@ -14,6 +14,12 @@ use Domain\Integration\Tool\Data\ToolDispatchResult;
  *   - artifacts   → well-known `structuredContent` shapes promoted to UI
  *                   blocks (an ECharts option, an inline form). Unknown keys
  *                   are ignored, so servers can ship side data safely.
+ *
+ * Artifacts are taken only from Chatvia's own servers
+ * ({@see fromFirstPartyEnvelope()}). The chat renders them in the visitor's
+ * and the dashboard's page, so a block from any other server (a workspace's
+ * custom MCP server, a third-party connector) could carry markup or links
+ * the renderer would act on; its structured content is ignored.
  */
 final readonly class McpToolResultData
 {
@@ -24,9 +30,12 @@ final readonly class McpToolResultData
         public string $text,
         public bool $isError,
         public ?array $structuredContent,
+        public bool $fromFirstParty = false,
     ) {}
 
     /**
+     * The result of a server Chatvia does not run: text only, never artifacts.
+     *
      * @param  array<string, mixed>  $envelope
      */
     public static function fromEnvelope(array $envelope): self
@@ -43,6 +52,19 @@ final readonly class McpToolResultData
             isError: (bool) ($envelope['isError'] ?? false),
             structuredContent: is_array($envelope['structuredContent'] ?? null) ? $envelope['structuredContent'] : null,
         );
+    }
+
+    /**
+     * The result of one of Chatvia's own servers (charts, forms, analytics),
+     * whose artifacts the chat may render.
+     *
+     * @param  array<string, mixed>  $envelope
+     */
+    public static function fromFirstPartyEnvelope(array $envelope): self
+    {
+        $result = self::fromEnvelope($envelope);
+
+        return new self($result->text, $result->isError, $result->structuredContent, fromFirstParty: true);
     }
 
     /**
@@ -67,6 +89,10 @@ final readonly class McpToolResultData
      */
     public function artifacts(): array
     {
+        if (! $this->fromFirstParty) {
+            return [];
+        }
+
         $artifacts = [];
 
         foreach (['echarts_option', 'form'] as $kind) {

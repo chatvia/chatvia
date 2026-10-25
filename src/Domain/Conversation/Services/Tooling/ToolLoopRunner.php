@@ -12,11 +12,9 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
-use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
-use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolAccessDecision;
@@ -41,7 +39,7 @@ use Psr\Http\Message\ResponseInterface;
  * Every tool-call decision — auto, approved, denied, rate limited or not
  * offered — is announced for the governance audit ({@see ToolCallAuditTrail},
  * {@see ToolCallCompleted}) off the hot path. A tool's result passes the
- * injection guard before the model reads it ({@see GuardrailService::scanToolResult()}).
+ * injection guard before the model reads it ({@see ToolResultGuard}).
  *
  * Shared by every source that needs the loop — `LlmSource` runs it on the
  * agent's configured provider, `AttachmentSource` on the model for chat
@@ -58,6 +56,8 @@ class ToolLoopRunner
 
     public const string RATE_LIMITED_RESULT = 'This tool is temporarily rate-limited for this agent and was not run. Do not retry it now; continue helping the user without it.';
 
+    public const string SIGN_IN_REQUIRED_RESULT = 'This action needs the approval of a signed-in user, so it was not run. Tell the user you cannot do this in this chat, and continue helping without it.';
+
     public const string UNKNOWN_TOOL_RESULT = 'Tool error: "%s" is not one of the tools available to you right now, so it was not run. Use only the tools you were given, or answer without a tool.';
 
     /** Longest tool name echoed back to the model or written to the log. */
@@ -70,9 +70,9 @@ class ToolLoopRunner
         private readonly ToolAccessPolicy $accessPolicy,
         private readonly ToolApprovalStore $approvalStore,
         private readonly ToolCallAuditTrail $auditTrail,
-        private readonly GuardrailService $guardrails,
-        private readonly GuardrailRecorder $guardrailRecorder,
+        private readonly ToolResultGuard $resultGuard,
         private readonly AiCallTags $tags,
+        private readonly ToolCallFactory $calls,
     ) {}
 
     /**
@@ -166,7 +166,11 @@ class ToolLoopRunner
                 continue;
             }
 
-            $approved = ($decisions[$call->toolCallId] ?? null) === ToolApprovalDecision::Approve;
+            // Only a signed-in person (a chatter or staff) may approve: an
+            // anonymous visitor's yes would run the call with the workspace's
+            // own connector credentials.
+            $approved = ($decisions[$call->toolCallId] ?? null) === ToolApprovalDecision::Approve
+                && self::personCanApprove($context);
 
             if ($call->requiresApproval && ! $approved) {
                 $this->appendToolResult($llmMessages, $call->toolCallId, self::DENIED_RESULT);
@@ -180,6 +184,16 @@ class ToolLoopRunner
 
             yield from $this->dispatchToolCall($context, $llmMessages, $call, $outcome, decidedByPerson: $call->requiresApproval);
         }
+    }
+
+    /**
+     * Whether the person on this turn may approve a gated call: a signed-in
+     * chatter or staff account, never an anonymous visitor. Tools that need
+     * approval are not offered to anyone else ({@see ToolSelector::selectForVisitorTurn()}).
+     */
+    public static function personCanApprove(ChatContext $context): bool
+    {
+        return $context->requestData->chatterId !== null || $context->requestData->actorUserId !== null;
     }
 
     /**
@@ -202,6 +216,14 @@ class ToolLoopRunner
             $this->rejectUnofferedCalls($context, $llmMessages, $toolCalls, $offeredNames),
         );
 
+        // Nobody signed in can approve: a gated call is refused at once rather
+        // than paused for a visitor's click. The selector does not offer such
+        // tools to a visitor, so this only catches a policy that changed
+        // mid-turn.
+        if (! self::personCanApprove($context)) {
+            $calls = yield from $this->refuseGatedCalls($context, $llmMessages, $calls);
+        }
+
         // OpenAI needs a result for every tool_call_id before the next
         // assistant turn, so one gated call pauses the whole turn. Refused
         // (rate-limited) calls in the same turn are resolved on resume.
@@ -218,6 +240,29 @@ class ToolLoopRunner
         }
 
         return false;
+    }
+
+    /**
+     * Refuse every gated call (see {@see personCanApprove()}) and return the
+     * rest.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<int, PendingToolCallData>  $calls
+     * @return Generator<int, StreamEvent, mixed, array<int, PendingToolCallData>>
+     */
+    private function refuseGatedCalls(ChatContext $context, array &$llmMessages, array $calls): Generator
+    {
+        $kept = [];
+
+        foreach ($calls as $call) {
+            if ($call->requiresApproval) {
+                yield from $this->refuseCall($context, $llmMessages, $call, ToolCallOutcome::NotOffered, self::SIGN_IN_REQUIRED_RESULT);
+            } else {
+                $kept[] = $call;
+            }
+        }
+
+        return $kept;
     }
 
     /**
@@ -462,28 +507,28 @@ class ToolLoopRunner
         );
 
         $startedAt = microtime(true);
-        $result = $this->dispatcher->dispatch($context->requestData->agent, ToolCallData::named(
-            $call->name,
-            $call->arguments,
-            $context->requestData->conversationId,
-            $context->requestData->chatterExternalId,
-        ));
+        $result = $this->dispatcher->dispatch(
+            $context->requestData->agent,
+            $this->calls->make($context->requestData, $call->name, $call->arguments),
+        );
         $latencyMs = (int) round((microtime(true) - $startedAt) * 1000);
 
         $context->toolCallNames[] = $call->name;
-        $resultText = $this->guardedResult($context, $call->name, $result->text);
+        $resultText = $this->resultGuard->guarded($context, $call->name, $result->text);
         $this->appendToolResult($llmMessages, $call->toolCallId, $resultText);
 
         if ($result->artifacts !== []) {
             $context->artifacts = [...$context->artifacts, ...$result->artifacts];
         }
 
+        // The result text is for the model only: it can hold records from a
+        // connected system and never passes the output guardrail, so the
+        // client gets the status and any artifacts, never the text.
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
             phase: ToolCallPhase::End,
             toolCallId: $call->toolCallId,
             name: $call->name,
-            result: $resultText,
             artifacts: $result->artifacts !== [] ? $result->artifacts : null,
         );
 
@@ -505,35 +550,11 @@ class ToolLoopRunner
             phase: ToolCallPhase::End,
             toolCallId: $call->toolCallId,
             name: $call->name,
-            result: $message,
         );
 
         $this->appendToolResult($llmMessages, $call->toolCallId, $message);
 
         $this->auditTrail->record($context, $call, $outcome, ToolDispatchResult::text($message));
-    }
-
-    /**
-     * The tool result the model may read: as returned, or a notice in its
-     * place when it carries instructions aimed at the model (logged). A turn
-     * that opts out of guards (evals) gets the result as it is.
-     */
-    private function guardedResult(ChatContext $context, string $toolName, string $result): string
-    {
-        if (! $context->requestData->guardrailsEnabled) {
-            return $result;
-        }
-
-        $scan = $this->guardrails->scanToolResult($context->requestData->agent, $toolName, $result);
-
-        if (! $scan->triggered()) {
-            return $result;
-        }
-
-        // The log keeps the result with its personal data masked.
-        $this->guardrailRecorder->record($context, $this->guardrails->redactPii($context->requestData->agent, $result), $scan);
-
-        return $scan->text;
     }
 
     /**

@@ -193,10 +193,11 @@ return [
             'ignore' => [
                 // '#^http://127\.0\.0\.1:13714#', // Inertia SSR...
             ],
+            // Outgoing URLs can carry keys and tokens in the query string
+            // (`?key=…`, signed links), so only the address up to the path
+            // is kept.
             'groups' => [
-                // '#^https://api\.github\.com/repos/.*$#' => 'api.github.com/repos/*',
-                // '#^https?://([^/]*).*$#' => '\1',
-                // '#/\d+#' => '/*',
+                '#^([^?\#]*)[?\#].*$#' => '\1',
             ],
         ],
 

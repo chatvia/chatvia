@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Actions\Voice;
 
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Voice\VoiceCallData;
 use Domain\Conversation\Data\Voice\VoiceCallerData;
 use Domain\Conversation\Data\Voice\VoiceCallStartedData;
@@ -91,7 +92,14 @@ class StartVoiceCallAction
         }
 
         $voice = RealtimeVoice::forSetting($agent->settings('appearance')->get('voice'));
-        $tools = $this->tools->for($agent, $caller->conversationId);
+        // Approval tools are offered to a signed-in caller only, as in the
+        // worker's own session (VoiceCallSession).
+        $viewer = match (true) {
+            $caller->chatterId !== null => ChatViewerData::chatter($caller->chatterId),
+            $caller->actorUserId !== null => ChatViewerData::staff($caller->actorUserId),
+            default => null,
+        };
+        $tools = $this->tools->for($agent, $caller->conversationId, $viewer);
 
         try {
             $opened = $this->calls->create($offerSdp, $this->sessionConfig->build($caller, $voice, $tools), $this->safetyId($caller));

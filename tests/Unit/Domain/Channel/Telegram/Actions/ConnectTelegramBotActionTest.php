@@ -15,7 +15,7 @@ use Tests\Support\Channel\Telegram\FakeTelegramClient;
 /**
  * Connect is the only write in the Telegram channel that carries real behaviour:
  * it validates the token with Telegram, stores it with a fresh webhook
- * secret, and registers our webhook — and must reject a bad token without writing.
+ * secret and header secret, and registers our webhook — and must reject a bad token without writing.
  */
 function ctbAction(FakeTelegramClient $client): ConnectTelegramBotAction
 {
@@ -34,11 +34,16 @@ it('connects a bot and registers the webhook with its fresh secret', function ()
         ->and($row->agent_id)->toBe($agent->id)
         ->and($row->bot_username)->toBe('demo_bot')
         ->and($row->is_enabled)->toBeTrue()
-        ->and(strlen($row->webhook_secret))->toBe(48);
+        ->and(strlen($row->webhook_secret))->toBe(48)
+        ->and(strlen($row->header_secret))->toBe(64);
 
+    // The header secret is not the one in the URL: a webhook URL seen in a
+    // log or a proxy must not be enough to forge an update.
     expect($client->webhooks)->toHaveCount(1)
-        ->and($client->webhooks[0]['secret'])->toBe($row->webhook_secret)
-        ->and($client->webhooks[0]['url'])->toContain('telegram/webhook');
+        ->and($client->webhooks[0]['secret'])->toBe($row->header_secret)
+        ->and($client->webhooks[0]['secret'])->not->toBe($row->webhook_secret)
+        ->and($client->webhooks[0]['url'])->toContain('telegram/webhook/'.$row->webhook_secret)
+        ->and($client->webhooks[0]['url'])->not->toContain($row->header_secret);
 
     // The "/" menu is registered with Telegram; TelegramCommandRouterTest owns its order.
     expect($client->commands)->toHaveCount(1);
@@ -71,7 +76,8 @@ it('reconnects in place — one bot row per agent, token rotated', function (): 
     $row = AgentTelegramBot::query()->firstOrFail();
     expect($row->id)->toBe($first->id)
         ->and($row->bot_token)->toBe('222:second_token_value_bbbbbbbbbb')
-        ->and($row->webhook_secret)->not->toBe($first->webhook_secret);
+        ->and($row->webhook_secret)->not->toBe($first->webhook_secret)
+        ->and($row->header_secret)->not->toBe($first->header_secret);
 });
 
 it('refuses a protected agent before calling Telegram', function (): void {

@@ -7,14 +7,16 @@ use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * A hosted-chat address with `?token=` signs the chatter in on the `chat`
  * guard and redirects to the same address without the token. A token that
  * cannot be verified is stripped the same way and signs nobody in; no token
- * passes the request on. The token rules themselves are the sign-in token
- * service's.
+ * passes the request on. A browser signed in as another chatter is sent to
+ * confirm the switch instead. The token rules themselves are the sign-in
+ * token service's.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => false]);
@@ -35,6 +37,7 @@ function acvstRequest(Agent $agent, ?string $token): Request
     $request->setLaravelSession(app('session.store'));
     // What the route middleware does first on a /chat request.
     HostedChatAgent::remember($request, $agent);
+    URL::defaults(['agentSlug' => $agent->slug]);
     Auth::shouldUse('chat');
 
     return $request;
@@ -77,3 +80,15 @@ it('signs nobody in for a token it cannot verify, and still strips it from the a
     'a token minted for another agent' => [fn (Agent $agent, Chatter $chatter): string => app(AgentSignInTokenService::class)
         ->issue($chatter, Agent::factory()->create(['workspace_id' => $agent->workspace_id, 'is_public' => false]))['token']],
 ]);
+
+it('does not switch away from another signed-in chatter, but sends the browser to confirm', function (): void {
+    $signedIn = Chatter::factory()->grantedTo($this->agent)->create();
+    Auth::guard('chat')->login($signedIn);
+    $token = app(AgentSignInTokenService::class)->issue($this->chatter, $this->agent)['token'];
+
+    $response = acvstHandle(acvstRequest($this->agent, $token));
+
+    expect($response->getStatusCode())->toBe(302)
+        ->and($response->headers->get('Location'))->toEndWith('/switch-account')
+        ->and(Auth::guard('chat')->id())->toBe($signedIn->id);
+});

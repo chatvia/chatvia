@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent;
 
+use Closure;
 use Domain\Agent\Data\Settings\UpdateAgentDomainData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,10 +14,12 @@ use Illuminate\Validation\Rule;
 
 /**
  * Validates the custom domain of an agent's Hosted Chat. The value must be a
- * bare hostname (no scheme or path), must not be the platform's own host, and
- * must not belong to another agent; an empty value clears the domain. Agent
- * access and the `agent.setup` permission are checked by the route
- * middleware.
+ * bare hostname (no scheme or path), must be neither the platform's own host
+ * nor one of its subdomains, and must not be in use by another agent; an empty
+ * value clears the domain. A domain in use is refused with the same generic
+ * words as any unusable one, so the answer never tells that another workspace
+ * has it. Agent access and the `agent.setup` permission are checked by the
+ * route middleware.
  */
 class UpdateAgentDomainRequest extends FormRequest
 {
@@ -30,7 +33,7 @@ class UpdateAgentDomainRequest extends FormRequest
      */
     public function rules(): array
     {
-        $appHost = Uri::of((string) config('app.url'))->host();
+        $appHost = Str::lower((string) Uri::of((string) config('app.url'))->host());
 
         /** @var Agent $agent */
         $agent = $this->route('agent');
@@ -44,9 +47,15 @@ class UpdateAgentDomainRequest extends FormRequest
                 // separated by dots, no leading/trailing hyphen per label.
                 'regex:/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i',
                 // Don't let the user pin their custom domain to the app's
-                // own host (APP_URL's host): it must never resolve to a
-                // workspace-controlled record.
-                Rule::notIn([$appHost]),
+                // own host (APP_URL's host) or any host under it: those must
+                // never resolve to a workspace-controlled record.
+                function (string $attribute, mixed $value, Closure $fail) use ($appHost): void {
+                    $host = Str::lower(Str::trim((string) $value));
+
+                    if ($appHost !== '' && ($host === $appHost || Str::endsWith($host, '.'.$appHost))) {
+                        $fail(__("You can't use the platform's own host as a custom domain."));
+                    }
+                },
                 // A custom domain shows one agent's chat.
                 Rule::unique('agents', 'domain')->ignore($agent->id),
             ],
@@ -60,7 +69,7 @@ class UpdateAgentDomainRequest extends FormRequest
     {
         return [
             'domain.regex' => __('Enter a valid hostname (e.g. chat.example.com), without scheme or path.'),
-            'domain.not_in' => __("You can't use the platform's own host as a custom domain."),
+            'domain.unique' => __("This domain can't be used. Choose another domain."),
         ];
     }
 

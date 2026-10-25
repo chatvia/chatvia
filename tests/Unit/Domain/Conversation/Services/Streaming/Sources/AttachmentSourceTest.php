@@ -183,6 +183,11 @@ it('offers tools only to a model for chat files that can call them', function (?
         {
             return [['type' => 'function', 'function' => ['name' => 'lookup_order', 'parameters' => ['type' => 'object', 'properties' => new stdClass]]]];
         }
+
+        public function selectForVisitorTurn(Agent $agent, string $userMessage, ?string $conversationId): array
+        {
+            return $this->selectForTurn($agent, $userMessage, $conversationId);
+        }
     });
 
     expect(isset(attachmentSentBody($this->sent)['tools']))->toBe($offered);

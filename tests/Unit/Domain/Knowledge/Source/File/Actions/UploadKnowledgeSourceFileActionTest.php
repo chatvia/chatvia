@@ -50,6 +50,17 @@ it('stores an uploaded document for the workspace and attaches it to the agent',
     Storage::assertExists($file->filepath);
 });
 
+it('stores a text file holding HTML under its own extension, never as HTML', function (): void {
+    $agent = Agent::factory()->create();
+
+    $file = app(UploadKnowledgeSourceFileAction::class)->execute(
+        $agent,
+        uksfUpload('notes.txt', '<!DOCTYPE html><html><body><script>alert(1)</script></body></html>', 'text/html'),
+    );
+
+    expect($file->filepath)->toEndWith('.txt');
+});
+
 it('refuses a file type the knowledge base cannot read', function (): void {
     $agent = Agent::factory()->create();
 

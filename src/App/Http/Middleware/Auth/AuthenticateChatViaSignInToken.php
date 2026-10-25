@@ -4,6 +4,7 @@ namespace App\Http\Middleware\Auth;
 
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatViewer;
+use App\Http\Chat\PendingChatSignIn;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Closure;
 use Domain\Agent\Models\Agent;
@@ -18,7 +19,9 @@ use Symfony\Component\HttpFoundation\Response;
  * resolves to the current agent signs its chatter or staff account in to the
  * chat ({@see HostedChatViewer}, never the dashboard), then a GET is redirected
  * to the same URL without the token (keeping it out of the browser history).
- * From there the visitor is an ordinary signed-in chat user.
+ * From there the visitor is an ordinary signed-in chat user. When the browser
+ * is already signed in to the chat as someone else, the link does not switch
+ * accounts by itself: the person confirms first ({@see PendingChatSignIn}).
  *
  * The token is multi-use until its TTL, so it survives browser prefetch /
  * double requests. An expired / unknown token (or one minted for another agent)
@@ -47,7 +50,13 @@ class AuthenticateChatViaSignInToken
 
         $account = $this->tokens->verify($token, $agent);
 
-        if ($account !== null) {
+        if ($account !== null && PendingChatSignIn::wouldReplace($account)) {
+            // Someone else is signed in: ask before switching (never on a
+            // POST, which just goes on as the account already signed in).
+            if ($request->isMethod('GET')) {
+                return PendingChatSignIn::hold($request, $account, $agent);
+            }
+        } elseif ($account !== null) {
             HostedChatViewer::signIn($account);
         }
 

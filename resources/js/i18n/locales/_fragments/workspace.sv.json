@@ -303,6 +303,17 @@
             "members": "Chattare"
         },
         "security": {
+            "description": "Säkerhetskontroller för hela arbetsytan. Begränsa vem som kan nå din instrumentpanel och API:et via nätverk: betrodda IP-adresser och länder.",
+            "network": {
+                "help": "Begränsa åtkomsten till instrumentpanelen och API:et till betrodda IP-adresser och länder. När avstängt kan vem som helst med en giltig inloggning eller API-nyckel komma in var som helst ifrån."
+            },
+            "ip": {
+                "help": "Endast dessa adresser kan nå instrumentpanelen och API:et. Lämna tomt för att tillåta alla IP (landsregler gäller fortfarande). Du kan inte spara en lista som utesluter din nuvarande adress.",
+                "dialog_description": "Lägg till de IP-adresser eller CIDR-intervall som tillåts nå din instrumentpanel och API:et. Exempel: 203.0.113.4 eller 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Tillåt eller blockera åtkomst till instrumentpanelen och API:et baserat på besökarens land."
+            },
             "retention": {
                 "leads": "Leads (dagar)",
                 "leads_help": "Radera leads som är äldre än så här många dagar.",

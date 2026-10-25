@@ -10,8 +10,10 @@ use Illuminate\Support\Str;
 /**
  * Mints the `data-auth` token the Playground previews (Widget, Command Bar)
  * pass to the real embed script for a protected agent — the same JWT a
- * customer mints on their backend, signed with the agent's own `auth_secret`
- * and scoped to the dashboard user, so the secret never reaches the browser.
+ * customer mints on their backend, scoped to the dashboard user. As the user
+ * is staff, it is signed with the server-only staff key derived from the
+ * agent's `auth_secret` ({@see AgentSignInTokenService}), so neither the
+ * secret nor a key that could sign in staff ever reaches the browser.
  *
  * The token is cached for an hour less than its lifetime, keyed by (surface,
  * agent, user, secret fingerprint): reloads reuse it, and regenerating the

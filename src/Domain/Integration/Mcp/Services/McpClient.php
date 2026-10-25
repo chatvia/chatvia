@@ -78,9 +78,12 @@ class McpClient
                 'arguments' => $arguments,
             ], $identityHeaders)['body'];
 
+            // Only our own servers' results may carry blocks the chat renders.
             $result = $body['result'] ?? null;
             if (is_array($result)) {
-                return McpToolResultData::fromEnvelope($result);
+                return $this->isFirstPartyServer($server)
+                    ? McpToolResultData::fromFirstPartyEnvelope($result)
+                    : McpToolResultData::fromEnvelope($result);
             }
 
             $error = $body['error'] ?? null;
@@ -194,10 +197,11 @@ class McpClient
         // SSRF guard: a custom MCP server URL is user-supplied. Re-validate at
         // dispatch time (DNS can change since save), connect to the address
         // that was checked, and disable redirects so a public host can't 30x
-        // into internal infrastructure. Skipped in local. One of our own
-        // servers sent to the internal URL is the exception: that address is
-        // the operator's config, not a workspace's input, and a private one
-        // (a container network) is the point.
+        // into internal infrastructure (unless Settings → Security allows
+        // private addresses). One of our own servers sent to the internal URL
+        // is the exception: that address is the operator's config, not a
+        // workspace's input, and a private one (a container network) is the
+        // point.
         $clientOptions = $url === $server->url
             ? SafeUrl::pinnedClientOptions($server->url)
             : SafeUrl::clientOptions();

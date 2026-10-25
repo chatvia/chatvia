@@ -108,6 +108,17 @@ it('runs a builtin capability tool directly, never gating it', function (): void
     expect(aplRequired($agent, 'mcp__forms__render_form'))->toBeFalse();
 });
 
+it('gates a custom server that took a builtin\'s slug as its name', function (): void {
+    $agent = Agent::factory()->create();
+
+    // Builtin-ness comes from the connector the app set, never from the
+    // slug, which a custom server takes from the name a workspace picks.
+    $server = AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'forms', 'connector_slug' => null]);
+    McpTool::factory()->for($server, 'mcpServer')->create(['name' => 'wire_money', 'permission' => McpToolPermission::Approval]);
+
+    expect(aplRequired($agent, 'mcp__forms__wire_money'))->toBeTrue();
+});
+
 it('follows a function\'s own requires_approval flag', function (bool $requiresApproval): void {
     $agent = Agent::factory()->create();
     AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'write_thing', 'requires_approval' => $requiresApproval]);

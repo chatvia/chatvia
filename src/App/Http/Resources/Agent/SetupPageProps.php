@@ -11,6 +11,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Data\Resources\AgentPromptPickerData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\Services\AgentModel;
+use Domain\Agent\Services\CustomDomain\CustomDomainVerification;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
@@ -80,11 +81,7 @@ final readonly class SetupPageProps
             // Whether the agent has ingested knowledge-base content. Gates the
             // Setup → Starters "Generate with AI" button (which scans the chunks).
             'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent),
-            'prompts' => $user->workspace()->prompts()
-                ->latest()
-                ->get()
-                ->map(fn (AgentPrompt $prompt): AgentPromptPickerData => AgentPromptPickerData::fromModel($prompt))
-                ->all(),
+            'prompts' => $this->prompts($agent, $user),
             'hasPermission' => $this->permissions->allowsOnAgent($user, $agent, 'agent.setup'),
 
             // Shared content settings + their defaults — written across all surfaces.
@@ -153,13 +150,39 @@ final readonly class SetupPageProps
 
             'availableLanguages' => config('chatvia.languages'),
 
-            // Custom domain (Hosted Chat only) — current value + CNAME target:
-            // the app's own host, which serves every chat.
+            // Custom domain (Hosted Chat only): the domain in use, the one
+            // waiting for its TXT record, the CNAME target (the app's own
+            // host, which serves every chat) and the TXT record that proves
+            // the workspace controls the pending domain.
             'domain' => [
                 'value' => $agent->domain,
+                'pending' => $agent->pending_domain,
                 'cname_target' => (string) Uri::of((string) config('app.url'))->host(),
+                'txt_name' => $agent->pending_domain !== null ? CustomDomainVerification::recordName($agent->pending_domain) : null,
+                'txt_value' => $agent->pending_domain !== null ? $agent->domain_verification_token : null,
             ],
         ];
+    }
+
+    /**
+     * The workspace's saved prompts for the picker. Only someone who may set
+     * the agent up, or manage the prompt library, gets them: the library is
+     * the workspace's, not this agent's.
+     *
+     * @return list<AgentPromptPickerData>
+     */
+    private function prompts(Agent $agent, User $user): array
+    {
+        if (! $this->permissions->allowsOnAgent($user, $agent, 'agent.setup') && ! $this->permissions->allows($user, 'account.prompts')) {
+            return [];
+        }
+
+        return $user->workspace()->prompts()
+            ->latest()
+            ->get()
+            ->map(fn (AgentPrompt $prompt): AgentPromptPickerData => AgentPromptPickerData::fromModel($prompt))
+            ->values()
+            ->all();
     }
 
     /** The URL of the logo of the model's maker (as the hosted chat's picker shows it), or null. */

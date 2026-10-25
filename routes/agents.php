@@ -82,6 +82,7 @@ use App\Http\Controllers\Agent\Setup\AgentDeployController;
 use App\Http\Controllers\Agent\Setup\SetupController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
+use App\Http\Controllers\Agent\Setup\VerifyAgentDomainController;
 use App\Http\Controllers\Agent\Slug\GenerateAgentSlugController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAlwaysAvailableController;
@@ -213,12 +214,13 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('sources/web', AgentKnowledgeWebController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.web');
 
         // YouTube sources are not finished (added videos are never ingested),
-        // so they stay off unless FEATURE_YOUTUBE_SOURCES turns them on.
+        // so they stay off unless FEATURE_YOUTUBE_SOURCES turns them on. Videos
+        // are trained under the video permission.
         Route::middleware(EnsureFeatureFlagIsOn::class.':youtube_sources')->group(function (): void {
-            Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->name('sources.youtube.index');
-            Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->name('sources.youtube.store');
-            Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->name('sources.youtube.destroy');
-            Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->name('sources.youtube.retrain');
+            Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->middleware('agent.permission:agent.sources.train.video')->name('sources.youtube.index');
+            Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->middleware('agent.permission:agent.sources.train.video')->name('sources.youtube.store');
+            Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.youtube.destroy');
+            Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->middleware('agent.permission:agent.sources.train.video')->name('sources.youtube.retrain');
         });
 
         Route::get('sources/text', [AgentTextController::class, 'index'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.index');
@@ -269,7 +271,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('sources/files/{file}/replace', ReplaceAgentSourceFileController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:120,1,knowledge-upload'])->name('sources.files.replace');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.uploaded-files');
         Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:20,1,knowledge-process'])->name('sources.files.process');
-        Route::get('sources/files/{file}/summary', AgentFileSummaryController::class)->name('agent.files.summary');
+        Route::get('sources/files/{file}/summary', AgentFileSummaryController::class)->middleware('agent.permission:agent.sources.train.files')->name('agent.files.summary');
 
         Route::get('sources/websites', [AgentWebsiteController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.index');
         Route::post('sources/websites', [AgentWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.store');
@@ -300,7 +302,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware('agent.permission:agent.leads.settings')->name('leads.settings');
         Route::get('forms/{form}/submissions', [AgentSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
         Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware(['agent.permission:agent.leads.export', 'throttle:10,1,submissions-export'])->name('forms.submissions.export');
-        Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.destroy');
+        Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware('agent.permission:agent.leads.settings')->name('forms.submissions.destroy');
 
         // Chatter members. index lists every workspace chatter (with a
         // `has_access` flag for this agent); store invites a brand-new
@@ -425,6 +427,10 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // Custom domain (Hosted Chat) — pass an empty value to clear.
         Route::patch('domain', UpdateAgentDomainController::class)
             ->middleware('agent.permission:agent.setup')->name('domain.update');
+        // Turns a pending domain on once its TXT record proves the workspace
+        // controls it. Each try is a DNS lookup, so it is throttled.
+        Route::post('domain/verify', VerifyAgentDomainController::class)
+            ->middleware(['agent.permission:agent.setup', 'throttle:10,1,domain-verify'])->name('domain.verify');
 
         // Toggling `is_public` exposes/locks the agent on the public internet —
         // gate it on the documented `agent.setup` permission, not mere access.

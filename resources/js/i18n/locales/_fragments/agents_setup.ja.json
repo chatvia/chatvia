@@ -3,9 +3,13 @@
         "setup": {
             "toasts": {
                 "replies_saved": "返信オプションを保存しました",
-                "replies_error": "返信オプションを保存できませんでした"
+                "replies_error": "返信オプションを保存できませんでした",
+                "domain_verified": "カスタムドメインを確認しました",
+                "domain_verify_error": "ドメインを確認できませんでした"
             },
-            "settings": {},
+            "settings": {
+                "file_uploads_unavailable": "このサーバーではオフになっています。管理者は管理パネルの「Settings → AI models」で、チャットでのファイルアップロードをオンにできます。"
+            },
             "model_picker_title": "モデル",
             "model_picker_description": "このエージェントが回答に使うAIモデルです。このリストに載せるモデルは管理者が選びます（管理パネル → Settings → AI models）。",
             "model_placeholder": "モデルを選択",
@@ -18,6 +22,13 @@
             "multi_model_help": "複数のモデルを選びます。チャット利用者は、ホスト型チャット、チャットウィジェット、コマンドバーで、メッセージごとと新しい回答を求めるときに、どのモデルが回答するかを選べます。",
             "multi_model_placeholder": "モデルを選択",
             "multi_model_hint": "チャット利用者が別のモデルを選ぶまで、最初のモデルが回答します。2 つ以上選んでください。1 つだけだと選択肢は表示されません。",
+            "domain": {
+                "step3": "ステップ 3: TXT レコードでドメインの所有権を証明",
+                "pending": "{domain} はまだ有効になっていません。上記の TXT レコードを DNS プロバイダーで追加してから、「確認」を選択してください。DNS の変更が反映されるまで時間がかかる場合があります。",
+                "active": "{domain} で公開中です。",
+                "verify": "確認",
+                "verifying": "確認中…"
+            },
             "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。",
             "reasoning_title": "推論",
             "reasoning_description": "モデルが答える前にどれだけ考えるかです。よく考えると難しい質問に強くなりますが、回答は遅くなり、費用も増えます。チャット利用者には、回答の上に推論がグレーで表示されます。",

@@ -2,9 +2,11 @@
 
 namespace App\Identity\Workspace\Actions\Social;
 
+use App\Identity\Workspace\Actions\Account\ClaimUnverifiedAccountAction;
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -14,11 +16,21 @@ use Illuminate\Support\Str;
  * goes through the fast path. Returns null when no account matches — the
  * controller decides how to surface that ("create one" vs "no account").
  *
+ * A same-email account that was never verified may have been registered by
+ * someone else, who knows its password. It is claimed first
+ * ({@see ClaimUnverifiedAccountAction}): verified, given a random password,
+ * stripped of any other sign-in and signed out everywhere, so only the owner
+ * of the provider identity gets in.
+ *
  * Socialite itself stays in the controller: the action operates on the
  * resolved (provider, providerId, email) triple, not on the OAuth client.
  */
 class SocialLoginAction
 {
+    public function __construct(
+        private readonly ClaimUnverifiedAccountAction $claimUnverified,
+    ) {}
+
     /**
      * @param  bool|null  $emailVerified  whether the provider asserted the email
      *                                    as verified. `null` = the provider did
@@ -57,13 +69,17 @@ class SocialLoginAction
             return null;
         }
 
-        // Auto-link so the next sign-in hits the fast path above. updateOrCreate
-        // is idempotent for the (user, provider) unique pair.
-        UserSocial::query()->updateOrCreate(
-            ['user_id' => $user->id, 'provider' => $provider],
-            ['provider_id' => $providerId],
-        );
+        return DB::transaction(function () use ($user, $provider, $providerId): User {
+            $this->claimUnverified->execute($user);
 
-        return $user;
+            // Auto-link so the next sign-in hits the fast path above.
+            // updateOrCreate is idempotent for the (user, provider) unique pair.
+            UserSocial::query()->updateOrCreate(
+                ['user_id' => $user->id, 'provider' => $provider],
+                ['provider_id' => $providerId],
+            );
+
+            return $user;
+        });
     }
 }

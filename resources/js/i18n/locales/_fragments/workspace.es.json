@@ -303,6 +303,17 @@
             "members": "Usuarios"
         },
         "security": {
+            "description": "Controles de seguridad para todo el espacio de trabajo. Restringe quién puede acceder a tu panel y a la API por red: direcciones IP y países de confianza.",
+            "network": {
+                "help": "Restringe el acceso al panel y a la API a direcciones IP y países de confianza. Cuando está desactivado, cualquier persona con un inicio de sesión válido o una clave de API puede entrar desde cualquier lugar."
+            },
+            "ip": {
+                "help": "Solo estas direcciones pueden acceder al panel y a la API. Déjalo vacío para permitir cualquier IP (las reglas por país siguen aplicándose). No puedes guardar una lista que excluya tu dirección actual.",
+                "dialog_description": "Añade las direcciones IP o rangos CIDR autorizados para acceder a tu panel y a la API. Ejemplo: 203.0.113.4 o 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Permite o bloquea el acceso al panel y a la API según el país del visitante."
+            },
             "retention": {
                 "leads": "Leads (días)",
                 "leads_help": "Elimina los leads con más de este número de días.",

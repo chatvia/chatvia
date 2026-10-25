@@ -5,7 +5,6 @@ namespace Domain\Conversation\Services\Tooling;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
@@ -20,10 +19,6 @@ use Domain\Integration\Tool\Enums\ToolKind;
  */
 class ToolCallAuditTrail
 {
-    public function __construct(
-        private readonly ConnectorCatalog $catalog,
-    ) {}
-
     public function record(
         ChatContext $context,
         PendingToolCallData $call,
@@ -42,7 +37,10 @@ class ToolCallAuditTrail
         $name = ToolName::parse($call->name);
         $connectorSlug = $isMcp ? $name->serverSlug : null;
 
-        if ($connectorSlug !== null && $this->catalog->isBuiltinSlug($connectorSlug)) {
+        // First-party plumbing (forms, charts) is not audited. The display
+        // details decided that from the server's connector, never from its
+        // slug, which a custom server takes from the name the workspace chose.
+        if ($call->isBuiltin) {
             return;
         }
 

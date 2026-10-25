@@ -163,6 +163,14 @@
             "card_title": "Invitation udløbet",
             "contact_owner": "Kontakt venligst teamejeren for at anmode om en ny invitation.",
             "go_to_login": "Gå til login"
+        },
+        "switch_chat_account": {
+            "head": "Skift konto",
+            "description": "Dette link logger dig ind i denne chat med en anden konto.",
+            "signed_in_as": "Du er logget ind som {name} lige nu.",
+            "continue_as": "Fortsæt som {name}",
+            "stay_as": "Forbliv logget ind som {name}",
+            "cancel": "Annuller"
         }
     }
 }

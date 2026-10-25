@@ -30,6 +30,7 @@ return new class extends SettingsMigration
             $group->add('tool_approval_ttl_minutes');
             $group->add('csp_mode');
             $group->add('csp_report_uri');
+            $group->add('allow_private_addresses');
             $group->add('security_audit_enabled');
             $group->add('security_audit_retention_days');
             $group->add('security_audit_retention_floor_days');

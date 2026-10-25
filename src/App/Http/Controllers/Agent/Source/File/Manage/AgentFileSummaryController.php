@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 /**
  * Returns the analysis metadata of a file's summary chunk (type, audience,
- * topics, …) for the file details panel.
+ * topics, …) for the file details panel. Agent access and the
+ * `agent.sources.train.files` permission are checked by the route middleware.
  */
 class AgentFileSummaryController
 {
@@ -17,8 +18,9 @@ class AgentFileSummaryController
      */
     public function __invoke(Request $request, Agent $agent, SourceFile $file): array
     {
-        // {file} binds globally by id: confirm it belongs to the caller's
-        // workspace before returning its metadata.
+        // {file} binds by id inside the workspace: it must also be one of this
+        // agent's files before its metadata is returned.
+        abort_unless($agent->files()->whereKey($file->id)->exists(), 404);
         abort_if($request->user()->cannot('view', $file), 404);
 
         return $file->summary()->value('metadata') ?? [];

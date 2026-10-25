@@ -6,12 +6,18 @@ use App\Identity\Chatter\Data\UpdateChatterProfileData;
 use App\Identity\Workspace\Services\ProfilePhotoStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelData\Optional;
 
 /**
  * A chatter edits their own profile on the hosted chat: name, password (the
  * current one is checked first) and photo.
+ *
+ * A new password ends the chatter's other chat sessions on their next request
+ * (each keeps a hash of the password it signed in with: AuthenticateSession)
+ * and rotates the remember-me token; this session stores the new hash and
+ * stays signed in.
  */
 class UpdateChatterProfileAction
 {
@@ -42,6 +48,7 @@ class UpdateChatterProfileAction
 
         if ($data->newPassword) {
             $user->password = Hash::make($data->newPassword);
+            $user->setRememberToken(Str::random(60));
         }
 
         if ($data->photo instanceof UploadedFile) {

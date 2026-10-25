@@ -303,6 +303,17 @@
             "members": "Chattere"
         },
         "security": {
+            "description": "Sikkerhetskontroller for hele arbeidsområdet. Begrens hvem som kan nå dashbordet ditt og API-et etter nettverk: pålitelige IP-adresser og land.",
+            "network": {
+                "help": "Begrens tilgangen til dashbordet og API-et til pålitelige IP-adresser og land. Når dette er av, kan alle med en gyldig pålogging eller API-nøkkel komme inn fra hvor som helst."
+            },
+            "ip": {
+                "help": "Bare disse adressene kan nå dashbordet og API-et. La feltet stå tomt for å tillate alle IP-er (landregler gjelder fortsatt). Du kan ikke lagre en liste som utelater din nåværende adresse.",
+                "dialog_description": "Legg til IP-adressene eller CIDR-områdene som har tillatelse til å nå dashbordet ditt og API-et. Eksempel: 203.0.113.4 eller 203.0.113.0/24."
+            },
+            "geo": {
+                "help": "Tillat eller blokker tilgang til dashbordet og API-et basert på den besøkendes land."
+            },
             "retention": {
                 "leads": "Leads (dager)",
                 "leads_help": "Slett leads som er eldre enn så mange dager.",

@@ -8,7 +8,7 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * Install-wide options that fit nowhere else: the default language, the
- * chat widget, the tracking code, visitor location, where Horizon sends
+ * tracking code, visitor location, where Horizon sends
  * alerts, how many queue workers it may run, where the programs that read
  * files are, whether the panel shows its Logs page, and when the admin
  * setup of the install was completed.
@@ -21,18 +21,6 @@ class PlatformSettings extends AdminSettings
 
     #[ConfigKey('app.locale')]
     public ?string $default_locale = null;
-
-    #[ConfigKey('chatvia.widget.extra_allowed_origins')]
-    public ?string $widget_allowed_origins = null;
-
-    #[ConfigKey('chatvia.widget.script_url_embed')]
-    public ?string $widget_script_url = null;
-
-    #[ConfigKey('chatvia.widget.stream_per_agent_per_minute')]
-    public ?int $widget_stream_per_minute = null;
-
-    #[ConfigKey('chatvia.widget.stream_per_agent_per_hour')]
-    public ?int $widget_stream_per_hour = null;
 
     #[ConfigKey('chatvia.tracking_code')]
     public ?string $tracking_code = null;

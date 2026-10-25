@@ -22,7 +22,13 @@ use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Operations\Query\QueryRewriter;
+use Domain\Llm\Services\LlmChat;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
@@ -235,10 +241,10 @@ it('measures knowledge retrieval quality against the labelled set', function ():
     foreach ($cases as $case) {
         $query = retrievalEvalQuery($case);
         $vector = '['.implode(',', $embeddings->embedQuery($query)).']';
-        $asked[] = ['query' => $query, 'vector' => $vector];
         $scope = $search->scope($agent, $settings->exactMaxChunks);
         $candidates = $search->search($agent, $query, $vector, $pool, $scope, $settings->accuracy);
         $shipped = app(KnowledgeBase::class)->search($agent, $query);
+        $asked[] = ['query' => $query, 'vector' => $vector, 'candidates' => $candidates, 'shipped' => $shipped];
 
         if (isset($case['kind'])) {
             $factRows[] = retrievalEvalFactsRow($case, $candidates, $shipped);
@@ -268,6 +274,10 @@ it('measures knowledge retrieval quality against the labelled set', function ():
 
     if (filled($weights = env('EVAL_CHANNEL_WEIGHTS'))) {
         retrievalEvalWeightsReport($agent, $cases, $asked, $settings, $pool, (string) $weights);
+    }
+
+    if (env('EVAL_SPLIT')) {
+        retrievalEvalSplitReport($cases, $asked, $settings);
     }
 
     retrievalEvalQaReport($agent);
@@ -431,6 +441,141 @@ function retrievalEvalWeightsReport(Agent $agent, array $cases, array $asked, Re
             $pct($answers['given'], $answers['n']), $pct($uncovered['empty'], $uncovered['n']),
             $pct($multi['top5'], $multi['facts']), $pct($multi['all'], $multi['n']), $pct($global['given'], $global['facts']));
     }
+
+    fwrite(STDOUT, implode(PHP_EOL, $out).PHP_EOL);
+}
+
+/**
+ * The separate questions in one message, one per line, from the model the
+ * follow-up rewrite uses: a message that asks two things comes back as two
+ * self-contained questions, any other as itself. At most three.
+ *
+ * @return list<string>
+ */
+function retrievalEvalSplit(string $query): array
+{
+    $reply = app(LlmChat::class)->send(new ChatRequestData(
+        model: app(TaskModels::class)->model(LlmTask::FollowUp),
+        messages: [
+            ChatMessageData::system(<<<'TEXT'
+You split a visitor's message into the separate questions it asks, for a knowledge-base search. Nobody reads the result.
+
+- If the message asks two or more different things, write each one as a short question that makes sense on its own, one per line, at most three lines. Repeat the names it refers to, so each line stands alone.
+- If the message asks one thing, or is a greeting or small talk, write it unchanged on one line.
+- Keep the language of the message. Never answer. Write nothing else.
+TEXT),
+            ChatMessageData::user($query),
+        ],
+        tag: AiCallTag::FollowUpRewrite,
+        temperature: 0.0,
+    ));
+
+    $parts = Str::of($reply->content)->explode("\n")
+        ->map(static fn (string $line): string => Str::of($line)->trim()->replaceMatches('/^(?:[-•*]|\d+[.)])\s+/u', '')->toString())
+        ->filter()
+        ->take(3)
+        ->values()
+        ->all();
+
+    return $parts === [] ? [$query] : $parts;
+}
+
+/**
+ * What the model gets when each part of a split question is reranked on its
+ * own over the same candidates: per part the candidates at or above the
+ * reranker's bar, best first, then the parts take turns until max_chunks. A
+ * question with one part gets exactly today's rerank check.
+ *
+ * @param  list<string>  $parts
+ * @param  list<RetrievedChunkData>  $candidates
+ * @return list<RetrievedChunkData>
+ */
+function retrievalEvalSplitSelect(array $parts, array $candidates, RetrievalSettingsData $settings): array
+{
+    $reranker = app(Reranker::class);
+    $threshold = RelevanceThresholds::knowledgeRerank($reranker);
+    $texts = array_map(static fn (RetrievedChunkData $chunk): string => $chunk->chunk, $candidates);
+
+    $kept = array_map(static fn (string $part): array => collect($reranker->rerank($part, $texts, count($texts)))
+        ->filter(static fn ($item): bool => $item->relevanceScore >= $threshold)
+        ->sortByDesc('relevanceScore')
+        ->pluck('index')
+        ->values()
+        ->all(), $parts);
+
+    $picked = [];
+
+    for ($turn = 0; count($picked) < $settings->maxChunks && collect($kept)->contains(static fn (array $indexes): bool => isset($indexes[$turn])); $turn++) {
+        foreach ($kept as $indexes) {
+            if (isset($indexes[$turn]) && ! in_array($indexes[$turn], $picked, true) && count($picked) < $settings->maxChunks) {
+                $picked[] = $indexes[$turn];
+            }
+        }
+    }
+
+    return array_map(static fn (int $index): RetrievedChunkData => $candidates[$index], $picked);
+}
+
+/**
+ * Today's check against splitting compound questions and reranking each part
+ * on its own (EVAL_SPLIT=1; needs a reranker and a chat model), on the same
+ * candidates. Also counts the questions that were split, so a split of a
+ * plain question shows.
+ *
+ * @param  list<array<string, mixed>>  $cases
+ * @param  list<array{query: string, vector: string, candidates: list<RetrievedChunkData>, shipped: list<RetrievedChunkData>}>  $asked
+ */
+function retrievalEvalSplitReport(array $cases, array $asked, RetrievalSettingsData $settings): void
+{
+    if (! app(Reranker::class)->isEnabled()) {
+        fwrite(STDOUT, PHP_EOL.'=== Split questions: needs a reranker ==='.PHP_EOL);
+
+        return;
+    }
+
+    $pct = static fn (int $part, int $whole): string => $whole === 0 ? '  n/a ' : sprintf('%5.1f%%', 100 * $part / $whole);
+    $holds = static fn (array $chunks, string|array $fact): bool => collect((array) $fact)->contains(static fn (string $text): bool => retrievalEvalRank($chunks, $text) !== null);
+    $tally = ['today' => [], 'split' => []];
+    $splits = [];
+    $out = ['', '=== Split questions, each part reranked on its own ==='];
+
+    foreach ($cases as $index => $case) {
+        $parts = retrievalEvalSplit($asked[$index]['query']);
+        $kind = $case['kind'] ?? ($case['expect'] === null ? 'uncovered' : (isset($case['history']) ? 'follow-up' : 'answer'));
+        $splits[$kind] = ($splits[$kind] ?? 0) + (int) (count($parts) > 1);
+
+        if (count($parts) > 1) {
+            $out[] = sprintf('  [%s] %s → %s', $kind, $case['query'], implode(' | ', $parts));
+        }
+
+        foreach (['today' => $asked[$index]['shipped'], 'split' => count($parts) > 1 ? retrievalEvalSplitSelect($parts, $asked[$index]['candidates'], $settings) : $asked[$index]['shipped']] as $variant => $given) {
+            $facts = $case['expect'] === null ? [] : (isset($case['kind']) ? $case['expect'] : [$case['expect']]);
+            $got = count(array_filter($facts, static fn (string|array $fact): bool => $holds($given, $fact)));
+            $row = &$tally[$variant][$kind];
+            $row ??= ['n' => 0, 'facts' => 0, 'got' => 0, 'all' => 0, 'empty' => 0];
+            $row['n']++;
+            $row['facts'] += count($facts);
+            $row['got'] += $got;
+            $row['all'] += (int) ($facts !== [] && $got === count($facts));
+            $row['empty'] += (int) ($given === []);
+            unset($row);
+        }
+    }
+
+    $out[] = '';
+    $out[] = 'variant   answered   uncovered empty   follow-ups   multi-hop facts / all given   global facts / all given';
+
+    foreach ($tally as $variant => $by) {
+        $out[] = sprintf('%-8s  %s     %s            %s       %s / %s               %s / %s',
+            $variant,
+            $pct($by['answer']['all'] ?? 0, $by['answer']['n'] ?? 0),
+            $pct($by['uncovered']['empty'] ?? 0, $by['uncovered']['n'] ?? 0),
+            $pct($by['follow-up']['all'] ?? 0, $by['follow-up']['n'] ?? 0),
+            $pct($by['multi-hop']['got'] ?? 0, $by['multi-hop']['facts'] ?? 0), $pct($by['multi-hop']['all'] ?? 0, $by['multi-hop']['n'] ?? 0),
+            $pct($by['global']['got'] ?? 0, $by['global']['facts'] ?? 0), $pct($by['global']['all'] ?? 0, $by['global']['n'] ?? 0));
+    }
+
+    $out[] = 'split: '.collect($splits)->map(static fn (int $count, string $kind): string => "{$kind} {$count}")->implode(' · ');
 
     fwrite(STDOUT, implode(PHP_EOL, $out).PHP_EOL);
 }

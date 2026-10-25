@@ -302,7 +302,7 @@ function retrievalEvalFactsRow(array $case, array $candidates, array $shipped): 
  * The same scope, channels and RRF (k = 60); all weights 1 gives the
  * search's own ranking, and a weight of 0 leaves the channel out.
  *
- * @param  array{vector: float, question: float, bm25: float, question_bm25: float}  $weights
+ * @param  array{vector: float, question: float, bm25: float}  $weights
  * @return list<RetrievedChunkData>
  */
 function retrievalEvalWeightedSearch(Agent $agent, string $query, string $vector, int $limit, array $weights): array
@@ -310,7 +310,7 @@ function retrievalEvalWeightedSearch(Agent $agent, string $query, string $vector
     $lexical = app(LexicalSearch::class);
     $cast = app(EmbeddingStorage::class)->columnType();
     $perChannel = $limit * 3;
-    $columns = ['vector' => 'vector_dist', 'question' => 'question_dist', 'bm25' => 'bm25_dist', 'question_bm25' => 'question_bm25_dist'];
+    $columns = ['vector' => 'vector_dist', 'question' => 'question_dist', 'bm25' => 'bm25_dist'];
 
     $ranked = collect($columns)->map(static fn (string $column, string $type): string => <<<SQL
     SELECT id, ROW_NUMBER() OVER (ORDER BY dist, id) AS rank, '{$type}' AS search_type
@@ -322,15 +322,13 @@ SQL)->implode("\n    UNION ALL\n");
     $sql = <<<SQL
 WITH search AS MATERIALIZED (
     SELECT ?::{$cast} AS vector,
-           {$lexical->queryExpression('chunks_search_text_lexical')} AS chunk_terms,
-           {$lexical->queryExpression('chunks_questions_lexical')} AS question_terms
+           {$lexical->queryExpression('chunks_search_text_lexical')} AS chunk_terms
 ),
 scope AS MATERIALIZED (
     SELECT c.id,
            c.embedding <-> q.vector AS vector_dist,
            c.questions_embedding <-> q.vector AS question_dist,
-           NULLIF({$lexical->score('c.search_text', 'q.chunk_terms')}, 0) AS bm25_dist,
-           NULLIF({$lexical->score('c.questions', 'q.question_terms')}, 0) AS question_bm25_dist
+           NULLIF({$lexical->score('c.search_text', 'q.chunk_terms')}, 0) AS bm25_dist
     FROM search q
     CROSS JOIN agent_sources s
     JOIN chunks c ON c.chunkable_type = s.sourceable_type AND c.chunkable_id = s.sourceable_id
@@ -356,14 +354,14 @@ LIMIT ?
 SQL;
 
     return array_map(RetrievedChunkData::fromRow(...), DB::select($sql, [
-        $vector, $lexical->queryText($query), $lexical->queryText($query), $agent->id, (int) $agent->workspace_id, $limit,
+        $vector, $lexical->queryText($query), $agent->id, (int) $agent->workspace_id, $limit,
     ]));
 }
 
 /**
  * The scoreboard again for each set of channel weights in EVAL_CHANNEL_WEIGHTS
- * ("vector,question,bm25,question_bm25" sets split by ";", e.g.
- * "1,1,1,1;1,0.5,1,0.5"), on the same chunks and questions. "Given" is the
+ * ("vector,question,bm25" sets split by ";", e.g. "1,1,1;1,0.5,1"), on the
+ * same chunks and questions. "Given" is the
  * similarity check (KnowledgeBase::bySimilarity): the candidates at or above
  * the bar, in the ranking's order, at most max_chunks; with a reranker on,
  * the reranker would decide instead, so run this with EVAL_RERANKER=none.
@@ -377,12 +375,12 @@ function retrievalEvalWeightsReport(Agent $agent, array $cases, array $asked, Re
     $pct = static fn (int $part, int $whole): string => $whole === 0 ? '  n/a ' : sprintf('%5.1f%%', 100 * $part / $whole);
     $holds = static fn (array $chunks, string|array $fact): bool => collect((array) $fact)->contains(static fn (string $text): bool => retrievalEvalRank($chunks, $text) !== null);
 
-    $out = ['', sprintf('=== Channel weights (vector, question, keyword, question keyword) · similarity bar %s ===', $threshold ?? 'none')];
+    $out = ['', sprintf('=== Channel weights (vector, question, keyword) · similarity bar %s ===', $threshold ?? 'none')];
     $out[] = 'weights               hit@1   hit@5    MRR   answered  uncovered empty  multi-hop facts top 5  multi-hop all given  global facts given';
 
     foreach (Str::of($spec)->explode(';')->map(static fn (string $set): string => Str::trim($set))->filter() as $set) {
         $values = Str::of($set)->explode(',')->map(static fn (string $value): float => (float) $value)->all();
-        $weights = ['vector' => $values[0] ?? 1.0, 'question' => $values[1] ?? 1.0, 'bm25' => $values[2] ?? 1.0, 'question_bm25' => $values[3] ?? 1.0];
+        $weights = ['vector' => $values[0] ?? 1.0, 'question' => $values[1] ?? 1.0, 'bm25' => $values[2] ?? 1.0];
 
         $answers = ['n' => 0, 'hit1' => 0, 'hit5' => 0, 'rr' => 0.0, 'given' => 0];
         $uncovered = ['n' => 0, 'empty' => 0];

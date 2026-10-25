@@ -10,24 +10,28 @@ use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The SQL of the knowledge-base search: four ranked channels over an agent's
- * chunks — dense vector, dense vector on the generated questions, keyword
- * (LexicalSearch), and keyword on the questions — fused with Reciprocal Rank
- * Fusion (k = 60). With `chatvia.vector.search.hybrid` off, only the two
- * vector channels run. A keyword channel only ranks chunks that share a term
- * with the query.
+ * The SQL of the knowledge-base search: three ranked channels over an agent's
+ * chunks — dense vector, dense vector on the generated questions, and keyword
+ * (LexicalSearch) — fused with Reciprocal Rank Fusion (k = 60). With
+ * `chatvia.vector.search.hybrid` off, only the two vector channels run. The
+ * keyword channel only ranks chunks that share a term with the query.
+ *
+ * There is no keyword channel on the generated questions: every chunk has
+ * them and they share their wording ("What…", "How…", the product's name), so
+ * that channel ranked every chunk on weak matches and its vote pushed the
+ * right chunks down (the eval's channel weights).
  *
  * The channels reach the agent's chunks in one of two ways
  * ({@see ChunkSearchScope}), chosen from a bounded count of those chunks:
  *
  * - Exact (the agent reaches few chunks): one MATERIALIZED pass over exactly
- *   the agent's chunks scores all four channels at once. Exact distances mean
+ *   the agent's chunks scores every channel at once. Exact distances mean
  *   full recall, and no other workspace's rows are ever read, so the cost
  *   follows the agent's size, not the platform's.
  * - Indexed (many chunks): each channel is a self-contained subquery served by
  *   its own index — HNSW for the dense channels (iterative scan keeps
  *   fetching until enough rows pass the tenant and source filters), the
- *   lexical index for the keyword channels.
+ *   lexical index for the keyword channel.
  *
  * Retrieval quality is measured by the knowledge retrieval eval
  * (tests/Eval/KnowledgeRetrievalEvalTest.php): any change to this SQL changes
@@ -142,13 +146,11 @@ SQL, [$cap, $agent->id, $cap]);
         // means no shared term: not a keyword hit (LexicalSearch).
         $keywordInputs = $hybrid ? <<<SQL
 ,
-           {$this->lexical->queryExpression('chunks_search_text_lexical')} AS chunk_terms,
-           {$this->lexical->queryExpression('chunks_questions_lexical')} AS question_terms
+           {$this->lexical->queryExpression('chunks_search_text_lexical')} AS chunk_terms
 SQL : '';
         $keywordScores = $hybrid ? <<<SQL
 ,
-           NULLIF({$this->lexical->score('c.search_text', 'q.chunk_terms')}, 0) AS bm25_dist,
-           NULLIF({$this->lexical->score('c.questions', 'q.question_terms')}, 0) AS question_bm25_dist
+           NULLIF({$this->lexical->score('c.search_text', 'q.chunk_terms')}, 0) AS bm25_dist
 SQL : '';
 
         $channels = [
@@ -158,7 +160,6 @@ SQL : '';
 
         if ($hybrid) {
             $channels[] = ['name' => 'bm25_ranked', 'type' => 'bm25', 'column' => 'bm25_dist'];
-            $channels[] = ['name' => 'question_bm25_ranked', 'type' => 'question_bm25', 'column' => 'question_bm25_dist'];
         }
 
         $definitions = implode(",\n", array_map(static fn (array $channel): string => <<<SQL
@@ -185,7 +186,7 @@ scope AS MATERIALIZED (
     FROM search q
     CROSS JOIN agent_sources s
     CROSS JOIN LATERAL (
-        SELECT c.id, c.workspace_id, c.embedding, c.questions_embedding, c.search_text, c.questions
+        SELECT c.id, c.workspace_id, c.embedding, c.questions_embedding, c.search_text
         FROM chunks c
         WHERE c.chunkable_type = s.sourceable_type
           AND c.chunkable_id = s.sourceable_id
@@ -200,7 +201,7 @@ SQL;
 
         $bindings = [
             $queryVector,
-            ...($hybrid ? [$this->lexical->queryText($query), $this->lexical->queryText($query)] : []),
+            ...($hybrid ? [$this->lexical->queryText($query)] : []),
             $agent->id,
             (int) $agent->workspace_id,
             ...array_fill(0, count($channels), $candidateLimit),
@@ -245,7 +246,7 @@ SQL;
 
     /**
      * The ranked channels of the indexed path: always the two vector channels,
-     * plus the two keyword channels when hybrid search is on. Each channel
+     * plus the keyword channel when hybrid search is on. Each channel
      * carries the bindings of its ranking expression and of its extra
      * condition, in their textual order.
      *
@@ -268,21 +269,12 @@ SQL;
 
         $terms = $this->lexical->queryText($query);
         $match = $this->lexical->matchCondition('c.search_text');
-        $questionMatch = $this->lexical->matchCondition('c.questions');
 
         return [
             ...$channels,
             ['name' => 'bm25_ranked', 'bindings' => [$terms], 'conditionBindings' => $match !== null ? [$terms] : [],
                 'sql' => $this->indexedChannel('bm25_ranked', 'bm25', $this->lexical->distance('c.search_text', 'chunks_search_text_lexical'), $match)],
-            ['name' => 'question_bm25_ranked', 'bindings' => [$terms], 'conditionBindings' => $questionMatch !== null ? [$terms] : [],
-                'sql' => $this->indexedChannel('question_bm25_ranked', 'question_bm25', $this->lexical->distance('c.questions', 'chunks_questions_lexical'), $this->both($questionMatch, 'c.questions IS NOT NULL'))],
         ];
-    }
-
-    /** Both conditions joined with AND, in this order (the first may be null). */
-    private function both(?string $first, string $second): string
-    {
-        return $first === null ? $second : "{$first} AND {$second}";
     }
 
     /**

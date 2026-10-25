@@ -379,7 +379,6 @@
     ":count service is down|:count services are down": ":count palvelu ei toimi|:count palvelua ei toimi",
     ":count service needs a look|:count services need a look": ":count palvelu vaatii huomiota|:count palvelua vaatii huomiota",
     "Everything is running": "Kaikki on käynnissä",
-    "All systems operational": "Kaikki järjestelmät toimivat",
     "View status": "Näytä tila",
     "Checked at :time": "Tarkistettu klo :time",
     "Still checking the AI services…": "Tekoälypalveluja tarkistetaan vielä…",

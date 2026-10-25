@@ -379,7 +379,6 @@
     ":count service is down|:count services are down": ":count سرویس از کار افتاده است|:count سرویس از کار افتاده است",
     ":count service needs a look|:count services need a look": ":count سرویس نیاز به بررسی دارد|:count سرویس نیاز به بررسی دارد",
     "Everything is running": "همه چیز در حال اجراست",
-    "All systems operational": "همه سامانه‌ها کار می‌کنند",
     "View status": "مشاهده وضعیت",
     "Checked at :time": "بررسی در ساعت :time",
     "Still checking the AI services…": "هنوز در حال بررسی سرویس‌های هوش مصنوعی…",

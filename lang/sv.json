@@ -379,7 +379,6 @@
     ":count service is down|:count services are down": ":count tjänst är nere|:count tjänster är nere",
     ":count service needs a look|:count services need a look": ":count tjänst bör kontrolleras|:count tjänster bör kontrolleras",
     "Everything is running": "Allt är igång",
-    "All systems operational": "Alla system är igång",
     "View status": "Visa status",
     "Checked at :time": "Kontrollerat kl. :time",
     "Still checking the AI services…": "Kontrollerar fortfarande AI-tjänsterna…",

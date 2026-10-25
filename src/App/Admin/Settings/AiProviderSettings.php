@@ -72,6 +72,12 @@ class AiProviderSettings extends AdminSettings
     #[ConfigKey('services.azure_document_intelligence.endpoint')]
     public ?string $azure_endpoint = null;
 
+    #[ConfigKey('services.azure_openai.api_key'), ShouldBeEncrypted]
+    public ?string $azure_openai_api_key = null;
+
+    #[ConfigKey('services.azure_openai.endpoint')]
+    public ?string $azure_openai_endpoint = null;
+
     public static function group(): string
     {
         return 'ai_providers';

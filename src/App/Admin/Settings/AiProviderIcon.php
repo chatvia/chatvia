@@ -28,7 +28,7 @@ final class AiProviderIcon
             AiProvider::Cohere => 'images/llms/cohere.svg',
             AiProvider::Jina => 'images/llms/jina.svg',
             AiProvider::Voyage => 'images/llms/voyage.svg',
-            AiProvider::Azure => 'images/llms/microsoft.svg',
+            AiProvider::Azure, AiProvider::AzureOpenAi => 'images/llms/microsoft.svg',
         });
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Enums;
 
 use Domain\Llm\Providers\Adapters\AnthropicAdapter;
+use Domain\Llm\Providers\Adapters\AzureAdapter;
 use Domain\Llm\Providers\Adapters\CustomServerAdapter;
 use Domain\Llm\Providers\Adapters\GeminiAdapter;
 use Domain\Llm\Providers\Adapters\GroqAdapter;
@@ -34,6 +35,7 @@ enum LlmProviderKind: string
     case Mistral = 'mistral';
     case Groq = 'groq';
     case Scaleway = 'scaleway';
+    case Azure = 'azure';
     case Custom = 'custom';
 
     /**
@@ -51,6 +53,7 @@ enum LlmProviderKind: string
             self::Groq => GroqAdapter::class,
             self::Scaleway => ScalewayAdapter::class,
             self::Anthropic => AnthropicAdapter::class,
+            self::Azure => AzureAdapter::class,
             self::Custom => CustomServerAdapter::class,
         };
     }

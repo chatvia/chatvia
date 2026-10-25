@@ -35,3 +35,16 @@ it('warns when the Azure resource is on the free tier', function (): void {
         ->and($free->warning)->toContain('free tier (F0)')->toContain('first 2 pages')
         ->and($check->check(AiProvider::Azure, 'az-key', 'https://paid.cognitiveservices.azure.com')->warning)->toBeNull();
 });
+
+it('checks an Azure OpenAI key against the v1 API of the endpoint typed', function (): void {
+    Http::fake([
+        'good.openai.azure.com/openai/v1/models' => Http::response(['data' => []]),
+        'bad.openai.azure.com/openai/v1/models' => Http::response(['error' => ['code' => '401']], 401),
+    ]);
+
+    $check = app(AiProviderCheck::class);
+
+    expect($check->check(AiProvider::AzureOpenAi, 'az-key', 'https://good.openai.azure.com')->connected)->toBeTrue()
+        ->and($check->check(AiProvider::AzureOpenAi, 'az-key', 'https://bad.openai.azure.com')->keyRefused)->toBeTrue()
+        ->and($check->check(AiProvider::AzureOpenAi, 'az-key')->message)->toBe('Add the endpoint of your Azure OpenAI resource too.');
+});

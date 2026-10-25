@@ -216,6 +216,13 @@ return [
         'api_version' => '2024-11-30',
     ],
 
+    // Azure OpenAI: the chat models deployed in one Azure resource
+    // (Settings → AI providers). Each resource has its own endpoint.
+    'azure_openai' => [
+        'api_key' => null,
+        'endpoint' => null,
+    ],
+
     // One key for the OpenRouter chat models, its embeddings and its rerankers.
     'openrouter' => [
         'api_key' => null,

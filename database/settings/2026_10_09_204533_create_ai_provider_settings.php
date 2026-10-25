@@ -34,6 +34,8 @@ return new class extends SettingsMigration
             $group->add('voyage_api_endpoint');
             $group->addEncrypted('azure_api_key');
             $group->add('azure_endpoint');
+            $group->addEncrypted('azure_openai_api_key');
+            $group->add('azure_openai_endpoint');
         });
     }
 

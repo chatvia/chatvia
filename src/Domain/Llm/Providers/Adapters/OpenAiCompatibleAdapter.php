@@ -61,6 +61,11 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
         return null;
     }
 
+    public function modelNameHelp(): ?string
+    {
+        return null;
+    }
+
     public function client(LlmProvider $provider): LlmProviderInterface
     {
         return new OpenAiCompatible($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');

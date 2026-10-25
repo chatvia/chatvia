@@ -53,7 +53,14 @@ final readonly class AiProviderCheck
         $kind = $provider->chatKind();
 
         if ($kind instanceof LlmProviderKind) {
-            $draft = new LlmProvider(['kind' => $kind, 'name' => $provider->label(), 'api_key' => $key]);
+            // An unsaved row may hold the endpoint being checked: only saved rows of your own server keep one.
+            $endpoint = $provider->needsBaseUrl() ? (filled($baseUrl) ? $baseUrl : config($provider->baseUrlConfig() ?? '')) : null;
+
+            if ($provider->needsBaseUrl() && blank($endpoint)) {
+                return new ConnectionCheckData(false, message: "Add the endpoint of your {$provider->label()} resource too.");
+            }
+
+            $draft = new LlmProvider(['kind' => $kind, 'name' => $provider->label(), 'api_key' => $key, 'base_url' => $endpoint]);
             $list = $this->listing->list($draft);
 
             return new ConnectionCheckData(

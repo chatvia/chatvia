@@ -77,6 +77,7 @@ final readonly class CompleteSetupAction
 
             if ($account instanceof AiProvider) {
                 $this->saveKey($account, $data->apiKey);
+                $this->saveAddress($account, $data->chatEndpoint);
                 $provider = $this->ensureProvider->execute($data->chatKind);
             } else {
                 $provider = $this->saveServer->execute($data->server ?? throw new InvalidArgumentException('A server of your own needs its address.'));

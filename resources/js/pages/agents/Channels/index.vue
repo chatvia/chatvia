@@ -29,7 +29,7 @@ const props = defineProps<ChannelsPageProps>();
 const { t } = useI18n();
 
 const { hasPermission } = useTeamPermissions();
-const canManage = computed(() => hasPermission('agent.setup'));
+const canManage = computed(() => hasPermission('agent.channels'));
 
 const items = useChannelItems(props);
 

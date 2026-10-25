@@ -30,8 +30,9 @@ use Illuminate\Support\Str;
 
 /**
  * OFFLINE EVAL — not a pass/fail gate. It measures knowledge retrieval against
- * a labelled set (fixtures/knowledge/cases.php over the three chunking samples
- * and an Arabic page; format in README.md) and prints a scoreboard:
+ * a labelled set (fixtures/knowledge/cases.php over the three chunking samples,
+ * a product catalogue, terms of sale, a trips guide and two Arabic pages;
+ * format in README.md) and prints a scoreboard:
  *
  *  - before the relevance check (the hybrid search's ranking): hit@1/3/5, MRR;
  *  - after it (what the model gets, KnowledgeBase::search): how many questions
@@ -109,6 +110,10 @@ function retrievalEvalDocuments(): array
         resource_path('chunking/text.txt') => ContentKind::Text,
         resource_path('chunking/transcript.txt') => ContentKind::Transcript,
         __DIR__.'/fixtures/knowledge/arabic.md' => ContentKind::Markdown,
+        __DIR__.'/fixtures/knowledge/catalogue.md' => ContentKind::Markdown,
+        __DIR__.'/fixtures/knowledge/terms.txt' => ContentKind::Text,
+        __DIR__.'/fixtures/knowledge/trips.md' => ContentKind::Markdown,
+        __DIR__.'/fixtures/knowledge/riyadh.md' => ContentKind::Markdown,
     ];
 }
 

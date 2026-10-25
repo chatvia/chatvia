@@ -147,10 +147,14 @@ checkpoint, but a starved tool can't be called at all.
 
 `KnowledgeRetrievalEvalTest.php` measures the agent's knowledge search
 (`HybridChunkSearch` → relevance check → `KnowledgeBase::search`). Each run it
-splits and embeds four documents for a fresh agent — the three chunking samples
-in `resources/chunking/` and [`fixtures/knowledge/arabic.md`](fixtures/knowledge/arabic.md)
-— then asks the labelled questions in
-[`fixtures/knowledge/cases.php`](fixtures/knowledge/cases.php).
+splits and embeds eight documents of one made-up outdoor shop for a fresh
+agent — the three chunking samples in `resources/chunking/`, a product
+catalogue, terms of sale, a trips and courses guide, and two Arabic pages in
+[`fixtures/knowledge/`](fixtures/knowledge/) (46 chunks at the default size) —
+then asks the labelled questions in
+[`fixtures/knowledge/cases.php`](fixtures/knowledge/cases.php). The set is
+bigger than the 25 candidates the reranker scores, so the search's ranking
+matters with a reranker too.
 
 ```bash
 SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
@@ -198,8 +202,46 @@ the whole collection, so its facts are spread over more chunks than the model
 gets. A fact given as a list matches any of its wordings. These questions are
 the baseline for retrieval that follows links between chunks (a knowledge graph).
 
-Baseline, 2026-10-24 (OpenRouter: `qwen/qwen3-embedding-8b`, `cohere/rerank-4-pro`
-at 0.7, 5 chunks to the model, 400-token chunks, 14 chunks in all):
+## Baseline
+
+2026-10-25, 46 chunks: 72 single-fact questions, 10 uncovered, 4 follow-ups,
+22 multi-hop and 12 global. OpenRouter only: `qwen/qwen3-embedding-8b`,
+`cohere/rerank-4-pro` at 0.7, enhancement and follow-ups with
+`google/gemma-4-26b-a4b-it`, 5 chunks to the model, 400-token chunks. Without
+a reranker, the similarity bar is 0.35.
+
+| | Plain, reranker | Plain, no reranker | Enriched, reranker | Enriched, no reranker |
+|---|---|---|---|---|
+| Single-fact hit@5 / MRR before the check | 95.8% / 0.867 | 97.2% / 0.867 | 97.2% / 0.881 | 97.2% / 0.906 |
+| Single-fact answered | 95.8% | 95.8% | 97.2% | 98.6% |
+| Uncovered left empty | 70.0% | 90.0% | 70.0% | 100.0% |
+| Follow-ups answered | 100.0% | 100.0% | 100.0% | 100.0% |
+| Multi-hop: facts / every fact given | 90.9% / 81.8% | 95.5% / 90.9% | 90.9% / 81.8% | 95.5% / 90.9% |
+| Global: facts / every fact given | 80.0% / 50.0% | 67.3% / 25.0% | 78.2% / 50.0% | 70.9% / 25.0% |
+
+What it says:
+
+- Enhancement helps on every line before the check, and most without a
+  reranker (MRR 0.867 → 0.906).
+- The reranker's 0.7 bar lets 3 of 10 uncovered questions through. Its sweep
+  puts the best balance at 0.75 (98.6% of right passages kept, 90% of
+  uncovered blocked), on both the plain and the enriched set.
+- The reranker drops multi-hop facts the similarity bar keeps (81.8% against
+  90.9% of questions with every fact), because it scores each chunk against
+  the whole two-part question. It is better on global questions (50% against
+  25%), where many chunks each match a little.
+- Search misses left: "Apple Pay in the Riyadh store" (an English question
+  for an Arabic chunk, rank 23 to 24) and pegging a tent in sand (an English
+  question for an Arabic tip, not among the candidates). Cross-language
+  questions are the weakest spot.
+
+The sections below were measured on the first set of 14 chunks (the three
+chunking samples and `arabic.md`), while the search was being changed.
+
+### First set, 2026-10-24
+
+OpenRouter: `qwen/qwen3-embedding-8b`, `cohere/rerank-4-pro`
+at 0.7, 5 chunks to the model, 400-token chunks, 14 chunks in all:
 
 | | facts top 5 | facts top 10 | facts given | every fact given |
 |---|---|---|---|---|

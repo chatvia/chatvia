@@ -1961,11 +1961,7 @@
                 "allowed_sites_help": "只有这些来源才被允许加载该挂件。",
                 "keyboard_trigger": "键盘触发",
                 "placement": "放置位置",
-                "language_switcher": "语言切换器",
-                "chat_deletion": "移除聊天",
-                "chat_deletion_hint_end": "访客可以结束聊天并开始新的聊天。所有聊天都会保留在他们的历史记录和你的聊天日志中。",
-                "chat_deletion_hint_hide": "访客可以从自己的历史记录中移除聊天。聊天仍保留在你的聊天日志中。",
-                "chat_deletion_hint_delete": "访客可以删除聊天。聊天会从他们的历史记录和你的聊天日志中清除,且无法恢复。"
+                "language_switcher": "语言切换器"
             },
             "embed": {
                 "surface_preview": "界面预览"
@@ -2026,10 +2022,7 @@
                 "placement_top": "顶部居中",
                 "placement_top_right": "右上角",
                 "placement_bottom": "底部居中",
-                "placement_bottom_right": "右下角",
-                "chat_deletion_end": "仅结束聊天",
-                "chat_deletion_hide": "从访客历史中移除",
-                "chat_deletion_delete": "永久删除"
+                "placement_bottom_right": "右下角"
             },
             "sections": {
                 "branding_color": "颜色主题",

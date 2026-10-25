@@ -1962,11 +1962,7 @@
                 "allowed_sites_help": "يُسمح لهذه المصادر فقط بتحميل الأداة.",
                 "keyboard_trigger": "مفتاح الاختصار",
                 "placement": "الموضع",
-                "language_switcher": "مُبدّل اللغة",
-                "chat_deletion": "إزالة المحادثات",
-                "chat_deletion_hint_end": "يمكن للزوار إنهاء المحادثة وبدء محادثة جديدة. تبقى كل محادثة في سجلهم وفي سجل المحادثات لديك.",
-                "chat_deletion_hint_hide": "يمكن للزوار إزالة المحادثات من سجلهم. وتبقى لديك في سجل المحادثات.",
-                "chat_deletion_hint_delete": "يمكن للزوار حذف المحادثات. تُمحى من سجلهم ومن سجل المحادثات لديك، ولا يمكن استعادتها."
+                "language_switcher": "مُبدّل اللغة"
             },
             "embed": {
                 "surface_preview": "معاينة السطح"
@@ -2027,10 +2023,7 @@
                 "placement_top": "أعلى الوسط",
                 "placement_top_right": "أعلى يمين",
                 "placement_bottom": "أسفل الوسط",
-                "placement_bottom_right": "أسفل يمين",
-                "chat_deletion_end": "إنهاء المحادثة فقط",
-                "chat_deletion_hide": "إزالة من سجل الزائر",
-                "chat_deletion_delete": "حذف نهائي"
+                "placement_bottom_right": "أسفل يمين"
             },
             "sections": {
                 "branding_color": "سمة اللون",

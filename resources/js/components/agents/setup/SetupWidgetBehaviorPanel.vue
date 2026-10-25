@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * Setup → Behavior on the Widget tab: launcher position, window size, theme,
- * language, what removing a chat does, live-chat handoff, open-on-load (with
- * delay) and the sites the widget may run on.
+ * language, live-chat handoff, open-on-load (with delay) and the sites the
+ * widget may run on.
  */
 import SetupIconSelect from '@/components/agents/setup/SetupIconSelect.vue';
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { languageOptions, useBehaviorOptions } from '@/composables/agents/setup/useSetupBehavior';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
-import { Clock, Globe, Languages, MapPin, Maximize2, MessageSquareX, Palette } from 'lucide-vue-next';
+import { Clock, Globe, Languages, MapPin, Maximize2, Palette } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -25,10 +25,8 @@ const props = defineProps<{
 const { t } = useI18n();
 const { locked, behavior } = useSetupContext();
 const { widgetForm: form, isSavingWidget: isSaving, saveWidget: save, sitesText } = behavior;
-const { positionOptions, windowSizeOptions, themeOptions, chatDeletionOptions } = useBehaviorOptions();
+const { positionOptions, windowSizeOptions, themeOptions } = useBehaviorOptions();
 const languageChoices = computed(() => languageOptions(props.availableLanguages));
-// Spells out what the chosen mode keeps, since that is the owner's data policy.
-const chatDeletionHint = computed(() => t(`agents.setup.behavior.chat_deletion_hint_${form.chat_deletion_mode}`));
 </script>
 
 <template>
@@ -67,17 +65,6 @@ const chatDeletionHint = computed(() => t(`agents.setup.behavior.chat_deletion_h
                 :options="languageChoices"
                 :disabled="locked"
             />
-            <div class="space-y-1.5 sm:col-span-2">
-                <SetupIconSelect
-                    id="widget-chat-deletion"
-                    v-model="form.chat_deletion_mode"
-                    :label="t('agents.setup.behavior.chat_deletion')"
-                    :icon="MessageSquareX"
-                    :options="chatDeletionOptions"
-                    :disabled="locked"
-                />
-                <p class="text-muted-foreground text-xs">{{ chatDeletionHint }}</p>
-            </div>
             <SetupSwitchRow
                 id="widget-handoff"
                 v-model="form.handoff_enabled"

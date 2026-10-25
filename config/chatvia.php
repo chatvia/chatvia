@@ -776,6 +776,10 @@ return [
         // assistant (EU AI Act Art. 50). Admin panel → Settings → Widget.
         'ai_disclosure' => true,
 
+        // What a visitor's "remove this chat" does (ChatDeletionMode): `end`,
+        // `hide` or `delete`. Admin panel → Settings → Widget.
+        'chat_deletion_mode' => 'end',
+
         'reverb' => [
             'host' => env('VITE_REVERB_HOST'),
             'port' => env('VITE_REVERB_PORT'),

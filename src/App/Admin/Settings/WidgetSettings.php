@@ -7,8 +7,8 @@ namespace App\Admin\Settings;
 /**
  * The Chat Widget on every agent of this install: the extra sites any widget
  * may load on, where its script loads from, how many replies an agent's
- * widget may stream, and whether its header says the visitor is talking to
- * an AI assistant.
+ * widget may stream, whether its header says the visitor is talking to an AI
+ * assistant, and what a visitor's "remove this chat" does.
  */
 class WidgetSettings extends AdminSettings
 {
@@ -26,6 +26,9 @@ class WidgetSettings extends AdminSettings
 
     #[ConfigKey('chatvia.widget.ai_disclosure')]
     public ?bool $ai_disclosure = null;
+
+    #[ConfigKey('chatvia.widget.chat_deletion_mode')]
+    public ?string $chat_deletion_mode = null;
 
     public static function group(): string
     {

@@ -1962,11 +1962,7 @@
                 "allowed_sites_help": "Apenas estas origens têm permissão para carregar o widget.",
                 "keyboard_trigger": "Atalho de teclado",
                 "placement": "Colocação",
-                "language_switcher": "Seletor de idioma",
-                "chat_deletion": "Remover chats",
-                "chat_deletion_hint_end": "Os visitantes podem encerrar um chat e iniciar outro. Todos os chats continuam no histórico deles e no seu registro de chats.",
-                "chat_deletion_hint_hide": "Os visitantes podem remover chats do próprio histórico. Você os mantém no seu registro de chats.",
-                "chat_deletion_hint_delete": "Os visitantes podem excluir chats. Eles são apagados do histórico deles e do seu registro de chats, sem possibilidade de recuperação."
+                "language_switcher": "Seletor de idioma"
             },
             "embed": {
                 "surface_preview": "Pré-visualização da superfície"
@@ -2027,10 +2023,7 @@
                 "placement_top": "Centro superior",
                 "placement_top_right": "Superior direito",
                 "placement_bottom": "Centro inferior",
-                "placement_bottom_right": "Inferior direito",
-                "chat_deletion_end": "Somente encerrar chat",
-                "chat_deletion_hide": "Remover do histórico do visitante",
-                "chat_deletion_delete": "Excluir permanentemente"
+                "placement_bottom_right": "Inferior direito"
             },
             "sections": {
                 "branding_color": "Tema de Cores",

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
-use Domain\Agent\Enums\ChatDeletionMode;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
 use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
@@ -14,13 +13,14 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
+use Domain\Widget\Enums\ChatDeletionMode;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * The widget's "remove chat" (one conversation, named by X-CONVERSATION-ID) and
- * "remove all" (no conversation header). The agent's ChatDeletionMode decides
+ * "remove all" (no conversation header). The install's ChatDeletionMode decides
  * what that means: `end` refuses (the visitor can only start a new chat), `hide`
  * is a view reset that keeps the conversation in the customer's chat log, and
  * `delete` erases it as the owner's delete does.
@@ -45,8 +45,8 @@ class ConversationDeleteController
         }
 
         // The widget hides the action in this mode; a direct call is refused
-        // here, so the owner's choice to keep every chat holds.
-        $mode = $agent->chatDeletionMode();
+        // here, so the admin's choice to keep every chat holds.
+        $mode = ChatDeletionMode::inUse();
 
         if ($mode === ChatDeletionMode::End) {
             return response()->json(['error' => 'Removing chats is turned off'], JsonResponse::HTTP_FORBIDDEN);

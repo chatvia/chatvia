@@ -1,6 +1,5 @@
 <?php
 
-use Domain\Agent\Enums\ChatDeletionMode;
 use Domain\Agent\Models\Agent;
 
 /**
@@ -112,21 +111,6 @@ it('saves how the answers show their sources, and refuses an unknown way', funct
         ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['sources_display' => 'popup'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('sources_display');
-});
-
-it('saves what removing a chat does in the widget, and refuses an unknown mode', function (): void {
-    expect($this->agent->chatDeletionMode())->toBe(ChatDeletionMode::End);
-
-    $this->actingAs($this->owner)
-        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'widget']), ['chat_deletion_mode' => 'delete'])
-        ->assertOk();
-
-    expect($this->agent->fresh()->chatDeletionMode())->toBe(ChatDeletionMode::Delete);
-
-    $this->actingAs($this->owner)
-        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'widget']), ['chat_deletion_mode' => 'archive'])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('chat_deletion_mode');
 });
 
 it('saves the UI languages the owner picks', function (): void {

@@ -8,12 +8,13 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\WidgetSettings;
 use BackedEnum;
+use Domain\Widget\Enums\ChatDeletionMode;
 use Filament\Support\Icons\Heroicon;
 
 /**
  * The Chat Widget on every agent: where it may load, where its script comes
- * from, how many replies it may stream, and whether its header says the
- * visitor is talking to an AI assistant.
+ * from, how many replies it may stream, whether its header says the visitor
+ * is talking to an AI assistant, and what a visitor's "remove this chat" does.
  */
 class ManageWidgetSettings extends AdminSettingsPage
 {
@@ -31,6 +32,13 @@ class ManageWidgetSettings extends AdminSettingsPage
 
     #[\Override]
     protected static ?int $navigationSort = 17;
+
+    /** The "Removing chats" choices, by stored value. */
+    private const array CHAT_DELETION_MODES = [
+        'end' => 'End chat only',
+        'hide' => 'Remove from history',
+        'delete' => 'Delete permanently',
+    ];
 
     public static function description(): string
     {
@@ -58,6 +66,10 @@ class ManageWidgetSettings extends AdminSettingsPage
                 $this->toggle('ai_disclosure', 'Show "AI assistant" in the header',
                     help: 'The line under the chat title. The EU AI Act (Article 50) asks you to tell people they are talking to an AI, so turn it off only if you tell them another way. "Human agent" still shows while a person answers.'),
             ])->summary(fn (): string => $this->valueInUse('ai_disclosure') ? 'Shows "AI assistant"' : 'Hides "AI assistant"'),
+            SettingsCard::make('chat_deletion', 'Removing chats', 'What happens when a visitor removes a chat from the widget.', Heroicon::OutlinedTrash, fn (): array => [
+                $this->choice('chat_deletion_mode', 'When a visitor removes a chat', self::CHAT_DELETION_MODES,
+                    help: 'End chat only keeps every chat. Remove from history hides it from the visitor and keeps it in the chat log. Delete permanently erases it for good.'),
+            ])->summary(fn (): string => self::CHAT_DELETION_MODES[ChatDeletionMode::inUse()->value]),
         ];
     }
 }

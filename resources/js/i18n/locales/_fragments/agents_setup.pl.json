@@ -136,10 +136,6 @@
                 "theme": "Motyw",
                 "live_chat": "Live Chat",
                 "live_chat_hint": "Pozwól odwiedzającym przekazać rozmowę do człowieka. Działa tylko na widgecie strony internetowej.",
-                "chat_deletion": "Usuwanie czatów",
-                "chat_deletion_hint_end": "Odwiedzający mogą zakończyć czat i rozpocząć nowy. Każdy czat zostaje w ich historii i w Twoim dzienniku czatów.",
-                "chat_deletion_hint_hide": "Odwiedzający mogą usuwać czaty z własnej historii. W Twoim dzienniku czatów zostają.",
-                "chat_deletion_hint_delete": "Odwiedzający mogą usuwać czaty. Znikają z ich historii i z Twojego dziennika czatów bez możliwości odzyskania.",
                 "open_on_load": "Otwieraj automatycznie przy ładowaniu strony",
                 "delay_ms": "Opóźnienie (ms)",
                 "allowed_sites": "Dozwolone witryny",
@@ -208,10 +204,7 @@
                 "placement_top": "Górny środek",
                 "placement_top_right": "Prawy górny",
                 "placement_bottom": "Dolny środek",
-                "placement_bottom_right": "Prawy dolny",
-                "chat_deletion_end": "Tylko zakończenie czatu",
-                "chat_deletion_hide": "Usunięcie z historii odwiedzającego",
-                "chat_deletion_delete": "Trwałe usunięcie"
+                "placement_bottom_right": "Prawy dolny"
             },
             "sections": {
                 "branding_color": "Motyw kolorystyczny",

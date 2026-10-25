@@ -10,6 +10,7 @@ use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Guardrail\Enums\PiiFilterType;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
 
@@ -74,6 +75,7 @@ it('records the first message masked and starts a hosted-chat conversation in th
     Bus::fake();
 
     $agent = Agent::factory()->create();
+    $agent->setSetting('filters', PiiFilterType::defaults(), 'guardrails');
     $sessionId = (string) Str::uuid();
 
     $conversationId = app(CreateConversationAction::class)->execute(new CreateConversationData(

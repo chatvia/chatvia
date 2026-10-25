@@ -2121,7 +2121,8 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 /* A model's name with its lab's logo before it ({@see ModelLogo}). The logo
- * is a mask, so it takes the colour of the text in light and dark mode. */
+ * is a mask, so it takes the colour of the text in light and dark mode. A
+ * provider's name has its logo in its own colours. */
 .cv-model-label {
     display: inline-flex;
     align-items: center;
@@ -2132,6 +2133,11 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     & > span:last-child {
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    /* A provider's logo or an icon ({@see OptionLabel}), in place of a model's. */
+    & > .fi-icon {
+        flex: none;
     }
 }
 

@@ -28,7 +28,7 @@ it('adds a model under its provider\'s id, once per provider', function (): void
 });
 
 it('gives a model the catalog\'s facts when it is added', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['openai' => ['models' => [
         'gpt-6-luna' => ['reasoning' => true, 'temperature' => false, 'reasoning_options' => [['type' => 'effort', 'values' => ['none', 'low', 'high']]]],
     ]]], 'models' => []])]);

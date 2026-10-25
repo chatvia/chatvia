@@ -17,6 +17,7 @@ use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\DocumentServiceCheck;
 use App\Admin\Settings\LlmTaskText;
 use App\Admin\Settings\ModelLogo;
+use App\Admin\Settings\OptionLabel;
 use App\Admin\Settings\RerankerCheck;
 use BackedEnum;
 use Closure;
@@ -255,8 +256,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'How many recent messages of a conversation an agent reads each time it answers, in typed chats and voice calls. More helps with follow-up questions, but each answer costs more.'),
                 $this->toggle('allow_reasoning', 'Let agents reason',
                     'Models marked "Reasons" can think before they answer. With this on, each agent picks how hard in its AI model settings: Off, Low, Medium or High. Every agent starts at Off. Chatters see the thinking in grey above the answer, and can fold it away. More thinking gives better answers to hard questions, but they come slower and cost more. OpenAI\'s own API sends a summary of the thinking, once OpenAI has verified your organization. With this off, every agent is at Off.'),
-                $this->toggle('model_facts_lookup', 'Look up model details on models.dev',
-                    'Each model\'s details come from models.dev, an open list of AI models: whether it reasons, how hard it can think, and whether it takes a temperature. The list is read when you add models and once a day, never during a chat. Agents at Off then think as little as their model allows, which makes answers faster. Turn this off on a server without internet access: the "Reasons" switch then decides alone.'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
                 $this->reindexCallout(),
@@ -278,11 +277,16 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     check: fn (string $driver, Get $get): ConnectionCheckData => app(RerankerCheck::class)->check($this->rerankerPicked($driver, $get)),
                     changed: fn (string $driver, Get $get): bool => $this->rerankerPicked($driver, $get)->toArray() !== $this->rerankerInUse()->toArray())
                     ->live(),
-                $this->choice('openrouter_rerank_model', 'OpenRouter model', app(RerankModelCatalog::class)->openRouterOptions(),
+                $this->choice('openrouter_rerank_model', 'OpenRouter model', $openRouterRerankers = app(RerankModelCatalog::class)->openRouterOptions(),
                     help: 'The strongest first. Each model has its own scores, so its own relevance bar.')
+                    ->options(ModelLogo::labels($openRouterRerankers, LlmProviderKind::OpenRouter))
+                    ->allowHtml()
                     ->searchable()
                     ->visible(fn (Get $get): bool => $get('reranker') === 'openrouter'),
-                $this->choice('cohere_rerank_model', 'Cohere model', app(RerankModelCatalog::class)->cohereOptions())
+                $this->choice('cohere_rerank_model', 'Cohere model', $cohereRerankers = app(RerankModelCatalog::class)->cohereOptions())
+                    ->options(collect($cohereRerankers)->map(fn (string $name): string => ModelLogo::forLab($name, 'cohere'))->all())
+                    ->native(false)
+                    ->allowHtml()
                     ->visible(fn (Get $get): bool => $get('reranker') === 'cohere'),
                 $this->url('rerank_custom_url', 'Address',
                     help: 'A server with the common /rerank API (vLLM, Infinity, Jina-compatible), such as http://reranker:8000/v1.')
@@ -358,12 +362,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     help: 'Agents speak with it unless they pick their own. Marin and Cedar sound the most natural.'),
                 $this->integer('voice_max_call_minutes', 'Longest call, in minutes', help: 'The agent says goodbye and hangs up then.', min: 1, max: 25),
             ])->advancedFields(fn (): array => [
-                $this->choice('openai_realtime_model', 'Model', [
+                $this->choice('openai_realtime_model', 'Model', $realtimeModels = [
                     'gpt-realtime-2.1' => 'GPT Realtime 2.1',
                     'gpt-realtime-2.1-mini' => 'GPT Realtime 2.1 mini (cheaper)',
                     'gpt-realtime-2' => 'GPT Realtime 2',
                     'gpt-realtime' => 'GPT Realtime',
-                ], help: 'The mini model costs less, but follows instructions and calls tools less well.'),
+                ], help: 'The mini model costs less, but follows instructions and calls tools less well.')
+                    ->options(ModelLogo::labels($realtimeModels, LlmProviderKind::OpenAi))
+                    ->native(false)
+                    ->allowHtml(),
                 $this->text('openai_realtime_transcription_model', 'Transcription model',
                     help: 'Writes down what the visitor says, for the chat log: gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
@@ -560,7 +567,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
     /**
      * Reads each model's details from models.dev again now, instead of
-     * waiting for the daily sync. Shown while the lookup is on.
+     * waiting for the daily sync.
      */
     private function refreshFactsAction(): Action
     {
@@ -568,7 +575,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->label('Refresh model details')
             ->icon(Heroicon::OutlinedArrowPath)
             ->color('gray')
-            ->visible(fn (): bool => filter_var(config('chatvia.ai.models_dev.enabled', true), FILTER_VALIDATE_BOOL))
             ->action(function (): void {
                 $result = app(SyncLlmFactsAction::class)->execute();
 
@@ -1059,6 +1065,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->all();
 
         return $this->choice($property, $label, $marked, help: $help)
+            ->options($this->serviceLabels($marked))
+            ->native(false)
+            ->allowHtml()
             ->selectablePlaceholder(false)
             ->formatStateUsing(fn (): string => $this->driverInUse($property))
             ->disableOptionWhen(fn (string $value): bool => AiProvider::tryFrom($value)?->isConnected() === false)
@@ -1090,6 +1099,24 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     Notification::make()->warning()->title("{$options[$value]} works, with a catch")->body($result->warning)->persistent()->send();
                 }
             });
+    }
+
+    /**
+     * The names of a service choice's options as HTML: a provider with its
+     * logo, Self-hosted and Off with an icon.
+     *
+     * @param  array<string, string>  $names  The name of each choice, by stored value.
+     * @return array<string, string>
+     */
+    private function serviceLabels(array $names): array
+    {
+        return collect($names)
+            ->map(fn (string $name, string $value): string => match (true) {
+                ($provider = AiProvider::tryFrom($value)) instanceof AiProvider => OptionLabel::provider($name, $provider),
+                $value === 'custom' => OptionLabel::icon($name, Heroicon::OutlinedServerStack),
+                default => OptionLabel::icon($name, Heroicon::OutlinedNoSymbol),
+            })
+            ->all();
     }
 
     /**
@@ -1259,6 +1286,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->all();
 
         return $this->choice('embedding_provider', 'Service', $providers)
+            ->options(collect($providers)->map(fn (string $name, string $value): string => OptionLabel::provider($name, EmbeddingProvider::from($value)->account()))->all())
+            ->native(false)
+            ->allowHtml()
             ->live()
             ->helperText('It must return the vector size this install stores. Its provider must be connected.')
             ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
@@ -1291,7 +1321,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $property = AiSettings::propertyFor($provider->modelConfig()) ?? '';
         $listed = $provider === EmbeddingProvider::OpenRouter;
         $field = $listed
-            ? $this->choice($property, 'Model', app(OpenRouterEmbeddingModels::class)->options(app(EmbeddingStorage::class)->dimensions()))->searchable()->live()
+            ? $this->choice($property, 'Model', $models = app(OpenRouterEmbeddingModels::class)->options(app(EmbeddingStorage::class)->dimensions()))
+                ->options(ModelLogo::labels($models, LlmProviderKind::OpenRouter))
+                ->allowHtml()
+                ->searchable()
+                ->live()
             : $this->text($property, 'Model')->live(onBlur: true);
 
         return $field

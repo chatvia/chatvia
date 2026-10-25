@@ -774,7 +774,7 @@ it('lists the chosen chat models first, then the suggested ones, then the rest',
 });
 
 it('warns when a chosen chat model cannot call tools, and still keeps it', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['scaleway' => ['models' => [
         'gpt-oss-120b' => ['tool_call' => false, 'canonical_model_id' => 'openai/gpt-oss-120b'],
         'gemma-4-26b-a4b-it' => ['tool_call' => true],
@@ -800,7 +800,7 @@ it('warns when a chosen chat model cannot call tools, and still keeps it', funct
 });
 
 it('lists only the models that read images for image descriptions', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['scaleway' => ['models' => [
         'gpt-oss-120b' => ['modalities' => ['input' => ['text'], 'output' => ['text']]],
         'gemma-4-26b-a4b-it' => ['modalities' => ['input' => ['text', 'image'], 'output' => ['text']]],
@@ -818,7 +818,7 @@ it('lists only the models that read images for image descriptions', function ():
 });
 
 it('lists only the models that read PDF files and images for chat file uploads, off without a recommended one', function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([ModelsDevCatalog::URL => Http::response(['providers' => ['scaleway' => ['models' => [
         'gpt-oss-120b' => ['modalities' => ['input' => ['text', 'image'], 'output' => ['text']]],
         'gemma-4-26b-a4b-it' => ['modalities' => ['input' => ['text', 'image', 'pdf'], 'output' => ['text']]],

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
  * name wherever the admin panel shows a model.
  */
 beforeEach(function (): void {
-    config(['chatvia.ai.models_dev.enabled' => true]);
+    forgetModelsDevCatalog();
     Http::fake([
         ModelsDevCatalog::URL => Http::response(['providers' => [
             'openrouter' => ['models' => ['qwen/qwen3-235b-a22b' => ['canonical_model_id' => 'alibaba/qwen3-235b-a22b']]],
@@ -51,4 +51,10 @@ it('puts a provider\'s own logo before its name', function (): void {
     expect(ModelLogo::forProvider('OpenRouter', LlmProviderKind::OpenRouter))
         ->toBe('<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/openrouter.svg); mask-image: url(/admin/model-logos/openrouter.svg)" aria-hidden="true"></span><span>OpenRouter</span></span>')
         ->and(ModelLogo::forProvider('My <Ollama>', LlmProviderKind::Custom))->toBe('My &lt;Ollama&gt;');
+});
+
+it('puts each model\'s logo before its name in a list of choices, and a lab\'s on its own API', function (): void {
+    expect(ModelLogo::labels(['qwen/qwen3-reranker-8b' => 'Qwen3 Reranker 8B'], LlmProviderKind::OpenRouter))
+        ->toBe(['qwen/qwen3-reranker-8b' => '<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/labs/alibaba.svg); mask-image: url(/admin/model-logos/labs/alibaba.svg)" aria-hidden="true"></span><span>Qwen3 Reranker 8B</span></span>'])
+        ->and(ModelLogo::forLab('Cohere Rerank 4 Pro', 'cohere'))->toContain('url(/admin/model-logos/labs/cohere.svg)', '<span>Cohere Rerank 4 Pro</span>');
 });

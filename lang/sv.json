@@ -523,7 +523,6 @@
     "Outgoing email": "Utgående e-post",
     "Models": "Modeller",
     "Model details": "Modelldetaljer",
-    "Switched off in Settings → AI models.": "Avstängt under Inställningar → AI-modeller.",
     "Could not read models.dev.": "Kunde inte läsa models.dev.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Modellerna behåller sin \"Reasons\"-brytare tills den kan läsas. Ett nytt försök görs en gång om dagen.",
     "Model details loaded.": "Modelldetaljer inlästa.",

@@ -523,7 +523,6 @@
     "Outgoing email": "Ausgehende E-Mails",
     "Models": "Modelle",
     "Model details": "Modelldetails",
-    "Switched off in Settings → AI models.": "Ausgeschaltet unter Einstellungen → KI-Modelle.",
     "Could not read models.dev.": "models.dev konnte nicht gelesen werden.",
     "Models keep their \"Reasons\" switch until it can be read. It is tried again once a day.": "Die Modelle behalten ihren Schalter „Reasons“, bis die Liste gelesen werden kann. Es wird einmal am Tag erneut versucht.",
     "Model details loaded.": "Modelldetails geladen.",

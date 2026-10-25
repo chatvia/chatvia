@@ -16,7 +16,7 @@ function cfmModel(string $name, array $inputs, LlmProviderKind $kind = LlmProvid
 }
 
 beforeEach(function (): void {
-    config(['chatvia.ai.chat_files.enabled' => true, 'chatvia.ai.chat_files.model' => null, 'chatvia.agent.default_model' => null, 'chatvia.ai.models_dev.enabled' => false]);
+    config(['chatvia.ai.chat_files.enabled' => true, 'chatvia.ai.chat_files.model' => null, 'chatvia.agent.default_model' => null]);
 });
 
 it('uses the picked model while it reads PDF files and images', function (): void {

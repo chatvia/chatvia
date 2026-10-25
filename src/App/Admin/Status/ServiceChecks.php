@@ -411,12 +411,6 @@ final readonly class ServiceChecks
      */
     private function modelDetails(): ServiceStatusData
     {
-        if (! filter_var(config('chatvia.ai.models_dev.enabled', true), FILTER_VALIDATE_BOOL)) {
-            return new ServiceStatusData(ServiceState::Off, __('Switched off in Settings → AI models.'), checks: [
-                new ServiceCheckData(__('Model details'), __('Off'), CheckMark::Skipped),
-            ]);
-        }
-
         $listed = $this->catalog->listedModels();
 
         if ($listed === 0) {

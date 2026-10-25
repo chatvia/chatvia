@@ -46,7 +46,6 @@ return new class extends SettingsMigration
             $group->add('eval_judge_model');
             $group->add('history_messages');
             $group->add('allow_reasoning');
-            $group->add('model_facts_lookup');
             $group->add('scaleway_embedding_model');
             $group->add('scaleway_transcription_model');
             $group->add('mistral_ocr_model');

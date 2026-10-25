@@ -36,6 +36,7 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
+use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\TaskModels;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
@@ -45,6 +46,7 @@ use Domain\Membership\Team\Services\TeamService;
 use GuzzleHttp\Middleware as GuzzleMiddleware;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -259,6 +261,15 @@ function modelsDevEntry(?array $efforts, ?bool $temperature = null, bool $reason
         'reasoning_options' => $efforts !== null ? [['type' => 'effort', 'values' => $efforts]] : null,
         'temperature' => $temperature,
     ], static fn (mixed $value): bool => $value !== null);
+}
+
+/**
+ * Forgets the empty models.dev catalog every test starts with, so the next
+ * lookup downloads it, from the test's fake.
+ */
+function forgetModelsDevCatalog(): void
+{
+    Cache::memo()->forget(ModelsDevCatalog::CACHE_KEY);
 }
 
 /**

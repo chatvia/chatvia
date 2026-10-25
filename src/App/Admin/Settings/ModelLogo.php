@@ -58,6 +58,26 @@ final class ModelLogo
         return '<span class="cv-model-logo" style="-webkit-mask-image: '.$image.'; mask-image: '.$image.'" aria-hidden="true"></span>';
     }
 
+    /**
+     * The choices of a model picker, each name with its model's logo.
+     *
+     * @param  array<string, string>  $names  The name of each model, by its id at the provider.
+     * @return array<string, string>
+     */
+    public static function labels(array $names, LlmProviderKind $kind): array
+    {
+        return collect($names)->map(fn (string $name, string|int $id): string => self::label($name, $kind, (string) $id))->all();
+    }
+
+    /**
+     * A model's name with its lab's logo before it (`cohere`), for a model
+     * on its lab's own API, which is no chat provider here.
+     */
+    public static function forLab(string $name, string $lab): string
+    {
+        return self::withMark($name, route('filament.admin.model-logo', ['logo' => app(ModelsDevCatalog::class)->labLogo($lab)], absolute: false));
+    }
+
     /** A catalog model's label: its name, or the text given, with its logo. */
     public static function forLlm(Llm $llm, ?string $text = null): string
     {

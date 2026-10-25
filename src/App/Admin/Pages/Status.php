@@ -26,7 +26,8 @@ use UnitEnum;
 /**
  * Status: whether the install is up and running, checked live each time the
  * page opens (and on "Check again"): the services it needs ({@see Service}),
- * the AI and other outside services it calls ({@see AiService}), and its
+ * the AI and other outside services it calls ({@see AiService}, with the
+ * sites it reads from, such as models.dev), and its
  * environment, as `php artisan about` tells it ({@see EnvironmentReport}).
  *
  * The page opens at once; the browser then asks for the services (quick),
@@ -109,12 +110,28 @@ class Status extends Page
     {
         return $schema->components([
             View::make('filament.status')->viewData(fn (): array => [
-                'services' => array_map(fn (Service $service): array => [$service, $this->result($this->services, $service->value)], Service::cases()),
+                'services' => $this->serviceResults(fn (Service $service): bool => ! $service->isOutside()),
                 'aiServices' => array_map(fn (AiService $service): array => [$service, $this->result($this->aiServices, $service->value)], AiService::cases()),
+                'outsideServices' => $this->serviceResults(fn (Service $service): bool => $service->isOutside()),
                 'environment' => app(EnvironmentReport::class)->groups(),
                 ...$this->summary(),
             ]),
         ]);
+    }
+
+    /**
+     * The services that pass the filter, each with its result.
+     *
+     * @param  callable(Service): bool  $filter
+     * @return list<array{0: Service, 1: ?ServiceStatusData}>
+     */
+    private function serviceResults(callable $filter): array
+    {
+        return collect(Service::cases())
+            ->filter($filter)
+            ->map(fn (Service $service): array => [$service, $this->result($this->services, $service->value)])
+            ->values()
+            ->all();
     }
 
     /**

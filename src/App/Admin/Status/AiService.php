@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Admin\Status;
 
+use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
+use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
 use Filament\Support\Icons\Heroicon;
 
 /**
  * An AI (or other outside) service the install calls, with a row on the
- * Status page: what it is for, and whether the install cannot work without
- * it. {@see AiServiceChecks} checks it.
+ * Status page: what it is for, where it is set up, and whether the install
+ * cannot work without it. {@see AiServiceChecks} checks it.
  */
 enum AiService: string
 {
@@ -61,6 +63,21 @@ enum AiService: string
             self::Voice => Heroicon::OutlinedPhone,
             self::ReadAloud => Heroicon::OutlinedSpeakerWave,
             self::WebPages => Heroicon::OutlinedGlobeAlt,
+        };
+    }
+
+    /** The card of Settings where it is set up, which the row's "Change" opens. */
+    public function settingsUrl(): string
+    {
+        return match ($this) {
+            self::Chat => ManageAiModelSettings::cardUrl('models'),
+            self::Embeddings => ManageAiModelSettings::cardUrl('embeddings'),
+            self::Reranking => ManageAiModelSettings::cardUrl('reranker'),
+            self::Documents => ManageAiModelSettings::cardUrl('documents'),
+            self::Speech => ManageAiModelSettings::cardUrl('speech'),
+            self::Voice => ManageAiModelSettings::cardUrl('voice'),
+            self::ReadAloud => ManageAiModelSettings::cardUrl('read_aloud'),
+            self::WebPages => ManageKnowledgeSettings::cardUrl('website_import'),
         };
     }
 

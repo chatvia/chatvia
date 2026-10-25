@@ -211,10 +211,10 @@ it('opens on the server step and checks the services ChatVia.ai runs on', functi
         ->assertSee('Checking each service…')
         ->call('checkServer')
         ->assertSet('server', fn (array $server): bool => array_keys($server) === ['database', 'redis', 'queue', 'scheduler', 'realtime', 'model_details'])
-        ->assertSee(['PostgreSQL', 'Redis', 'Laravel Horizon', 'Scheduler', 'Laravel Reverb', 'models.dev']);
+        ->assertSee(['PostgreSQL', 'Redis', 'Laravel Horizon', 'Scheduler', 'Laravel Reverb', 'Model catalog']);
 });
 
-it('links the models.dev row to the site once its list is read', function (): void {
+it('links models.dev in the model catalog row once its list is read', function (): void {
     adminPage(Setup::class, $this->admin)
         ->set('server', [...setupServicesRunning(), Service::ModelDetails->value => new ServiceStatusData(ServiceState::Running, 'Model details loaded.')->toArray()])
         ->assertSeeHtml('<a href="https://models.dev" target="_blank" rel="noopener noreferrer" class="cv-service__link">models.dev</a>');

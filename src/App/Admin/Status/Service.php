@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Admin\Status;
 
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 /**
  * A service the install needs, with a card on the Status page: the stores,
@@ -37,7 +40,7 @@ enum Service: string
             self::Storage => __('File storage'),
             self::Email => __('Email'),
             self::Programs => __('Programs'),
-            self::ModelDetails => 'models.dev',
+            self::ModelDetails => __('Model catalog'),
         };
     }
 
@@ -54,12 +57,39 @@ enum Service: string
             self::Storage => __('Uploads and exports'),
             self::Email => __('Outgoing email'),
             self::Programs => __('File readers and PDFs'),
-            self::ModelDetails => __('What each model supports'),
+            self::ModelDetails => __('What each model supports, from :site', ['site' => 'models.dev']),
         };
     }
 
-    /** The site of a service named after one (models.dev), which its title links to. */
-    public function url(): ?string
+    /**
+     * A site the install reads from, not a part of it (models.dev): the
+     * Status page lists it with the AI and other services.
+     */
+    public function isOutside(): bool
+    {
+        return $this === self::ModelDetails;
+    }
+
+    /**
+     * The description, with the site it comes from (models.dev) linked and
+     * opened in a new tab.
+     */
+    public function descriptionHtml(): HtmlString
+    {
+        $description = e($this->description());
+        $url = $this->url();
+
+        if ($url === null) {
+            return new HtmlString($description);
+        }
+
+        $site = e(Uri::of($url)->host());
+
+        return new HtmlString(Str::replace($site, '<a href="'.e($url).'" target="_blank" rel="noopener noreferrer" class="cv-service__link">'.$site.'</a>', $description));
+    }
+
+    /** The site of a service that comes from one (models.dev), which its description links to. */
+    private function url(): ?string
     {
         return match ($this) {
             self::ModelDetails => 'https://models.dev',

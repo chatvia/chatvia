@@ -418,7 +418,7 @@ final readonly class ServiceChecks
                 checks: [new ServiceCheckData(__('Reachable'), __('No'), CheckMark::Failed)], hint: __('Models keep their "Reasons" switch until it can be read. It is tried again once a day.'));
         }
 
-        return new ServiceStatusData(ServiceState::Running, __('Model details loaded.'), checks: [
+        return new ServiceStatusData(ServiceState::Running, __('Model details loaded.'), [__(':count models listed', ['count' => Number::format($listed)])], checks: [
             new ServiceCheckData(__('Models listed'), Number::format($listed)),
         ]);
     }

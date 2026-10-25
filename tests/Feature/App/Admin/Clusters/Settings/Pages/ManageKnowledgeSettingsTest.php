@@ -11,7 +11,7 @@ use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
  * and search have their own pages). On the File types card every type is on
  * by default, an admin turns some off, and at least one stays on. Under each
  * type it says what reads it now; a type nothing can read is greyed out,
- * and a saved one stays saved. Website import needs a Firecrawl key.
+ * and a saved one stays saved. The web scraper needs a Firecrawl key.
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
@@ -92,16 +92,16 @@ it('shows what agents learn from, and leaves search to its own page', function (
     $this->actingAs($this->admin, 'admin')
         ->get(ManageKnowledgeSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['File types', 'Website import', 'AI enhancement'])
+        ->assertSeeInOrder(['File types', 'Web scraper', 'AI enhancement'])
         ->assertDontSee(['Hybrid search', 'Follow-up questions', 'Fine-tuning', 'Try splitting']);
 });
 
 it('shows on the overview whether websites can be imported', function (): void {
-    expect(app(ManageKnowledgeSettings::class)->overviewStatus())->toBe(['Website import off', 'gray']);
+    expect(app(ManageKnowledgeSettings::class)->overviewStatus())->toBe(['Web scraper off', 'gray']);
 
     saveSettings(KnowledgeSettings::class, ['firecrawl_api_key' => 'fc-key']);
 
-    expect(app(ManageKnowledgeSettings::class)->overviewStatus())->toBe(['Website import on', 'success']);
+    expect(app(ManageKnowledgeSettings::class)->overviewStatus())->toBe(['Web scraper on', 'success']);
 });
 
 it('keeps Firecrawl\'s address and rate in the card\'s Advanced part, and saves them', function (): void {

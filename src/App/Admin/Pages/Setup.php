@@ -127,7 +127,7 @@ use Livewire\Attributes\Renderless;
  *    of your own or none, checked with a test question.
  * 4. Ingestion, in two sections. Document reader: Mistral OCR, Azure
  *    Document Intelligence or none (the default); without a reader, PDF,
- *    Word, slides and images cannot be uploaded. Website import: Firecrawl
+ *    Word, slides and images cannot be uploaded. Web scraper: Firecrawl
  *    or none (the default); without it, websites cannot be added as
  *    knowledge.
  * 5. Voice, in two sections. Speech to text: Scaleway AI, OpenAI or none
@@ -178,7 +178,7 @@ class Setup extends SimplePage
 
     private const string TEST_FILES = 'files';
 
-    /** The option of no document reader, website import or speech to text. */
+    /** The option of no document reader, web scraper or speech to text. */
     private const string NOT_NOW = 'none';
 
     /**
@@ -204,7 +204,7 @@ class Setup extends SimplePage
     /** The label of the ingestion step, which Next leaves once "Not now" for a document reader is confirmed. */
     private const string INGESTION_STEP = 'Ingestion';
 
-    /** The option of website import with Firecrawl. */
+    /** The option of the web scraper with Firecrawl. */
     private const string FIRECRAWL = 'firecrawl';
 
     /** The option of recording AI calls with Spectra. */
@@ -552,7 +552,7 @@ class Setup extends SimplePage
                             ->required(fn (Get $get): bool => blank(config('services.azure_document_intelligence.endpoint')))
                             ->visible(fn (Get $get): bool => $get('document_reader') === AiProvider::Azure->value && ! $this->usesSavedKey('document_reader', $get)),
                     ]),
-                Section::make('Website import')
+                Section::make('Web scraper')
                     ->description('To learn from a website, agents need Firecrawl. It finds the pages of the site and reads each one, also pages built with JavaScript.')
                     ->icon(Heroicon::OutlinedGlobeAlt)
                     ->schema([
@@ -833,7 +833,7 @@ class Setup extends SimplePage
                 : 'Already set up',
             'Reranker' => $this->rerankerSummary(),
             'Document reader' => AiProvider::tryFrom((string) $get('document_reader'))?->label() ?? 'Not now',
-            'Website import' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
+            'Web scraper' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
             'Speech to text' => AiProvider::tryFrom((string) $get('transcriber'))?->label() ?? 'Not now',
             'Voice conversations' => ($voice = AiProvider::tryFrom((string) $get('voice'))) instanceof AiProvider ? "{$voice->label()} Realtime" : 'Not now',
             'Storage' => $get('storage_driver') === 's3' ? 'S3-compatible storage' : 'This server',

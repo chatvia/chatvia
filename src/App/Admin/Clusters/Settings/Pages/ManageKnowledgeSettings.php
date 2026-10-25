@@ -22,7 +22,7 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 /**
- * What agents learn from: the file types people may upload, website import
+ * What agents learn from: the file types people may upload, the web scraper
  * (Firecrawl) and the AI enhancement of chunks. How text is split into
  * chunks (ManageSplittingSettings) and how agents search it
  * (ManageSearchSettings) have their own pages. Describing the pictures
@@ -84,7 +84,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
     public function overviewStatus(): array
     {
         return $this->unfinishedStatus()
-            ?? (filled($this->valueInUse('firecrawl_api_key')) ? ['Website import on', 'success'] : ['Website import off', 'gray']);
+            ?? (filled($this->valueInUse('firecrawl_api_key')) ? ['Web scraper on', 'success'] : ['Web scraper off', 'gray']);
     }
 
     protected function showsValueInUse(string $property): bool
@@ -111,7 +111,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
                     ->dehydrateStateUsing(fn (?array $state): array => array_values(array_intersect(array_keys(self::FILE_TYPES), $state ?? []))),
                     'Turning a type off keeps the files already uploaded. Greyed-out types first need a document reader or speech to text in Settings → AI models.'),
             ])->summary(fn (): string => $this->fileTypesSummary()),
-            SettingsCard::make('website_import', 'Website import', 'Lets people add websites as knowledge. Uses Firecrawl.', Heroicon::OutlinedGlobeAlt, fn (): array => [
+            SettingsCard::make('website_import', 'Web scraper', 'Lets people add websites as knowledge. Uses Firecrawl.', Heroicon::OutlinedGlobeAlt, fn (): array => [
                 $this->secret('firecrawl_api_key', 'Firecrawl API key'),
             ])->advancedFields(fn (): array => [
                 $this->url('firecrawl_endpoint', 'Address', help: 'Leave it as it is unless you run your own Firecrawl server.'),

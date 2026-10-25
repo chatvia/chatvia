@@ -27,10 +27,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
- * Install-wide options: default language, the chat widget, the tracking
- * code, visitor location, alerts, what makes PDFs, the number of queue
- * workers, where the programs that read files are, and the panel's Logs
- * page.
+ * Install-wide options: default language, the tracking code, visitor
+ * location, alerts, what makes PDFs, the number of queue workers, where the
+ * programs that read files are, and the panel's Logs page. The chat widget's
+ * options are on Settings → Widget.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -86,7 +86,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, tracking code, visitor location, PDF maker, queue workers, programs and logs.';
+        return 'Language, tracking code, visitor location, PDF maker, queue workers, programs and logs.';
     }
 
     /**
@@ -117,18 +117,9 @@ class ManagePlatformSettings extends AdminSettingsPage
             SettingsCard::make('language', 'Language', 'The language for people who have not chosen one, and for messaging channels.', Heroicon::OutlinedLanguage, fn (): array => [
                 $this->choice('default_locale', 'Default language', $this->languages()),
             ])->summary(fn (): string => $this->languages()[(string) $this->valueInUse('default_locale')] ?? $this->shown($this->valueInUse('default_locale'))),
-            SettingsCard::make('widget', 'Chat widget', 'Where the widget may load, and how much it may be used.', Heroicon::OutlinedChatBubbleOvalLeftEllipsis, fn (): array => [
-                $this->text('widget_allowed_origins', 'Sites every widget may load on',
-                    help: 'Comma-separated hosts, such as "example.com, app.example.com", on top of this install and each agent\'s own sites.'),
-            ])->advancedFields(fn (): array => [
-                $this->urlOrPath('widget_script_url', 'Widget script address',
-                    help: 'The default is the copy this server builds. Enter a full address to load it from a CDN.'),
-                $this->integer('widget_stream_per_minute', 'Replies per agent per minute', min: 1),
-                $this->integer('widget_stream_per_hour', 'Replies per agent per hour', min: 1),
-            ])->summary(fn (): string => $this->valueInUse('widget_stream_per_minute').' replies per agent per minute'),
             SettingsCard::make('tracking', 'Tracking code', 'Code added to every page, such as the script of an analytics service. Nothing is added while it is empty.', Heroicon::OutlinedChartBar, fn (): array => [
                 $this->code('tracking_code', 'Code',
-                    help: 'Added to the <head> of the dashboard, the hosted chat and the sign-in pages, on a live (production) install only.', placeholder: '<script defer src="https://…"></script>'),
+                    help: 'Added to the dashboard, the hosted chat and the sign-in pages. It runs only on the live site, not on test copies.', placeholder: '<script defer src="https://…"></script>'),
             ])->summary(fn (): string => filled($this->valueInUse('tracking_code')) ? 'On' : 'Off'),
             SettingsCard::make('ip2location', 'IP2Location', 'Finds the country of a visitor from their IP address.', Heroicon::OutlinedMapPin, fn (): array => [
                 $this->secret('ip2location_api_key', 'API key'),
@@ -137,29 +128,29 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->required('ip2location_api_key')->console('https://www.ip2location.io/dashboard'),
             SettingsCard::make('alerts', 'Alerts', 'Where the queue sends its alerts.', Heroicon::OutlinedBellAlert, fn (): array => [
                 $this->email('horizon_notify_email', 'Alert email',
-                    help: 'Gets an email when jobs wait too long in the queue. Applies after Horizon restarts.'),
+                    help: 'Gets an email when background jobs wait too long to start. A change applies after the queue restarts.'),
             ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? 'To '.$this->valueInUse('horizon_notify_email') : 'No alerts'),
             SettingsCard::make('pdf_maker', 'PDF maker', 'What makes PDFs: chat exports, and the PDF of an office file for its summary.', Heroicon::OutlinedDocumentArrowDown, fn (): array => [
                 $this->pdfMakerChoice(),
-                $this->pdfMakerField(PdfMaker::Cloudflare, $this->text('pdf_cloudflare_account_id', 'Account ID', help: 'On the right of the home page of your Cloudflare dashboard.'), required: true),
-                $this->pdfMakerField(PdfMaker::Cloudflare, $this->secret('pdf_cloudflare_token', 'API token', help: 'A token with the "Browser Rendering: Edit" permission.', required: false)
+                $this->pdfMakerField(PdfMaker::Cloudflare, $this->text('pdf_cloudflare_account_id', 'Account ID', help: 'Shown on the right side of the home page of your Cloudflare dashboard.'), required: true),
+                $this->pdfMakerField(PdfMaker::Cloudflare, $this->secret('pdf_cloudflare_token', 'API token', help: 'Create a Cloudflare token with the "Browser Rendering: Edit" permission, then paste it here.', required: false)
                     ->hintAction(Action::make('getKey_pdf_cloudflare')
                         ->label('Get a token')
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->iconPosition('after')
                         ->url(PdfMaker::Cloudflare->keysUrl() ?? '', shouldOpenInNewTab: true)), required: true),
-                $this->pdfMakerField(PdfMaker::Gotenberg, $this->url('pdf_gotenberg_url', 'Address', help: 'Such as http://gotenberg:3000.'), required: true),
-                $this->pdfMakerField(PdfMaker::Gotenberg, $this->text('pdf_gotenberg_username', 'Username', help: 'Only when your Gotenberg server asks for one.'), required: false),
+                $this->pdfMakerField(PdfMaker::Gotenberg, $this->url('pdf_gotenberg_url', 'Address', help: 'Where this server reaches your Gotenberg server, such as http://gotenberg:3000.'), required: true),
+                $this->pdfMakerField(PdfMaker::Gotenberg, $this->text('pdf_gotenberg_username', 'Username', help: 'Fill in only if your Gotenberg server asks for a username and password.'), required: false),
                 $this->pdfMakerField(PdfMaker::Gotenberg, $this->secret('pdf_gotenberg_password', 'Password', required: false), required: false),
             ])->properties('pdf_maker', ...array_merge(...array_values(self::PDF_MAKER_SETTINGS)))
                 ->summary(fn (): string => $this->pdfMakerSummary())
                 ->tone(fn (): string => $this->pdfMakerMissing() === [] ? 'gray' : 'warning'),
             SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Save, then restart the queue.', Heroicon::OutlinedCog8Tooth, fn (): array => [
-                $this->integer('chat_workers', 'Chat', help: 'Replies on messaging channels, e-mails and other short jobs.', min: 2, max: 200),
-                $this->integer('ingestion_workers', 'Files and websites', help: 'Reading knowledge sources, then exports.', min: 1, max: 200),
-                $this->integer('analytics_workers', 'Analytics', help: 'Conversation analysis, evals and audit logs.', min: 1, max: 100),
-                $this->integer('media_workers', 'Audio and video', help: 'Transcribing recordings. Each one can take a long time.', min: 1, max: 50),
-                $this->integer('voice_workers', 'Live voice calls', help: 'Each voice conversation holds one worker for its whole length, so this is also the most calls at once.', min: 1, max: 200),
+                $this->integer('chat_workers', 'Chat', help: 'For replies on messaging channels, sending emails and other quick jobs.', min: 2, max: 200),
+                $this->integer('ingestion_workers', 'Files and websites', help: 'For reading the files and websites you add as knowledge, and for exports.', min: 1, max: 200),
+                $this->integer('analytics_workers', 'Analytics', help: 'For analyzing conversations, testing agent answers and writing audit logs.', min: 1, max: 100),
+                $this->integer('media_workers', 'Audio and video', help: 'For turning recordings into text. One recording can take a long time.', min: 1, max: 50),
+                $this->integer('voice_workers', 'Live voice calls', help: 'Each voice call uses one worker until it ends, so this is also the most calls at once.', min: 1, max: 200),
                 Actions::make([$this->restartQueueAction()])->key('restart-queue'),
             ])->summary(fn (): string => sprintf('Up to %d workers', array_sum($this->savedWorkers())).(($state = $this->horizonState()) !== null ? " · {$state}" : ''))
                 ->tone(fn (): string => in_array($this->horizonState(), [self::NOT_RUNNING, self::RESTART_NEEDED], true) ? 'warning' : 'gray')
@@ -310,12 +301,12 @@ class ManagePlatformSettings extends AdminSettingsPage
         $found = $this->programPath($program);
 
         if ($found !== null) {
-            return $program->purpose()." Runs {$found}.";
+            return $program->purpose()." Uses {$found}.";
         }
 
         $loss = $program->lossWhenMissing();
 
-        return $program->purpose().' '.($loss !== null ? "Now: {$loss} " : '').'Click Detect, or enter its full path.';
+        return $program->purpose().' '.($loss !== null ? "Without it: {$loss} " : '').'Click Detect or enter its full path.';
     }
 
     /**

@@ -64,11 +64,10 @@ class ManageSignInSettings extends AdminSettingsPage
         ])
             ->advancedFields(fn (): array => [
                 $this->url("{$service}_redirect", 'Another redirect URL',
-                    help: 'Leave empty to use the URL shown. It must match a redirect URL registered in the OAuth app.'),
+                    help: "Leave blank to use the URL shown. Any URL you enter must also be listed in your {$label} app."),
             ])
             ->required("{$service}_client_id", "{$service}_client_secret")
             ->console($consoleUrl)
-            ->helpFile('provider')
             ->callbacks([
                 $redirectLabel => "auth.{$service}.callback",
                 // A chatter accepting a chat invitation with Google or Slack

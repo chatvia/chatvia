@@ -18,10 +18,10 @@ it('shows the everyday cards first, and the fine-tuning under Advanced', functio
         ->get(ManageSearchSettings::getUrl())
         ->assertOk()
         ->assertSeeInOrder([
-            'Finding answers', 'Hybrid search on · 5 results per question',
-            'Unclear and follow-up questions', 'Understand follow-up questions on',
+            'Finding answers', 'Hybrid search',
+            'Ambiguous questions', 'Understand follow-up questions',
             'Technical options. The defaults suit most installs.',
-            'Fine-tuning', 'Balanced · reranker, minimum 0.3',
+            'Fine-tuning', 'Search mode',
         ])
         ->assertDontSee(['File types', 'Website import']);
 });

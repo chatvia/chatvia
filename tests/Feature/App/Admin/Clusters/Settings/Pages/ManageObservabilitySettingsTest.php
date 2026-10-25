@@ -84,14 +84,14 @@ it('locks the switch while .env leaves Spectra out', function (): void {
     app()->forgetInstance(ToolRecording::class);
 
     adminPage(ManageObservabilitySettings::class, $this->admin)
-        ->assertSee(['Off in .env', 'SPECTRA_ENABLED=false in .env'])
+        ->assertSee(['Off in .env', 'SPECTRA_ENABLED=false, which leaves this tool out'])
         ->assertFormFieldDisabled('spectra_enabled');
 });
 
 it('locks the Pulse switch while .env leaves Pulse out', function (): void {
     // phpunit.xml leaves Pulse out of the install.
     adminPage(ManageObservabilitySettings::class, $this->admin)
-        ->assertSee(['PULSE_ENABLED=false in .env'])
+        ->assertSee(['PULSE_ENABLED=false, which leaves this tool out'])
         ->assertFormFieldDisabled('pulse_enabled');
 });
 

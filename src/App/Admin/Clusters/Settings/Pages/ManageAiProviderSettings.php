@@ -248,14 +248,13 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
             ->required(...array_filter([$key, $provider->needsBaseUrl() ? $address : null]))
             ->console($provider->keysUrl(), 'Get a key')
             ->chips(fn (): array => $this->chips($provider))
-            ->summary(fn (): string => 'Connected')
-            ->helpFile('provider');
+            ->summary(fn (): string => 'Connected');
 
         if ($address !== null && ! $provider->needsBaseUrl()) {
             $card->advancedFields(fn (): array => [
                 $this->url($address, 'Address', help: $provider === AiProvider::Scaleway
-                    ? 'To bill a specific project, use https://api.scaleway.ai/{project-id}/v1.'
-                    : 'Change it only to go through a proxy or another region.'),
+                    ? 'To bill a specific Scaleway project, use https://api.scaleway.ai/{project-id}/v1.'
+                    : 'Change it only to go through a proxy or to use another region.'),
             ]);
         }
 
@@ -358,23 +357,20 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
     private function serverFields(bool $editing): array
     {
         return [
-            TextInput::make('name')
+            $this->withHelp(TextInput::make('name')
                 ->label('Name')
-                ->helperText('How the server is listed, such as "Ollama on the office server".')
                 ->required()
-                ->maxLength(100),
-            TextInput::make('base_url')
+                ->maxLength(100), 'How the server shows in lists, such as "Ollama on the office server".'),
+            $this->withHelp(TextInput::make('base_url')
                 ->label('Address')
                 ->url()
                 ->placeholder('http://localhost:11434/v1')
-                ->helperText('The address of its OpenAI-compatible API, usually ending in /v1.')
-                ->required(),
-            TextInput::make('api_key')
+                ->required(), 'Usually ends in /v1. The server must be OpenAI-compatible, as Ollama, vLLM and LM Studio are.'),
+            $this->withHelp(TextInput::make('api_key')
                 ->label('API key')
                 ->password()
                 ->revealable()
-                ->autocomplete('new-password')
-                ->helperText($editing ? 'Leave empty to keep the saved key.' : 'Leave empty when your server has no key.'),
+                ->autocomplete('new-password'), $editing ? 'Leave empty to keep the saved key.' : 'Leave empty if your server needs no key.'),
             Section::make('Advanced')
                 ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
                 ->compact()
@@ -382,11 +378,10 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
                 ->collapsible()
                 ->collapsed()
                 ->schema([
-                    KeyValue::make('headers')
+                    $this->withHelp(KeyValue::make('headers')
                         ->label('Extra headers')
                         ->keyLabel('Header')
-                        ->valueLabel('Value')
-                        ->helperText('Sent with every request, for servers that need them.'),
+                        ->valueLabel('Value'), 'Extra details sent with every request. Fill these in only if your server asks for them.'),
                 ]),
         ];
     }

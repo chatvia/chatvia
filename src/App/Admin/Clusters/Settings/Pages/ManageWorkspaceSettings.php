@@ -59,9 +59,9 @@ class ManageWorkspaceSettings extends AdminSettingsPage
         return [
             SettingsCard::make('sign_up', 'Sign-up and limits', 'Who can create a workspace, and how much a new one can use.', Heroicon::OutlinedUserPlus, fn (): array => [
                 $this->toggle('registration_enabled', 'Open sign-up',
-                    help: 'Anyone can create a workspace at /register. When off, the sign-up page is closed.'),
+                    help: 'Anyone can create a workspace on the sign-up page at /register. Off closes that page.'),
                 $this->integer('new_workspace_message_limit', 'Monthly message limit of new workspaces',
-                    help: 'How many agent replies a new workspace can get each month. 0 means no limit. To change the limit of one workspace, open it under Workspaces.', min: 0),
+                    help: 'How many agent replies a new workspace gets each month. 0 means no limit. Change one workspace\'s limit under Workspaces.', min: 0),
             ])->summary(fn (): string => sprintf(
                 'Sign-up %s · %s',
                 $this->valueInUse('registration_enabled') ? 'open' : 'closed',
@@ -69,7 +69,7 @@ class ManageWorkspaceSettings extends AdminSettingsPage
             )),
             SettingsCard::make('conversations', 'Conversations', 'How long conversations are kept.', Heroicon::OutlinedClock, fn (): array => [
                 $this->integer('retention_days', 'Days to keep conversations',
-                    help: 'Older conversations are deleted. A workspace can choose fewer days in its security settings.', min: 1),
+                    help: 'Conversations older than this are deleted. Each workspace can choose fewer days in its security settings.', min: 1),
                 $this->integer('retention_floor_days', 'Fewest days a workspace may choose', min: 1)
                     // A floor above the days would leave a workspace no value to choose.
                     ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
@@ -80,7 +80,7 @@ class ManageWorkspaceSettings extends AdminSettingsPage
             ])->summary(fn (): string => 'Kept '.$this->valueInUse('retention_days').' days'),
             SettingsCard::make('notifications', 'Notifications', 'How long the dashboard keeps notifications.', Heroicon::OutlinedBell, fn (): array => [
                 $this->integer('notification_retention_days', 'Days to keep notifications',
-                    help: 'Older notifications are deleted every night, read or not.', min: 1, max: 365),
+                    help: 'Notifications older than this are deleted every night, read or not.', min: 1, max: 365),
             ])->summary(fn (): string => 'Kept '.$this->valueInUse('notification_retention_days').' days'),
         ];
     }

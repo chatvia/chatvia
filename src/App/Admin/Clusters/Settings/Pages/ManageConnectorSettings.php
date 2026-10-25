@@ -78,11 +78,11 @@ class ManageConnectorSettings extends AdminSettingsPage
             SettingsCard::make('perplexity', 'Perplexity', 'The service behind the Perplexity tool (web search). Each workspace adds its own API key.', Heroicon::OutlinedGlobeAlt, fn (): array => [
                 $this->url('perplexity_base_url', 'Address'),
                 $this->text('perplexity_agent_model', 'Search model',
-                    help: 'Used to search the web, fetch a page, search finance data, find people and run code.'),
+                    help: 'The Perplexity model for web searches, reading a page, finance data, finding people and running code.'),
                 $this->text('perplexity_ask_model', 'Ask model',
-                    help: 'Used to "ask": a full answer with reasons, from web sources.'),
+                    help: 'The Perplexity model that writes a full answer, with its reasons, from web sources.'),
                 $this->text('perplexity_research_model', 'Research model',
-                    help: 'Used to "research": a deep look across many sources. It is slower.'),
+                    help: 'The Perplexity model for deep research across many sources. It is slower.'),
             ]),
             SettingsCard::make('openweather', 'OpenWeather', 'The service behind the Weather tool. Each workspace adds its own API key.', Heroicon::OutlinedCloud, fn (): array => [
                 $this->url('openweather_base_url', 'Address'),
@@ -113,7 +113,6 @@ class ManageConnectorSettings extends AdminSettingsPage
         )
             ->required("{$property}_client_id", "{$property}_client_secret")
             ->console($connector->appConsoleUrl)
-            ->helpFile('connector')
             ->callbacks(['Redirect URL' => 'connectors.oauth.callback']);
     }
 }

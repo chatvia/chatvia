@@ -80,7 +80,7 @@ it('shows whether this server finds each program', function (): void {
 
     adminPage(ManagePlatformSettings::class, $this->admin)
         ->assertSee('Programs')
-        ->assertSee("Runs {$this->folder}/pdfinfo.");
+        ->assertSee("Uses {$this->folder}/pdfinfo.");
 });
 
 it('marks a program the app can do without as not needed, and one it cannot as missing', function (): void {
@@ -90,7 +90,7 @@ it('marks a program the app can do without as not needed, and one it cannot as m
 
     adminPage(ManagePlatformSettings::class, $this->admin)
         ->assertSee('Not found · not needed')
-        ->assertSee('Now: PDF files cannot be trained again while no document reader is on.')
+        ->assertSee('Without it: PDF files cannot be trained again while no document reader is on.')
         ->assertSee('Not found: pdftotext');
 });
 

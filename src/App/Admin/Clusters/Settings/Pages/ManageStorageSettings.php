@@ -103,16 +103,16 @@ class ManageStorageSettings extends AdminSettingsPage
         return [
             SettingsCard::make('location', 'Where files are kept', 'Knowledge files, chat attachments, chunk images and backups.', Heroicon::OutlinedArchiveBox, fn (): array => [
                 $this->choice('driver', 'Store files in', self::DRIVERS,
-                    help: 'This server needs no account. S3-compatible storage (AWS S3, Scaleway, Cloudflare R2, MinIO…) keeps files off the server and scales with them.')
+                    help: 'This server needs no setup. S3-compatible storage keeps files with an online service, such as AWS S3 or Cloudflare R2, and grows with them.')
                     ->live(),
                 Callout::make('Switching moves no files')
                     ->description('Files already stored stay where they are, and the app no longer finds them. Switch before people add files, or copy the files to the new place first.')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning(),
                 $this->url('s3_endpoint', 'Endpoint',
-                    help: 'For example https://s3.fr-par.scw.cloud, https://<account-id>.r2.cloudflarestorage.com or http://minio:9000. Leave empty for AWS S3.')
+                    help: 'The address of your storage service, for example https://s3.fr-par.scw.cloud. Leave it empty for AWS S3.')
                     ->visible($s3),
-                $this->text('s3_region', 'Region', help: 'For example fr-par, eu-west-1, or auto for Cloudflare R2.')
+                $this->text('s3_region', 'Region', help: 'Where your storage is kept, for example eu-west-1 or fr-par. Use auto for Cloudflare R2.')
                     ->required($s3)
                     ->visible($s3),
                 $this->text('s3_key', 'Access key ID')
@@ -121,12 +121,12 @@ class ManageStorageSettings extends AdminSettingsPage
                 $this->secret('s3_secret', 'Secret access key')
                     ->required(fn (Get $get): bool => $this->usesS3($get) && ! $this->isSaved('s3_secret'))
                     ->visible($s3),
-                $this->text('s3_bucket', 'Bucket', help: 'Every file of the app goes here. Keep this bucket private.')
+                $this->text('s3_bucket', 'Bucket', help: 'The storage space that holds every file of the app. Keep it private.')
                     ->required($s3)
                     ->visible($s3),
             ])->advancedFields(fn (): array => [
                 $this->toggle('s3_path_style', 'Use path-style addresses',
-                    help: 'Puts the bucket in the path instead of the host name. MinIO and some other servers need it.'),
+                    help: 'Turn this on if your storage server needs it, as MinIO does. Most services, like AWS S3, work with it off.'),
             ], visible: $s3)
                 ->properties('driver', 's3_endpoint', 's3_region', 's3_key', 's3_secret', 's3_path_style', 's3_bucket')
                 ->summary(fn (): string => self::DRIVERS[(string) $this->valueInUse('driver')] ?? self::DRIVERS['local']),

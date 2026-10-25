@@ -31,9 +31,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\Size;
 use Filament\Support\Enums\TextSize;
-use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -43,8 +41,8 @@ use Throwable;
 /**
  * One page of the admin panel's Settings, for one settings class: every card
  * ({@see SettingsCard}) as a collapsible section with its icon, description,
- * status, a "?" button that explains its options in plain words, and its
- * fields; one Save button that stays in view, and an outline that jumps to a
+ * a service's status, and its fields, each with a "?" that explains it in
+ * plain words; one Save button that stays in view, and an outline that jumps to a
  * section. The everyday cards come first; technical cards follow under an
  * "Advanced" heading, closed. The rules every page shares:
  *
@@ -368,8 +366,8 @@ abstract class AdminSettingsPage extends Page
     }
 
     /**
-     * One card as a collapsible section: the status and the provider console
-     * in its header, its fields, the URLs to register with the provider, and
+     * One card as a collapsible section: a service's status (or a warning)
+     * and the provider console in its header, its fields, the URLs to register with the provider, and
      * its closed "Advanced" part. An advanced card always starts closed; an
      * everyday card remembers whether the admin closed it.
      */
@@ -384,13 +382,15 @@ abstract class AdminSettingsPage extends Page
             ->collapsed($card->advanced)
             ->persistCollapsed(! $card->advanced)
             ->afterHeader([
-                // A service's status is a badge; the options in use are a line.
-                // The header shows two lines of it at most, the tooltip all of it.
+                // A service's status is a badge. A group of options shows its
+                // line only as a warning (a change that waits), not the
+                // options in use. Two lines of it at most, the tooltip all of it.
                 Text::make(fn (): string => $this->statusLine($card)[0])
                     ->badge($card->required !== [])
                     ->size(TextSize::Small)
                     ->color(fn (): string => $this->statusLine($card)[1])
-                    ->tooltip(fn (): ?string => Str::length($this->statusLine($card)[0]) > 60 ? $this->statusLine($card)[0] : null),
+                    ->tooltip(fn (): ?string => Str::length($this->statusLine($card)[0]) > 60 ? $this->statusLine($card)[0] : null)
+                    ->visible(fn (): bool => $card->required !== [] || $this->statusLine($card)[1] !== 'gray'),
                 ...($card->consoleUrl === null ? [] : [
                     Action::make('console_'.$card->key)
                         ->label($card->consoleLabel ?? 'Open console')
@@ -401,11 +401,6 @@ abstract class AdminSettingsPage extends Page
                         ->color('gray')
                         ->tooltip($card->consoleLabel === null ? 'Open the provider console' : null)
                         ->url($card->consoleUrl, shouldOpenInNewTab: true),
-                ]),
-                // Wrapped and keyed, so Livewire can find the action without
-                // a key on the section (that would change the fields' paths).
-                ...($this->helpOf($card) === null ? [] : [
-                    Actions::make([$this->helpAction($card)])->key('help-'.$this->sectionId($card)),
                 ]),
             ])
             ->schema([
@@ -462,41 +457,6 @@ abstract class AdminSettingsPage extends Page
                 ->extraAttributes(['class' => 'cv-settings-advanced-part'])
                 ->schema(($card->advancedFields)()),
         ];
-    }
-
-    /**
-     * The plain-language explanation of a card's options, from
-     * resources/help/settings/{page}/{card}.md (or the file the card shares
-     * with the other cards of its helper), with `{title}` filled in. Null
-     * when there is no file: the card then has no "?" button.
-     */
-    public function helpOf(SettingsCard $card): ?string
-    {
-        $file = resource_path('help/settings/'.static::getSlug().'/'.($card->helpFile ?? $card->key).'.md');
-
-        return File::isFile($file) ? Str::replace('{title}', $card->title, File::get($file)) : null;
-    }
-
-    /**
-     * The card's "?" button: a small window with the explanation. Being in
-     * the header's right side, a click opens it without folding the card.
-     */
-    private function helpAction(SettingsCard $card): Action
-    {
-        return Action::make('help_'.$card->key)
-            ->label('What do these options do?')
-            ->icon(Heroicon::OutlinedQuestionMarkCircle)
-            ->iconButton()
-            ->color('gray')
-            ->tooltip('What do these options do?')
-            ->modalHeading($card->title)
-            ->modalIcon(Heroicon::OutlinedLightBulb)
-            ->modalContent(fn (): HtmlString => new HtmlString(
-                '<div class="fi-prose cv-settings-help">'.Str::markdown($this->helpOf($card) ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]).'</div>'
-            ))
-            ->modalWidth(Width::Large)
-            ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Got it');
     }
 
     /**
@@ -732,9 +692,8 @@ abstract class AdminSettingsPage extends Page
      */
     protected function secret(string $property, string $label, ?string $help = null, bool $required = true): TextInput
     {
-        return TextInput::make($property)
+        return $this->withHelp(TextInput::make($property)
             ->label($label)
-            ->helperText($help)
             ->password()
             ->revealable()
             ->autocomplete('new-password')
@@ -743,18 +702,17 @@ abstract class AdminSettingsPage extends Page
             ->hint(fn (): ?string => $this->hint($property, $required))
             ->hintIcon(fn (): ?Heroicon => $this->isSaved($property) ? Heroicon::OutlinedLockClosed : null)
             ->hintColor(fn (): string => $this->isSaved($property) ? 'success' : 'gray')
-            ->suffixAction($this->forgetAction($property, $label));
+            ->suffixAction($this->forgetAction($property, $label)), $help);
     }
 
     protected function text(string $property, string $label, ?string $help = null, bool $required = false): TextInput
     {
-        return TextInput::make($property)
+        return $this->withHelp(TextInput::make($property)
             ->label($label)
-            ->helperText($help)
             ->rules(['nullable', 'string', 'max:2000'])
             ->placeholder(fn (): ?string => $this->defaultText($property))
             ->hint(fn (): ?string => $required && ! $this->isSaved($property) ? 'Required' : null)
-            ->hintColor('gray');
+            ->hintColor('gray'), $help);
     }
 
     /**
@@ -763,14 +721,13 @@ abstract class AdminSettingsPage extends Page
      */
     protected function code(string $property, string $label, ?string $help = null, ?string $placeholder = null): Textarea
     {
-        return Textarea::make($property)
+        return $this->withHelp(Textarea::make($property)
             ->label($label)
-            ->helperText($help)
             ->rows(6)
             ->autosize()
             ->rules(['nullable', 'string', 'max:20000'])
             ->placeholder($placeholder)
-            ->extraInputAttributes(['class' => 'font-mono text-sm', 'spellcheck' => 'false']);
+            ->extraInputAttributes(['class' => 'font-mono text-sm', 'spellcheck' => 'false']), $help);
     }
 
     protected function url(string $property, string $label, ?string $help = null, bool $required = false): TextInput
@@ -802,45 +759,45 @@ abstract class AdminSettingsPage extends Page
 
     protected function integer(string $property, string $label, ?string $help = null, int $min = 0, ?int $max = null): TextInput
     {
-        return TextInput::make($property)
+        return $this->withHelp(TextInput::make($property)
             ->label($label)
-            ->helperText($help)
             ->integer()
             ->minValue($min)
             ->maxValue($max)
-            ->placeholder(fn (): ?string => $this->defaultText($property));
+            ->placeholder(fn (): ?string => $this->defaultText($property)), $help);
     }
 
     protected function decimal(string $property, string $label, ?string $help = null, float $min = 0, float $max = 1, float $step = 0.01): TextInput
     {
-        return TextInput::make($property)
+        return $this->withHelp(TextInput::make($property)
             ->label($label)
-            ->helperText($help)
             ->numeric()
             ->minValue($min)
             ->maxValue($max)
             ->step($step)
-            ->placeholder(fn (): ?string => $this->defaultText($property));
+            ->placeholder(fn (): ?string => $this->defaultText($property)), $help);
     }
 
     protected function toggle(string $property, string $label, ?string $help = null): Toggle
     {
-        return Toggle::make($property)
-            ->label($label)
-            ->helperText($help);
+        return $this->withHelp(Toggle::make($property)->label($label), $help);
     }
 
     /**
      * A "?" right after the field's label, with the help as its tooltip, in
-     * place of a line of help under the field.
+     * place of a line of help under the field. No help, no "?".
      *
      * @template T of Field
      *
      * @param  T  $field
      * @return T
      */
-    protected function withHelp(Field $field, string $help): Field
+    protected function withHelp(Field $field, ?string $help): Field
     {
+        if (blank($help)) {
+            return $field;
+        }
+
         return $field->afterLabel(Schema::start([
             Icon::make(Heroicon::OutlinedQuestionMarkCircle)
                 ->color('gray')
@@ -853,16 +810,15 @@ abstract class AdminSettingsPage extends Page
      */
     protected function choice(string $property, string $label, array $options, ?string $help = null): Select
     {
-        return Select::make($property)
+        return $this->withHelp(Select::make($property)
             ->label($label)
-            ->helperText($help)
             ->options($options)
             ->in(array_keys($options))
             ->placeholder(function () use ($property, $options): string {
                 $default = $this->defaultValue($property);
 
                 return 'Default: '.($options[(string) $default] ?? (filled($default) ? (string) $default : 'none'));
-            });
+            }), $help);
     }
 
     /** "On", "Off", or the value, for a summary line. */

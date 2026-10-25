@@ -6,8 +6,9 @@ use App\Identity\Workspace\Models\User;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 
 /**
- * Settings → Widget: whether the Chat Widget's header says "AI assistant" on
- * every agent of the install. On until an admin turns it off.
+ * Settings → Widget: the Chat Widget on every agent of the install. Where its
+ * script loads from, its reply limits, and whether its header says "AI
+ * assistant" (on until an admin turns it off).
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
@@ -35,4 +36,46 @@ it('turns the AI disclosure off for every widget', function (): void {
     expect(savedSetting(WidgetSettings::class, 'ai_disclosure'))->toBeFalse()
         ->and(config('chatvia.widget.ai_disclosure'))->toBeFalse()
         ->and(app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()))->ai_disclosure)->toBeFalse();
+});
+
+it('takes a path on this server or a full address for the widget script', function (string $address): void {
+    adminPage(ManageWidgetSettings::class, $this->admin)
+        ->fillForm(['script_url' => $address])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(WidgetSettings::class, 'script_url'))->toBe($address)
+        ->and(url(config('chatvia.widget.script_url_embed')))->toBe(url($address));
+})->with([
+    'a path on this server' => '/shakomako/next/embed.js',
+    'a full address' => 'https://cdn.example.com/embed.js',
+]);
+
+it('refuses a widget script address that is neither', function (string $address): void {
+    adminPage(ManageWidgetSettings::class, $this->admin)
+        ->fillForm(['script_url' => $address])
+        ->call('save')
+        ->assertHasFormErrors(['script_url']);
+
+    expect(savedSetting(WidgetSettings::class, 'script_url'))->toBeNull();
+})->with([
+    'a relative path' => 'shakomako/embed.js',
+    'an address without a scheme' => '//cdn.example.com/embed.js',
+    'a script' => 'javascript:alert(1)',
+    'another scheme' => 'ftp://cdn.example.com/embed.js',
+]);
+
+it('saves the reply limits and the extra sites', function (): void {
+    adminPage(ManageWidgetSettings::class, $this->admin)
+        ->fillForm(['allowed_origins' => 'example.com, shop.example.com', 'stream_per_minute' => 30, 'stream_per_hour' => 600])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageWidgetSettings::getUrl())
+        ->assertSee('30 replies per agent per minute');
+
+    expect(config('chatvia.widget.extra_allowed_origins'))->toBe('example.com, shop.example.com')
+        ->and(config('chatvia.widget.stream_per_agent_per_minute'))->toBe(30)
+        ->and(config('chatvia.widget.stream_per_agent_per_hour'))->toBe(600);
 });

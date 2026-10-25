@@ -12,7 +12,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 /**
  * One message in the chat log's conversation view, with its analysis
  * (sentiment, tone, feedback and the visitor's note on it), the confidence of the knowledge behind an
- * answer (null when none was used) and the knowledge itself, cost details,
+ * answer (null when none was used), whether no knowledge was found for it,
+ * the knowledge itself, cost details,
  * and whether it was spoken in a voice call.
  */
 #[TypeScript]
@@ -33,6 +34,9 @@ class ChatLogMessageData extends Data
         // The visitor's note on a thumbs-down, when they left one.
         public ?string $feedback_comment,
         public bool $is_response_from_qa,
+        // A reply for which no knowledge was found: no Q&A match and no
+        // passage passed the relevance check.
+        public bool $not_found,
         public ?int $response_time_ms,
         public ?int $prompt_tokens,
         public ?int $completion_tokens,
@@ -65,6 +69,7 @@ class ChatLogMessageData extends Data
             feedback: $message->feedback?->value,
             feedback_comment: $message->feedback_comment,
             is_response_from_qa: $message->is_response_from_qa,
+            not_found: $message->has_llm_found_answer === false && ! $message->is_response_from_qa,
             response_time_ms: $message->response_time_ms,
             prompt_tokens: $message->prompt_tokens,
             completion_tokens: $message->completion_tokens,

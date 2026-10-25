@@ -459,7 +459,11 @@
                 "select_sentiment": "Duygu seçin",
                 "select_tone": "Ton seçin",
                 "clear_all": "Tümünü temizle",
-                "close": "Filtreleri uygula"
+                "close": "Filtreleri uygula",
+                "unanswered": "Yanıtsız",
+                "select_unanswered": "Seç",
+                "all_conversations": "Tüm konuşmalar",
+                "unanswered_help": "Tüm yanıtsızlar olumsuz oyları da kapsar. Zaten düzelttiğiniz yanıtlar gösterilmez."
             },
             "messages": {
                 "select_conversation": "Mesajları görüntülemek için bir görüşme seçin",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Görüşme nabzı yüklenemedi. Lütfen tekrar deneyin."
             },
             "refresh_messages": "Mesajları yenile",
-            "delete_conversation": "Konuşmayı sil"
+            "delete_conversation": "Konuşmayı sil",
+            "unanswered": {
+                "needs_look": "Tüm yanıtsızlar",
+                "not_found": "Bilgi bulunamadı",
+                "count": "Bu sayfada {count} yanıtsız cevap | Bu sayfada {count} yanıtsız cevap",
+                "none_on_page": "Bu sayfada yanıtsız cevap yok.",
+                "next": "Sonraki",
+                "add_answer": "Doğru yanıtı ekle"
+            }
         },
         "guardrails": {
             "title": "Koruma kuralları",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Sohbete gelişmiş özellikler ekleyin — etkileşimli grafikler gibi",
             "forms": "Formlar",
             "forms_tooltip": "Asistanınızın sohbette gösterdiği formları oluşturun",
-            "blocked": "Engellenenler",
-            "unanswered": "Yanıtsız"
+            "blocked": "Engellenenler"
         },
         "create_modal": {
             "title": "Asistan Oluştur",
@@ -2374,26 +2385,6 @@
             "empty": "Henüz gönderim yok.",
             "submitted_at": "Gönderildi",
             "deleted": "Gönderim silindi"
-        },
-        "unanswered": {
-            "title": "Yanıtsız",
-            "description": "Ajanın bilgi bulamadığı sorular ve ziyaretçilerin kötü olarak işaretlediği yanıtlar. Boşluğu kapatmak için doğru yanıtı ekleyin.",
-            "chatlog_off": "Bu ajan için sohbet kaydı kapalı, bu yüzden yeni yanıtlar burada saklanmıyor.",
-            "filter_all": "Tümü",
-            "filter_not_found": "Bilgi bulunamadı",
-            "filter_thumbs_down": "Beğenilmedi",
-            "include_revised": "Düzeltilenleri göster",
-            "load_error": "Liste yüklenemedi.",
-            "try_again": "Tekrar dene",
-            "empty": "Burada bir şey yok. Son soruların hepsi yanıt buldu.",
-            "reason_not_found": "Bilgi bulunamadı",
-            "reason_thumbs_down": "Beğenilmedi",
-            "revised": "Düzeltildi",
-            "question": "Soru",
-            "answer": "Yanıt",
-            "no_question": "(soru bulunamadı)",
-            "add_answer": "Doğru yanıtı ekle",
-            "open_conversation": "Sohbeti aç"
         }
     },
     "auth": {

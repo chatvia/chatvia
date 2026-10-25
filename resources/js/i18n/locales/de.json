@@ -459,7 +459,11 @@
                 "select_sentiment": "Stimmung auswählen",
                 "select_tone": "Ton auswählen",
                 "clear_all": "Alle zurücksetzen",
-                "close": "Filter anwenden"
+                "close": "Filter anwenden",
+                "unanswered": "Unbeantwortet",
+                "select_unanswered": "Auswählen",
+                "all_conversations": "Alle Unterhaltungen",
+                "unanswered_help": "Alle unbeantworteten umfasst auch Daumen runter. Bereits überarbeitete Antworten fehlen."
             },
             "messages": {
                 "select_conversation": "Wählen Sie ein Gespräch aus, um Nachrichten anzuzeigen",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Gesprächspuls konnte nicht geladen werden. Bitte versuchen Sie es erneut."
             },
             "refresh_messages": "Nachrichten aktualisieren",
-            "delete_conversation": "Unterhaltung löschen"
+            "delete_conversation": "Unterhaltung löschen",
+            "unanswered": {
+                "needs_look": "Alle unbeantworteten",
+                "not_found": "Kein Wissen gefunden",
+                "count": "{count} unbeantwortete Antwort auf dieser Seite | {count} unbeantwortete Antworten auf dieser Seite",
+                "none_on_page": "Keine unbeantworteten Antworten auf dieser Seite.",
+                "next": "Weiter",
+                "add_answer": "Richtige Antwort hinzufügen"
+            }
         },
         "guardrails": {
             "title": "Leitplanken",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Erweiterte Funktionen zum Chat hinzufügen – etwa interaktive Diagramme",
             "forms": "Formulare",
             "forms_tooltip": "Erstellen Sie Formulare, die Ihr Agent im Chat anzeigt",
-            "blocked": "Gesperrt",
-            "unanswered": "Unbeantwortet"
+            "blocked": "Gesperrt"
         },
         "create_modal": {
             "title": "Agent erstellen",
@@ -2375,26 +2386,6 @@
             "empty": "Noch keine Einsendungen.",
             "submitted_at": "Eingereicht",
             "deleted": "Einsendung gelöscht"
-        },
-        "unanswered": {
-            "title": "Unbeantwortet",
-            "description": "Fragen, zu denen der Agent kein Wissen fand, und Antworten, die Besucher als schlecht markiert haben. Füge die richtige Antwort hinzu, um die Lücke zu schließen.",
-            "chatlog_off": "Das Chatprotokoll ist für diesen Agenten aus, daher werden hier keine neuen Antworten gespeichert.",
-            "filter_all": "Alle",
-            "filter_not_found": "Kein Wissen gefunden",
-            "filter_thumbs_down": "Daumen runter",
-            "include_revised": "Überarbeitete zeigen",
-            "load_error": "Die Liste konnte nicht geladen werden.",
-            "try_again": "Erneut versuchen",
-            "empty": "Nichts hier. Jede neue Frage hat eine Antwort gefunden.",
-            "reason_not_found": "Kein Wissen gefunden",
-            "reason_thumbs_down": "Daumen runter",
-            "revised": "Überarbeitet",
-            "question": "Frage",
-            "answer": "Antwort",
-            "no_question": "(keine Frage gefunden)",
-            "add_answer": "Richtige Antwort hinzufügen",
-            "open_conversation": "Gespräch öffnen"
         }
     },
     "auth": {

@@ -2,17 +2,21 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConfidenceBand;
+use Domain\Conversation\Enums\MessageFeedback;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Topic\Models\Topic;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Facades\DB;
 
 /**
  * The chat-log filters: by topic (through the conversation_topics pivot, so
  * a multi-label conversation appears under each of its topics), by the
- * confidence band and the feedback of an assistant answer, by online status
+ * confidence band and the feedback of an assistant answer, by an answer that
+ * still needs a look (unanswered), by online status
  * and by whole days. The latest message of each conversation loads in the
  * same query.
  */
@@ -126,6 +130,32 @@ it('filters by the feedback on an assistant answer only', function (): void {
     expect(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByFeedback('negative')))->toBe([$disliked->id])
         ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByFeedback('positive')))->toBe([$liked->id])
         ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByFeedback(null)))->toBe([$disliked->id, $liked->id, $onVisitorMessage->id]);
+});
+
+it('filters by an unrevised reply with no knowledge found, or also a thumbs-down', function (): void {
+    $agent = Agent::factory()->create();
+    $reply = fn (Conversation $conversation, array $attributes = []): Message => Message::factory()->fromAssistant()
+        ->create(['chat_conversation_id' => $conversation->id, 'has_llm_found_answer' => true, ...$attributes]);
+
+    $notFound = cqbConversation($agent);
+    $reply($notFound, ['has_llm_found_answer' => false]);
+    $disliked = cqbConversation($agent);
+    $reply($disliked, ['feedback' => MessageFeedback::Negative]);
+    $answered = cqbConversation($agent);
+    $reply($answered);
+    // A Q&A match counts as found even when no passage was given.
+    $fromQa = cqbConversation($agent);
+    $reply($fromQa, ['has_llm_found_answer' => false, 'is_response_from_qa' => true]);
+    $revised = cqbConversation($agent);
+    $qa = AgentQuestionAnswer::query()->create(['agent_id' => $agent->id, 'title' => 'Fixed', 'questions' => 'Fixed', 'answer' => 'Yes.']);
+    $reply($revised, ['has_llm_found_answer' => false, 'agent_question_answer_id' => $qa->id]);
+    $playground = cqbConversation($agent);
+    $reply($playground, ['has_llm_found_answer' => false, 'source' => MessageOrigin::Playground]);
+
+    expect(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByUnanswered('not_found')))->toBe([$notFound->id])
+        ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByUnanswered('needs_look')))->toBe([$notFound->id, $disliked->id])
+        ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByUnanswered('everything')))->toHaveCount(6)
+        ->and(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterByUnanswered(null)))->toHaveCount(6);
 });
 
 it('keeps only the conversations active within the online window when asked', function (): void {

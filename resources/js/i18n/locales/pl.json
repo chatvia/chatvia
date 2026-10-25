@@ -459,7 +459,11 @@
                 "select_sentiment": "Wybierz nastrój",
                 "select_tone": "Wybierz ton",
                 "clear_all": "Wyczyść wszystko",
-                "close": "Zastosuj filtry"
+                "close": "Zastosuj filtry",
+                "unanswered": "Bez odpowiedzi",
+                "select_unanswered": "Wybierz",
+                "all_conversations": "Wszystkie rozmowy",
+                "unanswered_help": "Wszystkie bez odpowiedzi obejmują też kciuk w dół. Poprawione już odpowiedzi są pominięte."
             },
             "messages": {
                 "select_conversation": "Wybierz rozmowę, aby wyświetlić wiadomości",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Nie udało się załadować pulsu rozmowy. Spróbuj ponownie."
             },
             "refresh_messages": "Odśwież wiadomości",
-            "delete_conversation": "Usuń rozmowę"
+            "delete_conversation": "Usuń rozmowę",
+            "unanswered": {
+                "needs_look": "Wszystkie bez odpowiedzi",
+                "not_found": "Nie znaleziono wiedzy",
+                "count": "{count} odpowiedź do poprawy na tej stronie | {count} odpowiedzi do poprawy na tej stronie",
+                "none_on_page": "Brak odpowiedzi do poprawy na tej stronie.",
+                "next": "Dalej",
+                "add_answer": "Dodaj właściwą odpowiedź"
+            }
         },
         "guardrails": {
             "title": "Zabezpieczenia",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Dodaj zaawansowane funkcje do czatu — takie jak interaktywne wykresy",
             "forms": "Formularze",
             "forms_tooltip": "Twórz formularze, które agent wyświetla w czacie",
-            "blocked": "Zablokowani",
-            "unanswered": "Bez odpowiedzi"
+            "blocked": "Zablokowani"
         },
         "create_modal": {
             "title": "Utwórz agenta",
@@ -2375,26 +2386,6 @@
             "empty": "Brak zgłoszeń.",
             "submitted_at": "Przesłano",
             "deleted": "Zgłoszenie usunięte"
-        },
-        "unanswered": {
-            "title": "Bez odpowiedzi",
-            "description": "Pytania, do których agent nie znalazł wiedzy, i odpowiedzi oznaczone przez odwiedzających jako złe. Dodaj właściwą odpowiedź, aby uzupełnić lukę.",
-            "chatlog_off": "Dziennik czatu jest wyłączony dla tego agenta, więc nowe odpowiedzi nie są tu zapisywane.",
-            "filter_all": "Wszystkie",
-            "filter_not_found": "Brak wiedzy",
-            "filter_thumbs_down": "Kciuk w dół",
-            "include_revised": "Pokaż poprawione",
-            "load_error": "Nie udało się wczytać listy.",
-            "try_again": "Spróbuj ponownie",
-            "empty": "Nic tu nie ma. Każde ostatnie pytanie znalazło odpowiedź.",
-            "reason_not_found": "Brak wiedzy",
-            "reason_thumbs_down": "Kciuk w dół",
-            "revised": "Poprawiona",
-            "question": "Pytanie",
-            "answer": "Odpowiedź",
-            "no_question": "(nie znaleziono pytania)",
-            "add_answer": "Dodaj właściwą odpowiedź",
-            "open_conversation": "Otwórz rozmowę"
         }
     },
     "auth": {

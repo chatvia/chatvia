@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Bez odpowiedzi",
+                "select_unanswered": "Wybierz",
+                "all_conversations": "Wszystkie rozmowy",
+                "unanswered_help": "Wszystkie bez odpowiedzi obejmują też kciuk w dół. Poprawione już odpowiedzi są pominięte."
+            },
+            "unanswered": {
+                "needs_look": "Wszystkie bez odpowiedzi",
+                "not_found": "Nie znaleziono wiedzy",
+                "count": "{count} odpowiedź do poprawy na tej stronie | {count} odpowiedzi do poprawy na tej stronie",
+                "none_on_page": "Brak odpowiedzi do poprawy na tej stronie.",
+                "next": "Dalej",
+                "add_answer": "Dodaj właściwą odpowiedź"
+            }
+        }
+    }
+}

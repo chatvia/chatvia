@@ -92,6 +92,7 @@ export function handoffEventToMessage(event: HandoffMessageEvent): ChatLogMessag
         feedback: null,
         feedback_comment: null,
         is_response_from_qa: false,
+        not_found: false,
         response_time_ms: null,
         prompt_tokens: null,
         completion_tokens: null,

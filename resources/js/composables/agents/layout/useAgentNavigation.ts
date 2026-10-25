@@ -9,7 +9,6 @@ import agents from '@/routes/agents';
 import {
     BarChart3,
     BotIcon,
-    CircleHelp,
     Code,
     Database,
     FileText,
@@ -148,18 +147,6 @@ export function useAgentNavigation() {
         }
         if (hasPermission('agent.analytics.sources')) {
             analytics.push(subLink('analytics-sources', t('agents.nav.sources'), FileText, 'agents.analytics.sources', agents.analytics.sources.url));
-        }
-        // Visitor questions the agent could not answer: chat log content, so the chat log permission.
-        if (hasPermission('agent.chat.view')) {
-            analytics.push(
-                subLink(
-                    'analytics-unanswered',
-                    t('agents.nav.unanswered'),
-                    CircleHelp,
-                    'agents.analytics.unanswered',
-                    agents.analytics.unanswered.url,
-                ),
-            );
         }
         if (analytics.length > 0) {
             items.push({

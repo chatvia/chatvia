@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "未回答",
+                "select_unanswered": "選択",
+                "all_conversations": "すべての会話",
+                "unanswered_help": "「すべての未回答」には低評価も含まれます。修正済みの返信は除外されます。"
+            },
+            "unanswered": {
+                "needs_look": "すべての未回答",
+                "not_found": "ナレッジが見つかりません",
+                "count": "このページに未回答の返信が{count}件 | このページに未回答の返信が{count}件",
+                "none_on_page": "このページに未回答の返信はありません。",
+                "next": "次へ",
+                "add_answer": "正しい回答を追加"
+            }
+        }
+    }
+}

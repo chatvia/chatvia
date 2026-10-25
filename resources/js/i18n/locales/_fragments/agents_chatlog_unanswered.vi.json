@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Chưa trả lời",
+                "select_unanswered": "Chọn",
+                "all_conversations": "Tất cả cuộc trò chuyện",
+                "unanswered_help": "Tất cả chưa trả lời gồm cả lượt không thích. Các câu trả lời bạn đã sửa sẽ không hiện."
+            },
+            "unanswered": {
+                "needs_look": "Tất cả chưa trả lời",
+                "not_found": "Không tìm thấy kiến thức",
+                "count": "{count} câu trả lời chưa giải quyết trên trang này | {count} câu trả lời chưa giải quyết trên trang này",
+                "none_on_page": "Không có câu trả lời chưa giải quyết trên trang này.",
+                "next": "Tiếp",
+                "add_answer": "Thêm câu trả lời đúng"
+            }
+        }
+    }
+}

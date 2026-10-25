@@ -6,7 +6,10 @@ use DateTimeImmutable;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Enums\ConfidenceBand;
 use Domain\Conversation\Enums\HandoffStatus;
+use Domain\Conversation\Enums\MessageFeedback;
+use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
+use Domain\Conversation\Enums\UnansweredFilter;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Illuminate\Contracts\Pagination\CursorPaginator;
@@ -198,6 +201,37 @@ class ConversationQueryBuilder extends Builder
                 $q->where('role', MessageRole::Assistant)
                     ->whereNotNull('feedback')
                     ->where('feedback', $feedback);
+            });
+        });
+    }
+
+    /**
+     * Conversations with a reply that still needs a look: no knowledge was
+     * found for it (no Q&A match and no passage passed the relevance check),
+     * or, for {@see UnansweredFilter::NeedsLook}, a visitor gave it a
+     * thumbs-down. A reply staff already revised no longer counts, so a
+     * conversation leaves the filter once its gaps are filled. Playground
+     * tests are left out.
+     *
+     * @return self<TModel>
+     */
+    public function filterByUnanswered(?string $unanswered): self
+    {
+        $filter = UnansweredFilter::tryFrom($unanswered ?? '');
+
+        return $this->when($filter, function ($query) use ($filter): void {
+            $query->whereHas('messages', function (Builder $q) use ($filter): void {
+                $q->where('role', MessageRole::Assistant)
+                    ->whereNull('agent_question_answer_id')
+                    ->where(static function (Builder $origin): void {
+                        $origin->whereNull('source')->orWhere('source', '!=', MessageOrigin::Playground->value);
+                    })
+                    ->where(static function (Builder $reason) use ($filter): void {
+                        $reason->where(static fn (Builder $notFound) => $notFound->where('has_llm_found_answer', false)->where('is_response_from_qa', false));
+                        if ($filter === UnansweredFilter::NeedsLook) {
+                            $reason->orWhere('feedback', MessageFeedback::Negative->value);
+                        }
+                    });
             });
         });
     }

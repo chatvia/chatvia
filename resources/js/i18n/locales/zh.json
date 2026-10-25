@@ -459,7 +459,11 @@
                 "select_sentiment": "选择情绪",
                 "select_tone": "选择语气",
                 "clear_all": "全部清除",
-                "close": "应用筛选器"
+                "close": "应用筛选器",
+                "unanswered": "未回答",
+                "select_unanswered": "选择",
+                "all_conversations": "所有对话",
+                "unanswered_help": "“全部未回答”也包括点踩。已修订的回复不会显示。"
             },
             "messages": {
                 "select_conversation": "选择一个会话以查看消息",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "无法加载会话情绪分析。请重试。"
             },
             "refresh_messages": "刷新消息",
-            "delete_conversation": "删除对话"
+            "delete_conversation": "删除对话",
+            "unanswered": {
+                "needs_look": "全部未回答",
+                "not_found": "未找到知识",
+                "count": "本页有 {count} 条未回答的回复 | 本页有 {count} 条未回答的回复",
+                "none_on_page": "本页没有未回答的回复。",
+                "next": "下一个",
+                "add_answer": "添加正确答案"
+            }
         },
         "guardrails": {
             "title": "防护规则",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "为聊天添加丰富的功能 — 例如交互式图表",
             "forms": "表单",
             "forms_tooltip": "构建智能体在聊天中展示的表单",
-            "blocked": "已屏蔽",
-            "unanswered": "未解答"
+            "blocked": "已屏蔽"
         },
         "create_modal": {
             "title": "创建智能体",
@@ -2374,26 +2385,6 @@
             "empty": "暂无提交记录。",
             "submitted_at": "提交时间",
             "deleted": "提交记录已删除"
-        },
-        "unanswered": {
-            "title": "未解答",
-            "description": "代理没有找到知识的问题，以及访客标记为不好的回答。添加正确的回答来补上缺口。",
-            "chatlog_off": "此代理的聊天记录已关闭，因此新的回复不会保存在这里。",
-            "filter_all": "全部",
-            "filter_not_found": "未找到知识",
-            "filter_thumbs_down": "差评",
-            "include_revised": "显示已修订",
-            "load_error": "无法加载列表。",
-            "try_again": "重试",
-            "empty": "这里没有内容。最近的每个问题都找到了答案。",
-            "reason_not_found": "未找到知识",
-            "reason_thumbs_down": "差评",
-            "revised": "已修订",
-            "question": "问题",
-            "answer": "回答",
-            "no_question": "（未找到问题）",
-            "add_answer": "添加正确回答",
-            "open_conversation": "打开对话"
         }
     },
     "auth": {

@@ -5,6 +5,7 @@ use Domain\Agent\Data\ChatLog\ChatLogFiltersData;
 use Domain\Agent\Data\Resources\ChatLog\Conversations\ChatLogConversationData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
@@ -12,7 +13,8 @@ use Domain\Form\Models\FormSubmission;
 /**
  * The chat log marks which listed conversations captured a lead. It only
  * needs the ids of conversations on the page being shown, not every lead the
- * agent ever captured.
+ * agent ever captured. Pages are keyset-paged, and filters (such as the
+ * unanswered one) narrow the list.
  */
 it('returns lead ids only for conversations on the current page', function (): void {
     $agent = Agent::factory()->create();
@@ -78,4 +80,16 @@ it('keeps the filters on the next page', function (): void {
 
     expect($second->next_cursor)->toBeNull()
         ->and($seen->sort()->values()->all())->toBe($negative->pluck('external_id')->sort()->values()->all());
+});
+
+it('lists only the conversations with an unanswered reply when asked', function (): void {
+    $agent = Agent::factory()->create();
+    $session = Session::factory()->create(['agent_id' => $agent->id]);
+    [$gap, $fine] = Conversation::factory()->count(2)->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
+    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $gap->id, 'has_llm_found_answer' => false]);
+    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $fine->id, 'has_llm_found_answer' => true]);
+
+    $page = app(ListChatLogConversationsAction::class)->execute($agent, new ChatLogFiltersData(unanswered: 'not_found'));
+
+    expect($page->conversations->map(fn (ChatLogConversationData $row): string => $row->conversation_id)->all())->toBe([$gap->external_id]);
 });

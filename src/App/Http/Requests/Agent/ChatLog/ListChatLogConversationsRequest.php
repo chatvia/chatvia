@@ -38,6 +38,7 @@ class ListChatLogConversationsRequest extends FormRequest
             confidenceScore: $this->queryString('confidence_score'),
             feedback: $this->queryString('feedback'),
             source: $this->queryString('source'),
+            unanswered: $this->queryString('unanswered'),
             onlineOnly: $this->boolean('online_only'),
         );
     }

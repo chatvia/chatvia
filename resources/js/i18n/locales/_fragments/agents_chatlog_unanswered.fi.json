@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chatlog": {
+            "filters": {
+                "unanswered": "Vastaamaton",
+                "select_unanswered": "Valitse",
+                "all_conversations": "Kaikki keskustelut",
+                "unanswered_help": "Kaikki vastaamattomat sisältää myös peukut alas. Jo korjatut vastaukset jätetään pois."
+            },
+            "unanswered": {
+                "needs_look": "Kaikki vastaamattomat",
+                "not_found": "Tietoa ei löytynyt",
+                "count": "{count} vastaamaton vastaus tällä sivulla | {count} vastaamatonta vastausta tällä sivulla",
+                "none_on_page": "Ei vastaamattomia vastauksia tällä sivulla.",
+                "next": "Seuraava",
+                "add_answer": "Lisää oikea vastaus"
+            }
+        }
+    }
+}

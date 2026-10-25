@@ -459,7 +459,11 @@
                 "select_sentiment": "Välj känsloläge",
                 "select_tone": "Välj ton",
                 "clear_all": "Rensa alla",
-                "close": "Tillämpa filter"
+                "close": "Tillämpa filter",
+                "unanswered": "Obesvarat",
+                "select_unanswered": "Välj",
+                "all_conversations": "Alla konversationer",
+                "unanswered_help": "Alla obesvarade inkluderar tummen ner. Svar du redan har rättat visas inte."
             },
             "messages": {
                 "select_conversation": "Välj en konversation för att visa meddelanden",
@@ -607,7 +611,15 @@
                 "pulse_load_failed": "Det gick inte att ladda konversationspuls. Försök igen."
             },
             "refresh_messages": "Uppdatera meddelanden",
-            "delete_conversation": "Radera konversation"
+            "delete_conversation": "Radera konversation",
+            "unanswered": {
+                "needs_look": "Alla obesvarade",
+                "not_found": "Ingen kunskap hittades",
+                "count": "{count} obesvarat svar på den här sidan | {count} obesvarade svar på den här sidan",
+                "none_on_page": "Inga obesvarade svar på den här sidan.",
+                "next": "Nästa",
+                "add_answer": "Lägg till rätt svar"
+            }
         },
         "guardrails": {
             "title": "Skyddsräcken",
@@ -1716,8 +1728,7 @@
             "capabilities_tooltip": "Lägg till avancerade funktioner i chatten — som interaktiva diagram",
             "forms": "Formulär",
             "forms_tooltip": "Bygg formulär som din agent visar i chatten",
-            "blocked": "Blockerade",
-            "unanswered": "Obesvarade"
+            "blocked": "Blockerade"
         },
         "create_modal": {
             "title": "Skapa agent",
@@ -2375,26 +2386,6 @@
             "empty": "Inga inskick ännu.",
             "submitted_at": "Inskickat",
             "deleted": "Inskick raderat"
-        },
-        "unanswered": {
-            "title": "Obesvarade",
-            "description": "Frågor som agenten inte hittade kunskap för, och svar som besökare markerade som dåliga. Lägg till rätt svar för att täcka luckan.",
-            "chatlog_off": "Chattloggen är avstängd för den här agenten, så nya svar sparas inte här.",
-            "filter_all": "Alla",
-            "filter_not_found": "Ingen kunskap hittad",
-            "filter_thumbs_down": "Tumme ner",
-            "include_revised": "Visa reviderade",
-            "load_error": "Det gick inte att läsa in listan.",
-            "try_again": "Försök igen",
-            "empty": "Inget här. Alla senaste frågor fick ett svar.",
-            "reason_not_found": "Ingen kunskap hittad",
-            "reason_thumbs_down": "Tumme ner",
-            "revised": "Reviderad",
-            "question": "Fråga",
-            "answer": "Svar",
-            "no_question": "(ingen fråga hittades)",
-            "add_answer": "Lägg till rätt svar",
-            "open_conversation": "Öppna samtal"
         }
     },
     "auth": {

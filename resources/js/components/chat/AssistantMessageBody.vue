@@ -238,6 +238,14 @@ watch(
     },
 );
 
+// The sources usually arrive after the text: at the end of a stream, or a
+// moment after a reloaded conversation shows its messages. Re-flush when
+// they (or the agent's citing) change, so the markers become chips.
+watch(
+    () => [props.cite, (props.sources ?? []).map((source) => (source.blocks ?? []).join(',')).join('|')],
+    () => flushRender(),
+);
+
 onUnmounted(() => {
     if (renderDebounce) clearTimeout(renderDebounce);
 });

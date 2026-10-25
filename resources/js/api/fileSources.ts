@@ -48,6 +48,14 @@ export function uploadSourceFile(agentId: string, file: File): Promise<void> {
     return post(sourceFileUploadUrl(agentId), body, { headers: { 'Content-Type': 'multipart/form-data' } });
 }
 
+/** Puts a new version in place of a trained file; the server trains it again. */
+export function replaceSourceFile(agentId: string, fileId: number, file: File): Promise<void> {
+    const body = new FormData();
+    body.append('file', file);
+
+    return post(files.replace.url({ agent: agentId, file: fileId }), body, { headers: { 'Content-Type': 'multipart/form-data' } });
+}
+
 /** Starts training every uploaded file of the agent. */
 export function trainUploadedFiles(agentId: string): Promise<void> {
     return post(files.process.url(agentId));

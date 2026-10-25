@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Sensitiv informasjon oppdaget",
                 "summary_sensitive_description": "Dette dokumentet kan inneholde sensitiv eller konfidensiell informasjon.",
                 "summary_empty": "Ingen sammendragsdata tilgjengelig for denne filen.",
-                "uploads_off": "Administratoren har slått av opplasting av disse filtypene."
+                "uploads_off": "Administratoren har slått av opplasting av disse filtypene.",
+                "replace_file": "Erstatt med en ny versjon",
+                "replace_started": "Erstatter {name}. Den trenes på nytt om et øyeblikk.",
+                "replace_failed": "Kunne ikke erstatte filen. Prøv igjen."
             },
             "text": {
                 "load_failed": "Kunne ikke laste tekstoppføring",

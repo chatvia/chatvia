@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Wykryto informacje wrażliwe",
                 "summary_sensitive_description": "Ten dokument może zawierać informacje wrażliwe lub poufne.",
                 "summary_empty": "Brak danych podsumowania dla tego pliku.",
-                "uploads_off": "Administrator wyłączył przesyłanie tych typów plików."
+                "uploads_off": "Administrator wyłączył przesyłanie tych typów plików.",
+                "replace_file": "Zastąp nową wersją",
+                "replace_started": "Zastępowanie {name}. Za chwilę zostanie wytrenowany ponownie.",
+                "replace_failed": "Nie udało się zastąpić pliku. Spróbuj ponownie."
             },
             "text": {
                 "load_failed": "Nie udało się wczytać wpisu tekstowego",

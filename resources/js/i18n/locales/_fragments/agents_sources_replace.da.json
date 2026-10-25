@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "Erstat med en ny version",
+                "replace_started": "Erstatter {name}. Den trænes igen om et øjeblik.",
+                "replace_failed": "Filen kunne ikke erstattes. Prøv igen."
+            }
+        }
+    }
+}

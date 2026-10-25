@@ -1314,7 +1314,10 @@
                 "summary_sensitive_title": "Información sensible detectada",
                 "summary_sensitive_description": "Este documento puede contener información sensible o confidencial.",
                 "summary_empty": "No hay datos de resumen disponibles para este archivo.",
-                "uploads_off": "El administrador ha desactivado la subida de estos tipos de archivo."
+                "uploads_off": "El administrador ha desactivado la subida de estos tipos de archivo.",
+                "replace_file": "Reemplazar por una nueva versión",
+                "replace_started": "Reemplazando {name}. Se volverá a entrenar en un momento.",
+                "replace_failed": "No se pudo reemplazar el archivo. Inténtalo de nuevo."
             },
             "text": {
                 "load_failed": "Error al cargar la entrada de texto",

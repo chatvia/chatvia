@@ -1314,7 +1314,10 @@
                 "summary_formatting": "Yếu tố định dạng",
                 "summary_sensitive_title": "Phát hiện thông tin nhạy cảm",
                 "summary_sensitive_description": "Tài liệu này có thể chứa thông tin nhạy cảm hoặc bảo mật.",
-                "summary_empty": "Không có dữ liệu tóm tắt cho tệp này."
+                "summary_empty": "Không có dữ liệu tóm tắt cho tệp này.",
+                "replace_file": "Thay bằng phiên bản mới",
+                "replace_started": "Đang thay {name}. Tệp sẽ được huấn luyện lại trong giây lát.",
+                "replace_failed": "Không thể thay tệp. Vui lòng thử lại."
             },
             "text": {
                 "load_failed": "Không thể tải mục văn bản",

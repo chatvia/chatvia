@@ -1,0 +1,11 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "replace_file": "Yeni bir sürümle değiştir",
+                "replace_started": "{name} değiştiriliyor. Birazdan yeniden eğitilecek.",
+                "replace_failed": "Dosya değiştirilemedi. Lütfen tekrar deneyin."
+            }
+        }
+    }
+}

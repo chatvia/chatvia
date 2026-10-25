@@ -2,7 +2,7 @@
 /**
  * One file of the agent's knowledge base: name, type, status icon, size,
  * length and date, a progress bar while it trains, and buttons to view its
- * summary (once trained) and to remove it.
+ * summary (once trained), to replace it with a new version and to remove it.
  */
 import type { SourceFile } from '@/api/fileSources';
 import IngestionProgressBar from '@/components/common/IngestionProgressBar.vue';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFileFormatting } from '@/composables/agents/sources/files/useFileFormatting';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { CheckCircle, FileText, Info, LoaderCircle, Trash2, XCircle } from 'lucide-vue-next';
+import { CheckCircle, FileText, FileUp, Info, LoaderCircle, Trash2, XCircle } from 'lucide-vue-next';
 import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -23,6 +23,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     summary: [file: SourceFile];
+    replace: [file: SourceFile];
     remove: [file: SourceFile];
 }>();
 
@@ -77,6 +78,14 @@ const isShared = computed(() => (props.file.agents_count ?? 0) > 1);
                 :disabled="isBusy"
                 class="h-8 w-8 flex-shrink-0 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                 @click="emit('summary', file)"
+            />
+            <SourceActionButton
+                v-if="file.status !== 'ingesting'"
+                :icon="FileUp"
+                :label="t('agents.sources.files.replace_file')"
+                :disabled="isBusy"
+                class="h-8 w-8 flex-shrink-0 p-0"
+                @click="emit('replace', file)"
             />
             <SourceActionButton
                 :icon="Trash2"

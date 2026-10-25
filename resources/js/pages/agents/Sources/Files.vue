@@ -2,11 +2,13 @@
 /**
  * File sources of an agent (all documents, or only one kind: PDF, Word,
  * Markdown, audio, video). Files are uploaded first, wait in "ready to train",
- * then train; training progress arrives live over Reverb. Audio and video are
+ * then train; training progress arrives live over Reverb. A trained file can
+ * be replaced by a new version, which trains again. Audio and video are
  * measured in minutes, everything else in pages. Both lists load one page at
  * a time.
  */
-import type { SourceFile } from '@/api/fileSources';
+import { replaceSourceFile, type SourceFile } from '@/api/fileSources';
+import { errorMessage } from '@/api/http';
 import FileUploader from '@/components/FileUploader.vue';
 import AttachFileDialog from '@/components/common/AttachFileDialog.vue';
 import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
@@ -24,6 +26,7 @@ import { useUploadedFiles } from '@/composables/agents/sources/files/useUploaded
 import type { UploadingFileData } from '@/composables/useFileUploader';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -82,6 +85,34 @@ const isAttachDialogOpen = ref(false);
 // Files that were only uploaded belong to this agent alone, so they are only ever deleted, never unlinked.
 const confirmUploadedRemoval = (file: SourceFile) => deletion.confirm({ ...file, agents_count: 0 });
 
+// "Replace file": a hidden file picker for the row it was opened from.
+const replaceInput = ref<HTMLInputElement | null>(null);
+const replacing = ref<SourceFile | null>(null);
+
+function pickReplacement(file: SourceFile) {
+    replacing.value = file;
+    replaceInput.value?.click();
+}
+
+async function onReplacementPicked(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const picked = input.files?.[0];
+    const target = replacing.value;
+    input.value = '';
+
+    if (!picked || !target) return;
+
+    try {
+        await replaceSourceFile(agentId, target.id, picked);
+        toast.success(t('agents.sources.files.replace_started', { name: picked.name }));
+        fetchFiles();
+    } catch (error) {
+        toast.error(errorMessage(error, t('agents.sources.files.replace_failed')));
+    } finally {
+        replacing.value = null;
+    }
+}
+
 onMounted(() => {
     fetchFiles();
 });
@@ -128,8 +159,11 @@ defineExpose({ refreshFiles: fetchFiles });
                 @attach="isAttachDialogOpen = true"
                 @load-more="sourceFiles.loadMoreTrained"
                 @summary="summary.show"
+                @replace="pickReplacement"
                 @remove="deletion.confirm"
             />
+
+            <input ref="replaceInput" type="file" class="hidden" @change="onReplacementPicked" />
 
             <DeleteSourceDialog
                 v-if="fileToDelete"

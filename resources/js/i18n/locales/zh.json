@@ -1314,7 +1314,10 @@
                 "summary_formatting": "格式元素",
                 "summary_sensitive_title": "检测到敏感信息",
                 "summary_sensitive_description": "此文档可能包含敏感或机密信息。",
-                "summary_empty": "此文件没有可用的摘要数据。"
+                "summary_empty": "此文件没有可用的摘要数据。",
+                "replace_file": "替换为新版本",
+                "replace_started": "正在替换 {name}，稍后会重新训练。",
+                "replace_failed": "无法替换文件，请重试。"
             },
             "text": {
                 "load_failed": "无法加载文本条目",

@@ -1317,7 +1317,9 @@
                 "uploads_off": "Administratoren har slått av opplasting av disse filtypene.",
                 "replace_file": "Erstatt med en ny versjon",
                 "replace_started": "Erstatter {name}. Den trenes på nytt om et øyeblikk.",
-                "replace_failed": "Kunne ikke erstatte filen. Prøv igjen."
+                "replace_failed": "Kunne ikke erstatte filen. Prøv igjen.",
+                "personal_data_title": "Kan inneholde personopplysninger",
+                "personal_data_found": "Fant {kinds} i {count} del. Besøkende kan få det vist: erstatt eller fjern filen hvis de ikke skal. | Fant {kinds} i {count} deler. Besøkende kan få dem vist: erstatt eller fjern filen hvis de ikke skal."
             },
             "text": {
                 "load_failed": "Kunne ikke laste tekstoppføring",

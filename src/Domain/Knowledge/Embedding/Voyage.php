@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
-use Illuminate\Support\Facades\Http;
+use Support\Http\ProviderRetry;
 
 /**
  * Embeddings from Voyage AI's hosted API (`services.voyage`). Voyage adds its
@@ -49,7 +49,7 @@ class Voyage extends AbstractEmbeddingsProvider
      */
     private function request(array $texts, string $inputType): array
     {
-        return Http::withToken($this->getApiKey())
+        return ProviderRetry::request()->withToken($this->getApiKey())
             ->throw()
             ->post($this->endpoint('/embeddings'), [
                 'model' => $this->getModel(),

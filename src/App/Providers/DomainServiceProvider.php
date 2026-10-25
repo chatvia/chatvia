@@ -94,6 +94,7 @@ use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
+use Domain\Knowledge\Source\File\Listeners\FlagPersonalDataInTrainedFile;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
@@ -351,6 +352,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(HandoffRequested::class, NotifyHandoffRequested::class);
         Event::listen(HandedOff::class, ClearHandoffNotifications::class);
         Event::listen(SourceTrained::class, NotifySourceTrained::class);
+        Event::listen(SourceTrained::class, FlagPersonalDataInTrainedFile::class);
         Event::listen(SourceTrainingFailed::class, NotifySourceTrainingFailed::class);
         Event::listen(FormSubmitted::class, NotifyLeadCaptured::class);
         Event::listen(GuardrailTriggered::class, NotifyGuardrailAlert::class);

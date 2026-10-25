@@ -3,7 +3,7 @@
 namespace Domain\Knowledge\Embedding;
 
 use Domain\Llm\Providers\Scaleway;
-use Illuminate\Support\Facades\Http;
+use Support\Http\ProviderRetry;
 
 /**
  * Embeddings from the open-weight Qwen3-Embedding model, served by an OpenAI-
@@ -21,7 +21,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
     public function embed(string $text, bool $returnAsText = false): string|array
     {
-        $response = Http::withHeaders([
+        $response = ProviderRetry::request()->withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer '.$this->getApiKey(),
         ])
@@ -54,7 +54,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
             return [];
         }
 
-        $response = Http::withHeaders([
+        $response = ProviderRetry::request()->withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer '.$this->getApiKey(),
         ])

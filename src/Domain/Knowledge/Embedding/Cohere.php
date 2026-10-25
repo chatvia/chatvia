@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
-use Illuminate\Support\Facades\Http;
+use Support\Http\ProviderRetry;
 
 /**
  * Embeddings from Cohere's hosted API (`services.cohere`).
@@ -11,7 +11,7 @@ class Cohere extends AbstractEmbeddingsProvider
 {
     public function embed(string $text, bool $returnAsText = false): string|array
     {
-        $embedding = Http::withToken($this->getApiKey())
+        $embedding = ProviderRetry::request()->withToken($this->getApiKey())
             ->throw()
             ->post($this->endpoint('/embed'), [
                 'model' => $this->getModel(),

@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Peut contenir des données personnelles",
+                "personal_data_found": "{kinds} trouvé dans {count} partie. Les visiteurs pourraient le voir : remplacez ou supprimez le fichier s'ils ne doivent pas. | {kinds} trouvés dans {count} parties. Les visiteurs pourraient les voir : remplacez ou supprimez le fichier s'ils ne doivent pas."
+            }
+        }
+    }
+}

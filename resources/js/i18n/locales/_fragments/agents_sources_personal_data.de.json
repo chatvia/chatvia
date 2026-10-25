@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Enthält vielleicht personenbezogene Daten",
+                "personal_data_found": "{kinds} in {count} Teil gefunden. Besucher könnten es sehen: Ersetze oder entferne die Datei, wenn sie es nicht dürfen. | {kinds} in {count} Teilen gefunden. Besucher könnten sie sehen: Ersetze oder entferne die Datei, wenn sie es nicht dürfen."
+            }
+        }
+    }
+}

@@ -1317,7 +1317,9 @@
                 "uploads_off": "Ylläpitäjä on poistanut näiden tiedostotyyppien lataamisen käytöstä.",
                 "replace_file": "Korvaa uudella versiolla",
                 "replace_started": "Korvataan {name}. Se opetetaan uudelleen hetken päästä.",
-                "replace_failed": "Tiedostoa ei voitu korvata. Yritä uudelleen."
+                "replace_failed": "Tiedostoa ei voitu korvata. Yritä uudelleen.",
+                "personal_data_title": "Voi sisältää henkilötietoja",
+                "personal_data_found": "Löytyi {kinds} {count} osasta. Kävijät voivat nähdä sen: korvaa tai poista tiedosto, jos he eivät saa. | Löytyi {kinds} {count} osasta. Kävijät voivat nähdä ne: korvaa tai poista tiedosto, jos he eivät saa."
             },
             "text": {
                 "load_failed": "Tekstimerkinnän lataaminen epäonnistui",

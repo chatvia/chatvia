@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Mungkin berisi data pribadi",
+                "personal_data_found": "Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh. | Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh."
+            }
+        }
+    }
+}

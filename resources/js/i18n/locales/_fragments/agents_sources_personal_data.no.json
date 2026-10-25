@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Kan inneholde personopplysninger",
+                "personal_data_found": "Fant {kinds} i {count} del. Besøkende kan få det vist: erstatt eller fjern filen hvis de ikke skal. | Fant {kinds} i {count} deler. Besøkende kan få dem vist: erstatt eller fjern filen hvis de ikke skal."
+            }
+        }
+    }
+}

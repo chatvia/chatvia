@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "personal_data_title": "Có thể chứa dữ liệu cá nhân",
+                "personal_data_found": "Tìm thấy {kinds} trong {count} phần. Khách có thể thấy nội dung này: hãy thay hoặc xóa tệp nếu họ không được thấy. | Tìm thấy {kinds} trong {count} phần. Khách có thể thấy chúng: hãy thay hoặc xóa tệp nếu họ không được thấy."
+            }
+        }
+    }
+}

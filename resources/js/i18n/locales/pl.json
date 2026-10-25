@@ -1317,7 +1317,9 @@
                 "uploads_off": "Administrator wyłączył przesyłanie tych typów plików.",
                 "replace_file": "Zastąp nową wersją",
                 "replace_started": "Zastępowanie {name}. Za chwilę zostanie wytrenowany ponownie.",
-                "replace_failed": "Nie udało się zastąpić pliku. Spróbuj ponownie."
+                "replace_failed": "Nie udało się zastąpić pliku. Spróbuj ponownie.",
+                "personal_data_title": "Może zawierać dane osobowe",
+                "personal_data_found": "Znaleziono {kinds} w {count} części. Odwiedzający mogą to zobaczyć: zastąp lub usuń plik, jeśli nie powinni. | Znaleziono {kinds} w {count} częściach. Odwiedzający mogą je zobaczyć: zastąp lub usuń plik, jeśli nie powinni."
             },
             "text": {
                 "load_failed": "Nie udało się wczytać wpisu tekstowego",

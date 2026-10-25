@@ -1317,7 +1317,9 @@
                 "summary_empty": "Tidak ada data ringkasan untuk file ini.",
                 "replace_file": "Ganti dengan versi baru",
                 "replace_started": "Mengganti {name}. File akan dilatih ulang sebentar lagi.",
-                "replace_failed": "File tidak dapat diganti. Silakan coba lagi."
+                "replace_failed": "File tidak dapat diganti. Silakan coba lagi.",
+                "personal_data_title": "Mungkin berisi data pribadi",
+                "personal_data_found": "Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh. | Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh."
             },
             "text": {
                 "load_failed": "Gagal memuat entri teks",

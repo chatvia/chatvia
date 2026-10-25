@@ -1317,7 +1317,9 @@
                 "summary_empty": "이 파일에 대한 요약 데이터가 없습니다.",
                 "replace_file": "새 버전으로 교체",
                 "replace_started": "{name}을(를) 교체하는 중입니다. 곧 다시 학습됩니다.",
-                "replace_failed": "파일을 교체하지 못했습니다. 다시 시도해 주세요."
+                "replace_failed": "파일을 교체하지 못했습니다. 다시 시도해 주세요.",
+                "personal_data_title": "개인 데이터가 있을 수 있음",
+                "personal_data_found": "{count}개 부분에서 {kinds}을(를) 찾았습니다. 방문자에게 보일 수 있으니, 안 된다면 파일을 교체하거나 삭제하세요. | {count}개 부분에서 {kinds}을(를) 찾았습니다. 방문자에게 보일 수 있으니, 안 된다면 파일을 교체하거나 삭제하세요."
             },
             "text": {
                 "load_failed": "텍스트 항목을 불러오지 못했습니다",

@@ -120,6 +120,10 @@ class WidgetSettingsData extends Data
         // with the agent). True only when the owner turned it on AND voice
         // conversations are set up on this install.
         public bool $voice_conversation,
+        // Whether a thumbs-down opens the optional "What was wrong?" note box.
+        // The owner turns it off in Setup → Settings → Feedback; the server
+        // then drops a note sent anyway. Default true.
+        public bool $feedback_comment,
         // Per-chat upload ceiling (config: agent.files.upload.max_files).
         // Widget gates the paperclip button on this; the server enforces the
         // same value via MaxConversationAttachments so a forged request

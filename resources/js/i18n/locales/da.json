@@ -1860,7 +1860,9 @@
                 "replies_saved": "Svarindstillinger gemt",
                 "replies_error": "Kunne ikke gemme svarindstillinger",
                 "domain_verified": "Brugerdefineret domæne bekræftet",
-                "domain_verify_error": "Kunne ikke bekræfte domænet"
+                "domain_verify_error": "Kunne ikke bekræfte domænet",
+                "feedback_saved": "Feedbackindstillinger gemt",
+                "feedback_error": "Feedbackindstillingerne kunne ikke gemmes"
             },
             "settings": {
                 "composer_title": "Composer-indstillinger",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Læs højt",
                 "read_aloud_help_1": "En chatter trykker på højttaleren under et svar for at høre det. Links læses som deres ord; kode og diagrammer springes over.",
                 "read_aloud_help_2": "Hvert svar læses én gang af taletjenesten og gemmes, så det koster intet at afspille det igen. Oplæsning tæller ikke som en besked.",
-                "read_aloud_voice_label": "Oplæsningsstemme"
+                "read_aloud_voice_label": "Oplæsningsstemme",
+                "feedback_title": "Feedback",
+                "feedback_description": "Hvad chattere kan fortælle dig om et svar.",
+                "feedback_comment_label": "Spørg, hvad der var galt",
+                "feedback_comment_hint": "Efter en tommelfinger ned vises en boks, hvor chatteren kan skrive, hvad der var galt. Tommelfingeren ned gemmes uanset hvad."
             },
             "bubbles_title": "Chatbobler",
             "bubbles_description": "Hurtige beskedforslag, der vises ved siden af widgetens startknap.",

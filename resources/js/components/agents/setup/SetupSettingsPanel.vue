@@ -3,7 +3,8 @@
  * Setup → Settings: agent-wide switches that aren't tied to one surface —
  * composer options (with voice conversations, reading replies aloud and the
  * agent's voices), reply
- * options (the sources under an answer), the chat log, and which
+ * options (the sources under an answer), feedback options (the note after a
+ * thumbs-down), the chat log, and which
  * conversation analytics run.
  * Each group is its own form with its own Save button.
  */
@@ -30,6 +31,9 @@ const {
     repliesForm,
     isSavingReplies,
     saveReplies,
+    feedbackForm,
+    isSavingFeedback,
+    saveFeedback,
     chatlogForm,
     isSavingChatlog,
     saveChatlog,
@@ -57,8 +61,7 @@ const readAloudDefaultName = computed(
 
 // A voice the service no longer has is shown as the default, which is what plays.
 const readAloudVoice = computed({
-    get: (): string =>
-        readAloud.choices.some((choice) => choice.id === composerForm.read_aloud_voice) ? composerForm.read_aloud_voice : 'default',
+    get: (): string => (readAloud.choices.some((choice) => choice.id === composerForm.read_aloud_voice) ? composerForm.read_aloud_voice : 'default'),
     set: (value: string): void => {
         composerForm.read_aloud_voice = value;
     },
@@ -178,7 +181,9 @@ const SOURCES_DISPLAY: Domain.Agent.Enums.SourcesDisplay[] = ['hidden', 'list', 
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="default">{{ t('agents.setup.settings.voice_default', { voice: readAloudDefaultName }) }}</SelectItem>
+                                <SelectItem value="default">{{
+                                    t('agents.setup.settings.voice_default', { voice: readAloudDefaultName })
+                                }}</SelectItem>
                                 <SelectItem v-for="choice in readAloud.choices" :key="choice.id" :value="choice.id">{{ choice.label }}</SelectItem>
                             </SelectContent>
                         </Select>
@@ -208,6 +213,23 @@ const SOURCES_DISPLAY: Domain.Agent.Enums.SourcesDisplay[] = ['hidden', 'list', 
                 </label>
             </RadioGroup>
             <SetupSaveFooter submit :saving="isSavingReplies" />
+        </form>
+
+        <Separator />
+
+        <!-- Feedback — whether a thumbs-down opens the optional "What was wrong?" note. -->
+        <form @submit.prevent="saveFeedback" class="space-y-3">
+            <SetupSectionHeading :title="t('agents.setup.settings.feedback_title')" :description="t('agents.setup.settings.feedback_description')" />
+            <div class="divide-y rounded-md border">
+                <SetupSwitchRow
+                    id="allow-feedback-comment"
+                    v-model="feedbackForm.allow_feedback_comment"
+                    :label="t('agents.setup.settings.feedback_comment_label')"
+                    :hint="t('agents.setup.settings.feedback_comment_hint')"
+                    :disabled="locked"
+                />
+            </div>
+            <SetupSaveFooter submit :saving="isSavingFeedback" />
         </form>
 
         <Separator />

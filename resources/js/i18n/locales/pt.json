@@ -1860,7 +1860,9 @@
                 "replies_saved": "Opções de resposta guardadas",
                 "replies_error": "Não foi possível guardar as opções de resposta",
                 "domain_verified": "Domínio personalizado verificado",
-                "domain_verify_error": "Não foi possível verificar o domínio"
+                "domain_verify_error": "Não foi possível verificar o domínio",
+                "feedback_saved": "Opções de avaliação guardadas",
+                "feedback_error": "Não foi possível guardar as opções de avaliação"
             },
             "settings": {
                 "composer_title": "Opções do compositor",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Ler em voz alta",
                 "read_aloud_help_1": "O utilizador carrega no altifalante sob uma resposta para a ouvir. As ligações são lidas pelo seu texto; o código e os gráficos são ignorados.",
                 "read_aloud_help_2": "Cada resposta é lida uma vez pelo serviço de voz e guardada, por isso reproduzi-la de novo não custa nada. A leitura em voz alta não conta como mensagem.",
-                "read_aloud_voice_label": "Voz de leitura"
+                "read_aloud_voice_label": "Voz de leitura",
+                "feedback_title": "Avaliações",
+                "feedback_description": "O que os utilizadores podem dizer sobre uma resposta.",
+                "feedback_comment_label": "Perguntar o que estava errado",
+                "feedback_comment_hint": "Depois de um polegar para baixo, mostra uma caixa onde o utilizador pode escrever o que estava errado. O polegar para baixo é guardado de qualquer forma."
             },
             "bubbles_title": "Balões de Chat",
             "bubbles_description": "Sugestões de mensagens rápidas apresentadas junto ao lançador do widget.",

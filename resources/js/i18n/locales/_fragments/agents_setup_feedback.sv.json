@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Feedback",
+                "feedback_description": "Vad chattare kan berätta för dig om ett svar.",
+                "feedback_comment_label": "Fråga vad som var fel",
+                "feedback_comment_hint": "Efter en tumme ner visas en ruta där chattaren kan skriva vad som var fel. Tummen ner sparas i alla fall."
+            },
+            "toasts": {
+                "feedback_saved": "Feedbackinställningar sparade",
+                "feedback_error": "Det gick inte att spara feedbackinställningarna"
+            }
+        }
+    }
+}

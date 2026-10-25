@@ -1860,7 +1860,9 @@
                 "replies_saved": "답변 옵션이 저장되었습니다",
                 "replies_error": "답변 옵션을 저장하지 못했습니다",
                 "domain_verified": "사용자 지정 도메인이 확인되었습니다",
-                "domain_verify_error": "도메인을 확인할 수 없습니다"
+                "domain_verify_error": "도메인을 확인할 수 없습니다",
+                "feedback_saved": "피드백 옵션을 저장했습니다",
+                "feedback_error": "피드백 옵션을 저장하지 못했습니다"
             },
             "settings": {
                 "composer_title": "입력창 옵션",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_1": "채터가 답변 아래 스피커를 눌러 듣습니다. 링크는 그 텍스트로 읽고, 코드와 차트는 건너뜁니다.",
                 "read_aloud_help_2": "각 답변은 음성 서비스가 한 번 읽고 저장하므로 다시 재생해도 비용이 들지 않습니다. 소리 내어 읽기는 메시지로 계산되지 않습니다.",
                 "read_aloud_voice_label": "읽기 음성",
-                "file_uploads_unavailable": "이 서버에서는 꺼져 있습니다. 관리자는 관리자 패널의 Settings → AI models에서 채팅 파일 업로드를 켤 수 있습니다."
+                "file_uploads_unavailable": "이 서버에서는 꺼져 있습니다. 관리자는 관리자 패널의 Settings → AI models에서 채팅 파일 업로드를 켤 수 있습니다.",
+                "feedback_title": "피드백",
+                "feedback_description": "채터가 답변에 대해 알려 줄 수 있는 내용입니다.",
+                "feedback_comment_label": "무엇이 잘못됐는지 묻기",
+                "feedback_comment_hint": "싫어요를 누르면 채터가 무엇이 잘못됐는지 적을 수 있는 입력란을 보여 줍니다. 싫어요는 어느 경우든 저장됩니다."
             },
             "bubbles_title": "채팅 말풍선",
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",

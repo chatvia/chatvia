@@ -1860,7 +1860,9 @@
                 "replies_saved": "Svarsinställningar sparade",
                 "replies_error": "Det gick inte att spara svarsinställningarna",
                 "domain_verified": "Anpassad domän verifierad",
-                "domain_verify_error": "Det gick inte att verifiera domänen"
+                "domain_verify_error": "Det gick inte att verifiera domänen",
+                "feedback_saved": "Feedbackinställningar sparade",
+                "feedback_error": "Det gick inte att spara feedbackinställningarna"
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Läs upp",
                 "read_aloud_help_1": "En chattare trycker på högtalaren under ett svar för att höra det. Länkar läses som sina ord; kod och diagram hoppas över.",
                 "read_aloud_help_2": "Varje svar läses en gång av taltjänsten och sparas, så det kostar inget att spela upp det igen. Uppläsning räknas inte som ett meddelande.",
-                "read_aloud_voice_label": "Uppläsningsröst"
+                "read_aloud_voice_label": "Uppläsningsröst",
+                "feedback_title": "Feedback",
+                "feedback_description": "Vad chattare kan berätta för dig om ett svar.",
+                "feedback_comment_label": "Fråga vad som var fel",
+                "feedback_comment_hint": "Efter en tumme ner visas en ruta där chattaren kan skriva vad som var fel. Tummen ner sparas i alla fall."
             },
             "bubbles_title": "Chattbubblor",
             "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetens startknapp.",

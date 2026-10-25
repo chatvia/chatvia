@@ -7,7 +7,8 @@ use Tests\Support\Widget\EmbeddedWidget;
 /**
  * The widget's settings tell it which voice features to show: the dictation
  * mic only while speech to text is set up, the voice button only while voice
- * calls are; which models the chatter may pick; and what removing a chat does.
+ * calls are; which models the chatter may pick; whether a thumbs-down asks
+ * what was wrong; and what removing a chat does.
  */
 beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
@@ -30,6 +31,21 @@ it('tells the widget which voice features to show', function (array $config, str
     'dictation, speech to text set up' => [['chatvia.ai.transcriber' => 'openai'], 'allow_voice_input', true],
     'voice button, voice calls set up' => [[], 'voice_conversation', true],
     'voice button, voice calls not set up' => [['chatvia.ai.voice' => 'none'], 'voice_conversation', false],
+]);
+
+it('tells the widget whether a thumbs-down asks what was wrong, by default yes', function (?bool $stored, bool $sent): void {
+    if ($stored !== null) {
+        $this->agent->setSetting('allow_feedback_comment', $stored, 'appearance');
+    }
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
+        ->getJson('/widget/agents/settings')
+        ->assertOk()
+        ->assertJsonPath('feedback_comment', $sent);
+})->with([
+    'not set' => [null, true],
+    'on' => [true, true],
+    'off' => [false, false],
 ]);
 
 it('lists the models the chatter may pick, the agent\'s own first', function (): void {

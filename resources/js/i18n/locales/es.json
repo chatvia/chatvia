@@ -1860,7 +1860,9 @@
                 "replies_saved": "Opciones de respuesta guardadas",
                 "replies_error": "No se pudieron guardar las opciones de respuesta",
                 "domain_verified": "Dominio personalizado verificado",
-                "domain_verify_error": "No se pudo verificar el dominio"
+                "domain_verify_error": "No se pudo verificar el dominio",
+                "feedback_saved": "Opciones de valoración guardadas",
+                "feedback_error": "No se pudieron guardar las opciones de valoración"
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Leer en voz alta",
                 "read_aloud_help_1": "El usuario pulsa el altavoz bajo una respuesta para escucharla. Los enlaces se leen por su texto; el código y los gráficos se omiten.",
                 "read_aloud_help_2": "El servicio de voz lee cada respuesta una sola vez y se guarda, así que volver a reproducirla no cuesta nada. Leer en voz alta no cuenta como mensaje.",
-                "read_aloud_voice_label": "Voz de lectura"
+                "read_aloud_voice_label": "Voz de lectura",
+                "feedback_title": "Valoraciones",
+                "feedback_description": "Lo que los usuarios pueden decirte sobre una respuesta.",
+                "feedback_comment_label": "Preguntar qué estuvo mal",
+                "feedback_comment_hint": "Tras un pulgar abajo, muestra un cuadro donde el usuario puede escribir qué estuvo mal. El pulgar abajo se guarda de todos modos."
             },
             "bubbles_title": "Burbujas de chat",
             "bubbles_description": "Mensajes de inicio rápido que se muestran junto al lanzador del widget.",

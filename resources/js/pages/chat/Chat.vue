@@ -56,6 +56,8 @@ interface Props {
     voiceConversation?: boolean;
     /** Whether replies get a speaker button: the owner turned it on and the server has text to speech set up. */
     readAloud?: boolean;
+    /** Whether a thumbs-down opens the optional "What was wrong?" note (the owner can turn it off). */
+    feedbackComment?: boolean;
     /** The models the chatter may pick from; empty hides the picker. */
     models?: OfferedModel[];
 }
@@ -83,6 +85,7 @@ const props = withDefaults(defineProps<Props>(), {
     allowVoiceInput: false,
     voiceConversation: false,
     readAloud: false,
+    feedbackComment: true,
     models: () => [],
 });
 
@@ -198,6 +201,7 @@ onMounted(async () => {
                             :sources-for="transcript.sourcesFor"
                             :cite-sources="resolvedAppearance.sources_display === 'citations'"
                             :read-aloud="readAloud"
+                            :feedback-comment="feedbackComment"
                             :artifacts-for="transcript.artifactsFor"
                             :approvals-for="approvals.approvalsFor"
                             :resolving-approval-ids="resolvingApprovalIds"

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Feedback",
+                "feedback_description": "Was Chatter dir zu einer Antwort sagen können.",
+                "feedback_comment_label": "Fragen, was falsch war",
+                "feedback_comment_hint": "Nach einem Daumen nach unten erscheint ein Feld, in das der Chatter schreiben kann, was falsch war. Der Daumen nach unten wird in jedem Fall gespeichert."
+            },
+            "toasts": {
+                "feedback_saved": "Feedback-Optionen gespeichert",
+                "feedback_error": "Feedback-Optionen konnten nicht gespeichert werden"
+            }
+        }
+    }
+}

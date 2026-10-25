@@ -1860,7 +1860,9 @@
                 "replies_saved": "Reply options saved",
                 "replies_error": "Could not save reply options",
                 "domain_verified": "Custom domain verified",
-                "domain_verify_error": "Could not verify the domain"
+                "domain_verify_error": "Could not verify the domain",
+                "feedback_saved": "Feedback options saved",
+                "feedback_error": "Could not save feedback options"
             },
             "settings": {
                 "composer_title": "Composer options",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Read aloud",
                 "read_aloud_help_1": "A chatter presses the speaker under a reply to hear it. Links are read as their words; code and charts are skipped.",
                 "read_aloud_help_2": "Each reply is read by the speech service once and saved, so playing it again costs nothing. Reading aloud does not count as a message.",
-                "read_aloud_voice_label": "Reading voice"
+                "read_aloud_voice_label": "Reading voice",
+                "feedback_title": "Feedback",
+                "feedback_description": "What chatters can tell you about an answer.",
+                "feedback_comment_label": "Ask what was wrong",
+                "feedback_comment_hint": "After a thumbs-down, show a box where the chatter can write what was wrong. The thumbs-down is saved either way."
             },
             "bubbles_title": "Chat Bubbles",
             "bubbles_description": "Quick message prompts shown next to the widget launcher.",

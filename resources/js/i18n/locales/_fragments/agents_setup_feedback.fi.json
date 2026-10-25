@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Palaute",
+                "feedback_description": "Mitä keskustelijat voivat kertoa sinulle vastauksesta.",
+                "feedback_comment_label": "Kysy, mikä meni vikaan",
+                "feedback_comment_hint": "Peukku alas -arvion jälkeen näytetään kenttä, johon keskustelija voi kirjoittaa, mikä meni vikaan. Peukku alas tallennetaan joka tapauksessa."
+            },
+            "toasts": {
+                "feedback_saved": "Palauteasetukset tallennettu",
+                "feedback_error": "Palauteasetuksia ei voitu tallentaa"
+            }
+        }
+    }
+}

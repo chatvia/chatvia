@@ -1860,7 +1860,9 @@
                 "replies_saved": "回复选项已保存",
                 "replies_error": "无法保存回复选项",
                 "domain_verified": "自定义域名已验证",
-                "domain_verify_error": "无法验证域名"
+                "domain_verify_error": "无法验证域名",
+                "feedback_saved": "反馈选项已保存",
+                "feedback_error": "无法保存反馈选项"
             },
             "settings": {
                 "composer_title": "输入框选项",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_1": "聊天者点击回复下方的扬声器即可收听。链接只读文字，代码和图表会被跳过。",
                 "read_aloud_help_2": "每条回复只由语音服务朗读一次并保存，因此再次播放不产生费用。朗读不计为消息。",
                 "read_aloud_voice_label": "朗读声音",
-                "file_uploads_unavailable": "此服务器上已关闭。管理员可以在管理面板的“Settings → AI models”中开启聊天文件上传。"
+                "file_uploads_unavailable": "此服务器上已关闭。管理员可以在管理面板的“Settings → AI models”中开启聊天文件上传。",
+                "feedback_title": "反馈",
+                "feedback_description": "聊天者可以告诉你哪些关于回答的意见。",
+                "feedback_comment_label": "询问哪里有问题",
+                "feedback_comment_hint": "点踩之后，显示一个输入框，让聊天者写下哪里有问题。无论是否开启，点踩都会被保存。"
             },
             "bubbles_title": "聊天气泡",
             "bubbles_description": "显示在挂件启动器旁的快捷消息提示。",

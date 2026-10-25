@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "反馈",
+                "feedback_description": "聊天者可以告诉你哪些关于回答的意见。",
+                "feedback_comment_label": "询问哪里有问题",
+                "feedback_comment_hint": "点踩之后，显示一个输入框，让聊天者写下哪里有问题。无论是否开启，点踩都会被保存。"
+            },
+            "toasts": {
+                "feedback_saved": "反馈选项已保存",
+                "feedback_error": "无法保存反馈选项"
+            }
+        }
+    }
+}

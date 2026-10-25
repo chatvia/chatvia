@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Valoraciones",
+                "feedback_description": "Lo que los usuarios pueden decirte sobre una respuesta.",
+                "feedback_comment_label": "Preguntar qué estuvo mal",
+                "feedback_comment_hint": "Tras un pulgar abajo, muestra un cuadro donde el usuario puede escribir qué estuvo mal. El pulgar abajo se guarda de todos modos."
+            },
+            "toasts": {
+                "feedback_saved": "Opciones de valoración guardadas",
+                "feedback_error": "No se pudieron guardar las opciones de valoración"
+            }
+        }
+    }
+}

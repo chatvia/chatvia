@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "التقييم",
+                "feedback_description": "ما يمكن أن يخبرك به المحادثون عن الإجابة.",
+                "feedback_comment_label": "السؤال عن الخطأ",
+                "feedback_comment_hint": "بعد الإعجاب السلبي، اعرض مربعًا يكتب فيه المحادث ما كان خطأ. يُحفظ التقييم السلبي في كل الأحوال."
+            },
+            "toasts": {
+                "feedback_saved": "تم حفظ خيارات التقييم",
+                "feedback_error": "تعذّر حفظ خيارات التقييم"
+            }
+        }
+    }
+}

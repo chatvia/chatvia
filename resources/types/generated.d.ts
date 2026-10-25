@@ -1542,6 +1542,7 @@ declare namespace Domain {
                     upload_accept: string[];
                     allow_voice_input: boolean;
                     voice_conversation: boolean;
+                    feedback_comment: boolean;
                     max_files_per_chat: number;
                     reverb: Domain.Widget.Data.Settings.WidgetSettingsReverbData;
                     models: Domain.Agent.Data.ModelChoice.OfferedModelData[];

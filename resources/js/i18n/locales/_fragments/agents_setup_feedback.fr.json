@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Avis",
+                "feedback_description": "Ce que les utilisateurs peuvent vous dire sur une réponse.",
+                "feedback_comment_label": "Demander ce qui n’allait pas",
+                "feedback_comment_hint": "Après un pouce vers le bas, affiche une zone où l’utilisateur peut écrire ce qui n’allait pas. Le pouce vers le bas est enregistré dans tous les cas."
+            },
+            "toasts": {
+                "feedback_saved": "Options d’avis enregistrées",
+                "feedback_error": "Impossible d’enregistrer les options d’avis"
+            }
+        }
+    }
+}

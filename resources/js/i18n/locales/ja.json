@@ -1860,7 +1860,9 @@
                 "replies_saved": "返信オプションを保存しました",
                 "replies_error": "返信オプションを保存できませんでした",
                 "domain_verified": "カスタムドメインを確認しました",
-                "domain_verify_error": "ドメインを確認できませんでした"
+                "domain_verify_error": "ドメインを確認できませんでした",
+                "feedback_saved": "フィードバック設定を保存しました",
+                "feedback_error": "フィードバック設定を保存できませんでした"
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_1": "チャット相手は返信の下のスピーカーを押して聞きます。リンクは文字として読まれ、コードとグラフは読み飛ばされます。",
                 "read_aloud_help_2": "各返信は音声サービスが一度だけ読み上げて保存するため、再生し直しても費用はかかりません。読み上げはメッセージとして数えられません。",
                 "read_aloud_voice_label": "読み上げの声",
-                "file_uploads_unavailable": "このサーバーではオフになっています。管理者は管理パネルの「Settings → AI models」で、チャットでのファイルアップロードをオンにできます。"
+                "file_uploads_unavailable": "このサーバーではオフになっています。管理者は管理パネルの「Settings → AI models」で、チャットでのファイルアップロードをオンにできます。",
+                "feedback_title": "フィードバック",
+                "feedback_description": "チャット相手が回答について伝えられること。",
+                "feedback_comment_label": "問題点を尋ねる",
+                "feedback_comment_hint": "低評価のあと、チャット相手が問題点を書ける入力欄を表示します。低評価はどちらの場合も保存されます。"
             },
             "bubbles_title": "チャットバブル",
             "bubbles_description": "ウィジェットのランチャーの横に表示されるクイックメッセージのプロンプトです。",

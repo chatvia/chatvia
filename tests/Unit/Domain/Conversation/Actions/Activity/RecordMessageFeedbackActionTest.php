@@ -15,7 +15,8 @@ use Illuminate\Support\Str;
 /**
  * A visitor's rating of a reply is stored once, from the live history when
  * it holds the reply and from the database otherwise, and analytics hears it
- * once. A thumbs-down keeps the visitor's note on what was wrong. A reply
+ * once. A thumbs-down keeps the visitor's note on what was wrong, unless the
+ * agent turned that note off. A reply
  * outside the visitor's own conversation cannot be rated.
  */
 beforeEach(function (): void {
@@ -117,6 +118,21 @@ it('drops the note when the rating is not a thumbs-down', function (): void {
 
     expect($message->feedback)->toBe(MessageFeedback::Positive)
         ->and($message->feedback_comment)->toBeNull();
+});
+
+it('keeps the thumbs-down but drops the note while the agent asks for none', function (): void {
+    $scope = rmfaScope();
+    $scope->agent->setSetting('allow_feedback_comment', false, 'appearance');
+    $messageId = (string) Str::uuid();
+    rmfaMessage($scope, $messageId);
+
+    app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative, 'The refund period is wrong.');
+
+    $message = Message::query()->where('external_id', $messageId)->first();
+
+    expect($message->feedback)->toBe(MessageFeedback::Negative)
+        ->and($message->feedback_comment)->toBeNull();
+    Event::assertDispatchedTimes(FeedbackGiven::class, 1);
 });
 
 it('cannot rate a message of a conversation outside the scope', function (): void {

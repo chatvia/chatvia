@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Umpan balik",
+                "feedback_description": "Apa yang bisa disampaikan pengguna tentang sebuah jawaban.",
+                "feedback_comment_label": "Tanyakan apa yang salah",
+                "feedback_comment_hint": "Setelah jempol ke bawah, tampilkan kotak tempat pengguna bisa menulis apa yang salah. Jempol ke bawah tetap disimpan."
+            },
+            "toasts": {
+                "feedback_saved": "Opsi umpan balik disimpan",
+                "feedback_error": "Tidak dapat menyimpan opsi umpan balik"
+            }
+        }
+    }
+}

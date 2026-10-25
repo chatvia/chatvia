@@ -16,7 +16,7 @@ use InvalidArgumentException;
  * Records a thumbs-up / thumbs-down on an assistant reply (or clears it with
  * null), in the live memory and in the chat log, and tells analytics when the
  * rating changed. A thumbs-down may carry the visitor's short note on what
- * was wrong; any other rating clears it.
+ * was wrong, unless the agent turned that note off; any other rating clears it.
  *
  * The database is written even when the conversation is no longer in the
  * live memory (expired, evicted, or after a cache restart), because the
@@ -37,7 +37,8 @@ class RecordMessageFeedbackAction
         $conversationId = $scope->conversationId
             ?? throw new InvalidArgumentException('A conversation id is required to rate a message.');
         $value = $feedback?->value;
-        $comment = $feedback === MessageFeedback::Negative && filled($comment)
+        // A note sent while the agent asks for none is dropped; the rating stays.
+        $comment = $feedback === MessageFeedback::Negative && filled($comment) && $scope->agent->acceptsFeedbackComments()
             ? Str::of($comment)->trim()->limit(self::COMMENT_MAX_LENGTH, '')->value()
             : null;
 

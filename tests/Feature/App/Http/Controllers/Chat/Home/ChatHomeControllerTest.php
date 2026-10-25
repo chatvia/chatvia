@@ -9,7 +9,8 @@ use Inertia\Testing\AssertableInertia as Assert;
  * so it never offers what the server would refuse: uploads only with a model
  * that reads PDFs, voice calls and dictation only while they are set up and
  * on for the agent, the visitor language switcher with the owner's list, and
- * the models the chatter may pick while Multi-model is on.
+ * the models the chatter may pick while Multi-model is on, and whether a
+ * thumbs-down asks what was wrong.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
@@ -62,6 +63,10 @@ it('tells the chat page which composer features to show', function (Closure $arr
         config(['chatvia.ai.transcriber' => 'openai']);
         $agent->setSetting('allow_voice_input', false, 'appearance');
     }, 'allowVoiceInput', false],
+    'feedback note, by default' => [function (): void {}, 'feedbackComment', true],
+    'feedback note, off for the agent' => [function (Agent $agent): void {
+        $agent->setSetting('allow_feedback_comment', false, 'appearance');
+    }, 'feedbackComment', false],
     'language switcher, by default' => [function (): void {}, 'enableLanguageSwitcher', true],
     'language switcher, hidden by the owner' => [function (Agent $agent): void {
         $agent->setSetting('show_language_switcher', false, 'embed');

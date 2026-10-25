@@ -84,6 +84,21 @@ it('saves the voice-conversation switch and the agent\'s voice', function (): vo
         ->and($appearance->get('voice'))->toBe('cedar');
 });
 
+it('asks what was wrong after a thumbs-down by default, and saves the owner turning it off', function (): void {
+    expect($this->agent->acceptsFeedbackComments())->toBeTrue();
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['allow_feedback_comment' => false])
+        ->assertOk();
+
+    expect($this->agent->fresh()->acceptsFeedbackComments())->toBeFalse();
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['allow_feedback_comment' => 'maybe'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('allow_feedback_comment');
+});
+
 it('refuses a voice that does not exist', function (): void {
     $this->actingAs($this->owner)
         ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['voice' => 'robot'])

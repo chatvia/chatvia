@@ -1,8 +1,8 @@
 /**
  * The Settings section: agent-wide switches that aren't tied to one surface.
  * Composer options (file uploads, voice input, voice conversations and the
- * agent's voice, reading replies aloud and its voice) and the reply options (the sources under an answer) live in
- * the `appearance` group;
+ * agent's voice, reading replies aloud and its voice), the reply options (the sources under an answer) and the
+ * feedback options (the "What was wrong?" note after a thumbs-down) live in the `appearance` group;
  * the chat log and the analytics dimensions live in the `analytics` group.
  * The chat log is the analytics' master switch: with nothing stored there is
  * nothing to analyse, so the dimensions are forced off while it is off.
@@ -78,6 +78,19 @@ export function useSetupGeneralSettings(
             onSuccess: reloadPreview,
         });
 
+    // The optional "What was wrong?" note after a thumbs-down. On by default; off keeps the thumbs-down.
+    const feedbackForm = useForm({
+        allow_feedback_comment: appearance.boolean('allow_feedback_comment', true),
+    });
+    const isSavingFeedback = ref(false);
+    const saveFeedback = (): void =>
+        submitSetupForm(feedbackForm, 'post', settingsUrl('appearance'), {
+            saving: isSavingFeedback,
+            success: t('agents.setup.toasts.feedback_saved'),
+            error: t('agents.setup.toasts.feedback_error'),
+            onSuccess: reloadPreview,
+        });
+
     // Chat log — off stops StoreMessageJob, so nothing is logged.
     const chatlogForm = useForm({
         chatlog: analytics.boolean('chatlog', true),
@@ -146,6 +159,9 @@ export function useSetupGeneralSettings(
         repliesForm,
         isSavingReplies,
         saveReplies,
+        feedbackForm,
+        isSavingFeedback,
+        saveFeedback,
         chatlogForm,
         isSavingChatlog,
         saveChatlog,

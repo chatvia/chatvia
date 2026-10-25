@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "フィードバック",
+                "feedback_description": "チャット相手が回答について伝えられること。",
+                "feedback_comment_label": "問題点を尋ねる",
+                "feedback_comment_hint": "低評価のあと、チャット相手が問題点を書ける入力欄を表示します。低評価はどちらの場合も保存されます。"
+            },
+            "toasts": {
+                "feedback_saved": "フィードバック設定を保存しました",
+                "feedback_error": "フィードバック設定を保存できませんでした"
+            }
+        }
+    }
+}

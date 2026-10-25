@@ -1860,7 +1860,9 @@
                 "replies_saved": "Opcje odpowiedzi zapisane",
                 "replies_error": "Nie można zapisać opcji odpowiedzi",
                 "domain_verified": "Domena niestandardowa zweryfikowana",
-                "domain_verify_error": "Nie można zweryfikować domeny"
+                "domain_verify_error": "Nie można zweryfikować domeny",
+                "feedback_saved": "Zapisano opcje opinii",
+                "feedback_error": "Nie udało się zapisać opcji opinii"
             },
             "settings": {
                 "composer_title": "Opcje kompozytora",
@@ -1927,7 +1929,11 @@
                 "read_aloud_help_title": "Czytanie na głos",
                 "read_aloud_help_1": "Rozmówca naciska głośnik pod odpowiedzią, aby ją usłyszeć. Linki są czytane jako ich tekst; kod i wykresy są pomijane.",
                 "read_aloud_help_2": "Każda odpowiedź jest czytana przez usługę mowy raz i zapisywana, więc ponowne odtworzenie nic nie kosztuje. Czytanie na głos nie liczy się jako wiadomość.",
-                "read_aloud_voice_label": "Głos czytania"
+                "read_aloud_voice_label": "Głos czytania",
+                "feedback_title": "Opinie",
+                "feedback_description": "Co rozmówcy mogą Ci powiedzieć o odpowiedzi.",
+                "feedback_comment_label": "Pytaj, co było nie tak",
+                "feedback_comment_hint": "Po kciuku w dół pokaż pole, w którym rozmówca może napisać, co było nie tak. Kciuk w dół jest zapisywany w każdym przypadku."
             },
             "bubbles_title": "Dymki czatu",
             "bubbles_description": "Szybkie podpowiedzi wiadomości wyświetlane obok przycisku uruchamiającego widget.",

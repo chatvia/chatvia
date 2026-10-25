@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Feedback",
+                "feedback_description": "What chatters can tell you about an answer.",
+                "feedback_comment_label": "Ask what was wrong",
+                "feedback_comment_hint": "After a thumbs-down, show a box where the chatter can write what was wrong. The thumbs-down is saved either way."
+            },
+            "toasts": {
+                "feedback_saved": "Feedback options saved",
+                "feedback_error": "Could not save feedback options"
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "settings": {
+                "feedback_title": "Phản hồi",
+                "feedback_description": "Những gì người trò chuyện có thể cho bạn biết về một câu trả lời.",
+                "feedback_comment_label": "Hỏi điều gì chưa đúng",
+                "feedback_comment_hint": "Sau khi bấm không thích, hiển thị một ô để người trò chuyện viết điều gì chưa đúng. Lượt không thích vẫn được lưu trong mọi trường hợp."
+            },
+            "toasts": {
+                "feedback_saved": "Đã lưu tùy chọn phản hồi",
+                "feedback_error": "Không thể lưu tùy chọn phản hồi"
+            }
+        }
+    }
+}

@@ -13,6 +13,15 @@
             "http_status": "서버가 상태 {status}을(를) 반환했습니다.",
             "interrupted": "연결이 끊어졌습니다.",
             "malformed": "서버에서 잘못된 데이터를 받았습니다."
+        },
+        "image_viewer": {
+            "title": "이미지 뷰어",
+            "previous": "이전 이미지",
+            "next": "다음 이미지",
+            "open_original": "새 탭에서 열기",
+            "counter": "{current} / {total}",
+            "view": "이미지 보기",
+            "view_named": "이미지 보기: {name}"
         }
     },
     "messages": {

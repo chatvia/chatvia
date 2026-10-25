@@ -124,7 +124,16 @@
             "interrupted": "Anslutningen avbröts.",
             "malformed": "Tog emot ogiltiga data från servern."
         },
-        "limit_resets_next_month": "Du kan skicka meddelanden igen nästa månad."
+        "limit_resets_next_month": "Du kan skicka meddelanden igen nästa månad.",
+        "image_viewer": {
+            "title": "Bildvisare",
+            "previous": "Föregående bild",
+            "next": "Nästa bild",
+            "open_original": "Öppna i en ny flik",
+            "counter": "{current} av {total}",
+            "view": "Visa bild",
+            "view_named": "Visa bild: {name}"
+        }
     },
     "messages": {
         "send": "Skicka",

@@ -13,6 +13,15 @@
             "http_status": "Servern returnerade status {status}.",
             "interrupted": "Anslutningen avbröts.",
             "malformed": "Tog emot ogiltiga data från servern."
+        },
+        "image_viewer": {
+            "title": "Bildvisare",
+            "previous": "Föregående bild",
+            "next": "Nästa bild",
+            "open_original": "Öppna i en ny flik",
+            "counter": "{current} av {total}",
+            "view": "Visa bild",
+            "view_named": "Visa bild: {name}"
         }
     },
     "messages": {

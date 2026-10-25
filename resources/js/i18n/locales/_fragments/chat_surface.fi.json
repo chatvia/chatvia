@@ -13,6 +13,15 @@
             "http_status": "Palvelin palautti tilan {status}.",
             "interrupted": "Yhteys katkesi.",
             "malformed": "Palvelimelta saatiin virheellisiä tietoja."
+        },
+        "image_viewer": {
+            "title": "Kuvankatselin",
+            "previous": "Edellinen kuva",
+            "next": "Seuraava kuva",
+            "open_original": "Avaa uudessa välilehdessä",
+            "counter": "{current}/{total}",
+            "view": "Näytä kuva",
+            "view_named": "Näytä kuva: {name}"
         }
     },
     "messages": {

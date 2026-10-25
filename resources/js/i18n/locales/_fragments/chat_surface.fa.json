@@ -13,6 +13,15 @@
             "http_status": "سرور وضعیت {status} را برگرداند.",
             "interrupted": "اتصال قطع شد.",
             "malformed": "داده‌های نامعتبر از سرور دریافت شد."
+        },
+        "image_viewer": {
+            "title": "نمایشگر تصویر",
+            "previous": "تصویر قبلی",
+            "next": "تصویر بعدی",
+            "open_original": "باز کردن در برگه جدید",
+            "counter": "{current} از {total}",
+            "view": "مشاهده تصویر",
+            "view_named": "مشاهده تصویر: {name}"
         }
     },
     "messages": {

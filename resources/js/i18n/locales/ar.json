@@ -124,7 +124,16 @@
             "interrupted": "انقطع الاتصال.",
             "malformed": "تلقّينا بيانات غير صالحة من الخادم."
         },
-        "limit_resets_next_month": "يمكنك إرسال الرسائل مجددًا في الشهر القادم."
+        "limit_resets_next_month": "يمكنك إرسال الرسائل مجددًا في الشهر القادم.",
+        "image_viewer": {
+            "title": "عارض الصور",
+            "previous": "الصورة السابقة",
+            "next": "الصورة التالية",
+            "open_original": "فتح في علامة تبويب جديدة",
+            "counter": "{current} من {total}",
+            "view": "عرض الصورة",
+            "view_named": "عرض الصورة: {name}"
+        }
     },
     "messages": {
         "send": "إرسال",

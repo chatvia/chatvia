@@ -13,6 +13,15 @@
             "http_status": "Serveren returnerede status {status}.",
             "interrupted": "Forbindelsen blev afbrudt.",
             "malformed": "Modtog ugyldige data fra serveren."
+        },
+        "image_viewer": {
+            "title": "Billedfremviser",
+            "previous": "Forrige billede",
+            "next": "Næste billede",
+            "open_original": "Åbn i en ny fane",
+            "counter": "{current} af {total}",
+            "view": "Vis billede",
+            "view_named": "Vis billede: {name}"
         }
     },
     "messages": {

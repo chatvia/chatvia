@@ -124,7 +124,16 @@
             "interrupted": "Die Verbindung wurde unterbrochen.",
             "malformed": "Ungültige Daten vom Server erhalten."
         },
-        "limit_resets_next_month": "Sie können nächsten Monat wieder Nachrichten senden."
+        "limit_resets_next_month": "Sie können nächsten Monat wieder Nachrichten senden.",
+        "image_viewer": {
+            "title": "Bildanzeige",
+            "previous": "Vorheriges Bild",
+            "next": "Nächstes Bild",
+            "open_original": "In neuem Tab öffnen",
+            "counter": "{current} von {total}",
+            "view": "Bild ansehen",
+            "view_named": "Bild ansehen: {name}"
+        }
     },
     "messages": {
         "send": "Senden",

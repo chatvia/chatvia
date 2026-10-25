@@ -13,6 +13,15 @@
             "http_status": "Sunucu {status} durumunu döndürdü.",
             "interrupted": "Bağlantı kesildi.",
             "malformed": "Sunucudan geçersiz veri alındı."
+        },
+        "image_viewer": {
+            "title": "Görüntü görüntüleyici",
+            "previous": "Önceki görsel",
+            "next": "Sonraki görsel",
+            "open_original": "Yeni sekmede aç",
+            "counter": "{current} / {total}",
+            "view": "Görseli görüntüle",
+            "view_named": "Görseli görüntüle: {name}"
         }
     },
     "messages": {

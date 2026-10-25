@@ -13,6 +13,15 @@
             "http_status": "Máy chủ trả về trạng thái {status}.",
             "interrupted": "Kết nối đã bị gián đoạn.",
             "malformed": "Nhận được dữ liệu không hợp lệ từ máy chủ."
+        },
+        "image_viewer": {
+            "title": "Trình xem ảnh",
+            "previous": "Ảnh trước",
+            "next": "Ảnh tiếp theo",
+            "open_original": "Mở trong thẻ mới",
+            "counter": "{current} / {total}",
+            "view": "Xem ảnh",
+            "view_named": "Xem ảnh: {name}"
         }
     },
     "messages": {

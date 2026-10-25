@@ -124,7 +124,16 @@
             "interrupted": "Bağlantı kesildi.",
             "malformed": "Sunucudan geçersiz veri alındı."
         },
-        "limit_resets_next_month": "Gelecek ay yeniden mesaj gönderebilirsiniz."
+        "limit_resets_next_month": "Gelecek ay yeniden mesaj gönderebilirsiniz.",
+        "image_viewer": {
+            "title": "Görüntü görüntüleyici",
+            "previous": "Önceki görsel",
+            "next": "Sonraki görsel",
+            "open_original": "Yeni sekmede aç",
+            "counter": "{current} / {total}",
+            "view": "Görseli görüntüle",
+            "view_named": "Görseli görüntüle: {name}"
+        }
     },
     "messages": {
         "send": "Gönder",

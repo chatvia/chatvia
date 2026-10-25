@@ -124,7 +124,16 @@
             "interrupted": "La connexion a été interrompue.",
             "malformed": "Données invalides reçues du serveur."
         },
-        "limit_resets_next_month": "Vous pourrez de nouveau envoyer des messages le mois prochain."
+        "limit_resets_next_month": "Vous pourrez de nouveau envoyer des messages le mois prochain.",
+        "image_viewer": {
+            "title": "Visionneuse d'images",
+            "previous": "Image précédente",
+            "next": "Image suivante",
+            "open_original": "Ouvrir dans un nouvel onglet",
+            "counter": "{current} sur {total}",
+            "view": "Voir l'image",
+            "view_named": "Voir l'image : {name}"
+        }
     },
     "messages": {
         "send": "Envoyer",

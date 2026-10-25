@@ -13,6 +13,15 @@
             "http_status": "أعاد الخادم الحالة {status}.",
             "interrupted": "انقطع الاتصال.",
             "malformed": "تلقّينا بيانات غير صالحة من الخادم."
+        },
+        "image_viewer": {
+            "title": "عارض الصور",
+            "previous": "الصورة السابقة",
+            "next": "الصورة التالية",
+            "open_original": "فتح في علامة تبويب جديدة",
+            "counter": "{current} من {total}",
+            "view": "عرض الصورة",
+            "view_named": "عرض الصورة: {name}"
         }
     },
     "messages": {

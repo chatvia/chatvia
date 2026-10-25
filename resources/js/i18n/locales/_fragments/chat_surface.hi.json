@@ -13,6 +13,15 @@
             "http_status": "सर्वर ने स्थिति {status} लौटाई।",
             "interrupted": "कनेक्शन बाधित हो गया।",
             "malformed": "सर्वर से अमान्य डेटा मिला।"
+        },
+        "image_viewer": {
+            "title": "छवि दर्शक",
+            "previous": "पिछली छवि",
+            "next": "अगली छवि",
+            "open_original": "नए टैब में खोलें",
+            "counter": "{total} में से {current}",
+            "view": "छवि देखें",
+            "view_named": "छवि देखें: {name}"
         }
     },
     "messages": {

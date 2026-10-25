@@ -45,8 +45,10 @@ Route::get('chat-invitation/{invitation:token}/oauth/{provider}', AgentInvitatio
     ->name('agents.invitation.social.start');
 
 // The OAuth provider redirects back here after the user signs in there; the
-// pending invitation reference is read from the session.
-Route::get('chat-invitation/oauth/{provider}/callback', AgentInvitationSocialCallbackController::class)
+// pending invitation reference is read from the session. It sits next to the
+// sign-in callback (/auth/{provider}/callback) so both URLs registered with the
+// provider share one prefix.
+Route::get('auth/{provider}/chat-invitation/callback', AgentInvitationSocialCallbackController::class)
     ->middleware('throttle:30,1,chat-invitation-oauth-callback')
     ->name('agents.invitation.social.callback');
 

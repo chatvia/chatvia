@@ -16,7 +16,7 @@ it('builds a route on APP_URL, not on the host of the request', function (): voi
 
     expect(PublicUrl::route('connectors.oauth.callback'))->toBe('https://chat.example.com/connectors/oauth/callback')
         ->and(PublicUrl::route('agents.invitation.social.callback', ['provider' => 'google']))
-        ->toBe('https://chat.example.com/chat-invitation/oauth/google/callback');
+        ->toBe('https://chat.example.com/auth/google/chat-invitation/callback');
 });
 
 it('tells an internal APP_URL from a public one', function (string $appUrl, bool $internal): void {

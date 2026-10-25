@@ -208,7 +208,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
         Route::get('sources/files', AgentKnowledgeFileController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files');
         Route::get('sources/files/data', AgentSourceFileController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.data');
-        Route::get('sources/markdown', AgentKnowledgeMarkdownController::class)->name('sources.markdown');
+        Route::get('sources/markdown', AgentKnowledgeMarkdownController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.markdown');
         Route::get('sources/audio', AgentSourceAudioController::class)->middleware('agent.permission:agent.sources.train.audio')->name('sources.audio');
         Route::get('sources/video', AgentSourceVideoController::class)->middleware('agent.permission:agent.sources.train.video')->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.web');

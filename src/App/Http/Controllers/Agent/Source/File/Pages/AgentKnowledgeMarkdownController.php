@@ -8,7 +8,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Renders the agent's Markdown knowledge page. Agent access is checked by
+ * Renders the agent's Markdown knowledge page, a Files screen for Markdown.
+ * Agent access and the `agent.sources.train.files` permission are checked by
  * the route middleware.
  */
 class AgentKnowledgeMarkdownController

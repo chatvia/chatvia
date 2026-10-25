@@ -50,6 +50,7 @@ dataset('agent routes', [
     'website store' => ['agent.sources.train.web', 'POST', 'agents.sources.websites.store', [], [], 422],
     'files page' => ['agent.sources.train.files', 'GET', 'agents.sources.files', [], [], 200],
     'files data' => ['agent.sources.train.files', 'GET', 'agents.sources.files.data', [], [], 200],
+    'markdown page' => ['agent.sources.train.files', 'GET', 'agents.sources.markdown', [], [], 200],
     'file upload' => ['agent.sources.train.files', 'POST', 'agents.sources.files.upload', [], [], 422],
     'file processing' => ['agent.sources.train.files', 'POST', 'agents.sources.files.process', [], [], 200],
     'audio page' => ['agent.sources.train.audio', 'GET', 'agents.sources.audio', [], [], 200],

@@ -12,20 +12,27 @@ use Illuminate\Support\Str;
 
 /**
  * Where visitors come from — top countries by conversations — and what they
- * chat on: device type, browser and operating system.
+ * chat on: device type, browser and operating system. Countries come from the
+ * daily conversation starts by country; the devices from the sessions first
+ * seen in the window, all three breakdowns in one grouped pass.
  */
 class GeographyStatsQuery extends AccountAnalyticsQuery
 {
     /** How many entries each device / browser / OS breakdown lists. */
     private const int CLIENT_BREAKDOWN_LIMIT = 8;
 
+    /** The session columns broken down. */
+    private const array CLIENT_COLUMNS = ['device_type', 'browser', 'os'];
+
     public function get(AnalyticsScopeData $scope, int $limit): GeographyStatsData
     {
+        $clients = $this->clientBreakdowns($scope);
+
         return new GeographyStatsData(
             countries: $this->countries($scope, $limit),
-            devices: $this->clientBreakdown($scope, 'device_type'),
-            browsers: $this->clientBreakdown($scope, 'browser'),
-            operatingSystems: $this->clientBreakdown($scope, 'os'),
+            devices: $clients['device_type'],
+            browsers: $clients['browser'],
+            operatingSystems: $clients['os'],
         );
     }
 
@@ -34,8 +41,7 @@ class GeographyStatsQuery extends AccountAnalyticsQuery
      */
     private function countries(AnalyticsScopeData $scope, int $limit): array
     {
-        $rows = $this->hourlyRollups($scope)
-            ->where('country_code', '!=', config('chatvia.analytics.unknown_country_code', '--'))
+        $rows = $this->dailyRollup($scope, 'analytics_agent_country_daily')
             ->groupBy('country_code')
             ->selectRaw('country_code, SUM(conversations_started) conversations')
             ->havingRaw('SUM(conversations_started) > 0')
@@ -58,23 +64,26 @@ class GeographyStatsQuery extends AccountAnalyticsQuery
     }
 
     /**
-     * Sessions started in the window, counted per value of one client column.
+     * Sessions by device type, browser and OS, busiest first: one GROUPING
+     * SETS pass, split by which column each row was grouped on.
      *
-     * @param  'device_type'|'browser'|'os'  $column
-     * @return list<LabelCountData>
+     * @return array<string, list<LabelCountData>>
      */
-    private function clientBreakdown(AnalyticsScopeData $scope, string $column): array
+    private function clientBreakdowns(AnalyticsScopeData $scope): array
     {
-        return DB::table('chat_sessions')
-            ->whereIn('agent_id', $scope->agentIds)
-            ->whereBetween('created_at', [$scope->period->start, $scope->period->end])
-            ->whereNotNull($column)
-            ->groupBy($column)
-            ->selectRaw("{$column} as label, COUNT(*) total")
-            ->orderByDesc('total')
-            ->limit(self::CLIENT_BREAKDOWN_LIMIT)
-            ->get()
-            ->map(static fn (object $row): LabelCountData => new LabelCountData((string) $row->label, (int) $row->total))
+        $rows = $this->sessionFirsts($scope)
+            ->selectRaw('device_type, browser, os, GROUPING(device_type) g_device_type, GROUPING(browser) g_browser, GROUPING(os) g_os, COUNT(*) total')
+            ->groupByRaw('GROUPING SETS ((device_type), (browser), (os))')
+            ->get();
+
+        return collect(self::CLIENT_COLUMNS)
+            ->mapWithKeys(fn (string $column): array => [$column => $rows
+                ->filter(fn (object $row): bool => (int) $row->{"g_{$column}"} === 0 && filled($row->{$column}))
+                ->sortBy([['total', 'desc'], [$column, 'asc']])
+                ->take(self::CLIENT_BREAKDOWN_LIMIT)
+                ->map(fn (object $row): LabelCountData => new LabelCountData((string) $row->{$column}, (int) $row->total))
+                ->values()
+                ->all()])
             ->all();
     }
 }

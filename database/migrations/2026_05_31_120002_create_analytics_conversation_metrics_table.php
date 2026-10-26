@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('workspace_id');
             $table->timestamp('started_at');
             $table->timestamp('ended_at')->nullable();
+            $table->string('source', 32)->nullable();
 
             $table->timestamp('first_user_at')->nullable();
             $table->timestamp('first_assistant_at')->nullable();

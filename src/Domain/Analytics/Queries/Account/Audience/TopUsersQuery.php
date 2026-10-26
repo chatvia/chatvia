@@ -7,7 +7,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\Audience\TopUserData;
 use Domain\Analytics\Data\Account\Audience\TopUsersData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
-use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
+use Domain\Analytics\Queries\Account\Concerns\ReadsRollups;
 use Domain\Conversation\Enums\MessageRole;
 use Illuminate\Database\Query\Builder;
 
@@ -19,7 +19,7 @@ use Illuminate\Database\Query\Builder;
  */
 class TopUsersQuery extends AccountAnalyticsQuery
 {
-    use ReadsHourlyRollups;
+    use ReadsRollups;
 
     /**
      * @param  int  $limit  how many chatters to name; at least 1, since the

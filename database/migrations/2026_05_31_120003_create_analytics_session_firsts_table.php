@@ -19,6 +19,9 @@ return new class extends Migration
             $table->unsignedBigInteger('workspace_id');
             $table->uuid('session_external_id');
             $table->timestamp('first_seen_at');
+            $table->string('device_type')->nullable();
+            $table->string('browser')->nullable();
+            $table->string('os')->nullable();
 
             $table->primary(['agent_id', 'session_external_id']);
             $table->index(['agent_id', 'first_seen_at']);

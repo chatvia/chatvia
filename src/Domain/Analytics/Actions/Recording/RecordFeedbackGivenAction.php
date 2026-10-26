@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Domain\Analytics\Actions\Recording;
 
 use Domain\Analytics\Data\Recording\FeedbackRecordData;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 
 /**
  * Records message feedback as CURRENT STATE: exactly one row per message in
- * analytics_events (event_type = 'feedback_given'), upserted on
- * message_external_id. Switching a reaction (👍 → 👎) overwrites the same row;
- * clearing it (👍 → none) deletes the row. Feedback totals are then a plain
- * COUNT over the current rows — no prior value, no lifetime counters, and no
- * double-counting when a visitor toggles or switches their reaction.
+ * analytics_message_feedback, keyed by message_external_id. Switching a
+ * reaction (👍 → 👎) overwrites the row; clearing it (👍 → none) deletes it.
+ * Feedback totals are then a plain COUNT over the current rows — no prior
+ * value, no lifetime counters, and no double-counting when a visitor toggles
+ * or switches their reaction. It lives apart from the append-only event log,
+ * which is split into monthly partitions.
  */
 class RecordFeedbackGivenAction
 {
@@ -24,39 +24,27 @@ class RecordFeedbackGivenAction
 
     public function execute(FeedbackRecordData $feedback): void
     {
-        // Cleared reaction: drop the message's feedback row so it leaves the
-        // current-snapshot counts entirely.
+        // Cleared reaction: drop the message's row so it leaves the counts.
         if ($feedback->feedback === null) {
-            $this->analytics->table('analytics_events')
-                ->where('event_type', AnalyticsEventType::FeedbackGiven->value)
+            $this->analytics->table('analytics_message_feedback')
                 ->where('message_external_id', $feedback->messageExternalId)
                 ->delete();
 
             return;
         }
 
-        // One row per message: a new reaction inserts, a switch updates in place.
-        $this->analytics->connection()->statement(<<<'SQL'
-            INSERT INTO analytics_events (
-                agent_id, workspace_id, chatter_id, event_type, feedback, llm_id, country_code,
-                conversation_external_id, message_external_id, occurred_at
-            ) VALUES (?, ?, ?, 'feedback_given', ?, ?, ?, ?, ?, ?)
-            ON CONFLICT (message_external_id) WHERE event_type = 'feedback_given'
-            DO UPDATE SET
-                feedback          = EXCLUDED.feedback,
-                llm_id            = EXCLUDED.llm_id,
-                country_code      = EXCLUDED.country_code,
-                occurred_at       = EXCLUDED.occurred_at
-        SQL, [
-            $feedback->agentId,
-            $feedback->workspaceId,
-            $feedback->chatterId,
-            $feedback->feedback,
-            $feedback->llmId,
-            $feedback->countryCode,
-            $feedback->conversationExternalId,
-            $feedback->messageExternalId,
-            $feedback->occurredAt,
-        ]);
+        $this->analytics->table('analytics_message_feedback')->upsert(
+            [[
+                'message_external_id' => $feedback->messageExternalId,
+                'agent_id' => $feedback->agentId,
+                'workspace_id' => $feedback->workspaceId,
+                'chatter_id' => $feedback->chatterId,
+                'conversation_external_id' => $feedback->conversationExternalId,
+                'feedback' => $feedback->feedback,
+                'occurred_at' => $feedback->occurredAt,
+            ]],
+            uniqueBy: ['message_external_id'],
+            update: ['feedback', 'occurred_at'],
+        );
     }
 }

@@ -2,22 +2,33 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Retention\PruneAnalyticsEventsAction;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Illuminate\Support\Str;
 
 /**
  * The install-wide analytics retention deletes old raw events, conversation
  * metrics and first-seen sessions, and keeps feedback, the rollups and every
- * row inside the window.
+ * row inside the window. The events are split into monthly partitions when
+ * pg_partman is installed; without it they all sit in the default partition,
+ * and the same rows go either way.
  */
-function paeEvent(AnalyticsEventType $type, string $occurredAt): void
+function paeEvent(string $occurredAt): void
 {
     app(AnalyticsDatabase::class)->table('analytics_events')->insert([
         'agent_id' => 910001,
         'workspace_id' => 910002,
-        'event_type' => $type->value,
         'message_external_id' => (string) Str::uuid(),
+        'occurred_at' => $occurredAt,
+    ]);
+}
+
+function paeFeedback(string $occurredAt): void
+{
+    app(AnalyticsDatabase::class)->table('analytics_message_feedback')->insert([
+        'message_external_id' => (string) Str::uuid(),
+        'agent_id' => 910001,
+        'workspace_id' => 910002,
+        'feedback' => 'positive',
         'occurred_at' => $occurredAt,
     ]);
 }
@@ -53,16 +64,17 @@ function paeSessionFirst(string $firstSeenAt): string
 }
 
 it('deletes old message events but keeps feedback and recent rows', function (): void {
-    paeEvent(AnalyticsEventType::MessageSent, now()->subDays(400)->toDateTimeString());
-    paeEvent(AnalyticsEventType::MessageSent, now()->subDays(10)->toDateTimeString());
-    paeEvent(AnalyticsEventType::FeedbackGiven, now()->subDays(400)->toDateTimeString());
+    paeEvent(now()->subDays(400)->toDateTimeString());
+    paeEvent(now()->subDays(10)->toDateTimeString());
+    paeFeedback(now()->subDays(400)->toDateTimeString());
 
     $deleted = app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
 
-    $remaining = app(AnalyticsDatabase::class)->table('analytics_events')->where('workspace_id', 910002)->pluck('event_type')->sort()->values()->all();
+    $db = app(AnalyticsDatabase::class);
 
     expect($deleted)->toBe(1)
-        ->and($remaining)->toBe([AnalyticsEventType::FeedbackGiven->value, AnalyticsEventType::MessageSent->value]);
+        ->and($db->table('analytics_events')->where('workspace_id', 910002)->count())->toBe(1)
+        ->and($db->table('analytics_message_feedback')->where('workspace_id', 910002)->count())->toBe(1);
 });
 
 it('deletes the metrics of old, quiet conversations and old first-seen sessions', function (): void {
@@ -83,11 +95,29 @@ it('deletes the metrics of old, quiet conversations and old first-seen sessions'
         ->and($sessions)->toBe([$recentSession]);
 });
 
-it('keeps the hourly rollups however old', function (): void {
+it('keeps the hourly and daily rollups however old', function (): void {
     $agent = Agent::factory()->create();
     analyticsRollup($agent, now()->subDays(800)->startOfHour()->toDateTimeString(), ['assistant_messages' => 5]);
 
     app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
 
-    expect(app(AnalyticsDatabase::class)->table('analytics_agent_hourly_rollups')->where('agent_id', $agent->id)->exists())->toBeTrue();
+    expect(app(AnalyticsDatabase::class)->table('analytics_agent_hourly_rollups')->where('agent_id', $agent->id)->exists())->toBeTrue()
+        ->and(app(AnalyticsDatabase::class)->table('analytics_agent_daily')->where('agent_id', $agent->id)->exists())->toBeTrue();
 });
+
+it('drops the monthly partitions that ended before the cutoff, counting their rows', function (): void {
+    $db = app(AnalyticsDatabase::class)->connection();
+    $partition = fn (): ?string => $db->scalar('SELECT tableoid::regclass::text FROM analytics_events WHERE workspace_id = 910002 LIMIT 1');
+
+    paeEvent(now()->toDateTimeString());
+    paeEvent(now()->toDateTimeString());
+    $current = $partition();
+
+    $deleted = app(PruneAnalyticsEventsAction::class)->execute(now()->addMonthNoOverflow()->startOfMonth()->addDay());
+
+    expect($current)->not->toBe('analytics_events_default')
+        // The seeded demo traffic of the testing database goes too.
+        ->and($deleted)->toBeGreaterThanOrEqual(2)
+        ->and($db->scalar('SELECT to_regclass(?)', [$current]))->toBeNull()
+        ->and($db->table('analytics_events')->where('workspace_id', 910002)->count())->toBe(0);
+})->skip(fn (): bool => blank(app(AnalyticsDatabase::class)->connection()->scalar("SELECT 1 FROM pg_extension WHERE extname = 'pg_partman'")), 'needs pg_partman');

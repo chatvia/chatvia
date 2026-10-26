@@ -10,6 +10,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Services\ResponseTimeHistogram;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -19,6 +20,7 @@ use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Connection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -73,17 +75,12 @@ final class AnalyticsWorkspace
             'noise' => '00000000-0000-4000-8000-000000000005',
         ];
 
-        $event = fn (int $workspaceId, Agent $agent, string $type, string $conversation, string $at, array $extra = []): array => [
+        $event = fn (int $workspaceId, Agent $agent, string $conversation, string $at, array $extra = []): array => [
             'agent_id' => $agent->id,
             'workspace_id' => $workspaceId,
             'chatter_id' => null,
-            'event_type' => $type,
             'role' => null,
-            'feedback' => null,
             'response_time_ms' => null,
-            'prompt_tokens' => null,
-            'completion_tokens' => null,
-            'total_tokens' => null,
             'conversation_external_id' => $conversations[$conversation],
             'message_external_id' => (string) Str::uuid(),
             'session_external_id' => '00000000-0000-4000-9000-000000000001',
@@ -93,49 +90,56 @@ final class AnalyticsWorkspace
         ];
 
         $user = fn (?Chatter $chatter): array => ['role' => 'user', 'chatter_id' => $chatter?->id];
-        $reply = fn (int $ms, int $prompt, int $completion): array => [
-            'role' => 'assistant',
-            'response_time_ms' => $ms,
-            'prompt_tokens' => $prompt,
-            'completion_tokens' => $completion,
-            'total_tokens' => $prompt + $completion,
-        ];
+        $reply = fn (int $ms): array => ['role' => 'assistant', 'response_time_ms' => $ms];
 
         self::db()->table('analytics_events')->insert([
-            $event($workspace->id, $alpha, 'message_sent', 'one', '2026-06-10 09:15:00', $user($chatterOne)),
-            $event($workspace->id, $alpha, 'message_sent', 'one', '2026-06-10 09:15:02', $reply(1200, 100, 50)),
-            $event($workspace->id, $alpha, 'message_sent', 'one', '2026-06-10 09:20:00', $user($chatterOne)),
-            $event($workspace->id, $alpha, 'message_sent', 'one', '2026-06-10 09:20:01', $reply(900, 80, 40)),
-            $event($workspace->id, $alpha, 'message_sent', 'two', '2026-06-12 14:00:00', $user($chatterTwo)),
-            $event($workspace->id, $alpha, 'message_sent', 'two', '2026-06-12 14:00:05', $reply(800, 120, 80)),
-            $event($workspace->id, $beta, 'message_sent', 'three', '2026-06-14 20:10:00', $user(null)),
-            $event($workspace->id, $beta, 'message_sent', 'three', '2026-06-14 20:10:03', $reply(3000, 60, 30)),
-            $event($workspace->id, $beta, 'message_sent', 'old', '2026-05-20 10:00:00', $user($chatterOne)),
-            $event($workspace->id, $beta, 'message_sent', 'old', '2026-05-20 10:00:02', $reply(1500, 10, 10)),
-            $event($workspace->id, $alpha, 'feedback_given', 'one', '2026-06-10 09:16:00', ['feedback' => 'positive']),
-            $event($workspace->id, $beta, 'feedback_given', 'three', '2026-06-14 20:11:00', ['feedback' => 'negative']),
-            $event($workspace->id, $beta, 'feedback_given', 'three', '2026-06-14 20:12:00', ['feedback' => 'positive']),
-            $event($other->id, $noise, 'message_sent', 'noise', '2026-06-11 11:00:00', $user($noiseChatter)),
-            $event($other->id, $noise, 'message_sent', 'noise', '2026-06-11 11:00:01', $reply(99, 999, 999)),
-            $event($other->id, $noise, 'feedback_given', 'noise', '2026-06-11 11:01:00', ['feedback' => 'negative']),
+            $event($workspace->id, $alpha, 'one', '2026-06-10 09:15:00', $user($chatterOne)),
+            $event($workspace->id, $alpha, 'one', '2026-06-10 09:15:02', $reply(1200)),
+            $event($workspace->id, $alpha, 'one', '2026-06-10 09:20:00', $user($chatterOne)),
+            $event($workspace->id, $alpha, 'one', '2026-06-10 09:20:01', $reply(900)),
+            $event($workspace->id, $alpha, 'two', '2026-06-12 14:00:00', $user($chatterTwo)),
+            $event($workspace->id, $alpha, 'two', '2026-06-12 14:00:05', $reply(800)),
+            $event($workspace->id, $beta, 'three', '2026-06-14 20:10:00', $user(null)),
+            $event($workspace->id, $beta, 'three', '2026-06-14 20:10:03', $reply(3000)),
+            $event($workspace->id, $beta, 'old', '2026-05-20 10:00:00', $user($chatterOne)),
+            $event($workspace->id, $beta, 'old', '2026-05-20 10:00:02', $reply(1500)),
+            $event($other->id, $noise, 'noise', '2026-06-11 11:00:00', $user($noiseChatter)),
+            $event($other->id, $noise, 'noise', '2026-06-11 11:00:01', $reply(99)),
+        ]);
+
+        // Each rated message's current reaction.
+        $feedback = fn (int $workspaceId, Agent $agent, string $conversation, string $value, string $at): array => [
+            'message_external_id' => (string) Str::uuid(),
+            'agent_id' => $agent->id,
+            'workspace_id' => $workspaceId,
+            'conversation_external_id' => $conversations[$conversation],
+            'feedback' => $value,
+            'occurred_at' => $at,
+        ];
+
+        self::db()->table('analytics_message_feedback')->insert([
+            $feedback($workspace->id, $alpha, 'one', 'positive', '2026-06-10 09:16:00'),
+            $feedback($workspace->id, $beta, 'three', 'negative', '2026-06-14 20:11:00'),
+            $feedback($workspace->id, $beta, 'three', 'positive', '2026-06-14 20:12:00'),
+            $feedback($other->id, $noise, 'noise', 'negative', '2026-06-11 11:01:00'),
         ]);
 
         // The first visitor message and first reply of each conversation, as the
         // recorder keeps them for the events above.
         self::db()->table('analytics_conversation_metrics')->insert([
-            ['conversation_external_id' => $conversations['one'], 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-10 09:15:00', 'ended_at' => '2026-06-10 09:20:01', 'first_user_at' => '2026-06-10 09:15:00', 'first_assistant_at' => '2026-06-10 09:15:02', 'message_count' => 4, 'duration_seconds' => 301],
-            ['conversation_external_id' => $conversations['two'], 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-12 14:00:00', 'ended_at' => '2026-06-12 14:00:05', 'first_user_at' => '2026-06-12 14:00:00', 'first_assistant_at' => '2026-06-12 14:00:05', 'message_count' => 2, 'duration_seconds' => 0],
-            ['conversation_external_id' => $conversations['three'], 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-14 20:10:00', 'ended_at' => '2026-06-14 20:10:03', 'first_user_at' => '2026-06-14 20:10:00', 'first_assistant_at' => '2026-06-14 20:10:03', 'message_count' => 2, 'duration_seconds' => 3],
-            ['conversation_external_id' => $conversations['old'], 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-05-20 10:00:00', 'ended_at' => '2026-05-20 10:00:02', 'first_user_at' => '2026-05-20 10:00:00', 'first_assistant_at' => '2026-05-20 10:00:02', 'message_count' => 2, 'duration_seconds' => 2],
-            ['conversation_external_id' => $conversations['noise'], 'agent_id' => $noise->id, 'workspace_id' => $other->id, 'started_at' => '2026-06-11 11:00:00', 'ended_at' => '2026-06-11 11:00:01', 'first_user_at' => '2026-06-11 11:00:00', 'first_assistant_at' => '2026-06-11 11:00:01', 'message_count' => 50, 'duration_seconds' => 999],
+            ['conversation_external_id' => $conversations['one'], 'source' => 'widget', 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-10 09:15:00', 'ended_at' => '2026-06-10 09:20:01', 'first_user_at' => '2026-06-10 09:15:00', 'first_assistant_at' => '2026-06-10 09:15:02', 'message_count' => 4, 'duration_seconds' => 301],
+            ['conversation_external_id' => $conversations['two'], 'source' => 'hosted_chat', 'agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-12 14:00:00', 'ended_at' => '2026-06-12 14:00:05', 'first_user_at' => '2026-06-12 14:00:00', 'first_assistant_at' => '2026-06-12 14:00:05', 'message_count' => 2, 'duration_seconds' => 0],
+            ['conversation_external_id' => $conversations['three'], 'source' => 'telegram', 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-06-14 20:10:00', 'ended_at' => '2026-06-14 20:10:03', 'first_user_at' => '2026-06-14 20:10:00', 'first_assistant_at' => '2026-06-14 20:10:03', 'message_count' => 2, 'duration_seconds' => 3],
+            ['conversation_external_id' => $conversations['old'], 'source' => 'widget', 'agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'started_at' => '2026-05-20 10:00:00', 'ended_at' => '2026-05-20 10:00:02', 'first_user_at' => '2026-05-20 10:00:00', 'first_assistant_at' => '2026-05-20 10:00:02', 'message_count' => 2, 'duration_seconds' => 2],
+            ['conversation_external_id' => $conversations['noise'], 'source' => 'slack', 'agent_id' => $noise->id, 'workspace_id' => $other->id, 'started_at' => '2026-06-11 11:00:00', 'ended_at' => '2026-06-11 11:00:01', 'first_user_at' => '2026-06-11 11:00:00', 'first_assistant_at' => '2026-06-11 11:00:01', 'message_count' => 50, 'duration_seconds' => 999],
         ]);
 
         self::db()->table('analytics_session_firsts')->insert([
-            ['agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000011', 'first_seen_at' => '2026-06-10 09:14:00'],
-            ['agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000012', 'first_seen_at' => '2026-06-12 13:59:00'],
-            ['agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000013', 'first_seen_at' => '2026-06-14 20:09:00'],
-            ['agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000014', 'first_seen_at' => '2026-05-20 09:59:00'],
-            ['agent_id' => $noise->id, 'workspace_id' => $other->id, 'session_external_id' => '00000000-0000-4000-9000-000000000015', 'first_seen_at' => '2026-06-11 10:59:00'],
+            ['agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000011', 'device_type' => 'desktop', 'browser' => 'Chrome', 'os' => 'macOS', 'first_seen_at' => '2026-06-10 09:14:00'],
+            ['agent_id' => $alpha->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000012', 'device_type' => 'mobile', 'browser' => 'Safari', 'os' => 'iOS', 'first_seen_at' => '2026-06-12 13:59:00'],
+            ['agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000013', 'device_type' => 'mobile', 'browser' => 'Chrome', 'os' => 'Android', 'first_seen_at' => '2026-06-14 20:09:00'],
+            ['agent_id' => $beta->id, 'workspace_id' => $workspace->id, 'session_external_id' => '00000000-0000-4000-9000-000000000014', 'device_type' => 'mobile', 'browser' => 'Chrome', 'os' => 'Android', 'first_seen_at' => '2026-05-20 09:59:00'],
+            ['agent_id' => $noise->id, 'workspace_id' => $other->id, 'session_external_id' => '00000000-0000-4000-9000-000000000015', 'device_type' => 'tablet', 'browser' => 'Edge', 'os' => 'Windows', 'first_seen_at' => '2026-06-11 10:59:00'],
         ]);
     }
 
@@ -143,35 +147,53 @@ final class AnalyticsWorkspace
     {
         // Tokens and reply times match the replies seeded in analytics_events for
         // the same hour, and the answer figures the replies seeded in
-        // chat_messages; the hours with no events behind them have none.
-        $hour = fn (int $workspaceId, Agent $agent, string $bucket, string $country, int $conversations, int $user, int $assistant, array $usage = []): array => [
-            'agent_id' => $agent->id,
-            'workspace_id' => $workspaceId,
-            'bucket_hour' => $bucket,
-            'country_code' => $country,
-            'llm_id' => 0,
-            'conversations_started' => $conversations,
-            'user_messages' => $user,
-            'assistant_messages' => $assistant,
-            'prompt_tokens' => $usage['prompt'] ?? 0,
-            'completion_tokens' => $usage['completion'] ?? 0,
-            'total_tokens' => ($usage['prompt'] ?? 0) + ($usage['completion'] ?? 0),
-            'response_ms_sum' => $usage['response_ms'] ?? 0,
-            'response_ms_count' => $usage['replies'] ?? 0,
-            'unanswered_replies' => $usage['unanswered'] ?? 0,
-            'confidence_sum' => $usage['confidence_sum'] ?? 0,
-            'confidence_count' => $usage['confidence_count'] ?? 0,
+        // chat_messages; the hours with no events behind them have none. The
+        // country goes to the daily starts by country, as the recorder does.
+        $countries = [];
+        $hour = function (int $workspaceId, Agent $agent, string $bucket, ?string $country, int $conversations, int $user, int $assistant, array $usage = []) use (&$countries): array {
+            if ($country !== null) {
+                $countries[] = ['agent_id' => $agent->id, 'workspace_id' => $workspaceId, 'bucket_day' => Str::before($bucket, ' '), 'country_code' => $country, 'conversations_started' => $conversations];
+            }
+
+            $histogram = array_fill(0, ResponseTimeHistogram::BUCKETS, 0);
+
+            foreach ($usage['times'] ?? [] as $ms) {
+                $histogram[ResponseTimeHistogram::bucketOf($ms)]++;
+            }
+
+            return [
+                'agent_id' => $agent->id,
+                'workspace_id' => $workspaceId,
+                'bucket_hour' => $bucket,
+                'conversations_started' => $conversations,
+                'user_messages' => $user,
+                'assistant_messages' => $assistant,
+                'prompt_tokens' => $usage['prompt'] ?? 0,
+                'completion_tokens' => $usage['completion'] ?? 0,
+                'total_tokens' => ($usage['prompt'] ?? 0) + ($usage['completion'] ?? 0),
+                'response_ms_sum' => array_sum($usage['times'] ?? []),
+                'response_ms_count' => count($usage['times'] ?? []),
+                'response_ms_max' => max([0, ...$usage['times'] ?? []]),
+                'response_ms_hist' => ResponseTimeHistogram::literal($histogram),
+                'unanswered_replies' => $usage['unanswered'] ?? 0,
+                'confidence_sum' => $usage['confidence_sum'] ?? 0,
+                'confidence_count' => $usage['confidence_count'] ?? 0,
+            ];
+        };
+
+        $hours = [
+            $hour($workspace->id, $alpha, '2026-06-10 09:00:00', 'no', 1, 2, 2, ['prompt' => 180, 'completion' => 90, 'times' => [1200, 900], 'confidence_sum' => 1.7, 'confidence_count' => 2]),
+            $hour($workspace->id, $alpha, '2026-06-12 14:00:00', 'de', 2, 1, 1, ['prompt' => 120, 'completion' => 80, 'times' => [800], 'unanswered' => 1, 'confidence_sum' => 0.4, 'confidence_count' => 1]),
+            $hour($workspace->id, $beta, '2026-06-14 20:00:00', 'us', 2, 1, 1, ['prompt' => 60, 'completion' => 30, 'times' => [3000]]),
+            $hour($workspace->id, $beta, '2026-06-14 21:00:00', null, 3, 1, 1),
+            $hour($workspace->id, $beta, '2026-06-08 09:00:00', 'de', 2, 4, 4),
+            $hour($workspace->id, $beta, '2026-05-20 10:00:00', 'no', 1, 1, 1, ['prompt' => 10, 'completion' => 10, 'times' => [1500]]),
+            $hour($other->id, $noise, '2026-06-11 11:00:00', 'us', 40, 40, 40, ['prompt' => 999, 'completion' => 999, 'times' => [99], 'unanswered' => 1, 'confidence_sum' => 0.1, 'confidence_count' => 1]),
         ];
 
-        self::db()->table('analytics_agent_hourly_rollups')->insert([
-            $hour($workspace->id, $alpha, '2026-06-10 09:00:00', 'NO', 1, 2, 2, ['prompt' => 180, 'completion' => 90, 'response_ms' => 2100, 'replies' => 2, 'confidence_sum' => 1.7, 'confidence_count' => 2]),
-            $hour($workspace->id, $alpha, '2026-06-12 14:00:00', 'DE', 2, 1, 1, ['prompt' => 120, 'completion' => 80, 'response_ms' => 800, 'replies' => 1, 'unanswered' => 1, 'confidence_sum' => 0.4, 'confidence_count' => 1]),
-            $hour($workspace->id, $beta, '2026-06-14 20:00:00', 'US', 2, 1, 1, ['prompt' => 60, 'completion' => 30, 'response_ms' => 3000, 'replies' => 1]),
-            $hour($workspace->id, $beta, '2026-06-14 21:00:00', '--', 3, 1, 1),
-            $hour($workspace->id, $beta, '2026-06-08 09:00:00', 'DE', 2, 4, 4),
-            $hour($workspace->id, $beta, '2026-05-20 10:00:00', 'NO', 1, 1, 1, ['prompt' => 10, 'completion' => 10, 'response_ms' => 1500, 'replies' => 1]),
-            $hour($other->id, $noise, '2026-06-11 11:00:00', 'US', 40, 40, 40, ['prompt' => 999, 'completion' => 999, 'response_ms' => 99, 'replies' => 1, 'unanswered' => 1, 'confidence_sum' => 0.1, 'confidence_count' => 1]),
-        ]);
+        self::db()->table('analytics_agent_hourly_rollups')->insert($hours);
+        self::db()->table('analytics_agent_country_daily')->insert($countries);
+        self::db()->table('analytics_agent_daily')->insert(self::days($hours));
 
         $day = fn (int $workspaceId, Agent $agent, string $bucket, array $columns): array => [
             'agent_id' => $agent->id,
@@ -274,6 +296,38 @@ final class AnalyticsWorkspace
 
         $betaForm = FormDefinition::factory()->forAgent($beta)->create(['slug' => 'callback', 'is_active' => true]);
         FormSubmission::factory()->forDefinition($betaForm)->submitted()->create(['created_at' => '2026-05-21 08:05:00', 'submitted_at' => '2026-05-21 08:05:00']);
+    }
+
+    /**
+     * The daily rollup rows the hourly ones add up to.
+     *
+     * @param  list<array<string, mixed>>  $hours
+     * @return list<array<string, mixed>>
+     */
+    private static function days(array $hours): array
+    {
+        return collect($hours)
+            ->groupBy(fn (array $hour): string => $hour['agent_id'].' '.Str::before($hour['bucket_hour'], ' '))
+            ->map(function (Collection $day): array {
+                $first = $day->first();
+                $histogram = $day->reduce(
+                    fn (array $sum, array $hour): array => array_map(fn (int $a, string $b): int => $a + (int) $b, $sum, Str::of($hour['response_ms_hist'])->trim('{}')->explode(',')->all()),
+                    array_fill(0, ResponseTimeHistogram::BUCKETS, 0),
+                );
+
+                return [
+                    'agent_id' => $first['agent_id'],
+                    'workspace_id' => $first['workspace_id'],
+                    'bucket_day' => Str::before($first['bucket_hour'], ' '),
+                    ...collect(['conversations_started', 'user_messages', 'assistant_messages', 'prompt_tokens', 'completion_tokens', 'total_tokens', 'response_ms_sum', 'response_ms_count', 'unanswered_replies', 'confidence_sum', 'confidence_count'])
+                        ->mapWithKeys(fn (string $column): array => [$column => $day->sum($column)])
+                        ->all(),
+                    'response_ms_max' => $day->max('response_ms_max'),
+                    'response_ms_hist' => ResponseTimeHistogram::literal($histogram),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private static function db(): Connection

@@ -25,7 +25,7 @@ it('ranks the busiest workspaces, naming a deleted one as such', function (): vo
     // Traffic of a workspace (and agent) deleted since: no rows to name it by.
     DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => 999_999_001, 'workspace_id' => 999_999_002, 'bucket_hour' => '2031-03-12 10:00:00',
-        'country_code' => '--', 'llm_id' => 0, 'user_messages' => 1, 'assistant_messages' => 0,
+        'user_messages' => 1, 'assistant_messages' => 0,
     ]);
 
     $workspaces = app(TopWorkspacesQuery::class)->get(PlatformScopes::of());

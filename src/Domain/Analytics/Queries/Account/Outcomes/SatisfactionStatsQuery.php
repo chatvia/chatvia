@@ -7,17 +7,17 @@ use Domain\Analytics\Data\Account\Outcomes\SatisfactionStatsData;
 use Domain\Analytics\Data\Account\Outcomes\SentimentSplitData;
 use Domain\Analytics\Enums\Sentiment;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
-use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
+use Domain\Analytics\Queries\Account\Concerns\ReadsRollups;
 
 /**
  * Quality signals: thumbs up vs down, the sentiment split of messages, how
  * often the AI could not find an answer, and its average answer confidence.
- * The AI reply figures come from the hourly rollup, which counts each reply
- * when it is recorded, so they need no scan of the chat log.
+ * The AI reply figures come from the hourly or daily rollup, which counts
+ * each reply when it is recorded, so they need no scan of the chat log.
  */
 class SatisfactionStatsQuery extends AccountAnalyticsQuery
 {
-    use ReadsHourlyRollups;
+    use ReadsRollups;
 
     public function get(AnalyticsScopeData $scope): SatisfactionStatsData
     {
@@ -28,7 +28,7 @@ class SatisfactionStatsQuery extends AccountAnalyticsQuery
             ->selectRaw('sentiment, SUM(message_count) total')
             ->pluck('total', 'sentiment');
 
-        $answers = $this->rollupHours($scope)
+        $answers = $this->rollup($scope)
             ->selectRaw('COALESCE(SUM(assistant_messages), 0) total, COALESCE(SUM(unanswered_replies), 0) not_found, SUM(confidence_sum) / NULLIF(SUM(confidence_count), 0) avg_confidence')
             ->first();
 

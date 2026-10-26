@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Domain\Analytics\Actions\Recording;
 
 use Domain\Analytics\Data\Recording\MessageSentRecordData;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
+use Domain\Analytics\Services\ResponseTimeHistogram;
 use Illuminate\Database\Connection;
 
 /**
@@ -15,15 +15,16 @@ use Illuminate\Database\Connection;
  *  1. the raw `analytics_events` row (idempotent — a redelivered job inserts
  *     nothing and stops here),
  *  2. the per-conversation metrics (start/end, first visitor and first AI
- *     message, message count, duration),
- *  3. the per-agent hourly rollup (messages, prompt/completion/total tokens,
- *     response time, AI replies that found no answer, the replies'
- *     confidence, and `conversations_started` exactly once per
- *     conversation),
- *  4. the first time this visitor session was seen.
+ *     message, message count, duration, channel),
+ *  3. the per-agent hourly and daily rollups (messages, prompt/completion/
+ *     total tokens, response time with its histogram and slowest reply, AI
+ *     replies that found no answer, the replies' confidence, and
+ *     `conversations_started` exactly once per conversation),
+ *  4. the conversation start by country, when the country is known,
+ *  5. the first time this visitor session was seen, with its device.
  *
- * Unknown country / model values are stored as configured sentinels in the
- * rollup, whose unique key cannot hold NULLs.
+ * The hourly rows serve short ranges and the hour-of-day patterns, the daily
+ * rows long ranges and lifetime totals, so neither read grows with history.
  */
 class RecordMessageSentAction
 {
@@ -42,31 +43,30 @@ class RecordMessageSentAction
 
             $startsConversation = $this->upsertConversationMetrics($db, $message);
 
-            $this->incrementHourlyRollup($db, $message, $startsConversation);
+            $this->incrementRollup($db, 'analytics_agent_hourly_rollups', 'bucket_hour', "date_trunc('hour', ?::timestamp)", $message->occurredAt, $message, $startsConversation);
+            $this->incrementRollup($db, 'analytics_agent_daily', 'bucket_day', '?::date', $message->occurredAt->format('Y-m-d'), $message, $startsConversation);
+
+            if ($startsConversation && filled($message->countryCode)) {
+                $this->countConversationCountry($db, $message);
+            }
+
             $this->recordSessionFirstSeen($db, $message);
         });
     }
 
     /**
      * Insert the raw event. Returns false when the message was already
-     * recorded (the `message_sent` partial unique index ignores the insert).
+     * recorded (the unique message index ignores the insert; a redelivered
+     * job carries the same `occurred_at`, the table's partition key).
      */
     private function insertEvent(Connection $db, MessageSentRecordData $message): bool
     {
-        $tokens = $message->totalTokens();
-
         return $db->table('analytics_events')->insertOrIgnore([
             'agent_id' => $message->agentId,
             'workspace_id' => $message->workspaceId,
             'chatter_id' => $message->chatterId,
-            'event_type' => AnalyticsEventType::MessageSent->value,
             'role' => $message->role,
-            'llm_id' => $message->llmId,
-            'country_code' => $message->countryCode,
             'response_time_ms' => $message->responseTimeMs,
-            'prompt_tokens' => $message->promptTokens,
-            'completion_tokens' => $message->completionTokens,
-            'total_tokens' => $tokens ?: null,
             'conversation_external_id' => $message->conversationExternalId,
             'message_external_id' => $message->messageExternalId,
             'session_external_id' => $message->sessionExternalId,
@@ -84,17 +84,18 @@ class RecordMessageSentAction
     {
         $rows = $db->select(<<<'SQL'
             INSERT INTO analytics_conversation_metrics (
-                conversation_external_id, agent_id, workspace_id, started_at, ended_at,
+                conversation_external_id, agent_id, workspace_id, started_at, ended_at, source,
                 first_user_at, first_assistant_at,
                 message_count, duration_seconds
             ) VALUES (
-                ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?,
                 ?, ?,
                 1, 0
             )
             ON CONFLICT (conversation_external_id) DO UPDATE SET
                 started_at      = LEAST(analytics_conversation_metrics.started_at, EXCLUDED.started_at),
                 ended_at        = GREATEST(COALESCE(analytics_conversation_metrics.ended_at, EXCLUDED.ended_at), EXCLUDED.ended_at),
+                source          = COALESCE(analytics_conversation_metrics.source, EXCLUDED.source),
                 first_user_at   = LEAST(
                     COALESCE(analytics_conversation_metrics.first_user_at, EXCLUDED.first_user_at),
                     COALESCE(EXCLUDED.first_user_at, analytics_conversation_metrics.first_user_at)
@@ -115,6 +116,7 @@ class RecordMessageSentAction
             $message->workspaceId,
             $message->occurredAt,
             $message->occurredAt,
+            $message->source,
             $message->isFromVisitor() ? $message->occurredAt : null,
             $message->isFromAssistant() ? $message->occurredAt : null,
         ]);
@@ -123,74 +125,97 @@ class RecordMessageSentAction
     }
 
     /**
-     * Add the message to the agent's hourly rollup, bucketed by the
-     * dimensions it carries (country is known now, unlike when the
-     * conversation row was created).
+     * Add the message to one of the agent's rollups (hourly or daily: the
+     * same counters, another bucket). The histogram is added bucket by
+     * bucket, and only for a reply with a measured time.
      */
-    private function incrementHourlyRollup(Connection $db, MessageSentRecordData $message, bool $startsConversation): void
+    private function incrementRollup(Connection $db, string $table, string $bucketColumn, string $bucketValue, mixed $bucket, MessageSentRecordData $message, bool $startsConversation): void
     {
-        $hasResponseTime = $message->responseTimeMs !== null && $message->isFromAssistant();
+        $responseTime = $message->isFromAssistant() ? $message->responseTimeMs : null;
         $confidence = $message->replyConfidence();
 
-        $db->statement(<<<'SQL'
-            INSERT INTO analytics_agent_hourly_rollups (
-                agent_id, workspace_id, bucket_hour, country_code, llm_id,
+        $db->statement(<<<SQL
+            INSERT INTO {$table} AS r (
+                agent_id, workspace_id, {$bucketColumn},
                 conversations_started,
                 user_messages, assistant_messages,
                 prompt_tokens, completion_tokens, total_tokens,
-                response_ms_sum, response_ms_count,
+                response_ms_sum, response_ms_count, response_ms_max, response_ms_hist,
                 unanswered_replies, confidence_sum, confidence_count
             ) VALUES (
-                ?, ?, date_trunc('hour', ?::timestamptz), ?, ?,
+                ?, ?, {$bucketValue},
                 ?,
                 ?, ?,
                 ?, ?, ?,
-                ?, ?,
+                ?, ?, ?, ?::integer[],
                 ?, ?, ?
             )
-            ON CONFLICT (agent_id, bucket_hour, country_code, llm_id) DO UPDATE SET
-                conversations_started = analytics_agent_hourly_rollups.conversations_started + EXCLUDED.conversations_started,
-                user_messages         = analytics_agent_hourly_rollups.user_messages         + EXCLUDED.user_messages,
-                assistant_messages    = analytics_agent_hourly_rollups.assistant_messages    + EXCLUDED.assistant_messages,
-                prompt_tokens         = analytics_agent_hourly_rollups.prompt_tokens         + EXCLUDED.prompt_tokens,
-                completion_tokens     = analytics_agent_hourly_rollups.completion_tokens     + EXCLUDED.completion_tokens,
-                total_tokens          = analytics_agent_hourly_rollups.total_tokens          + EXCLUDED.total_tokens,
-                response_ms_sum       = analytics_agent_hourly_rollups.response_ms_sum       + EXCLUDED.response_ms_sum,
-                response_ms_count     = analytics_agent_hourly_rollups.response_ms_count     + EXCLUDED.response_ms_count,
-                unanswered_replies    = analytics_agent_hourly_rollups.unanswered_replies    + EXCLUDED.unanswered_replies,
-                confidence_sum        = analytics_agent_hourly_rollups.confidence_sum        + EXCLUDED.confidence_sum,
-                confidence_count      = analytics_agent_hourly_rollups.confidence_count      + EXCLUDED.confidence_count
+            ON CONFLICT (agent_id, {$bucketColumn}) DO UPDATE SET
+                conversations_started = r.conversations_started + EXCLUDED.conversations_started,
+                user_messages         = r.user_messages         + EXCLUDED.user_messages,
+                assistant_messages    = r.assistant_messages    + EXCLUDED.assistant_messages,
+                prompt_tokens         = r.prompt_tokens         + EXCLUDED.prompt_tokens,
+                completion_tokens     = r.completion_tokens     + EXCLUDED.completion_tokens,
+                total_tokens          = r.total_tokens          + EXCLUDED.total_tokens,
+                response_ms_sum       = r.response_ms_sum       + EXCLUDED.response_ms_sum,
+                response_ms_count     = r.response_ms_count     + EXCLUDED.response_ms_count,
+                response_ms_max       = GREATEST(r.response_ms_max, EXCLUDED.response_ms_max),
+                response_ms_hist      = CASE WHEN EXCLUDED.response_ms_count > 0
+                    THEN ARRAY(SELECT a + b FROM unnest(r.response_ms_hist, EXCLUDED.response_ms_hist) WITH ORDINALITY AS h(a, b, n) ORDER BY n)
+                    ELSE r.response_ms_hist
+                END,
+                unanswered_replies    = r.unanswered_replies    + EXCLUDED.unanswered_replies,
+                confidence_sum        = r.confidence_sum        + EXCLUDED.confidence_sum,
+                confidence_count      = r.confidence_count      + EXCLUDED.confidence_count
         SQL, [
             $message->agentId,
             $message->workspaceId,
-            $message->occurredAt,
-            $message->countryCode ?? config('chatvia.analytics.unknown_country_code'),
-            $message->llmId ?? 0,
+            $bucket,
             $startsConversation ? 1 : 0,
             $message->isFromVisitor() ? 1 : 0,
             $message->isFromAssistant() ? 1 : 0,
             (int) $message->promptTokens,
             (int) $message->completionTokens,
             $message->totalTokens(),
-            $hasResponseTime ? (int) $message->responseTimeMs : 0,
-            $hasResponseTime ? 1 : 0,
+            (int) $responseTime,
+            $responseTime !== null ? 1 : 0,
+            (int) $responseTime,
+            ResponseTimeHistogram::literal(ResponseTimeHistogram::countsFor($responseTime)),
             $message->isUnanswered() ? 1 : 0,
             $confidence ?? 0,
             $confidence !== null ? 1 : 0,
         ]);
     }
 
+    private function countConversationCountry(Connection $db, MessageSentRecordData $message): void
+    {
+        $db->statement(<<<'SQL'
+            INSERT INTO analytics_agent_country_daily (agent_id, workspace_id, bucket_day, country_code, conversations_started)
+            VALUES (?, ?, ?::date, ?, 1)
+            ON CONFLICT (agent_id, bucket_day, country_code) DO UPDATE SET
+                conversations_started = analytics_agent_country_daily.conversations_started + 1
+        SQL, [
+            $message->agentId,
+            $message->workspaceId,
+            $message->occurredAt->format('Y-m-d'),
+            $message->countryCode,
+        ]);
+    }
+
     private function recordSessionFirstSeen(Connection $db, MessageSentRecordData $message): void
     {
         $db->statement(<<<'SQL'
-            INSERT INTO analytics_session_firsts (agent_id, workspace_id, session_external_id, first_seen_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO analytics_session_firsts (agent_id, workspace_id, session_external_id, first_seen_at, device_type, browser, os)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (agent_id, session_external_id) DO NOTHING
         SQL, [
             $message->agentId,
             $message->workspaceId,
             $message->sessionExternalId,
             $message->occurredAt,
+            $message->deviceType,
+            $message->browser,
+            $message->os,
         ]);
     }
 }

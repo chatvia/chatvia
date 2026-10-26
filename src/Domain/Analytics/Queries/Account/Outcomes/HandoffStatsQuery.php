@@ -17,10 +17,14 @@ class HandoffStatsQuery extends AccountAnalyticsQuery
 {
     public function get(AnalyticsScopeData $scope): HandoffStatsData
     {
-        $window = [$scope->period->start, $scope->period->end];
+        // One pass over the window's conversations for both counts.
+        $counts = $this->liveConversations($scope)
+            ->whereBetween('c.created_at', [$scope->period->start, $scope->period->end])
+            ->selectRaw('COUNT(*) conversations, COUNT(*) FILTER (WHERE c.handoff_at IS NOT NULL) handoffs')
+            ->first();
 
-        $conversations = (int) $this->liveConversations($scope)->whereBetween('c.created_at', $window)->count();
-        $handoffs = (int) $this->liveConversations($scope)->whereBetween('c.created_at', $window)->whereNotNull('c.handoff_at')->count();
+        $conversations = (int) $counts->conversations;
+        $handoffs = (int) $counts->handoffs;
 
         return new HandoffStatsData(
             conversations: $conversations,

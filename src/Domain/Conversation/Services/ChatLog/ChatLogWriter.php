@@ -146,10 +146,17 @@ class ChatLogWriter
      * whether it starts a conversation and buckets it by the session's
      * resolved country, so no separate "conversation started" event is needed.
      * A reply also carries whether it found an answer and its confidence, so
-     * the satisfaction numbers read the rollup instead of the chat log.
+     * the satisfaction numbers read the rollup instead of the chat log. The
+     * channel and the device ride along for the channel and device numbers.
+     *
+     * The session's country is found by a queued listener, so a new session's
+     * first message takes the country the request already knew.
      */
     public function announce(Agent $agent, Session $session, Message $message, UserTurnData|AssistantTurnData $turn): void
     {
+        $countryCode = Country::codeFor($session->country_id) ?? ($turn instanceof UserTurnData ? $turn->country : null);
+        $source = $message->relationLoaded('conversation') ? $message->conversation->source->value : null;
+
         MessageSent::dispatch(
             $agent->id,
             $agent->workspace_id,
@@ -160,13 +167,17 @@ class ChatLogWriter
             $message->role->value,
             $turn->llm_id,
             // From the cached country table: no query per stored message.
-            Country::codeFor($session->country_id),
+            $countryCode,
             $message->response_time_ms,
             $message->prompt_tokens,
             $message->completion_tokens,
             $turn->sent_at,
             $message->has_llm_found_answer,
             $message->confidence_score,
+            $source,
+            $session->device_type,
+            $session->browser,
+            $session->os,
         );
     }
 

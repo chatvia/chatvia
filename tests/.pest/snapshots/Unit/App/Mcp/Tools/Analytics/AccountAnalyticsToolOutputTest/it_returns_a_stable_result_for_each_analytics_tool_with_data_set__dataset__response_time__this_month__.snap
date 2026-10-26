@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "Avg reply this month: 1,475ms (p95 2,730ms, slowest 3,000ms), first reply ~3.3s."
+            "text": "Avg reply this month: 1,475ms (p95 3,000ms, slowest 3,000ms), first reply ~3.3s."
         }
     ],
     "isError": false,
@@ -15,8 +15,8 @@
         },
         "replies_measured": 4,
         "avg_response_ms": 1475,
-        "p50_response_ms": 1050,
-        "p95_response_ms": 2730,
+        "p50_response_ms": 1024,
+        "p95_response_ms": 3000,
         "max_response_ms": 3000,
         "avg_first_response_seconds": 3.3
     }

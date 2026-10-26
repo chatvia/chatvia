@@ -4,6 +4,7 @@ namespace Domain\Analytics\Queries\Agent;
 
 use Closure;
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Enums\RollupGrain;
 use Domain\Analytics\Services\AnalyticsCache;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
@@ -66,6 +67,12 @@ abstract class AgentAnalyticsQuery
     protected function hourlyRollups(Agent $agent): Builder
     {
         return $this->analytics()->table('analytics_agent_hourly_rollups')->where('agent_id', $agent->id);
+    }
+
+    /** The agent's rows in the hourly or the daily rollup. */
+    protected function rollupOf(Agent $agent, RollupGrain $grain): Builder
+    {
+        return $this->analytics()->table($grain->table())->where('agent_id', $agent->id);
     }
 
     /**

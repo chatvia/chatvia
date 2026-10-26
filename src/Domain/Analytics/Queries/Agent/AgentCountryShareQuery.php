@@ -27,22 +27,11 @@ class AgentCountryShareQuery extends AgentAnalyticsQuery
      */
     private function compute(Agent $agent): array
     {
-        $sentinel = config('chatvia.analytics.unknown_country_code');
-
-        $rows = $this->hourlyRollups($agent)
-            ->where('country_code', '!=', $sentinel)
+        $rows = $this->dailyRollup($agent, 'analytics_agent_country_daily')
             ->selectRaw(
                 'country_code,
                  SUM(conversations_started) as conversation_count,
-                 ROUND(
-                     (SUM(conversations_started) * 100.0) / NULLIF((
-                         SELECT SUM(conversations_started)
-                         FROM analytics_agent_hourly_rollups
-                         WHERE agent_id = ? AND country_code <> ?
-                     ), 0),
-                     1
-                 ) as percentage',
-                [$agent->id, $sentinel],
+                 ROUND(SUM(conversations_started) * 100.0 / NULLIF(SUM(SUM(conversations_started)) OVER (), 0), 1) as percentage',
             )
             ->groupBy('country_code')
             ->havingRaw('SUM(conversations_started) > 0')

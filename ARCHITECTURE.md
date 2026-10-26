@@ -514,6 +514,31 @@ connection, `DB_ANALYTICS_DATABASE`), so no query joins them to the app's
 tables: names are looked up on the main database afterwards. All access goes
 through `AnalyticsDatabase`.
 
+The tables, by how they are read:
+
+- `analytics_agent_hourly_rollups` (one row per agent and hour) and
+  `analytics_agent_daily` (per agent and day) hold the same counters,
+  including a 24-bucket reply-time histogram (`ResponseTimeHistogram`) and the
+  slowest reply. `RollupGrain` sums ranges up to 92 days from the hourly
+  table and longer ones (and lifetime totals) from the daily one, so no read
+  grows with history. Percentiles come from the summed histograms.
+- `analytics_agent_country_daily` counts conversation starts by country, and
+  the `*_daily` tables count sentiment, tone, topics, sources, functions and
+  MCP tools.
+- `analytics_conversation_metrics` (per conversation, with its channel) and
+  `analytics_session_firsts` (per visitor session, with its device) hold the
+  per-conversation and per-visitor numbers.
+- `analytics_message_feedback` holds each rated message's current reaction.
+- `analytics_events` is the append-only log of messages, read only for
+  per-chatter numbers and active sessions. It is partitioned by month on
+  `occurred_at`; with pg_partman (in the Docker image) the daily
+  `chatvia:prune:analytics-events` drops expired months and makes the coming
+  ones, and without it the log has only a default partition and old rows go
+  in batches.
+
+`RecordAnalytics` writes them all from queued events, on the `records` queue
+(quick database writes) apart from the slow AI analysis on `analytics`.
+
 ### Evaluation
 
 Test sets for agents: cases (`EvalCase`), runs (`EvalRun`) and results

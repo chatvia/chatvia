@@ -15,8 +15,7 @@ use Illuminate\Support\Str;
  */
 function rfgRows(string $messageId): Builder
 {
-    return DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
-        ->where('event_type', 'feedback_given')
+    return DB::connection(config('chatvia.analytics.connection'))->table('analytics_message_feedback')
         ->where('message_external_id', $messageId);
 }
 
@@ -73,8 +72,7 @@ it('counts current feedback as a snapshot, not a lifetime tally', function (): v
     rfgGive($agentId, $convId, $cleared, null);         // cleared → counts nothing
     rfgGive($agentId, $convId, $kept, 'positive');      // stays positive
 
-    $rows = DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
-        ->where('event_type', 'feedback_given')
+    $rows = DB::connection(config('chatvia.analytics.connection'))->table('analytics_message_feedback')
         ->where('agent_id', $agentId);
 
     expect((clone $rows)->where('feedback', 'positive')->count())->toBe(1)

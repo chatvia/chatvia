@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace Domain\Analytics\Actions\Retention;
 
 use Carbon\CarbonInterface;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 
 /**
- * The install-wide analytics retention. Deletes, older than a cutoff:
+ * The install-wide analytics retention, and the upkeep of the raw event log's
+ * monthly partitions. Deletes, older than a cutoff:
  *
- *  - raw `analytics_events` rows. Feedback rows are kept: they are the
- *    current reaction of a message, not history.
+ *  - raw `analytics_events` rows. With pg_partman, a month that ended before
+ *    the cutoff is dropped whole (its rows counted first), and pg_partman's
+ *    maintenance then makes the coming months' partitions ahead of time.
+ *    What is left before the cutoff (the month it falls in, rows that went
+ *    to the default partition) is deleted in batches. Feedback lives in its
+ *    own table (`analytics_message_feedback`) and is kept: it is the current
+ *    reaction of a message, not history.
  *  - per-conversation metrics (`analytics_conversation_metrics`) of
  *    conversations that started and last had a message before the cutoff.
  *    One still in use keeps its row, so its next message is not counted as
@@ -23,7 +28,8 @@ use Domain\Analytics\Services\AnalyticsDatabase;
  * Rows go in batches, so one run never holds a huge delete. The metrics and
  * session tables have no `id`, so their batches are picked by `ctid` (the
  * row's physical address); the BRIN indexes on their time columns find the
- * old rows.
+ * old rows. The event log's batches are picked by its key, `(id,
+ * occurred_at)`: a `ctid` is only unique within one partition.
  */
 class PruneAnalyticsEventsAction
 {
@@ -44,15 +50,14 @@ class PruneAnalyticsEventsAction
      */
     public function execute(CarbonInterface $olderThan): int
     {
-        return $this->deleteInBatches(
+        return $this->dropExpiredPartitions($olderThan) + $this->deleteInBatches(
             'DELETE FROM analytics_events
-             WHERE id IN (
-                 SELECT id FROM analytics_events
+             WHERE (id, occurred_at) IN (
+                 SELECT id, occurred_at FROM analytics_events
                  WHERE occurred_at < ?
-                   AND event_type != ?
                  LIMIT '.self::BATCH_SIZE.'
              )',
-            [$olderThan, AnalyticsEventType::FeedbackGiven->value],
+            [$olderThan],
         ) + $this->deleteInBatches(
             'DELETE FROM analytics_conversation_metrics
              WHERE ctid = ANY(ARRAY(
@@ -71,6 +76,41 @@ class PruneAnalyticsEventsAction
              ))',
             [$olderThan],
         );
+    }
+
+    /**
+     * Drop the monthly partitions that ended before the cutoff, then let
+     * pg_partman make the next months' partitions. Without pg_partman the log
+     * has only its default partition, and the batched delete does it all.
+     *
+     * @return int the rows the dropped partitions held
+     */
+    private function dropExpiredPartitions(CarbonInterface $olderThan): int
+    {
+        $db = $this->analytics->connection();
+        $schema = $db->scalar("SELECT extnamespace::regnamespace::text FROM pg_extension WHERE extname = 'pg_partman'");
+
+        if (blank($schema)) {
+            return 0;
+        }
+
+        $expired = $db->select(<<<SQL
+            SELECT p.partition_schemaname || '.' || p.partition_tablename AS child
+            FROM {$schema}.show_partitions('public.analytics_events') p
+            CROSS JOIN LATERAL {$schema}.show_partition_info(p.partition_schemaname || '.' || p.partition_tablename) i
+            WHERE i.child_end_time <= ?
+        SQL, [$olderThan]);
+
+        $dropped = 0;
+
+        foreach ($expired as $partition) {
+            $dropped += (int) $db->scalar("SELECT COUNT(*) FROM {$partition->child}");
+            $db->statement("DROP TABLE {$partition->child}");
+        }
+
+        $db->statement("SELECT {$schema}.run_maintenance('public.analytics_events')");
+
+        return $dropped;
     }
 
     /**

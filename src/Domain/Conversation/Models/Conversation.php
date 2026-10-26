@@ -13,6 +13,7 @@ use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\ConversationRetention;
+use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Domain\Conversation\Topic\Models\ConversationTopic;
@@ -232,6 +233,9 @@ class Conversation extends Model
 
             // Replies read aloud are files too, kept per conversation.
             app(MessageSpeechFiles::class)->forgetConversations([$conversation]);
+
+            // So are the images and audio its agent made.
+            app(GeneratedMediaFiles::class)->forgetConversations([$conversation->id]);
 
             // Flush every Redis entry tagged with this conversation
             // (messages, sources, ...) so the cache matches the DB on

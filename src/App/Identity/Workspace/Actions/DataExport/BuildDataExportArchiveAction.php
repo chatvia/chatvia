@@ -12,6 +12,7 @@ use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Message;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -203,6 +204,7 @@ Contents
                             secret value of an API token is never stored
                             in plaintext and therefore cannot be exported)
 - attachments/              binary files you uploaded
+- generated/                images and audio your agents made in chats
 
 Secrets you configured (function signing keys and auth headers, MCP server
 credentials) are not included.
@@ -327,7 +329,8 @@ TXT;
 
     /**
      * Conversations (trashed ones too: they are still held until purged), and
-     * for each batch of them their messages and attachment files. Keyed by
+     * for each batch of them their messages, attachment files and the images
+     * and audio their agents made. Keyed by
      * `workspace_id`, which the (workspace_id, id) unique index pages in id
      * order; each message query names one batch of conversations only.
      */
@@ -360,6 +363,19 @@ TXT;
                         $disk,
                         $attachment->filepath,
                         "attachments/conversations/{$attachment->chat_conversation_id}/{$attachment->id}-".$this->safeName($attachment->filename),
+                        $tempPath,
+                    ));
+
+                GeneratedMedia::query()
+                    ->select(['id', 'chat_conversation_id', 'filepath'])
+                    ->whereIn('chat_conversation_id', $batch->modelKeys())
+                    ->whereNotNull('filepath')
+                    ->lazyById($this->batchSize)
+                    ->each(fn (GeneratedMedia $media) => $this->copyStoredFile(
+                        $zip,
+                        $disk,
+                        $media->filepath,
+                        "generated/conversations/{$media->chat_conversation_id}/{$media->id}.".Str::afterLast($media->filepath ?? '', '.'),
                         $tempPath,
                     ));
             });

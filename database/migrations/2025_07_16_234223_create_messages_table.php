@@ -191,6 +191,36 @@ return new class extends Migration
             $table->index('workspace_id');
         });
 
+        Schema::create('chat_generated_media', function (Blueprint $table): void {
+            $table->id();
+            $table->uuid('external_id')->unique();
+
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('agent_id');
+            $table->foreignId('chat_conversation_id');
+
+            $table->enum('kind', ['image', 'audio']);
+            $table->enum('status', ['pending', 'ready', 'failed'])->default('pending');
+            $table->text('prompt');
+            $table->enum('shape', ['square', 'landscape', 'portrait'])->nullable();
+            $table->string('voice', 100)->nullable();
+            $table->string('service', 100);
+
+            $table->string('filepath', 2048)->nullable();
+            $table->string('mime_type', 100)->nullable();
+            $table->unsignedBigInteger('size_bytes')->nullable();
+            $table->enum('failure', ['refused', 'failed', 'timed_out'])->nullable();
+
+            $table->timestamps();
+
+            $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
+            $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
+
+            $table->index('chat_conversation_id');
+            $table->index('agent_id');
+            $table->index('workspace_id');
+        });
+
         $this->createPartialIndexes();
     }
 
@@ -262,6 +292,7 @@ return new class extends Migration
             DB::statement("DROP INDEX IF EXISTS {$index}");
         }
 
+        Schema::dropIfExists('chat_generated_media');
         Schema::dropIfExists('chat_attachments');
         Schema::dropIfExists('chat_messages');
         Schema::dropIfExists('chat_conversations');

@@ -14,6 +14,7 @@ use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormSubmission;
@@ -117,6 +118,21 @@ it('wipes the attachment files of the deleted chatter\'s conversations', functio
 
     Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
+});
+
+it('wipes the images and audio made in the deleted chatter\'s conversations', function (): void {
+    $workspace = User::factory()->workspace()->create();
+    $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
+    $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
+
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
+    $media = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+
+    app(DeleteChatterAction::class)->execute($chatter);
+
+    Storage::disk(GeneratedMedia::DISK)->assertMissing($media->filepath);
+    expect(GeneratedMedia::whereKey($media->id)->exists())->toBeFalse();
 });
 
 it('wipes the deleted chatter\'s profile photo and keeps other chatters\' photos', function (): void {

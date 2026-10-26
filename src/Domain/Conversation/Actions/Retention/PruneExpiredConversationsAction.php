@@ -7,6 +7,7 @@ use Domain\Conversation\Data\Retention\ConversationPruneResultData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\ConversationRetention;
+use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
@@ -45,6 +46,7 @@ class PruneExpiredConversationsAction
     public function __construct(
         private readonly Entitlements $entitlements,
         private readonly MessageSpeechFiles $speechFiles,
+        private readonly GeneratedMediaFiles $generatedMedia,
     ) {}
 
     public function execute(int $chunk, int $graceDays): ConversationPruneResultData
@@ -200,8 +202,9 @@ class PruneExpiredConversationsAction
     }
 
     /**
-     * Delete the files of these conversations through their model, so each
-     * one's stored file goes with its row.
+     * Delete the files of these conversations (uploads and generated
+     * images and audio) through their model, so each one's stored file goes
+     * with its row.
      *
      * @param  Collection<int, int>  $conversationIds
      */
@@ -209,6 +212,8 @@ class PruneExpiredConversationsAction
     {
         Attachment::query()->whereIn('chat_conversation_id', $conversationIds)->get()
             ->each(static fn (Attachment $attachment) => $attachment->delete());
+
+        $this->generatedMedia->forgetConversations($conversationIds);
     }
 
     /**

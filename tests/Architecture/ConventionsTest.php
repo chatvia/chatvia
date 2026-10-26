@@ -571,7 +571,6 @@ it('checks values with filled()/blank(), never is_string()', function (): void {
  */
 const NATIVE_IO_CALL_ALLOWLIST = [
     // Streams: written or read piece by piece, which File has no call for.
-    'src/App/Console/Commands/Db/BackupDatabase.php' => 1,
     'src/App/Identity/Workspace/Actions/DataExport/BuildDataExportArchiveAction.php' => 2,
     'src/Domain/Form/Actions/ExportSubmissionsCsvAction.php' => 1,
     'src/Domain/Knowledge/Ingestion/Actions/Website/CompleteWebsiteIngestionAction.php' => 1,

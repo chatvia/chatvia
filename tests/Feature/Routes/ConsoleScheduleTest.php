@@ -57,7 +57,7 @@ function csScheduled(): array
         ['spectra:prune', '20 5 * * *'],
         ['cache:prune-stale-tags chat', '0 * * * *'],
         ['chatvia:analytics:analyze-conversations', '0 * * * *'],
-        ['chatvia:db:backup', '0 1,13 * * *'],
+        ['chatvia:backup:create --if-due', '0 * * * *'],
     ];
 }
 

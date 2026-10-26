@@ -132,14 +132,13 @@ Schedule::command('cache:prune-stale-tags chat')->hourly()->withoutOverlapping(6
 // whatever has newly crossed that age.
 Schedule::command('chatvia:analytics:analyze-conversations')->hourly()->withoutOverlapping(60)->onOneServer();
 
-// Database backup: pg_dump (custom/compressed format) streamed to the private
-// disk (this server, or the private bucket of Settings → Storage), keeping the
-// newest 14 (~7 days at this cadence).
-// Every 12 hours, offset from the 03:00–05:00 prune cluster. withoutOverlapping
-// guards against a slow dump colliding with the next run; runInBackground keeps
-// it off the scheduler's critical path.
-Schedule::command('chatvia:db:backup')
-    ->twiceDaily(1, 13)
-    ->withoutOverlapping()
+// The automatic backup (Settings → Backups): the database and Redis in one
+// archive on the private disk. Checked every hour; the command backs up only
+// when the backup is on and as old as the chosen frequency (BackupSchedule).
+// withoutOverlapping guards against a slow backup colliding with the next
+// check; runInBackground keeps it off the scheduler's critical path.
+Schedule::command('chatvia:backup:create --if-due')
+    ->hourly()
+    ->withoutOverlapping(8 * 60)
     ->onOneServer()
     ->runInBackground();

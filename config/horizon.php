@@ -252,10 +252,11 @@ return [
             'nice' => 10,
         ],
         // Transcribing audio and video can take hours: `redis-media`'s
-        // retry_after outlasts MediaIngestionJob's timeout.
+        // retry_after outlasts MediaIngestionJob's timeout. Backups an admin
+        // starts by hand (RunBackupJob) run here too, for the same reason.
         'media' => [
             'connection' => 'redis-media',
-            'queue' => ['ingestion.audio', 'ingestion.video'],
+            'queue' => ['ingestion.audio', 'ingestion.video', 'backups'],
             'balance' => false,
             'minProcesses' => 1,
             'maxProcesses' => 1,

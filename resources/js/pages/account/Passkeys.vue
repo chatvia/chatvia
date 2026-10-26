@@ -164,46 +164,39 @@ const confirmDelete = async () => {
                     </Button>
                 </div>
 
-                <div v-else class="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="h-11 ps-5">{{ t('account.profile.name') }}</TableHead>
-                                <TableHead class="h-11 w-48">{{ t('account.passkeys.last_used') }}</TableHead>
-                                <TableHead class="h-11 w-40">{{ t('account.passkeys.created') }}</TableHead>
-                                <TableHead class="h-11 w-16 pe-5 text-end">{{ t('common.remove') }}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="passkey in props.passkeys" :key="passkey.id">
-                                <TableCell class="py-4 ps-5">
-                                    <div class="flex items-center gap-4">
-                                        <div class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
-                                            <Fingerprint class="text-muted-foreground size-5" />
-                                        </div>
-                                        <p class="leading-tight font-medium">{{ passkey.name }}</p>
+                <Table v-else>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 ps-5">{{ t('account.profile.name') }}</TableHead>
+                            <TableHead class="h-11 w-48">{{ t('account.passkeys.last_used') }}</TableHead>
+                            <TableHead class="h-11 w-40">{{ t('account.passkeys.created') }}</TableHead>
+                            <TableHead class="h-11 w-16 pe-5 text-end">{{ t('common.remove') }}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="passkey in props.passkeys" :key="passkey.id">
+                            <TableCell class="py-4 ps-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
+                                        <Fingerprint class="text-muted-foreground size-5" />
                                     </div>
-                                </TableCell>
-                                <TableCell class="text-muted-foreground py-4 text-sm">
-                                    {{ passkey.last_used_at ? formatDateTime(passkey.last_used_at) : t('account.passkeys.never') }}
-                                </TableCell>
-                                <TableCell class="text-muted-foreground py-4 text-sm">
-                                    {{ formatDate(passkey.created_at) }}
-                                </TableCell>
-                                <TableCell class="py-4 pe-5 text-end">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        @click="deletePasskey(passkey)"
-                                        :aria-label="t('account.passkeys.delete_aria')"
-                                    >
-                                        <Trash2 class="size-4 text-red-600" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                                    <p class="leading-tight font-medium">{{ passkey.name }}</p>
+                                </div>
+                            </TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-sm">
+                                {{ passkey.last_used_at ? formatDateTime(passkey.last_used_at) : t('account.passkeys.never') }}
+                            </TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-sm">
+                                {{ formatDate(passkey.created_at) }}
+                            </TableCell>
+                            <TableCell class="py-4 pe-5 text-end">
+                                <Button variant="ghost" size="icon" @click="deletePasskey(passkey)" :aria-label="t('account.passkeys.delete_aria')">
+                                    <Trash2 class="size-4 text-red-600" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
 
             <!-- Register a passkey -->

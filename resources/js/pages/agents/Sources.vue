@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Activity, Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench, Youtube } from 'lucide-vue-next';
+import { Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench, Youtube } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -106,10 +106,6 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" :title="t('agents.usage.title')" :description="t('agents.usage.description')">
-        <template #header-icon>
-            <Activity class="h-5 w-5" />
-        </template>
-
         <div class="flex justify-center">
             <div class="w-full max-w-6xl">
                 <div v-if="loading" class="flex items-center justify-center py-12">

@@ -950,7 +950,8 @@
                     "tokens_note": "Total de tokens consumidos en esta ejecución"
                 },
                 "back": "Volver a evaluaciones",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Cómo le fue al agente en cada caso de prueba de esta ejecución."
             },
             "index": {
                 "title": "Evaluaciones",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Actualizar cada mes",
                 "refresh_saved": "Actualización automática guardada.",
                 "refresh_failed": "No se pudo guardar la actualización automática."
+            },
+            "page_description": {
+                "sources": "Añade el contenido del que tu agente aprende y con el que responde.",
+                "files": "Sube documentos para que tu agente aprenda de ellos.",
+                "web": "Añade páginas de un sitio web para que tu agente aprenda de ellas.",
+                "text": "Escribe o pega texto para que tu agente aprenda de él.",
+                "qa": "Escribe respuestas a las preguntas más frecuentes.",
+                "youtube": "Añade vídeos de YouTube. Tu agente aprende de sus transcripciones.",
+                "audio": "Sube o graba audio. Tu agente aprende de la transcripción.",
+                "video": "Sube vídeos. Tu agente aprende de sus transcripciones.",
+                "markdown": "Sube archivos Markdown para que tu agente aprenda de ellos."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Conversaciones",
             "chart_tooltip_conversations": "{date}: {count} conversaciones",
             "chart_tooltip_change": "Cambio: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} conversaciones"
+            "chart_tooltip_count": "{count} conversaciones",
+            "description": "Mira cuántas conversaciones y mensajes atiende este agente y cómo valoran sus respuestas."
         },
         "chat_errors": {
             "contact_admin": "Contactar al administrador",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "¡Hola! ¿Me puedes ayudar?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Los formularios solo se muestran en el widget de chat y en la barra de comandos.",
-            "delete_with_leads": "También se eliminará {count} lead. Esta acción no se puede deshacer. | También se eliminarán {count} leads. Esta acción no se puede deshacer."
+            "delete_with_leads": "También se eliminará {count} lead. Esta acción no se puede deshacer. | También se eliminarán {count} leads. Esta acción no se puede deshacer.",
+            "page_description": "Formularios que el agente puede mostrar en el chat para recoger datos, como una solicitud de presupuesto o una reserva."
         },
         "submissions": {
             "page_title": "Envíos",

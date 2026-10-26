@@ -950,7 +950,8 @@
                     "tokens_note": "Tổng số token mà lần chạy này tiêu thụ"
                 },
                 "back": "Quay lại đánh giá",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Kết quả của trợ lý AI ở từng trường hợp kiểm thử trong lần chạy này."
             },
             "index": {
                 "title": "Đánh giá",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Làm mới hằng tháng",
                 "refresh_saved": "Đã lưu tự động làm mới.",
                 "refresh_failed": "Không thể lưu tự động làm mới."
+            },
+            "page_description": {
+                "sources": "Thêm nội dung mà trợ lý AI của bạn học và dùng để trả lời.",
+                "files": "Tải lên tài liệu để trợ lý AI của bạn học.",
+                "web": "Thêm các trang từ một trang web để trợ lý AI của bạn học.",
+                "text": "Viết hoặc dán văn bản để trợ lý AI của bạn học.",
+                "qa": "Viết câu trả lời cho những câu hỏi thường gặp nhất.",
+                "youtube": "Thêm video YouTube. Trợ lý AI của bạn học từ bản chép lời.",
+                "audio": "Tải lên hoặc ghi âm. Trợ lý AI của bạn học từ bản chép lời.",
+                "video": "Tải lên video. Trợ lý AI của bạn học từ bản chép lời.",
+                "markdown": "Tải lên tệp Markdown để trợ lý AI của bạn học."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Cuộc trò chuyện",
             "chart_tooltip_conversations": "{date}: {count} cuộc trò chuyện",
             "chart_tooltip_change": "Thay đổi: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} cuộc trò chuyện"
+            "chart_tooltip_count": "{count} cuộc trò chuyện",
+            "description": "Xem trợ lý AI này xử lý bao nhiêu cuộc trò chuyện và tin nhắn, và mọi người đánh giá câu trả lời ra sao."
         },
         "chat_errors": {
             "contact_admin": "Liên hệ quản trị viên",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Xin chào! Bạn có thể giúp tôi không?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Biểu mẫu chỉ hiển thị trong Tiện ích trò chuyện và Thanh lệnh.",
-            "delete_with_leads": "Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác. | Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác."
+            "delete_with_leads": "Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác. | Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác.",
+            "page_description": "Các biểu mẫu trợ lý AI có thể hiển thị trong cuộc trò chuyện để thu thập thông tin, như yêu cầu báo giá hoặc đặt lịch."
         },
         "submissions": {
             "page_title": "Lượt gửi",

@@ -13,7 +13,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.markdown')">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.markdown')" :description="t('agents.sources.page_description.markdown')">
         <Files :agent="agent" file-type="markdown" />
     </AgentLayout>
 </template>

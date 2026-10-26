@@ -950,7 +950,8 @@
                     "tokens_note": "Total des tokens consommés par cette exécution"
                 },
                 "back": "Retour aux évaluations",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Les résultats de l'agent pour chaque cas de test de cette exécution."
             },
             "index": {
                 "title": "Évaluations",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Actualiser chaque mois",
                 "refresh_saved": "Actualisation automatique enregistrée.",
                 "refresh_failed": "Impossible d'enregistrer l'actualisation automatique."
+            },
+            "page_description": {
+                "sources": "Ajoutez le contenu dont votre agent apprend et avec lequel il répond.",
+                "files": "Importez des documents dont votre agent va apprendre.",
+                "web": "Ajoutez des pages d'un site web dont votre agent va apprendre.",
+                "text": "Écrivez ou collez du texte dont votre agent va apprendre.",
+                "qa": "Rédigez les réponses aux questions les plus fréquentes.",
+                "youtube": "Ajoutez des vidéos YouTube. Votre agent apprend de leurs transcriptions.",
+                "audio": "Importez ou enregistrez de l'audio. Votre agent apprend de la transcription.",
+                "video": "Importez des vidéos. Votre agent apprend de leurs transcriptions.",
+                "markdown": "Importez des fichiers Markdown dont votre agent va apprendre."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Conversations",
             "chart_tooltip_conversations": "{date} : {count} conversations",
             "chart_tooltip_change": "Variation : {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} conversations"
+            "chart_tooltip_count": "{count} conversations",
+            "description": "Voyez combien de conversations et de messages cet agent traite, et comment les gens notent ses réponses."
         },
         "chat_errors": {
             "contact_admin": "Contacter l'administrateur",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Bonjour ! Pouvez-vous m'aider ?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Les formulaires s'affichent uniquement dans le widget de chat et la barre de commandes.",
-            "delete_with_leads": "Cela supprime aussi {count} prospect. Cette action est irréversible. | Cela supprime aussi {count} prospects. Cette action est irréversible."
+            "delete_with_leads": "Cela supprime aussi {count} prospect. Cette action est irréversible. | Cela supprime aussi {count} prospects. Cette action est irréversible.",
+            "page_description": "Les formulaires que l'agent peut afficher dans le chat pour recueillir des informations, comme une demande de devis ou une réservation."
         },
         "submissions": {
             "page_title": "Soumissions",

@@ -4,9 +4,8 @@
 // open a chatter's sheet for the invitation link. Public agents have no
 // per-chatter access, so they only get a notice.
 import type { AgentChatterRow } from '@/api/chatters';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Globe, Users } from 'lucide-vue-next';
+import { Globe } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ChatterSheet from './Chatters/ChatterSheet.vue';
@@ -69,56 +68,45 @@ const revokeFromSheet = (member: AgentChatterRow) => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.chatters.title')">
+    <AgentLayout :agent="agent" :title="t('agents.chatters.title')" :description="t('agents.chatters.description')">
         <div class="flex justify-center">
-            <Card class="w-full max-w-6xl">
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Users class="h-5 w-5" />
-                        {{ t('agents.chatters.title') }}
-                    </CardTitle>
-                    <CardDescription>
-                        {{ t('agents.chatters.description') }}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <!-- Public-agent notice — no members for a public agent
-                         since anyone with the URL can chat. The owner can
-                         still see the workspace roster, but invite + grant
-                         are off the table. -->
-                    <div
-                        v-if="agent.is_public"
-                        class="flex items-start gap-3 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm dark:border-blue-900/50 dark:bg-blue-950/30"
-                    >
-                        <Globe class="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                        <div class="space-y-1">
-                            <p class="font-medium text-blue-900 dark:text-blue-100">{{ t('agents.chatters.public_title') }}</p>
-                            <p class="text-blue-800/80 dark:text-blue-200/80">
-                                {{ t('agents.chatters.public_description') }}
-                            </p>
-                        </div>
+            <div class="w-full max-w-6xl">
+                <!-- Public-agent notice — no members for a public agent
+                     since anyone with the URL can chat. The owner can
+                     still see the workspace roster, but invite + grant
+                     are off the table. -->
+                <div
+                    v-if="agent.is_public"
+                    class="flex items-start gap-3 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm dark:border-blue-900/50 dark:bg-blue-950/30"
+                >
+                    <Globe class="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div class="space-y-1">
+                        <p class="font-medium text-blue-900 dark:text-blue-100">{{ t('agents.chatters.public_title') }}</p>
+                        <p class="text-blue-800/80 dark:text-blue-200/80">
+                            {{ t('agents.chatters.public_description') }}
+                        </p>
                     </div>
+                </div>
 
-                    <div v-else class="space-y-4">
-                        <ChattersToolbar
-                            v-model:search="searchQuery"
-                            :shown="filteredMembers.length"
-                            :total="members.length"
-                            @invite="inviteOpen = true"
-                        />
+                <div v-else class="space-y-4">
+                    <ChattersToolbar
+                        v-model:search="searchQuery"
+                        :shown="filteredMembers.length"
+                        :total="members.length"
+                        @invite="inviteOpen = true"
+                    />
 
-                        <ChattersTable
-                            :members="filteredMembers"
-                            :total="members.length"
-                            :is-loading="isLoading"
-                            :granting-id="grantingId"
-                            @open="openMember"
-                            @grant="grantAccess"
-                            @revoke="askDetach"
-                        />
-                    </div>
-                </CardContent>
-            </Card>
+                    <ChattersTable
+                        :members="filteredMembers"
+                        :total="members.length"
+                        :is-loading="isLoading"
+                        :granting-id="grantingId"
+                        @open="openMember"
+                        @grant="grantAccess"
+                        @revoke="askDetach"
+                    />
+                </div>
+            </div>
         </div>
 
         <InviteChatterDialog v-model:open="inviteOpen" :agent-id="agent.external_id" @invited="fetchMembers" />

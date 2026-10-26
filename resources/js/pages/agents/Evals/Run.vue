@@ -158,7 +158,7 @@ const openDetail = (result: EvalResult) => {
 </script>
 
 <template>
-    <AgentLayout :agent="props.agent" :title="t('agents.evals.run.title')">
+    <AgentLayout :agent="props.agent" :title="t('agents.evals.run.title')" :description="t('agents.evals.run.description')">
         <Head :title="t('agents.evals.run.head_title', { id: run.id, name: props.agent.name })" />
 
         <div class="flex justify-center">
@@ -214,53 +214,51 @@ const openDetail = (result: EvalResult) => {
                 </div>
 
                 <!-- Per-case results -->
-                <div class="bg-card rounded-lg border">
-                    <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{{ t('agents.evals.run.table.case') }}</TableHead>
-                                <TableHead>{{ t('agents.evals.run.table.result') }}</TableHead>
-                                <TableHead>{{ t('agents.evals.run.table.score') }}</TableHead>
-                                <TableHead>{{ t('agents.evals.run.table.scorer') }}</TableHead>
-                                <TableHead class="text-end">{{ t('agents.evals.run.table.latency') }}</TableHead>
-                                <TableHead class="text-end">{{ t('agents.evals.run.table.tokens') }}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="result in results" :key="result.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(result)">
-                                <TableCell class="max-w-md">
-                                    <div class="truncate font-medium">{{ result.case_name }}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <span v-if="result.pass" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                                        <CheckCircle2 class="h-4 w-4" /> {{ t('agents.evals.run.pass') }}
-                                    </span>
-                                    <span v-else class="text-destructive flex items-center gap-1">
-                                        <XCircle class="h-4 w-4" /> {{ t('agents.evals.run.fail') }}
-                                    </span>
-                                </TableCell>
-                                <TableCell class="tabular-nums">{{ result.score !== null ? Math.round(result.score * 100) + '%' : '—' }}</TableCell>
-                                <TableCell>
-                                    <Badge variant="outline" class="gap-1.5">
-                                        <component :is="scorerIcon(result.scorer_type)" class="h-3 w-3" />
-                                        {{ scorerShortLabel(result.scorer_type) }}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell class="text-muted-foreground text-end tabular-nums">{{
-                                    result.latency_ms !== null ? t('agents.evals.run.latency_value', { ms: result.latency_ms.toLocaleString() }) : '—'
-                                }}</TableCell>
-                                <TableCell class="text-muted-foreground text-end tabular-nums">{{
-                                    result.tokens !== null ? result.tokens.toLocaleString() : '—'
-                                }}</TableCell>
-                            </TableRow>
-                            <TableRow v-if="results.length === 0">
-                                <TableCell colspan="6" class="text-muted-foreground py-10 text-center text-sm">
-                                    {{ run.status === 'running' ? t('agents.evals.run.scoring_cases') : t('agents.evals.run.no_results') }}
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>{{ t('agents.evals.run.table.case') }}</TableHead>
+                            <TableHead>{{ t('agents.evals.run.table.result') }}</TableHead>
+                            <TableHead>{{ t('agents.evals.run.table.score') }}</TableHead>
+                            <TableHead>{{ t('agents.evals.run.table.scorer') }}</TableHead>
+                            <TableHead class="text-end">{{ t('agents.evals.run.table.latency') }}</TableHead>
+                            <TableHead class="text-end">{{ t('agents.evals.run.table.tokens') }}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="result in results" :key="result.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(result)">
+                            <TableCell class="max-w-md">
+                                <div class="truncate font-medium">{{ result.case_name }}</div>
+                            </TableCell>
+                            <TableCell>
+                                <span v-if="result.pass" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                    <CheckCircle2 class="h-4 w-4" /> {{ t('agents.evals.run.pass') }}
+                                </span>
+                                <span v-else class="text-destructive flex items-center gap-1">
+                                    <XCircle class="h-4 w-4" /> {{ t('agents.evals.run.fail') }}
+                                </span>
+                            </TableCell>
+                            <TableCell class="tabular-nums">{{ result.score !== null ? Math.round(result.score * 100) + '%' : '—' }}</TableCell>
+                            <TableCell>
+                                <Badge variant="outline" class="gap-1.5">
+                                    <component :is="scorerIcon(result.scorer_type)" class="h-3 w-3" />
+                                    {{ scorerShortLabel(result.scorer_type) }}
+                                </Badge>
+                            </TableCell>
+                            <TableCell class="text-muted-foreground text-end tabular-nums">{{
+                                result.latency_ms !== null ? t('agents.evals.run.latency_value', { ms: result.latency_ms.toLocaleString() }) : '—'
+                            }}</TableCell>
+                            <TableCell class="text-muted-foreground text-end tabular-nums">{{
+                                result.tokens !== null ? result.tokens.toLocaleString() : '—'
+                            }}</TableCell>
+                        </TableRow>
+                        <TableRow v-if="results.length === 0">
+                            <TableCell colspan="6" class="text-muted-foreground py-10 text-center text-sm">
+                                {{ run.status === 'running' ? t('agents.evals.run.scoring_cases') : t('agents.evals.run.no_results') }}
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
         </div>
 

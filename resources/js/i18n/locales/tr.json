@@ -950,7 +950,8 @@
                     "tokens_note": "Bu çalıştırmada tüketilen toplam token"
                 },
                 "back": "Değerlendirmelere dön",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Bu çalıştırmadaki her test durumunda asistanın sonucu."
             },
             "index": {
                 "title": "Değerlendirmeler",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Her ay yenile",
                 "refresh_saved": "Otomatik yenileme kaydedildi.",
                 "refresh_failed": "Otomatik yenileme kaydedilemedi."
+            },
+            "page_description": {
+                "sources": "Asistanınızın öğrendiği ve yanıt verirken kullandığı içeriği ekleyin.",
+                "files": "Asistanınızın öğrenmesi için belge yükleyin.",
+                "web": "Asistanınızın öğrenmesi için bir web sitesinden sayfalar ekleyin.",
+                "text": "Asistanınızın öğrenmesi için metin yazın veya yapıştırın.",
+                "qa": "En sık sorulan sorulara yanıt yazın.",
+                "youtube": "YouTube videoları ekleyin. Asistanınız dökümlerinden öğrenir.",
+                "audio": "Ses yükleyin veya kaydedin. Asistanınız dökümünden öğrenir.",
+                "video": "Video yükleyin. Asistanınız dökümlerinden öğrenir.",
+                "markdown": "Asistanınızın öğrenmesi için Markdown dosyaları yükleyin."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Görüşmeler",
             "chart_tooltip_conversations": "{date}: {count} görüşme",
             "chart_tooltip_change": "Değişim: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} görüşme"
+            "chart_tooltip_count": "{count} görüşme",
+            "description": "Bu asistanın kaç konuşma ve mesajı yanıtladığını ve insanların yanıtlarını nasıl değerlendirdiğini görün."
         },
         "chat_errors": {
             "contact_admin": "Yöneticiyle İletişime Geç",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Merhaba! Bana yardımcı olabilir misiniz?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formlar yalnızca Sohbet Widget'ında ve Komut Çubuğu'nda görünür.",
-            "delete_with_leads": "Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz. | Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz."
+            "delete_with_leads": "Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz. | Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz.",
+            "page_description": "Asistanın sohbette bilgi toplamak için gösterebileceği formlar; örneğin fiyat teklifi isteği veya rezervasyon."
         },
         "submissions": {
             "page_title": "Gönderimler",

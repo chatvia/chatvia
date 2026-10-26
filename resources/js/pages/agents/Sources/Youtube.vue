@@ -13,7 +13,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.youtube')">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.youtube')" :description="t('agents.sources.page_description.youtube')">
         <YoutubeComponent :agent="agent" />
     </AgentLayout>
 </template>

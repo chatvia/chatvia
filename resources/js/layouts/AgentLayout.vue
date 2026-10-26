@@ -4,8 +4,10 @@
  * with breadcrumbs, an optional page header, and the page itself in the
  * default slot. Also hosts the rename and delete dialogs the sidebar opens.
  *
- * Slots: `default` (page content), `header-icon` and `header-actions` (both in
- * the page header, so not shown with `hideHeader`).
+ * Every page with a header passes both `title` and `description`; the body
+ * never repeats them. Slots: `default` (page content), `header-description`
+ * (a description with a link) and `header-actions` (both in the page header,
+ * so not shown with `hideHeader`).
  */
 import AgentPageHeader from '@/components/agents/layout/AgentPageHeader.vue';
 import AgentSidebar from '@/components/agents/layout/AgentSidebar.vue';
@@ -78,7 +80,7 @@ function onSidebarAction(action: AgentNavAction): void {
 
                 <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
                     <AgentPageHeader v-if="!hideHeader" :title="pageTitle" :description="description" :is-public="Boolean(agent.is_public)">
-                        <template #icon><slot name="header-icon" /></template>
+                        <template v-if="$slots['header-description']" #description><slot name="header-description" /></template>
                         <template #actions><slot name="header-actions" /></template>
                     </AgentPageHeader>
 

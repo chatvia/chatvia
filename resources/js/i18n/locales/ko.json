@@ -950,7 +950,8 @@
                     "tokens_note": "이 실행에서 소비한 총 토큰"
                 },
                 "back": "평가로 돌아가기",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "이번 실행에서 각 테스트 케이스에 대한 에이전트의 결과입니다."
             },
             "index": {
                 "title": "평가",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "매월 새로 고침",
                 "refresh_saved": "자동 새로 고침이 저장되었습니다.",
                 "refresh_failed": "자동 새로 고침을 저장할 수 없습니다."
+            },
+            "page_description": {
+                "sources": "에이전트가 학습하고 답변에 사용할 콘텐츠를 추가하세요.",
+                "files": "에이전트가 학습할 문서를 업로드하세요.",
+                "web": "에이전트가 학습할 웹사이트 페이지를 추가하세요.",
+                "text": "에이전트가 학습할 텍스트를 작성하거나 붙여 넣으세요.",
+                "qa": "가장 많이 묻는 질문에 대한 답변을 작성하세요.",
+                "youtube": "YouTube 동영상을 추가하세요. 에이전트가 자막에서 학습합니다.",
+                "audio": "오디오를 업로드하거나 녹음하세요. 에이전트가 스크립트에서 학습합니다.",
+                "video": "동영상을 업로드하세요. 에이전트가 자막에서 학습합니다.",
+                "markdown": "에이전트가 학습할 Markdown 파일을 업로드하세요."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "대화",
             "chart_tooltip_conversations": "{date}: 대화 {count}건",
             "chart_tooltip_change": "변동: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "대화 {count}건"
+            "chart_tooltip_count": "대화 {count}건",
+            "description": "이 에이전트가 처리한 대화와 메시지 수, 그리고 사람들이 답변을 어떻게 평가하는지 확인하세요."
         },
         "chat_errors": {
             "contact_admin": "관리자에게 문의",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "안녕하세요! 도와주실 수 있나요?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "양식은 채팅 위젯과 명령 바에서만 표시됩니다.",
-            "delete_with_leads": "리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다. | 리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다."
+            "delete_with_leads": "리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다. | 리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+            "page_description": "견적 요청이나 예약처럼 에이전트가 채팅에서 정보를 모으기 위해 보여줄 수 있는 양식입니다."
         },
         "submissions": {
             "page_title": "제출 내역",

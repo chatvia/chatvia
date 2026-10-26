@@ -6,7 +6,7 @@
 import { generateAgentSlug } from '@/api/agentPersona';
 import HeaderActions from '@/components/HeaderActions.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,7 +16,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { update as updateAgent } from '@/routes/agents';
 import { edit as editPrompts } from '@/routes/library/prompts';
 import { Link, useForm } from '@inertiajs/vue3';
-import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
+import { LoaderCircle, Save } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -87,7 +87,7 @@ const hasFormErrors = computed(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.persona.title')">
+    <AgentLayout :agent="agent" :title="t('agents.persona.title')" :description="t('agents.persona.card_description')">
         <template #header-actions>
             <HeaderActions
                 :is-submitting="isSubmitting"
@@ -104,13 +104,6 @@ const hasFormErrors = computed(() => {
         <form id="persona-form" @submit.prevent="updateGeneralSettings" class="space-y-6">
             <div class="flex justify-center">
                 <Card class="w-full max-w-6xl">
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <Bot class="h-5 w-5" />
-                            {{ t('agents.persona.card_title') }}
-                        </CardTitle>
-                        <CardDescription>{{ t('agents.persona.card_description') }}</CardDescription>
-                    </CardHeader>
                     <CardContent>
                         <div class="grid gap-6">
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">

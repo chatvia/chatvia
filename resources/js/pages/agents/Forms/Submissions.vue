@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
@@ -86,7 +85,13 @@ function remove(s: Submission): void {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.submissions.page_title')">
+    <AgentLayout :agent="agent" :title="form.name" :description="t('agents.submissions.count', { n: submissions.length })">
+        <template #header-actions>
+            <Button v-if="canExport" variant="outline" :disabled="submissions.length === 0" @click="exportCsv">
+                <Download class="me-1 h-4 w-4" /> {{ t('agents.submissions.export') }}
+            </Button>
+        </template>
+
         <div class="mx-auto w-full max-w-6xl space-y-4">
             <Link
                 :href="formsIndex.url(agent.external_id)"
@@ -95,51 +100,34 @@ function remove(s: Submission): void {
                 <ArrowLeft class="h-4 w-4" /> {{ t('agents.submissions.back_to_forms') }}
             </Link>
 
-            <Card>
-                <CardHeader>
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <CardTitle>{{ form.name }}</CardTitle>
-                            <CardDescription>{{ t('agents.submissions.count', { n: submissions.length }) }}</CardDescription>
-                        </div>
-                        <Button v-if="canExport" variant="outline" :disabled="submissions.length === 0" @click="exportCsv">
-                            <Download class="me-1 h-4 w-4" /> {{ t('agents.submissions.export') }}
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent class="space-y-4">
-                    <div class="relative max-w-sm">
-                        <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                        <Input v-model="search" :placeholder="t('agents.submissions.search')" class="ps-9" />
-                    </div>
+            <div class="relative max-w-sm">
+                <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="search" :placeholder="t('agents.submissions.search')" class="ps-9" />
+            </div>
 
-                    <div v-if="filtered.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
-                        {{ t('agents.submissions.empty') }}
-                    </div>
-                    <div v-else class="overflow-x-auto rounded-lg border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead v-for="col in columns" :key="col.key" class="h-11 ps-5">{{ col.label }}</TableHead>
-                                    <TableHead class="h-11">{{ t('agents.submissions.submitted_at') }}</TableHead>
-                                    <TableHead v-if="canDelete" class="h-11 w-12 pe-5" />
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="s in filtered" :key="s.external_id">
-                                    <TableCell v-for="col in columns" :key="col.key" class="ps-5">{{ cell(s, col.key) }}</TableCell>
-                                    <TableCell class="text-muted-foreground text-xs">{{ when(s) }}</TableCell>
-                                    <TableCell v-if="canDelete" class="pe-5">
-                                        <Button variant="ghost" size="icon" :aria-label="t('common.delete')" @click="pendingDelete = s"
-                                            ><Trash2 class="h-4 w-4"
-                                        /></Button>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+            <div v-if="filtered.length === 0" class="bg-card text-muted-foreground rounded-lg border py-12 text-center text-sm">
+                {{ t('agents.submissions.empty') }}
+            </div>
+            <Table v-else>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead v-for="col in columns" :key="col.key" class="h-11 ps-5">{{ col.label }}</TableHead>
+                        <TableHead class="h-11">{{ t('agents.submissions.submitted_at') }}</TableHead>
+                        <TableHead v-if="canDelete" class="h-11 w-12 pe-5" />
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow v-for="s in filtered" :key="s.external_id">
+                        <TableCell v-for="col in columns" :key="col.key" class="ps-5">{{ cell(s, col.key) }}</TableCell>
+                        <TableCell class="text-muted-foreground text-xs">{{ when(s) }}</TableCell>
+                        <TableCell v-if="canDelete" class="pe-5">
+                            <Button variant="ghost" size="icon" :aria-label="t('common.delete')" @click="pendingDelete = s"
+                                ><Trash2 class="h-4 w-4"
+                            /></Button>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
         </div>
 
         <DeleteConfirmationDialog :open="pendingDelete !== null" @confirm="confirmDelete" @cancel="pendingDelete = null" />

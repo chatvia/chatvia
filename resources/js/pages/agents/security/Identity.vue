@@ -4,7 +4,6 @@
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { update as updateSecurity } from '@/routes/agents/security';
 import { useForm } from '@inertiajs/vue3';
-import { ShieldCheck } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -45,19 +44,9 @@ const setPublic = (isPublic: boolean) => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.identity_verification.title')">
+    <AgentLayout :agent="agent" :title="t('agents.identity_verification.title')" :description="t('agents.identity_verification.subtitle')">
         <div class="flex justify-center">
             <div class="w-full max-w-3xl space-y-6">
-                <div>
-                    <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                        <ShieldCheck class="size-6" />
-                        {{ t('agents.identity_verification.title') }}
-                    </h1>
-                    <p class="text-muted-foreground mt-1 text-sm">
-                        {{ t('agents.identity_verification.subtitle') }}
-                    </p>
-                </div>
-
                 <AccessControlCard :is-public="protectionForm.is_public" @change="setPublic" />
 
                 <SigningSecretCard

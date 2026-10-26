@@ -14,39 +14,37 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <div class="rounded-lg border">
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead class="h-11 ps-5">{{ t('agents.sources.connectors.column_connector') }}</TableHead>
-                    <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_tools') }}</TableHead>
-                    <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
-                    <TableHead class="h-11 w-36 pe-5">
-                        <div class="flex items-center gap-1.5">
-                            {{ t('agents.sources.connectors.column_always') }}
-                            <TooltipProvider :delay-duration="0">
-                                <Tooltip>
-                                    <TooltipTrigger as-child>
-                                        <button
-                                            type="button"
-                                            class="text-muted-foreground hover:text-foreground cursor-help"
-                                            :aria-label="t('agents.sources.connectors.always_hint')"
-                                        >
-                                            <Info class="size-3.5" />
-                                        </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" class="max-w-xs">
-                                        <p>{{ t('agents.sources.connectors.always_hint') }}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                    </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                <slot />
-            </TableBody>
-        </Table>
-    </div>
+    <Table>
+        <TableHeader>
+            <TableRow>
+                <TableHead class="h-11 ps-5">{{ t('agents.sources.connectors.column_connector') }}</TableHead>
+                <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_tools') }}</TableHead>
+                <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
+                <TableHead class="h-11 w-36 pe-5">
+                    <div class="flex items-center gap-1.5">
+                        {{ t('agents.sources.connectors.column_always') }}
+                        <TooltipProvider :delay-duration="0">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <button
+                                        type="button"
+                                        class="text-muted-foreground hover:text-foreground cursor-help"
+                                        :aria-label="t('agents.sources.connectors.always_hint')"
+                                    >
+                                        <Info class="size-3.5" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" class="max-w-xs">
+                                    <p>{{ t('agents.sources.connectors.always_hint') }}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                </TableHead>
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            <slot />
+        </TableBody>
+    </Table>
 </template>

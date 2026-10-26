@@ -950,7 +950,8 @@
                     "tokens_note": "Totale tokens brukt av denne kjøringen"
                 },
                 "back": "Tilbake til evalueringer",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Slik gjorde agenten det i hvert testtilfelle i denne kjøringen."
             },
             "index": {
                 "title": "Evalueringer",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Oppdater månedlig",
                 "refresh_saved": "Automatisk oppdatering lagret.",
                 "refresh_failed": "Kunne ikke lagre automatisk oppdatering."
+            },
+            "page_description": {
+                "sources": "Legg til innholdet agenten din lærer av og svarer med.",
+                "files": "Last opp dokumenter som agenten din kan lære av.",
+                "web": "Legg til sider fra et nettsted som agenten din kan lære av.",
+                "text": "Skriv eller lim inn tekst som agenten din kan lære av.",
+                "qa": "Skriv svar på spørsmålene folk stiller oftest.",
+                "youtube": "Legg til YouTube-videoer. Agenten din lærer av transkripsjonene.",
+                "audio": "Last opp eller ta opp lyd. Agenten din lærer av transkripsjonen.",
+                "video": "Last opp videoer. Agenten din lærer av transkripsjonene.",
+                "markdown": "Last opp Markdown-filer som agenten din kan lære av."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Samtaler",
             "chart_tooltip_conversations": "{date}: {count} samtaler",
             "chart_tooltip_change": "Endring: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} samtaler"
+            "chart_tooltip_count": "{count} samtaler",
+            "description": "Se hvor mange samtaler og meldinger denne agenten håndterer, og hvordan folk vurderer svarene."
         },
         "chat_errors": {
             "contact_admin": "Kontakt administrator",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Hei! Kan du hjelpe meg?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Skjemaer vises bare i chat-widgeten og kommandolinjen.",
-            "delete_with_leads": "Dette sletter også {count} lead. Denne handlingen kan ikke angres. | Dette sletter også {count} leads. Denne handlingen kan ikke angres."
+            "delete_with_leads": "Dette sletter også {count} lead. Denne handlingen kan ikke angres. | Dette sletter også {count} leads. Denne handlingen kan ikke angres.",
+            "page_description": "Skjemaer agenten kan vise i chatten for å samle inn opplysninger, for eksempel en tilbudsforespørsel eller en bestilling."
         },
         "submissions": {
             "page_title": "Innsendinger",

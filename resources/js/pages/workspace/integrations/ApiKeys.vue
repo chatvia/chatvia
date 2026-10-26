@@ -157,39 +157,37 @@ const dismissDialog = () => {
                     </Button>
                 </div>
 
-                <div v-else class="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="h-11 ps-5">{{ t('workspace.api_keys.table.name') }}</TableHead>
-                                <TableHead class="h-11 w-40">{{ t('workspace.api_keys.table.created') }}</TableHead>
-                                <TableHead class="h-11 w-40">{{ t('workspace.api_keys.table.last_used') }}</TableHead>
-                                <TableHead class="h-11 w-16 pe-5 text-end">{{ t('workspace.api_keys.table.revoke') }}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="token in tokens" :key="token.id">
-                                <TableCell class="py-4 ps-5">
-                                    <div class="flex items-center gap-4">
-                                        <div class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
-                                            <KeyRound class="text-muted-foreground size-5" />
-                                        </div>
-                                        <p class="leading-tight font-medium">{{ token.name }}</p>
+                <Table v-else>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 ps-5">{{ t('workspace.api_keys.table.name') }}</TableHead>
+                            <TableHead class="h-11 w-40">{{ t('workspace.api_keys.table.created') }}</TableHead>
+                            <TableHead class="h-11 w-40">{{ t('workspace.api_keys.table.last_used') }}</TableHead>
+                            <TableHead class="h-11 w-16 pe-5 text-end">{{ t('workspace.api_keys.table.revoke') }}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="token in tokens" :key="token.id">
+                            <TableCell class="py-4 ps-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
+                                        <KeyRound class="text-muted-foreground size-5" />
                                     </div>
-                                </TableCell>
-                                <TableCell class="text-muted-foreground py-4 text-sm">{{ token.created_at ?? '—' }}</TableCell>
-                                <TableCell class="text-muted-foreground py-4 text-sm">
-                                    {{ token.last_used_at ?? t('workspace.api_keys.never') }}
-                                </TableCell>
-                                <TableCell class="py-4 pe-5 text-end">
-                                    <Button variant="ghost" size="icon" :aria-label="t('workspace.api_keys.revoke_aria')" @click="revoke(token)">
-                                        <Trash2 class="size-4 text-red-600" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                                    <p class="leading-tight font-medium">{{ token.name }}</p>
+                                </div>
+                            </TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-sm">{{ token.created_at ?? '—' }}</TableCell>
+                            <TableCell class="text-muted-foreground py-4 text-sm">
+                                {{ token.last_used_at ?? t('workspace.api_keys.never') }}
+                            </TableCell>
+                            <TableCell class="py-4 pe-5 text-end">
+                                <Button variant="ghost" size="icon" :aria-label="t('workspace.api_keys.revoke_aria')" @click="revoke(token)">
+                                    <Trash2 class="size-4 text-red-600" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
 
             <!-- Generate a new key -->

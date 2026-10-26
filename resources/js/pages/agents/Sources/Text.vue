@@ -13,7 +13,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.text')">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.text')" :description="t('agents.sources.page_description.text')">
         <TextComponent :agent="agent" />
     </AgentLayout>
 </template>

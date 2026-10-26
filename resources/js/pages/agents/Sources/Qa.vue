@@ -13,7 +13,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.qa')">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.qa')" :description="t('agents.sources.page_description.qa')">
         <QaComponent :agent="agent" />
     </AgentLayout>
 </template>

@@ -950,7 +950,8 @@
                     "tokens_note": "Samlede tokens forbrugt af denne kørsel"
                 },
                 "back": "Tilbage til evalueringer",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Sådan klarede agenten hver testcase i denne kørsel."
             },
             "index": {
                 "title": "Evalueringer",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Opdater månedligt",
                 "refresh_saved": "Automatisk opdatering gemt.",
                 "refresh_failed": "Kunne ikke gemme automatisk opdatering."
+            },
+            "page_description": {
+                "sources": "Tilføj det indhold, din agent lærer af og svarer ud fra.",
+                "files": "Upload dokumenter, som din agent kan lære af.",
+                "web": "Tilføj sider fra et websted, som din agent kan lære af.",
+                "text": "Skriv eller indsæt tekst, som din agent kan lære af.",
+                "qa": "Skriv svar på de spørgsmål, folk stiller oftest.",
+                "youtube": "Tilføj YouTube-videoer. Din agent lærer af deres transskriptioner.",
+                "audio": "Upload eller optag lyd. Din agent lærer af transskriptionen.",
+                "video": "Upload videoer. Din agent lærer af deres transskriptioner.",
+                "markdown": "Upload Markdown-filer, som din agent kan lære af."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Samtaler",
             "chart_tooltip_conversations": "{date}: {count} samtaler",
             "chart_tooltip_change": "Ændring: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} samtaler"
+            "chart_tooltip_count": "{count} samtaler",
+            "description": "Se hvor mange samtaler og beskeder denne agent håndterer, og hvordan folk bedømmer dens svar."
         },
         "chat_errors": {
             "contact_admin": "Kontakt administrator",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Hej! Kan du hjælpe mig?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formularer vises kun i chat-widgetten og kommandolinjen.",
-            "delete_with_leads": "Dette sletter også {count} lead. Denne handling kan ikke fortrydes. | Dette sletter også {count} leads. Denne handling kan ikke fortrydes."
+            "delete_with_leads": "Dette sletter også {count} lead. Denne handling kan ikke fortrydes. | Dette sletter også {count} leads. Denne handling kan ikke fortrydes.",
+            "page_description": "Formularer, som agenten kan vise i chatten for at indsamle oplysninger, fx en tilbudsforespørgsel eller en booking."
         },
         "submissions": {
             "page_title": "Indsendelser",

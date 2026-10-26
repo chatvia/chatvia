@@ -1,8 +1,12 @@
 <script setup lang="ts">
 /**
- * The title row of an agent page: optional icon, title and description, the
- * page's own actions, and a badge showing whether the agent is public (eye)
- * or protected (lock).
+ * The title row of an agent page: title and description, the page's own
+ * actions, and a badge showing whether the agent is public (eye) or protected
+ * (lock). Every agent page shows the same header, so pages never repeat their
+ * title in the body.
+ *
+ * Slots: `description` (replaces the description text, for one with a link)
+ * and `actions`.
  */
 import { Badge } from '@/components/ui/badge';
 import { Eye, Lock } from 'lucide-vue-next';
@@ -16,14 +20,13 @@ defineProps<{
 
 <template>
     <div class="bg-background border-border border-b px-4 py-4 lg:px-6">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-4">
             <div class="min-w-0 flex-1">
-                <h1 class="text-foreground flex items-center gap-2 truncate text-lg font-semibold lg:text-xl">
-                    <slot name="icon" />
+                <h1 class="text-foreground truncate text-lg font-semibold lg:text-xl">
                     {{ title }}
                 </h1>
-                <p v-if="description" class="text-muted-foreground mt-1 hidden text-xs sm:block lg:text-sm">
-                    {{ description }}
+                <p v-if="description || $slots.description" class="text-muted-foreground mt-1 hidden text-xs sm:block lg:text-sm">
+                    <slot name="description">{{ description }}</slot>
                 </p>
             </div>
 

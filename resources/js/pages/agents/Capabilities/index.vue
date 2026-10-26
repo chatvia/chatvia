@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { type AgentCapabilityRow, disableCapability, enableCapability } from '@/api/agentCapabilities';
 import { errorMessage } from '@/api/http';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useConnectorText } from '@/composables/useConnectorText';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { connectorLogoUrl } from '@/lib/connectorLogo';
-import { LoaderCircle, Sparkles } from 'lucide-vue-next';
+import { LoaderCircle } from 'lucide-vue-next';
 import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -47,45 +46,34 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.capabilities.page_title')">
+    <AgentLayout :agent="agent" :title="t('agents.capabilities.page_title')" :description="t('agents.capabilities.description')">
         <div class="flex justify-center">
             <div class="w-full max-w-4xl space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <Sparkles class="h-5 w-5" />
-                            {{ t('agents.capabilities.title') }}
-                        </CardTitle>
-                        <CardDescription>{{ t('agents.capabilities.description') }}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-if="rows.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
-                            {{ t('agents.capabilities.empty') }}
-                        </div>
+                <div v-if="rows.length === 0" class="bg-card text-muted-foreground rounded-lg border py-12 text-center text-sm">
+                    {{ t('agents.capabilities.empty') }}
+                </div>
 
-                        <div v-else class="divide-y rounded-lg border">
-                            <div v-for="row in rows" :key="row.connector.slug" class="flex items-center gap-4 p-4">
-                                <div
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                                    :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
-                                >
-                                    <img :src="connectorLogoUrl(row.connector)" :alt="connectorName(row.connector)" class="h-5 w-5" />
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="leading-tight font-medium">{{ connectorName(row.connector) }}</p>
-                                    <p class="text-muted-foreground mt-1 text-xs">{{ connectorDescription(row.connector) }}</p>
-                                </div>
-                                <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />
-                                <Switch
-                                    :model-value="row.enabled"
-                                    :disabled="busy[row.connector.slug]"
-                                    :aria-label="connectorName(row.connector)"
-                                    @update:model-value="toggle(row)"
-                                />
-                            </div>
+                <div v-else class="bg-card divide-y rounded-lg border">
+                    <div v-for="row in rows" :key="row.connector.slug" class="flex items-center gap-4 p-4">
+                        <div
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                            :style="{ backgroundColor: '#' + row.connector.brandColor + '15' }"
+                        >
+                            <img :src="connectorLogoUrl(row.connector)" :alt="connectorName(row.connector)" class="h-5 w-5" />
                         </div>
-                    </CardContent>
-                </Card>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight font-medium">{{ connectorName(row.connector) }}</p>
+                            <p class="text-muted-foreground mt-1 text-xs">{{ connectorDescription(row.connector) }}</p>
+                        </div>
+                        <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />
+                        <Switch
+                            :model-value="row.enabled"
+                            :disabled="busy[row.connector.slug]"
+                            :aria-label="connectorName(row.connector)"
+                            @update:model-value="toggle(row)"
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     </AgentLayout>

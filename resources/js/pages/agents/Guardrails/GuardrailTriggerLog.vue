@@ -170,53 +170,51 @@ const detailRows = (detail: unknown): { label: string; value: string }[] => {
             </div>
         </div>
 
-        <div class="bg-card rounded-lg border">
-            <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>{{ t('agents.guardrails.table.by') }}</TableHead>
-                        <TableHead>{{ t('agents.guardrails.table.guard') }}</TableHead>
-                        <TableHead>{{ t('agents.guardrails.table.stage') }}</TableHead>
-                        <TableHead>{{ t('agents.guardrails.table.outcome') }}</TableHead>
-                        <TableHead>{{ t('agents.guardrails.table.severity') }}</TableHead>
-                        <TableHead class="text-end">{{ t('agents.guardrails.table.when') }}</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow v-for="row in triggers.data" :key="row.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(row)">
-                        <TableCell>
-                            <div class="flex items-center gap-2">
-                                <Avatar class="size-7">
-                                    <AvatarImage v-if="row.user_name && row.avatar" :src="row.avatar" :alt="row.user_name" />
-                                    <AvatarFallback class="text-xs">
-                                        <template v-if="row.user_name">{{ getInitials(row.user_name) }}</template>
-                                        <User v-else class="text-muted-foreground size-3.5" />
-                                    </AvatarFallback>
-                                </Avatar>
-                                <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{ personLabel(row) }}</span>
-                                <Badge v-if="row.offender?.blocked" variant="destructive" class="font-normal">{{
-                                    t('agents.guardrails.block.blocked')
-                                }}</Badge>
-                            </div>
-                        </TableCell>
-                        <TableCell
-                            ><Badge variant="outline">{{ guardLabel(row.guard_type) }}</Badge></TableCell
-                        >
-                        <TableCell class="text-muted-foreground text-sm">{{ stageLabel(row.stage) }}</TableCell>
-                        <TableCell
-                            ><Badge :variant="outcomeVariant(row.outcome)">{{ outcomeLabel(row.outcome) }}</Badge></TableCell
-                        >
-                        <TableCell class="text-muted-foreground text-sm">{{ severityLabel(row.severity) }}</TableCell>
-                        <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{ formatDateTime(row.created_at) }}</TableCell>
-                    </TableRow>
-                    <TableRow v-if="triggers.data.length === 0">
-                        <TableCell colspan="6" class="text-muted-foreground py-10 text-center text-sm">
-                            {{ t('agents.guardrails.no_triggers') }}
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </div>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>{{ t('agents.guardrails.table.by') }}</TableHead>
+                    <TableHead>{{ t('agents.guardrails.table.guard') }}</TableHead>
+                    <TableHead>{{ t('agents.guardrails.table.stage') }}</TableHead>
+                    <TableHead>{{ t('agents.guardrails.table.outcome') }}</TableHead>
+                    <TableHead>{{ t('agents.guardrails.table.severity') }}</TableHead>
+                    <TableHead class="text-end">{{ t('agents.guardrails.table.when') }}</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                <TableRow v-for="row in triggers.data" :key="row.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(row)">
+                    <TableCell>
+                        <div class="flex items-center gap-2">
+                            <Avatar class="size-7">
+                                <AvatarImage v-if="row.user_name && row.avatar" :src="row.avatar" :alt="row.user_name" />
+                                <AvatarFallback class="text-xs">
+                                    <template v-if="row.user_name">{{ getInitials(row.user_name) }}</template>
+                                    <User v-else class="text-muted-foreground size-3.5" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{ personLabel(row) }}</span>
+                            <Badge v-if="row.offender?.blocked" variant="destructive" class="font-normal">{{
+                                t('agents.guardrails.block.blocked')
+                            }}</Badge>
+                        </div>
+                    </TableCell>
+                    <TableCell
+                        ><Badge variant="outline">{{ guardLabel(row.guard_type) }}</Badge></TableCell
+                    >
+                    <TableCell class="text-muted-foreground text-sm">{{ stageLabel(row.stage) }}</TableCell>
+                    <TableCell
+                        ><Badge :variant="outcomeVariant(row.outcome)">{{ outcomeLabel(row.outcome) }}</Badge></TableCell
+                    >
+                    <TableCell class="text-muted-foreground text-sm">{{ severityLabel(row.severity) }}</TableCell>
+                    <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{ formatDateTime(row.created_at) }}</TableCell>
+                </TableRow>
+                <TableRow v-if="triggers.data.length === 0">
+                    <TableCell colspan="6" class="text-muted-foreground py-10 text-center text-sm">
+                        {{ t('agents.guardrails.no_triggers') }}
+                    </TableCell>
+                </TableRow>
+            </TableBody>
+        </Table>
 
         <div v-if="triggers.last_page > 1" class="flex items-center justify-between">
             <span class="text-muted-foreground text-sm">{{

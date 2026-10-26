@@ -16,7 +16,7 @@ import type {
     DimensionSummaryCard,
 } from '@/components/analytics/messageDimension';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { SmilePlus } from 'lucide-vue-next';
+
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -77,10 +77,6 @@ const summaryCards = computed<DimensionSummaryCard<SentimentBucket>[]>(() => [
 
 <template>
     <AgentLayout :agent="agent" :title="t('agents.sentiment.title')" :description="t('agents.sentiment.description')">
-        <template #header-icon>
-            <SmilePlus class="h-5 w-5" />
-        </template>
-
         <MessageDimensionAnalytics
             :agent="agent"
             :enabled="enabled"

@@ -9,7 +9,7 @@ import DeleteSourceDialog from '@/components/agents/sources/DeleteSourceDialog.v
 import QaEntryCard from '@/components/agents/sources/qa/QaEntryCard.vue';
 import QaEntryForm from '@/components/agents/sources/qa/QaEntryForm.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useQaEntries } from '@/composables/agents/sources/useQaEntries';
 import { HelpCircle, LoaderCircle, Plus } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -62,23 +62,12 @@ fetchEntries();
 <template>
     <div class="flex justify-center">
         <div class="w-full max-w-6xl space-y-6">
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <CardTitle class="flex items-center gap-2">
-                                <HelpCircle class="h-5 w-5" />
-                                {{ t('agents.sources.qa.title') }}
-                            </CardTitle>
-                            <CardDescription>{{ t('agents.sources.qa.description') }}</CardDescription>
-                        </div>
-                        <Button size="sm" @click="openCreateForm">
-                            <Plus class="me-2 h-4 w-4" />
-                            {{ t('agents.sources.qa.add') }}
-                        </Button>
-                    </div>
-                </CardHeader>
-            </Card>
+            <div class="flex justify-end">
+                <Button size="sm" @click="openCreateForm">
+                    <Plus class="me-2 h-4 w-4" />
+                    {{ t('agents.sources.qa.add') }}
+                </Button>
+            </div>
 
             <QaEntryForm
                 v-if="openForm"

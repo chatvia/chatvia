@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Se hvor mange samtaler og beskeder denne agent håndterer, og hvordan folk bedømmer dens svar."
+        },
+        "forms": {
+            "page_description": "Formularer, som agenten kan vise i chatten for at indsamle oplysninger, fx en tilbudsforespørgsel eller en booking."
+        },
+        "evals": {
+            "run": {
+                "description": "Sådan klarede agenten hver testcase i denne kørsel."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Tilføj det indhold, din agent lærer af og svarer ud fra.",
+                "files": "Upload dokumenter, som din agent kan lære af.",
+                "web": "Tilføj sider fra et websted, som din agent kan lære af.",
+                "text": "Skriv eller indsæt tekst, som din agent kan lære af.",
+                "qa": "Skriv svar på de spørgsmål, folk stiller oftest.",
+                "youtube": "Tilføj YouTube-videoer. Din agent lærer af deres transskriptioner.",
+                "audio": "Upload eller optag lyd. Din agent lærer af transskriptionen.",
+                "video": "Upload videoer. Din agent lærer af deres transskriptioner.",
+                "markdown": "Upload Markdown-filer, som din agent kan lære af."
+            }
+        }
+    }
+}

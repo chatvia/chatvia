@@ -143,48 +143,46 @@ const prettyMetadata = (row: Row): string => {
                     </div>
                 </div>
 
-                <div class="bg-card rounded-lg border">
-                    <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{{ t('workspace.security_audit.table.actor') }}</TableHead>
-                                <TableHead>{{ t('workspace.security_audit.table.action') }}</TableHead>
-                                <TableHead>{{ t('workspace.security_audit.table.outcome') }}</TableHead>
-                                <TableHead>{{ t('workspace.security_audit.table.ip') }}</TableHead>
-                                <TableHead class="text-end">{{ t('workspace.security_audit.table.when') }}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="row in rows.data" :key="row.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(row)">
-                                <TableCell>
-                                    <div class="flex items-center gap-2">
-                                        <Avatar class="size-7">
-                                            <AvatarImage v-if="row.user_name && row.avatar" :src="row.avatar" :alt="row.user_name" />
-                                            <AvatarFallback class="text-xs">
-                                                <template v-if="row.user_name">{{ getInitials(row.user_name) }}</template>
-                                                <User v-else class="text-muted-foreground size-3.5" />
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
-                                            row.user_name ?? t('workspace.security_audit.system')
-                                        }}</span>
-                                    </div>
-                                </TableCell>
-                                <TableCell class="text-sm">{{ row.action_label }}</TableCell>
-                                <TableCell>
-                                    <Badge :variant="outcomeVariant(row.outcome)" class="capitalize">{{ row.outcome }}</Badge>
-                                </TableCell>
-                                <TableCell class="text-muted-foreground font-mono text-xs">{{ row.ip ?? '—' }}</TableCell>
-                                <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{ formatDateTime(row.created_at) }}</TableCell>
-                            </TableRow>
-                            <TableRow v-if="rows.data.length === 0">
-                                <TableCell colspan="5" class="text-muted-foreground py-10 text-center text-sm">
-                                    {{ t('workspace.security_audit.empty') }}
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>{{ t('workspace.security_audit.table.actor') }}</TableHead>
+                            <TableHead>{{ t('workspace.security_audit.table.action') }}</TableHead>
+                            <TableHead>{{ t('workspace.security_audit.table.outcome') }}</TableHead>
+                            <TableHead>{{ t('workspace.security_audit.table.ip') }}</TableHead>
+                            <TableHead class="text-end">{{ t('workspace.security_audit.table.when') }}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="row in rows.data" :key="row.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(row)">
+                            <TableCell>
+                                <div class="flex items-center gap-2">
+                                    <Avatar class="size-7">
+                                        <AvatarImage v-if="row.user_name && row.avatar" :src="row.avatar" :alt="row.user_name" />
+                                        <AvatarFallback class="text-xs">
+                                            <template v-if="row.user_name">{{ getInitials(row.user_name) }}</template>
+                                            <User v-else class="text-muted-foreground size-3.5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
+                                        row.user_name ?? t('workspace.security_audit.system')
+                                    }}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell class="text-sm">{{ row.action_label }}</TableCell>
+                            <TableCell>
+                                <Badge :variant="outcomeVariant(row.outcome)" class="capitalize">{{ row.outcome }}</Badge>
+                            </TableCell>
+                            <TableCell class="text-muted-foreground font-mono text-xs">{{ row.ip ?? '—' }}</TableCell>
+                            <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{ formatDateTime(row.created_at) }}</TableCell>
+                        </TableRow>
+                        <TableRow v-if="rows.data.length === 0">
+                            <TableCell colspan="5" class="text-muted-foreground py-10 text-center text-sm">
+                                {{ t('workspace.security_audit.empty') }}
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
 
                 <div v-if="rows.prev_page_url || rows.next_page_url" class="flex justify-end gap-2">
                     <Button variant="outline" size="sm" :disabled="!rows.prev_page_url" @click="go(rows.prev_page_url)">

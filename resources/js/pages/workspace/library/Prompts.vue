@@ -84,34 +84,32 @@ function refreshPrompts(): void {
                     {{ t('workspace.prompts.no_results') }}
                 </div>
 
-                <div v-else class="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="h-11 ps-5">{{ t('workspace.prompts.table.prompt') }}</TableHead>
-                                <TableHead class="h-11 w-28">{{ t('workspace.prompts.table.agents') }}</TableHead>
-                                <TableHead class="h-11 w-40 pe-5">{{ t('workspace.prompts.table.created') }}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="p in filtered" :key="p.id" class="hover:bg-muted/40 cursor-pointer" @click="openEdit(p)">
-                                <TableCell class="py-4 ps-5">
-                                    <div class="flex items-center gap-4">
-                                        <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
-                                            <MessageSquareText class="text-muted-foreground h-5 w-5" />
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="truncate text-sm font-medium">{{ p.name }}</p>
-                                            <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ p.prompt }}</p>
-                                        </div>
+                <Table v-else>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 ps-5">{{ t('workspace.prompts.table.prompt') }}</TableHead>
+                            <TableHead class="h-11 w-28">{{ t('workspace.prompts.table.agents') }}</TableHead>
+                            <TableHead class="h-11 w-40 pe-5">{{ t('workspace.prompts.table.created') }}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="p in filtered" :key="p.id" class="hover:bg-muted/40 cursor-pointer" @click="openEdit(p)">
+                            <TableCell class="py-4 ps-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                        <MessageSquareText class="text-muted-foreground h-5 w-5" />
                                     </div>
-                                </TableCell>
-                                <TableCell class="py-4 text-sm">{{ p.agents_count }}</TableCell>
-                                <TableCell class="text-muted-foreground py-4 pe-5 text-sm">{{ p.created_at }}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium">{{ p.name }}</p>
+                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ p.prompt }}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell class="py-4 text-sm">{{ p.agents_count }}</TableCell>
+                            <TableCell class="text-muted-foreground py-4 pe-5 text-sm">{{ p.created_at }}</TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
 
             <PromptFormSheet v-model:open="sheetOpen" :prompt="editing" @changed="refreshPrompts" />

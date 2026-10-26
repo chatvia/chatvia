@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "See how many conversations and messages this agent handles, and how people rate its answers."
+        },
+        "forms": {
+            "page_description": "Forms the agent can show in the chat to collect details, like a quote request or a booking."
+        },
+        "evals": {
+            "run": {
+                "description": "How the agent did on each test case in this run."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Add the content your agent learns from and answers with.",
+                "files": "Upload documents for your agent to learn from.",
+                "web": "Add pages from a website for your agent to learn from.",
+                "text": "Write or paste text for your agent to learn from.",
+                "qa": "Write answers to the questions people ask most.",
+                "youtube": "Add YouTube videos. Your agent learns from their transcripts.",
+                "audio": "Upload or record audio. Your agent learns from the transcript.",
+                "video": "Upload videos. Your agent learns from their transcripts.",
+                "markdown": "Upload Markdown files for your agent to learn from."
+            }
+        }
+    }
+}

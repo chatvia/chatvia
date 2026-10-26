@@ -16,7 +16,7 @@ import type {
     DimensionSummaryCard,
 } from '@/components/analytics/messageDimension';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { MessageCircle } from 'lucide-vue-next';
+
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -80,10 +80,6 @@ const summaryCards = computed<DimensionSummaryCard<ToneBucket>[]>(() => [
 
 <template>
     <AgentLayout :agent="agent" :title="t('agents.tone.title')" :description="t('agents.tone.description')">
-        <template #header-icon>
-            <MessageCircle class="h-5 w-5" />
-        </template>
-
         <MessageDimensionAnalytics
             :agent="agent"
             :enabled="enabled"

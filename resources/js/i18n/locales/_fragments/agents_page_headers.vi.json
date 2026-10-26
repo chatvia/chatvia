@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Xem trợ lý AI này xử lý bao nhiêu cuộc trò chuyện và tin nhắn, và mọi người đánh giá câu trả lời ra sao."
+        },
+        "forms": {
+            "page_description": "Các biểu mẫu trợ lý AI có thể hiển thị trong cuộc trò chuyện để thu thập thông tin, như yêu cầu báo giá hoặc đặt lịch."
+        },
+        "evals": {
+            "run": {
+                "description": "Kết quả của trợ lý AI ở từng trường hợp kiểm thử trong lần chạy này."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Thêm nội dung mà trợ lý AI của bạn học và dùng để trả lời.",
+                "files": "Tải lên tài liệu để trợ lý AI của bạn học.",
+                "web": "Thêm các trang từ một trang web để trợ lý AI của bạn học.",
+                "text": "Viết hoặc dán văn bản để trợ lý AI của bạn học.",
+                "qa": "Viết câu trả lời cho những câu hỏi thường gặp nhất.",
+                "youtube": "Thêm video YouTube. Trợ lý AI của bạn học từ bản chép lời.",
+                "audio": "Tải lên hoặc ghi âm. Trợ lý AI của bạn học từ bản chép lời.",
+                "video": "Tải lên video. Trợ lý AI của bạn học từ bản chép lời.",
+                "markdown": "Tải lên tệp Markdown để trợ lý AI của bạn học."
+            }
+        }
+    }
+}

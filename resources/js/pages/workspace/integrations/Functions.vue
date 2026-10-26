@@ -94,45 +94,43 @@ function refreshFunctions(): void {
                     {{ t('workspace.functions.no_results') }}
                 </div>
 
-                <div v-else class="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="h-11 ps-5">{{ t('workspace.functions.table.name') }}</TableHead>
-                                <TableHead class="h-11 w-28">{{ t('workspace.functions.table.method') }}</TableHead>
-                                <TableHead class="h-11 w-28">{{ t('workspace.functions.table.agents') }}</TableHead>
-                                <TableHead class="h-11 w-28 pe-5 text-end">{{ t('workspace.functions.table.enabled') }}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="fn in filtered" :key="fn.id" class="hover:bg-muted/40 cursor-pointer" @click="openEdit(fn)">
-                                <TableCell class="py-4 ps-5">
-                                    <div class="flex items-center gap-4">
-                                        <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
-                                            <Code class="text-muted-foreground h-5 w-5" />
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="truncate text-sm font-medium" :class="{ 'font-mono': !fn.display_name }">
-                                                {{ fn.display_name || fn.internal_name }}
-                                            </p>
-                                            <p v-if="fn.display_name" class="text-muted-foreground truncate font-mono text-xs">
-                                                {{ fn.internal_name }}
-                                            </p>
-                                            <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ fn.description }}</p>
-                                        </div>
+                <Table v-else>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead class="h-11 ps-5">{{ t('workspace.functions.table.name') }}</TableHead>
+                            <TableHead class="h-11 w-28">{{ t('workspace.functions.table.method') }}</TableHead>
+                            <TableHead class="h-11 w-28">{{ t('workspace.functions.table.agents') }}</TableHead>
+                            <TableHead class="h-11 w-28 pe-5 text-end">{{ t('workspace.functions.table.enabled') }}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="fn in filtered" :key="fn.id" class="hover:bg-muted/40 cursor-pointer" @click="openEdit(fn)">
+                            <TableCell class="py-4 ps-5">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                        <Code class="text-muted-foreground h-5 w-5" />
                                     </div>
-                                </TableCell>
-                                <TableCell class="py-4">
-                                    <Badge variant="secondary" class="font-mono text-xs">{{ fn.webhook_method }}</Badge>
-                                </TableCell>
-                                <TableCell class="py-4 text-sm">{{ fn.agents_count }}</TableCell>
-                                <TableCell class="py-4 pe-5 text-end" @click.stop>
-                                    <Switch :model-value="fn.is_enabled" @update:model-value="toggleEnabled(fn)" />
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium" :class="{ 'font-mono': !fn.display_name }">
+                                            {{ fn.display_name || fn.internal_name }}
+                                        </p>
+                                        <p v-if="fn.display_name" class="text-muted-foreground truncate font-mono text-xs">
+                                            {{ fn.internal_name }}
+                                        </p>
+                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ fn.description }}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell class="py-4">
+                                <Badge variant="secondary" class="font-mono text-xs">{{ fn.webhook_method }}</Badge>
+                            </TableCell>
+                            <TableCell class="py-4 text-sm">{{ fn.agents_count }}</TableCell>
+                            <TableCell class="py-4 pe-5 text-end" @click.stop>
+                                <Switch :model-value="fn.is_enabled" @update:model-value="toggleEnabled(fn)" />
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
 
             <FunctionFormSheet v-model:open="sheetOpen" :func="editing" @changed="refreshFunctions" />

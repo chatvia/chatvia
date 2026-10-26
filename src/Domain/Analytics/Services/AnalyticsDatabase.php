@@ -24,4 +24,14 @@ class AnalyticsDatabase
     {
         return $this->connection()->table($table);
     }
+
+    /**
+     * The version of pg_partman in the analytics database, or null without
+     * it: then `analytics_events` has only its default partition, so the log
+     * is one table that grows, and old events are deleted row by row.
+     */
+    public function partmanVersion(): ?string
+    {
+        return $this->table('pg_extension')->where('extname', 'pg_partman')->value('extversion');
+    }
 }

@@ -179,6 +179,43 @@ it('on ClientDisconnected does not surface an error and keeps the partial answer
         ->and($cached->assistant_message_id)->toBe($context->assistantMessageId);
 });
 
+/** The replies a scripted turn saved, through a recorder the test can read. */
+function lsSavedAfter(ToolLoopRunner $runner, ChatContext $context): RecordingReplyRecorder
+{
+    $recorder = new RecordingReplyRecorder;
+    $source = new LlmSource(
+        providers: new FakeLlmProviders(new CannedLlmProvider),
+        replyRecorder: $recorder,
+        dedupe: new RequestDedupeStore,
+        toolSelector: new NoToolSelector,
+        runner: $runner,
+        guardrails: app(GuardrailService::class),
+        guardrailRecorder: app(GuardrailRecorder::class),
+    );
+    iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hi']]), preserve_keys: false);
+
+    return $recorder;
+}
+
+it('saves nothing for a turn cut off before it wrote, made or ran anything', function (): void {
+    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        yield StreamEvent::delta($ctx->assistantMessageId, '');
+        throw new ClientDisconnected;
+    });
+
+    expect(lsSavedAfter($runner, lsContext())->saved)->toBe([]);
+});
+
+it('saves a turn cut off after a tool asked for a file, so a reload does not ask again', function (): void {
+    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        $ctx->artifacts = [['kind' => 'image', 'data' => ['id' => 'm1', 'status' => 'pending']]];
+        yield StreamEvent::delta($ctx->assistantMessageId, '');
+        throw new ClientDisconnected;
+    });
+
+    expect(lsSavedAfter($runner, lsContext())->saved)->toBe(['']);
+});
+
 it('on UpstreamStreamClosed surfaces a user-friendly upstream-unavailable error and done(error)', function (): void {
     $context = lsContext();
 

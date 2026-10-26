@@ -20,6 +20,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
 use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationGeneratedMediaController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessageController;
+use App\Http\Controllers\Chat\Conversations\ConversationReplyStatusController;
 use App\Http\Controllers\Chat\Conversations\ConversationSearchController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Conversations\GenerateConversationTitleController;
@@ -123,6 +124,9 @@ Route::prefix('chat/{agentSlug}')
             // is still being made and no live update has come.
             Route::get('conversations/{conversationId}/media', ConversationGeneratedMediaController::class)
                 ->whereUuid('conversationId')->name('conversations.media');
+            // Whether a reply is still being written, for a chat reloaded mid-reply.
+            Route::get('conversations/{conversationId}/reply-status', ConversationReplyStatusController::class)
+                ->whereUuid('conversationId')->name('conversations.reply-status');
             // Permission to listen for those live updates, under the chat's own session.
             Route::post('broadcasting/auth', ChatBroadcastAuthController::class)->name('chat.broadcasting.auth');
             Route::post('conversations/{conversationId}/title', GenerateConversationTitleController::class)

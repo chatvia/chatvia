@@ -88,7 +88,7 @@ it('skips the summary, without any LLM call, when no model reads PDF files or su
     Http::assertNothingSent();
 })->with([
     'no model reads PDF files' => [fn () => config(['chatvia.ai.source_summaries.model' => (string) testLlm('text-only', LlmProviderKind::Mistral, ['capabilities' => ['modalities' => ['input' => ['text']]]])->id])],
-    'summaries off' => [fn () => useSourceSummaries(false)],
+    'summaries off' => [fn (): ?\Domain\Llm\Models\Llm => useSourceSummaries(false)],
 ]);
 
 it('skips a source that already has its summary, so a retry does not pay for it twice', function (): void {

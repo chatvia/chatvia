@@ -12,11 +12,11 @@ use Illuminate\Foundation\Events\Dispatchable;
  * serve that model (HTTP 404), so {@see QueueLlmListingCheck} asks the
  * provider's list whether it still does.
  */
-final class LlmCallRefused
+final readonly class LlmCallRefused
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly int $llmId,
+        public int $llmId,
     ) {}
 }

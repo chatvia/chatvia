@@ -212,7 +212,7 @@ class DomainServiceProvider extends ServiceProvider
 
             // Only the admin's choice picks the service: none chosen yet
             // means no embeddings, never a fallback to some other service.
-            if ($configured === null) {
+            if (! $configured instanceof EmbeddingProvider) {
                 return $app->make(UnconfiguredEmbeddings::class);
             }
 

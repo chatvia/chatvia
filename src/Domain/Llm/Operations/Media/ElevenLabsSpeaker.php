@@ -48,7 +48,7 @@ class ElevenLabsSpeaker implements Speaker
                     ->body()))
                 ->implode('');
         } catch (Throwable $e) {
-            throw new SpeechFailedException('ElevenLabs could not read the text: '.$e->getMessage(), previous: $e);
+            throw new SpeechFailedException('ElevenLabs could not read the text: '.$e->getMessage(), $e->getCode(), previous: $e);
         }
     }
 

@@ -83,7 +83,7 @@ final readonly class LlmChat
      */
     private function reportRefusal(ChatRequestData $request, Throwable $e): void
     {
-        if ($this->provider === null && LlmFailure::of($e) === LlmFailure::ModelUnavailable) {
+        if (! $this->provider instanceof LlmProviderInterface && LlmFailure::of($e) === LlmFailure::ModelUnavailable) {
             LlmCallRefused::dispatch($request->model->id);
         }
     }

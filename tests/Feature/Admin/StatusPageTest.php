@@ -501,9 +501,7 @@ it('names only the services that are down on the alert', function (): void {
         ])
         ->set('aiServices', ['reranking' => $down])
         ->assertDontSee('display: none', false)
-        ->assertSee('2 services are down')
-        ->assertSeeInOrder(['Laravel Horizon', 'Reranking', 'View status'])
-        ->assertSee('href="'.Status::getUrl().'"', false)
+        ->assertSee('2 services are down')->assertSeeInOrder(['Laravel Horizon', 'Reranking', 'View status'])->assertSeeHtml('href="'.Status::getUrl().'"')
         ->assertDontSee('Horizon is not running.')
         ->assertDontSee('PostgreSQL')
         ->assertDontSee('Email');

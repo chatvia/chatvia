@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Str;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
@@ -48,7 +49,7 @@ enum LlmFailure: string
             return self::fromResponse($e->response->status(), $e->response->body());
         }
 
-        if ($e instanceof GuzzleRequestException && $e->getResponse() !== null) {
+        if ($e instanceof GuzzleRequestException && $e->getResponse() instanceof ResponseInterface) {
             return self::fromResponse($e->getResponse()->getStatusCode(), (string) $e->getResponse()->getBody());
         }
 

@@ -43,7 +43,7 @@ it('takes a whole float as an integer', function (): void {
 });
 
 it('refuses arguments that do not fit the schema', function (array $arguments, string $reason): void {
-    expect(fn () => new ToolArgumentValidator()->validated($this->schema, $arguments))
+    expect(fn (): array => new ToolArgumentValidator()->validated($this->schema, $arguments))
         ->toThrow(InvalidToolArgumentsException::class, $reason);
 })->with([
     'missing required' => [['count' => 1], '"order_id" is required'],

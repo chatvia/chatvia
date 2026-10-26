@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Llm\Data\Speech\SpeechVoiceData;
 use Domain\Llm\Enums\SpeechFormat;
 use Domain\Llm\Operations\Media\OpenAiSpeaker;
 
@@ -21,7 +22,7 @@ it('offers the realtime voices, with the configured one as the default', functio
     $speaker = app(OpenAiSpeaker::class);
 
     expect($speaker->defaultVoice())->toBe('cedar')
-        ->and(array_map(fn ($voice): string => $voice->id, $speaker->voices()))->toContain('marin', 'cedar');
+        ->and(array_map(fn (SpeechVoiceData $voice): string => $voice->id, $speaker->voices()))->toContain('marin', 'cedar');
 
     config(['services.openai.speech_voice' => 'nova']);
 

@@ -66,6 +66,6 @@ class BackupSchedule
     {
         $next = $this->nextDueAt();
 
-        return $next !== null && $next->lessThanOrEqualTo(now()->addMinutes(self::SLACK_MINUTES));
+        return $next instanceof CarbonImmutable && $next->lessThanOrEqualTo(now()->addMinutes(self::SLACK_MINUTES));
     }
 }

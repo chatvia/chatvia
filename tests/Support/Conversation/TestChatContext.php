@@ -59,10 +59,10 @@ final class TestChatContext
             chatterId: $chatterId,
             actorUserId: $actorUserId,
             streamSources: $streamSources,
+            source: $source,
             ipAddress: $ipAddress,
             userAgent: $userAgent,
             requestId: $requestId ?? 'req_'.Str::random(12),
-            source: $source,
         );
 
         return new ChatContext(

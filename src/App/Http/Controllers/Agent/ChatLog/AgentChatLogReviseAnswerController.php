@@ -10,6 +10,7 @@ use Domain\Evaluation\Data\KnowledgeQuestionItemData;
 use Domain\Evaluation\Enums\EvalQuestionSource;
 use Domain\Knowledge\Source\Qa\Actions\CreateQaFromMessageReviseAction;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 
 /**
  * Turns an operator's corrected answer from the chat log into a Q&A entry
@@ -42,7 +43,7 @@ class AgentChatLogReviseAnswerController
             'success' => true,
             'message' => __('Q&A entry created successfully. Future similar questions will use this answer.'),
             'qa_id' => $qa->id,
-            'eval_case_created' => $evalCases !== null && $evalCases->isNotEmpty(),
+            'eval_case_created' => $evalCases instanceof Collection && $evalCases->isNotEmpty(),
         ]);
     }
 }

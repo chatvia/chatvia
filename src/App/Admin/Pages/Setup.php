@@ -1576,7 +1576,7 @@ class Setup extends SimplePage
             $field = match (true) {
                 $this->listStatus !== ModelListStatus::Unreachable->value => 'data.api_key',
                 ! $this->account($state) instanceof AiProvider => 'data.server_url',
-                (bool) $this->account($state)?->needsBaseUrl() => 'data.chat_endpoint',
+                $this->account($state)?->needsBaseUrl() => 'data.chat_endpoint',
                 default => 'data.api_key',
             };
 

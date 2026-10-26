@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Messages\MessageSpeechData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
@@ -86,7 +87,7 @@ class SpeakMessageAction
     {
         $live = $this->memory->withScope($scope)->getMessageById($messageId);
 
-        if ($live !== null) {
+        if ($live instanceof MessageData) {
             return $live->role === MessageRole::Assistant && filled($live->content) ? $live->content : null;
         }
 

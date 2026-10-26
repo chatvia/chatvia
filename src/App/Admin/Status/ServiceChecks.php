@@ -10,6 +10,7 @@ use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
 use App\Admin\Status\Data\ServiceCheckData;
 use App\Admin\Status\Data\ServiceStatusData;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
@@ -65,6 +66,7 @@ final readonly class ServiceChecks
         private HorizonWorkers $horizon,
         private ServerProgramFinder $programs,
         private ModelsDevCatalog $catalog,
+        private AnalyticsDatabase $analytics,
     ) {}
 
     public function check(Service $service): ServiceStatusData
@@ -98,6 +100,8 @@ final readonly class ServiceChecks
         /** @var array<string, string> $installed name => version */
         $installed = DB::table('pg_extension')->pluck('extversion', 'extname')->all();
         $missing = array_values(array_diff(self::EXTENSIONS, array_keys($installed)));
+        // Analytics may have a database of its own, so pg_partman is looked for there.
+        $partman = $this->analytics->partmanVersion();
 
         $checks = [
             new ServiceCheckData(__('Version'), 'PostgreSQL '.Str::before($version, ' ')),
@@ -113,6 +117,7 @@ final readonly class ServiceChecks
                 isset($installed[$name]) ? CheckMark::Passed : CheckMark::Skipped,
                 __('Optional'),
             ), self::OPTIONAL_EXTENSIONS),
+            new ServiceCheckData('pg_partman', $partman ?? __('Not installed'), $partman !== null ? CheckMark::Passed : CheckMark::Warning),
             new ServiceCheckData(
                 __('Keyword search'),
                 isset($installed['pg_textsearch']) ? __('pg_textsearch (BM25)') : __('Built-in full-text search'),
@@ -122,6 +127,10 @@ final readonly class ServiceChecks
 
         if ($missing !== []) {
             return new ServiceStatusData(ServiceState::Down, __('Missing extensions: :list.', ['list' => implode(', ', $missing)]), checks: $checks, hint: __('Install them on the database server, then run the migrations again.'));
+        }
+
+        if ($partman === null) {
+            return new ServiceStatusData(ServiceState::Warning, __('pg_partman is not installed: analytics will not work as it should.'), checks: $checks, hint: __('Analytics needs pg_partman to split its message log by month.'), docsUrl: config('chatvia.docs_url').'/guide/how-it-works/background#analytics');
         }
 
         return new ServiceStatusData(ServiceState::Running, __('Every extension is installed.'), checks: $checks);

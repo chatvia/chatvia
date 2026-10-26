@@ -38,6 +38,7 @@ use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
 use Closure;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Knowledge\Embedding\Data\EmbeddingColumnData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
@@ -108,8 +109,10 @@ use Livewire\Attributes\Renderless;
  * 1. Server: the services ChatVia.ai runs on (database, Redis, queue,
  *    scheduler, live updates), checked live as on the Status page, and
  *    keyword search: pg_textsearch is recommended, with why and how to get
- *    it, and turned on here when the database has it loaded. Next with a
- *    service down asks first ({@see serverDownAction()}); nothing is saved.
+ *    it, and turned on here when the database has it loaded; and pg_partman,
+ *    which analytics needs, with a warning and a link to the docs when missing.
+ *    Next with a service down asks first ({@see serverDownAction()});
+ *    nothing is saved.
  * 2. AI provider: the main provider and its key (its model list checks it);
  *    more providers can be added later in Settings → AI providers.
  * 3. Models: the chat models agents can use (one or more, one of them the
@@ -263,6 +266,9 @@ class Setup extends SimplePage
 
     /** How ready pg_textsearch is, read once per request. */
     private ?PgTextsearchState $pgTextsearch = null;
+
+    /** Whether the analytics database has pg_partman, read once per request. */
+    private ?bool $partman = null;
 
     /** The embedding columns as the database has them, read once per request. */
     private ?EmbeddingColumnData $storedColumn = null;
@@ -462,6 +468,11 @@ class Setup extends SimplePage
                     ->icon(Heroicon::OutlinedMagnifyingGlass)
                     ->visible(fn (): bool => $this->pgTextsearchState() !== PgTextsearchState::Active)
                     ->schema([$this->keywordSearchCallout()]),
+                Section::make('Analytics')
+                    ->description('Every message is logged for the charts and reports, in a table split by month.')
+                    ->icon(Heroicon::OutlinedChartBar)
+                    ->visible(fn (): bool => ! $this->hasPartman())
+                    ->schema([$this->analyticsCallout()]),
             ])
             ->afterValidation(fn () => $this->confirmServer());
     }
@@ -1208,6 +1219,26 @@ class Setup extends SimplePage
     private function pgTextsearchState(): PgTextsearchState
     {
         return $this->pgTextsearch ??= app(PgTextsearchSupport::class)->state();
+    }
+
+    /**
+     * pg_partman is missing: analytics needs it, so this warns and links the
+     * docs that say why. Setup still goes on without it.
+     */
+    private function analyticsCallout(): Callout
+    {
+        return Callout::make('pg_partman is not installed')
+            ->description(new HtmlString(
+                'Analytics needs pg_partman to split its message log by month. Without it, analytics will not work as it should. '
+                .'<a href="'.e(config('chatvia.docs_url').'/guide/how-it-works/background#analytics').'" target="_blank" rel="noopener" class="underline">Read more</a>'
+            ))
+            ->icon(Heroicon::OutlinedExclamationTriangle)
+            ->status('warning');
+    }
+
+    private function hasPartman(): bool
+    {
+        return $this->partman ??= app(AnalyticsDatabase::class)->partmanVersion() !== null;
     }
 
     private function wayOutLink(): Htmlable

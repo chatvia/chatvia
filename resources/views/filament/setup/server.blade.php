@@ -59,7 +59,12 @@
                             </x-slot>
 
                             @if ($status->hint !== null)
-                                <p @class(['cv-status-hint', 'cv-status-hint--'.$status->state->tone()])>{{ $status->hint }}</p>
+                                <p @class(['cv-status-hint', 'cv-status-hint--'.$status->state->tone()])>
+                                    {{ $status->hint }}
+                                    @if ($status->docsUrl !== null)
+                                        <a href="{{ $status->docsUrl }}" target="_blank" rel="noopener" class="cv-service__link">{{ __('Read more') }}</a>
+                                    @endif
+                                </p>
                             @endif
 
                             @if ($status->checks !== [])

@@ -14,6 +14,7 @@ use App\Admin\Status\Service;
 use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
 use App\Admin\Widgets\ServiceStatusBanner;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Filament\Facades\Filament;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -131,6 +132,8 @@ it('marks an outside service that is set up with a check, and links each to its 
 });
 
 it('finds the database with the extensions the search needs', function (): void {
+    $this->mock(AnalyticsDatabase::class)->shouldReceive('partmanVersion')->andReturn('5.2.4');
+
     $status = app(ServiceChecks::class)->check(Service::Database);
 
     expect($status->state)->toBe(ServiceState::Running)
@@ -158,6 +161,25 @@ it('lists the database extensions with a check mark or a cross', function (): vo
             ],
         ]])->assertSeeInOrder(['cv-check--passed', 'vector', '0.8.1'], false)->assertSeeHtmlInOrder(['cv-check--failed', 'pg_trgm', 'Not installed'])->assertSeeHtmlInOrder(['cv-check--skipped', 'pg_textsearch', 'Optional', 'Not installed']);
 });
+
+it('looks for pg_partman in the analytics database, and warns without it', function (?string $version, ServiceState $state, CheckMark $mark): void {
+    $this->mock(AnalyticsDatabase::class)->shouldReceive('partmanVersion')->andReturn($version);
+
+    $status = app(ServiceChecks::class)->check(Service::Database);
+    $checks = collect($status->checks)->keyBy('label');
+
+    expect($status->state)->toBe($state)
+        ->and($checks['pg_partman']->mark)->toBe($mark)
+        ->and($checks['pg_partman']->value)->toBe($version ?? 'Not installed');
+
+    if ($version === null) {
+        expect($status->summary)->toBe('pg_partman is not installed: analytics will not work as it should.')
+            ->and($status->docsUrl)->toEndWith('/guide/how-it-works/background#analytics');
+    }
+})->with([
+    'installed' => ['5.2.4', ServiceState::Running, CheckMark::Passed],
+    'missing' => [null, ServiceState::Warning, CheckMark::Warning],
+]);
 
 it('gives every service card its check lines', function (): void {
     Http::fake();

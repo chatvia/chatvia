@@ -15,6 +15,7 @@ use App\Admin\Status\Data\ServiceStatusData;
 use App\Admin\Status\Service;
 use App\Admin\Status\ServiceState;
 use App\Identity\Workspace\Models\User;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
@@ -232,6 +233,21 @@ it('says why pg_textsearch matters and what to do to get it', function (): void 
         PgTextsearchState::ReadyToEnable => $page->assertSee('Turn on pg_textsearch'),
         PgTextsearchState::SwitchedOff => $page->assertSee('SEARCH_LEXICAL_DRIVER'),
     };
+});
+
+it('warns that analytics needs pg_partman when the analytics database lacks it', function (): void {
+    $this->mock(AnalyticsDatabase::class)->shouldReceive('partmanVersion')->andReturn(null);
+
+    adminPage(Setup::class, $this->admin)->set('server', setupServicesRunning())
+        ->assertSee(['pg_partman is not installed', 'analytics will not work as it should'])
+        ->assertSeeHtml('/guide/how-it-works/background#analytics');
+});
+
+it('says nothing about pg_partman once it is installed', function (): void {
+    $this->mock(AnalyticsDatabase::class)->shouldReceive('partmanVersion')->andReturn('5.2.4');
+
+    adminPage(Setup::class, $this->admin)->set('server', setupServicesRunning())
+        ->assertDontSee('pg_partman is not installed');
 });
 
 it('asks before going on with a service down, and goes on once agreed', function (): void {

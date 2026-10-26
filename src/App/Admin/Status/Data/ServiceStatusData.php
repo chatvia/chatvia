@@ -11,7 +11,8 @@ use Spatie\LaravelData\Data;
 
 /**
  * What one check on the Status page found: the state, one short sentence
- * about it, what to do or know beyond that (the hint), and its details. A service card lists them as marked lines (a
+ * about it, what to do or know beyond that (the hint, with a page of the
+ * docs that says more), and its details. A service card lists them as marked lines (a
  * version, a response time, each extension or program); an AI service row
  * shows short facts as chips and the logos of the providers it runs on.
  */
@@ -33,6 +34,7 @@ class ServiceStatusData extends Data
         #[DataCollectionOf(ServiceCheckData::class)]
         public array $checks = [],
         public ?string $hint = null,
+        public ?string $docsUrl = null,
     ) {}
 
     /**

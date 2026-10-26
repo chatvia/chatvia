@@ -545,5 +545,8 @@
     "Add a custom domain first.": "Primero añade un dominio personalizado.",
     "We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later.": "Aún no encontramos el registro TXT de este dominio. Los cambios de DNS pueden tardar, así que inténtalo más tarde.",
     "This domain can't be used. Choose another domain.": "Este dominio no se puede usar. Elige otro dominio.",
-    "Custom domain verified.": "Dominio personalizado verificado."
+    "Custom domain verified.": "Dominio personalizado verificado.",
+    "pg_partman is not installed: analytics will not work as it should.": "pg_partman no está instalado: la analítica no funcionará como debe.",
+    "Analytics needs pg_partman to split its message log by month.": "La analítica necesita pg_partman para dividir su registro de mensajes por mes.",
+    "Read more": "Más información"
 }

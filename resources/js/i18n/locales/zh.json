@@ -134,17 +134,6 @@
             "view": "查看图片",
             "view_named": "查看图片：{name}"
         },
-        "generated_media": {
-            "image": "生成的图片",
-            "image_alt": "生成的图片：{prompt}",
-            "image_pending": "正在生成您的图片…",
-            "audio_pending": "正在生成您的音频…",
-            "image_failed": "无法生成此图片。",
-            "audio_failed": "无法生成此音频。",
-            "refused": "服务拒绝了此请求。",
-            "timed_out": "耗时过长。请重新请求。",
-            "download": "下载"
-        },
         "calendar": {
             "duration": "{minutes} 分钟",
             "previous_week": "上一周",
@@ -169,6 +158,17 @@
             "book_on_page": "此会议只能在预约页面预约。",
             "open_booking_page": "打开预约页面",
             "unavailable": "此处无法预约。"
+        },
+        "generated_media": {
+            "image": "生成的图片",
+            "image_alt": "生成的图片：{prompt}",
+            "image_pending": "正在生成您的图片…",
+            "audio_pending": "正在生成您的音频…",
+            "image_failed": "无法生成此图片。",
+            "audio_failed": "无法生成此音频。",
+            "refused": "服务拒绝了此请求。",
+            "timed_out": "耗时过长。请重新请求。",
+            "download": "下载"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "上传或录制音频。你的智能体会从转录文本中学习。",
                 "video": "上传视频。你的智能体会从字幕中学习。",
                 "markdown": "上传 Markdown 文件供你的智能体学习。"
+            },
+            "search": {
+                "title": "搜索知识",
+                "description": "智能体会针对每条消息搜索这些来源，并根据找到的内容回答。对于只使用工具的智能体（例如查询付款的智能体），请关闭它。",
+                "off_note": "搜索已关闭。此智能体只用它的工具和指令回答，不会读取这些来源。",
+                "install_off": "此安装已关闭知识搜索。智能体只用它们的工具和指令回答。",
+                "saved_on": "知识搜索已开启。",
+                "saved_off": "知识搜索已关闭。",
+                "save_failed": "无法保存更改。"
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "通过 {names} 运行。请先在连接器页面连接其中一个。",
             "requires_disconnected": "{names} 未连接，因此此能力无法使用。请在连接器页面重新连接其中一个。",
             "connect_connector": "连接 {names}",
-            "turned_off_by_admin": "已被管理员关闭",
             "book_through": "预订服务",
-            "provider_failed": "无法更改预订服务"
+            "provider_failed": "无法更改预订服务",
+            "turned_off_by_admin": "已被管理员关闭"
         },
         "forms": {
             "page_title": "表单",

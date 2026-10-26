@@ -7,12 +7,14 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Illuminate\Support\Str;
 use Locale;
 
 /**
  * Assembles what the LLM receives for a turn: the system prompt (the
- * guardrails' leak marker, the agent's instructions, the grounding rules, who
+ * guardrails' leak marker, the agent's instructions, the grounding rules (or,
+ * without knowledge search, the tools-only rules), who
  * the visitor is on protected agents, and the business's contact details),
  * then the recent history, then the visitor's message with any retrieved
  * reference material. A voice call gets its own instructions
@@ -30,6 +32,7 @@ class SystemPromptBuilder
 {
     public function __construct(
         private readonly GuardrailService $guardrails,
+        private readonly KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
 
     /**
@@ -69,14 +72,33 @@ class SystemPromptBuilder
 
         return $this->withCallerAndBusiness(
             ($marker !== null ? Str::trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
-                .Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding', [
-                    'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
-                    'browserLanguage' => $this->browserLanguage($data->locale),
-                    'cite' => $agent->citesSources() && CitationMarkers::shownOn($data),
-                ]),
+                .Str::rtrim($agent->resolveSystemInstructions())."\n\n".$this->answeringRules($data, $language),
             $agent,
             $data->chatterName,
         );
+    }
+
+    /**
+     * How to answer: from the reference material (the grounding rules), or,
+     * for an agent that does not search its knowledge, from its tools and
+     * instructions only.
+     */
+    private function answeringRules(StreamRequestData $data, ?string $language): string
+    {
+        $agent = $data->agent;
+        $languages = [
+            'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
+            'browserLanguage' => $this->browserLanguage($data->locale),
+        ];
+
+        if (! $this->knowledgeSearch->for($agent)) {
+            return prompt('knowledge/tools-only', $languages);
+        }
+
+        return prompt('knowledge/grounding', [
+            ...$languages,
+            'cite' => $agent->citesSources() && CitationMarkers::shownOn($data),
+        ]);
     }
 
     /**
@@ -91,7 +113,7 @@ class SystemPromptBuilder
     public function voicePrompt(Agent $agent, ?string $chatterName, array $history): string
     {
         $prompt = $this->withCallerAndBusiness(
-            Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('voice/system'),
+            Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('voice/system', ['knowledge' => $this->knowledgeSearch->for($agent)]),
             $agent,
             $chatterName,
         );

@@ -8,7 +8,7 @@ Nothing in the knowledge matches this message.
 The message is too vague to look up. Do not say that you have no information. Ask the visitor what they mean, for example: "{!! $clarifyingQuestion !!}"
 @elseif ($scope !== [])
 
-If you cannot answer it with your tools either, say so briefly, then tell the visitor what you can help with. Your knowledge covers:
+If one of your tools can answer it, call the tool right away and don't say first that you have no information. If your tools cannot answer it either, say so briefly, then tell the visitor what you can help with. Your knowledge covers:
 @foreach ($scope as $name)
 - {!! $name !!}
 @endforeach

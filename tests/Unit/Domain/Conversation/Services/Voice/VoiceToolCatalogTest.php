@@ -43,3 +43,14 @@ it('names a tool for the call view by its connector and action', function (): vo
         ->and($labels[$this->tool]->label)->toBe('stripe')
         ->and($labels[$this->tool]->action)->toBe('send_stripe_feedback');
 });
+
+it('offers the knowledge search only to an agent that searches its knowledge', function (): void {
+    $catalog = app(VoiceToolCatalog::class);
+    $tools = $catalog->for($this->agent, $this->conversation->external_id, ChatViewerData::chatter(1));
+
+    expect(array_column($catalog->definitions($this->agent, $tools), 'name'))->toBe([VoiceToolCatalog::KNOWLEDGE_TOOL, $this->tool]);
+
+    $this->agent->setSetting('search', false, 'knowledge');
+
+    expect(array_column($catalog->definitions($this->agent->fresh(), $tools), 'name'))->toBe([$this->tool]);
+});

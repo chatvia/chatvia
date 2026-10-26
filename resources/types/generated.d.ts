@@ -1097,6 +1097,13 @@ declare namespace Domain {
     }
     namespace Knowledge {
         namespace Retrieval {
+            namespace Data {
+                export type KnowledgeSearchStateData = {
+                    installEnabled: boolean;
+                    canChange: boolean;
+                    enabled: boolean;
+                };
+            }
             namespace Enums {
                 export type SourceKind = 'file' | 'media' | 'website' | 'text' | 'video';
             }

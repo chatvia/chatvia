@@ -134,17 +134,6 @@
             "view": "Görseli görüntüle",
             "view_named": "Görseli görüntüle: {name}"
         },
-        "generated_media": {
-            "image": "Oluşturulan görsel",
-            "image_alt": "Oluşturulan görsel: {prompt}",
-            "image_pending": "Görseliniz oluşturuluyor…",
-            "audio_pending": "Sesiniz oluşturuluyor…",
-            "image_failed": "Bu görsel oluşturulamadı.",
-            "audio_failed": "Bu ses oluşturulamadı.",
-            "refused": "Hizmet bu isteği reddetti.",
-            "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
-            "download": "İndir"
-        },
         "calendar": {
             "duration": "{minutes} dk",
             "previous_week": "Önceki hafta",
@@ -169,6 +158,17 @@
             "book_on_page": "Bu toplantı yalnızca rezervasyon sayfasında ayarlanabilir.",
             "open_booking_page": "Rezervasyon sayfasını aç",
             "unavailable": "Rezervasyon burada kullanılamıyor."
+        },
+        "generated_media": {
+            "image": "Oluşturulan görsel",
+            "image_alt": "Oluşturulan görsel: {prompt}",
+            "image_pending": "Görseliniz oluşturuluyor…",
+            "audio_pending": "Sesiniz oluşturuluyor…",
+            "image_failed": "Bu görsel oluşturulamadı.",
+            "audio_failed": "Bu ses oluşturulamadı.",
+            "refused": "Hizmet bu isteği reddetti.",
+            "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
+            "download": "İndir"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Ses yükleyin veya kaydedin. Asistanınız dökümünden öğrenir.",
                 "video": "Video yükleyin. Asistanınız dökümlerinden öğrenir.",
                 "markdown": "Asistanınızın öğrenmesi için Markdown dosyaları yükleyin."
+            },
+            "search": {
+                "title": "Bilgide ara",
+                "description": "Ajan her mesajda bu kaynaklarda arar ve bulduklarından yanıt verir. Yalnızca araç kullanan bir ajan için kapatın, örneğin ödemeleri sorgulayan bir ajan.",
+                "off_note": "Arama kapalı. Bu ajan yalnızca araçları ve talimatlarıyla yanıt verir ve bu kaynakları okumaz.",
+                "install_off": "Bu kurulumda bilgi araması kapalı. Ajanlar yalnızca araçları ve talimatlarıyla yanıt verir.",
+                "saved_on": "Bilgi araması açık.",
+                "saved_off": "Bilgi araması kapalı.",
+                "save_failed": "Değişiklik kaydedilemedi."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "{names} üzerinden çalışır. Önce Bağlayıcılar sayfasında bunlardan birinin bağlantısını kurun.",
             "requires_disconnected": "{names} ile bağlantı yok, bu yüzden bu yetenek çalışamaz. Bağlayıcılar sayfasında bunlardan birinin bağlantısını yeniden kurun.",
             "connect_connector": "{names} bağla",
-            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı",
             "book_through": "Rezervasyon hizmeti",
-            "provider_failed": "Rezervasyon hizmeti değiştirilemedi"
+            "provider_failed": "Rezervasyon hizmeti değiştirilemedi",
+            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı"
         },
         "forms": {
             "page_title": "Formlar",

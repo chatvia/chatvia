@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Przeszukuj wiedzę",
+                "description": "Agent przeszukuje te źródła przy każdej wiadomości i odpowiada na podstawie tego, co znajdzie. Wyłącz to dla agenta, który używa tylko narzędzi, np. takiego, który sprawdza płatności.",
+                "off_note": "Wyszukiwanie jest wyłączone. Ten agent odpowiada tylko za pomocą swoich narzędzi i instrukcji i nie czyta tych źródeł.",
+                "install_off": "Wyszukiwanie wiedzy jest wyłączone w tej instalacji. Agenci odpowiadają tylko za pomocą swoich narzędzi i instrukcji.",
+                "saved_on": "Wyszukiwanie wiedzy jest włączone.",
+                "saved_off": "Wyszukiwanie wiedzy jest wyłączone.",
+                "save_failed": "Nie udało się zapisać zmiany."
+            }
+        }
+    }
+}

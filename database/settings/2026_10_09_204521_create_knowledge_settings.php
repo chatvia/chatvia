@@ -29,6 +29,8 @@ return new class extends SettingsMigration
             $group->add('text_strategy');
             $group->add('transcript_strategy');
             $group->add('tokenizer');
+            $group->add('search_enabled');
+            $group->add('search_agent_choice');
             $group->add('hybrid_search');
             $group->add('search_mode');
             $group->add('relevance_check');

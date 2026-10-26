@@ -134,17 +134,6 @@
             "view": "Ver imagem",
             "view_named": "Ver imagem: {name}"
         },
-        "generated_media": {
-            "image": "Imagem gerada",
-            "image_alt": "Imagem gerada: {prompt}",
-            "image_pending": "Criando sua imagem…",
-            "audio_pending": "Criando seu áudio…",
-            "image_failed": "Não foi possível criar esta imagem.",
-            "audio_failed": "Não foi possível criar este áudio.",
-            "refused": "O serviço recusou este pedido.",
-            "timed_out": "Demorou demais. Peça novamente.",
-            "download": "Baixar"
-        },
         "calendar": {
             "duration": "{minutes} min",
             "previous_week": "Semana anterior",
@@ -169,6 +158,17 @@
             "book_on_page": "Esta reunião só pode ser marcada na página de marcações.",
             "open_booking_page": "Abrir página de marcações",
             "unavailable": "As marcações não estão disponíveis aqui."
+        },
+        "generated_media": {
+            "image": "Imagem gerada",
+            "image_alt": "Imagem gerada: {prompt}",
+            "image_pending": "Criando sua imagem…",
+            "audio_pending": "Criando seu áudio…",
+            "image_failed": "Não foi possível criar esta imagem.",
+            "audio_failed": "Não foi possível criar este áudio.",
+            "refused": "O serviço recusou este pedido.",
+            "timed_out": "Demorou demais. Peça novamente.",
+            "download": "Baixar"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Envie ou grave áudio. Seu agente aprende com a transcrição.",
                 "video": "Envie vídeos. Seu agente aprende com as transcrições.",
                 "markdown": "Envie arquivos Markdown para seu agente aprender."
+            },
+            "search": {
+                "title": "Pesquisar no conhecimento",
+                "description": "O agente pesquisa estas fontes em cada mensagem e responde com o que encontra. Desative para um agente que só usa ferramentas, como um que consulta pagamentos.",
+                "off_note": "A pesquisa está desativada. Este agente responde apenas com as suas ferramentas e instruções e não lê estas fontes.",
+                "install_off": "A pesquisa no conhecimento está desativada nesta instalação. Os agentes respondem apenas com as suas ferramentas e instruções.",
+                "saved_on": "A pesquisa no conhecimento está ativada.",
+                "saved_off": "A pesquisa no conhecimento está desativada.",
+                "save_failed": "Não foi possível guardar a alteração."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Funciona através de {names}. Ligue primeiro um deles na página Conectores.",
             "requires_disconnected": "Não existe ligação a {names}, por isso esta capacidade não pode funcionar. Ligue um deles novamente na página Conectores.",
             "connect_connector": "Ligar {names}",
-            "turned_off_by_admin": "Desativado pelo seu administrador",
             "book_through": "Marcar através de",
-            "provider_failed": "Não foi possível alterar o serviço de marcação"
+            "provider_failed": "Não foi possível alterar o serviço de marcação",
+            "turned_off_by_admin": "Desativado pelo seu administrador"
         },
         "forms": {
             "page_title": "Formulários",
@@ -4294,6 +4303,10 @@
                 "name": "Calendário",
                 "description": "Deixe os visitantes marcar uma reunião no chat: escolhem um horário livre no seu Calendly ou Cal.com e marcam-no sem sair da conversa. Cada marcação é guardada como um lead."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Permita que os visitantes marquem reuniões no seu Cal.com e que os agentes consultem as suas marcações."
+            },
             "image-generation": {
                 "name": "Geração de imagens",
                 "description": "Deixe o agente criar imagens no chat alojado quando um visitante pedir: logótipos, ilustrações, ideias de produto e muito mais."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Geração de áudio",
                 "description": "Deixe o agente criar ficheiros de áudio no chat alojado quando um visitante pedir: qualquer texto lido em voz alta, pronto a ouvir ou descarregar."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Permita que os visitantes marquem reuniões no seu Cal.com e que os agentes consultem as suas marcações."
             }
         }
     },

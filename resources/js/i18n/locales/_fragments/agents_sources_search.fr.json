@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Rechercher dans les connaissances",
+                "description": "L'agent recherche dans ces sources à chaque message et répond avec ce qu'il trouve. Désactivez-la pour un agent qui n'utilise que des outils, par exemple un agent qui consulte des paiements.",
+                "off_note": "La recherche est désactivée. Cet agent répond uniquement avec ses outils et ses instructions et ne lit pas ces sources.",
+                "install_off": "La recherche dans les connaissances est désactivée sur cette installation. Les agents répondent uniquement avec leurs outils et leurs instructions.",
+                "saved_on": "La recherche dans les connaissances est activée.",
+                "saved_off": "La recherche dans les connaissances est désactivée.",
+                "save_failed": "Impossible d'enregistrer la modification."
+            }
+        }
+    }
+}

@@ -134,17 +134,6 @@
             "view": "Lihat gambar",
             "view_named": "Lihat gambar: {name}"
         },
-        "generated_media": {
-            "image": "Gambar yang dibuat",
-            "image_alt": "Gambar yang dibuat: {prompt}",
-            "image_pending": "Membuat gambar Anda…",
-            "audio_pending": "Membuat audio Anda…",
-            "image_failed": "Gambar ini tidak dapat dibuat.",
-            "audio_failed": "Audio ini tidak dapat dibuat.",
-            "refused": "Layanan menolak permintaan ini.",
-            "timed_out": "Ini terlalu lama. Silakan minta lagi.",
-            "download": "Unduh"
-        },
         "calendar": {
             "duration": "{minutes} menit",
             "previous_week": "Minggu sebelumnya",
@@ -169,6 +158,17 @@
             "book_on_page": "Pertemuan ini hanya dapat dipesan di halaman pemesanan.",
             "open_booking_page": "Buka halaman pemesanan",
             "unavailable": "Pemesanan tidak tersedia di sini."
+        },
+        "generated_media": {
+            "image": "Gambar yang dibuat",
+            "image_alt": "Gambar yang dibuat: {prompt}",
+            "image_pending": "Membuat gambar Anda…",
+            "audio_pending": "Membuat audio Anda…",
+            "image_failed": "Gambar ini tidak dapat dibuat.",
+            "audio_failed": "Audio ini tidak dapat dibuat.",
+            "refused": "Layanan menolak permintaan ini.",
+            "timed_out": "Ini terlalu lama. Silakan minta lagi.",
+            "download": "Unduh"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Unggah atau rekam audio. Agen Anda belajar dari transkripnya.",
                 "video": "Unggah video. Agen Anda belajar dari transkripnya.",
                 "markdown": "Unggah file Markdown untuk dipelajari agen Anda."
+            },
+            "search": {
+                "title": "Cari di pengetahuan",
+                "description": "Agen mencari di sumber-sumber ini untuk setiap pesan dan menjawab dari yang ditemukannya. Matikan untuk agen yang hanya memakai alat, misalnya agen yang memeriksa pembayaran.",
+                "off_note": "Pencarian mati. Agen ini menjawab hanya dengan alat dan instruksinya dan tidak membaca sumber-sumber ini.",
+                "install_off": "Pencarian pengetahuan dimatikan di instalasi ini. Agen menjawab hanya dengan alat dan instruksinya.",
+                "saved_on": "Pencarian pengetahuan aktif.",
+                "saved_off": "Pencarian pengetahuan mati.",
+                "save_failed": "Perubahan tidak dapat disimpan."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Berfungsi melalui {names}. Hubungkan salah satunya lebih dulu di halaman Konektor.",
             "requires_disconnected": "Tidak ada koneksi ke {names}, jadi kemampuan ini tidak dapat berfungsi. Hubungkan salah satunya lagi di halaman Konektor.",
             "connect_connector": "Hubungkan {names}",
-            "turned_off_by_admin": "Dimatikan oleh admin Anda",
             "book_through": "Pesan melalui",
-            "provider_failed": "Layanan pemesanan tidak dapat diubah"
+            "provider_failed": "Layanan pemesanan tidak dapat diubah",
+            "turned_off_by_admin": "Dimatikan oleh admin Anda"
         },
         "forms": {
             "page_title": "Formulir",

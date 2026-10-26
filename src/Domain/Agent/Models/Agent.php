@@ -476,7 +476,9 @@ class Agent extends Model
 
     /**
      * Attach a connector (MCP server) to this agent (idempotent). Single source
-     * of truth for the dashboard and the public API. Pivot writes fire no
+     * of truth for the dashboard and the public API. A new attachment starts
+     * "always on" (the pivot's column default); attaching again keeps the
+     * agent's current choice. Pivot writes fire no
      * Eloquent events, so {@see AgentToolsChanged} tells the tool layer to drop
      * its cached pool.
      */

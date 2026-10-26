@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Pesquisar no conhecimento",
+                "description": "O agente pesquisa estas fontes em cada mensagem e responde com o que encontra. Desative para um agente que só usa ferramentas, como um que consulta pagamentos.",
+                "off_note": "A pesquisa está desativada. Este agente responde apenas com as suas ferramentas e instruções e não lê estas fontes.",
+                "install_off": "A pesquisa no conhecimento está desativada nesta instalação. Os agentes respondem apenas com as suas ferramentas e instruções.",
+                "saved_on": "A pesquisa no conhecimento está ativada.",
+                "saved_off": "A pesquisa no conhecimento está desativada.",
+                "save_failed": "Não foi possível guardar a alteração."
+            }
+        }
+    }
+}

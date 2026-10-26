@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Search knowledge",
+                "description": "The agent searches these sources for each message and answers from what it finds. Turn it off for an agent that only uses tools, like one that looks up payments.",
+                "off_note": "Search is off. This agent answers with its tools and instructions only and does not read these sources.",
+                "install_off": "Knowledge search is turned off for this install. Agents answer with their tools and instructions only.",
+                "saved_on": "Knowledge search is on.",
+                "saved_off": "Knowledge search is off.",
+                "save_failed": "Could not save the change."
+            }
+        }
+    }
+}

@@ -134,17 +134,6 @@
             "view": "Näytä kuva",
             "view_named": "Näytä kuva: {name}"
         },
-        "generated_media": {
-            "image": "Luotu kuva",
-            "image_alt": "Luotu kuva: {prompt}",
-            "image_pending": "Kuvaasi luodaan…",
-            "audio_pending": "Äänitiedostoasi luodaan…",
-            "image_failed": "Kuvaa ei voitu luoda.",
-            "audio_failed": "Äänitiedostoa ei voitu luoda.",
-            "refused": "Palvelu hylkäsi tämän pyynnön.",
-            "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
-            "download": "Lataa"
-        },
         "calendar": {
             "duration": "{minutes} min",
             "previous_week": "Edellinen viikko",
@@ -169,6 +158,17 @@
             "book_on_page": "Tämän tapaamisen voi varata vain varaussivulla.",
             "open_booking_page": "Avaa varaussivu",
             "unavailable": "Varaus ei ole käytettävissä täällä."
+        },
+        "generated_media": {
+            "image": "Luotu kuva",
+            "image_alt": "Luotu kuva: {prompt}",
+            "image_pending": "Kuvaasi luodaan…",
+            "audio_pending": "Äänitiedostoasi luodaan…",
+            "image_failed": "Kuvaa ei voitu luoda.",
+            "audio_failed": "Äänitiedostoa ei voitu luoda.",
+            "refused": "Palvelu hylkäsi tämän pyynnön.",
+            "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
+            "download": "Lataa"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Lataa tai nauhoita ääntä. Agenttisi oppii sen tekstistä.",
                 "video": "Lataa videoita. Agenttisi oppii niiden tekstityksistä.",
                 "markdown": "Lataa Markdown-tiedostoja, joista agenttisi oppii."
+            },
+            "search": {
+                "title": "Hae tietämyksestä",
+                "description": "Agentti hakee näistä lähteistä jokaisen viestin kohdalla ja vastaa löytämänsä perusteella. Kytke se pois agentilta, joka käyttää vain työkaluja, esimerkiksi maksuja hakevalta agentilta.",
+                "off_note": "Haku on pois päältä. Tämä agentti vastaa vain työkaluillaan ja ohjeillaan eikä lue näitä lähteitä.",
+                "install_off": "Tietämyshaku on pois päältä tässä asennuksessa. Agentit vastaavat vain työkaluillaan ja ohjeillaan.",
+                "saved_on": "Tietämyshaku on päällä.",
+                "saved_off": "Tietämyshaku on pois päältä.",
+                "save_failed": "Muutosta ei voitu tallentaa."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Toimii seuraavien kautta: {names}. Yhdistä ensin yksi niistä Liittimet-sivulla.",
             "requires_disconnected": "Ei yhdistetty: {names}, joten tämä kyky ei voi toimia. Yhdistä yksi niistä uudelleen Liittimet-sivulla.",
             "connect_connector": "Yhdistä {names}",
-            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä",
             "book_through": "Varauspalvelu",
-            "provider_failed": "Varauspalvelun vaihtaminen epäonnistui"
+            "provider_failed": "Varauspalvelun vaihtaminen epäonnistui",
+            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä"
         },
         "forms": {
             "page_title": "Lomakkeet",
@@ -4294,6 +4303,10 @@
                 "name": "Kalenteri",
                 "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly- tai Cal.com-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Anna vierailijoiden varata tapaamisia Cal.com-palvelussasi ja anna agenttien lukea varauksiasi."
+            },
             "image-generation": {
                 "name": "Kuvien luonti",
                 "description": "Anna agentin luoda kuvia isännöidyssä chatissa, kun kävijä pyytää: logoja, kuvituksia, tuoteideoita ja muuta."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Äänen luonti",
                 "description": "Anna agentin luoda äänitiedostoja isännöidyssä chatissa, kun kävijä pyytää: mikä tahansa teksti luettuna ääneen, valmiina toistettavaksi tai ladattavaksi."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Anna vierailijoiden varata tapaamisia Cal.com-palvelussasi ja anna agenttien lukea varauksiasi."
             }
         }
     },

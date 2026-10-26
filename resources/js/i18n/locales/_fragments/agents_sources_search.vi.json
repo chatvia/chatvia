@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Tìm trong kiến thức",
+                "description": "Tác nhân tìm trong các nguồn này cho mỗi tin nhắn và trả lời từ những gì tìm được. Tắt đi cho tác nhân chỉ dùng công cụ, ví dụ tác nhân tra cứu thanh toán.",
+                "off_note": "Tìm kiếm đang tắt. Tác nhân này chỉ trả lời bằng công cụ và hướng dẫn của nó và không đọc các nguồn này.",
+                "install_off": "Tìm kiếm kiến thức đã bị tắt trên bản cài đặt này. Các tác nhân chỉ trả lời bằng công cụ và hướng dẫn của chúng.",
+                "saved_on": "Đã bật tìm kiếm kiến thức.",
+                "saved_off": "Đã tắt tìm kiếm kiến thức.",
+                "save_failed": "Không thể lưu thay đổi."
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Buscar en el conocimiento",
+                "description": "El agente busca en estas fuentes con cada mensaje y responde con lo que encuentra. Desactívalo para un agente que solo usa herramientas, como uno que consulta pagos.",
+                "off_note": "La búsqueda está desactivada. Este agente responde solo con sus herramientas e instrucciones y no lee estas fuentes.",
+                "install_off": "La búsqueda en el conocimiento está desactivada en esta instalación. Los agentes responden solo con sus herramientas e instrucciones.",
+                "saved_on": "La búsqueda en el conocimiento está activada.",
+                "saved_off": "La búsqueda en el conocimiento está desactivada.",
+                "save_failed": "No se pudo guardar el cambio."
+            }
+        }
+    }
+}

@@ -134,17 +134,6 @@
             "view": "Vis billede",
             "view_named": "Vis billede: {name}"
         },
-        "generated_media": {
-            "image": "Genereret billede",
-            "image_alt": "Genereret billede: {prompt}",
-            "image_pending": "Laver dit billede…",
-            "audio_pending": "Laver din lyd…",
-            "image_failed": "Billedet kunne ikke laves.",
-            "audio_failed": "Lyden kunne ikke laves.",
-            "refused": "Tjenesten afviste denne anmodning.",
-            "timed_out": "Det tog for lang tid. Spørg igen.",
-            "download": "Download"
-        },
         "calendar": {
             "duration": "{minutes} min",
             "previous_week": "Forrige uge",
@@ -169,6 +158,17 @@
             "book_on_page": "Dette møde kan kun bookes på bookingsiden.",
             "open_booking_page": "Åbn bookingsiden",
             "unavailable": "Booking er ikke tilgængelig her."
+        },
+        "generated_media": {
+            "image": "Genereret billede",
+            "image_alt": "Genereret billede: {prompt}",
+            "image_pending": "Laver dit billede…",
+            "audio_pending": "Laver din lyd…",
+            "image_failed": "Billedet kunne ikke laves.",
+            "audio_failed": "Lyden kunne ikke laves.",
+            "refused": "Tjenesten afviste denne anmodning.",
+            "timed_out": "Det tog for lang tid. Spørg igen.",
+            "download": "Download"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Upload eller optag lyd. Din agent lærer af transskriptionen.",
                 "video": "Upload videoer. Din agent lærer af deres transskriptioner.",
                 "markdown": "Upload Markdown-filer, som din agent kan lære af."
+            },
+            "search": {
+                "title": "Søg i viden",
+                "description": "Agenten søger i disse kilder ved hver besked og svarer ud fra det, den finder. Slå det fra for en agent, der kun bruger værktøjer, fx en der slår betalinger op.",
+                "off_note": "Søgning er slået fra. Agenten svarer kun med sine værktøjer og instruktioner og læser ikke disse kilder.",
+                "install_off": "Søgning i viden er slået fra på denne installation. Agenter svarer kun med deres værktøjer og instruktioner.",
+                "saved_on": "Søgning i viden er slået til.",
+                "saved_off": "Søgning i viden er slået fra.",
+                "save_failed": "Ændringen kunne ikke gemmes."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Fungerer via {names}. Tilslut først en af dem på siden Connectorer.",
             "requires_disconnected": "Der er ingen forbindelse til {names}, så denne kapabilitet kan ikke fungere. Tilslut en af dem igen på siden Connectorer.",
             "connect_connector": "Tilslut {names}",
-            "turned_off_by_admin": "Slået fra af din administrator",
             "book_through": "Book via",
-            "provider_failed": "Bookingtjenesten kunne ikke ændres"
+            "provider_failed": "Bookingtjenesten kunne ikke ændres",
+            "turned_off_by_admin": "Slået fra af din administrator"
         },
         "forms": {
             "page_title": "Formularer",
@@ -4294,6 +4303,10 @@
                 "name": "Kalender",
                 "description": "Lad besøgende booke et møde i chatten: de vælger en ledig tid i din Calendly eller Cal.com og booker den uden at forlade samtalen. Hver booking gemmes som et lead."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Lad besøgende booke møder via din Cal.com, og lad agenter læse dine bookinger."
+            },
             "image-generation": {
                 "name": "Billedgenerering",
                 "description": "Lad agenten lave billeder i den hostede chat, når en besøgende beder om det: logoer, illustrationer, produktidéer og mere."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Lydgenerering",
                 "description": "Lad agenten lave lydfiler i den hostede chat, når en besøgende beder om det: enhver tekst læst højt, klar til afspilning eller download."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Lad besøgende booke møder via din Cal.com, og lad agenter læse dine bookinger."
             }
         }
     },

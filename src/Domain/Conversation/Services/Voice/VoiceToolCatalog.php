@@ -16,12 +16,14 @@ use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Integration\Tool\Registry\ToolRegistry;
+use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Illuminate\Support\Str;
 
 /**
  * The tools a voice call offers: knowledge search first (a call has no
  * reference material pasted into the question, so the model looks things up
- * itself), then the agent's own tools. A tool that needs a person's approval
+ * itself; left out for an agent that does not search its knowledge), then
+ * the agent's own tools. A tool that needs a person's approval
  * is offered to a signed-in chatter or staff account: there is nothing to
  * click in a call, so they say yes out loud ({@see VoiceToolApprovals}). An
  * anonymous visitor never gets one, since the call would run with the
@@ -43,6 +45,7 @@ final readonly class VoiceToolCatalog
         private ConnectorCatalog $catalog,
         private ToolDisplayResolver $display,
         private ToolApprovalPolicy $approvalPolicy,
+        private KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
 
     /**
@@ -106,14 +109,20 @@ final readonly class VoiceToolCatalog
     }
 
     /**
-     * The session's `tools` list: knowledge search, then each tool in the
-     * Realtime shape.
+     * The session's `tools` list: knowledge search (unless the agent does not
+     * search its knowledge), then each tool in the Realtime shape.
      *
      * @param  array<string, ToolEntry>  $tools
      * @return list<array<string, mixed>>
      */
-    public function definitions(array $tools): array
+    public function definitions(Agent $agent, array $tools): array
     {
+        $realtime = array_map(static fn (ToolEntry $entry): array => $entry->toRealtimeFormat(), array_values($tools));
+
+        if (! $this->knowledgeSearch->for($agent)) {
+            return $realtime;
+        }
+
         return [
             [
                 'type' => 'function',
@@ -130,7 +139,7 @@ final readonly class VoiceToolCatalog
                     'required' => ['query'],
                 ],
             ],
-            ...array_map(static fn (ToolEntry $entry): array => $entry->toRealtimeFormat(), array_values($tools)),
+            ...$realtime,
         ];
     }
 }

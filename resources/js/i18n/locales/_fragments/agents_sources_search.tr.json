@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Bilgide ara",
+                "description": "Ajan her mesajda bu kaynaklarda arar ve bulduklarından yanıt verir. Yalnızca araç kullanan bir ajan için kapatın, örneğin ödemeleri sorgulayan bir ajan.",
+                "off_note": "Arama kapalı. Bu ajan yalnızca araçları ve talimatlarıyla yanıt verir ve bu kaynakları okumaz.",
+                "install_off": "Bu kurulumda bilgi araması kapalı. Ajanlar yalnızca araçları ve talimatlarıyla yanıt verir.",
+                "saved_on": "Bilgi araması açık.",
+                "saved_off": "Bilgi araması kapalı.",
+                "save_failed": "Değişiklik kaydedilemedi."
+            }
+        }
+    }
+}

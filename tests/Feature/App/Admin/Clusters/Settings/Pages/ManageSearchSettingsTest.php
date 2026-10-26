@@ -18,6 +18,7 @@ it('shows the everyday cards first, and the fine-tuning under Advanced', functio
         ->get(ManageSearchSettings::getUrl())
         ->assertOk()
         ->assertSeeInOrder([
+            'Knowledge search', 'Search knowledge', 'Let workspaces turn it off per agent',
             'Finding answers', 'Hybrid search',
             'Ambiguous questions', 'Understand follow-up questions',
             'Technical options. The defaults suit most installs.',
@@ -53,6 +54,8 @@ it('says when there is nothing to check with', function (): void {
 it('saves the search options, and they reach the search', function (): void {
     adminPage(ManageSearchSettings::class, $this->admin)
         ->fillForm([
+            'search_enabled' => false,
+            'search_agent_choice' => false,
             'hybrid_search' => false,
             'search_mode' => 'high_accuracy',
             'max_chunks' => 6,
@@ -69,6 +72,8 @@ it('saves the search options, and they reach the search', function (): void {
     app()->forgetScopedInstances();
 
     expect(app(KnowledgeSettings::class)->max_chunks)->toBe(6)
+        ->and(config('chatvia.vector.search.enabled'))->toBeFalse()
+        ->and(config('chatvia.vector.search.agent_choice'))->toBeFalse()
         ->and(config('chatvia.vector.search.hybrid'))->toBeFalse()
         ->and(config('chatvia.vector.search.mode'))->toBe('high_accuracy')
         ->and(config('chatvia.vector.search.max_chunks'))->toBe(6)

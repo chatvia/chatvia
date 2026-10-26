@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Søg i viden",
+                "description": "Agenten søger i disse kilder ved hver besked og svarer ud fra det, den finder. Slå det fra for en agent, der kun bruger værktøjer, fx en der slår betalinger op.",
+                "off_note": "Søgning er slået fra. Agenten svarer kun med sine værktøjer og instruktioner og læser ikke disse kilder.",
+                "install_off": "Søgning i viden er slået fra på denne installation. Agenter svarer kun med deres værktøjer og instruktioner.",
+                "saved_on": "Søgning i viden er slået til.",
+                "saved_off": "Søgning i viden er slået fra.",
+                "save_failed": "Ændringen kunne ikke gemmes."
+            }
+        }
+    }
+}

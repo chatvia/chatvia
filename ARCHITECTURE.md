@@ -301,6 +301,10 @@ for every surface, and keeps the chat log.
   on every surface: `TurnContextFactory`, `KnowledgeEnricher`,
   `SystemPromptBuilder`, then `AssistantReplyRecorder` at the end.
   `Services\ChatContext` is the working state of one turn while it streams.
+  An agent that does not search its knowledge (`KnowledgeSearchSwitch`: the
+  admin's Settings → Search switches, then the agent's own `knowledge.search`
+  setting) skips the follow-up rewrite, the Q&A match and the search, gets
+  the tools-only answering rules, and no search tool in a voice call.
 - **`Services\Streaming\`**: the answer sources (`LlmSource`, `PdfSource`,
   `QaSource`, `HandoffSource`, `GuardBlockSource`, `ReplaySource`), the parser
   for OpenAI-compatible streams, the SSE event types, request de-duplication.

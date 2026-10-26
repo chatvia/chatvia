@@ -59,7 +59,7 @@ final readonly class VoiceSessionConfig
                 ],
                 'output' => ['voice' => $voice->value],
             ],
-            'tools' => $this->tools->definitions($tools),
+            'tools' => $this->tools->definitions($agent, $tools),
             'tool_choice' => 'auto',
             // Drop older audio in bigger steps when the context fills, which
             // keeps the cached prefix longer (cheaper turns).

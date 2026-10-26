@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Wissen durchsuchen",
+                "description": "Der Agent durchsucht diese Quellen bei jeder Nachricht und antwortet mit dem, was er findet. Schalte es für einen Agenten aus, der nur Tools nutzt, zum Beispiel einen, der Zahlungen nachschlägt.",
+                "off_note": "Die Suche ist aus. Dieser Agent antwortet nur mit seinen Tools und Anweisungen und liest diese Quellen nicht.",
+                "install_off": "Die Wissenssuche ist für diese Installation ausgeschaltet. Agenten antworten nur mit ihren Tools und Anweisungen.",
+                "saved_on": "Die Wissenssuche ist an.",
+                "saved_off": "Die Wissenssuche ist aus.",
+                "save_failed": "Die Änderung konnte nicht gespeichert werden."
+            }
+        }
+    }
+}

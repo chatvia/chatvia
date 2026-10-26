@@ -325,6 +325,10 @@
         "Minimum similarity (no reranker)",
         "Saved answers: minimum similarity"
     ],
+    "search#knowledge-search": [
+        "Search knowledge",
+        "Let workspaces turn it off per agent"
+    ],
     "security#guardrails": [
         "Guardrails",
         "Days to keep the guardrail log",

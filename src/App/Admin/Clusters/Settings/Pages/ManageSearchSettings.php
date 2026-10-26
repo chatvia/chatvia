@@ -15,7 +15,8 @@ use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * How agents search their sources when someone asks a question: hybrid
+ * How agents search their sources when someone asks a question: whether
+ * they search at all (and may turn it off per agent), hybrid
  * search and how many results, and follow-up questions. Under Advanced:
  * the fine-tuning (mode, token budget, the relevance check and its minimum
  * scores). Its own page, apart from Knowledge, since searching is not what
@@ -58,6 +59,14 @@ class ManageSearchSettings extends AdminSettingsPage
     protected function cards(): array
     {
         return [
+            SettingsCard::make('search', 'Knowledge search', 'Whether agents search their sources before they answer, and whether each agent may turn it off.', Heroicon::OutlinedBookOpen, fn (): array => [
+                $this->toggle('search_enabled', 'Search knowledge',
+                    help: 'Agents search their sources for each message and answer from what they find. Off: no agent searches, and agents answer with their tools and instructions only.'),
+                $this->toggle('search_agent_choice', 'Let workspaces turn it off per agent',
+                    help: 'Shows a switch on each agent\'s Sources page, for an agent that only uses tools, like one that looks up payments. Off: every agent searches.'),
+            ])->summary(fn (): string => (bool) $this->valueInUse('search_enabled')
+                ? 'On · per-agent switch '.$this->shown($this->valueInUse('search_agent_choice'))
+                : 'Off for every agent'),
             SettingsCard::make('finding', 'Finding answers', 'Search by meaning and by keywords, and how many results an agent gets.', Heroicon::OutlinedMagnifyingGlass, fn (): array => [
                 $this->toggle('hybrid_search', 'Hybrid search',
                     help: 'Finds answers by meaning and by exact words. Helps with names, codes and rare words. Off finds by meaning only.'),

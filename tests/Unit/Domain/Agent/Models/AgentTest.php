@@ -5,13 +5,16 @@ use Domain\Agent\Events\AgentToolsChanged;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 /**
  * What the Agent model works out from its own columns and settings: the
  * system instructions it answers with, its UI languages, its model settings
  * and reasoning effort, its chat bubbles per locale, and the tool change it
- * announces when a function is attached or detached.
+ * announces when a function is attached or detached, and how a connector
+ * starts out when it is attached.
  */
 describe('system instructions', function (): void {
     it('uses the attached library prompt first', function (): void {
@@ -129,4 +132,25 @@ it('announces a tool change when a function is attached or detached', function (
 
     Event::assertDispatchedTimes(AgentToolsChanged::class, 2);
     Event::assertDispatched(AgentToolsChanged::class, fn (AgentToolsChanged $event): bool => $event->agentId === $agent->id);
+});
+
+// A new connector starts "always on"; attaching it again must not undo the
+// agent's own choice.
+it('attaches a new connector always on and keeps the choice on a repeat attach', function (): void {
+    $agent = Agent::factory()->create();
+    $server = AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id]);
+    $alwaysOn = fn (): mixed => DB::table('agent_mcp_server')
+        ->where('agent_id', $agent->id)
+        ->where('mcp_server_id', $server->id)
+        ->value('always_available');
+
+    $agent->attachConnector($server);
+
+    expect($alwaysOn())->toBeTrue();
+
+    $agent->mcpServers()->updateExistingPivot($server->id, ['always_available' => false]);
+    $agent->attachConnector($server);
+
+    expect($alwaysOn())->toBeFalse()
+        ->and($agent->mcpServers()->count())->toBe(1);
 });

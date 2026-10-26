@@ -113,7 +113,8 @@ class RunBackupAction
         }
 
         $archive = $work.'/'.$name;
-        $path = Storage::disk(self::DISK)->putFileAs(self::FOLDER, new HttpFile($archive), $name);
+        // Private: on this server's disk only the app's own user may read it.
+        $path = Storage::disk(self::DISK)->putFileAs(self::FOLDER, new HttpFile($archive), $name, ['visibility' => 'private']);
 
         if ($path === false) {
             throw new BackupException('The backup could not be saved to storage.');

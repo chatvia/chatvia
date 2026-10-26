@@ -119,6 +119,9 @@ FROM php AS app
 
 # - postgresql-client-18: pg_dump for the scheduled backup must match the
 #   PostgreSQL 18 server, so it comes from the PostgreSQL apt repository.
+#   redis-tools (redis-cli) copies the Redis data into the backup, and gpg
+#   encrypts it with the admin's public key (Settings → Backups). gpg is
+#   named here so it stays when gnupg goes after the key step.
 # - poppler (PDF), pandoc (Word, ODT, EPUB), catdoc (a backup for old .doc
 #   and .ppt files) and ffmpeg (audio, video): file sources are read with
 #   them. RTF, DOC, PPT, PPTX and XLSX are read in PHP.
@@ -137,6 +140,8 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         postgresql-client-18 \
+        redis-tools \
+        gpg \
         poppler-utils \
         pandoc \
         catdoc \

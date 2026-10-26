@@ -110,6 +110,25 @@
         "Address"
     ],
     "ai-providers#your-own-servers": [],
+    "backups#automatic-backups": [
+        "Back up automatically",
+        "How often",
+        "Backups to keep"
+    ],
+    "backups#encryption": [
+        "Public key"
+    ],
+    "backups#programs": [
+        "pg_dump",
+        "pg_restore",
+        "redis-cli",
+        "gpg"
+    ],
+    "backups#saved-backups": [],
+    "backups#what-goes-in-a-backup": [
+        "Add the uploaded files",
+        "Add the Pulse and Spectra databases"
+    ],
     "branding#hire-me": [],
     "branding#powered-by": [
         "Show the credit",

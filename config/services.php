@@ -193,8 +193,8 @@ return [
         'pdftotext' => 'pdftotext',
         'ffmpeg' => 'ffmpeg',
         'ffprobe' => 'ffprobe',
-        // Backups (chatvia:backup:create): pg_dump and pg_restore must be
-        // the server's major version or newer.
+        // Backups (chatvia:backup:create; Settings → Backups → Programs):
+        // pg_dump and pg_restore must be the server's major version or newer.
         'pg_dump' => 'pg_dump',
         'pg_restore' => 'pg_restore',
         'redis_cli' => 'redis-cli',

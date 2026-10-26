@@ -950,7 +950,8 @@
                     "tokens_note": "Total token yang dikonsumsi oleh eksekusi ini"
                 },
                 "back": "Kembali ke evaluasi",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Hasil agen pada setiap kasus uji dalam proses ini."
             },
             "index": {
                 "title": "Evaluasi",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Segarkan setiap bulan",
                 "refresh_saved": "Penyegaran otomatis disimpan.",
                 "refresh_failed": "Tidak dapat menyimpan penyegaran otomatis."
+            },
+            "page_description": {
+                "sources": "Tambahkan konten yang dipelajari agen Anda dan digunakan untuk menjawab.",
+                "files": "Unggah dokumen untuk dipelajari agen Anda.",
+                "web": "Tambahkan halaman dari situs web untuk dipelajari agen Anda.",
+                "text": "Tulis atau tempel teks untuk dipelajari agen Anda.",
+                "qa": "Tulis jawaban untuk pertanyaan yang paling sering diajukan.",
+                "youtube": "Tambahkan video YouTube. Agen Anda belajar dari transkripnya.",
+                "audio": "Unggah atau rekam audio. Agen Anda belajar dari transkripnya.",
+                "video": "Unggah video. Agen Anda belajar dari transkripnya.",
+                "markdown": "Unggah file Markdown untuk dipelajari agen Anda."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Percakapan",
             "chart_tooltip_conversations": "{date}: {count} percakapan",
             "chart_tooltip_change": "Perubahan: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} percakapan"
+            "chart_tooltip_count": "{count} percakapan",
+            "description": "Lihat berapa banyak percakapan dan pesan yang ditangani agen ini, dan bagaimana orang menilai jawabannya."
         },
         "chat_errors": {
             "contact_admin": "Hubungi Administrator",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Halo! Bisakah Anda membantu saya?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formulir hanya tampil di Widget Chat dan Bilah Perintah.",
-            "delete_with_leads": "Ini juga menghapus {count} prospek. Tindakan ini tidak dapat dibatalkan. | Ini juga menghapus {count} prospek. Tindakan ini tidak dapat dibatalkan."
+            "delete_with_leads": "Ini juga menghapus {count} prospek. Tindakan ini tidak dapat dibatalkan. | Ini juga menghapus {count} prospek. Tindakan ini tidak dapat dibatalkan.",
+            "page_description": "Formulir yang dapat ditampilkan agen di chat untuk mengumpulkan data, seperti permintaan penawaran atau pemesanan."
         },
         "submissions": {
             "page_title": "Pengiriman",

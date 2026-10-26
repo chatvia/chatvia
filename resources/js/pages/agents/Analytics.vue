@@ -31,7 +31,7 @@ const activeChartTab = ref('daily');
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.analytics.title')">
+    <AgentLayout :agent="agent" :title="t('agents.analytics.title')" :description="t('agents.analytics.description')">
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-12">
             <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />

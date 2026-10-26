@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Veja quantas conversas e mensagens este agente atende e como as pessoas avaliam as respostas dele."
+        },
+        "forms": {
+            "page_description": "Formulários que o agente pode mostrar no chat para coletar dados, como um pedido de orçamento ou uma reserva."
+        },
+        "evals": {
+            "run": {
+                "description": "Como o agente se saiu em cada caso de teste nesta execução."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Adicione o conteúdo com o qual seu agente aprende e responde.",
+                "files": "Envie documentos para seu agente aprender.",
+                "web": "Adicione páginas de um site para seu agente aprender.",
+                "text": "Escreva ou cole texto para seu agente aprender.",
+                "qa": "Escreva respostas para as perguntas mais frequentes.",
+                "youtube": "Adicione vídeos do YouTube. Seu agente aprende com as transcrições.",
+                "audio": "Envie ou grave áudio. Seu agente aprende com a transcrição.",
+                "video": "Envie vídeos. Seu agente aprende com as transcrições.",
+                "markdown": "Envie arquivos Markdown para seu agente aprender."
+            }
+        }
+    }
+}

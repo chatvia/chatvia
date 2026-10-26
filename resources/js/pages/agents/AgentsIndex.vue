@@ -107,40 +107,38 @@ const openAgent = (agent: Agent) => {
                 <Button variant="link" class="ms-1 h-auto p-0" @click="searchQuery = ''">{{ t('agents.list.clear_search') }}</Button>
             </div>
 
-            <div v-else class="rounded-lg border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead class="h-11 ps-5">{{ t('agents.list.table.name') }}</TableHead>
-                            <TableHead class="h-11 w-32">{{ t('agents.list.table.messages') }}</TableHead>
-                            <TableHead class="h-11 w-32">{{ t('agents.list.table.members') }}</TableHead>
-                            <TableHead class="h-11 w-40 pe-5">{{ t('agents.list.table.created') }}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow
-                            v-for="agent in filteredAgents"
-                            :key="agent.external_id"
-                            class="hover:bg-muted/40 cursor-pointer"
-                            @click="openAgent(agent)"
-                        >
-                            <TableCell class="py-4 ps-5">
-                                <div class="flex items-center gap-4">
-                                    <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
-                                        <Bot class="h-5 w-5" />
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="leading-tight font-medium">{{ agent.name }}</p>
-                                    </div>
+            <Table v-else>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead class="h-11 ps-5">{{ t('agents.list.table.name') }}</TableHead>
+                        <TableHead class="h-11 w-32">{{ t('agents.list.table.messages') }}</TableHead>
+                        <TableHead class="h-11 w-32">{{ t('agents.list.table.members') }}</TableHead>
+                        <TableHead class="h-11 w-40 pe-5">{{ t('agents.list.table.created') }}</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow
+                        v-for="agent in filteredAgents"
+                        :key="agent.external_id"
+                        class="hover:bg-muted/40 cursor-pointer"
+                        @click="openAgent(agent)"
+                    >
+                        <TableCell class="py-4 ps-5">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                    <Bot class="h-5 w-5" />
                                 </div>
-                            </TableCell>
-                            <TableCell class="py-4 text-sm">{{ agent.total_messages || 0 }}</TableCell>
-                            <TableCell class="py-4 text-sm">{{ agent.total_members || 0 }}</TableCell>
-                            <TableCell class="text-muted-foreground py-4 pe-5 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </div>
+                                <div class="min-w-0">
+                                    <p class="leading-tight font-medium">{{ agent.name }}</p>
+                                </div>
+                            </div>
+                        </TableCell>
+                        <TableCell class="py-4 text-sm">{{ agent.total_messages || 0 }}</TableCell>
+                        <TableCell class="py-4 text-sm">{{ agent.total_members || 0 }}</TableCell>
+                        <TableCell class="text-muted-foreground py-4 pe-5 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
         </div>
 
         <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshAgents" />

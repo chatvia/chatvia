@@ -950,7 +950,8 @@
                     "tokens_note": "本次运行消耗的 token 总数"
                 },
                 "back": "返回评估",
-                "latency_value": "{ms} 毫秒"
+                "latency_value": "{ms} 毫秒",
+                "description": "本次运行中智能体在每个测试用例上的表现。"
             },
             "index": {
                 "title": "评估",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "每月刷新",
                 "refresh_saved": "已保存自动刷新。",
                 "refresh_failed": "无法保存自动刷新。"
+            },
+            "page_description": {
+                "sources": "添加你的智能体用来学习和回答的内容。",
+                "files": "上传文档供你的智能体学习。",
+                "web": "添加网站页面供你的智能体学习。",
+                "text": "输入或粘贴文本供你的智能体学习。",
+                "qa": "为最常见的问题编写答案。",
+                "youtube": "添加 YouTube 视频。你的智能体会从字幕中学习。",
+                "audio": "上传或录制音频。你的智能体会从转录文本中学习。",
+                "video": "上传视频。你的智能体会从字幕中学习。",
+                "markdown": "上传 Markdown 文件供你的智能体学习。"
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "会话",
             "chart_tooltip_conversations": "{date}：{count} 次会话",
             "chart_tooltip_change": "变化：{sign}{diff}（{sign}{percent}%）",
-            "chart_tooltip_count": "{count} 次会话"
+            "chart_tooltip_count": "{count} 次会话",
+            "description": "查看此智能体处理的对话和消息数量，以及用户对其回答的评价。"
         },
         "chat_errors": {
             "contact_admin": "联系管理员",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "你好！你能帮我吗？",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "表单仅在聊天小部件和命令栏中显示。",
-            "delete_with_leads": "这也会删除 {count} 条线索。此操作无法撤销。 | 这也会删除 {count} 条线索。此操作无法撤销。"
+            "delete_with_leads": "这也会删除 {count} 条线索。此操作无法撤销。 | 这也会删除 {count} 条线索。此操作无法撤销。",
+            "page_description": "智能体可在聊天中显示的表单，用于收集信息，例如报价请求或预约。"
         },
         "submissions": {
             "page_title": "提交记录",

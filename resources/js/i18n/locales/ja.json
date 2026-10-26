@@ -950,7 +950,8 @@
                     "tokens_note": "この実行で消費した総トークン数"
                 },
                 "back": "評価一覧に戻る",
-                "latency_value": "{ms} ミリ秒"
+                "latency_value": "{ms} ミリ秒",
+                "description": "この実行での各テストケースに対するエージェントの結果です。"
             },
             "index": {
                 "title": "評価",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "毎月更新",
                 "refresh_saved": "自動更新を保存しました。",
                 "refresh_failed": "自動更新を保存できませんでした。"
+            },
+            "page_description": {
+                "sources": "エージェントが学習し、回答に使うコンテンツを追加します。",
+                "files": "エージェントが学習するドキュメントをアップロードします。",
+                "web": "エージェントが学習するウェブサイトのページを追加します。",
+                "text": "エージェントが学習するテキストを入力または貼り付けます。",
+                "qa": "よくある質問への回答を書きます。",
+                "youtube": "YouTube動画を追加します。エージェントは文字起こしから学習します。",
+                "audio": "音声をアップロードまたは録音します。エージェントは文字起こしから学習します。",
+                "video": "動画をアップロードします。エージェントは文字起こしから学習します。",
+                "markdown": "エージェントが学習するMarkdownファイルをアップロードします。"
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "会話",
             "chart_tooltip_conversations": "{date}: {count} 件の会話",
             "chart_tooltip_change": "変化: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} 件の会話"
+            "chart_tooltip_count": "{count} 件の会話",
+            "description": "このエージェントが対応した会話とメッセージの数、そして回答の評価を確認できます。"
         },
         "chat_errors": {
             "contact_admin": "管理者に問い合わせる",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "こんにちは！手伝ってもらえますか？",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "フォームはチャットウィジェットとコマンドバーにのみ表示されます。",
-            "delete_with_leads": "{count} 件のリードも削除されます。この操作は元に戻せません。 | {count} 件のリードも削除されます。この操作は元に戻せません。"
+            "delete_with_leads": "{count} 件のリードも削除されます。この操作は元に戻せません。 | {count} 件のリードも削除されます。この操作は元に戻せません。",
+            "page_description": "見積もり依頼や予約など、エージェントがチャット内で情報を集めるために表示できるフォームです。"
         },
         "submissions": {
             "page_title": "送信内容",

@@ -9,7 +9,7 @@ import AnalyticsErrorState from '@/components/analytics/AnalyticsErrorState.vue'
 import AnalyticsFeatureGate from '@/components/analytics/AnalyticsFeatureGate.vue';
 import { useAnalyticsFeature } from '@/components/analytics/useAnalyticsFeature';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { LoaderCircle, MessageSquare } from 'lucide-vue-next';
+import { LoaderCircle } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import DismissSuggestionDialog from './topics/components/DismissSuggestionDialog.vue';
@@ -65,10 +65,6 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" :title="t('agents.topics_index.title')" :description="t('agents.topics_index.description')">
-        <template #header-icon>
-            <MessageSquare class="h-5 w-5" />
-        </template>
-
         <AnalyticsFeatureGate
             :enabled="isEnabled"
             :chatlog-enabled="chatlogEnabled"

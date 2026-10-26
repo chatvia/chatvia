@@ -7,7 +7,6 @@ import { Switch } from '@/components/ui/switch';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { update as updateSecuritySettings } from '@/routes/agents/security/settings';
 import { useForm } from '@inertiajs/vue3';
-import { Gauge } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
@@ -43,19 +42,9 @@ const save = () => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.security.rate_limiting.title')">
+    <AgentLayout :agent="agent" :title="t('agents.security.rate_limiting.title')" :description="t('agents.security.rate_limiting.subtitle')">
         <div class="flex justify-center">
             <div class="w-full max-w-3xl space-y-6">
-                <div>
-                    <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                        <Gauge class="size-6" />
-                        {{ t('agents.security.rate_limiting.title') }}
-                    </h1>
-                    <p class="text-muted-foreground mt-1 text-sm">
-                        {{ t('agents.security.rate_limiting.subtitle') }}
-                    </p>
-                </div>
-
                 <Card>
                     <CardHeader>
                         <CardTitle>{{ t('agents.security.rate_limiting.messages_per_minute') }}</CardTitle>

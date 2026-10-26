@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Bu asistanın kaç konuşma ve mesajı yanıtladığını ve insanların yanıtlarını nasıl değerlendirdiğini görün."
+        },
+        "forms": {
+            "page_description": "Asistanın sohbette bilgi toplamak için gösterebileceği formlar; örneğin fiyat teklifi isteği veya rezervasyon."
+        },
+        "evals": {
+            "run": {
+                "description": "Bu çalıştırmadaki her test durumunda asistanın sonucu."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Asistanınızın öğrendiği ve yanıt verirken kullandığı içeriği ekleyin.",
+                "files": "Asistanınızın öğrenmesi için belge yükleyin.",
+                "web": "Asistanınızın öğrenmesi için bir web sitesinden sayfalar ekleyin.",
+                "text": "Asistanınızın öğrenmesi için metin yazın veya yapıştırın.",
+                "qa": "En sık sorulan sorulara yanıt yazın.",
+                "youtube": "YouTube videoları ekleyin. Asistanınız dökümlerinden öğrenir.",
+                "audio": "Ses yükleyin veya kaydedin. Asistanınız dökümünden öğrenir.",
+                "video": "Video yükleyin. Asistanınız dökümlerinden öğrenir.",
+                "markdown": "Asistanınızın öğrenmesi için Markdown dosyaları yükleyin."
+            }
+        }
+    }
+}

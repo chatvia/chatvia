@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Katso, kuinka monta keskustelua ja viestiä tämä agentti hoitaa ja miten ihmiset arvioivat sen vastauksia."
+        },
+        "forms": {
+            "page_description": "Lomakkeet, joita agentti voi näyttää chatissa tietojen keräämiseen, kuten tarjouspyyntö tai varaus."
+        },
+        "evals": {
+            "run": {
+                "description": "Näin agentti onnistui jokaisessa tämän ajon testitapauksessa."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Lisää sisältö, josta agenttisi oppii ja jonka avulla se vastaa.",
+                "files": "Lataa asiakirjoja, joista agenttisi oppii.",
+                "web": "Lisää verkkosivuston sivuja, joista agenttisi oppii.",
+                "text": "Kirjoita tai liitä tekstiä, josta agenttisi oppii.",
+                "qa": "Kirjoita vastaukset yleisimpiin kysymyksiin.",
+                "youtube": "Lisää YouTube-videoita. Agenttisi oppii niiden tekstityksistä.",
+                "audio": "Lataa tai nauhoita ääntä. Agenttisi oppii sen tekstistä.",
+                "video": "Lataa videoita. Agenttisi oppii niiden tekstityksistä.",
+                "markdown": "Lataa Markdown-tiedostoja, joista agenttisi oppii."
+            }
+        }
+    }
+}

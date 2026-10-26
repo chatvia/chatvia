@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Zobacz, ile rozmów i wiadomości obsługuje ten agent i jak ludzie oceniają jego odpowiedzi."
+        },
+        "forms": {
+            "page_description": "Formularze, które agent może pokazać w czacie, aby zebrać dane, np. prośbę o wycenę lub rezerwację."
+        },
+        "evals": {
+            "run": {
+                "description": "Wyniki agenta dla każdego przypadku testowego w tym przebiegu."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Dodaj treści, z których agent się uczy i na podstawie których odpowiada.",
+                "files": "Prześlij dokumenty, z których agent będzie się uczyć.",
+                "web": "Dodaj strony z witryny, z których agent będzie się uczyć.",
+                "text": "Napisz lub wklej tekst, z którego agent będzie się uczyć.",
+                "qa": "Napisz odpowiedzi na najczęściej zadawane pytania.",
+                "youtube": "Dodaj filmy z YouTube. Agent uczy się z ich transkrypcji.",
+                "audio": "Prześlij lub nagraj dźwięk. Agent uczy się z transkrypcji.",
+                "video": "Prześlij filmy. Agent uczy się z ich transkrypcji.",
+                "markdown": "Prześlij pliki Markdown, z których agent będzie się uczyć."
+            }
+        }
+    }
+}

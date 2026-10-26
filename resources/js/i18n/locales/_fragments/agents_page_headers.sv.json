@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Se hur många samtal och meddelanden den här agenten hanterar och hur folk betygsätter svaren."
+        },
+        "forms": {
+            "page_description": "Formulär som agenten kan visa i chatten för att samla in uppgifter, till exempel en offertförfrågan eller en bokning."
+        },
+        "evals": {
+            "run": {
+                "description": "Så gick det för agenten i varje testfall i den här körningen."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Lägg till innehållet som din agent lär sig av och svarar med.",
+                "files": "Ladda upp dokument som din agent kan lära sig av.",
+                "web": "Lägg till sidor från en webbplats som din agent kan lära sig av.",
+                "text": "Skriv eller klistra in text som din agent kan lära sig av.",
+                "qa": "Skriv svar på de frågor som ställs oftast.",
+                "youtube": "Lägg till YouTube-videor. Din agent lär sig av deras transkriptioner.",
+                "audio": "Ladda upp eller spela in ljud. Din agent lär sig av transkriptionen.",
+                "video": "Ladda upp videor. Din agent lär sig av deras transkriptioner.",
+                "markdown": "Ladda upp Markdown-filer som din agent kan lära sig av."
+            }
+        }
+    }
+}

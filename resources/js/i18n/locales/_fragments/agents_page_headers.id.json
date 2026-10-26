@@ -1,0 +1,28 @@
+{
+    "agents": {
+        "analytics": {
+            "description": "Lihat berapa banyak percakapan dan pesan yang ditangani agen ini, dan bagaimana orang menilai jawabannya."
+        },
+        "forms": {
+            "page_description": "Formulir yang dapat ditampilkan agen di chat untuk mengumpulkan data, seperti permintaan penawaran atau pemesanan."
+        },
+        "evals": {
+            "run": {
+                "description": "Hasil agen pada setiap kasus uji dalam proses ini."
+            }
+        },
+        "sources": {
+            "page_description": {
+                "sources": "Tambahkan konten yang dipelajari agen Anda dan digunakan untuk menjawab.",
+                "files": "Unggah dokumen untuk dipelajari agen Anda.",
+                "web": "Tambahkan halaman dari situs web untuk dipelajari agen Anda.",
+                "text": "Tulis atau tempel teks untuk dipelajari agen Anda.",
+                "qa": "Tulis jawaban untuk pertanyaan yang paling sering diajukan.",
+                "youtube": "Tambahkan video YouTube. Agen Anda belajar dari transkripnya.",
+                "audio": "Unggah atau rekam audio. Agen Anda belajar dari transkripnya.",
+                "video": "Unggah video. Agen Anda belajar dari transkripnya.",
+                "markdown": "Unggah file Markdown untuk dipelajari agen Anda."
+            }
+        }
+    }
+}

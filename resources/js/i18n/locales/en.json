@@ -950,7 +950,8 @@
                     "tokens_note": "Total tokens consumed by this run"
                 },
                 "back": "Back to evals",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "How the agent did on each test case in this run."
             },
             "index": {
                 "title": "Evals",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Refresh monthly",
                 "refresh_saved": "Auto-refresh saved.",
                 "refresh_failed": "Could not save auto-refresh."
+            },
+            "page_description": {
+                "sources": "Add the content your agent learns from and answers with.",
+                "files": "Upload documents for your agent to learn from.",
+                "web": "Add pages from a website for your agent to learn from.",
+                "text": "Write or paste text for your agent to learn from.",
+                "qa": "Write answers to the questions people ask most.",
+                "youtube": "Add YouTube videos. Your agent learns from their transcripts.",
+                "audio": "Upload or record audio. Your agent learns from the transcript.",
+                "video": "Upload videos. Your agent learns from their transcripts.",
+                "markdown": "Upload Markdown files for your agent to learn from."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Conversations",
             "chart_tooltip_conversations": "{date}: {count} conversations",
             "chart_tooltip_change": "Change: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} conversations"
+            "chart_tooltip_count": "{count} conversations",
+            "description": "See how many conversations and messages this agent handles, and how people rate its answers."
         },
         "chat_errors": {
             "contact_admin": "Contact Administrator",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Hi! Can you help me?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Forms show only in the Chat Widget and the Command Bar.",
-            "delete_with_leads": "This also deletes {count} lead. This action cannot be undone. | This also deletes {count} leads. This action cannot be undone."
+            "delete_with_leads": "This also deletes {count} lead. This action cannot be undone. | This also deletes {count} leads. This action cannot be undone.",
+            "page_description": "Forms the agent can show in the chat to collect details, like a quote request or a booking."
         },
         "submissions": {
             "page_title": "Submissions",

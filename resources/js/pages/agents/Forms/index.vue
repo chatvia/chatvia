@@ -22,7 +22,7 @@ const { editing, saving, rewriting, startNew, edit, cancel, save, destroy, rewri
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.forms.page_title')">
+    <AgentLayout :agent="agent" :title="t('agents.forms.page_title')" :description="t('agents.forms.page_description')">
         <div class="mx-auto w-full max-w-5xl space-y-6">
             <!-- Hosted Chat does not render inline forms. -->
             <Alert>

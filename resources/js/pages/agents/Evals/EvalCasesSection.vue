@@ -53,81 +53,70 @@ const { scorerIcon, scorerLabel } = useScorers();
             </div>
         </div>
 
-        <div class="bg-card rounded-lg border">
-            <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>{{ t('agents.evals.index.table.case') }}</TableHead>
-                        <TableHead>{{ t('agents.evals.index.table.scorer') }}</TableHead>
-                        <TableHead>{{ t('agents.evals.index.table.status') }}</TableHead>
-                        <TableHead class="w-0 text-end">{{ t('agents.evals.index.table.actions') }}</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow v-for="item in cases" :key="item.id" class="hover:bg-muted/50">
-                        <TableCell class="max-w-md">
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <div class="truncate font-medium">{{ item.name }}</div>
-                                </TooltipTrigger>
-                                <TooltipContent class="max-w-sm">
-                                    <p class="whitespace-normal">{{ item.name }}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            <!-- Knowledge-created cases reuse the question as the name — don't print it twice. -->
-                            <Tooltip v-if="item.input !== item.name">
-                                <TooltipTrigger as-child>
-                                    <div class="text-muted-foreground truncate text-sm">{{ item.input }}</div>
-                                </TooltipTrigger>
-                                <TooltipContent class="max-w-sm">
-                                    <p class="whitespace-normal">{{ item.input }}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TableCell>
-                        <TableCell>
-                            <Badge variant="outline" class="gap-1.5">
-                                <component :is="scorerIcon(item.scorer_type)" class="h-3 w-3" />
-                                {{ scorerLabel(item.scorer_type) }}
-                            </Badge>
-                        </TableCell>
-                        <TableCell>
-                            <Badge
-                                :variant="item.active ? 'secondary' : 'outline'"
-                                class="gap-1.5"
-                                :class="item.active ? '' : 'text-muted-foreground'"
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>{{ t('agents.evals.index.table.case') }}</TableHead>
+                    <TableHead>{{ t('agents.evals.index.table.scorer') }}</TableHead>
+                    <TableHead>{{ t('agents.evals.index.table.status') }}</TableHead>
+                    <TableHead class="w-0 text-end">{{ t('agents.evals.index.table.actions') }}</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                <TableRow v-for="item in cases" :key="item.id" class="hover:bg-muted/50">
+                    <TableCell class="max-w-md">
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <div class="truncate font-medium">{{ item.name }}</div>
+                            </TooltipTrigger>
+                            <TooltipContent class="max-w-sm">
+                                <p class="whitespace-normal">{{ item.name }}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        <!-- Knowledge-created cases reuse the question as the name — don't print it twice. -->
+                        <Tooltip v-if="item.input !== item.name">
+                            <TooltipTrigger as-child>
+                                <div class="text-muted-foreground truncate text-sm">{{ item.input }}</div>
+                            </TooltipTrigger>
+                            <TooltipContent class="max-w-sm">
+                                <p class="whitespace-normal">{{ item.input }}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                        <Badge variant="outline" class="gap-1.5">
+                            <component :is="scorerIcon(item.scorer_type)" class="h-3 w-3" />
+                            {{ scorerLabel(item.scorer_type) }}
+                        </Badge>
+                    </TableCell>
+                    <TableCell>
+                        <Badge :variant="item.active ? 'secondary' : 'outline'" class="gap-1.5" :class="item.active ? '' : 'text-muted-foreground'">
+                            <span class="h-1.5 w-1.5 rounded-full" :class="item.active ? 'bg-emerald-500' : 'bg-muted-foreground/40'" />
+                            {{ item.active ? t('agents.evals.index.status_active') : t('agents.evals.index.status_inactive') }}
+                        </Badge>
+                    </TableCell>
+                    <TableCell class="text-end">
+                        <div v-if="canManage" class="flex items-center justify-end gap-1">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                :aria-label="t('agents.evals.index.case_dialog.edit_title')"
+                                @click="emit('edit', item)"
                             >
-                                <span class="h-1.5 w-1.5 rounded-full" :class="item.active ? 'bg-emerald-500' : 'bg-muted-foreground/40'" />
-                                {{ item.active ? t('agents.evals.index.status_active') : t('agents.evals.index.status_inactive') }}
-                            </Badge>
-                        </TableCell>
-                        <TableCell class="text-end">
-                            <div v-if="canManage" class="flex items-center justify-end gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    :aria-label="t('agents.evals.index.case_dialog.edit_title')"
-                                    @click="emit('edit', item)"
-                                >
-                                    <Pencil class="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    :aria-label="t('agents.evals.index.delete_case_title')"
-                                    @click="emit('delete', item)"
-                                >
-                                    <Trash2 class="text-destructive h-4 w-4" />
-                                </Button>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow v-if="cases.length === 0">
-                        <TableCell colspan="4" class="text-muted-foreground py-10 text-center text-sm">
-                            {{ t('agents.evals.index.empty_cases') }}
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </div>
+                                <Pencil class="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" :aria-label="t('agents.evals.index.delete_case_title')" @click="emit('delete', item)">
+                                <Trash2 class="text-destructive h-4 w-4" />
+                            </Button>
+                        </div>
+                    </TableCell>
+                </TableRow>
+                <TableRow v-if="cases.length === 0">
+                    <TableCell colspan="4" class="text-muted-foreground py-10 text-center text-sm">
+                        {{ t('agents.evals.index.empty_cases') }}
+                    </TableCell>
+                </TableRow>
+            </TableBody>
+        </Table>
     </section>
 </template>

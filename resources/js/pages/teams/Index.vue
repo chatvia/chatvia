@@ -135,81 +135,74 @@ const formatRole = (role: string) =>
             </div>
 
             <!-- Teams table -->
-            <div v-else class="rounded-lg border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead class="h-11 ps-5">{{ t('teams.index.table.name') }}</TableHead>
-                            <TableHead class="h-11 w-28">{{ t('teams.index.table.agents') }}</TableHead>
-                            <TableHead class="h-11 w-28">{{ t('teams.index.table.members') }}</TableHead>
-                            <TableHead class="h-11 w-40">{{ t('teams.index.table.created') }}</TableHead>
-                            <TableHead class="h-11 w-16 pe-5"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow
-                            v-for="team in filteredTeams"
-                            :key="team.id"
-                            class="hover:bg-muted/40 cursor-pointer"
-                            @click="router.visit(showTeam.url(team.external_id))"
-                        >
-                            <TableCell class="py-4 ps-5">
-                                <div class="flex items-center gap-4">
-                                    <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
-                                        <Users class="h-5 w-5" />
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2">
-                                            <p class="leading-tight font-medium">{{ team.name }}</p>
-                                            <Badge v-if="team.is_primary" variant="secondary">{{ t('teams.index.primary') }}</Badge>
-                                        </div>
-                                        <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ formatRole(team.role) }}</p>
-                                    </div>
+            <Table v-else>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead class="h-11 ps-5">{{ t('teams.index.table.name') }}</TableHead>
+                        <TableHead class="h-11 w-28">{{ t('teams.index.table.agents') }}</TableHead>
+                        <TableHead class="h-11 w-28">{{ t('teams.index.table.members') }}</TableHead>
+                        <TableHead class="h-11 w-40">{{ t('teams.index.table.created') }}</TableHead>
+                        <TableHead class="h-11 w-16 pe-5"></TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow
+                        v-for="team in filteredTeams"
+                        :key="team.id"
+                        class="hover:bg-muted/40 cursor-pointer"
+                        @click="router.visit(showTeam.url(team.external_id))"
+                    >
+                        <TableCell class="py-4 ps-5">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
+                                    <Users class="h-5 w-5" />
                                 </div>
-                            </TableCell>
-                            <TableCell class="py-4 text-sm">{{ team.agents_count }}</TableCell>
-                            <TableCell class="py-4 text-sm">{{ team.members_count }}</TableCell>
-                            <TableCell class="text-muted-foreground py-4 text-sm">{{ formatDate(team.created_at) }}</TableCell>
-                            <TableCell class="py-4 pe-5 text-end" @click.stop>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <Button variant="ghost" size="icon" class="h-8 w-8">
-                                            <MoreHorizontal class="h-4 w-4" />
-                                            <span class="sr-only">{{ t('teams.index.open_menu') }}</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem as-child>
-                                            <Link :href="showTeam.url(team.external_id)" class="cursor-pointer">
-                                                <Settings class="me-2 h-4 w-4" />
-                                                {{ t('teams.index.manage') }}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            v-if="!team.is_owner"
-                                            variant="destructive"
-                                            class="cursor-pointer"
-                                            @select="teamToLeave = team"
-                                        >
-                                            <LogOut class="me-2 h-4 w-4" />
-                                            {{ t('teams.index.leave') }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            v-if="canDeleteTeam(team)"
-                                            variant="destructive"
-                                            class="cursor-pointer"
-                                            @select="openDelete(team)"
-                                        >
-                                            <Trash2 class="me-2 h-4 w-4" />
-                                            {{ t('teams.index.delete') }}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <p class="leading-tight font-medium">{{ team.name }}</p>
+                                        <Badge v-if="team.is_primary" variant="secondary">{{ t('teams.index.primary') }}</Badge>
+                                    </div>
+                                    <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ formatRole(team.role) }}</p>
+                                </div>
+                            </div>
+                        </TableCell>
+                        <TableCell class="py-4 text-sm">{{ team.agents_count }}</TableCell>
+                        <TableCell class="py-4 text-sm">{{ team.members_count }}</TableCell>
+                        <TableCell class="text-muted-foreground py-4 text-sm">{{ formatDate(team.created_at) }}</TableCell>
+                        <TableCell class="py-4 pe-5 text-end" @click.stop>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger as-child>
+                                    <Button variant="ghost" size="icon" class="h-8 w-8">
+                                        <MoreHorizontal class="h-4 w-4" />
+                                        <span class="sr-only">{{ t('teams.index.open_menu') }}</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem as-child>
+                                        <Link :href="showTeam.url(team.external_id)" class="cursor-pointer">
+                                            <Settings class="me-2 h-4 w-4" />
+                                            {{ t('teams.index.manage') }}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem v-if="!team.is_owner" variant="destructive" class="cursor-pointer" @select="teamToLeave = team">
+                                        <LogOut class="me-2 h-4 w-4" />
+                                        {{ t('teams.index.leave') }}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        v-if="canDeleteTeam(team)"
+                                        variant="destructive"
+                                        class="cursor-pointer"
+                                        @select="openDelete(team)"
+                                    >
+                                        <Trash2 class="me-2 h-4 w-4" />
+                                        {{ t('teams.index.delete') }}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
         </div>
 
         <!-- Leave Team Confirmation -->

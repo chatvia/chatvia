@@ -950,7 +950,8 @@
                     "tokens_note": "Totalt antal tokens som förbrukades av den här körningen"
                 },
                 "back": "Tillbaka till utvärderingar",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Så gick det för agenten i varje testfall i den här körningen."
             },
             "index": {
                 "title": "Utvärderingar",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Uppdatera varje månad",
                 "refresh_saved": "Automatisk uppdatering sparad.",
                 "refresh_failed": "Det gick inte att spara automatisk uppdatering."
+            },
+            "page_description": {
+                "sources": "Lägg till innehållet som din agent lär sig av och svarar med.",
+                "files": "Ladda upp dokument som din agent kan lära sig av.",
+                "web": "Lägg till sidor från en webbplats som din agent kan lära sig av.",
+                "text": "Skriv eller klistra in text som din agent kan lära sig av.",
+                "qa": "Skriv svar på de frågor som ställs oftast.",
+                "youtube": "Lägg till YouTube-videor. Din agent lär sig av deras transkriptioner.",
+                "audio": "Ladda upp eller spela in ljud. Din agent lär sig av transkriptionen.",
+                "video": "Ladda upp videor. Din agent lär sig av deras transkriptioner.",
+                "markdown": "Ladda upp Markdown-filer som din agent kan lära sig av."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Konversationer",
             "chart_tooltip_conversations": "{date}: {count} konversationer",
             "chart_tooltip_change": "Förändring: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} konversationer"
+            "chart_tooltip_count": "{count} konversationer",
+            "description": "Se hur många samtal och meddelanden den här agenten hanterar och hur folk betygsätter svaren."
         },
         "chat_errors": {
             "contact_admin": "Kontakta administratören",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Hej! Kan du hjälpa mig?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formulär visas bara i chattwidgeten och kommandofältet.",
-            "delete_with_leads": "Detta raderar även {count} lead. Den här åtgärden kan inte ångras. | Detta raderar även {count} leads. Den här åtgärden kan inte ångras."
+            "delete_with_leads": "Detta raderar även {count} lead. Den här åtgärden kan inte ångras. | Detta raderar även {count} leads. Den här åtgärden kan inte ångras.",
+            "page_description": "Formulär som agenten kan visa i chatten för att samla in uppgifter, till exempel en offertförfrågan eller en bokning."
         },
         "submissions": {
             "page_title": "Inskick",

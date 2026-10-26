@@ -950,7 +950,8 @@
                     "tokens_note": "Tämän ajon kuluttamat tokenit yhteensä"
                 },
                 "back": "Takaisin arviointeihin",
-                "latency_value": "{ms} ms"
+                "latency_value": "{ms} ms",
+                "description": "Näin agentti onnistui jokaisessa tämän ajon testitapauksessa."
             },
             "index": {
                 "title": "Arvioinnit",
@@ -1646,6 +1647,17 @@
                 "refresh_monthly": "Päivitä kuukausittain",
                 "refresh_saved": "Automaattinen päivitys tallennettu.",
                 "refresh_failed": "Automaattisen päivityksen tallennus epäonnistui."
+            },
+            "page_description": {
+                "sources": "Lisää sisältö, josta agenttisi oppii ja jonka avulla se vastaa.",
+                "files": "Lataa asiakirjoja, joista agenttisi oppii.",
+                "web": "Lisää verkkosivuston sivuja, joista agenttisi oppii.",
+                "text": "Kirjoita tai liitä tekstiä, josta agenttisi oppii.",
+                "qa": "Kirjoita vastaukset yleisimpiin kysymyksiin.",
+                "youtube": "Lisää YouTube-videoita. Agenttisi oppii niiden tekstityksistä.",
+                "audio": "Lataa tai nauhoita ääntä. Agenttisi oppii sen tekstistä.",
+                "video": "Lataa videoita. Agenttisi oppii niiden tekstityksistä.",
+                "markdown": "Lataa Markdown-tiedostoja, joista agenttisi oppii."
             }
         },
         "leads": {
@@ -1793,7 +1805,8 @@
             "chart_conversations": "Keskustelut",
             "chart_tooltip_conversations": "{date}: {count} keskustelua",
             "chart_tooltip_change": "Muutos: {sign}{diff} ({sign}{percent}%)",
-            "chart_tooltip_count": "{count} keskustelua"
+            "chart_tooltip_count": "{count} keskustelua",
+            "description": "Katso, kuinka monta keskustelua ja viestiä tämä agentti hoitaa ja miten ihmiset arvioivat sen vastauksia."
         },
         "chat_errors": {
             "contact_admin": "Ota yhteyttä järjestelmänvalvojaan",
@@ -2419,7 +2432,8 @@
             "preview_user_message": "Hei! Voitko auttaa minua?",
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Lomakkeet näkyvät vain chat-widgetissä ja komentopalkissa.",
-            "delete_with_leads": "Tämä poistaa myös {count} liidin. Tätä toimintoa ei voi peruuttaa. | Tämä poistaa myös {count} liidiä. Tätä toimintoa ei voi peruuttaa."
+            "delete_with_leads": "Tämä poistaa myös {count} liidin. Tätä toimintoa ei voi peruuttaa. | Tämä poistaa myös {count} liidiä. Tätä toimintoa ei voi peruuttaa.",
+            "page_description": "Lomakkeet, joita agentti voi näyttää chatissa tietojen keräämiseen, kuten tarjouspyyntö tai varaus."
         },
         "submissions": {
             "page_title": "Lähetykset",

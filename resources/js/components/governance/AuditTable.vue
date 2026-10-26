@@ -192,54 +192,52 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
         </div>
 
         <!-- Table -->
-        <div class="rounded-md border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>{{ t('shared.audit_table.col_by') }}</TableHead>
-                        <TableHead v-if="showAgent">{{ t('shared.audit_table.col_agent') }}</TableHead>
-                        <TableHead>{{ t('shared.audit_table.col_tool') }}</TableHead>
-                        <TableHead>{{ t('shared.audit_table.col_connector') }}</TableHead>
-                        <TableHead>{{ t('shared.audit_table.col_outcome') }}</TableHead>
-                        <TableHead class="text-end">{{ t('shared.audit_table.col_latency') }}</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow v-for="row in rows.data" :key="row.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(row)">
-                        <TableCell>
-                            <div class="flex items-center gap-2">
-                                <Avatar class="size-7">
-                                    <AvatarImage v-if="row.user_name && row.avatar" :src="row.avatar" :alt="row.user_name" />
-                                    <AvatarFallback class="text-xs">
-                                        <template v-if="row.user_name">{{ getInitials(row.user_name) }}</template>
-                                        <User v-else class="text-muted-foreground size-3.5" />
-                                    </AvatarFallback>
-                                </Avatar>
-                                <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
-                                    row.user_name ?? t('shared.audit_table.visitor')
-                                }}</span>
-                            </div>
-                        </TableCell>
-                        <TableCell v-if="showAgent" class="text-sm">{{ row.agent_name }}</TableCell>
-                        <TableCell class="font-mono text-xs">
-                            {{ row.tool_name }}
-                            <span v-if="row.is_error" class="text-destructive ms-1">· {{ t('shared.audit_table.error_suffix') }}</span>
-                        </TableCell>
-                        <TableCell class="text-sm">{{ row.connector_name ?? '—' }}</TableCell>
-                        <TableCell>
-                            <Badge :variant="outcomeVariant(row.outcome)">{{ outcomeLabel(row.outcome) }}</Badge>
-                            <Badge v-if="row.gated" variant="outline" class="ms-1">{{ t('shared.audit_table.gated') }}</Badge>
-                        </TableCell>
-                        <TableCell class="text-muted-foreground text-end text-sm">{{ formatLatency(row.latency_ms) }}</TableCell>
-                    </TableRow>
-                    <TableRow v-if="rows.data.length === 0">
-                        <TableCell :colspan="colspan" class="text-muted-foreground py-10 text-center text-sm">{{
-                            t('shared.audit_table.empty')
-                        }}</TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </div>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>{{ t('shared.audit_table.col_by') }}</TableHead>
+                    <TableHead v-if="showAgent">{{ t('shared.audit_table.col_agent') }}</TableHead>
+                    <TableHead>{{ t('shared.audit_table.col_tool') }}</TableHead>
+                    <TableHead>{{ t('shared.audit_table.col_connector') }}</TableHead>
+                    <TableHead>{{ t('shared.audit_table.col_outcome') }}</TableHead>
+                    <TableHead class="text-end">{{ t('shared.audit_table.col_latency') }}</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                <TableRow v-for="row in rows.data" :key="row.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(row)">
+                    <TableCell>
+                        <div class="flex items-center gap-2">
+                            <Avatar class="size-7">
+                                <AvatarImage v-if="row.user_name && row.avatar" :src="row.avatar" :alt="row.user_name" />
+                                <AvatarFallback class="text-xs">
+                                    <template v-if="row.user_name">{{ getInitials(row.user_name) }}</template>
+                                    <User v-else class="text-muted-foreground size-3.5" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
+                                row.user_name ?? t('shared.audit_table.visitor')
+                            }}</span>
+                        </div>
+                    </TableCell>
+                    <TableCell v-if="showAgent" class="text-sm">{{ row.agent_name }}</TableCell>
+                    <TableCell class="font-mono text-xs">
+                        {{ row.tool_name }}
+                        <span v-if="row.is_error" class="text-destructive ms-1">· {{ t('shared.audit_table.error_suffix') }}</span>
+                    </TableCell>
+                    <TableCell class="text-sm">{{ row.connector_name ?? '—' }}</TableCell>
+                    <TableCell>
+                        <Badge :variant="outcomeVariant(row.outcome)">{{ outcomeLabel(row.outcome) }}</Badge>
+                        <Badge v-if="row.gated" variant="outline" class="ms-1">{{ t('shared.audit_table.gated') }}</Badge>
+                    </TableCell>
+                    <TableCell class="text-muted-foreground text-end text-sm">{{ formatLatency(row.latency_ms) }}</TableCell>
+                </TableRow>
+                <TableRow v-if="rows.data.length === 0">
+                    <TableCell :colspan="colspan" class="text-muted-foreground py-10 text-center text-sm">{{
+                        t('shared.audit_table.empty')
+                    }}</TableCell>
+                </TableRow>
+            </TableBody>
+        </Table>
 
         <!-- Pagination (cursor: only prev/next, no page count) -->
         <div v-if="rows.prev_page_url || rows.next_page_url" class="flex items-center justify-end">

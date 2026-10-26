@@ -50,6 +50,19 @@ const SCREENS: Record<ContentType, Component> = {
     qa: QaComponent,
 };
 
+/** Content type → the i18n key of its page description. */
+const DESCRIPTION_KEYS: Record<ContentType, string> = {
+    pdf: 'agents.sources.page_description.files',
+    word: 'agents.sources.page_description.files',
+    markdown: 'agents.sources.page_description.markdown',
+    audio: 'agents.sources.page_description.audio',
+    video: 'agents.sources.page_description.video',
+    web: 'agents.sources.page_description.web',
+    text: 'agents.sources.page_description.text',
+    youtube: 'agents.sources.page_description.youtube',
+    qa: 'agents.sources.page_description.qa',
+};
+
 function contentTypeFromUrl(url: string): ContentType {
     const match = URL_CONTENT_TYPES.find(([urlPart, type]) => url.includes(urlPart) && (type !== 'youtube' || hasFeature('youtube_sources')));
 
@@ -61,7 +74,7 @@ const currentComponent = SCREENS[selectedContentType];
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.sources')">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.sources')" :description="t(DESCRIPTION_KEYS[selectedContentType])">
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl">
                 <component :is="currentComponent" :agent="agent" :file-type="selectedContentType" />

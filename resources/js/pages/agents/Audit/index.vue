@@ -22,15 +22,11 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-    <AgentLayout :agent="props.agent" :title="t('agents.audit.title')">
+    <AgentLayout :agent="props.agent" :title="t('agents.audit.title')" :description="t('agents.audit.description')">
         <Head :title="t('agents.audit.head_title', { name: props.agent.name })" />
 
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl space-y-6">
-                <p class="text-muted-foreground text-sm">
-                    {{ t('agents.audit.description') }}
-                </p>
-
                 <AuditTable
                     :rows="props.rows"
                     :outcomes="props.outcomes"

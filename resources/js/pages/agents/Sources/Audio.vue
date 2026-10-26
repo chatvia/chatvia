@@ -54,7 +54,7 @@ const handleRecorded = async (recording: { blob: Blob; name: string; duration: n
 </script>
 
 <template>
-    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.audio')">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.audio')" :description="t('agents.sources.page_description.audio')">
         <div class="flex justify-center">
             <div class="w-full max-w-6xl space-y-6">
                 <Files v-if="!acceptsAudio" :agent="agent" file-type="audio" />

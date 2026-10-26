@@ -171,10 +171,6 @@ onMounted(() => {
 
 <template>
     <AgentLayout :agent="agent" :title="t('agents.topics.manage.title')" :description="t('agents.topics.manage.description')">
-        <template #header-icon>
-            <Plus class="h-5 w-5" />
-        </template>
-
         <div class="space-y-6">
             <!-- Search and Add -->
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">

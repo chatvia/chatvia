@@ -24,7 +24,7 @@ import { deleteMethod as deleteAttachment, store as storeAttachment } from '@/ro
 import type { ChatAppearance, ChatDefaultTheme } from '@/types/chat';
 import { useChatEventBus } from '@/utils/eventBus';
 import { ChevronDown } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, provide, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, provide, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 // Global transcript and markdown styles; imported last so they keep the
 // cascade position the page's own (unscoped) style block used to have.
@@ -153,16 +153,58 @@ function streamFirstReply() {
     });
 }
 
+const FIRST_REPLY_CHECK_EVERY_MS = 2000;
+const FIRST_REPLY_WAIT_MS = 60_000;
+let unmounted = false;
+onUnmounted(() => (unmounted = true));
+
+/**
+ * A reload while the first reply was streaming lands here with only the
+ * visitor's message: the server is still finishing that reply (or has just
+ * saved it), so the page waits for it instead of asking for a second answer,
+ * which would run its tools (a generated image) again. Only a reply that
+ * never comes is asked for again.
+ */
+async function waitForFirstReply() {
+    const until = Date.now() + FIRST_REPLY_WAIT_MS;
+
+    while (!unmounted && Date.now() < until) {
+        messages.value.push({ role: 'assistant', content: '', id: 0 });
+        await new Promise((resolve) => setTimeout(resolve, FIRST_REPLY_CHECK_EVERY_MS));
+
+        try {
+            await transcript.load();
+        } catch {
+            messages.value.splice(1);
+            continue;
+        }
+
+        if (messages.value.length > 1) {
+            void nextTick(() => scroll.scrollToBottom());
+            void transcript.loadSources();
+            return;
+        }
+    }
+
+    if (unmounted) return;
+    messages.value.splice(1);
+    streamFirstReply();
+}
+
 onMounted(async () => {
     // A brand-new conversation renders straight away; an existing one shows the loader.
-    loadingMessages.value = !isNewConversationVisit();
+    const isNewVisit = isNewConversationVisit();
+    loadingMessages.value = !isNewVisit;
 
     try {
         await transcript.load();
         loadingMessages.value = false;
 
         if (messages.value.length === 1) {
-            streamFirstReply();
+            // Home sends a new conversation here once, flagged: only that
+            // visit asks for the first reply.
+            if (isNewVisit) streamFirstReply();
+            else void waitForFirstReply();
         } else {
             void nextTick(() => scroll.scrollToBottom());
         }

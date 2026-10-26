@@ -113,3 +113,17 @@ it('treats a disconnect the generator handled itself as a normal end', function 
     Log::shouldNotHaveReceived('error');
     Exceptions::assertNothingReported();
 });
+
+it('keeps the turn running after the browser goes away, so the generator can save the reply', function (): void {
+    $before = ignore_user_abort();
+
+    try {
+        (function (): void {
+            $this->keepRunningAfterDisconnect();
+        })->call(new SseResponder);
+
+        expect(ignore_user_abort())->toBe(1);
+    } finally {
+        ignore_user_abort((bool) $before);
+    }
+});

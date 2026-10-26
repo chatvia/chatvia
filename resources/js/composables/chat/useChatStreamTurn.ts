@@ -96,6 +96,9 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
     /** Single entry point for new, edited and regenerated turns. */
     function startTurn(options: StartTurnOptions) {
         const requestId = newRequestId();
+        // The first reply is asked for once: a reload from here on waits for
+        // it instead of asking again (see Chat.vue).
+        if (options.isNewConversation) clearNewConversationFlag();
         streamingAssistantId.value = null;
         approvals.reset();
 

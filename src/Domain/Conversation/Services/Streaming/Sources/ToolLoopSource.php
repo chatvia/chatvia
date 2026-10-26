@@ -338,6 +338,7 @@ abstract class ToolLoopSource
         }
 
         $context->markEndTime();
+        $this->screenSteps($context);
         $this->replyRecorder->recordCompletedReply($context);
         $this->rememberForReplay($context);
 
@@ -429,6 +430,32 @@ abstract class ToolLoopSource
     }
 
     /**
+     * The step chain is saved with the answer and shown again on reload, so
+     * what the model wrote before its tool calls passes the output guardrails
+     * too, in one check. Text the guards would change or block is dropped,
+     * and so is text held back for them and never shown; the tool steps
+     * stay. Without a verdict (the check failed) the text is dropped too.
+     */
+    private function screenSteps(ChatContext $context): void
+    {
+        $text = $context->stepText();
+
+        if ($text === '') {
+            return;
+        }
+
+        $kept = ! $this->holdsAnswer($context) && rescue(function () use ($context, $text): bool {
+            $guard = $this->guardrails->inspectOutput($context->requestData->agent, $text, $context->queryLanguage);
+
+            return ! $guard->blocked && $guard->text === $text;
+        }, false);
+
+        if (! $kept) {
+            $context->dropTextSteps();
+        }
+    }
+
+    /**
      * Save the partial answer after the client went away. Nobody is listening
      * any more, but the text is still stored and shown in the history, so it
      * passes the same output guardrails as a full answer. A failure here is
@@ -448,6 +475,7 @@ abstract class ToolLoopSource
         }
 
         $this->citations()->clean($context);
+        $this->screenSteps($context);
 
         try {
             $this->replyRecorder->recordCompletedReply($context);

@@ -4483,5 +4483,11 @@
             "deploy_title": "Del den",
             "deploy_text": "Når den er klar, legger du den på nettstedet ditt eller deler en lenke til chatsiden fra Distribuer."
         }
+    },
+    "steps": {
+        "count": "{count} trinn | {count} trinn",
+        "used": "Brukte {label}",
+        "show": "Vis trinn",
+        "hide": "Skjul trinn"
     }
 }

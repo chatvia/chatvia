@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count}단계 | {count}단계",
+        "used": "{label} 사용함",
+        "show": "단계 보기",
+        "hide": "단계 숨기기"
+    }
+}

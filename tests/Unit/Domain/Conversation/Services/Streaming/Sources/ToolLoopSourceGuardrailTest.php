@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
@@ -8,6 +9,7 @@ use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\Cache;
@@ -23,7 +25,8 @@ use Tests\Support\Conversation\TestChatContext;
  * Every source that runs the tool loop shares one finish step, so the output
  * guardrails (PII redaction / toxicity replacement) run before ANY answer is
  * saved or replayed — chats with attached files included, and also the partial answer saved
- * after the visitor disconnects. The runner and the guard are faked; the
+ * after the visitor disconnects. What the model wrote before its tool calls
+ * is saved as steps, so it passes the same guards. The runner and the guard are faked; the
  * assertions are on what the source saves and streams.
  */
 /**
@@ -110,3 +113,69 @@ it('holds the answer until the output guards checked it, then sends it in one pi
         ->and($deltas[0]->data['text'])->toBe('Mail me at [EMAIL]')
         ->and($events->contains(fn (StreamEvent $e): bool => $e->type === EventType::Replace))->toBeFalse();
 })->with('tool loop sources');
+
+it('keeps what the model wrote before its tool calls when the output guards leave it as it is', function (string $source): void {
+    $context = TestChatContext::make();
+    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        $ctx->addTextStep('Let me look up your event types.');
+        $ctx->appendStreamedMessage('Found it.');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'Found it.');
+
+        return false;
+    });
+
+    [$stream] = tlsStream($source, $context, $runner);
+    iterator_to_array($stream, preserve_keys: false);
+
+    expect($context->stepText())->toBe('Let me look up your event types.');
+})->with('tool loop sources');
+
+it('drops step text the output guards would change, before the steps are saved', function (string $source): void {
+    $context = TestChatContext::make();
+    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        $ctx->addTextStep('Let me mail a@b.com.');
+        $ctx->addToolStep(tlsToolCall());
+        $ctx->appendStreamedMessage('Sent.');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'Sent.');
+
+        return false;
+    });
+
+    [$stream] = tlsStream($source, $context, $runner);
+    iterator_to_array($stream, preserve_keys: false);
+
+    // The tool step stays: it never carries model text.
+    expect($context->stepText())->toBe('')
+        ->and($context->steps)->toHaveCount(1)
+        ->and($context->steps[0]->label)->toBe('Cal.com');
+})->with('tool loop sources');
+
+it('drops step text that was held for the output guards and never shown', function (string $source): void {
+    $context = TestChatContext::make();
+    $context->requestData->agent->setSetting('check_before_showing', true, 'guardrails');
+    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        $ctx->addTextStep('Let me look up your event types.');
+        $ctx->appendStreamedMessage('Found it.');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'Found it.');
+
+        return false;
+    });
+
+    [$stream] = tlsStream($source, $context, $runner);
+    iterator_to_array($stream, preserve_keys: false);
+
+    expect($context->steps)->toBe([]);
+})->with('tool loop sources');
+
+function tlsToolCall(): PendingToolCallData
+{
+    return new PendingToolCallData(
+        toolCallId: 'call_1',
+        name: 'mcp__cal__list_event_types',
+        arguments: '{}',
+        requiresApproval: false,
+        access: null,
+        kind: ToolKind::Mcp,
+        label: 'Cal.com',
+    );
+}

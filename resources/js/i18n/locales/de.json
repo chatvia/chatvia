@@ -4483,5 +4483,11 @@
             "deploy_title": "Teile ihn",
             "deploy_text": "Wenn er fertig ist, binde ihn unter Bereitstellen auf deiner Website ein oder teile einen Link zu seiner Chatseite."
         }
+    },
+    "steps": {
+        "count": "{count} Schritt | {count} Schritte",
+        "used": "{label} verwendet",
+        "show": "Schritte anzeigen",
+        "hide": "Schritte ausblenden"
     }
 }

@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} étape | {count} étapes",
+        "used": "{label} utilisé",
+        "show": "Afficher les étapes",
+        "hide": "Masquer les étapes"
+    }
+}

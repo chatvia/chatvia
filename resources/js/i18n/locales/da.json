@@ -4483,5 +4483,11 @@
             "deploy_title": "Del den",
             "deploy_text": "Når den er klar, så tilføj den til dit website eller del et link til dens chatside fra Udrul."
         }
+    },
+    "steps": {
+        "count": "{count} trin | {count} trin",
+        "used": "Brugte {label}",
+        "show": "Vis trin",
+        "hide": "Skjul trin"
     }
 }

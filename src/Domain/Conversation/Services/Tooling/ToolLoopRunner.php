@@ -129,6 +129,10 @@ class ToolLoopRunner
                 return false;
             }
 
+            // What the model wrote before these calls says what it is about
+            // to do: a step of the chain, not part of the saved answer.
+            $context->addTextStep($context->streamedMessage);
+
             $paused = yield from $this->resolveToolCalls($context, $llmMessages, $toolCalls, $offeredNames, $iteration);
 
             if ($paused) {
@@ -491,6 +495,11 @@ class ToolLoopRunner
         bool $decidedByPerson = false,
     ): Generator {
         $assistantId = $context->assistantMessageId;
+
+        // Built-in capabilities are plumbing the chat never shows as a step.
+        if (! $call->isBuiltin) {
+            $context->addToolStep($call);
+        }
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,

@@ -4431,5 +4431,11 @@
             "deploy_title": "分享它",
             "deploy_text": "准备好后，在部署中把它添加到您的网站，或分享它的聊天页面链接。"
         }
+    },
+    "steps": {
+        "count": "{count} 个步骤 | {count} 个步骤",
+        "used": "已使用 {label}",
+        "show": "显示步骤",
+        "hide": "隐藏步骤"
     }
 }

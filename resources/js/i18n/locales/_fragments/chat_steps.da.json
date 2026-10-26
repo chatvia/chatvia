@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} trin | {count} trin",
+        "used": "Brugte {label}",
+        "show": "Vis trin",
+        "hide": "Skjul trin"
+    }
+}

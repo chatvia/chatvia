@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} step | {count} steps",
+        "used": "Used {label}",
+        "show": "Show steps",
+        "hide": "Hide steps"
+    }
+}

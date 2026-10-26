@@ -2,17 +2,21 @@
 
 namespace Domain\Conversation\Data\Tooling;
 
+use Domain\Conversation\Data\Messages\MessageStepData;
 use Domain\Conversation\Services\ChatContext;
 
 /**
  * What a paused turn must remember to resume after the person approves or
  * denies its gated tool calls: the session, the model, who was talking (for
- * the prompt and the governance audit), the visitor's message and how the
- * turn was configured. Stored as JSON in `tool_approval_checkpoints.context`;
+ * the prompt and the governance audit), the visitor's message, how the
+ * turn was configured and the step chain so far. Stored as JSON in `tool_approval_checkpoints.context`;
  * {@see toArray()} and {@see fromArray()} keep that shape exactly.
  */
 final readonly class ApprovalContextData
 {
+    /**
+     * @param  array<int, MessageStepData>  $steps
+     */
     public function __construct(
         public string $externalSessionId,
         public int $modelId,
@@ -30,6 +34,8 @@ final readonly class ApprovalContextData
         // The signed-in chatter's public id, so an approved call still tells
         // the webhook or MCP server which chatter is talking.
         public ?string $chatterExternalId = null,
+        // The steps before the pause, so the saved chain also shows them.
+        public array $steps = [],
     ) {}
 
     public static function fromContext(ChatContext $context): self
@@ -49,6 +55,7 @@ final readonly class ApprovalContextData
             streamSources: $request->streamSources,
             preface: $context->streamedMessage,
             chatterExternalId: $request->chatterExternalId,
+            steps: $context->steps,
         );
     }
 
@@ -70,6 +77,7 @@ final readonly class ApprovalContextData
             streamSources: (bool) ($stored['stream_sources'] ?? false),
             preface: (string) ($stored['preface'] ?? ''),
             chatterExternalId: $stored['chatter_external_id'] ?? null,
+            steps: MessageStepData::collect($stored['steps'] ?? []),
         );
     }
 
@@ -93,6 +101,7 @@ final readonly class ApprovalContextData
             'stream_sources' => $this->streamSources,
             'preface' => $this->preface,
             'chatter_external_id' => $this->chatterExternalId,
+            'steps' => array_map(static fn (MessageStepData $step): array => $step->toArray(), $this->steps),
         ];
     }
 }

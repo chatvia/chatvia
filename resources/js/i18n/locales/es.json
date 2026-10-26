@@ -4483,5 +4483,11 @@
             "deploy_title": "Compártelo",
             "deploy_text": "Cuando esté listo, añádelo a tu sitio web o comparte un enlace a su página de chat desde Desplegar."
         }
+    },
+    "steps": {
+        "count": "{count} paso | {count} pasos",
+        "used": "Usó {label}",
+        "show": "Mostrar pasos",
+        "hide": "Ocultar pasos"
     }
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * One assistant reply in the hosted chat: the model's thinking (when the
- * agent reasons, live only), the rendered answer, a "still working"
+ * agent reasons, live only), the chain of steps it took (what it said before
+ * each tool call and the calls themselves), the rendered answer, a "still working"
  * indicator (dots or the tool-call stack), any tool calls awaiting approval,
  * and the action row (copy, read aloud, feedback, delete, regenerate (a menu
  * of models when the agent offers a choice), sources). After a
@@ -40,11 +41,13 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { citedSources } from '@/lib/citations';
+import { messageSteps } from '@/lib/messageSteps';
 import AssistantMessageBody from './AssistantMessageBody.vue';
 import ChatModelLogo from './ChatModelLogo.vue';
 import CitedSourcesList from './CitedSourcesList.vue';
 import ReasoningBlock from './ReasoningBlock.vue';
 import SourcesDialog from './SourcesDialog.vue';
+import StepChain from './StepChain.vue';
 import ToolApprovalCard from './ToolApprovalCard.vue';
 import ToolCallIndicator from './ToolCallIndicator.vue';
 import WaitingIndicator from './WaitingIndicator.vue';
@@ -115,6 +118,19 @@ const isCommentSent = ref(false);
 
 const hasPendingApprovals = computed(() => (props.pendingApprovals?.length ?? 0) > 0);
 const activeCallList = computed(() => props.activeCalls ?? []);
+const steps = computed(() => messageSteps(props.message));
+const hasSteps = computed(() => steps.value.length > 0);
+// Empty body: dots while the model thinks, or the branded tool-call stack
+// while it calls an MCP server or webhook. Hidden while an approval card is
+// pending, since the card is the content then, and while its thinking
+// streams, which shows it is working. A step chain shows its running call
+// itself, and once the turn ends it is the whole reply.
+const showsWorking = computed(() => {
+    if (props.message.content || hasPendingApprovals.value) return false;
+    if (hasSteps.value) return !!props.isStreaming && !props.isCallingExternal;
+
+    return !!props.isCallingExternal || !props.message.reasoning;
+});
 
 // On devices with a mouse, older replies keep their action row out of the way
 // until hovered or focused. A thumb already given stays in sight.
@@ -242,6 +258,7 @@ async function deleteMessage() {
                 :thinking="(isStreaming ?? false) && !message.content"
                 :isRTL="isRTL ?? false"
             />
+            <StepChain v-if="hasSteps" :steps="steps" :isRTL="isRTL ?? false" />
             <AssistantMessageBody
                 :content="message.content ?? ''"
                 :artifacts="props.artifacts"
@@ -252,11 +269,7 @@ async function deleteMessage() {
                 :cite="!!citeSources"
             />
             <CitedSourcesList v-if="showsCitations && !isStreaming" :cited="cited" />
-            <!-- Empty body: dots while the model thinks, or the branded tool-call
-                 stack while it calls an MCP server or webhook. Hidden while an
-                 approval card is pending, since the card is the content then,
-                 and while its thinking streams, which shows it is working. -->
-            <div v-if="!message.content && !hasPendingApprovals && (isCallingExternal || !message.reasoning)" class="flex items-center gap-2 py-1">
+            <div v-if="showsWorking" class="flex items-center gap-2 py-1">
                 <ToolCallIndicator v-if="isCallingExternal" :calls="activeCallList" label-class="text-sm" />
                 <WaitingIndicator v-else />
             </div>

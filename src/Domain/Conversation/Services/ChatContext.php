@@ -2,14 +2,18 @@
 
 namespace Domain\Conversation\Services;
 
+use Domain\Conversation\Data\Messages\MessageStepData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Tooling\EmittedToolCallData;
+use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Enums\MessageStepKind;
 use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Domain\Llm\Data\Query\RewrittenQueryData;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * The working state of one chat turn while it streams: the request, the
@@ -90,6 +94,17 @@ class ChatContext
     public array $toolCallNames = [];
 
     /**
+     * The step chain of this turn, in order: what the model wrote before
+     * each round of tool calls and the calls the chat showed. Persisted into
+     * the assistant message's `metadata.steps` so the chain comes back on
+     * reload. A turn resumed after approval starts from the steps saved with
+     * its checkpoint.
+     *
+     * @var array<int, MessageStepData>
+     */
+    public array $steps = [];
+
+    /**
      * Tool calls the model emitted but that were deliberately NOT executed —
      * populated only when the loop runs in capture-only mode (evals). Each entry
      * is `['name' => string, 'arguments' => string]` (arguments is the raw JSON
@@ -164,6 +179,39 @@ class ChatContext
     public function appendStreamedMessage(string $content): void
     {
         $this->streamedMessage .= $content;
+    }
+
+    /** A line the model wrote before calling tools; blank text adds nothing. */
+    public function addTextStep(string $text): void
+    {
+        $text = Str::trim($text);
+
+        if ($text !== '') {
+            $this->steps[] = MessageStepData::text($text);
+        }
+    }
+
+    public function addToolStep(PendingToolCallData $call): void
+    {
+        $this->steps[] = MessageStepData::tool($call);
+    }
+
+    /** Everything the model wrote before its tool calls, one step per paragraph. */
+    public function stepText(): string
+    {
+        return collect($this->steps)
+            ->filter(static fn (MessageStepData $step): bool => $step->kind === MessageStepKind::Text)
+            ->map(static fn (MessageStepData $step): string => $step->text ?? '')
+            ->implode("\n\n");
+    }
+
+    /** Keep only the tool calls of the chain. */
+    public function dropTextSteps(): void
+    {
+        $this->steps = array_values(array_filter(
+            $this->steps,
+            static fn (MessageStepData $step): bool => $step->kind !== MessageStepKind::Text,
+        ));
     }
 
     /**

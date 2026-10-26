@@ -4483,5 +4483,11 @@
             "deploy_title": "Jaa se",
             "deploy_text": "Kun agentti on valmis, lisää se sivustollesi tai jaa linkki sen chat-sivulle kohdasta Julkaise."
         }
+    },
+    "steps": {
+        "count": "{count} vaihe | {count} vaihetta",
+        "used": "Käytti: {label}",
+        "show": "Näytä vaiheet",
+        "hide": "Piilota vaiheet"
     }
 }

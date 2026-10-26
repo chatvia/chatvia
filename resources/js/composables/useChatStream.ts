@@ -81,6 +81,9 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 async flush() {
                     /* no-op */
                 },
+                drainNow() {
+                    /* no-op */
+                },
                 cancel() {
                     /* no-op */
                 },
@@ -142,6 +145,20 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                     scheduleTick();
                 });
             },
+            /** Hand over every buffered character at once, skipping the typing pace. */
+            drainNow() {
+                if (rafHandle !== null) {
+                    cancelAnimationFrame(rafHandle);
+                    rafHandle = null;
+                }
+                if (buffer.length > 0 && isAlive()) callbacks.onDelta?.(buffer, bufferedId);
+                buffer = '';
+                if (drainResolver) {
+                    const resolve = drainResolver;
+                    drainResolver = null;
+                    resolve();
+                }
+            },
             cancel() {
                 if (rafHandle !== null) {
                     cancelAnimationFrame(rafHandle);
@@ -186,6 +203,10 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 callbacks.onSources?.(env.data.sources, env.id);
                 return null;
             case 'tool':
+                // The text before a tool call belongs to the step it starts
+                // (the chat moves it into the step chain), so it must all be
+                // in place first, not still typing out behind the call.
+                pacer.drainNow();
                 callbacks.onTool?.(env.data, env.id);
                 return null;
             case 'replace':

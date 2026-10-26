@@ -4483,5 +4483,11 @@
             "deploy_title": "Share it",
             "deploy_text": "When it is ready, add it to your website or share a link to its chat page from Deploy."
         }
+    },
+    "steps": {
+        "count": "{count} step | {count} steps",
+        "used": "Used {label}",
+        "show": "Show steps",
+        "hide": "Hide steps"
     }
 }

@@ -4431,5 +4431,11 @@
             "deploy_title": "Bagikan",
             "deploy_text": "Saat sudah siap, pasang di situs Anda atau bagikan tautan ke halaman chat-nya dari Terapkan."
         }
+    },
+    "steps": {
+        "count": "{count} langkah | {count} langkah",
+        "used": "Menggunakan {label}",
+        "show": "Tampilkan langkah",
+        "hide": "Sembunyikan langkah"
     }
 }

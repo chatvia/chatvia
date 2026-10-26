@@ -175,9 +175,9 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
             onSources: (sources, id) => {
                 if (id) transcript.setSources(id, sources as MessageSource[]);
             },
-            onTool: handleTool,
+            onTool: (data, id) => handleTool(data, id, streamingReply()),
             onError: (err) => handleError(target, err),
-            onDone: () => handleDone(target),
+            onDone: () => handleDone(target, streamingReply()),
         };
     }
 
@@ -200,31 +200,48 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
         liveAnnouncement.value = t('messages.responding');
     }
 
-    function handleTool(data: StreamToolData, assistantMessageId: string) {
+    function handleTool(data: StreamToolData, assistantMessageId: string, reply: Message | undefined) {
         if (!data?.tool_call_id) return;
 
         if (data.phase === 'awaiting_approval') {
             if (!assistantMessageId || !data.approval_id) return;
+            if (reply) moveTextToSteps(reply);
             approvals.addPending(assistantMessageId, data);
             nextTick(() => scroll.scrollWhileStreaming());
             return;
         }
 
         if (data.phase === 'start') {
+            if (reply) moveTextToSteps(reply);
             // Built-in capabilities (forms, charts, leads) are internal plumbing:
-            // no "Calling …" indicator. Their artifacts still arrive on 'end'.
+            // no "Calling …" indicator or step. Their artifacts still arrive on 'end'.
             if (data.internal) return;
             const call = toolCalls.start(data);
+            reply?.steps?.push({ kind: 'tool', call, done: false });
             liveAnnouncement.value = data.activity_label || t('messages.calling', { label: call.label });
             return;
         }
 
         if (data.phase === 'end') {
             toolCalls.end(data.tool_call_id);
+            const step = reply?.steps?.find((entry) => entry.kind === 'tool' && entry.call.tool_call_id === data.tool_call_id);
+            if (step?.kind === 'tool') step.done = true;
             if (assistantMessageId && Array.isArray(data.artifacts) && data.artifacts.length > 0) {
                 transcript.addArtifacts(assistantMessageId, data.artifacts);
             }
         }
+    }
+
+    /**
+     * Text streamed before a tool call is the model saying what it will do
+     * next. The server drops it from the saved answer, so it becomes a step
+     * of the chain and the answer starts again empty.
+     */
+    function moveTextToSteps(reply: Message) {
+        reply.steps ??= [];
+        const text = reply.content.trim();
+        if (text !== '') reply.steps.push({ kind: 'text', text });
+        reply.content = '';
     }
 
     function handleError(target: TurnTarget, err: StreamError) {
@@ -249,9 +266,13 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
         if (target.isNewConversation) void nameConversationThenRefresh();
     }
 
-    function handleDone(target: TurnTarget) {
+    function handleDone(target: TurnTarget, reply: Message | undefined) {
         streamingAssistantId.value = null;
         toolCalls.clear();
+        // A stopped turn never sends the 'end' of a running call.
+        reply?.steps?.forEach((step) => {
+            if (step.kind === 'tool') step.done = true;
+        });
         liveAnnouncement.value = t('messages.response_complete');
 
         if (target.isNewConversation) void nameConversationThenRefresh();

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Event;
 use Spectra\Support\Tracking\TraceContext;
 use Tests\Support\Conversation\TestChatContext;
+use Tests\Support\Conversation\Tooling\ToolLoop;
 
 /**
  * A completed answer is stored and announced, so it counts against the
@@ -199,4 +200,20 @@ it('remembers the chunks of one source as one source, but stores every chunk', f
 
     Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
         && array_map(static fn (MessageSourceData $source): ?int => $source->chunk_id, $job->payload->sources) === [11, 12]);
+});
+
+it('keeps the step chain in the message metadata, so it comes back with the history', function (): void {
+    Event::fake([AssistantReplyCompleted::class]);
+    $context = recorderContext();
+    $context->addTextStep('Let me read the PDF.');
+    $context->addToolStep(ToolLoop::pendingCall('read_pdf', gated: false));
+
+    app(AssistantReplyRecorder::class)->recordCompletedReply($context);
+
+    expect(recorderHistory($context)[0]->metadata['steps'])->toBe([
+        ['kind' => 'text', 'text' => 'Let me read the PDF.', 'label' => null, 'tool_kind' => null, 'icon_url' => null],
+        ['kind' => 'tool', 'text' => null, 'label' => 'Read Pdf', 'tool_kind' => 'function', 'icon_url' => null],
+    ]);
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
+        && count($job->payload->steps) === 2);
 });

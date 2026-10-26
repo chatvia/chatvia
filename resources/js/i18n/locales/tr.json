@@ -4431,5 +4431,11 @@
             "deploy_title": "Paylaşın",
             "deploy_text": "Hazır olduğunda, Yayına al bölümünden onu sitenize ekleyin veya sohbet sayfasının bağlantısını paylaşın."
         }
+    },
+    "steps": {
+        "count": "{count} adım | {count} adım",
+        "used": "{label} kullanıldı",
+        "show": "Adımları göster",
+        "hide": "Adımları gizle"
     }
 }

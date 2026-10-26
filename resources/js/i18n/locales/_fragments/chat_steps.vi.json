@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} bước | {count} bước",
+        "used": "Đã dùng {label}",
+        "show": "Hiện các bước",
+        "hide": "Ẩn các bước"
+    }
+}

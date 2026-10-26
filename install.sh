@@ -2637,18 +2637,57 @@ native_check_php() {
 
 native_install_packages() {
     # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
-    # PDF exports, and the Noto fonts give it every script. gnupg encrypts
-    # backups (Settings → Backups); PostgreSQL and Redis bring pg_dump and
-    # redis-cli. Node.js is the next step.
+    # PDF exports, and the Noto fonts give it every script. The backup
+    # programs come with native_backup_packages. Node.js is the next step.
     # shellcheck disable=SC2046
     apt_get install \
-        git curl unzip ca-certificates cron ufw gnupg \
+        git curl unzip ca-certificates cron ufw \
         $(native_php_packages) composer \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
         "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \
-        poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk
-    native_check_php
+        $(native_backup_packages) \
+        poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
+    native_check_php || return
+    native_check_backup_programs || return
     composer --version
+}
+
+# The packages of the programs Settings → Backups runs: pg_dump and
+# pg_restore (the client of the PostgreSQL installed here: an older pg_dump
+# refuses a newer server), redis-cli and gpg. Named here although PostgreSQL
+# and Redis bring them too, so a change of those packages cannot drop them.
+native_backup_packages() {
+    printf '%s\n' "postgresql-client-$NATIVE_PG" redis-tools gnupg
+}
+
+# An upgrade installs them too: an install from before Settings → Backups,
+# or one where they were removed, gets them back.
+native_install_backup_programs() {
+    # shellcheck disable=SC2046
+    apt_get install $(native_backup_packages) || return
+    native_check_backup_programs
+}
+
+# Fails, naming them, when a backup program is missing, or when pg_dump is
+# older than the PostgreSQL server.
+native_check_backup_programs() {
+    local program missing='' major
+    for program in pg_dump pg_restore redis-cli gpg; do
+        if ! command -v "$program" >/dev/null 2>&1; then missing="$missing $program"; fi
+    done
+    if [ -n "$missing" ]; then
+        echo "Not found:$missing. Backups (Settings → Backups) need them." >&2
+        return 1
+    fi
+    major=$(pg_dump --version | sed -n 's/.*(PostgreSQL) \([0-9][0-9]*\).*/\1/p')
+    if [ "${major:-0}" -lt "$NATIVE_PG" ]; then
+        echo "pg_dump is version ${major:-unknown}, older than PostgreSQL $NATIVE_PG: backups would fail." >&2
+        return 1
+    fi
+    pg_dump --version || return
+    pg_restore --version || return
+    redis-cli --version || return
+    gpg --version | sed -n 1p
 }
 
 # An upgrade brings PHP up to the newest release first: a new ChatVia.ai may
@@ -3552,6 +3591,8 @@ native_upgrade() {
     native_refresh_deploy_file
     run_step "Updating PHP $NATIVE_PHP from ppa:ondrej/php" native_update_php ||
         die 'PHP could not be updated, so nothing was upgraded.' "See why: $LOG"
+    run_step 'Installing the backup programs (pg_dump, pg_restore, redis-cli, gpg)' native_install_backup_programs ||
+        warn "The backup programs are missing, so backups (Settings → Backups) fail. See why: $LOG"
     run_step 'Backing up the database' native_backup ||
         die 'The backup failed, so nothing was upgraded.' "See why: $LOG"
     run_step "Deploying ChatVia.ai $new" native_upgrade_deploy ||

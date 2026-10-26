@@ -103,6 +103,16 @@ it('returns the tool result envelope of tools/call', function (): void {
         ->and($result->text)->toBe('pong');
 });
 
+it('sends the arguments of tools/call as a JSON object, also when there are none', function (): void {
+    mclFakeServer();
+
+    app(McpClient::class)->callTool(mclServer(), 'ping', []);
+    app(McpClient::class)->callTool(mclServer(), 'ping', ['limit' => 5]);
+
+    Http::assertSent(fn (ClientRequest $request): bool => str_contains($request->body(), '"arguments":{}'));
+    Http::assertSent(fn (ClientRequest $request): bool => str_contains($request->body(), '"arguments":{"limit":5}'));
+});
+
 it('stamps the caller identity headers on tools/call', function (): void {
     mclFakeServer();
 

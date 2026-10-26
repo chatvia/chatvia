@@ -2,8 +2,10 @@
 /**
  * The agent's Knowledge Sources page (`agents.sources`). It shows the source
  * screen that matches the current URL (web, text, Q&A, …) and falls back to
- * the files screen. YouTube only counts when the `youtube_sources` feature is on.
+ * the files screen, under the agent's "Search knowledge" switch. YouTube only
+ * counts when the `youtube_sources` feature is on.
  */
+import KnowledgeSearchSwitch from '@/components/agents/sources/KnowledgeSearchSwitch.vue';
 import { useFeature } from '@/composables/useFeature';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { usePage } from '@inertiajs/vue3';
@@ -19,6 +21,7 @@ type ContentType = 'web' | 'text' | 'youtube' | 'pdf' | 'word' | 'markdown' | 'a
 
 defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
+    knowledgeSearch: Domain.Knowledge.Retrieval.Data.KnowledgeSearchStateData;
 }>();
 
 const page = usePage();
@@ -77,6 +80,7 @@ const currentComponent = SCREENS[selectedContentType];
     <AgentLayout :agent="agent" :title="t('agents.sources.page_title.sources')" :description="t(DESCRIPTION_KEYS[selectedContentType])">
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl">
+                <KnowledgeSearchSwitch :agent-id="agent.external_id" :state="knowledgeSearch" />
                 <component :is="currentComponent" :agent="agent" :file-type="selectedContentType" />
             </div>
         </div>

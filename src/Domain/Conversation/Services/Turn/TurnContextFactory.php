@@ -17,6 +17,7 @@ use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Query\QueryRewriter;
@@ -26,7 +27,7 @@ use Illuminate\Support\Str;
 
 /**
  * Builds the {@see ChatContext} a turn runs on. For a new turn it rewrites
- * the visitor's message for retrieval, runs the input guardrails (PII masking,
+ * the visitor's message for retrieval (when the agent searches its knowledge), runs the input guardrails (PII masking,
  * injection / topic / toxicity blocking), records the message in the
  * conversation, and loads the history the LLM will see. For a resumed turn it
  * restores everything from the approval checkpoint instead.
@@ -39,6 +40,7 @@ class TurnContextFactory
         private readonly QueryRewriter $queryRewriter,
         private readonly GuardrailService $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
+        private readonly KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
 
     public function forNewTurn(StreamRequestData $data): ChatContext
@@ -61,7 +63,11 @@ class TurnContextFactory
         // a failed rewrite.
         $earlierTurns = $this->earlierTurns($history, $data);
         $guarding = $this->inspectInput($data, $earlierTurns);
-        $rewriting = $this->queryRewriter->rewriteAsync($this->maskedMessage($data), $earlierTurns);
+        // The rewrite only serves the knowledge search, so an agent that does
+        // not search skips it.
+        $rewriting = $this->knowledgeSearch->for($data->agent)
+            ? $this->queryRewriter->rewriteAsync($this->maskedMessage($data), $earlierTurns)
+            : Create::promiseFor(RewrittenQueryData::unchanged($this->maskedMessage($data)));
         $guard = $guarding->wait();
 
         if ($guard->blocked) {

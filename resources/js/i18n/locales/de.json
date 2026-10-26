@@ -134,17 +134,6 @@
             "view": "Bild ansehen",
             "view_named": "Bild ansehen: {name}"
         },
-        "generated_media": {
-            "image": "Erstelltes Bild",
-            "image_alt": "Erstelltes Bild: {prompt}",
-            "image_pending": "Dein Bild wird erstellt…",
-            "audio_pending": "Deine Audiodatei wird erstellt…",
-            "image_failed": "Dieses Bild konnte nicht erstellt werden.",
-            "audio_failed": "Diese Audiodatei konnte nicht erstellt werden.",
-            "refused": "Der Dienst hat diese Anfrage abgelehnt.",
-            "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
-            "download": "Herunterladen"
-        },
         "calendar": {
             "duration": "{minutes} Min.",
             "previous_week": "Vorherige Woche",
@@ -169,6 +158,17 @@
             "book_on_page": "Dieser Termin kann nur auf der Buchungsseite gebucht werden.",
             "open_booking_page": "Buchungsseite öffnen",
             "unavailable": "Buchen ist hier nicht möglich."
+        },
+        "generated_media": {
+            "image": "Erstelltes Bild",
+            "image_alt": "Erstelltes Bild: {prompt}",
+            "image_pending": "Dein Bild wird erstellt…",
+            "audio_pending": "Deine Audiodatei wird erstellt…",
+            "image_failed": "Dieses Bild konnte nicht erstellt werden.",
+            "audio_failed": "Diese Audiodatei konnte nicht erstellt werden.",
+            "refused": "Der Dienst hat diese Anfrage abgelehnt.",
+            "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
+            "download": "Herunterladen"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Lade Audio hoch oder nimm es auf. Dein Agent lernt aus dem Transkript.",
                 "video": "Lade Videos hoch. Dein Agent lernt aus ihren Transkripten.",
                 "markdown": "Lade Markdown-Dateien hoch, aus denen dein Agent lernt."
+            },
+            "search": {
+                "title": "Wissen durchsuchen",
+                "description": "Der Agent durchsucht diese Quellen bei jeder Nachricht und antwortet mit dem, was er findet. Schalte es für einen Agenten aus, der nur Tools nutzt, zum Beispiel einen, der Zahlungen nachschlägt.",
+                "off_note": "Die Suche ist aus. Dieser Agent antwortet nur mit seinen Tools und Anweisungen und liest diese Quellen nicht.",
+                "install_off": "Die Wissenssuche ist für diese Installation ausgeschaltet. Agenten antworten nur mit ihren Tools und Anweisungen.",
+                "saved_on": "Die Wissenssuche ist an.",
+                "saved_off": "Die Wissenssuche ist aus.",
+                "save_failed": "Die Änderung konnte nicht gespeichert werden."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Funktioniert über {names}. Verbinden Sie zuerst einen davon auf der Seite Konnektoren.",
             "requires_disconnected": "Es besteht keine Verbindung zu {names}, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie einen davon erneut auf der Seite Konnektoren.",
             "connect_connector": "{names} verbinden",
-            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet",
             "book_through": "Buchen über",
-            "provider_failed": "Der Buchungsdienst konnte nicht geändert werden"
+            "provider_failed": "Der Buchungsdienst konnte nicht geändert werden",
+            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet"
         },
         "forms": {
             "page_title": "Formulare",
@@ -4294,6 +4303,10 @@
                 "name": "Kalender",
                 "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly oder Cal.com und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Besuchern ermöglichen, Meetings über Ihr Cal.com zu buchen, und Agenten Ihre Buchungen lesen lassen."
+            },
             "image-generation": {
                 "name": "Bilderzeugung",
                 "description": "Lass den Agenten im gehosteten Chat Bilder erstellen, wenn ein Besucher danach fragt: Logos, Illustrationen, Produktideen und mehr."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Audioerzeugung",
                 "description": "Lass den Agenten im gehosteten Chat Audiodateien erstellen, wenn ein Besucher danach fragt: jeder Text vorgelesen, bereit zum Abspielen oder Herunterladen."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Besuchern ermöglichen, Meetings über Ihr Cal.com zu buchen, und Agenten Ihre Buchungen lesen lassen."
             }
         }
     },

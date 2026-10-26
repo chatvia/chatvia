@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Sök i kunskap",
+                "description": "Agenten söker i de här källorna för varje meddelande och svarar utifrån det den hittar. Stäng av det för en agent som bara använder verktyg, till exempel en som slår upp betalningar.",
+                "off_note": "Sökning är avstängd. Agenten svarar bara med sina verktyg och instruktioner och läser inte de här källorna.",
+                "install_off": "Kunskapssökning är avstängd i den här installationen. Agenter svarar bara med sina verktyg och instruktioner.",
+                "saved_on": "Kunskapssökning är på.",
+                "saved_off": "Kunskapssökning är av.",
+                "save_failed": "Ändringen kunde inte sparas."
+            }
+        }
+    }
+}

@@ -185,6 +185,12 @@ return [
                 'enabled' => false,
                 'models' => [],
             ],
+            // Whether the agent searches its knowledge each turn. Off suits an
+            // agent that only uses tools. Read through KnowledgeSearchSwitch:
+            // it counts only while the admin lets agents choose.
+            'knowledge' => [
+                'search' => true,
+            ],
             // Per-agent data & insight switches (Setup → Settings).
             //  - chatlog: master switch for persisting conversations, on by
             //    default. Off stops StoreMessageJob, so nothing is logged — and
@@ -353,6 +359,9 @@ return [
             'top_p' => ['nullable', 'numeric', 'min:0', 'max:1'],
             'presence_penalty' => ['nullable', 'numeric', 'min:-2', 'max:2'],
             'frequency_penalty' => ['nullable', 'numeric', 'min:-2', 'max:2'],
+        ],
+        'knowledge' => [
+            'search' => ['required', 'boolean'],
         ],
         'analytics' => [
             'chatlog' => ['nullable', 'boolean'],

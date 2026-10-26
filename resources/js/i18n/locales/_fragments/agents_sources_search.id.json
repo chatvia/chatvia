@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Cari di pengetahuan",
+                "description": "Agen mencari di sumber-sumber ini untuk setiap pesan dan menjawab dari yang ditemukannya. Matikan untuk agen yang hanya memakai alat, misalnya agen yang memeriksa pembayaran.",
+                "off_note": "Pencarian mati. Agen ini menjawab hanya dengan alat dan instruksinya dan tidak membaca sumber-sumber ini.",
+                "install_off": "Pencarian pengetahuan dimatikan di instalasi ini. Agen menjawab hanya dengan alat dan instruksinya.",
+                "saved_on": "Pencarian pengetahuan aktif.",
+                "saved_off": "Pencarian pengetahuan mati.",
+                "save_failed": "Perubahan tidak dapat disimpan."
+            }
+        }
+    }
+}

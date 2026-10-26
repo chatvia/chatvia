@@ -134,17 +134,6 @@
             "view": "View image",
             "view_named": "View image: {name}"
         },
-        "generated_media": {
-            "image": "Generated image",
-            "image_alt": "Generated image: {prompt}",
-            "image_pending": "Making your image…",
-            "audio_pending": "Making your audio…",
-            "image_failed": "This image could not be made.",
-            "audio_failed": "This audio could not be made.",
-            "refused": "This request was refused by the service.",
-            "timed_out": "This took too long. Please ask again.",
-            "download": "Download"
-        },
         "calendar": {
             "duration": "{minutes} min",
             "previous_week": "Previous week",
@@ -169,6 +158,17 @@
             "book_on_page": "This meeting can only be booked on the booking page.",
             "open_booking_page": "Open booking page",
             "unavailable": "Booking is not available here."
+        },
+        "generated_media": {
+            "image": "Generated image",
+            "image_alt": "Generated image: {prompt}",
+            "image_pending": "Making your image…",
+            "audio_pending": "Making your audio…",
+            "image_failed": "This image could not be made.",
+            "audio_failed": "This audio could not be made.",
+            "refused": "This request was refused by the service.",
+            "timed_out": "This took too long. Please ask again.",
+            "download": "Download"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Upload or record audio. Your agent learns from the transcript.",
                 "video": "Upload videos. Your agent learns from their transcripts.",
                 "markdown": "Upload Markdown files for your agent to learn from."
+            },
+            "search": {
+                "title": "Search knowledge",
+                "description": "The agent searches these sources for each message and answers from what it finds. Turn it off for an agent that only uses tools, like one that looks up payments.",
+                "off_note": "Search is off. This agent answers with its tools and instructions only and does not read these sources.",
+                "install_off": "Knowledge search is turned off for this install. Agents answer with their tools and instructions only.",
+                "saved_on": "Knowledge search is on.",
+                "saved_off": "Knowledge search is off.",
+                "save_failed": "Could not save the change."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Works through {names}. Connect one of them on the Connectors page first.",
             "requires_disconnected": "{names} is not connected, so this capability cannot work. Connect one again on the Connectors page.",
             "connect_connector": "Connect {names}",
-            "turned_off_by_admin": "Turned off by your admin",
             "book_through": "Book through",
-            "provider_failed": "Could not change the booking service"
+            "provider_failed": "Could not change the booking service",
+            "turned_off_by_admin": "Turned off by your admin"
         },
         "forms": {
             "page_title": "Forms",
@@ -4294,6 +4303,10 @@
                 "name": "Calendar",
                 "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly or Cal.com and book it without leaving the conversation. Each booking is saved as a lead."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Let visitors book meetings on your Cal.com, and let agents read your bookings."
+            },
             "image-generation": {
                 "name": "Image generation",
                 "description": "Let the agent make pictures in the hosted chat when a visitor asks: logos, illustrations, product ideas and more."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Audio generation",
                 "description": "Let the agent make audio files in the hosted chat when a visitor asks: any text read aloud, ready to play or download."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Let visitors book meetings on your Cal.com, and let agents read your bookings."
             }
         }
     },

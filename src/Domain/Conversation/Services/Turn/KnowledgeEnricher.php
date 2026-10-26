@@ -14,6 +14,7 @@ use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Retrieval\Services\KnowledgeScope;
+use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Services\QaMatcher;
@@ -28,7 +29,8 @@ use Illuminate\Support\Str;
  * prompt injection are dropped, and the rest is attached to the LLM-facing
  * message as reference material. The turn's confidence is the relevance of
  * its best chunk, and the retrieval counters of the sources it used are
- * bumped off the request path (eval runs excepted).
+ * bumped off the request path (eval runs excepted). An agent that does not
+ * search its knowledge ({@see KnowledgeSearchSwitch}) gets none of this.
  */
 class KnowledgeEnricher
 {
@@ -45,13 +47,15 @@ class KnowledgeEnricher
         private readonly GuardrailService $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
         private readonly KnowledgeScope $scope,
+        private readonly KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
 
     public function enrich(ChatContext $context): ChatContext
     {
         // A guard-blocked turn never reaches the LLM, so the (costly)
-        // retrieval is skipped entirely.
-        if ($context->guardBlocked) {
+        // retrieval is skipped entirely. So is it for an agent that does not
+        // search its knowledge: no Q&A answer, no search, no no-match note.
+        if ($context->guardBlocked || ! $this->knowledgeSearch->for($context->requestData->agent)) {
             return $context;
         }
 
@@ -88,6 +92,11 @@ class KnowledgeEnricher
     public function lookup(ChatContext $context, string $query): KnowledgeLookupData
     {
         $agent = $context->requestData->agent;
+
+        if (! $this->knowledgeSearch->for($agent)) {
+            return new KnowledgeLookupData(qaMatch: null, sources: collect());
+        }
+
         $qaMatch = $this->findQaMatch($agent, $query, $query);
 
         if ($qaMatch instanceof QaMatchData) {

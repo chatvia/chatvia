@@ -134,17 +134,6 @@
             "view": "画像を表示",
             "view_named": "画像を表示: {name}"
         },
-        "generated_media": {
-            "image": "生成された画像",
-            "image_alt": "生成された画像: {prompt}",
-            "image_pending": "画像を作成しています…",
-            "audio_pending": "音声を作成しています…",
-            "image_failed": "この画像を作成できませんでした。",
-            "audio_failed": "この音声を作成できませんでした。",
-            "refused": "サービスがこのリクエストを拒否しました。",
-            "timed_out": "時間がかかりすぎました。もう一度お試しください。",
-            "download": "ダウンロード"
-        },
         "calendar": {
             "duration": "{minutes}分",
             "previous_week": "前の週",
@@ -169,6 +158,17 @@
             "book_on_page": "このミーティングは予約ページでのみ予約できます。",
             "open_booking_page": "予約ページを開く",
             "unavailable": "ここでは予約できません。"
+        },
+        "generated_media": {
+            "image": "生成された画像",
+            "image_alt": "生成された画像: {prompt}",
+            "image_pending": "画像を作成しています…",
+            "audio_pending": "音声を作成しています…",
+            "image_failed": "この画像を作成できませんでした。",
+            "audio_failed": "この音声を作成できませんでした。",
+            "refused": "サービスがこのリクエストを拒否しました。",
+            "timed_out": "時間がかかりすぎました。もう一度お試しください。",
+            "download": "ダウンロード"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "音声をアップロードまたは録音します。エージェントは文字起こしから学習します。",
                 "video": "動画をアップロードします。エージェントは文字起こしから学習します。",
                 "markdown": "エージェントが学習するMarkdownファイルをアップロードします。"
+            },
+            "search": {
+                "title": "ナレッジを検索",
+                "description": "エージェントはメッセージごとにこれらのソースを検索し、見つけた内容から回答します。支払いを調べるエージェントなど、ツールだけを使うエージェントではオフにしてください。",
+                "off_note": "検索はオフです。このエージェントはツールと指示だけで回答し、これらのソースを読みません。",
+                "install_off": "このインストールではナレッジ検索がオフになっています。エージェントはツールと指示だけで回答します。",
+                "saved_on": "ナレッジ検索をオンにしました。",
+                "saved_off": "ナレッジ検索をオフにしました。",
+                "save_failed": "変更を保存できませんでした。"
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "{names} 経由で動作します。先にコネクタページでいずれかを接続してください。",
             "requires_disconnected": "{names} に接続されていないため、この能力は動作しません。コネクタページでいずれかをもう一度接続してください。",
             "connect_connector": "{names} を接続",
-            "turned_off_by_admin": "管理者によってオフにされています",
             "book_through": "予約サービス",
-            "provider_failed": "予約サービスを変更できませんでした"
+            "provider_failed": "予約サービスを変更できませんでした",
+            "turned_off_by_admin": "管理者によってオフにされています"
         },
         "forms": {
             "page_title": "フォーム",

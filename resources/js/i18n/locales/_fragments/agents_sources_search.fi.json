@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Hae tietämyksestä",
+                "description": "Agentti hakee näistä lähteistä jokaisen viestin kohdalla ja vastaa löytämänsä perusteella. Kytke se pois agentilta, joka käyttää vain työkaluja, esimerkiksi maksuja hakevalta agentilta.",
+                "off_note": "Haku on pois päältä. Tämä agentti vastaa vain työkaluillaan ja ohjeillaan eikä lue näitä lähteitä.",
+                "install_off": "Tietämyshaku on pois päältä tässä asennuksessa. Agentit vastaavat vain työkaluillaan ja ohjeillaan.",
+                "saved_on": "Tietämyshaku on päällä.",
+                "saved_off": "Tietämyshaku on pois päältä.",
+                "save_failed": "Muutosta ei voitu tallentaa."
+            }
+        }
+    }
+}

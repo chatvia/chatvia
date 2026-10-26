@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "search": {
+                "title": "Søk i kunnskap",
+                "description": "Agenten søker i disse kildene for hver melding og svarer ut fra det den finner. Slå det av for en agent som bare bruker verktøy, for eksempel en som slår opp betalinger.",
+                "off_note": "Søk er slått av. Agenten svarer bare med verktøyene og instruksjonene sine og leser ikke disse kildene.",
+                "install_off": "Kunnskapssøk er slått av på denne installasjonen. Agenter svarer bare med verktøyene og instruksjonene sine.",
+                "saved_on": "Kunnskapssøk er slått på.",
+                "saved_off": "Kunnskapssøk er slått av.",
+                "save_failed": "Kunne ikke lagre endringen."
+            }
+        }
+    }
+}

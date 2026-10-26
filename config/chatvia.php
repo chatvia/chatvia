@@ -539,6 +539,10 @@ return [
     | Knowledge Search
     |--------------------------------------------------------------------------
     |
+    | `enabled` turns knowledge search off for every agent on the install.
+    | `agent_choice` lets each agent turn it off for itself (an agent that
+    | only uses tools, say); off ignores the agents' own switches.
+    |
     | `mode` is "default", "high_accuracy" or "high_speed"; it picks the
     | `ef_search` the HNSW vector indexes search with (higher finds more,
     | slower). `hybrid` adds keyword search to meaning (vector) search.
@@ -564,6 +568,8 @@ return [
 
     'vector' => [
         'search' => [
+            'enabled' => true,
+            'agent_choice' => true,
             'mode' => 'default',
             'hybrid' => true,
             'relevance_check' => true,

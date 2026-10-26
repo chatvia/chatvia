@@ -14,6 +14,7 @@ use Domain\Conversation\Enums\VoiceToolOutcome;
 use Domain\Conversation\Models\Conversation;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\RealtimeConnection;
@@ -111,6 +112,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         private readonly VoiceCallStore $store,
         private readonly VoiceCallSlots $slots,
         private readonly RealtimeCalls $calls,
+        private readonly KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
 
     /** A session for one call, with the call's tools as they were offered. */
@@ -121,7 +123,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         $session->request = $this->factory->request($call, $agent);
         $session->tools = $this->catalog->for($agent, $call->conversation_id, $this->viewer($call));
         $session->approvals = new VoiceToolApprovals;
-        $session->searchesKnowledge = Chunk::query()->hasContentForAgent($agent);
+        $session->searchesKnowledge = $this->knowledgeSearch->for($agent) && Chunk::query()->hasContentForAgent($agent);
 
         return $session;
     }

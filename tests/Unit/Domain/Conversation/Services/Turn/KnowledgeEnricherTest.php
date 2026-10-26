@@ -146,7 +146,9 @@ it('tells the model what the knowledge covers when nothing matches', function ()
 
     $context = app(KnowledgeEnricher::class)->enrich(keContext($agent, 'Do you sell boats?'));
 
-    expect($context->payload->message_for_llm)->toContain("Your knowledge covers:\n- Shipping times");
+    expect($context->payload->message_for_llm)
+        ->toContain("Your knowledge covers:\n- Shipping times")
+        ->toContain("If one of your tools can answer it, call the tool right away and don't say first that you have no information.");
 });
 
 it('leaves the message alone when nothing matches and both switches are off', function (): void {
@@ -302,4 +304,19 @@ it('keeps every retrieved chunk when the agent has its guardrails off', function
 
     expect($context->sources->pluck('id')->all())->toBe([5]);
     Event::assertNotDispatched(GuardrailTriggered::class);
+});
+
+it('adds no knowledge for an agent that does not search it', function (): void {
+    config(['chatvia.vector.search.enabled' => false, 'chatvia.vector.search.scope_hint' => true]);
+    $agent = Agent::factory()->create();
+    $knowledgeBase = Mockery::mock(KnowledgeBase::class);
+    $knowledgeBase->shouldNotReceive('search');
+    app()->instance(KnowledgeBase::class, $knowledgeBase);
+
+    $context = keContext($agent, 'What is the price?');
+    $enricher = app(KnowledgeEnricher::class);
+
+    expect($enricher->enrich($context))->toBe($context)
+        ->and($context->qaMatch)->toBeNull()
+        ->and($enricher->lookup($context, 'What is the price?')->sources)->toBeEmpty();
 });

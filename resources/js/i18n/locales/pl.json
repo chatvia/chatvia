@@ -134,17 +134,6 @@
             "view": "Pokaż obraz",
             "view_named": "Pokaż obraz: {name}"
         },
-        "generated_media": {
-            "image": "Wygenerowany obraz",
-            "image_alt": "Wygenerowany obraz: {prompt}",
-            "image_pending": "Tworzę Twój obraz…",
-            "audio_pending": "Tworzę Twoje nagranie…",
-            "image_failed": "Nie udało się utworzyć tego obrazu.",
-            "audio_failed": "Nie udało się utworzyć tego nagrania.",
-            "refused": "Usługa odrzuciła tę prośbę.",
-            "timed_out": "Trwało to zbyt długo. Poproś ponownie.",
-            "download": "Pobierz"
-        },
         "calendar": {
             "duration": "{minutes} min",
             "previous_week": "Poprzedni tydzień",
@@ -169,6 +158,17 @@
             "book_on_page": "To spotkanie można zarezerwować tylko na stronie rezerwacji.",
             "open_booking_page": "Otwórz stronę rezerwacji",
             "unavailable": "Rezerwacja nie jest tu dostępna."
+        },
+        "generated_media": {
+            "image": "Wygenerowany obraz",
+            "image_alt": "Wygenerowany obraz: {prompt}",
+            "image_pending": "Tworzę Twój obraz…",
+            "audio_pending": "Tworzę Twoje nagranie…",
+            "image_failed": "Nie udało się utworzyć tego obrazu.",
+            "audio_failed": "Nie udało się utworzyć tego nagrania.",
+            "refused": "Usługa odrzuciła tę prośbę.",
+            "timed_out": "Trwało to zbyt długo. Poproś ponownie.",
+            "download": "Pobierz"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Prześlij lub nagraj dźwięk. Agent uczy się z transkrypcji.",
                 "video": "Prześlij filmy. Agent uczy się z ich transkrypcji.",
                 "markdown": "Prześlij pliki Markdown, z których agent będzie się uczyć."
+            },
+            "search": {
+                "title": "Przeszukuj wiedzę",
+                "description": "Agent przeszukuje te źródła przy każdej wiadomości i odpowiada na podstawie tego, co znajdzie. Wyłącz to dla agenta, który używa tylko narzędzi, np. takiego, który sprawdza płatności.",
+                "off_note": "Wyszukiwanie jest wyłączone. Ten agent odpowiada tylko za pomocą swoich narzędzi i instrukcji i nie czyta tych źródeł.",
+                "install_off": "Wyszukiwanie wiedzy jest wyłączone w tej instalacji. Agenci odpowiadają tylko za pomocą swoich narzędzi i instrukcji.",
+                "saved_on": "Wyszukiwanie wiedzy jest włączone.",
+                "saved_off": "Wyszukiwanie wiedzy jest wyłączone.",
+                "save_failed": "Nie udało się zapisać zmiany."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Działa przez {names}. Najpierw połącz jedno z nich na stronie Konektory.",
             "requires_disconnected": "Brak połączenia z {names}, więc ta możliwość nie może działać. Połącz jedno z nich ponownie na stronie Konektory.",
             "connect_connector": "Połącz {names}",
-            "turned_off_by_admin": "Wyłączone przez administratora",
             "book_through": "Rezerwuj przez",
-            "provider_failed": "Nie udało się zmienić usługi rezerwacji"
+            "provider_failed": "Nie udało się zmienić usługi rezerwacji",
+            "turned_off_by_admin": "Wyłączone przez administratora"
         },
         "forms": {
             "page_title": "Formularze",
@@ -4294,6 +4303,10 @@
                 "name": "Kalendarz",
                 "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly lub Cal.com i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Pozwól odwiedzającym umawiać spotkania w Cal.com i umożliw agentom odczytywanie rezerwacji."
+            },
             "image-generation": {
                 "name": "Generowanie obrazów",
                 "description": "Pozwól agentowi tworzyć obrazy w Hosted Chat, gdy odwiedzający o to poprosi: logo, ilustracje, pomysły na produkty i więcej."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Generowanie dźwięku",
                 "description": "Pozwól agentowi tworzyć pliki audio w Hosted Chat, gdy odwiedzający o to poprosi: dowolny tekst przeczytany na głos, gotowy do odtworzenia lub pobrania."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Pozwól odwiedzającym umawiać spotkania w Cal.com i umożliw agentom odczytywanie rezerwacji."
             }
         }
     },

@@ -134,17 +134,6 @@
             "view": "Voir l'image",
             "view_named": "Voir l'image : {name}"
         },
-        "generated_media": {
-            "image": "Image générée",
-            "image_alt": "Image générée : {prompt}",
-            "image_pending": "Création de votre image…",
-            "audio_pending": "Création de votre audio…",
-            "image_failed": "Impossible de créer cette image.",
-            "audio_failed": "Impossible de créer cet audio.",
-            "refused": "Le service a refusé cette demande.",
-            "timed_out": "Cela a pris trop de temps. Veuillez redemander.",
-            "download": "Télécharger"
-        },
         "calendar": {
             "duration": "{minutes} min",
             "previous_week": "Semaine précédente",
@@ -169,6 +158,17 @@
             "book_on_page": "Cette réunion ne peut être réservée que sur la page de réservation.",
             "open_booking_page": "Ouvrir la page de réservation",
             "unavailable": "La réservation n'est pas disponible ici."
+        },
+        "generated_media": {
+            "image": "Image générée",
+            "image_alt": "Image générée : {prompt}",
+            "image_pending": "Création de votre image…",
+            "audio_pending": "Création de votre audio…",
+            "image_failed": "Impossible de créer cette image.",
+            "audio_failed": "Impossible de créer cet audio.",
+            "refused": "Le service a refusé cette demande.",
+            "timed_out": "Cela a pris trop de temps. Veuillez redemander.",
+            "download": "Télécharger"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Importez ou enregistrez de l'audio. Votre agent apprend de la transcription.",
                 "video": "Importez des vidéos. Votre agent apprend de leurs transcriptions.",
                 "markdown": "Importez des fichiers Markdown dont votre agent va apprendre."
+            },
+            "search": {
+                "title": "Rechercher dans les connaissances",
+                "description": "L'agent recherche dans ces sources à chaque message et répond avec ce qu'il trouve. Désactivez-la pour un agent qui n'utilise que des outils, par exemple un agent qui consulte des paiements.",
+                "off_note": "La recherche est désactivée. Cet agent répond uniquement avec ses outils et ses instructions et ne lit pas ces sources.",
+                "install_off": "La recherche dans les connaissances est désactivée sur cette installation. Les agents répondent uniquement avec leurs outils et leurs instructions.",
+                "saved_on": "La recherche dans les connaissances est activée.",
+                "saved_off": "La recherche dans les connaissances est désactivée.",
+                "save_failed": "Impossible d'enregistrer la modification."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Fonctionne via {names}. Connectez d'abord l'un d'eux sur la page Connecteurs.",
             "requires_disconnected": "Aucune connexion à {names}, cette capacité ne peut donc pas fonctionner. Reconnectez l'un d'eux sur la page Connecteurs.",
             "connect_connector": "Connecter {names}",
-            "turned_off_by_admin": "Désactivé par votre administrateur",
             "book_through": "Réserver via",
-            "provider_failed": "Impossible de modifier le service de réservation"
+            "provider_failed": "Impossible de modifier le service de réservation",
+            "turned_off_by_admin": "Désactivé par votre administrateur"
         },
         "forms": {
             "page_title": "Formulaires",
@@ -4294,6 +4303,10 @@
                 "name": "Calendrier",
                 "description": "Laissez les visiteurs réserver une réunion dans le chat : ils choisissent un créneau libre dans votre Calendly ou Cal.com et le réservent sans quitter la conversation. Chaque réservation est enregistrée comme un lead."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Permettez aux visiteurs de réserver des réunions sur votre Cal.com, et laissez les agents consulter vos réservations."
+            },
             "image-generation": {
                 "name": "Génération d'images",
                 "description": "Laissez l'agent créer des images dans le chat hébergé quand un visiteur le demande : logos, illustrations, idées de produits et plus encore."
@@ -4301,10 +4314,6 @@
             "audio-generation": {
                 "name": "Génération audio",
                 "description": "Laissez l'agent créer des fichiers audio dans le chat hébergé quand un visiteur le demande : n'importe quel texte lu à voix haute, prêt à écouter ou à télécharger."
-            },
-            "cal-com": {
-                "name": "Cal.com",
-                "description": "Permettez aux visiteurs de réserver des réunions sur votre Cal.com, et laissez les agents consulter vos réservations."
             }
         }
     },

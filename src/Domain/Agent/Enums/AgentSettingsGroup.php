@@ -22,6 +22,7 @@ enum AgentSettingsGroup: string
     case Embed = 'embed';
     case Bar = 'bar';
     case Analytics = 'analytics';
+    case Knowledge = 'knowledge';
 
     /**
      * The validation rules of the group's keys.

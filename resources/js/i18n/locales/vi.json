@@ -134,17 +134,6 @@
             "view": "Xem ảnh",
             "view_named": "Xem ảnh: {name}"
         },
-        "generated_media": {
-            "image": "Hình ảnh đã tạo",
-            "image_alt": "Hình ảnh đã tạo: {prompt}",
-            "image_pending": "Đang tạo hình ảnh của bạn…",
-            "audio_pending": "Đang tạo âm thanh của bạn…",
-            "image_failed": "Không thể tạo hình ảnh này.",
-            "audio_failed": "Không thể tạo âm thanh này.",
-            "refused": "Dịch vụ đã từ chối yêu cầu này.",
-            "timed_out": "Quá lâu. Vui lòng yêu cầu lại.",
-            "download": "Tải xuống"
-        },
         "calendar": {
             "duration": "{minutes} phút",
             "previous_week": "Tuần trước",
@@ -169,6 +158,17 @@
             "book_on_page": "Cuộc họp này chỉ có thể đặt trên trang đặt lịch.",
             "open_booking_page": "Mở trang đặt lịch",
             "unavailable": "Không thể đặt lịch tại đây."
+        },
+        "generated_media": {
+            "image": "Hình ảnh đã tạo",
+            "image_alt": "Hình ảnh đã tạo: {prompt}",
+            "image_pending": "Đang tạo hình ảnh của bạn…",
+            "audio_pending": "Đang tạo âm thanh của bạn…",
+            "image_failed": "Không thể tạo hình ảnh này.",
+            "audio_failed": "Không thể tạo âm thanh này.",
+            "refused": "Dịch vụ đã từ chối yêu cầu này.",
+            "timed_out": "Quá lâu. Vui lòng yêu cầu lại.",
+            "download": "Tải xuống"
         }
     },
     "messages": {
@@ -1694,6 +1694,15 @@
                 "audio": "Tải lên hoặc ghi âm. Trợ lý AI của bạn học từ bản chép lời.",
                 "video": "Tải lên video. Trợ lý AI của bạn học từ bản chép lời.",
                 "markdown": "Tải lên tệp Markdown để trợ lý AI của bạn học."
+            },
+            "search": {
+                "title": "Tìm trong kiến thức",
+                "description": "Tác nhân tìm trong các nguồn này cho mỗi tin nhắn và trả lời từ những gì tìm được. Tắt đi cho tác nhân chỉ dùng công cụ, ví dụ tác nhân tra cứu thanh toán.",
+                "off_note": "Tìm kiếm đang tắt. Tác nhân này chỉ trả lời bằng công cụ và hướng dẫn của nó và không đọc các nguồn này.",
+                "install_off": "Tìm kiếm kiến thức đã bị tắt trên bản cài đặt này. Các tác nhân chỉ trả lời bằng công cụ và hướng dẫn của chúng.",
+                "saved_on": "Đã bật tìm kiếm kiến thức.",
+                "saved_off": "Đã tắt tìm kiếm kiến thức.",
+                "save_failed": "Không thể lưu thay đổi."
             }
         },
         "leads": {
@@ -2406,9 +2415,9 @@
             "requires_connector": "Hoạt động qua {names}. Hãy kết nối một trong số đó trong trang Trình kết nối trước.",
             "requires_disconnected": "Chưa có kết nối tới {names} nên khả năng này không thể hoạt động. Hãy kết nối lại một trong số đó trong trang Trình kết nối.",
             "connect_connector": "Kết nối {names}",
-            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt",
             "book_through": "Đặt lịch qua",
-            "provider_failed": "Không thể thay đổi dịch vụ đặt lịch"
+            "provider_failed": "Không thể thay đổi dịch vụ đặt lịch",
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
         },
         "forms": {
             "page_title": "Biểu mẫu",

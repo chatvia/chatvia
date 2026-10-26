@@ -132,3 +132,26 @@ it('leaves the leak marker out when the injection guard is off', function (): vo
 
     expect(spbPrompt($agent->fresh(), null))->not->toContain('Internal reference');
 });
+
+it('gives an agent that does not search its knowledge the tools-only rules', function (): void {
+    $agent = Agent::factory()->create();
+    $agent->setSetting('search', false, 'knowledge');
+
+    $prompt = spbPrompt($agent->fresh(), null, language: 'de');
+
+    expect($prompt)->not->toContain('<source>')
+        ->and($prompt)->toContain('come only from your tools and')
+        ->and($prompt)->toContain('Write your whole answer in German');
+});
+
+it('leaves the knowledge search out of a voice call of an agent that does not search', function (): void {
+    $agent = Agent::factory()->create();
+    $builder = app(SystemPromptBuilder::class);
+
+    expect($builder->voicePrompt($agent, null, []))->toContain('knowledge search tool');
+
+    $agent->setSetting('search', false, 'knowledge');
+
+    expect($builder->voicePrompt($agent->fresh(), null, []))->not->toContain('knowledge search tool')
+        ->and($builder->voicePrompt($agent->fresh(), null, []))->toContain('what your tools return');
+});

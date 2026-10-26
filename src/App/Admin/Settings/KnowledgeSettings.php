@@ -11,7 +11,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  * Settings → Knowledge: the file types workspaces may upload, website
  * import (Firecrawl), the AI enhancement of chunks. Settings → Splitting: how text
  * is split into chunks (unit, size, overlap, smallest chunk, the strategy for each kind of
- * content, the tokenizer). Settings → Search: hybrid search (keywords next
+ * content, the tokenizer). Settings → Search: whether agents search at all
+ * (and whether each agent may turn it off), hybrid search (keywords next
  * to meaning), the results an agent gets, follow-up questions, and the
  * minimum scores. A blank value keeps the default from config.
  */
@@ -59,6 +60,12 @@ class KnowledgeSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.tokenizer')]
     public ?string $tokenizer = null;
+
+    #[ConfigKey('chatvia.vector.search.enabled')]
+    public ?bool $search_enabled = null;
+
+    #[ConfigKey('chatvia.vector.search.agent_choice')]
+    public ?bool $search_agent_choice = null;
 
     #[ConfigKey('chatvia.vector.search.hybrid')]
     public ?bool $hybrid_search = null;

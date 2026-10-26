@@ -1,11 +1,12 @@
 name: Postgres image
 
-# Builds the Postgres image (docker/postgres/Dockerfile: pgvector +
-# pg_textsearch) and pushes it to the GitHub Container Registry whenever the
-# Dockerfile changes. Publishes two tags: the moving `18`, and the pinned
-# `18-<pg_textsearch version>` that docker/compose.yaml, docker-compose.yml
-# and .github/workflows/tests.yml reference — bump those pins after changing
-# PG_TEXTSEARCH_VERSION in the Dockerfile.
+# Builds the Postgres image (docker/postgres/Dockerfile: pgvector,
+# pg_textsearch, pg_partman) and pushes it to the GitHub Container Registry
+# whenever the Dockerfile changes. Publishes two tags: the moving `18`, and
+# the pinned `18-r<IMAGE_REVISION>` that docker/compose.yaml,
+# docker-compose.yml and .github/workflows/tests.yml reference. A pinned tag
+# is never overwritten: bump IMAGE_REVISION in the Dockerfile (and those three
+# pins) with every change, or this run fails.
 on:
   push:
     branches:
@@ -51,12 +52,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Read the pinned extension versions from the Dockerfile
+      - name: Read the image revision from the Dockerfile
         id: version
         run: |
-          textsearch=$(sed -n 's/^ARG PG_TEXTSEARCH_VERSION=//p' docker/postgres/Dockerfile)
-          partman=$(sed -n 's/^ARG PG_PARTMAN_VERSION=//p' docker/postgres/Dockerfile)
-          echo "version=$textsearch-$partman" >> "$GITHUB_OUTPUT"
+          revision=$(sed -n 's/^ARG IMAGE_REVISION=//p' docker/postgres/Dockerfile)
+          echo "tag=18-r$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse to overwrite a published tag
+        run: |
+          if docker buildx imagetools inspect "$IMAGE:${{ steps.version.outputs.tag }}" > /dev/null 2>&1; then
+            echo "::error::$IMAGE:${{ steps.version.outputs.tag }} is already published. Bump IMAGE_REVISION in docker/postgres/Dockerfile."
+            exit 1
+          fi
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -66,4 +73,4 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:18
-            ${{ env.IMAGE }}:18-${{ steps.version.outputs.version }}
+            ${{ env.IMAGE }}:${{ steps.version.outputs.tag }}

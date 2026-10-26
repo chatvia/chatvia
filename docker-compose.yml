@@ -133,7 +133,7 @@ services:
     # (docker/postgres/Dockerfile). Same image and tag as CI
     # (.github/workflows/tests.yml); keep them in sync. The image's default
     # command preloads pg_textsearch, so do not override `command`.
-    image: ghcr.io/chatvia/postgres:18-1.5.1-5.5.0
+    image: ghcr.io/chatvia/postgres:18-r1
     # The database, user and password come from .env. Postgres reads them
     # only when it creates an empty volume; after that, changing .env does
     # not change them. The tests (phpunit.xml, .env.testing) expect the

@@ -129,11 +129,16 @@ services:
       SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan pulse:check"
 
   postgres:
-    # PostgreSQL 18 with pgvector and pg_textsearch
-    # (docker/postgres/Dockerfile). Same image and tag as CI
-    # (.github/workflows/tests.yml); keep them in sync. The image's default
-    # command preloads pg_textsearch, so do not override `command`.
-    image: ghcr.io/chatvia/postgres:18-r1
+    # PostgreSQL 18 with pgvector, pg_textsearch and pg_partman, built
+    # locally from docker/postgres/Dockerfile (`docker compose build
+    # postgres` after changing it). CI uses the published image
+    # (.github/workflows/tests.yml). The image's default command preloads
+    # pg_textsearch, so do not override `command`.
+    build:
+      context: ./docker/postgres
+    image: chatvia/postgres:local
+    # A local tag: build it, never pull it from a registry.
+    pull_policy: build
     # The database, user and password come from .env. Postgres reads them
     # only when it creates an empty volume; after that, changing .env does
     # not change them. The tests (phpunit.xml, .env.testing) expect the

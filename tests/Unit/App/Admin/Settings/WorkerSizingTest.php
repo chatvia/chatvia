@@ -17,7 +17,7 @@ it('keeps the defaults on the 4 GB reference server and never goes below them', 
     $workers = new WorkerSizing()->recommend(new ServerResources(wsGib($gib), null, $cpus));
 
     expect($workers->bySupervisor())->toBe([
-        'chat' => 6, 'ingestion' => 4, 'analytics' => 2, 'media' => 1, 'voice' => 3,
+        'chat' => 6, 'ingestion' => 4, 'analytics' => 2, 'records' => 2, 'media' => 1, 'voice' => 3,
     ]);
 })->with([
     'the reference server' => [4, 2],
@@ -28,7 +28,7 @@ it('scales up with the memory of the machine', function (): void {
     $workers = new WorkerSizing()->recommend(new ServerResources(wsGib(16), null, 8));
 
     expect($workers->bySupervisor())->toBe([
-        'chat' => 24, 'ingestion' => 16, 'analytics' => 8, 'media' => 2, 'voice' => 12,
+        'chat' => 24, 'ingestion' => 16, 'analytics' => 8, 'records' => 8, 'media' => 2, 'voice' => 12,
     ]);
 });
 
@@ -45,7 +45,7 @@ it('stops scaling at eight times the reference server', function (): void {
     $workers = new WorkerSizing()->recommend(new ServerResources(wsGib(128), null, 32));
 
     expect($workers->bySupervisor())->toBe([
-        'chat' => 48, 'ingestion' => 16, 'analytics' => 16, 'media' => 4, 'voice' => 24,
+        'chat' => 48, 'ingestion' => 16, 'analytics' => 16, 'records' => 16, 'media' => 4, 'voice' => 24,
     ]);
 });
 

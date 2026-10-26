@@ -101,6 +101,8 @@ return [
         'redis:messages' => 30,
         'redis:default' => 120,
         'redis:analytics' => 900,
+        // Quick database writes: a backlog here means the dashboards lag.
+        'redis:records' => 60,
         // A voice call waits for its worker while the caller listens to
         // "Connecting…": anything past a few seconds means the pool is full.
         'redis-long:voice' => 15,
@@ -218,8 +220,8 @@ return [
             'timeout' => 300,
             'nice' => 0,
         ],
-        // Conversation analysis, evals and audit logs, with a cap of their
-        // own so a backlog never takes workers from the chat.
+        // Conversation analysis with the model, evals and SIEM delivery, with a
+        // cap of their own so a backlog never takes workers from the chat.
         'analytics' => [
             'connection' => 'redis',
             'queue' => ['analytics'],
@@ -232,6 +234,23 @@ return [
             'memory' => 128,
             'tries' => 1,
             'timeout' => 300,
+            'nice' => 5,
+        ],
+        // Quick database writes: analytics counters, tool-call audits, MCP
+        // call counts, guardrail and security audit rows. A pool of its own,
+        // so they never wait behind the slow model calls on `analytics`.
+        'records' => [
+            'connection' => 'redis',
+            'queue' => ['records'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'minProcesses' => 1,
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => 60,
             'nice' => 5,
         ],
         // Reading files and websites, then exports and deletions. One pool
@@ -291,7 +310,7 @@ return [
     | Every environment runs the supervisors above. The most workers of each
     | (maxProcesses) fit a small server: Horizon starts a supervisor with half
     | of it, keeps at least minProcesses per pool, and each worker is a PHP
-    | process of about 80 MB, so 16 workers at most, 6 when idle. The admin
+    | process of about 80 MB, so 18 workers at most, 7 when idle. The admin
     | panel changes them (Settings, Platform, Queue workers); Horizon reads
     | them when it starts.
     */

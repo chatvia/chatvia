@@ -33,7 +33,8 @@ use Throwable;
 
 /**
  * Queued subscriber that writes every analytics event into the analytics
- * tables, off the request path, on the analytics queue. Each handler turns its
+ * tables, off the request path, on the records queue (quick writes only, so
+ * the counters never wait behind the slow AI analysis on the analytics queue). Each handler turns its
  * event into a record DTO and hands it to the matching Record*Action. The
  * `chatvia.analytics.enabled` kill-switch skips all of them.
  *
@@ -67,7 +68,7 @@ class RecordAnalytics implements ShouldQueue
     // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
-        return (string) config('chatvia.analytics.queue');
+        return (string) config('chatvia.analytics.record_queue', 'records');
     }
 
     /**

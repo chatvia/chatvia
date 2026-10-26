@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
@@ -128,6 +129,12 @@ abstract class TestCase extends BaseTestCase
         // watchers would otherwise write even faked AI calls to the testing
         // database. A test covering the recording switches it on itself.
         config(['spectra.enabled' => false, 'chatvia.spectra.recording' => false]);
+
+        // New agents analyze sentiment, tone and topics with the model. Tests
+        // start with that off, so a chat turn calls no unfaked model; a test
+        // of the analysis turns it on for its agent.
+        $analytics = 'model-settings.defaults.'.Agent::class.'.analytics';
+        config(["{$analytics}.sentiment" => false, "{$analytics}.tone" => false, "{$analytics}.topics" => false]);
     }
 
     public function faker(): Generator

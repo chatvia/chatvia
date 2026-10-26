@@ -183,15 +183,14 @@ return [
             //  - chatlog: master switch for persisting conversations, on by
             //    default. Off stops StoreMessageJob, so nothing is logged — and
             //    the insights below get no data to work with.
-            //  - sentiment/tone/topics: the optional LLM-powered insights,
-            //    default off so owners opt in to the extra analysis. Each also
-            //    gates on the plan-tier capability — a dimension runs only when
-            //    the plan allows it AND the agent has switched it on.
+            //  - sentiment/tone/topics: the LLM-powered insights, on by default
+            //    so a new agent's Analytics pages fill in from its first chats.
+            //    Each costs extra model calls; the owner turns it off there.
             'analytics' => [
                 'chatlog' => true,
-                'sentiment' => false,
-                'tone' => false,
-                'topics' => false,
+                'sentiment' => true,
+                'tone' => true,
+                'topics' => true,
             ],
             'leads' => [
                 'fields' => [

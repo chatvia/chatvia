@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Chat\Auth\ChatHandoffController;
 use App\Http\Controllers\Chat\Auth\ChatLoginController;
+use App\Http\Controllers\Chat\Auth\ChatBroadcastAuthController;
 use App\Http\Controllers\Chat\Auth\ChatLogoutController;
 use App\Http\Controllers\Chat\Auth\ChatMagicLinkController;
 use App\Http\Controllers\Chat\Auth\ChatProfilePhotoDestroyController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Chat\Conversations\ChatDeleteAllConversationsController
 use App\Http\Controllers\Chat\Conversations\ConversationController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
 use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
+use App\Http\Controllers\Chat\Conversations\ConversationGeneratedMediaController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessageController;
 use App\Http\Controllers\Chat\Conversations\ConversationSearchController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
@@ -107,6 +109,12 @@ Route::prefix('chat/{agentSlug}')
 
             Route::post('conversations/create', ConversationCreateController::class)->name('conversations.create');
             Route::get('conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');
+            // The images and audio made in a conversation, asked for while one
+            // is still being made and no live update has come.
+            Route::get('conversations/{conversationId}/media', ConversationGeneratedMediaController::class)
+                ->whereUuid('conversationId')->name('conversations.media');
+            // Permission to listen for those live updates, under the chat's own session.
+            Route::post('broadcasting/auth', ChatBroadcastAuthController::class)->name('chat.broadcasting.auth');
             Route::post('conversations/{conversationId}/title', GenerateConversationTitleController::class)
                 ->middleware('throttle:chat-stream')->name('conversations.title');
             Route::get('conversations', ConversationController::class)->name('conversations.index');

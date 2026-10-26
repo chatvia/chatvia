@@ -6,6 +6,7 @@ use Domain\Agent\Data\Resources\ChatLog\Messages\ChatLogMessageData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\MessageSource;
 use Domain\Form\Models\FormDefinition;
@@ -166,4 +167,20 @@ it('flags a reply for which no knowledge was found, but not a Q&A match', functi
         ->all();
 
     expect($flags)->toBe([true, false, false]);
+});
+
+it('shows each reply\'s generated files as they stand now', function (): void {
+    $agent = Agent::factory()->create();
+    $conversation = lcmConversation($agent);
+    $media = GeneratedMedia::factory()->forConversation($conversation)->ready()->create();
+    Message::factory()->create([
+        'chat_conversation_id' => $conversation->id,
+        'role' => 'assistant',
+        'content' => 'Here it is.',
+        'metadata' => ['artifacts' => [['kind' => 'image', 'data' => ['id' => $media->external_id, 'status' => 'pending']]]],
+    ]);
+
+    $result = app(ListConversationMessagesAction::class)->execute($agent, $conversation);
+
+    expect($result->messages->items()[0]->artifacts[0]['data'])->toMatchArray(['status' => 'ready', 'url' => $media->url]);
 });

@@ -41,9 +41,7 @@ class SseResponder
             @set_time_limit(0);
         }
 
-        if (function_exists('ignore_user_abort')) {
-            ignore_user_abort(false);
-        }
+        $this->keepRunningAfterDisconnect();
 
         while (ob_get_level() > 0) {
             ob_end_clean();
@@ -86,6 +84,21 @@ class SseResponder
                 'message' => $e->getMessage(),
             ]);
             report($e);
+        }
+    }
+
+    /**
+     * Keep running after the browser goes away (a reload, a closed tab). Left
+     * to abort, PHP stops the script inside the failed flush(), before emit()
+     * can tell the generator, so the turn's reply (and any file a tool already
+     * asked for) would never be saved and a reload would ask for the same
+     * answer again. emit() still sees the disconnect, and the generator ends
+     * the turn there.
+     */
+    private function keepRunningAfterDisconnect(): void
+    {
+        if (function_exists('ignore_user_abort')) {
+            ignore_user_abort(true);
         }
     }
 

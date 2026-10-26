@@ -33,7 +33,7 @@ it('shows every settings page, and the overview links to each one', function ():
     }
 
     expect(collect(SettingsCluster::getClusteredComponents())->map(fn (string $page): string => $page::getSlug())->sort()->values()->all())
-        ->toBe(['ai-models', 'ai-providers', 'backups', 'channels', 'connectors', 'email', 'knowledge', 'license', 'observability', 'overview', 'platform', 'search', 'security', 'sign-in', 'splitting', 'storage', 'widget', 'workspaces']);
+        ->toBe(['ai-models', 'ai-providers', 'backups', 'channels', 'connectors', 'email', 'knowledge', 'observability', 'overview', 'platform', 'search', 'security', 'sign-in', 'splitting', 'storage', 'widget', 'workspaces']);
 });
 
 it('groups the tiles by topic', function (): void {
@@ -43,7 +43,7 @@ it('groups the tiles by topic', function (): void {
             'Access and security', 'Sign-in', 'Workspaces', 'Security',
             'AI and knowledge', 'AI providers', 'AI models', 'Knowledge', 'Splitting',
             'Connections', 'Channels', 'Connectors',
-            'Platform and brand', 'Platform', 'Email', 'Storage', 'Backups', 'License',
+            'Platform and brand', 'Platform', 'Email', 'Storage', 'Backups',
         ]);
 });
 

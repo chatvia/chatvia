@@ -3,6 +3,7 @@
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Clusters\Settings\SettingsCluster;
+use App\Admin\Pages\License;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -10,16 +11,17 @@ use Livewire\Livewire;
 /**
  * Every settings card links to its heading in the admin panel docs, which
  * live in the chatvia-landing repository
- * (docs/guide/admin-panel/settings/{page}.md). The fixture lists each card's
- * docs address and its options, so adding, renaming or removing a card or
- * an option fails here until the docs page is updated too. After updating
- * the docs, rewrite the fixture with SETTINGS_DOCS_WRITE=1.
+ * (docs/guide/admin-panel/settings/{page}.md, and license.md for the
+ * License page, which is built like a Settings page). The fixture lists
+ * each card's docs address and its options, so adding, renaming or removing
+ * a card or an option fails here until the docs page is updated too. After
+ * updating the docs, rewrite the fixture with SETTINGS_DOCS_WRITE=1.
  */
 const SETTINGS_DOCS_FIXTURE = __DIR__.'/../../../../../Fixtures/settings/docs-contract.json';
 
 /**
- * Each card of every Settings page, hidden ones too, by its docs address,
- * with the labels of its options.
+ * Each card of every Settings page and the License page, hidden ones too,
+ * by its docs address, with the labels of its options.
  *
  * @return array<string, list<string>>
  */
@@ -28,7 +30,7 @@ function sdCards(): array
     $admin = adminUser();
     $cards = [];
 
-    foreach (SettingsCluster::getClusteredComponents() as $page) {
+    foreach ([...SettingsCluster::getClusteredComponents(), License::class] as $page) {
         if (! is_subclass_of($page, AdminSettingsPage::class)) {
             continue;
         }
@@ -40,7 +42,7 @@ function sdCards(): array
 
         foreach ((fn (): array => $this->cards())->call($instance) as $card) {
             /** @var SettingsCard $card */
-            $cards[Str::after($instance->docsUrl($card), '/settings/')] = $labels($card);
+            $cards[Str::after($instance->docsUrl($card), '/guide/admin-panel/')] = $labels($card);
         }
     }
 
@@ -63,7 +65,7 @@ it('keeps the admin panel docs in step with the settings cards', function (): vo
         ->values()
         ->all();
 
-    expect($changed)->toBe([], 'These settings cards changed: '.implode(', ', $changed).'. Update their pages in chatvia-landing/docs/guide/admin-panel/settings/ '
+    expect($changed)->toBe([], 'These settings cards changed: '.implode(', ', $changed).'. Update their pages in chatvia-landing/docs/guide/admin-panel/ '
         .'(a card\'s title is its heading there, and every option is explained), then rewrite '
         .'tests/Fixtures/settings/docs-contract.json with SETTINGS_DOCS_WRITE=1.');
 });

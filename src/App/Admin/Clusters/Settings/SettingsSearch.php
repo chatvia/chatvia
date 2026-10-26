@@ -8,6 +8,7 @@ use App\Admin\AdminGlobalSearchProvider;
 use App\Admin\Clusters\Settings\Data\SettingsSearchEntryData;
 use App\Admin\Clusters\Settings\Data\SettingsSearchHitData;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
+use App\Admin\Pages\License;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -89,13 +90,14 @@ final class SettingsSearch
 
     /**
      * Every page the admin can open, in the order of the overview, each with
-     * its sections.
+     * its sections. The License page sits outside Settings in the sidebar,
+     * but is built like a Settings page, so its sections are found too.
      *
      * @return list<SettingsSearchEntryData>
      */
     private function entries(): array
     {
-        return collect(SettingsCluster::getClusteredComponents())
+        return collect([...SettingsCluster::getClusteredComponents(), License::class])
             ->filter(fn (string $component): bool => is_subclass_of($component, AdminSettingsPage::class) && $component::canAccess())
             ->sortBy([
                 fn (string $a, string $b): int => array_search($a::overviewGroup(), SettingsOverview::GROUPS, true) <=> array_search($b::overviewGroup(), SettingsOverview::GROUPS, true),

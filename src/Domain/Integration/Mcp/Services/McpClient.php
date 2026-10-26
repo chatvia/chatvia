@@ -75,7 +75,9 @@ class McpClient
         return $this->inSession($server, $identityHeaders, function (?string $sessionId) use ($server, $name, $arguments, $identityHeaders): McpToolResultData {
             $body = $this->rpc($server, $sessionId, 'tools/call', [
                 'name' => $name,
-                'arguments' => $arguments,
+                // An object even with no arguments: an empty PHP array encodes
+                // as `[]`, which strict servers (Stripe) refuse.
+                'arguments' => (object) $arguments,
             ], $identityHeaders)['body'];
 
             // Only our own servers' results may carry blocks the chat renders.

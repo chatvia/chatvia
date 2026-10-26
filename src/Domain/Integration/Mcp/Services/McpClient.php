@@ -417,14 +417,15 @@ class McpClient
 
     /**
      * How this app introduces itself to MCP servers (the `initialize`
-     * handshake): the configured brand name as a slug.
+     * handshake). Letters only, like the OAuth client name, so no server's
+     * naming rules reject it.
      *
      * @return array{name: string, version: string}
      */
     private function clientInfo(): array
     {
         return [
-            'name' => 'chatvia',
+            'name' => 'ChatViaAI',
             'version' => self::CLIENT_VERSION,
         ];
     }

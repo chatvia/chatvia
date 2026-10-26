@@ -6,7 +6,9 @@ use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 use Throwable;
@@ -52,31 +54,15 @@ class McpOAuthRegistrar
             return $existing;
         }
 
-        $payload = [
-            // Shown to the user on the provider's consent screen.
-            'client_name' => 'ChatVia.ai',
-            'redirect_uris' => [$this->redirectUri()],
-            'grant_types' => ['authorization_code', 'refresh_token'],
-            'response_types' => ['code'],
-            'token_endpoint_auth_method' => 'none', // public client; PKCE only
-            'application_type' => 'web',
-        ];
-
-        try {
-            // SSRF guard: registrationEndpoint comes from upstream-discovered
-            // metadata. Re-validate, pin the checked address and disable
-            // redirects before POSTing.
-            $clientOptions = SafeUrl::pinnedClientOptions($metadata->registrationEndpoint);
-
-            $response = Http::withOptions($clientOptions)->withHeaders([
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ])->post($metadata->registrationEndpoint, $payload);
-        } catch (Throwable $e) {
-            throw new McpOAuthException('Dynamic client registration failed: '.$e->getMessage(), $e->getCode(), previous: $e);
-        }
+        $response = $this->register($metadata);
 
         if ($response->failed()) {
+            Log::warning('MCP dynamic client registration rejected', [
+                'registration_endpoint' => $metadata->registrationEndpoint,
+                'status' => $response->status(),
+                'body' => Str::substr($response->body(), 0, 1000),
+            ]);
+
             throw new McpOAuthException(
                 "Dynamic client registration was rejected ({$response->status()}): ".
                 Str::substr($response->body(), 0, 200)
@@ -98,6 +84,44 @@ class McpOAuthRegistrar
             'authorization_endpoint' => $metadata->authorizationEndpoint,
             'metadata' => $this->publicRegistrationFields($body),
         ]);
+    }
+
+    /**
+     * One RFC 7591 registration request. A transport failure is logged and
+     * thrown; an HTTP error response is returned for the caller to judge.
+     */
+    private function register(OAuthServerMetadata $metadata): Response
+    {
+        $payload = [
+            // Shown to the user on the provider's consent screen. Letters
+            // only: some servers reject anything else (Calendly allows only
+            // letters, digits, hyphens and spaces).
+            'client_name' => 'ChatViaAI',
+            'redirect_uris' => [$this->redirectUri()],
+            'grant_types' => ['authorization_code', 'refresh_token'],
+            'response_types' => ['code'],
+            'token_endpoint_auth_method' => 'none', // public client; PKCE only
+            'application_type' => 'web',
+        ];
+
+        try {
+            // SSRF guard: registrationEndpoint comes from upstream-discovered
+            // metadata. Re-validate, pin the checked address and disable
+            // redirects before POSTing.
+            $clientOptions = SafeUrl::pinnedClientOptions($metadata->registrationEndpoint);
+
+            return Http::withOptions($clientOptions)->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])->post($metadata->registrationEndpoint, $payload);
+        } catch (Throwable $e) {
+            Log::warning('MCP dynamic client registration failed', [
+                'registration_endpoint' => $metadata->registrationEndpoint,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new McpOAuthException('Dynamic client registration failed: '.$e->getMessage(), $e->getCode(), previous: $e);
+        }
     }
 
     /**

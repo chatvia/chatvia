@@ -56,6 +56,7 @@
 #   CHATVIA_ADMIN_PASSWORD        the first admin's password (else a random one)
 #   CHATVIA_EMBEDDING_TYPE        halfvec (default) or vector
 #   CHATVIA_EMBEDDING_DIMENSIONS  1024 (default)
+#   CHATVIA_EMBEDDING_INDEX       binary (default) or full
 #   CHATVIA_COMPOSE_URL           where to download compose.yaml from
 #   CHATVIA_MANAGE_URL            where to download the manage tool from
 #   CHATVIA_REPO                  complete: the Git repository to deploy
@@ -1344,6 +1345,10 @@ write_env() {
 EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
 EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
 
+# The search index: binary (smaller, faster) or full (the most exact).
+# Unlike the two above, it can be changed later.
+EMBEDDING_INDEX=$EMBEDDING_INDEX
+
 ${image_line}CHATVIA_VERSION=$CHATVIA_VERSION
 APP_PORT=$APP_PORT
 APP_URL=$APP_URL
@@ -1544,9 +1549,11 @@ collect_settings() {
         valid_url "$APP_URL" || die "$INVALID"
         EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
         EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
+        EMBEDDING_INDEX=${CHATVIA_EMBEDDING_INDEX:-binary}
         case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
         [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
-        ok "Admin $(accent "$ADMIN_EMAIL"), port $(accent "$APP_PORT"), storage $(accent "$EMBEDDING_TYPE($EMBEDDING_DIMENSIONS)")"
+        case $EMBEDDING_INDEX in binary | full) ;; *) die 'CHATVIA_EMBEDDING_INDEX must be binary or full.' ;; esac
+        ok "Admin $(accent "$ADMIN_EMAIL"), port $(accent "$APP_PORT"), storage $(accent "$EMBEDDING_TYPE($EMBEDDING_DIMENSIONS), $EMBEDDING_INDEX index")"
         return
     fi
 
@@ -1594,6 +1601,7 @@ ask_setup() {
     if [ "$CHOICE" = 0 ]; then
         EMBEDDING_TYPE=halfvec
         EMBEDDING_DIMENSIONS=1024
+        EMBEDDING_INDEX=binary
         return
     fi
 
@@ -1619,13 +1627,21 @@ ask_setup() {
         *) EMBEDDING_DIMENSIONS=2048 ;;
     esac
 
+    block text
+    info 'Binary works best at 1024 dimensions or more. Unlike the two settings'
+    info 'above, the search index can be changed later.'
+    choose 'Search index' \
+        'binary  — about 6× smaller search index, faster, almost the same results (recommended)' \
+        'full  — the largest index, the most exact'
+    if [ "$CHOICE" = 0 ]; then EMBEDDING_INDEX=binary; else EMBEDDING_INDEX=full; fi
+
     local hint='latest, or a version number like 1.2.0'
     if [ "$MODE" = complete ]; then hint="$hint, or a branch like main (not a release)"; fi
     ask CHATVIA_VERSION 'ChatVia.ai version' --default "$CHATVIA_VERSION" --hint "$hint"
 }
 
 show_summary() {
-    local password='the one you typed' image folder email address port storage image_row
+    local password='the one you typed' image folder email address port storage index image_row
     if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
     image=$(image_ref)
     if [ "$NO_PULL" = 1 ]; then image="$image $(dim '(on this machine)')"; fi
@@ -1636,8 +1652,9 @@ show_summary() {
     kv_to address 'Address' "$APP_URL"
     kv_to port 'Port' "$APP_PORT"
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
+    kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to image_row 'Image' "$image"
-    note 'Check your settings' "$folder" "$email" "$password" "$address" "$port" "$storage" "$image_row"
+    note 'Check your settings' "$folder" "$email" "$password" "$address" "$port" "$storage" "$index" "$image_row"
 }
 
 # Opens the admin panel in the browser, when this machine has one: its
@@ -2320,8 +2337,10 @@ native_collect_settings() {
         esac
         EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
         EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
+        EMBEDDING_INDEX=${CHATVIA_EMBEDDING_INDEX:-binary}
         case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
         [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
+        case $EMBEDDING_INDEX in binary | full) ;; *) die 'CHATVIA_EMBEDDING_INDEX must be binary or full.' ;; esac
     else
         native_domain_notice
         ask_admin
@@ -2419,7 +2438,7 @@ native_check_dns() {
 }
 
 native_show_summary() {
-    local password='the one you typed' address version storage firewall swap code email kind
+    local password='the one you typed' address version storage index firewall swap code email kind
     local rows=()
     if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
     kv_to kind 'Install' 'Complete, directly on this server'
@@ -2432,8 +2451,9 @@ native_show_summary() {
     kv_to password 'Admin password' "$password"
     kv_to version 'Version' "$(native_version_text)"
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
+    kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to code 'Code' "$NATIVE_ROOT, run by the user $NATIVE_USER"
-    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$code")
+    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code")
     if [ "$FIREWALL" = yes ]; then
         kv_to firewall 'Firewall' "on: SSH (port $(ssh_ports | paste -sd, - | sed 's/,/, /g')), HTTP and HTTPS"
     else
@@ -2466,6 +2486,7 @@ HTTPS=$HTTPS
 ADMIN_EMAIL=$ADMIN_EMAIL
 EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
 EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
+EMBEDDING_INDEX=$EMBEDDING_INDEX
 CHATVIA_REPO=$CHATVIA_REPO
 CHATVIA_RELEASE=$CHATVIA_RELEASE
 CHATVIA_BRANCH=$CHATVIA_BRANCH
@@ -2482,6 +2503,8 @@ native_load_settings() {
     ADMIN_EMAIL=$(conf_value ADMIN_EMAIL)
     EMBEDDING_TYPE=$(conf_value EMBEDDING_VECTOR_TYPE)
     EMBEDDING_DIMENSIONS=$(conf_value EMBEDDING_DIMENSIONS)
+    EMBEDDING_INDEX=$(conf_value EMBEDDING_INDEX)
+    EMBEDDING_INDEX=${EMBEDDING_INDEX:-binary}
     CHATVIA_REPO=$(conf_value CHATVIA_REPO)
     CHATVIA_RELEASE=$(conf_value CHATVIA_RELEASE)
     CHATVIA_BRANCH=$(conf_value CHATVIA_BRANCH)
@@ -3046,6 +3069,10 @@ APP_FALLBACK_LOCALE=en
 EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
 EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
 
+# The search index: binary (smaller, faster) or full (the most exact).
+# Unlike the two above, it can be changed later.
+EMBEDDING_INDEX=$EMBEDDING_INDEX
+
 # A log file per day in storage/logs, which the admin panel's Logs page
 # reads. Only the newest 14 are kept.
 LOG_CHANNEL=stack
@@ -3235,6 +3262,9 @@ task('chatvia:tool-databases', artisan('chatvia:db:create-tool-databases'));
 desc('Checks that the embedding settings still match the database');
 task('chatvia:check-embeddings', artisan('chatvia:search:check-embedding-storage'));
 
+desc('Rebuilds the vector indexes when EMBEDDING_INDEX changed');
+task('chatvia:vector-indexes', artisan('chatvia:search:vector-indexes'));
+
 desc('Adds the built-in tools to the tool catalog');
 task('chatvia:sync-tools', function () {
     // Needs the embedding provider's API key, which a new install has not got yet.
@@ -3248,7 +3278,8 @@ after('deploy:vendors', 'chatvia:build');
 after('chatvia:build', 'chatvia:widget');
 before('artisan:migrate', 'chatvia:tool-databases');
 after('artisan:migrate', 'chatvia:check-embeddings');
-after('chatvia:check-embeddings', 'chatvia:sync-tools');
+after('chatvia:check-embeddings', 'chatvia:vector-indexes');
+after('chatvia:vector-indexes', 'chatvia:sync-tools');
 after('deploy:symlink', 'chatvia:widget:publish');
 after('rollback', 'chatvia:widget:publish');
 after('deploy:failed', 'deploy:unlock');
@@ -3715,7 +3746,7 @@ interrupted() {
 main() {
     YES=0 UPGRADE=0 NO_START=0 DRY_RUN=0 PASSWORD_GENERATED=0 ADMIN_CREATED=1 USE_SUDO=0 APP_PULLED=0
     ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL='' TTY_STATE=''
-    EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024
+    EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024 EMBEDDING_INDEX=binary
     VERSION_GIVEN=0
     if [ -n "${CHATVIA_VERSION:-}" ]; then VERSION_GIVEN=1; fi
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}

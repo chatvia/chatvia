@@ -473,11 +473,17 @@ return [
     | "vector", with almost the same search quality. The embedding provider
     | must return `dimensions` dimensions: 1024 works with every provider.
     |
+    | `index` is what the chunk HNSW indexes hold: "binary" (one bit per
+    | dimension, about 6× smaller; search re-scores with the stored vectors)
+    | or "full". It may change later: the start-up runs `php artisan
+    | chatvia:search:vector-indexes --if-changed`, which rebuilds them.
+    |
     */
 
     'embeddings' => [
         'type' => env('EMBEDDING_VECTOR_TYPE', 'halfvec'),
         'dimensions' => env('EMBEDDING_DIMENSIONS', 1024),
+        'index' => env('EMBEDDING_INDEX', 'binary'),
     ],
 
     /*
@@ -517,7 +523,9 @@ return [
     |
     | `rerank_candidates` is how many hits go to the reranker; keep it well
     | above `max_chunks`. Agents with at most `exact_max_chunks` chunks are
-    | searched exactly, without the indexes (0 always uses them). A search
+    | searched exactly, without the indexes (0 always uses them). With binary
+    | indexes, each vector channel takes `binary_rescore` times its candidates
+    | from the index and keeps the best by the stored vectors. A search
     | slower than `slow_log_ms` is logged (0 turns it off).
     |
     */
@@ -535,6 +543,7 @@ return [
             'slow_log_ms' => 2000,
             'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 25),
             'exact_max_chunks' => 10_000,
+            'binary_rescore' => 4,
             // When nothing passes the relevance check, tell the model what the
             // agent's knowledge covers (its sources' names), so it can say what
             // it can help with. Off until measured.

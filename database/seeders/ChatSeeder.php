@@ -6,6 +6,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\Workspace;
 use Database\Seeders\Demo\DemoAgents;
 use Database\Seeders\Demo\DemoAnalytics;
+use Database\Seeders\Demo\DemoClient;
 use Database\Seeders\Demo\DemoConversations;
 use Database\Seeders\Demo\DemoCountries;
 use Database\Seeders\Demo\DemoRandom;
@@ -227,9 +228,10 @@ class ChatSeeder extends Seeder
         $sessionId = (string) $session->external_id;
         $conversationId = (string) $conversation->external_id;
         $messageId = (string) $message->external_id;
+        $client = new DemoClient($conversation->source->value, $session->device_type, $session->browser, $session->os);
 
         if (! $reply instanceof DemoReply) {
-            $this->analytics->visitorMessage($agent, $session->chatter_id, $sessionId, $conversationId, $messageId, $country, $at);
+            $this->analytics->visitorMessage($agent, $session->chatter_id, $sessionId, $conversationId, $messageId, $country, $at, $client);
 
             if (isset($data['sentiment'], $data['tone'])) {
                 $this->analytics->analyzed($agent, $data['sentiment'], $data['tone'], $at);
@@ -238,7 +240,7 @@ class ChatSeeder extends Seeder
             return;
         }
 
-        $this->analytics->reply($agent, $session->chatter_id, $sessionId, $conversationId, $messageId, $country, $reply, $at);
+        $this->analytics->reply($agent, $session->chatter_id, $sessionId, $conversationId, $messageId, $country, $reply, $at, $client);
 
         if (isset($data['feedback'])) {
             $this->analytics->feedback($agent, $session->chatter_id, $conversationId, $messageId, $data['feedback'], $country, $at->copy()->addSeconds(random_int(5, 90)));

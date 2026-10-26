@@ -6,6 +6,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\Workspace;
 use Database\Seeders\Demo\DemoAgents;
 use Database\Seeders\Demo\DemoAnalytics;
+use Database\Seeders\Demo\DemoClient;
 use Database\Seeders\Demo\DemoCountries;
 use Database\Seeders\Demo\DemoRandom;
 use Database\Seeders\Demo\DemoReply;
@@ -86,7 +87,7 @@ class AnalyticsDemoSeeder extends Seeder
     }
 
     /**
-     * @param  array{daily_conversations: array{0: int, 1: int}, topics: array<string, int>, sentiment: array<string, int>, tone: array<string, int>, feedback_rate: int, unanswered_rate: int}  $profile
+     * @param  array{daily_conversations: array{0: int, 1: int}, surfaces: array<string, int>, topics: array<string, int>, sentiment: array<string, int>, tone: array<string, int>, feedback_rate: int, unanswered_rate: int}  $profile
      * @param  Collection<int, Chatter>  $chatters
      * @param  Collection<string, int>  $topics
      * @return array{0: int, 1: int, 2: int} conversations, messages, feedback events
@@ -137,14 +138,16 @@ class AnalyticsDemoSeeder extends Seeder
     /**
      * One conversation: turns of a visitor question and an AI reply.
      *
-     * @param  array{sentiment: array<string, int>, tone: array<string, int>, feedback_rate: int, unanswered_rate: int}  $profile
-     * @param  array{session: string, chatter: int|null, location: array{code: string}}  $visitor
+     * @param  array{surfaces: array<string, int>, sentiment: array<string, int>, tone: array<string, int>, feedback_rate: int, unanswered_rate: int}  $profile
+     * @param  array{session: string, chatter: int|null, location: array{code: string}, device: array{user_agent: string, device_type: string, browser: string, os: string, weight: int}}  $visitor
      * @return array{0: int, 1: int} messages, feedback events
      */
     private function conversation(Agent $agent, array $profile, array $visitor, Carbon $startedAt): array
     {
         $conversation = (string) Str::uuid7();
         $country = $visitor['location']['code'];
+        $device = $visitor['device'];
+        $client = new DemoClient((string) DemoRandom::pick($profile['surfaces']), $device['device_type'], $device['browser'], $device['os']);
         $sentiment = (string) DemoRandom::pick($profile['sentiment']);
         $tone = DemoRandom::toneFor($sentiment, $profile['tone']);
         $turns = DemoRandom::turns(2.4);
@@ -153,7 +156,7 @@ class AnalyticsDemoSeeder extends Seeder
 
         for ($turn = 0; $turn < $turns; $turn++) {
             $at = $at->copy()->addSeconds($turn === 0 ? 0 : random_int(20, 150));
-            $this->analytics->visitorMessage($agent, $visitor['chatter'], $visitor['session'], $conversation, (string) Str::uuid7(), $country, $at);
+            $this->analytics->visitorMessage($agent, $visitor['chatter'], $visitor['session'], $conversation, (string) Str::uuid7(), $country, $at, $client);
 
             if (DemoRandom::chance(self::ANALYZED)) {
                 // Single messages vary around the mood of the whole chat.
@@ -164,7 +167,7 @@ class AnalyticsDemoSeeder extends Seeder
             $reply = DemoRandom::chance($profile['unanswered_rate']) ? DemoReply::unanswered() : DemoReply::answered();
             $at = $at->copy()->addMilliseconds($reply->responseTimeMs);
             $message = (string) Str::uuid7();
-            $this->analytics->reply($agent, $visitor['chatter'], $visitor['session'], $conversation, $message, $country, $reply, $at);
+            $this->analytics->reply($agent, $visitor['chatter'], $visitor['session'], $conversation, $message, $country, $reply, $at, $client);
 
             if (DemoRandom::chance($profile['feedback_rate'])) {
                 $this->analytics->feedback($agent, $visitor['chatter'], $conversation, $message, $this->feedbackFor($reply, $sentiment), $country, $at->copy()->addSeconds(random_int(5, 90)));
@@ -191,9 +194,9 @@ class AnalyticsDemoSeeder extends Seeder
      * A returning visitor (same session, place and chatter), a signed-in
      * chatter from their own country, or a new anonymous visitor.
      *
-     * @param  list<array{session: string, chatter: int|null, location: array{code: string, id: int|null, city: string, timezone: string, locale: string}}>  $returning
+     * @param  list<array{session: string, chatter: int|null, location: array{code: string, id: int|null, city: string, timezone: string, locale: string}, device: array{user_agent: string, device_type: string, browser: string, os: string, weight: int}}>  $returning
      * @param  Collection<int, Chatter>  $chatters
-     * @return array{session: string, chatter: int|null, location: array{code: string, id: int|null, city: string, timezone: string, locale: string}}
+     * @return array{session: string, chatter: int|null, location: array{code: string, id: int|null, city: string, timezone: string, locale: string}, device: array{user_agent: string, device_type: string, browser: string, os: string, weight: int}}
      */
     private function visitor(array $returning, Collection $chatters): array
     {
@@ -204,10 +207,10 @@ class AnalyticsDemoSeeder extends Seeder
         if ($chatters->isNotEmpty() && DemoRandom::chance(self::SIGNED_IN)) {
             $chatter = $chatters->random();
 
-            return ['session' => (string) Str::uuid7(), 'chatter' => $chatter->id, 'location' => DemoCountries::in(DemoVisitors::countryOf($chatter))];
+            return ['session' => (string) Str::uuid7(), 'chatter' => $chatter->id, 'location' => DemoCountries::in(DemoVisitors::countryOf($chatter)), 'device' => DemoVisitors::device()];
         }
 
-        return ['session' => (string) Str::uuid7(), 'chatter' => null, 'location' => DemoCountries::pick()];
+        return ['session' => (string) Str::uuid7(), 'chatter' => null, 'location' => DemoCountries::pick(), 'device' => DemoVisitors::device()];
     }
 
     /**

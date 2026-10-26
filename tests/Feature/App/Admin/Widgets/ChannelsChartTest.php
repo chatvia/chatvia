@@ -3,9 +3,10 @@
 use App\Admin\Pages\DashboardFilters;
 use App\Admin\Widgets\ChannelsChart;
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\Support\Admin\ChartData;
 
@@ -24,7 +25,13 @@ it('charts the conversations of the period by channel, busiest first', function 
     $agent = Agent::factory()->create();
 
     foreach ([ConversationSource::Widget, ConversationSource::Widget, ConversationSource::Telegram] as $source) {
-        Conversation::factory()->create(['agent_id' => $agent->id, 'source' => $source, 'is_visible' => true]);
+        app(AnalyticsDatabase::class)->table('analytics_conversation_metrics')->insert([
+            'conversation_external_id' => (string) Str::uuid(),
+            'agent_id' => $agent->id,
+            'workspace_id' => $agent->workspace_id,
+            'started_at' => now(),
+            'source' => $source->value,
+        ]);
     }
 
     $data = ChartData::of(Livewire::actingAs($this->admin, 'admin')

@@ -44,6 +44,9 @@
         <!-- Pulse records nothing in tests. Its tables go in the testing
              database, so the suite needs no second database. -->
         <env name="DB_PULSE_DATABASE" value="testing"/>
+        <!-- The analytics tables too: TestCase runs each test in a
+             transaction on that connection as well. -->
+        <env name="DB_ANALYTICS_DATABASE" value="testing"/>
         <env name="PULSE_ENABLED" value="false"/>
         <!-- Spectra stays installed (its dashboard routes are tested) but
              records nothing: TestCase switches recording off. -->

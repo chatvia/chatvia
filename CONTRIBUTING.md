@@ -43,7 +43,7 @@ docker compose up -d          # PostgreSQL (with the search extensions), Redis, 
 composer install
 npm ci
 cp .env.example .env && php artisan key:generate
-php artisan chatvia:db:create-tool-databases   # Pulse's and Spectra's databases, when missing
+php artisan chatvia:db:create-tool-databases   # the analytics, Pulse and Spectra databases, when missing
 php artisan migrate --seed
 composer dev                  # app server, queue worker, logs and Vite
 ```
@@ -238,9 +238,10 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-The first command creates the databases of Pulse and Spectra
-(`DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`, by default `pulse` and
-`spectra`) when they are missing; the Docker services create them on their
+The first command creates the databases of the analytics tables, Pulse and
+Spectra (`DB_ANALYTICS_DATABASE`, `DB_PULSE_DATABASE` and
+`DB_SPECTRA_DATABASE`, by default `analytics`, `pulse` and `spectra`) when they
+are missing; the Docker services create them on their
 first start. The first migration installs the PostgreSQL extensions. The
 seeders load the list of AI models and, outside production, create a demo
 admin account (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, by default

@@ -40,7 +40,7 @@ command bar, messaging apps and a REST API.
 | WebSockets | `php artisan reverb:start` | Live updates: ingestion progress, handoff messages, typing, eval progress. |
 | Scheduler | `php artisan schedule:run` (cron, every minute) | Pruning, analysis, usage caches, backups (see `routes/console.php`). |
 | Server stats | `php artisan pulse:check` | CPU, memory, disk and Reverb connections for Pulse's Servers card. |
-| PostgreSQL 18 | | All data, plus vector search (pgvector HNSW) and keyword search (`pg_textsearch` BM25, or the built-in full-text search on databases that cannot preload it — `LexicalSearch` picks per install). Pulse (`/pulse`) and Spectra (`/spectra`) each keep their data in a database of their own (the `pulse` and `spectra` connections, `DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`), which `chatvia:db:create-tool-databases` creates. |
+| PostgreSQL 18 | | All data, plus vector search (pgvector HNSW) and keyword search (`pg_textsearch` BM25, or the built-in full-text search on databases that cannot preload it — `LexicalSearch` picks per install). The analytics tables, Pulse (`/pulse`) and Spectra (`/spectra`) each keep their data in a database of their own (the `analytics`, `pulse` and `spectra` connections, `DB_ANALYTICS_DATABASE`, `DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`), which `chatvia:db:create-tool-databases` creates. |
 | Redis | | Queues, cache, rate limits, the live chat memory, login sessions (their own database). |
 
 ### Repository map
@@ -509,8 +509,10 @@ Access grants.
 Event recording (`analytics_events` and rollups), dashboard and per-agent
 statistics, conversation analysis (topics, sentiment, tone, with an LLM), IP to
 country, user-agent parsing, and the query classes behind the account-analytics
-MCP server. The tables can live in a separate database
-(`ANALYTICS_DB_CONNECTION`); all access goes through `AnalyticsDatabase`.
+MCP server. The tables live in a database of their own (the `analytics`
+connection, `DB_ANALYTICS_DATABASE`), so no query joins them to the app's
+tables: names are looked up on the main database afterwards. All access goes
+through `AnalyticsDatabase`.
 
 ### Evaluation
 

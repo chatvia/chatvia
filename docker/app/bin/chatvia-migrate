@@ -4,8 +4,9 @@
 # serves requests. Every step is safe to repeat.
 #
 #   1. wait for PostgreSQL
-#   2. create the Pulse and Spectra databases (DB_PULSE_DATABASE,
-#      DB_SPECTRA_DATABASE) when they are missing
+#   2. create the analytics, Pulse and Spectra databases
+#      (DB_ANALYTICS_DATABASE, DB_PULSE_DATABASE, DB_SPECTRA_DATABASE) when
+#      they are missing
 #   3. run the migrations (the first one installs the search extensions)
 #   4. check the embedding storage settings still match the database
 #   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
@@ -39,8 +40,8 @@ until database_is_ready; do
     sleep 2
 done
 
-# Pulse (/pulse) and Spectra (/spectra) keep their data in databases of their
-# own, next to the app's.
+# The analytics tables, Pulse (/pulse) and Spectra (/spectra) keep their data
+# in databases of their own, next to the app's.
 php artisan chatvia:db:create-tool-databases --no-interaction
 
 php artisan migrate --force --no-interaction

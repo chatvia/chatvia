@@ -148,7 +148,7 @@ services:
     volumes:
       # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/.
       - pgdata:/var/lib/postgresql
-      # Creates the `testing`, `pulse` and `spectra` databases on first start
+      # Creates the `testing`, `analytics`, `pulse` and `spectra` databases on first start
       # (empty volume only).
       - ./docker/postgres/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql:ro
       - ./docker/postgres/create-tool-databases.sql:/docker-entrypoint-initdb.d/20-create-tool-databases.sql:ro

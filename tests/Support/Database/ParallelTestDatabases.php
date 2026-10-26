@@ -33,7 +33,7 @@ use Throwable;
 final class ParallelTestDatabases
 {
     /** The connections that point at the testing database in the tests (phpunit.xml). */
-    public const array CONNECTIONS_ON_THE_TESTING_DATABASE = ['pulse', 'spectra'];
+    public const array CONNECTIONS_ON_THE_TESTING_DATABASE = ['analytics', 'pulse', 'spectra'];
 
     private const int COPY_ATTEMPTS = 5;
 

@@ -12,23 +12,24 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 
 /**
- * Start-up and deploy step, run before the migrations: creates the own
- * database of each staff tool that keeps one — Pulse (the `pulse`
- * connection, DB_PULSE_DATABASE) and Spectra (`spectra`,
- * DB_SPECTRA_DATABASE) — when the server does not have it yet. `migrate`
- * then creates the tools' tables in them.
+ * Start-up and deploy step, run before the migrations: creates the databases
+ * that sit next to the app's when the server does not have them yet. They are
+ * the analytics tables' (the `analytics` connection, DB_ANALYTICS_DATABASE),
+ * Pulse's (`pulse`, DB_PULSE_DATABASE) and Spectra's (`spectra`,
+ * DB_SPECTRA_DATABASE). `migrate` then creates their tables in them.
  *
  * It connects to the server's `postgres` database, which every PostgreSQL
  * server has, the same way `migrate` creates a missing app database. The
  * database user needs the CREATEDB right; without it, an operator creates the
  * databases once by hand.
  */
-#[Description('Create the Pulse and Spectra databases (DB_PULSE_DATABASE, DB_SPECTRA_DATABASE) when the PostgreSQL server does not have them yet.')]
+#[Description('Create the analytics, Pulse and Spectra databases (DB_ANALYTICS_DATABASE, DB_PULSE_DATABASE, DB_SPECTRA_DATABASE) when the PostgreSQL server does not have them yet.')]
 #[Signature('chatvia:db:create-tool-databases')]
 class CreateToolDatabases extends Command
 {
-    /** Each tool's database connection, with the tool's name. */
+    /** Each database connection, with the name of what keeps its data there. */
     public const array CONNECTIONS = [
+        'analytics' => 'analytics',
         'pulse' => 'Pulse',
         'spectra' => 'Spectra',
     ];

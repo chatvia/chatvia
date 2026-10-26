@@ -3020,6 +3020,7 @@ DB_PORT=$db_port
 DB_DATABASE=chatvia
 DB_USERNAME=chatvia
 DB_PASSWORD=$db_password
+DB_ANALYTICS_DATABASE=analytics
 DB_PULSE_DATABASE=pulse
 DB_SPECTRA_DATABASE=spectra
 
@@ -3065,8 +3066,8 @@ EOF
     mv "$file.new" "$file"
 }
 
-# The database user and the databases of the app, Pulse and Spectra. The
-# password goes through stdin, never the command line.
+# The database user and the databases of the app, analytics, Pulse and
+# Spectra. The password goes through stdin, never the command line.
 native_setup_database() {
     {
         printf "\\set password '%s'\n" "$(env_value DB_PASSWORD)"
@@ -3074,6 +3075,7 @@ native_setup_database() {
 SELECT 'CREATE ROLE chatvia LOGIN' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'chatvia')\gexec
 ALTER ROLE chatvia WITH LOGIN PASSWORD :'password';
 SELECT 'CREATE DATABASE chatvia OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'chatvia')\gexec
+SELECT 'CREATE DATABASE analytics OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'analytics')\gexec
 SELECT 'CREATE DATABASE pulse OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'pulse')\gexec
 SELECT 'CREATE DATABASE spectra OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'spectra')\gexec
 SQL
@@ -3187,7 +3189,7 @@ task('chatvia:widget:publish', function () {
     run('cd {{current_path}}/.shakomako && for file in *; do [ -f "$file" ] || continue; cp "$file" "{{deploy_path}}/shared/shakomako/.$file.tmp" && mv -f "{{deploy_path}}/shared/shakomako/.$file.tmp" "{{deploy_path}}/shared/shakomako/$file"; done');
 });
 
-desc('Creates the Pulse and Spectra databases when they are missing');
+desc('Creates the analytics, Pulse and Spectra databases when they are missing');
 task('chatvia:tool-databases', artisan('chatvia:db:create-tool-databases'));
 
 desc('Checks that the embedding settings still match the database');

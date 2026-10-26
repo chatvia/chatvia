@@ -23,9 +23,9 @@ it('shows the scheduler as running within a minute of its start, and as stopped 
     'stopped' => [4, ServiceState::Down],
 ]);
 
-it('says the scheduler has not run yet when it never woke up', function (): void {
+it('counts a scheduler that never woke up as down', function (): void {
     expect(app(ServiceChecks::class)->check(Service::Scheduler))
-        ->state->toBe(ServiceState::Warning)
+        ->state->toBe(ServiceState::Down)
         ->summary->toBe('Has not run a task yet.');
 });
 

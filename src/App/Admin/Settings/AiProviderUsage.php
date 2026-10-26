@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 /**
  * What runs on which AI provider right now: the embedding service in use,
  * the driver picked (or "Automatic") for speech, voice, reading aloud,
- * documents, reranking and image generation, and the providers whose chat models agents can
+ * documents, reranking, image generation and audio generation, and the providers whose chat models agents can
  * use. It marks the chips on Settings → AI providers.
  */
 final class AiProviderUsage
@@ -29,6 +29,7 @@ final class AiProviderUsage
             AiCapability::Documents => $this->driver('document_parser', $capability),
             AiCapability::Reranking => $this->driver('reranker', $capability),
             AiCapability::ImageGeneration => $this->driver('image_generator', $capability),
+            AiCapability::AudioGeneration => $this->driver('audio_generator', $capability),
             AiCapability::Chat => null,
         };
     }

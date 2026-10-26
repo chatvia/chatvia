@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Domain\Conversation\Services\Tooling\Routing\UnavailableToolFilter;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolKind;
-use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Operations\Media\NullSpeaker;
+use Domain\Llm\Services\AudioGeneration;
 use Tests\Support\Llm\FakeImageGenerator;
 use Tests\Support\Llm\FakeSpeaker;
 
@@ -29,14 +29,14 @@ function utfNames(array $entries): array
 
 it('keeps every tool while the services are set up', function (): void {
     FakeImageGenerator::install();
-    app()->instance(Speaker::class, new FakeSpeaker);
+    app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
 
     expect(utfNames(app(UnavailableToolFilter::class)->apply(utfEntries())))->toBe(utfNames(utfEntries()));
 });
 
 it('drops the tools of a capability whose service is off', function (): void {
     FakeImageGenerator::install(enabled: false);
-    app()->instance(Speaker::class, new NullSpeaker);
+    app()->instance(AudioGeneration::class, new AudioGeneration(new NullSpeaker));
 
     expect(utfNames(app(UnavailableToolFilter::class)->apply(utfEntries())))->toBe(['mcp__charts__render-chart']);
 });

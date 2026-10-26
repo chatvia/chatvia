@@ -93,7 +93,7 @@ use InvalidArgumentException;
  * (added from a provider's list, removed with their agents moved to another
  * model) and the default for new agents; the embedding service; the
  * reranker; document reading; speech to text; voice; reading aloud; image
- * generation, which stays off until an admin picks a service. The models
+ * and audio generation, which stay off until an admin picks a service. The models
  * behind the app's own tasks ({@see LlmTask}) are a closed card of their
  * own: the model for quick tasks, and one per task, grouped by when the
  * task runs. "Use the
@@ -383,7 +383,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->text('openai_realtime_transcription_model', 'Transcription model',
                     help: 'Writes down what the visitor says, so it shows in the chat log. For example gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
-            SettingsCard::make('read_aloud', 'Read aloud', 'Agent replies played as speech in the hosted chat, and the audio files agents make there.', Heroicon::OutlinedSpeakerWave, fn (): array => [
+            SettingsCard::make('read_aloud', 'Read aloud', 'Agent replies played as speech in the hosted chat.', Heroicon::OutlinedSpeakerWave, fn (): array => [
                 $this->serviceChoice('speaker', 'Read aloud', [
                     'elevenlabs' => 'ElevenLabs',
                     'openai' => 'OpenAI Realtime',
@@ -397,14 +397,12 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->info()
                     ->visible(fn (Get $get): bool => $get('speaker') === 'openai'),
                 $this->choice('openai_speech_voice', 'Default voice', collect(RealtimeVoice::cases())->mapWithKeys(fn (RealtimeVoice $voice): array => [$voice->value => $voice->label()])->all(),
-                    help: 'Agents read replies in this voice unless they have their own. Marin and Cedar sound the most natural.')
-                    ->visible(fn (Get $get): bool => $get('speaker') === 'openai'),
+                    help: 'Agents read replies and audio files in this voice unless they have their own. Marin and Cedar sound the most natural.')
+                    ->visible(fn (Get $get): bool => $this->speechServiceUsed($get, 'openai')),
                 $this->choice('elevenlabs_speech_voice', 'Default voice', collect(app(ElevenLabsVoices::class)->all())->mapWithKeys(fn (SpeechVoiceData $voice): array => [$voice->id => $voice->label])->all(),
-                    help: 'Agents read replies in this voice unless they have their own. Pick any voice in your ElevenLabs account, or leave it empty for a ready-made one.')
+                    help: 'Agents read replies and audio files in this voice unless they have their own. Pick any voice in your ElevenLabs account, or leave it empty for a ready-made one.')
                     ->searchable()
-                    ->visible(fn (Get $get): bool => $get('speaker') === 'elevenlabs'),
-                $this->integer('audio_per_chat_per_hour', 'Audio files per chat per hour', min: 1, max: 100,
-                    help: 'The same service makes the audio files agents create when a chatter asks for one. This is the most an agent makes in one chat in an hour.'),
+                    ->visible(fn (Get $get): bool => $this->speechServiceUsed($get, 'elevenlabs')),
             ])->advancedFields(fn (): array => [
                 $this->choice('openai_speech_model', 'OpenAI model', [
                     'gpt-realtime-2.1-mini' => 'GPT Realtime 2.1 mini',
@@ -463,6 +461,24 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'gemini-3.1-flash-image' => 'Nano Banana 2',
                 ]),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
+            SettingsCard::make('audio_generation', 'Audio generation', 'Audio files agents make in the hosted chat when a chatter asks: a text, or an attached PDF, read aloud.', Heroicon::OutlinedMusicalNote, fn (): array => [
+                $this->serviceChoice('audio_generator', 'Audio generation', [
+                    'elevenlabs' => 'ElevenLabs',
+                    'openai' => 'OpenAI Realtime',
+                    'none' => 'Off',
+                ], 'Off until you pick a service, and apart from Read aloud, so files and replies can use different services. Each agent must also turn it on, under Capabilities. The voices and models are the ones on the Read aloud card. Every file counts against the workspace\'s monthly generation limit, when it has one.',
+                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
+                    ->live(),
+                Callout::make('OpenAI reads with its realtime model')
+                    ->description('It talks rather than reads, so each reading is checked against the text and read again once when the words differ. Its files are WAV, larger than the MP3 files of ElevenLabs, which reads the text as it is.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('audio_generator') === 'openai'),
+                $this->integer('audio_per_chat_per_hour', 'Audio files per chat per hour', min: 1, max: 100,
+                    help: 'The most audio files an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
+                $this->integer('audio_max_characters', 'Longest text, in characters', min: 1000, max: 50000,
+                    help: 'The most text one audio file reads, such as a PDF a chatter attached. 20,000 characters is about 6 pages, or 20 minutes of audio. A longer text is refused.'),
+            ])->summary(fn (): string => $this->providerInUse('audio_generator')),
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),
                 $this->withHelp($this->modelChoice('task_model', 'Model for quick tasks'),
@@ -1258,7 +1274,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             'transcriber' => AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none',
             'voice' => AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none',
             'speaker' => AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none',
-            'image_generator' => 'none',
+            'image_generator', 'audio_generator' => 'none',
             default => throw new InvalidArgumentException("{$property} is not a service choice."),
         };
     }
@@ -1357,6 +1373,12 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $name = array_find($speaker->voices(), fn (SpeechVoiceData $choice): bool => $choice->id === $voice)?->label;
 
         return $provider === 'off' || blank($name) ? $provider : $provider.' · '.$name;
+    }
+
+    /** Whether Read aloud or audio files use this speech service, as the form picks them now. */
+    private function speechServiceUsed(Get $get, string $provider): bool
+    {
+        return in_array($provider, [$get('speaker'), $get('audio_generator')], true);
     }
 
     /** The image service in use, with its model, or "off". */

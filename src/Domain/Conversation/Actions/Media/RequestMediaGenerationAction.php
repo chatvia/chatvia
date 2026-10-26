@@ -6,6 +6,7 @@ namespace Domain\Conversation\Actions\Media;
 
 use App\Identity\Workspace\Services\GenerationAllowance;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Media\AttachedTextData;
 use Domain\Conversation\Data\Media\MediaRequestData;
 use Domain\Conversation\Data\Media\MediaRequestResultData;
 use Domain\Conversation\Enums\ConversationSource;
@@ -15,18 +16,22 @@ use Domain\Conversation\Enums\MediaRequestRefusal;
 use Domain\Conversation\Jobs\GenerateMediaJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
+use Domain\Conversation\Services\Media\AttachedFileText;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Llm\Contracts\ImageGenerator;
-use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Enums\ImageShape;
+use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 /**
  * Takes an agent's request for a picture or an audio file in a chat. It is
  * turned down, with a reason the agent passes on, outside the hosted chat,
  * while the service is off (Settings → AI models), once the chat has had its
  * files for the hour, or once the workspace has used its monthly generation
- * limit. Otherwise the item is stored as pending, a slot of the monthly limit
+ * limit. An audio file of the attached PDF reads the PDF's text here, and is
+ * turned down when there is none, no text in it, or more than one file may
+ * read. Otherwise the item is stored as pending, a slot of the monthly limit
  * is taken, and {@see GenerateMediaJob} makes the file in the background.
  *
  * The tool call returns at once: a picture takes up to a minute, longer than
@@ -37,10 +42,14 @@ class RequestMediaGenerationAction
     /** One hour, the window of the per-chat limit. */
     private const int HOUR = 3600;
 
+    /** How much of a text the chat shows with its audio file. */
+    private const int CAPTION = 200;
+
     public function __construct(
         private readonly ImageGenerator $images,
-        private readonly Speaker $speaker,
+        private readonly AudioGeneration $audio,
         private readonly ReadAloudAvailability $readAloud,
+        private readonly AttachedFileText $attachedText,
         private readonly GenerationAllowance $allowance,
     ) {}
 
@@ -52,6 +61,17 @@ class RequestMediaGenerationAction
             return MediaRequestResultData::refused($refusal);
         }
 
+        $attached = null;
+
+        if ($request->fromAttachment) {
+            $attached = $this->attachedText->latestPdf($conversation);
+            $refusal = $this->attachmentRefusal($attached);
+
+            if ($refusal instanceof MediaRequestRefusal) {
+                return MediaRequestResultData::refused($refusal);
+            }
+        }
+
         if (! $this->allowance->reserve($agent->workspace_id)) {
             return MediaRequestResultData::refused(MediaRequestRefusal::MonthlyLimit);
         }
@@ -59,29 +79,44 @@ class RequestMediaGenerationAction
         RateLimiter::hit($this->hourlyKey($conversation, $request->kind), self::HOUR);
 
         $image = $request->kind === GeneratedMediaKind::Image;
+        $prompt = $attached instanceof AttachedTextData ? $attached->text : $request->prompt;
         $media = GeneratedMedia::query()->create([
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
             'chat_conversation_id' => $conversation->id,
             'kind' => $request->kind,
             'status' => GeneratedMediaStatus::Pending,
-            'prompt' => $request->prompt,
+            'prompt' => $prompt,
             'shape' => $image ? ($request->shape ?? ImageShape::Square)->value : null,
-            'voice' => $image ? null : $this->readAloud->voiceFor($agent),
-            'service' => $image ? $this->images->name() : $this->speaker->name(),
+            'voice' => $image ? null : $this->readAloud->voiceFor($agent, $this->audio->speaker),
+            'service' => $image ? $this->images->name() : $this->audio->name(),
         ]);
 
         GenerateMediaJob::dispatch($media);
 
-        return MediaRequestResultData::accepted($media->external_id);
+        return MediaRequestResultData::accepted($media->external_id, match (true) {
+            $image => $prompt,
+            $attached instanceof AttachedTextData => $attached->filename,
+            default => Str::limit($prompt, self::CAPTION),
+        });
     }
 
     private function refusal(Conversation $conversation, GeneratedMediaKind $kind): ?MediaRequestRefusal
     {
         return match (true) {
             $conversation->source !== ConversationSource::HostedChat => MediaRequestRefusal::WrongSurface,
-            ! ($kind === GeneratedMediaKind::Image ? $this->images->isEnabled() : $this->speaker->isEnabled()) => MediaRequestRefusal::NotSetUp,
+            ! ($kind === GeneratedMediaKind::Image ? $this->images->isEnabled() : $this->audio->isEnabled()) => MediaRequestRefusal::NotSetUp,
             RateLimiter::tooManyAttempts($this->hourlyKey($conversation, $kind), $this->perHour($kind)) => MediaRequestRefusal::HourlyLimit,
+            default => null,
+        };
+    }
+
+    private function attachmentRefusal(?AttachedTextData $attached): ?MediaRequestRefusal
+    {
+        return match (true) {
+            ! $attached instanceof AttachedTextData => MediaRequestRefusal::NoAttachment,
+            blank($attached->text) => MediaRequestRefusal::NoReadableText,
+            Str::length($attached->text) > (int) config('chatvia.ai.audio_max_characters') => MediaRequestRefusal::TooLong,
             default => null,
         };
     }

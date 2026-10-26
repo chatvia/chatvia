@@ -542,6 +542,8 @@
     "Play agent replies as speech": "Reproducen las respuestas de los agentes como voz",
     "Image generation": "Generación de imágenes",
     "Let agents make pictures in chats": "Permite a los agentes crear imágenes en los chats",
+    "Audio generation": "Generación de audio",
+    "Let agents make audio files in chats": "Permite a los agentes crear archivos de audio en los chats",
     "Your admin has turned this off.": "Tu administrador ha desactivado esto.",
     "Reading aloud is not available right now.": "La lectura en voz alta no está disponible ahora.",
     "The reply could not be read aloud. Please try again.": "No se pudo leer la respuesta en voz alta. Inténtalo de nuevo.",

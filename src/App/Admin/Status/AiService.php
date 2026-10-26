@@ -24,6 +24,7 @@ enum AiService: string
     case Voice = 'voice';
     case ReadAloud = 'read_aloud';
     case ImageGeneration = 'image_generation';
+    case AudioGeneration = 'audio_generation';
     case WebPages = 'web_pages';
     case VisitorCountry = 'visitor_country';
 
@@ -38,6 +39,7 @@ enum AiService: string
             self::Voice => __('Voice conversations'),
             self::ReadAloud => __('Read aloud'),
             self::ImageGeneration => __('Image generation'),
+            self::AudioGeneration => __('Audio generation'),
             self::WebPages => __('Web pages'),
             self::VisitorCountry => __('Visitor country'),
         };
@@ -54,6 +56,7 @@ enum AiService: string
             self::Voice => __('Talk with agents in real time'),
             self::ReadAloud => __('Play agent replies as speech'),
             self::ImageGeneration => __('Let agents make pictures in chats'),
+            self::AudioGeneration => __('Let agents make audio files in chats'),
             self::WebPages => __('Firecrawl reads websites for knowledge'),
             self::VisitorCountry => __('IP2Location finds the country of each visitor'),
         };
@@ -70,6 +73,7 @@ enum AiService: string
             self::Voice => Heroicon::OutlinedPhone,
             self::ReadAloud => Heroicon::OutlinedSpeakerWave,
             self::ImageGeneration => Heroicon::OutlinedPhoto,
+            self::AudioGeneration => Heroicon::OutlinedMusicalNote,
             self::WebPages => Heroicon::OutlinedGlobeAlt,
             self::VisitorCountry => Heroicon::OutlinedMapPin,
         };
@@ -87,6 +91,7 @@ enum AiService: string
             self::Voice => ManageAiModelSettings::cardUrl('voice'),
             self::ReadAloud => ManageAiModelSettings::cardUrl('read_aloud'),
             self::ImageGeneration => ManageAiModelSettings::cardUrl('image_generation'),
+            self::AudioGeneration => ManageAiModelSettings::cardUrl('audio_generation'),
             self::WebPages => ManageKnowledgeSettings::cardUrl('website_import'),
             self::VisitorCountry => ManagePlatformSettings::cardUrl('ip2location'),
         };

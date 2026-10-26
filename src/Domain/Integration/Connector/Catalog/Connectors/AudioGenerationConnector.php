@@ -6,14 +6,14 @@ namespace Domain\Integration\Connector\Catalog\Connectors;
 
 use Domain\Integration\Connector\Catalog\CapabilityConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
-use Domain\Llm\Contracts\Speaker;
+use Domain\Llm\Services\AudioGeneration;
 
 /**
  * Audio files of a text read aloud, made by the agent for the visitor and
  * shown under its reply. Only the hosted chat can show and keep them, so the
  * router withholds the tool on every other surface, and a voice call never
- * offers it. It works only while an admin has set up Read aloud (Settings →
- * AI models).
+ * offers it. It works only while an admin has picked a speech service for
+ * audio files (Settings → AI models → Audio generation).
  */
 final class AudioGenerationConnector extends CapabilityConnector
 {
@@ -48,6 +48,6 @@ final class AudioGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return app(Speaker::class)->isEnabled();
+        return app(AudioGeneration::class)->isEnabled();
     }
 }

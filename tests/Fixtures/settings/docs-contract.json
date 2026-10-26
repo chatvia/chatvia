@@ -1,4 +1,9 @@
 {
+    "ai-models#audio-generation": [
+        "Audio generation",
+        "Audio files per chat per hour",
+        "Longest text, in characters"
+    ],
     "ai-models#chat": [
         "Default model for new agents",
         "Messages of history",
@@ -44,7 +49,6 @@
     "ai-models#read-aloud": [
         "Read aloud",
         "Default voice",
-        "Audio files per chat per hour",
         "OpenAI model",
         "ElevenLabs model"
     ],

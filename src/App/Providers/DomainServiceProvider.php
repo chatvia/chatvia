@@ -132,6 +132,7 @@ use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
 use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
 use Domain\Llm\Services\AiCallTags;
+use Domain\Llm\Services\AudioGeneration;
 use Domain\Llm\Services\SharedHttpHandler;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
@@ -145,6 +146,7 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -284,12 +286,11 @@ class DomainServiceProvider extends ServiceProvider
             default => throw $this->unknownAiDriver('voice', ['openai', 'none']),
         });
 
-        $this->app->bind(fn ($app): Speaker => match ($this->aiDriver('speaker', auto: AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none')) {
-            'elevenlabs' => $app->make(ElevenLabsSpeaker::class),
-            'openai' => $app->make(OpenAiSpeaker::class),
-            'none' => $app->make(NullSpeaker::class),
-            default => throw $this->unknownAiDriver('speaker', ['elevenlabs', 'openai', 'none']),
-        });
+        $this->app->bind(fn ($app): Speaker => $this->speaker($app, 'speaker', AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none'));
+
+        // The audio files agents make have a speech service of their own,
+        // off until an admin picks one, like image generation.
+        $this->app->bind(fn ($app): AudioGeneration => new AudioGeneration($this->speaker($app, 'audio_generator', 'none')));
 
         // "auto" picks no service: making pictures costs money, so a
         // connected key alone does not turn it on.
@@ -300,6 +301,17 @@ class DomainServiceProvider extends ServiceProvider
             'none' => $app->make(NullImageGenerator::class),
             default => throw $this->unknownAiDriver('image_generator', ['openai', 'openrouter', 'google', 'none']),
         });
+    }
+
+    /** The speech service a `chatvia.ai.*` step picks: Read aloud (`speaker`) or audio files (`audio_generator`). */
+    private function speaker(Application $app, string $key, string $auto): Speaker
+    {
+        return match ($this->aiDriver($key, auto: $auto)) {
+            'elevenlabs' => $app->make(ElevenLabsSpeaker::class),
+            'openai' => $app->make(OpenAiSpeaker::class),
+            'none' => $app->make(NullSpeaker::class),
+            default => throw $this->unknownAiDriver($key, ['elevenlabs', 'openai', 'none']),
+        };
     }
 
     /** The configured driver for a chatvia.ai step, with `auto` (or empty) replaced by $auto. */

@@ -11,12 +11,16 @@ use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Enums\GeneratedMediaStatus;
 use Domain\Conversation\Enums\MediaRequestRefusal;
 use Domain\Conversation\Jobs\GenerateMediaJob;
+use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
-use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Operations\Media\NullSpeaker;
+use Domain\Llm\Services\AudioGeneration;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Llm\FakeImageGenerator;
 use Tests\Support\Llm\FakeSpeaker;
 
@@ -24,11 +28,12 @@ use Tests\Support\Llm\FakeSpeaker;
  * An agent's request for a picture or an audio file: stored as pending with
  * its job queued, or turned down outside the hosted chat, while the service
  * is off, past the chat's hourly limit, or past the workspace's monthly one.
+ * An audio file of the attached PDF reads the PDF's text on the server.
  */
 beforeEach(function (): void {
     Queue::fake();
     FakeImageGenerator::install();
-    app()->instance(Speaker::class, new FakeSpeaker);
+    app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
     $this->agent = Agent::factory()->create();
     $this->conversation = Conversation::factory()->create(['agent_id' => $this->agent->id, 'source' => ConversationSource::HostedChat]);
 });
@@ -50,7 +55,7 @@ it('stores a pending picture under the workspace and queues its job', function (
         ->and($media->status)->toBe(GeneratedMediaStatus::Pending)
         ->and($media->shape)->toBe('landscape')
         ->and($media->service)->toBe('fake image-model')
-        ->and($result->artifact('A red fox'))->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red fox']);
+        ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red fox']);
 
     Queue::assertPushedOn('generation', GenerateMediaJob::class, fn (GenerateMediaJob $job): bool => $job->media->is($media));
 });
@@ -77,7 +82,7 @@ it('turns down a request outside the hosted chat', function (): void {
 
 it('turns down a request while the service is off', function (MediaRequestData $request): void {
     FakeImageGenerator::install(enabled: false);
-    app()->instance(Speaker::class, new NullSpeaker);
+    app()->instance(AudioGeneration::class, new AudioGeneration(new NullSpeaker));
 
     expect(rmgRequest($request)->refusal)->toBe(MediaRequestRefusal::NotSetUp);
 })->with([
@@ -111,3 +116,37 @@ it('gives a reason the agent can pass on', function (): void {
     expect(MediaRequestRefusal::HourlyLimit->reason(GeneratedMediaKind::Image))->toContain('images for this hour')
         ->and(MediaRequestRefusal::WrongSurface->reason(GeneratedMediaKind::Audio))->toStartWith('Audio files can only be made in the hosted chat');
 });
+
+function rmgAttachPdf(string $text): Attachment
+{
+    Storage::fake(Attachment::DISK);
+    Process::fake(['*pdftotext*' => Process::result($text)]);
+
+    return Attachment::factory()->forConversation(test()->conversation)->stored()->create(['filename' => 'Handbook.pdf']);
+}
+
+it('reads the attached PDF into the audio file, with its name as the caption', function (): void {
+    rmgAttachPdf("Page one text.\fPage two text.\f");
+
+    $result = rmgRequest(MediaRequestData::audioOfAttachment());
+    $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
+
+    expect($media->prompt)->toBe("Page one text.\n\nPage two text.")
+        ->and($result->artifact()['prompt'])->toBe('Handbook.pdf');
+    Process::assertRan(fn ($process): bool => Str::contains(implode(' ', (array) $process->command), 'pdftotext'));
+});
+
+it('turns down an attached-file request it cannot read aloud', function (?string $text, MediaRequestRefusal $refusal): void {
+    config(['chatvia.ai.audio_max_characters' => 20]);
+
+    if ($text !== null) {
+        rmgAttachPdf($text);
+    }
+
+    expect(rmgRequest(MediaRequestData::audioOfAttachment())->refusal)->toBe($refusal)
+        ->and(GeneratedMedia::query()->count())->toBe(0);
+})->with([
+    'no PDF attached' => [null, MediaRequestRefusal::NoAttachment],
+    'a scan with no text' => ["  \f\f", MediaRequestRefusal::NoReadableText],
+    'longer than one file reads' => [Str::repeat('A long sentence. ', 5), MediaRequestRefusal::TooLong],
+]);

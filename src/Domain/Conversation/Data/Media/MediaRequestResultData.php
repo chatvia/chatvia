@@ -18,11 +18,13 @@ class MediaRequestResultData extends Data
         /** The external id of the item being made; null when refused. */
         public ?string $mediaId = null,
         public ?MediaRequestRefusal $refusal = null,
+        /** What the chat shows with the file: the prompt, the start of the text, or the attached file's name. */
+        public string $caption = '',
     ) {}
 
-    public static function accepted(string $mediaId): self
+    public static function accepted(string $mediaId, string $caption): self
     {
-        return new self(mediaId: $mediaId);
+        return new self(mediaId: $mediaId, caption: $caption);
     }
 
     public static function refused(MediaRequestRefusal $refusal): self
@@ -37,12 +39,12 @@ class MediaRequestResultData extends Data
 
     /**
      * The artifact the reply keeps for the chat to draw: the item's id, its
-     * status (pending until the job is done) and what was asked for.
+     * status (pending until the job is done) and its caption.
      *
      * @return array{id: string, status: string, prompt: string}
      */
-    public function artifact(string $prompt): array
+    public function artifact(): array
     {
-        return ['id' => (string) $this->mediaId, 'status' => GeneratedMediaStatus::Pending->value, 'prompt' => $prompt];
+        return ['id' => (string) $this->mediaId, 'status' => GeneratedMediaStatus::Pending->value, 'prompt' => $this->caption];
     }
 }

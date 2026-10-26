@@ -29,7 +29,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
  * made in the background; or the reason it was turned down.
  */
 #[Name('generate-image')]
-#[Description('Make a picture for the visitor from a description. The picture is made in the background and appears under your reply a moment later. Write the description in English, with the subject, style, colours and setting the visitor asked for.')]
+#[Description('Make a picture for the visitor from a description. The picture is made in the background, and the chat shows it when it is ready. Write the description in English, with the subject, style, colours and setting the visitor asked for.')]
 #[IsOpenWorld]
 class GenerateImageTool extends Tool
 {
@@ -65,8 +65,8 @@ class GenerateImageTool extends Tool
         }
 
         return Response::make(Response::text(
-            'The picture is being made and will appear under your reply in a moment. Tell the visitor in one short sentence that it is on its way. Do not say it is done, and do not describe it: you have not seen it.'
-        ))->withStructuredContent(['image' => $result->artifact($prompt)]);
+            'The picture is being made, and the chat shows it by itself when it is ready. Tell the visitor in one short sentence that it is on its way. Do not say where on the screen it will appear, do not say it is done, and do not describe it: you have not seen it.'
+        ))->withStructuredContent(['image' => $result->artifact()]);
     }
 
     /**

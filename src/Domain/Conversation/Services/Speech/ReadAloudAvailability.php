@@ -37,16 +37,18 @@ final readonly class ReadAloudAvailability
     /**
      * The agent's own voice while the service in use has it (a voice of
      * another service, or one removed from the ElevenLabs account, does
-     * not), else the admin's default.
+     * not), else the admin's default. $speaker is another speech service to
+     * pick the voice of, such as the one that makes audio files.
      */
-    public function voiceFor(Agent $agent): string
+    public function voiceFor(Agent $agent, ?Speaker $speaker = null): string
     {
+        $speaker ??= $this->speaker;
         $picked = (string) $agent->settings('appearance')->get('read_aloud_voice', self::DEFAULT_VOICE);
 
-        if ($picked !== self::DEFAULT_VOICE && array_any($this->speaker->voices(), fn (SpeechVoiceData $voice): bool => $voice->id === $picked)) {
+        if ($picked !== self::DEFAULT_VOICE && array_any($speaker->voices(), fn (SpeechVoiceData $voice): bool => $voice->id === $picked)) {
             return $picked;
         }
 
-        return $this->speaker->defaultVoice();
+        return $speaker->defaultVoice();
     }
 }

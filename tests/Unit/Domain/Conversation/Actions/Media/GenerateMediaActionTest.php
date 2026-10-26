@@ -10,9 +10,9 @@ use Domain\Conversation\Enums\GeneratedMediaStatus;
 use Domain\Conversation\Events\GeneratedMediaUpdated;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
-use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Exceptions\ImageGenerationFailedException;
+use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -56,7 +56,7 @@ it('draws a picture, saves it and tells the chat', function (): void {
 });
 
 it('reads an audio file in the stored voice', function (): void {
-    app()->instance(Speaker::class, $speaker = new FakeSpeaker);
+    app()->instance(AudioGeneration::class, new AudioGeneration($speaker = new FakeSpeaker));
     $media = GeneratedMedia::factory()->forConversation($this->conversation)->audio()->create(['voice' => 'tenor', 'prompt' => 'Hello there.']);
 
     app(GenerateMediaAction::class)->execute($media);

@@ -458,12 +458,18 @@ abstract class ToolLoopSource
     /**
      * Save the partial answer after the client went away. Nobody is listening
      * any more, but the text is still stored and shown in the history, so it
-     * passes the same output guardrails as a full answer. A failure here is
-     * reported, never thrown — there is no client left to tell.
+     * passes the same output guardrails as a full answer. A turn cut off
+     * before it wrote, made or ran anything is not saved: there is nothing to
+     * keep, and the reloaded chat asks for the answer again. A failure here
+     * is reported, never thrown — there is no client left to tell.
      */
     private function finishAfterDisconnect(ChatContext $context, bool $rememberForReplay): void
     {
         $context->markEndTime();
+
+        if ($context->streamedMessage === '' && $context->artifacts === [] && $context->toolCallNames === []) {
+            return;
+        }
 
         try {
             $this->applyOutputGuard($context);

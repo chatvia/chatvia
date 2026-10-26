@@ -7,6 +7,7 @@
  * the transcript list and the composer.
  */
 import { bookCalendarSlot, listCalendarSlots, submitInlineForm } from '@/api/chat';
+import { isReplyRunning } from '@/api/chatTurns';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import ChatMessageList from '@/components/chat/ChatMessageList.vue';
@@ -154,40 +155,49 @@ function streamFirstReply() {
 }
 
 const FIRST_REPLY_CHECK_EVERY_MS = 2000;
-const FIRST_REPLY_WAIT_MS = 60_000;
+const FIRST_REPLY_WAIT_MS = 3 * 60 * 1000;
 let unmounted = false;
 onUnmounted(() => (unmounted = true));
 
+/** Whether the server is still writing this conversation's reply; when unsure, it is not. */
+async function replyStillRunning(): Promise<boolean> {
+    try {
+        return await isReplyRunning(props.conversation_id);
+    } catch {
+        return false;
+    }
+}
+
 /**
  * A reload while the first reply was streaming lands here with only the
- * visitor's message: the server is still finishing that reply (or has just
- * saved it), so the page waits for it instead of asking for a second answer,
- * which would run its tools (a generated image) again. Only a reply that
- * never comes is asked for again.
+ * visitor's message. While the server is still writing that reply, the page
+ * waits for it instead of asking for a second answer, which would run its
+ * tools (a generated image) again. When no reply is coming (the turn was cut
+ * off before it wrote anything, or never started), it asks right away.
  */
-async function waitForFirstReply() {
+async function resumeFirstReply() {
     const until = Date.now() + FIRST_REPLY_WAIT_MS;
 
-    while (!unmounted && Date.now() < until) {
-        messages.value.push({ role: 'assistant', content: '', id: 0 });
+    while (!unmounted && Date.now() < until && (await replyStillRunning())) {
+        messages.value.splice(1, messages.value.length, { role: 'assistant', content: '', id: 0 });
         await new Promise((resolve) => setTimeout(resolve, FIRST_REPLY_CHECK_EVERY_MS));
-
-        try {
-            await transcript.load();
-        } catch {
-            messages.value.splice(1);
-            continue;
-        }
-
-        if (messages.value.length > 1) {
-            void nextTick(() => scroll.scrollToBottom());
-            void transcript.loadSources();
-            return;
-        }
     }
 
     if (unmounted) return;
-    messages.value.splice(1);
+
+    // The turn just ended: its reply is in the history now, if it kept one.
+    try {
+        await transcript.load();
+    } catch {
+        // Ask for the answer below.
+    }
+
+    if (messages.value.length > 1) {
+        void nextTick(() => scroll.scrollToBottom());
+        void transcript.loadSources();
+        return;
+    }
+
     streamFirstReply();
 }
 
@@ -204,7 +214,7 @@ onMounted(async () => {
             // Home sends a new conversation here once, flagged: only that
             // visit asks for the first reply.
             if (isNewVisit) streamFirstReply();
-            else void waitForFirstReply();
+            else void resumeFirstReply();
         } else {
             void nextTick(() => scroll.scrollToBottom());
         }

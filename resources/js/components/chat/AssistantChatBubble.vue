@@ -128,6 +128,9 @@ const hasSteps = computed(() => steps.value.length > 0);
 const showsWorking = computed(() => {
     if (props.message.content || hasPendingApprovals.value) return false;
     if (hasSteps.value) return !!props.isStreaming && !props.isCallingExternal;
+    // A saved reply that ended without text (cut off by a reload, or only a
+    // generated file) is done: no dots under it.
+    if (!props.isStreaming && typeof props.message.id === 'string') return false;
 
     return !!props.isCallingExternal || !props.message.reasoning;
 });

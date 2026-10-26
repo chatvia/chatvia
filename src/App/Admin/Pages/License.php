@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Admin\Clusters\Settings\Pages;
+namespace App\Admin\Pages;
 
+use App\Admin\AdminPanelProvider;
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\BrandSettings;
@@ -17,16 +18,22 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
 use Support\License\LicenseFeature;
 use Support\License\LicenseKey;
+use UnitEnum;
 
 /**
- * Settings → License: the license key, the "Powered by ChatVia.ai" credit,
- * and a link to hire the developer. Hiding the credit needs a license key activated for this
- * install's domain ({@see CreditLicense}): the page activates a new key at
- * chatvia.ai before it saves it ({@see LicenseActivation}), and does not
- * turn the credit off without a valid one.
+ * License: the license key, the "Powered by ChatVia.ai" credit, and a link
+ * to hire the developer. It has its own place in the sidebar, below
+ * Settings, but is built like a Settings page (cards, one Save button).
+ * Hiding the credit needs a license key activated for this install's domain
+ * ({@see CreditLicense}): the page activates a new key at chatvia.ai before
+ * it saves it ({@see LicenseActivation}), and does not turn the credit off
+ * without a valid one.
  */
-class ManageBrandSettings extends AdminSettingsPage
+class License extends AdminSettingsPage
 {
+    #[\Override]
+    protected static ?string $cluster = null;
+
     #[\Override]
     protected static string $settings = BrandSettings::class;
 
@@ -40,16 +47,20 @@ class ManageBrandSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
 
     #[\Override]
-    protected static ?int $navigationSort = 15;
+    protected static string|UnitEnum|null $navigationGroup = AdminPanelProvider::SYSTEM_NAVIGATION_GROUP;
+
+    #[\Override]
+    protected static ?int $navigationSort = 101;
 
     public static function description(): string
     {
         return 'Your license key, the "Powered by ChatVia.ai" credit, and help from the developer.';
     }
 
-    public static function overviewGroup(): string
+    #[\Override]
+    protected static function docsPath(): string
     {
-        return 'Platform and brand';
+        return 'license';
     }
 
     /**
@@ -148,7 +159,7 @@ class ManageBrandSettings extends AdminSettingsPage
                 LicenseStatus::Valid => $this->licenseType() === 'Enterprise'
                     ? 'You can hide the credit, and the Enterprise features are on. It renews every year at chatvia.ai.'
                     : 'You can hide the credit.',
-                LicenseStatus::Missing => 'A Branding license costs $199, one time, and never expires. An Enterprise license costs $1,490 a year: it also hides the credit and turns on the Enterprise security features.',
+                LicenseStatus::Missing => 'A Pro license costs $399, one time, and never expires. An Enterprise license costs $1,490 a year: it also hides the credit and turns on the Enterprise security features.',
                 LicenseStatus::Invalid => 'The saved key is not valid. The credit stays on until you add a valid key.',
                 default => 'Paste your license key below and save to activate it. The credit stays on until then.',
             })
@@ -176,10 +187,10 @@ class ManageBrandSettings extends AdminSettingsPage
             ]);
     }
 
-    /** "Enterprise" or "Branding", by what the saved key unlocks. */
+    /** "Enterprise" or "Pro", by what the saved key unlocks. */
     private function licenseType(): string
     {
-        return $this->license()->allows($this->savedKey(), LicenseFeature::Enterprise) ? 'Enterprise' : 'Branding';
+        return $this->license()->allows($this->savedKey(), LicenseFeature::Enterprise) ? 'Enterprise' : 'Pro';
     }
 
     /**

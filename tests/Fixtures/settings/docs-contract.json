@@ -1,16 +1,21 @@
 {
-    "ai-models#audio-generation": [
+    "license#hire-me": [],
+    "license#powered-by": [
+        "Show the credit",
+        "License key"
+    ],
+    "settings/ai-models#audio-generation": [
         "Audio generation",
         "Audio files per chat per hour",
         "Longest text, in characters"
     ],
-    "ai-models#chat": [
+    "settings/ai-models#chat": [
         "Default model for new agents",
         "Messages of history",
         "Let agents reason",
         "Let chatters pick a model"
     ],
-    "ai-models#documents": [
+    "settings/ai-models#documents": [
         "Document reading",
         "Source summaries",
         "Model for source summaries",
@@ -20,18 +25,18 @@
         "Model for chat file uploads",
         "Mistral OCR model"
     ],
-    "ai-models#embeddings": [
+    "settings/ai-models#embeddings": [
         "Service",
         "Model"
     ],
-    "ai-models#image-generation": [
+    "settings/ai-models#image-generation": [
         "Image generation",
         "Pictures per chat per hour",
         "OpenAI model",
         "OpenRouter model",
         "Google model"
     ],
-    "ai-models#models-for-app-tasks": [
+    "settings/ai-models#models-for-app-tasks": [
         "Model for quick tasks",
         "Follow-up questions",
         "Tool picking",
@@ -46,13 +51,13 @@
         "Tables",
         "Evaluation judge"
     ],
-    "ai-models#read-aloud": [
+    "settings/ai-models#read-aloud": [
         "Read aloud",
         "Default voice",
         "OpenAI model",
         "ElevenLabs model"
     ],
-    "ai-models#reranker": [
+    "settings/ai-models#reranker": [
         "Reranker",
         "OpenRouter model",
         "Cohere model",
@@ -60,157 +65,157 @@
         "API key",
         "Model"
     ],
-    "ai-models#speech-to-text": [
+    "settings/ai-models#speech-to-text": [
         "Speech to text",
         "Scaleway AI model",
         "OpenAI model"
     ],
-    "ai-models#voice-conversations": [
+    "settings/ai-models#voice-conversations": [
         "Voice conversations",
         "Default voice",
         "Longest call, in minutes",
         "Model",
         "Transcription model"
     ],
-    "ai-providers#anthropic": [
+    "settings/ai-providers#anthropic": [
         "API key"
     ],
-    "ai-providers#azure-document-intelligence": [
+    "settings/ai-providers#azure-document-intelligence": [
         "API key",
         "Endpoint"
     ],
-    "ai-providers#azure-openai": [
+    "settings/ai-providers#azure-openai": [
         "API key",
         "Endpoint"
     ],
-    "ai-providers#cohere": [
+    "settings/ai-providers#cohere": [
         "API key",
         "Address"
     ],
-    "ai-providers#elevenlabs": [
+    "settings/ai-providers#elevenlabs": [
         "API key",
         "Address"
     ],
-    "ai-providers#google-gemini": [
+    "settings/ai-providers#google-gemini": [
         "API key",
         "Address"
     ],
-    "ai-providers#groq": [
+    "settings/ai-providers#groq": [
         "API key"
     ],
-    "ai-providers#jina": [
+    "settings/ai-providers#jina": [
         "API key",
         "Address"
     ],
-    "ai-providers#mistral": [
+    "settings/ai-providers#mistral": [
         "API key",
         "Address"
     ],
-    "ai-providers#openai": [
+    "settings/ai-providers#openai": [
         "API key",
         "Address"
     ],
-    "ai-providers#openrouter": [
+    "settings/ai-providers#openrouter": [
         "API key"
     ],
-    "ai-providers#scaleway-ai": [
+    "settings/ai-providers#scaleway-ai": [
         "API key",
         "Address"
     ],
-    "ai-providers#voyage-ai": [
+    "settings/ai-providers#voyage-ai": [
         "API key",
         "Address"
     ],
-    "ai-providers#your-own-servers": [],
-    "backups#automatic-backups": [
+    "settings/ai-providers#your-own-servers": [],
+    "settings/backups#automatic-backups": [
         "Back up automatically",
         "How often",
         "Backups to keep"
     ],
-    "backups#encryption": [
+    "settings/backups#encryption": [
         "Public key"
     ],
-    "backups#programs": [
+    "settings/backups#programs": [
         "pg_dump",
         "pg_restore",
         "redis-cli",
         "gpg"
     ],
-    "backups#saved-backups": [],
-    "backups#what-goes-in-a-backup": [
+    "settings/backups#saved-backups": [],
+    "settings/backups#what-goes-in-a-backup": [
         "Add the uploaded files",
         "Add the Pulse and Spectra databases"
     ],
-    "channels#instagram": [
+    "settings/channels#instagram": [
         "App ID",
         "App secret",
         "Webhook verify token",
         "Login configuration ID",
         "Another redirect URL"
     ],
-    "channels#messenger": [
+    "settings/channels#messenger": [
         "App ID",
         "App secret",
         "Webhook verify token",
         "Login configuration ID",
         "Another redirect URL"
     ],
-    "channels#whatsapp": [
+    "settings/channels#whatsapp": [
         "App ID",
         "App secret",
         "Webhook verify token",
         "Login configuration ID",
         "Number registration PIN"
     ],
-    "connectors#asana": [
+    "settings/connectors#asana": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#box": [
+    "settings/connectors#box": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#exchangerate-api": [
+    "settings/connectors#exchangerate-api": [
         "Address"
     ],
-    "connectors#front": [
+    "settings/connectors#front": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#github": [
+    "settings/connectors#github": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#gmail": [
+    "settings/connectors#gmail": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#google-calendar": [
+    "settings/connectors#google-calendar": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#google-drive": [
+    "settings/connectors#google-drive": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#hubspot": [
+    "settings/connectors#hubspot": [
         "Client ID",
         "Client secret"
     ],
-    "connectors#openweather": [
+    "settings/connectors#openweather": [
         "Address"
     ],
-    "connectors#perplexity": [
+    "settings/connectors#perplexity": [
         "Address",
         "Search model",
         "Ask model",
         "Research model"
     ],
-    "connectors#slack": [
+    "settings/connectors#slack": [
         "Client ID",
         "Client secret"
     ],
-    "email#sending": [
+    "settings/email#sending": [
         "Send email with",
         "Host",
         "Port",
@@ -228,36 +233,31 @@
         "Sender address",
         "Sender name"
     ],
-    "knowledge#ai-enhancement": [
+    "settings/knowledge#ai-enhancement": [
         "Enhance files and web pages",
         "Enhance text sources"
     ],
-    "knowledge#file-types": [
+    "settings/knowledge#file-types": [
         "Accepted file types"
     ],
-    "knowledge#web-scraper": [
+    "settings/knowledge#web-scraper": [
         "Firecrawl API key",
         "Address",
         "Pages per minute"
     ],
-    "license#hire-me": [],
-    "license#powered-by": [
-        "Show the credit",
-        "License key"
-    ],
-    "observability#pulse": [
+    "settings/observability#pulse": [
         "Record app health"
     ],
-    "observability#spectra": [
+    "settings/observability#spectra": [
         "Record AI calls",
         "Keep AI calls for (days)"
     ],
-    "observability#traces": [
+    "settings/observability#traces": [
         "One trace per request",
         "Join incoming traces",
         "Keep the request ID"
     ],
-    "observability#what-spectra-saves": [
+    "settings/observability#what-spectra-saves": [
         "Prompts",
         "System prompts",
         "Replies",
@@ -265,20 +265,20 @@
         "Request data",
         "Embeddings"
     ],
-    "platform#alerts": [
+    "settings/platform#alerts": [
         "Alert email"
     ],
-    "platform#development": [
+    "settings/platform#development": [
         "Logs page"
     ],
-    "platform#ip2location": [
+    "settings/platform#ip2location": [
         "API key",
         "Address"
     ],
-    "platform#language": [
+    "settings/platform#language": [
         "Default language"
     ],
-    "platform#pdf-maker": [
+    "settings/platform#pdf-maker": [
         "Make PDFs with",
         "Account ID",
         "API token",
@@ -286,7 +286,7 @@
         "Username",
         "Password"
     ],
-    "platform#programs": [
+    "settings/platform#programs": [
         "pdfinfo",
         "pdftotext",
         "pandoc",
@@ -296,7 +296,7 @@
         "ffprobe",
         "weasyprint"
     ],
-    "platform#queue-workers": [
+    "settings/platform#queue-workers": [
         "Chat",
         "Files and websites",
         "Analytics",
@@ -305,19 +305,19 @@
         "Live voice calls",
         "Pictures and audio"
     ],
-    "platform#tracking-code": [
+    "settings/platform#tracking-code": [
         "Code"
     ],
-    "search#ambiguous-questions": [
+    "settings/search#ambiguous-questions": [
         "Understand follow-up questions",
         "Ask back when a message is unclear",
         "Say what the agent can help with"
     ],
-    "search#finding-answers": [
+    "settings/search#finding-answers": [
         "Hybrid search",
         "Results per question"
     ],
-    "search#fine-tuning": [
+    "settings/search#fine-tuning": [
         "Search mode",
         "Most tokens per question",
         "Leave out weak matches",
@@ -325,28 +325,28 @@
         "Minimum similarity (no reranker)",
         "Saved answers: minimum similarity"
     ],
-    "search#knowledge-search": [
+    "settings/search#knowledge-search": [
         "Search knowledge",
         "Let workspaces turn it off per agent"
     ],
-    "security#guardrails": [
+    "settings/security#guardrails": [
         "Guardrails",
         "Days to keep the guardrail log",
         "Longest visitor message (characters)"
     ],
-    "security#private-network-addresses": [
+    "settings/security#private-network-addresses": [
         "Allow private network addresses"
     ],
-    "security#security-audit-log": [
+    "settings/security#security-audit-log": [
         "Keep the security audit log",
         "Days to keep the security log",
         "Fewest days a workspace may choose"
     ],
-    "security#security-headers": [
+    "settings/security#security-headers": [
         "Content Security Policy",
         "Report address"
     ],
-    "security#tool-calls": [
+    "settings/security#tool-calls": [
         "Tool rounds per answer",
         "Ask before tools that make changes",
         "Days to keep the tool-call log",
@@ -355,34 +355,34 @@
         "Longest tool result (characters)",
         "Minutes an approval stays open"
     ],
-    "security#turnstile-bot-check": [
+    "settings/security#turnstile-bot-check": [
         "Site key",
         "Secret key",
         "Check sign-up",
         "Check sign-in",
         "Check password reset"
     ],
-    "sign-in#github": [
+    "settings/sign-in#github": [
         "Client ID",
         "Client secret",
         "Another redirect URL"
     ],
-    "sign-in#google": [
+    "settings/sign-in#google": [
         "Client ID",
         "Client secret",
         "Another redirect URL"
     ],
-    "sign-in#microsoft": [
+    "settings/sign-in#microsoft": [
         "Client ID",
         "Client secret",
         "Another redirect URL"
     ],
-    "sign-in#slack": [
+    "settings/sign-in#slack": [
         "Client ID",
         "Client secret",
         "Another redirect URL"
     ],
-    "splitting#splitting": [
+    "settings/splitting#splitting": [
         "Measure in",
         "Chunk size",
         "Overlap",
@@ -392,11 +392,11 @@
         "Transcript",
         "Tokenizer"
     ],
-    "splitting#try-splitting": [
+    "settings/splitting#try-splitting": [
         "Split as",
         "Preview text"
     ],
-    "storage#where-files-are-kept": [
+    "settings/storage#where-files-are-kept": [
         "Store files in",
         "Endpoint",
         "Region",
@@ -405,33 +405,33 @@
         "Bucket",
         "Use path-style addresses"
     ],
-    "widget#ai-disclosure": [
+    "settings/widget#ai-disclosure": [
         "Show \"AI assistant\" in the header"
     ],
-    "widget#removing-chats": [
+    "settings/widget#removing-chats": [
         "When a visitor removes a chat"
     ],
-    "widget#sites-and-limits": [
+    "settings/widget#sites-and-limits": [
         "Sites every widget may load on",
         "Widget script address",
         "Replies per agent per minute",
         "Replies per agent per hour"
     ],
-    "workspaces#conversations": [
+    "settings/workspaces#conversations": [
         "Days to keep conversations",
         "Fewest days a workspace may choose"
     ],
-    "workspaces#notifications": [
+    "settings/workspaces#notifications": [
         "Days to keep notifications"
     ],
-    "workspaces#onboarding": [
+    "settings/workspaces#onboarding": [
         "Show the dashboard tour"
     ],
-    "workspaces#owner-account": [
+    "settings/workspaces#owner-account": [
         "Let owners download their data",
         "Let owners delete their account"
     ],
-    "workspaces#sign-up-and-limits": [
+    "settings/workspaces#sign-up-and-limits": [
         "Open sign-up",
         "Monthly message limit of new workspaces"
     ]

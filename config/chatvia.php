@@ -15,7 +15,7 @@ return [
     |
     | Whether the "Powered by ChatVia.ai" credit, linked to https://chatvia.ai,
     | shows under hosted chats and widgets. It is switched off in the admin
-    | panel (Settings → Branding), and only with a license key (see License
+    | panel (License page), and only with a license key (see License
     | below); the value here is the default.
     |
     */
@@ -29,7 +29,7 @@ return [
     |
     | A license key allows hiding the "Powered by" credit. chatvia.ai sells
     | and signs keys (Ed25519). A key as bought names no domain: saving it in
-    | the admin panel (Settings → Branding) activates it at chatvia.ai for the
+    | the admin panel (License page) activates it at chatvia.ai for the
     | host of `app.url`, one domain per key, and the install then checks it
     | offline. Once a day the install asks chatvia.ai whether the key is
     | still active there (the buyer can deactivate it to move it): "no"

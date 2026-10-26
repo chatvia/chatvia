@@ -440,7 +440,13 @@ abstract class AdminSettingsPage extends Page
      */
     public function docsUrl(SettingsCard $card): string
     {
-        return config('chatvia.docs_url').'/guide/admin-panel/settings/'.static::getSlug().'#'.Str::slug($card->title);
+        return config('chatvia.docs_url').'/guide/admin-panel/'.static::docsPath().'#'.Str::slug($card->title);
+    }
+
+    /** The page's docs page, under the admin panel guide. */
+    protected static function docsPath(): string
+    {
+        return 'settings/'.static::getSlug();
     }
 
     /**

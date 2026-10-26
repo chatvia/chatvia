@@ -7,6 +7,7 @@ namespace App\Admin\Clusters\Settings\Pages;
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Clusters\Settings\SettingsSearch;
+use App\Admin\Pages\License;
 use App\Admin\Settings\CreditLicense;
 use App\Admin\Settings\SetupRequirements;
 use App\Admin\Settings\SetupStatus;
@@ -134,7 +135,7 @@ class SettingsOverview extends Page
         }
 
         return Callout::make('Support ChatVia.ai')
-            ->description('ChatVia.ai is free to use. A Branding license ($199, one time) lets you remove the "Powered by ChatVia.ai" credit from your chats. An Enterprise license ($1,490 a year) also turns on the Enterprise security features: network rules, custom data retention, SIEM delivery and audit-log export. Both support my work on ChatVia.ai.')
+            ->description('ChatVia.ai is free to use. A Pro license ($399, one time) lets you remove the "Powered by ChatVia.ai" credit from your chats. An Enterprise license ($1,490 a year) also turns on the Enterprise security features: network rules, custom data retention, SIEM delivery and audit-log export. Both support my work on ChatVia.ai.')
             ->icon(Heroicon::OutlinedHeart)
             ->color('primary')
             ->extraAttributes(['class' => 'cv-link-dividers'])
@@ -145,13 +146,13 @@ class SettingsOverview extends Page
                     ->openUrlInNewTab(),
                 Action::make('addLicenseKey')
                     ->label('I have a key')
-                    ->url(ManageBrandSettings::getUrl())
+                    ->url(License::getUrl())
                     ->link(),
                 $this->hireMeAction(),
             ]);
     }
 
-    /** The developer's services (also on Settings → License). */
+    /** The developer's services (also on the License page). */
     private function hireMeAction(): Action
     {
         return Action::make('hireMe')

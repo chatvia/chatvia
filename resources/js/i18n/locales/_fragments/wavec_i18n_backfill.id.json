@@ -10,7 +10,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Selalu aktif",
-                "always_hint": "Secara default, agen hanya memilih alat yang dibutuhkan setiap pesan. Aktifkan ini untuk mengirim alat konektor ini bersama setiap pesan, bahkan saat pesan tidak tampak membutuhkannya. Makin banyak alat yang selalu aktif, makin besar kemungkinan agen memilih alat yang salah, dan balasan jadi lebih lambat dan lebih mahal.",
+                "always_hint": "Saat ini aktif, agen mendapatkan alat dari konektor ini di setiap pesan. Saat nonaktif, ChatVia.ai memakai penemuan alat pintar untuk memilih hanya alat yang dibutuhkan setiap pesan. Selalu aktif cocok jika Anda hanya punya sedikit konektor. Jika punya banyak, matikan dan biarkan penemuan alat pintar yang memilih. Mengirim terlalu banyak alat membuat balasan lebih lambat dan agen lebih mudah memilih alat yang salah.",
                 "always_failed": "Gagal memperbarui pengaturan selalu aktif"
             }
         },

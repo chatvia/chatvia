@@ -96,14 +96,15 @@ export function useAgentConnectors(agentId: MaybeRefOrGetter<string>) {
 
     // Toggle = attach/detach. Rows in the 'available' state are not connected
     // in the workspace yet, so their switch is disabled and nothing happens.
-    // Detaching also clears "always on" (the server drops the pivot row).
+    // Detaching also clears "always on" (the server drops the pivot row); a
+    // new attachment starts with it on.
     async function toggleFeatured(row: FeaturedConnectorRow): Promise<void> {
         if (row.state === 'available' || !row.server) return;
 
         if (row.state === 'attached') {
             await detach(row.server.slug, () => updateFeatured(row, { state: 'unattached', always_available: false }));
         } else {
-            await attach(row.server.slug, () => updateFeatured(row, { state: 'attached' }));
+            await attach(row.server.slug, () => updateFeatured(row, { state: 'attached', always_available: true }));
         }
     }
 
@@ -111,7 +112,7 @@ export function useAgentConnectors(agentId: MaybeRefOrGetter<string>) {
         if (row.is_attached) {
             await detach(row.slug, () => updateCustom(row, { is_attached: false, always_available: false }));
         } else {
-            await attach(row.slug, () => updateCustom(row, { is_attached: true }));
+            await attach(row.slug, () => updateCustom(row, { is_attached: true, always_available: true }));
         }
     }
 

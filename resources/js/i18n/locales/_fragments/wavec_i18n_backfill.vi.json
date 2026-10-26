@@ -27,7 +27,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Luôn bật",
-                "always_hint": "Theo mặc định, trợ lý AI chỉ chọn những công cụ mà mỗi tin nhắn cần. Bật tùy chọn này để gửi các công cụ của trình kết nối này kèm mọi tin nhắn, kể cả khi tin nhắn có vẻ không cần đến chúng. Càng nhiều công cụ luôn bật, trợ lý AI càng dễ chọn nhầm công cụ, và phản hồi sẽ chậm hơn, tốn kém hơn.",
+                "always_hint": "Khi bật, tác tử nhận các công cụ của trình kết nối này kèm theo mỗi tin nhắn. Khi tắt, ChatVia.ai dùng tính năng khám phá công cụ thông minh để chỉ chọn những công cụ mà mỗi tin nhắn cần. Luôn bật phù hợp khi bạn chỉ có vài trình kết nối. Nếu bạn có nhiều, hãy tắt nó và để khám phá công cụ thông minh tự chọn. Gửi quá nhiều công cụ làm câu trả lời chậm hơn và khiến tác tử dễ chọn sai công cụ hơn.",
                 "always_failed": "Không cập nhật được cài đặt luôn bật"
             }
         },

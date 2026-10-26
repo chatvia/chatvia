@@ -10,7 +10,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Alltid på",
-                "always_hint": "Som standard väljer agenten bara de verktyg som varje meddelande behöver. Slå på detta för att skicka den här kopplingens verktyg med varje meddelande, även när meddelandet inte verkar behöva dem. Ju fler verktyg som alltid är aktiva, desto större risk att agenten väljer fel verktyg, och svaren blir långsammare och dyrare.",
+                "always_hint": "När detta är på får agenten den här kopplingens verktyg med varje meddelande. När det är av använder ChatVia.ai smart verktygsupptäckt för att bara välja de verktyg som varje meddelande behöver. Alltid på fungerar bra när du bara har några få kopplingar. Har du många, stäng av det och låt den smarta verktygsupptäckten välja. För många verktyg gör svaren långsammare och gör det troligare att agenten väljer fel.",
                 "always_failed": "Det gick inte att uppdatera inställningen Alltid på"
             }
         },

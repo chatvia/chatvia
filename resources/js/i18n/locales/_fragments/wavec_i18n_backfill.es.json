@@ -10,7 +10,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Siempre activo",
-                "always_hint": "De forma predeterminada, el agente elige solo las herramientas que necesita cada mensaje. Actívalo para enviar las herramientas de este conector con cada mensaje, aunque el mensaje no parezca necesitarlas. Cuantas más herramientas estén siempre activas, más probable es que el agente elija la incorrecta, y las respuestas serán más lentas y costosas.",
+                "always_hint": "Cuando esto está activado, el agente recibe las herramientas de este conector con cada mensaje. Cuando está desactivado, ChatVia.ai usa el descubrimiento inteligente de herramientas para elegir solo las que necesita cada mensaje. Siempre activo funciona bien cuando tienes pocos conectores. Si tienes muchos, desactívalo y deja que el descubrimiento inteligente de herramientas elija. Enviar demasiadas herramientas hace que las respuestas sean más lentas y que el agente elija la equivocada con más facilidad.",
                 "always_failed": "Error al actualizar la opción “Siempre activo”"
             }
         },

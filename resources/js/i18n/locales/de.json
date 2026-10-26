@@ -1528,7 +1528,7 @@
                 "soon": "Demnächst",
                 "connect_first": "Verbinden Sie diesen MCP zuerst in den Einstellungen",
                 "column_always": "Immer aktiv",
-                "always_hint": "Standardmäßig wählt der Agent nur die Tools, die eine Nachricht braucht. Schalte dies ein, um die Tools dieses Connectors bei jeder Nachricht mitzusenden, auch wenn die Nachricht sie nicht zu brauchen scheint. Je mehr Tools immer aktiv sind, desto eher wählt der Agent das falsche, und Antworten werden langsamer und teurer.",
+                "always_hint": "Wenn dies aktiv ist, bekommt der Agent die Tools dieses Connectors bei jeder Nachricht. Wenn es aus ist, nutzt ChatVia.ai die intelligente Tool-Erkennung und wählt nur die Tools, die eine Nachricht braucht. Immer aktiv eignet sich gut, wenn du nur wenige Connectors hast. Hast du viele, schalte es aus und lass die intelligente Tool-Erkennung wählen. Zu viele Tools machen Antworten langsamer, und der Agent wählt eher das falsche.",
                 "always_failed": "Die Einstellung „Immer aktiv“ konnte nicht aktualisiert werden"
             },
             "functions": {

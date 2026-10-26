@@ -26,6 +26,9 @@ class DemoAnalytics
     private const array TABLES = [
         'analytics_events',
         'analytics_agent_hourly_rollups',
+        'analytics_agent_daily',
+        'analytics_agent_country_daily',
+        'analytics_message_feedback',
         'analytics_conversation_metrics',
         'analytics_session_firsts',
         'analytics_agent_sentiment_daily',
@@ -53,7 +56,7 @@ class DemoAnalytics
     }
 
     /** A visitor message. */
-    public function visitorMessage(Agent $agent, ?int $chatterId, string $session, string $conversation, string $message, ?string $country, DateTimeInterface $at): void
+    public function visitorMessage(Agent $agent, ?int $chatterId, string $session, string $conversation, string $message, ?string $country, DateTimeInterface $at, ?DemoClient $client = null): void
     {
         $this->messageSent->execute(new MessageSentRecordData(
             agentId: $agent->id,
@@ -69,11 +72,15 @@ class DemoAnalytics
             promptTokens: null,
             completionTokens: null,
             occurredAt: $at,
+            source: $client?->source,
+            deviceType: $client?->deviceType,
+            browser: $client?->browser,
+            os: $client?->os,
         ));
     }
 
     /** An AI reply, answered by the agent's model. */
-    public function reply(Agent $agent, ?int $chatterId, string $session, string $conversation, string $message, ?string $country, DemoReply $reply, DateTimeInterface $at): void
+    public function reply(Agent $agent, ?int $chatterId, string $session, string $conversation, string $message, ?string $country, DemoReply $reply, DateTimeInterface $at, ?DemoClient $client = null): void
     {
         $this->messageSent->execute(new MessageSentRecordData(
             agentId: $agent->id,
@@ -91,6 +98,10 @@ class DemoAnalytics
             occurredAt: $at,
             hasFoundAnswer: $reply->foundAnswer,
             confidenceScore: $reply->confidence,
+            source: $client?->source,
+            deviceType: $client?->deviceType,
+            browser: $client?->browser,
+            os: $client?->os,
         ));
     }
 

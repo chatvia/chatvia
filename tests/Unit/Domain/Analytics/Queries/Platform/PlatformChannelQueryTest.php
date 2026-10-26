@@ -3,29 +3,33 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Queries\Platform\PlatformChannelQuery;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Tests\Support\Analytics\PlatformScopes;
 
 /**
- * The admin dashboard's channel split: the window's conversations per channel,
- * busiest first, without deleted or hidden ones. Runs in a future month no
- * seeded row falls in.
+ * The admin dashboard's channel split: the conversations started in the
+ * window per channel, busiest first, from the per-conversation metrics. Runs
+ * in a future month no seeded row falls in.
  */
 beforeEach(function (): void {
     $this->travelTo(Carbon::parse('2031-03-20 15:30:00', 'UTC'));
 });
 
-function pcqConversation(Agent $agent, ConversationSource $source, string $createdAt, bool $visible = true): Conversation
+function pcqConversation(Agent $agent, ?ConversationSource $source, string $startedAt): void
 {
-    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => $source, 'is_visible' => $visible]);
-    $conversation->forceFill(['created_at' => $createdAt])->saveQuietly();
-
-    return $conversation;
+    app(AnalyticsDatabase::class)->table('analytics_conversation_metrics')->insert([
+        'conversation_external_id' => (string) Str::uuid(),
+        'agent_id' => $agent->id,
+        'workspace_id' => $agent->workspace_id,
+        'started_at' => $startedAt,
+        'source' => $source?->value,
+    ]);
 }
 
-it('counts conversations per channel, busiest first, skipping deleted and hidden ones', function (): void {
+it('counts conversations per channel, busiest first, within the window and the workspace', function (): void {
     $acme = User::factory()->workspace()->create();
     $acmeBot = createAgent($acme);
     $globexBot = createAgent(User::factory()->workspace()->create());
@@ -33,8 +37,8 @@ it('counts conversations per channel, busiest first, skipping deleted and hidden
     pcqConversation($acmeBot, ConversationSource::Widget, '2031-03-10 10:00:00');
     pcqConversation($acmeBot, ConversationSource::Widget, '2031-03-11 10:00:00');
     pcqConversation($acmeBot, ConversationSource::Whatsapp, '2031-03-12 10:00:00');
-    pcqConversation($acmeBot, ConversationSource::Whatsapp, '2031-03-12 11:00:00')->delete();
-    pcqConversation($acmeBot, ConversationSource::Whatsapp, '2031-03-12 12:00:00', visible: false);
+    // Recorded before the channel was: no channel to count it under.
+    pcqConversation($acmeBot, null, '2031-03-12 12:00:00');
     pcqConversation($acmeBot, ConversationSource::Telegram, '2031-02-12 10:00:00');
     pcqConversation($globexBot, ConversationSource::Slack, '2031-03-12 10:00:00');
 

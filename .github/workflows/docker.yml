@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # arm64 is built through emulation. Only the PHP extensions and system
       # packages are slow there, and those layers come from the build cache

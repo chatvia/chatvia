@@ -15,12 +15,16 @@ import 'vue3-colorpicker/style.css';
 import { pageTitle, syncNotificationSummary } from './composables/notifications/notificationStore';
 import { initializeTheme } from './composables/useAppearance';
 import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
+import { auth as chatBroadcastAuth } from './routes/chat/broadcasting';
 import type { SharedData } from './types';
 import { csrfHeaders, setCsrfToken } from './utils/csrf';
 import { createChatEventBus } from './utils/eventBus';
 import { setUrlDefaults } from './wayfinder';
 
 const chatEventBus = createChatEventBus();
+
+/** Echo's name for a hosted-chat conversation's media channel (GeneratedMediaUpdated). */
+const HOSTED_CHAT_MEDIA_CHANNEL = 'private-chat-media.';
 
 // Reverb settings baked in at build time win. A build without them (the Docker
 // image) reads the public app key from the page and connects to the page's own
@@ -36,6 +40,19 @@ configureEcho({
     wssPort: reverbPort,
     forceTLS: reverbScheme === 'https',
     enabledTransports: ['ws', 'wss'],
+    // The hosted chat's media channel is granted under the chat's own session
+    // (its visitors have no dashboard sign-in); every other channel asks
+    // /broadcasting/auth as before, as a form post.
+    authorizer: (channel: { name: string }) => ({
+        authorize: (socketId: string, callback: (error: Error | null, data: unknown) => void) => {
+            const endpoint = channel.name.startsWith(HOSTED_CHAT_MEDIA_CHANNEL) ? chatBroadcastAuth.url() : '/broadcasting/auth';
+
+            axios
+                .post(endpoint, new URLSearchParams({ socket_id: socketId, channel_name: channel.name }))
+                .then((response) => callback(null, response.data))
+                .catch((error: Error) => callback(error, null));
+        },
+    }),
 });
 
 // Hosted chat pages live under /chat/{agentSlug}. The server sends the page's

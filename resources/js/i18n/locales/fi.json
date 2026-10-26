@@ -133,6 +133,17 @@
             "counter": "{current}/{total}",
             "view": "Näytä kuva",
             "view_named": "Näytä kuva: {name}"
+        },
+        "generated_media": {
+            "image": "Luotu kuva",
+            "image_alt": "Luotu kuva: {prompt}",
+            "image_pending": "Kuvaasi luodaan…",
+            "audio_pending": "Äänitiedostoasi luodaan…",
+            "image_failed": "Kuvaa ei voitu luoda.",
+            "audio_failed": "Äänitiedostoa ei voitu luoda.",
+            "refused": "Palvelu hylkäsi tämän pyynnön.",
+            "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
+            "download": "Lataa"
         }
     },
     "messages": {

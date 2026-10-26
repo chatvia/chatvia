@@ -133,6 +133,17 @@
             "counter": "{current} av {total}",
             "view": "Visa bild",
             "view_named": "Visa bild: {name}"
+        },
+        "generated_media": {
+            "image": "Skapad bild",
+            "image_alt": "Skapad bild: {prompt}",
+            "image_pending": "Skapar din bild…",
+            "audio_pending": "Skapar ditt ljud…",
+            "image_failed": "Bilden kunde inte skapas.",
+            "audio_failed": "Ljudet kunde inte skapas.",
+            "refused": "Tjänsten avvisade den här begäran.",
+            "timed_out": "Det tog för lång tid. Fråga igen.",
+            "download": "Ladda ner"
         }
     },
     "messages": {

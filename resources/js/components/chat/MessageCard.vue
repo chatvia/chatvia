@@ -37,7 +37,7 @@ defineProps<{
             >
                 <div>
                     <AssistantMessageBody
-                        v-if="message.content"
+                        v-if="message.content || (message.artifacts ?? []).length > 0"
                         :content="message.content"
                         :artifacts="message.artifacts ?? undefined"
                         :message-id="message.id ? String(message.id) : undefined"

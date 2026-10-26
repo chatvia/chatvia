@@ -133,6 +133,17 @@
             "counter": "{current} z {total}",
             "view": "Pokaż obraz",
             "view_named": "Pokaż obraz: {name}"
+        },
+        "generated_media": {
+            "image": "Wygenerowany obraz",
+            "image_alt": "Wygenerowany obraz: {prompt}",
+            "image_pending": "Tworzę Twój obraz…",
+            "audio_pending": "Tworzę Twoje nagranie…",
+            "image_failed": "Nie udało się utworzyć tego obrazu.",
+            "audio_failed": "Nie udało się utworzyć tego nagrania.",
+            "refused": "Usługa odrzuciła tę prośbę.",
+            "timed_out": "Trwało to zbyt długo. Poproś ponownie.",
+            "download": "Pobierz"
         }
     },
     "messages": {

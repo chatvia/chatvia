@@ -1,0 +1,15 @@
+{
+    "chat": {
+        "generated_media": {
+            "image": "Imagen generada",
+            "image_alt": "Imagen generada: {prompt}",
+            "image_pending": "Creando tu imagen…",
+            "audio_pending": "Creando tu audio…",
+            "image_failed": "No se pudo crear esta imagen.",
+            "audio_failed": "No se pudo crear este audio.",
+            "refused": "El servicio rechazó esta solicitud.",
+            "timed_out": "Tardó demasiado. Vuelve a pedirlo.",
+            "download": "Descargar"
+        }
+    }
+}

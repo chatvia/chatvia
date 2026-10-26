@@ -133,6 +133,17 @@
             "counter": "{current} av {total}",
             "view": "Vis bilde",
             "view_named": "Vis bilde: {name}"
+        },
+        "generated_media": {
+            "image": "Generert bilde",
+            "image_alt": "Generert bilde: {prompt}",
+            "image_pending": "Lager bildet ditt…",
+            "audio_pending": "Lager lyden din…",
+            "image_failed": "Bildet kunne ikke lages.",
+            "audio_failed": "Lyden kunne ikke lages.",
+            "refused": "Tjenesten avviste denne forespørselen.",
+            "timed_out": "Det tok for lang tid. Spør igjen.",
+            "download": "Last ned"
         }
     },
     "messages": {

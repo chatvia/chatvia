@@ -133,6 +133,17 @@
             "counter": "第 {current} 张，共 {total} 张",
             "view": "查看图片",
             "view_named": "查看图片：{name}"
+        },
+        "generated_media": {
+            "image": "生成的图片",
+            "image_alt": "生成的图片：{prompt}",
+            "image_pending": "正在生成您的图片…",
+            "audio_pending": "正在生成您的音频…",
+            "image_failed": "无法生成此图片。",
+            "audio_failed": "无法生成此音频。",
+            "refused": "服务拒绝了此请求。",
+            "timed_out": "耗时过长。请重新请求。",
+            "download": "下载"
         }
     },
     "messages": {

@@ -3298,30 +3298,15 @@ task('chatvia:widget:publish', function () {
     run('cd {{current_path}}/.shakomako && for file in *; do [ -f "$file" ] || continue; cp "$file" "{{deploy_path}}/shared/shakomako/.$file.tmp" && mv -f "{{deploy_path}}/shared/shakomako/.$file.tmp" "{{deploy_path}}/shared/shakomako/$file"; done');
 });
 
-desc('Creates the analytics, Pulse and Spectra databases when they are missing');
-task('chatvia:tool-databases', artisan('chatvia:db:create-tool-databases'));
-
-desc('Checks that the embedding settings still match the database');
-task('chatvia:check-embeddings', artisan('chatvia:search:check-embedding-storage'));
-
-desc('Rebuilds the vector indexes when EMBEDDING_INDEX changed');
-task('chatvia:vector-indexes', artisan('chatvia:search:vector-indexes'));
-
-desc('Adds the built-in tools to the tool catalog');
-task('chatvia:sync-tools', function () {
-    // Needs the embedding provider's API key, which a new install has not got yet.
-    if (! test('{{bin/php}} {{release_path}}/artisan chatvia:mcp:sync-builtin --no-interaction')) {
-        warning('The built-in tools were not updated. Add your embedding API key in the admin panel, then deploy again.');
-    }
-});
+// In place of the recipe's plain migrate: chatvia:deploy:migrate creates the
+// analytics, Pulse and Spectra databases, migrates, checks the embedding
+// settings and adds the built-in tools, the same steps the Docker image runs.
+desc('Migrates the database and runs the checks that go with it');
+task('artisan:migrate', artisan('chatvia:deploy:migrate --no-interaction', ['skipIfNoEnv', 'showOutput']));
 
 after('deploy:shared', 'chatvia:storage');
 after('deploy:vendors', 'chatvia:build');
 after('chatvia:build', 'chatvia:widget');
-before('artisan:migrate', 'chatvia:tool-databases');
-after('artisan:migrate', 'chatvia:check-embeddings');
-after('chatvia:check-embeddings', 'chatvia:vector-indexes');
-after('chatvia:vector-indexes', 'chatvia:sync-tools');
 after('deploy:symlink', 'chatvia:widget:publish');
 after('rollback', 'chatvia:widget:publish');
 after('deploy:failed', 'deploy:unlock');

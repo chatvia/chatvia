@@ -404,6 +404,14 @@ theme.
 
 ### Self-hosting
 
+- **One command prepares the database.** `php artisan chatvia:deploy:migrate`
+  creates the analytics, Pulse and Spectra databases when they are missing,
+  migrates, checks the embedding settings, rebuilds the vector indexes when
+  `EMBEDDING_INDEX` changed and adds the built-in tools (only a warning
+  without an embedding API key). The Docker image runs it on every start,
+  and the installer's `deploy.php` runs it in place of the recipe's
+  `artisan:migrate`, so both installs run the same steps. A Deployer deploy
+  now rebuilds the vector indexes too.
 - **Complete installation without Docker.** On Linux, `install.sh` now asks
   how to install: with Docker, as before, or everything directly on a fresh
   Ubuntu 26.04 LTS server (`--complete`). It installs and sets up PostgreSQL

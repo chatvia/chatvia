@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "{name} 経由で動作します。先にコネクタページで {name} を接続してください。",
-            "requires_disconnected": "{name} が接続されていないため、この能力は動作しません。コネクタページで {name} をもう一度接続してください。",
-            "connect_connector": "{name} を接続"
+            "requires_connector": "{names} 経由で動作します。先にコネクタページでいずれかを接続してください。",
+            "requires_disconnected": "{names} に接続されていないため、この能力は動作しません。コネクタページでいずれかをもう一度接続してください。",
+            "connect_connector": "{names} を接続",
+            "book_through": "予約サービス",
+            "provider_failed": "予約サービスを変更できませんでした"
         },
         "forms": {
             "managed_by_capability": "{name} 能力で管理されています"

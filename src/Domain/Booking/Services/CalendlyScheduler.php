@@ -7,39 +7,28 @@ namespace Domain\Booking\Services;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
-use Domain\Booking\Contracts\Scheduler;
 use Domain\Booking\Data\BookedMeetingData;
 use Domain\Booking\Data\BookingRequestData;
 use Domain\Booking\Data\MeetingTypeData;
 use Domain\Booking\Exceptions\BookingException;
-use Domain\Integration\Mcp\Data\McpToolResultData;
 use Domain\Integration\Mcp\Exceptions\McpException;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Mcp\Services\McpClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 /**
  * {@see Scheduler} on Calendly, through the tools of its hosted MCP server on
- * the workspace's Calendly connection. The connection's token is scoped to
- * that server, so the REST API is not used. The replies follow Calendly's API
- * (`resource`, `collection`). Meeting types are cached briefly per connection:
- * a calendar render and its booking read them a few seconds apart.
+ * the workspace's Calendly connection. The replies follow Calendly's API
+ * (`resource`, `collection`).
  */
-class CalendlyScheduler implements Scheduler
+class CalendlyScheduler extends McpScheduler
 {
-    private const int MEETING_TYPES_TTL_MINUTES = 10;
+    public const string CONNECTOR_SLUG = 'calendly';
 
     /** Error text that means the account may not book through the API (a free plan). */
     private const array NOT_ALLOWED_HINTS = ['403', 'forbidden', 'permission', 'paid plan', 'upgrade'];
 
     /** Error text that means the time is no longer free. */
     private const array SLOT_TAKEN_HINTS = ['no longer available', 'not available', 'already booked', 'conflict', '409'];
-
-    public function __construct(
-        private readonly McpClient $client,
-        private readonly CalendlyConnection $connection,
-    ) {}
 
     public function meetingTypes(Agent $agent): array
     {
@@ -118,57 +107,6 @@ class CalendlyScheduler implements Scheduler
         );
     }
 
-    private function server(Agent $agent): AgentMcpServer
-    {
-        return $this->connection->serverFor($agent) ?? throw BookingException::notConnected();
-    }
-
-    /**
-     * A read whose failure only means "try again later".
-     *
-     * @param  array<string, mixed>  $arguments
-     * @return array<string, mixed>
-     */
-    private function read(AgentMcpServer $server, string $tool, array $arguments): array
-    {
-        $result = $this->call($server, $tool, $arguments);
-
-        if ($result->isError) {
-            throw BookingException::unavailable(new McpException("Calendly {$tool} failed: ".Str::limit($result->text, 300)));
-        }
-
-        return $this->body($result);
-    }
-
-    /**
-     * @param  array<string, mixed>  $arguments
-     */
-    private function call(AgentMcpServer $server, string $tool, array $arguments): McpToolResultData
-    {
-        try {
-            return $this->client->callTool($server, $tool, $arguments);
-        } catch (McpException $e) {
-            throw BookingException::unavailable($e);
-        }
-    }
-
-    /**
-     * The reply as data: the structured content, or the JSON text Calendly
-     * also sends.
-     *
-     * @return array<string, mixed>
-     */
-    private function body(McpToolResultData $result): array
-    {
-        if ($result->structuredContent !== null) {
-            return $result->structuredContent;
-        }
-
-        $decoded = json_decode($result->text, true);
-
-        return is_array($decoded) ? $decoded : [];
-    }
-
     /**
      * Calendly reports a failed booking only as text, so the reason is read
      * from it. Anything unrecognised is "try again", never a false "taken".
@@ -186,5 +124,11 @@ class CalendlyScheduler implements Scheduler
         }
 
         return BookingException::unavailable(new McpException('Calendly booking failed: '.Str::limit($text, 300)));
+    }
+
+    #[\Override]
+    protected function connectorSlug(): string
+    {
+        return self::CONNECTOR_SLUG;
     }
 }

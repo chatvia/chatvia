@@ -8,10 +8,11 @@ use Domain\Integration\Connector\Data\Account\ConnectTokenConnectorData;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Exceptions\CapabilityRequiresConnectorException;
 use Domain\Integration\Connector\Exceptions\CapabilityUnavailableException;
+use Domain\Integration\Connector\Services\CapabilityProvider;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Domain\Integration\Connector\Services\ConnectorPrerequisite;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Illuminate\Support\Arr;
 
 /**
  * Enable a first-party capability (e.g. Interactive Charts) for one agent.
@@ -21,15 +22,15 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
  * (the same {@see ConnectTokenConnectorAction} the Connectors page uses, so
  * the server and its tool catalog are identical), then the server is attached
  * to this agent. Later enables only attach. A capability that works through
- * another connector (Calendar through Calendly) is refused until the
- * workspace has connected it, and one the install does not offer right now
- * (Image generation without an image service) is refused.
+ * other connectors (Calendar through Calendly or Cal.com) is refused until
+ * the workspace has connected one of them, and one the install does not
+ * offer right now (Image generation without an image service) is refused.
  */
 class EnableAgentCapabilityAction
 {
     public function __construct(
         private readonly ConnectTokenConnectorAction $connect,
-        private readonly ConnectorPrerequisite $prerequisite,
+        private readonly CapabilityProvider $providers,
         private readonly ConnectorCatalog $catalog,
     ) {}
 
@@ -44,10 +45,12 @@ class EnableAgentCapabilityAction
             throw new CapabilityUnavailableException($capability->name);
         }
 
-        if (! $this->prerequisite->isMet($agent, $capability)) {
-            throw new CapabilityRequiresConnectorException(
-                $this->catalog->find((string) $capability->requiresConnector)?->name ?? (string) $capability->requiresConnector,
-            );
+        if (! $this->providers->isMet($agent, $capability)) {
+            throw new CapabilityRequiresConnectorException(Arr::join(
+                array_map(fn (string $slug): string => $this->catalog->find($slug)->name ?? $slug, $capability->worksThrough),
+                ', ',
+                ' or ',
+            ));
         }
 
         $server = AgentMcpServer::query()

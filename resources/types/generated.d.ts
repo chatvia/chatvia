@@ -896,7 +896,8 @@ declare namespace Domain {
                         connector: Domain.Integration.Connector.Data.Catalog.ConnectorData;
                         enabled: boolean;
                         ready: boolean;
-                        requires: Domain.Integration.Connector.Data.Catalog.ConnectorData | null;
+                        providers: Domain.Integration.Connector.Data.Agent.CapabilityProviderData[];
+                        provider: string | null;
                     };
                     export type AgentConnectorAttachResultData = {
                         data: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData;
@@ -911,6 +912,10 @@ declare namespace Domain {
                     export type AgentConnectorsResourceData = {
                         featured: Domain.Integration.Connector.Data.Agent.AgentConnectorRowData[];
                         custom: Domain.Integration.Connector.Data.Custom.AgentCustomConnectorRowData[];
+                    };
+                    export type CapabilityProviderData = {
+                        connector: Domain.Integration.Connector.Data.Catalog.ConnectorData;
+                        connected: boolean;
                     };
                 }
                 namespace Catalog {
@@ -937,7 +942,7 @@ declare namespace Domain {
                         isCapability: boolean;
                         surfaces: string[] | null;
                         voice: boolean;
-                        requiresConnector: string | null;
+                        worksThrough: string[];
                         available: boolean;
                         requiresClientId: boolean;
                         oauthClientId: string | null;

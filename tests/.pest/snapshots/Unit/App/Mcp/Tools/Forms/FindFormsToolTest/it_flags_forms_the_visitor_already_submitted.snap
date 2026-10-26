@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "Matching forms found. Forms marked already_submitted were already completed by this visitor — do NOT render those again; acknowledge the submission. For any other form that fits, call render-form with its slug."
+            "text": "Matching forms found. Forms marked already_submitted were already completed by this visitor — do NOT render those again; acknowledge the submission. For any other form that fits, call render-form with its slug.\n[{\"slug\":\"book-a-demo\",\"name\":\"Book a demo\",\"purpose\":\"Show this when the visitor wants to book a demo.\",\"already_submitted\":true}]"
         }
     ],
     "isError": false,

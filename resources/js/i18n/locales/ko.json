@@ -2403,10 +2403,12 @@
             "empty": "아직 사용할 수 있는 능력이 없습니다.",
             "enable_failed": "이 능력을 켤 수 없습니다",
             "disable_failed": "이 능력을 끌 수 없습니다",
-            "requires_connector": "{name}을(를) 통해 작동합니다. 먼저 커넥터 페이지에서 {name}을(를) 연결해 주세요.",
-            "requires_disconnected": "{name}이(가) 연결되어 있지 않아 이 능력이 작동하지 않습니다. 커넥터 페이지에서 {name}을(를) 다시 연결해 주세요.",
-            "connect_connector": "{name} 연결",
-            "turned_off_by_admin": "관리자가 꺼 두었습니다"
+            "requires_connector": "{names} 중 하나를 통해 작동합니다. 먼저 커넥터 페이지에서 그중 하나를 연결해 주세요.",
+            "requires_disconnected": "{names} 연결이 없어 이 능력이 작동하지 않습니다. 커넥터 페이지에서 그중 하나를 다시 연결해 주세요.",
+            "connect_connector": "{names} 연결",
+            "turned_off_by_admin": "관리자가 꺼 두었습니다",
+            "book_through": "예약 서비스",
+            "provider_failed": "예약 서비스를 변경하지 못했습니다"
         },
         "forms": {
             "page_title": "양식",

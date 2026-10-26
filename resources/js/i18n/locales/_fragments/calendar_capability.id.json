@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Berfungsi melalui {name}. Hubungkan {name} lebih dulu di halaman Konektor.",
-            "requires_disconnected": "{name} belum terhubung, jadi kemampuan ini tidak dapat berfungsi. Hubungkan {name} lagi di halaman Konektor.",
-            "connect_connector": "Hubungkan {name}"
+            "requires_connector": "Berfungsi melalui {names}. Hubungkan salah satunya lebih dulu di halaman Konektor.",
+            "requires_disconnected": "Tidak ada koneksi ke {names}, jadi kemampuan ini tidak dapat berfungsi. Hubungkan salah satunya lagi di halaman Konektor.",
+            "connect_connector": "Hubungkan {names}",
+            "book_through": "Pesan melalui",
+            "provider_failed": "Layanan pemesanan tidak dapat diubah"
         },
         "forms": {
             "managed_by_capability": "Dikelola oleh kemampuan {name}"

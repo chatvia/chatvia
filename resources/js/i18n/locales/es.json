@@ -2403,10 +2403,12 @@
             "empty": "Aún no hay capacidades disponibles.",
             "enable_failed": "No se pudo activar esta capacidad",
             "disable_failed": "No se pudo desactivar esta capacidad",
-            "requires_connector": "Funciona a través de {name}. Primero conecta {name} en la página Conectores.",
-            "requires_disconnected": "{name} no está conectado, así que esta capacidad no puede funcionar. Vuelve a conectar {name} en la página Conectores.",
-            "connect_connector": "Conectar {name}",
-            "turned_off_by_admin": "Desactivado por tu administrador"
+            "requires_connector": "Funciona a través de {names}. Primero conecta uno de ellos en la página Conectores.",
+            "requires_disconnected": "No hay conexión con {names}, así que esta capacidad no puede funcionar. Vuelve a conectar uno de ellos en la página Conectores.",
+            "connect_connector": "Conectar {names}",
+            "turned_off_by_admin": "Desactivado por tu administrador",
+            "book_through": "Reservar con",
+            "provider_failed": "No se pudo cambiar el servicio de reservas"
         },
         "forms": {
             "page_title": "Formularios",
@@ -4290,7 +4292,7 @@
             },
             "calendar": {
                 "name": "Calendario",
-                "description": "Deja que los visitantes reserven una reunión en el chat: eligen un horario libre de tu Calendly y lo reservan sin salir de la conversación. Cada reserva se guarda como un lead."
+                "description": "Deja que los visitantes reserven una reunión en el chat: eligen un horario libre de tu Calendly o Cal.com y lo reservan sin salir de la conversación. Cada reserva se guarda como un lead."
             },
             "image-generation": {
                 "name": "Generación de imágenes",
@@ -4299,6 +4301,10 @@
             "audio-generation": {
                 "name": "Generación de audio",
                 "description": "Deja que el agente cree archivos de audio en el chat alojado cuando un visitante lo pida: cualquier texto leído en voz alta, listo para reproducir o descargar."
+            },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Permite que los visitantes agenden reuniones en tu Cal.com y que los agentes lean tus reservas."
             }
         }
     },

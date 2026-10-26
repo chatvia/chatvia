@@ -79,6 +79,10 @@
                 "name": "Calendly",
                 "description": "Permita que os visitantes marquem reuniões no seu Calendly e que os agentes consultem os seus eventos agendados."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Permita que os visitantes marquem reuniões no seu Cal.com e que os agentes consultem as suas marcações."
+            },
             "todoist": {
                 "name": "Todoist",
                 "description": "Gira tarefas, projetos e etiquetas na sua conta Todoist."
@@ -167,7 +171,7 @@
             },
             "calendar": {
                 "name": "Calendário",
-                "description": "Deixe os visitantes marcar uma reunião no chat: escolhem um horário livre no seu Calendly e marcam-no sem sair da conversa. Cada marcação é guardada como um lead."
+                "description": "Deixe os visitantes marcar uma reunião no chat: escolhem um horário livre no seu Calendly ou Cal.com e marcam-no sem sair da conversa. Cada marcação é guardada como um lead."
             },
             "image-generation": {
                 "name": "Geração de imagens",

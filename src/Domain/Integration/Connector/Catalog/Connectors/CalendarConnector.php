@@ -9,8 +9,8 @@ use Domain\Integration\Connector\Enums\ConnectorCategory;
 
 /**
  * A booking calendar in the chat: the visitor picks a free time and books it
- * in the workspace's Calendly, and the booking is stored as a lead. It works
- * through the Calendly connection, so it needs Calendly connected first. A
+ * in the workspace's Calendly or Cal.com, and the booking is stored as a lead.
+ * It works through one of those connections, so one is connected first. A
  * time is picked on screen, so a voice call never offers it; a messaging
  * channel gets the booking link instead.
  */
@@ -23,7 +23,7 @@ final class CalendarConnector extends CapabilityConnector
     public string $name { get => 'Calendar'; }
 
     #[\Override]
-    public string $description { get => 'Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead.'; }
+    public string $description { get => 'Let visitors book a meeting in the chat: they pick a free time from your Calendly or Cal.com and book it without leaving the conversation. Each booking is saved as a lead.'; }
 
     #[\Override]
     public ConnectorCategory $category { get => ConnectorCategory::Sales; }
@@ -40,6 +40,7 @@ final class CalendarConnector extends CapabilityConnector
     #[\Override]
     public bool $voice { get => false; }
 
+    /** @var list<string> */
     #[\Override]
-    public ?string $requiresConnector { get => 'calendly'; }
+    public array $worksThrough { get => ['calendly', 'cal-com']; }
 }

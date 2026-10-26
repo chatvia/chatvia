@@ -26,14 +26,15 @@ use App\Identity\Workspace\Services\PasswordAuthenticator;
 use App\Mcp\CodeDefinedToolDefinitions;
 use Domain\Agent\Events\AgentAnswersChanged;
 use Domain\Agent\Events\AgentToolsChanged;
+use Domain\Agent\Events\ConnectorAttachedToAgent;
 use Domain\Agent\Listeners\ForgetAgentToolPool;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Analytics\Listeners\QueueMessageAnalysis;
 use Domain\Analytics\Listeners\RecordAnalytics;
-use Domain\Booking\Contracts\Scheduler;
-use Domain\Booking\Services\CalendlyScheduler;
+use Domain\Booking\Contracts\Schedulers;
+use Domain\Booking\Services\SchedulerRouter;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\HandedOff;
@@ -62,6 +63,7 @@ use Domain\Guardrail\Listeners\NotifyGuardrailAlert;
 use Domain\Guardrail\Listeners\RecordGuardrailAttack;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Guardrail\Listeners\SendGuardrailAlert;
+use Domain\Integration\Connector\Listeners\EnableCapabilitiesThroughConnector;
 use Domain\Integration\Connector\Services\OAuth\OAuthTokenRefresher;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Observers\AgentFunctionObserver;
@@ -178,9 +180,9 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(AccessTokenRefresher::class, OAuthTokenRefresher::class);
         $this->app->bind(BuiltinToolDefinitions::class, CodeDefinedToolDefinitions::class);
 
-        // The Calendar capability books through the workspace's Calendly
-        // connection; tests swap in a fake scheduler.
-        $this->app->bind(Scheduler::class, CalendlyScheduler::class);
+        // The Calendar capability books through the workspace's Calendly or
+        // Cal.com connection; tests swap in fake schedulers.
+        $this->app->bind(Schedulers::class, SchedulerRouter::class);
 
         // SSE stream transformer: parses the upstream OpenAI-compatible byte
         // stream into envelope events. Kept behind an interface as the seam the
@@ -379,6 +381,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(GuardrailTriggered::class, RecordGuardrailAttack::class);
         Event::listen(McpToolInvoked::class, UpdateMcpInvocationCounters::class);
         Event::listen(AgentToolsChanged::class, ForgetAgentToolPool::class);
+        Event::listen(ConnectorAttachedToAgent::class, EnableCapabilitiesThroughConnector::class);
         Event::listen(AgentRateLimitExceeded::class, SendAgentRateLimitNotification::class);
         Event::listen(FormSubmitted::class, PushSubmissionToCrm::class);
 

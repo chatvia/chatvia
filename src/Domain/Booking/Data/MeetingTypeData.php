@@ -8,10 +8,11 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
- * One kind of meeting a visitor can book (a Calendly event type), with what a
- * booking through the API must send back: the location and the question the
- * visitor's notes answer. A type whose booking needs answers the chat does
- * not ask for is not bookable in the chat; the visitor gets its booking page.
+ * One kind of meeting a visitor can book (a Calendly or Cal.com event type),
+ * with what a booking through the API must send back: the location and the
+ * question the visitor's notes answer. A type whose booking needs answers the
+ * chat does not ask for is not bookable in the chat; the visitor gets its
+ * booking page.
  */
 final readonly class MeetingTypeData
 {
@@ -20,6 +21,12 @@ final readonly class MeetingTypeData
 
     /** Calendly question types a free-text note can answer. */
     private const array TEXT_QUESTION_TYPES = ['string', 'text'];
+
+    /** Cal.com booking fields the chat fills: the visitor's name, email and notes. */
+    private const array CALCOM_FILLED_FIELDS = ['name', 'email', 'notes'];
+
+    /** Cal.com location types that need input from the attendee the chat does not collect. */
+    private const array CALCOM_ATTENDEE_LOCATIONS = ['attendeePhone', 'attendeeAddress', 'attendeeDefined'];
 
     /**
      * @param  array{kind: string, location?: string}|null  $location  sent with the booking; null lets the scheduler pick
@@ -73,6 +80,36 @@ final readonly class MeetingTypeData
             notesRequired: ($notes['required'] ?? false) === true,
             bookableInChat: ! $otherRequired
                 && ! in_array(Arr::get($location ?? [], 'kind'), self::INVITEE_LOCATION_KINDS, true),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $row  one Cal.com event type
+     * @param  string|null  $username  the account's username, for the booking page
+     */
+    public static function fromCalcom(array $row, ?string $username): self
+    {
+        $first = collect((array) ($row['locations'] ?? []))->first(fn (mixed $location): bool => is_array($location));
+        $kind = is_array($first) ? ($first['integration'] ?? $first['type'] ?? null) : null;
+
+        $fields = collect((array) ($row['bookingFields'] ?? []))->filter(fn (mixed $field): bool => is_array($field) && ($field['hidden'] ?? false) !== true);
+        $notes = $fields->first(fn (array $field): bool => ($field['slug'] ?? $field['name'] ?? null) === 'notes');
+        $otherRequired = $fields->contains(fn (array $field): bool => ($field['required'] ?? false) === true
+            && ! in_array($field['slug'] ?? $field['name'] ?? null, self::CALCOM_FILLED_FIELDS, true));
+
+        $slug = filled($row['slug'] ?? null) ? (string) $row['slug'] : null;
+
+        return new self(
+            uri: (string) ($row['id'] ?? ''),
+            name: (string) ($row['title'] ?? ''),
+            durationMinutes: (int) ($row['lengthInMinutes'] ?? $row['length'] ?? 0),
+            description: filled($row['description'] ?? null) ? Str::limit((string) $row['description'], 300) : null,
+            schedulingUrl: filled($username) && $slug !== null ? "https://cal.com/{$username}/{$slug}" : null,
+            location: filled($kind) ? ['kind' => (string) $kind] : null,
+            notesQuestion: null,
+            notesRequired: is_array($notes) && ($notes['required'] ?? false) === true,
+            bookableInChat: ! $otherRequired
+                && (! is_array($first) || ! in_array($first['type'] ?? null, self::CALCOM_ATTENDEE_LOCATIONS, true)),
         );
     }
 }

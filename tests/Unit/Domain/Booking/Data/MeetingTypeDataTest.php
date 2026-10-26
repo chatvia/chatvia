@@ -66,3 +66,33 @@ it('ignores a disabled question', function (): void {
 
     expect($type->bookableInChat)->toBeTrue()->and($type->notesQuestion)->toBeNull();
 });
+
+it('reads a Cal.com event type with its booking page', function (): void {
+    $type = MeetingTypeData::fromCalcom([
+        'id' => 42,
+        'title' => 'Intro call',
+        'slug' => 'intro',
+        'lengthInMinutes' => 45,
+        'description' => 'A first chat.',
+        'locations' => [['type' => 'integration', 'integration' => 'cal-video']],
+        'bookingFields' => [
+            ['slug' => 'name', 'required' => true],
+            ['slug' => 'email', 'required' => true],
+            ['slug' => 'notes', 'required' => true],
+        ],
+    ], 'ada');
+
+    expect($type->uri)->toBe('42')
+        ->and($type->durationMinutes)->toBe(45)
+        ->and($type->schedulingUrl)->toBe('https://cal.com/ada/intro')
+        ->and($type->location)->toBe(['kind' => 'cal-video'])
+        ->and($type->notesRequired)->toBeTrue()
+        ->and($type->bookableInChat)->toBeTrue();
+});
+
+it('is not bookable in the chat when Cal.com needs other answers', function (array $overrides): void {
+    expect(MeetingTypeData::fromCalcom(['id' => 1, 'title' => 'Call', 'slug' => 'call', ...$overrides], 'ada')->bookableInChat)->toBeFalse();
+})->with([
+    'a required custom field' => [['bookingFields' => [['slug' => 'company', 'required' => true]]]],
+    'the attendee\'s phone as location' => [['locations' => [['type' => 'attendeePhone']]]],
+]);

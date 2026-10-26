@@ -9,6 +9,7 @@ use Database\Factories\AgentFactory;
 use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Enums\SourcesDisplay;
 use Domain\Agent\Events\AgentToolsChanged;
+use Domain\Agent\Events\ConnectorAttachedToAgent;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
@@ -481,9 +482,15 @@ class Agent extends Model
      */
     public function attachConnector(AgentMcpServer $server): void
     {
-        $this->mcpServers()->syncWithoutDetaching([$server->id]);
+        $changes = $this->mcpServers()->syncWithoutDetaching([$server->id]);
 
         AgentToolsChanged::dispatch($this->id);
+
+        // Only a new attachment: what a capability does with it (Calendar turns
+        // on for Calendly or Cal.com) must not repeat on every re-attach.
+        if (in_array($server->id, $changes['attached'], true)) {
+            ConnectorAttachedToAgent::dispatch($this->id, $server->id);
+        }
     }
 
     public function detachConnector(AgentMcpServer $server): void

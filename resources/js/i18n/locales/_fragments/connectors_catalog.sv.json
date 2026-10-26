@@ -79,6 +79,10 @@
                 "name": "Calendly",
                 "description": "Låt besökare boka möten via din Calendly, och låt agenter läsa dina schemalagda händelser."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Låt besökare boka möten via din Cal.com, och låt agenter läsa dina bokningar."
+            },
             "todoist": {
                 "name": "Todoist",
                 "description": "Hantera uppgifter, projekt och etiketter i ditt Todoist-konto."
@@ -167,7 +171,7 @@
             },
             "calendar": {
                 "name": "Kalender",
-                "description": "Låt besökare boka ett möte i chatten: de väljer en ledig tid i din Calendly och bokar den utan att lämna samtalet. Varje bokning sparas som en lead."
+                "description": "Låt besökare boka ett möte i chatten: de väljer en ledig tid i din Calendly eller Cal.com och bokar den utan att lämna samtalet. Varje bokning sparas som en lead."
             },
             "image-generation": {
                 "name": "Bildgenerering",

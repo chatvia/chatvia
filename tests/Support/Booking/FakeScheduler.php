@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
 use Domain\Booking\Contracts\Scheduler;
+use Domain\Booking\Contracts\Schedulers;
 use Domain\Booking\Data\BookedMeetingData;
 use Domain\Booking\Data\BookingRequestData;
 use Domain\Booking\Data\MeetingTypeData;
@@ -16,7 +17,9 @@ use Domain\Booking\Exceptions\BookingException;
 /**
  * An in-memory {@see Scheduler}: one bookable "Intro call" by default, free
  * times the test sets, and a record of every range asked and booking made.
- * A test makes it fail by setting {@see $failWith}.
+ * A test makes it fail by setting {@see $failWith}. {@see install()} also
+ * binds {@see Schedulers} to hand it out for every provider, as
+ * {@see $provider} (Calendly unless a test says otherwise).
  */
 final class FakeScheduler implements Scheduler
 {
@@ -36,6 +39,11 @@ final class FakeScheduler implements Scheduler
 
     public ?BookingException $failWith = null;
 
+    public string $provider = 'calendly';
+
+    /** @var list<string> the providers looked up by slug, in order */
+    public array $used = [];
+
     public function __construct()
     {
         $this->types = [self::meetingType()];
@@ -44,7 +52,32 @@ final class FakeScheduler implements Scheduler
     public static function install(): self
     {
         $fake = new self;
-        app()->instance(Scheduler::class, $fake);
+
+        app()->instance(Schedulers::class, new readonly class($fake) implements Schedulers
+        {
+            public function __construct(private FakeScheduler $fake) {}
+
+            public function providerFor(Agent $agent): string
+            {
+                if ($this->fake->failWith instanceof BookingException) {
+                    throw $this->fake->failWith;
+                }
+
+                return $this->fake->provider;
+            }
+
+            public function forAgent(Agent $agent): Scheduler
+            {
+                return $this->using($this->providerFor($agent));
+            }
+
+            public function using(string $provider): Scheduler
+            {
+                $this->fake->used[] = $provider;
+
+                return $this->fake;
+            }
+        });
 
         return $fake;
     }

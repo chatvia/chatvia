@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Domain\Booking\Actions;
 
-use Domain\Booking\Contracts\Scheduler;
 use Domain\Booking\Data\BookedMeetingData;
 use Domain\Booking\Data\BookMeetingData;
 use Domain\Booking\Data\BookMeetingResultData;
@@ -21,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Book the meeting a visitor picked in a shown calendar, in one transaction:
  *   1. claim the booking instance (row lock, once; an expired one is refused),
- *   2. book it with the scheduler,
+ *   2. book it with the scheduler it was shown from,
  *   3. store the booking as a lead on the agent's "Meeting bookings" form,
  *   4. flip the message's calendar artifact to booked for reload state,
  *   5. fire {@see FormSubmitted} (CRM webhook, lead notification).
@@ -36,10 +35,7 @@ class BookMeetingAction
     /** The capture path, as the CRM payload names it. */
     private const string SOURCE = 'calendar';
 
-    public function __construct(
-        private readonly Scheduler $scheduler,
-        private readonly BookingInstanceMeetingType $meetingType,
-    ) {}
+    public function __construct(private readonly BookingInstanceMeetingType $meetingType) {}
 
     /**
      * @throws FormNotClaimableException when the calendar was booked or has expired
@@ -53,7 +49,7 @@ class BookMeetingAction
             $claimed = $data->submission->claimPending();
             $type = $this->meetingType->of($claimed);
 
-            $booked = $this->scheduler->book($claimed->agent, $type, $data->request);
+            $booked = $this->meetingType->schedulerOf($claimed)->book($claimed->agent, $type, $data->request);
 
             $values = array_filter([
                 'name' => $data->request->name,

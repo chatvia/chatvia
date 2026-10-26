@@ -79,6 +79,10 @@
                 "name": "Calendly",
                 "description": "Pozwól odwiedzającym umawiać spotkania w Calendly i umożliw agentom odczytywanie zaplanowanych wydarzeń."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Pozwól odwiedzającym umawiać spotkania w Cal.com i umożliw agentom odczytywanie rezerwacji."
+            },
             "todoist": {
                 "name": "Todoist",
                 "description": "Zarządzaj zadaniami, projektami i etykietami na koncie Todoist."
@@ -167,7 +171,7 @@
             },
             "calendar": {
                 "name": "Kalendarz",
-                "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
+                "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly lub Cal.com i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
             },
             "image-generation": {
                 "name": "Generowanie obrazów",

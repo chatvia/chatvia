@@ -79,6 +79,10 @@
                 "name": "Calendly",
                 "description": "Besuchern ermöglichen, Meetings über Ihr Calendly zu buchen, und Agenten Ihre geplanten Ereignisse lesen lassen."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Besuchern ermöglichen, Meetings über Ihr Cal.com zu buchen, und Agenten Ihre Buchungen lesen lassen."
+            },
             "todoist": {
                 "name": "Todoist",
                 "description": "Aufgaben, Projekte und Labels in Ihrem Todoist-Konto verwalten."
@@ -167,7 +171,7 @@
             },
             "calendar": {
                 "name": "Kalender",
-                "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
+                "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly oder Cal.com und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
             },
             "image-generation": {
                 "name": "Bilderzeugung",

@@ -2403,10 +2403,12 @@
             "empty": "Ingen kapabiliteter er tilgjengelige ennå.",
             "enable_failed": "Kunne ikke slå på denne kapabiliteten",
             "disable_failed": "Kunne ikke slå av denne kapabiliteten",
-            "requires_connector": "Fungerer via {name}. Koble først til {name} på Koblinger-siden.",
-            "requires_disconnected": "{name} er ikke koblet til, så denne kapabiliteten kan ikke fungere. Koble til {name} på nytt på Koblinger-siden.",
-            "connect_connector": "Koble til {name}",
-            "turned_off_by_admin": "Slått av av administratoren din"
+            "requires_connector": "Fungerer via {names}. Koble først til en av dem på Koblinger-siden.",
+            "requires_disconnected": "Det er ingen tilkobling til {names}, så denne kapabiliteten kan ikke fungere. Koble til en av dem på nytt på Koblinger-siden.",
+            "connect_connector": "Koble til {names}",
+            "turned_off_by_admin": "Slått av av administratoren din",
+            "book_through": "Book via",
+            "provider_failed": "Kunne ikke endre bookingtjenesten"
         },
         "forms": {
             "page_title": "Skjemaer",
@@ -4290,7 +4292,7 @@
             },
             "calendar": {
                 "name": "Kalender",
-                "description": "La besøkende booke et møte i chatten: de velger en ledig tid fra din Calendly og booker den uten å forlate samtalen. Hver booking lagres som en lead."
+                "description": "La besøkende booke et møte i chatten: de velger en ledig tid fra din Calendly eller Cal.com og booker den uten å forlate samtalen. Hver booking lagres som en lead."
             },
             "image-generation": {
                 "name": "Bildegenerering",
@@ -4299,6 +4301,10 @@
             "audio-generation": {
                 "name": "Lydgenerering",
                 "description": "La agenten lage lydfiler i den hostede chatten når en besøkende ber om det: hvilken som helst tekst lest høyt, klar til å spille av eller laste ned."
+            },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "La besøkende booke møter i Cal.com, og la agenter lese bookingene dine."
             }
         }
     },

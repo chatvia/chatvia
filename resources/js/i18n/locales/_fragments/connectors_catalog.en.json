@@ -79,6 +79,10 @@
                 "name": "Calendly",
                 "description": "Let visitors book meetings on your Calendly, and let agents read your scheduled events."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Let visitors book meetings on your Cal.com, and let agents read your bookings."
+            },
             "todoist": {
                 "name": "Todoist",
                 "description": "Manage tasks, projects, and labels across your Todoist account."
@@ -167,7 +171,7 @@
             },
             "calendar": {
                 "name": "Calendar",
-                "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead."
+                "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly or Cal.com and book it without leaving the conversation. Each booking is saved as a lead."
             },
             "image-generation": {
                 "name": "Image generation",

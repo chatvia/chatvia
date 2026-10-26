@@ -2403,10 +2403,12 @@
             "empty": "No capabilities are available yet.",
             "enable_failed": "Could not turn on this capability",
             "disable_failed": "Could not turn off this capability",
-            "requires_connector": "Works through {name}. Connect {name} on the Connectors page first.",
-            "requires_disconnected": "{name} is not connected, so this capability cannot work. Connect {name} again on the Connectors page.",
-            "connect_connector": "Connect {name}",
-            "turned_off_by_admin": "Turned off by your admin"
+            "requires_connector": "Works through {names}. Connect one of them on the Connectors page first.",
+            "requires_disconnected": "{names} is not connected, so this capability cannot work. Connect one again on the Connectors page.",
+            "connect_connector": "Connect {names}",
+            "turned_off_by_admin": "Turned off by your admin",
+            "book_through": "Book through",
+            "provider_failed": "Could not change the booking service"
         },
         "forms": {
             "page_title": "Forms",
@@ -4290,7 +4292,7 @@
             },
             "calendar": {
                 "name": "Calendar",
-                "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead."
+                "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly or Cal.com and book it without leaving the conversation. Each booking is saved as a lead."
             },
             "image-generation": {
                 "name": "Image generation",
@@ -4299,6 +4301,10 @@
             "audio-generation": {
                 "name": "Audio generation",
                 "description": "Let the agent make audio files in the hosted chat when a visitor asks: any text read aloud, ready to play or download."
+            },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Let visitors book meetings on your Cal.com, and let agents read your bookings."
             }
         }
     },

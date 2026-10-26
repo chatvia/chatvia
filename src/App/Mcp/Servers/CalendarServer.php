@@ -16,7 +16,7 @@ use Laravel\Mcp\Server\Tool;
 /**
  * The Calendar capability connector: list the meetings a visitor can book
  * (find-meeting-types) and show a booking calendar inline in the chat
- * (render-calendar). Booking runs through the workspace's Calendly.
+ * (render-calendar). Booking runs through the workspace's Calendly or Cal.com.
  */
 #[Name('Calendar')]
 #[Version('1.0.0')]

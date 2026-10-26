@@ -32,12 +32,12 @@ final class CalendarAgent
         return ['agent' => $agent, 'conversation' => $conversation, 'form' => $form];
     }
 
-    public static function pendingInstance(FormDefinition $form, Conversation $conversation, string $eventType = FakeScheduler::INTRO_CALL): FormSubmission
+    public static function pendingInstance(FormDefinition $form, Conversation $conversation, string $eventType = FakeScheduler::INTRO_CALL, string $provider = 'calendly'): FormSubmission
     {
         return FormSubmission::factory()->forDefinition($form)->create([
             'chat_conversation_id' => $conversation->id,
             'status' => FormSubmissionStatus::Pending,
-            'values' => [BookingInstanceMeetingType::KEY => $eventType],
+            'values' => [BookingInstanceMeetingType::KEY => $eventType, BookingInstanceMeetingType::PROVIDER_KEY => $provider],
             'expires_at' => now()->addHours(6),
         ]);
     }

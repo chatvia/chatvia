@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "از طریق {name} کار می‌کند. ابتدا {name} را در صفحه اتصال‌دهنده‌ها متصل کنید.",
-            "requires_disconnected": "{name} متصل نیست، پس این قابلیت کار نمی‌کند. {name} را دوباره در صفحه اتصال‌دهنده‌ها متصل کنید.",
-            "connect_connector": "اتصال {name}"
+            "requires_connector": "از طریق {names} کار می‌کند. ابتدا یکی از آن‌ها را در صفحه اتصال‌دهنده‌ها متصل کنید.",
+            "requires_disconnected": "اتصالی به {names} وجود ندارد، پس این قابلیت کار نمی‌کند. یکی از آن‌ها را دوباره در صفحه اتصال‌دهنده‌ها متصل کنید.",
+            "connect_connector": "اتصال {names}",
+            "book_through": "رزرو از طریق",
+            "provider_failed": "تغییر سرویس رزرو ممکن نشد"
         },
         "forms": {
             "managed_by_capability": "مدیریت‌شده توسط قابلیت {name}"

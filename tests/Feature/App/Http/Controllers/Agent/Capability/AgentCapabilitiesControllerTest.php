@@ -28,7 +28,7 @@ it('lists the capabilities in catalog order, with whether each is on', function 
             ->where('capabilities.2.connector.slug', 'calendar'));
 });
 
-it('marks Calendar not ready until the workspace connects Calendly', function (): void {
+it('marks Calendar not ready until the workspace connects Calendly or Cal.com', function (): void {
     $owner = User::factory()->create();
     $agent = makeTeamAgent($owner, 'Support Bot');
 
@@ -36,13 +36,19 @@ it('marks Calendar not ready until the workspace connects Calendly', function ()
         ->get(route('agents.capabilities', $agent->external_id))
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('capabilities.2.ready', false)
-            ->where('capabilities.2.requires.slug', 'calendly'));
+            ->where('capabilities.2.provider', null)
+            ->where('capabilities.2.providers.0.connector.slug', 'calendly')
+            ->where('capabilities.2.providers.0.connected', false)
+            ->where('capabilities.2.providers.1.connector.slug', 'cal-com'));
 
-    AgentMcpServer::factory()->forOwner($owner)->create(['connector_slug' => 'calendly', 'slug' => 'calendly', 'is_enabled' => true]);
+    AgentMcpServer::factory()->forOwner($owner)->create(['connector_slug' => 'cal-com', 'slug' => 'cal-com', 'is_enabled' => true]);
 
     $this->actingAs($owner)
         ->get(route('agents.capabilities', $agent->external_id))
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('capabilities.2.ready', true));
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('capabilities.2.ready', true)
+            ->where('capabilities.2.provider', 'cal-com')
+            ->where('capabilities.2.providers.1.connected', true));
 });
 
 it('marks Image generation unavailable until the admin picks an image service', function (string $driver, bool $available): void {

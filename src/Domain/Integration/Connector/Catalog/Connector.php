@@ -87,11 +87,14 @@ abstract class Connector
     }
 
     /**
-     * The connector the workspace must connect first, for a capability that
-     * works through it (Calendar books through Calendly). Null for none.
+     * The connectors a capability works through, as slugs: the workspace
+     * connects one of them first, and the agent uses one (Calendar books
+     * through Calendly or Cal.com). Empty for none.
+     *
+     * @var list<string>
      */
-    public ?string $requiresConnector {
-        get => null;
+    public array $worksThrough {
+        get => [];
     }
 
     /**
@@ -123,7 +126,7 @@ abstract class Connector
             'comingSoon' => $this->comingSoon,
             'surfaces' => $this->surfaces,
             'voice' => $this->voice,
-            'requiresConnector' => $this->requiresConnector,
+            'worksThrough' => $this->worksThrough,
             'available' => $this->isAvailable(),
             ...$this->extraData(),
         ]);

@@ -108,3 +108,13 @@ it('keeps the calendar bookable when the scheduler refuses', function (): void {
     expect($this->instance->fresh()->status)->toBe(FormSubmissionStatus::Pending);
     Event::assertNotDispatched(FormSubmitted::class);
 });
+
+it('books with the scheduler the calendar was shown from, not the agent\'s current one', function (): void {
+    $this->scheduler->provider = 'calendly';
+    $instance = CalendarAgent::pendingInstance($this->form, $this->conversation, provider: 'cal-com');
+
+    bmaBook($instance, $this->conversation);
+
+    expect($this->scheduler->used)->toBe(['cal-com', 'cal-com'])
+        ->and($this->scheduler->booked)->toHaveCount(1);
+});

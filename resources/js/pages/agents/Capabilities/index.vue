@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { type AgentCapabilityRow, disableCapability, enableCapability } from '@/api/agentCapabilities';
+import { type AgentCapabilityRow, chooseCapabilityProvider, disableCapability, enableCapability } from '@/api/agentCapabilities';
 import { errorMessage } from '@/api/http';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useConnectorText } from '@/composables/useConnectorText';
+import { useLocaleDate } from '@/composables/useLocaleDate';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { edit as editConnectors } from '@/routes/integrations/connectors';
@@ -20,12 +22,42 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { connectorName, connectorDescription } = useConnectorText();
+const { intlLocale } = useLocaleDate();
 
 // Local, reactive copy so toggles update in place.
 const rows = ref<AgentCapabilityRow[]>(props.capabilities.map((row) => ({ ...row })));
 // Per-slug in-flight guard — first enable provisions the MCP server (a remote
 // tools/list), so the switch can take a moment.
 const busy = reactive<Record<string, boolean>>({});
+
+/** The connectors a capability works through, as "Calendly or Cal.com" in the UI language. */
+function providerNames(row: AgentCapabilityRow): string {
+    const names = row.providers.map((provider) => connectorName(provider.connector));
+    try {
+        return new Intl.ListFormat(intlLocale.value, { type: 'disjunction' }).format(names);
+    } catch {
+        return names.join(' / ');
+    }
+}
+
+const connectedProviders = (row: AgentCapabilityRow) => row.providers.filter((provider) => provider.connected);
+
+async function chooseProvider(row: AgentCapabilityRow, connectorSlug: string): Promise<void> {
+    const slug = row.connector.slug;
+    if (busy[slug] || connectorSlug === row.provider) return;
+    busy[slug] = true;
+
+    const previous = row.provider;
+    row.provider = connectorSlug;
+    try {
+        await chooseCapabilityProvider(props.agent.external_id, slug, connectorSlug);
+    } catch (error: unknown) {
+        row.provider = previous;
+        toast.error(errorMessage(error, t('agents.capabilities.provider_failed')));
+    } finally {
+        busy[slug] = false;
+    }
+}
 
 async function toggle(row: AgentCapabilityRow): Promise<void> {
     const slug = row.connector.slug;
@@ -67,23 +99,47 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
                         <div class="min-w-0 flex-1">
                             <p class="leading-tight font-medium">{{ connectorName(row.connector) }}</p>
                             <p class="text-muted-foreground mt-1 text-xs">{{ connectorDescription(row.connector) }}</p>
-                            <p v-if="!row.ready && row.requires" class="mt-1 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500">
+                            <p
+                                v-if="!row.ready && row.providers.length > 0"
+                                class="mt-1 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500"
+                            >
                                 <TriangleAlert class="h-3.5 w-3.5 shrink-0" />
                                 {{
                                     row.enabled
-                                        ? t('agents.capabilities.requires_disconnected', { name: connectorName(row.requires) })
-                                        : t('agents.capabilities.requires_connector', { name: connectorName(row.requires) })
+                                        ? t('agents.capabilities.requires_disconnected', { names: providerNames(row) })
+                                        : t('agents.capabilities.requires_connector', { names: providerNames(row) })
                                 }}
                             </p>
                             <p v-if="!row.connector.available" class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
                                 <Ban class="h-3.5 w-3.5 shrink-0" />
                                 {{ t('agents.capabilities.turned_off_by_admin') }}
                             </p>
+                            <div v-if="connectedProviders(row).length > 1" class="mt-2 flex items-center gap-2">
+                                <span class="text-muted-foreground text-xs">{{ t('agents.capabilities.book_through') }}</span>
+                                <Select
+                                    :model-value="row.provider ?? undefined"
+                                    :disabled="busy[row.connector.slug]"
+                                    @update:model-value="(value) => chooseProvider(row, String(value))"
+                                >
+                                    <SelectTrigger class="h-8 w-40" :aria-label="t('agents.capabilities.book_through')">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="option in connectedProviders(row)"
+                                            :key="option.connector.slug"
+                                            :value="option.connector.slug"
+                                        >
+                                            {{ connectorName(option.connector) }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                         <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />
-                        <Link v-if="!row.ready && !row.enabled && row.requires" :href="editConnectors.url()">
+                        <Link v-if="!row.ready && !row.enabled && row.providers.length > 0" :href="editConnectors.url()">
                             <Button variant="outline" size="sm">{{
-                                t('agents.capabilities.connect_connector', { name: connectorName(row.requires) })
+                                t('agents.capabilities.connect_connector', { names: providerNames(row) })
                             }}</Button>
                         </Link>
                         <Switch

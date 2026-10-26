@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Działa przez {name}. Najpierw połącz {name} na stronie Konektory.",
-            "requires_disconnected": "{name} nie jest połączony, więc ta możliwość nie może działać. Połącz {name} ponownie na stronie Konektory.",
-            "connect_connector": "Połącz {name}"
+            "requires_connector": "Działa przez {names}. Najpierw połącz jedno z nich na stronie Konektory.",
+            "requires_disconnected": "Brak połączenia z {names}, więc ta możliwość nie może działać. Połącz jedno z nich ponownie na stronie Konektory.",
+            "connect_connector": "Połącz {names}",
+            "book_through": "Rezerwuj przez",
+            "provider_failed": "Nie udało się zmienić usługi rezerwacji"
         },
         "forms": {
             "managed_by_capability": "Zarządzane przez możliwość {name}"

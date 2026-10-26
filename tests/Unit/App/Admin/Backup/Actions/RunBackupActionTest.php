@@ -194,9 +194,9 @@ it('leaves out the uploaded files when they are kept in S3 storage', function ()
     expect(rbaRun()->parts->all())->toBe([BackupPart::Database, BackupPart::Redis]);
 });
 
-it('dumps the analytics database and, when asked, the Pulse and Spectra ones when they are separate', function (bool $tools, array $parts): void {
+it('dumps the analytics database when the analytics tables have their own, and, when asked, the Pulse and Spectra ones', function (bool $tools, array $parts): void {
     rbaFakePrograms();
-    config(['chatvia.backup.include_tool_databases' => $tools]);
+    config(['chatvia.backup.include_tool_databases' => $tools, 'chatvia.analytics.connection' => 'analytics']);
     $this->partialMock(PostgresDump::class, function ($mock): void {
         $mock->shouldReceive('isSeparate')->andReturnUsing(fn (string $connection): bool => $connection !== config('database.default'));
         $mock->shouldReceive('exists')->andReturnTrue();
@@ -260,4 +260,15 @@ it('deletes the backups past the number to keep', function (): void {
 
     expect(Backup::query()->pluck('id')->all())->toBe([$backup->id])
         ->and(Storage::disk('private')->exists($old->path))->toBeFalse();
+});
+
+it('leaves out the analytics database while the analytics tables are in the main one', function (): void {
+    rbaFakePrograms();
+    config(['chatvia.backup.include_tool_databases' => false, 'chatvia.analytics.connection' => null]);
+    $this->partialMock(PostgresDump::class, function ($mock): void {
+        $mock->shouldReceive('isSeparate')->andReturnUsing(fn (string $connection): bool => $connection !== config('database.default'));
+        $mock->shouldReceive('exists')->andReturnTrue();
+    });
+
+    expect(rbaRun()->parts->all())->toBe([BackupPart::Database, BackupPart::Redis]);
 });

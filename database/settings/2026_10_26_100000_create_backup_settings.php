@@ -19,6 +19,10 @@ return new class extends SettingsMigration
             $group->add('public_key');
             $group->add('include_files');
             $group->add('include_tool_databases');
+            $group->add('pg_dump_path');
+            $group->add('pg_restore_path');
+            $group->add('redis_cli_path');
+            $group->add('gpg_path');
         });
     }
 

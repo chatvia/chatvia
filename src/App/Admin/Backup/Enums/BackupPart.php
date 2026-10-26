@@ -34,12 +34,17 @@ enum BackupPart: string
         };
     }
 
-    /** The database connection (config/database.php) a dump part is made from. */
+    /**
+     * The database connection (config/database.php) a dump part is made
+     * from. The analytics tables have a database of their own
+     * (`chatvia.analytics.connection`); an install that points it back at the
+     * main connection gets no second copy.
+     */
     public function connection(): ?string
     {
         return match ($this) {
             self::Database => (string) config('database.default'),
-            self::Analytics => 'analytics',
+            self::Analytics => (string) (config('chatvia.analytics.connection') ?: config('database.default')),
             self::Pulse => 'pulse',
             self::Spectra => 'spectra',
             self::Secrets, self::Redis, self::Files => null,

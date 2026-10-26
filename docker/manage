@@ -989,6 +989,11 @@ embedding_storage_in() {
 #   redis.rdb             Redis: who is signed in, the chat memory (and the
 #                         queues and cache, which a restore empties)
 #   files.tar             the uploaded files (with --files)
+#
+# The app's own backups (Settings → Backups) have the same layout and may
+# also hold analytics.dump, pulse.dump and spectra.dump. They come as
+# .tar.gpg when the admin saved a public key: restore decrypts them with the
+# private key, and their secrets.env holds only the app key.
 #------------------------------------------------------------------------------
 
 backup_dir() {
@@ -1038,8 +1043,11 @@ write_secrets() {
         'umask 077 && cat >/var/lib/chatvia/secrets.env.new && mv /var/lib/chatvia/secrets.env.new /var/lib/chatvia/secrets.env'
 }
 
+# Without the app's own backups (Settings → Backups), which live there when
+# files are kept on this server.
 dump_files() {
-    compose run --rm --no-deps -T --entrypoint tar app -C /var/www/chatvia/storage -cf - app >"$1"
+    compose run --rm --no-deps -T --entrypoint tar app -C /var/www/chatvia/storage \
+        --exclude=app/private/backups -cf - app >"$1"
 }
 
 # Swaps storage/app for the files on stdin; the old files go only once the
@@ -1252,6 +1260,9 @@ describe_holds() {
     case " $1 " in *' secrets '*) text="$text, the app key" ;; esac
     case " $1 " in *' redis '*) text="$text, the sign-ins and chat memory" ;; esac
     case " $1 " in *' files '*) text="$text, the uploaded files" ;; esac
+    case " $1 " in *' analytics '*) text="$text, the analytics database" ;; esac
+    case " $1 " in *' pulse '*) text="$text, Pulse" ;; esac
+    case " $1 " in *' spectra '*) text="$text, Spectra" ;; esac
     printf '%s' "$text"
 }
 
@@ -1471,6 +1482,7 @@ cmd_restore() {
     else
         file=$(resolve_backup "$file") || die "There is no backup called $name." 'List them: ./manage backups'
     fi
+    case $file in *.gpg) decrypt_backup "$file" && file=$TMP_DECRYPTED ;; esac
 
     # A backup from ./manage, or a plain pg_dump file (custom format), like
     # the ones the app makes on its own schedule.
@@ -1521,6 +1533,25 @@ cmd_restore() {
     outro "ChatVia.ai is running at $(accent "$(app_url)")"
 }
 
+# decrypt_backup FILE: an encrypted backup from the app (Settings → Backups)
+# decrypted next to it, with the private key of this machine's gpg, as
+# TMP_DECRYPTED. The file goes when ./manage ends.
+decrypt_backup() {
+    local file=$1 dir out
+    if ! command -v gpg >/dev/null 2>&1; then
+        die 'This backup is encrypted, and gpg is not installed here.' \
+            'Install it (sudo apt install gnupg), or decrypt it where your private key is:' \
+            "gpg --output backup.tar --decrypt ${file##*/}"
+    fi
+    dir=$(dirname "$file")
+    out=$(cd "$dir" && umask 077 && mktemp .decrypted.XXXXXX) || die "Could not write in $(pretty_path "$dir")."
+    TMP_DECRYPTED="$dir/$out"
+    info "$(dim 'gpg may ask for the passphrase of your private key.')"
+    if ! gpg --yes --output "$TMP_DECRYPTED" --decrypt "$file"; then
+        die 'Could not decrypt the backup.' 'It needs the private key that goes with the public key in Settings → Backups.'
+    fi
+}
+
 # restore_backup FILE KIND HOLDS: restores the database next to the current
 # one, switches over, puts back what else the backup holds, and starts
 # Chatvia (the version compose.yaml and .env name now).
@@ -1569,6 +1600,12 @@ restore_backup() {
     case " $holds " in
         *' secrets '*) restore_secrets "$file" ;;
     esac
+    local part
+    for part in analytics pulse spectra; do
+        case " $holds " in *" $part "*) ;; *) continue ;; esac
+        run_step "Restoring the $part database" restore_other_database "$file" "$part" ||
+            warn "The $part database was not restored. The rest of the backup is."
+    done
 
     case " $holds " in
         *' redis '*)
@@ -1617,6 +1654,33 @@ swap_database() {
         psql_in postgres -v db="$1" -v new_db="$2"
 }
 
+# The database name of a part of an app backup: analytics, pulse or spectra.
+other_database_name() {
+    local name
+    case $1 in
+        analytics) name=$(env_value DB_ANALYTICS_DATABASE) && printf '%s' "${name:-analytics}" ;;
+        pulse) name=$(env_value DB_PULSE_DATABASE) && printf '%s' "${name:-pulse}" ;;
+        spectra) name=$(env_value DB_SPECTRA_DATABASE) && printf '%s' "${name:-spectra}" ;;
+    esac
+}
+
+# restore_other_database FILE PART: one more database of an app backup,
+# restored next to the current one and then swapped in. Runs while the app
+# is stopped.
+restore_other_database() {
+    local file=$1 part=$2 db owner
+    db=$(other_database_name "$part")
+    owner=$(sql_value 'SELECT current_user') || return
+    printf 'DROP DATABASE IF EXISTS :"db" WITH (FORCE);\nCREATE DATABASE :"db" OWNER :"owner";\n' |
+        psql_in postgres -v db="${db}_restore" -v owner="$owner" || return
+    if ! tar -xOf "$file" "$part.dump" | restore_dump "${db}_restore"; then
+        drop_restore_database "${db}_restore"
+        return 1
+    fi
+    printf 'DROP DATABASE IF EXISTS :"db" WITH (FORCE);\nALTER DATABASE :"new_db" RENAME TO :"db";\n' |
+        psql_in postgres -v db="$db" -v new_db="${db}_restore"
+}
+
 drop_restore_database() {
     printf 'DROP DATABASE IF EXISTS :"db" WITH (FORCE);\n' | psql_in postgres -v db="$1" >>"$LOG" 2>&1 || true
 }
@@ -1650,21 +1714,24 @@ use_restored_storage() {
 }
 
 # Puts the backup's secrets in place, but keeps this install's database
-# password: PostgreSQL only reads it when it creates its data.
+# password: PostgreSQL only reads it when it creates its data. A key the
+# backup does not have stays as it is: the app's own backups hold only the
+# app key.
 restore_secrets() {
-    local file=$1 current new password_line
+    local file=$1 current new merged key
     current=$(read_secrets 2>>"$LOG") || die 'Could not read the current secrets.'
     new=$(tar -xOf "$file" secrets.env) || die 'Could not read the secrets in the backup.'
-    password_line=$(printf '%s\n' "$current" | sed -n 's/^DB_PASSWORD=/&/p' | tail -n 1)
     new=$(printf '%s\n' "$new" | sed '/^DB_PASSWORD=/d')
-    if [ "$(printf '%s\n' "$current" | sed '/^DB_PASSWORD=/d')" = "$new" ]; then
+    merged=$current
+    while IFS= read -r key; do
+        merged=$(printf '%s\n' "$merged" | sed "/^$key=/d")
+    done < <(printf '%s\n' "$new" | sed -n 's/^\([A-Z_][A-Z0-9_]*\)=.*/\1/p')
+    merged=$(printf '%s\n%s' "$merged" "$(printf '%s\n' "$new" | sed -n '/^[A-Z_][A-Z0-9_]*=/p')")
+    if [ "$(printf '%s\n' "$current" | sed -n '/^[A-Z_][A-Z0-9_]*=/p' | sort)" = "$(printf '%s\n' "$merged" | sed -n '/^[A-Z_][A-Z0-9_]*=/p' | sort)" ]; then
         ok 'The app key is the same as before'
         return
     fi
-    if [ -n "$password_line" ]; then
-        new=$(printf '%s\n# The database password of this install, kept by ./manage restore.\n%s' "$new" "$password_line")
-    fi
-    run_step 'Restoring the app key and the other secrets' from_text "$new" write_secrets ||
+    run_step 'Restoring the app key and the other secrets' from_text "$merged" write_secrets ||
         die 'The secrets were not restored.' 'The database is restored, but values encrypted with the old app key cannot be read yet.'
 }
 
@@ -2820,7 +2887,8 @@ command_help() {
             info 'It backs up the current data first, restores next to it, and only then'
             info 'switches over: a failed restore leaves your data as it was. Redis comes back'
             info 'too (sign-ins, chat memory); its queues and cache start empty.'
-            info "$(dim 'FILE can also be a plain pg_dump file (custom format).')"
+            info "$(dim 'FILE can also be a plain pg_dump file (custom format), or a backup the app made')"
+            info "$(dim '(Settings → Backups), also an encrypted .tar.gpg: gpg here needs your private key.')"
             help_option '--no-backup' 'Skip the backup of the current data'
             help_option '--yes' 'No questions (FILE is needed then)'
             ;;
@@ -2872,6 +2940,7 @@ cleanup() {
     if [ -n "${RESTORE_DB:-}" ]; then drop_restore_database "$RESTORE_DB"; fi
     if [ -n "${TMP_BACKUP:-}" ]; then rm -rf "$TMP_BACKUP"; fi
     if [ -n "${TMP_PARTIAL:-}" ]; then rm -f "$TMP_PARTIAL"; fi
+    if [ -n "${TMP_DECRYPTED:-}" ]; then rm -f "$TMP_DECRYPTED"; fi
     if [ -n "${WORK_DIR:-}" ]; then rm -rf "$WORK_DIR"; fi
     unlock
 }
@@ -2883,7 +2952,7 @@ interrupted() {
 }
 
 main() {
-    YES=0 USE_SUDO=0 LOCKED=0 TTY_STATE='' STARTED_POSTGRES=0 STARTED_REDIS=0 TMP_BACKUP='' TMP_PARTIAL='' RESTORE_DB=''
+    YES=0 USE_SUDO=0 LOCKED=0 TTY_STATE='' STARTED_POSTGRES=0 STARTED_REDIS=0 TMP_BACKUP='' TMP_PARTIAL='' TMP_DECRYPTED='' RESTORE_DB=''
     BACKUP_FILE='' BACKUP_HOLDS='' PASSWORD_INPUT='' RESTORED_STORAGE='' OUTPUT=''
     setup_output
 

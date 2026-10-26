@@ -2637,11 +2637,12 @@ native_check_php() {
 
 native_install_packages() {
     # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
-    # PDF exports, and the Noto fonts give it every script. Node.js is the
-    # next step.
+    # PDF exports, and the Noto fonts give it every script. gnupg encrypts
+    # backups (Settings → Backups); PostgreSQL and Redis bring pg_dump and
+    # redis-cli. Node.js is the next step.
     # shellcheck disable=SC2046
     apt_get install \
-        git curl unzip ca-certificates cron ufw \
+        git curl unzip ca-certificates cron ufw gnupg \
         $(native_php_packages) composer \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
         "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \

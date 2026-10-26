@@ -11,11 +11,15 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Str;
+
+use function Laravel\Prompts\text;
 
 /**
  * Creates an admin account from the command line (see
- * {@see CreateAdminUserAction}). The password is asked for when it is not
+ * {@see CreateAdminUserAction}). Run with no arguments, it asks for the
+ * email and name in the terminal. The password is asked for when it is not
  * passed, so it stays out of the shell history; `--stdin` reads it from
  * standard input, so a script (the Docker install's `manage`) can pass it
  * without it showing in the process list. `--if-missing` makes a taken email a
@@ -24,8 +28,8 @@ use Illuminate\Support\Str;
  * a restored backup, gets no second account.
  */
 #[Description('Create an admin user')]
-#[Signature('chatvia:admin:create-user {email} {name} {password?} {--stdin : Read the password from standard input} {--if-missing : Succeed without changes when the email is already taken} {--if-no-admin : Succeed without changes when an admin already exists}')]
-class CreateAdminUser extends Command
+#[Signature('chatvia:admin:create-user {email : Email address of the admin} {name : Name of the admin} {password? : The password (asked for when left out)} {--stdin : Read the password from standard input} {--if-missing : Succeed without changes when the email is already taken} {--if-no-admin : Succeed without changes when an admin already exists}')]
+class CreateAdminUser extends Command implements PromptsForMissingInput
 {
     public function handle(CreateAdminUserAction $createAdmin): int
     {
@@ -66,6 +70,24 @@ class CreateAdminUser extends Command
         $this->info("Name: {$admin->name}");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @return array<string, \Closure(): string>
+     */
+    protected function promptForMissingArgumentsUsing(): array
+    {
+        return [
+            'email' => fn (): string => text(
+                label: 'Email address of the admin user',
+                placeholder: 'admin@example.com',
+                validate: ['email' => 'required|email'],
+            ),
+            'name' => fn (): string => text(
+                label: 'Name of the admin user',
+                required: true,
+            ),
+        ];
     }
 
     private function password(): string

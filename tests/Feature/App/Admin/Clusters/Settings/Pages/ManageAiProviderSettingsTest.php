@@ -107,19 +107,20 @@ it('marks what each provider is used for', function (): void {
 });
 
 it('says how many agents stop answering before a key is removed', function (): void {
+    // Groq: the seeded demo agents answer with Scaleway models.
     $settings = app(AiProviderSettings::class);
-    $settings->scaleway_api_key = 'scw-key';
+    $settings->groq_api_key = 'gsk-key';
     $settings->save();
 
-    $model = testLlm('gpt-oss-120b', LlmProviderKind::Scaleway);
+    $model = testLlm('llama-3.3-70b-versatile', LlmProviderKind::Groq);
     createAgent($this->admin, ['llm_id' => $model->id]);
 
     adminPage(ManageAiProviderSettings::class, $this->admin)
-        ->mountAction(TestAction::make('forget_scaleway_api_key')->schemaComponent('scaleway_api_key', schema: 'form'))
-        ->assertMountedActionModalSee('1 agent answer with Scaleway AI models and stop answering until a key is added again.')
+        ->mountAction(TestAction::make('forget_groq_api_key')->schemaComponent('groq_api_key', schema: 'form'))
+        ->assertMountedActionModalSee('1 agent answer with Groq models and stop answering until a key is added again.')
         ->callMountedAction();
 
-    expect(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
+    expect(savedSetting(AiProviderSettings::class, 'groq_api_key'))->toBeNull();
 });
 
 it('adds a server of your own, once it answers', function (): void {

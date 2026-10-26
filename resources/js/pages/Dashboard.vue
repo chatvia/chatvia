@@ -2,10 +2,12 @@
 /**
  * Workspace home: headline numbers (agents, messages, conversations, active
  * sessions) and the daily reply volume of the last week or month. The numbers
- * load once on mount and again after an agent is created.
+ * load once on mount and again after an agent is created. A new person gets
+ * the first part of the onboarding tour here.
  */
 import { type DashboardStats, fetchDashboardStats } from '@/api/dashboard';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
+import DashboardTour from '@/components/onboarding/DashboardTour.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -61,6 +63,12 @@ const loading = ref(true);
 
 // Modal state
 const showCreateAgentModal = ref(false);
+const dashboardTour = ref<InstanceType<typeof DashboardTour> | null>(null);
+
+function openCreateAgentModal(): void {
+    dashboardTour.value?.createAgentClicked();
+    showCreateAgentModal.value = true;
+}
 
 // Permission checking - only team owners can create agents
 const canCreateAgent = computed(() => {
@@ -132,7 +140,7 @@ const formatNumber = (num: number): string => {
                         <h1 class="text-2xl font-bold tracking-tight">{{ t('dashboard.title') }}</h1>
                         <p class="text-muted-foreground">{{ t('dashboard.subtitle') }}</p>
                     </div>
-                    <Button v-if="canCreateAgent" @click="showCreateAgentModal = true" class="gap-2 self-start">
+                    <Button v-if="canCreateAgent" data-tour="create-agent" @click="openCreateAgentModal" class="gap-2 self-start">
                         <Plus class="h-4 w-4" />
                         {{ t('dashboard.create_agent') }}
                     </Button>
@@ -264,5 +272,7 @@ const formatNumber = (num: number): string => {
 
         <!-- Create Agent Modal -->
         <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshDashboardData" />
+
+        <DashboardTour ref="dashboardTour" :can-create-agent="canCreateAgent" @create-agent="showCreateAgentModal = true" />
     </AppLayout>
 </template>

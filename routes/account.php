@@ -8,6 +8,7 @@ use App\Http\Controllers\Settings\Account\DataExportController;
 use App\Http\Controllers\Settings\Account\DeleteAccountController;
 use App\Http\Controllers\Settings\Account\DownloadDataExportController;
 use App\Http\Controllers\Settings\Account\NotificationPreferencesController;
+use App\Http\Controllers\Settings\Account\OnboardingTourController;
 use App\Http\Controllers\Settings\Account\PasskeyController;
 use App\Http\Controllers\Settings\Account\PasswordController;
 use App\Http\Controllers\Settings\Account\PreferencesController;
@@ -82,5 +83,10 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // Which notifications ring the bell, show a desktop alert or play a sound.
         Route::get('notifications', [NotificationPreferencesController::class, 'edit'])->name('notifications.edit');
         Route::patch('notifications', [NotificationPreferencesController::class, 'update'])->name('notifications.update');
+
+        // How far the person got in the dashboard tour (null starts it again).
+        Route::patch('onboarding-tour', [OnboardingTourController::class, 'update'])
+            ->middleware('throttle:60,1,onboarding-tour')
+            ->name('onboarding-tour.update');
     });
 });

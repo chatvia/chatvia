@@ -23,6 +23,8 @@ export interface NavItem {
     isActive?: boolean;
     // A count drawn on the link (e.g. chats waiting in the Inbox); hidden at 0.
     badge?: number;
+    // The `data-tour` name of the link, for the onboarding tour's stops.
+    tour?: string;
 }
 
 export interface CurrentRoute {
@@ -73,6 +75,10 @@ export interface SharedData extends PageProps {
     // the Account area (admin Settings → Workspaces → Owner account). Null
     // when nobody is signed in.
     accountOptions: { data_export: boolean; deletion: boolean } | null;
+    // The dashboard tour: how far this person got (`stage`, null = not
+    // started), or null while the admin has it off (Settings → Workspaces →
+    // Onboarding). Read through useOnboardingTour().
+    onboardingTour: { stage: App.Identity.Workspace.Enums.OnboardingTourStage | null } | null;
     // Whether this install has an Enterprise key: Security and Governance
     // unlock their Enterprise features with it.
     enterprise: boolean;

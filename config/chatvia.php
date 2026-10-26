@@ -122,6 +122,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Onboarding
+    |--------------------------------------------------------------------------
+    |
+    | Whether the dashboard offers each new person a guided tour (`tour`):
+    | the dashboard, creating a first agent and that agent's setup page. Off
+    | hides the tour and its "Take the tour" menu entry. Set in the admin
+    | panel (Settings → Workspaces); the value here is the default.
+    |
+    */
+
+    'onboarding' => [
+        'tour' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Admin Panel
     |--------------------------------------------------------------------------
     |

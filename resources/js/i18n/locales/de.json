@@ -4434,5 +4434,54 @@
             "send_takes_over_offline": "Diese Person scheint offline zu sein. Wenn du sendest, übernimmst du den Chat, und sie sieht deine Antwort, wenn sie zurückkommt.",
             "reply_placeholder": "Antwort an {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Tour starten",
+        "skip": "Tour überspringen",
+        "back": "Zurück",
+        "next": "Weiter",
+        "finish": "Fertig",
+        "step_of": "{current} von {total}",
+        "welcome": {
+            "title": "Willkommen bei ChatVia.ai",
+            "description": "Eine kurze Tour zeigt dir das Dashboard und hilft dir, deinen ersten Agenten einzurichten.",
+            "how_title": "So funktioniert es",
+            "how_move": "Mit Weiter und Zurück oder den Pfeiltasten wechselst du zwischen den Schritten.",
+            "how_skip": "Schließe einen Schritt oder drücke Esc, um die Tour jederzeit zu beenden.",
+            "how_again": "Du kannst sie jederzeit über Tour starten in deinem Menü neu beginnen.",
+            "not_now": "Nicht jetzt",
+            "start": "Tour starten"
+        },
+        "dashboard": {
+            "agents_title": "Deine Agenten",
+            "agents_text": "Hier stehen alle Agenten, die du baust. Öffne einen, um ihn zu ändern, ihm Wissen zu geben oder seine Chats zu lesen.",
+            "inbox_title": "Posteingang",
+            "inbox_text": "Chats, die einen Menschen brauchen, landen hier, damit dein Team vom Agenten übernehmen kann.",
+            "ask_title": "Daten abfragen",
+            "ask_text": "Stelle Fragen zu deinen Chats, Agenten und Leads in einfachen Worten.",
+            "teams_title": "Teams",
+            "teams_text": "Wechsle hier zwischen deinen Teams oder erstelle ein neues.",
+            "notifications_title": "Benachrichtigungen",
+            "notifications_text": "Die Glocke zeigt dir, wenn etwas dich braucht, zum Beispiel ein Chat, der auf einen Menschen wartet.",
+            "menu_title": "Dein Menü",
+            "menu_text": "Dein Konto, die Einstellungen deines Workspaces und die Sprache. Hier kannst du die Tour auch neu starten.",
+            "create_title": "Erstelle deinen ersten Agenten",
+            "create_text": "Gib ihm einen Namen, und wir zeigen dir, wie du ihn einrichtest.",
+            "create_button": "Agent erstellen"
+        },
+        "agent": {
+            "sections_title": "Richte deinen Agenten ein",
+            "sections_text": "Jeder Bereich ändert einen Teil deines Agenten: Anweisungen, Modell, Sprachen, Aussehen und mehr.",
+            "surfaces_title": "Drei Orte zum Chatten",
+            "surfaces_text": "Dein Agent kann auf einer gehosteten Chatseite, in einem Chat-Widget auf deiner Website und in einer Befehlsleiste antworten. Jeder Ort hat sein eigenes Aussehen und Verhalten.",
+            "preview_title": "Live ansehen",
+            "preview_text": "Die Vorschau zeigt deinen Agenten mit den gespeicherten Einstellungen. Chatte hier mit ihm, um ihn zu testen.",
+            "knowledge_title": "Gib ihm dein Wissen",
+            "knowledge_text": "Füge Dateien, Websites, Texte oder Fragen und Antworten hinzu. Dein Agent antwortet daraus.",
+            "playground_title": "Probier es aus",
+            "playground_text": "Chatte im Playground mit deinem Agenten, bevor du ihn teilst.",
+            "deploy_title": "Teile ihn",
+            "deploy_text": "Wenn er fertig ist, binde ihn unter Bereitstellen auf deiner Website ein oder teile einen Link zu seiner Chatseite."
+        }
     }
 }

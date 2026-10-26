@@ -1,0 +1,51 @@
+{
+    "onboarding": {
+        "take_tour": "Turu başlat",
+        "skip": "Turu atla",
+        "back": "Geri",
+        "next": "İleri",
+        "finish": "Bitir",
+        "step_of": "{current}/{total}",
+        "welcome": {
+            "title": "ChatVia.ai'ye hoş geldiniz",
+            "description": "Kısa bir tur size paneli gösterir ve ilk asistanınızı kurmanıza yardım eder.",
+            "how_title": "Nasıl çalışır",
+            "how_move": "Adımlar arasında geçmek için İleri ve Geri düğmelerini ya da ok tuşlarını kullanın.",
+            "how_skip": "Turu istediğiniz an durdurmak için adımı kapatın veya Esc tuşuna basın.",
+            "how_again": "Menünüzdeki Turu başlat ile turu istediğiniz zaman yeniden başlatabilirsiniz.",
+            "not_now": "Şimdi değil",
+            "start": "Turu başlat"
+        },
+        "dashboard": {
+            "agents_title": "Asistanlarınız",
+            "agents_text": "Oluşturduğunuz tüm asistanlar burada listelenir. Değiştirmek, bilgi eklemek veya sohbetlerini okumak için birini açın.",
+            "inbox_title": "Gelen kutusu",
+            "inbox_text": "Bir kişiye ihtiyaç duyan sohbetler buraya gelir, böylece ekibiniz asistandan devralabilir.",
+            "ask_title": "Verilerinize sorun",
+            "ask_text": "Sohbetleriniz, asistanlarınız ve potansiyel müşterileriniz hakkında sade sözlerle soru sorun.",
+            "teams_title": "Ekipler",
+            "teams_text": "Ekipleriniz arasında buradan geçin veya yeni bir ekip oluşturun.",
+            "notifications_title": "Bildirimler",
+            "notifications_text": "Zil, bir şey sizi beklediğinde haber verir; örneğin bir kişiyi bekleyen bir sohbet.",
+            "menu_title": "Menünüz",
+            "menu_text": "Hesabınız, çalışma alanı ayarlarınız ve dil. Bu turu buradan yeniden başlatabilirsiniz.",
+            "create_title": "İlk asistanınızı oluşturun",
+            "create_text": "Ona bir ad verin, nasıl kuracağınızı size gösterelim.",
+            "create_button": "Asistan Oluştur"
+        },
+        "agent": {
+            "sections_title": "Asistanınızı kurun",
+            "sections_text": "Her bölüm asistanınızın bir yönünü değiştirir: talimatlar, model, diller, görünüm ve daha fazlası.",
+            "surfaces_title": "Sohbet için üç yer",
+            "surfaces_text": "Asistanınız barındırılan bir sohbet sayfasında, sitenizdeki sohbet bileşeninde ve bir komut çubuğunda yanıt verebilir. Her birinin kendi görünümü ve davranışı vardır.",
+            "preview_title": "Canlı görün",
+            "preview_text": "Önizleme, asistanınızı kayıtlı ayarlarıyla gösterir. Test etmek için burada onunla sohbet edin.",
+            "knowledge_title": "Bildiklerinizi öğretin",
+            "knowledge_text": "Dosya, web sitesi, metin veya soru-cevap ekleyin. Asistanınız bunlardan yanıt verir.",
+            "playground_title": "Deneyin",
+            "playground_text": "Paylaşmadan önce asistanınızla Deneme alanında sohbet edin.",
+            "deploy_title": "Paylaşın",
+            "deploy_text": "Hazır olduğunda, Yayına al bölümünden onu sitenize ekleyin veya sohbet sayfasının bağlantısını paylaşın."
+        }
+    }
+}

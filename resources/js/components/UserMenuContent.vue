@@ -1,8 +1,10 @@
 <script setup lang="ts">
 // Contents of the avatar dropdown: who is signed in, links to the account and
-// workspace areas, the UI language picker, and sign-out.
+// workspace areas, "Take the tour" (while the admin has the tour on), the UI
+// language picker, and sign-out.
 import { logout } from '@/api/account';
 import UserInfo from '@/components/UserInfo.vue';
+import { useOnboardingTour } from '@/composables/onboarding/useOnboardingTour';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -23,7 +25,7 @@ import library from '@/routes/library';
 import people from '@/routes/people';
 import type { User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Building2, Check, CircleUser, Languages, LogOut } from 'lucide-vue-next';
+import { Building2, Check, CircleUser, Compass, Languages, LogOut } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -36,6 +38,7 @@ defineProps<Props>();
 const { t, locale } = useI18n();
 const page = usePage();
 const { hasPermission } = useTeamPermissions();
+const { enabled: tourEnabled, restart: restartTour } = useOnboardingTour();
 
 // Workspace administration is permission-gated. Point the entry at the first
 // section the signed-in role can actually reach; hide it entirely if none.
@@ -102,6 +105,10 @@ const handleLogout = () => {
                 <Building2 class="me-2 h-4 w-4" />
                 {{ t('nav.workspace') }}
             </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem v-if="tourEnabled" class="cursor-pointer" @select="restartTour">
+            <Compass class="me-2 h-4 w-4" />
+            {{ t('onboarding.take_tour') }}
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

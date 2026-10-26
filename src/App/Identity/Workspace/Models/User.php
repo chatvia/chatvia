@@ -7,6 +7,7 @@ use App\Identity\Workspace\Concerns\HasTeams;
 use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
 use App\Identity\Workspace\Concerns\ResolvesWorkspaceHierarchy;
 use App\Identity\Workspace\Enums\DateFormat;
+use App\Identity\Workspace\Enums\OnboardingTourStage;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Database\Factories\UserFactory;
 use Domain\Agent\Concerns\HasSettings;
@@ -83,6 +84,7 @@ use Support\Concerns\HasExternalId;
  * @property Carbon|null $deactivated_at
  * @property DateFormat|null $date_format
  * @property string|null $locale
+ * @property OnboardingTourStage|null $onboarding_tour
  * @property array<string, mixed>|null $notification_preferences
  * @property Carbon|null $last_login_at
  * @property Carbon|null $created_at
@@ -185,6 +187,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'last_login_at' => 'datetime',
             'is_admin' => 'boolean',
             'date_format' => DateFormat::class,
+            'onboarding_tour' => OnboardingTourStage::class,
             'notification_preferences' => 'array',
         ];
     }
@@ -248,6 +251,15 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return NotificationPreferencesData::fromStored(
             array_key_exists('notification_preferences', $this->attributes) ? $this->notification_preferences : null,
         );
+    }
+
+    /**
+     * How far this person got in the dashboard tour; null when not started,
+     * also on a model built in memory that does not hold the column yet.
+     */
+    public function onboardingTourStage(): ?OnboardingTourStage
+    {
+        return array_key_exists('onboarding_tour', $this->attributes) ? $this->onboarding_tour : null;
     }
 
     /**

@@ -17,6 +17,7 @@ return new class extends SettingsMigration
             $group->add('new_workspace_message_limit');
             $group->add('owner_data_export');
             $group->add('owner_account_deletion');
+            $group->add('onboarding_tour');
             $group->add('retention_days');
             $group->add('retention_floor_days');
             $group->add('notification_retention_days');

@@ -1,0 +1,51 @@
+{
+    "onboarding": {
+        "take_tour": "Rozpocznij przewodnik",
+        "skip": "Pomiń przewodnik",
+        "back": "Wstecz",
+        "next": "Dalej",
+        "finish": "Zakończ",
+        "step_of": "{current} z {total}",
+        "welcome": {
+            "title": "Witaj w ChatVia.ai",
+            "description": "Krótki przewodnik pokaże Ci panel i pomoże skonfigurować pierwszego agenta.",
+            "how_title": "Jak to działa",
+            "how_move": "Używaj przycisków Dalej i Wstecz albo strzałek, aby przechodzić między krokami.",
+            "how_skip": "Zamknij krok lub naciśnij Esc, aby w każdej chwili zakończyć przewodnik.",
+            "how_again": "Możesz go zawsze uruchomić ponownie, wybierając Rozpocznij przewodnik w swoim menu.",
+            "not_now": "Nie teraz",
+            "start": "Rozpocznij przewodnik"
+        },
+        "dashboard": {
+            "agents_title": "Twoi agenci",
+            "agents_text": "Tu znajdziesz wszystkich swoich agentów. Otwórz jednego, aby go zmienić, nauczyć czegoś lub przeczytać jego czaty.",
+            "inbox_title": "Skrzynka",
+            "inbox_text": "Czaty, które potrzebują człowieka, trafiają tutaj, aby Twój zespół mógł przejąć rozmowę od agenta.",
+            "ask_title": "Zapytaj swoje dane",
+            "ask_text": "Zadawaj prostymi słowami pytania o czaty, agentów i leady.",
+            "teams_title": "Zespoły",
+            "teams_text": "Tutaj przełączasz się między zespołami albo tworzysz nowy.",
+            "notifications_title": "Powiadomienia",
+            "notifications_text": "Dzwonek informuje Cię, gdy coś Cię potrzebuje, na przykład czat czekający na człowieka.",
+            "menu_title": "Twoje menu",
+            "menu_text": "Twoje konto, ustawienia przestrzeni roboczej i język. Stąd możesz też ponownie uruchomić przewodnik.",
+            "create_title": "Utwórz pierwszego agenta",
+            "create_text": "Nadaj mu nazwę, a pokażemy Ci, jak go skonfigurować.",
+            "create_button": "Utwórz agenta"
+        },
+        "agent": {
+            "sections_title": "Skonfiguruj agenta",
+            "sections_text": "Każda sekcja zmienia jedną część agenta: instrukcje, model, języki, wygląd i więcej.",
+            "surfaces_title": "Trzy miejsca do rozmowy",
+            "surfaces_text": "Twój agent może odpowiadać na hostowanej stronie czatu, w widżecie czatu na Twojej stronie i w pasku poleceń. Każde miejsce ma własny wygląd i działanie.",
+            "preview_title": "Zobacz na żywo",
+            "preview_text": "Podgląd pokazuje agenta z zapisanymi ustawieniami. Porozmawiaj z nim tutaj, aby go przetestować.",
+            "knowledge_title": "Naucz go tego, co wiesz",
+            "knowledge_text": "Dodaj pliki, strony internetowe, tekst albo pytania i odpowiedzi. Agent odpowiada na ich podstawie.",
+            "playground_title": "Wypróbuj go",
+            "playground_text": "Porozmawiaj z agentem w sekcji Plac zabaw, zanim go udostępnisz.",
+            "deploy_title": "Udostępnij go",
+            "deploy_text": "Gdy będzie gotowy, dodaj go do swojej strony lub udostępnij link do jego strony czatu w sekcji Wdrożenie."
+        }
+    }
+}

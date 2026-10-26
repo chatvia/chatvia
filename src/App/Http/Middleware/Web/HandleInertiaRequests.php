@@ -110,6 +110,12 @@ class HandleInertiaRequests extends Middleware
                 'data_export' => (bool) (config('chatvia.account.data_export') ?? true),
                 'deletion' => (bool) (config('chatvia.account.deletion') ?? true),
             ] : null,
+            // The dashboard tour: how far this person got in it (`stage`, null =
+            // not started), or null while the admin has it off (Settings →
+            // Workspaces → Onboarding), which also hides "Take the tour".
+            'onboardingTour' => $user instanceof User && (bool) (config('chatvia.onboarding.tour') ?? true) ? [
+                'stage' => $user->onboardingTourStage()?->value,
+            ] : null,
             // Whether this install has an Enterprise key: the Security and
             // Governance pages lock their Enterprise features without one.
             'enterprise' => $user instanceof User && app(Entitlements::class)->enterprise(),

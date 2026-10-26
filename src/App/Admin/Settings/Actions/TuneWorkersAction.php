@@ -25,6 +25,7 @@ final readonly class TuneWorkersAction
         $this->settings->records_workers = $workers->records;
         $this->settings->media_workers = $workers->media;
         $this->settings->voice_workers = $workers->voice;
+        $this->settings->generation_workers = $workers->generation;
         $this->settings->save();
 
         return $this->settings;

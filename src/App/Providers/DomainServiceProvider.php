@@ -105,6 +105,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
+use Domain\Llm\Contracts\ImageGenerator;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Contracts\Transcriber;
@@ -115,10 +116,14 @@ use Domain\Llm\Events\LlmUnlisted;
 use Domain\Llm\Listeners\NotifyAdminsOfUnlistedLlm;
 use Domain\Llm\Listeners\QueueLlmListingCheck;
 use Domain\Llm\Operations\Media\ElevenLabsSpeaker;
+use Domain\Llm\Operations\Media\GoogleImageGenerator;
+use Domain\Llm\Operations\Media\NullImageGenerator;
 use Domain\Llm\Operations\Media\NullSpeaker;
 use Domain\Llm\Operations\Media\NullTranscriber;
+use Domain\Llm\Operations\Media\OpenAiImageGenerator;
 use Domain\Llm\Operations\Media\OpenAiSpeaker;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
+use Domain\Llm\Operations\Media\OpenRouterImageGenerator;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
 use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
@@ -276,6 +281,16 @@ class DomainServiceProvider extends ServiceProvider
             'openai' => $app->make(OpenAiSpeaker::class),
             'none' => $app->make(NullSpeaker::class),
             default => throw $this->unknownAiDriver('speaker', ['elevenlabs', 'openai', 'none']),
+        });
+
+        // "auto" picks no service: making pictures costs money, so a
+        // connected key alone does not turn it on.
+        $this->app->bind(fn ($app): ImageGenerator => match ($this->aiDriver('image_generator', auto: 'none')) {
+            'openai' => $app->make(OpenAiImageGenerator::class),
+            'openrouter' => $app->make(OpenRouterImageGenerator::class),
+            'google' => $app->make(GoogleImageGenerator::class),
+            'none' => $app->make(NullImageGenerator::class),
+            default => throw $this->unknownAiDriver('image_generator', ['openai', 'openrouter', 'google', 'none']),
         });
     }
 

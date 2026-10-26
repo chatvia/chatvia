@@ -28,7 +28,7 @@ use Support\Localization\Country\Models\Country;
  * Oversight of customer workspaces (the `workspaces` table) with their owner.
  * The view page is the workspace's dashboard: its numbers, agents and
  * people, and what staff may do to it (edit, password reset, message limit,
- * deactivate, delete).
+ * generation limit, deactivate, delete).
  * Staff-only; the panel itself is gated to admins.
  */
 class WorkspaceResource extends Resource
@@ -113,9 +113,9 @@ class WorkspaceResource extends Resource
     }
 
     /**
-     * The Overview tab of a workspace's page: who owns it, who works in it
-     * and its message limit, as Settings-style cards. Agents and teammates
-     * have their own tabs ({@see self::getRelations()}).
+     * The Overview tab of a workspace's page: who owns it, who works in it,
+     * its message limit and its generation limit, as Settings-style cards.
+     * Agents and teammates have their own tabs ({@see self::getRelations()}).
      */
     public static function infolist(Schema $schema): Schema
     {
@@ -218,6 +218,22 @@ class WorkspaceResource extends Resource
                             ->label('The count restarts on')
                             ->state(fn (): string => now()->addMonthNoOverflow()->startOfMonth()->format('j F Y'))
                             ->visible(fn (Workspace $record): bool => $record->messageLimit !== null),
+                    ]),
+                Section::make('Generation limit')
+                    ->description('A cap on the pictures and audio files the workspace\'s agents make in chats each month.')
+                    ->icon(Heroicon::OutlinedPhoto)
+                    ->extraAttributes(['class' => 'cv-settings-card'])
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('generationLimit.monthly_limit')
+                            ->label('Monthly limit on pictures and audio files')
+                            ->numeric()
+                            ->placeholder('No limit'),
+                        TextEntry::make('generations_used')
+                            ->label('Made this month')
+                            ->state(fn (Workspace $record): ?int => $record->generationLimit?->usedThisMonth())
+                            ->numeric()
+                            ->placeholder('Counted only while a limit is set'),
                     ]),
             ]);
     }

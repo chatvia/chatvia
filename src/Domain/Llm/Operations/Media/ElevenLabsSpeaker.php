@@ -34,13 +34,13 @@ class ElevenLabsSpeaker implements Speaker
         private readonly SpeechTextParts $parts,
     ) {}
 
-    public function speak(string $text, string $voice): string
+    public function speak(string $text, string $voice, AiCallTag $tag = AiCallTag::ReadAloud): string
     {
         $url = Str::rtrim((string) config('services.elevenlabs.endpoint'), '/').'/text-to-speech/'.rawurlencode($voice).'?output_format=mp3_44100_128';
 
         try {
             return collect($this->parts->split($text, self::MAX_CHARACTERS))
-                ->map(fn (string $part): string => $this->tags->during(AiCallTag::ReadAloud, fn (): string => Http::withHeaders(['xi-api-key' => (string) config('services.elevenlabs.api_key')])
+                ->map(fn (string $part): string => $this->tags->during($tag, fn (): string => Http::withHeaders(['xi-api-key' => (string) config('services.elevenlabs.api_key')])
                     ->accept('audio/mpeg')
                     ->timeout(120)
                     ->post($url, ['text' => $part, 'model_id' => $this->model()])

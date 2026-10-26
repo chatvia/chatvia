@@ -540,6 +540,8 @@
     "This needs an Enterprise license.": "این کار به مجوز Enterprise نیاز دارد.",
     "Read aloud": "خواندن با صدا",
     "Play agent replies as speech": "پخش پاسخ‌های عامل‌ها به صورت گفتار",
+    "Image generation": "ساخت تصویر",
+    "Let agents make pictures in chats": "به عامل‌ها اجازه می‌دهد در گفتگوها تصویر بسازند",
     "Reading aloud is not available right now.": "خواندن با صدا اکنون در دسترس نیست.",
     "The reply could not be read aloud. Please try again.": "پاسخ را نمی‌شد با صدا خواند. لطفاً دوباره تلاش کنید.",
     "Add a custom domain first.": "ابتدا یک دامنه سفارشی اضافه کنید.",

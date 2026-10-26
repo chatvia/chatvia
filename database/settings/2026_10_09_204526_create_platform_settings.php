@@ -35,6 +35,7 @@ return new class extends SettingsMigration
             $group->add('analytics_workers');
             $group->add('records_workers');
             $group->add('media_workers');
+            $group->add('generation_workers');
             $group->add('voice_workers');
 
             $programs = app(ServerProgramFinder::class);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\Speaker;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\SpeechFormat;
 use Domain\Llm\Exceptions\SpeechNotConfiguredException;
 
@@ -14,7 +15,7 @@ use Domain\Llm\Exceptions\SpeechNotConfiguredException;
  */
 class NullSpeaker implements Speaker
 {
-    public function speak(string $text, string $voice): string
+    public function speak(string $text, string $voice, AiCallTag $tag = AiCallTag::ReadAloud): string
     {
         throw new SpeechNotConfiguredException;
     }

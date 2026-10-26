@@ -106,6 +106,8 @@ return [
         // A voice call waits for its worker while the caller listens to
         // "Connecting…": anything past a few seconds means the pool is full.
         'redis-long:voice' => 15,
+        // A chatter watches a placeholder until the picture comes.
+        'redis:generation' => 60,
     ],
 
     /*
@@ -270,6 +272,25 @@ return [
             'timeout' => 600,
             'nice' => 10,
         ],
+        // Pictures and audio files agents make in chats. Each one waits up
+        // to minutes on the AI service, so they get a pool of their own and
+        // never hold up replies or ingestion. A failed file is not retried
+        // (its slot of the monthly cap is given back); `redis`'s
+        // retry_after outlasts the timeout.
+        'generation' => [
+            'connection' => 'redis',
+            'queue' => ['generation'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'minProcesses' => 1,
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 300,
+            'nice' => 5,
+        ],
         // Transcribing audio and video can take hours: `redis-media`'s
         // retry_after outlasts MediaIngestionJob's timeout. Backups an admin
         // starts by hand (RunBackupJob) run here too, for the same reason.
@@ -310,7 +331,7 @@ return [
     | Every environment runs the supervisors above. The most workers of each
     | (maxProcesses) fit a small server: Horizon starts a supervisor with half
     | of it, keeps at least minProcesses per pool, and each worker is a PHP
-    | process of about 80 MB, so 18 workers at most, 7 when idle. The admin
+    | process of about 80 MB, so 20 workers at most, 8 when idle. The admin
     | panel changes them (Settings, Platform, Queue workers); Horizon reads
     | them when it starts.
     */

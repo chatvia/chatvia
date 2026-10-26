@@ -21,7 +21,8 @@ it('saves the numbers recommended for this machine', function (): void {
         ->assertSuccessful();
 
     expect(savedSetting(PlatformSettings::class, 'chat_workers'))->toBe($recommended->chat)
-        ->and(savedSetting(PlatformSettings::class, 'media_workers'))->toBe($recommended->media);
+        ->and(savedSetting(PlatformSettings::class, 'media_workers'))->toBe($recommended->media)
+        ->and(savedSetting(PlatformSettings::class, 'generation_workers'))->toBe($recommended->generation);
 });
 
 it('saves nothing with --dry-run', function (): void {

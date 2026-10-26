@@ -6,9 +6,11 @@ namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Data\Speech\SpeechVoiceData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Enums\SpeechFormat;
 use Domain\Llm\Exceptions\SpeechFailedException;
+use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\SpeechTextParts;
 use Illuminate\Support\Str;
 use Ratchet\Client\Connector;
@@ -47,9 +49,16 @@ class OpenAiSpeaker implements Speaker
 
     public function __construct(
         private readonly SpeechTextParts $parts,
+        private readonly AiCallTags $tags,
     ) {}
 
-    public function speak(string $text, string $voice): string
+    public function speak(string $text, string $voice, AiCallTag $tag = AiCallTag::ReadAloud): string
+    {
+        return $this->tags->during($tag, fn (): string => $this->read($text, $voice));
+    }
+
+    /** Reads every part, then once more the parts read with other words. */
+    private function read(string $text, string $voice): string
     {
         $parts = $this->parts->split($text, self::MAX_CHARACTERS);
         $audio = $this->readAll($parts, $voice);

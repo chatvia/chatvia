@@ -56,6 +56,7 @@ use Domain\Llm\Services\ElevenLabsVoices;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ModelsDevCatalog;
+use Domain\Llm\Services\OpenRouterImageModels;
 use Domain\Llm\Services\ProviderAdapters;
 use Domain\Llm\Services\SourceSummaryModel;
 use Domain\Llm\Services\TaskModels;
@@ -91,9 +92,11 @@ use InvalidArgumentException;
  * What runs on the connected AI providers: the chat models agents can use
  * (added from a provider's list, removed with their agents moved to another
  * model) and the default for new agents; the embedding service; the
- * reranker; document reading; speech to text; voice. The models behind the
- * app's own tasks ({@see LlmTask}) are a closed card of their own: the model
- * for quick tasks, and one per task, grouped by when the task runs. "Use the
+ * reranker; document reading; speech to text; voice; reading aloud; image
+ * generation, which stays off until an admin picks a service. The models
+ * behind the app's own tasks ({@see LlmTask}) are a closed card of their
+ * own: the model for quick tasks, and one per task, grouped by when the
+ * task runs. "Use the
  * recommended models" sets them from the chat provider's preset
  * ({@see ApplyRecommendedTaskModelsAction}).
  *
@@ -380,7 +383,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->text('openai_realtime_transcription_model', 'Transcription model',
                     help: 'Writes down what the visitor says, so it shows in the chat log. For example gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
-            SettingsCard::make('read_aloud', 'Read aloud', 'Agent replies played as speech in the hosted chat.', Heroicon::OutlinedSpeakerWave, fn (): array => [
+            SettingsCard::make('read_aloud', 'Read aloud', 'Agent replies played as speech in the hosted chat, and the audio files agents make there.', Heroicon::OutlinedSpeakerWave, fn (): array => [
                 $this->serviceChoice('speaker', 'Read aloud', [
                     'elevenlabs' => 'ElevenLabs',
                     'openai' => 'OpenAI Realtime',
@@ -400,6 +403,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     help: 'Agents read replies in this voice unless they have their own. Pick any voice in your ElevenLabs account, or leave it empty for a ready-made one.')
                     ->searchable()
                     ->visible(fn (Get $get): bool => $get('speaker') === 'elevenlabs'),
+                $this->integer('audio_per_chat_per_hour', 'Audio files per chat per hour', min: 1, max: 100,
+                    help: 'The same service makes the audio files agents create when a chatter asks for one. This is the most an agent makes in one chat in an hour.'),
             ])->advancedFields(fn (): array => [
                 $this->choice('openai_speech_model', 'OpenAI model', [
                     'gpt-realtime-2.1-mini' => 'GPT Realtime 2.1 mini',
@@ -412,6 +417,52 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'eleven_multilingual_v2' => 'Multilingual v2 (29 languages)',
                 ]),
             ])->summary(fn (): string => $this->readAloudSummary()),
+            SettingsCard::make('image_generation', 'Image generation', 'Pictures agents make in the hosted chat when a chatter asks.', Heroicon::OutlinedPhoto, fn (): array => [
+                $this->serviceChoice('image_generator', 'Image generation', [
+                    'openai' => 'OpenAI GPT Image',
+                    'openrouter' => 'OpenRouter',
+                    'google' => 'Google Gemini',
+                    'none' => 'Off',
+                ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. Every picture counts against the workspace\'s monthly generation limit, when it has one.',
+                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
+                    ->live(),
+                Callout::make('A small text model hands OpenAI the prompt')
+                    ->description('OpenAI draws through its Responses API, so each picture also costs a few text tokens. OpenAI does not keep the pictures.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('image_generator') === 'openai'),
+                Callout::make('Prices differ a lot between OpenRouter models')
+                    ->description('Check a model\'s price on OpenRouter before you pick it. Any model whose output includes images works.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('image_generator') === 'openrouter'),
+                Callout::make('Google marks every picture')
+                    ->description('Each picture carries Google\'s SynthID watermark, which people cannot see but tools can find.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
+                $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', min: 1, max: 100,
+                    help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
+            ])->advancedFields(fn (): array => [
+                $this->choice('openai_image_model', 'OpenAI model', [
+                    'gpt-image-2.5-flare' => 'GPT Image 2.5 Flare (fast)',
+                    'gpt-image-2.5-sunburst' => 'GPT Image 2.5 Sunburst (best detail, costs more)',
+                    'gpt-image-2' => 'GPT Image 2',
+                    'gpt-image-1.5' => 'GPT Image 1.5',
+                    'gpt-image-1-mini' => 'GPT Image 1 mini (cheapest)',
+                ]),
+                $this->choice('openrouter_image_model', 'OpenRouter model', $openRouterImages = app(OpenRouterImageModels::class)->options(),
+                    help: 'Listed with a few good picks first, then every model on OpenRouter whose output includes images.')
+                    ->options(ModelLogo::labels($openRouterImages, LlmProviderKind::OpenRouter))
+                    ->allowHtml()
+                    ->searchable(),
+                $this->choice('google_image_model', 'Google model', [
+                    'gemini-nano-banana-2.1' => 'Nano Banana 2.1 (fast, good pictures)',
+                    'gemini-3.1-flash-lite-image' => 'Nano Banana 2 Lite (fastest, cheapest)',
+                    'gemini-3-pro-image' => 'Nano Banana Pro (best pictures, costs more)',
+                    'gemini-3.1-flash-image' => 'Nano Banana 2',
+                ]),
+            ])->summary(fn (): string => $this->imageGenerationSummary()),
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),
                 $this->withHelp($this->modelChoice('task_model', 'Model for quick tasks'),
@@ -1207,6 +1258,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             'transcriber' => AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none',
             'voice' => AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none',
             'speaker' => AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none',
+            'image_generator' => 'none',
             default => throw new InvalidArgumentException("{$property} is not a service choice."),
         };
     }
@@ -1305,6 +1357,20 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $name = array_find($speaker->voices(), fn (SpeechVoiceData $choice): bool => $choice->id === $voice)?->label;
 
         return $provider === 'off' || blank($name) ? $provider : $provider.' · '.$name;
+    }
+
+    /** The image service in use, with its model, or "off". */
+    private function imageGenerationSummary(): string
+    {
+        $provider = $this->providerInUse('image_generator');
+        $model = match ($this->driverInUse('image_generator')) {
+            'openai' => config('services.openai.image_model'),
+            'openrouter' => config('services.openrouter.image_model'),
+            'google' => config('services.gemini.image_model'),
+            default => null,
+        };
+
+        return $provider === 'off' || blank($model) ? $provider : $provider.' · '.$model;
     }
 
     private function embeddingSummary(): string

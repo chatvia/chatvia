@@ -39,7 +39,7 @@ export interface CurrentTeam {
 export interface SharedData extends PageProps {
     name: string;
     // Whether the "Powered by ChatVia.ai" credit shows under the hosted chat
-    // (Settings → Branding). Shared on hosted chat pages only.
+    // (Settings → License). Shared on hosted chat pages only.
     poweredBy?: boolean;
     // The Cloudflare Turnstile bot check of the public forms (Settings →
     // Security), or null while it is not set up. Read through useBotCheck().

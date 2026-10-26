@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Tests\Support\License\LicenseKeys;
 
 /**
- * Settings → Branding: hiding the "Powered by" credit needs a license key. A new
+ * Settings → License: hiding the "Powered by" credit needs a license key. A new
  * key is activated at chatvia.ai for this install's domain before it is
  * saved, and a removed key is freed there again.
  */

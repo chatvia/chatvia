@@ -151,7 +151,7 @@ class SettingsOverview extends Page
             ]);
     }
 
-    /** The developer's services (also on Settings → Branding). */
+    /** The developer's services (also on Settings → License). */
     private function hireMeAction(): Action
     {
         return Action::make('hireMe')

@@ -14,9 +14,9 @@ use Illuminate\Support\Str;
 /**
  * Activates a license key for this install's domain at chatvia.ai and saves
  * it ({@see ActivateLicenseAction}), like saving it in the admin panel under
- * Settings → License. The key is asked for when it is not passed; `--stdin`
- * reads it from standard input, so the installer can pass it without it
- * showing in the process list.
+ * License. The key is asked for when it is not passed; `--stdin`
+ * reads it from standard input, so a script can pass it without it showing
+ * in the process list.
  */
 #[Description('Activate a license key for this install at chatvia.ai and save it.')]
 #[Signature('chatvia:license:activate {key? : The license key (asked for when left out)} {--stdin : Read the key from standard input}')]

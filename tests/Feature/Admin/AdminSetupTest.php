@@ -5,6 +5,7 @@ use App\Admin\Pages\Setup;
 use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\ObservabilitySettings;
@@ -36,6 +37,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Tests\Support\Admin\FakeRedisAndHorizon;
+use Tests\Support\License\LicenseKeys;
 
 /**
  * The admin setup of a new install: every panel page leads to it until it is
@@ -203,7 +205,7 @@ it('warns that the app does not work before the setup is skipped', function (): 
 it('says what a quick task is, one task or every one', function (): void {
     setupPage($this->admin)
         ->mountAction('quickTasks', ['task' => 'guardrails'])
-        ->assertMountedActionModalSee(['Guardrails', 'Checks each message for prompt injection', 'The model for quick tasks does it.'])
+        ->assertMountedActionModalSee(['Guardrails', 'Checks messages for tricks, off-topic questions and abuse', 'The model for quick tasks does it.'])
         ->assertMountedActionModalDontSee('Conversation titles');
 
     setupPage($this->admin)
@@ -287,6 +289,71 @@ it('goes on without asking when a service only needs a look', function (): void 
         ->goToNextWizardStep()
         ->assertActionNotMounted('serverDown')
         ->assertWizardCurrentStep(2);
+});
+
+/** An install at its real address, trusting the test license keys. */
+function setupLicensable(): void
+{
+    LicenseKeys::trust();
+    config([
+        'app.url' => 'https://chat.acme.com',
+        'chatvia.license.api_url' => 'https://licenses.test/api/licenses',
+    ]);
+}
+
+it('encourages a license on the first step, and activates a typed key on Next', function (): void {
+    setupLicensable();
+    Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('chat.acme.com')])]);
+
+    adminPage(Setup::class, $this->admin)
+        ->set('server', setupServicesRunning())
+        ->assertSeeInOrder(['Services', 'License (optional)', 'Get the most out of ChatVia.ai', '10,000 agent replies a month', 'Buy a license'])
+        ->assertFormFieldVisible('license_key')
+        ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
+        ->goToNextWizardStep()
+        ->assertHasNoFormErrors()
+        ->assertWizardCurrentStep(2)
+        ->assertNotified('License activated')
+        ->assertSet('data.license_key', null);
+
+    expect(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'));
+});
+
+it('stays on the first step when chatvia.ai refuses the license key', function (): void {
+    setupLicensable();
+    Http::fake(['licenses.test/api/licenses/activate' => Http::response(['message' => 'This key is active on another domain.'], 422)]);
+
+    adminPage(Setup::class, $this->admin)
+        ->set('server', setupServicesRunning())
+        ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
+        ->goToNextWizardStep()
+        ->assertHasFormErrors(['license_key' => 'This key is active on another domain.'])
+        ->assertWizardCurrentStep(1);
+
+    expect(savedSetting(BrandSettings::class, 'license_key'))->toBeNull();
+});
+
+it('goes on without a license key, and asks for none on an address only this computer opens', function (): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'http://localhost:8080']);
+
+    adminPage(Setup::class, $this->admin)
+        ->set('server', setupServicesRunning())
+        ->assertSee(['Get the most out of ChatVia.ai', 'once ChatVia.ai runs at its real address'])
+        ->assertFormFieldHidden('license_key')
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(2);
+});
+
+it('shows who a saved license key is licensed to, and asks for no other', function (): void {
+    setupLicensable();
+    saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::activatedFor('chat.acme.com')]);
+
+    adminPage(Setup::class, $this->admin)
+        ->set('server', setupServicesRunning())
+        ->assertSee(['Pro license, licensed to Acme Ltd', 'The free limits are lifted.'])
+        ->assertDontSee('Buy a license')
+        ->assertFormFieldHidden('license_key');
 });
 
 it('starts on OpenRouter, lists the providers by name, and says what each provider gives', function (): void {

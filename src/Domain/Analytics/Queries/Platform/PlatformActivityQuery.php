@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Domain\Analytics\Data\Platform\ActivityBucketData;
 use Domain\Analytics\Data\Platform\PlatformScopeData;
 use Domain\Analytics\Enums\AnalyticsPeriod;
+use Domain\Analytics\Enums\RollupGrain;
 use Domain\Analytics\Enums\TimeBucket;
 use Domain\Analytics\Services\Period;
 use Illuminate\Database\Query\Builder;
@@ -32,7 +33,7 @@ class PlatformActivityQuery extends PlatformAnalyticsQuery
         $bucket = TimeBucket::spanning($window->start, $window->end);
 
         $traffic = $this->rollups($scope, $window)
-            ->selectRaw('date_trunc(?, bucket_hour) bucket', [$bucket->value])
+            ->selectRaw('date_trunc(?, '.RollupGrain::for($window)->moment().') bucket', [$bucket->value])
             ->selectRaw('SUM(user_messages) visitor_messages, SUM(assistant_messages) ai_replies, SUM(conversations_started) conversations')
             ->groupBy('bucket')
             ->get()
@@ -85,7 +86,7 @@ class PlatformActivityQuery extends PlatformAnalyticsQuery
         }
 
         $earliest = collect([
-            $this->rollups($scope)->min('bucket_hour'),
+            $this->rollups($scope)->min($this->analytics()->raw(RollupGrain::for($scope->period)->moment())),
             $scope->isWholePlatform() ? $this->workspaceAccounts()->min('created_at') : null,
             $this->agents($scope)->min('created_at'),
         ])

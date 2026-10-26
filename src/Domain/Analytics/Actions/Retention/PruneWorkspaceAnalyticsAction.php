@@ -12,28 +12,33 @@ use Support\License\Entitlements;
 /**
  * Deletes a workspace's analytics older than the analytics retention it chose
  * in its security policy: the raw events, the hourly and daily rollups, the
- * per-conversation metrics and the first-seen sessions. Workspaces that left
- * it blank keep the install defaults ({@see PruneAnalyticsEventsAction} trims
- * only the raw events), and so does every workspace while the install has no
- * Enterprise key (custom retention is an Enterprise feature). Unlike that install-wide prune, old feedback events go
- * too: the workspace asked for all of its older analytics to be deleted.
+ * per-conversation metrics, the first-seen sessions and the feedback.
+ * Workspaces that left it blank keep the install defaults
+ * ({@see PruneAnalyticsEventsAction} trims only the raw events), and so does
+ * every workspace while the install has no Enterprise key (custom retention
+ * is an Enterprise feature). Unlike that install-wide prune, old feedback
+ * goes too: the workspace asked for all of its older analytics to be deleted.
  *
  * Rows go in batches, so one run never holds a huge delete. Most of these
  * tables have a composite key and no `id`, so a batch is picked by `ctid`
- * (the row's physical address), which works the same for every table.
+ * (the row's physical address). The raw event log is split into monthly
+ * partitions, where a `ctid` is only unique within one, so its batches are
+ * picked by its key, `(id, occurred_at)`.
  */
 class PruneWorkspaceAnalyticsAction
 {
     /**
      * Each analytics table and the time column a row is aged by. Every table
-     * has a `(workspace_id, <time column>)` index (the raw events through
-     * `(workspace_id, event_type, occurred_at)`).
+     * has a `(workspace_id, <time column>)` index.
      *
      * @var array<string, string>
      */
     private const array TABLES = [
         'analytics_events' => 'occurred_at',
         'analytics_agent_hourly_rollups' => 'bucket_hour',
+        'analytics_agent_daily' => 'bucket_day',
+        'analytics_agent_country_daily' => 'bucket_day',
+        'analytics_message_feedback' => 'occurred_at',
         'analytics_conversation_metrics' => 'started_at',
         'analytics_session_firsts' => 'first_seen_at',
         'analytics_agent_sentiment_daily' => 'bucket_day',
@@ -86,17 +91,13 @@ class PruneWorkspaceAnalyticsAction
         $batchSize = max(1, $batchSize);
         $deleted = 0;
 
+        $batchOf = fn (string $key): string => "SELECT {$key} FROM {$table} WHERE workspace_id = ? AND {$timeColumn} < ? LIMIT {$batchSize}";
+        $sql = $table === 'analytics_events'
+            ? "DELETE FROM {$table} WHERE (id, occurred_at) IN (".$batchOf('id, occurred_at').')'
+            : "DELETE FROM {$table} WHERE ctid = ANY(ARRAY(".$batchOf('ctid').'))';
+
         do {
-            $batch = $this->analytics->connection()->affectingStatement(
-                "DELETE FROM {$table}
-                 WHERE ctid = ANY(ARRAY(
-                     SELECT ctid FROM {$table}
-                     WHERE workspace_id = ?
-                       AND {$timeColumn} < ?
-                     LIMIT {$batchSize}
-                 ))",
-                [$workspaceId, $olderThan],
-            );
+            $batch = $this->analytics->connection()->affectingStatement($sql, [$workspaceId, $olderThan]);
 
             $deleted += $batch;
         } while ($batch > 0);

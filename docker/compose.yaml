@@ -74,7 +74,7 @@ services:
     # PostgreSQL 18 with pgvector and pg_textsearch (docker/postgres/
     # Dockerfile). The image's default command preloads pg_textsearch, so do
     # not override `command`.
-    image: ghcr.io/chatvia/postgres:18-1.5.1
+    image: ghcr.io/chatvia/postgres:18-1.5.1-5.5.0
     restart: unless-stopped
     logging: *logging
     security_opt:

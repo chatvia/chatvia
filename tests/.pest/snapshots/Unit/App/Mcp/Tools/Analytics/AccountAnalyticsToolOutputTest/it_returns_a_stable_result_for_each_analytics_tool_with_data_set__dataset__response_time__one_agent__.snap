@@ -15,7 +15,7 @@
         },
         "replies_measured": 1,
         "avg_response_ms": 3000,
-        "p50_response_ms": 3000,
+        "p50_response_ms": 2833,
         "p95_response_ms": 3000,
         "max_response_ms": 3000,
         "avg_first_response_seconds": 3

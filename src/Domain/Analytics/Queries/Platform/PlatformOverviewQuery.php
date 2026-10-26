@@ -49,14 +49,23 @@ class PlatformOverviewQuery extends PlatformAnalyticsQuery
      * Message and conversation totals, reply time and active workspaces over
      * one window.
      */
+    /**
+     * The window's totals, summed per workspace first: counting the active
+     * workspaces off those few rows is cheap, where a COUNT(DISTINCT) over
+     * every rollup row would sort them all.
+     */
     private function traffic(PlatformScopeData $scope, Period $period): object
     {
-        return $this->rollups($scope, $period)
-            ->selectRaw('COALESCE(SUM(user_messages + assistant_messages), 0) messages')
-            ->selectRaw('COALESCE(SUM(conversations_started), 0) conversations')
+        $perWorkspace = $this->rollups($scope, $period)
+            ->groupBy('workspace_id')
+            ->selectRaw('SUM(user_messages + assistant_messages) messages, SUM(conversations_started) conversations, SUM(response_ms_sum) response_ms_sum, SUM(response_ms_count) response_ms_count');
+
+        return $this->analytics()->query()->fromSub($perWorkspace, 'w')
+            ->selectRaw('COALESCE(SUM(messages), 0) messages')
+            ->selectRaw('COALESCE(SUM(conversations), 0) conversations')
             ->selectRaw('COALESCE(SUM(response_ms_sum), 0) response_ms_sum')
             ->selectRaw('COALESCE(SUM(response_ms_count), 0) response_ms_count')
-            ->selectRaw('COUNT(DISTINCT workspace_id) FILTER (WHERE user_messages + assistant_messages > 0) active_workspaces')
+            ->selectRaw('COUNT(*) FILTER (WHERE messages > 0) active_workspaces')
             ->first();
     }
 

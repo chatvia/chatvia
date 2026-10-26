@@ -51,11 +51,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Read the pg_textsearch version from the Dockerfile
+      - name: Read the pinned extension versions from the Dockerfile
         id: version
         run: |
-          version=$(sed -n 's/^ARG PG_TEXTSEARCH_VERSION=//p' docker/postgres/Dockerfile)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          textsearch=$(sed -n 's/^ARG PG_TEXTSEARCH_VERSION=//p' docker/postgres/Dockerfile)
+          partman=$(sed -n 's/^ARG PG_PARTMAN_VERSION=//p' docker/postgres/Dockerfile)
+          echo "version=$textsearch-$partman" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6

@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "Busiest channel this month is Chat Widget with 3 conversations (50% of 6 total)."
+            "text": "Busiest channel this month is Hosted Chat with 1 conversations (33.3% of 3 total)."
         }
     ],
     "isError": false,
@@ -13,25 +13,25 @@
             "start": "2026-06-01",
             "end": "2026-06-15"
         },
-        "total_conversations": 6,
+        "total_conversations": 3,
         "channels": [
-            {
-                "source": "widget",
-                "label": "Chat Widget",
-                "conversations": 3,
-                "pct": 50
-            },
-            {
-                "source": "telegram",
-                "label": "Telegram",
-                "conversations": 2,
-                "pct": 33.3
-            },
             {
                 "source": "hosted_chat",
                 "label": "Hosted Chat",
                 "conversations": 1,
-                "pct": 16.7
+                "pct": 33.3
+            },
+            {
+                "source": "telegram",
+                "label": "Telegram",
+                "conversations": 1,
+                "pct": 33.3
+            },
+            {
+                "source": "widget",
+                "label": "Chat Widget",
+                "conversations": 1,
+                "pct": 33.3
             }
         ],
         "echarts_option": {
@@ -54,15 +54,15 @@
                     },
                     "data": [
                         {
-                            "name": "Chat Widget",
-                            "value": 3
+                            "name": "Hosted Chat",
+                            "value": 1
                         },
                         {
                             "name": "Telegram",
-                            "value": 2
+                            "value": 1
                         },
                         {
-                            "name": "Hosted Chat",
+                            "name": "Chat Widget",
                             "value": 1
                         }
                     ]

@@ -41,5 +41,11 @@ class MessageSent
         // null = it could not be told) and its knowledge confidence, 0 to 1.
         public readonly ?bool $hasFoundAnswer = null,
         public readonly ?float $confidenceScore = null,
+        // Where the conversation runs (a ConversationSource value) and the
+        // visitor's device, for the channel and device numbers.
+        public readonly ?string $source = null,
+        public readonly ?string $deviceType = null,
+        public readonly ?string $browser = null,
+        public readonly ?string $os = null,
     ) {}
 }

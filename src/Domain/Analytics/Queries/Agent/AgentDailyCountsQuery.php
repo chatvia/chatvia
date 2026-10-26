@@ -4,12 +4,15 @@ namespace Domain\Analytics\Queries\Agent;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Account\DailyCountData;
+use Domain\Analytics\Enums\RollupGrain;
+use Domain\Analytics\Services\Period;
 use Illuminate\Support\Carbon;
 
 /**
- * An agent's per-day series from the hourly rollup, for the days in an
- * inclusive range: AI replies sent, and conversations started. Days without
- * activity are left out; callers fill the gaps they need.
+ * An agent's per-day series for the days in an inclusive range: AI replies
+ * sent, and conversations started. Read from the hourly rollup up to 92 days
+ * and from the daily one beyond ({@see RollupGrain}). Days without activity
+ * are left out; callers fill the gaps they need.
  */
 class AgentDailyCountsQuery extends AgentAnalyticsQuery
 {
@@ -35,12 +38,11 @@ class AgentDailyCountsQuery extends AgentAnalyticsQuery
     private function perDay(Agent $agent, string $column, Carbon $start, Carbon $end): array
     {
         $range = $start->format('Y-m-d').'..'.$end->format('Y-m-d');
+        $period = new Period($start->toImmutable()->startOfDay(), $end->toImmutable()->endOfDay(), $range);
+        $grain = RollupGrain::for($period);
 
-        // Half-open range on the raw column — a ::date predicate can't use the index.
-        return $this->cached($agent, $column.'-per-day', $range, fn (): array => $this->hourlyRollups($agent)
-            ->where('bucket_hour', '>=', $start->copy()->startOfDay())
-            ->where('bucket_hour', '<', $end->copy()->startOfDay()->addDay())
-            ->selectRaw("bucket_hour::date::text as date, SUM({$column}) as count")
+        return $this->cached($agent, $column.'-per-day', $range, fn (): array => $grain->within($this->rollupOf($agent, $grain), $period)
+            ->selectRaw("{$grain->day()}::text as date, SUM({$column}) as count")
             ->groupBy('date')
             ->orderBy('date')
             ->get()

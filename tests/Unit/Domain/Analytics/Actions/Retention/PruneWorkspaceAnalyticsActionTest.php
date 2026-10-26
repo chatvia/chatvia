@@ -3,7 +3,6 @@
 use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Actions\Retention\PruneWorkspaceAnalyticsAction;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Database\Events\QueryExecuted;
@@ -17,6 +16,9 @@ use Illuminate\Support\Str;
 const PWA_TABLES = [
     'analytics_events',
     'analytics_agent_hourly_rollups',
+    'analytics_agent_daily',
+    'analytics_agent_country_daily',
+    'analytics_message_feedback',
     'analytics_conversation_metrics',
     'analytics_session_firsts',
     'analytics_agent_sentiment_daily',
@@ -36,8 +38,11 @@ function pwaSeed(int $workspaceId, int $daysAgo, int $agentId = 920001): void
     $base = ['agent_id' => $agentId, 'workspace_id' => $workspaceId];
     $unique = random_int(1, PHP_INT_MAX);
 
-    $db->table('analytics_events')->insert([...$base, 'event_type' => AnalyticsEventType::FeedbackGiven->value, 'message_external_id' => (string) Str::uuid(), 'occurred_at' => $at]);
-    $db->table('analytics_agent_hourly_rollups')->insert([...$base, 'bucket_hour' => $at, 'country_code' => '--', 'llm_id' => 0]);
+    $db->table('analytics_events')->insert([...$base, 'message_external_id' => (string) Str::uuid(), 'occurred_at' => $at]);
+    $db->table('analytics_agent_hourly_rollups')->insert([...$base, 'bucket_hour' => $at]);
+    $db->table('analytics_agent_daily')->insert([...$base, 'bucket_day' => $day]);
+    $db->table('analytics_agent_country_daily')->insert([...$base, 'bucket_day' => $day, 'country_code' => 'de']);
+    $db->table('analytics_message_feedback')->insert([...$base, 'message_external_id' => (string) Str::uuid(), 'feedback' => 'positive', 'occurred_at' => $at]);
     $db->table('analytics_conversation_metrics')->insert([...$base, 'conversation_external_id' => (string) Str::uuid(), 'started_at' => $at]);
     $db->table('analytics_session_firsts')->insert([...$base, 'session_external_id' => (string) Str::uuid(), 'first_seen_at' => $at]);
     $db->table('analytics_agent_sentiment_daily')->insert([...$base, 'bucket_day' => $day, 'sentiment' => 'positive']);

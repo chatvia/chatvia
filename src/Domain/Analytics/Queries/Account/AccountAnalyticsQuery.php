@@ -4,7 +4,6 @@ namespace Domain\Analytics\Queries\Account;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\FeedbackTallyData;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Analytics\Services\Period;
 use Domain\Form\Enums\FormSubmissionStatus;
@@ -19,13 +18,13 @@ use Illuminate\Support\Facades\DB;
  *
  * Most metrics read the durable analytics tables (the same ones the Analytics
  * page uses) by `workspace_id`, so the counts survive deletion of the raw chat
- * rows. A few slices with no rollup (channel, leads, handoff, device) read the
+ * rows. The two slices with no analytics table (leads, handoffs) read the
  * live main-DB tables, scoped to the workspace.
  *
- * Message counts, tokens and reply times read the hourly rollup, by whole
- * hours (see ReadsHourlyRollups): raw events are pruned after about 13
- * months, so they would undercount longer periods. Only percentiles and
- * per-chatter figures read the raw events, within their retention.
+ * Message counts, tokens and reply times (their percentiles too, from the
+ * histogram) read the hourly or daily rollup (see ReadsRollups): raw events
+ * are pruned after about 13 months, so they would undercount longer periods.
+ * Only per-chatter figures read the raw events, within their retention.
  */
 abstract class AccountAnalyticsQuery
 {
@@ -36,28 +35,22 @@ abstract class AccountAnalyticsQuery
     }
 
     /**
-     * Events of one type in the window, by exact `occurred_at`.
+     * Messages sent in the window (visitor messages and AI replies), by exact
+     * `occurred_at`: the monthly partitions outside it are never read.
      */
-    protected function events(AnalyticsScopeData $scope, AnalyticsEventType $eventType, ?Period $period = null): Builder
+    protected function messageEvents(AnalyticsScopeData $scope, ?Period $period = null): Builder
     {
         $period ??= $scope->period;
 
         return $this->forScopedAgent($scope, $this->analytics()->table('analytics_events')
             ->where('workspace_id', $scope->workspace->id)
-            ->where('event_type', $eventType->value)
             ->whereBetween('occurred_at', [$period->start, $period->end]));
     }
 
     /**
-     * Messages sent in the window (visitor messages and AI replies).
-     */
-    protected function messageEvents(AnalyticsScopeData $scope, ?Period $period = null): Builder
-    {
-        return $this->events($scope, AnalyticsEventType::MessageSent, $period);
-    }
-
-    /**
-     * The per-agent hourly rollup, from the hour the window starts in.
+     * The per-agent hourly rollup, from the hour the window starts in. For
+     * the hour-of-day and weekday patterns, which need the hour; sums read
+     * {@see ReadsRollups::rollup()} instead.
      */
     protected function hourlyRollups(AnalyticsScopeData $scope): Builder
     {
@@ -126,10 +119,12 @@ abstract class AccountAnalyticsQuery
             ->count();
     }
 
-    /** Thumbs up / down given in the window. */
+    /** Thumbs up / down given in the window (each message's current reaction). */
     protected function feedback(AnalyticsScopeData $scope): FeedbackTallyData
     {
-        $row = $this->events($scope, AnalyticsEventType::FeedbackGiven)
+        $row = $this->forScopedAgent($scope, $this->analytics()->table('analytics_message_feedback')
+            ->where('workspace_id', $scope->workspace->id)
+            ->whereBetween('occurred_at', [$scope->period->start, $scope->period->end]))
             ->selectRaw("COUNT(*) FILTER (WHERE feedback = 'positive') positive, COUNT(*) FILTER (WHERE feedback = 'negative') negative")
             ->first();
 

@@ -2,7 +2,6 @@
 
 namespace Domain\Analytics\Actions\Dimensions;
 
-use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\DateRangeData;
 use Domain\Analytics\Data\MessageDimensionBreakdownData;
@@ -84,23 +83,16 @@ class BuildMessageDimensionBreakdownAction
     }
 
     /**
-     * All visitor messages per day, from the hourly message rollup.
+     * All visitor messages per day, from the daily message rollup.
      *
      * @return Collection<string, int|string>
      */
     private function visitorMessagesByDay(Agent $agent, DateRangeData $range): Collection
     {
-        return $this->analytics->table('analytics_agent_hourly_rollups')
+        return $this->analytics->table('analytics_agent_daily')
             ->where('agent_id', $agent->id)
-            ->where('bucket_hour', '>=', $this->startOfDay($range->start))
-            ->where('bucket_hour', '<', $this->startOfDay($range->end)->addDay())
-            ->groupByRaw('bucket_hour::date')
-            ->selectRaw('bucket_hour::date::text as date, SUM(user_messages) as total')
+            ->whereBetween('bucket_day', [$range->start->format('Y-m-d'), $range->end->format('Y-m-d')])
+            ->selectRaw('bucket_day::text as date, user_messages as total')
             ->pluck('total', 'date');
-    }
-
-    private function startOfDay(CarbonInterface $moment): CarbonInterface
-    {
-        return $moment->copy()->startOfDay();
     }
 }

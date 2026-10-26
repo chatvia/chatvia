@@ -5,9 +5,14 @@
 #     already has set up;
 #   - pg_textsearch (Timescale) for BM25 keyword search, preloaded by the
 #     default command;
+#   - pg_partman, which splits analytics_events into monthly partitions and
+#     drops the expired ones (the analytics prune runs its maintenance, so it
+#     needs no preloaded background worker), from the PostgreSQL apt
+#     repository too, pinned like pg_textsearch;
 #   - pg_trgm, btree_gin, btree_gist and pg_stat_statements, which ship with
 #     the official image (contrib).
-# Published as ghcr.io/chatvia/postgres by .github/workflows/postgres-image.yml;
+# Published as ghcr.io/chatvia/postgres by .github/workflows/postgres-image.yml,
+# tagged with both pinned versions (18-<pg_textsearch>-<pg_partman>);
 # used by docker/compose.yaml, the dev stack (docker-compose.yml) and CI
 # (.github/workflows/tests.yml).
 #
@@ -17,12 +22,13 @@
 FROM postgres:18-trixie
 
 ARG PG_TEXTSEARCH_VERSION=1.5.1
+ARG PG_PARTMAN_VERSION=5.5.0
 ARG TARGETARCH
 
 ADD https://github.com/timescale/pg_textsearch/releases/download/v${PG_TEXTSEARCH_VERSION}/pg-textsearch-v${PG_TEXTSEARCH_VERSION}-pg18-${TARGETARCH}.zip /tmp/pg_textsearch.zip
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends unzip "postgresql-${PG_MAJOR}-pgvector" \
+    && apt-get install -y --no-install-recommends unzip "postgresql-${PG_MAJOR}-pgvector" "postgresql-${PG_MAJOR}-partman=${PG_PARTMAN_VERSION}-*" \
     && unzip -o /tmp/pg_textsearch.zip -d /tmp/pg_textsearch \
     && dpkg -i /tmp/pg_textsearch/*.deb \
     && apt-get purge -y unzip \

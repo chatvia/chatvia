@@ -23,17 +23,16 @@ beforeEach(function (): void {
     $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
 });
 
-function gdsEvent(Agent $agent, string $sessionExternalId, Carbon $occurredAt, string $type = 'message_sent'): void
+function gdsEvent(Agent $agent, string $sessionExternalId, Carbon $occurredAt): void
 {
     DB::connection(config('chatvia.analytics.connection'))
         ->table('analytics_events')
         ->insert([
             'agent_id' => $agent->id,
             'workspace_id' => $agent->workspace_id,
-            'event_type' => $type,
             'session_external_id' => $sessionExternalId,
+            'message_external_id' => (string) Str::uuid(),
             'occurred_at' => $occurredAt,
-            ...($type === 'feedback_given' ? ['feedback' => 'positive', 'message_external_id' => (string) Str::uuid()] : []),
         ]);
 }
 
@@ -144,8 +143,14 @@ it('counts only the sessions that sent a message as active', function (): void {
     $agent = createAgent($owner);
 
     gdsEvent($agent, (string) Str::uuid(), now()->subHour());
-    // Feedback rows carry no session in practice; one that did is still no visit.
-    gdsEvent($agent, (string) Str::uuid(), now()->subMinutes(30), 'feedback_given');
+    // A thumbs reaction in the last day is no visit of its own.
+    DB::connection(config('chatvia.analytics.connection'))->table('analytics_message_feedback')->insert([
+        'message_external_id' => (string) Str::uuid(),
+        'agent_id' => $agent->id,
+        'workspace_id' => $agent->workspace_id,
+        'feedback' => 'positive',
+        'occurred_at' => now()->subMinutes(30),
+    ]);
 
     expect(app(GetDashboardStatsAction::class)->execute($owner, null)->active_sessions)->toBe(1);
 });

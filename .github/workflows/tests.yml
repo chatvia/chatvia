@@ -40,7 +40,7 @@ jobs:
       postgres:
         # Same image and tag as docker-compose.yml; keep them in sync.
         # Built by .github/workflows/postgres-image.yml (pgvector + pg_textsearch).
-        image: ghcr.io/chatvia/postgres:18-1.5.1
+        image: ghcr.io/chatvia/postgres:18-1.5.1-5.5.0
         env:
           POSTGRES_DB: testing
           POSTGRES_USER: chatvia

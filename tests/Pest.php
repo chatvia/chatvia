@@ -46,6 +46,7 @@ use Domain\Membership\Team\Services\TeamService;
 use GuzzleHttp\Middleware as GuzzleMiddleware;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -445,23 +446,35 @@ function withEnterpriseLicense(): void
 }
 
 /**
- * One hourly analytics rollup row of the agent (no country, no model), with
- * the given counters.
+ * One hourly analytics rollup row of the agent, with the given counters,
+ * added to its day's row in the daily rollup too, the way recording a
+ * message writes both.
  *
  * @param  array<string, mixed>  $values
  */
 function analyticsRollup(Agent $agent, string $bucketHour, array $values = []): void
 {
-    DB::connection(config('chatvia.analytics.connection'))
-        ->table('analytics_agent_hourly_rollups')
-        ->insert([
-            'agent_id' => $agent->id,
-            'workspace_id' => $agent->workspace_id,
-            'bucket_hour' => $bucketHour,
-            'country_code' => '--',
-            'llm_id' => 0,
-            ...$values,
-        ]);
+    $db = DB::connection(config('chatvia.analytics.connection'));
+    $key = ['agent_id' => $agent->id, 'workspace_id' => $agent->workspace_id];
+
+    $db->table('analytics_agent_hourly_rollups')->insert([...$key, 'bucket_hour' => $bucketHour, ...$values]);
+
+    $day = [...$key, 'bucket_day' => Carbon::parse($bucketHour)->toDateString()];
+    $daily = $db->table('analytics_agent_daily')->where($day)->first();
+
+    if ($daily === null) {
+        $db->table('analytics_agent_daily')->insert([...$day, ...$values]);
+
+        return;
+    }
+
+    $db->table('analytics_agent_daily')->where($day)->update(collect($values)
+        ->map(fn (mixed $value, string $column): mixed => match ($column) {
+            'response_ms_max' => max((int) $daily->response_ms_max, (int) $value),
+            'response_ms_hist' => $value,
+            default => $daily->{$column} + $value,
+        })
+        ->all());
 }
 
 /**

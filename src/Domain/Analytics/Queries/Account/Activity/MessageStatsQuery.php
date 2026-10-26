@@ -6,17 +6,17 @@ use Domain\Analytics\Data\Account\Activity\MessageStatsData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
-use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
+use Domain\Analytics\Queries\Account\Concerns\ReadsRollups;
 use Domain\Analytics\Services\Period;
 
 /**
  * Message volume — visitor messages vs AI replies — with the trend against
- * the previous equally long window and a per-day series, from the hourly
- * rollup.
+ * the previous equally long window and a per-day series, from the hourly or
+ * daily rollup.
  */
 class MessageStatsQuery extends AccountAnalyticsQuery
 {
-    use ReadsHourlyRollups;
+    use ReadsRollups;
 
     public function get(AnalyticsScopeData $scope): MessageStatsData
     {
@@ -41,7 +41,7 @@ class MessageStatsQuery extends AccountAnalyticsQuery
      */
     private function totals(AnalyticsScopeData $scope, Period $period): array
     {
-        $row = $this->rollupHours($scope, $period)
+        $row = $this->rollup($scope, $period)
             ->selectRaw('COALESCE(SUM(user_messages),0) incoming, COALESCE(SUM(assistant_messages),0) outgoing')
             ->first();
 
@@ -53,8 +53,8 @@ class MessageStatsQuery extends AccountAnalyticsQuery
      */
     private function daily(AnalyticsScopeData $scope): array
     {
-        return $this->rollupHours($scope)
-            ->selectRaw('bucket_hour::date date, SUM(user_messages + assistant_messages) messages')
+        return $this->rollup($scope)
+            ->selectRaw($this->grain($scope)->day().' date, SUM(user_messages + assistant_messages) messages')
             ->groupBy('date')
             ->orderBy('date')
             ->get()

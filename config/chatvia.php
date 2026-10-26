@@ -591,9 +591,6 @@ return [
     | for the quick database writes (analytics counters, audit and guardrail
     | rows), so they never wait behind the slow AI analysis on `queue`.
     |
-    | The hourly rollup keys cannot hold NULL, so an unknown country is
-    | stored as `unknown_country_code` and an unknown model as 0.
-    |
     | `analysis`: chatvia:analytics:analyze-conversations reads each conversation once,
     | `scan_age_hours` after it starts, and retries a run that saved nothing
     | up to `max_attempts` runs. A new topic shows once it comes up in
@@ -606,8 +603,6 @@ return [
         'connection' => env('ANALYTICS_DB_CONNECTION', 'analytics'),
         'queue' => env('ANALYTICS_QUEUE', 'analytics'),
         'record_queue' => env('ANALYTICS_RECORD_QUEUE', 'records'),
-
-        'unknown_country_code' => '--',
 
         'analysis' => [
             'scan_age_hours' => env('ANALYSIS_SCAN_AGE_HOURS', 6),

@@ -14,7 +14,6 @@ use Domain\Analytics\Data\Dashboard\KnowledgeSourcesStatsData;
 use Domain\Analytics\Data\Dashboard\MessagesPanelData;
 use Domain\Analytics\Data\Dashboard\MessagesTrendData;
 use Domain\Analytics\Data\Dashboard\TeamSizeData;
-use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsCache;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -78,7 +77,8 @@ class GetDashboardStatsAction
     private function activity(int $workspaceId, Collection $agentIds, ?Team $team): DashboardActivityData
     {
         return new DashboardActivityData(
-            conversations: (int) $this->rollup()->where('workspace_id', $workspaceId)->sum('conversations_started'),
+            // All time, so from the daily rollup: one row per agent and day.
+            conversations: (int) $this->analytics->table('analytics_agent_daily')->where('workspace_id', $workspaceId)->sum('conversations_started'),
             activeSessions: $this->activeSessions($workspaceId),
             weeklyUsage: $this->dailyReplies($workspaceId, 7, 'D'),
             monthlyUsage: $this->dailyReplies($workspaceId, 30, 'j'),
@@ -92,15 +92,13 @@ class GetDashboardStatsAction
     /**
      * Visitors seen in the last 24h, across all the workspace's agents. Read
      * from the analytics event stream by workspace id, so it does not depend
-     * on the agent rows still existing. Only messages carry a session (a
-     * feedback row has none), and naming the type lets the read use the
-     * (workspace_id, event_type, occurred_at) index.
+     * on the agent rows still existing. The (workspace_id, occurred_at)
+     * index carries the session, and only the last month's partition is read.
      */
     private function activeSessions(int $workspaceId): int
     {
         return $this->analytics->table('analytics_events')
             ->where('workspace_id', $workspaceId)
-            ->where('event_type', AnalyticsEventType::MessageSent->value)
             ->where('occurred_at', '>=', now()->subDay())
             ->distinct()
             ->count('session_external_id');

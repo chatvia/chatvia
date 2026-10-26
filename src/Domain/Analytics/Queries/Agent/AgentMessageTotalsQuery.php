@@ -4,7 +4,7 @@ namespace Domain\Analytics\Queries\Agent;
 
 /**
  * All-time message counts (visitor messages + AI replies) for a set of a
- * workspace's agents, in one grouped query over the hourly rollup — so the
+ * workspace's agents, in one grouped query over the daily rollup — so the
  * totals survive retention pruning of the raw chat rows. Cached briefly per
  * set of agents: the agents list asks on every visit.
  */
@@ -32,7 +32,7 @@ class AgentMessageTotalsQuery extends AgentAnalyticsQuery
     private function compute(array $agentIds): array
     {
         return $this->analytics()
-            ->table('analytics_agent_hourly_rollups')
+            ->table('analytics_agent_daily')
             ->whereIn('agent_id', $agentIds)
             ->groupBy('agent_id')
             ->selectRaw('agent_id, SUM(user_messages + assistant_messages) AS total_messages')

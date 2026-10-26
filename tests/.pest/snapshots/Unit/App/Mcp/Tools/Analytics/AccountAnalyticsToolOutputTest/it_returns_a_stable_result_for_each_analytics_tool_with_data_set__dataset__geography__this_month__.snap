@@ -36,7 +36,7 @@
         "devices": [
             {
                 "label": "mobile",
-                "count": 5
+                "count": 2
             },
             {
                 "label": "desktop",
@@ -46,21 +46,21 @@
         "browsers": [
             {
                 "label": "Chrome",
-                "count": 4
+                "count": 2
             },
             {
                 "label": "Safari",
-                "count": 2
+                "count": 1
             }
         ],
         "operating_systems": [
             {
                 "label": "Android",
-                "count": 3
+                "count": 1
             },
             {
                 "label": "iOS",
-                "count": 2
+                "count": 1
             },
             {
                 "label": "macOS",

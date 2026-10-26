@@ -8,10 +8,11 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Agent\Activity\AgentTotalsData;
 
 /**
- * An agent's all-time headline numbers in one round-trip: the hourly rollup
- * (messages, conversations, response time, tokens, busiest hour), the
+ * An agent's all-time headline numbers in one round-trip: the daily rollup
+ * (messages, conversations, response time, tokens; one row a day, so a long
+ * history stays cheap), the hourly rollup (busiest hour), the
  * per-conversation metrics (length, duration, first response), the session
- * firsts (unique visitors) and the feedback events.
+ * firsts (unique visitors) and the current feedback.
  */
 class AgentTotalsQuery extends AgentAnalyticsQuery
 {
@@ -28,8 +29,8 @@ WITH agent_rollup AS (
         CASE WHEN SUM(assistant_messages) > 0
              THEN SUM(total_tokens)::float / SUM(assistant_messages)
         END                                         AS avg_tokens,
-        MIN(bucket_hour)::date                      AS first_data_date
-    FROM analytics_agent_hourly_rollups
+        MIN(bucket_day)                             AS first_data_date
+    FROM analytics_agent_daily
     WHERE agent_id = ?
 ),
 hour_bucket AS (
@@ -63,8 +64,8 @@ feedback AS (
         COUNT(*) FILTER (WHERE feedback = 'positive')   AS positive_feedback,
         COUNT(*) FILTER (WHERE feedback = 'negative')   AS negative_feedback,
         COUNT(DISTINCT conversation_external_id)        AS conversations_with_feedback
-    FROM analytics_events
-    WHERE agent_id = ? AND event_type = 'feedback_given'
+    FROM analytics_message_feedback
+    WHERE agent_id = ?
 )
 SELECT
     ar.total_assistant,

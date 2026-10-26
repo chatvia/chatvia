@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Analytics\Queries\Platform;
 
 use Domain\Analytics\Data\Platform\PlatformScopeData;
+use Domain\Analytics\Enums\RollupGrain;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Analytics\Services\Period;
 use Illuminate\Database\Connection;
@@ -16,9 +17,10 @@ use Illuminate\Support\Facades\DB;
  * admin panel's dashboard: numbers across every workspace on the install, or
  * one workspace when the scope names it.
  *
- * Traffic reads the hourly rollup, which survives deletion of the chat rows
- * and stays small; every window starts on a full hour, so the hour buckets
- * match it exactly. Sign-ups, agents and leads read the main-DB tables. The
+ * Traffic reads the hourly rollup for windows up to 92 days and the daily one
+ * beyond ({@see RollupGrain}); both survive deletion of the chat rows and stay
+ * small. Every window starts on a full hour, so the hour buckets match it
+ * exactly; a long window is read by whole days. Sign-ups, agents and leads read the main-DB tables. The
  * analytics tables may live in a separate database, so the two are never
  * joined in SQL.
  */
@@ -31,16 +33,16 @@ abstract class PlatformAnalyticsQuery
     }
 
     /**
-     * The per-agent hourly rollup over the window (the scope's own unless
-     * given), narrowed to the scoped workspace.
+     * The per-agent hourly or daily rollup over the window (the scope's own
+     * unless given), narrowed to the scoped workspace.
      */
     protected function rollups(PlatformScopeData $scope, ?Period $period = null): Builder
     {
         $period ??= $scope->period;
+        $grain = RollupGrain::for($period);
 
-        return $this->analytics()->table('analytics_agent_hourly_rollups')
-            ->when(! $scope->isWholePlatform(), fn (Builder $query): Builder => $query->where('workspace_id', $scope->workspaceId))
-            ->whereBetween('bucket_hour', [$period->start->startOfHour(), $period->end]);
+        return $grain->within($this->analytics()->table($grain->table()), $period)
+            ->when(! $scope->isWholePlatform(), fn (Builder $query): Builder => $query->where('workspace_id', $scope->workspaceId));
     }
 
     /**

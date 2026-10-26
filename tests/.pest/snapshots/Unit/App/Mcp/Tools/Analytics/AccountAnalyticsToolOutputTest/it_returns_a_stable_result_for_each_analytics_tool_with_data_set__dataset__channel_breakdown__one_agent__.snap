@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "Busiest channel this month is Telegram with 2 conversations (66.7% of 3 total)."
+            "text": "Busiest channel this month is Telegram with 1 conversations (100% of 1 total)."
         }
     ],
     "isError": false,
@@ -13,55 +13,14 @@
             "start": "2026-06-01",
             "end": "2026-06-15"
         },
-        "total_conversations": 3,
+        "total_conversations": 1,
         "channels": [
             {
                 "source": "telegram",
                 "label": "Telegram",
-                "conversations": 2,
-                "pct": 66.7
-            },
-            {
-                "source": "widget",
-                "label": "Chat Widget",
                 "conversations": 1,
-                "pct": 33.3
+                "pct": 100
             }
-        ],
-        "echarts_option": {
-            "tooltip": {
-                "trigger": "item",
-                "formatter": "{b}: {c} ({d}%)"
-            },
-            "legend": {
-                "show": true,
-                "top": "bottom"
-            },
-            "series": [
-                {
-                    "type": "pie",
-                    "radius": "70%",
-                    "avoidLabelOverlap": true,
-                    "label": {
-                        "show": true,
-                        "formatter": "{b}: {d}%"
-                    },
-                    "data": [
-                        {
-                            "name": "Telegram",
-                            "value": 2
-                        },
-                        {
-                            "name": "Chat Widget",
-                            "value": 1
-                        }
-                    ]
-                }
-            ],
-            "title": {
-                "text": "Conversations by channel — this month",
-                "left": "center"
-            }
-        }
+        ]
     }
 }

@@ -5,6 +5,7 @@ namespace Domain\Analytics\Queries\Account\Activity;
 use Domain\Analytics\Data\Account\Activity\AgentActivityData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
+use Domain\Analytics\Queries\Account\Concerns\ReadsRollups;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -13,14 +14,16 @@ use Illuminate\Support\Facades\DB;
  */
 class AgentBreakdownQuery extends AccountAnalyticsQuery
 {
+    use ReadsRollups;
+
     /**
      * @return list<AgentActivityData>
      */
     public function get(AnalyticsScopeData $scope): array
     {
-        $rows = $this->analytics()->table('analytics_agent_hourly_rollups')
-            ->where('workspace_id', $scope->workspace->id)
-            ->whereBetween('bucket_hour', [$scope->period->start->copy()->startOfHour(), $scope->period->end])
+        $workspace = new AnalyticsScopeData(workspace: $scope->workspace, period: $scope->period, agentId: null, agentIds: $scope->agentIds);
+
+        $rows = $this->rollup($workspace)
             ->groupBy('agent_id')
             ->selectRaw('agent_id, SUM(user_messages + assistant_messages) messages, SUM(conversations_started) conversations')
             ->orderByRaw('SUM(user_messages + assistant_messages) DESC')

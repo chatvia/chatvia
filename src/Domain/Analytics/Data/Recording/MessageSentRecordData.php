@@ -10,7 +10,8 @@ use Spatie\LaravelData\Data;
  * One chat message to record in the analytics tables: who sent it (`role` is
  * `user` or `assistant`), where, with which model, how fast the reply came,
  * how many tokens it used and, for an AI reply, whether it found an answer
- * and how confident it was. Built from a {@see MessageSent} event.
+ * and how confident it was, plus the conversation's channel and the
+ * visitor's device. Built from a {@see MessageSent} event.
  */
 class MessageSentRecordData extends Data
 {
@@ -30,6 +31,10 @@ class MessageSentRecordData extends Data
         public DateTimeInterface $occurredAt,
         public ?bool $hasFoundAnswer = null,
         public ?float $confidenceScore = null,
+        public ?string $source = null,
+        public ?string $deviceType = null,
+        public ?string $browser = null,
+        public ?string $os = null,
     ) {}
 
     public static function fromEvent(MessageSent $event): self
@@ -50,6 +55,10 @@ class MessageSentRecordData extends Data
             occurredAt: $event->occurredAt,
             hasFoundAnswer: $event->hasFoundAnswer,
             confidenceScore: $event->confidenceScore,
+            source: $event->source,
+            deviceType: $event->deviceType,
+            browser: $event->browser,
+            os: $event->os,
         );
     }
 

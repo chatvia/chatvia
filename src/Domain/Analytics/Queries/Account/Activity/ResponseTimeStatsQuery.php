@@ -5,51 +5,58 @@ namespace Domain\Analytics\Queries\Account\Activity;
 use Domain\Analytics\Data\Account\Activity\ResponseTimeStatsData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
-use Domain\Analytics\Queries\Account\Concerns\ReadsHourlyRollups;
-use Domain\Conversation\Enums\MessageRole;
+use Domain\Analytics\Queries\Account\Concerns\ReadsRollups;
+use Domain\Analytics\Services\ResponseTimeHistogram;
 
 /**
  * AI reply latency: average, median, p95 and slowest reply, plus the average
- * time to the first reply of a conversation. The count and the average come
- * from the hourly rollup and the first-reply time from the per-conversation
- * metrics. The median, p95 and slowest reply need single messages, so they
- * read the raw events the prune still keeps. That read uses only columns the
- * (workspace_id, event_type, occurred_at) index carries, so Postgres can
- * answer it from the index alone.
+ * time to the first reply of a conversation. All of it but the first-reply
+ * time comes from the hourly or daily rollup: the median and p95 from the
+ * rows' reply-time histograms summed bucket by bucket
+ * ({@see ResponseTimeHistogram}, within about 15%), the slowest reply from
+ * each row's slowest. The first-reply time comes from the per-conversation
+ * metrics.
  */
 class ResponseTimeStatsQuery extends AccountAnalyticsQuery
 {
-    use ReadsHourlyRollups;
+    use ReadsRollups;
 
     public function get(AnalyticsScopeData $scope): ResponseTimeStatsData
     {
-        $measured = $this->rollupHours($scope)
-            ->selectRaw('COALESCE(SUM(response_ms_count),0) n, SUM(response_ms_sum)::numeric / NULLIF(SUM(response_ms_count),0) avg_ms')
+        $measured = $this->rollup($scope)
+            ->selectRaw('COALESCE(SUM(response_ms_count),0) n, SUM(response_ms_sum)::numeric / NULLIF(SUM(response_ms_count),0) avg_ms, MAX(response_ms_max) FILTER (WHERE response_ms_count > 0) max_ms')
             ->first();
 
-        $rawPeriod = $this->rawEventPeriod($scope);
-
-        $distribution = $this->messageEvents($scope, $rawPeriod)
-            ->where('role', MessageRole::Assistant->value)
-            ->whereNotNull('response_time_ms')
-            ->selectRaw('PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY response_time_ms) p50_ms, PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY response_time_ms) p95_ms, MAX(response_time_ms) max_ms')
-            ->first();
+        $maxMs = $measured->max_ms !== null ? (int) $measured->max_ms : null;
+        $histogram = $this->histogram($scope);
 
         return new ResponseTimeStatsData(
             repliesMeasured: (int) $measured->n,
             avgMs: $this->roundOrNull($measured->avg_ms, 0),
-            p50Ms: $this->roundOrNull($distribution->p50_ms, 0),
-            p95Ms: $this->roundOrNull($distribution->p95_ms, 0),
-            maxMs: $distribution->max_ms !== null ? (int) $distribution->max_ms : null,
+            p50Ms: $this->roundOrNull(ResponseTimeHistogram::percentile($histogram, 0.5, $maxMs), 0),
+            p95Ms: $this->roundOrNull(ResponseTimeHistogram::percentile($histogram, 0.95, $maxMs), 0),
+            maxMs: $maxMs,
             avgFirstResponseSeconds: $this->roundOrNull($this->averageFirstResponseSeconds($scope), 1),
         );
     }
 
     /**
-     * Per conversation started in the window: seconds from its first visitor
-     * message to its first AI reply after it, averaged. Read from the
-     * per-conversation metrics, which keep both times as messages arrive.
+     * The scope's reply-time histogram: the rows' counts summed by bucket.
+     *
+     * @return array<int, int> Counts by bucket, from 0.
      */
+    private function histogram(AnalyticsScopeData $scope): array
+    {
+        return $this->rollup($scope)
+            ->where('response_ms_count', '>', 0)
+            ->crossJoin($this->analytics()->raw('unnest(response_ms_hist) WITH ORDINALITY AS h(count, bucket)'))
+            ->groupBy('h.bucket')
+            ->selectRaw('h.bucket - 1 AS bucket, SUM(h.count) AS replies')
+            ->pluck('replies', 'bucket')
+            ->map(static fn (mixed $replies): int => (int) $replies)
+            ->all();
+    }
+
     private function averageFirstResponseSeconds(AnalyticsScopeData $scope): int|float|string|null
     {
         return $this->conversationMetrics($scope)

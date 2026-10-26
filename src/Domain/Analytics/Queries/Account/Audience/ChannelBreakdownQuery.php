@@ -11,16 +11,17 @@ use Illuminate\Support\Str;
 
 /**
  * Conversations per channel (Hosted Chat, Chat Widget, WhatsApp, …), busiest
- * first. Reads the retained conversations, so deleted ones are not counted.
+ * first, by when they started. Read from the per-conversation metrics, like
+ * the other conversation counts, so a deleted conversation still counts.
  */
 class ChannelBreakdownQuery extends AccountAnalyticsQuery
 {
     public function get(AnalyticsScopeData $scope): ChannelBreakdownData
     {
-        $rows = $this->liveConversations($scope)
-            ->whereBetween('c.created_at', [$scope->period->start, $scope->period->end])
-            ->groupBy('c.source')
-            ->selectRaw('c.source, COUNT(*) conversations')
+        $rows = $this->conversationMetrics($scope)
+            ->whereNotNull('source')
+            ->groupBy('source')
+            ->selectRaw('source, COUNT(*) conversations')
             ->orderByDesc('conversations')
             ->get();
 

@@ -417,6 +417,14 @@ theme.
   stop), warns that it takes over the whole server, checks
   at the end that every part runs, and runs again to upgrade (after a
   database backup, without downtime) or to finish an install that stopped.
+- **Automatic updates on the complete installation.** The installer asks
+  (yes by default; `--no-auto-update` or `CHATVIA_AUTO_UPDATE=no` to skip)
+  and installs `chatvia-auto-update`: once a night it looks for a newer
+  release of the installed major version and runs the installer's upgrade
+  (database backup, then a Deployer deploy that switches only when every
+  step worked). A new major version is only logged, never installed by
+  itself. `sudo chatvia-auto-update status|run|on|off`; log in
+  `/var/log/chatvia-auto-update.log`.
 - **Deployer keeps older widget versions.** Every release's
   `public/shakomako` links to `shared/shakomako`, which keeps the folder of
   each widget version, so a page that loaded the widget before a deploy

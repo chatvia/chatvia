@@ -18,9 +18,11 @@
 #   server, without Docker. It installs and sets up PostgreSQL with the
 #   search extensions, Redis, PHP-FPM, nginx, a Let's Encrypt certificate,
 #   Supervisor, cron and the firewall, creates the `chatvia` user, and
-#   deploys the newest release with Deployer into /var/www/chatvia. It runs
-#   as root (it starts itself again with sudo). Run it again to upgrade, or
-#   to finish an install that stopped.
+#   deploys the newest release with Deployer into /var/www/chatvia. Unless
+#   you turn it off, chatvia-auto-update then deploys each newer release of
+#   that major version by itself, once a night, after a database backup. It
+#   runs as root (it starts itself again with sudo). Run it again to upgrade,
+#   or to finish an install that stopped.
 #
 # Options (each also works as an environment variable):
 #   --docker            install with Docker, without asking  CHATVIA_INSTALL=docker
@@ -49,6 +51,7 @@
 #   --no-https          no Let's Encrypt certificate (HTTP only) CHATVIA_HTTPS=no
 #   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
 #   --force             install on a server that is not fresh    CHATVIA_FORCE=1
+#   --no-auto-update    no automatic updates (once a night)      CHATVIA_AUTO_UPDATE=no
 #   --version also takes a branch, like main, to install code that is not
 #   a release yet.
 #
@@ -95,6 +98,9 @@ readonly NATIVE_DEPLOY_DIR="/home/chatvia/deploy"
 readonly NATIVE_CONF="/etc/chatvia/install.conf"
 readonly NATIVE_LOG="/var/log/chatvia-install.log"
 readonly NATIVE_BACKUPS="/var/backups/chatvia"
+readonly NATIVE_AUTO_UPDATE="/usr/local/bin/chatvia-auto-update"
+readonly NATIVE_AUTO_UPDATE_CRON="/etc/cron.d/chatvia-auto-update"
+readonly NATIVE_AUTO_UPDATE_LOG="/var/log/chatvia-auto-update.log"
 readonly NATIVE_PHP="8.5"
 # PHP comes from Ondřej Surý's PPA (ppa:ondrej/php), which carries each PHP
 # release soon after it is out; Ubuntu's own php8.5 keeps the version the
@@ -2332,6 +2338,7 @@ native_collect_settings() {
             info 'get one (run this installer again then).'
         fi
         case ${CHATVIA_FIREWALL:-yes} in no | false | 0) FIREWALL=no ;; *) FIREWALL=yes ;; esac
+        case ${CHATVIA_AUTO_UPDATE:-yes} in no | false | 0) AUTO_UPDATE=no ;; *) AUTO_UPDATE=yes ;; esac
         case ${CHATVIA_SWAP:-auto} in
             yes | true | 1) SWAP=yes ;;
             no | false | 0) SWAP=no ;;
@@ -2371,6 +2378,21 @@ native_collect_settings() {
     if is_ip "$DOMAIN"; then HTTPS=no; fi
     if [ "$HTTPS" = yes ]; then APP_URL="https://$DOMAIN"; else APP_URL="http://$DOMAIN"; fi
     native_resolve_version
+    # Automatic updates follow releases: a branch has none.
+    if [ -n "$CHATVIA_BRANCH" ]; then
+        AUTO_UPDATE=no
+    elif [ "$INTERACTIVE" = 1 ]; then
+        native_ask_auto_update
+    fi
+}
+
+native_ask_auto_update() {
+    block text
+    info 'Automatic updates: once a night, the server looks for a newer release of the'
+    info 'major version it runs (1.4 goes to 1.5, never to 2.0). When there is one, it'
+    info 'backs up the database and deploys it. A deploy that fails changes nothing.'
+    AUTO_UPDATE=no
+    if confirm 'Update ChatVia.ai automatically?' y; then AUTO_UPDATE=yes; fi
 }
 
 # Shown before the questions: a new DNS record can take a while to work, so
@@ -2440,7 +2462,7 @@ native_check_dns() {
 }
 
 native_show_summary() {
-    local password='the one you typed' address version storage index firewall swap code email kind
+    local password='the one you typed' address version storage index firewall swap code email kind updates
     local rows=()
     if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
     kv_to kind 'Install' 'Complete, directly on this server'
@@ -2462,6 +2484,12 @@ native_show_summary() {
         kv_to firewall 'Firewall' 'left as it is'
     fi
     rows+=("$firewall")
+    if [ "$AUTO_UPDATE" = yes ]; then
+        kv_to updates 'Updates' "automatic, once a night $(dim '(new releases of the same major version)')"
+    else
+        kv_to updates 'Updates' "by hand $(dim '(run this installer again)')"
+    fi
+    rows+=("$updates")
     if [ "$SWAP" = yes ]; then
         kv_to swap 'Swap' '4 GB, in /swapfile'
         rows+=("$swap")
@@ -2494,6 +2522,7 @@ CHATVIA_RELEASE=$CHATVIA_RELEASE
 CHATVIA_BRANCH=$CHATVIA_BRANCH
 FIREWALL=$FIREWALL
 SWAP=$SWAP
+AUTO_UPDATE=$AUTO_UPDATE
 EOF
     )
 }
@@ -2512,6 +2541,8 @@ native_load_settings() {
     CHATVIA_BRANCH=$(conf_value CHATVIA_BRANCH)
     FIREWALL=$(conf_value FIREWALL)
     SWAP=$(conf_value SWAP)
+    AUTO_UPDATE=$(conf_value AUTO_UPDATE)
+    AUTO_UPDATE=${AUTO_UPDATE:-no}
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO}
 }
 
@@ -2548,6 +2579,7 @@ native_run_steps() {
     run_step 'Sizing the queue workers to this server' native_tune_workers || native_failed
     run_step 'Starting Horizon, Reverb and Pulse' native_configure_supervisor || native_failed
     run_step 'Starting the scheduler' native_configure_cron || native_failed
+    run_step "$(native_auto_update_step)" native_configure_auto_update || native_failed
     run_step 'Creating the admin account' native_create_admin || native_failed
     native_read_admin_result
     if [ "$FIREWALL" = yes ]; then
@@ -3398,6 +3430,202 @@ native_configure_cron() {
     systemctl start cron
 }
 
+# Automatic updates: chatvia-auto-update, and its nightly cron entry while
+# they are on. The script is the installer's: every upgrade replaces it, and
+# install.conf's AUTO_UPDATE says whether the cron entry stays.
+native_configure_auto_update() {
+    native_auto_update_file >"$NATIVE_AUTO_UPDATE.new"
+    chmod 755 "$NATIVE_AUTO_UPDATE.new"
+    # A new file, not a rewrite: the update that runs this keeps reading
+    # the old one.
+    mv "$NATIVE_AUTO_UPDATE.new" "$NATIVE_AUTO_UPDATE"
+    if [ "$AUTO_UPDATE" = yes ]; then
+        "$NATIVE_AUTO_UPDATE" on
+    else
+        "$NATIVE_AUTO_UPDATE" off
+    fi
+}
+
+native_auto_update_step() {
+    if [ "$AUTO_UPDATE" = yes ]; then
+        printf 'Turning on automatic updates (once a night)'
+    else
+        printf 'Installing chatvia-auto-update (automatic updates stay off)'
+    fi
+}
+
+native_auto_update_file() {
+    sed -e "s|__CONF__|$NATIVE_CONF|" -e "s|__CRON__|$NATIVE_AUTO_UPDATE_CRON|" \
+        -e "s|__LOG__|$NATIVE_AUTO_UPDATE_LOG|" -e "s|__INSTALL_LOG__|$NATIVE_LOG|" \
+        -e "s|__INSTALLER_URL__|${CHATVIA_INSTALLER_URL:-$INSTALLER_URL}|" \
+        -e "s|__SELF__|$NATIVE_AUTO_UPDATE|g" -e "s|__DOCS__|$NATIVE_DOCS|" <<'EOF'
+#!/usr/bin/env bash
+#
+# ChatVia.ai automatic updates. Written by the ChatVia.ai installer, which
+# replaces this file on every upgrade.
+#
+# While they are on, cron runs `chatvia-auto-update run` once a night. It
+# looks for a newer release of the major version installed here: 1.4.2 goes
+# to 1.5.0, but never to 2.0.0, as a new major version may need steps of
+# its own. When there is one, it runs the installer's upgrade: a backup of
+# the database first, then a deploy with Deployer, which switches over only
+# when every step worked. A failed update leaves the running version alone.
+#
+#   sudo chatvia-auto-update status   on or off, the version, the last runs
+#   sudo chatvia-auto-update run      look for a newer release now
+#   sudo chatvia-auto-update off      turn automatic updates off
+#   sudo chatvia-auto-update on       turn them on again
+#
+# More: __DOCS__#automatic-updates
+
+set -euo pipefail
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+CONF=__CONF__
+CRON=__CRON__
+LOG=__LOG__
+INSTALL_LOG=__INSTALL_LOG__
+INSTALLER_URL=__INSTALLER_URL__
+
+conf_value() {
+    sed -n "s/^$1=//p" "$CONF" 2>/dev/null | tail -n 1
+}
+
+conf_set() {
+    if grep -q "^$1=" "$CONF"; then
+        sed -i "s|^$1=.*|$1=$2|" "$CONF"
+    else
+        printf '%s=%s\n' "$1" "$2" >>"$CONF"
+    fi
+}
+
+# The releases (vX.Y.Z tags) of the repository, oldest first.
+releases() {
+    GIT_TERMINAL_PROMPT=0 git ls-remote --tags --refs "$(conf_value CHATVIA_REPO)" 'v*' |
+        sed 's#.*refs/tags/##' | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V
+}
+
+# newer A B: A is a later version than B.
+newer() {
+    [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1)" = "$1" ]
+}
+
+# When cron runs it, as HH:MM.
+schedule() {
+    awk '!/^#/ && NF >= 2 { printf "%02d:%02d", $2, $1; exit }' "$CRON"
+}
+
+run() {
+    local installed major tags latest newest status=0
+    if [ -t 1 ]; then
+        exec > >(tee -a "$LOG") 2>&1
+    else
+        exec >>"$LOG" 2>&1
+    fi
+    echo "== $(date '+%Y-%m-%d %H:%M')"
+
+    # One update at a time.
+    exec 9>/run/chatvia-auto-update.lock
+    if ! flock -n 9; then
+        echo 'An update runs already.'
+        return 0
+    fi
+    if ! grep -q '^# Install finished on' "$CONF" 2>/dev/null; then
+        echo 'The install has not finished: run the installer again first.'
+        return 1
+    fi
+    installed=$(conf_value CHATVIA_RELEASE)
+    if [ -z "$installed" ]; then
+        echo "This server runs the branch $(conf_value CHATVIA_BRANCH), not a release: automatic updates follow releases only."
+        return 0
+    fi
+    major=${installed#v}
+    major=${major%%.*}
+
+    if ! tags=$(releases); then
+        echo "Could not read the releases of $(conf_value CHATVIA_REPO). Trying again next time."
+        return 1
+    fi
+    latest=$(printf '%s\n' "$tags" | grep -E "^v$major\." | tail -n 1) || latest=''
+    newest=$(printf '%s\n' "$tags" | tail -n 1)
+    if [ -n "$newest" ] && newer "$newest" "${latest:-$installed}"; then
+        echo "ChatVia.ai $newest is out, a new major version. Automatic updates stay on $major.x:"
+        echo 'read its changelog, then upgrade by hand (run the installer again).'
+    fi
+    if [ -z "$latest" ] || ! newer "$latest" "$installed"; then
+        echo "ChatVia.ai $installed is the newest $major.x release. Nothing to do."
+        return 0
+    fi
+
+    echo "Updating ChatVia.ai $installed to $latest."
+    INSTALLER=$(mktemp)
+    trap 'rm -f "$INSTALLER"' EXIT
+    if ! curl -fsSL --max-time 120 "$INSTALLER_URL" -o "$INSTALLER" || ! bash -n "$INSTALLER"; then
+        echo "Could not download the installer from $INSTALLER_URL. Trying again next time."
+        return 1
+    fi
+    NO_COLOR=1 TERM=dumb bash "$INSTALLER" --complete --upgrade --yes --version "$latest" </dev/null || status=$?
+    if [ "$status" != 0 ]; then
+        echo "The update to $latest stopped: $installed still runs. See why: $INSTALL_LOG"
+        return "$status"
+    fi
+    echo "ChatVia.ai $latest is running."
+}
+
+# A random time between 02:00 and 04:59, so servers do not all build at once.
+turn_on() {
+    if [ ! -f "$CRON" ]; then
+        printf '# ChatVia.ai automatic updates. Written by __SELF__.\n# Turn them off: sudo chatvia-auto-update off\n%d %d * * * root __SELF__ run\n' \
+            $((RANDOM % 60)) $((2 + RANDOM % 3)) >"$CRON.new"
+        chmod 644 "$CRON.new"
+        mv "$CRON.new" "$CRON"
+    fi
+    conf_set AUTO_UPDATE yes
+    echo "Automatic updates are on: every night at $(schedule) (server time)."
+    if [ -z "$(conf_value CHATVIA_RELEASE)" ]; then
+        echo 'This server runs a branch, not a release, so they do nothing until it runs a release.'
+    fi
+}
+
+turn_off() {
+    rm -f "$CRON"
+    conf_set AUTO_UPDATE no
+    echo 'Automatic updates are off. Upgrade by hand: run the installer again.'
+}
+
+status() {
+    local release
+    if [ -f "$CRON" ]; then
+        echo "Automatic updates are on: every night at $(schedule) (server time)."
+    else
+        echo 'Automatic updates are off.'
+    fi
+    release=$(conf_value CHATVIA_RELEASE)
+    echo "Installed: ChatVia.ai ${release:-branch $(conf_value CHATVIA_BRANCH)}"
+    if [ -s "$LOG" ]; then
+        echo
+        echo "The last lines of $LOG:"
+        tail -n 8 "$LOG"
+    fi
+}
+
+if [ "$(id -u)" != 0 ]; then
+    echo 'Run it with sudo: sudo chatvia-auto-update status' >&2
+    exit 1
+fi
+case ${1:-status} in
+    run) run ;;
+    on) turn_on ;;
+    off) turn_off ;;
+    status) status ;;
+    *)
+        echo 'Usage: sudo chatvia-auto-update status | run | on | off' >&2
+        exit 1
+        ;;
+esac
+EOF
+}
+
 # The queue workers start sized to this server's memory and processors
 # (Settings → Platform changes them later). Horizon reads the numbers when
 # it starts, and Supervisor starts it in the next step.
@@ -3542,11 +3770,23 @@ native_show_finish() {
     if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
     if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi
     info "Deploys       Deployer $(dim "(user $NATIVE_USER, in $NATIVE_DEPLOY_DIR)")"
+    if [ "$AUTO_UPDATE" = yes ]; then
+        info "Updates       automatic, once a night $(dim "(cron: $NATIVE_AUTO_UPDATE_CRON)")"
+    else
+        info "Updates       by hand $(dim '(automatic updates are off)')"
+    fi
 
     section 'Good to know'
     info "Settings     $NATIVE_ROOT/shared/.env"
     info "             $(dim 'Back it up: its APP_KEY unlocks the secrets in the database.')"
     info "Upgrade      $(dim 'run this installer again: it deploys the newest release')"
+    if [ "$AUTO_UPDATE" = yes ]; then
+        info "Auto update  sudo chatvia-auto-update status $(dim '(or run, off, on)')"
+        info "             $(dim 'Each night it looks for a newer release of the same major version,')"
+        info "             $(dim "backs up the database, then deploys it. Log: $NATIVE_AUTO_UPDATE_LOG")"
+    else
+        info "Auto update  off $(dim '(turn it on: sudo chatvia-auto-update on)')"
+    fi
     info "Status       sudo supervisorctl status"
     info "App logs     $NATIVE_ROOT/shared/storage/logs"
     info "Deployer     sudo -iu $NATIVE_USER, then cd deploy && vendor/bin/dep releases"
@@ -3609,6 +3849,9 @@ native_upgrade() {
         fi
     fi
 
+    run_step "$(native_auto_update_step)" native_configure_auto_update ||
+        warn "chatvia-auto-update could not be updated. See why: $LOG"
+
     # Without --version: the newest release, or the newest code of the
     # branch an install of a branch follows.
     if [ "$VERSION_GIVEN" = 0 ]; then
@@ -3649,6 +3892,9 @@ native_upgrade() {
     run_step 'Checking that every part runs' native_check_parts ||
         die 'ChatVia.ai runs, but not every part of it.' "See why: $LOG"
     ok "$(bold "ChatVia.ai $new is running.")"
+    if [ "$AUTO_UPDATE" != yes ]; then
+        info "$(dim 'Automatic updates are off. Turn them on: sudo chatvia-auto-update on')"
+    fi
     outro "Open $(accent "$APP_URL")"
 }
 
@@ -3737,6 +3983,7 @@ parse_args() {
             --no-https) CHATVIA_HTTPS=no ;;
             --no-firewall) CHATVIA_FIREWALL=no ;;
             --force) FORCE=1 ;;
+            --no-auto-update) CHATVIA_AUTO_UPDATE=no ;;
             --yes | -y) YES=1 ;;
             --upgrade) UPGRADE=1 ;;
             --no-start) NO_START=1 ;;
@@ -3774,7 +4021,7 @@ main() {
     NO_PULL=${CHATVIA_NO_PULL:-0}
     MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
-    DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no DNS_READY=1
+    DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no AUTO_UPDATE=no DNS_READY=1
 
     setup_output
     parse_args "$@"

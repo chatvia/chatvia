@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Agent;
 
+use App\Http\Requests\Concerns\ScopesRulesToWorkspace;
 use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Data\AttachAgentFunctionData;
@@ -16,6 +17,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class AttachAgentFunctionRequest extends FormRequest
 {
+    use ScopesRulesToWorkspace;
+
     public function authorize(): bool
     {
         return true;
@@ -30,7 +33,7 @@ class AttachAgentFunctionRequest extends FormRequest
     {
         return [
             // ID of the function to attach.
-            'function_id' => ['bail', 'required', 'string', 'uuid', WorkspaceRule::exists('functions', $this->user()->workspace(), 'external_id')],
+            'function_id' => ['bail', 'required', 'string', 'uuid', WorkspaceRule::exists('functions', $this->ruleWorkspaceId(), 'external_id')],
         ];
     }
 

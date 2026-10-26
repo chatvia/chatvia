@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Agent;
 
+use App\Http\Requests\Concerns\ScopesRulesToWorkspace;
 use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Data\Agent\AttachAgentMcpData;
@@ -16,6 +17,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class AttachAgentMcpRequest extends FormRequest
 {
+    use ScopesRulesToWorkspace;
+
     public function authorize(): bool
     {
         return true;
@@ -30,7 +33,7 @@ class AttachAgentMcpRequest extends FormRequest
     {
         return [
             // ID of the MCP server to attach.
-            'mcp_id' => ['bail', 'required', 'string', 'uuid', WorkspaceRule::exists('mcp_servers', $this->user()->workspace(), 'external_id')],
+            'mcp_id' => ['bail', 'required', 'string', 'uuid', WorkspaceRule::exists('mcp_servers', $this->ruleWorkspaceId(), 'external_id')],
         ];
     }
 

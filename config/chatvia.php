@@ -353,6 +353,11 @@ return [
     | - image_generator: pictures agents make in the hosted chat.
     |   "openai", "openrouter", "google" or "none". Unlike the others it
     |   starts at "none", and each agent still turns it on.
+    | - audio_generator: the audio files agents make in the hosted chat, a
+    |   speech service of its own apart from Read aloud (`speaker`).
+    |   "elevenlabs", "openai" or "none"; it also starts at "none".
+    |   `audio_max_characters` is the longest text one file reads (an
+    |   attached PDF read aloud).
     |   `images_per_chat_per_hour` and `audio_per_chat_per_hour` cap what
     |   agents make in one chat; a workspace's monthly cap is a
     |   GenerationLimit row.
@@ -438,7 +443,9 @@ return [
         'speaker' => 'auto',
         'image_generator' => 'none',
         'images_per_chat_per_hour' => 10,
+        'audio_generator' => 'none',
         'audio_per_chat_per_hour' => 10,
+        'audio_max_characters' => 20000,
         'chat_files' => [
             'enabled' => true,
             'model' => null,

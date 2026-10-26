@@ -542,6 +542,8 @@
     "Play agent replies as speech": "پخش پاسخ‌های عامل‌ها به صورت گفتار",
     "Image generation": "ساخت تصویر",
     "Let agents make pictures in chats": "به عامل‌ها اجازه می‌دهد در گفتگوها تصویر بسازند",
+    "Audio generation": "ساخت صدا",
+    "Let agents make audio files in chats": "به عامل‌ها اجازه می‌دهد در گفتگوها فایل صوتی بسازند",
     "Your admin has turned this off.": "مدیر شما این را خاموش کرده است.",
     "Reading aloud is not available right now.": "خواندن با صدا اکنون در دسترس نیست.",
     "The reply could not be read aloud. Please try again.": "پاسخ را نمی‌شد با صدا خواند. لطفاً دوباره تلاش کنید.",

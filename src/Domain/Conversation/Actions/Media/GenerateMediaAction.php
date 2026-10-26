@@ -14,11 +14,11 @@ use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Llm\Contracts\ImageGenerator;
-use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Data\Image\ImagePromptData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Exceptions\ImageGenerationFailedException;
+use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +27,7 @@ use Throwable;
 
 /**
  * Makes the file of one pending item: a picture from the image service, or
- * the text read aloud by the speech service. The file is saved under the
+ * the text read aloud by the speech service of audio files ({@see AudioGeneration}). The file is saved under the
  * agent's folder ({@see GeneratedMediaFiles}) and the item turns ready; when
  * the service refuses, fails or times out the item turns failed
  * ({@see FailGeneratedMediaAction}). Either way the chat is told at once.
@@ -38,7 +38,7 @@ class GenerateMediaAction
 {
     public function __construct(
         private readonly ImageGenerator $images,
-        private readonly Speaker $speaker,
+        private readonly AudioGeneration $audio,
         private readonly ReadAloudAvailability $readAloud,
         private readonly GeneratedMediaFiles $files,
         private readonly FailGeneratedMediaAction $fail,
@@ -102,9 +102,10 @@ class GenerateMediaAction
      */
     private function audio(GeneratedMedia $media, Agent $agent): array
     {
-        $voice = filled($media->voice) ? (string) $media->voice : $this->readAloud->voiceFor($agent);
-        $bytes = $this->speaker->speak($media->prompt, $voice, AiCallTag::AudioGeneration);
-        $format = $this->speaker->format();
+        $speaker = $this->audio->speaker;
+        $voice = filled($media->voice) ? (string) $media->voice : $this->readAloud->voiceFor($agent, $speaker);
+        $bytes = $speaker->speak($media->prompt, $voice, AiCallTag::AudioGeneration);
+        $format = $speaker->format();
 
         return [$bytes, $format->mimeType(), $format->extension()];
     }

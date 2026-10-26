@@ -27,7 +27,9 @@ return new class extends SettingsMigration
             $group->add('speaker');
             $group->add('image_generator');
             $group->add('images_per_chat_per_hour');
+            $group->add('audio_generator');
             $group->add('audio_per_chat_per_hour');
+            $group->add('audio_max_characters');
             $group->add('chat_files_enabled');
             $group->add('chat_files_model');
             $group->add('source_summaries_enabled');

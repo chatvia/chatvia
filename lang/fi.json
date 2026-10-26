@@ -542,6 +542,8 @@
     "Play agent replies as speech": "Toistaa agenttien vastaukset puheena",
     "Image generation": "Kuvien luonti",
     "Let agents make pictures in chats": "Antaa agenttien luoda kuvia keskusteluissa",
+    "Audio generation": "Äänen luonti",
+    "Let agents make audio files in chats": "Antaa agenttien luoda äänitiedostoja keskusteluissa",
     "Your admin has turned this off.": "Ylläpitäjäsi on poistanut tämän käytöstä.",
     "Reading aloud is not available right now.": "Ääneen lukeminen ei ole nyt käytettävissä.",
     "The reply could not be read aloud. Please try again.": "Vastausta ei voitu lukea ääneen. Yritä uudelleen.",

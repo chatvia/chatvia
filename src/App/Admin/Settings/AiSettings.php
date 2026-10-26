@@ -11,12 +11,13 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * What runs on which AI provider (Settings → AI models): which service
  * handles each step (embeddings, reranking, document reading, speech to
- * text, voice conversations, reading aloud, image generation), the models
- * those services call, how many files agents make in one chat, and the
- * catalog model behind each of the app's own tasks ({@see LlmTask}: one
- * shared model, and one per task). The providers' keys are in
- * {@see AiProviderSettings}; chat models are rows (`llms`). The services are
- * picked in App\Providers\DomainServiceProvider from `chatvia.ai.*`.
+ * text, voice conversations, reading aloud, image and audio generation),
+ * the models those services call, how many files agents make in one chat
+ * and how long an audio file may be, and the catalog model behind each of
+ * the app's own tasks ({@see LlmTask}: one shared model, and one per task).
+ * The providers' keys are in {@see AiProviderSettings}; chat models are rows
+ * (`llms`). The services are picked in App\Providers\DomainServiceProvider
+ * from `chatvia.ai.*`.
  *
  * The embedding provider and its model decide the stored vectors: a change
  * of either ({@see embeddingFor()}) embeds everything again.
@@ -59,8 +60,14 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.images_per_chat_per_hour')]
     public ?int $images_per_chat_per_hour = null;
 
+    #[ConfigKey('chatvia.ai.audio_generator')]
+    public ?string $audio_generator = null;
+
     #[ConfigKey('chatvia.ai.audio_per_chat_per_hour')]
     public ?int $audio_per_chat_per_hour = null;
+
+    #[ConfigKey('chatvia.ai.audio_max_characters')]
+    public ?int $audio_max_characters = null;
 
     #[ConfigKey('chatvia.ai.chat_files.enabled')]
     public ?bool $chat_files_enabled = null;

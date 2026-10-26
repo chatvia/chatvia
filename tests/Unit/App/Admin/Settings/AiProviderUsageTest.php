@@ -37,3 +37,11 @@ it('names the provider pictures are made on, none until one is picked', function
     'Google picked' => ['google', AiProvider::Google],
     'a provider that cannot draw' => ['mistral', null],
 ]);
+
+it('names the provider audio files are made on, apart from Read aloud', function (): void {
+    config(['chatvia.ai.speaker' => 'openai', 'chatvia.ai.audio_generator' => 'elevenlabs']);
+    connectAiProviders(AiProvider::OpenAi, AiProvider::ElevenLabs);
+
+    expect(app(AiProviderUsage::class)->providerFor(AiCapability::AudioGeneration))->toBe(AiProvider::ElevenLabs)
+        ->and(app(AiProviderUsage::class)->providerFor(AiCapability::TextToSpeech))->toBe(AiProvider::OpenAi);
+});

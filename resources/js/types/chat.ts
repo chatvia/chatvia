@@ -32,17 +32,20 @@ export interface Message {
     attachments?: ChatAttachment[];
     /**
      * Free-form JSON persisted on the message (`chat_messages.metadata`). It
-     * carries chart `artifacts` (so charts re-render on reload) and a copy of
-     * the attachments.
+     * carries chart `artifacts` (so charts re-render on reload), a copy of
+     * the attachments and the step chain.
      */
     metadata?: {
         artifacts?: ToolArtifact[];
         attachments?: ChatAttachment[];
+        steps?: StoredMessageStep[];
     } | null;
     errorCode?: StreamErrorCode;
     errorRetryable?: boolean;
     /** The model's thinking while this reply streamed. Live only: never stored, so gone after a reload. */
     reasoning?: string;
+    /** What the agent said and which tools it called before its answer, while it streams; a reload reads `metadata.steps`. */
+    steps?: MessageStep[];
     /** The catalog model that wrote this reply; shown with Multi-model on. */
     llm_id?: number | null;
 }
@@ -69,6 +72,21 @@ export interface MessageSource {
     score?: number | null;
     /** Chat log only (staff): the start of the passage; null once it is removed from the knowledge base. */
     preview?: string | null;
+}
+
+/**
+ * One link in the step chain above a reply: a line the model wrote before
+ * calling a tool ("Let me look up your event types."), or a tool call it made.
+ */
+export type MessageStep = { kind: 'text'; text: string } | { kind: 'tool'; call: ActiveToolCall; done: boolean };
+
+/** A step as `chat_messages.metadata.steps` stores it (MessageStepData). */
+export interface StoredMessageStep {
+    kind: 'text' | 'tool';
+    text?: string | null;
+    label?: string | null;
+    tool_kind?: 'mcp' | 'function' | null;
+    icon_url?: string | null;
 }
 
 /** A tool call that is running right now; drives the "Calling …" indicator. */

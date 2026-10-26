@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} adım | {count} adım",
+        "used": "{label} kullanıldı",
+        "show": "Adımları göster",
+        "hide": "Adımları gizle"
+    }
+}

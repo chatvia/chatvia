@@ -4483,5 +4483,11 @@
             "deploy_title": "Udostępnij go",
             "deploy_text": "Gdy będzie gotowy, dodaj go do swojej strony lub udostępnij link do jego strony czatu w sekcji Wdrożenie."
         }
+    },
+    "steps": {
+        "count": "{count} krok | {count} kroki",
+        "used": "Użyto: {label}",
+        "show": "Pokaż kroki",
+        "hide": "Ukryj kroki"
     }
 }

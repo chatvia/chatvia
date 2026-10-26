@@ -114,8 +114,8 @@ class TurnContextFactory
      * can resume. No message is recorded and no rewrite runs: the LLM history
      * comes back verbatim from the snapshot and the existing assistant message
      * id is reused. The answer buffer starts empty, so the saved message is
-     * the post-approval answer — the pre-approval preface only ever shows
-     * live, like any tool-call preface.
+     * the post-approval answer; the pre-approval preface is already a step
+     * of the chain, like any tool-call preface.
      */
     public function forResume(ToolApprovalCheckpoint $checkpoint): ChatContext
     {
@@ -148,7 +148,7 @@ class TurnContextFactory
             source: $saved->source,
         );
 
-        return new ChatContext(
+        $context = new ChatContext(
             requestData: $requestData,
             payload: $turn,
             llmMessages: $checkpoint->messages_snapshot,
@@ -156,6 +156,9 @@ class TurnContextFactory
             assistantMessageId: $checkpoint->assistant_message_id,
             queryLanguage: $saved->queryLanguage,
         );
+        $context->steps = $saved->steps;
+
+        return $context;
     }
 
     /**

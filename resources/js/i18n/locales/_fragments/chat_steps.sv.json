@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} steg | {count} steg",
+        "used": "Använde {label}",
+        "show": "Visa steg",
+        "hide": "Dölj steg"
+    }
+}

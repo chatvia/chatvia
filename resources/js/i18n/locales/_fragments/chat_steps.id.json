@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} langkah | {count} langkah",
+        "used": "Menggunakan {label}",
+        "show": "Tampilkan langkah",
+        "hide": "Sembunyikan langkah"
+    }
+}

@@ -1,5 +1,7 @@
 <?php
 
+use Domain\Conversation\Data\Messages\MessageStepData;
+use Domain\Conversation\Enums\MessageStepKind;
 use Domain\Conversation\Enums\ToolApprovalStatus;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
@@ -7,6 +9,7 @@ use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\TurnContextFactory;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\Conversation\TestChatContext;
 use Tests\Support\Conversation\Tooling\FakeToolApprovalPolicy;
@@ -201,4 +204,44 @@ it('runs at least one round when the cap is set below one', function (): void {
     iterator_to_array($runner->run(TestChatContext::make(), $provider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('loop_tool')), preserve_keys: false);
 
     expect(array_column($provider->streamSettings, 'tool_choice'))->toBe(['auto']);
+});
+
+it('records what the model wrote before a tool call and the call itself as steps, not as the answer', function (): void {
+    $context = TestChatContext::make();
+    $round = 0;
+    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx) use (&$round): Generator {
+        if ($round++ === 0) {
+            $ctx->appendStreamedMessage('Let me check the time. ');
+            $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'get_time', 'arguments' => '{}'];
+        } else {
+            $ctx->appendStreamedMessage('It is noon.');
+        }
+        yield StreamEvent::delta($ctx->assistantMessageId, 'x');
+    });
+    $runner = ToolLoop::runner($transformer, new RecordingToolDispatcher, FakeToolApprovalPolicy::gatingNothing());
+
+    $llmMessages = [['role' => 'user', 'content' => 'time?']];
+    iterator_to_array($runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('get_time')), preserve_keys: false);
+
+    expect(array_map(fn (MessageStepData $step): array => [$step->kind, $step->text ?? $step->label], $context->steps))->toBe([
+        [MessageStepKind::Text, 'Let me check the time.'],
+        [MessageStepKind::Tool, 'get_time'],
+    ])->and($context->streamedMessage)->toBe('It is noon.');
+});
+
+it('keeps the steps before a pause with the checkpoint, so the resumed turn saves the whole chain', function (): void {
+    $context = TestChatContext::make(chatterId: 1);
+    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx): Generator {
+        $ctx->appendStreamedMessage('I will delete your account.');
+        $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'delete_user', 'arguments' => '{}'];
+        yield StreamEvent::delta($ctx->assistantMessageId, 'x');
+    });
+    $runner = ToolLoop::runner($transformer, new RecordingToolDispatcher, FakeToolApprovalPolicy::gatingEverything());
+
+    $llmMessages = [['role' => 'user', 'content' => 'delete me']];
+    iterator_to_array($runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('delete_user')), preserve_keys: false);
+
+    $resumed = app(TurnContextFactory::class)->forResume(ToolApprovalCheckpoint::query()->sole());
+
+    expect(array_map(fn (MessageStepData $step): ?string => $step->text, $resumed->steps))->toBe(['I will delete your account.']);
 });

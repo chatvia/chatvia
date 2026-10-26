@@ -11,7 +11,8 @@ use Spatie\LaravelData\Data;
 /**
  * One assistant reply as it is recorded at the end of a turn: the final text,
  * the usage and timing figures, how the answer was found (Q&A match,
- * knowledge confidence, the knowledge it was given) and what tools ran.
+ * knowledge confidence, the knowledge it was given), what tools ran and the
+ * step chain the chat showed above it.
  * Stored by {@see StoreAssistantMessageAction}.
  *
  * Property names are snake_case because the object is queued inside
@@ -23,6 +24,7 @@ class AssistantTurnData extends Data
      * @param  array<int, array{kind: string, data: mixed}>  $artifacts  Structured tool results (e.g. chart specs) saved in `chat_messages.metadata.artifacts` so the chat UI can render them again on reload.
      * @param  array<int, string>  $tool_calls  Names of the tools this turn ran, saved in `chat_messages.metadata.tool_calls` so follow-up turns keep those tools available.
      * @param  array<int, MessageSourceData>  $sources  The knowledge the answer was given, best first, saved in `chat_message_sources`.
+     * @param  array<int, MessageStepData>  $steps  What the model wrote before its tool calls and the calls the chat showed, saved in `chat_messages.metadata.steps` so the step chain comes back on reload.
      */
     public function __construct(
         public string $external_session_id,
@@ -54,12 +56,13 @@ class AssistantTurnData extends Data
         public array $sources = [],
         // Spoken in a voice call; saved as `metadata.voice`.
         public bool $voice = false,
+        public array $steps = [],
     ) {}
 
     /**
      * What the reply keeps in `chat_messages.metadata` and in the cached
-     * history: its artifacts, the tools it ran, and whether it was spoken in
-     * a voice call. Null when it has none of them, so plain text replies stay
+     * history: its artifacts, the tools it ran, its step chain, and whether
+     * it was spoken in a voice call. Null when it has none of them, so plain text replies stay
      * small.
      *
      * @return array<string, mixed>|null
@@ -69,6 +72,7 @@ class AssistantTurnData extends Data
         $metadata = array_filter([
             'artifacts' => $this->artifacts,
             'tool_calls' => $this->tool_calls,
+            'steps' => array_map(static fn (MessageStepData $step): array => $step->toArray(), $this->steps),
         ], static fn (array $value): bool => $value !== []);
 
         if ($this->voice) {

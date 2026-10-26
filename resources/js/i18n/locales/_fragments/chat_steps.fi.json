@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} vaihe | {count} vaihetta",
+        "used": "Käytti: {label}",
+        "show": "Näytä vaiheet",
+        "hide": "Piilota vaiheet"
+    }
+}

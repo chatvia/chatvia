@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} 个步骤 | {count} 个步骤",
+        "used": "已使用 {label}",
+        "show": "显示步骤",
+        "hide": "隐藏步骤"
+    }
+}

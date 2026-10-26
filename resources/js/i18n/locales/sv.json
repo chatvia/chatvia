@@ -4483,5 +4483,11 @@
             "deploy_title": "Dela den",
             "deploy_text": "När den är klar lägger du till den på din webbplats eller delar en länk till dess chattsida från Distribuera."
         }
+    },
+    "steps": {
+        "count": "{count} steg | {count} steg",
+        "used": "Använde {label}",
+        "show": "Visa steg",
+        "hide": "Dölj steg"
     }
 }

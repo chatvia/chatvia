@@ -4431,5 +4431,11 @@
             "deploy_title": "Chia sẻ",
             "deploy_text": "Khi đã sẵn sàng, hãy thêm nó vào trang web hoặc chia sẻ liên kết tới trang trò chuyện của nó trong Triển khai."
         }
+    },
+    "steps": {
+        "count": "{count} bước | {count} bước",
+        "used": "Đã dùng {label}",
+        "show": "Hiện các bước",
+        "hide": "Ẩn các bước"
     }
 }

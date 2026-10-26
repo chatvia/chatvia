@@ -1,0 +1,8 @@
+{
+    "steps": {
+        "count": "{count} krok | {count} kroki",
+        "used": "Użyto: {label}",
+        "show": "Pokaż kroki",
+        "hide": "Ukryj kroki"
+    }
+}

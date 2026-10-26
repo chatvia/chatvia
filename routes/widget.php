@@ -102,16 +102,16 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
             // they don't inherit it — without it {formInstance} would reach the
             // controller as an empty model (agent_id null) and 404 on the guard.
             Route::post('/forms/{formInstance:external_id}/submit', SubmitInlineFormController::class)
-                ->middleware(['throttle:widget-stream', SubstituteBindings::class])
+                ->middleware(['license.capabilities', 'throttle:widget-stream', SubstituteBindings::class])
                 ->name('widget.forms.submit');
 
             // Booking calendar (Calendar capability); bound and checked like the
             // form submit above.
             Route::get('/calendar/{bookingInstance:external_id}/slots', ListBookingSlotsController::class)
-                ->middleware(['throttle:widget-stream', SubstituteBindings::class])
+                ->middleware(['license.capabilities', 'throttle:widget-stream', SubstituteBindings::class])
                 ->name('widget.calendar.slots');
             Route::post('/calendar/{bookingInstance:external_id}/book', BookMeetingController::class)
-                ->middleware(['throttle:widget-stream', SubstituteBindings::class])
+                ->middleware(['license.capabilities', 'throttle:widget-stream', SubstituteBindings::class])
                 ->name('widget.calendar.book');
 
             // WebSocket / handoff endpoints

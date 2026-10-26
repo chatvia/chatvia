@@ -16,6 +16,8 @@ use Tests\Support\Conversation\HostedChatVisitor;
  * one the agent rendered, and it takes answers once.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     Event::fake([FormSubmitted::class]);
 
     $this->agent = Agent::factory()->create(['is_public' => true]);

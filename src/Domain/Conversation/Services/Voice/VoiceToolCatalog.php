@@ -8,6 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Voice\VoiceToolLabelData;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
+use Domain\Conversation\Services\Tooling\Routing\UnavailableToolFilter;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -46,6 +47,7 @@ final readonly class VoiceToolCatalog
         private ToolDisplayResolver $display,
         private ToolApprovalPolicy $approvalPolicy,
         private KnowledgeSearchSwitch $knowledgeSearch,
+        private UnavailableToolFilter $unavailableFilter,
     ) {}
 
     /**
@@ -66,7 +68,10 @@ final readonly class VoiceToolCatalog
         $limit = max(0, (int) config('chatvia.voice.max_tools', 20));
         $tools = [];
 
-        foreach ($this->surfaceFilter->apply($this->registry->for($agent), $conversationId) as $entry) {
+        // Withheld like in the typed chat: a capability without a license key.
+        $entries = $this->unavailableFilter->apply($this->surfaceFilter->apply($this->registry->for($agent), $conversationId));
+
+        foreach ($entries as $entry) {
             if (count($tools) >= $limit) {
                 break;
             }

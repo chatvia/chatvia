@@ -32,17 +32,35 @@ subject to the following conditions:
    license key for its domain (https://chatvia.ai/license). You may not change
    the Software, by any means, to use them without one.
 
-4. Selling the Software as a service. You may not offer the Software, or a
+4. Free use limits. While an install does not hold a valid ChatVia.ai license
+   key for its domain (https://chatvia.ai/license), it may not:
+
+   a. create a workspace when it already has one;
+   b. create an agent in a workspace that already has ten agents;
+   c. create a team in a workspace that already has one;
+   d. send more than 10,000 agent replies in a calendar month from one
+      workspace;
+   e. use the Software's API;
+   f. use voice conversations, or the built-in capabilities (charts, calendar
+      booking, forms and leads, image generation and audio generation); or
+   g. change the options of how texts are split into chunks (the Splitting
+      settings).
+
+   You may not change the Software, by any means, to go past these limits
+   without a license key.
+
+5. Selling the Software as a service. You may not offer the Software, or a
    work based on it, to other people or companies as a hosted service (where
    they use an install that you run instead of running their own) unless that
    install holds an active ChatVia.ai SaaS license key for its domain
    (https://chatvia.ai/license). Using the Software for your own organization,
    including chats with your own customers, is not offering it as a service.
 
-5. If you do not meet condition 2, 3 or 4, the permission granted above ends
+6. If you do not meet condition 2, 3, 4 or 5, the permission granted above ends
    automatically. It comes back if you restore the credit, stop using the
-   Enterprise features, stop offering the Software as a service, or get a
-   license key, within 30 days after you learn of the breach.
+   Enterprise features, bring the install back within the free use limits,
+   stop offering the Software as a service, or get a license key, within 30
+   days after you learn of the breach.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

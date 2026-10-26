@@ -27,6 +27,9 @@ function utfNames(array $entries): array
     return array_map(fn (ToolEntry $entry): string => $entry->name, $entries);
 }
 
+// Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+beforeEach(fn () => withLicense());
+
 it('keeps every tool while the services are set up', function (): void {
     FakeImageGenerator::install();
     app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
@@ -39,4 +42,14 @@ it('drops the tools of a capability whose service is off', function (): void {
     app()->instance(AudioGeneration::class, new AudioGeneration(new NullSpeaker));
 
     expect(utfNames(app(UnavailableToolFilter::class)->apply(utfEntries())))->toBe(['mcp__charts__render-chart']);
+});
+
+it('drops every capability tool without a license key and keeps other tools', function (): void {
+    FakeImageGenerator::install();
+    app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
+    config(['chatvia.license.licensed' => false]);
+
+    $entries = [...utfEntries(), new ToolEntry(kind: ToolKind::Mcp, sourceId: 'x:weather', name: 'mcp__weather__get-forecast', description: '', parameters: [])];
+
+    expect(utfNames(app(UnavailableToolFilter::class)->apply($entries)))->toBe(['mcp__weather__get-forecast']);
 });

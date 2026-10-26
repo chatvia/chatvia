@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Password;
  * admin account have their own tests (SendMagicLinkActionTest,
  * CreateAdminUserActionTest, StaffUserProviderTest).
  */
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('signs up with a mixed-case email and refuses a second account differing only in case', function (): void {
     config(['chatvia.registration_enabled' => true]);
     Notification::fake();

@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Hash;
  * verified staff account with its own workspace and team. An email already
  * taken, in any case, is refused.
  */
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('creates a verified admin that owns and works in its default team', function (): void {
     $admin = app(CreateAdminUserAction::class)->execute(new CreateAdminUserData(
         name: 'Staff',

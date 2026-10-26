@@ -11,6 +11,8 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
  * attached to; a custom server, with no catalog slug, turns nothing on.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
     $this->calendar = AgentMcpServer::factory()->forOwner($this->owner)->builtin('calendar')->create();

@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 use Support\License\Entitlements;
+use Support\License\FreeTier;
 
 /**
- * Entitlements reads the Enterprise flag that SettingsConfig works out from
- * the saved key; anything but true keeps the features locked.
+ * Entitlements reads the flags that SettingsConfig works out from the saved
+ * key; anything but true keeps the features locked and the free limits on.
  */
 it('unlocks Enterprise only when the flag is true', function (mixed $flag, bool $enterprise): void {
     config(['chatvia.license.enterprise' => $flag]);
@@ -18,3 +19,34 @@ it('unlocks Enterprise only when the flag is true', function (mixed $flag, bool 
     'missing' => [null, false],
     'a truthy string' => ['1', false],
 ]);
+
+it('applies the free-use limits without a key', function (): void {
+    config(['chatvia.license.licensed' => false]);
+
+    $entitlements = app(Entitlements::class);
+
+    expect($entitlements->licensed())->toBeFalse()
+        ->and($entitlements->workspaceLimit())->toBe(FreeTier::WORKSPACES)
+        ->and($entitlements->agentLimit())->toBe(FreeTier::AGENTS)
+        ->and($entitlements->teamLimit())->toBe(FreeTier::TEAMS)
+        ->and($entitlements->monthlyMessageLimit())->toBe(FreeTier::MONTHLY_MESSAGES)
+        ->and($entitlements->api())->toBeFalse()
+        ->and($entitlements->voice())->toBeFalse()
+        ->and($entitlements->capabilities())->toBeFalse()
+        ->and($entitlements->customSplitting())->toBeFalse();
+});
+
+it('lifts every free-use limit with a key', function (): void {
+    config(['chatvia.license.licensed' => true]);
+
+    $entitlements = app(Entitlements::class);
+
+    expect($entitlements->workspaceLimit())->toBeNull()
+        ->and($entitlements->agentLimit())->toBeNull()
+        ->and($entitlements->teamLimit())->toBeNull()
+        ->and($entitlements->monthlyMessageLimit())->toBeNull()
+        ->and($entitlements->api())->toBeTrue()
+        ->and($entitlements->voice())->toBeTrue()
+        ->and($entitlements->capabilities())->toBeTrue()
+        ->and($entitlements->customSplitting())->toBeTrue();
+});

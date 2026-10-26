@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Hash;
  * team, gets the message limit the admin set for new workspaces (none by
  * default), and Registered fires only once everything is committed.
  */
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('creates a user who owns a new workspace and dispatches the Registered event', function (): void {
     Event::fake([Registered::class]);
 

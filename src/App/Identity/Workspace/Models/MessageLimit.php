@@ -3,6 +3,7 @@
 namespace App\Identity\Workspace\Models;
 
 use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Services\MessageAllowance;
 use Database\Factories\MessageLimitFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,9 @@ use Illuminate\Support\Carbon;
  * counts every agent reply of the workspace (a platform admin sets it); on a
  * chatter (`chatter_id`) it counts the chatter's own messages (the
  * workspace sets it). Exactly one of the two is set. No row means no limit.
+ * A workspace row with no `monthly_limit` only counts: an install without a
+ * license key keeps the count for the free-use cap, which applies on top of
+ * any limit an admin set ({@see MessageAllowance}).
  *
  * `messages_used` counts from `period_starts_at`, the first day of a month.
  * When a new month starts the count restarts on the next message, so no
@@ -23,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int|null $workspace_id
  * @property int|null $chatter_id
- * @property int $monthly_limit
+ * @property int|null $monthly_limit
  * @property int $messages_used
  * @property Carbon $period_starts_at
  * @property Carbon|null $created_at
@@ -49,10 +53,24 @@ class MessageLimit extends Model
         return $this->isCurrentPeriod() ? $this->messages_used : 0;
     }
 
-    /** Whether this month's messages have reached the limit. */
-    public function reached(): bool
+    /**
+     * The limit in force: the smaller of the one set on this row and $cap
+     * (the free-use cap, for a workspace without a license key). Null when
+     * neither is set.
+     */
+    public function effectiveLimit(?int $cap = null): ?int
     {
-        return $this->usedThisMonth() >= $this->monthly_limit;
+        $limits = array_filter([$this->monthly_limit, $cap], fn (?int $limit): bool => $limit !== null);
+
+        return $limits === [] ? null : min($limits);
+    }
+
+    /** Whether this month's messages have reached the limit in force. */
+    public function reached(?int $cap = null): bool
+    {
+        $limit = $this->effectiveLimit($cap);
+
+        return $limit !== null && $this->usedThisMonth() >= $limit;
     }
 
     /**

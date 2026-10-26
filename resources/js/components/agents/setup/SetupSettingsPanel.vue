@@ -136,15 +136,20 @@ const SOURCES_DISPLAY: Domain.Agent.Enums.SourcesDisplay[] = ['hidden', 'list', 
                         v-model="composerForm.allow_voice_conversation"
                         :label="t('agents.setup.settings.voice_conversation_label')"
                         :hint="
-                            voice.available
-                                ? t('agents.setup.settings.voice_conversation_hint')
-                                : t('agents.setup.settings.voice_conversation_unavailable')
+                            !voice.licensed
+                                ? t('license.voice_hint')
+                                : voice.available
+                                  ? t('agents.setup.settings.voice_conversation_hint')
+                                  : t('agents.setup.settings.voice_conversation_unavailable')
                         "
                         :help="help.voiceConversation"
-                        :disabled="locked || !voice.available"
+                        :disabled="locked || !voice.available || !voice.licensed"
                     />
                     <!-- The agent's voice, shown while voice conversations are on. -->
-                    <div v-if="voice.available && composerForm.allow_voice_conversation" class="flex items-center justify-between gap-3 px-4 pb-3">
+                    <div
+                        v-if="voice.available && voice.licensed && composerForm.allow_voice_conversation"
+                        class="flex items-center justify-between gap-3 px-4 pb-3"
+                    >
                         <Label for="agent-voice" class="text-muted-foreground text-sm">{{ t('agents.setup.settings.voice_label') }}</Label>
                         <Select v-model="composerForm.voice" :disabled="locked">
                             <SelectTrigger id="agent-voice" class="w-48">

@@ -10,6 +10,9 @@ use Inertia\Testing\AssertableInertia;
  * each with whether it is on for the agent and whether the connector it works
  * through is connected.
  */
+// Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+beforeEach(fn () => withLicense());
+
 it('lists the capabilities in catalog order, with whether each is on', function (): void {
     $owner = User::factory()->create();
     $agent = makeTeamAgent($owner, 'Support Bot');

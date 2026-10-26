@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Header dropdown that lists the user's teams (loaded the first time it opens),
-// switches the active team, and offers a quick "create team" dialog.
+// switches the active team, and offers a quick "create team" dialog (only with
+// a license key; Manage teams explains why it is missing without one).
 import { listSwitcherTeams, type SwitcherTeam } from '@/api/teams';
 import CreateTeamDialog from '@/components/CreateTeamDialog.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -14,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/composables/useInitials';
+import { useLicense } from '@/composables/useLicense';
 import { index as teamsIndex, switchMethod as switchTeamRoute } from '@/routes/teams';
 import type { Auth } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -29,6 +31,7 @@ const currentTeam = computed(() => page.props.currentTeam);
 // Teammates are blocked from the teams-management routes by the backend
 // `DenyIfTeammate` middleware, so they must not see Manage/Create here.
 const isTeammate = computed(() => auth.value.is_workspace_owner !== true);
+const { licensed } = useLicense();
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
@@ -123,7 +126,7 @@ const openCreateDialog = () => {
                             {{ t('team_switcher.manage_teams') }}
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem class="cursor-pointer gap-2" @click="openCreateDialog">
+                    <DropdownMenuItem v-if="licensed" class="cursor-pointer gap-2" @click="openCreateDialog">
                         <Plus class="size-4" />
                         {{ t('teams.index.create_team') }}
                     </DropdownMenuItem>
@@ -132,6 +135,6 @@ const openCreateDialog = () => {
         </DropdownMenu>
 
         <!-- Clearing the list makes the next open refetch it, new team included. -->
-        <CreateTeamDialog v-model:open="isCreateDialogOpen" @created="teams = []" />
+        <CreateTeamDialog v-if="licensed" v-model:open="isCreateDialogOpen" @created="teams = []" />
     </div>
 </template>

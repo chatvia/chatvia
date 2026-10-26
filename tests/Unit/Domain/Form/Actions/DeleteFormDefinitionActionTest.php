@@ -16,6 +16,8 @@ use Illuminate\Support\Str;
  * leads; deleting the agent's last form turns the Forms capability off.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->user = User::factory()->create();
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 

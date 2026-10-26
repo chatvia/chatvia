@@ -7,10 +7,13 @@ namespace App\Admin\Clusters\Settings\Pages;
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\WorkspaceSettings;
+use App\Identity\Workspace\Services\WorkspaceAllowance;
 use BackedEnum;
 use Closure;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
+use Support\License\Entitlements;
 
 /**
  * Open sign-up, the message limit of new workspaces, what an owner may do
@@ -52,7 +55,7 @@ class ManageWorkspaceSettings extends AdminSettingsPage
     #[\Override]
     public function overviewStatus(): array
     {
-        return $this->valueInUse('registration_enabled') ? ['Sign-up open', 'success'] : ['Sign-up closed', 'gray'];
+        return app(WorkspaceAllowance::class)->signUpOpen() ? ['Sign-up open', 'success'] : ['Sign-up closed', 'gray'];
     }
 
     protected function cards(): array
@@ -61,11 +64,16 @@ class ManageWorkspaceSettings extends AdminSettingsPage
             SettingsCard::make('sign_up', 'Sign-up and limits', 'Who can create a workspace, and how much a new one can use.', Heroicon::OutlinedUserPlus, fn (): array => [
                 $this->toggle('registration_enabled', 'Open sign-up',
                     help: 'Anyone can create a workspace on the sign-up page at /register. Off closes that page.'),
+                Callout::make('One workspace without a license key')
+                    ->description('Without a ChatVia.ai license key, this server holds one workspace. Sign-up closes once it exists, whatever the switch says. Invite people to that workspace instead, or add a license key under License.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (): bool => ! app(Entitlements::class)->licensed()),
                 $this->integer('new_workspace_message_limit', 'Monthly message limit of new workspaces',
                     help: 'How many agent replies a new workspace gets each month. 0 means no limit. Change one workspace\'s limit under Workspaces.', min: 0),
             ])->summary(fn (): string => sprintf(
                 'Sign-up %s · %s',
-                $this->valueInUse('registration_enabled') ? 'open' : 'closed',
+                app(WorkspaceAllowance::class)->signUpOpen() ? 'open' : 'closed',
                 (int) $this->valueInUse('new_workspace_message_limit') === 0 ? 'no message limit' : $this->valueInUse('new_workspace_message_limit').' messages a month',
             )),
             SettingsCard::make('owner_account', 'Owner account', 'What a workspace owner can do with their own account in the dashboard.', Heroicon::OutlinedUserCircle, fn (): array => [

@@ -54,11 +54,16 @@ it('restarts the count when the stored month is over', function (): void {
         ->and($limit->period_starts_at->toDateTimeString())->toBe('2026-06-01 00:00:00');
 });
 
-it('removes the limit when null is given', function (): void {
-    $this->action->execute($this->workspace, 300);
+it('removes the limit when null is given, keeping this month\'s count', function (): void {
+    MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 300, 'messages_used' => 50]);
+
     $this->action->execute($this->workspace, null);
 
-    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
+    // The row stays to count replies against the free-use cap.
+    $limit = MessageLimit::query()->where('workspace_id', $this->workspace->id)->sole();
+
+    expect($limit->monthly_limit)->toBeNull()
+        ->and($limit->messages_used)->toBe(50);
 });
 
 it('applies a lower limit to the cached answer right away', function (): void {

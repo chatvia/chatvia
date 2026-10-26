@@ -16,6 +16,8 @@ use Tests\Support\Widget\EmbeddedWidget;
  * on.
  */
 beforeEach(function (): void {
+    withLicense();
+
     connectAiProviders(AiProvider::OpenAi);
     config(['chatvia.ai.voice' => 'auto', 'horizon.defaults.voice.maxProcesses' => 2]);
     Queue::fake();

@@ -9,6 +9,10 @@ use Tests\Support\Conversation\Voice\VoiceCalls;
 use Tests\Support\Widget\EmbeddedWidget;
 
 /** A Chat Widget visitor presses End on their own voice call. */
+// Voice conversations need a license key; the free-use limit itself is
+// covered in VoiceAvailabilityTest.
+beforeEach(fn () => withLicense());
+
 it('hangs up the visitor\'s call', function (): void {
     connectAiProviders(AiProvider::OpenAi);
     config(['chatvia.ai.voice' => 'auto', 'horizon.defaults.voice.maxProcesses' => 1]);

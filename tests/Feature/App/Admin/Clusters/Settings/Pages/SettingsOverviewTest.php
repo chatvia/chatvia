@@ -48,6 +48,8 @@ it('groups the tiles by topic', function (): void {
 });
 
 it('marks a page of optional services that has none set up as optional', function (): void {
+    withLicense();
+
     $this->actingAs($this->admin, 'admin')
         ->get(SettingsOverview::getUrl())
         ->assertSeeInOrder(['Sign-in', 'Optional'])

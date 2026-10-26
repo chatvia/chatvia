@@ -8,6 +8,8 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
  * the agent; a slug that is no capability is a 404.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
     // The workspace's Charts row exists, so enabling is a pure attach (no

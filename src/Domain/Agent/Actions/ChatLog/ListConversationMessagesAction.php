@@ -9,17 +9,19 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Media\GeneratedMediaArtifacts;
 use Domain\Form\Models\FormSubmission;
+use Support\License\Entitlements;
 
 /**
  * Paginated messages for a chat-log conversation, each reply with the
  * knowledge it was given and its generated images and audio as they stand
  * now, plus the conversation's handoff state and any lead row attached to
- * the same conversation.
+ * the same conversation. Leads need a license key: without one there is none.
  */
 class ListConversationMessagesAction
 {
     public function __construct(
         private readonly GeneratedMediaArtifacts $generatedMedia,
+        private readonly Entitlements $entitlements,
     ) {}
 
     public function execute(Agent $agent, Conversation $conversation, int $page = 1): ChatLogMessagesResourceData
@@ -40,12 +42,14 @@ class ListConversationMessagesAction
         // The conversation's most recent SUBMITTED form (keyed by internal
         // chat_conversation_id). Pending rows — a form rendered but never filled
         // — are not leads and must not surface the Lead panel.
-        $lead = FormSubmission::query()
-            ->where('agent_id', $agent->id)
-            ->where('chat_conversation_id', $conversation->id)
-            ->submitted()
-            ->latest('id')
-            ->first();
+        $lead = $this->entitlements->capabilities()
+            ? FormSubmission::query()
+                ->where('agent_id', $agent->id)
+                ->where('chat_conversation_id', $conversation->id)
+                ->submitted()
+                ->latest('id')
+                ->first()
+            : null;
 
         return ChatLogMessagesResourceData::fromPaginator(
             messages: $messages,

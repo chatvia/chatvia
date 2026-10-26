@@ -19,6 +19,8 @@ use Tests\Support\Llm\FakeImageGenerator;
  * whose service an admin has not set up cannot be turned on.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->user = User::factory()->create();
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
     $this->charts = app(ConnectorCatalog::class)->capabilities()->get('charts');

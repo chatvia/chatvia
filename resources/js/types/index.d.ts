@@ -41,7 +41,7 @@ export interface CurrentTeam {
 export interface SharedData extends PageProps {
     name: string;
     // Whether the "Powered by ChatVia.ai" credit shows under the hosted chat
-    // (Settings → License). Shared on hosted chat pages only.
+    // (the admin panel's License page). Shared on hosted chat pages only.
     poweredBy?: boolean;
     // The Cloudflare Turnstile bot check of the public forms (Settings →
     // Security), or null while it is not set up. Read through useBotCheck().
@@ -82,6 +82,10 @@ export interface SharedData extends PageProps {
     // Whether this install has an Enterprise key: Security and Governance
     // unlock their Enterprise features with it.
     enterprise: boolean;
+    // Whether this install holds any license key, and the free-use limits that
+    // apply without one (null = no limit). Null when nobody is signed in.
+    // Read through useLicense().
+    license: { licensed: boolean; buyUrl: string; limits: { workspaces: number | null; agents: number | null; messages: number | null } } | null;
     // The knowledge file types this install accepts (admin Settings →
     // Ingestion), each with its extensions. Read through useKnowledgeFileTypes().
     knowledgeFileTypes: Partial<Record<Domain.Knowledge.Source.File.Enums.KnowledgeFileType, string[]>>;

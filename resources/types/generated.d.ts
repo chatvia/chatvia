@@ -944,6 +944,7 @@ declare namespace Domain {
                         voice: boolean;
                         worksThrough: string[];
                         available: boolean;
+                        needsLicense: boolean;
                         requiresClientId: boolean;
                         oauthClientId: string | null;
                         oauthAuthorizationEndpoint: string | null;

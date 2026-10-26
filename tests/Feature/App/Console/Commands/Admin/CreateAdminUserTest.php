@@ -9,6 +9,10 @@ use App\Identity\Workspace\Models\User;
  * branches: a refused email fails, and --if-missing / --if-no-admin let a
  * restart run it again without a second account.
  */
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('creates the admin given on the command line', function (): void {
     $this->artisan('chatvia:admin:create-user', [
         'email' => 'first-admin@self-hosted.test',
@@ -19,6 +23,19 @@ it('creates the admin given on the command line', function (): void {
     expect(User::query()->where('email', 'first-admin@self-hosted.test')->sole())
         ->isAdmin()->toBeTrue()
         ->name->toBe('First Admin');
+});
+
+it('fails when the install already has its workspace and no license key', function (): void {
+    withoutLicense();
+
+    $this->artisan('chatvia:admin:create-user', [
+        'email' => 'second-admin@self-hosted.test',
+        'name' => 'Second Admin',
+        'password' => 'a-long-password',
+    ])->expectsOutputToContain('Without a ChatVia.ai license key it holds one')
+        ->assertFailed();
+
+    expect(User::query()->where('email', 'second-admin@self-hosted.test')->exists())->toBeFalse();
 });
 
 it('asks for the email, name and password when run with no arguments', function (): void {

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 // Teams list: search, open a team, leave a team you were invited to, delete an
 // owned team (never the primary one or your last owned team), create a team.
+// Without a license key the workspace keeps only its first team: the create
+// buttons give way to a notice with a link to buy a key.
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import CreateTeamDialog from '@/components/CreateTeamDialog.vue';
+import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -21,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { useLicense } from '@/composables/useLicense';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { destroy as destroyTeam, leave as leaveTeamRoute, show as showTeam } from '@/routes/teams';
 import { type BreadcrumbItem } from '@/types';
@@ -29,6 +33,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
+const { licensed } = useLicense();
 
 type Team = Domain.Membership.Team.Data.Resources.Team.TeamListItemData;
 
@@ -106,11 +111,13 @@ const formatRole = (role: string) =>
                     <h1 class="text-xl font-semibold">{{ t('teams.index.heading') }}</h1>
                     <p class="text-muted-foreground text-sm">{{ t('teams.index.subtitle') }}</p>
                 </div>
-                <Button @click="isCreateDialogOpen = true">
+                <Button v-if="licensed" @click="isCreateDialogOpen = true">
                     <Plus class="me-1 h-4 w-4" />
                     {{ t('teams.index.create_team') }}
                 </Button>
             </div>
+
+            <LicenseNotice v-if="!licensed" :body="t('license.teams_body')" />
 
             <div class="relative max-w-sm">
                 <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
@@ -122,7 +129,7 @@ const formatRole = (role: string) =>
                 <Users class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">{{ t('teams.index.empty_title') }}</h3>
                 <p class="text-muted-foreground mt-2 text-center">{{ t('teams.index.empty_description') }}</p>
-                <Button size="lg" class="mt-6 flex items-center gap-2" @click="isCreateDialogOpen = true">
+                <Button v-if="licensed" size="lg" class="mt-6 flex items-center gap-2" @click="isCreateDialogOpen = true">
                     <Plus class="h-4 w-4" />
                     {{ t('teams.index.create_team') }}
                 </Button>
@@ -244,6 +251,6 @@ const formatRole = (role: string) =>
             </AlertDialogContent>
         </AlertDialog>
 
-        <CreateTeamDialog v-model:open="isCreateDialogOpen" />
+        <CreateTeamDialog v-if="licensed" v-model:open="isCreateDialogOpen" />
     </AppLayout>
 </template>

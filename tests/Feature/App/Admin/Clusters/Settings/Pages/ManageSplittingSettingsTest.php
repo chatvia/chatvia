@@ -17,6 +17,8 @@ use Illuminate\Support\Str;
  * service (TestCase refuses every stray request).
  */
 beforeEach(function (): void {
+    withLicense();
+
     $this->admin = adminUser();
 });
 

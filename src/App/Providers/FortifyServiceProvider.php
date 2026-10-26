@@ -7,6 +7,7 @@ use App\Http\Auth\BotCheckForm;
 use App\Identity\Workspace\Fortify\ResetUserPassword;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
+use App\Identity\Workspace\Services\WorkspaceAllowance;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -87,7 +88,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => true,
             // Shows the "Create an account" link when self-serve sign-up is open.
-            'canRegister' => (bool) (config('chatvia.registration_enabled') ?? true),
+            'canRegister' => app(WorkspaceAllowance::class)->signUpOpen(),
             'status' => $request->session()->get('status'),
         ]));
 

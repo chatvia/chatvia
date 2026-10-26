@@ -18,6 +18,10 @@ function cwaAccountWithoutWorkspace(): User
     return $user;
 }
 
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('creates a workspace named after the account, with the account as its owner', function (): void {
     $owner = cwaAccountWithoutWorkspace();
 

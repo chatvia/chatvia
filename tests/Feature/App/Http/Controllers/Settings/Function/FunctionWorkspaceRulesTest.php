@@ -12,6 +12,8 @@ use Tests\TestCase;
  * header values.
  */
 beforeEach(function (): void {
+    withLicense();
+
     $this->owner = User::factory()->create();
     ownerTeam($this->owner);
 });

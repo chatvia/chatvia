@@ -32,7 +32,7 @@ class ChatHandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             // Whether the "Powered by ChatVia.ai" credit shows under the hosted
-            // chat (Settings → License).
+            // chat (the admin panel's License page).
             'poweredBy' => config('chatvia.powered_by') === true,
             // The bot check of the chatter sign-in forms (Settings → Security).
             'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),

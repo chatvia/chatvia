@@ -12,6 +12,10 @@ use Inertia\Testing\AssertableInertia;
  * comes with its own workspace. A taken email is refused whatever its case
  * (EmailCaseTest).
  */
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('answers 404 on both sign-up routes while sign-up is closed, and creates no account', function (): void {
     config(['chatvia.registration_enabled' => false]);
 

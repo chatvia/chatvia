@@ -8,6 +8,7 @@ use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Support\License\FreeTier;
 use Tests\Support\Identity\SharedId;
 
 /**
@@ -117,4 +118,45 @@ it('caches a workspace and a chatter with the same id under separate keys', func
     $this->allowance->forget($workspace->id);
 
     expect($this->allowance->canSend($workspace->id))->toBeFalse();
+});
+
+describe('the free-use cap', function (): void {
+    it('counts a workspace without a license key, and stops it at the cap', function (): void {
+        $limit = $this->allowance->countingLimitFor($this->workspace->id);
+
+        expect($limit)->not->toBeNull()
+            ->and($limit->monthly_limit)->toBeNull()
+            ->and($this->allowance->canSend($this->workspace->id))->toBeTrue();
+
+        $limit->update(['messages_used' => FreeTier::MONTHLY_MESSAGES]);
+        $this->allowance->forget($this->workspace->id);
+
+        expect($this->allowance->canSend($this->workspace->id))->toBeFalse()
+            ->and($this->allowance->effectiveLimit($limit))->toBe(FreeTier::MONTHLY_MESSAGES);
+    });
+
+    it('lets a lower admin limit win over the cap', function (): void {
+        $limit = MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 500]);
+
+        expect($this->allowance->effectiveLimit($limit))->toBe(500);
+    });
+
+    it('lifts the cap with a license key, at once', function (): void {
+        MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => null, 'messages_used' => FreeTier::MONTHLY_MESSAGES]);
+
+        expect($this->allowance->canSend($this->workspace->id))->toBeFalse();
+
+        withLicense();
+
+        expect($this->allowance->canSend($this->workspace->id))->toBeTrue()
+            ->and($this->allowance->countingLimitFor(User::factory()->create()->workspace()->id))->toBeNull();
+    });
+
+    it('never caps a chatter\'s own messages', function (): void {
+        $chatter = Chatter::factory()->create(['workspace_id' => $this->workspace->id]);
+        $limit = MessageLimit::factory()->forChatter($chatter)->create(['monthly_limit' => 50_000, 'messages_used' => FreeTier::MONTHLY_MESSAGES]);
+
+        expect($this->allowance->effectiveLimit($limit))->toBe(50_000)
+            ->and($this->allowance->canSendAsChatter($chatter->id))->toBeTrue();
+    });
 });

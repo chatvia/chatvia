@@ -13,6 +13,8 @@ use Inertia\Testing\AssertableInertia as Assert;
  * thumbs-down asks what was wrong.
  */
 beforeEach(function (): void {
+    withLicense();
+
     $this->agent = Agent::factory()->create(['is_public' => true]);
 });
 

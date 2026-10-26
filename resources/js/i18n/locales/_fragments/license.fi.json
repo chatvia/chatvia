@@ -1,0 +1,12 @@
+{
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Vaatii lisenssiavaimen",
+        "get_key": "Hanki lisenssiavain",
+        "api_body": "API vaatii lisenssiavaimen tähän ChatVia.ai-asennukseen. Aiemmin luomasi avaimet säilyvät, ja ne toimivat taas, kun asennuksella on lisenssi.",
+        "teams_body": "Lisää tiimejä vaatii lisenssiavaimen tähän ChatVia.ai-asennukseen. Ensimmäinen tiimisi ja sen roolit toimivat edelleen, ja aiemmin luomasi tiimit pysyvät ennallaan.",
+        "agents_of_limit": "{count}/{limit} agenttia ilman lisenssiavainta",
+        "agents_body": "Ilman lisenssiavainta työtilassa voi olla {limit} agenttia. Poista agentti tai lisää lisenssiavain tähän ChatVia.ai-asennukseen.",
+        "voice_hint": "Vaatii lisenssiavaimen tähän ChatVia.ai-asennukseen."
+    }
+}

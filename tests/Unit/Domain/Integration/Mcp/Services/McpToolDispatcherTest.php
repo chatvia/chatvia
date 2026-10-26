@@ -188,3 +188,15 @@ it('refuses arguments that do not fit the tool\'s input schema, without calling 
     expect($result->isError)->toBeTrue()
         ->and($result->text)->toContain('"limit" must be of type integer');
 });
+
+it('refuses a capability tool without a license key and never calls the server', function (): void {
+    config(['chatvia.license.licensed' => false]);
+    $this->client->shouldNotReceive('callTool');
+    AgentMcpServer::factory()->builtin('charts')->attachedTo($this->agent)->create();
+
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__charts__render-chart', '{}'));
+
+    expect($result->isError)->toBeTrue()
+        ->and($result->text)->toContain('needs a ChatVia.ai license key');
+    Event::assertNotDispatched(McpToolInvoked::class);
+});

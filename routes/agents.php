@@ -299,11 +299,11 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         // Submissions live under each form (Forms → a form → Submissions).
         // Field + CRM-webhook settings stay on the shared settings endpoint.
-        // Permissions reuse the agent.leads.* set.
-        Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware('agent.permission:agent.leads.settings')->name('leads.settings');
-        Route::get('forms/{form}/submissions', [AgentSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
-        Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware(['agent.permission:agent.leads.export', 'throttle:10,1,submissions-export'])->name('forms.submissions.export');
-        Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware('agent.permission:agent.leads.settings')->name('forms.submissions.destroy');
+        // Permissions reuse the agent.leads.* set. Leads need a license key.
+        Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware(['agent.permission:agent.leads.settings', 'license.capabilities'])->name('leads.settings');
+        Route::get('forms/{form}/submissions', [AgentSubmissionController::class, 'index'])->middleware(['agent.permission:agent.leads.view', 'license.capabilities'])->name('forms.submissions.index');
+        Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware(['agent.permission:agent.leads.export', 'license.capabilities', 'throttle:10,1,submissions-export'])->name('forms.submissions.export');
+        Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware(['agent.permission:agent.leads.settings', 'license.capabilities'])->name('forms.submissions.destroy');
 
         // Chatter members. index lists every workspace chatter (with a
         // `has_access` flag for this agent); store invites a brand-new
@@ -353,22 +353,24 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('capabilities', AgentCapabilitiesController::class)->name('capabilities');
 
         // Forms — the inline-form builder. Reuses the connector permission for
-        // mutations (same surface family as Capabilities).
+        // mutations (same surface family as Capabilities). Capabilities and
+        // forms need a license key (`license.capabilities`); the two pages
+        // still open and explain the lock, and turning one off stays allowed.
         Route::get('forms', [AgentFormController::class, 'index'])->name('forms.index');
         Route::post('forms', [AgentFormController::class, 'store'])
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.store');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('forms.store');
         Route::post('forms/rewrite-description', RewriteFormDescriptionController::class)
-            ->middleware(['agent.permission:agent.sources.train.connectors', 'throttle:10,1,form-rewrite'])->name('forms.rewrite-description');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities', 'throttle:10,1,form-rewrite'])->name('forms.rewrite-description');
         Route::put('forms/{form}', [AgentFormController::class, 'update'])
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.update');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('forms.update');
         Route::delete('forms/{form}', [AgentFormController::class, 'destroy'])
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.destroy');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('forms.destroy');
         Route::post('capabilities/{slug}/enable', EnableAgentCapabilityController::class)
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.enable');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('capabilities.enable');
         Route::delete('capabilities/{slug}', DisableAgentCapabilityController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.disable');
         Route::put('capabilities/{slug}/provider', ChooseCapabilityProviderController::class)
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.provider');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('capabilities.provider');
 
         // Channels — connecting the agent to messaging apps. Gated by its own
         // `agent.channels` permission (split out from `agent.setup`).

@@ -4489,5 +4489,15 @@
         "used": "已使用 {label}",
         "show": "显示步骤",
         "hide": "隐藏步骤"
+    },
+    "license": {
+        "badge": "Pro",
+        "locked_title": "需要许可证密钥",
+        "get_key": "获取许可证密钥",
+        "api_body": "此 ChatVia.ai 安装需要许可证密钥才能使用 API。之前创建的密钥会保留，安装获得许可证后即可再次使用。",
+        "teams_body": "此 ChatVia.ai 安装需要许可证密钥才能创建更多团队。你的第一个团队及其角色仍可使用，之前创建的团队保持不变。",
+        "agents_of_limit": "无许可证密钥：{count} / {limit} 个智能体",
+        "agents_body": "没有许可证密钥时，一个工作区最多可有 {limit} 个智能体。请删除一个智能体，或为此 ChatVia.ai 安装添加许可证密钥。",
+        "voice_hint": "此 ChatVia.ai 安装需要许可证密钥。"
     }
 }

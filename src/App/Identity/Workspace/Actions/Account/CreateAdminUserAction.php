@@ -4,6 +4,7 @@ namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Data\Account\CreateAdminUserData;
 use App\Identity\Workspace\Exceptions\EmailAlreadyTakenException;
+use App\Identity\Workspace\Exceptions\WorkspaceLimitReachedException;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -23,6 +24,7 @@ class CreateAdminUserAction
 
     /**
      * @throws EmailAlreadyTakenException
+     * @throws WorkspaceLimitReachedException
      */
     public function execute(CreateAdminUserData $data): User
     {

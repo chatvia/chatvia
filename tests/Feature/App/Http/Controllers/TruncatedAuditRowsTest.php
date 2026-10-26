@@ -19,6 +19,8 @@ use Inertia\Testing\AssertableInertia;
  * audit viewer) shows such a row instead of failing on it.
  */
 beforeEach(function (): void {
+    withLicense();
+
     config(['chatvia.governance.max_arg_bytes' => 40, 'chatvia.security_audit.max_metadata_bytes' => 20]);
 
     $this->owner = User::factory()->create();

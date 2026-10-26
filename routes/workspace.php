@@ -104,7 +104,7 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
         Route::middleware('team.permission:account.api_keys,404')->group(function (): void {
             Route::get('api-keys', [ApiKeyController::class, 'edit'])->name('api-keys.edit');
-            Route::post('api-keys', [ApiKeyController::class, 'store'])->name('api-keys.store');
+            Route::post('api-keys', [ApiKeyController::class, 'store'])->middleware('license.api')->name('api-keys.store');
             Route::delete('api-keys/{tokenId}', [ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
         });
     });

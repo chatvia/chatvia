@@ -10,6 +10,7 @@ import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import InputError from '@/components/InputError.vue';
+import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -26,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useLicense } from '@/composables/useLicense';
 import { apiDocsUrl } from '@/lib/apiDocs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
@@ -34,6 +36,7 @@ import { type BreadcrumbItem } from '@/types';
 import { AlertCircle, Check, Copy, KeyRound, Plus, Tag, Trash2 } from 'lucide-vue-next';
 
 const { t } = useI18n();
+const { licensed } = useLicense();
 
 interface TokenRow {
     id: number;
@@ -139,11 +142,13 @@ const dismissDialog = () => {
                             </i18n-t>
                         </p>
                     </div>
-                    <Button @click="openGenerate">
+                    <Button v-if="licensed" @click="openGenerate">
                         <Plus class="me-1 size-4" />
                         {{ t('workspace.api_keys.generate') }}
                     </Button>
                 </div>
+
+                <LicenseNotice v-if="!licensed" :body="t('license.api_body')" />
 
                 <Separator />
 
@@ -151,7 +156,7 @@ const dismissDialog = () => {
                     <KeyRound class="text-muted-foreground mx-auto size-8" />
                     <p class="mt-3 text-sm font-medium">{{ t('workspace.api_keys.empty_title') }}</p>
                     <p class="text-muted-foreground mt-1 text-sm">{{ t('workspace.api_keys.empty_description') }}</p>
-                    <Button class="mt-4" @click="openGenerate">
+                    <Button v-if="licensed" class="mt-4" @click="openGenerate">
                         <Plus class="me-1 size-4" />
                         {{ t('workspace.api_keys.generate') }}
                     </Button>

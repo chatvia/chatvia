@@ -33,6 +33,18 @@ use Throwable;
  */
 final class SettingsConfig
 {
+    /** The options on Settings → Splitting, which need a license key. */
+    public const array SPLITTING_KEYS = [
+        'chatvia.ai.chunking.unit',
+        'chatvia.ai.chunking.size',
+        'chatvia.ai.chunking.overlap',
+        'chatvia.ai.chunking.minimum',
+        'chatvia.ai.chunking.strategies.markdown',
+        'chatvia.ai.chunking.strategies.text',
+        'chatvia.ai.chunking.strategies.transcript',
+        'chatvia.ai.tokenizer',
+    ];
+
     /** @var array<string, mixed>|null The config value of each mapped key before any setting was applied. */
     private ?array $defaults = null;
 
@@ -80,6 +92,16 @@ final class SettingsConfig
 
         // The Enterprise features follow the key alone; nothing else can switch them on.
         $values['chatvia.license.enterprise'] = $license->allows($values['chatvia.license.key'] ?? null, LicenseFeature::Enterprise);
+
+        // Any valid key lifts the free-use limits. Without one, texts are split
+        // with the defaults; saved Splitting options stay saved but unused.
+        $values['chatvia.license.licensed'] = $license->allowsHidingCredit($values['chatvia.license.key'] ?? null);
+
+        if (! $values['chatvia.license.licensed']) {
+            foreach (self::SPLITTING_KEYS as $key) {
+                $values[$key] = $this->defaults[$key] ?? null;
+            }
+        }
 
         $hash = md5(serialize($values));
 

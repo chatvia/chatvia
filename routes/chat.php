@@ -108,16 +108,17 @@ Route::prefix('chat/{agentSlug}')
 
             // Inline-form submit. {formInstance} binds FormSubmission by external_id.
             // Stores a Lead and/or FormSubmission — never opens a new (billed) turn.
+            // Forms and bookings need a license key (`license.capabilities`).
             Route::post('forms/{formInstance}/submit', SubmitInlineFormController::class)
-                ->middleware('throttle:chat-stream')->name('chat.forms.submit');
+                ->middleware(['license.capabilities', 'throttle:chat-stream'])->name('chat.forms.submit');
 
             // Booking calendar (Calendar capability). {bookingInstance} binds the
             // pending FormSubmission by external_id; booking stores a lead and
             // never opens a new (billed) turn.
             Route::get('calendar/{bookingInstance}/slots', ListBookingSlotsController::class)
-                ->middleware('throttle:chat-stream')->name('chat.calendar.slots');
+                ->middleware(['license.capabilities', 'throttle:chat-stream'])->name('chat.calendar.slots');
             Route::post('calendar/{bookingInstance}/book', BookMeetingController::class)
-                ->middleware('throttle:chat-stream')->name('chat.calendar.book');
+                ->middleware(['license.capabilities', 'throttle:chat-stream'])->name('chat.calendar.book');
 
             Route::post('conversations/create', ConversationCreateController::class)->name('conversations.create');
             Route::get('conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');

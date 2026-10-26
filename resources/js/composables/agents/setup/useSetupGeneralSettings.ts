@@ -20,6 +20,8 @@ export interface SetupVoiceOptions {
     inputAvailable: boolean;
     /** Set up on this install (Settings → AI models); without it the switch is off and locked. */
     available: boolean;
+    /** The install has a license key; without one voice conversations are locked (a free-use limit). */
+    licensed: boolean;
     /** The voice agents speak with unless they pick their own. */
     default: string;
     choices: string[];

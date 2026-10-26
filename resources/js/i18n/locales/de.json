@@ -2405,7 +2405,8 @@
             "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden",
             "requires_connector": "Funktioniert über {name}. Verbinden Sie zuerst {name} auf der Seite Konnektoren.",
             "requires_disconnected": "{name} ist nicht verbunden, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie {name} erneut auf der Seite Konnektoren.",
-            "connect_connector": "{name} verbinden"
+            "connect_connector": "{name} verbinden",
+            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet"
         },
         "forms": {
             "page_title": "Formulare",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Kalender",
                 "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
+            },
+            "image-generation": {
+                "name": "Bilderzeugung",
+                "description": "Lass den Agenten im gehosteten Chat Bilder erstellen, wenn ein Besucher danach fragt: Logos, Illustrationen, Produktideen und mehr."
+            },
+            "audio-generation": {
+                "name": "Audioerzeugung",
+                "description": "Lass den Agenten im gehosteten Chat Audiodateien erstellen, wenn ein Besucher danach fragt: jeder Text vorgelesen, bereit zum Abspielen oder Herunterladen."
             }
         }
     },

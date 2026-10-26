@@ -169,6 +169,14 @@
                 "name": "Kalender",
                 "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
             },
+            "image-generation": {
+                "name": "Bilderzeugung",
+                "description": "Lass den Agenten im gehosteten Chat Bilder erstellen, wenn ein Besucher danach fragt: Logos, Illustrationen, Produktideen und mehr."
+            },
+            "audio-generation": {
+                "name": "Audioerzeugung",
+                "description": "Lass den Agenten im gehosteten Chat Audiodateien erstellen, wenn ein Besucher danach fragt: jeder Text vorgelesen, bereit zum Abspielen oder Herunterladen."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Google, Bing, YouTube und andere Suchmaschinen nach aktuellen Ergebnissen durchsuchen: Nachrichten, Preise, Orte. Bereitgestellt von SerpApi.",

@@ -1,0 +1,32 @@
+[
+    {
+        "name": "generate-image",
+        "title": "Generate Image Tool",
+        "description": "Make a picture for the visitor from a description. The picture is made in the background and appears under your reply a moment later. Write the description in English, with the subject, style, colours and setting the visitor asked for.",
+        "inputSchema": {
+            "properties": {
+                "prompt": {
+                    "description": "What to draw, in English, up to 1000 characters.",
+                    "type": "string"
+                },
+                "shape": {
+                    "description": "square (the default), landscape (wide) or portrait (tall).",
+                    "enum": [
+                        "square",
+                        "landscape",
+                        "portrait"
+                    ],
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "prompt"
+            ]
+        },
+        "annotations": {
+            "title": "Generate Image Tool",
+            "openWorldHint": true
+        }
+    }
+]

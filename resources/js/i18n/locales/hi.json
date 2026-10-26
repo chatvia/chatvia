@@ -2405,7 +2405,8 @@
             "disable_failed": "इस क्षमता को बंद नहीं किया जा सका",
             "requires_connector": "यह {name} के ज़रिए काम करती है। पहले कनेक्टर पेज पर {name} को कनेक्ट करें।",
             "requires_disconnected": "{name} कनेक्ट नहीं है, इसलिए यह क्षमता काम नहीं कर सकती। कनेक्टर पेज पर {name} को फिर से कनेक्ट करें।",
-            "connect_connector": "{name} कनेक्ट करें"
+            "connect_connector": "{name} कनेक्ट करें",
+            "turned_off_by_admin": "आपके एडमिन ने इसे बंद किया है"
         },
         "forms": {
             "page_title": "फ़ॉर्म",

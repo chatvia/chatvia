@@ -1,0 +1,7 @@
+{
+    "serverInfo": {
+        "name": "Audio generation",
+        "version": "1.0.0"
+    },
+    "instructions": "Make an audio file of a text read aloud when the visitor asks for one (\"read this\nas audio\", \"make an MP3 of\", \"I want to listen to it\"). One tool:\n- generate-audio: pass the exact words to read, in the language they should be\n  spoken in. Write the text first if the visitor asked you to (a summary, a\n  welcome message), then pass it.\n\nThe file is made in the background and appears under your reply a moment later.\nAfter calling the tool, say in one short sentence that it is on its way. Never say it\nis done and never paste a link for it. If the tool says no file can be made, pass\nthat on plainly."
+}

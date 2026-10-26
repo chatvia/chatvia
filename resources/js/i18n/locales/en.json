@@ -2405,7 +2405,8 @@
             "disable_failed": "Could not turn off this capability",
             "requires_connector": "Works through {name}. Connect {name} on the Connectors page first.",
             "requires_disconnected": "{name} is not connected, so this capability cannot work. Connect {name} again on the Connectors page.",
-            "connect_connector": "Connect {name}"
+            "connect_connector": "Connect {name}",
+            "turned_off_by_admin": "Turned off by your admin"
         },
         "forms": {
             "page_title": "Forms",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Calendar",
                 "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead."
+            },
+            "image-generation": {
+                "name": "Image generation",
+                "description": "Let the agent make pictures in the hosted chat when a visitor asks: logos, illustrations, product ideas and more."
+            },
+            "audio-generation": {
+                "name": "Audio generation",
+                "description": "Let the agent make audio files in the hosted chat when a visitor asks: any text read aloud, ready to play or download."
             }
         }
     },

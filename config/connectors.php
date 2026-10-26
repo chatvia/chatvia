@@ -26,6 +26,8 @@ return [
         Connectors\ChartsConnector::class,
         Connectors\FormsConnector::class,
         Connectors\CalendarConnector::class,
+        Connectors\ImageGenerationConnector::class,
+        Connectors\AudioGenerationConnector::class,
         Connectors\StripeConnector::class,
         Connectors\GithubConnector::class,
         Connectors\NotionConnector::class,

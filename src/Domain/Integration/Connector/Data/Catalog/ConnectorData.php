@@ -68,6 +68,9 @@ class ConnectorData extends Data
         // The connector the workspace must connect before this capability can
         // be turned on (Calendar needs Calendly). Null for none.
         public ?string $requiresConnector = null,
+        // False while the install does not offer it: a capability whose
+        // service an admin has not set up (Image generation, Audio generation).
+        public bool $available = true,
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).

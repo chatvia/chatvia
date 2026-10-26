@@ -40,3 +40,14 @@ it('refuses Calendar until the workspace connects Calendly', function (): void {
 
     expect($this->agent->mcpServers()->exists())->toBeFalse();
 });
+
+it('refuses Image generation while the admin has picked no image service', function (): void {
+    config(['chatvia.ai.image_generator' => 'none']);
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.capabilities.enable', ['agent' => $this->agent->external_id, 'slug' => 'image-generation']))
+        ->assertUnprocessable()
+        ->assertJsonPath('message', 'Your admin has turned this off.');
+
+    expect($this->agent->mcpServers()->exists())->toBeFalse();
+});

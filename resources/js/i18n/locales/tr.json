@@ -2405,7 +2405,8 @@
             "disable_failed": "Bu yetenek kapatılamadı",
             "requires_connector": "{name} üzerinden çalışır. Önce Bağlayıcılar sayfasında {name} bağlantısını kurun.",
             "requires_disconnected": "{name} bağlı değil, bu yüzden bu yetenek çalışamaz. Bağlayıcılar sayfasında {name} bağlantısını yeniden kurun.",
-            "connect_connector": "{name} bağla"
+            "connect_connector": "{name} bağla",
+            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı"
         },
         "forms": {
             "page_title": "Formlar",

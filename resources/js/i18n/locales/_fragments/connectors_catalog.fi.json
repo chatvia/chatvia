@@ -169,6 +169,14 @@
                 "name": "Kalenteri",
                 "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
             },
+            "image-generation": {
+                "name": "Kuvien luonti",
+                "description": "Anna agentin luoda kuvia isännöidyssä chatissa, kun kävijä pyytää: logoja, kuvituksia, tuoteideoita ja muuta."
+            },
+            "audio-generation": {
+                "name": "Äänen luonti",
+                "description": "Anna agentin luoda äänitiedostoja isännöidyssä chatissa, kun kävijä pyytää: mikä tahansa teksti luettuna ääneen, valmiina toistettavaksi tai ladattavaksi."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Hae ajantasaisia tuloksia Googlesta, Bingistä, YouTubesta ja muista hakukoneista: uutisia, hintoja, paikkoja. Palvelun tarjoaa SerpApi.",

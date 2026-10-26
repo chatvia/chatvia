@@ -10,7 +10,8 @@
             "description": "능력은 채팅 안에서 바로 풍부한 기능을 더해 줍니다. 하나를 켜면 이 에이전트가 대화에서 사용할 수 있습니다.",
             "empty": "아직 사용할 수 있는 능력이 없습니다.",
             "enable_failed": "이 능력을 켤 수 없습니다",
-            "disable_failed": "이 능력을 끌 수 없습니다"
+            "disable_failed": "이 능력을 끌 수 없습니다",
+            "turned_off_by_admin": "관리자가 꺼 두었습니다"
         }
     }
 }

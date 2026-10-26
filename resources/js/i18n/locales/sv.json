@@ -2405,7 +2405,8 @@
             "disable_failed": "Det gick inte att inaktivera den här förmågan",
             "requires_connector": "Fungerar via {name}. Anslut först {name} på sidan Kopplingar.",
             "requires_disconnected": "{name} är inte anslutet, så den här förmågan fungerar inte. Anslut {name} igen på sidan Kopplingar.",
-            "connect_connector": "Anslut {name}"
+            "connect_connector": "Anslut {name}",
+            "turned_off_by_admin": "Avstängt av din administratör"
         },
         "forms": {
             "page_title": "Formulär",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Kalender",
                 "description": "Låt besökare boka ett möte i chatten: de väljer en ledig tid i din Calendly och bokar den utan att lämna samtalet. Varje bokning sparas som en lead."
+            },
+            "image-generation": {
+                "name": "Bildgenerering",
+                "description": "Låt agenten skapa bilder i den hostade chatten när en besökare ber om det: logotyper, illustrationer, produktidéer och mer."
+            },
+            "audio-generation": {
+                "name": "Ljudgenerering",
+                "description": "Låt agenten skapa ljudfiler i den hostade chatten när en besökare ber om det: vilken text som helst uppläst, redo att spela upp eller ladda ner."
             }
         }
     },

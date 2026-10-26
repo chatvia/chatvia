@@ -169,6 +169,14 @@
                 "name": "Calendario",
                 "description": "Deja que los visitantes reserven una reunión en el chat: eligen un horario libre de tu Calendly y lo reservan sin salir de la conversación. Cada reserva se guarda como un lead."
             },
+            "image-generation": {
+                "name": "Generación de imágenes",
+                "description": "Deja que el agente cree imágenes en el chat alojado cuando un visitante lo pida: logotipos, ilustraciones, ideas de producto y más."
+            },
+            "audio-generation": {
+                "name": "Generación de audio",
+                "description": "Deja que el agente cree archivos de audio en el chat alojado cuando un visitante lo pida: cualquier texto leído en voz alta, listo para reproducir o descargar."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Busca en Google, Bing, YouTube y otros buscadores resultados en directo: noticias, precios, lugares. Con la tecnología de SerpApi.",

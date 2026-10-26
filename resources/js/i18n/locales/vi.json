@@ -2405,7 +2405,8 @@
             "disable_failed": "Không thể tắt khả năng này",
             "requires_connector": "Hoạt động qua {name}. Hãy kết nối {name} trong trang Trình kết nối trước.",
             "requires_disconnected": "{name} chưa được kết nối nên khả năng này không thể hoạt động. Hãy kết nối lại {name} trong trang Trình kết nối.",
-            "connect_connector": "Kết nối {name}"
+            "connect_connector": "Kết nối {name}",
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
         },
         "forms": {
             "page_title": "Biểu mẫu",

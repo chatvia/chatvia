@@ -20,8 +20,7 @@ it('lists the capabilities in catalog order, with whether each is on', function 
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->component('agents/Capabilities/index')
-            ->has('capabilities', 3)
-            // Ordered by catalog priority: charts (30), forms (40), calendar (45).
+            // Ordered by catalog priority: charts (30), forms (40), calendar (45), then any others.
             ->where('capabilities.0.connector.slug', 'charts')
             ->where('capabilities.0.enabled', false)
             ->where('capabilities.0.ready', true)
@@ -45,3 +44,24 @@ it('marks Calendar not ready until the workspace connects Calendly', function ()
         ->get(route('agents.capabilities', $agent->external_id))
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('capabilities.2.ready', true));
 });
+
+it('marks Image generation unavailable until the admin picks an image service', function (string $driver, bool $available): void {
+    config(['chatvia.ai.image_generator' => $driver]);
+    $owner = User::factory()->create();
+    $agent = makeTeamAgent($owner, 'Support Bot');
+
+    $this->actingAs($owner)
+        ->get(route('agents.capabilities', $agent->external_id))
+        ->assertOk()
+        ->assertInertia(function (AssertableInertia $page) use ($available): AssertableInertia {
+            $rows = collect($page->toArray()['props']['capabilities']);
+
+            expect($rows->firstWhere('connector.slug', 'image-generation')['connector']['available'])->toBe($available)
+                ->and($rows->firstWhere('connector.slug', 'charts')['connector']['available'])->toBeTrue();
+
+            return $page;
+        });
+})->with([
+    'off' => ['none', false],
+    'picked' => ['openai', true],
+]);

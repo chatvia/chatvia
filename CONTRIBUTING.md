@@ -225,6 +225,9 @@ it).
 `EMBEDDING_DIMENSIONS` (default `1024`). The tables are created with these
 values, so you cannot change them later. The app stops with an error when they
 no longer match the database (`php artisan chatvia:search:check-embedding-storage`).
+`EMBEDDING_INDEX` (`binary`, the default, or `full`) decides what the chunk
+HNSW indexes hold and may change later: `php artisan chatvia:search:vector-indexes`
+rebuilds them (the Docker start-up runs it).
 
 Sign-up, the message limit of new workspaces and how long conversations are
 kept are set later in the admin panel (**Settings → Workspaces**), not in

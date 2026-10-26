@@ -51,6 +51,10 @@ php artisan migrate --force --no-interaction
 # settings that would break every search.
 php artisan chatvia:search:check-embedding-storage --no-interaction
 
+# EMBEDDING_INDEX may change: this rebuilds the vector indexes when they are
+# in the other kind, and does nothing when they match.
+php artisan chatvia:search:vector-indexes --no-interaction
+
 admin_email="${ADMIN_EMAIL:-admin@example.com}"
 admin_password="${ADMIN_PASSWORD:-}"
 generated_password=false

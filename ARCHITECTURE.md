@@ -880,6 +880,11 @@ Scoping is explicit (no global scopes), with layers that catch a missed check:
 - Embedding columns use `$table->embedding()`: the type (`halfvec` or
   `vector`) and the dimensions are chosen at install (`EmbeddingStorage`).
   Never write them out by hand.
+- The chunk HNSW indexes are built by `ConfigureVectorIndexesAction` in the
+  kind `EMBEDDING_INDEX` names (`binary`: `binary_quantize()` + Hamming, then
+  re-scored by the stored vectors; `full`). Their SQL shape lives in
+  `ChunkVectorIndex`, which `HybridChunkSearch` also reads: an indexed ORDER BY
+  must repeat the index expression exactly.
 - Staff emails are stored in lowercase (`users_email_lowercase` CHECK), so the
   plain unique index is also unique ignoring case. Look one up with
   `email = Str::lower($input)`. Chatters keep the address as typed, with a

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding\Services;
 
+use Domain\Knowledge\Embedding\Enums\VectorIndex;
 use Domain\Knowledge\Embedding\Enums\VectorType;
 use Domain\Knowledge\Embedding\Exceptions\InvalidEmbeddingStorageException;
 use Illuminate\Support\Str;
@@ -13,7 +14,8 @@ use Illuminate\Support\Str;
  * embedding column (`chatvia.embeddings`). An install chooses them once,
  * before its first migration, because the columns and their indexes are
  * created with them. `chatvia:search:check-embedding-storage` stops a start whose
- * settings no longer match the database.
+ * settings no longer match the database. Also what the chunk HNSW indexes
+ * hold (`index()`), the one part that may change later.
  */
 final class EmbeddingStorage
 {
@@ -23,6 +25,15 @@ final class EmbeddingStorage
 
         return VectorType::tryFrom(filled($value) ? Str::lower(Str::trim($value)) : '')
             ?? throw InvalidEmbeddingStorageException::type($value);
+    }
+
+    /** What the chunk HNSW indexes hold; the only part that may change after install. */
+    public function index(): VectorIndex
+    {
+        $value = config('chatvia.embeddings.index');
+
+        return VectorIndex::tryFrom(filled($value) ? Str::lower(Str::trim($value)) : '')
+            ?? throw InvalidEmbeddingStorageException::index($value);
     }
 
     /**

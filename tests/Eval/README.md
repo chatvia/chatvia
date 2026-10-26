@@ -165,6 +165,9 @@ SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
 |---|---|
 | `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
 | `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
+| `EVAL_INDEX` | `binary` or `full`: what the chunk HNSW indexes hold this run (rebuilt inside the test transaction) |
+| `EVAL_EXACT_MAX_CHUNKS` | the exact-search limit of this run; `0` always takes the indexed path, the only one the index kind changes |
+| `EVAL_BINARY_RESCORE` | over binary indexes, how many candidates per kept one each vector channel takes from the index |
 | `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
 | `EVAL_CHANNEL_WEIGHTS` | extra scoreboards on the same chunks, one per weight set: `vector,question,keyword`, sets split by `;` (e.g. `1,1,1;1,0.5,1`). Measures a fusion change without touching the search; use with `EVAL_RERANKER=none` |
 | `EVAL_ENRICH_WITHOUT` | with `EVAL_ENRICH`: `summary` embeds and indexes each chunk without its summary, `questions` drops the generated questions (the question channels go quiet) |

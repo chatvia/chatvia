@@ -13,6 +13,7 @@ use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
+use Domain\Knowledge\Retrieval\Actions\ConfigureVectorIndexesAction;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
@@ -59,7 +60,9 @@ use Illuminate\Support\Str;
  * EVAL_ENRICH_WITHOUT=summary|questions (then take that part back out),
  * EVAL_CHUNK_SIZE and EVAL_CHUNK_MINIMUM (the chunk size and the smallest
  * chunk, in the configured unit), EVAL_SIMILARITY_THRESHOLD (the bar without
- * a reranker).
+ * a reranker), EVAL_INDEX=binary|full (what the HNSW indexes hold),
+ * EVAL_EXACT_MAX_CHUNKS (0 = always the indexed path, which the index kind
+ * changes) and EVAL_BINARY_RESCORE (candidates per kept one over binary).
  */
 beforeEach(function (): void {
     // The eval calls the real embeddings and reranker, so it runs only with a
@@ -84,6 +87,18 @@ beforeEach(function (): void {
     // it given to match a default install.
     if (filled($threshold = env('EVAL_SIMILARITY_THRESHOLD'))) {
         config(['chatvia.vector.search.similarity_threshold' => (float) $threshold]);
+    }
+
+    foreach (['EVAL_EXACT_MAX_CHUNKS' => 'exact_max_chunks', 'EVAL_BINARY_RESCORE' => 'binary_rescore'] as $variable => $setting) {
+        if (filled($value = env($variable))) {
+            config(["chatvia.vector.search.{$setting}" => (int) $value]);
+        }
+    }
+
+    // Rebuilt inside the test transaction, so the database keeps its own.
+    if (filled($index = env('EVAL_INDEX'))) {
+        config(['chatvia.embeddings.index' => $index]);
+        app(ConfigureVectorIndexesAction::class)->execute();
     }
 });
 
@@ -702,6 +717,8 @@ function retrievalEvalReport(array $rows, RetrievalSettingsData $settings): void
             : 'similarity, threshold '.(RelevanceThresholds::knowledgeSimilarity() ?? 'none'),
         $settings->maxChunks, config('chatvia.vector.search.hybrid') ? 'on' : 'off');
     $out[] = retrievalEvalChunkLine();
+    $out[] = sprintf('vector index: %s · exact up to %d chunks · binary rescore %d',
+        config('chatvia.embeddings.index'), $settings->exactMaxChunks, (int) config('chatvia.vector.search.binary_rescore'));
     $out[] = 'enhancement: '.(env('EVAL_ENRICH') ? 'on'.(filled(env('EVAL_ENRICH_WITHOUT')) ? ', without the '.env('EVAL_ENRICH_WITHOUT') : '') : 'off');
     $out[] = '';
     $out[] = sprintf('Before the check   (%d questions): hit@1 %s  hit@3 %s  hit@5 %s  MRR %.3f',

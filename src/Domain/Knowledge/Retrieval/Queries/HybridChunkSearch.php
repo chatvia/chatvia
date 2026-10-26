@@ -3,9 +3,11 @@
 namespace Domain\Knowledge\Retrieval\Queries;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Enums\VectorIndex;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
+use Domain\Knowledge\Retrieval\Services\ChunkVectorIndex;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +33,9 @@ use Illuminate\Support\Facades\DB;
  * - Indexed (many chunks): each channel is a self-contained subquery served by
  *   its own index — HNSW for the dense channels (iterative scan keeps
  *   fetching until enough rows pass the tenant and source filters), the
- *   lexical index for the keyword channel.
+ *   lexical index for the keyword channel. Over binary HNSW indexes
+ *   (ChunkVectorIndex) a dense channel re-scores its candidates by the
+ *   stored vectors.
  *
  * Retrieval quality is measured by the knowledge retrieval eval
  * (tests/Eval/KnowledgeRetrievalEvalTest.php): any change to this SQL changes
@@ -45,6 +49,7 @@ final readonly class HybridChunkSearch
     public function __construct(
         private EmbeddingStorage $storage,
         private LexicalSearch $lexical,
+        private ChunkVectorIndex $index,
     ) {}
 
     /**
@@ -218,25 +223,17 @@ SQL;
      */
     private function indexed(Agent $agent, string $query, string $queryVector, int $limit): array
     {
-        $candidateLimit = $limit * self::CANDIDATES_PER_RESULT;
-        $channels = $this->indexedChannels($query, $queryVector);
+        $channels = $this->indexedChannels($agent, $query, $queryVector, $limit * self::CANDIDATES_PER_RESULT);
 
-        // Bindings follow each channel's textual `?` order (the channel knows
-        // its own); the final SELECT measures each result's similarity to the
-        // query, and the final LIMIT comes last.
-        $bindings = [];
-
-        foreach ($channels as $channel) {
-            array_push($bindings, ...$channel['bindings']);
-            $bindings[] = (int) $agent->workspace_id;
-            array_push($bindings, ...$channel['conditionBindings']);
-            $bindings[] = $agent->id;
-            $bindings[] = $candidateLimit;
-        }
-
-        $bindings[] = $queryVector;
-        $bindings[] = $queryVector;
-        $bindings[] = $limit;
+        // Each channel carries its bindings in its textual `?` order; the
+        // final SELECT measures each result's similarity to the query, and
+        // the final LIMIT comes last.
+        $bindings = [
+            ...array_merge(...array_column($channels, 'bindings')),
+            $queryVector,
+            $queryVector,
+            $limit,
+        ];
 
         $cast = $this->storage->columnType();
         $sql = 'WITH '.implode(",\n", array_column($channels, 'sql')).",\n".$this->fusion(array_column($channels, 'name'), "?::{$cast}");
@@ -246,21 +243,15 @@ SQL;
 
     /**
      * The ranked channels of the indexed path: always the two vector channels,
-     * plus the keyword channel when hybrid search is on. Each channel
-     * carries the bindings of its ranking expression and of its extra
-     * condition, in their textual order.
+     * plus the keyword channel when hybrid search is on.
      *
-     * @return list<array{name: string, sql: string, bindings: list<string>, conditionBindings: list<string>}>
+     * @return list<array{name: string, sql: string, bindings: list<int|string>}>
      */
-    private function indexedChannels(string $query, string $queryVector): array
+    private function indexedChannels(Agent $agent, string $query, string $queryVector, int $candidateLimit): array
     {
-        $cast = $this->storage->columnType();
-
         $channels = [
-            ['name' => 'vector_ranked', 'bindings' => [$queryVector], 'conditionBindings' => [],
-                'sql' => $this->indexedChannel('vector_ranked', 'vector', "c.embedding <-> ?::{$cast}")],
-            ['name' => 'question_ranked', 'bindings' => [$queryVector], 'conditionBindings' => [],
-                'sql' => $this->indexedChannel('question_ranked', 'question', "c.questions_embedding <-> ?::{$cast}", 'c.questions_embedding IS NOT NULL')],
+            $this->denseChannel('vector_ranked', 'vector', 'c.embedding', null, $agent, $queryVector, $candidateLimit),
+            $this->denseChannel('question_ranked', 'question', 'c.questions_embedding', 'c.questions_embedding IS NOT NULL', $agent, $queryVector, $candidateLimit),
         ];
 
         if (! $this->hybrid()) {
@@ -272,14 +263,50 @@ SQL;
 
         return [
             ...$channels,
-            ['name' => 'bm25_ranked', 'bindings' => [$terms], 'conditionBindings' => $match !== null ? [$terms] : [],
-                'sql' => $this->indexedChannel('bm25_ranked', 'bm25', $this->lexical->distance('c.search_text', 'chunks_search_text_lexical'), $match)],
+            [
+                'name' => 'bm25_ranked',
+                'sql' => $this->indexedChannel('bm25_ranked', 'bm25', $this->lexical->distance('c.search_text', 'chunks_search_text_lexical'), $match),
+                'bindings' => [$terms, (int) $agent->workspace_id, ...($match !== null ? [$terms] : []), $agent->id, $candidateLimit],
+            ],
+        ];
+    }
+
+    /**
+     * A vector channel, ranked by the full stored vector. Over a binary index
+     * the index ranks by Hamming distance, which only approximates the real
+     * order, so the channel takes `binary_rescore` times as many candidates
+     * from it and keeps the closest of those by the stored vector.
+     *
+     * @return array{name: string, sql: string, bindings: list<int|string>}
+     */
+    private function denseChannel(string $name, string $searchType, string $column, ?string $requiredColumn, Agent $agent, string $queryVector, int $candidateLimit): array
+    {
+        $cast = $this->storage->columnType();
+        $distance = "{$column} <-> ?::{$cast}";
+        $filters = [(int) $agent->workspace_id, $agent->id];
+
+        if ($this->index->kind() === VectorIndex::Full) {
+            return [
+                'name' => $name,
+                'sql' => $this->indexedChannel($name, $searchType, $distance, $requiredColumn),
+                'bindings' => [$queryVector, ...$filters, $candidateLimit],
+            ];
+        }
+
+        $rescore = max(1, (int) config('chatvia.vector.search.binary_rescore', 4));
+
+        return [
+            'name' => $name,
+            'sql' => $this->indexedChannel($name, $searchType, $distance, $requiredColumn, $this->index->orderBy($column, "?::{$cast}")),
+            'bindings' => [$queryVector, ...$filters, $queryVector, $candidateLimit * $rescore, $candidateLimit],
         ];
     }
 
     /**
      * One ranked channel of the indexed path: the agent's closest chunks by
-     * `$distance`, numbered by rank.
+     * `$distance`, numbered by rank. With `$indexOrder` (a binary index) the
+     * index walk sorts by that instead, and the closest by `$distance` of what
+     * it returns are kept (a second LIMIT).
      *
      * Both filters are written so that the only way to answer the query is the
      * channel's own index, which visits rows closest-first and checks the
@@ -292,9 +319,11 @@ SQL;
      * - `OFFSET 0` keeps the EXISTS a per-row check (an index-only probe of
      *   agent_sources) instead of a join that starts from the agent's sources.
      */
-    private function indexedChannel(string $name, string $searchType, string $distance, ?string $requiredColumn = null): string
+    private function indexedChannel(string $name, string $searchType, string $distance, ?string $requiredColumn = null, ?string $indexOrder = null): string
     {
         $required = $requiredColumn !== null ? "\n          AND {$requiredColumn}" : '';
+        $order = $indexOrder ?? 'dist';
+        $rescore = $indexOrder !== null ? "\n    ORDER BY t.dist\n    LIMIT ?" : '';
 
         return <<<SQL
 {$name} AS (
@@ -310,9 +339,9 @@ SQL;
                 AND s.sourceable_type = c.chunkable_type
               OFFSET 0
           )
-        ORDER BY dist
+        ORDER BY {$order}
         LIMIT ?
-    ) t
+    ) t{$rescore}
 )
 SQL;
     }

@@ -1,7 +1,7 @@
 <?php
 
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Actions\ConfigureLexicalIndexesAction;
+use Domain\Knowledge\Retrieval\Actions\ConfigureVectorIndexesAction;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -48,8 +48,7 @@ return new class extends Migration
         // The lexical (keyword) indexes, in the shape of the install's driver.
         app(ConfigureLexicalIndexesAction::class)->execute('chunks');
 
-        $this->createHnswIndex('chunks_embedding_hnsw', 'embedding');
-        $this->createHnswIndex('chunks_questions_embedding_hnsw', 'questions_embedding');
+        app(ConfigureVectorIndexesAction::class)->execute();
 
         DB::statement(<<<'SQL'
 ALTER TABLE chunks SET (
@@ -63,17 +62,5 @@ SQL);
     public function down(): void
     {
         Schema::dropIfExists('chunks');
-    }
-
-    /**
-     * A pgvector HNSW index (default build options). It needs no training and
-     * grows with the table, so it is never rebuilt for size.
-     */
-    private function createHnswIndex(string $indexName, string $column): void
-    {
-        // The install's vector type decides the operator class (EmbeddingStorage).
-        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
-
-        DB::statement("CREATE INDEX {$indexName} ON chunks USING hnsw ({$column} {$ops})");
     }
 };

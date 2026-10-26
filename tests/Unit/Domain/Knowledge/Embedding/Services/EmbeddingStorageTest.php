@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Knowledge\Embedding\Enums\VectorIndex;
 use Domain\Knowledge\Embedding\Enums\VectorType;
 use Domain\Knowledge\Embedding\Exceptions\InvalidEmbeddingStorageException;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
@@ -40,4 +41,21 @@ it('caps the size at what the HNSW index accepts for the type', function (): voi
     config(['chatvia.embeddings.type' => 'halfvec']);
 
     expect((new EmbeddingStorage)->dimensions())->toBe(2048);
+});
+
+it('reads what the vector indexes hold, binary unless set otherwise', function (): void {
+    config(['chatvia.embeddings.index' => ' Full ']);
+
+    expect((new EmbeddingStorage)->index())->toBe(VectorIndex::Full);
+
+    config(['chatvia.embeddings.index' => 'binary']);
+
+    expect((new EmbeddingStorage)->index())->toBe(VectorIndex::Binary);
+});
+
+it('rejects an index kind it cannot build', function (): void {
+    config(['chatvia.embeddings.index' => 'ivfflat']);
+
+    expect(fn (): VectorIndex => (new EmbeddingStorage)->index())
+        ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_INDEX must be "binary" or "full", not "ivfflat".');
 });

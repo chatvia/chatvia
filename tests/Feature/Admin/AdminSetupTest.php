@@ -147,6 +147,24 @@ function setupFakeOpenRouter(int $dimensions): void
     ]);
 }
 
+/**
+ * Each model of the models step answers its test, as the test window asks
+ * it: the chosen chat models, the embedding model and the reranker (a
+ * section with nothing chosen is not asked). Next then leaves the step
+ * without opening the window.
+ */
+function setupModelsAnswer(Testable $page): void
+{
+    Http::fake(['*/chat/completions' => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => 'OK'], 'finish_reason' => 'stop']]])]);
+
+    foreach ((array) $page->get('data')['chat_models'] as $model) {
+        $page->call('testModel', 'chat', $model)->assertReturned(['state' => 'passed', 'message' => null]);
+    }
+
+    $page->call('testModel', 'embeddings', 'embeddings');
+    $page->call('testModel', 'reranker', 'reranker');
+}
+
 /** The Groq model list, and Cohere embeddings and reranking. */
 function setupFakeGroqAndCohere(int $dimensions): void
 {
@@ -503,13 +521,19 @@ it('stops on the models step when the embedding service refuses its key', functi
         'api.cohere.com/*' => Http::response(['message' => 'invalid api token'], 401),
     ]);
 
-    setupPage($this->admin)
+    $page = setupPage($this->admin)
         ->fillForm(['provider' => 'groq', 'api_key' => 'gsk-test'])
         ->goToWizardStep(3)
         ->fillForm(['embedding_provider' => 'cohere', 'embedding_api_key' => 'wrong'])
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
-        ->assertHasFormErrors(['embedding_api_key'])
-        ->assertWizardCurrentStep(3);
+        ->assertActionMounted('testModels');
+
+    $page->call('testModel', 'embeddings', 'embeddings')->assertReturned(fn (array $result): bool => $result['state'] === 'failed' && filled($result['message']));
+    $page->callMountedAction()->assertActionMounted('testModels');
+
+    // Finish marks the key.
+    $page->call('unmountAction')->call('complete')->assertHasFormErrors(['embedding_api_key']);
 });
 
 it('makes the embeddings with another provider than the chat, with its own key', function (): void {
@@ -564,19 +588,24 @@ it('stops on Finish when the embedding model returns another vector size', funct
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
 });
 
-it('stays on the step and scrolls to the reranker when its test question fails', function (): void {
+it('stays on the step when the reranker\'s test question fails', function (): void {
     // Registered first, so it answers before the working fake below.
     Http::fake(['openrouter.ai/api/v1/rerank' => Http::response(['error' => ['message' => 'No endpoints found']], 404)]);
     setupFakeOpenRouter($this->dimensions);
 
-    setupPage($this->admin)
+    $page = setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
         ->goToWizardStep(3)
         ->assertWizardCurrentStep(3)
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
-        ->assertHasFormErrors(['openrouter_rerank_model'])
-        ->assertDispatched('form-validation-error')
-        ->assertWizardCurrentStep(3);
+        ->assertActionMounted('testModels');
+
+    $page->call('testModel', 'reranker', 'reranker')->assertReturned(fn (array $result): bool => $result['state'] === 'failed' && Str::contains((string) $result['message'], 'No endpoints found'));
+    $page->callMountedAction()->assertActionMounted('testModels');
+
+    // Finish marks the reranker's model.
+    $page->call('unmountAction')->call('complete')->assertHasFormErrors(['openrouter_rerank_model']);
 });
 
 it('starts the reranker on OpenRouter with the key of the first step, from its live list', function (): void {
@@ -617,6 +646,7 @@ it('starts the reranker on "Not now" for another provider, and checks Cohere wit
         ->fillForm(['reranker' => 'cohere'])
         ->assertFormFieldVisible('rerank_api_key')
         ->fillForm(['rerank_api_key' => 'co-test', 'cohere_rerank_model' => 'rerank-v4.0-fast'])
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(4)
@@ -658,9 +688,14 @@ it('stops on the models step when the reranker refuses its key', function (): vo
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
         ->fillForm(['reranker' => 'cohere', 'rerank_api_key' => 'wrong'])
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
-        ->assertHasFormErrors(['rerank_api_key'])
-        ->assertWizardCurrentStep(3);
+        ->assertActionMounted('testModels')
+        ->call('testModel', 'reranker', 'reranker')
+        ->assertReturned(fn (array $result): bool => $result['state'] === 'failed' && filled($result['message']))
+        ->call('unmountAction')
+        ->call('complete')
+        ->assertHasFormErrors(['rerank_api_key']);
 });
 
 it('reranks with a server of your own', function (): void {
@@ -880,6 +915,8 @@ it('lists only the models that read PDF files and images for chat file uploads, 
 });
 
 it('tests each chosen chat model as the test window opens: it answers, is busy, or says why not', function (): void {
+    // Registered first, so the list has the third model.
+    Http::fake(['api.scaleway.ai/*/models' => Http::response(['data' => [['id' => 'gpt-oss-120b'], ['id' => 'gemma-4-26b-a4b-it'], ['id' => 'llama-3.3-70b-instruct']]])]);
     setupFakeScaleway($this->dimensions);
     Http::fake(['api.scaleway.ai/v1/chat/completions' => fn (Request $request) => match ($request['model']) {
         'gpt-oss-120b' => Http::response(['error' => ['message' => 'Model not found']], 404),
@@ -906,13 +943,83 @@ it('tests each chosen chat model as the test window opens: it answers, is busy, 
     Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/chat/completions') && $request->hasHeader('Authorization', 'Bearer scw-test'));
 });
 
+it('tests the chat models, the embedding model and the reranker on Next, and goes on once each answered', function (): void {
+    setupFakeScaleway($this->dimensions);
+    Http::fake([
+        'api.scaleway.ai/v1/chat/completions' => fn (Request $request) => match ($request['model']) {
+            'gpt-oss-120b' => Http::response(['error' => ['message' => 'Rate limit exceeded']], 429),
+            default => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => 'OK'], 'finish_reason' => 'stop']]]),
+        },
+        'api.cohere.com/v2/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]]),
+    ]);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->fillForm(['reranker' => 'cohere', 'rerank_api_key' => 'co-test', 'cohere_rerank_model' => 'rerank-v4.0-fast'])
+        ->goToWizardStep(4)
+        ->assertActionMounted('testModels')
+        ->assertWizardCurrentStep(3, 'form')
+        ->assertMountedActionModalSee(['Testing the models', 'Chat models', 'gemma-4-26b-a4b-it', 'gpt-oss-120b', 'Embeddings', 'Reranker', 'rerank-v4.0-fast', 'Continue', 'Back to models']);
+
+    // Continue before the test is done keeps the window open.
+    $page->callMountedAction()->assertActionMounted('testModels');
+
+    $page->call('testModel', 'chat', 'gemma-4-26b-a4b-it')->assertReturned(['state' => 'passed', 'message' => null]);
+    $page->call('testModel', 'chat', 'gpt-oss-120b')->assertReturned([
+        'state' => 'busy',
+        'message' => 'Busy right now (error 429): the provider is limiting requests. Test again in a minute. Rate limit exceeded',
+    ]);
+    $page->call('testModel', 'embeddings', 'embeddings')->assertReturned(['state' => 'passed', 'message' => null]);
+    $page->call('testModel', 'reranker', 'reranker')->assertReturned(['state' => 'passed', 'message' => null]);
+
+    $page->callMountedAction()
+        ->assertActionNotMounted('testModels')
+        ->assertWizardCurrentStep(4);
+
+    // Tested once: Next goes on without the window, until a key changes.
+    $page->goToWizardStep(4)->assertActionNotMounted('testModels')->assertWizardCurrentStep(4);
+    $page->fillForm(['rerank_api_key' => 'co-other'])->goToWizardStep(4)->assertActionMounted('testModels');
+});
+
+it('keeps the wizard on the models step while something did not answer, and says what to do', function (): void {
+    setupFakeScaleway($this->dimensions);
+    Http::fake(['api.scaleway.ai/v1/chat/completions' => fn (Request $request) => match ($request['model']) {
+        'gpt-oss-120b' => Http::response(['error' => ['message' => 'Model not found']], 404),
+        default => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => 'OK'], 'finish_reason' => 'stop']]]),
+    }]);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->goToWizardStep(4)
+        ->assertActionMounted('testModels')
+        ->assertMountedActionModalSee('To go on, change or remove what did not answer, then press Next again.');
+
+    $page->call('testModel', 'chat', 'gemma-4-26b-a4b-it')->assertReturned(['state' => 'passed', 'message' => null]);
+    $page->call('testModel', 'chat', 'gpt-oss-120b')->assertReturned(['state' => 'failed', 'message' => 'The model did not answer (error 404): Model not found']);
+    $page->call('testModel', 'embeddings', 'embeddings')->assertReturned(['state' => 'passed', 'message' => null]);
+
+    // Continue keeps the window open: the wizard does not move on.
+    $page->callMountedAction()->assertActionMounted('testModels');
+
+    // Without the model that failed, the rest answered: Next goes on.
+    $page->call('unmountAction')
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it']])
+        ->goToWizardStep(4)
+        ->assertActionNotMounted('testModels')
+        ->assertWizardCurrentStep(4);
+});
+
 it('lists what it tests in the test window, each waiting for its turn', function (): void {
-    $html = view('filament.setup.model-tests', ['section' => 'chat', 'image' => null, 'rows' => [
+    $html = view('filament.setup.model-tests', ['image' => null, 'onFailure' => null, 'sections' => [['section' => 'chat', 'title' => null, 'rows' => [
         ['key' => 'qwen/qwen3', 'label' => '<b>Qwen3</b>'],
         ['key' => 'gpt-oss-120b', 'label' => 'gpt-oss-120b'],
-    ]])->render();
+    ]]]])->render();
 
-    expect($html)->toContain('<b>Qwen3</b>', 'gpt-oss-120b', '$wire.testModel(\'chat\', key)', 'cv-model-test__spinner');
+    expect($html)->toContain('<b>Qwen3</b>', 'gpt-oss-120b', '$wire.testModel(test.section, test.key)', 'cv-model-test__spinner');
 });
 
 it('tests the embedding model with the key typed', function (): void {
@@ -995,6 +1102,7 @@ it('reads documents with Azure, with its key and endpoint checked', function ():
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
         ->assertHasNoFormErrors()
         ->assertFormSet(['document_reader' => 'none'])
@@ -1016,6 +1124,7 @@ it('warns before going on without a document reader, and goes on once agreed', f
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
         ->assertFormSet(['document_reader' => 'none'])
         ->goToWizardStep(5)
@@ -1051,6 +1160,7 @@ it('reads documents with the Mistral key of the first step', function (): void {
         ->fillForm(['provider' => 'mistral', 'api_key' => 'mistral-test'])
         ->assertFormSet(['document_reader' => 'mistral'])
         ->goToWizardStep(3)
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
         ->assertSee('Uses the Mistral key you entered in AI provider')
         ->assertFormFieldHidden('document_api_key')
@@ -1096,6 +1206,7 @@ it('imports websites with Firecrawl, with its key checked', function (): void {
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
         ->assertSee('To learn from a website, agents need Firecrawl.')
         ->assertFormFieldHidden('firecrawl_api_key')

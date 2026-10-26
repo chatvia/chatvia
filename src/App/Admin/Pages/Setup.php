@@ -181,6 +181,9 @@ class Setup extends SimplePage
 
     private const string TEST_FILES = 'files';
 
+    /** The sections Next on the models step tests, each under its title ({@see testModelsAction()}). */
+    private const array STEP_TESTS = [self::TEST_CHAT, self::TEST_EMBEDDINGS, self::TEST_RERANKER];
+
     /** The option of no document reader, web scraper or speech to text. */
     private const string NOT_NOW = 'none';
 
@@ -203,6 +206,9 @@ class Setup extends SimplePage
 
     /** The services the server step checks: what runs beside the web server. Storage and email have steps of their own. */
     private const array SERVER_SERVICES = [Service::Database, Service::Redis, Service::Queue, Service::Scheduler, Service::Realtime, Service::ModelDetails];
+
+    /** The label of the models step, which Next leaves once each model answered its test. */
+    private const string MODELS_STEP = 'Models';
 
     /** The label of the ingestion step, which Next leaves once "Not now" for a document reader is confirmed. */
     private const string INGESTION_STEP = 'Ingestion';
@@ -263,6 +269,12 @@ class Setup extends SimplePage
 
     /** Whether the admin agreed to go on without a document reader, so Next does not warn again. */
     public bool $noReaderConfirmed = false;
+
+    /** @var array<string, string> How each chat model answered its test, by model id ({@see ModelCheckData} state), with the provider, address and key below. */
+    public array $chatModelChecks = [];
+
+    /** The provider, address and key the chat models were tested with: a change tests them again. */
+    public ?string $chatModelsTestedFor = null;
 
     /** How ready pg_textsearch is, read once per request. */
     private ?PgTextsearchState $pgTextsearch = null;
@@ -493,7 +505,7 @@ class Setup extends SimplePage
 
     private function modelsStep(): Step
     {
-        return Step::make('Models')
+        return Step::make(self::MODELS_STEP)
             ->description('What agents answer with')
             ->icon(Heroicon::OutlinedChatBubbleLeftRight)
             ->schema([
@@ -503,19 +515,19 @@ class Setup extends SimplePage
                         : null)
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->success(),
-                Section::make('Chat models')
+                Section::make(self::sectionTitle(self::TEST_CHAT))
                     ->description('The models agents can use. Each agent picks one; new agents start with the default. You can add more later in Settings → AI models.')
                     ->icon(Heroicon::OutlinedChatBubbleLeftRight)
                     ->key(self::TEST_CHAT, isInheritable: false)
                     ->headerActions([$this->testAction(self::TEST_CHAT)])
                     ->schema($this->chatModelFields()),
-                Section::make('Embeddings')
+                Section::make(self::sectionTitle(self::TEST_EMBEDDINGS))
                     ->description(fn (Get $get): string => $this->embeddingDescription($get))
                     ->icon(Heroicon::OutlinedCubeTransparent)
                     ->key(self::TEST_EMBEDDINGS, isInheritable: false)
                     ->headerActions([$this->testAction(self::TEST_EMBEDDINGS)])
                     ->schema([...$this->embeddingServiceFields(), ...$this->embeddingModelFields()]),
-                Section::make('Reranker')
+                Section::make(self::sectionTitle(self::TEST_RERANKER))
                     ->description('Scores what search finds, and your tools, against each question, so agents use only the relevant ones.')
                     ->icon(Heroicon::OutlinedBarsArrowDown)
                     ->key(self::TEST_RERANKER, isInheritable: false)
@@ -523,6 +535,8 @@ class Setup extends SimplePage
                     ->schema($this->rerankerFields()),
             ])
             ->afterValidation(fn () => $this->showingErrors(function (): void {
+                $this->checkChatModelsChosen();
+                $this->confirmModels();
                 $this->checkModels();
                 $this->checkReranker();
             }));
@@ -1331,15 +1345,13 @@ class Setup extends SimplePage
 
     /**
      * "Test" on a section of the models step (and on the models for image
-     * descriptions and chat file uploads): a window that asks each model to
-     * answer now, with the key typed, one after another as it opens. Each row
-     * turns from a spinner to a tick, a warning when the provider is busy, or
-     * a cross with the reason ({@see testModel()}). Shown once there is a
-     * model to test.
+     * descriptions and chat file uploads): the test window with the
+     * section's rows ({@see testWindow()}), shown once there is a model to
+     * test.
      */
     private function testAction(string $section): Action
     {
-        return Action::make('test'.Str::studly($section))
+        return $this->testWindow(Action::make('test'.Str::studly($section)), [$section])
             ->label('Test')
             ->link()
             ->icon(Heroicon::OutlinedPlayCircle)
@@ -1355,15 +1367,80 @@ class Setup extends SimplePage
                 self::TEST_FILES => 'It is sent a small PDF file of one page and asked to summarize it, with the key you entered.',
                 default => 'Each one is asked to answer now, with the key you entered.',
             })
-            ->modalWidth(Width::Large)
-            ->modalContent(fn (): ViewContract => view('filament.setup.model-tests', [
-                'section' => $section,
-                'rows' => $this->testRows($section),
-                'image' => $section === self::TEST_IMAGES ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('images/setup/test-cat.png'))) : null,
-            ]))
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Close')
             ->visible(fn (): bool => $this->testRows($section) !== []);
+    }
+
+    /**
+     * Next on the models step: the test window with each section of the
+     * step under its title (chat models, embeddings, reranker), and
+     * Continue. Continue waits for the test, and stays off while something
+     * did not answer: the admin changes or removes it and presses Next
+     * again. A busy chat model does not stop it. Continuing moves the
+     * wizard on.
+     */
+    public function testModelsAction(): Action
+    {
+        return $this->testWindow(Action::make('testModels'), self::STEP_TESTS, onFailure: 'To go on, change or remove what did not answer, then press Next again.')
+            ->modalHeading('Testing the models')
+            ->modalDescription('Each one is asked to answer now, with the keys you entered.')
+            ->modalSubmitActionLabel('Continue')
+            ->modalSubmitAction(fn (Action $action): Action => $action->extraAttributes([
+                // Off until the window says each one answered or was busy.
+                'x-data' => '{ ready: false }',
+                'x-on:model-tests-done.window' => 'ready = ! $event.detail.failed',
+                'x-bind:disabled' => '! ready',
+            ]))
+            ->modalCancelActionLabel('Back to models')
+            ->action(function (Action $action): void {
+                if (! $this->modelsAnswered()) {
+                    $action->halt();
+                }
+
+                $this->leaveStep(self::MODELS_STEP);
+            });
+    }
+
+    /**
+     * The test window: it asks each model of the sections given to answer
+     * now, with the key typed, one after another as it opens. Each row turns
+     * from a spinner to a tick, a warning when the provider is busy, or a
+     * cross with the reason ({@see testModel()}). With several sections,
+     * each shows under its title; one with nothing to test is left out.
+     *
+     * @param  list<string>  $sections
+     * @param  string|null  $onFailure  What to do when a model did not answer, shown under the summary.
+     */
+    private function testWindow(Action $action, array $sections, ?string $onFailure = null): Action
+    {
+        return $action
+            ->modalWidth(Width::Large)
+            ->modalContent(fn (): ViewContract => view('filament.setup.model-tests', [
+                'sections' => collect($sections)
+                    ->map(fn (string $section): array => [
+                        'section' => $section,
+                        'title' => count($sections) > 1 ? self::sectionTitle($section) : null,
+                        'rows' => $this->testRows($section),
+                    ])
+                    ->reject(fn (array $section): bool => $section['rows'] === [])
+                    ->values()
+                    ->all(),
+                'image' => in_array(self::TEST_IMAGES, $sections, true) ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('images/setup/test-cat.png'))) : null,
+                'onFailure' => $onFailure,
+            ]));
+    }
+
+    /** The title of a section of the models step, on the step and in the test window. */
+    private static function sectionTitle(string $section): string
+    {
+        return match ($section) {
+            self::TEST_CHAT => 'Chat models',
+            self::TEST_EMBEDDINGS => 'Embeddings',
+            self::TEST_RERANKER => 'Reranker',
+            self::TEST_IMAGES => 'Model for image descriptions',
+            default => 'Model for chat file uploads',
+        };
     }
 
     /**
@@ -1402,7 +1479,9 @@ class Setup extends SimplePage
      * Checks one row of a section's test, called by the test window as it
      * opens; nothing on the page is drawn again. Only what the section
      * tests is asked: a chosen chat model, the model for image descriptions,
-     * the model for chat file uploads.
+     * the model for chat file uploads. How a chat model answered is kept
+     * (the embedding model and the reranker keep a pass themselves), so
+     * Next goes on once each one answered ({@see modelsAnswered()}).
      *
      * @return array{state: string, message: string|null}
      */
@@ -1420,6 +1499,15 @@ class Setup extends SimplePage
             $section === self::TEST_EMBEDDINGS => ($failure = $this->embeddingFailure($state)) !== null ? ModelCheckData::failed($failure[1]) : ModelCheckData::passed(),
             default => ($failure = $this->rerankerFailure($state)) !== null ? ModelCheckData::failed($failure[1]) : ModelCheckData::passed(),
         };
+
+        if ($testable && $section === self::TEST_CHAT) {
+            if ($this->chatModelsTestedFor !== $this->fingerprint($state)) {
+                $this->chatModelChecks = [];
+                $this->chatModelsTestedFor = $this->fingerprint($state);
+            }
+
+            $this->chatModelChecks[$key] = $check->state;
+        }
 
         return ['state' => $check->state, 'message' => $check->message];
     }
@@ -1606,16 +1694,20 @@ class Setup extends SimplePage
      */
     private function checkModels(): void
     {
-        $state = $this->form->getRawState();
+        $this->checkChatModelsChosen();
 
-        if ($this->chosenModels($state) === []) {
+        if (($failure = $this->embeddingFailure($this->form->getRawState())) !== null) {
+            throw ValidationException::withMessages([$failure[0] => $failure[1]]);
+        }
+    }
+
+    /** At least one chat model is chosen. */
+    private function checkChatModelsChosen(): void
+    {
+        if ($this->chosenModels($this->form->getRawState()) === []) {
             throw ValidationException::withMessages([
                 $this->models !== [] ? 'data.chat_models' : 'data.chat_model_id' => 'Pick at least one model for your agents.',
             ]);
-        }
-
-        if (($failure = $this->embeddingFailure($state)) !== null) {
-            throw ValidationException::withMessages([$failure[0] => $failure[1]]);
         }
     }
 
@@ -1638,7 +1730,7 @@ class Setup extends SimplePage
         $keyField = $this->earlierKeyField('embedding_provider', $state) ?? 'embedding_api_key';
         $key = $state[$keyField] ?? null;
         $model = filled($state['embedding_model'] ?? null) ? (string) $state['embedding_model'] : null;
-        $fingerprint = hash('sha256', implode("\n", [$provider->value, $model ?? '', (string) $key]));
+        $fingerprint = $this->embeddingFingerprint($state);
 
         if ($this->embeddingCheckedFor === $fingerprint) {
             return null;
@@ -1655,6 +1747,18 @@ class Setup extends SimplePage
         $this->embeddingCheckedFor = $fingerprint;
 
         return null;
+    }
+
+    /**
+     * What the embedding check depends on: the service, model and key chosen.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function embeddingFingerprint(array $state): string
+    {
+        $key = $state[$this->earlierKeyField('embedding_provider', $state) ?? 'embedding_api_key'] ?? null;
+
+        return hash('sha256', implode("\n", [(string) ($state['embedding_provider'] ?? ''), (string) ($state['embedding_model'] ?? ''), (string) $key]));
     }
 
     /**
@@ -1686,9 +1790,9 @@ class Setup extends SimplePage
         }
 
         $earlier = $this->earlierKeyField('reranker', $state);
-        $keyField = $chosen->driver === self::CUSTOM ? 'rerank_custom_key' : ($earlier ?? 'rerank_api_key');
+        $keyField = $this->rerankerKeyField($state);
         $reranker = new RerankerSetupData($chosen->driver, $chosen->model, $this->filled($state, $keyField), $chosen->url);
-        $fingerprint = hash('sha256', implode("\n", [$reranker->driver, $reranker->model ?? '', $reranker->apiKey ?? '', $reranker->url ?? '']));
+        $fingerprint = $this->rerankerFingerprint($state);
 
         if ($this->rerankerCheckedFor === $fingerprint) {
             return null;
@@ -1709,6 +1813,30 @@ class Setup extends SimplePage
         $this->rerankerCheckedFor = $fingerprint;
 
         return null;
+    }
+
+    /**
+     * What the reranker check depends on: the reranker, model, key and
+     * address chosen.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function rerankerFingerprint(array $state): string
+    {
+        $chosen = $this->rerankerData($state);
+
+        return hash('sha256', implode("\n", [$chosen->driver, $chosen->model ?? '', $this->filled($state, $this->rerankerKeyField($state)) ?? '', $chosen->url ?? '']));
+    }
+
+    /**
+     * The field of the reranker's key: a server of your own has its own, a
+     * key typed in an earlier step is used again.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function rerankerKeyField(array $state): string
+    {
+        return $this->rerankerData($state)->driver === self::CUSTOM ? 'rerank_custom_key' : ($this->earlierKeyField('reranker', $state) ?? 'rerank_api_key');
     }
 
     /** The ingestion step's check: the reader's key (and Azure's endpoint) work. */
@@ -1757,6 +1885,37 @@ class Setup extends SimplePage
         $this->mountAction('noReader');
 
         throw new Halt;
+    }
+
+    /** Stops Next on the models step until each model answered its test ({@see testModelsAction()}). */
+    private function confirmModels(): void
+    {
+        if ($this->modelsAnswered()) {
+            return;
+        }
+
+        $this->mountAction('testModels');
+
+        throw new Halt;
+    }
+
+    /**
+     * Whether each model of the step answered its test with what is typed
+     * now: each chosen chat model (or its provider was busy), and the
+     * embedding model and the reranker when they are chosen.
+     */
+    private function modelsAnswered(): bool
+    {
+        $state = $this->form->getRawState();
+        $models = $this->chosenModels($state);
+
+        $chat = $models !== []
+            && $this->chatModelsTestedFor === $this->fingerprint($state)
+            && collect($models)->every(fn (RemoteModelData $model): bool => in_array($this->chatModelChecks[$model->id] ?? null, [ModelCheckData::PASSED, ModelCheckData::BUSY], true));
+        $embeddings = ! $this->embeddingProvider($state) instanceof EmbeddingProvider || $this->embeddingCheckedFor === $this->embeddingFingerprint($state);
+        $reranker = ! $this->rerankerData($state)->isOn() || $this->rerankerCheckedFor === $this->rerankerFingerprint($state);
+
+        return $chat && $embeddings && $reranker;
     }
 
     /** Moves the wizard on from the step with this label, as Next does. */

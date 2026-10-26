@@ -2132,6 +2132,32 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
+/* The title over each section's rows, when Next tests the whole step. */
+.cv-model-tests__title {
+    margin: 0 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-gray-950);
+
+    .cv-model-tests__list + & {
+        margin-top: 1.25rem;
+    }
+}
+
+:is(.dark) .cv-model-tests__title {
+    color: var(--color-white);
+}
+
+.cv-model-tests__hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+}
+
+:is(.dark) .cv-model-tests__hint {
+    color: var(--color-gray-400);
+}
+
 /* A model's name with its lab's logo before it ({@see ModelLogo}). The logo
  * is a mask, so it takes the colour of the text in light and dark mode. A
  * provider's name has its logo in its own colours. */

@@ -10,6 +10,7 @@ use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Getting an OAuth client for a connector: registered once per connector and
@@ -60,7 +61,7 @@ it('stores registration secrets only in the encrypted columns', function (): voi
     expect($raw)->not->toContain('dcr-secret')->not->toContain('dcr-rat');
 });
 
-it('registers the client as ChatVia.ai', function (): void {
+it('registers the client as ChatViaAI', function (): void {
     Http::fake([
         'auth.example.test/register' => Http::response(['client_id' => 'dcr-client'], 201),
     ]);
@@ -68,7 +69,20 @@ it('registers the client as ChatVia.ai', function (): void {
     app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata());
 
     Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://auth.example.test/register'
-        && $request['client_name'] === 'ChatVia.ai');
+        && $request['client_name'] === 'ChatViaAI');
+});
+
+it('logs a rejected registration', function (): void {
+    Log::spy();
+    Http::fake(['auth.example.test/register' => Http::response('invalid_redirect_uri', 400)]);
+
+    expect(fn () => app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata()))
+        ->toThrow(McpOAuthException::class);
+
+    Http::assertSentCount(1);
+    Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message, array $context): bool => $message === 'MCP dynamic client registration rejected'
+        && $context['status'] === 400
+        && $context['body'] === 'invalid_redirect_uri');
 });
 
 it('reuses the client already registered with the authorization server', function (): void {
@@ -96,7 +110,7 @@ it('stores nothing when the registration is rejected or returns no client id', f
     expect(ConnectorOAuthClient::query()->count())->toBe(0);
 })->with([
     'rejected' => ['invalid_redirect_uri', 400, 'Dynamic client registration was rejected (400)'],
-    'no client id' => [['client_name' => 'ChatVia.ai'], 201, 'Dynamic client registration returned no client_id.'],
+    'no client id' => [['client_name' => 'ChatViaAI'], 201, 'Dynamic client registration returned no client_id.'],
 ]);
 
 /**

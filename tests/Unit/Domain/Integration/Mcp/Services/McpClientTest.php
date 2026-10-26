@@ -346,7 +346,7 @@ it('introduces the client as chatvia on initialize', function (): void {
     app(McpClient::class)->fetchTools(mclServer());
 
     Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'initialize'
-        && $request->data()['params']['clientInfo']['name'] === 'chatvia');
+        && $request->data()['params']['clientInfo']['name'] === 'ChatViaAI');
 });
 
 it('renders chart blocks only from our own charts server, never from a custom server', function (?string $connectorSlug, int $blocks): void {

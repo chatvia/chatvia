@@ -985,13 +985,15 @@ embedding_storage_in() {
 #   backup.env            when, which version, how embeddings are stored
 #   database.dump         pg_dump, custom format
 #   database-extras.sql   what pg_dump leaves out (see dump_extras)
+#   analytics.dump        the analytics database (DB_ANALYTICS_DATABASE),
+#                         when the install has one apart from the app's
 #   secrets.env           the app key and the other secrets of this install
 #   redis.rdb             Redis: who is signed in, the chat memory (and the
 #                         queues and cache, which a restore empties)
 #   files.tar             the uploaded files (with --files)
 #
 # The app's own backups (Settings → Backups) have the same layout and may
-# also hold analytics.dump, pulse.dump and spectra.dump. They come as
+# also hold pulse.dump and spectra.dump. They come as
 # .tar.gpg when the admin saved a public key: restore decrypts them with the
 # private key, and their secrets.env holds only the app key.
 #------------------------------------------------------------------------------
@@ -1013,6 +1015,23 @@ dump_database() {
     compose exec -T postgres sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' >"$1" || return
     # Reads the whole table of contents back: a cut-off dump fails here.
     compose exec -T postgres pg_restore --list <"$1" >/dev/null
+}
+
+# dump_other_database PART FILE: one more database of the install, like the
+# analytics one, the same way as the app's.
+dump_other_database() {
+    local db
+    db=$(other_database_name "$1")
+    compose exec -T postgres sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$1" -Fc' sh "$db" >"$2" || return
+    compose exec -T postgres pg_restore --list <"$2" >/dev/null
+}
+
+# Whether the install keeps PART (analytics) in a database of its own.
+has_other_database() {
+    local db
+    db=$(other_database_name "$1")
+    [ "$db" != "$(sql_value 'SELECT current_database()')" ] &&
+        [ "$(sql_value "SELECT 1 FROM pg_database WHERE datname = '$db'")" = 1 ]
 }
 
 # SQL for what pg_dump leaves out, for a restore to run after the dump: the
@@ -1209,6 +1228,14 @@ do_backup() {
         members="$members secrets.env"
     fi
     members="$members database.dump"
+    # The analytics numbers are data of their own, not a cache: they go in
+    # every backup.
+    if has_other_database analytics; then
+        run_step 'Backing up the analytics database' dump_other_database analytics "$tmp/analytics.dump" ||
+            die 'The analytics backup failed. Nothing was saved.'
+        holds="$holds analytics"
+        members="$members analytics.dump"
+    fi
     if [ "$with_redis" = 1 ]; then
         ensure_redis
         run_step 'Backing up Redis: sign-ins and chat memory' dump_redis "$tmp/redis.rdb" ||

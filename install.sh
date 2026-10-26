@@ -2660,14 +2660,15 @@ native_check_php() {
 
 native_install_packages() {
     # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
-    # PDF exports, and the Noto fonts give it every script. The backup
-    # programs come with native_backup_packages. Node.js is the next step.
+    # PDF exports, and the Noto fonts give it every script. pg_partman splits
+    # the analytics event log into monthly partitions. The backup programs
+    # come with native_backup_packages. Node.js is the next step.
     # shellcheck disable=SC2046
     apt_get install \
         git curl unzip ca-certificates cron ufw \
         $(native_php_packages) composer \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
-        "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \
+        "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" "postgresql-$NATIVE_PG-partman" \
         $(native_backup_packages) \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
     native_check_php || return
@@ -2757,7 +2758,7 @@ node_can_build() {
 }
 
 # pg_textsearch (BM25 keyword search) comes as a package from its GitHub
-# release; pgvector comes from Ubuntu.
+# release; pgvector and pg_partman come from Ubuntu.
 native_install_extensions() {
     local arch dir="$WORK_DIR/debs" file
     arch=$(dpkg --print-architecture)
@@ -3527,7 +3528,7 @@ native_show_finish() {
     info "Live updates  Reverb $(dim '(Supervisor: chatvia-reverb, through nginx at /app/)')"
     info "Server stats  Pulse $(dim '(Supervisor: chatvia-pulse)')"
     info "Scheduler     every minute $(dim '(cron: /etc/cron.d/chatvia)')"
-    info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch)')"
+    info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch, pg_partman)')"
     info "Cache         Redis $(dim '(with a password, kept on disk)')"
     if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
     if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi
@@ -3656,14 +3657,24 @@ native_refresh_deploy_file() {
 # A copy of the database right before an upgrade, in /var/backups/chatvia.
 # The newest five are kept.
 native_backup() {
-    local file
-    file="$NATIVE_BACKUPS/chatvia-$(date '+%Y%m%d-%H%M%S')-before-$(native_version_text | tr ' ' '-').dump"
+    local stamp file
+    stamp="$(date '+%Y%m%d-%H%M%S')-before-$(native_version_text | tr ' ' '-')"
     install -d -m 700 "$NATIVE_BACKUPS"
+    file="$NATIVE_BACKUPS/chatvia-$stamp.dump"
     (cd / && runuser -u postgres -- pg_dump --cluster "$NATIVE_PG/main" -Fc chatvia) >"$file"
     chmod 600 "$file"
     echo "Saved $file"
+    # The analytics numbers have a database of their own.
+    if [ "$(cd / && runuser -u postgres -- psql --cluster "$NATIVE_PG/main" -Atc "SELECT 1 FROM pg_database WHERE datname = 'analytics'")" = 1 ]; then
+        file="$NATIVE_BACKUPS/analytics-$stamp.dump"
+        (cd / && runuser -u postgres -- pg_dump --cluster "$NATIVE_PG/main" -Fc analytics) >"$file"
+        chmod 600 "$file"
+        echo "Saved $file"
+    fi
     # shellcheck disable=SC2012 # The installer names these files.
     ls -1t "$NATIVE_BACKUPS"/chatvia-*-before-*.dump | tail -n +6 | xargs -r rm -f
+    # shellcheck disable=SC2012
+    ls -1t "$NATIVE_BACKUPS"/analytics-*-before-*.dump 2>/dev/null | tail -n +6 | xargs -r rm -f
 }
 
 native_retry_https() {

@@ -614,6 +614,35 @@ theme.
   as before. A development database migrated before this change needs
   `php artisan migrate:fresh --seed`.
 
+### Analytics at scale
+
+- **Analytics have a database of their own** (`DB_ANALYTICS_DATABASE`,
+  default `analytics`), next to the Pulse and Spectra databases.
+  `chatvia:db:create-tool-databases`, the Docker stack and the Ubuntu
+  installer create it. `./manage backup`, the app's own backups and the
+  Ubuntu installer's pre-upgrade backup include it.
+- **Every analytics number reads a small table, however long the history.**
+  The hourly rollup is one row per agent and hour (it no longer splits by
+  country and model), a new daily rollup serves ranges over 92 days and
+  lifetime totals, and countries have a daily table of their own. On 7.5
+  million test messages, the admin panel's all-time overview went from 7
+  seconds to 8 ms, and the dashboard and agent pages to a few milliseconds.
+- **Reply-time percentiles come from a histogram** on each rollup row, so the
+  median and p95 cover any range (they were limited to the raw events'
+  13 months) within about 15%.
+- **The raw message log is split by month** when pg_partman is installed (it
+  is in the `ghcr.io/chatvia/postgres` image, now tagged
+  `18-<pg_textsearch>-<pg_partman>`, and the Ubuntu installer adds it): the
+  daily prune drops an expired month in one step. Without pg_partman the log
+  is one table, pruned in batches as before.
+- **Thumbs feedback has its own table** (`analytics_message_feedback`), and
+  the channel and device numbers read the analytics tables instead of the
+  chat sessions and conversations.
+- **Quick database writes have their own queue.** Analytics counters and
+  audit rows run on `records`, with a **Records** option in Settings →
+  Platform → Queue workers, so they never wait behind the AI analysis on
+  `analytics`.
+
 ### Architecture
 
 - The code follows three layers (`App`, `Domain`, `Support`) with rules that

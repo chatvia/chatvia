@@ -4,15 +4,12 @@
 # serves requests. Every step is safe to repeat.
 #
 #   1. wait for PostgreSQL
-#   2. create the analytics, Pulse and Spectra databases
-#      (DB_ANALYTICS_DATABASE, DB_PULSE_DATABASE, DB_SPECTRA_DATABASE) when
-#      they are missing
-#   3. run the migrations (the first one installs the search extensions)
-#   4. check the embedding storage settings still match the database
-#   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
+#   2. chatvia:deploy:migrate, the same steps a Deployer deploy runs: the
+#      analytics, Pulse and Spectra databases, the migrations (the first one
+#      installs the search extensions), the embedding checks and the
+#      built-in tools
+#   3. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
 #      install has no admin yet
-#   6. add the built-in tools to the tool catalog (needs an embedding API key;
-#      on a new install the admin setup adds them when it finishes)
 set -eu
 
 cd "${APP_BASE_DIR:-/var/www/chatvia}"
@@ -40,20 +37,9 @@ until database_is_ready; do
     sleep 2
 done
 
-# The analytics tables, Pulse (/pulse) and Spectra (/spectra) keep their data
-# in databases of their own, next to the app's.
-php artisan chatvia:db:create-tool-databases --no-interaction
-
-php artisan migrate --force --no-interaction
-
-# EMBEDDING_VECTOR_TYPE and EMBEDDING_DIMENSIONS are chosen at install. When
-# they were changed afterwards this fails, so the app does not start with
-# settings that would break every search.
-php artisan chatvia:search:check-embedding-storage --no-interaction
-
-# EMBEDDING_INDEX may change: this rebuilds the vector indexes when they are
-# in the other kind, and does nothing when they match.
-php artisan chatvia:search:vector-indexes --no-interaction
+# Stops the start when a step fails, for example when the embedding settings
+# were changed after install.
+php artisan chatvia:deploy:migrate --no-interaction
 
 admin_email="${ADMIN_EMAIL:-admin@example.com}"
 admin_password="${ADMIN_PASSWORD:-}"
@@ -77,21 +63,6 @@ if [ "$generated_password" = true ] && echo "$output" | grep -q 'created success
 
   Sign in, then change the password under Account settings.
 ================================================================
-
-EOF
-fi
-
-# The tool catalog stores an embedding of each tool, so this needs the
-# embedding provider's API key (admin panel, Settings -> AI providers). On a
-# new install that key is not there yet: the stack still starts.
-if ! php artisan chatvia:mcp:sync-builtin --no-interaction; then
-    cat <<'EOF'
-
-The built-in tools (charts, forms, weather, currency, web search) are not in
-the tool catalog yet. Add your embedding provider's API key in the admin panel
-(Settings -> AI providers), then run:
-
-    docker compose exec app php artisan chatvia:mcp:sync-builtin
 
 EOF
 fi

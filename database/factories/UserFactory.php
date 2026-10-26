@@ -60,6 +60,7 @@ class UserFactory extends Factory
             'deactivated_at' => null,
             'last_login_at' => null,
             'locale' => null,
+            'onboarding_tour' => null,
         ];
     }
 

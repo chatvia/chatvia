@@ -14,7 +14,8 @@ use Filament\Support\Icons\Heroicon;
 
 /**
  * Open sign-up, the message limit of new workspaces, what an owner may do
- * with their own account, and how long conversations are kept.
+ * with their own account, the dashboard tour, and how long conversations
+ * are kept.
  */
 class ManageWorkspaceSettings extends AdminSettingsPage
 {
@@ -77,6 +78,10 @@ class ManageWorkspaceSettings extends AdminSettingsPage
                 $this->valueInUse('owner_data_export') ? 'on' : 'off',
                 $this->valueInUse('owner_account_deletion') ? 'on' : 'off',
             )),
+            SettingsCard::make('onboarding', 'Onboarding', 'The guided tour new people get in the dashboard.', Heroicon::OutlinedMap, fn (): array => [
+                $this->toggle('onboarding_tour', 'Show the dashboard tour',
+                    help: 'Each person gets a short tour on their first visit: the dashboard, creating a first agent and setting it up. They can skip it at any step and take it again from their menu. Off hides the tour and the menu entry.'),
+            ])->summary(fn (): string => 'Tour '.($this->valueInUse('onboarding_tour') ? 'on' : 'off')),
             SettingsCard::make('conversations', 'Conversations', 'How long conversations are kept.', Heroicon::OutlinedClock, fn (): array => [
                 $this->integer('retention_days', 'Days to keep conversations',
                     help: 'Conversations older than this are deleted. Each workspace can choose fewer days in its security settings.', min: 1),

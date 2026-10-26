@@ -4382,5 +4382,54 @@
             "send_takes_over_offline": "이 사람은 오프라인인 것 같습니다. 보내면 채팅을 넘겨받고, 상대는 돌아왔을 때 답장을 봅니다.",
             "reply_placeholder": "{name}님에게 답장…"
         }
+    },
+    "onboarding": {
+        "take_tour": "둘러보기",
+        "skip": "둘러보기 건너뛰기",
+        "back": "이전",
+        "next": "다음",
+        "finish": "완료",
+        "step_of": "{current}/{total}",
+        "welcome": {
+            "title": "ChatVia.ai에 오신 것을 환영합니다",
+            "description": "짧은 둘러보기로 대시보드를 소개하고 첫 에이전트 설정을 도와드립니다.",
+            "how_title": "사용 방법",
+            "how_move": "다음과 이전 버튼 또는 화살표 키로 단계를 이동하세요.",
+            "how_skip": "단계를 닫거나 Esc를 누르면 언제든 둘러보기를 멈출 수 있습니다.",
+            "how_again": "메뉴의 둘러보기에서 언제든 다시 시작할 수 있습니다.",
+            "not_now": "나중에",
+            "start": "둘러보기 시작"
+        },
+        "dashboard": {
+            "agents_title": "내 에이전트",
+            "agents_text": "만든 에이전트가 모두 여기에 표시됩니다. 에이전트를 열어 수정하거나, 학습시키거나, 채팅을 읽어 보세요.",
+            "inbox_title": "받은 편지함",
+            "inbox_text": "사람이 필요한 채팅이 여기에 모여서 팀이 에이전트 대신 이어받을 수 있습니다.",
+            "ask_title": "데이터에 질문하기",
+            "ask_text": "채팅, 에이전트, 리드에 대해 쉬운 말로 질문하세요.",
+            "teams_title": "팀",
+            "teams_text": "여기에서 팀을 전환하거나 새 팀을 만드세요.",
+            "notifications_title": "알림",
+            "notifications_text": "사람을 기다리는 채팅처럼 확인이 필요한 일이 있으면 종이 알려 줍니다.",
+            "menu_title": "내 메뉴",
+            "menu_text": "계정, 워크스페이스 설정, 언어가 있습니다. 여기에서 이 둘러보기를 다시 볼 수 있습니다.",
+            "create_title": "첫 에이전트 만들기",
+            "create_text": "이름을 지어 주면 설정 방법을 보여 드릴게요.",
+            "create_button": "에이전트 만들기"
+        },
+        "agent": {
+            "sections_title": "에이전트 설정",
+            "sections_text": "각 섹션은 에이전트의 한 부분을 바꿉니다. 지침, 모델, 언어, 모양 등이 있습니다.",
+            "surfaces_title": "대화할 수 있는 세 곳",
+            "surfaces_text": "에이전트는 호스팅된 채팅 페이지, 사이트의 채팅 위젯, 명령 바에서 답할 수 있습니다. 각각 모양과 동작이 따로 있습니다.",
+            "preview_title": "실시간으로 보기",
+            "preview_text": "미리보기는 저장된 설정으로 에이전트를 보여 줍니다. 여기서 대화하며 테스트해 보세요.",
+            "knowledge_title": "알고 있는 것을 가르치기",
+            "knowledge_text": "파일, 웹사이트, 텍스트, 질문과 답변을 추가하세요. 에이전트가 이를 바탕으로 답합니다.",
+            "playground_title": "사용해 보기",
+            "playground_text": "공유하기 전에 플레이그라운드에서 에이전트와 대화해 보세요.",
+            "deploy_title": "공유하기",
+            "deploy_text": "준비가 되면 배포에서 웹사이트에 추가하거나 채팅 페이지 링크를 공유하세요."
+        }
     }
 }

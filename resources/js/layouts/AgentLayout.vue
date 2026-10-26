@@ -2,7 +2,8 @@
 /**
  * The shell of every agent page: the permission-filtered sidebar, the top bar
  * with breadcrumbs, an optional page header, and the page itself in the
- * default slot. Also hosts the rename and delete dialogs the sidebar opens.
+ * default slot. Also hosts the rename and delete dialogs the sidebar opens,
+ * and the agent part of the onboarding tour.
  *
  * Every page with a header passes both `title` and `description`; the body
  * never repeats them. Slots: `default` (page content), `header-description`
@@ -14,6 +15,7 @@ import AgentSidebar from '@/components/agents/layout/AgentSidebar.vue';
 import AgentTopBar from '@/components/agents/layout/AgentTopBar.vue';
 import DeleteAgentDialog from '@/components/agents/layout/DeleteAgentDialog.vue';
 import RenameAgentDialog from '@/components/agents/layout/RenameAgentDialog.vue';
+import AgentTour from '@/components/onboarding/AgentTour.vue';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import type { AgentNavAction } from '@/composables/agents/layout/useAgentNavigation';
@@ -95,5 +97,6 @@ function onSidebarAction(action: AgentNavAction): void {
 
         <DeleteAgentDialog v-model:open="showDeleteDialog" :agent-id="agent.external_id" :agent-name="agent.name" />
         <RenameAgentDialog v-model:open="showRenameDialog" :agent-id="agent.external_id" :agent-name="agent.name" :slug="agent.slug" />
+        <AgentTour />
     </SidebarProvider>
 </template>

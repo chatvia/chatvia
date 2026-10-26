@@ -4434,5 +4434,54 @@
             "send_takes_over_offline": "Cette personne semble hors ligne. Si vous envoyez, vous reprenez la discussion et elle verra votre réponse à son retour.",
             "reply_placeholder": "Répondre à {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Faire la visite",
+        "skip": "Passer la visite",
+        "back": "Retour",
+        "next": "Suivant",
+        "finish": "Terminer",
+        "step_of": "{current} sur {total}",
+        "welcome": {
+            "title": "Bienvenue sur ChatVia.ai",
+            "description": "Une courte visite vous présente le tableau de bord et vous aide à configurer votre premier agent.",
+            "how_title": "Comment ça marche",
+            "how_move": "Utilisez Suivant et Retour, ou les flèches du clavier, pour passer d'une étape à l'autre.",
+            "how_skip": "Fermez une étape ou appuyez sur Échap pour arrêter la visite à tout moment.",
+            "how_again": "Relancez-la quand vous voulez avec Faire la visite dans votre menu.",
+            "not_now": "Plus tard",
+            "start": "Commencer la visite"
+        },
+        "dashboard": {
+            "agents_title": "Vos agents",
+            "agents_text": "Tous vos agents sont listés ici. Ouvrez-en un pour le modifier, lui apprendre des choses ou lire ses conversations.",
+            "inbox_title": "Boîte de réception",
+            "inbox_text": "Les conversations qui ont besoin d'une personne arrivent ici, pour que votre équipe prenne le relais de l'agent.",
+            "ask_title": "Interrogez vos données",
+            "ask_text": "Posez des questions sur vos conversations, vos agents et vos prospects avec des mots simples.",
+            "teams_title": "Équipes",
+            "teams_text": "Passez d'une équipe à l'autre ici, ou créez-en une nouvelle.",
+            "notifications_title": "Notifications",
+            "notifications_text": "La cloche vous prévient quand quelque chose a besoin de vous, par exemple une conversation qui attend une personne.",
+            "menu_title": "Votre menu",
+            "menu_text": "Votre compte, les réglages de votre espace de travail et la langue. Vous pouvez relancer cette visite d'ici.",
+            "create_title": "Créez votre premier agent",
+            "create_text": "Donnez-lui un nom et nous vous montrerons comment le configurer.",
+            "create_button": "Créer un agent"
+        },
+        "agent": {
+            "sections_title": "Configurez votre agent",
+            "sections_text": "Chaque section modifie une partie de votre agent : ses instructions, son modèle, ses langues, son apparence et plus encore.",
+            "surfaces_title": "Trois endroits pour discuter",
+            "surfaces_text": "Votre agent peut répondre sur une page de chat hébergée, dans un widget sur votre site et dans une barre de commandes. Chacun a sa propre apparence et son propre comportement.",
+            "preview_title": "Voyez-le en direct",
+            "preview_text": "L'aperçu montre votre agent avec ses réglages enregistrés. Discutez avec lui ici pour le tester.",
+            "knowledge_title": "Apprenez-lui ce que vous savez",
+            "knowledge_text": "Ajoutez des fichiers, des sites web, du texte ou des questions-réponses. Votre agent répond à partir de ces sources.",
+            "playground_title": "Essayez-le",
+            "playground_text": "Discutez avec votre agent dans le Bac à sable avant de le partager.",
+            "deploy_title": "Partagez-le",
+            "deploy_text": "Quand il est prêt, ajoutez-le à votre site ou partagez un lien vers sa page de chat depuis Déployer."
+        }
     }
 }

@@ -6,8 +6,9 @@ use App\Admin\Settings\WorkspaceSettings;
 /**
  * Settings → Workspaces: whether people may sign up, the message limit of a
  * new workspace, whether owners may download their data or delete their
- * account, and how long conversations and notifications are kept, with
- * a floor no workspace may go below.
+ * account, whether new people get the dashboard tour, and how long
+ * conversations and notifications are kept, with a floor no workspace may
+ * go below.
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
@@ -85,4 +86,22 @@ it('saves the owner account switches', function (): void {
         ->and(savedSetting(WorkspaceSettings::class, 'owner_account_deletion'))->toBeFalse()
         ->and(config('chatvia.account.data_export'))->toBeFalse()
         ->and(config('chatvia.account.deletion'))->toBeFalse();
+});
+
+it('turns the dashboard tour off', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageWorkspaceSettings::getUrl())
+        ->assertSee('Tour on');
+
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
+        ->fillForm(['onboarding_tour' => false])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageWorkspaceSettings::getUrl())
+        ->assertSee('Tour off');
+
+    expect(savedSetting(WorkspaceSettings::class, 'onboarding_tour'))->toBeFalse()
+        ->and(config('chatvia.onboarding.tour'))->toBeFalse();
 });

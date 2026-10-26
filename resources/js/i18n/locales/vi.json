@@ -4382,5 +4382,54 @@
             "send_takes_over_offline": "Người này có vẻ đang ngoại tuyến. Nếu gửi, bạn sẽ tiếp quản và họ sẽ thấy câu trả lời khi quay lại.",
             "reply_placeholder": "Trả lời {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Xem hướng dẫn",
+        "skip": "Bỏ qua hướng dẫn",
+        "back": "Quay lại",
+        "next": "Tiếp",
+        "finish": "Xong",
+        "step_of": "{current}/{total}",
+        "welcome": {
+            "title": "Chào mừng đến với ChatVia.ai",
+            "description": "Một hướng dẫn ngắn giới thiệu bảng điều khiển và giúp bạn thiết lập trợ lý AI đầu tiên.",
+            "how_title": "Cách hoạt động",
+            "how_move": "Dùng Tiếp và Quay lại, hoặc phím mũi tên, để chuyển giữa các bước.",
+            "how_skip": "Đóng một bước hoặc nhấn Esc để dừng hướng dẫn bất cứ lúc nào.",
+            "how_again": "Bạn có thể xem lại bất cứ lúc nào bằng Xem hướng dẫn trong menu.",
+            "not_now": "Để sau",
+            "start": "Bắt đầu hướng dẫn"
+        },
+        "dashboard": {
+            "agents_title": "Trợ lý AI của bạn",
+            "agents_text": "Mọi trợ lý AI bạn tạo đều ở đây. Mở một trợ lý để chỉnh sửa, dạy thêm hoặc đọc các cuộc trò chuyện.",
+            "inbox_title": "Hộp thư",
+            "inbox_text": "Các cuộc trò chuyện cần người thật sẽ đến đây, để nhóm của bạn tiếp quản từ trợ lý AI.",
+            "ask_title": "Hỏi dữ liệu của bạn",
+            "ask_text": "Đặt câu hỏi về cuộc trò chuyện, trợ lý AI và khách hàng tiềm năng bằng lời đơn giản.",
+            "teams_title": "Nhóm",
+            "teams_text": "Chuyển giữa các nhóm tại đây, hoặc tạo nhóm mới.",
+            "notifications_title": "Thông báo",
+            "notifications_text": "Chuông báo cho bạn khi có việc cần bạn, ví dụ một cuộc trò chuyện đang chờ người thật.",
+            "menu_title": "Menu của bạn",
+            "menu_text": "Tài khoản, cài đặt không gian làm việc và ngôn ngữ. Bạn có thể xem lại hướng dẫn từ đây.",
+            "create_title": "Tạo trợ lý AI đầu tiên",
+            "create_text": "Đặt tên cho nó, rồi chúng tôi sẽ chỉ bạn cách thiết lập.",
+            "create_button": "Tạo trợ lý AI"
+        },
+        "agent": {
+            "sections_title": "Thiết lập trợ lý AI",
+            "sections_text": "Mỗi mục thay đổi một phần của trợ lý: hướng dẫn, mô hình, ngôn ngữ, giao diện và hơn nữa.",
+            "surfaces_title": "Ba nơi để trò chuyện",
+            "surfaces_text": "Trợ lý AI có thể trả lời trên trang trò chuyện được lưu trữ, trong tiện ích trò chuyện trên trang web của bạn và trong thanh lệnh. Mỗi nơi có giao diện và cách hoạt động riêng.",
+            "preview_title": "Xem trực tiếp",
+            "preview_text": "Bản xem trước hiển thị trợ lý với cài đặt đã lưu. Trò chuyện với nó tại đây để thử.",
+            "knowledge_title": "Dạy nó những gì bạn biết",
+            "knowledge_text": "Thêm tệp, trang web, văn bản hoặc câu hỏi và câu trả lời. Trợ lý AI trả lời dựa trên chúng.",
+            "playground_title": "Dùng thử",
+            "playground_text": "Trò chuyện với trợ lý trong Khu thử nghiệm trước khi chia sẻ.",
+            "deploy_title": "Chia sẻ",
+            "deploy_text": "Khi đã sẵn sàng, hãy thêm nó vào trang web hoặc chia sẻ liên kết tới trang trò chuyện của nó trong Triển khai."
+        }
     }
 }

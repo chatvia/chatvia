@@ -4434,5 +4434,54 @@
             "send_takes_over_offline": "Esta persona parece desconectada. Si envías, tomas el chat y verá tu respuesta cuando vuelva.",
             "reply_placeholder": "Responder a {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Hacer el recorrido",
+        "skip": "Saltar recorrido",
+        "back": "Atrás",
+        "next": "Siguiente",
+        "finish": "Terminar",
+        "step_of": "{current} de {total}",
+        "welcome": {
+            "title": "Bienvenido a ChatVia.ai",
+            "description": "Un recorrido corto te muestra el panel y te ayuda a configurar tu primer agente.",
+            "how_title": "Cómo funciona",
+            "how_move": "Usa Siguiente y Atrás, o las flechas del teclado, para moverte entre los pasos.",
+            "how_skip": "Cierra un paso o pulsa Esc para detener el recorrido cuando quieras.",
+            "how_again": "Vuelve a empezarlo cuando quieras con Hacer el recorrido en tu menú.",
+            "not_now": "Ahora no",
+            "start": "Empezar el recorrido"
+        },
+        "dashboard": {
+            "agents_title": "Tus agentes",
+            "agents_text": "Aquí aparecen todos los agentes que creas. Abre uno para cambiarlo, enseñarle o leer sus chats.",
+            "inbox_title": "Bandeja de entrada",
+            "inbox_text": "Los chats que necesitan a una persona llegan aquí, para que tu equipo tome el relevo del agente.",
+            "ask_title": "Consulta tus datos",
+            "ask_text": "Haz preguntas sobre tus chats, agentes y leads con palabras sencillas.",
+            "teams_title": "Equipos",
+            "teams_text": "Cambia entre tus equipos aquí o crea uno nuevo.",
+            "notifications_title": "Notificaciones",
+            "notifications_text": "La campana te avisa cuando algo te necesita, como un chat que espera a una persona.",
+            "menu_title": "Tu menú",
+            "menu_text": "Tu cuenta, los ajustes de tu espacio de trabajo y el idioma. Desde aquí puedes repetir este recorrido.",
+            "create_title": "Crea tu primer agente",
+            "create_text": "Ponle un nombre y te mostraremos cómo configurarlo.",
+            "create_button": "Crear agente"
+        },
+        "agent": {
+            "sections_title": "Configura tu agente",
+            "sections_text": "Cada sección cambia una parte de tu agente: sus instrucciones, modelo, idiomas, aspecto y más.",
+            "surfaces_title": "Tres lugares para chatear",
+            "surfaces_text": "Tu agente puede responder en una página de chat alojada, en un widget de chat en tu sitio y en una barra de comandos. Cada uno tiene su propio aspecto y comportamiento.",
+            "preview_title": "Míralo en vivo",
+            "preview_text": "La vista previa muestra tu agente con sus ajustes guardados. Chatea con él aquí para probarlo.",
+            "knowledge_title": "Enséñale lo que sabes",
+            "knowledge_text": "Añade archivos, sitios web, texto o preguntas y respuestas. Tu agente responde a partir de ellos.",
+            "playground_title": "Pruébalo",
+            "playground_text": "Chatea con tu agente en el Playground antes de compartirlo.",
+            "deploy_title": "Compártelo",
+            "deploy_text": "Cuando esté listo, añádelo a tu sitio web o comparte un enlace a su página de chat desde Desplegar."
+        }
     }
 }

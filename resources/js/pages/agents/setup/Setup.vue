@@ -136,13 +136,13 @@ provideSetupContext({
 <template>
     <AgentLayout :agent="agent" :title="t('agents.setup.title')" hide-header no-padding full-height>
         <div class="bg-background flex h-full flex-col">
-            <SetupSurfaceTabs v-model="surface" :tabs="surfaceTabs" />
+            <SetupSurfaceTabs v-model="surface" :tabs="surfaceTabs" data-tour="agent-setup-surfaces" />
 
             <!-- Layout: (section menu + section panel) | drag-resizable | live preview -->
             <ResizablePanelGroup direction="horizontal" auto-save-id="agent-setup-preview" class="min-w-0 flex-1">
                 <ResizablePanel :default-size="62" :min-size="35">
                     <div class="flex h-full min-h-0">
-                        <SetupSectionMenu v-model="activeSection" :items="sections" />
+                        <SetupSectionMenu v-model="activeSection" :items="sections" data-tour="agent-setup-sections" />
 
                         <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
                             <Alert v-if="locked" variant="destructive" class="rounded-none border-x-0 border-t-0">
@@ -198,7 +198,7 @@ provideSetupContext({
                 <ResizableHandle with-handle @dragging="isResizing = $event" />
 
                 <ResizablePanel :default-size="38" :min-size="25">
-                    <SetupPreviewPane />
+                    <SetupPreviewPane data-tour="agent-setup-preview" />
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>

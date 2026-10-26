@@ -1,0 +1,51 @@
+{
+    "onboarding": {
+        "take_tour": "参观导览",
+        "skip": "跳过导览",
+        "back": "上一步",
+        "next": "下一步",
+        "finish": "完成",
+        "step_of": "{current} / {total}",
+        "welcome": {
+            "title": "欢迎使用 ChatVia.ai",
+            "description": "简短的导览会带您了解控制台，并帮您设置第一个智能体。",
+            "how_title": "使用方法",
+            "how_move": "使用下一步和上一步，或方向键，在各步骤之间切换。",
+            "how_skip": "关闭某一步或按 Esc，可随时结束导览。",
+            "how_again": "随时可以在菜单中点击参观导览重新开始。",
+            "not_now": "以后再说",
+            "start": "开始导览"
+        },
+        "dashboard": {
+            "agents_title": "您的智能体",
+            "agents_text": "您创建的所有智能体都在这里。打开一个即可修改、训练或查看它的对话。",
+            "inbox_title": "收件箱",
+            "inbox_text": "需要人工处理的对话会出现在这里，方便您的团队从智能体手中接管。",
+            "ask_title": "询问您的数据",
+            "ask_text": "用简单的话询问有关对话、智能体和潜在客户的问题。",
+            "teams_title": "团队",
+            "teams_text": "在这里切换团队，或创建新团队。",
+            "notifications_title": "通知",
+            "notifications_text": "有事需要您处理时，铃铛会提醒您，例如有对话在等待人工回复。",
+            "menu_title": "您的菜单",
+            "menu_text": "您的账户、工作区设置和语言。也可以在这里再次参观导览。",
+            "create_title": "创建您的第一个智能体",
+            "create_text": "给它起个名字，我们会教您如何设置。",
+            "create_button": "创建智能体"
+        },
+        "agent": {
+            "sections_title": "设置您的智能体",
+            "sections_text": "每个部分修改智能体的一个方面：指令、模型、语言、外观等。",
+            "surfaces_title": "三个对话场景",
+            "surfaces_text": "您的智能体可以在托管聊天页面、您网站上的聊天小组件和命令栏中回答。每个场景都有自己的外观和行为。",
+            "preview_title": "实时查看",
+            "preview_text": "预览会按已保存的设置显示您的智能体。在这里和它对话来测试。",
+            "knowledge_title": "教它您知道的内容",
+            "knowledge_text": "添加文件、网站、文本或问答。您的智能体会根据这些内容回答。",
+            "playground_title": "试一试",
+            "playground_text": "分享之前，先在调试台和您的智能体对话。",
+            "deploy_title": "分享它",
+            "deploy_text": "准备好后，在部署中把它添加到您的网站，或分享它的聊天页面链接。"
+        }
+    }
+}

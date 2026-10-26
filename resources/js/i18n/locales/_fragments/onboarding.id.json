@@ -1,0 +1,51 @@
+{
+    "onboarding": {
+        "take_tour": "Ikuti tur",
+        "skip": "Lewati tur",
+        "back": "Kembali",
+        "next": "Berikutnya",
+        "finish": "Selesai",
+        "step_of": "{current} dari {total}",
+        "welcome": {
+            "title": "Selamat datang di ChatVia.ai",
+            "description": "Tur singkat ini menunjukkan dasbor dan membantu Anda menyiapkan agen pertama.",
+            "how_title": "Cara kerjanya",
+            "how_move": "Gunakan Berikutnya dan Kembali, atau tombol panah, untuk berpindah langkah.",
+            "how_skip": "Tutup langkah atau tekan Esc untuk menghentikan tur kapan saja.",
+            "how_again": "Mulai lagi kapan saja lewat Ikuti tur di menu Anda.",
+            "not_now": "Nanti saja",
+            "start": "Mulai tur"
+        },
+        "dashboard": {
+            "agents_title": "Agen Anda",
+            "agents_text": "Semua agen yang Anda buat ada di sini. Buka salah satunya untuk mengubah, mengajari, atau membaca chatnya.",
+            "inbox_title": "Kotak masuk",
+            "inbox_text": "Chat yang butuh orang masuk ke sini, agar tim Anda bisa mengambil alih dari agen.",
+            "ask_title": "Tanya data Anda",
+            "ask_text": "Ajukan pertanyaan tentang chat, agen, dan prospek Anda dengan kata-kata sederhana.",
+            "teams_title": "Tim",
+            "teams_text": "Pindah antartim di sini, atau buat tim baru.",
+            "notifications_title": "Notifikasi",
+            "notifications_text": "Lonceng memberi tahu saat ada yang butuh Anda, misalnya chat yang menunggu orang.",
+            "menu_title": "Menu Anda",
+            "menu_text": "Akun Anda, pengaturan ruang kerja, dan bahasa. Dari sini Anda bisa mengikuti tur ini lagi.",
+            "create_title": "Buat agen pertama Anda",
+            "create_text": "Beri nama, lalu kami tunjukkan cara menyiapkannya.",
+            "create_button": "Buat Agen"
+        },
+        "agent": {
+            "sections_title": "Siapkan agen Anda",
+            "sections_text": "Setiap bagian mengubah satu sisi agen: instruksi, model, bahasa, tampilan, dan lainnya.",
+            "surfaces_title": "Tiga tempat untuk chat",
+            "surfaces_text": "Agen Anda bisa menjawab di halaman chat yang di-host, di widget chat di situs Anda, dan di bilah perintah. Masing-masing punya tampilan dan perilakunya sendiri.",
+            "preview_title": "Lihat langsung",
+            "preview_text": "Pratinjau menampilkan agen dengan pengaturan yang tersimpan. Chat dengannya di sini untuk mengujinya.",
+            "knowledge_title": "Ajari apa yang Anda tahu",
+            "knowledge_text": "Tambahkan file, situs web, teks, atau tanya jawab. Agen Anda menjawab berdasarkan semua itu.",
+            "playground_title": "Coba",
+            "playground_text": "Chat dengan agen Anda di Playground sebelum Anda membagikannya.",
+            "deploy_title": "Bagikan",
+            "deploy_text": "Saat sudah siap, pasang di situs Anda atau bagikan tautan ke halaman chat-nya dari Terapkan."
+        }
+    }
+}

@@ -101,6 +101,7 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('app.header.agents'),
             href: agentsIndex.url(),
             icon: BotMessageSquare,
+            tour: 'nav-agents',
         },
     ];
 
@@ -110,6 +111,7 @@ const mainNavItems = computed<NavItem[]>(() => {
             href: inbox.url(),
             icon: MessagesSquare,
             badge: inboxWaitingCount.value,
+            tour: 'nav-inbox',
         });
     }
 
@@ -120,6 +122,7 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('app.header.ask_your_data'),
             href: askYourData.url(),
             icon: Sparkles,
+            tour: 'nav-ask-your-data',
         });
     }
 
@@ -206,7 +209,12 @@ const rightNavItems = computed<NavItem[]>(() => [
                 <div class="hidden h-full lg:flex lg:flex-1">
                     <NavigationMenu class="ms-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch gap-2">
-                            <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">
+                            <NavigationMenuItem
+                                v-for="(item, index) in mainNavItems"
+                                :key="index"
+                                :data-tour="item.tour"
+                                class="relative flex h-full items-center"
+                            >
                                 <Link :href="item.href">
                                     <NavigationMenuLink
                                         :class="[navigationMenuTriggerStyle(), activeItemStyles(item.href), 'flex cursor-pointer items-center px-3']"
@@ -232,7 +240,7 @@ const rightNavItems = computed<NavItem[]>(() => [
                 </div>
 
                 <div class="ms-auto flex items-center gap-2">
-                    <TeamSwitcher class="hidden md:flex" />
+                    <TeamSwitcher class="hidden md:flex" data-tour="team-switcher" />
                     <div class="relative flex items-center gap-1">
                         <div class="hidden gap-1 lg:flex">
                             <template v-for="item in rightNavItems" :key="item.title">
@@ -254,13 +262,17 @@ const rightNavItems = computed<NavItem[]>(() => [
                             </template>
                         </div>
                     </div>
-                    <NotificationBell />
+                    <!-- The bell's root renders no element, so the tour marks this wrapper. -->
+                    <div data-tour="notifications" class="flex">
+                        <NotificationBell />
+                    </div>
                     <ThemeSwitcher />
                     <DropdownMenu>
                         <DropdownMenuTrigger :as-child="true">
                             <Button
                                 variant="ghost"
                                 size="icon"
+                                data-tour="user-menu"
                                 class="focus-within:ring-primary relative size-10 w-auto rounded-full p-1 focus-within:ring-2"
                             >
                                 <Avatar class="size-8 overflow-hidden rounded-full">

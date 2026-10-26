@@ -74,6 +74,7 @@
     "tailwindcss": "^4.1.1",
     "tw-animate-css": "^1.2.5",
     "typescript": "~6.0.3",
+    "v-onboarding": "^2.12.4",
     "vite": "^8.0.14",
     "vite-plugin-compression2": "^2.5.3",
     "vue": "^3.5.13",

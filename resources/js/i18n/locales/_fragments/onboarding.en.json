@@ -1,0 +1,51 @@
+{
+    "onboarding": {
+        "take_tour": "Take the tour",
+        "skip": "Skip tour",
+        "back": "Back",
+        "next": "Next",
+        "finish": "Finish",
+        "step_of": "{current} of {total}",
+        "welcome": {
+            "title": "Welcome to ChatVia.ai",
+            "description": "A short tour shows you around the dashboard and helps you set up your first agent.",
+            "how_title": "How it works",
+            "how_move": "Use Next and Back, or the arrow keys, to move between steps.",
+            "how_skip": "Close a step or press Esc to stop the tour at any time.",
+            "how_again": "Start it again any time with Take the tour in your menu.",
+            "not_now": "Not now",
+            "start": "Start the tour"
+        },
+        "dashboard": {
+            "agents_title": "Your agents",
+            "agents_text": "Every agent you build is listed here. Open one to change it, teach it or read its chats.",
+            "inbox_title": "Inbox",
+            "inbox_text": "Chats that need a person show up here, so your team can take over from the agent.",
+            "ask_title": "Ask your data",
+            "ask_text": "Ask questions about your chats, agents and leads in plain words.",
+            "teams_title": "Teams",
+            "teams_text": "Switch between your teams here, or create a new one.",
+            "notifications_title": "Notifications",
+            "notifications_text": "The bell tells you when something needs you, such as a chat waiting for a person.",
+            "menu_title": "Your menu",
+            "menu_text": "Your account, your workspace settings and the language. You can take this tour again from here.",
+            "create_title": "Create your first agent",
+            "create_text": "Give it a name and we will show you how to set it up.",
+            "create_button": "Create agent"
+        },
+        "agent": {
+            "sections_title": "Set up your agent",
+            "sections_text": "Each section changes one part of your agent: its instructions, model, languages, look and more.",
+            "surfaces_title": "Three places to chat",
+            "surfaces_text": "Your agent can answer on a hosted chat page, in a chat widget on your site and in a command bar. Each one has its own look and behavior.",
+            "preview_title": "See it live",
+            "preview_text": "The preview shows your agent with its saved settings. Chat with it here to test it.",
+            "knowledge_title": "Teach it what you know",
+            "knowledge_text": "Add files, websites, text or questions and answers. Your agent answers from them.",
+            "playground_title": "Try it out",
+            "playground_text": "Chat with your agent in the Playground before you share it.",
+            "deploy_title": "Share it",
+            "deploy_text": "When it is ready, add it to your website or share a link to its chat page from Deploy."
+        }
+    }
+}

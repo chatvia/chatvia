@@ -139,6 +139,9 @@ declare namespace App {
                     };
                 }
             }
+            namespace Enums {
+                export type OnboardingTourStage = 'agent' | 'done';
+            }
         }
     }
 }

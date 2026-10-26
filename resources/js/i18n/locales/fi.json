@@ -4434,5 +4434,54 @@
             "send_takes_over_offline": "Henkilö näyttää olevan poissa. Jos lähetät, otat keskustelun ja hän näkee vastauksesi palatessaan.",
             "reply_placeholder": "Vastaa: {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Aloita esittely",
+        "skip": "Ohita esittely",
+        "back": "Takaisin",
+        "next": "Seuraava",
+        "finish": "Valmis",
+        "step_of": "{current}/{total}",
+        "welcome": {
+            "title": "Tervetuloa ChatVia.ai:hin",
+            "description": "Lyhyt esittely näyttää hallintapaneelin ja auttaa sinua ottamaan ensimmäisen agenttisi käyttöön.",
+            "how_title": "Näin se toimii",
+            "how_move": "Siirry vaiheesta toiseen painikkeilla Seuraava ja Takaisin tai nuolinäppäimillä.",
+            "how_skip": "Sulje vaihe tai paina Esc, niin esittely loppuu milloin tahansa.",
+            "how_again": "Voit aloittaa sen uudelleen milloin tahansa valikon kohdasta Aloita esittely.",
+            "not_now": "Ei nyt",
+            "start": "Aloita esittely"
+        },
+        "dashboard": {
+            "agents_title": "Agenttisi",
+            "agents_text": "Kaikki rakentamasi agentit näkyvät tässä. Avaa agentti, jos haluat muuttaa sitä, opettaa sitä tai lukea sen keskusteluja.",
+            "inbox_title": "Saapuneet",
+            "inbox_text": "Keskustelut, jotka tarvitsevat ihmistä, tulevat tänne, jotta tiimisi voi jatkaa agentin puolesta.",
+            "ask_title": "Kysy tiedoistasi",
+            "ask_text": "Kysy keskusteluistasi, agenteistasi ja liideistäsi tavallisin sanoin.",
+            "teams_title": "Tiimit",
+            "teams_text": "Vaihda tiimistä toiseen tässä tai luo uusi tiimi.",
+            "notifications_title": "Ilmoitukset",
+            "notifications_text": "Kello kertoo, kun jokin tarvitsee sinua, esimerkiksi keskustelu, joka odottaa ihmistä.",
+            "menu_title": "Valikkosi",
+            "menu_text": "Tilisi, työtilasi asetukset ja kieli. Täältä voit myös aloittaa esittelyn uudelleen.",
+            "create_title": "Luo ensimmäinen agenttisi",
+            "create_text": "Anna sille nimi, niin näytämme, miten otat sen käyttöön.",
+            "create_button": "Luo agentti"
+        },
+        "agent": {
+            "sections_title": "Määritä agenttisi",
+            "sections_text": "Jokainen osio muuttaa yhtä agentin osaa: ohjeita, mallia, kieliä, ulkoasua ja muuta.",
+            "surfaces_title": "Kolme paikkaa keskustella",
+            "surfaces_text": "Agenttisi voi vastata isännöidyllä chat-sivulla, sivustosi chat-widgetissä ja komentopalkissa. Jokaisella on oma ulkoasunsa ja toimintansa.",
+            "preview_title": "Katso livenä",
+            "preview_text": "Esikatselu näyttää agenttisi tallennetuilla asetuksilla. Testaa sitä keskustelemalla sen kanssa tässä.",
+            "knowledge_title": "Opeta sille, mitä tiedät",
+            "knowledge_text": "Lisää tiedostoja, verkkosivustoja, tekstiä tai kysymyksiä ja vastauksia. Agenttisi vastaa niiden perusteella.",
+            "playground_title": "Kokeile",
+            "playground_text": "Keskustele agenttisi kanssa Hiekkalaatikossa ennen kuin jaat sen.",
+            "deploy_title": "Jaa se",
+            "deploy_text": "Kun agentti on valmis, lisää se sivustollesi tai jaa linkki sen chat-sivulle kohdasta Julkaise."
+        }
     }
 }

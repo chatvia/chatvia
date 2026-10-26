@@ -4434,5 +4434,54 @@
             "send_takes_over_offline": "Denne personen ser ut til å være frakoblet. Hvis du sender, tar du over chatten, og de ser svaret når de kommer tilbake.",
             "reply_placeholder": "Svar {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Ta omvisningen",
+        "skip": "Hopp over omvisningen",
+        "back": "Tilbake",
+        "next": "Neste",
+        "finish": "Ferdig",
+        "step_of": "{current} av {total}",
+        "welcome": {
+            "title": "Velkommen til ChatVia.ai",
+            "description": "En kort omvisning viser deg dashbordet og hjelper deg å sette opp din første agent.",
+            "how_title": "Slik fungerer det",
+            "how_move": "Bruk Neste og Tilbake, eller piltastene, for å gå mellom stegene.",
+            "how_skip": "Lukk et steg eller trykk Esc for å stoppe omvisningen når som helst.",
+            "how_again": "Start den på nytt når som helst med Ta omvisningen i menyen din.",
+            "not_now": "Ikke nå",
+            "start": "Start omvisningen"
+        },
+        "dashboard": {
+            "agents_title": "Agentene dine",
+            "agents_text": "Alle agentene du lager, står her. Åpne en for å endre den, lære den noe eller lese chattene dens.",
+            "inbox_title": "Innboks",
+            "inbox_text": "Chatter som trenger et menneske, havner her, slik at teamet ditt kan ta over fra agenten.",
+            "ask_title": "Spør om dataene dine",
+            "ask_text": "Still spørsmål om chattene, agentene og leadsene dine med vanlige ord.",
+            "teams_title": "Team",
+            "teams_text": "Bytt mellom teamene dine her, eller lag et nytt.",
+            "notifications_title": "Varsler",
+            "notifications_text": "Klokken sier fra når noe trenger deg, for eksempel en chat som venter på et menneske.",
+            "menu_title": "Menyen din",
+            "menu_text": "Kontoen din, innstillingene for arbeidsområdet og språket. Herfra kan du ta omvisningen på nytt.",
+            "create_title": "Lag din første agent",
+            "create_text": "Gi den et navn, så viser vi deg hvordan du setter den opp.",
+            "create_button": "Opprett agent"
+        },
+        "agent": {
+            "sections_title": "Sett opp agenten din",
+            "sections_text": "Hver del endrer én side ved agenten: instruksjoner, modell, språk, utseende og mer.",
+            "surfaces_title": "Tre steder å chatte",
+            "surfaces_text": "Agenten kan svare på en driftet chatside, i en chatwidget på nettstedet ditt og i en kommandolinje. Hvert sted har sitt eget utseende og sin egen oppførsel.",
+            "preview_title": "Se den live",
+            "preview_text": "Forhåndsvisningen viser agenten med de lagrede innstillingene. Chat med den her for å teste den.",
+            "knowledge_title": "Lær den det du vet",
+            "knowledge_text": "Legg til filer, nettsteder, tekst eller spørsmål og svar. Agenten svarer ut fra dem.",
+            "playground_title": "Prøv den",
+            "playground_text": "Chat med agenten på Lekeplass før du deler den.",
+            "deploy_title": "Del den",
+            "deploy_text": "Når den er klar, legger du den på nettstedet ditt eller deler en lenke til chatsiden fra Distribuer."
+        }
     }
 }

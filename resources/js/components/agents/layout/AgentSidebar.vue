@@ -114,7 +114,7 @@ onMounted(async () => {
             <!-- Top links: Playground, Setup, Deploy -->
             <SidebarGroup class="py-0 pt-2">
                 <SidebarMenu>
-                    <SidebarMenuItem v-for="item in topItems" :key="item.id">
+                    <SidebarMenuItem v-for="item in topItems" :key="item.id" :data-tour="`agent-nav-${item.id}`">
                         <AgentSidebarLink
                             :href="item.url(agentId)"
                             :icon="item.icon"
@@ -133,7 +133,13 @@ onMounted(async () => {
                     <template v-for="item in group.items" :key="item.id">
                         <AgentSidebarSubmenu v-if="item.kind === 'submenu'" v-model:open="submenuOpen[item.id]" :agent-id="agentId" :item="item" />
 
-                        <AgentSidebarSubmenu v-else-if="item.kind === 'sources'" v-model:open="submenuOpen[item.id]" :agent-id="agentId" :item="item">
+                        <AgentSidebarSubmenu
+                            v-else-if="item.kind === 'sources'"
+                            v-model:open="submenuOpen[item.id]"
+                            :agent-id="agentId"
+                            :item="item"
+                            :data-tour="`agent-nav-${item.id}`"
+                        >
                             <template #dropdown>
                                 <AgentSourcesMenu :agent-id="agentId" :source-stats="sourceStats" variant="dropdown" :is-active-route="isActiveRoute">
                                     <template #default="{ item: source, label }">

@@ -4434,5 +4434,54 @@
             "send_takes_over_offline": "Personen verkar vara offline. Om du skickar tar du över chatten, och de ser ditt svar när de kommer tillbaka.",
             "reply_placeholder": "Svara {name}…"
         }
+    },
+    "onboarding": {
+        "take_tour": "Ta rundturen",
+        "skip": "Hoppa över rundturen",
+        "back": "Tillbaka",
+        "next": "Nästa",
+        "finish": "Klar",
+        "step_of": "{current} av {total}",
+        "welcome": {
+            "title": "Välkommen till ChatVia.ai",
+            "description": "En kort rundtur visar dig runt i panelen och hjälper dig att sätta upp din första agent.",
+            "how_title": "Så fungerar det",
+            "how_move": "Använd Nästa och Tillbaka, eller piltangenterna, för att gå mellan stegen.",
+            "how_skip": "Stäng ett steg eller tryck på Esc för att avbryta rundturen när du vill.",
+            "how_again": "Starta den igen när du vill med Ta rundturen i din meny.",
+            "not_now": "Inte nu",
+            "start": "Starta rundturen"
+        },
+        "dashboard": {
+            "agents_title": "Dina agenter",
+            "agents_text": "Alla agenter du bygger finns här. Öppna en för att ändra den, lära den saker eller läsa dess chattar.",
+            "inbox_title": "Inkorg",
+            "inbox_text": "Chattar som behöver en människa hamnar här, så att ditt team kan ta över från agenten.",
+            "ask_title": "Fråga din data",
+            "ask_text": "Ställ frågor om dina chattar, agenter och leads med vanliga ord.",
+            "teams_title": "Team",
+            "teams_text": "Byt mellan dina team här eller skapa ett nytt.",
+            "notifications_title": "Aviseringar",
+            "notifications_text": "Klockan säger till när något behöver dig, till exempel en chatt som väntar på en människa.",
+            "menu_title": "Din meny",
+            "menu_text": "Ditt konto, inställningarna för din arbetsyta och språket. Härifrån kan du ta rundturen igen.",
+            "create_title": "Skapa din första agent",
+            "create_text": "Ge den ett namn så visar vi hur du sätter upp den.",
+            "create_button": "Skapa agent"
+        },
+        "agent": {
+            "sections_title": "Sätt upp din agent",
+            "sections_text": "Varje avsnitt ändrar en del av din agent: instruktioner, modell, språk, utseende och mer.",
+            "surfaces_title": "Tre platser att chatta på",
+            "surfaces_text": "Din agent kan svara på en värdbaserad chattsida, i en chattwidget på din webbplats och i ett kommandofält. Varje plats har sitt eget utseende och beteende.",
+            "preview_title": "Se den live",
+            "preview_text": "Förhandsvisningen visar din agent med de sparade inställningarna. Chatta med den här för att testa den.",
+            "knowledge_title": "Lär den det du vet",
+            "knowledge_text": "Lägg till filer, webbplatser, text eller frågor och svar. Din agent svarar utifrån dem.",
+            "playground_title": "Prova den",
+            "playground_text": "Chatta med din agent på Lekplats innan du delar den.",
+            "deploy_title": "Dela den",
+            "deploy_text": "När den är klar lägger du till den på din webbplats eller delar en länk till dess chattsida från Distribuera."
+        }
     }
 }

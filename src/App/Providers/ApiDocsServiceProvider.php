@@ -25,6 +25,9 @@ class ApiDocsServiceProvider extends ServiceProvider
         $config = (array) config('scramble');
         data_set($config, 'ui.title', 'ChatVia.ai API');
 
+        // Each install has its own address, so the examples name this one.
+        data_set($config, 'info.description', Str::replace('{base_url}', url('api/v1'), (string) data_get($config, 'info.description')));
+
         Scramble::configure()->useConfig($config)->withDocumentTransformers(function (OpenApi $openApi): void {
             $openApi->secure(
                 SecurityScheme::http('bearer', 'Bearer'),

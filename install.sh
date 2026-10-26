@@ -1595,9 +1595,11 @@ ask_admin() {
 # Recommended settings, or the search storage and the version. Shared by
 # both kinds of install.
 ask_setup() {
+    block text
+    info "What each setting means: $(accent "$CHATVIA_DOCS#setup")"
     choose 'Setup' \
         'Recommended settings  — best for almost everyone' \
-        'Custom  — choose how search data is stored, and the version'
+        'Custom  — choose how search data is stored and indexed, and the version'
     if [ "$CHOICE" = 0 ]; then
         EMBEDDING_TYPE=halfvec
         EMBEDDING_DIMENSIONS=1024
@@ -1700,6 +1702,7 @@ count_install() {
         no | false | 0) return 0 ;;
         *)
             [ "$INTERACTIVE" = 1 ] || return 0
+            block text
             info "$(dim 'Help us count installs: this sends only how you installed (Docker or')"
             info "$(dim "complete) and the operating system ($(install_os)). No address or ID.")"
             confirm 'Send an anonymous install count to chatvia.ai?' n || return 0

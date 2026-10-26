@@ -129,11 +129,6 @@
         "Add the uploaded files",
         "Add the Pulse and Spectra databases"
     ],
-    "branding#hire-me": [],
-    "branding#powered-by": [
-        "Show the credit",
-        "License key"
-    ],
     "channels#instagram": [
         "App ID",
         "App secret",
@@ -232,6 +227,11 @@
         "Firecrawl API key",
         "Address",
         "Pages per minute"
+    ],
+    "license#hire-me": [],
+    "license#powered-by": [
+        "Show the credit",
+        "License key"
     ],
     "observability#pulse": [
         "Record app health"

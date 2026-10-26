@@ -7,7 +7,7 @@ use Inertia\Testing\AssertableInertia as Assert;
  * What the hosted chat's Inertia middleware shares with every chat page:
  * the matched route's name and raw parameters (for useCurrentRoute()), and
  * whether the "Powered by ChatVia.ai" credit shows (`chatvia.powered_by`,
- * Settings → Branding).
+ * Settings → License).
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();

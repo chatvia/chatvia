@@ -19,8 +19,8 @@ use Support\License\LicenseFeature;
 use Support\License\LicenseKey;
 
 /**
- * Settings → Branding: the "Powered by ChatVia.ai" credit, and a link to hire
- * the developer. Hiding the credit needs a license key activated for this
+ * Settings → License: the license key, the "Powered by ChatVia.ai" credit,
+ * and a link to hire the developer. Hiding the credit needs a license key activated for this
  * install's domain ({@see CreditLicense}): the page activates a new key at
  * chatvia.ai before it saves it ({@see LicenseActivation}), and does not
  * turn the credit off without a valid one.
@@ -31,20 +31,20 @@ class ManageBrandSettings extends AdminSettingsPage
     protected static string $settings = BrandSettings::class;
 
     #[\Override]
-    protected static ?string $title = 'Branding';
+    protected static ?string $title = 'License';
 
     #[\Override]
-    protected static ?string $slug = 'branding';
+    protected static ?string $slug = 'license';
 
     #[\Override]
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
 
     #[\Override]
     protected static ?int $navigationSort = 15;
 
     public static function description(): string
     {
-        return 'The "Powered by ChatVia.ai" credit, and help from the developer.';
+        return 'Your license key, the "Powered by ChatVia.ai" credit, and help from the developer.';
     }
 
     public static function overviewGroup(): string

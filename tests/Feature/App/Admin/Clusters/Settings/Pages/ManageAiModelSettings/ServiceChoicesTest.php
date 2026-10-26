@@ -12,7 +12,7 @@ use Livewire\Features\SupportTesting\Testable;
 
 /**
  * The service pickers of Settings → AI models (reranker, document reading,
- * speech to text, voice) share one behaviour. There
+ * speech to text, voice, image generation) share one behaviour. There
  * is no "Automatic": each list shows the service in use, marks each provider
  * connected or not, and greys out the ones that are not. A new pick is
  * checked with one real call as it is saved; Off, or an unchanged pick,
@@ -38,7 +38,7 @@ function scField(Testable $page, string $property): Select
 /** A call to an AI service: anything but the model lists the page reads to show its choices. */
 function scServiceCall(Request $request): bool
 {
-    return ! Str::contains($request->url(), ['openrouter.ai/api/v1/models/user', 'openrouter.ai/api/v1/embeddings/models', 'openrouter.ai/api/v1/models?output_modalities=rerank', 'models.dev/']);
+    return ! Str::contains($request->url(), ['openrouter.ai/api/v1/models/user', 'openrouter.ai/api/v1/embeddings/models', 'openrouter.ai/api/v1/models?output_modalities=rerank', 'openrouter.ai/api/v1/models?output_modalities=image', 'models.dev/']);
 }
 
 /** Each picker, with the provider a test connects. */
@@ -47,6 +47,7 @@ dataset('service pickers', [
     'document reading' => ['document_parser', AiProvider::Mistral],
     'speech to text' => ['transcriber', AiProvider::Scaleway],
     'voice' => ['voice', AiProvider::OpenAi],
+    'image generation' => ['image_generator', AiProvider::Google],
 ]);
 
 it('shows the service in use, marks each provider connected or not, and greys out the others', function (string $property, AiProvider $provider, array $options, array $disabled): void {

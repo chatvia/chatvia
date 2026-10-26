@@ -23,6 +23,7 @@ enum AiService: string
     case Speech = 'speech';
     case Voice = 'voice';
     case ReadAloud = 'read_aloud';
+    case ImageGeneration = 'image_generation';
     case WebPages = 'web_pages';
     case VisitorCountry = 'visitor_country';
 
@@ -36,6 +37,7 @@ enum AiService: string
             self::Speech => __('Speech to text'),
             self::Voice => __('Voice conversations'),
             self::ReadAloud => __('Read aloud'),
+            self::ImageGeneration => __('Image generation'),
             self::WebPages => __('Web pages'),
             self::VisitorCountry => __('Visitor country'),
         };
@@ -51,6 +53,7 @@ enum AiService: string
             self::Speech => __('Turn recordings and voice notes into text'),
             self::Voice => __('Talk with agents in real time'),
             self::ReadAloud => __('Play agent replies as speech'),
+            self::ImageGeneration => __('Let agents make pictures in chats'),
             self::WebPages => __('Firecrawl reads websites for knowledge'),
             self::VisitorCountry => __('IP2Location finds the country of each visitor'),
         };
@@ -66,6 +69,7 @@ enum AiService: string
             self::Speech => Heroicon::OutlinedMicrophone,
             self::Voice => Heroicon::OutlinedPhone,
             self::ReadAloud => Heroicon::OutlinedSpeakerWave,
+            self::ImageGeneration => Heroicon::OutlinedPhoto,
             self::WebPages => Heroicon::OutlinedGlobeAlt,
             self::VisitorCountry => Heroicon::OutlinedMapPin,
         };
@@ -82,6 +86,7 @@ enum AiService: string
             self::Speech => ManageAiModelSettings::cardUrl('speech'),
             self::Voice => ManageAiModelSettings::cardUrl('voice'),
             self::ReadAloud => ManageAiModelSettings::cardUrl('read_aloud'),
+            self::ImageGeneration => ManageAiModelSettings::cardUrl('image_generation'),
             self::WebPages => ManageKnowledgeSettings::cardUrl('website_import'),
             self::VisitorCountry => ManagePlatformSettings::cardUrl('ip2location'),
         };

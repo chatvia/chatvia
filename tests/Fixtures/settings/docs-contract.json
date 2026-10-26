@@ -19,6 +19,13 @@
         "Service",
         "Model"
     ],
+    "ai-models#image-generation": [
+        "Image generation",
+        "Pictures per chat per hour",
+        "OpenAI model",
+        "OpenRouter model",
+        "Google model"
+    ],
     "ai-models#models-for-app-tasks": [
         "Model for quick tasks",
         "Follow-up questions",
@@ -37,6 +44,7 @@
     "ai-models#read-aloud": [
         "Read aloud",
         "Default voice",
+        "Audio files per chat per hour",
         "OpenAI model",
         "ElevenLabs model"
     ],
@@ -290,7 +298,8 @@
         "Analytics",
         "Records",
         "Audio and video",
-        "Live voice calls"
+        "Live voice calls",
+        "Pictures and audio"
     ],
     "platform#tracking-code": [
         "Code"

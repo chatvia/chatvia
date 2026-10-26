@@ -11,7 +11,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * What runs on which AI provider (Settings → AI models): which service
  * handles each step (embeddings, reranking, document reading, speech to
- * text, voice conversations, reading aloud), the models those services call, and the
+ * text, voice conversations, reading aloud, image generation), the models
+ * those services call, how many files agents make in one chat, and the
  * catalog model behind each of the app's own tasks ({@see LlmTask}: one
  * shared model, and one per task). The providers' keys are in
  * {@see AiProviderSettings}; chat models are rows (`llms`). The services are
@@ -51,6 +52,15 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.speaker')]
     public ?string $speaker = null;
+
+    #[ConfigKey('chatvia.ai.image_generator')]
+    public ?string $image_generator = null;
+
+    #[ConfigKey('chatvia.ai.images_per_chat_per_hour')]
+    public ?int $images_per_chat_per_hour = null;
+
+    #[ConfigKey('chatvia.ai.audio_per_chat_per_hour')]
+    public ?int $audio_per_chat_per_hour = null;
 
     #[ConfigKey('chatvia.ai.chat_files.enabled')]
     public ?bool $chat_files_enabled = null;
@@ -171,6 +181,15 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('services.elevenlabs.speech_voice')]
     public ?string $elevenlabs_speech_voice = null;
+
+    #[ConfigKey('services.openai.image_model')]
+    public ?string $openai_image_model = null;
+
+    #[ConfigKey('services.openrouter.image_model')]
+    public ?string $openrouter_image_model = null;
+
+    #[ConfigKey('services.gemini.image_model')]
+    public ?string $google_image_model = null;
 
     #[ConfigKey('chatvia.voice.max_call_minutes')]
     public ?int $voice_max_call_minutes = null;

@@ -44,6 +44,7 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, Agent> $agents
  * @property-read Collection<int, Chatter> $chatters
  * @property-read MessageLimit|null $messageLimit
+ * @property-read GenerationLimit|null $generationLimit
  *
  * @method static WorkspaceFactory factory($count = null, $state = [])
  */
@@ -157,6 +158,17 @@ class Workspace extends Model
     public function messageLimit(): HasOne
     {
         return $this->hasOne(MessageLimit::class);
+    }
+
+    /**
+     * The monthly cap on the pictures and audio files the workspace's agents
+     * make. Null means no cap.
+     *
+     * @return HasOne<GenerationLimit, $this>
+     */
+    public function generationLimit(): HasOne
+    {
+        return $this->hasOne(GenerationLimit::class);
     }
 
     /**

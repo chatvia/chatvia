@@ -26,3 +26,14 @@ it('names the provider a voice call runs on now', function (string $voice, array
     'OpenAI picked, not connected' => ['openai', [AiProvider::Mistral], AiProvider::OpenAi],
     'a provider without voice picked' => ['mistral', [AiProvider::Mistral], null],
 ]);
+
+it('names the provider pictures are made on, none until one is picked', function (string $driver, ?AiProvider $provider): void {
+    config(['chatvia.ai.image_generator' => $driver]);
+    connectAiProviders(AiProvider::OpenAi, AiProvider::Google);
+
+    expect(app(AiProviderUsage::class)->providerFor(AiCapability::ImageGeneration))->toBe($provider);
+})->with([
+    'off, keys connected' => ['none', null],
+    'Google picked' => ['google', AiProvider::Google],
+    'a provider that cannot draw' => ['mistral', null],
+]);

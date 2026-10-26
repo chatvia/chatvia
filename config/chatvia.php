@@ -350,6 +350,12 @@ return [
     |   "scaleway", "openai" or "none".
     | - voice: live voice calls (the OpenAI Realtime API). "openai" or
     |   "none". Each agent still turns it on.
+    | - image_generator: pictures agents make in the hosted chat.
+    |   "openai", "openrouter", "google" or "none". Unlike the others it
+    |   starts at "none", and each agent still turns it on.
+    |   `images_per_chat_per_hour` and `audio_per_chat_per_hour` cap what
+    |   agents make in one chat; a workspace's monthly cap is a
+    |   GenerationLimit row.
     | - chat_files: whether chatters may attach a PDF file or an image in a
     |   chat (off: no agent can offer it), and the catalog model (its
     |   `llms.id`) that answers about it when the agent's own model cannot,
@@ -430,6 +436,9 @@ return [
         'transcriber' => 'auto',
         'voice' => 'auto',
         'speaker' => 'auto',
+        'image_generator' => 'none',
+        'images_per_chat_per_hour' => 10,
+        'audio_per_chat_per_hour' => 10,
         'chat_files' => [
             'enabled' => true,
             'model' => null,

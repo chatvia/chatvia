@@ -38,6 +38,7 @@ final readonly class WorkerSizing
             records: $this->clamp(2 * $factor, 2, 16),
             media: $this->clamp($factor / 2, 1, min(4, max(1, $server->cpus))),
             voice: $this->clamp(3 * $factor, 3, 24),
+            generation: $this->clamp(2 * $factor, 2, 16),
         );
     }
 

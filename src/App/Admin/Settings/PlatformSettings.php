@@ -51,6 +51,9 @@ class PlatformSettings extends AdminSettings
     #[ConfigKey('horizon.defaults.media.maxProcesses')]
     public ?int $media_workers = null;
 
+    #[ConfigKey('horizon.defaults.generation.maxProcesses')]
+    public ?int $generation_workers = null;
+
     // Each live voice call holds one of these workers for its whole length,
     // so this is also the most voice calls at once (VoiceCallSlots).
     #[ConfigKey('horizon.defaults.voice.maxProcesses')]

@@ -540,6 +540,8 @@
     "This needs an Enterprise license.": "Dette krever en Enterprise-lisens.",
     "Read aloud": "Les høyt",
     "Play agent replies as speech": "Spill av agentenes svar som tale",
+    "Image generation": "Bildegenerering",
+    "Let agents make pictures in chats": "Lar agenter lage bilder i chatter",
     "Reading aloud is not available right now.": "Opplesning er ikke tilgjengelig akkurat nå.",
     "The reply could not be read aloud. Please try again.": "Svaret kunne ikke leses høyt. Prøv igjen.",
     "Add a custom domain first.": "Legg til et eget domene først.",

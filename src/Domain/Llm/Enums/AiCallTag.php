@@ -47,6 +47,10 @@ enum AiCallTag: string
     // Reading a reply aloud.
     case ReadAloud = 'read-aloud';
 
+    // Files an agent makes in a chat.
+    case ImageGeneration = 'image-generation';
+    case AudioGeneration = 'audio-generation';
+
     // Everything else.
     case AnalyticsAssistant = 'analytics-assistant';
     case Evaluation = 'evaluation';

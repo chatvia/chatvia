@@ -50,6 +50,7 @@ final class AiServiceChecks
                 AiService::Speech => $this->onProvider($service, AiCapability::Speech),
                 AiService::Voice => $this->onProvider($service, AiCapability::Voice),
                 AiService::ReadAloud => $this->onProvider($service, AiCapability::TextToSpeech),
+                AiService::ImageGeneration => $this->onProvider($service, AiCapability::ImageGeneration),
                 AiService::WebPages => $this->webPages(),
                 AiService::VisitorCountry => $this->visitorCountry(),
             };

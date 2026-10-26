@@ -540,6 +540,8 @@
     "This needs an Enterprise license.": "Dafür ist eine Enterprise-Lizenz nötig.",
     "Read aloud": "Vorlesen",
     "Play agent replies as speech": "Antworten der Agenten als Sprache abspielen",
+    "Image generation": "Bilderzeugung",
+    "Let agents make pictures in chats": "Lässt Agenten in Chats Bilder erstellen",
     "Reading aloud is not available right now.": "Vorlesen ist gerade nicht verfügbar.",
     "The reply could not be read aloud. Please try again.": "Die Antwort konnte nicht vorgelesen werden. Bitte versuche es erneut.",
     "Add a custom domain first.": "Fügen Sie zuerst eine eigene Domain hinzu.",

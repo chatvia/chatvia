@@ -144,6 +144,7 @@ return [
         'realtime_transcription_model' => 'gpt-4o-mini-transcribe',
         'speech_model' => 'gpt-realtime-2.1-mini',
         'speech_voice' => 'marin',
+        'image_model' => 'gpt-image-2.5-flare',
     ],
 
     // Reads agent replies aloud (Settings → AI models → Read aloud). Voices
@@ -162,6 +163,7 @@ return [
         'api_key' => null,
         'api_endpoint' => 'https://generativelanguage.googleapis.com/v1beta',
         'embedding_model' => 'gemini-embedding-001',
+        'image_model' => 'gemini-nano-banana-2.1',
     ],
 
     'google' => [
@@ -249,6 +251,7 @@ return [
     'openrouter' => [
         'api_key' => null,
         'embedding_model' => 'openai/text-embedding-3-small',
+        'image_model' => 'google/gemini-nano-banana-2.1',
     ],
 
     'groq' => [

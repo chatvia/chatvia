@@ -41,11 +41,11 @@ enum AiProvider: string
     {
         return match ($this) {
             self::Scaleway => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech],
-            self::OpenRouter => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Reranking],
+            self::OpenRouter => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Reranking, AiCapability::ImageGeneration],
             self::ElevenLabs => [AiCapability::TextToSpeech],
-            self::OpenAi => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech, AiCapability::Voice, AiCapability::TextToSpeech],
+            self::OpenAi => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech, AiCapability::Voice, AiCapability::TextToSpeech, AiCapability::ImageGeneration],
             self::Mistral => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Documents],
-            self::Google => [AiCapability::Chat, AiCapability::Embeddings],
+            self::Google => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::ImageGeneration],
             self::Groq => [AiCapability::Chat],
             self::Anthropic => [AiCapability::Chat],
             self::AzureOpenAi => [AiCapability::Chat],

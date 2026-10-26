@@ -19,6 +19,7 @@ final class WorkerCountsData extends Data
         public int $records,
         public int $media,
         public int $voice,
+        public int $generation,
     ) {}
 
     /** @return array<string, int> The counts by Horizon supervisor name. */
@@ -31,6 +32,7 @@ final class WorkerCountsData extends Data
             'records' => $this->records,
             'media' => $this->media,
             'voice' => $this->voice,
+            'generation' => $this->generation,
         ];
     }
 }

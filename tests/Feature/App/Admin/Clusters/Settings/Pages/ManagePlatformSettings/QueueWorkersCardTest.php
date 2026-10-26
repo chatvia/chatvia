@@ -97,3 +97,13 @@ it('sets how many voice calls run at once', function (): void {
     expect(config('horizon.defaults.voice.maxProcesses'))->toBe(6)
         ->and(app(VoiceCallSlots::class)->capacity())->toBe(6);
 });
+
+it('sets how many pictures and audio files are made at once', function (): void {
+    adminPage(ManagePlatformSettings::class, $this->admin)
+        ->fillForm(['generation_workers' => 4])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(PlatformSettings::class, 'generation_workers'))->toBe(4)
+        ->and(config('horizon.defaults.generation.maxProcesses'))->toBe(4);
+});

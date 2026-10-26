@@ -6,6 +6,7 @@ namespace Tests\Support\Llm;
 
 use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Data\Speech\SpeechVoiceData;
+use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\SpeechFormat;
 use Throwable;
 
@@ -24,7 +25,7 @@ final class FakeSpeaker implements Speaker
         private readonly ?Throwable $failure = null,
     ) {}
 
-    public function speak(string $text, string $voice): string
+    public function speak(string $text, string $voice, AiCallTag $tag = AiCallTag::ReadAloud): string
     {
         if ($this->failure instanceof Throwable) {
             throw $this->failure;

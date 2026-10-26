@@ -18,6 +18,7 @@ use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\UpdatePasswordAction;
 use App\Identity\Workspace\Actions\Account\UpdateWorkspaceAction;
 use App\Identity\Workspace\Actions\DataExport\RequestDataExportAction;
+use App\Identity\Workspace\Actions\GenerationLimits\SetGenerationLimitAction;
 use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
 use App\Identity\Workspace\Data\Account\UpdatePasswordData;
 use App\Identity\Workspace\Data\Account\UpdateWorkspaceData;
@@ -41,7 +42,8 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 
 /**
  * One workspace's dashboard in the admin panel, in tabs: Overview (the
- * account, its people and its message limit; the page opens on it),
+ * account, its people, its message limit and its generation limit; the
+ * page opens on it),
  * Analytics (this month's numbers and the last 30 days of messages),
  * Agents and Teammates. Staff act on the workspace from the header; every
  * action runs the same domain action the product uses.
@@ -128,6 +130,7 @@ class ViewWorkspace extends ViewRecord
         return [
             $this->editAction(),
             $this->messageLimitAction(),
+            $this->generationLimitAction(),
             $this->deactivateAction(),
             $this->reactivateAction(),
             ActionGroup::make([
@@ -220,6 +223,31 @@ class ViewWorkspace extends ViewRecord
                 $record->load('messageLimit');
 
                 Notification::make()->success()->title($limit === null ? 'Message limit removed' : 'Message limit saved')->send();
+            });
+    }
+
+    /** The monthly cap on the pictures and audio files the workspace's agents make in chats. */
+    private function generationLimitAction(): Action
+    {
+        return Action::make('generationLimit')
+            ->label('Set generation limit')
+            ->icon(Heroicon::OutlinedPhoto)
+            ->color('gray')
+            ->fillForm(fn (Workspace $record): array => ['monthly_limit' => $record->generationLimit?->monthly_limit])
+            ->schema([
+                TextInput::make('monthly_limit')
+                    ->label('Pictures and audio files per month')
+                    ->integer()
+                    ->minValue(1)
+                    ->helperText('Leave empty for no limit. The count of this month is kept.'),
+            ])
+            ->action(function (Workspace $record, array $data, SetGenerationLimitAction $setLimit): void {
+                $limit = filled($data['monthly_limit'] ?? null) ? (int) $data['monthly_limit'] : null;
+
+                $setLimit->execute($record, $limit);
+                $record->load('generationLimit');
+
+                Notification::make()->success()->title($limit === null ? 'Generation limit removed' : 'Generation limit saved')->send();
             });
     }
 
@@ -469,6 +497,6 @@ class ViewWorkspace extends ViewRecord
     /** Reload the owner, so the status, the badge and the actions show the change. */
     private function refreshWorkspace(): void
     {
-        $this->workspace()->load(['owner', 'messageLimit']);
+        $this->workspace()->load(['owner', 'messageLimit', 'generationLimit']);
     }
 }

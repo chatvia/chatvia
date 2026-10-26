@@ -42,6 +42,7 @@ class ManagePlatformSettings extends AdminSettingsPage
         'records' => 'records_workers',
         'media' => 'media_workers',
         'voice' => 'voice_workers',
+        'generation' => 'generation_workers',
     ];
 
     /** What the Queue workers card says about the queue ({@see horizonState()}). */
@@ -153,6 +154,7 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->integer('records_workers', 'Records', help: 'For saving analytics numbers and audit logs. These jobs are quick.', min: 1, max: 100),
                 $this->integer('media_workers', 'Audio and video', help: 'For turning recordings into text. One recording can take a long time.', min: 1, max: 50),
                 $this->integer('voice_workers', 'Live voice calls', help: 'Each voice call uses one worker until it ends, so this is also the most calls at once.', min: 1, max: 200),
+                $this->integer('generation_workers', 'Pictures and audio', help: 'For the pictures and audio files agents make in chats. Each one can take up to a few minutes.', min: 1, max: 100),
                 Actions::make([$this->restartQueueAction()])->key('restart-queue'),
             ])->summary(fn (): string => sprintf('Up to %d workers', array_sum($this->savedWorkers())).(($state = $this->horizonState()) !== null ? " · {$state}" : ''))
                 ->tone(fn (): string => in_array($this->horizonState(), [self::NOT_RUNNING, self::RESTART_NEEDED], true) ? 'warning' : 'gray')

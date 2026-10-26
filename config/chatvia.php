@@ -163,6 +163,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Backups
+    |--------------------------------------------------------------------------
+    |
+    | The automatic backup (chatvia:backup:create, checked every hour): the
+    | database and Redis in one archive on the `private` disk under
+    | `backups/`, in the layout of `./manage backup`. `frequency` is a
+    | BackupFrequency value (6h, 12h, 24h, 48h, week); `keep` is how many
+    | backups stay. With an OpenPGP `public_key` the archive is encrypted to
+    | it and also holds the app key. `include_files` adds the uploaded files
+    | (only with storage on this server); `include_tool_databases` adds the
+    | Pulse and Spectra databases. Saved in Settings → Backups.
+    |
+    */
+
+    'backup' => [
+        'enabled' => true,
+        'frequency' => '24h',
+        'keep' => 14,
+        'public_key' => null,
+        'include_files' => false,
+        'include_tool_databases' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Demo Seed
     |--------------------------------------------------------------------------
     |

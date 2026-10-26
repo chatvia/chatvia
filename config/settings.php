@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\BackupSettings;
 use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\ChannelSettings;
 use App\Admin\Settings\ConnectorSettings;
@@ -50,6 +51,7 @@ return [
         StorageSettings::class,
         SecuritySettings::class,
         WidgetSettings::class,
+        BackupSettings::class,
     ],
 
     'setting_class_path' => app_path('Admin/Settings'),

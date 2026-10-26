@@ -2,7 +2,9 @@
 /**
  * World map of chats per country (jsvectormap), shaded by chat count, with a
  * custom hover tooltip (flag, name, chats, share). Countries without chats
- * still get their translated name from the countries list.
+ * still get their translated name from the countries list. Every color comes
+ * from CSS variables (`--map-*`), so the map follows light/dark mode without
+ * being redrawn: jsvectormap writes `fill` attributes, which CSS overrides.
  */
 import { fetchCountryNames } from '@/api/analytics';
 import jsVectorMap from 'jsvectormap';
@@ -25,6 +27,12 @@ let isMapInitialized = false;
 const allCountries = ref<Record<string, string>>({});
 
 const maxCount = computed(() => Math.max(...props.countryData.map((c) => c.count), 1));
+
+const levelCount = 5;
+const levels = Array.from({ length: levelCount }, (_, index) => index + 1);
+
+// Square-root scale so a few busy countries don't wash out the rest.
+const levelFor = (count: number): number => Math.max(1, Math.ceil(Math.sqrt(count / maxCount.value) * levelCount));
 
 // Fetch all country names
 const fetchCountryMappings = async () => {
@@ -87,31 +95,24 @@ const initMap = () => {
         showTooltip: false,
         regionStyle: {
             initial: {
-                fill: '#e5e7eb',
-                stroke: '#d1d5db',
                 strokeWidth: 0.5,
             },
             hover: {
-                fill: '#60a5fa',
                 cursor: 'pointer',
             },
-        },
-        series: {
-            regions: [
-                {
-                    values: values,
-                    scale: ['#dbeafe', '#3b82f6', '#2563eb', '#1e40af', '#1e3a8a'],
-                    normalizeFunction: 'polynomial',
-                    min: 0,
-                    max: maxCount.value,
-                },
-            ],
         },
         bindTouchEvents: false,
         onLoaded() {
             // Add custom tooltip functionality after map loads
             const container = mapContainer.value;
             if (!container) return;
+
+            container.querySelectorAll<SVGPathElement>('path[data-code]').forEach((path) => {
+                const count = values[path.getAttribute('data-code')?.toUpperCase() ?? ''];
+                if (count) {
+                    path.style.setProperty('--region-fill', `var(--map-level-${levelFor(count)})`);
+                }
+            });
 
             tooltipElement = document.createElement('div');
             tooltipElement.className = 'jvm-tooltip';
@@ -138,8 +139,8 @@ const initMap = () => {
                                 <img src="${flagPath}" alt="${countryName}" style="width: 20px; height: 20px; border-radius: 2px; object-fit: cover;" />
                                 <div style="font-weight: 600;">${countryName}</div>
                             </div>
-                            <div style="font-size: 12px; color: #9ca3af; margin-inline-start: 28px;">
-                                <span style="color: #3b82f6; font-weight: 600;">${chatCount}</span> ${t('shared.chats')}
+                            <div style="font-size: 12px; color: var(--muted-foreground); margin-inline-start: 28px;">
+                                <span style="color: var(--map-accent); font-weight: 600;">${chatCount}</span> ${t('shared.chats')}
                                 <span style="margin-inline-start: 8px;">(${percentage}%)</span>
                             </div>
                         `;
@@ -199,23 +200,18 @@ watch(
 </script>
 
 <template>
-    <div class="relative overflow-hidden">
+    <div class="world-map relative overflow-hidden">
         <!-- Map Container -->
         <div ref="mapContainer" style="height: 450px" class="bg-card w-full overflow-hidden"></div>
 
         <!-- Color Legend (inside map, positioned left) -->
-        <div class="absolute start-4 bottom-4 z-10 rounded-lg border bg-white p-3 shadow-sm dark:bg-gray-800">
+        <div class="bg-card absolute start-4 bottom-4 z-10 rounded-lg border p-3 shadow-sm">
             <div class="text-muted-foreground flex flex-col gap-2 text-xs">
                 <span class="font-medium">{{ t('shared.chat_volume') }}</span>
                 <div class="flex items-center gap-2">
                     <span class="text-[10px]">0</span>
                     <div class="flex h-2.5 w-32 overflow-hidden rounded border">
-                        <div class="flex-1 bg-[#dbeafe]"></div>
-                        <div class="flex-1 bg-[#93c5fd]"></div>
-                        <div class="flex-1 bg-[#3b82f6]"></div>
-                        <div class="flex-1 bg-[#2563eb]"></div>
-                        <div class="flex-1 bg-[#1e40af]"></div>
-                        <div class="flex-1 bg-[#1e3a8a]"></div>
+                        <div v-for="level in levels" :key="level" class="flex-1" :style="{ background: `var(--map-level-${level})` }"></div>
                     </div>
                     <span class="text-[10px]">{{ maxCount }}</span>
                 </div>
@@ -225,13 +221,46 @@ watch(
 </template>
 
 <style>
+/* The tooltip lives on <body>, so the map tokens sit on :root rather than on .world-map. */
+:root {
+    --map-land: #e5e7eb;
+    --map-hover: #60a5fa;
+    --map-accent: #2563eb;
+    --map-level-1: #bfdbfe;
+    --map-level-2: #93c5fd;
+    --map-level-3: #3b82f6;
+    --map-level-4: #1d4ed8;
+    --map-level-5: #1e3a8a;
+}
+
+.dark {
+    --map-land: hsl(0 0% 22%);
+    --map-hover: #93c5fd;
+    --map-accent: #60a5fa;
+    --map-level-1: #1e3a8a;
+    --map-level-2: #1d4ed8;
+    --map-level-3: #3b82f6;
+    --map-level-4: #60a5fa;
+    --map-level-5: #bfdbfe;
+}
+
+.world-map .jvm-region {
+    fill: var(--region-fill, var(--map-land));
+    stroke: var(--card);
+    transition: fill 0.15s ease;
+}
+
+.world-map .jvm-region:hover {
+    fill: var(--map-hover);
+}
+
 .jvm-tooltip {
-    background-color: #1f2937 !important;
-    color: #f9fafb !important;
+    background-color: var(--popover) !important;
+    color: var(--foreground) !important;
     border-radius: 0.375rem !important;
     padding: 0.5rem 0.75rem !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-    border: 1px solid #374151 !important;
+    border: 1px solid var(--border) !important;
     font-size: 0.875rem !important;
     z-index: 9999 !important;
     position: fixed !important;
@@ -240,9 +269,10 @@ watch(
 
 .jvm-zoom-btn {
     position: absolute !important;
-    left: 1rem !important;
-    background-color: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
+    inset-inline-start: 1rem !important;
+    background-color: var(--card) !important;
+    color: var(--foreground) !important;
+    border: 1px solid var(--border) !important;
     border-radius: 0.375rem !important;
     width: 2rem !important;
     height: 2rem !important;
@@ -262,7 +292,7 @@ watch(
 }
 
 .jvm-zoom-btn:hover {
-    background-color: #f3f4f6 !important;
+    background-color: var(--muted) !important;
 }
 
 .jvm-container {

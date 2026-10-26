@@ -631,13 +631,15 @@ theme.
   median and p95 cover any range (they were limited to the raw events'
   13 months) within about 15%.
 - **The raw message log is split by month** when pg_partman is installed (it
-  is in the `ghcr.io/chatvia/postgres` image, now tagged
-  `18-<pg_textsearch>-<pg_partman>`, and the Ubuntu installer adds it): the
-  daily prune drops an expired month in one step. Without pg_partman the log
-  is one table, pruned in batches as before.
+  is in the `ghcr.io/chatvia/postgres` image, and the Ubuntu installer adds
+  it): the daily prune drops an expired month in one step. Without pg_partman
+  the log is one table, pruned in batches as before.
 - **Thumbs feedback has its own table** (`analytics_message_feedback`), and
   the channel and device numbers read the analytics tables instead of the
   chat sessions and conversations.
+- **New agents analyze sentiment, tone and topics from their first chats**
+  (on by default; each costs extra AI calls and can be turned off under
+  Setup → Settings → Analytics).
 - **Quick database writes have their own queue.** Analytics counters and
   audit rows run on `records`, with a **Records** option in Settings →
   Platform → Queue workers, so they never wait behind the AI analysis on

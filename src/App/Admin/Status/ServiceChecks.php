@@ -208,8 +208,8 @@ final readonly class ServiceChecks
         $late = new ServiceCheckData(__('Counts as stopped after'), trans_choice(':count minute|:count minutes', self::SCHEDULER_LATE_MINUTES), CheckMark::Info);
 
         if (! $ranAt instanceof Carbon) {
-            return new ServiceStatusData(ServiceState::Warning, __('Has not run a task yet.'), checks: [
-                new ServiceCheckData(__('Last task'), __('Never'), CheckMark::Warning),
+            return new ServiceStatusData(ServiceState::Down, __('Has not run a task yet.'), checks: [
+                new ServiceCheckData(__('Last task'), __('Never'), CheckMark::Failed),
                 $late,
             ], hint: __('Run "php artisan schedule:work", or "schedule:run" every minute from cron.'));
         }

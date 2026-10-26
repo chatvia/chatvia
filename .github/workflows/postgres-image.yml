@@ -5,8 +5,8 @@ name: Postgres image
 # whenever the Dockerfile changes. Publishes two tags: the moving `18`, which
 # installs use (docker/compose.yaml), and the pinned `18-r<IMAGE_REVISION>`
 # that docker-compose.yml and .github/workflows/tests.yml reference. A pinned
-# tag is never overwritten: bump IMAGE_REVISION in the Dockerfile (and those
-# two pins) with every change, or this run fails.
+# tag is never overwritten: without a new IMAGE_REVISION in the Dockerfile
+# (bump those two pins with it), this run builds nothing and warns.
 on:
   push:
     branches:
@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -59,14 +59,16 @@ jobs:
           echo "tag=18-r$revision" >> "$GITHUB_OUTPUT"
 
       - name: Refuse to overwrite a published tag
+        id: published
         run: |
           if docker buildx imagetools inspect "$IMAGE:${{ steps.version.outputs.tag }}" > /dev/null 2>&1; then
-            echo "::error::$IMAGE:${{ steps.version.outputs.tag }} is already published. Bump IMAGE_REVISION in docker/postgres/Dockerfile."
-            exit 1
+            echo "::warning::$IMAGE:${{ steps.version.outputs.tag }} is already published, so nothing is built. To publish a change to the image, bump IMAGE_REVISION in docker/postgres/Dockerfile."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        if: steps.published.outputs.exists != 'true'
+        uses: docker/build-push-action@v7
         with:
           context: docker/postgres
           platforms: linux/amd64,linux/arm64

@@ -2,7 +2,7 @@
 # the extensions the app installs (database/migrations/
 # 2025_07_12_120000_install_postgres_extensions.php):
 #   - vector (pgvector), from the PostgreSQL apt repository the official image
-#     already has set up;
+#     already has set up, pinned;
 #   - pg_textsearch (Timescale) for BM25 keyword search, preloaded by the
 #     default command;
 #   - pg_partman, which splits analytics_events into monthly partitions and
@@ -11,24 +11,34 @@
 #     repository too, pinned like pg_textsearch;
 #   - pg_trgm, btree_gin, btree_gist and pg_stat_statements, which ship with
 #     the official image (contrib).
-# Published as ghcr.io/chatvia/postgres by .github/workflows/postgres-image.yml,
-# tagged with both pinned versions (18-<pg_textsearch>-<pg_partman>);
-# used by docker/compose.yaml, the dev stack (docker-compose.yml) and CI
-# (.github/workflows/tests.yml).
+# Published as ghcr.io/chatvia/postgres by .github/workflows/postgres-image.yml
+# as 18-r<IMAGE_REVISION> (and the moving 18); used by docker/compose.yaml, the
+# dev stack (docker-compose.yml) and CI (.github/workflows/tests.yml). The tag
+# names our build, not the extensions: their versions are image labels
+# (docker inspect). Bump IMAGE_REVISION on every change to this file, then the
+# three tags that use it; the workflow refuses to overwrite a published one.
 #
 # The Debian release is pinned: a new one brings a new glibc, whose sort rules
 # make Postgres warn about a collation version mismatch on existing databases
 # until their text indexes are rebuilt.
 FROM postgres:18-trixie
 
+ARG IMAGE_REVISION=1
+ARG PGVECTOR_VERSION=0.8.7
 ARG PG_TEXTSEARCH_VERSION=1.5.1
 ARG PG_PARTMAN_VERSION=5.5.0
 ARG TARGETARCH
 
+LABEL org.opencontainers.image.title="ChatVia.ai PostgreSQL" \
+      org.opencontainers.image.version="18-r${IMAGE_REVISION}" \
+      ai.chatvia.pgvector.version="${PGVECTOR_VERSION}" \
+      ai.chatvia.pg_textsearch.version="${PG_TEXTSEARCH_VERSION}" \
+      ai.chatvia.pg_partman.version="${PG_PARTMAN_VERSION}"
+
 ADD https://github.com/timescale/pg_textsearch/releases/download/v${PG_TEXTSEARCH_VERSION}/pg-textsearch-v${PG_TEXTSEARCH_VERSION}-pg18-${TARGETARCH}.zip /tmp/pg_textsearch.zip
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends unzip "postgresql-${PG_MAJOR}-pgvector" "postgresql-${PG_MAJOR}-partman=${PG_PARTMAN_VERSION}-*" \
+    && apt-get install -y --no-install-recommends unzip "postgresql-${PG_MAJOR}-pgvector=${PGVECTOR_VERSION}-*" "postgresql-${PG_MAJOR}-partman=${PG_PARTMAN_VERSION}-*" \
     && unzip -o /tmp/pg_textsearch.zip -d /tmp/pg_textsearch \
     && dpkg -i /tmp/pg_textsearch/*.deb \
     && apt-get purge -y unzip \

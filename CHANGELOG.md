@@ -25,7 +25,9 @@ theme.
   configuration (default `simple`, which works for every language). After
   changing either, run `php artisan chatvia:search:lexical-indexes`.
 - The Postgres Docker image is now `ghcr.io/chatvia/postgres`
-  (pgvector + pg_textsearch), replacing `tensorchord/vchord-suite`.
+  (pgvector + pg_textsearch), replacing `tensorchord/vchord-suite`. Its tags
+  are `18-r<revision>` (our build number; the extension versions are image
+  labels, see `docker inspect`) and the moving `18`.
 - Embedding dimensions are capped at what the HNSW index accepts: 4000 for
   `halfvec`, 2000 for `vector` (providers with larger native sizes support
   shortening).

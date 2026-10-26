@@ -21,6 +21,7 @@ use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\BackupSettings;
 use App\Admin\Settings\ServerProgramFinder;
 use BackedEnum;
+use Carbon\CarbonImmutable;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
@@ -105,8 +106,7 @@ class ManageBackupSettings extends AdminSettingsPage implements HasTable
                     help: 'Makes a backup on the schedule below. Off makes backups only when you click "Back up now".'),
                 $this->choice('frequency', 'How often', $this->frequencies(),
                     help: 'The time between two automatic backups. A backup that failed is tried again after at most 6 hours.'),
-                $this->integer('keep', 'Backups to keep', min: 1, max: 365,
-                    help: 'The newest backups that stay. An older one is deleted when a new backup is done.'),
+                $this->integer('keep', 'Backups to keep', help: 'The newest backups that stay. An older one is deleted when a new backup is done.', min: 1, max: 365),
                 Callout::make(fn (): string => 'Not found: '.collect($this->missingPrograms())->map(fn (BackupProgram $program): string => $program->value)->implode(', '))
                     ->description('Backups fail until it is installed, or its full path is entered under Programs (Advanced).')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
@@ -398,7 +398,7 @@ class ManageBackupSettings extends AdminSettingsPage implements HasTable
 
         return collect([
             'Fingerprint '.Str::of($key->fingerprint)->split(4)->implode(' '),
-            $key->expiresAt === null ? 'Does not expire' : 'Expires '.$key->expiresAt->format('Y-m-d'),
+            $key->expiresAt instanceof CarbonImmutable ? 'Expires '.$key->expiresAt->format('Y-m-d') : 'Does not expire',
             'Each backup also holds the app key, so a restore can read every saved secret.',
         ])->implode(' · ');
     }

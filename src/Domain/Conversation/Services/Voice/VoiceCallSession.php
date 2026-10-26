@@ -119,7 +119,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         $session = clone $this;
         $session->call = $call;
         $session->request = $this->factory->request($call, $agent);
-        $session->tools = $this->catalog->for($agent, $call->conversation_id, self::viewer($call));
+        $session->tools = $this->catalog->for($agent, $call->conversation_id, $this->viewer($call));
         $session->approvals = new VoiceToolApprovals;
         $session->searchesKnowledge = Chunk::query()->hasContentForAgent($agent);
 
@@ -130,7 +130,7 @@ final class VoiceCallSession implements RealtimeCallHandler
      * The signed-in person on the call, null for an anonymous visitor. Only
      * a signed-in person is offered tools that need a yes.
      */
-    private static function viewer(VoiceCallData $call): ?ChatViewerData
+    private function viewer(VoiceCallData $call): ?ChatViewerData
     {
         return match (true) {
             $call->chatter_id !== null => ChatViewerData::chatter($call->chatter_id),

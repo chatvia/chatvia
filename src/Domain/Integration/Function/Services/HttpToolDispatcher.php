@@ -86,7 +86,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         // metadata, RFC1918, loopback).
         try {
             $clientOptions = SafeUrl::pinnedClientOptions($function->webhook_url);
-        } catch (UnsafeUrlException $e) {
+        } catch (UnsafeUrlException) {
             $this->record($function, $agent, error: 'blocked unsafe webhook url');
 
             return $this->error('the webhook address of this function is not allowed.');

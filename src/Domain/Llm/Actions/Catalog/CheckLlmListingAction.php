@@ -43,7 +43,7 @@ final readonly class CheckLlmListingAction
             ->get()
             ->each(fn (Llm $llm): bool => $llm->update(['unlisted_at' => null]));
 
-        if ($refused === null || $refused->unlisted_at !== null || $listed->contains($refused->name)) {
+        if (! $refused instanceof Llm || $refused->unlisted_at !== null || $listed->contains($refused->name)) {
             return;
         }
 

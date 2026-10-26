@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Llm\Data\Speech\SpeechVoiceData;
 use Domain\Llm\Enums\SpeechFormat;
 use Domain\Llm\Exceptions\SpeechFailedException;
 use Domain\Llm\Operations\Media\ElevenLabsSpeaker;
@@ -60,7 +61,7 @@ it('offers the account\'s professional voices, and the admin\'s pick too', funct
 
     $speaker = app(ElevenLabsSpeaker::class);
 
-    expect(array_map(fn ($voice): array => $voice->toArray(), $speaker->voices()))->toBe([
+    expect(array_map(fn (SpeechVoiceData $voice): array => $voice->toArray(), $speaker->voices()))->toBe([
         ['id' => 'v2', 'label' => 'Ben (American, News)'],
         ['id' => 'v1', 'label' => 'Ana (Spanish, Narration)'],
     ])->and($speaker->defaultVoice())->toBe('v2');
@@ -68,5 +69,5 @@ it('offers the account\'s professional voices, and the admin\'s pick too', funct
     config(['services.elevenlabs.speech_voice' => 'v3']);
 
     expect($speaker->defaultVoice())->toBe('v3')
-        ->and(array_column(array_map(fn ($voice): array => $voice->toArray(), $speaker->voices()), 'id'))->toBe(['v3', 'v2', 'v1']);
+        ->and(array_column(array_map(fn (SpeechVoiceData $voice): array => $voice->toArray(), $speaker->voices()), 'id'))->toBe(['v3', 'v2', 'v1']);
 });

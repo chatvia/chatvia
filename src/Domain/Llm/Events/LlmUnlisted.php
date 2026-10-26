@@ -12,11 +12,11 @@ use Illuminate\Foundation\Events\Dispatchable;
  * the catalog's models, so the model is no longer offered and the app's own
  * tasks that used it fall back to another one.
  */
-final class LlmUnlisted
+final readonly class LlmUnlisted
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly int $llmId,
+        public int $llmId,
     ) {}
 }

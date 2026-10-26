@@ -26,7 +26,7 @@ it('sends a deactivated account to the login page instead of signing it in', fun
 it('claims an account that was never verified before signing it in', function (): void {
     $user = User::factory()->unverified()->create(['password' => 'squatter-password']);
 
-    (new MagicLinkSignIn($user->id, route('dashboard')))->run();
+    new MagicLinkSignIn($user->id, route('dashboard'))->run();
 
     $user->refresh();
 

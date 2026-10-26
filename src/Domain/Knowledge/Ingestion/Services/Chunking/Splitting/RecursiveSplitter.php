@@ -217,7 +217,7 @@ final readonly class RecursiveSplitter
      */
     private function endsShort(array $chunks): bool
     {
-        return $this->minimum > 0 && $chunks !== [] && $this->measure->length($chunks[array_key_last($chunks)]) < $this->minimum;
+        return $this->minimum > 0 && $chunks !== [] && $this->measure->length(array_last($chunks)) < $this->minimum;
     }
 
     /**

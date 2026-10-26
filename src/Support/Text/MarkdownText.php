@@ -19,9 +19,7 @@ final class MarkdownText
         return Str::of($markdown)
             ->replaceMatches('/!\[[^\]]*\]\([^)]*\)/', '')
             ->replaceMatches('/\[([^\]]*)\]\([^)]*\)/', '$1')
-            ->replaceMatches('/^[ \t]{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$/m', static function (array $match): string {
-                return Str::of($match[1])->trim()->finish(Str::endsWith($match[1], ['.', '!', '?', ':']) ? '' : '.')->value();
-            })
+            ->replaceMatches('/^[ \t]{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$/m', static fn (array $match): string => Str::of($match[1])->trim()->finish(Str::endsWith($match[1], ['.', '!', '?', ':']) ? '' : '.')->value())
             ->replaceMatches('/^[ \t]{0,3}>[ \t]?/m', '')
             ->replaceMatches('/^[ \t]*(?:[-*+]|\d{1,3}[.)])[ \t]+/m', '')
             ->replaceMatches('/^[ \t]*\|?(?:[ \t]*:?-{3,}:?[ \t]*\|?)+[ \t]*$/m', '')

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Admin\Backup\Exceptions\BackupException;
 use App\Admin\Backup\Services\RedisSnapshot;
 use Illuminate\Support\Facades\File;

@@ -68,17 +68,14 @@ class CitationMarkers
     /** Each marker as `[n]`, keeping only blocks 1 to $blocks. */
     public function normalize(string $text, int $blocks): string
     {
-        return $this->outsideCode($text, fn (string $part): string => Str::replaceMatches(self::MARKER, function (array $match) use ($blocks): string {
-            $numbers = collect(Str::of($match[1])->explode(','))
+        return $this->outsideCode($text, fn (string $part): string => Str::replaceMatches(self::MARKER,
+            // The space before a marker belongs to it: "five days [1]." reads "five days[1]."
+            fn (array $match): string => collect(Str::of($match[1])->explode(','))
                 ->map(static fn (string $number): int => (int) Str::trim($number))
                 ->filter(static fn (int $number): bool => $number >= 1 && $number <= $blocks)
                 ->unique()
                 ->map(static fn (int $number): string => '['.$number.']')
-                ->implode('');
-
-            // The space before a marker belongs to it: "five days [1]." reads "five days[1]."
-            return $numbers;
-        }, $part) ?? $part);
+                ->implode(''), $part) ?? $part);
     }
 
     /** The text without any marker. */

@@ -392,6 +392,31 @@ it('checks Firecrawl only once it has a key', function (): void {
     expect(app(AiServiceChecks::class)->check(AiService::WebPages)->state)->toBe(ServiceState::Down);
 });
 
+it('says visitor countries cannot be found while IP2Location has no key', function (): void {
+    config(['services.ip2location.key' => null]);
+
+    $status = app(AiServiceChecks::class)->check(AiService::VisitorCountry);
+
+    expect($status->state)->toBe(ServiceState::Off)
+        ->and($status->summary)->toBe('Not set up. The country of visitors cannot be found.');
+});
+
+it('checks the IP2Location key with one lookup, the key as a bearer token', function (): void {
+    config(['services.ip2location.key' => 'ip2-key', 'services.ip2location.endpoint' => 'https://api.ip2location.io']);
+    Http::fake(['api.ip2location.io/*' => Http::sequence()
+        ->push(['ip' => '8.8.8.8', 'country_code' => 'US'])
+        ->push(['error' => ['error_code' => 10000]], 401)]);
+
+    $status = app(AiServiceChecks::class)->check(AiService::VisitorCountry);
+
+    expect($status->state)->toBe(ServiceState::Running)
+        ->and($status->facts)->toBe(['IP2Location']);
+    Http::assertSent(fn (Request $request): bool => $request->hasHeader('Authorization', 'Bearer ip2-key')
+        && ! Str::contains($request->url(), 'ip2-key'));
+
+    expect(app(AiServiceChecks::class)->check(AiService::VisitorCountry)->state)->toBe(ServiceState::Down);
+});
+
 it('reloads the saved settings from the Caches card', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get(Status::getUrl())

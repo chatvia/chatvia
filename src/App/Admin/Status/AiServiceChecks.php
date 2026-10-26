@@ -8,6 +8,7 @@ use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiProviderUsage;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use App\Admin\Settings\FirecrawlCheck;
+use App\Admin\Settings\Ip2LocationCheck;
 use App\Admin\Status\Data\ServiceStatusData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingCheck;
@@ -20,7 +21,8 @@ use Throwable;
  * Checks each outside service of the Status page ({@see AiService}) with the
  * saved keys, through the checks Settings uses: a provider's key with a call
  * that costs nothing (its model list) or next to nothing, the embedding
- * service with a real embedding, and Firecrawl with its credit usage.
+ * service with a real embedding, Firecrawl with its credit usage, and
+ * IP2Location with one lookup.
  *
  * A provider that serves several services is called once.
  */
@@ -34,6 +36,7 @@ final class AiServiceChecks
         private readonly AiProviderCheck $providers,
         private readonly EmbeddingCheck $embeddings,
         private readonly FirecrawlCheck $firecrawl,
+        private readonly Ip2LocationCheck $ip2location,
     ) {}
 
     public function check(AiService $service): ServiceStatusData
@@ -48,6 +51,7 @@ final class AiServiceChecks
                 AiService::Voice => $this->onProvider($service, AiCapability::Voice),
                 AiService::ReadAloud => $this->onProvider($service, AiCapability::TextToSpeech),
                 AiService::WebPages => $this->webPages(),
+                AiService::VisitorCountry => $this->visitorCountry(),
             };
         } catch (Throwable $e) {
             return new ServiceStatusData(ServiceState::Down, Str::limit($e->getMessage(), 200));
@@ -111,6 +115,17 @@ final class AiServiceChecks
         }
 
         return $this->fromCheck($this->firecrawl->check((string) $key), ['Firecrawl']);
+    }
+
+    private function visitorCountry(): ServiceStatusData
+    {
+        $key = config('services.ip2location.key');
+
+        if (blank($key)) {
+            return new ServiceStatusData(ServiceState::Off, __('Not set up. The country of visitors cannot be found.'));
+        }
+
+        return $this->fromCheck($this->ip2location->check((string) $key), ['IP2Location']);
     }
 
     /** A service that runs on one provider, picked in Settings (or the first connected one). */

@@ -72,8 +72,17 @@ class StreamRequestDataFactory
             referrerUrl: $this->referrer($request),
             pageUrl: $request->url(),
             locale: $this->locale($request),
-            requestId: $this->scopedRequestId('chat', $request->input('request_id'), $agent->external_id, $externalSessionId, $conversationId),
+            requestId: $this->chatRequestId($agent, $externalSessionId, $conversationId, $request->input('request_id')),
         );
+    }
+
+    /**
+     * The scoped id of a hosted-chat turn, as its stream knows it: the stop
+     * endpoint names the turn it stops with the same id.
+     */
+    public function chatRequestId(Agent $agent, string $externalSessionId, string $conversationId, mixed $requestId): ?string
+    {
+        return $this->scopedRequestId('chat', $requestId, $agent->external_id, $externalSessionId, $conversationId);
     }
 
     /**

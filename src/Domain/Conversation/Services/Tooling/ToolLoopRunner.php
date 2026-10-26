@@ -13,6 +13,7 @@ use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
+use Domain\Conversation\Services\Turn\TurnStops;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
@@ -73,6 +74,7 @@ class ToolLoopRunner
         private readonly ToolResultGuard $resultGuard,
         private readonly AiCallTags $tags,
         private readonly ToolCallFactory $calls,
+        private readonly TurnStops $stops = new TurnStops,
     ) {}
 
     /**
@@ -110,6 +112,8 @@ class ToolLoopRunner
         $settings = $this->completionSettings($extraSettings, $toolDefinitions);
 
         for ($iteration = $startIteration; $iteration < $maxIterations; $iteration++) {
+            // A stopped turn asks the model nothing more.
+            $this->stops->throwIfStopped($context);
             $context->offeredToolNames = $offeredNames;
 
             yield from $this->streamCompletion($context, $provider, $modelName, $llmMessages, $settings);
@@ -494,6 +498,9 @@ class ToolLoopRunner
         ToolCallOutcome $outcome = ToolCallOutcome::Auto,
         bool $decidedByPerson = false,
     ): Generator {
+        // No tool starts once the visitor stopped the turn.
+        $this->stops->throwIfStopped($context);
+
         $assistantId = $context->assistantMessageId;
 
         // Built-in capabilities are plumbing the chat never shows as a step.

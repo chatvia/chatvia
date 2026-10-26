@@ -154,8 +154,8 @@ function streamFirstReply() {
     });
 }
 
-const FIRST_REPLY_CHECK_EVERY_MS = 2000;
-const FIRST_REPLY_WAIT_MS = 3 * 60 * 1000;
+const REPLY_CHECK_EVERY_MS = 2000;
+const REPLY_WAIT_MS = 3 * 60 * 1000;
 let unmounted = false;
 onUnmounted(() => (unmounted = true));
 
@@ -168,37 +168,43 @@ async function replyStillRunning(): Promise<boolean> {
     }
 }
 
+function lastIsPrompt(): boolean {
+    return messages.value[messages.value.length - 1]?.role === 'user';
+}
+
 /**
- * A reload while the first reply was streaming lands here with only the
- * visitor's message. While the server is still writing that reply, the page
- * waits for it instead of asking for a second answer, which would run its
- * tools (a generated image) again. When no reply is coming (the turn was cut
- * off before it wrote anything, or never started), it asks right away.
+ * A reload while a reply was streaming lands here with the visitor's message
+ * last. The server finishes that reply whatever the browser does, so the page
+ * waits for it (showing it is being written) instead of asking for a second
+ * answer, which would run its tools (a generated image) again. The first
+ * reply of a new chat is asked for when none is coming: the turn was stopped
+ * before it wrote anything, or never started.
  */
-async function resumeFirstReply() {
-    const until = Date.now() + FIRST_REPLY_WAIT_MS;
+async function resumeReply() {
+    const isFirstTurn = messages.value.length === 1;
+    const until = Date.now() + REPLY_WAIT_MS;
 
     while (!unmounted && Date.now() < until && (await replyStillRunning())) {
-        messages.value.splice(1, messages.value.length, { role: 'assistant', content: '', id: 0 });
-        await new Promise((resolve) => setTimeout(resolve, FIRST_REPLY_CHECK_EVERY_MS));
+        if (lastIsPrompt()) messages.value.push({ role: 'assistant', content: '', id: 0 });
+        await new Promise((resolve) => setTimeout(resolve, REPLY_CHECK_EVERY_MS));
     }
 
     if (unmounted) return;
 
-    // The turn just ended: its reply is in the history now, if it kept one.
+    // The turn has ended: its reply is in the history now, if it kept one.
     try {
         await transcript.load();
     } catch {
-        // Ask for the answer below.
+        // Keep what is shown.
     }
 
-    if (messages.value.length > 1) {
+    if (!lastIsPrompt()) {
         void nextTick(() => scroll.scrollToBottom());
         void transcript.loadSources();
         return;
     }
 
-    streamFirstReply();
+    if (isFirstTurn) streamFirstReply();
 }
 
 onMounted(async () => {
@@ -210,11 +216,12 @@ onMounted(async () => {
         await transcript.load();
         loadingMessages.value = false;
 
-        if (messages.value.length === 1) {
-            // Home sends a new conversation here once, flagged: only that
-            // visit asks for the first reply.
-            if (isNewVisit) streamFirstReply();
-            else void resumeFirstReply();
+        // Home sends a new conversation here once, flagged: only that visit
+        // asks for the first reply straight away.
+        if (messages.value.length === 1 && isNewVisit) {
+            streamFirstReply();
+        } else if (lastIsPrompt()) {
+            void resumeReply();
         } else {
             void nextTick(() => scroll.scrollToBottom());
         }

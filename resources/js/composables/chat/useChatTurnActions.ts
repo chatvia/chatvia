@@ -78,6 +78,9 @@ export function useChatTurnActions({ conversationId, pickModel, embedded, transc
      * never landed gets a fresh reply slot after it.
      */
     async function reissue(userMessageId: MessageId, assistantMessageId: MessageId | undefined, overrideContent: string | null = null) {
+        // A reply still being written is stopped first, so it cannot land on
+        // the pair deleted next.
+        await turn.stopAndWait();
         const result = await deletePairOnServer(userMessageId, assistantMessageId);
         if (!result) return;
 
@@ -117,7 +120,8 @@ export function useChatTurnActions({ conversationId, pickModel, embedded, transc
         turn.startTurn({ message: prompt.content, userIndex: errorIndex - 1, assistantIndex: errorIndex });
     }
 
-    function deleteMessage(messageId: MessageId) {
+    async function deleteMessage(messageId: MessageId) {
+        await turn.stopAndWait();
         // The rows shift, so the pinned index no longer points at the same turn.
         scroll.unpin();
         if (transcript.removePair(messageId)) goToNewChat();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Chat\Stream;
 
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
+use App\Http\Controllers\Chat\Conversations\StopTurnController;
 use App\Http\Requests\Chat\ChatStreamRequest;
 use App\Http\Responses\SseResponder;
 use Domain\Agent\Models\Agent;
@@ -15,8 +16,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Streams the agent's answer to a hosted-chat message as server-sent events.
- * The turn is marked as running for its whole length ({@see RunningTurns}),
- * so a chat reloaded mid-reply waits for this answer instead of asking again.
+ * The turn runs to the end even when the browser goes away (a reload, a
+ * closed tab), and is marked as running for its whole length
+ * ({@see RunningTurns}), so a chat reloaded mid-reply waits for this answer
+ * instead of asking again. The Stop button ends a turn through
+ * {@see StopTurnController}.
  */
 readonly class ChatStreamController
 {
@@ -32,7 +36,7 @@ readonly class ChatStreamController
     {
         $data = $this->factory->forChat($request, $agent, $this->session->findOrStart($agent), $conversationId);
 
-        return $this->sse->respond($this->runningTurns->track(
+        return $this->sse->respondUntilFinished($this->runningTurns->track(
             $conversationId,
             fn (): Generator => $this->chatStreamService->stream($data),
         ));

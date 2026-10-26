@@ -5,6 +5,7 @@ use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Tests\Support\Http\BufferedSseResponder;
 
 /**
@@ -126,4 +127,70 @@ it('keeps the turn running after the browser goes away, so the generator can sav
     } finally {
         ignore_user_abort((bool) $before);
     }
+});
+
+/** A responder whose browser leaves after the given number of events. */
+function sseLeavingAfter(int $events): SseResponder
+{
+    return new class($events) extends SseResponder
+    {
+        private int $sent = 0;
+
+        public function __construct(private readonly int $leaveAfter) {}
+
+        protected function clientGone(): bool
+        {
+            return $this->sent >= $this->leaveAfter;
+        }
+
+        /** Counts what reached the browser, as the real write does. */
+        public function count(): void
+        {
+            $this->sent++;
+        }
+    };
+}
+
+it('reads a hosted-chat turn to the end after the browser left, and tells it nothing', function (): void {
+    $responder = sseLeavingAfter(1);
+    $read = [];
+    $events = (function () use (&$read, $responder): Generator {
+        foreach (['a', 'b', 'c'] as $text) {
+            $read[] = $text;
+            yield StreamEvent::delta('msg-1', $text);
+            $responder->count();
+        }
+    })();
+
+    ob_start();
+    Closure::bind(function (Generator $events): void {
+        $this->pumpToEnd($events);
+    }, $responder, SseResponder::class)($events);
+    $output = (string) ob_get_clean();
+
+    expect($read)->toBe(['a', 'b', 'c'])
+        ->and(Str::substrCount($output, '"type":"delta"'))->toBe(1);
+    Exceptions::assertNothingReported();
+});
+
+it('still tells other surfaces\' turns the browser left', function (): void {
+    $responder = sseLeavingAfter(1);
+    $told = false;
+    $events = (function () use (&$told, $responder): Generator {
+        try {
+            yield StreamEvent::delta('msg-1', 'a');
+            $responder->count();
+            yield StreamEvent::delta('msg-1', 'b');
+        } catch (ClientDisconnected) {
+            $told = true;
+        }
+    })();
+
+    ob_start();
+    Closure::bind(function (Generator $events): void {
+        $this->pumpGenerator($events);
+    }, $responder, SseResponder::class)($events);
+    ob_end_clean();
+
+    expect($told)->toBeTrue();
 });

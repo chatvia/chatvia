@@ -8,6 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Exceptions\CapabilityProviderUnavailableException;
 use Domain\Integration\Connector\Exceptions\CapabilityRequiresConnectorException;
+use Domain\Integration\Connector\Exceptions\CapabilityUnavailableException;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -42,8 +43,9 @@ class EnableCapabilitiesThroughConnectorAction
             try {
                 $this->enable->execute($agent, $capability);
                 $this->choose->execute($agent, $capability, $server->connector_slug);
-            } catch (CapabilityRequiresConnectorException|CapabilityProviderUnavailableException) {
-                // The connection is switched off or failing: nothing to turn on yet.
+            } catch (CapabilityRequiresConnectorException|CapabilityProviderUnavailableException|CapabilityUnavailableException) {
+                // The connection is switched off or failing, or the install has
+                // no license key for capabilities: nothing to turn on yet.
             } catch (McpException $e) {
                 report($e);
             }

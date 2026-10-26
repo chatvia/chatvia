@@ -8,8 +8,8 @@ use RuntimeException;
 
 /**
  * A capability the install does not offer right now: its service is not set
- * up in the admin panel (Image generation without an image service), so an
- * agent cannot turn it on.
+ * up in the admin panel (Image generation without an image service), or the
+ * install has no license key, so an agent cannot turn it on.
  */
 class CapabilityUnavailableException extends RuntimeException
 {

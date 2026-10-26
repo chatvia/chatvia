@@ -4557,5 +4557,15 @@
         "used": "Brukte {label}",
         "show": "Vis trinn",
         "hide": "Skjul trinn"
+    },
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Krever en lisensnøkkel",
+        "get_key": "Få en lisensnøkkel",
+        "api_body": "API-et krever en lisensnøkkel på denne ChatVia.ai-installasjonen. Nøkler du har laget før, beholdes, og de virker igjen når installasjonen har en lisens.",
+        "teams_body": "Flere team krever en lisensnøkkel på denne ChatVia.ai-installasjonen. Det første teamet ditt og rollene virker fortsatt, og team du har laget før, forblir som de er.",
+        "agents_of_limit": "{count} av {limit} agenter uten lisensnøkkel",
+        "agents_body": "Uten en lisensnøkkel kan et arbeidsområde ha {limit} agenter. Slett en agent, eller legg til en lisensnøkkel på denne ChatVia.ai-installasjonen.",
+        "voice_hint": "Krever en lisensnøkkel på denne ChatVia.ai-installasjonen."
     }
 }

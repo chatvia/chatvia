@@ -18,6 +18,8 @@ use Tests\Support\Widget\EmbeddedWidget;
  * 410. SubmitFormActionTest owns what is stored.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->agent = Agent::factory()->create(['is_public' => true]);
     EmbeddedWidget::allowSite($this->agent);
 

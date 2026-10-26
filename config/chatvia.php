@@ -41,6 +41,11 @@ return [
     | the daily check then removes it. `enterprise` is worked out from the
     | key by SettingsConfig; setting it here has no effect.
     |
+    | `licensed` says whether the install holds any valid key. Without one
+    | the free-use limits apply (Support\License\FreeTier: one workspace,
+    | ten agents, 10,000 replies a month, no API, voice, capabilities or
+    | forms, default splitting). SettingsConfig works it out too.
+    |
     | `public_key` checks the keys. It is fixed here, never in .env or the
     | admin panel, because whoever sets it could sign their own keys. While
     | it is empty, no key is valid. `buy_url`, `manage_url` and `api_url`
@@ -52,6 +57,7 @@ return [
     'license' => [
         'key' => null,
         'enterprise' => false,
+        'licensed' => false,
         'public_key' => 'Syv1BerjH1Daz/uepuAgSjxf0uyyzbjzKyc2osApnQc=',
         'buy_url' => env('CHATVIA_URI', 'https://chatvia.ai').'/license',
         'manage_url' => env('CHATVIA_URI', 'https://chatvia.ai').'/license/manage',

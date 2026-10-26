@@ -4557,5 +4557,15 @@
         "used": "Använde {label}",
         "show": "Visa steg",
         "hide": "Dölj steg"
+    },
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Kräver en licensnyckel",
+        "get_key": "Skaffa en licensnyckel",
+        "api_body": "API:t kräver en licensnyckel på den här ChatVia.ai-installationen. Nycklar du har skapat tidigare sparas och fungerar igen när installationen har en licens.",
+        "teams_body": "Fler team kräver en licensnyckel på den här ChatVia.ai-installationen. Ditt första team och dess roller fungerar fortfarande, och team du skapat tidigare stannar som de är.",
+        "agents_of_limit": "{count} av {limit} agenter utan licensnyckel",
+        "agents_body": "Utan en licensnyckel kan en arbetsyta ha {limit} agenter. Ta bort en agent, eller lägg till en licensnyckel på den här ChatVia.ai-installationen.",
+        "voice_hint": "Kräver en licensnyckel på den här ChatVia.ai-installationen."
     }
 }

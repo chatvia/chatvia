@@ -12,6 +12,8 @@
 */
 
 use App\Admin\Settings\BrandSettings;
+use App\Admin\Settings\ConfigKey;
+use App\Admin\Settings\SettingsConfig;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
@@ -73,6 +75,12 @@ pest()
     // The temp files a test made with tempTestFile() go, passed or failed.
     ->afterEach(fn () => TempTestFiles::delete())
     ->in('Feature', 'Unit');
+
+// The public API needs a license key (a free-use limit): its tests start with
+// one. EnsureApiLicenseTest covers the gate itself.
+pest()
+    ->beforeEach(fn () => withLicense())
+    ->in('Feature/App/Http/Controllers/Api');
 
 // Eval harnesses (e.g. tool-routing retrieval quality) need the full app + a
 // transactional DB like Feature/Unit, but run the REAL embeddings provider and
@@ -432,17 +440,55 @@ function saveSettings(string $class, array $values): void
 }
 
 /**
+ * Gives this install a Pro license: a test key activated for the host of
+ * `app.url`, saved as the admin panel saves it. It lifts the free-use limits.
+ */
+function withLicense(): void
+{
+    saveLicenseKey(LicenseKeys::activatedFor((string) Uri::of((string) config('app.url'))->host()));
+}
+
+/**
  * Gives this install an Enterprise license: an Enterprise test key activated
  * for the host of `app.url`, saved as the admin panel saves it, so the flag
  * survives every later SettingsConfig apply (before jobs, after saves).
  */
 function withEnterpriseLicense(): void
 {
+    saveLicenseKey(LicenseKeys::enterpriseFor((string) Uri::of((string) config('app.url'))->host()));
+}
+
+/**
+ * Removes this install's license key, as the admin panel does: the free-use
+ * limits apply again.
+ */
+function withoutLicense(): void
+{
+    saveLicenseKey(null);
+}
+
+/**
+ * Saves $key (null removes it) as the admin panel saves it. Saving re-applies every setting,
+ * which would also undo the config a test (or TestCase::setUp) set on other
+ * settings keys, such as the fake AI provider key; those keep their values.
+ * The license flags, the credit and the Splitting options follow the key.
+ */
+function saveLicenseKey(?string $key): void
+{
     LicenseKeys::trust();
 
-    saveSettings(BrandSettings::class, [
-        'license_key' => LicenseKeys::enterpriseFor((string) Uri::of((string) config('app.url'))->host()),
-    ]);
+    $kept = collect(app(SettingsConfig::class)->classes())
+        ->flatMap(fn (string $class): array => array_merge(...array_values($class::configKeys())))
+        ->map(fn (ConfigKey $configKey): string => $configKey->key)
+        ->reject(fn (string $configKey): bool => Str::startsWith($configKey, 'chatvia.license.')
+            || $configKey === 'chatvia.powered_by'
+            || in_array($configKey, SettingsConfig::SPLITTING_KEYS, true))
+        ->mapWithKeys(fn (string $configKey): array => [$configKey => config($configKey)])
+        ->all();
+
+    saveSettings(BrandSettings::class, ['license_key' => $key]);
+
+    config($kept);
 }
 
 /**

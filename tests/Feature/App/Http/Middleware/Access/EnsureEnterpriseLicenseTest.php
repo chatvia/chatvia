@@ -19,7 +19,7 @@ it('refuses an Enterprise route without any key', function (): void {
         ->assertForbidden();
 });
 
-it('refuses an Enterprise route with a Branding key', function (): void {
+it('refuses an Enterprise route with a Pro key', function (): void {
     LicenseKeys::trust();
     saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::activatedFor('localhost')]);
 

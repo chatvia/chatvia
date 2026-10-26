@@ -4,8 +4,10 @@ namespace Domain\Agent\Actions\Account;
 
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Data\Account\CreateApiAgentData;
+use Domain\Agent\Exceptions\AgentLimitReachedException;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
+use Domain\Agent\Services\AgentAllowance;
 use Domain\Agent\Services\AgentLocator as AgentService;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Membership\Team\Actions\Team\ResolveOwnedTeamAction;
@@ -15,21 +17,32 @@ use Support\Enums\CreatedVia;
 /**
  * Create an agent through the public API. Resolves the target team + (optional)
  * reusable prompt, then mints the agent and seeds the default topic catalog
- * inside a transaction.
+ * inside a transaction. Without a license key a workspace holds ten agents;
+ * the workspace row is locked so two creates at once cannot both pass.
  */
 class CreateApiAgentAction
 {
     public function __construct(
         private readonly ResolveOwnedTeamAction $resolveTeam,
         private readonly ResolveAgentPromptIdAction $resolvePromptId,
+        private readonly AgentAllowance $allowance,
     ) {}
 
+    /**
+     * @throws AgentLimitReachedException
+     */
     public function execute(Workspace $workspace, CreateApiAgentData $data): Agent
     {
         $team = $this->resolveTeam->execute($workspace, $data->team_id);
         $agentPromptId = $this->resolvePromptId->execute($workspace, $data->prompt_id);
 
         return DB::transaction(function () use ($data, $workspace, $team, $agentPromptId): Agent {
+            Workspace::query()->whereKey($workspace->id)->lockForUpdate()->first();
+
+            if (! $this->allowance->canCreate($workspace)) {
+                throw AgentLimitReachedException::make((int) $this->allowance->limit());
+            }
+
             $externalId = AgentService::generateRandomExternalId();
 
             /** @var Agent $agent */

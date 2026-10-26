@@ -19,6 +19,8 @@ use Inertia\Testing\AssertableInertia;
  * form is saved even when switching the capability on fails.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
 

@@ -1,10 +1,14 @@
 <script lang="ts" setup>
+// Without a license key every capability is off in chats and cannot be turned
+// on: the page explains it and links to buy a key (turning one off still works).
 import { type AgentCapabilityRow, chooseCapabilityProvider, disableCapability, enableCapability } from '@/api/agentCapabilities';
 import { errorMessage } from '@/api/http';
+import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useConnectorText } from '@/composables/useConnectorText';
+import { useLicense } from '@/composables/useLicense';
 import { useLocaleDate } from '@/composables/useLocaleDate';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { connectorLogoUrl } from '@/lib/connectorLogo';
@@ -23,6 +27,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const { connectorName, connectorDescription } = useConnectorText();
 const { intlLocale } = useLocaleDate();
+const { licensed } = useLicense();
 
 // Local, reactive copy so toggles update in place.
 const rows = ref<AgentCapabilityRow[]>(props.capabilities.map((row) => ({ ...row })));
@@ -84,6 +89,8 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
     <AgentLayout :agent="agent" :title="t('agents.capabilities.page_title')" :description="t('agents.capabilities.description')">
         <div class="flex justify-center">
             <div class="w-full max-w-4xl space-y-6">
+                <LicenseNotice v-if="!licensed" :body="t('license.capabilities_body')" />
+
                 <div v-if="rows.length === 0" class="bg-card text-muted-foreground rounded-lg border py-12 text-center text-sm">
                     {{ t('agents.capabilities.empty') }}
                 </div>
@@ -110,7 +117,10 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
                                         : t('agents.capabilities.requires_connector', { names: providerNames(row) })
                                 }}
                             </p>
-                            <p v-if="!row.connector.available" class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                            <p
+                                v-if="!row.connector.available && (licensed || !row.connector.needsLicense)"
+                                class="text-muted-foreground mt-1 flex items-center gap-1 text-xs"
+                            >
                                 <Ban class="h-3.5 w-3.5 shrink-0" />
                                 {{ t('agents.capabilities.turned_off_by_admin') }}
                             </p>

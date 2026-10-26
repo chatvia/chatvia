@@ -15,12 +15,20 @@ beforeEach(function (): void {
 });
 
 it('shows the workspace values in use', function (): void {
+    withLicense();
+
     adminPage(ManageWorkspaceSettings::class, $this->admin)
         ->assertSee('Sign-up open · no message limit')
         ->assertSee('Kept 366 days')
         ->assertSee('Sign-up and limits')
         ->assertSee('Download on · Delete on')
         ->assertSchemaStateSet(['registration_enabled' => true, 'new_workspace_message_limit' => null]);
+});
+
+it('says sign-up is closed without a license key once the workspace exists', function (): void {
+    adminPage(ManageWorkspaceSettings::class, $this->admin)
+        ->assertSee('Sign-up closed · no message limit')
+        ->assertSee('One workspace without a license key');
 });
 
 it('saves the workspace values, an off switch included', function (): void {

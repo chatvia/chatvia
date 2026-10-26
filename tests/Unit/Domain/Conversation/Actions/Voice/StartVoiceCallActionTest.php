@@ -36,6 +36,8 @@ use Tests\Support\Conversation\Voice\VoiceCalls;
  * OpenAI's realtime endpoint is faked.
  */
 beforeEach(function (): void {
+    withLicense();
+
     connectAiProviders(AiProvider::OpenAi);
     config(['chatvia.ai.voice' => 'auto', 'horizon.defaults.voice.maxProcesses' => 1]);
     Queue::fake();

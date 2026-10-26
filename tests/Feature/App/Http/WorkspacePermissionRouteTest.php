@@ -87,6 +87,7 @@ describe('mutations are gated too (not just the section pages)', function (): vo
 
     it('blocks a teammate without account.api_keys from creating a key, but allows one with it', function (): void {
         // Valid body, so validation passes and the request reaches the gate.
+        withLicense();
         $without = teammateWithPermissions($this->owner, []);
         $this->actingAs($without)
             ->post(route('integrations.api-keys.store'), ['name' => 'CI token'])

@@ -72,6 +72,9 @@ class ConnectorData extends Data
         // False while the install does not offer it: a capability whose
         // service an admin has not set up (Image generation, Audio generation).
         public bool $available = true,
+        // True when the install needs a license key to offer it: all the
+        // capabilities do. With `available` false it says why it is off.
+        public bool $needsLicense = false,
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).

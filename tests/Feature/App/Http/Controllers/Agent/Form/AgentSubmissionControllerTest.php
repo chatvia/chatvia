@@ -9,6 +9,8 @@ use Domain\Form\Models\FormSubmission;
  * go, and a form of another agent of the workspace is a 404.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner);
     $this->form = FormDefinition::factory()->forAgent($this->agent)->create();

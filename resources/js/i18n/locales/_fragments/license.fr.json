@@ -1,0 +1,12 @@
+{
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Clé de licence requise",
+        "get_key": "Obtenir une clé de licence",
+        "api_body": "L'API demande une clé de licence sur cette installation ChatVia.ai. Les clés créées avant sont gardées et fonctionnent de nouveau dès que l'installation a une licence.",
+        "teams_body": "D'autres équipes demandent une clé de licence sur cette installation ChatVia.ai. Votre première équipe et ses rôles fonctionnent toujours, et les équipes créées avant restent telles quelles.",
+        "agents_of_limit": "{count} sur {limit} agents sans clé de licence",
+        "agents_body": "Sans clé de licence, un espace de travail peut avoir {limit} agents. Supprimez un agent ou ajoutez une clé de licence à cette installation ChatVia.ai.",
+        "voice_hint": "Demande une clé de licence sur cette installation ChatVia.ai."
+    }
+}

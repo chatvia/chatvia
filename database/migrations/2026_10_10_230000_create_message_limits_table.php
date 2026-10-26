@@ -15,7 +15,7 @@ return new class extends Migration
             // (their own messages): exactly one of the two is set.
             $table->foreignId('workspace_id')->nullable()->unique()->constrained()->cascadeOnDelete();
             $table->foreignId('chatter_id')->nullable()->unique()->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('monthly_limit');
+            $table->unsignedInteger('monthly_limit')->nullable();
             $table->unsignedInteger('messages_used')->default(0);
             $table->timestamp('period_starts_at');
             $table->timestamps();

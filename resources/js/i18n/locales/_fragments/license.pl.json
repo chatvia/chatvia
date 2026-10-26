@@ -1,0 +1,12 @@
+{
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Wymaga klucza licencyjnego",
+        "get_key": "Zdobądź klucz licencyjny",
+        "api_body": "API wymaga klucza licencyjnego w tej instalacji ChatVia.ai. Klucze utworzone wcześniej zostają i znów działają, gdy instalacja ma licencję.",
+        "teams_body": "Kolejne zespoły wymagają klucza licencyjnego w tej instalacji ChatVia.ai. Twój pierwszy zespół i jego role nadal działają, a zespoły utworzone wcześniej zostają bez zmian.",
+        "agents_of_limit": "{count} z {limit} agentów bez klucza licencyjnego",
+        "agents_body": "Bez klucza licencyjnego obszar roboczy może mieć {limit} agentów. Usuń agenta albo dodaj klucz licencyjny do tej instalacji ChatVia.ai.",
+        "voice_hint": "Wymaga klucza licencyjnego w tej instalacji ChatVia.ai."
+    }
+}

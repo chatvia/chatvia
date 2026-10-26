@@ -10,17 +10,21 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Support\Collection;
+use Support\License\Entitlements;
 
 /**
  * One page of an agent's chat log, newest activity first, narrowed by the
  * dashboard's filters. Keyset-paged: the dashboard's "Load more" sends back the
  * page's `next_cursor`, so there is no total count and no OFFSET scan. Each
  * row carries its first message as an excerpt, and the page lists which of its
- * conversations captured a lead (a submitted form).
+ * conversations captured a lead (a submitted form); none without a license
+ * key, since leads need one.
  */
 class ListChatLogConversationsAction
 {
     private const int PER_PAGE = 10;
+
+    public function __construct(private readonly Entitlements $entitlements) {}
 
     public function execute(Agent $agent, ChatLogFiltersData $filters): ChatLogConversationsResourceData
     {
@@ -70,7 +74,7 @@ class ListChatLogConversationsAction
      */
     private function leadConversationIds(Agent $agent, Collection $conversationIds): Collection
     {
-        if ($conversationIds->isEmpty()) {
+        if ($conversationIds->isEmpty() || ! $this->entitlements->capabilities()) {
             return collect();
         }
 

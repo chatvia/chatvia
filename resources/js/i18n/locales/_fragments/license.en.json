@@ -1,0 +1,14 @@
+{
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Needs a license key",
+        "get_key": "Get a license key",
+        "api_body": "The API needs a license key on this ChatVia.ai install. Keys you made earlier are kept, and they work again once the install has a license.",
+        "teams_body": "More teams need a license key on this ChatVia.ai install. Your first team and its roles keep working, and teams you made earlier stay as they are.",
+        "agents_of_limit": "{count} of {limit} agents without a license key",
+        "agents_body": "Without a license key, a workspace can have {limit} agents. Delete an agent, or add a license key to this ChatVia.ai install.",
+        "voice_hint": "Needs a license key on this ChatVia.ai install.",
+        "capabilities_body": "Capabilities need a license key on this ChatVia.ai install. Without one, agents do not use them in chats. Your settings are kept, and they work again once the install has a license.",
+        "forms_body": "Forms and leads need a license key on this ChatVia.ai install. Your forms and the leads you collected are kept, and they come back once the install has a license."
+    }
+}

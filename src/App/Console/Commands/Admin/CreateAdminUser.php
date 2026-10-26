@@ -7,6 +7,7 @@ namespace App\Console\Commands\Admin;
 use App\Identity\Workspace\Actions\Account\CreateAdminUserAction;
 use App\Identity\Workspace\Data\Account\CreateAdminUserData;
 use App\Identity\Workspace\Exceptions\EmailAlreadyTakenException;
+use App\Identity\Workspace\Exceptions\WorkspaceLimitReachedException;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -61,6 +62,10 @@ class CreateAdminUser extends Command implements PromptsForMissingInput
             }
 
             $this->error('User with this email already exists!');
+
+            return self::FAILURE;
+        } catch (WorkspaceLimitReachedException $e) {
+            $this->error($e->getMessage());
 
             return self::FAILURE;
         }

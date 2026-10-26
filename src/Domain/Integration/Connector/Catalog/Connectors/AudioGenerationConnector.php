@@ -48,6 +48,6 @@ final class AudioGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return app(AudioGeneration::class)->isEnabled();
+        return parent::isAvailable() && app(AudioGeneration::class)->isEnabled();
     }
 }

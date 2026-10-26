@@ -95,6 +95,7 @@ final readonly class SetupPageProps
             'voice' => [
                 'inputAvailable' => $this->transcriber->isEnabled(),
                 'available' => $this->voice->isSetUp(),
+                'licensed' => $this->voice->isLicensed(),
                 'default' => RealtimeVoice::configured()->value,
                 'choices' => array_column(RealtimeVoice::cases(), 'value'),
             ],

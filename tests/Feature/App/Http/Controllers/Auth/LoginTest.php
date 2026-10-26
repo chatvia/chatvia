@@ -12,6 +12,10 @@ use Inertia\Testing\AssertableInertia;
  * and address. The rules for deactivated accounts, chatters and two-factor
  * are in LoginHardeningTest.
  */
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceAllowanceTest.
+beforeEach(fn () => withLicense());
+
 it('shows the login page, with the sign-up link only while sign-up is open', function (bool $open): void {
     config(['chatvia.registration_enabled' => $open]);
 

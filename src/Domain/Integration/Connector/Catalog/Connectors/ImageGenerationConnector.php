@@ -47,6 +47,6 @@ final class ImageGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return app(ImageGenerator::class)->isEnabled();
+        return parent::isAvailable() && app(ImageGenerator::class)->isEnabled();
     }
 }

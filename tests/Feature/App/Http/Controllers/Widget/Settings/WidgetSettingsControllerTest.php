@@ -11,6 +11,8 @@ use Tests\Support\Widget\EmbeddedWidget;
  * what was wrong; and what removing a chat does.
  */
 beforeEach(function (): void {
+    withLicense();
+
     connectAiProviders(AiProvider::OpenAi);
     config(['chatvia.ai.voice' => 'auto']);
 

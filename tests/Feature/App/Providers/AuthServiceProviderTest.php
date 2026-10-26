@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
  * stops working at once.
  */
 beforeEach(function (): void {
+    withLicense();
+
     $this->owner = User::factory()->create();
     ownerTeam($this->owner);
 });

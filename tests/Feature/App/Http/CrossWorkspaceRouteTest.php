@@ -52,6 +52,8 @@ use Illuminate\Support\Str;
 */
 
 beforeEach(function (): void {
+    withLicense();
+
     Storage::fake();
     $this->withoutMiddleware(ThrottleRequests::class);
     // Swept like every other source, so their routes must be on.

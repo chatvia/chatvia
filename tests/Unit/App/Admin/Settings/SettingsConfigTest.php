@@ -153,10 +153,41 @@ it('unlocks the Enterprise features only with an Enterprise key activated for th
     expect(config('chatvia.license.enterprise'))->toBe($enterprise);
 })->with([
     'Enterprise key for this domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.acme.com'), true],
-    'Branding key for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), false],
+    'Pro key for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), false],
     'Enterprise key for another domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.other.com'), false],
     'no key' => [null, false],
 ]);
+
+it('lifts the free-use limits with any key activated for this domain', function (?string $key, bool $licensed): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'https://chat.acme.com']);
+
+    $settings = app(BrandSettings::class);
+    $settings->license_key = $key;
+    $settings->save();
+
+    expect(config('chatvia.license.licensed'))->toBe($licensed);
+})->with([
+    'Pro key for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), true],
+    'Enterprise key for this domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.acme.com'), true],
+    'Pro key for another domain' => fn (): array => [LicenseKeys::activatedFor('chat.other.com'), false],
+    'no key' => [null, false],
+]);
+
+it('splits with the default options without a key, and keeps the saved ones for later', function (): void {
+    $default = config('chatvia.ai.chunking.size');
+
+    $knowledge = app(KnowledgeSettings::class);
+    $knowledge->chunk_size = $default + 123;
+    $knowledge->save();
+
+    expect(config('chatvia.ai.chunking.size'))->toBe($default)
+        ->and(app(KnowledgeSettings::class)->chunk_size)->toBe($default + 123);
+
+    withLicense();
+
+    expect(config('chatvia.ai.chunking.size'))->toBe($default + 123);
+});
 
 it('stores secrets encrypted and other values in plain JSON', function (): void {
     $settings = app(SignInSettings::class);

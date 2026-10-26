@@ -553,5 +553,9 @@
     "Custom domain verified.": "Domaine personnalisé vérifié.",
     "pg_partman is not installed: analytics will not work as it should.": "pg_partman n'est pas installé : les statistiques ne fonctionneront pas comme prévu.",
     "Analytics needs pg_partman to split its message log by month.": "Les statistiques ont besoin de pg_partman pour découper leur journal des messages par mois.",
-    "Read more": "En savoir plus"
+    "Read more": "En savoir plus",
+    "The API needs a ChatVia.ai license key.": "L'API demande une clé de licence ChatVia.ai.",
+    "This workspace has :limit agents, the most it can have without a ChatVia.ai license key.": "Cet espace de travail a :limit agents, le maximum sans clé de licence ChatVia.ai.",
+    "More teams need a ChatVia.ai license key.": "D'autres équipes demandent une clé de licence ChatVia.ai.",
+    "Capabilities and forms need a ChatVia.ai license key.": "Les capacités et les formulaires demandent une clé de licence ChatVia.ai."
 }

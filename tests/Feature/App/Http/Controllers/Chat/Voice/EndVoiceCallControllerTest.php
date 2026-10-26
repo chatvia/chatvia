@@ -11,6 +11,10 @@ use Tests\Support\Conversation\Voice\VoiceCalls;
  * A hosted-chat visitor presses End on their own call; any other call is not
  * found. How the call is hung up is the end-call action's.
  */
+// Voice conversations need a license key; the free-use limit itself is
+// covered in VoiceAvailabilityTest.
+beforeEach(fn () => withLicense());
+
 it('hangs up the visitor\'s own call and 404s another one', function (): void {
     connectAiProviders(AiProvider::OpenAi);
     config(['chatvia.ai.voice' => 'auto', 'horizon.defaults.voice.maxProcesses' => 1]);

@@ -6,6 +6,8 @@ use App\Identity\Workspace\Models\User;
  * The lead capture's fields: saved in order with whether each is required.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner);
 });

@@ -4557,5 +4557,15 @@
         "used": "Usou {label}",
         "show": "Mostrar etapas",
         "hide": "Ocultar etapas"
+    },
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Precisa de uma chave de licença",
+        "get_key": "Obter uma chave de licença",
+        "api_body": "A API precisa de uma chave de licença nesta instalação do ChatVia.ai. As chaves que você criou antes são mantidas e voltam a funcionar quando a instalação tiver uma licença.",
+        "teams_body": "Mais equipes precisam de uma chave de licença nesta instalação do ChatVia.ai. Sua primeira equipe e as funções dela continuam funcionando, e as equipes criadas antes ficam como estão.",
+        "agents_of_limit": "{count} de {limit} agentes sem chave de licença",
+        "agents_body": "Sem uma chave de licença, um espaço de trabalho pode ter {limit} agentes. Exclua um agente ou adicione uma chave de licença a esta instalação do ChatVia.ai.",
+        "voice_hint": "Precisa de uma chave de licença nesta instalação do ChatVia.ai."
     }
 }

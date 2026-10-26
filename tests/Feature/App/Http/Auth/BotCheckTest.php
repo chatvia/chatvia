@@ -25,6 +25,10 @@ function bctTurnstileOn(bool $signUp = true, bool $signIn = true, bool $password
     ]);
 }
 
+// Creating workspaces past the first one needs a license key; the free-use
+// limit itself is covered in WorkspaceLimitTest.
+beforeEach(fn () => withLicense());
+
 it('asks no form for a token while Turnstile is not set up', function (): void {
     config(['services.turnstile.key' => null, 'services.turnstile.secret' => null, 'chatvia.security.turnstile.sign_up' => true]);
 

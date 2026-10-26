@@ -4489,5 +4489,15 @@
         "used": "{label} kullanıldı",
         "show": "Adımları göster",
         "hide": "Adımları gizle"
+    },
+    "license": {
+        "badge": "Pro",
+        "locked_title": "Lisans anahtarı gerekir",
+        "get_key": "Lisans anahtarı al",
+        "api_body": "API, bu ChatVia.ai kurulumunda bir lisans anahtarı gerektirir. Daha önce oluşturduğunuz anahtarlar korunur ve kurulumun lisansı olduğunda yeniden çalışır.",
+        "teams_body": "Daha fazla ekip, bu ChatVia.ai kurulumunda bir lisans anahtarı gerektirir. İlk ekibiniz ve rolleri çalışmaya devam eder, daha önce oluşturduğunuz ekipler olduğu gibi kalır.",
+        "agents_of_limit": "Lisans anahtarı olmadan {limit} asistandan {count} tanesi",
+        "agents_body": "Lisans anahtarı olmadan bir çalışma alanında {limit} asistan olabilir. Bir asistanı silin veya bu ChatVia.ai kurulumuna bir lisans anahtarı ekleyin.",
+        "voice_hint": "Bu ChatVia.ai kurulumunda bir lisans anahtarı gerekir."
     }
 }

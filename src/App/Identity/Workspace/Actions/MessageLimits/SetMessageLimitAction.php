@@ -9,8 +9,10 @@ use App\Identity\Workspace\Services\MessageAllowance;
 
 /**
  * Sets or clears the monthly message limit of a workspace or a chatter. Null
- * removes the limit. A number keeps what was already used this month, so
- * lowering the limit can block the account right away.
+ * removes the limit; a workspace keeps its row and this month's count, which
+ * the free-use cap still reads without a license key. A number keeps what was
+ * already used this month, so lowering the limit can block the account right
+ * away.
  */
 class SetMessageLimitAction
 {
@@ -25,8 +27,10 @@ class SetMessageLimitAction
     {
         $column = $owner instanceof Chatter ? 'chatter_id' : 'workspace_id';
 
-        if ($monthlyLimit === null) {
+        if ($monthlyLimit === null && $owner instanceof Chatter) {
             MessageLimit::query()->where($column, $owner->id)->delete();
+        } elseif ($monthlyLimit === null) {
+            MessageLimit::query()->where($column, $owner->id)->update(['monthly_limit' => null]);
         } else {
             $limit = MessageLimit::query()->firstOrNew([$column => $owner->id]);
 

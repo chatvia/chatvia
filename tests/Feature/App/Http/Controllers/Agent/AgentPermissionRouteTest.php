@@ -35,6 +35,8 @@ use Illuminate\Support\Facades\Storage;
  * routes that bind a record first or need two permissions.
  */
 beforeEach(function (): void {
+    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner);
 });

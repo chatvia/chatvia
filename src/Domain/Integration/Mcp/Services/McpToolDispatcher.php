@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Domain\Integration\Mcp\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Data\ResolvedMcpTool;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
@@ -28,7 +30,9 @@ use Throwable;
  * McpClient. Failures are returned as user-facing error strings (never
  * thrown) so the LLM can recover gracefully. The model's arguments are
  * checked against the tool's listed input schema first
- * ({@see ToolArgumentValidator}).
+ * ({@see ToolArgumentValidator}). A call to a connector the install does not
+ * offer now (a capability without a license key) is refused before any
+ * request is sent; the chat withholds those tools, this is the backstop.
  */
 class McpToolDispatcher implements ToolDispatcherInterface
 {
@@ -36,6 +40,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         private readonly McpClient $client,
         private readonly McpToolPermissionResolver $permissions,
         private readonly McpServerLookup $servers,
+        private readonly ConnectorCatalog $catalog,
         private readonly ToolArgumentValidator $validator = new ToolArgumentValidator,
     ) {}
 
@@ -53,6 +58,13 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $server = $this->servers->attachedToAgent($agent, $slug);
         if (! $server instanceof AgentMcpServer) {
             return $this->error("MCP server \"{$slug}\" is not attached to this agent or is disabled.");
+        }
+
+        $connector = filled($server->connector_slug) ? $this->catalog->find($server->connector_slug) : null;
+        if ($connector instanceof ConnectorData && ! $connector->available) {
+            return $this->error($connector->needsLicense
+                ? "\"{$connector->name}\" needs a ChatVia.ai license key on this install."
+                : "\"{$connector->name}\" is turned off on this install.");
         }
 
         // Reject a blocked tool the LLM might emit from prior turns — the

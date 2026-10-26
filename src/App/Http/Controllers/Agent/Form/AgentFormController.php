@@ -17,11 +17,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Support\License\Entitlements;
 
 /**
  * The agent's inline-form builder: the Forms page and create / update /
  * delete of a form. Access is gated by the route middleware; a form must
- * belong to the agent.
+ * belong to the agent. Without a license key the page opens without the
+ * forms, to explain the lock (the changes are refused by the middleware).
  */
 class AgentFormController
 {
@@ -36,16 +38,18 @@ class AgentFormController
         'message' => 'Message',
     ];
 
-    public function index(Agent $agent, Transcriber $transcriber): Response
+    public function index(Agent $agent, Transcriber $transcriber, Entitlements $entitlements): Response
     {
         return Inertia::render('agents/Forms/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'forms' => FormDefinitionData::collect(
-                FormDefinition::query()
-                    ->forAgent($agent)
-                    ->withCount(['submissions as submissions_count' => fn (Builder $query): Builder => $query->where('status', FormSubmissionStatus::Submitted)])
-                    ->orderBy('name')
-                    ->get(),
+                $entitlements->capabilities()
+                    ? FormDefinition::query()
+                        ->forAgent($agent)
+                        ->withCount(['submissions as submissions_count' => fn (Builder $query): Builder => $query->where('status', FormSubmissionStatus::Submitted)])
+                        ->orderBy('name')
+                        ->get()
+                    : collect(),
             ),
             'leadFields' => array_map(
                 fn (string $key, string $label): array => ['key' => $key, 'label' => __($label)],

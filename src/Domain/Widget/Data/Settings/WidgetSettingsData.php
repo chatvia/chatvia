@@ -43,7 +43,7 @@ class WidgetSettingsData extends Data
         public ?int $show_on_load_delay,
         public WidgetSettingsBrandingData $branding,
         // Whether the "Powered by ChatVia.ai" badge should render: the install's
-        // switch (Settings → License). The widget gates the footer on this (and
+        // switch (the admin panel's License page). The widget gates the footer on this (and
         // on branding.enabled, which is driven by the same value for
         // back-compat with cached bundles).
         public bool $chatvia_branding,

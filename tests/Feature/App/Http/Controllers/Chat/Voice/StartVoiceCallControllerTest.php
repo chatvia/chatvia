@@ -23,6 +23,8 @@ use Tests\Support\Conversation\Voice\VoiceCalls;
  * the action's rule.
  */
 beforeEach(function (): void {
+    withLicense();
+
     connectAiProviders(AiProvider::OpenAi);
     config([
         'chatvia.ai.voice' => 'auto',

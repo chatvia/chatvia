@@ -2,8 +2,10 @@
 
 use App\Http\Middleware\Access\EnsureAccountOptionIsOn;
 use App\Http\Middleware\Access\EnsureAgentPermission;
+use App\Http\Middleware\Access\EnsureApiLicense;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
+use App\Http\Middleware\Access\EnsureCapabilityLicense;
 use App\Http\Middleware\Access\EnsureEnterpriseLicense;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
@@ -122,6 +124,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,
+            'license.api' => EnsureApiLicense::class,
+            'license.capabilities' => EnsureCapabilityLicense::class,
             'license.enterprise' => EnsureEnterpriseLicense::class,
         ]);
 

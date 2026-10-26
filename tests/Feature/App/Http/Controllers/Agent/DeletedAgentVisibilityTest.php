@@ -12,6 +12,8 @@ use Inertia\Testing\AssertableInertia as Assert;
  * not-found page, and the lists leave it out.
  */
 beforeEach(function (): void {
+    withLicense();
+
     Bus::fake([PurgeAgentJob::class]);
 
     $this->owner = User::factory()->create();

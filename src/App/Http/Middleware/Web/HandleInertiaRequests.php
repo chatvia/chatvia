@@ -119,6 +119,9 @@ class HandleInertiaRequests extends Middleware
             // Whether this install has an Enterprise key: the Security and
             // Governance pages lock their Enterprise features without one.
             'enterprise' => $user instanceof User && app(Entitlements::class)->enterprise(),
+            // Whether this install holds any license key; without one the
+            // free-use limits apply and the pages say what is locked.
+            'license' => $user instanceof User ? $this->license(app(Entitlements::class)) : null,
             // The knowledge file types this install accepts (Settings →
             // Ingestion), each with the extensions this server can read, for
             // the upload pages and the sources menu. An object even when empty.
@@ -171,5 +174,21 @@ class HandleInertiaRequests extends Middleware
         }
 
         return app(TeamService::class)->userPermissionsMap($user);
+    }
+
+    /**
+     * @return array{licensed: bool, buyUrl: string, limits: array{workspaces: ?int, agents: ?int, messages: ?int}}
+     */
+    private function license(Entitlements $entitlements): array
+    {
+        return [
+            'licensed' => $entitlements->licensed(),
+            'buyUrl' => (string) config('chatvia.license.buy_url'),
+            'limits' => [
+                'workspaces' => $entitlements->workspaceLimit(),
+                'agents' => $entitlements->agentLimit(),
+                'messages' => $entitlements->monthlyMessageLimit(),
+            ],
+        ];
     }
 }

@@ -46,7 +46,7 @@ it('removes the limit when the field is left empty', function (): void {
         ->callAction('messageLimit', data: ['monthly_limit' => null])
         ->assertHasNoActionErrors();
 
-    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->value('monthly_limit'))->toBeNull();
 });
 
 it('rejects a limit below one', function (): void {

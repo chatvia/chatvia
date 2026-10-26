@@ -2405,7 +2405,8 @@
             "disable_failed": "Tidak dapat menonaktifkan kemampuan ini",
             "requires_connector": "Berfungsi melalui {name}. Hubungkan {name} lebih dulu di halaman Konektor.",
             "requires_disconnected": "{name} belum terhubung, jadi kemampuan ini tidak dapat berfungsi. Hubungkan {name} lagi di halaman Konektor.",
-            "connect_connector": "Hubungkan {name}"
+            "connect_connector": "Hubungkan {name}",
+            "turned_off_by_admin": "Dimatikan oleh admin Anda"
         },
         "forms": {
             "page_title": "Formulir",

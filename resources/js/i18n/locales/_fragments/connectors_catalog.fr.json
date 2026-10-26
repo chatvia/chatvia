@@ -169,6 +169,14 @@
                 "name": "Calendrier",
                 "description": "Laissez les visiteurs réserver une réunion dans le chat : ils choisissent un créneau libre dans votre Calendly et le réservent sans quitter la conversation. Chaque réservation est enregistrée comme un lead."
             },
+            "image-generation": {
+                "name": "Génération d'images",
+                "description": "Laissez l'agent créer des images dans le chat hébergé quand un visiteur le demande : logos, illustrations, idées de produits et plus encore."
+            },
+            "audio-generation": {
+                "name": "Génération audio",
+                "description": "Laissez l'agent créer des fichiers audio dans le chat hébergé quand un visiteur le demande : n'importe quel texte lu à voix haute, prêt à écouter ou à télécharger."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Cherchez des résultats en direct sur Google, Bing, YouTube et d'autres moteurs : actualités, prix, lieux. Propulsé par SerpApi.",

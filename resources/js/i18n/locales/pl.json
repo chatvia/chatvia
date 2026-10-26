@@ -2405,7 +2405,8 @@
             "disable_failed": "Nie udało się wyłączyć tej możliwości",
             "requires_connector": "Działa przez {name}. Najpierw połącz {name} na stronie Konektory.",
             "requires_disconnected": "{name} nie jest połączony, więc ta możliwość nie może działać. Połącz {name} ponownie na stronie Konektory.",
-            "connect_connector": "Połącz {name}"
+            "connect_connector": "Połącz {name}",
+            "turned_off_by_admin": "Wyłączone przez administratora"
         },
         "forms": {
             "page_title": "Formularze",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Kalendarz",
                 "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
+            },
+            "image-generation": {
+                "name": "Generowanie obrazów",
+                "description": "Pozwól agentowi tworzyć obrazy w Hosted Chat, gdy odwiedzający o to poprosi: logo, ilustracje, pomysły na produkty i więcej."
+            },
+            "audio-generation": {
+                "name": "Generowanie dźwięku",
+                "description": "Pozwól agentowi tworzyć pliki audio w Hosted Chat, gdy odwiedzający o to poprosi: dowolny tekst przeczytany na głos, gotowy do odtworzenia lub pobrania."
             }
         }
     },

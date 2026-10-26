@@ -2405,7 +2405,8 @@
             "disable_failed": "Не удалось выключить эту возможность",
             "requires_connector": "Работает через {name}. Сначала подключите {name} на странице «Коннекторы».",
             "requires_disconnected": "{name} не подключён, поэтому эта возможность не работает. Подключите {name} снова на странице «Коннекторы».",
-            "connect_connector": "Подключить {name}"
+            "connect_connector": "Подключить {name}",
+            "turned_off_by_admin": "Отключено вашим администратором"
         },
         "forms": {
             "page_title": "Формы",

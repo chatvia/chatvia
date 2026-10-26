@@ -17,6 +17,8 @@ it('joins the text parts and promotes known structured content to artifacts', fu
             'echarts_option' => ['series' => []],
             'form' => ['form_instance_id' => 'abc'],
             'calendar' => ['booking_instance_id' => 'def'],
+            'image' => ['id' => 'img', 'status' => 'pending'],
+            'audio' => ['id' => 'aud', 'status' => 'pending'],
             'unknown' => ['ignored' => true],
         ],
     ]);
@@ -27,6 +29,8 @@ it('joins the text parts and promotes known structured content to artifacts', fu
             ['kind' => 'echarts_option', 'data' => ['series' => []]],
             ['kind' => 'form', 'data' => ['form_instance_id' => 'abc']],
             ['kind' => 'calendar', 'data' => ['booking_instance_id' => 'def']],
+            ['kind' => 'image', 'data' => ['id' => 'img', 'status' => 'pending']],
+            ['kind' => 'audio', 'data' => ['id' => 'aud', 'status' => 'pending']],
         ]);
 });
 

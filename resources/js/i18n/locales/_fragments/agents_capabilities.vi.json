@@ -10,7 +10,8 @@
             "description": "Khả năng bổ sung các tính năng nâng cao ngay trong cuộc trò chuyện. Bật một khả năng để Trợ lý AI này có thể dùng nó trong các cuộc trò chuyện.",
             "empty": "Chưa có khả năng nào khả dụng.",
             "enable_failed": "Không thể bật khả năng này",
-            "disable_failed": "Không thể tắt khả năng này"
+            "disable_failed": "Không thể tắt khả năng này",
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
         }
     }
 }

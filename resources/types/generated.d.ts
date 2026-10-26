@@ -938,6 +938,7 @@ declare namespace Domain {
                         surfaces: string[] | null;
                         voice: boolean;
                         requiresConnector: string | null;
+                        available: boolean;
                         requiresClientId: boolean;
                         oauthClientId: string | null;
                         oauthAuthorizationEndpoint: string | null;

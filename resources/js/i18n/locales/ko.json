@@ -2405,7 +2405,8 @@
             "disable_failed": "이 능력을 끌 수 없습니다",
             "requires_connector": "{name}을(를) 통해 작동합니다. 먼저 커넥터 페이지에서 {name}을(를) 연결해 주세요.",
             "requires_disconnected": "{name}이(가) 연결되어 있지 않아 이 능력이 작동하지 않습니다. 커넥터 페이지에서 {name}을(를) 다시 연결해 주세요.",
-            "connect_connector": "{name} 연결"
+            "connect_connector": "{name} 연결",
+            "turned_off_by_admin": "관리자가 꺼 두었습니다"
         },
         "forms": {
             "page_title": "양식",

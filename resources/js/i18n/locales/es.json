@@ -2405,7 +2405,8 @@
             "disable_failed": "No se pudo desactivar esta capacidad",
             "requires_connector": "Funciona a través de {name}. Primero conecta {name} en la página Conectores.",
             "requires_disconnected": "{name} no está conectado, así que esta capacidad no puede funcionar. Vuelve a conectar {name} en la página Conectores.",
-            "connect_connector": "Conectar {name}"
+            "connect_connector": "Conectar {name}",
+            "turned_off_by_admin": "Desactivado por tu administrador"
         },
         "forms": {
             "page_title": "Formularios",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Calendario",
                 "description": "Deja que los visitantes reserven una reunión en el chat: eligen un horario libre de tu Calendly y lo reservan sin salir de la conversación. Cada reserva se guarda como un lead."
+            },
+            "image-generation": {
+                "name": "Generación de imágenes",
+                "description": "Deja que el agente cree imágenes en el chat alojado cuando un visitante lo pida: logotipos, ilustraciones, ideas de producto y más."
+            },
+            "audio-generation": {
+                "name": "Generación de audio",
+                "description": "Deja que el agente cree archivos de audio en el chat alojado cuando un visitante lo pida: cualquier texto leído en voz alta, listo para reproducir o descargar."
             }
         }
     },

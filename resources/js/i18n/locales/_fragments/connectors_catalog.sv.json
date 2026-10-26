@@ -169,6 +169,14 @@
                 "name": "Kalender",
                 "description": "Låt besökare boka ett möte i chatten: de väljer en ledig tid i din Calendly och bokar den utan att lämna samtalet. Varje bokning sparas som en lead."
             },
+            "image-generation": {
+                "name": "Bildgenerering",
+                "description": "Låt agenten skapa bilder i den hostade chatten när en besökare ber om det: logotyper, illustrationer, produktidéer och mer."
+            },
+            "audio-generation": {
+                "name": "Ljudgenerering",
+                "description": "Låt agenten skapa ljudfiler i den hostade chatten när en besökare ber om det: vilken text som helst uppläst, redo att spela upp eller ladda ner."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Sök i Google, Bing, YouTube och andra sökmotorer efter aktuella resultat: nyheter, priser, platser. Drivs av SerpApi.",

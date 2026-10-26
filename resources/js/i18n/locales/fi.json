@@ -2405,7 +2405,8 @@
             "disable_failed": "Tämän kyvyn poistaminen käytöstä epäonnistui",
             "requires_connector": "Toimii {name}-yhteyden kautta. Yhdistä ensin {name} Liittimet-sivulla.",
             "requires_disconnected": "{name} ei ole yhdistetty, joten tämä kyky ei voi toimia. Yhdistä {name} uudelleen Liittimet-sivulla.",
-            "connect_connector": "Yhdistä {name}"
+            "connect_connector": "Yhdistä {name}",
+            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä"
         },
         "forms": {
             "page_title": "Lomakkeet",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Kalenteri",
                 "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
+            },
+            "image-generation": {
+                "name": "Kuvien luonti",
+                "description": "Anna agentin luoda kuvia isännöidyssä chatissa, kun kävijä pyytää: logoja, kuvituksia, tuoteideoita ja muuta."
+            },
+            "audio-generation": {
+                "name": "Äänen luonti",
+                "description": "Anna agentin luoda äänitiedostoja isännöidyssä chatissa, kun kävijä pyytää: mikä tahansa teksti luettuna ääneen, valmiina toistettavaksi tai ladattavaksi."
             }
         }
     },

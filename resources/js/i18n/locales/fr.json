@@ -2405,7 +2405,8 @@
             "disable_failed": "Impossible de désactiver cette capacité",
             "requires_connector": "Fonctionne via {name}. Connectez d'abord {name} sur la page Connecteurs.",
             "requires_disconnected": "{name} n'est pas connecté, cette capacité ne peut donc pas fonctionner. Reconnectez {name} sur la page Connecteurs.",
-            "connect_connector": "Connecter {name}"
+            "connect_connector": "Connecter {name}",
+            "turned_off_by_admin": "Désactivé par votre administrateur"
         },
         "forms": {
             "page_title": "Formulaires",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Calendrier",
                 "description": "Laissez les visiteurs réserver une réunion dans le chat : ils choisissent un créneau libre dans votre Calendly et le réservent sans quitter la conversation. Chaque réservation est enregistrée comme un lead."
+            },
+            "image-generation": {
+                "name": "Génération d'images",
+                "description": "Laissez l'agent créer des images dans le chat hébergé quand un visiteur le demande : logos, illustrations, idées de produits et plus encore."
+            },
+            "audio-generation": {
+                "name": "Génération audio",
+                "description": "Laissez l'agent créer des fichiers audio dans le chat hébergé quand un visiteur le demande : n'importe quel texte lu à voix haute, prêt à écouter ou à télécharger."
             }
         }
     },

@@ -72,6 +72,8 @@ dataset('builtin mcp routes', [
     'charts' => ['/mcp/charts'],
     'forms' => ['/mcp/forms'],
     'calendar' => ['/mcp/calendar'],
+    'image-generation' => ['/mcp/image-generation'],
+    'audio-generation' => ['/mcp/audio-generation'],
     'perplexity' => ['/mcp/perplexity'],
     'account-analytics' => ['/mcp/account-analytics'],
 ]);

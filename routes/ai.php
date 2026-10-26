@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use App\Http\Middleware\Auth\VerifyInternalMcpRequest;
 use App\Mcp\Servers\AccountAnalyticsServer;
+use App\Mcp\Servers\AudioGenerationServer;
 use App\Mcp\Servers\CalendarServer;
 use App\Mcp\Servers\ChartsServer;
 use App\Mcp\Servers\CurrencyConverterServer;
 use App\Mcp\Servers\FormsServer;
+use App\Mcp\Servers\ImageGenerationServer;
 use App\Mcp\Servers\PerplexityServer;
 use App\Mcp\Servers\WeatherServer;
 use Laravel\Mcp\Facades\Mcp;
@@ -29,6 +31,8 @@ Mcp::web('/mcp/currency', CurrencyConverterServer::class)->middleware([VerifyInt
 Mcp::web('/mcp/charts', ChartsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.charts');
 Mcp::web('/mcp/forms', FormsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.forms');
 Mcp::web('/mcp/calendar', CalendarServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.calendar');
+Mcp::web('/mcp/image-generation', ImageGenerationServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.image-generation');
+Mcp::web('/mcp/audio-generation', AudioGenerationServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.audio-generation');
 Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.perplexity');
 
 /**

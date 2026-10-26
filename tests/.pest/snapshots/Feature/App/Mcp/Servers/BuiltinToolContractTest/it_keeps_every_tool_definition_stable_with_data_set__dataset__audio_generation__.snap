@@ -1,0 +1,23 @@
+[
+    {
+        "name": "generate-audio",
+        "title": "Generate Audio Tool",
+        "description": "Make an audio file of a text read aloud, for the visitor to play or download. The file is made in the background and appears under your reply a moment later. Pass the exact words to read, in the language they should be spoken in.",
+        "inputSchema": {
+            "properties": {
+                "text": {
+                    "description": "The exact words to read aloud, up to 4000 characters.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "text"
+            ]
+        },
+        "annotations": {
+            "title": "Generate Audio Tool",
+            "openWorldHint": true
+        }
+    }
+]

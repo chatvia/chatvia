@@ -2405,7 +2405,8 @@
             "disable_failed": "无法关闭此能力",
             "requires_connector": "通过 {name} 运行。请先在连接器页面连接 {name}。",
             "requires_disconnected": "{name} 未连接，因此此能力无法使用。请在连接器页面重新连接 {name}。",
-            "connect_connector": "连接 {name}"
+            "connect_connector": "连接 {name}",
+            "turned_off_by_admin": "已被管理员关闭"
         },
         "forms": {
             "page_title": "表单",

@@ -542,6 +542,7 @@
     "Play agent replies as speech": "Spela upp agenternas svar som tal",
     "Image generation": "Bildgenerering",
     "Let agents make pictures in chats": "Låter agenter skapa bilder i chattar",
+    "Your admin has turned this off.": "Din administratör har stängt av detta.",
     "Reading aloud is not available right now.": "Uppläsning är inte tillgänglig just nu.",
     "The reply could not be read aloud. Please try again.": "Svaret kunde inte läsas upp. Försök igen.",
     "Add a custom domain first.": "Lägg först till en egen domän.",

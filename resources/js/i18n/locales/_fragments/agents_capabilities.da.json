@@ -10,7 +10,8 @@
             "description": "Kapabiliteter tilføjer avancerede muligheder direkte i chatten. Slå én til, så denne agent kan bruge den i samtaler.",
             "empty": "Der er ingen kapabiliteter tilgængelige endnu.",
             "enable_failed": "Kunne ikke slå denne kapabilitet til",
-            "disable_failed": "Kunne ikke slå denne kapabilitet fra"
+            "disable_failed": "Kunne ikke slå denne kapabilitet fra",
+            "turned_off_by_admin": "Slået fra af din administrator"
         }
     }
 }

@@ -542,6 +542,7 @@
     "Play agent replies as speech": "تشغيل ردود الوكلاء كلامًا مسموعًا",
     "Image generation": "إنشاء الصور",
     "Let agents make pictures in chats": "يتيح للوكلاء إنشاء صور في المحادثات",
+    "Your admin has turned this off.": "قام المسؤول بإيقاف هذه الميزة.",
     "Reading aloud is not available right now.": "القراءة بصوت عالٍ غير متاحة الآن.",
     "The reply could not be read aloud. Please try again.": "تعذّرت قراءة الرد بصوت عالٍ. يُرجى المحاولة مرة أخرى.",
     "Add a custom domain first.": "أضف نطاقًا مخصصًا أولًا.",

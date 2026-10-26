@@ -8,7 +8,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { edit as editConnectors } from '@/routes/integrations/connectors';
 import { Link } from '@inertiajs/vue3';
-import { LoaderCircle, TriangleAlert } from 'lucide-vue-next';
+import { Ban, LoaderCircle, TriangleAlert } from 'lucide-vue-next';
 import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -75,6 +75,10 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
                                         : t('agents.capabilities.requires_connector', { name: connectorName(row.requires) })
                                 }}
                             </p>
+                            <p v-if="!row.connector.available" class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                                <Ban class="h-3.5 w-3.5 shrink-0" />
+                                {{ t('agents.capabilities.turned_off_by_admin') }}
+                            </p>
                         </div>
                         <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />
                         <Link v-if="!row.ready && !row.enabled && row.requires" :href="editConnectors.url()">
@@ -85,7 +89,7 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
                         <Switch
                             v-else
                             :model-value="row.enabled"
-                            :disabled="busy[row.connector.slug]"
+                            :disabled="busy[row.connector.slug] || (!row.connector.available && !row.enabled)"
                             :aria-label="connectorName(row.connector)"
                             @update:model-value="toggle(row)"
                         />

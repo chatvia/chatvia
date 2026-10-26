@@ -10,7 +10,8 @@
             "description": "As capacidades adicionam funcionalidades avançadas dentro do próprio chat. Ative uma para que este agente a possa usar nas conversas.",
             "empty": "Ainda não há capacidades disponíveis.",
             "enable_failed": "Não foi possível ativar esta capacidade",
-            "disable_failed": "Não foi possível desativar esta capacidade"
+            "disable_failed": "Não foi possível desativar esta capacidade",
+            "turned_off_by_admin": "Desativado pelo seu administrador"
         }
     }
 }

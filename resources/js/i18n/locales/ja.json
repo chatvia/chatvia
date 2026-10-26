@@ -2405,7 +2405,8 @@
             "disable_failed": "この能力を無効にできませんでした",
             "requires_connector": "{name} 経由で動作します。先にコネクタページで {name} を接続してください。",
             "requires_disconnected": "{name} が接続されていないため、この能力は動作しません。コネクタページで {name} をもう一度接続してください。",
-            "connect_connector": "{name} を接続"
+            "connect_connector": "{name} を接続",
+            "turned_off_by_admin": "管理者によってオフにされています"
         },
         "forms": {
             "page_title": "フォーム",

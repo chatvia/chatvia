@@ -2405,7 +2405,8 @@
             "disable_failed": "Kunne ikke slå denne kapabilitet fra",
             "requires_connector": "Fungerer via {name}. Tilslut først {name} på siden Connectorer.",
             "requires_disconnected": "{name} er ikke tilsluttet, så denne kapabilitet kan ikke fungere. Tilslut {name} igen på siden Connectorer.",
-            "connect_connector": "Tilslut {name}"
+            "connect_connector": "Tilslut {name}",
+            "turned_off_by_admin": "Slået fra af din administrator"
         },
         "forms": {
             "page_title": "Formularer",
@@ -4290,6 +4291,14 @@
             "calendar": {
                 "name": "Kalender",
                 "description": "Lad besøgende booke et møde i chatten: de vælger en ledig tid i din Calendly og booker den uden at forlade samtalen. Hver booking gemmes som et lead."
+            },
+            "image-generation": {
+                "name": "Billedgenerering",
+                "description": "Lad agenten lave billeder i den hostede chat, når en besøgende beder om det: logoer, illustrationer, produktidéer og mere."
+            },
+            "audio-generation": {
+                "name": "Lydgenerering",
+                "description": "Lad agenten lave lydfiler i den hostede chat, når en besøgende beder om det: enhver tekst læst højt, klar til afspilning eller download."
             }
         }
     },

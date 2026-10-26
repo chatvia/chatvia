@@ -94,6 +94,16 @@ abstract class Connector
         get => null;
     }
 
+    /**
+     * Whether the install offers it now. False for a capability whose service
+     * an admin has not set up (Image generation without an image service):
+     * agents cannot turn it on, and its tools are withheld.
+     */
+    public function isAvailable(): bool
+    {
+        return true;
+    }
+
     public function toData(): ConnectorData
     {
         return new ConnectorData(...[
@@ -114,6 +124,7 @@ abstract class Connector
             'surfaces' => $this->surfaces,
             'voice' => $this->voice,
             'requiresConnector' => $this->requiresConnector,
+            'available' => $this->isAvailable(),
             ...$this->extraData(),
         ]);
     }

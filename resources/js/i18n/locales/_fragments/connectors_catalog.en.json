@@ -169,6 +169,14 @@
                 "name": "Calendar",
                 "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead."
             },
+            "image-generation": {
+                "name": "Image generation",
+                "description": "Let the agent make pictures in the hosted chat when a visitor asks: logos, illustrations, product ideas and more."
+            },
+            "audio-generation": {
+                "name": "Audio generation",
+                "description": "Let the agent make audio files in the hosted chat when a visitor asks: any text read aloud, ready to play or download."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Search Google, Bing, YouTube, and other engines for live results — news, prices, locations — powered by SerpApi.",

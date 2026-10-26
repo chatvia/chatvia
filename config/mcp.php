@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Mcp\Servers\AccountAnalyticsServer;
+use App\Mcp\Servers\AudioGenerationServer;
 use App\Mcp\Servers\CalendarServer;
 use App\Mcp\Servers\ChartsServer;
 use App\Mcp\Servers\FormsServer;
+use App\Mcp\Servers\ImageGenerationServer;
 
 return [
 
@@ -72,6 +74,14 @@ return [
         [
             'slug' => 'calendar',
             'class' => CalendarServer::class,
+        ],
+        [
+            'slug' => 'image-generation',
+            'class' => ImageGenerationServer::class,
+        ],
+        [
+            'slug' => 'audio-generation',
+            'class' => AudioGenerationServer::class,
         ],
     ],
 

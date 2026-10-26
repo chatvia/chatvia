@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Chatter;
 
+use App\Http\Requests\Concerns\ScopesRulesToWorkspace;
 use App\Http\Rules\WorkspaceRule;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
@@ -24,6 +25,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class StoreChatterSignInLinkRequest extends FormRequest
 {
+    use ScopesRulesToWorkspace;
+
     public function authorize(): bool
     {
         return true;
@@ -36,7 +39,7 @@ class StoreChatterSignInLinkRequest extends FormRequest
     {
         return [
             // ID of the agent to sign the user into.
-            'agent_id' => ['bail', 'required', 'string', WorkspaceRule::exists('agents', $this->workspaceUser()->workspace(), 'external_id')->withoutTrashed()],
+            'agent_id' => ['bail', 'required', 'string', WorkspaceRule::exists('agents', $this->ruleWorkspaceId(), 'external_id')->withoutTrashed()],
             // ID of the user the link signs in: one of your chatters with
             // access to the agent, or (owner keys only) the owner or a
             // teammate of your workspace (see `GET /api/v1/users`).

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Chat;
 
+use App\Http\Requests\Concerns\ScopesRulesToWorkspace;
 use App\Http\Rules\WorkspaceRule;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
@@ -22,6 +23,8 @@ use Illuminate\Validation\Validator;
  */
 class StoreApiConversationRequest extends FormRequest
 {
+    use ScopesRulesToWorkspace;
+
     public function authorize(): bool
     {
         return true;
@@ -37,7 +40,7 @@ class StoreApiConversationRequest extends FormRequest
             'title' => ['sometimes', 'nullable', 'string', 'max:255'],
             // ID of one of your chatters to attribute the conversation to. The
             // chatter's monthly message limit then applies to its replies.
-            'chatter_id' => ['bail', 'sometimes', 'nullable', 'string', 'uuid', WorkspaceRule::exists('chatters', $this->workspaceUser()->workspace(), 'external_id')],
+            'chatter_id' => ['bail', 'sometimes', 'nullable', 'string', 'uuid', WorkspaceRule::exists('chatters', $this->ruleWorkspaceId(), 'external_id')],
         ];
     }
 

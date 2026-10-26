@@ -16,14 +16,15 @@ use Illuminate\Validation\Rules\Exists;
  */
 trait ValidatesManageableAgents
 {
+    use ScopesRulesToWorkspace;
+
     protected function manageableAgentExists(): Exists
     {
-        /** @var User $user */
         $user = $this->user();
 
-        $rule = WorkspaceRule::exists('agents', $user->workspace(), 'external_id')->withoutTrashed();
+        $rule = WorkspaceRule::exists('agents', $this->ruleWorkspaceId(), 'external_id')->withoutTrashed();
 
-        if ($user->isWorkspaceOwner()) {
+        if (! $user instanceof User || $user->isWorkspaceOwner()) {
             return $rule;
         }
 

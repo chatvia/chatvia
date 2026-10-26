@@ -12,11 +12,12 @@
 #   - pg_trgm, btree_gin, btree_gist and pg_stat_statements, which ship with
 #     the official image (contrib).
 # Published as ghcr.io/chatvia/postgres by .github/workflows/postgres-image.yml
-# as 18-r<IMAGE_REVISION> (and the moving 18); used by docker/compose.yaml, the
-# dev stack (docker-compose.yml) and CI (.github/workflows/tests.yml). The tag
-# names our build, not the extensions: their versions are image labels
+# as 18-r<IMAGE_REVISION> and the moving 18. Installs (docker/compose.yaml)
+# use 18, so they always get the newest build; the dev stack
+# (docker-compose.yml) and CI (.github/workflows/tests.yml) pin 18-rN. The
+# tag names our build, not the extensions: their versions are image labels
 # (docker inspect). Bump IMAGE_REVISION on every change to this file, then the
-# three tags that use it; the workflow refuses to overwrite a published one.
+# two pins; the workflow refuses to overwrite a published tag.
 #
 # The Debian release is pinned: a new one brings a new glibc, whose sort rules
 # make Postgres warn about a collation version mismatch on existing databases

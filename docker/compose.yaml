@@ -71,10 +71,11 @@ services:
       - secrets:/var/lib/chatvia
 
   postgres:
-    # PostgreSQL 18 with pgvector and pg_textsearch (docker/postgres/
-    # Dockerfile). The image's default command preloads pg_textsearch, so do
-    # not override `command`.
-    image: ghcr.io/chatvia/postgres:18-r1
+    # PostgreSQL 18 with pgvector, pg_textsearch and pg_partman
+    # (docker/postgres/Dockerfile). The moving `18` tag, so an install or
+    # upgrade always gets the newest build. The image's default command
+    # preloads pg_textsearch, so do not override `command`.
+    image: ghcr.io/chatvia/postgres:18
     restart: unless-stopped
     logging: *logging
     security_opt:

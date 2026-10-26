@@ -68,8 +68,8 @@ export interface StreamDoneData {
  * renderers switch on it.
  */
 export interface ToolArtifact {
-    /** Discriminator. `echarts_option` mounts <EChartBlock>, `form` mounts <InlineFormBlock>. */
-    kind: 'echarts_option' | 'form' | string;
+    /** Discriminator. `echarts_option` mounts <EChartBlock>, `form` <InlineFormBlock>, `calendar` <InlineCalendarBlock>. */
+    kind: 'echarts_option' | 'form' | 'calendar' | string;
     /** Free-form payload — interpretation is up to the kind-specific renderer. */
     data: unknown;
 }
@@ -89,6 +89,25 @@ export interface FormArtifactData {
     success_message?: string;
     status?: 'pending' | 'submitted' | 'expired';
     expires_at?: string | null;
+}
+
+/**
+ * `calendar` artifact payload (RenderCalendarTool): a booking calendar for one
+ * meeting type. Times are ISO UTC; `slots` covers `window_start`..`window_end`.
+ */
+export interface CalendarArtifactData {
+    booking_instance_id: string;
+    event_type_name: string;
+    duration: number;
+    location_kind: string | null;
+    slots: { start_time: string }[];
+    window_start: string;
+    window_end: string;
+    max_days_ahead: number;
+    notes_required?: boolean;
+    status: 'pending' | 'submitted' | 'expired';
+    booked_start_time: string | null;
+    expires_at: string | null;
 }
 
 export interface StreamToolData {

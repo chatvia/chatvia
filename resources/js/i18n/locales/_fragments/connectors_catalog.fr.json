@@ -165,6 +165,10 @@
                 "name": "Formulaires",
                 "description": "Collectez des leads avec un vrai formulaire à remplir dans le chat, ainsi que des formulaires de réservation et de qualification. Validés et enregistrés automatiquement ; sur les canaux qui ne peuvent pas afficher de formulaire, la collecte se fait dans la conversation."
             },
+            "calendar": {
+                "name": "Calendrier",
+                "description": "Laissez les visiteurs réserver une réunion dans le chat : ils choisissent un créneau libre dans votre Calendly et le réservent sans quitter la conversation. Chaque réservation est enregistrée comme un lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Cherchez des résultats en direct sur Google, Bing, YouTube et d'autres moteurs : actualités, prix, lieux. Propulsé par SerpApi.",

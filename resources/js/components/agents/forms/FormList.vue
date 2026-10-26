@@ -3,12 +3,14 @@
  * The list view of the agent's Forms page: every form with its type, field
  * count and submission count, plus "New form", "Edit" and delete. Delete asks
  * for confirmation first, because it also removes the form's submissions:
- * the dialog says how many leads go with it.
+ * the dialog says how many leads go with it. A form a capability manages
+ * (e.g. Calendar's bookings) only links to its submissions.
  */
 import type { FormDefinition } from '@/components/agents/forms/formDefinition';
 import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
 import { Button } from '@/components/ui/button';
 import { useFormTypeLabel } from '@/composables/agents/forms/useFormTypeLabel';
+import { useConnectorText } from '@/composables/useConnectorText';
 import { index as submissionsIndex } from '@/routes/agents/forms/submissions';
 import { Link } from '@inertiajs/vue3';
 import { Plus, Trash2 } from 'lucide-vue-next';
@@ -28,6 +30,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { formTypeLabel } = useFormTypeLabel();
+const { connectorName } = useConnectorText();
+
+// The owning capability's catalog name; its slug, capitalised, where a locale has no entry.
+const capabilityName = (slug: string): string => connectorName({ slug, name: slug.charAt(0).toUpperCase() + slug.slice(1) });
 
 const pendingDelete = ref<FormDefinition | null>(null);
 
@@ -59,13 +65,20 @@ function confirmDelete(): void {
                     <p class="text-muted-foreground text-xs">
                         {{ formTypeLabel(form.form_type) }} · {{ form.schema.length }} {{ t('agents.forms.fields') }}
                         <span v-if="!form.is_active"> · {{ t('agents.forms.inactive') }}</span>
+                        <span v-if="form.managed_by">
+                            · {{ t('agents.forms.managed_by_capability', { name: capabilityName(form.managed_by) }) }}</span
+                        >
                     </p>
                 </div>
                 <Link v-if="form.external_id" :href="submissionsIndex.url({ agent: agentId, form: form.external_id })">
                     <Button variant="ghost" size="sm">{{ t('agents.forms.submissions') }} ({{ form.submissions_count }})</Button>
                 </Link>
-                <Button variant="outline" size="sm" @click="emit('edit', form)">{{ t('agents.forms.edit') }}</Button>
-                <Button variant="ghost" size="icon" :aria-label="t('common.delete')" @click="pendingDelete = form"><Trash2 class="h-4 w-4" /></Button>
+                <template v-if="!form.managed_by">
+                    <Button variant="outline" size="sm" @click="emit('edit', form)">{{ t('agents.forms.edit') }}</Button>
+                    <Button variant="ghost" size="icon" :aria-label="t('common.delete')" @click="pendingDelete = form">
+                        <Trash2 class="h-4 w-4" />
+                    </Button>
+                </template>
             </div>
         </div>
     </div>

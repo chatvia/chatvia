@@ -7,17 +7,19 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Data\Agent\AgentCapabilityRowData;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Connector\Services\ConnectorPrerequisite;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * Renders the agent's Capabilities page: every first-party capability
- * (Interactive Charts, Forms, …) and whether this agent has it on.
+ * (Interactive Charts, Forms, …), whether this agent has it on, and whether
+ * the connector it works through (if any) is connected.
  */
 class AgentCapabilitiesController
 {
-    public function __invoke(Agent $agent, ConnectorCatalog $catalog): Response
+    public function __invoke(Agent $agent, ConnectorCatalog $catalog, ConnectorPrerequisite $prerequisite): Response
     {
         $capabilities = $catalog->capabilities();
 
@@ -33,6 +35,8 @@ class AgentCapabilitiesController
             fn (ConnectorData $capability): AgentCapabilityRowData => new AgentCapabilityRowData(
                 connector: $capability,
                 enabled: ($serverId = $serverIdBySlug->get($capability->slug)) !== null && $attachedIds->has($serverId),
+                ready: $prerequisite->isMet($agent, $capability),
+                requires: $capability->requiresConnector !== null ? $catalog->find($capability->requiresConnector) : null,
             ),
         );
 

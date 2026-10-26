@@ -34,10 +34,13 @@ use Support\Concerns\HasExternalId;
  * @property string|null $success_message
  * @property string|null $agent_instructions
  * @property bool $is_active
+ * @property string|null $managed_by slug of the capability that owns the form
  * @property Vector|null $embedding
  * @property string|null $search_text
  *
  * @method static \Database\Factories\FormDefinitionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormDefinition unmanaged()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormDefinition managedBy(string $capability)
  *
  * @mixin \Eloquent
  */
@@ -89,6 +92,38 @@ class FormDefinition extends Model
         if ($externalIds !== []) {
             $this->submissions()->whereIn('external_id', $externalIds)->delete();
         }
+    }
+
+    /**
+     * Whether a capability owns this form (`managed_by` holds its slug, e.g.
+     * `calendar`): the model never renders it and the owner cannot edit or
+     * delete it.
+     */
+    public function isManaged(): bool
+    {
+        return $this->managed_by !== null;
+    }
+
+    /**
+     * The forms the owner built (not ones a capability manages).
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function unmanaged(Builder $query): void
+    {
+        $query->whereNull('managed_by');
+    }
+
+    /**
+     * The form a capability owns, by the capability's slug.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function managedBy(Builder $query, string $capability): void
+    {
+        $query->where('managed_by', $capability);
     }
 
     /**

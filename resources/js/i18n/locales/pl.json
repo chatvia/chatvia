@@ -144,6 +144,31 @@
             "refused": "Usługa odrzuciła tę prośbę.",
             "timed_out": "Trwało to zbyt długo. Poproś ponownie.",
             "download": "Pobierz"
+        },
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Poprzedni tydzień",
+            "next_week": "Następny tydzień",
+            "days": "Dni z wolnymi terminami",
+            "times_in": "Godziny w strefie {timezone}",
+            "loading": "Wczytywanie wolnych terminów…",
+            "slots_failed": "Nie udało się wczytać wolnych terminów. Spróbuj ponownie.",
+            "no_times": "W tym tygodniu nie ma wolnych terminów. Spróbuj w następnym tygodniu.",
+            "name": "Imię i nazwisko",
+            "email": "E-mail",
+            "notes": "Notatki",
+            "notes_optional": "Notatki (opcjonalnie)",
+            "book": "Zarezerwuj spotkanie",
+            "booking": "Rezerwowanie…",
+            "back": "Wstecz",
+            "booked": "Twoje spotkanie jest zarezerwowane.",
+            "booked_for": "Zarezerwowano na {time}",
+            "expired": "Ten kalendarz wygasł. Poproś o nowy, aby zarezerwować spotkanie.",
+            "slot_taken": "Ten termin został właśnie zajęty. Wybierz inny.",
+            "book_failed": "Nie udało się zarezerwować spotkania. Spróbuj ponownie.",
+            "book_on_page": "To spotkanie można zarezerwować tylko na stronie rezerwacji.",
+            "open_booking_page": "Otwórz stronę rezerwacji",
+            "unavailable": "Rezerwacja nie jest tu dostępna."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Możliwości dodają zaawansowane funkcje bezpośrednio w czacie. Włącz jedną, aby ten agent mógł z niej korzystać w rozmowach.",
             "empty": "Brak dostępnych możliwości.",
             "enable_failed": "Nie udało się włączyć tej możliwości",
-            "disable_failed": "Nie udało się wyłączyć tej możliwości"
+            "disable_failed": "Nie udało się wyłączyć tej możliwości",
+            "requires_connector": "Działa przez {name}. Najpierw połącz {name} na stronie Konektory.",
+            "requires_disconnected": "{name} nie jest połączony, więc ta możliwość nie może działać. Połącz {name} ponownie na stronie Konektory.",
+            "connect_connector": "Połącz {name}"
         },
         "forms": {
             "page_title": "Formularze",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formularze są widoczne tylko w widżecie czatu i na pasku poleceń.",
             "delete_with_leads": "Usunie to także {count} lead. Tej operacji nie można cofnąć. | Usunie to także leady: {count}. Tej operacji nie można cofnąć.",
-            "page_description": "Formularze, które agent może pokazać w czacie, aby zebrać dane, np. prośbę o wycenę lub rezerwację."
+            "page_description": "Formularze, które agent może pokazać w czacie, aby zebrać dane, np. prośbę o wycenę lub rezerwację.",
+            "managed_by_capability": "Zarządzane przez możliwość {name}"
         },
         "submissions": {
             "page_title": "Zgłoszenia",
@@ -4257,6 +4286,10 @@
                 "description": "Wyszukuj aktualne wyniki w Google, Bing, YouTube i innych wyszukiwarkach: wiadomości, ceny, miejsca. Dostarczane przez SerpApi.",
                 "token_label": "Klucz API SerpApi",
                 "token_placeholder": "Twój klucz API SerpApi"
+            },
+            "calendar": {
+                "name": "Kalendarz",
+                "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
             }
         }
     },

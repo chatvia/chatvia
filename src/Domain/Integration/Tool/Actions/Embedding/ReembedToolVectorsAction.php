@@ -38,7 +38,7 @@ class ReembedToolVectorsAction
             ->each(fn (int $serverId) => EmbedMcpToolsJob::dispatch($serverId));
         AgentFunction::query()->pluck('id')
             ->each(fn (int $functionId) => EmbedFunctionJob::dispatch($functionId));
-        FormDefinition::query()->pluck('id')
+        FormDefinition::query()->unmanaged()->pluck('id')
             ->each(fn (int $formId) => EmbedFormDefinitionJob::dispatch($formId));
     }
 }

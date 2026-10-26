@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Form\Enums\FormSubmissionStatus;
+use Domain\Form\Exceptions\FormNotClaimableException;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -182,6 +183,30 @@ class FormSubmission extends Model
     public function isExpired(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /**
+     * Lock this pending row so two submits of the same instance can't both
+     * win; an expired one is marked so and rejected. Call inside a transaction.
+     *
+     * @throws FormNotClaimableException
+     */
+    public function claimPending(): self
+    {
+        /** @var self|null $claimed */
+        $claimed = self::query()->whereKey($this->id)->lockForUpdate()->first();
+
+        if ($claimed === null || ! $claimed->isPending()) {
+            throw FormNotClaimableException::alreadySubmitted();
+        }
+
+        if ($claimed->isExpired()) {
+            $claimed->forceFill(['status' => FormSubmissionStatus::Expired])->save();
+
+            throw FormNotClaimableException::expired();
+        }
+
+        return $claimed;
     }
 
     /**

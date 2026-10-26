@@ -59,3 +59,28 @@ it('overwrites a form artifact status with the live submission status on reload'
 
     expect($hydrated[0]->metadata['artifacts'][0]['data']['status'])->toBe('submitted');
 });
+
+it('marks a booked calendar artifact booked on reload, with its start time only', function (): void {
+    $agent = makeTeamAgent(User::factory()->create(), 'Bot');
+    $conversation = Conversation::factory()->forAgent($agent)->hostedChat()->create();
+    $definition = FormDefinition::factory()->forAgent($agent)->create();
+    $booking = FormSubmission::factory()->forDefinition($definition)->submitted()->create([
+        'chat_conversation_id' => $conversation->id,
+        'values' => ['email' => 'ada@example.test', 'start_time' => '2026-11-03T10:00:00Z'],
+    ]);
+
+    $messages = [new MessageData(
+        id: 'msg-1',
+        role: MessageRole::Assistant,
+        content: 'Pick a time.',
+        type: MessageData::TYPE_TEXT,
+        timestamp: now()->timestamp,
+        metadata: ['artifacts' => [
+            ['kind' => 'calendar', 'data' => ['booking_instance_id' => $booking->external_id, 'status' => 'pending', 'booked_start_time' => null]],
+        ]],
+    )];
+
+    $data = (new MessageAttachmentHydrator)->hydrate($messages, $conversation)[0]->metadata['artifacts'][0]['data'];
+
+    expect($data)->toBe(['booking_instance_id' => $booking->external_id, 'status' => 'submitted', 'booked_start_time' => '2026-11-03T10:00:00Z']);
+});

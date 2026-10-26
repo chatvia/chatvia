@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Fungerar via {name}. Anslut först {name} på sidan Kopplingar.",
+            "requires_disconnected": "{name} är inte anslutet, så den här förmågan fungerar inte. Anslut {name} igen på sidan Kopplingar.",
+            "connect_connector": "Anslut {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Hanteras av förmågan {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Föregående vecka",
+            "next_week": "Nästa vecka",
+            "days": "Dagar med lediga tider",
+            "times_in": "Tider i {timezone}",
+            "loading": "Laddar lediga tider…",
+            "slots_failed": "Lediga tider kunde inte laddas. Försök igen.",
+            "no_times": "Inga lediga tider den här veckan. Prova nästa vecka.",
+            "name": "Namn",
+            "email": "E-post",
+            "notes": "Anteckningar",
+            "notes_optional": "Anteckningar (valfritt)",
+            "book": "Boka möte",
+            "booking": "Bokar…",
+            "back": "Tillbaka",
+            "booked": "Ditt möte är bokat.",
+            "booked_for": "Bokat till {time}",
+            "expired": "Den här kalendern har gått ut. Be om en ny för att boka ett möte.",
+            "slot_taken": "Den tiden blev just upptagen. Välj en annan.",
+            "book_failed": "Mötet kunde inte bokas. Försök igen.",
+            "book_on_page": "Det här mötet kan bara bokas på bokningssidan.",
+            "open_booking_page": "Öppna bokningssidan",
+            "unavailable": "Bokning är inte tillgänglig här."
+        }
+    }
+}

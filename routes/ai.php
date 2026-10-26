@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\Auth\VerifyInternalMcpRequest;
 use App\Mcp\Servers\AccountAnalyticsServer;
+use App\Mcp\Servers\CalendarServer;
 use App\Mcp\Servers\ChartsServer;
 use App\Mcp\Servers\CurrencyConverterServer;
 use App\Mcp\Servers\FormsServer;
@@ -27,6 +28,7 @@ Mcp::web('/mcp/weather', WeatherServer::class)->middleware([VerifyInternalMcpReq
 Mcp::web('/mcp/currency', CurrencyConverterServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.currency');
 Mcp::web('/mcp/charts', ChartsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.charts');
 Mcp::web('/mcp/forms', FormsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.forms');
+Mcp::web('/mcp/calendar', CalendarServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.calendar');
 Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp'])->name('mcp.perplexity');
 
 /**

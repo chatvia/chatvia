@@ -165,6 +165,10 @@
                 "name": "Formularer",
                 "description": "Indsaml leads med en rigtig formular, der udfyldes i chatten, samt booking- og kvalificeringsformularer. Valideres og gemmes automatisk; på kanaler, der ikke kan vise en formular, indsamles oplysningerne i samtalen."
             },
+            "calendar": {
+                "name": "Kalender",
+                "description": "Lad besøgende booke et møde i chatten: de vælger en ledig tid i din Calendly og booker den uden at forlade samtalen. Hver booking gemmes som et lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Søg i Google, Bing, YouTube og andre søgemaskiner efter aktuelle resultater: nyheder, priser, steder. Leveret af SerpApi.",

@@ -144,6 +144,31 @@
             "refused": "Dịch vụ đã từ chối yêu cầu này.",
             "timed_out": "Quá lâu. Vui lòng yêu cầu lại.",
             "download": "Tải xuống"
+        },
+        "calendar": {
+            "duration": "{minutes} phút",
+            "previous_week": "Tuần trước",
+            "next_week": "Tuần sau",
+            "days": "Những ngày còn giờ trống",
+            "times_in": "Giờ theo múi giờ {timezone}",
+            "loading": "Đang tải giờ trống…",
+            "slots_failed": "Không thể tải giờ trống. Vui lòng thử lại.",
+            "no_times": "Tuần này không còn giờ trống. Hãy thử tuần sau.",
+            "name": "Tên",
+            "email": "Email",
+            "notes": "Ghi chú",
+            "notes_optional": "Ghi chú (không bắt buộc)",
+            "book": "Đặt lịch họp",
+            "booking": "Đang đặt lịch…",
+            "back": "Quay lại",
+            "booked": "Cuộc họp của bạn đã được đặt.",
+            "booked_for": "Đã đặt cho {time}",
+            "expired": "Lịch này đã hết hạn. Hãy yêu cầu lịch mới để đặt cuộc họp.",
+            "slot_taken": "Giờ này vừa có người đặt. Vui lòng chọn giờ khác.",
+            "book_failed": "Không thể đặt cuộc họp. Vui lòng thử lại.",
+            "book_on_page": "Cuộc họp này chỉ có thể đặt trên trang đặt lịch.",
+            "open_booking_page": "Mở trang đặt lịch",
+            "unavailable": "Không thể đặt lịch tại đây."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Khả năng bổ sung các tính năng nâng cao ngay trong cuộc trò chuyện. Bật một khả năng để Trợ lý AI này có thể dùng nó trong các cuộc trò chuyện.",
             "empty": "Chưa có khả năng nào khả dụng.",
             "enable_failed": "Không thể bật khả năng này",
-            "disable_failed": "Không thể tắt khả năng này"
+            "disable_failed": "Không thể tắt khả năng này",
+            "requires_connector": "Hoạt động qua {name}. Hãy kết nối {name} trong trang Trình kết nối trước.",
+            "requires_disconnected": "{name} chưa được kết nối nên khả năng này không thể hoạt động. Hãy kết nối lại {name} trong trang Trình kết nối.",
+            "connect_connector": "Kết nối {name}"
         },
         "forms": {
             "page_title": "Biểu mẫu",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Biểu mẫu chỉ hiển thị trong Tiện ích trò chuyện và Thanh lệnh.",
             "delete_with_leads": "Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác. | Thao tác này cũng xóa {count} khách hàng tiềm năng. Thao tác này không thể hoàn tác.",
-            "page_description": "Các biểu mẫu trợ lý AI có thể hiển thị trong cuộc trò chuyện để thu thập thông tin, như yêu cầu báo giá hoặc đặt lịch."
+            "page_description": "Các biểu mẫu trợ lý AI có thể hiển thị trong cuộc trò chuyện để thu thập thông tin, như yêu cầu báo giá hoặc đặt lịch.",
+            "managed_by_capability": "Do khả năng {name} quản lý"
         },
         "submissions": {
             "page_title": "Lượt gửi",

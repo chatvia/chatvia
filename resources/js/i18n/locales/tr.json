@@ -144,6 +144,31 @@
             "refused": "Hizmet bu isteği reddetti.",
             "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
             "download": "İndir"
+        },
+        "calendar": {
+            "duration": "{minutes} dk",
+            "previous_week": "Önceki hafta",
+            "next_week": "Sonraki hafta",
+            "days": "Boş saatleri olan günler",
+            "times_in": "Saatler {timezone} diliminde",
+            "loading": "Boş saatler yükleniyor…",
+            "slots_failed": "Boş saatler yüklenemedi. Lütfen tekrar deneyin.",
+            "no_times": "Bu hafta boş saat yok. Sonraki haftayı deneyin.",
+            "name": "Ad",
+            "email": "E-posta",
+            "notes": "Notlar",
+            "notes_optional": "Notlar (isteğe bağlı)",
+            "book": "Toplantı ayarla",
+            "booking": "Ayarlanıyor…",
+            "back": "Geri",
+            "booked": "Toplantınız ayarlandı.",
+            "booked_for": "{time} için ayarlandı",
+            "expired": "Bu takvimin süresi doldu. Toplantı ayarlamak için yenisini isteyin.",
+            "slot_taken": "Bu saat az önce doldu. Lütfen başka bir saat seçin.",
+            "book_failed": "Toplantı ayarlanamadı. Lütfen tekrar deneyin.",
+            "book_on_page": "Bu toplantı yalnızca rezervasyon sayfasında ayarlanabilir.",
+            "open_booking_page": "Rezervasyon sayfasını aç",
+            "unavailable": "Rezervasyon burada kullanılamıyor."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Yetenekler, sohbetin içine doğrudan gelişmiş özellikler ekler. Bu asistanın konuşmalarda kullanabilmesi için birini açın.",
             "empty": "Henüz kullanılabilir yetenek yok.",
             "enable_failed": "Bu yetenek açılamadı",
-            "disable_failed": "Bu yetenek kapatılamadı"
+            "disable_failed": "Bu yetenek kapatılamadı",
+            "requires_connector": "{name} üzerinden çalışır. Önce Bağlayıcılar sayfasında {name} bağlantısını kurun.",
+            "requires_disconnected": "{name} bağlı değil, bu yüzden bu yetenek çalışamaz. Bağlayıcılar sayfasında {name} bağlantısını yeniden kurun.",
+            "connect_connector": "{name} bağla"
         },
         "forms": {
             "page_title": "Formlar",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formlar yalnızca Sohbet Widget'ında ve Komut Çubuğu'nda görünür.",
             "delete_with_leads": "Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz. | Bu, {count} potansiyel müşteriyi de siler. Bu işlem geri alınamaz.",
-            "page_description": "Asistanın sohbette bilgi toplamak için gösterebileceği formlar; örneğin fiyat teklifi isteği veya rezervasyon."
+            "page_description": "Asistanın sohbette bilgi toplamak için gösterebileceği formlar; örneğin fiyat teklifi isteği veya rezervasyon.",
+            "managed_by_capability": "{name} yeteneği tarafından yönetilir"
         },
         "submissions": {
             "page_title": "Gönderimler",

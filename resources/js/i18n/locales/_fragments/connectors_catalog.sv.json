@@ -165,6 +165,10 @@
                 "name": "Formulär",
                 "description": "Samla in leads med ett riktigt formulär som fylls i i chatten, plus boknings- och kvalificeringsformulär. Valideras och sparas automatiskt; i kanaler som inte kan visa formulär samlas uppgifterna in i samtalet."
             },
+            "calendar": {
+                "name": "Kalender",
+                "description": "Låt besökare boka ett möte i chatten: de väljer en ledig tid i din Calendly och bokar den utan att lämna samtalet. Varje bokning sparas som en lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Sök i Google, Bing, YouTube och andra sökmotorer efter aktuella resultat: nyheter, priser, platser. Drivs av SerpApi.",

@@ -47,13 +47,13 @@ final class InternalMcp
 
     /**
      * Call a tool as the tool loop of this agent (and conversation); null
-     * leaves that header out.
+     * leaves that header out. $path is the server's route.
      *
      * @param  array<string, string>  $extraHeaders
      */
-    public static function actAsAgent(?string $agentExternalId, ?string $conversationExternalId = null, array $extraHeaders = []): void
+    public static function actAsAgent(?string $agentExternalId, ?string $conversationExternalId = null, array $extraHeaders = [], string $path = '/mcp/forms'): void
     {
-        self::actWith('/mcp/forms', [
+        self::actWith($path, [
             ...array_filter([
                 'X-Chatvia-Agent-Id' => $agentExternalId,
                 'X-Chatvia-Conversation-Id' => $conversationExternalId,

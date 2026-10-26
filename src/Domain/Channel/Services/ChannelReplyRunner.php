@@ -185,22 +185,22 @@ class ChannelReplyRunner
     }
 
     /**
-     * Belt-and-braces for text-only channels. The forms prompt is already
-     * withheld off the web (see SystemPromptBuilder), but if the
-     * model still improvises the web-only `<render-form …>` artifact tag as
-     * message text — e.g. mimicking one left in this conversation's history —
-     * the raw tag must never reach the channel. Drop it and tidy the blank
-     * lines it leaves behind. A no-op for the overwhelming majority of replies.
+     * Belt-and-braces for text-only channels. The form and calendar tools
+     * refuse off the web, but if the model still improvises a web-only
+     * `<render-form …>` / `<render-calendar …>` artifact tag as message text
+     * (e.g. mimicking one left in this conversation's history), the raw tag
+     * must never reach the channel. Drop it and tidy the blank lines it leaves
+     * behind. A no-op for the overwhelming majority of replies.
      */
     private function stripWebOnlyArtifactTags(string $reply): string
     {
-        if (! Str::contains($reply, '<render-form')) {
+        if (! Str::contains($reply, ['<render-form', '<render-calendar'])) {
             return $reply;
         }
 
         return $reply
-            |> (static fn (string $s): string => Str::replaceMatches('#<render-form\b[^>]*>.*?</render-form>#is', '', $s) ?? $s)
-            |> (static fn (string $s): string => Str::replaceMatches('#<render-form\b[^>]*?/?>#i', '', $s) ?? $s)
+            |> (static fn (string $s): string => Str::replaceMatches('#<render-(form|calendar)\b[^>]*>.*?</render-\1>#is', '', $s) ?? $s)
+            |> (static fn (string $s): string => Str::replaceMatches('#<render-(?:form|calendar)\b[^>]*?/?>#i', '', $s) ?? $s)
             |> (static fn (string $s): string => Str::replaceMatches("/[ \t]*\n{3,}/", "\n\n", $s) ?? $s)
             |> Str::trim(...);
     }

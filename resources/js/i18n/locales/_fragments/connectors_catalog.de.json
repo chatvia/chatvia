@@ -165,6 +165,10 @@
                 "name": "Formulare",
                 "description": "Leads mit einem echten, ausfüllbaren Formular im Chat erfassen, dazu Buchungs- und Qualifizierungsformulare. Automatisch geprüft und gespeichert; auf Kanälen ohne Formularanzeige wird im Gespräch erfasst."
             },
+            "calendar": {
+                "name": "Kalender",
+                "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Google, Bing, YouTube und andere Suchmaschinen nach aktuellen Ergebnissen durchsuchen: Nachrichten, Preise, Orte. Bereitgestellt von SerpApi.",

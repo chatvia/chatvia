@@ -103,7 +103,7 @@ it('answers that the assistant is not set up when no model can answer', function
     expect(app(ChannelReplyRunner::class)->reply(crrTurn($agent)))->toBe('Sorry — this assistant is not fully configured yet.');
 });
 
-it('strips a web-only render-form tag from the reply', function (string $answer, string $reply): void {
+it('strips a web-only render-form or render-calendar tag from the reply', function (string $answer, string $reply): void {
     bindFakeLlmProvider(ScriptedLlmProvider::answering($answer));
 
     expect(app(ChannelReplyRunner::class)->reply(crrTurn(crrAgent())))->toBe($reply);
@@ -115,6 +115,10 @@ it('strips a web-only render-form tag from the reply', function (string $answer,
     'a paired tag with inner content' => [
         'Please fill this: <render-form slug="lead-capture">fallback</render-form> thanks!',
         'Please fill this:  thanks!',
+    ],
+    'a calendar tag' => [
+        "Pick a time.\n\n<render-calendar meeting_type=\"intro\"/>\n\nSee you soon.",
+        "Pick a time.\n\nSee you soon.",
     ],
 ]);
 

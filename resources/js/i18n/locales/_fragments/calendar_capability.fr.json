@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Fonctionne via {name}. Connectez d'abord {name} sur la page Connecteurs.",
+            "requires_disconnected": "{name} n'est pas connecté, cette capacité ne peut donc pas fonctionner. Reconnectez {name} sur la page Connecteurs.",
+            "connect_connector": "Connecter {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Géré par la capacité {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Semaine précédente",
+            "next_week": "Semaine suivante",
+            "days": "Jours avec des créneaux libres",
+            "times_in": "Horaires en {timezone}",
+            "loading": "Chargement des créneaux libres…",
+            "slots_failed": "Impossible de charger les créneaux libres. Veuillez réessayer.",
+            "no_times": "Aucun créneau libre cette semaine. Essayez la semaine suivante.",
+            "name": "Nom",
+            "email": "E-mail",
+            "notes": "Notes",
+            "notes_optional": "Notes (facultatif)",
+            "book": "Réserver la réunion",
+            "booking": "Réservation…",
+            "back": "Retour",
+            "booked": "Votre réunion est réservée.",
+            "booked_for": "Réservé pour {time}",
+            "expired": "Ce calendrier a expiré. Demandez-en un nouveau pour réserver une réunion.",
+            "slot_taken": "Ce créneau vient d'être pris. Veuillez en choisir un autre.",
+            "book_failed": "La réunion n'a pas pu être réservée. Veuillez réessayer.",
+            "book_on_page": "Cette réunion ne peut être réservée que sur la page de réservation.",
+            "open_booking_page": "Ouvrir la page de réservation",
+            "unavailable": "La réservation n'est pas disponible ici."
+        }
+    }
+}

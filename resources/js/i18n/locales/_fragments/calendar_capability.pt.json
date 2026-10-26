@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Funciona através de {name}. Ligue primeiro {name} na página Conectores.",
+            "requires_disconnected": "{name} não está ligado, por isso esta capacidade não pode funcionar. Ligue {name} novamente na página Conectores.",
+            "connect_connector": "Ligar {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Gerida pela capacidade {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Semana anterior",
+            "next_week": "Semana seguinte",
+            "days": "Dias com horários livres",
+            "times_in": "Horários em {timezone}",
+            "loading": "A carregar horários livres…",
+            "slots_failed": "Não foi possível carregar os horários livres. Tente novamente.",
+            "no_times": "Não há horários livres nesta semana. Experimente a semana seguinte.",
+            "name": "Nome",
+            "email": "E-mail",
+            "notes": "Notas",
+            "notes_optional": "Notas (opcional)",
+            "book": "Marcar reunião",
+            "booking": "A marcar…",
+            "back": "Voltar",
+            "booked": "A sua reunião está marcada.",
+            "booked_for": "Marcada para {time}",
+            "expired": "Este calendário expirou. Peça um novo para marcar uma reunião.",
+            "slot_taken": "Esse horário acabou de ser ocupado. Escolha outro.",
+            "book_failed": "Não foi possível marcar a reunião. Tente novamente.",
+            "book_on_page": "Esta reunião só pode ser marcada na página de marcações.",
+            "open_booking_page": "Abrir página de marcações",
+            "unavailable": "As marcações não estão disponíveis aqui."
+        }
+    }
+}

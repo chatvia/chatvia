@@ -12,7 +12,7 @@ use Domain\Integration\Tool\Data\ToolDispatchResult;
  *   - `text`      → the `type: 'text'` parts of `content`, joined; a JSON dump
  *                   of the whole envelope when there are none.
  *   - artifacts   → well-known `structuredContent` shapes promoted to UI
- *                   blocks (an ECharts option, an inline form). Unknown keys
+ *                   blocks (an ECharts option, an inline form, a booking calendar). Unknown keys
  *                   are ignored, so servers can ship side data safely.
  *
  * Artifacts are taken only from Chatvia's own servers
@@ -84,6 +84,7 @@ final readonly class McpToolResultData
      *
      *   - `echarts_option` → an interactive chart (Charts tools).
      *   - `form`           → an inline FormKit form (RenderFormTool).
+     *   - `calendar`       → a booking calendar (RenderCalendarTool).
      *
      * @return list<array{kind: string, data: array<string, mixed>}>
      */
@@ -95,7 +96,7 @@ final readonly class McpToolResultData
 
         $artifacts = [];
 
-        foreach (['echarts_option', 'form'] as $kind) {
+        foreach (['echarts_option', 'form', 'calendar'] as $kind) {
             if (is_array($this->structuredContent[$kind] ?? null)) {
                 $artifacts[] = ['kind' => $kind, 'data' => $this->structuredContent[$kind]];
             }

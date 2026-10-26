@@ -106,3 +106,28 @@ it('still saves the form and reports the error when enabling Forms fails', funct
     expect(FormDefinition::query()->forAgent($this->agent)->count())->toBe(1);
     Exceptions::assertReported(McpException::class);
 });
+
+it('refuses to change or delete the form a capability manages', function (): void {
+    $managed = FormDefinition::factory()->forAgent($this->agent)->create(['managed_by' => 'calendar']);
+
+    afcDestroy($this->owner, $this->agent, $managed)->assertForbidden();
+    $this->actingAs($this->owner)
+        ->put(route('agents.forms.update', ['agent' => $this->agent->external_id, 'form' => $managed->external_id]), [
+            'name' => 'Renamed',
+            'form_type' => 'lead',
+            'is_active' => true,
+            'schema' => [['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true]],
+        ])
+        ->assertForbidden();
+
+    expect($managed->fresh()->name)->toBe($managed->name);
+});
+
+it('keeps the Forms capability off when only a managed form is left', function (): void {
+    afcStore($this->owner, $this->agent)->assertRedirect();
+    FormDefinition::factory()->forAgent($this->agent)->create(['managed_by' => 'calendar']);
+
+    afcDestroy($this->owner, $this->agent, FormDefinition::query()->forAgent($this->agent)->unmanaged()->sole())->assertRedirect();
+
+    expect($this->agent->isFormsEnabled())->toBeFalse();
+});

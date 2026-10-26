@@ -32,6 +32,8 @@ class FormDefinitionData extends Data
         // the save-input construction (toData) and tests don't have to pass it;
         // fromModel fills it from a withCount on the index query.
         public int $submissions_count = 0,
+        // Slug of the capability that owns the form, if any; the page shows it read-only.
+        public ?string $managed_by = null,
     ) {}
 
     public static function fromModel(FormDefinition $form): self
@@ -48,6 +50,7 @@ class FormDefinitionData extends Data
             agent_instructions: $form->agent_instructions,
             is_active: $form->is_active,
             submissions_count: (int) ($form->submissions_count ?? 0),
+            managed_by: $form->managed_by,
         );
     }
 }

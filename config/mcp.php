@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Mcp\Servers\AccountAnalyticsServer;
+use App\Mcp\Servers\CalendarServer;
 use App\Mcp\Servers\ChartsServer;
 use App\Mcp\Servers\FormsServer;
 
@@ -67,6 +68,10 @@ return [
         [
             'slug' => 'forms',
             'class' => FormsServer::class,
+        ],
+        [
+            'slug' => 'calendar',
+            'class' => CalendarServer::class,
         ],
     ],
 

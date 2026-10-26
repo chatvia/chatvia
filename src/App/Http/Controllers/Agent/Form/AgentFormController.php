@@ -67,6 +67,7 @@ class AgentFormController
     public function update(SaveFormDefinitionRequest $request, Agent $agent, FormDefinition $form, SaveFormDefinitionAction $save): RedirectResponse
     {
         $this->ensureFormOfAgent($agent, $form);
+        $this->ensureEditable($form);
 
         $save->execute($agent, $request->toData(), $form);
 
@@ -76,6 +77,7 @@ class AgentFormController
     public function destroy(Agent $agent, FormDefinition $form, DeleteFormDefinitionAction $delete): RedirectResponse
     {
         $this->ensureFormOfAgent($agent, $form);
+        $this->ensureEditable($form);
 
         $delete->execute($agent, $form);
 
@@ -85,5 +87,11 @@ class AgentFormController
     private function ensureFormOfAgent(Agent $agent, FormDefinition $form): void
     {
         abort_unless($form->agent_id === $agent->id, 404);
+    }
+
+    /** A capability's form (e.g. Calendar's bookings) is read-only for the owner. */
+    private function ensureEditable(FormDefinition $form): void
+    {
+        abort_if($form->isManaged(), 403, __('This form is managed by a capability and cannot be changed.'));
     }
 }

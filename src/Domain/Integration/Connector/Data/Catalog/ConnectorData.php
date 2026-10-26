@@ -65,6 +65,9 @@ class ConnectorData extends Data
         // Whether a voice call may offer this connector's tools. False for
         // tools that only make sense on a screen (a chart, a form to fill).
         public bool $voice = true,
+        // The connector the workspace must connect before this capability can
+        // be turned on (Calendar needs Calendly). Null for none.
+        public ?string $requiresConnector = null,
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).

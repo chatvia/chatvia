@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Berfungsi melalui {name}. Hubungkan {name} lebih dulu di halaman Konektor.",
+            "requires_disconnected": "{name} belum terhubung, jadi kemampuan ini tidak dapat berfungsi. Hubungkan {name} lagi di halaman Konektor.",
+            "connect_connector": "Hubungkan {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Dikelola oleh kemampuan {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} menit",
+            "previous_week": "Minggu sebelumnya",
+            "next_week": "Minggu berikutnya",
+            "days": "Hari dengan waktu kosong",
+            "times_in": "Waktu dalam {timezone}",
+            "loading": "Memuat waktu kosong…",
+            "slots_failed": "Waktu kosong tidak dapat dimuat. Silakan coba lagi.",
+            "no_times": "Tidak ada waktu kosong minggu ini. Coba minggu berikutnya.",
+            "name": "Nama",
+            "email": "Email",
+            "notes": "Catatan",
+            "notes_optional": "Catatan (opsional)",
+            "book": "Pesan pertemuan",
+            "booking": "Memesan…",
+            "back": "Kembali",
+            "booked": "Pertemuan Anda sudah dipesan.",
+            "booked_for": "Dipesan untuk {time}",
+            "expired": "Kalender ini sudah kedaluwarsa. Minta yang baru untuk memesan pertemuan.",
+            "slot_taken": "Waktu itu baru saja diambil. Silakan pilih yang lain.",
+            "book_failed": "Pertemuan tidak dapat dipesan. Silakan coba lagi.",
+            "book_on_page": "Pertemuan ini hanya dapat dipesan di halaman pemesanan.",
+            "open_booking_page": "Buka halaman pemesanan",
+            "unavailable": "Pemesanan tidak tersedia di sini."
+        }
+    }
+}

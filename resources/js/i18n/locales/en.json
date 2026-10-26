@@ -144,6 +144,31 @@
             "refused": "This request was refused by the service.",
             "timed_out": "This took too long. Please ask again.",
             "download": "Download"
+        },
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Previous week",
+            "next_week": "Next week",
+            "days": "Days with free times",
+            "times_in": "Times in {timezone}",
+            "loading": "Loading free times…",
+            "slots_failed": "Free times could not be loaded. Please try again.",
+            "no_times": "No free times this week. Try the next week.",
+            "name": "Name",
+            "email": "Email",
+            "notes": "Notes",
+            "notes_optional": "Notes (optional)",
+            "book": "Book meeting",
+            "booking": "Booking…",
+            "back": "Back",
+            "booked": "Your meeting is booked.",
+            "booked_for": "Booked for {time}",
+            "expired": "This calendar has expired. Ask for a new one to book a meeting.",
+            "slot_taken": "That time was just taken. Please pick another one.",
+            "book_failed": "The meeting could not be booked. Please try again.",
+            "book_on_page": "This meeting can only be booked on the booking page.",
+            "open_booking_page": "Open booking page",
+            "unavailable": "Booking is not available here."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Capabilities add rich features right inside the chat. Turn one on to let this agent use it in conversations.",
             "empty": "No capabilities are available yet.",
             "enable_failed": "Could not turn on this capability",
-            "disable_failed": "Could not turn off this capability"
+            "disable_failed": "Could not turn off this capability",
+            "requires_connector": "Works through {name}. Connect {name} on the Connectors page first.",
+            "requires_disconnected": "{name} is not connected, so this capability cannot work. Connect {name} again on the Connectors page.",
+            "connect_connector": "Connect {name}"
         },
         "forms": {
             "page_title": "Forms",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Forms show only in the Chat Widget and the Command Bar.",
             "delete_with_leads": "This also deletes {count} lead. This action cannot be undone. | This also deletes {count} leads. This action cannot be undone.",
-            "page_description": "Forms the agent can show in the chat to collect details, like a quote request or a booking."
+            "page_description": "Forms the agent can show in the chat to collect details, like a quote request or a booking.",
+            "managed_by_capability": "Managed by the {name} capability"
         },
         "submissions": {
             "page_title": "Submissions",
@@ -4257,6 +4286,10 @@
                 "description": "Search Google, Bing, YouTube, and other engines for live results — news, prices, locations — powered by SerpApi.",
                 "token_label": "SerpApi API key",
                 "token_placeholder": "Your SerpApi API key"
+            },
+            "calendar": {
+                "name": "Calendar",
+                "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead."
             }
         }
     },

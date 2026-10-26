@@ -144,6 +144,31 @@
             "refused": "서비스에서 이 요청을 거부했습니다.",
             "timed_out": "시간이 너무 오래 걸렸습니다. 다시 요청해 주세요.",
             "download": "다운로드"
+        },
+        "calendar": {
+            "duration": "{minutes}분",
+            "previous_week": "이전 주",
+            "next_week": "다음 주",
+            "days": "예약 가능한 시간이 있는 날",
+            "times_in": "{timezone} 기준 시간",
+            "loading": "예약 가능한 시간을 불러오는 중…",
+            "slots_failed": "예약 가능한 시간을 불러오지 못했습니다. 다시 시도해 주세요.",
+            "no_times": "이번 주에는 예약 가능한 시간이 없습니다. 다음 주를 확인해 보세요.",
+            "name": "이름",
+            "email": "이메일",
+            "notes": "메모",
+            "notes_optional": "메모 (선택)",
+            "book": "미팅 예약",
+            "booking": "예약 중…",
+            "back": "뒤로",
+            "booked": "미팅이 예약되었습니다.",
+            "booked_for": "{time}에 예약됨",
+            "expired": "이 캘린더는 만료되었습니다. 미팅을 예약하려면 새 캘린더를 요청해 주세요.",
+            "slot_taken": "방금 다른 사람이 이 시간을 예약했습니다. 다른 시간을 선택해 주세요.",
+            "book_failed": "미팅을 예약하지 못했습니다. 다시 시도해 주세요.",
+            "book_on_page": "이 미팅은 예약 페이지에서만 예약할 수 있습니다.",
+            "open_booking_page": "예약 페이지 열기",
+            "unavailable": "여기서는 예약할 수 없습니다."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "능력은 채팅 안에서 바로 풍부한 기능을 더해 줍니다. 하나를 켜면 이 에이전트가 대화에서 사용할 수 있습니다.",
             "empty": "아직 사용할 수 있는 능력이 없습니다.",
             "enable_failed": "이 능력을 켤 수 없습니다",
-            "disable_failed": "이 능력을 끌 수 없습니다"
+            "disable_failed": "이 능력을 끌 수 없습니다",
+            "requires_connector": "{name}을(를) 통해 작동합니다. 먼저 커넥터 페이지에서 {name}을(를) 연결해 주세요.",
+            "requires_disconnected": "{name}이(가) 연결되어 있지 않아 이 능력이 작동하지 않습니다. 커넥터 페이지에서 {name}을(를) 다시 연결해 주세요.",
+            "connect_connector": "{name} 연결"
         },
         "forms": {
             "page_title": "양식",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "양식은 채팅 위젯과 명령 바에서만 표시됩니다.",
             "delete_with_leads": "리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다. | 리드 {count}개도 함께 삭제됩니다. 이 작업은 취소할 수 없습니다.",
-            "page_description": "견적 요청이나 예약처럼 에이전트가 채팅에서 정보를 모으기 위해 보여줄 수 있는 양식입니다."
+            "page_description": "견적 요청이나 예약처럼 에이전트가 채팅에서 정보를 모으기 위해 보여줄 수 있는 양식입니다.",
+            "managed_by_capability": "{name} 능력으로 관리됨"
         },
         "submissions": {
             "page_title": "제출 내역",

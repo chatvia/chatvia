@@ -13,17 +13,20 @@ use Domain\Form\Models\FormDefinition;
  * `name` or `agent_instructions` (the embedded text), so the form ranks correctly on
  * the next turn. Other edits (schema, lead_field_map, is_active) don't change
  * the embedded text — is_active is filtered at query time, not embedded.
+ * A managed form is never matched by intent, so it is never embedded.
  */
 class FormDefinitionObserver
 {
     public function created(FormDefinition $form): void
     {
-        EmbedFormDefinitionJob::dispatch($form->id);
+        if (! $form->isManaged()) {
+            EmbedFormDefinitionJob::dispatch($form->id);
+        }
     }
 
     public function updated(FormDefinition $form): void
     {
-        if ($form->wasChanged(['name', 'agent_instructions'])) {
+        if (! $form->isManaged() && $form->wasChanged(['name', 'agent_instructions'])) {
             EmbedFormDefinitionJob::dispatch($form->id);
         }
     }

@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 import { type AgentCapabilityRow, disableCapability, enableCapability } from '@/api/agentCapabilities';
 import { errorMessage } from '@/api/http';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useConnectorText } from '@/composables/useConnectorText';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { connectorLogoUrl } from '@/lib/connectorLogo';
-import { LoaderCircle } from 'lucide-vue-next';
+import { edit as editConnectors } from '@/routes/integrations/connectors';
+import { Link } from '@inertiajs/vue3';
+import { LoaderCircle, TriangleAlert } from 'lucide-vue-next';
 import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -64,9 +67,23 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
                         <div class="min-w-0 flex-1">
                             <p class="leading-tight font-medium">{{ connectorName(row.connector) }}</p>
                             <p class="text-muted-foreground mt-1 text-xs">{{ connectorDescription(row.connector) }}</p>
+                            <p v-if="!row.ready && row.requires" class="mt-1 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500">
+                                <TriangleAlert class="h-3.5 w-3.5 shrink-0" />
+                                {{
+                                    row.enabled
+                                        ? t('agents.capabilities.requires_disconnected', { name: connectorName(row.requires) })
+                                        : t('agents.capabilities.requires_connector', { name: connectorName(row.requires) })
+                                }}
+                            </p>
                         </div>
                         <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />
+                        <Link v-if="!row.ready && !row.enabled && row.requires" :href="editConnectors.url()">
+                            <Button variant="outline" size="sm">{{
+                                t('agents.capabilities.connect_connector', { name: connectorName(row.requires) })
+                            }}</Button>
+                        </Link>
                         <Switch
+                            v-else
                             :model-value="row.enabled"
                             :disabled="busy[row.connector.slug]"
                             :aria-label="connectorName(row.connector)"

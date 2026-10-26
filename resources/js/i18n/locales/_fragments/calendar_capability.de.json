@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Funktioniert über {name}. Verbinden Sie zuerst {name} auf der Seite Konnektoren.",
+            "requires_disconnected": "{name} ist nicht verbunden, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie {name} erneut auf der Seite Konnektoren.",
+            "connect_connector": "{name} verbinden"
+        },
+        "forms": {
+            "managed_by_capability": "Verwaltet von der Fähigkeit {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} Min.",
+            "previous_week": "Vorherige Woche",
+            "next_week": "Nächste Woche",
+            "days": "Tage mit freien Zeiten",
+            "times_in": "Zeiten in {timezone}",
+            "loading": "Freie Zeiten werden geladen…",
+            "slots_failed": "Freie Zeiten konnten nicht geladen werden. Bitte erneut versuchen.",
+            "no_times": "Keine freien Zeiten in dieser Woche. Probieren Sie die nächste Woche.",
+            "name": "Name",
+            "email": "E-Mail",
+            "notes": "Notizen",
+            "notes_optional": "Notizen (optional)",
+            "book": "Termin buchen",
+            "booking": "Wird gebucht…",
+            "back": "Zurück",
+            "booked": "Ihr Termin ist gebucht.",
+            "booked_for": "Gebucht für {time}",
+            "expired": "Dieser Kalender ist abgelaufen. Fordern Sie einen neuen an, um einen Termin zu buchen.",
+            "slot_taken": "Diese Zeit wurde gerade vergeben. Bitte wählen Sie eine andere.",
+            "book_failed": "Der Termin konnte nicht gebucht werden. Bitte erneut versuchen.",
+            "book_on_page": "Dieser Termin kann nur auf der Buchungsseite gebucht werden.",
+            "open_booking_page": "Buchungsseite öffnen",
+            "unavailable": "Buchen ist hier nicht möglich."
+        }
+    }
+}

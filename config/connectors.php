@@ -25,6 +25,7 @@ return [
         Connectors\CurrencyConnector::class,
         Connectors\ChartsConnector::class,
         Connectors\FormsConnector::class,
+        Connectors\CalendarConnector::class,
         Connectors\StripeConnector::class,
         Connectors\GithubConnector::class,
         Connectors\NotionConnector::class,

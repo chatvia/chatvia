@@ -130,3 +130,13 @@ it('refuses a form the session already submitted in another conversation', funct
         ->and($outcome->alreadySubmittedFormName)->toBe('Book a demo')
         ->and(FormSubmission::query()->where('chat_conversation_id', $this->conversation->id)->exists())->toBeFalse();
 });
+
+it('never renders a form a capability manages', function (): void {
+    rifForm($this->agent, ['slug' => 'meeting-bookings', 'name' => 'Meeting bookings', 'managed_by' => 'calendar']);
+
+    $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'meeting-bookings');
+
+    expect($outcome->form)->toBeNull()
+        ->and($outcome->activeSlugs)->toBe([])
+        ->and(FormSubmission::query()->exists())->toBeFalse();
+});

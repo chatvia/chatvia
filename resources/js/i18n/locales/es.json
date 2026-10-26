@@ -144,6 +144,31 @@
             "refused": "El servicio rechazó esta solicitud.",
             "timed_out": "Tardó demasiado. Vuelve a pedirlo.",
             "download": "Descargar"
+        },
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Semana anterior",
+            "next_week": "Semana siguiente",
+            "days": "Días con horarios libres",
+            "times_in": "Horarios en {timezone}",
+            "loading": "Cargando horarios libres…",
+            "slots_failed": "No se pudieron cargar los horarios libres. Inténtalo de nuevo.",
+            "no_times": "No hay horarios libres esta semana. Prueba con la semana siguiente.",
+            "name": "Nombre",
+            "email": "Correo electrónico",
+            "notes": "Notas",
+            "notes_optional": "Notas (opcional)",
+            "book": "Reservar reunión",
+            "booking": "Reservando…",
+            "back": "Atrás",
+            "booked": "Tu reunión está reservada.",
+            "booked_for": "Reservada para {time}",
+            "expired": "Este calendario ha caducado. Pide uno nuevo para reservar una reunión.",
+            "slot_taken": "Ese horario acaba de ocuparse. Elige otro.",
+            "book_failed": "No se pudo reservar la reunión. Inténtalo de nuevo.",
+            "book_on_page": "Esta reunión solo se puede reservar en la página de reservas.",
+            "open_booking_page": "Abrir página de reservas",
+            "unavailable": "Las reservas no están disponibles aquí."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Las capacidades añaden funciones avanzadas dentro del propio chat. Activa una para que este agente pueda usarla en las conversaciones.",
             "empty": "Aún no hay capacidades disponibles.",
             "enable_failed": "No se pudo activar esta capacidad",
-            "disable_failed": "No se pudo desactivar esta capacidad"
+            "disable_failed": "No se pudo desactivar esta capacidad",
+            "requires_connector": "Funciona a través de {name}. Primero conecta {name} en la página Conectores.",
+            "requires_disconnected": "{name} no está conectado, así que esta capacidad no puede funcionar. Vuelve a conectar {name} en la página Conectores.",
+            "connect_connector": "Conectar {name}"
         },
         "forms": {
             "page_title": "Formularios",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Los formularios solo se muestran en el widget de chat y en la barra de comandos.",
             "delete_with_leads": "También se eliminará {count} lead. Esta acción no se puede deshacer. | También se eliminarán {count} leads. Esta acción no se puede deshacer.",
-            "page_description": "Formularios que el agente puede mostrar en el chat para recoger datos, como una solicitud de presupuesto o una reserva."
+            "page_description": "Formularios que el agente puede mostrar en el chat para recoger datos, como una solicitud de presupuesto o una reserva.",
+            "managed_by_capability": "Gestionada por la capacidad {name}"
         },
         "submissions": {
             "page_title": "Envíos",
@@ -4257,6 +4286,10 @@
                 "description": "Busca en Google, Bing, YouTube y otros buscadores resultados en directo: noticias, precios, lugares. Con la tecnología de SerpApi.",
                 "token_label": "Clave de API de SerpApi",
                 "token_placeholder": "Tu clave de API de SerpApi"
+            },
+            "calendar": {
+                "name": "Calendario",
+                "description": "Deja que los visitantes reserven una reunión en el chat: eligen un horario libre de tu Calendly y lo reservan sin salir de la conversación. Cada reserva se guarda como un lead."
             }
         }
     },

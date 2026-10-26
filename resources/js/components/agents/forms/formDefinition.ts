@@ -34,6 +34,8 @@ export interface FormDefinition {
     agent_instructions: string | null;
     is_active: boolean;
     submissions_count: number;
+    /** Slug of the capability that owns the form (e.g. `calendar`); such a form is read-only. */
+    managed_by?: string | null;
 }
 
 /** A contact attribute (name, email, …) a form field can be mapped to. */

@@ -32,6 +32,8 @@ use Domain\Agent\Observers\AgentObserver;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Analytics\Listeners\QueueMessageAnalysis;
 use Domain\Analytics\Listeners\RecordAnalytics;
+use Domain\Booking\Contracts\Scheduler;
+use Domain\Booking\Services\CalendlyScheduler;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\HandedOff;
@@ -175,6 +177,10 @@ class DomainServiceProvider extends ServiceProvider
         // the code-defined MCP servers in App\Mcp.
         $this->app->bind(AccessTokenRefresher::class, OAuthTokenRefresher::class);
         $this->app->bind(BuiltinToolDefinitions::class, CodeDefinedToolDefinitions::class);
+
+        // The Calendar capability books through the workspace's Calendly
+        // connection; tests swap in a fake scheduler.
+        $this->app->bind(Scheduler::class, CalendlyScheduler::class);
 
         // SSE stream transformer: parses the upstream OpenAI-compatible byte
         // stream into envelope events. Kept behind an interface as the seam the

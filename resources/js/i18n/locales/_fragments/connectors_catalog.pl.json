@@ -165,6 +165,10 @@
                 "name": "Formularze",
                 "description": "Zbieraj leady za pomocą prawdziwego formularza do wypełnienia w czacie, a także formularzy rezerwacji i kwalifikacji. Dane są sprawdzane i zapisywane automatycznie; w kanałach, które nie pokazują formularzy, dane są zbierane w rozmowie."
             },
+            "calendar": {
+                "name": "Kalendarz",
+                "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Wyszukuj aktualne wyniki w Google, Bing, YouTube i innych wyszukiwarkach: wiadomości, ceny, miejsca. Dostarczane przez SerpApi.",

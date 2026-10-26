@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "{name} üzerinden çalışır. Önce Bağlayıcılar sayfasında {name} bağlantısını kurun.",
+            "requires_disconnected": "{name} bağlı değil, bu yüzden bu yetenek çalışamaz. Bağlayıcılar sayfasında {name} bağlantısını yeniden kurun.",
+            "connect_connector": "{name} bağla"
+        },
+        "forms": {
+            "managed_by_capability": "{name} yeteneği tarafından yönetilir"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} dk",
+            "previous_week": "Önceki hafta",
+            "next_week": "Sonraki hafta",
+            "days": "Boş saatleri olan günler",
+            "times_in": "Saatler {timezone} diliminde",
+            "loading": "Boş saatler yükleniyor…",
+            "slots_failed": "Boş saatler yüklenemedi. Lütfen tekrar deneyin.",
+            "no_times": "Bu hafta boş saat yok. Sonraki haftayı deneyin.",
+            "name": "Ad",
+            "email": "E-posta",
+            "notes": "Notlar",
+            "notes_optional": "Notlar (isteğe bağlı)",
+            "book": "Toplantı ayarla",
+            "booking": "Ayarlanıyor…",
+            "back": "Geri",
+            "booked": "Toplantınız ayarlandı.",
+            "booked_for": "{time} için ayarlandı",
+            "expired": "Bu takvimin süresi doldu. Toplantı ayarlamak için yenisini isteyin.",
+            "slot_taken": "Bu saat az önce doldu. Lütfen başka bir saat seçin.",
+            "book_failed": "Toplantı ayarlanamadı. Lütfen tekrar deneyin.",
+            "book_on_page": "Bu toplantı yalnızca rezervasyon sayfasında ayarlanabilir.",
+            "open_booking_page": "Rezervasyon sayfasını aç",
+            "unavailable": "Rezervasyon burada kullanılamıyor."
+        }
+    }
+}

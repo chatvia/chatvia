@@ -133,6 +133,17 @@
             "counter": "{current} / {total}",
             "view": "Xem ảnh",
             "view_named": "Xem ảnh: {name}"
+        },
+        "generated_media": {
+            "image": "Hình ảnh đã tạo",
+            "image_alt": "Hình ảnh đã tạo: {prompt}",
+            "image_pending": "Đang tạo hình ảnh của bạn…",
+            "audio_pending": "Đang tạo âm thanh của bạn…",
+            "image_failed": "Không thể tạo hình ảnh này.",
+            "audio_failed": "Không thể tạo âm thanh này.",
+            "refused": "Dịch vụ đã từ chối yêu cầu này.",
+            "timed_out": "Quá lâu. Vui lòng yêu cầu lại.",
+            "download": "Tải xuống"
         }
     },
     "messages": {

@@ -1,0 +1,15 @@
+{
+    "chat": {
+        "generated_media": {
+            "image": "Oluşturulan görsel",
+            "image_alt": "Oluşturulan görsel: {prompt}",
+            "image_pending": "Görseliniz oluşturuluyor…",
+            "audio_pending": "Sesiniz oluşturuluyor…",
+            "image_failed": "Bu görsel oluşturulamadı.",
+            "audio_failed": "Bu ses oluşturulamadı.",
+            "refused": "Hizmet bu isteği reddetti.",
+            "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
+            "download": "İndir"
+        }
+    }
+}

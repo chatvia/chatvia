@@ -133,6 +133,17 @@
             "counter": "{current} sur {total}",
             "view": "Voir l'image",
             "view_named": "Voir l'image : {name}"
+        },
+        "generated_media": {
+            "image": "Image générée",
+            "image_alt": "Image générée : {prompt}",
+            "image_pending": "Création de votre image…",
+            "audio_pending": "Création de votre audio…",
+            "image_failed": "Impossible de créer cette image.",
+            "audio_failed": "Impossible de créer cet audio.",
+            "refused": "Le service a refusé cette demande.",
+            "timed_out": "Cela a pris trop de temps. Veuillez redemander.",
+            "download": "Télécharger"
         }
     },
     "messages": {

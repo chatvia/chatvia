@@ -1,0 +1,15 @@
+{
+    "chat": {
+        "generated_media": {
+            "image": "Genereret billede",
+            "image_alt": "Genereret billede: {prompt}",
+            "image_pending": "Laver dit billede…",
+            "audio_pending": "Laver din lyd…",
+            "image_failed": "Billedet kunne ikke laves.",
+            "audio_failed": "Lyden kunne ikke laves.",
+            "refused": "Tjenesten afviste denne anmodning.",
+            "timed_out": "Det tog for lang tid. Spørg igen.",
+            "download": "Download"
+        }
+    }
+}

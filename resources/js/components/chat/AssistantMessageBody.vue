@@ -28,6 +28,8 @@ import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch 
 import { useI18n } from 'vue-i18n';
 import CitationCard from './CitationCard.vue';
 import EChartBlock from './EChartBlock.vue';
+import GeneratedAudioBlock from './GeneratedAudioBlock.vue';
+import GeneratedImageBlock from './GeneratedImageBlock.vue';
 import ImageLightbox, { type LightboxImage } from './ImageLightbox.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
 
@@ -73,6 +75,14 @@ const ARTIFACT_RENDERERS: Record<string, ArtifactRenderer> = {
     form: {
         component: InlineFormBlock,
         toProps: (data) => ({ form: data }),
+    },
+    image: {
+        component: GeneratedImageBlock,
+        toProps: (data) => ({ media: data }),
+    },
+    audio: {
+        component: GeneratedAudioBlock,
+        toProps: (data) => ({ media: data }),
     },
 };
 

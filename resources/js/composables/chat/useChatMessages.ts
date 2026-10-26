@@ -1,13 +1,15 @@
 /**
  * The hosted chat transcript: the ordered messages plus the knowledge sources
- * and chart artifacts of each assistant reply, keyed by the reply's UUID. Owns
- * loading and the local edits that mirror what the server just did (new turn
- * stubs, deleted pairs, removed attachments).
+ * and artifacts (charts, forms, generated images and audio) of each assistant
+ * reply, keyed by the reply's UUID. Owns loading and the local edits that
+ * mirror what the server just did (new turn stubs, deleted pairs, removed
+ * attachments, a generated file that is now made).
  */
 import { fetchConversationMessages, fetchConversationSources } from '@/api/chat';
 import type { ChatAttachment, Message, MessageSource } from '@/types/chat';
+import { GENERATED_MEDIA_KINDS, type GeneratedMedia, type GeneratedMediaArtifactData } from '@/types/generatedMedia';
 import type { ToolArtifact } from '@/types/stream';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 export type MessageId = string | number;
 
@@ -68,6 +70,33 @@ export function useChatMessages(conversationId: string) {
     function addArtifacts(assistantMessageId: MessageId, list: ToolArtifact[]) {
         const existing = artifacts.value.get(assistantMessageId) ?? [];
         artifacts.value.set(assistantMessageId, [...existing, ...list]);
+    }
+
+    function isMediaArtifact(artifact: ToolArtifact): artifact is ToolArtifact & { data: GeneratedMediaArtifactData } {
+        return GENERATED_MEDIA_KINDS.includes(artifact.kind) && typeof (artifact.data as GeneratedMediaArtifactData | null)?.id === 'string';
+    }
+
+    /** The generated images and audio still being made, by id. */
+    const pendingMediaIds = computed(() =>
+        [...artifacts.value.values()]
+            .flat()
+            .filter(isMediaArtifact)
+            .filter((artifact) => (artifact.data.status ?? 'pending') === 'pending')
+            .map((artifact) => artifact.data.id),
+    );
+
+    /** Swaps in a generated file's new state wherever its artifact shows. */
+    function updateMedia(media: GeneratedMedia) {
+        for (const [messageId, list] of artifacts.value) {
+            if (!list.some((artifact) => isMediaArtifact(artifact) && artifact.data.id === media.id)) continue;
+
+            artifacts.value.set(
+                messageId,
+                list.map((artifact) =>
+                    isMediaArtifact(artifact) && artifact.data.id === media.id ? { ...artifact, data: { ...artifact.data, ...media } } : artifact,
+                ),
+            );
+        }
     }
 
     /** Forgets the sources and charts of a reply that is being replaced or deleted. */
@@ -174,6 +203,8 @@ export function useChatMessages(conversationId: string) {
         artifactsFor,
         setSources,
         addArtifacts,
+        pendingMediaIds,
+        updateMedia,
         forgetReplyExtras,
         appendTurn,
         resetReply,

@@ -133,6 +133,17 @@
             "counter": "{current} dari {total}",
             "view": "Lihat gambar",
             "view_named": "Lihat gambar: {name}"
+        },
+        "generated_media": {
+            "image": "Gambar yang dibuat",
+            "image_alt": "Gambar yang dibuat: {prompt}",
+            "image_pending": "Membuat gambar Anda…",
+            "audio_pending": "Membuat audio Anda…",
+            "image_failed": "Gambar ini tidak dapat dibuat.",
+            "audio_failed": "Audio ini tidak dapat dibuat.",
+            "refused": "Layanan menolak permintaan ini.",
+            "timed_out": "Ini terlalu lama. Silakan minta lagi.",
+            "download": "Unduh"
         }
     },
     "messages": {

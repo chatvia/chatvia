@@ -133,6 +133,17 @@
             "counter": "{current} von {total}",
             "view": "Bild ansehen",
             "view_named": "Bild ansehen: {name}"
+        },
+        "generated_media": {
+            "image": "Erstelltes Bild",
+            "image_alt": "Erstelltes Bild: {prompt}",
+            "image_pending": "Dein Bild wird erstellt…",
+            "audio_pending": "Deine Audiodatei wird erstellt…",
+            "image_failed": "Dieses Bild konnte nicht erstellt werden.",
+            "audio_failed": "Diese Audiodatei konnte nicht erstellt werden.",
+            "refused": "Der Dienst hat diese Anfrage abgelehnt.",
+            "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
+            "download": "Herunterladen"
         }
     },
     "messages": {

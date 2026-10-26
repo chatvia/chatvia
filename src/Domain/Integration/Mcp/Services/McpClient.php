@@ -200,13 +200,13 @@ class McpClient
         // dispatch time (DNS can change since save), connect to the address
         // that was checked, and disable redirects so a public host can't 30x
         // into internal infrastructure (unless Settings → Security allows
-        // private addresses). One of our own servers sent to the internal URL
-        // is the exception: that address is the operator's config, not a
-        // workspace's input, and a private one (a container network) is the
-        // point.
-        $clientOptions = $url === $server->url
-            ? SafeUrl::pinnedClientOptions($server->url)
-            : SafeUrl::clientOptions();
+        // private addresses). One of our own servers is the exception: its
+        // address is APP_URL or the internal URL, the operator's config rather
+        // than a workspace's input, and may well be private (a container
+        // network, a local or intranet install).
+        $clientOptions = $firstParty
+            ? SafeUrl::clientOptions()
+            : SafeUrl::pinnedClientOptions($server->url);
 
         // Identity headers are stamped last so a server's custom headers
         // can't shadow them.

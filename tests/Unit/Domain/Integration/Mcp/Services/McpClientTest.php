@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 use Mockery\MockInterface;
+use Support\Http\SafeUrl;
 
 /**
  * The MCP client speaks JSON-RPC over streamable HTTP: it lists and calls
@@ -270,6 +271,35 @@ it('sends a first-party server to the internal URL with a valid signature', func
             InternalMcpSignature::identityHeadersFrom($request->headers()),
         ));
     Http::assertNotSent(fn (ClientRequest $request): bool => ! Str::startsWith($request->url(), 'http://app:8080/'));
+});
+
+it('reaches a first-party server when APP_URL resolves to a private address', function (): void {
+    app()['env'] = 'production';
+    SafeUrl::resolveHostsUsing(fn (string $host): array => ['127.0.0.1']);
+    mclFakeServer();
+
+    try {
+        app(McpClient::class)->callTool(mclInternalServer('charts'), 'render-bar-chart', ['title' => 'x']);
+    } finally {
+        SafeUrl::resolveHostsUsing(null);
+    }
+
+    Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? '') === 'tools/call');
+});
+
+it('refuses a custom server at a private address, even at our own /mcp/ URL', function (): void {
+    app()['env'] = 'production';
+    SafeUrl::resolveHostsUsing(fn (string $host): array => ['127.0.0.1']);
+    mclFakeServer();
+
+    try {
+        expect(fn () => app(McpClient::class)->callTool(mclInternalServer(null), 'render-bar-chart', []))
+            ->toThrow(McpException::class, 'private or reserved address');
+    } finally {
+        SafeUrl::resolveHostsUsing(null);
+    }
+
+    Http::assertNothingSent();
 });
 
 it('never sends a third-party server to the internal URL', function (): void {

@@ -10,7 +10,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Aina päällä",
-                "always_hint": "Oletuksena agentti valitsee vain ne työkalut, joita kukin viesti tarvitsee. Ota tämä käyttöön, jos haluat lähettää tämän liittimen työkalut jokaisen viestin mukana, vaikka viesti ei näyttäisi tarvitsevan niitä. Mitä enemmän työkaluja on aina päällä, sitä todennäköisemmin agentti valitsee väärän, ja vastaukset hidastuvat ja maksavat enemmän.",
+                "always_hint": "Kun tämä on päällä, agentti saa tämän liittimen työkalut jokaisen viestin mukana. Kun se on pois päältä, ChatVia.ai käyttää älykästä työkalujen hakua ja valitsee vain ne työkalut, joita kukin viesti tarvitsee. Aina päällä toimii hyvin, kun sinulla on vain muutama liitin. Jos niitä on paljon, kytke tämä pois ja anna älykkään työkalujen haun valita. Liian monta työkalua hidastaa vastauksia, ja agentti valitsee helpommin väärän.",
                 "always_failed": "Aina päällä -asetuksen päivittäminen epäonnistui"
             }
         },

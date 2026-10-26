@@ -1528,7 +1528,7 @@
                 "soon": "Snart",
                 "connect_first": "Koble til dette MCP-et i innstillingene først",
                 "column_always": "Alltid på",
-                "always_hint": "Som standard velger agenten bare verktøyene hver melding trenger. Slå på dette for å sende verktøyene til denne koblingen med hver melding, selv når meldingen ikke ser ut til å trenge dem. Jo flere verktøy som alltid er aktive, desto større er sjansen for at agenten velger feil verktøy, og svarene blir tregere og dyrere.",
+                "always_hint": "Når dette er på, får agenten verktøyene til denne koblingen med hver melding. Når det er av, bruker ChatVia.ai smart verktøyoppdagelse for å velge bare verktøyene hver melding trenger. Alltid på fungerer godt når du bare har noen få koblinger. Har du mange, slå det av og la den smarte verktøyoppdagelsen velge. For mange verktøy gjør svarene tregere og gjør det mer sannsynlig at agenten velger feil.",
                 "always_failed": "Kunne ikke oppdatere Alltid på-innstillingen"
             },
             "functions": {

@@ -1528,7 +1528,7 @@
                 "soon": "Soon",
                 "connect_first": "Connect this MCP in Settings first",
                 "column_always": "Always on",
-                "always_hint": "By default, the agent picks only the tools each message needs. Turn this on to send this connector's tools with every message, even when the message doesn't seem to need them. The more tools that are always on, the more likely the agent is to pick the wrong one, and replies get slower and cost more.",
+                "always_hint": "When this is on, the agent gets this connector's tools with every message. When it is off, ChatVia.ai uses smart tool discovery to pick only the tools each message needs. Always on works well when you have only a few connectors. If you have many, turn it off and let smart tool discovery choose. Sending too many tools makes replies slower and the agent more likely to pick the wrong one.",
                 "always_failed": "Failed to update the always-on setting"
             },
             "functions": {

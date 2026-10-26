@@ -1528,7 +1528,7 @@
                 "soon": "Em breve",
                 "connect_first": "Ligue primeiro este MCP nas Definições",
                 "column_always": "Sempre ativo",
-                "always_hint": "Por padrão, o agente escolhe apenas as ferramentas de que cada mensagem precisa. Ative para enviar as ferramentas deste conector com cada mensagem, mesmo quando a mensagem não parece precisar delas. Quanto mais ferramentas sempre ativas, maior a chance de o agente escolher a errada, e as respostas ficam mais lentas e mais caras.",
+                "always_hint": "Quando isto está ativado, o agente recebe as ferramentas deste conector em todas as mensagens. Quando está desativado, o ChatVia.ai usa a descoberta inteligente de ferramentas para escolher apenas as ferramentas de que cada mensagem precisa. Sempre ativo funciona bem quando você tem poucos conectores. Se tiver muitos, desative e deixe a descoberta inteligente de ferramentas escolher. Enviar ferramentas demais deixa as respostas mais lentas e aumenta a chance de o agente escolher a errada.",
                 "always_failed": "Falha ao atualizar a definição “Sempre ativo”"
             },
             "functions": {

@@ -71,7 +71,7 @@ return new class extends Migration
             $table->timestamp('last_invoked_at')->nullable();
             // Per-agent "always on": the connector's tools ship on every turn
             // instead of only when the relevance router picks them.
-            $table->boolean('always_available')->default(false);
+            $table->boolean('always_available')->default(true);
 
             $table->primary(['agent_id', 'mcp_server_id']);
 

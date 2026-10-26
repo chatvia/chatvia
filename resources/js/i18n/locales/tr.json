@@ -1528,7 +1528,7 @@
                 "soon": "Yakında",
                 "connect_first": "Önce bu MCP'yi Ayarlar'dan bağlayın",
                 "column_always": "Her zaman açık",
-                "always_hint": "Varsayılan olarak asistan yalnızca her mesajın ihtiyaç duyduğu araçları seçer. Bunu açarsanız bu bağlayıcının araçları, mesaj bunlara ihtiyaç duymuyor gibi görünse bile her mesajla birlikte gönderilir. Her zaman açık araç sayısı arttıkça asistanın yanlış aracı seçme olasılığı artar, yanıtlar da yavaşlar ve maliyet yükselir.",
+                "always_hint": "Bu açıkken ajan, bu bağlayıcının araçlarını her mesajla birlikte alır. Kapalıyken ChatVia.ai, akıllı araç keşfiyle yalnızca her mesajın ihtiyaç duyduğu araçları seçer. Yalnızca birkaç bağlayıcınız varsa Her zaman açık iyi çalışır. Çok sayıda bağlayıcınız varsa bunu kapatın ve seçimi akıllı araç keşfine bırakın. Çok fazla araç göndermek yanıtları yavaşlatır ve ajanın yanlış aracı seçme olasılığını artırır.",
                 "always_failed": "Her zaman açık ayarı güncellenemedi"
             },
             "functions": {

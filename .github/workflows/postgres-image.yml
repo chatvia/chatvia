@@ -2,11 +2,11 @@ name: Postgres image
 
 # Builds the Postgres image (docker/postgres/Dockerfile: pgvector,
 # pg_textsearch, pg_partman) and pushes it to the GitHub Container Registry
-# whenever the Dockerfile changes. Publishes two tags: the moving `18`, and
-# the pinned `18-r<IMAGE_REVISION>` that docker/compose.yaml,
-# docker-compose.yml and .github/workflows/tests.yml reference. A pinned tag
-# is never overwritten: bump IMAGE_REVISION in the Dockerfile (and those three
-# pins) with every change, or this run fails.
+# whenever the Dockerfile changes. Publishes two tags: the moving `18`, which
+# installs use (docker/compose.yaml), and the pinned `18-r<IMAGE_REVISION>`
+# that docker-compose.yml and .github/workflows/tests.yml reference. A pinned
+# tag is never overwritten: bump IMAGE_REVISION in the Dockerfile (and those
+# two pins) with every change, or this run fails.
 on:
   push:
     branches:

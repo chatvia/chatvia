@@ -84,8 +84,7 @@ readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly INSTALL_COUNT_URL="https://chatvia.ai/api/installs"
 readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
 
-# The complete installation. The pg_textsearch version matches the one the
-# Docker install's Postgres image (docker/postgres/Dockerfile) carries.
+# The complete installation.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
 readonly NATIVE_UBUNTU="26.04"
 readonly NATIVE_REPO="https://github.com/chatvia/chatvia.git"
@@ -104,7 +103,7 @@ readonly NATIVE_MIN_PHP="8.5.12"
 readonly PHP_PPA_URL="https://ppa.launchpadcontent.net/ondrej/php/ubuntu"
 readonly PHP_PPA_KEY="B8DC7E53946656EFBCE4C1DD71DAEAAB4AD4CAB6"
 readonly NATIVE_PG="18"
-readonly PG_TEXTSEARCH_VERSION="1.5.1"
+readonly PG_TEXTSEARCH_RELEASES="https://github.com/timescale/pg_textsearch/releases"
 readonly DEPLOYER_VERSION="^8.0"
 readonly MIN_NODE_VERSION="22.18.0"
 # Less memory than this (a 4 GB server), and no swap: the frontend build
@@ -2760,21 +2759,28 @@ node_can_build() {
     node "$WORK_DIR/check.ts" >/dev/null 2>&1
 }
 
-# pg_textsearch (BM25 keyword search) comes as a package from its GitHub
-# release; pgvector and pg_partman come from Ubuntu.
+# pg_textsearch (BM25 keyword search) comes as a package from its newest
+# GitHub release (GitHub redirects releases/latest to its tag, with no API
+# rate limit); pgvector and pg_partman come from Ubuntu.
 native_install_extensions() {
-    local arch dir="$WORK_DIR/debs" file
+    local arch dir="$WORK_DIR/debs" file url version
     arch=$(dpkg --print-architecture)
-    if [ "$(dpkg-query -W -f='${Version}' "pg-textsearch-postgresql-$NATIVE_PG" 2>/dev/null)" = "$PG_TEXTSEARCH_VERSION-1" ]; then
-        echo "pg-textsearch-postgresql-$NATIVE_PG $PG_TEXTSEARCH_VERSION is installed."
+    url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' "$PG_TEXTSEARCH_RELEASES/latest") || return
+    version=${url##*/v}
+    case "$version" in
+        [0-9]*.[0-9]*) ;;
+        *) echo "Could not read the newest pg_textsearch release from $url." >&2; return 1 ;;
+    esac
+    if [ "$(dpkg-query -W -f='${Version}' "pg-textsearch-postgresql-$NATIVE_PG" 2>/dev/null)" = "$version-1" ]; then
+        echo "pg-textsearch-postgresql-$NATIVE_PG $version is installed."
         return 0
     fi
     mkdir -p "$dir"
-    file="$dir/pg-textsearch-v$PG_TEXTSEARCH_VERSION-pg$NATIVE_PG-$arch.zip"
+    file="$dir/pg-textsearch-v$version-pg$NATIVE_PG-$arch.zip"
     curl -fsSL -o "$file" \
-        "https://github.com/timescale/pg_textsearch/releases/download/v$PG_TEXTSEARCH_VERSION/pg-textsearch-v$PG_TEXTSEARCH_VERSION-pg$NATIVE_PG-$arch.zip"
+        "$PG_TEXTSEARCH_RELEASES/download/v$version/pg-textsearch-v$version-pg$NATIVE_PG-$arch.zip"
     unzip -o -q "$file" -d "$dir"
-    apt_get install "$dir/pg-textsearch-postgresql-${NATIVE_PG}_$PG_TEXTSEARCH_VERSION-1_$arch.deb"
+    apt_get install "$dir/pg-textsearch-postgresql-${NATIVE_PG}_$version-1_$arch.deb"
 }
 
 # The tuned PostgreSQL settings for the memory, processors and connections it

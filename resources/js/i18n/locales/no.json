@@ -144,6 +144,31 @@
             "refused": "Tjenesten avviste denne forespørselen.",
             "timed_out": "Det tok for lang tid. Spør igjen.",
             "download": "Last ned"
+        },
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Forrige uke",
+            "next_week": "Neste uke",
+            "days": "Dager med ledige tider",
+            "times_in": "Tider i {timezone}",
+            "loading": "Laster ledige tider…",
+            "slots_failed": "Kunne ikke laste ledige tider. Prøv igjen.",
+            "no_times": "Ingen ledige tider denne uken. Prøv neste uke.",
+            "name": "Navn",
+            "email": "E-post",
+            "notes": "Notater",
+            "notes_optional": "Notater (valgfritt)",
+            "book": "Book møte",
+            "booking": "Booker…",
+            "back": "Tilbake",
+            "booked": "Møtet ditt er booket.",
+            "booked_for": "Booket til {time}",
+            "expired": "Denne kalenderen er utløpt. Be om en ny for å booke et møte.",
+            "slot_taken": "Den tiden ble nettopp tatt. Velg en annen.",
+            "book_failed": "Kunne ikke booke møtet. Prøv igjen.",
+            "book_on_page": "Dette møtet kan bare bookes på bookingsiden.",
+            "open_booking_page": "Åpne bookingsiden",
+            "unavailable": "Booking er ikke tilgjengelig her."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Kapabiliteter legger til avanserte muligheter rett i chatten. Slå på én slik at denne agenten kan bruke den i samtaler.",
             "empty": "Ingen kapabiliteter er tilgjengelige ennå.",
             "enable_failed": "Kunne ikke slå på denne kapabiliteten",
-            "disable_failed": "Kunne ikke slå av denne kapabiliteten"
+            "disable_failed": "Kunne ikke slå av denne kapabiliteten",
+            "requires_connector": "Fungerer via {name}. Koble først til {name} på Koblinger-siden.",
+            "requires_disconnected": "{name} er ikke koblet til, så denne kapabiliteten kan ikke fungere. Koble til {name} på nytt på Koblinger-siden.",
+            "connect_connector": "Koble til {name}"
         },
         "forms": {
             "page_title": "Skjemaer",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Skjemaer vises bare i chat-widgeten og kommandolinjen.",
             "delete_with_leads": "Dette sletter også {count} lead. Denne handlingen kan ikke angres. | Dette sletter også {count} leads. Denne handlingen kan ikke angres.",
-            "page_description": "Skjemaer agenten kan vise i chatten for å samle inn opplysninger, for eksempel en tilbudsforespørsel eller en bestilling."
+            "page_description": "Skjemaer agenten kan vise i chatten for å samle inn opplysninger, for eksempel en tilbudsforespørsel eller en bestilling.",
+            "managed_by_capability": "Styres av kapabiliteten {name}"
         },
         "submissions": {
             "page_title": "Innsendinger",
@@ -4257,6 +4286,10 @@
                 "description": "Søk i Google, Bing, YouTube og andre søkemotorer etter ferske resultater: nyheter, priser, steder. Levert av SerpApi.",
                 "token_label": "SerpApi API-nøkkel",
                 "token_placeholder": "Din SerpApi API-nøkkel"
+            },
+            "calendar": {
+                "name": "Kalender",
+                "description": "La besøkende booke et møte i chatten: de velger en ledig tid fra din Calendly og booker den uten å forlate samtalen. Hver booking lagres som en lead."
             }
         }
     },

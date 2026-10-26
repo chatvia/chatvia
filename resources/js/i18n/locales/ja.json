@@ -144,6 +144,31 @@
             "refused": "サービスがこのリクエストを拒否しました。",
             "timed_out": "時間がかかりすぎました。もう一度お試しください。",
             "download": "ダウンロード"
+        },
+        "calendar": {
+            "duration": "{minutes}分",
+            "previous_week": "前の週",
+            "next_week": "次の週",
+            "days": "空き時間のある日",
+            "times_in": "{timezone} の時間",
+            "loading": "空き時間を読み込み中…",
+            "slots_failed": "空き時間を読み込めませんでした。もう一度お試しください。",
+            "no_times": "今週は空き時間がありません。次の週をお試しください。",
+            "name": "名前",
+            "email": "メールアドレス",
+            "notes": "メモ",
+            "notes_optional": "メモ（任意）",
+            "book": "ミーティングを予約",
+            "booking": "予約中…",
+            "back": "戻る",
+            "booked": "ミーティングを予約しました。",
+            "booked_for": "{time} に予約しました",
+            "expired": "このカレンダーは有効期限が切れています。ミーティングを予約するには、新しいカレンダーをリクエストしてください。",
+            "slot_taken": "その時間はたった今埋まりました。別の時間を選んでください。",
+            "book_failed": "ミーティングを予約できませんでした。もう一度お試しください。",
+            "book_on_page": "このミーティングは予約ページでのみ予約できます。",
+            "open_booking_page": "予約ページを開く",
+            "unavailable": "ここでは予約できません。"
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "能力は、チャット内に直接高度な機能を追加します。1つ有効にすると、このエージェントが会話の中でそれを利用できます。",
             "empty": "利用できる能力はまだありません。",
             "enable_failed": "この能力を有効にできませんでした",
-            "disable_failed": "この能力を無効にできませんでした"
+            "disable_failed": "この能力を無効にできませんでした",
+            "requires_connector": "{name} 経由で動作します。先にコネクタページで {name} を接続してください。",
+            "requires_disconnected": "{name} が接続されていないため、この能力は動作しません。コネクタページで {name} をもう一度接続してください。",
+            "connect_connector": "{name} を接続"
         },
         "forms": {
             "page_title": "フォーム",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "フォームはチャットウィジェットとコマンドバーにのみ表示されます。",
             "delete_with_leads": "{count} 件のリードも削除されます。この操作は元に戻せません。 | {count} 件のリードも削除されます。この操作は元に戻せません。",
-            "page_description": "見積もり依頼や予約など、エージェントがチャット内で情報を集めるために表示できるフォームです。"
+            "page_description": "見積もり依頼や予約など、エージェントがチャット内で情報を集めるために表示できるフォームです。",
+            "managed_by_capability": "{name} 能力で管理されています"
         },
         "submissions": {
             "page_title": "送信内容",

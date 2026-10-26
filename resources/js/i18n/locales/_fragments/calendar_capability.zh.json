@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "通过 {name} 运行。请先在连接器页面连接 {name}。",
+            "requires_disconnected": "{name} 未连接，因此此能力无法使用。请在连接器页面重新连接 {name}。",
+            "connect_connector": "连接 {name}"
+        },
+        "forms": {
+            "managed_by_capability": "由 {name} 能力管理"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} 分钟",
+            "previous_week": "上一周",
+            "next_week": "下一周",
+            "days": "有空闲时间的日期",
+            "times_in": "时间为 {timezone} 时区",
+            "loading": "正在加载空闲时间…",
+            "slots_failed": "无法加载空闲时间，请重试。",
+            "no_times": "本周没有空闲时间，请查看下一周。",
+            "name": "姓名",
+            "email": "邮箱",
+            "notes": "备注",
+            "notes_optional": "备注（可选）",
+            "book": "预约会议",
+            "booking": "正在预约…",
+            "back": "返回",
+            "booked": "您的会议已预约。",
+            "booked_for": "已预约：{time}",
+            "expired": "此日历已过期。请重新获取日历以预约会议。",
+            "slot_taken": "该时间刚被预订，请选择其他时间。",
+            "book_failed": "无法预约会议，请重试。",
+            "book_on_page": "此会议只能在预约页面预约。",
+            "open_booking_page": "打开预约页面",
+            "unavailable": "此处无法预约。"
+        }
+    }
+}

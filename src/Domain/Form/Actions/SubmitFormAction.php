@@ -8,7 +8,6 @@ use Domain\Form\Data\FormSubmitResultData;
 use Domain\Form\Data\SubmitFormData;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Events\FormSubmitted;
-use Domain\Form\Exceptions\FormNotClaimableException;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +35,7 @@ class SubmitFormAction
         $definition = $data->submission->definition;
 
         return DB::transaction(function () use ($data, $definition): FormSubmitResultData {
-            $claimed = $this->claim($data->submission);
+            $claimed = $data->submission->claimPending();
 
             // Keep only the fields the form declares; drop anything extra.
             $values = array_intersect_key($data->values, array_flip(array_column($definition->schema, 'key')));
@@ -65,28 +64,6 @@ class SubmitFormAction
                 submitted_values: $values,
             );
         });
-    }
-
-    /**
-     * Lock the pending row so two submits of the same form can't both win;
-     * an expired form is marked so and rejected.
-     */
-    private function claim(FormSubmission $submission): FormSubmission
-    {
-        /** @var FormSubmission|null $claimed */
-        $claimed = FormSubmission::query()->whereKey($submission->id)->lockForUpdate()->first();
-
-        if ($claimed === null || ! $claimed->isPending()) {
-            throw FormNotClaimableException::alreadySubmitted();
-        }
-
-        if ($claimed->isExpired()) {
-            $claimed->forceFill(['status' => FormSubmissionStatus::Expired])->save();
-
-            throw FormNotClaimableException::expired();
-        }
-
-        return $claimed;
     }
 
     private function isDuplicate(FormSubmission $claimed, FormDefinition $definition, ?string $checksum): bool

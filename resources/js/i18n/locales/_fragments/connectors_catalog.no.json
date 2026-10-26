@@ -165,6 +165,10 @@
                 "name": "Skjemaer",
                 "description": "Samle inn leads med et ekte skjema som fylles ut i chatten, og i tillegg booking- og kvalifiseringsskjemaer. Valideres og lagres automatisk; i kanaler som ikke kan vise skjema, samles opplysningene inn i samtalen."
             },
+            "calendar": {
+                "name": "Kalender",
+                "description": "La besøkende booke et møte i chatten: de velger en ledig tid fra din Calendly og booker den uten å forlate samtalen. Hver booking lagres som en lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Søk i Google, Bing, YouTube og andre søkemotorer etter ferske resultater: nyheter, priser, steder. Levert av SerpApi.",

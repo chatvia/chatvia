@@ -39,7 +39,7 @@ class DeleteFormDefinitionAction
 
             $capability = $this->catalog->capabilities()->get(FormDefinition::CAPABILITY_SLUG);
 
-            if ($capability !== null && FormDefinition::query()->forAgent($agent)->doesntExist()) {
+            if ($capability !== null && FormDefinition::query()->forAgent($agent)->unmanaged()->doesntExist()) {
                 $this->disable->execute($agent, $capability);
             }
         });

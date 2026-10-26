@@ -9,6 +9,8 @@ use App\Http\Controllers\Widget\Activity\TypingController;
 use App\Http\Controllers\Widget\Auth\AgentVerifyController;
 use App\Http\Controllers\Widget\Auth\AuthExchangeController;
 use App\Http\Controllers\Widget\Auth\BroadcastAuthController;
+use App\Http\Controllers\Widget\Calendar\BookMeetingController;
+use App\Http\Controllers\Widget\Calendar\ListBookingSlotsController;
 use App\Http\Controllers\Widget\Conversations\ConversationAttachmentController;
 use App\Http\Controllers\Widget\Conversations\ConversationController;
 use App\Http\Controllers\Widget\Conversations\ConversationCreateController;
@@ -102,6 +104,15 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
             Route::post('/forms/{formInstance:external_id}/submit', SubmitInlineFormController::class)
                 ->middleware(['throttle:widget-stream', SubstituteBindings::class])
                 ->name('widget.forms.submit');
+
+            // Booking calendar (Calendar capability); bound and checked like the
+            // form submit above.
+            Route::get('/calendar/{bookingInstance:external_id}/slots', ListBookingSlotsController::class)
+                ->middleware(['throttle:widget-stream', SubstituteBindings::class])
+                ->name('widget.calendar.slots');
+            Route::post('/calendar/{bookingInstance:external_id}/book', BookMeetingController::class)
+                ->middleware(['throttle:widget-stream', SubstituteBindings::class])
+                ->name('widget.calendar.book');
 
             // WebSocket / handoff endpoints
             Route::post('/broadcasting/auth', BroadcastAuthController::class)->name('widget.broadcasting.auth');

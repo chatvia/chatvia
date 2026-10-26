@@ -165,6 +165,10 @@
                 "name": "Formulários",
                 "description": "Capte leads com um formulário real para preencher no chat, além de formulários de agendamento e de qualificação. Validados e guardados automaticamente; nos canais que não mostram formulários, os dados são pedidos na conversa."
             },
+            "calendar": {
+                "name": "Calendário",
+                "description": "Deixe os visitantes marcar uma reunião no chat: escolhem um horário livre no seu Calendly e marcam-no sem sair da conversa. Cada marcação é guardada como um lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Pesquise no Google, Bing, YouTube e outros motores resultados em tempo real: notícias, preços, locais. Com tecnologia SerpApi.",

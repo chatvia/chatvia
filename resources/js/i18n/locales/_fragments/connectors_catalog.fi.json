@@ -165,6 +165,10 @@
                 "name": "Lomakkeet",
                 "description": "Kerää liidejä oikealla, chatissa täytettävällä lomakkeella sekä varaus- ja kartoituslomakkeilla. Tiedot tarkistetaan ja tallennetaan automaattisesti; kanavilla, jotka eivät voi näyttää lomaketta, tiedot kysytään keskustelussa."
             },
+            "calendar": {
+                "name": "Kalenteri",
+                "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Hae ajantasaisia tuloksia Googlesta, Bingistä, YouTubesta ja muista hakukoneista: uutisia, hintoja, paikkoja. Palvelun tarjoaa SerpApi.",

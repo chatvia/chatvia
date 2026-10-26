@@ -144,6 +144,31 @@
             "refused": "Der Dienst hat diese Anfrage abgelehnt.",
             "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
             "download": "Herunterladen"
+        },
+        "calendar": {
+            "duration": "{minutes} Min.",
+            "previous_week": "Vorherige Woche",
+            "next_week": "Nächste Woche",
+            "days": "Tage mit freien Zeiten",
+            "times_in": "Zeiten in {timezone}",
+            "loading": "Freie Zeiten werden geladen…",
+            "slots_failed": "Freie Zeiten konnten nicht geladen werden. Bitte erneut versuchen.",
+            "no_times": "Keine freien Zeiten in dieser Woche. Probieren Sie die nächste Woche.",
+            "name": "Name",
+            "email": "E-Mail",
+            "notes": "Notizen",
+            "notes_optional": "Notizen (optional)",
+            "book": "Termin buchen",
+            "booking": "Wird gebucht…",
+            "back": "Zurück",
+            "booked": "Ihr Termin ist gebucht.",
+            "booked_for": "Gebucht für {time}",
+            "expired": "Dieser Kalender ist abgelaufen. Fordern Sie einen neuen an, um einen Termin zu buchen.",
+            "slot_taken": "Diese Zeit wurde gerade vergeben. Bitte wählen Sie eine andere.",
+            "book_failed": "Der Termin konnte nicht gebucht werden. Bitte erneut versuchen.",
+            "book_on_page": "Dieser Termin kann nur auf der Buchungsseite gebucht werden.",
+            "open_booking_page": "Buchungsseite öffnen",
+            "unavailable": "Buchen ist hier nicht möglich."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Fähigkeiten fügen dem Chat direkt erweiterte Funktionen hinzu. Aktivieren Sie eine, damit dieser Agent sie in Gesprächen nutzen kann.",
             "empty": "Es sind noch keine Fähigkeiten verfügbar.",
             "enable_failed": "Diese Fähigkeit konnte nicht aktiviert werden",
-            "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden"
+            "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden",
+            "requires_connector": "Funktioniert über {name}. Verbinden Sie zuerst {name} auf der Seite Konnektoren.",
+            "requires_disconnected": "{name} ist nicht verbunden, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie {name} erneut auf der Seite Konnektoren.",
+            "connect_connector": "{name} verbinden"
         },
         "forms": {
             "page_title": "Formulare",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formulare werden nur im Chat-Widget und in der Befehlsleiste angezeigt.",
             "delete_with_leads": "Dabei wird auch {count} Lead gelöscht. Diese Aktion kann nicht rückgängig gemacht werden. | Dabei werden auch {count} Leads gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
-            "page_description": "Formulare, die der Agent im Chat zeigen kann, um Angaben zu sammeln, etwa eine Angebotsanfrage oder eine Buchung."
+            "page_description": "Formulare, die der Agent im Chat zeigen kann, um Angaben zu sammeln, etwa eine Angebotsanfrage oder eine Buchung.",
+            "managed_by_capability": "Verwaltet von der Fähigkeit {name}"
         },
         "submissions": {
             "page_title": "Einsendungen",
@@ -4257,6 +4286,10 @@
                 "description": "Google, Bing, YouTube und andere Suchmaschinen nach aktuellen Ergebnissen durchsuchen: Nachrichten, Preise, Orte. Bereitgestellt von SerpApi.",
                 "token_label": "SerpApi API-Schlüssel",
                 "token_placeholder": "Ihr SerpApi API-Schlüssel"
+            },
+            "calendar": {
+                "name": "Kalender",
+                "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
             }
         }
     },

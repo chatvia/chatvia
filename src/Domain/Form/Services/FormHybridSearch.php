@@ -59,6 +59,7 @@ class FormHybridSearch
         $active = FormDefinition::query()
             ->forAgent($agent)
             ->where('is_active', true)
+            ->unmanaged()
             ->orderBy('name')
             ->limit($limit + 1)
             ->get(['id', 'slug', 'name', 'agent_instructions']);
@@ -122,6 +123,7 @@ WITH scope AS MATERIALIZED (
     CROSS JOIN form_definitions fd
     WHERE fd.agent_id = ?
       AND fd.is_active = true
+      AND fd.managed_by IS NULL
 ),
 form_vector AS (
     SELECT id, ROW_NUMBER() OVER (ORDER BY vector_dist, id) AS rank

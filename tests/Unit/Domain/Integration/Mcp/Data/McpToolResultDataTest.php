@@ -16,6 +16,7 @@ it('joins the text parts and promotes known structured content to artifacts', fu
         'structuredContent' => [
             'echarts_option' => ['series' => []],
             'form' => ['form_instance_id' => 'abc'],
+            'calendar' => ['booking_instance_id' => 'def'],
             'unknown' => ['ignored' => true],
         ],
     ]);
@@ -25,6 +26,7 @@ it('joins the text parts and promotes known structured content to artifacts', fu
         ->and($result->artifacts())->toBe([
             ['kind' => 'echarts_option', 'data' => ['series' => []]],
             ['kind' => 'form', 'data' => ['form_instance_id' => 'abc']],
+            ['kind' => 'calendar', 'data' => ['booking_instance_id' => 'def']],
         ]);
 });
 

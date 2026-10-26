@@ -198,6 +198,35 @@ export function submitInlineForm(
     });
 }
 
+export interface CalendarSlotsResult {
+    slots: { start_time: string }[];
+}
+
+export interface CalendarBookingPayload {
+    start_time: string;
+    name: string;
+    email: string;
+    timezone: string;
+    notes?: string;
+    assistant_message_id?: string;
+}
+
+export interface CalendarBookingResult {
+    status: string;
+    start_time: string;
+    message: string;
+}
+
+/** The free times of a shown booking calendar between two instants (ISO UTC). */
+export function listCalendarSlots(bookingInstanceId: string, from: string, to: string): Promise<CalendarSlotsResult> {
+    return get<CalendarSlotsResult>(chat.calendar.slots.url({ bookingInstance: bookingInstanceId }), { params: { from, to } });
+}
+
+/** Books the picked time. 409 / 410 / 422 / 503 reject with a `{ status, message }` body the block reads. */
+export function bookCalendarSlot(bookingInstanceId: string, payload: CalendarBookingPayload): Promise<CalendarBookingResult> {
+    return post<CalendarBookingResult>(chat.calendar.book.url({ bookingInstance: bookingInstanceId }), payload);
+}
+
 /** Speech-to-text for the composer's voice input. Resolves to '' when nothing was heard. */
 export async function transcribeAudio(audio: Blob, filename: string): Promise<string> {
     const form = new FormData();

@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Fungerer via {name}. Tilslut først {name} på siden Connectorer.",
+            "requires_disconnected": "{name} er ikke tilsluttet, så denne kapabilitet kan ikke fungere. Tilslut {name} igen på siden Connectorer.",
+            "connect_connector": "Tilslut {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Styres af kapabiliteten {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Forrige uge",
+            "next_week": "Næste uge",
+            "days": "Dage med ledige tider",
+            "times_in": "Tider i {timezone}",
+            "loading": "Henter ledige tider…",
+            "slots_failed": "Ledige tider kunne ikke hentes. Prøv igen.",
+            "no_times": "Ingen ledige tider i denne uge. Prøv næste uge.",
+            "name": "Navn",
+            "email": "E-mail",
+            "notes": "Noter",
+            "notes_optional": "Noter (valgfrit)",
+            "book": "Book møde",
+            "booking": "Booker…",
+            "back": "Tilbage",
+            "booked": "Dit møde er booket.",
+            "booked_for": "Booket til {time}",
+            "expired": "Denne kalender er udløbet. Bed om en ny for at booke et møde.",
+            "slot_taken": "Den tid blev lige taget. Vælg en anden.",
+            "book_failed": "Mødet kunne ikke bookes. Prøv igen.",
+            "book_on_page": "Dette møde kan kun bookes på bookingsiden.",
+            "open_booking_page": "Åbn bookingsiden",
+            "unavailable": "Booking er ikke tilgængelig her."
+        }
+    }
+}

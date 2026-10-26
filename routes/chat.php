@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Chat\Auth\ChatBroadcastAuthController;
 use App\Http\Controllers\Chat\Auth\ChatHandoffController;
 use App\Http\Controllers\Chat\Auth\ChatLoginController;
-use App\Http\Controllers\Chat\Auth\ChatBroadcastAuthController;
 use App\Http\Controllers\Chat\Auth\ChatLogoutController;
 use App\Http\Controllers\Chat\Auth\ChatMagicLinkController;
 use App\Http\Controllers\Chat\Auth\ChatProfilePhotoDestroyController;
@@ -12,6 +12,8 @@ use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\Auth\ChatShowResetPasswordController;
 use App\Http\Controllers\Chat\Auth\ChatSwitchAccountController;
 use App\Http\Controllers\Chat\Auth\ChatterAgentController;
+use App\Http\Controllers\Chat\Calendar\BookMeetingController;
+use App\Http\Controllers\Chat\Calendar\ListBookingSlotsController;
 use App\Http\Controllers\Chat\Conversations\ChatDeleteAllConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
@@ -106,6 +108,14 @@ Route::prefix('chat/{agentSlug}')
             // Stores a Lead and/or FormSubmission — never opens a new (billed) turn.
             Route::post('forms/{formInstance}/submit', SubmitInlineFormController::class)
                 ->middleware('throttle:chat-stream')->name('chat.forms.submit');
+
+            // Booking calendar (Calendar capability). {bookingInstance} binds the
+            // pending FormSubmission by external_id; booking stores a lead and
+            // never opens a new (billed) turn.
+            Route::get('calendar/{bookingInstance}/slots', ListBookingSlotsController::class)
+                ->middleware('throttle:chat-stream')->name('chat.calendar.slots');
+            Route::post('calendar/{bookingInstance}/book', BookMeetingController::class)
+                ->middleware('throttle:chat-stream')->name('chat.calendar.book');
 
             Route::post('conversations/create', ConversationCreateController::class)->name('conversations.create');
             Route::get('conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');

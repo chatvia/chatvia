@@ -89,6 +89,8 @@ class FormController
      */
     public function update(UpdateApiFormRequest $request, Agent $agent, FormDefinition $form, SaveFormDefinitionAction $save): array
     {
+        $this->ensureEditable($form);
+
         $form = $save->execute($agent, $request->toData($form), $form);
         $form->loadCount(['submissions as submissions_count' => fn (Builder $query): Builder => $query->where('status', FormSubmissionStatus::Submitted)]);
 
@@ -103,8 +105,16 @@ class FormController
      */
     public function destroy(Agent $agent, FormDefinition $form, DeleteFormDefinitionAction $delete): Response
     {
+        $this->ensureEditable($form);
+
         $delete->execute($agent, $form);
 
         return response()->noContent();
+    }
+
+    /** A capability's form (e.g. Calendar's bookings) is read-only. */
+    private function ensureEditable(FormDefinition $form): void
+    {
+        abort_if($form->isManaged(), 403, __('This form is managed by a capability and cannot be changed.'));
     }
 }

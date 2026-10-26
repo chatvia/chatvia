@@ -31,6 +31,7 @@ import EChartBlock from './EChartBlock.vue';
 import GeneratedAudioBlock from './GeneratedAudioBlock.vue';
 import GeneratedImageBlock from './GeneratedImageBlock.vue';
 import ImageLightbox, { type LightboxImage } from './ImageLightbox.vue';
+import InlineCalendarBlock from './InlineCalendarBlock.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
 
 const props = withDefaults(
@@ -75,6 +76,10 @@ const ARTIFACT_RENDERERS: Record<string, ArtifactRenderer> = {
     form: {
         component: InlineFormBlock,
         toProps: (data) => ({ form: data }),
+    },
+    calendar: {
+        component: InlineCalendarBlock,
+        toProps: (data) => ({ calendar: data }),
     },
     image: {
         component: GeneratedImageBlock,
@@ -480,7 +485,7 @@ onMounted(() => {
             v-for="(artifact, i) in renderableArtifacts"
             :key="`artifact-${i}`"
             v-bind="ARTIFACT_RENDERERS[artifact.kind].toProps(artifact.data)"
-            :message-id="artifact.kind === 'form' ? messageId : undefined"
+            :message-id="artifact.kind === 'form' || artifact.kind === 'calendar' ? messageId : undefined"
         />
         <div
             v-if="content"

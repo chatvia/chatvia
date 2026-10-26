@@ -144,6 +144,31 @@
             "refused": "Tjänsten avvisade den här begäran.",
             "timed_out": "Det tog för lång tid. Fråga igen.",
             "download": "Ladda ner"
+        },
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Föregående vecka",
+            "next_week": "Nästa vecka",
+            "days": "Dagar med lediga tider",
+            "times_in": "Tider i {timezone}",
+            "loading": "Laddar lediga tider…",
+            "slots_failed": "Lediga tider kunde inte laddas. Försök igen.",
+            "no_times": "Inga lediga tider den här veckan. Prova nästa vecka.",
+            "name": "Namn",
+            "email": "E-post",
+            "notes": "Anteckningar",
+            "notes_optional": "Anteckningar (valfritt)",
+            "book": "Boka möte",
+            "booking": "Bokar…",
+            "back": "Tillbaka",
+            "booked": "Ditt möte är bokat.",
+            "booked_for": "Bokat till {time}",
+            "expired": "Den här kalendern har gått ut. Be om en ny för att boka ett möte.",
+            "slot_taken": "Den tiden blev just upptagen. Välj en annan.",
+            "book_failed": "Mötet kunde inte bokas. Försök igen.",
+            "book_on_page": "Det här mötet kan bara bokas på bokningssidan.",
+            "open_booking_page": "Öppna bokningssidan",
+            "unavailable": "Bokning är inte tillgänglig här."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Förmågor lägger till avancerade funktioner direkt i chatten. Aktivera en så att den här agenten kan använda den i konversationer.",
             "empty": "Inga förmågor är tillgängliga ännu.",
             "enable_failed": "Det gick inte att aktivera den här förmågan",
-            "disable_failed": "Det gick inte att inaktivera den här förmågan"
+            "disable_failed": "Det gick inte att inaktivera den här förmågan",
+            "requires_connector": "Fungerar via {name}. Anslut först {name} på sidan Kopplingar.",
+            "requires_disconnected": "{name} är inte anslutet, så den här förmågan fungerar inte. Anslut {name} igen på sidan Kopplingar.",
+            "connect_connector": "Anslut {name}"
         },
         "forms": {
             "page_title": "Formulär",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Formulär visas bara i chattwidgeten och kommandofältet.",
             "delete_with_leads": "Detta raderar även {count} lead. Den här åtgärden kan inte ångras. | Detta raderar även {count} leads. Den här åtgärden kan inte ångras.",
-            "page_description": "Formulär som agenten kan visa i chatten för att samla in uppgifter, till exempel en offertförfrågan eller en bokning."
+            "page_description": "Formulär som agenten kan visa i chatten för att samla in uppgifter, till exempel en offertförfrågan eller en bokning.",
+            "managed_by_capability": "Hanteras av förmågan {name}"
         },
         "submissions": {
             "page_title": "Inskick",
@@ -4257,6 +4286,10 @@
                 "description": "Sök i Google, Bing, YouTube och andra sökmotorer efter aktuella resultat: nyheter, priser, platser. Drivs av SerpApi.",
                 "token_label": "SerpApi API-nyckel",
                 "token_placeholder": "Din SerpApi API-nyckel"
+            },
+            "calendar": {
+                "name": "Kalender",
+                "description": "Låt besökare boka ett möte i chatten: de väljer en ledig tid i din Calendly och bokar den utan att lämna samtalet. Varje bokning sparas som en lead."
             }
         }
     },

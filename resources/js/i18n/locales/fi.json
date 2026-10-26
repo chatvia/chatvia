@@ -144,6 +144,31 @@
             "refused": "Palvelu hylkäsi tämän pyynnön.",
             "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
             "download": "Lataa"
+        },
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Edellinen viikko",
+            "next_week": "Seuraava viikko",
+            "days": "Päivät, joilla on vapaita aikoja",
+            "times_in": "Ajat aikavyöhykkeellä {timezone}",
+            "loading": "Ladataan vapaita aikoja…",
+            "slots_failed": "Vapaita aikoja ei voitu ladata. Yritä uudelleen.",
+            "no_times": "Tällä viikolla ei ole vapaita aikoja. Kokeile seuraavaa viikkoa.",
+            "name": "Nimi",
+            "email": "Sähköposti",
+            "notes": "Muistiinpanot",
+            "notes_optional": "Muistiinpanot (valinnainen)",
+            "book": "Varaa tapaaminen",
+            "booking": "Varataan…",
+            "back": "Takaisin",
+            "booked": "Tapaamisesi on varattu.",
+            "booked_for": "Varattu ajalle {time}",
+            "expired": "Tämä kalenteri on vanhentunut. Pyydä uusi varataksesi tapaamisen.",
+            "slot_taken": "Tämä aika meni juuri. Valitse toinen.",
+            "book_failed": "Tapaamista ei voitu varata. Yritä uudelleen.",
+            "book_on_page": "Tämän tapaamisen voi varata vain varaussivulla.",
+            "open_booking_page": "Avaa varaussivu",
+            "unavailable": "Varaus ei ole käytettävissä täällä."
         }
     },
     "messages": {
@@ -2377,7 +2402,10 @@
             "description": "Kyvyt tuovat monipuolisia ominaisuuksia suoraan chattiin. Ota jokin käyttöön, jotta tämä agentti voi hyödyntää sitä keskusteluissa.",
             "empty": "Kykyjä ei ole vielä saatavilla.",
             "enable_failed": "Tämän kyvyn käyttöönotto epäonnistui",
-            "disable_failed": "Tämän kyvyn poistaminen käytöstä epäonnistui"
+            "disable_failed": "Tämän kyvyn poistaminen käytöstä epäonnistui",
+            "requires_connector": "Toimii {name}-yhteyden kautta. Yhdistä ensin {name} Liittimet-sivulla.",
+            "requires_disconnected": "{name} ei ole yhdistetty, joten tämä kyky ei voi toimia. Yhdistä {name} uudelleen Liittimet-sivulla.",
+            "connect_connector": "Yhdistä {name}"
         },
         "forms": {
             "page_title": "Lomakkeet",
@@ -2444,7 +2472,8 @@
             "preview_powered_by": "Powered by ChatVia.ai",
             "surfaces_notice": "Lomakkeet näkyvät vain chat-widgetissä ja komentopalkissa.",
             "delete_with_leads": "Tämä poistaa myös {count} liidin. Tätä toimintoa ei voi peruuttaa. | Tämä poistaa myös {count} liidiä. Tätä toimintoa ei voi peruuttaa.",
-            "page_description": "Lomakkeet, joita agentti voi näyttää chatissa tietojen keräämiseen, kuten tarjouspyyntö tai varaus."
+            "page_description": "Lomakkeet, joita agentti voi näyttää chatissa tietojen keräämiseen, kuten tarjouspyyntö tai varaus.",
+            "managed_by_capability": "{name}-kyvyn hallinnoima"
         },
         "submissions": {
             "page_title": "Lähetykset",
@@ -4257,6 +4286,10 @@
                 "description": "Hae ajantasaisia tuloksia Googlesta, Bingistä, YouTubesta ja muista hakukoneista: uutisia, hintoja, paikkoja. Palvelun tarjoaa SerpApi.",
                 "token_label": "SerpApi API-avain",
                 "token_placeholder": "SerpApi API-avaimesi"
+            },
+            "calendar": {
+                "name": "Kalenteri",
+                "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
             }
         }
     },

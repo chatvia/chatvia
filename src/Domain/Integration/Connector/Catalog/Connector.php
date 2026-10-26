@@ -86,6 +86,14 @@ abstract class Connector
         get => false;
     }
 
+    /**
+     * The connector the workspace must connect first, for a capability that
+     * works through it (Calendar books through Calendly). Null for none.
+     */
+    public ?string $requiresConnector {
+        get => null;
+    }
+
     public function toData(): ConnectorData
     {
         return new ConnectorData(...[
@@ -105,6 +113,7 @@ abstract class Connector
             'comingSoon' => $this->comingSoon,
             'surfaces' => $this->surfaces,
             'voice' => $this->voice,
+            'requiresConnector' => $this->requiresConnector,
             ...$this->extraData(),
         ]);
     }

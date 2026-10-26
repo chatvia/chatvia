@@ -1,0 +1,36 @@
+[
+    {
+        "name": "find-meeting-types",
+        "title": "Find Meeting Types Tool",
+        "description": "List the meetings a visitor can book (e.g. a demo, a consultation, an intro call), each with an `id`, name, duration in minutes and description. Call this the moment a visitor wants to book or schedule a meeting, then call render-calendar with the `id` of the one that fits.",
+        "inputSchema": {
+            "type": "object",
+            "properties": []
+        },
+        "annotations": {
+            "title": "Find Meeting Types Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "render-calendar",
+        "title": "Render Calendar Tool",
+        "description": "Show the visitor a booking calendar for one meeting type, inline in the chat. The visitor picks a free time and books it there; the calendar books the meeting itself. Pass the exact `id` find-meeting-types returned; never invent one.",
+        "inputSchema": {
+            "properties": {
+                "meeting_type": {
+                    "description": "The exact `id` of the meeting type, as returned by find-meeting-types.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "meeting_type"
+            ]
+        },
+        "annotations": {
+            "title": "Render Calendar Tool",
+            "openWorldHint": true
+        }
+    }
+]

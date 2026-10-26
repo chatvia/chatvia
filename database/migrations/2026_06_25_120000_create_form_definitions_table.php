@@ -35,6 +35,7 @@ return new class extends Migration
             // for intent retrieval, never shown to the visitor.
             $table->text('agent_instructions')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('managed_by', 64)->nullable();
 
             $table->embedding('embedding')->nullable();
             // What the embedding was computed from; the lexical channels search it.

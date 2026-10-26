@@ -8,6 +8,7 @@ use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormSubmission;
 
 /**
@@ -70,10 +71,17 @@ class MessageAttachmentHydrator
     }
 
     /**
-     * Refresh every `form` artifact's `status` from its FormSubmission row
-     * (keyed by form_instance_id = the submission external_id). The persisted
-     * artifact status can be stale (the on-submit flip races StoreMessageJob),
-     * so the DB row is the authoritative source on reload. Batched: one query.
+     * The id key of each artifact kind backed by a FormSubmission row: an
+     * inline form and a booking calendar.
+     */
+    private const array INSTANCE_KEYS = ['form' => 'form_instance_id', 'calendar' => 'booking_instance_id'];
+
+    /**
+     * Refresh every `form` and `calendar` artifact's `status` from its
+     * FormSubmission row (keyed by the instance id = the submission
+     * external_id), and a booked calendar's start time. The persisted
+     * artifact can be stale (the on-submit flip races StoreMessageJob), so the
+     * DB row is the authoritative source on reload. Batched: one query.
      *
      * @param  list<MessageData>  $messages
      * @return list<MessageData>
@@ -83,8 +91,9 @@ class MessageAttachmentHydrator
         $instanceIds = [];
         foreach ($messages as $message) {
             foreach (($message->metadata['artifacts'] ?? []) as $artifact) {
-                if (($artifact['kind'] ?? null) === 'form' && isset($artifact['data']['form_instance_id'])) {
-                    $instanceIds[] = $artifact['data']['form_instance_id'];
+                $id = self::instanceId($artifact);
+                if ($id !== null) {
+                    $instanceIds[] = $id;
                 }
             }
         }
@@ -93,21 +102,17 @@ class MessageAttachmentHydrator
             return $messages;
         }
 
-        $statuses = FormSubmission::query()
-            ->select(['external_id', 'status'])
+        $rows = FormSubmission::query()
+            ->select(['external_id', 'status', 'values'])
             ->whereIn('external_id', array_unique($instanceIds))
             ->get()
-            ->mapWithKeys(static fn (FormSubmission $submission): array => [
-                // The artifact is sent as JSON, so it carries the plain value.
-                $submission->external_id => $submission->status->value,
-            ])
-            ->all();
+            ->keyBy('external_id');
 
-        if ($statuses === []) {
+        if ($rows->isEmpty()) {
             return $messages;
         }
 
-        return array_map(static function (MessageData $message) use ($statuses): MessageData {
+        return array_map(static function (MessageData $message) use ($rows): MessageData {
             $metadata = $message->metadata;
 
             if (! is_array($metadata['artifacts'] ?? null)) {
@@ -115,15 +120,31 @@ class MessageAttachmentHydrator
             }
 
             foreach ($metadata['artifacts'] as &$artifact) {
-                $id = ($artifact['kind'] ?? null) === 'form' ? ($artifact['data']['form_instance_id'] ?? null) : null;
-                if ($id !== null && isset($statuses[$id])) {
-                    $artifact['data']['status'] = $statuses[$id];
+                $row = $rows->get(self::instanceId($artifact) ?? '');
+                if (! $row instanceof FormSubmission) {
+                    continue;
+                }
+
+                // The artifact is sent as JSON, so it carries the plain value.
+                $artifact['data']['status'] = $row->status->value;
+
+                // Only the booked time is copied; the visitor's details stay on the row.
+                if ($artifact['kind'] === 'calendar' && $row->status === FormSubmissionStatus::Submitted) {
+                    $artifact['data']['booked_start_time'] ??= $row->field('start_time');
                 }
             }
             unset($artifact);
 
             return $message->withMetadata($metadata);
         }, $messages);
+    }
+
+    private static function instanceId(mixed $artifact): ?string
+    {
+        $key = self::INSTANCE_KEYS[$artifact['kind'] ?? ''] ?? null;
+        $id = $key !== null ? ($artifact['data'][$key] ?? null) : null;
+
+        return filled($id) ? (string) $id : null;
     }
 
     /**

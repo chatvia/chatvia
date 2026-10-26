@@ -49,6 +49,7 @@ class RenderInlineFormAction
         $active = FormDefinition::query()
             ->forAgent($agent)
             ->where('is_active', true)
+            ->unmanaged()
             ->orderBy('id')
             ->get(['id', 'agent_id', 'slug', 'name', 'subtitle', 'form_type', 'schema', 'success_message']);
 

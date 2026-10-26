@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Hoạt động qua {name}. Hãy kết nối {name} trong trang Trình kết nối trước.",
+            "requires_disconnected": "{name} chưa được kết nối nên khả năng này không thể hoạt động. Hãy kết nối lại {name} trong trang Trình kết nối.",
+            "connect_connector": "Kết nối {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Do khả năng {name} quản lý"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} phút",
+            "previous_week": "Tuần trước",
+            "next_week": "Tuần sau",
+            "days": "Những ngày còn giờ trống",
+            "times_in": "Giờ theo múi giờ {timezone}",
+            "loading": "Đang tải giờ trống…",
+            "slots_failed": "Không thể tải giờ trống. Vui lòng thử lại.",
+            "no_times": "Tuần này không còn giờ trống. Hãy thử tuần sau.",
+            "name": "Tên",
+            "email": "Email",
+            "notes": "Ghi chú",
+            "notes_optional": "Ghi chú (không bắt buộc)",
+            "book": "Đặt lịch họp",
+            "booking": "Đang đặt lịch…",
+            "back": "Quay lại",
+            "booked": "Cuộc họp của bạn đã được đặt.",
+            "booked_for": "Đã đặt cho {time}",
+            "expired": "Lịch này đã hết hạn. Hãy yêu cầu lịch mới để đặt cuộc họp.",
+            "slot_taken": "Giờ này vừa có người đặt. Vui lòng chọn giờ khác.",
+            "book_failed": "Không thể đặt cuộc họp. Vui lòng thử lại.",
+            "book_on_page": "Cuộc họp này chỉ có thể đặt trên trang đặt lịch.",
+            "open_booking_page": "Mở trang đặt lịch",
+            "unavailable": "Không thể đặt lịch tại đây."
+        }
+    }
+}

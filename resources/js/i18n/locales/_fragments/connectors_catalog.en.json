@@ -165,6 +165,10 @@
                 "name": "Forms",
                 "description": "Capture leads with a real, fillable form in the chat — plus booking and qualification forms. Validated and stored automatically; falls back to conversational capture on channels that can't show a form."
             },
+            "calendar": {
+                "name": "Calendar",
+                "description": "Let visitors book a meeting in the chat: they pick a free time from your Calendly and book it without leaving the conversation. Each booking is saved as a lead."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Search Google, Bing, YouTube, and other engines for live results — news, prices, locations — powered by SerpApi.",

@@ -6,7 +6,7 @@
  * composables under `@/composables/chat`; this page wires them to the layout,
  * the transcript list and the composer.
  */
-import { submitInlineForm } from '@/api/chat';
+import { bookCalendarSlot, listCalendarSlots, submitInlineForm } from '@/api/chat';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import ChatMessageList from '@/components/chat/ChatMessageList.vue';
@@ -128,6 +128,8 @@ const isChatExpanded = computed(() => bus.isChatExpanded.value);
 // transport-agnostic; the widget provides its own. A 409 (already submitted)
 // or 410 (expired) rejects, and the form block handles both.
 provide('inlineFormSubmit', submitInlineForm);
+// The booking calendar's transport, injected the same way.
+provide('inlineCalendar', { slots: listCalendarSlots, book: bookCalendarSlot });
 
 const uploadHeaders = computed(() => ({ 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': props.conversation_id }));
 const deleteEndpoint = (attachmentId: string) => deleteAttachment.url({ attachment: attachmentId });

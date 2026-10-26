@@ -225,9 +225,10 @@ agent's custom domain redirects to its chat (`RedirectCustomDomainToChat`).
 
 ### `App\Mcp`: built-in MCP servers
 
-ChatVia.ai offers some tools of its own (charts, inline forms, weather, currency,
-web search, account analytics) as Laravel MCP servers in `App\Mcp\Servers`,
-with their tools in `App\Mcp\Tools\{Analytics,Charts,Currency,Forms,Perplexity,Weather}`.
+ChatVia.ai offers some tools of its own (charts, inline forms, a booking
+calendar, weather, currency, web search, account analytics) as Laravel MCP
+servers in `App\Mcp\Servers`, with their tools in
+`App\Mcp\Tools\{Analytics,Calendar,Charts,Currency,Forms,Perplexity,Weather}`.
 They are routed in `routes/ai.php` under `/mcp/*` and added to agents like any
 other connector (a class in `Domain\Integration\Connector\Catalog\Connectors`,
 listed in `config/connectors.php`).
@@ -616,7 +617,22 @@ SIEM webhook. Every workspace has the full security feature set.
 Forms inside the chat. A `FormDefinition` is a form an agent can show; a
 `FormSubmission` stores the answers and is the single store for captured
 contacts (leads). The Forms MCP server finds and renders forms; a submission
-fires `FormSubmitted`, which can push it to a CRM webhook.
+fires `FormSubmitted`, which can push it to a CRM webhook. A form a capability
+owns (`managed_by` holds its slug, e.g. Calendar's "Meeting bookings") is never rendered by
+the model and is read-only for the owner.
+
+### Booking
+
+The Calendar capability: a booking calendar inside the chat. `Contracts\Scheduler`
+lists meeting types, free times and books; `Services\CalendlyScheduler` implements
+it with the tools of the workspace's Calendly connection (`McpClient::callTool`,
+so Calendly need not be attached to the agent). A shown calendar is a pending
+`FormSubmission` of the agent's managed "Meeting bookings" form
+(`EnsureBookingFormAction`), so claim, expiry, session checks and lead storage
+are the Form context's; `BookMeetingAction` books it and fires `FormSubmitted`
+with source `calendar`. The Calendar MCP server (`find-meeting-types`,
+`render-calendar`) returns a `calendar` artifact; the chat books through
+`chat/{agentSlug}/calendar/*` and `/widget/calendar/*`.
 
 ### Widget
 

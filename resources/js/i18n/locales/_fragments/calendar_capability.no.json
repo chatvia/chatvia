@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Fungerer via {name}. Koble først til {name} på Koblinger-siden.",
+            "requires_disconnected": "{name} er ikke koblet til, så denne kapabiliteten kan ikke fungere. Koble til {name} på nytt på Koblinger-siden.",
+            "connect_connector": "Koble til {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Styres av kapabiliteten {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Forrige uke",
+            "next_week": "Neste uke",
+            "days": "Dager med ledige tider",
+            "times_in": "Tider i {timezone}",
+            "loading": "Laster ledige tider…",
+            "slots_failed": "Kunne ikke laste ledige tider. Prøv igjen.",
+            "no_times": "Ingen ledige tider denne uken. Prøv neste uke.",
+            "name": "Navn",
+            "email": "E-post",
+            "notes": "Notater",
+            "notes_optional": "Notater (valgfritt)",
+            "book": "Book møte",
+            "booking": "Booker…",
+            "back": "Tilbake",
+            "booked": "Møtet ditt er booket.",
+            "booked_for": "Booket til {time}",
+            "expired": "Denne kalenderen er utløpt. Be om en ny for å booke et møte.",
+            "slot_taken": "Den tiden ble nettopp tatt. Velg en annen.",
+            "book_failed": "Kunne ikke booke møtet. Prøv igjen.",
+            "book_on_page": "Dette møtet kan bare bookes på bookingsiden.",
+            "open_booking_page": "Åpne bookingsiden",
+            "unavailable": "Booking er ikke tilgjengelig her."
+        }
+    }
+}

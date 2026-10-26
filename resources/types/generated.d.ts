@@ -790,6 +790,7 @@ declare namespace Domain {
                 agent_instructions: string | null;
                 is_active: boolean;
                 submissions_count: number;
+                managed_by: string | null;
             };
             export type FormPreviewAppearanceData = {
                 title: string | null;
@@ -894,6 +895,8 @@ declare namespace Domain {
                     export type AgentCapabilityRowData = {
                         connector: Domain.Integration.Connector.Data.Catalog.ConnectorData;
                         enabled: boolean;
+                        ready: boolean;
+                        requires: Domain.Integration.Connector.Data.Catalog.ConnectorData | null;
                     };
                     export type AgentConnectorAttachResultData = {
                         data: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData;
@@ -934,6 +937,7 @@ declare namespace Domain {
                         isCapability: boolean;
                         surfaces: string[] | null;
                         voice: boolean;
+                        requiresConnector: string | null;
                         requiresClientId: boolean;
                         oauthClientId: string | null;
                         oauthAuthorizationEndpoint: string | null;

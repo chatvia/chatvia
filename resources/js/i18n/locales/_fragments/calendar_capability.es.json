@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "capabilities": {
+            "requires_connector": "Funciona a través de {name}. Primero conecta {name} en la página Conectores.",
+            "requires_disconnected": "{name} no está conectado, así que esta capacidad no puede funcionar. Vuelve a conectar {name} en la página Conectores.",
+            "connect_connector": "Conectar {name}"
+        },
+        "forms": {
+            "managed_by_capability": "Gestionada por la capacidad {name}"
+        }
+    },
+    "chat": {
+        "calendar": {
+            "duration": "{minutes} min",
+            "previous_week": "Semana anterior",
+            "next_week": "Semana siguiente",
+            "days": "Días con horarios libres",
+            "times_in": "Horarios en {timezone}",
+            "loading": "Cargando horarios libres…",
+            "slots_failed": "No se pudieron cargar los horarios libres. Inténtalo de nuevo.",
+            "no_times": "No hay horarios libres esta semana. Prueba con la semana siguiente.",
+            "name": "Nombre",
+            "email": "Correo electrónico",
+            "notes": "Notas",
+            "notes_optional": "Notas (opcional)",
+            "book": "Reservar reunión",
+            "booking": "Reservando…",
+            "back": "Atrás",
+            "booked": "Tu reunión está reservada.",
+            "booked_for": "Reservada para {time}",
+            "expired": "Este calendario ha caducado. Pide uno nuevo para reservar una reunión.",
+            "slot_taken": "Ese horario acaba de ocuparse. Elige otro.",
+            "book_failed": "No se pudo reservar la reunión. Inténtalo de nuevo.",
+            "book_on_page": "Esta reunión solo se puede reservar en la página de reservas.",
+            "open_booking_page": "Abrir página de reservas",
+            "unavailable": "Las reservas no están disponibles aquí."
+        }
+    }
+}

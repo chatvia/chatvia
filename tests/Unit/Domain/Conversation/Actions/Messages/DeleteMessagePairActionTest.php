@@ -6,6 +6,7 @@ use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,8 @@ use Illuminate\Support\Str;
 
 /**
  * Removing a turn from the visitor's history takes the question and its
- * answer, and deletes the files uploaded with them.
+ * answer, and deletes the files uploaded with them and the images and audio
+ * the answer made.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -65,6 +67,24 @@ it('deletes the files uploaded with the removed messages', function (): void {
 
     expect(Attachment::query()->find($upload->id))->toBeNull();
     Storage::disk(Attachment::DISK)->assertMissing($upload->filepath);
+});
+
+it('deletes the images and audio the removed answer made, and keeps the others', function (): void {
+    [$scope, $conversation, $ids] = dmpaConversation();
+    $made = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+    $earlier = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+    $memory = app(ChatMemory::class)->withScope($scope);
+    $memory->saveMessages(array_map(static fn (MessageData $message): MessageData => match ($message->id) {
+        $ids['a2'] => $message->withMetadata(['artifacts' => [['kind' => 'image', 'data' => ['id' => $made->external_id]]]]),
+        $ids['a1'] => $message->withMetadata(['artifacts' => [['kind' => 'audio', 'data' => ['id' => $earlier->external_id]]]]),
+        default => $message,
+    }, $memory->cachedMessages()));
+
+    app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
+
+    expect(GeneratedMedia::query()->find($made->id))->toBeNull()
+        ->and(GeneratedMedia::query()->find($earlier->id))->not->toBeNull();
+    Storage::disk(GeneratedMedia::DISK)->assertMissing($made->filepath);
 });
 
 it('keeps the text meant for the model on the messages that stay', function (): void {

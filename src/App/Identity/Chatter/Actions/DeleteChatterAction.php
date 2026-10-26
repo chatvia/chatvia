@@ -7,6 +7,7 @@ use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
@@ -39,6 +40,10 @@ use Throwable;
  */
 class DeleteChatterAction
 {
+    public function __construct(
+        private readonly GeneratedMediaFiles $generatedMedia,
+    ) {}
+
     public function execute(Chatter $chatter): void
     {
         // Eager-load now so the external ids survive the cascade for the
@@ -105,6 +110,8 @@ class DeleteChatterAction
             ->whereIn('chat_conversation_id', $conversationIds)
             ->get()
             ->each(static fn (Attachment $attachment) => $attachment->delete());
+
+        $this->generatedMedia->forgetConversations($conversationIds);
     }
 
     /**

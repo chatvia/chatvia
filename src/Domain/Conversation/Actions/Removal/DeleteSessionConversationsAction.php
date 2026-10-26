@@ -7,13 +7,15 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Erases every conversation of one visitor session (the hosted chat's
- * "delete all"): deletes their uploaded files and the replies read aloud,
+ * "delete all"): deletes their uploaded files, the replies read aloud and
+ * the images and audio the agent made,
  * wipes the message text, soft-deletes the conversations, and empties the
  * session's live memory.
  */
@@ -22,6 +24,7 @@ class DeleteSessionConversationsAction
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly MessageSpeechFiles $speechFiles,
+        private readonly GeneratedMediaFiles $generatedMedia,
     ) {}
 
     public function execute(ChatScopeData $scope, ?string $deletedBy = null): void
@@ -53,6 +56,7 @@ class DeleteSessionConversationsAction
         $conversationIds = $conversations->pluck('id');
 
         $this->speechFiles->forgetConversations($conversations);
+        $this->generatedMedia->forgetConversations($conversationIds);
 
         Attachment::query()
             ->whereIn('chat_conversation_id', $conversationIds)

@@ -9,6 +9,7 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Message;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -118,6 +119,7 @@ function bdeBuildBigWorkspace(): array
             'filename' => '../evil/'.$conversation->id.'.txt',
             'mime_type' => 'text/plain',
         ]);
+        GeneratedMedia::factory()->forConversation($conversation)->stored('image-'.$conversation->id)->create();
     }
 
     $conversations->first()->delete();
@@ -189,6 +191,15 @@ it('copies every stored file in under a name without folders', function (): void
 
         expect(bdeEntry($export, "attachments/conversations/{$conversationId}/{$attachment->id}-{$conversationId}.txt"))
             ->toBe('attachment-'.$conversationId);
+    }
+
+    $generated = GeneratedMedia::query()->whereIn('chat_conversation_id', $conversations->modelKeys())->get();
+
+    expect($generated)->toHaveCount(4);
+
+    foreach ($generated as $media) {
+        expect(bdeEntry($export, "generated/conversations/{$media->chat_conversation_id}/{$media->id}.png"))
+            ->toBe('image-'.$media->chat_conversation_id);
     }
 });
 

@@ -7,6 +7,7 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Support\Facades\Cache;
@@ -132,6 +133,27 @@ it('removes the files of a conversation it expires', function (): void {
 
     expect(Attachment::query()->find($upload->id))->toBeNull();
     Storage::disk(Attachment::DISK)->assertMissing($upload->filepath);
+});
+
+it('removes the images and audio of a conversation it expires', function (): void {
+    $conversation = Conversation::factory()->expiresAt(now()->subDay())->create();
+    $media = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+
+    app(PruneExpiredConversationsAction::class)->execute(chunk: 50, graceDays: 30);
+
+    expect(GeneratedMedia::query()->find($media->id))->toBeNull();
+    Storage::disk(GeneratedMedia::DISK)->assertMissing($media->filepath);
+});
+
+it('removes a generated file a bulk soft delete left behind when it purges the conversation', function (): void {
+    $conversation = Conversation::factory()->create();
+    $media = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+    DB::table('chat_conversations')->where('id', $conversation->id)->update(['deleted_at' => now()->subDays(40)]);
+
+    app(PruneExpiredConversationsAction::class)->execute(chunk: 50, graceDays: 30);
+
+    expect(GeneratedMedia::query()->find($media->id))->toBeNull();
+    Storage::disk(GeneratedMedia::DISK)->assertMissing($media->filepath);
 });
 
 it('removes a file a bulk soft delete left behind when it purges the conversation', function (): void {

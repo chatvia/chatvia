@@ -10,6 +10,7 @@ use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
+use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -162,6 +163,9 @@ class Message extends Model
     {
         static::deleting(static function (Message $message): void {
             $message->cascadeAttachmentDeletes();
+
+            // A reply's generated images and audio go with it.
+            app(GeneratedMediaFiles::class)->forgetReplies($message->chat_conversation_id, [$message->metadata]);
         });
     }
 

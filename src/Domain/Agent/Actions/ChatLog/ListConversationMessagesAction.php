@@ -7,15 +7,21 @@ use Domain\Agent\Data\Resources\ChatLog\Messages\ChatLogMessagesResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Conversation\Services\Media\GeneratedMediaArtifacts;
 use Domain\Form\Models\FormSubmission;
 
 /**
  * Paginated messages for a chat-log conversation, each reply with the
- * knowledge it was given, plus the conversation's handoff state and any lead
- * row attached to the same conversation.
+ * knowledge it was given and its generated images and audio as they stand
+ * now, plus the conversation's handoff state and any lead row attached to
+ * the same conversation.
  */
 class ListConversationMessagesAction
 {
+    public function __construct(
+        private readonly GeneratedMediaArtifacts $generatedMedia,
+    ) {}
+
     public function execute(Agent $agent, Conversation $conversation, int $page = 1): ChatLogMessagesResourceData
     {
         $messages = Message::forAgentConversation($agent->id, $conversation->id)
@@ -28,6 +34,8 @@ class ListConversationMessagesAction
             // or goes missing between two pages.
             ->orderBy('id')
             ->paginate(50, page: $page);
+
+        $this->generatedMedia->forChatLog($messages->getCollection());
 
         // The conversation's most recent SUBMITTED form (keyed by internal
         // chat_conversation_id). Pending rows — a form rendered but never filled

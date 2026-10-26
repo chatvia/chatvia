@@ -7,12 +7,14 @@ use App\Http\Chat\HostedChatSession;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\Media\GeneratedMediaArtifacts;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 
 /**
  * The history of one of the hosted-chat visitor's conversations, with each
- * message's uploaded files so the chat can show them under their bubble.
+ * message's uploaded files so the chat can show them under their bubble, and
+ * each generated image or audio file as it stands now.
  */
 class ConversationMessageController
 {
@@ -25,6 +27,7 @@ class ConversationMessageController
         ChatMemory $memory,
         HostedChatSession $session,
         MessageAttachmentHydrator $hydrator,
+        GeneratedMediaArtifacts $generatedMedia,
     ): array {
         $scope = $session->scope($agent, $conversationId);
         $memory->withScope($scope);
@@ -38,6 +41,10 @@ class ConversationMessageController
             ->where('external_id', $conversationId)
             ->first();
 
-        return $conversation !== null ? $hydrator->hydrate($messages, $conversation) : $messages;
+        if ($conversation === null) {
+            return $messages;
+        }
+
+        return $generatedMedia->forHistory($hydrator->hydrate($messages, $conversation), $conversation);
     }
 }

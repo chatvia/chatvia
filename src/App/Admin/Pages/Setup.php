@@ -8,17 +8,21 @@ use App\Admin\AdminPanelProvider;
 use App\Admin\Forms\CardRadio;
 use App\Admin\Forms\ModelPicker;
 use App\Admin\RequireSetup;
+use App\Admin\Settings\Actions\ActivateLicenseAction;
 use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiProviderIcon;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\ChatModelCheck;
+use App\Admin\Settings\CreditLicense;
 use App\Admin\Settings\Data\MailSetupData;
 use App\Admin\Settings\Data\ModelCheckData;
 use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\FirecrawlCheck;
+use App\Admin\Settings\LicenseStatus;
 use App\Admin\Settings\LlmTaskText;
 use App\Admin\Settings\MailField;
 use App\Admin\Settings\MailProvider;
@@ -98,9 +102,12 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Renderless;
+use Support\License\FreeTier;
+use Support\License\LicenseFeature;
 
 /**
  * The setup of a new install: everything the app needs to work, step by
@@ -111,8 +118,11 @@ use Livewire\Attributes\Renderless;
  *    keyword search: pg_textsearch is recommended, with why and how to get
  *    it, and turned on here when the database has it loaded; and pg_partman,
  *    which analytics needs, with a warning and a link to the docs when missing.
- *    Next with a service down asks first ({@see serverDownAction()});
- *    nothing is saved.
+ *    License (optional): what a license key adds to a free install, with a
+ *    link to buy one, and the key, activated at chatvia.ai and saved on Next
+ *    ({@see activateLicense()}). An address only this computer opens gets
+ *    no field: a key works for one domain. Next with a service down asks
+ *    first ({@see serverDownAction()}); nothing else is saved.
  * 2. AI provider: the main provider and its key (its model list checks it);
  *    more providers can be added later in Settings → AI providers.
  * 3. Models: the chat models agents can use (one or more, one of them the
@@ -475,6 +485,20 @@ class Setup extends SimplePage
                             'headline' => $this->serverHeadline(),
                         ]),
                     ]),
+                Section::make('License (optional)')
+                    ->description('ChatVia.ai is free to use, with a few limits. A license key lifts them and supports its development.')
+                    ->icon(Heroicon::OutlinedCheckBadge)
+                    ->schema([
+                        $this->licenseCallout(),
+                        TextInput::make('license_key')
+                            ->label('License key')
+                            ->password()
+                            ->revealable()
+                            ->autocomplete('off')
+                            ->placeholder('cvl1.…')
+                            ->helperText('Paste the whole key from your email. Next activates it for this site at chatvia.ai. You can also add it later on the License page.')
+                            ->visible(fn (): bool => $this->licenseStatus() !== LicenseStatus::Valid && ! $this->runsOnLocalAddress()),
+                    ]),
                 Section::make('Keyword search')
                     ->description('Agents find answers in two ways: by meaning, and by the words of the question. Both run in the database.')
                     ->icon(Heroicon::OutlinedMagnifyingGlass)
@@ -486,7 +510,10 @@ class Setup extends SimplePage
                     ->visible(fn (): bool => ! $this->hasPartman())
                     ->schema([$this->analyticsCallout()]),
             ])
-            ->afterValidation(fn () => $this->confirmServer());
+            ->afterValidation(function (): void {
+                $this->showingErrors(fn () => $this->activateLicense());
+                $this->confirmServer();
+            });
     }
 
     private function connectStep(): Step
@@ -1253,6 +1280,95 @@ class Setup extends SimplePage
     private function hasPartman(): bool
     {
         return $this->partman ??= app(AnalyticsDatabase::class)->partmanVersion() !== null;
+    }
+
+    /**
+     * Where the license stands: what a key adds while there is none, with a
+     * link to buy one, or the saved key's type and licensee.
+     */
+    private function licenseCallout(): Callout
+    {
+        $limits = 'A free install has one workspace, '.FreeTier::AGENTS.' agents, one team and '.Number::format(FreeTier::MONTHLY_MESSAGES).' agent replies a month, '
+            .'with no API, voice conversations, capabilities or forms, and the "Powered by ChatVia.ai" credit under every chat.';
+
+        return Callout::make(fn (): string => match ($this->licenseStatus()) {
+            LicenseStatus::Valid => $this->licenseType().' license, licensed to '.$this->license()->read($this->savedLicenseKey())?->licensee,
+            LicenseStatus::Missing => 'Get the most out of ChatVia.ai',
+            default => 'The saved license is not active here',
+        })
+            ->description(fn (): string => match (true) {
+                $this->licenseStatus() === LicenseStatus::Valid => 'The free limits are lifted. You can hide the credit on the License page.',
+                $this->runsOnLocalAddress() => $limits.' A key works for one domain: add it on the License page once ChatVia.ai runs at its real address.',
+                default => $limits.' A license key lifts every limit and lets you hide the credit. A Pro license costs $399, one time, and never expires.',
+            })
+            ->icon(fn (): Heroicon => $this->licenseStatus() === LicenseStatus::Valid ? Heroicon::OutlinedCheckBadge : Heroicon::OutlinedSparkles)
+            ->status(fn (): string => $this->licenseStatus() === LicenseStatus::Valid ? 'success' : 'info')
+            ->actions([
+                Action::make('buyLicense')
+                    ->label('Buy a license')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->iconPosition('after')
+                    ->url(fn (): ?string => config('chatvia.license.buy_url'))
+                    ->openUrlInNewTab()
+                    ->visible(fn (): bool => filled(config('chatvia.license.buy_url')) && $this->licenseStatus() !== LicenseStatus::Valid),
+            ]);
+    }
+
+    /**
+     * The server step's license check: a typed key is activated for this
+     * domain at chatvia.ai and saved at once, so it works whether the setup
+     * is finished or skipped. The field is emptied once it is, so going back
+     * and on does not activate it again.
+     */
+    private function activateLicense(): void
+    {
+        $key = Str::of((string) ($this->data['license_key'] ?? ''))->replaceMatches('/\s+/', '')->toString();
+
+        if ($key === '' || $this->runsOnLocalAddress()) {
+            return;
+        }
+
+        $activation = app(ActivateLicenseAction::class)->execute($key);
+
+        if ($activation->key === null) {
+            throw ValidationException::withMessages(['data.license_key' => (string) $activation->message]);
+        }
+
+        $this->data['license_key'] = null;
+
+        Notification::make()->success()->title('License activated')->body('Thank you for supporting ChatVia.ai.')->send();
+    }
+
+    /** "Enterprise" or "Pro", by what the saved key unlocks. */
+    private function licenseType(): string
+    {
+        return $this->license()->allows($this->savedLicenseKey(), LicenseFeature::Enterprise) ? 'Enterprise' : 'Pro';
+    }
+
+    private function licenseStatus(): LicenseStatus
+    {
+        return $this->license()->status($this->savedLicenseKey());
+    }
+
+    private function savedLicenseKey(): ?string
+    {
+        $key = app(BrandSettings::class)->license_key;
+
+        return filled($key) ? $key : null;
+    }
+
+    /** Whether only this computer opens the install's address: a key activated for it would be tied to it. */
+    private function runsOnLocalAddress(): bool
+    {
+        $host = Str::trim($this->license()->host(), '[]');
+
+        return $host === '' || $host === 'localhost' || $host === '::1'
+            || Str::endsWith($host, '.localhost') || Str::startsWith($host, '127.');
+    }
+
+    private function license(): CreditLicense
+    {
+        return app(CreditLicense::class);
     }
 
     private function wayOutLink(): Htmlable

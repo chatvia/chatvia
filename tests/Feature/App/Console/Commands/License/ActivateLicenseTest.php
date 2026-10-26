@@ -6,7 +6,7 @@ use Tests\Support\License\LicenseKeys;
 
 /**
  * Activating a license key from the command line (`chatvia:license:activate`),
- * as the installer does with `--stdin`. The action's other answers are in
+ * also with `--stdin`. The action's other answers are in
  * tests/Unit/App/Admin/Settings/Actions/ActivateLicenseActionTest.php.
  */
 beforeEach(function (): void {

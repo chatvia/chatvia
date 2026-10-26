@@ -36,8 +36,6 @@
 #   --no-count-install  do not send it, without asking    CHATVIA_COUNT_INSTALL=no
 #   --news-email EMAIL  get news about ChatVia.ai there   CHATVIA_NEWS_EMAIL
 #   --no-news-email     do not ask for one                CHATVIA_NEWS_EMAIL=no
-#   --license KEY       your license key (optional)       CHATVIA_LICENSE_KEY
-#                       buy one at https://chatvia.ai/license
 #   -h, --help          show this help
 #
 # Only with Docker:
@@ -88,7 +86,6 @@ readonly MIN_PASSWORD=12
 readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly INSTALL_COUNT_URL="https://chatvia.ai/api/installs"
 readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
-readonly LICENSE_URL="https://chatvia.ai/license"
 
 # The complete installation.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
@@ -440,7 +437,6 @@ input_box() {
 
 # ask VAR "Question" [--default TEXT] [--placeholder TEXT] [--hint TEXT]
 #     [--check FN] [--status FN] [--complete FN] [--optional LABEL]
-#     [--shown LABEL]
 #   --default      the answer when Enter is pressed on an empty line
 #   --placeholder  an example, shown greyed out; not an answer
 #   --check FN     runs on Enter; returns 1 with the reason in INVALID
@@ -449,11 +445,10 @@ input_box() {
 #                  matches in CHOICES
 #   --optional     Enter on an empty line skips the question: VAR is empty
 #                  and LABEL is shown as the answer
-#   --shown        LABEL is shown as the answer instead of the typed text
 ask() {
     local var=$1 label=$2
     shift 2
-    local default='' placeholder='' hint='' check='' status='' complete='' optional='' shown=''
+    local default='' placeholder='' hint='' check='' status='' complete='' optional=''
     while [ $# -ge 2 ]; do
         case $1 in
             --default) default=$2 ;;
@@ -463,7 +458,6 @@ ask() {
             --status) status=$2 ;;
             --complete) complete=$2 ;;
             --optional) optional=$2 ;;
-            --shown) shown=$2 ;;
         esac
         shift 2
     done
@@ -570,11 +564,7 @@ ask() {
         esac
     done
 
-    if [ -z "$answer" ]; then
-        answer_drawn "$label" "$optional"
-    else
-        answer_drawn "$label" "${shown:-$answer}"
-    fi
+    answer_drawn "$label" "${answer:-$optional}"
     printf -v "$var" '%s' "$answer"
 }
 
@@ -814,13 +804,6 @@ valid_port() {
 valid_url() {
     if [[ $1 =~ ^https?://[^/[:space:]]+$ ]]; then return 0; fi
     INVALID='Use a full address without a path, like https://chat.example.com'
-    return 1
-}
-
-# Only the shape: chatvia.ai checks the key itself when it is activated.
-valid_license_key() {
-    if [[ ${1//[[:space:]]/} =~ ^cvl1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$ ]]; then return 0; fi
-    INVALID='That is not a license key. Paste the whole key from your e-mail (it starts with cvl1.).'
     return 1
 }
 
@@ -1396,10 +1379,6 @@ tune_docker_workers() {
     compose exec -T app php artisan chatvia:workers:tune --restart --no-interaction
 }
 
-activate_docker_license() {
-    printf '%s\n' "$LICENSE_KEY" | compose exec -T app php artisan chatvia:license:activate --stdin --no-interaction
-}
-
 # Whether this start made the admin account (the setup log says so), read
 # before the setup container is removed.
 read_setup_result() {
@@ -1509,7 +1488,6 @@ start_and_finish() {
     fi
     run_step 'Sizing the queue workers to this machine' tune_docker_workers ||
         warn "The workers kept their defaults. Size them later: $(accent './manage artisan chatvia:workers:tune --restart')"
-    finish_license activate_docker_license
     mark_finished
 
     show_finish
@@ -1580,7 +1558,6 @@ collect_settings() {
         case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
         [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
         case $EMBEDDING_INDEX in binary | full) ;; *) die 'CHATVIA_EMBEDDING_INDEX must be binary or full.' ;; esac
-        ask_license
         ok "Admin $(accent "$ADMIN_EMAIL"), port $(accent "$APP_PORT"), storage $(accent "$EMBEDDING_TYPE($EMBEDDING_DIMENSIONS), $EMBEDDING_INDEX index")"
         return
     fi
@@ -1601,7 +1578,6 @@ collect_settings() {
     fi
 
     ask_setup
-    ask_license
 }
 
 # The first admin's e-mail and password. Shared by both kinds of install.
@@ -1671,72 +1647,8 @@ ask_setup() {
     ask CHATVIA_VERSION 'ChatVia.ai version' --default "$CHATVIA_VERSION" --hint "$hint"
 }
 
-# Whether a license can be activated for APP_URL: a key works for one
-# domain, so not for an address that only this computer opens.
-license_fits_address() {
-    local host=${APP_URL#*://}
-    host=${host%%[/:]*}
-    case $host in
-        '' | '['* | localhost | *.localhost | 127.*) return 1 ;;
-    esac
-    return 0
-}
-
-# An optional license key (from --license, or asked), with a link to buy
-# one. It is kept in memory only, never in .env, until finish_license activates
-# it. Shared by both kinds of install; --yes alone never asks.
-ask_license() {
-    LICENSE_KEY=${CHATVIA_LICENSE_KEY:-}
-    if [ -n "$LICENSE_KEY" ]; then
-        LICENSE_KEY=${LICENSE_KEY//[[:space:]]/}
-        valid_license_key "$LICENSE_KEY" || die "$INVALID"
-        if ! license_fits_address; then
-            warn "A license works for one domain, so it is not activated for $APP_URL."
-            info "Add it in the admin panel (Settings → License) once ChatVia.ai runs at its real address."
-            LICENSE_KEY=''
-        fi
-        return 0
-    fi
-    [ "$INTERACTIVE" = 1 ] || return 0
-
-    block text
-    if ! license_fits_address; then
-        info "$(dim 'Have a license? Add it in the admin panel (Settings → License) once')"
-        info "$(dim 'ChatVia.ai runs at its real address: a key works for one domain.')"
-        info "$(dim 'No license yet? See the plans:') $(accent "$LICENSE_URL")"
-        return 0
-    fi
-    info 'Have a ChatVia.ai license key? Add it now, or skip this and add it later.'
-    info "No license yet? See the plans: $(accent "$LICENSE_URL")"
-    ask LICENSE_KEY 'License key (optional)' --optional 'Skipped' --shown 'Given: activated at the end' \
-        --hint 'Paste the whole key from your e-mail. You can also add it later in the admin panel.' \
-        --check valid_license_key
-    LICENSE_KEY=${LICENSE_KEY//[[:space:]]/}
-}
-
-# finish_license FN: activates the license key at chatvia.ai once the app
-# runs, with FN (it gets the key on stdin, never on the command line). A key
-# that does not activate leaves the install as it is.
-finish_license() {
-    LICENSE_KEY=${LICENSE_KEY:-${CHATVIA_LICENSE_KEY:-}}
-    [ -n "$LICENSE_KEY" ] && license_fits_address || return 0
-    if run_step 'Activating the license at chatvia.ai' "$1"; then
-        LICENSE_ACTIVE=1
-    else
-        warn 'The license is not active. Add the key in the admin panel: Settings → License.'
-    fi
-}
-
-license_summary_to() {
-    if [ -n "$LICENSE_KEY" ]; then
-        kv_to "$1" 'License' 'a key, activated at the end'
-    else
-        kv_to "$1" 'License' "none $(dim "(buy one: $LICENSE_URL)")"
-    fi
-}
-
 show_summary() {
-    local password='the one you typed' image folder email address port storage index image_row license
+    local password='the one you typed' image folder email address port storage index image_row
     if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
     image=$(image_ref)
     if [ "$NO_PULL" = 1 ]; then image="$image $(dim '(on this machine)')"; fi
@@ -1749,8 +1661,7 @@ show_summary() {
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
     kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to image_row 'Image' "$image"
-    license_summary_to license
-    note 'Check your settings' "$folder" "$email" "$password" "$address" "$port" "$storage" "$index" "$image_row" "$license"
+    note 'Check your settings' "$folder" "$email" "$password" "$address" "$port" "$storage" "$index" "$image_row"
 }
 
 # Opens the admin panel in the browser, when this machine has one: its
@@ -1837,7 +1748,7 @@ send_news_email() {
 }
 
 show_finish() {
-    local folder title open admin email password saved='' license='' n=1
+    local folder title open admin email password saved='' n=1
     folder=$(pretty_path "$INSTALL_DIR")
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
@@ -1856,8 +1767,7 @@ show_finish() {
     else
         kv_to password 'Admin password' 'the one you typed'
     fi
-    if [ "$LICENSE_ACTIVE" = 1 ]; then kv_to license 'License' 'active'; fi
-    note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"} ${license:+"$license"}
+    note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
 
     section 'Next steps'
     if [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
@@ -1868,9 +1778,6 @@ show_finish() {
     info "$n. Sign in to the admin panel and set up two-factor authentication."
     info "$((n + 1)). Follow the short setup there: your AI provider and its API key,"
     info "   the models, and (optional) documents, storage and email."
-    if [ "$LICENSE_ACTIVE" = 0 ]; then
-        info "$((n + 2)). Optional: get a ChatVia.ai license at $(accent "$LICENSE_URL")"
-    fi
 
     section 'Everyday commands' "in $folder"
     info "./manage status          $(dim 'is everything running?')"
@@ -2470,7 +2377,6 @@ native_collect_settings() {
 
     if is_ip "$DOMAIN"; then HTTPS=no; fi
     if [ "$HTTPS" = yes ]; then APP_URL="https://$DOMAIN"; else APP_URL="http://$DOMAIN"; fi
-    ask_license
     native_resolve_version
     # Automatic updates follow releases: a branch has none.
     if [ -n "$CHATVIA_BRANCH" ]; then
@@ -2556,7 +2462,7 @@ native_check_dns() {
 }
 
 native_show_summary() {
-    local password='the one you typed' address version storage index firewall swap code email kind updates license
+    local password='the one you typed' address version storage index firewall swap code email kind updates
     local rows=()
     if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
     kv_to kind 'Install' 'Complete, directly on this server'
@@ -2571,8 +2477,7 @@ native_show_summary() {
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
     kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to code 'Code' "$NATIVE_ROOT, run by the user $NATIVE_USER"
-    license_summary_to license
-    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code" "$license")
+    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code")
     if [ "$FIREWALL" = yes ]; then
         kv_to firewall 'Firewall' "on: SSH (port $(ssh_ports | paste -sd, - | sed 's/,/, /g')), HTTP and HTTPS"
     else
@@ -2677,7 +2582,6 @@ native_run_steps() {
     run_step "$(native_auto_update_step)" native_configure_auto_update || native_failed
     run_step 'Creating the admin account' native_create_admin || native_failed
     native_read_admin_result
-    finish_license native_activate_license
     if [ "$FIREWALL" = yes ]; then
         run_step 'Turning on the firewall' native_configure_firewall || native_failed
     fi
@@ -3720,11 +3624,6 @@ native_create_admin() {
         php artisan chatvia:admin:create-user "$ADMIN_EMAIL" Admin --stdin --if-no-admin --if-missing --no-interaction
 }
 
-native_activate_license() {
-    printf '%s\n' "$LICENSE_KEY" | as_chatvia "$NATIVE_ROOT/current" \
-        php artisan chatvia:license:activate --stdin --no-interaction
-}
-
 # Whether the step above made the account, or it was there already (made by
 # an earlier attempt).
 native_read_admin_result() {
@@ -3813,7 +3712,7 @@ native_check_parts() {
 }
 
 native_show_finish() {
-    local title open admin email password saved='' license='' n=1
+    local title open admin email password saved='' n=1
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
     else
@@ -3831,8 +3730,7 @@ native_show_finish() {
     else
         kv_to password 'Admin password' 'the one you typed'
     fi
-    if [ "$LICENSE_ACTIVE" = 1 ]; then kv_to license 'License' 'active'; fi
-    note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"} ${license:+"$license"}
+    note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
 
     section 'Next steps'
     if [ "$HTTPS" = pending ]; then
@@ -3845,9 +3743,6 @@ native_show_finish() {
     info '   the models, and email.'
     info "$((n + 2)). Then add the built-in tools, like charts, forms and web search:"
     info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan chatvia:mcp:sync-builtin"
-    if [ "$LICENSE_ACTIVE" = 0 ]; then
-        info "$((n + 3)). Optional: get a ChatVia.ai license at $(accent "$LICENSE_URL")"
-    fi
 
     section 'Running on this server'
     info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
@@ -4082,7 +3977,6 @@ parse_args() {
             --no-count-install) CHATVIA_COUNT_INSTALL=no ;;
             --news-email) CHATVIA_NEWS_EMAIL=${2:?--news-email needs an address}; shift ;;
             --no-news-email) CHATVIA_NEWS_EMAIL=no ;;
-            --license) CHATVIA_LICENSE_KEY=${2:?--license needs a key}; shift ;;
             -h | --help) usage; exit 0 ;;
             *) die "Unknown option: $1" 'See --help.' ;;
         esac
@@ -4103,7 +3997,7 @@ interrupted() {
 
 main() {
     YES=0 UPGRADE=0 NO_START=0 DRY_RUN=0 PASSWORD_GENERATED=0 ADMIN_CREATED=1 USE_SUDO=0 APP_PULLED=0
-    ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL='' TTY_STATE='' LICENSE_KEY='' LICENSE_ACTIVE=0
+    ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL='' TTY_STATE=''
     EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024 EMBEDDING_INDEX=binary
     VERSION_GIVEN=0
     if [ -n "${CHATVIA_VERSION:-}" ]; then VERSION_GIVEN=1; fi

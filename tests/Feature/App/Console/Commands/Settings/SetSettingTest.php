@@ -15,6 +15,15 @@ it('saves a value', function (): void {
     expect(savedSetting(MailSettings::class, 'from_address'))->toBe('hello@acme.example');
 });
 
+it('asks for the key when it is left out', function (): void {
+    $this->artisan('chatvia:settings:set', ['value' => 'hello@acme.example'])
+        ->expectsQuestion('Setting key', 'mail.from_address')
+        ->expectsOutput('mail.from_address saved.')
+        ->assertSuccessful();
+
+    expect(savedSetting(MailSettings::class, 'from_address'))->toBe('hello@acme.example');
+});
+
 it('removes a saved value with --unset', function (): void {
     saveSettings(MailSettings::class, ['from_address' => 'hello@acme.example']);
 

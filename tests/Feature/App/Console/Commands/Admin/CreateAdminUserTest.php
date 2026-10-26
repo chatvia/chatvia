@@ -21,6 +21,18 @@ it('creates the admin given on the command line', function (): void {
         ->name->toBe('First Admin');
 });
 
+it('asks for the email, name and password when run with no arguments', function (): void {
+    $this->artisan('chatvia:admin:create-user')
+        ->expectsQuestion('Email address of the admin user', 'asked-admin@self-hosted.test')
+        ->expectsQuestion('Name of the admin user', 'Asked Admin')
+        ->expectsQuestion('Enter password for the admin user', 'a-long-password')
+        ->assertSuccessful();
+
+    expect(User::query()->where('email', 'asked-admin@self-hosted.test')->sole())
+        ->isAdmin()->toBeTrue()
+        ->name->toBe('Asked Admin');
+});
+
 it('refuses an email that is already taken', function (): void {
     $existing = User::factory()->create();
 

@@ -97,6 +97,9 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        // The analytics tables' own database (chatvia.analytics.connection): the
+        // same server and user as the app, another database, set up like
+        // Pulse's below.
         'analytics' => [
             'driver' => 'pgsql',
             'url' => env('DB_ANALYTICS_URL'),

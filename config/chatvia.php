@@ -575,10 +575,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | `enabled` off drops analytics events before they reach the queue.
-    | `connection` is the database connection of the analytics_* tables
-    | (null is the default one; config/database.php has an "analytics"
-    | connection for a separate database). `queue` keeps analytics work off
-    | the `messages` queue so it never slows a reply.
+    | `connection` is the database connection of the analytics_* tables: the
+    | "analytics" connection in config/database.php, a database of its own
+    | next to the app's (DB_ANALYTICS_DATABASE). `queue` keeps analytics work
+    | off the `messages` queue so it never slows a reply.
     |
     | The hourly rollup keys cannot hold NULL, so an unknown country is
     | stored as `unknown_country_code` and an unknown model as 0.
@@ -592,7 +592,7 @@ return [
 
     'analytics' => [
         'enabled' => env('ANALYTICS_ENABLED', true),
-        'connection' => env('ANALYTICS_DB_CONNECTION'),
+        'connection' => env('ANALYTICS_DB_CONNECTION', 'analytics'),
         'queue' => env('ANALYTICS_QUEUE', 'analytics'),
 
         'unknown_country_code' => '--',

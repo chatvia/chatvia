@@ -22,6 +22,16 @@ use Tests\Support\Knowledge\Ingestion\FakeTextSplitter;
 abstract class TestCase extends BaseTestCase
 {
     /**
+     * The analytics tables sit on a connection of their own (set to the
+     * testing database in phpunit.xml), a second session that needs its own
+     * transaction to be rolled back after each test. Null is the default
+     * connection.
+     *
+     * @var list<string|null>
+     */
+    protected array $connectionsToTransact = [null, 'analytics'];
+
+    /**
      * In a parallel run each worker tests against its own database
      * (`testing_test_1`, …), a copy of the testing database made before the
      * workers start ({@see ParallelTestDatabases}).
@@ -42,7 +52,7 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Pulse and Spectra have connections of their own, set to the testing
+     * Analytics, Pulse and Spectra have connections of their own, set to the testing
      * database (phpunit.xml). Laravel moves only the default connection to
      * the worker's database, so these follow it: otherwise every worker
      * would migrate and read the one shared database at once.

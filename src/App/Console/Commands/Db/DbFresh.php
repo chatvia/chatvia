@@ -10,8 +10,8 @@ use Illuminate\Console\Command;
 
 /**
  * `php artisan chatvia:db:fresh` — `migrate:fresh` for every database the app uses:
- * the main schema plus the Pulse and Spectra databases (created first when
- * missing), which a plain `migrate:fresh` does not reach. The Postgres
+ * the main schema plus the analytics, Pulse and Spectra databases (created
+ * first when missing), which a plain `migrate:fresh` does not reach. The Postgres
  * extensions stay installed through the wipe; the install migration
  * recreates any that are missing.
  *
@@ -26,9 +26,9 @@ class DbFresh extends Command
         $this->components->info('Wiping the database');
         $this->call('db:wipe', ['--force' => true]);
 
-        // Pulse and Spectra keep their tables in databases of their own,
-        // which the wipe above does not reach.
-        $this->components->info('Wiping the Pulse and Spectra databases');
+        // Analytics, Pulse and Spectra keep their tables in databases of their
+        // own, which the wipe above does not reach.
+        $this->components->info('Wiping the analytics, Pulse and Spectra databases');
         if ($this->call('chatvia:db:create-tool-databases') !== self::SUCCESS) {
             return self::FAILURE;
         }

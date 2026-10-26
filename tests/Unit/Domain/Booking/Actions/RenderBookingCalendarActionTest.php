@@ -36,6 +36,7 @@ it('issues a pending booking instance with the first week of free times', functi
         ->and($instance->form_definition_id)->toBe($form->id)
         ->and($instance->status)->toBe(FormSubmissionStatus::Pending)
         ->and($instance->field(BookingInstanceMeetingType::KEY))->toBe(FakeScheduler::INTRO_CALL)
+        ->and($instance->field(BookingInstanceMeetingType::PROVIDER_KEY))->toBe('calendly')
         ->and($instance->workspace_id)->toBe($agent->workspace_id);
 });
 
@@ -94,3 +95,13 @@ it('passes on a scheduler that is not connected', function (): void {
 
     app(RenderBookingCalendarAction::class)->execute($agent, $conversation, FakeScheduler::INTRO_CALL);
 })->throws(BookingException::class);
+
+it('remembers the scheduler the agent books through', function (): void {
+    $this->scheduler->provider = 'cal-com';
+    ['agent' => $agent, 'conversation' => $conversation] = CalendarAgent::seed();
+
+    $outcome = app(RenderBookingCalendarAction::class)->execute($agent, $conversation, FakeScheduler::INTRO_CALL);
+
+    expect(FormSubmission::query()->where('external_id', $outcome->calendar?->bookingInstanceId)->sole()->field(BookingInstanceMeetingType::PROVIDER_KEY))->toBe('cal-com')
+        ->and($this->scheduler->used)->toBe(['cal-com']);
+});

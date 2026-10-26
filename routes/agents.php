@@ -21,6 +21,7 @@ use App\Http\Controllers\Agent\Analytics\Topic\SuggestedTopicsDataController;
 use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use App\Http\Controllers\Agent\Bar\BarPreviewController;
 use App\Http\Controllers\Agent\Capability\AgentCapabilitiesController;
+use App\Http\Controllers\Agent\Capability\ChooseCapabilityProviderController;
 use App\Http\Controllers\Agent\Capability\DisableAgentCapabilityController;
 use App\Http\Controllers\Agent\Capability\EnableAgentCapabilityController;
 use App\Http\Controllers\Agent\Channel\AgentChannelsController;
@@ -366,6 +367,8 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
             ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.enable');
         Route::delete('capabilities/{slug}', DisableAgentCapabilityController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.disable');
+        Route::put('capabilities/{slug}/provider', ChooseCapabilityProviderController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.provider');
 
         // Channels — connecting the agent to messaging apps. Gated by its own
         // `agent.channels` permission (split out from `agent.setup`).

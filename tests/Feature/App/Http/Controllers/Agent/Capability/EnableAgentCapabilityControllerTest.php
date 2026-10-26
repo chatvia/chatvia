@@ -32,11 +32,11 @@ it('404s for a slug that is not a capability', function (): void {
     expect($this->agent->mcpServers()->exists())->toBeFalse();
 });
 
-it('refuses Calendar until the workspace connects Calendly', function (): void {
+it('refuses Calendar until the workspace connects Calendly or Cal.com', function (): void {
     $this->actingAs($this->owner)
         ->postJson(route('agents.capabilities.enable', ['agent' => $this->agent->external_id, 'slug' => 'calendar']))
         ->assertUnprocessable()
-        ->assertJsonPath('message', 'Connect Calendly first.');
+        ->assertJsonPath('message', 'Connect Calendly or Cal.com first.');
 
     expect($this->agent->mcpServers()->exists())->toBeFalse();
 });

@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Fungerar via {name}. Anslut först {name} på sidan Kopplingar.",
-            "requires_disconnected": "{name} är inte anslutet, så den här förmågan fungerar inte. Anslut {name} igen på sidan Kopplingar.",
-            "connect_connector": "Anslut {name}"
+            "requires_connector": "Fungerar via {names}. Anslut först en av dem på sidan Kopplingar.",
+            "requires_disconnected": "Det finns ingen anslutning till {names}, så den här förmågan fungerar inte. Anslut en av dem igen på sidan Kopplingar.",
+            "connect_connector": "Anslut {names}",
+            "book_through": "Boka via",
+            "provider_failed": "Det gick inte att ändra bokningstjänsten"
         },
         "forms": {
             "managed_by_capability": "Hanteras av förmågan {name}"

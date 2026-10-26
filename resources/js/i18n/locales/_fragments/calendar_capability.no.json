@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Fungerer via {name}. Koble først til {name} på Koblinger-siden.",
-            "requires_disconnected": "{name} er ikke koblet til, så denne kapabiliteten kan ikke fungere. Koble til {name} på nytt på Koblinger-siden.",
-            "connect_connector": "Koble til {name}"
+            "requires_connector": "Fungerer via {names}. Koble først til en av dem på Koblinger-siden.",
+            "requires_disconnected": "Det er ingen tilkobling til {names}, så denne kapabiliteten kan ikke fungere. Koble til en av dem på nytt på Koblinger-siden.",
+            "connect_connector": "Koble til {names}",
+            "book_through": "Book via",
+            "provider_failed": "Kunne ikke endre bookingtjenesten"
         },
         "forms": {
             "managed_by_capability": "Styres av kapabiliteten {name}"

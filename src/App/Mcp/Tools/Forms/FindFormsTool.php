@@ -19,7 +19,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 /**
  * Form discovery: the model asks which of the agent's forms fit what the
  * visitor wants, then shows one with render-form. Nothing is injected into
- * the system prompt — forms are found on demand.
+ * the system prompt — forms are found on demand. The model reads only a
+ * tool's text, never its structured content, so the matches are written into
+ * the text as well.
  */
 #[Name('find-forms')]
 #[Description('Discover whether the agent has a fillable form that matches what the visitor wants to do — e.g. book a demo, request a quote or callback, sign up, or be contacted. Pass the visitor\'s intent in plain words; returns the matching forms, each with a `slug`, name and purpose. Call this the moment a visitor expresses such an intent, then call render-form with the chosen slug. If it returns no forms, or none of them fit the visitor\'s need, keep helping conversationally and do NOT render a form. Do not call this for general or informational questions.')]
@@ -64,14 +66,16 @@ class FindFormsTool extends Tool
             ? 'Matching forms found. Forms marked already_submitted were already completed by this visitor — do NOT render those again; acknowledge the submission. For any other form that fits, call render-form with its slug.'
             : 'Matching forms found. If one fits what the visitor wants, call render-form with its slug; otherwise keep helping without a form.';
 
-        return Response::make(Response::text($text))->withStructuredContent([
-            'forms' => array_map(static fn (FormMatchData $match): array => [
-                'slug' => $match->slug,
-                'name' => $match->name,
-                'purpose' => $match->purpose,
-                'already_submitted' => $match->alreadySubmitted,
-            ], $matches),
-        ]);
+        $forms = array_map(static fn (FormMatchData $match): array => [
+            'slug' => $match->slug,
+            'name' => $match->name,
+            'purpose' => $match->purpose,
+            'already_submitted' => $match->alreadySubmitted,
+        ], $matches);
+
+        return Response::make(Response::text(
+            $text."\n".json_encode($forms, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
+        ))->withStructuredContent(['forms' => $forms]);
     }
 
     /**

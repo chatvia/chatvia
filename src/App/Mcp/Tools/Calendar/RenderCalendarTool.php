@@ -58,6 +58,10 @@ class RenderCalendarTool extends Tool
         try {
             $outcome = $render->execute($caller->agent, $caller->conversation, Str::trim($validated['meeting_type']));
         } catch (BookingException $e) {
+            if ($e->reason !== BookingFailure::NotConnected) {
+                report($e);
+            }
+
             return Response::error($e->reason === BookingFailure::NotConnected
                 ? 'Booking is not set up right now. Help the visitor another way (for example, offer to take their contact details) and do not promise a booking.'
                 : 'The calendar could not be reached. Tell the visitor to try again in a moment, and do not promise a booking.');

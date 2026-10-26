@@ -125,6 +125,12 @@ return [
                 'widget' => true,
                 'bar' => true,
             ],
+            // The connector each capability works through, by capability slug,
+            // when it can use more than one (Calendar: 'calendly' or 'cal-com').
+            // Null uses the first connected one. Read through CapabilityProvider.
+            'capabilities' => [
+                'calendar' => null,
+            ],
             // Bar surface — surface-specific behaviour only (text/branding now
             // come from `appearance`). Single model lives on `agents.llm_id`.
             'bar' => [

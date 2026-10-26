@@ -2403,10 +2403,12 @@
             "empty": "Es sind noch keine Fähigkeiten verfügbar.",
             "enable_failed": "Diese Fähigkeit konnte nicht aktiviert werden",
             "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden",
-            "requires_connector": "Funktioniert über {name}. Verbinden Sie zuerst {name} auf der Seite Konnektoren.",
-            "requires_disconnected": "{name} ist nicht verbunden, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie {name} erneut auf der Seite Konnektoren.",
-            "connect_connector": "{name} verbinden",
-            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet"
+            "requires_connector": "Funktioniert über {names}. Verbinden Sie zuerst einen davon auf der Seite Konnektoren.",
+            "requires_disconnected": "Es besteht keine Verbindung zu {names}, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie einen davon erneut auf der Seite Konnektoren.",
+            "connect_connector": "{names} verbinden",
+            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet",
+            "book_through": "Buchen über",
+            "provider_failed": "Der Buchungsdienst konnte nicht geändert werden"
         },
         "forms": {
             "page_title": "Formulare",
@@ -4290,7 +4292,7 @@
             },
             "calendar": {
                 "name": "Kalender",
-                "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
+                "description": "Besucher können im Chat einen Termin buchen: Sie wählen eine freie Zeit aus Ihrem Calendly oder Cal.com und buchen sie, ohne das Gespräch zu verlassen. Jede Buchung wird als Lead gespeichert."
             },
             "image-generation": {
                 "name": "Bilderzeugung",
@@ -4299,6 +4301,10 @@
             "audio-generation": {
                 "name": "Audioerzeugung",
                 "description": "Lass den Agenten im gehosteten Chat Audiodateien erstellen, wenn ein Besucher danach fragt: jeder Text vorgelesen, bereit zum Abspielen oder Herunterladen."
+            },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Besuchern ermöglichen, Meetings über Ihr Cal.com zu buchen, und Agenten Ihre Buchungen lesen lassen."
             }
         }
     },

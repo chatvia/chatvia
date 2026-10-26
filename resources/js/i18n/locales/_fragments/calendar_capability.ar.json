@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "تعمل هذه القدرة عبر {name}. اربط {name} أولاً من صفحة الموصّلات.",
-            "requires_disconnected": "{name} غير مرتبط، لذلك لا يمكن لهذه القدرة العمل. اربط {name} مرة أخرى من صفحة الموصّلات.",
-            "connect_connector": "اربط {name}"
+            "requires_connector": "تعمل هذه القدرة عبر {names}. اربط أحدهما أولاً من صفحة الموصّلات.",
+            "requires_disconnected": "لا يوجد اتصال بـ {names}، لذلك لا يمكن لهذه القدرة العمل. اربط أحدهما مرة أخرى من صفحة الموصّلات.",
+            "connect_connector": "اربط {names}",
+            "book_through": "الحجز عبر",
+            "provider_failed": "تعذّر تغيير خدمة الحجز"
         },
         "forms": {
             "managed_by_capability": "تُدار بواسطة قدرة {name}"

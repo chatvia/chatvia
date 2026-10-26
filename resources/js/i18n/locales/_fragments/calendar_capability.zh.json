@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "通过 {name} 运行。请先在连接器页面连接 {name}。",
-            "requires_disconnected": "{name} 未连接，因此此能力无法使用。请在连接器页面重新连接 {name}。",
-            "connect_connector": "连接 {name}"
+            "requires_connector": "通过 {names} 运行。请先在连接器页面连接其中一个。",
+            "requires_disconnected": "{names} 未连接，因此此能力无法使用。请在连接器页面重新连接其中一个。",
+            "connect_connector": "连接 {names}",
+            "book_through": "预订服务",
+            "provider_failed": "无法更改预订服务"
         },
         "forms": {
             "managed_by_capability": "由 {name} 能力管理"

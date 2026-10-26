@@ -38,6 +38,7 @@ return [
         Connectors\GoogleDriveConnector::class,
         Connectors\SlackConnector::class,
         Connectors\CalendlyConnector::class,
+        Connectors\CalcomConnector::class,
         Connectors\TodoistConnector::class,
         Connectors\ZapierConnector::class,
         Connectors\ZendeskConnector::class,

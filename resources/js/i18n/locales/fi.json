@@ -2403,10 +2403,12 @@
             "empty": "Kykyjä ei ole vielä saatavilla.",
             "enable_failed": "Tämän kyvyn käyttöönotto epäonnistui",
             "disable_failed": "Tämän kyvyn poistaminen käytöstä epäonnistui",
-            "requires_connector": "Toimii {name}-yhteyden kautta. Yhdistä ensin {name} Liittimet-sivulla.",
-            "requires_disconnected": "{name} ei ole yhdistetty, joten tämä kyky ei voi toimia. Yhdistä {name} uudelleen Liittimet-sivulla.",
-            "connect_connector": "Yhdistä {name}",
-            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä"
+            "requires_connector": "Toimii seuraavien kautta: {names}. Yhdistä ensin yksi niistä Liittimet-sivulla.",
+            "requires_disconnected": "Ei yhdistetty: {names}, joten tämä kyky ei voi toimia. Yhdistä yksi niistä uudelleen Liittimet-sivulla.",
+            "connect_connector": "Yhdistä {names}",
+            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä",
+            "book_through": "Varauspalvelu",
+            "provider_failed": "Varauspalvelun vaihtaminen epäonnistui"
         },
         "forms": {
             "page_title": "Lomakkeet",
@@ -4290,7 +4292,7 @@
             },
             "calendar": {
                 "name": "Kalenteri",
-                "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
+                "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly- tai Cal.com-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
             },
             "image-generation": {
                 "name": "Kuvien luonti",
@@ -4299,6 +4301,10 @@
             "audio-generation": {
                 "name": "Äänen luonti",
                 "description": "Anna agentin luoda äänitiedostoja isännöidyssä chatissa, kun kävijä pyytää: mikä tahansa teksti luettuna ääneen, valmiina toistettavaksi tai ladattavaksi."
+            },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Anna vierailijoiden varata tapaamisia Cal.com-palvelussasi ja anna agenttien lukea varauksiasi."
             }
         }
     },

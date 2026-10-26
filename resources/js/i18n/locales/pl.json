@@ -2403,10 +2403,12 @@
             "empty": "Brak dostępnych możliwości.",
             "enable_failed": "Nie udało się włączyć tej możliwości",
             "disable_failed": "Nie udało się wyłączyć tej możliwości",
-            "requires_connector": "Działa przez {name}. Najpierw połącz {name} na stronie Konektory.",
-            "requires_disconnected": "{name} nie jest połączony, więc ta możliwość nie może działać. Połącz {name} ponownie na stronie Konektory.",
-            "connect_connector": "Połącz {name}",
-            "turned_off_by_admin": "Wyłączone przez administratora"
+            "requires_connector": "Działa przez {names}. Najpierw połącz jedno z nich na stronie Konektory.",
+            "requires_disconnected": "Brak połączenia z {names}, więc ta możliwość nie może działać. Połącz jedno z nich ponownie na stronie Konektory.",
+            "connect_connector": "Połącz {names}",
+            "turned_off_by_admin": "Wyłączone przez administratora",
+            "book_through": "Rezerwuj przez",
+            "provider_failed": "Nie udało się zmienić usługi rezerwacji"
         },
         "forms": {
             "page_title": "Formularze",
@@ -4290,7 +4292,7 @@
             },
             "calendar": {
                 "name": "Kalendarz",
-                "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
+                "description": "Pozwól odwiedzającym zarezerwować spotkanie na czacie: wybierają wolny termin z Twojego Calendly lub Cal.com i rezerwują go bez opuszczania rozmowy. Każda rezerwacja jest zapisywana jako lead."
             },
             "image-generation": {
                 "name": "Generowanie obrazów",
@@ -4299,6 +4301,10 @@
             "audio-generation": {
                 "name": "Generowanie dźwięku",
                 "description": "Pozwól agentowi tworzyć pliki audio w Hosted Chat, gdy odwiedzający o to poprosi: dowolny tekst przeczytany na głos, gotowy do odtworzenia lub pobrania."
+            },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Pozwól odwiedzającym umawiać spotkania w Cal.com i umożliw agentom odczytywanie rezerwacji."
             }
         }
     },

@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Funktioniert über {name}. Verbinden Sie zuerst {name} auf der Seite Konnektoren.",
-            "requires_disconnected": "{name} ist nicht verbunden, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie {name} erneut auf der Seite Konnektoren.",
-            "connect_connector": "{name} verbinden"
+            "requires_connector": "Funktioniert über {names}. Verbinden Sie zuerst einen davon auf der Seite Konnektoren.",
+            "requires_disconnected": "Es besteht keine Verbindung zu {names}, daher kann diese Fähigkeit nicht funktionieren. Verbinden Sie einen davon erneut auf der Seite Konnektoren.",
+            "connect_connector": "{names} verbinden",
+            "book_through": "Buchen über",
+            "provider_failed": "Der Buchungsdienst konnte nicht geändert werden"
         },
         "forms": {
             "managed_by_capability": "Verwaltet von der Fähigkeit {name}"

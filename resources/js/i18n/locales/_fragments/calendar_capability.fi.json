@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Toimii {name}-yhteyden kautta. Yhdistä ensin {name} Liittimet-sivulla.",
-            "requires_disconnected": "{name} ei ole yhdistetty, joten tämä kyky ei voi toimia. Yhdistä {name} uudelleen Liittimet-sivulla.",
-            "connect_connector": "Yhdistä {name}"
+            "requires_connector": "Toimii seuraavien kautta: {names}. Yhdistä ensin yksi niistä Liittimet-sivulla.",
+            "requires_disconnected": "Ei yhdistetty: {names}, joten tämä kyky ei voi toimia. Yhdistä yksi niistä uudelleen Liittimet-sivulla.",
+            "connect_connector": "Yhdistä {names}",
+            "book_through": "Varauspalvelu",
+            "provider_failed": "Varauspalvelun vaihtaminen epäonnistui"
         },
         "forms": {
             "managed_by_capability": "{name}-kyvyn hallinnoima"

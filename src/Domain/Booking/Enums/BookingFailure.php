@@ -10,16 +10,16 @@ namespace Domain\Booking\Enums;
  */
 enum BookingFailure: string
 {
-    /** The workspace has not connected Calendly (or the connection broke). */
+    /** The workspace has connected no scheduler (Calendly or Cal.com), or the connection broke. */
     case NotConnected = 'not_connected';
 
-    /** Calendly refuses booking through its API (a free plan); the visitor books on Calendly's page instead. */
+    /** The scheduler refuses booking through its API (a free Calendly plan); the visitor books on its booking page instead. */
     case BookingNotAllowed = 'booking_not_allowed';
 
     /** The time was taken between showing it and booking it. */
     case SlotTaken = 'slot_taken';
 
-    /** Calendly could not be reached or returned an error. */
+    /** The scheduler could not be reached or returned an error. */
     case Unavailable = 'unavailable';
 
     public function message(): string

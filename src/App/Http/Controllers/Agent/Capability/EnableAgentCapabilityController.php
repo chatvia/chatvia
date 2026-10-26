@@ -30,7 +30,7 @@ class EnableAgentCapabilityController
         } catch (CapabilityUnavailableException) {
             return response()->json(['message' => __('Your admin has turned this off.')], 422);
         } catch (CapabilityRequiresConnectorException $e) {
-            return response()->json(['message' => __('Connect :name first.', ['name' => $e->connectorName])], 422);
+            return response()->json(['message' => __('Connect :name first.', ['name' => $e->connectorNames])], 422);
         }
 
         return response()->json(['ok' => true]);

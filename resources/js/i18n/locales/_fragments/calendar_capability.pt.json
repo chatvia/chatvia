@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Funciona através de {name}. Ligue primeiro {name} na página Conectores.",
-            "requires_disconnected": "{name} não está ligado, por isso esta capacidade não pode funcionar. Ligue {name} novamente na página Conectores.",
-            "connect_connector": "Ligar {name}"
+            "requires_connector": "Funciona através de {names}. Ligue primeiro um deles na página Conectores.",
+            "requires_disconnected": "Não existe ligação a {names}, por isso esta capacidade não pode funcionar. Ligue um deles novamente na página Conectores.",
+            "connect_connector": "Ligar {names}",
+            "book_through": "Marcar através de",
+            "provider_failed": "Não foi possível alterar o serviço de marcação"
         },
         "forms": {
             "managed_by_capability": "Gerida pela capacidade {name}"

@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "यह {name} के ज़रिए काम करती है। पहले कनेक्टर पेज पर {name} को कनेक्ट करें।",
-            "requires_disconnected": "{name} कनेक्ट नहीं है, इसलिए यह क्षमता काम नहीं कर सकती। कनेक्टर पेज पर {name} को फिर से कनेक्ट करें।",
-            "connect_connector": "{name} कनेक्ट करें"
+            "requires_connector": "यह {names} के ज़रिए काम करती है। पहले कनेक्टर पेज पर इनमें से किसी एक को कनेक्ट करें।",
+            "requires_disconnected": "{names} से कनेक्शन नहीं है, इसलिए यह क्षमता काम नहीं कर सकती। कनेक्टर पेज पर इनमें से किसी एक को फिर से कनेक्ट करें।",
+            "connect_connector": "{names} कनेक्ट करें",
+            "book_through": "बुकिंग का माध्यम",
+            "provider_failed": "बुकिंग सेवा बदली नहीं जा सकी"
         },
         "forms": {
             "managed_by_capability": "{name} क्षमता द्वारा प्रबंधित"

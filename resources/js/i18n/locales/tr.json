@@ -2403,10 +2403,12 @@
             "empty": "Henüz kullanılabilir yetenek yok.",
             "enable_failed": "Bu yetenek açılamadı",
             "disable_failed": "Bu yetenek kapatılamadı",
-            "requires_connector": "{name} üzerinden çalışır. Önce Bağlayıcılar sayfasında {name} bağlantısını kurun.",
-            "requires_disconnected": "{name} bağlı değil, bu yüzden bu yetenek çalışamaz. Bağlayıcılar sayfasında {name} bağlantısını yeniden kurun.",
-            "connect_connector": "{name} bağla",
-            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı"
+            "requires_connector": "{names} üzerinden çalışır. Önce Bağlayıcılar sayfasında bunlardan birinin bağlantısını kurun.",
+            "requires_disconnected": "{names} ile bağlantı yok, bu yüzden bu yetenek çalışamaz. Bağlayıcılar sayfasında bunlardan birinin bağlantısını yeniden kurun.",
+            "connect_connector": "{names} bağla",
+            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı",
+            "book_through": "Rezervasyon hizmeti",
+            "provider_failed": "Rezervasyon hizmeti değiştirilemedi"
         },
         "forms": {
             "page_title": "Formlar",

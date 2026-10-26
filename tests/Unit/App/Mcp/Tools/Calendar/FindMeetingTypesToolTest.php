@@ -19,10 +19,12 @@ beforeEach(function (): void {
     InternalMcp::actAsAgent($this->agent->external_id, path: '/mcp/calendar');
 });
 
-it('lists the meeting types with their ids', function (): void {
+it('lists the meeting types with their ids, in the text the model reads too', function (): void {
     $result = InternalMcp::result(CalendarServer::tool(FindMeetingTypesTool::class));
 
-    expect($result['structuredContent']['meeting_types'])->toBe([[
+    expect($result['content'][0]['text'])->toContain('"id":"'.FakeScheduler::INTRO_CALL.'"')
+        ->toContain('"name":"Intro call"')
+        ->and($result['structuredContent']['meeting_types'])->toBe([[
         'id' => FakeScheduler::INTRO_CALL,
         'name' => 'Intro call',
         'duration_minutes' => 30,

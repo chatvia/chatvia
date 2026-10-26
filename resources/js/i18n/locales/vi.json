@@ -2403,10 +2403,12 @@
             "empty": "Chưa có khả năng nào khả dụng.",
             "enable_failed": "Không thể bật khả năng này",
             "disable_failed": "Không thể tắt khả năng này",
-            "requires_connector": "Hoạt động qua {name}. Hãy kết nối {name} trong trang Trình kết nối trước.",
-            "requires_disconnected": "{name} chưa được kết nối nên khả năng này không thể hoạt động. Hãy kết nối lại {name} trong trang Trình kết nối.",
-            "connect_connector": "Kết nối {name}",
-            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
+            "requires_connector": "Hoạt động qua {names}. Hãy kết nối một trong số đó trong trang Trình kết nối trước.",
+            "requires_disconnected": "Chưa có kết nối tới {names} nên khả năng này không thể hoạt động. Hãy kết nối lại một trong số đó trong trang Trình kết nối.",
+            "connect_connector": "Kết nối {names}",
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt",
+            "book_through": "Đặt lịch qua",
+            "provider_failed": "Không thể thay đổi dịch vụ đặt lịch"
         },
         "forms": {
             "page_title": "Biểu mẫu",

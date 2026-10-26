@@ -624,9 +624,14 @@ the model and is read-only for the owner.
 ### Booking
 
 The Calendar capability: a booking calendar inside the chat. `Contracts\Scheduler`
-lists meeting types, free times and books; `Services\CalendlyScheduler` implements
-it with the tools of the workspace's Calendly connection (`McpClient::callTool`,
-so Calendly need not be attached to the agent). A shown calendar is a pending
+lists meeting types, free times and books; `Services\CalendlyScheduler` and
+`Services\CalcomScheduler` implement it with the tools of the workspace's Calendly
+or Cal.com connection (`McpClient::callTool` through `McpScheduler`, so the
+connector need not be attached to the agent). `Contracts\Schedulers`
+(`SchedulerRouter`) picks one: the agent's choice in its `capabilities` settings
+(`CapabilityProvider`, from `Connector::$worksThrough`), else the first connected;
+a shown calendar keeps the scheduler it was shown from (`provider` in the
+pending row). A shown calendar is a pending
 `FormSubmission` of the agent's managed "Meeting bookings" form
 (`EnsureBookingFormAction`), so claim, expiry, session checks and lead storage
 are the Form context's; `BookMeetingAction` books it and fires `FormSubmitted`

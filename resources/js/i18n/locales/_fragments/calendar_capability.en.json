@@ -1,9 +1,11 @@
 {
     "agents": {
         "capabilities": {
-            "requires_connector": "Works through {name}. Connect {name} on the Connectors page first.",
-            "requires_disconnected": "{name} is not connected, so this capability cannot work. Connect {name} again on the Connectors page.",
-            "connect_connector": "Connect {name}"
+            "requires_connector": "Works through {names}. Connect one of them on the Connectors page first.",
+            "requires_disconnected": "{names} is not connected, so this capability cannot work. Connect one again on the Connectors page.",
+            "connect_connector": "Connect {names}",
+            "book_through": "Book through",
+            "provider_failed": "Could not change the booking service"
         },
         "forms": {
             "managed_by_capability": "Managed by the {name} capability"

@@ -6,7 +6,6 @@ namespace Domain\Booking\Actions;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
-use Domain\Booking\Contracts\Scheduler;
 use Domain\Booking\Exceptions\BookingException;
 use Domain\Booking\Services\BookingInstanceMeetingType;
 use Domain\Booking\Services\BookingWindow;
@@ -20,10 +19,7 @@ use Domain\Form\Models\FormSubmission;
  */
 class ListBookingSlotsAction
 {
-    public function __construct(
-        private readonly Scheduler $scheduler,
-        private readonly BookingInstanceMeetingType $meetingType,
-    ) {}
+    public function __construct(private readonly BookingInstanceMeetingType $meetingType) {}
 
     /**
      * @return list<CarbonImmutable>
@@ -47,6 +43,6 @@ class ListBookingSlotsAction
             return [];
         }
 
-        return $this->scheduler->availableTimes($instance->agent, $this->meetingType->of($instance), $from, $to);
+        return $this->meetingType->schedulerOf($instance)->availableTimes($instance->agent, $this->meetingType->of($instance), $from, $to);
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Booking\Actions;
 
 use Domain\Agent\Models\Agent;
-use Domain\Booking\Contracts\Scheduler;
+use Domain\Booking\Contracts\Schedulers;
 use Domain\Booking\Data\CalendarArtifactData;
 use Domain\Booking\Data\MeetingTypeData;
 use Domain\Booking\Data\RenderCalendarOutcomeData;
@@ -25,7 +25,8 @@ use Illuminate\Support\Str;
  * ones, refuses when this visitor's session already booked, and otherwise
  * issues a booking instance: a pending submission of the agent's "Meeting
  * bookings" form that {@see BookMeetingAction} later claims. The pending row
- * keeps the meeting type, and the first week of free times goes with it. On a
+ * keeps the meeting type and the scheduler it came from (the agent's Calendly
+ * or Cal.com), and the first week of free times goes with it. On a
  * messaging channel the visitor gets the type's booking page instead.
  */
 class RenderBookingCalendarAction
@@ -34,7 +35,7 @@ class RenderBookingCalendarAction
     private const int TTL_HOURS = 6;
 
     public function __construct(
-        private readonly Scheduler $scheduler,
+        private readonly Schedulers $schedulers,
         private readonly EnsureBookingFormAction $ensureForm,
     ) {}
 
@@ -52,7 +53,9 @@ class RenderBookingCalendarAction
             return RenderCalendarOutcomeData::alreadyBooked($booked->field('start_time'));
         }
 
-        $types = $this->scheduler->meetingTypes($agent);
+        $provider = $this->schedulers->providerFor($agent);
+        $scheduler = $this->schedulers->using($provider);
+        $types = $scheduler->meetingTypes($agent);
         $type = $this->match($types, $requestedType);
 
         if (! $type instanceof MeetingTypeData) {
@@ -66,7 +69,7 @@ class RenderBookingCalendarAction
         }
 
         [$from, $to] = BookingWindow::firstWeek();
-        $slots = $this->scheduler->availableTimes($agent, $type, $from, $to);
+        $slots = $scheduler->availableTimes($agent, $type, $from, $to);
 
         $submission = FormSubmission::create([
             'form_definition_id' => $form->id,
@@ -74,7 +77,7 @@ class RenderBookingCalendarAction
             'agent_id' => $agent->id,
             'chat_conversation_id' => $conversation->id,
             'status' => FormSubmissionStatus::Pending,
-            'values' => [BookingInstanceMeetingType::KEY => $type->uri],
+            'values' => [BookingInstanceMeetingType::KEY => $type->uri, BookingInstanceMeetingType::PROVIDER_KEY => $provider],
             'expires_at' => now()->addHours(self::TTL_HOURS),
         ]);
 

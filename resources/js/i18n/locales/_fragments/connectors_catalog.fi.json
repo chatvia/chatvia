@@ -79,6 +79,10 @@
                 "name": "Calendly",
                 "description": "Anna vierailijoiden varata tapaamisia Calendlyssasi ja anna agenttien lukea aikataulutettuja tapahtumiasi."
             },
+            "cal-com": {
+                "name": "Cal.com",
+                "description": "Anna vierailijoiden varata tapaamisia Cal.com-palvelussasi ja anna agenttien lukea varauksiasi."
+            },
             "todoist": {
                 "name": "Todoist",
                 "description": "Hallinnoi tehtäviä, projekteja ja tunnisteita Todoist-tililläsi."
@@ -167,7 +171,7 @@
             },
             "calendar": {
                 "name": "Kalenteri",
-                "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
+                "description": "Anna kävijöiden varata tapaaminen chatissa: he valitsevat vapaan ajan Calendly- tai Cal.com-kalenteristasi ja varaavat sen poistumatta keskustelusta. Jokainen varaus tallennetaan liidinä."
             },
             "image-generation": {
                 "name": "Kuvien luonti",

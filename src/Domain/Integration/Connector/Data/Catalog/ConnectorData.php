@@ -65,9 +65,10 @@ class ConnectorData extends Data
         // Whether a voice call may offer this connector's tools. False for
         // tools that only make sense on a screen (a chart, a form to fill).
         public bool $voice = true,
-        // The connector the workspace must connect before this capability can
-        // be turned on (Calendar needs Calendly). Null for none.
-        public ?string $requiresConnector = null,
+        // The connectors this capability works through: the workspace connects
+        // one before it can be turned on (Calendar: Calendly or Cal.com).
+        /** @var list<string> */
+        public array $worksThrough = [],
         // False while the install does not offer it: a capability whose
         // service an admin has not set up (Image generation, Audio generation).
         public bool $available = true,

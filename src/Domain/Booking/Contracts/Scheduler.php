@@ -14,8 +14,9 @@ use Domain\Booking\Exceptions\BookingException;
 
 /**
  * The calendar service behind the Calendar capability: which meetings the
- * agent's workspace offers, when they are free, and booking one. Calendly
- * today; the contract keeps the chat side independent of it.
+ * agent's workspace offers, when they are free, and booking one. Calendly and
+ * Cal.com implement it ({@see Schedulers} picks one); the chat side never
+ * depends on which.
  */
 interface Scheduler
 {

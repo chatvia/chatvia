@@ -2,7 +2,13 @@
 
 declare(strict_types=1);
 
+use Domain\Conversation\Services\Streaming\Exceptions\TurnStopped;
+use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
+use Domain\Conversation\Services\Turn\TurnStops;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
 use Tests\Support\Conversation\OpenAiStream;
+use Tests\Support\Conversation\TestChatContext;
 
 /**
  * The transformer reads an OpenAI-compatible SSE body: text becomes deltas,
@@ -160,4 +166,15 @@ it('finishes the content when the stream ends without a [DONE] line', function (
 
     expect(OpenAiStream::texts($events))->toBe([])
         ->and($context->pendingToolCalls)->toHaveCount(1);
+});
+
+it('stops reading the answer once the turn\'s Stop was asked for', function (): void {
+    $context = TestChatContext::make(requestId: 'chat.a.s.c.r1');
+    app(TurnStops::class)->request('chat.a.s.c.r1');
+    $body = OpenAiStream::chunk(['choices' => [['delta' => ['content' => 'Hel']]]])
+        .OpenAiStream::chunk(['choices' => [['delta' => ['content' => 'lo']]]])
+        ."data: [DONE]\n";
+
+    expect(fn () => iterator_to_array(new OpenAiCompatibleTransformer()->transform(new Response(200, [], Utils::streamFor($body)), $context), false))
+        ->toThrow(TurnStopped::class);
 });

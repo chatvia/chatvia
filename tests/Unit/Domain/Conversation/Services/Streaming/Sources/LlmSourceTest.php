@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
+use Domain\Conversation\Services\Streaming\Exceptions\TurnStopped;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
@@ -214,6 +215,16 @@ it('saves a turn cut off after a tool asked for a file, so a reload does not ask
     });
 
     expect(lsSavedAfter($runner, lsContext())->saved)->toBe(['']);
+});
+
+it('keeps the partial answer of a turn the visitor stopped, and sends nothing more', function (): void {
+    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        yield StreamEvent::delta($ctx->assistantMessageId, 'partial reply');
+        $ctx->appendStreamedMessage('partial reply');
+        throw new TurnStopped;
+    });
+
+    expect(lsSavedAfter($runner, lsContext())->saved)->toBe(['partial reply']);
 });
 
 it('on UpstreamStreamClosed surfaces a user-friendly upstream-unavailable error and done(error)', function (): void {

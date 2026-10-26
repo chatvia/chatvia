@@ -6,10 +6,12 @@ use Domain\Conversation\Enums\ToolApprovalStatus;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
+use Domain\Conversation\Services\Streaming\Exceptions\TurnStopped;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\TurnContextFactory;
+use Domain\Conversation\Services\Turn\TurnStops;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\Conversation\TestChatContext;
 use Tests\Support\Conversation\Tooling\FakeToolApprovalPolicy;
@@ -244,4 +246,37 @@ it('keeps the steps before a pause with the checkpoint, so the resumed turn save
     $resumed = app(TurnContextFactory::class)->forResume(ToolApprovalCheckpoint::query()->sole());
 
     expect(array_map(fn (MessageStepData $step): ?string => $step->text, $resumed->steps))->toBe(['I will delete your account.']);
+});
+
+it('starts no tool once the turn was stopped', function (): void {
+    $context = TestChatContext::make(requestId: 'chat.a.s.c.r1');
+    $dispatcher = new RecordingToolDispatcher;
+    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx): Generator {
+        $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'get_time', 'arguments' => '{}'];
+        // The visitor presses Stop while the model asks for the tool.
+        app(TurnStops::class)->request('chat.a.s.c.r1');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'x');
+    });
+    $runner = ToolLoop::runner($transformer, $dispatcher, FakeToolApprovalPolicy::gatingNothing());
+    $llmMessages = [['role' => 'user', 'content' => 'time?']];
+
+    expect(fn () => iterator_to_array($runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('get_time')), false))
+        ->toThrow(TurnStopped::class)
+        ->and($dispatcher->calls)->toBe([]);
+});
+
+it('asks the model nothing more once the turn was stopped', function (): void {
+    $context = TestChatContext::make(requestId: 'chat.a.s.c.r1');
+    app(TurnStops::class)->request('chat.a.s.c.r1');
+    $rounds = 0;
+    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx) use (&$rounds): Generator {
+        $rounds++;
+        yield StreamEvent::delta($ctx->assistantMessageId, 'x');
+    });
+    $runner = ToolLoop::runner($transformer, new RecordingToolDispatcher, FakeToolApprovalPolicy::gatingNothing());
+    $llmMessages = [['role' => 'user', 'content' => 'Hi']];
+
+    expect(fn () => iterator_to_array($runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: []), false))
+        ->toThrow(TurnStopped::class)
+        ->and($rounds)->toBe(0);
 });

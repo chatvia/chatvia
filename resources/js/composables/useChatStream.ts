@@ -15,8 +15,6 @@ import { ref } from 'vue';
  *     `start()` cannot leak chunks into a new one after rapid double-submit
  *   - HTTP and JSON-parse failures synthesize an `error` envelope and run
  *     `onError`, instead of writing to the console
- *   - one auto-retry with backoff for retryable errors, reusing the same
- *     `request_id` so the server returns the replay
  *
  * Display pacing
  * --------------

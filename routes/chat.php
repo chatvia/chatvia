@@ -25,6 +25,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationSearchController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Conversations\GenerateConversationTitleController;
 use App\Http\Controllers\Chat\Conversations\MessageAttachmentDeleteController;
+use App\Http\Controllers\Chat\Conversations\StopTurnController;
 use App\Http\Controllers\Chat\Embed\ChatEmbedController;
 use App\Http\Controllers\Chat\Embed\ChatEmbedHomeController;
 use App\Http\Controllers\Chat\Export\ChatExportController;
@@ -127,6 +128,9 @@ Route::prefix('chat/{agentSlug}')
             // Whether a reply is still being written, for a chat reloaded mid-reply.
             Route::get('conversations/{conversationId}/reply-status', ConversationReplyStatusController::class)
                 ->whereUuid('conversationId')->name('conversations.reply-status');
+            // The Stop button: the turn keeps running without its browser, so it is stopped here.
+            Route::post('conversations/{conversationId}/stop', StopTurnController::class)
+                ->whereUuid('conversationId')->middleware('throttle:chat-stream')->name('chat.conversations.stop');
             // Permission to listen for those live updates, under the chat's own session.
             Route::post('broadcasting/auth', ChatBroadcastAuthController::class)->name('chat.broadcasting.auth');
             Route::post('conversations/{conversationId}/title', GenerateConversationTitleController::class)

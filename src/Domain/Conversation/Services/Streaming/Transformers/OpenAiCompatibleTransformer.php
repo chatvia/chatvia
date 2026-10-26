@@ -5,6 +5,7 @@ namespace Domain\Conversation\Services\Streaming\Transformers;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Turn\TurnStops;
 use Generator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -42,12 +43,16 @@ class OpenAiCompatibleTransformer implements StreamTransformer
 
     private const string THINK_CLOSE = '</think>';
 
+    public function __construct(
+        private readonly TurnStops $stops = new TurnStops,
+    ) {}
+
     public function transform(ResponseInterface $upstream, ChatContext $context): Generator
     {
         $state = new StreamReadState(toolsOffered: $context->offeredToolNames !== []);
 
         try {
-            foreach ($this->payloads($upstream->getBody()) as $payload) {
+            foreach ($this->payloads($upstream->getBody(), $context) as $payload) {
                 if ($payload === self::END_OF_STREAM) {
                     $state->finalized = true;
                     yield from $this->finalize($context, $state);
@@ -69,19 +74,20 @@ class OpenAiCompatibleTransformer implements StreamTransformer
     }
 
     /**
-     * The payload of every `data:` line, until the stream ends or the client
-     * goes away. A read failure means the provider closed the stream.
+     * The payload of every `data:` line, until the stream ends or the turn is
+     * stopped. A read failure means the provider closed the stream.
      *
      * @return Generator<int, string>
      */
-    private function payloads(StreamInterface $body): Generator
+    private function payloads(StreamInterface $body, ChatContext $context): Generator
     {
         $buffer = '';
 
         while (! $body->eof()) {
-            if (connection_status() !== CONNECTION_NORMAL || connection_aborted()) {
-                return;
-            }
+            // The visitor's Stop ends the turn here, and leaving the read
+            // closes the provider's stream. A browser that went away does
+            // not: the answer is read to the end and saved.
+            $this->stops->throwIfStoppedLately($context);
 
             try {
                 $buffer .= $body->read(self::READ_BYTES);

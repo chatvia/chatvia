@@ -8,6 +8,7 @@ use Domain\Conversation\Enums\ToolApprovalDecision;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
+use Domain\Conversation\Services\Streaming\Exceptions\TurnStopped;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
@@ -285,8 +286,8 @@ abstract class ToolLoopSource
     {
         try {
             yield from $work;
-        } catch (ClientDisconnected) {
-            $this->finishAfterDisconnect($context, $rememberOnDisconnect);
+        } catch (ClientDisconnected|TurnStopped) {
+            $this->finishCutShort($context, $rememberOnDisconnect);
         } catch (RequestException|UpstreamStreamClosed $e) {
             $this->reportRefusal($context, $e);
 
@@ -456,14 +457,15 @@ abstract class ToolLoopSource
     }
 
     /**
-     * Save the partial answer after the client went away. Nobody is listening
+     * Save the partial answer of a turn cut short: the visitor pressed Stop,
+     * or (outside the hosted chat) the browser went away. Nobody is listening
      * any more, but the text is still stored and shown in the history, so it
      * passes the same output guardrails as a full answer. A turn cut off
      * before it wrote, made or ran anything is not saved: there is nothing to
-     * keep, and the reloaded chat asks for the answer again. A failure here
-     * is reported, never thrown — there is no client left to tell.
+     * keep. A failure here is reported, never thrown — there is no client
+     * left to tell.
      */
-    private function finishAfterDisconnect(ChatContext $context, bool $rememberForReplay): void
+    private function finishCutShort(ChatContext $context, bool $rememberForReplay): void
     {
         $context->markEndTime();
 

@@ -97,6 +97,13 @@ final class TestChatContext
         $context = $reflection->newInstanceWithoutConstructor();
         $reflection->getProperty('sources')->setValue($context, collect());
         $reflection->getProperty('assistantMessageId')->setValue($context, 'asst-test');
+        // Unsaved models: no request id, so the turn cannot be stopped.
+        $reflection->getProperty('requestData')->setValue($context, new StreamRequestData(
+            agent: new Agent,
+            message: new StreamRequestMessageData(model: new Llm, message: ''),
+            externalSessionId: 'session-test',
+            conversationId: 'conversation-test',
+        ));
         $context->offeredToolNames = $offeredToolNames;
         $context->showsReasoning = $showsReasoning;
 

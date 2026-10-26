@@ -6,6 +6,7 @@
  * screen-reader status line.
  */
 import { chatStreamUrl, generateConversationTitle, toolApprovalResolveUrl } from '@/api/chat';
+import { stopTurn } from '@/api/chatTurns';
 import { useChatStream } from '@/composables/useChatStream';
 import type { ChatAttachment, Message, MessageSource } from '@/types/chat';
 import type { StreamCallbacks, StreamError, StreamStartData, StreamToolData } from '@/types/stream';
@@ -71,6 +72,9 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
 
     // UUID of the reply being streamed, known once the server's `start` event arrives.
     const streamingAssistantId = ref<MessageId | null>(null);
+    // The request id of the turn being streamed; a resumed turn keeps its
+    // paused turn's id. Stop names the turn with it.
+    let runningRequestId: string | null = null;
     // Updated on discrete events only (start, each tool call, completion), never per token.
     const liveAnnouncement = ref('');
 
@@ -96,6 +100,7 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
     /** Single entry point for new, edited and regenerated turns. */
     function startTurn(options: StartTurnOptions) {
         const requestId = newRequestId();
+        runningRequestId = requestId;
         // The first reply is asked for once: a reload from here on waits for
         // it instead of asking again (see Chat.vue).
         if (options.isNewConversation) clearNewConversationFlag();
@@ -290,6 +295,31 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
      * idempotent, so a single retry covers a transient failure (a 503 under
      * load, a network blip); the sidebar refreshes either way.
      */
+    /**
+     * Stop the turn being streamed. The server keeps a turn running when the
+     * browser leaves, so closing the stream is not enough: the turn is asked
+     * to end too, and keeps its partial answer. Resolves once it has ended,
+     * so a following edit or regenerate runs after the stopped reply is saved.
+     */
+    async function stopAndWait(): Promise<void> {
+        if (!isStreaming.value) return;
+
+        const requestId = runningRequestId;
+        stream.stop();
+
+        if (requestId === null) return;
+
+        try {
+            await stopTurn(conversationId, requestId);
+        } catch {
+            // The turn still ends on its own; nothing to show.
+        }
+    }
+
+    function stop() {
+        void stopAndWait();
+    }
+
     async function nameConversationThenRefresh() {
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
@@ -313,7 +343,8 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
         hasActiveCalls: toolCalls.hasActiveCalls,
         approvals,
         startTurn,
-        stop: stream.stop,
+        stop,
+        stopAndWait,
     };
 }
 

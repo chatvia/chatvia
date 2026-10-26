@@ -29,6 +29,12 @@ final class BufferedSseResponder extends SseResponder
         }, 200, ['Content-Type' => 'text/event-stream']);
     }
 
+    /** The browser never leaves in a test, so both ways stream the same. */
+    public function respondUntilFinished(iterable $events): StreamedResponse
+    {
+        return $this->respond($events);
+    }
+
     /**
      * The decoded event frames of a streamed body, in order.
      *

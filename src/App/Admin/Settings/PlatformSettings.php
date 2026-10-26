@@ -45,6 +45,9 @@ class PlatformSettings extends AdminSettings
     #[ConfigKey('horizon.defaults.analytics.maxProcesses')]
     public ?int $analytics_workers = null;
 
+    #[ConfigKey('horizon.defaults.records.maxProcesses')]
+    public ?int $records_workers = null;
+
     #[ConfigKey('horizon.defaults.media.maxProcesses')]
     public ?int $media_workers = null;
 

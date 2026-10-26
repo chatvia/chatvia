@@ -578,7 +578,9 @@ return [
     | `connection` is the database connection of the analytics_* tables: the
     | "analytics" connection in config/database.php, a database of its own
     | next to the app's (DB_ANALYTICS_DATABASE). `queue` keeps analytics work
-    | off the `messages` queue so it never slows a reply.
+    | off the `messages` queue so it never slows a reply. `record_queue` is
+    | for the quick database writes (analytics counters, audit and guardrail
+    | rows), so they never wait behind the slow AI analysis on `queue`.
     |
     | The hourly rollup keys cannot hold NULL, so an unknown country is
     | stored as `unknown_country_code` and an unknown model as 0.
@@ -594,6 +596,7 @@ return [
         'enabled' => env('ANALYTICS_ENABLED', true),
         'connection' => env('ANALYTICS_DB_CONNECTION', 'analytics'),
         'queue' => env('ANALYTICS_QUEUE', 'analytics'),
+        'record_queue' => env('ANALYTICS_RECORD_QUEUE', 'records'),
 
         'unknown_country_code' => '--',
 

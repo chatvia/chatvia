@@ -16,6 +16,7 @@ final class WorkerCountsData extends Data
         public int $chat,
         public int $ingestion,
         public int $analytics,
+        public int $records,
         public int $media,
         public int $voice,
     ) {}
@@ -27,6 +28,7 @@ final class WorkerCountsData extends Data
             'chat' => $this->chat,
             'ingestion' => $this->ingestion,
             'analytics' => $this->analytics,
+            'records' => $this->records,
             'media' => $this->media,
             'voice' => $this->voice,
         ];

@@ -35,6 +35,7 @@ final readonly class WorkerSizing
             chat: $this->clamp(6 * $factor, 6, 48),
             ingestion: $this->clamp(4 * $factor, 4, min(16, max(4, 2 * $server->cpus))),
             analytics: $this->clamp(2 * $factor, 2, 16),
+            records: $this->clamp(2 * $factor, 2, 16),
             media: $this->clamp($factor / 2, 1, min(4, max(1, $server->cpus))),
             voice: $this->clamp(3 * $factor, 3, 24),
         );

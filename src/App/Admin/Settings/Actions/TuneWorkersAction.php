@@ -22,6 +22,7 @@ final readonly class TuneWorkersAction
         $this->settings->chat_workers = $workers->chat;
         $this->settings->ingestion_workers = $workers->ingestion;
         $this->settings->analytics_workers = $workers->analytics;
+        $this->settings->records_workers = $workers->records;
         $this->settings->media_workers = $workers->media;
         $this->settings->voice_workers = $workers->voice;
         $this->settings->save();

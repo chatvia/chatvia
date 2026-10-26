@@ -39,6 +39,7 @@ class ManagePlatformSettings extends AdminSettingsPage
         'chat' => 'chat_workers',
         'ingestion' => 'ingestion_workers',
         'analytics' => 'analytics_workers',
+        'records' => 'records_workers',
         'media' => 'media_workers',
         'voice' => 'voice_workers',
     ];
@@ -148,7 +149,8 @@ class ManagePlatformSettings extends AdminSettingsPage
             SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Save, then restart the queue.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 $this->integer('chat_workers', 'Chat', help: 'For replies on messaging channels, sending emails and other quick jobs.', min: 2, max: 200),
                 $this->integer('ingestion_workers', 'Files and websites', help: 'For reading the files and websites you add as knowledge, and for exports.', min: 1, max: 200),
-                $this->integer('analytics_workers', 'Analytics', help: 'For analyzing conversations, testing agent answers and writing audit logs.', min: 1, max: 100),
+                $this->integer('analytics_workers', 'Analytics', help: 'For analyzing conversations with AI, testing agent answers and sending security events.', min: 1, max: 100),
+                $this->integer('records_workers', 'Records', help: 'For saving analytics numbers and audit logs. These jobs are quick.', min: 1, max: 100),
                 $this->integer('media_workers', 'Audio and video', help: 'For turning recordings into text. One recording can take a long time.', min: 1, max: 50),
                 $this->integer('voice_workers', 'Live voice calls', help: 'Each voice call uses one worker until it ends, so this is also the most calls at once.', min: 1, max: 200),
                 Actions::make([$this->restartQueueAction()])->key('restart-queue'),

@@ -86,8 +86,7 @@ const verdictNote = (verdict: GuardrailTestVerdict): string | null => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    class="h-7 max-w-56 truncate text-xs font-normal"
-                    :title="sample"
+                    class="h-auto min-h-7 max-w-full shrink justify-start py-1 text-start text-xs font-normal whitespace-normal"
                     :disabled="testing"
                     @click="trySample(sample)"
                 >

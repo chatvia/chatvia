@@ -1209,7 +1209,7 @@ it('reads documents with Azure, with its key and endpoint checked', function ():
         ->goToWizardStep(4)
         ->assertHasNoFormErrors()
         ->assertFormSet(['document_reader' => 'none'])
-        ->assertSee('People cannot upload PDF, Word, slides or images.')
+        ->assertSee(['PDF, Word, PowerPoint and image files are not read', 'Only text, Markdown, Excel, CSV and ebook files are read.', 'images/logos/services/firecrawl.svg'])
         ->fillForm(['document_reader' => 'azure', 'document_api_key' => 'az-key', 'document_endpoint' => 'https://docs.cognitiveservices.azure.com/'])
         ->goToWizardStep(5)
         ->assertHasNoFormErrors()

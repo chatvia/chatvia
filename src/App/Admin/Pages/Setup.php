@@ -594,8 +594,8 @@ class Setup extends SimplePage
                             ])
                             ->descriptions([
                                 AiProvider::Mistral->value => 'Reads scans, images and tables, also the pictures inside Word and PowerPoint files. Each file is sent to Mistral directly.',
-                                AiProvider::Azure->value => 'Reads scans, images and tables; skips the pictures inside Word and PowerPoint files. Each file is sent to Azure directly. Use the standard tier (S0): the free one reads only 2 pages of each file.',
-                                self::NOT_NOW => 'People cannot upload PDF, Word, slides or images. Text, Markdown, spreadsheets (Excel, CSV) and ebooks still work: the app reads them itself.',
+                                AiProvider::Azure->value => 'Reads scans, images and tables, but not the pictures inside Word and PowerPoint files. Each file is sent to Azure directly.',
+                                self::NOT_NOW => 'PDF, Word, PowerPoint and image files are not read, so they cannot be uploaded. Only text, Markdown, Excel, CSV and ebook files are read.',
                             ])
                             ->icons([
                                 AiProvider::Mistral->value => AiProviderIcon::of(AiProvider::Mistral),
@@ -611,7 +611,7 @@ class Setup extends SimplePage
                             ->label('Endpoint')
                             ->url()
                             ->placeholder('https://my-resource.cognitiveservices.azure.com')
-                            ->helperText('Your resource\'s endpoint, from the Azure portal.')
+                            ->helperText('Your resource\'s endpoint, from the Azure portal. Use the standard tier (S0): the free one reads only 2 pages of each file.')
                             ->required(fn (Get $get): bool => blank(config('services.azure_document_intelligence.endpoint')))
                             ->visible(fn (Get $get): bool => $get('document_reader') === AiProvider::Azure->value && ! $this->usesSavedKey('document_reader', $get)),
                     ]),
@@ -627,7 +627,7 @@ class Setup extends SimplePage
                                 self::NOT_NOW => 'People cannot add websites as knowledge. Files, texts and Q&A still work.',
                             ])
                             ->icons([
-                                self::FIRECRAWL => Heroicon::OutlinedFire,
+                                self::FIRECRAWL => asset('images/logos/services/firecrawl.svg'),
                                 self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
                             ->required()

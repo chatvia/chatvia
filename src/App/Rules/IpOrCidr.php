@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
  * Accepts a single IPv4/IPv6 address or a CIDR range (`203.0.113.0/24`,
  * `2001:db8::/32`) whose prefix length fits the address family.
  */
-class IpOrCidr implements ValidationRule
+final readonly class IpOrCidr implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

@@ -7,9 +7,11 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Media\RequestMediaGenerationAction;
 use Domain\Conversation\Data\Media\MediaRequestData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\GeneratedMediaFailure;
 use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Enums\GeneratedMediaStatus;
 use Domain\Conversation\Enums\MediaRequestRefusal;
+use Domain\Conversation\Events\GeneratedMediaUpdated;
 use Domain\Conversation\Jobs\GenerateMediaJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
@@ -18,6 +20,7 @@ use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Operations\Media\NullSpeaker;
 use Domain\Llm\Services\AudioGeneration;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +34,8 @@ use Tests\Support\Llm\FakeVideoGenerator;
  * pending with its job queued, or turned down outside the hosted chat, while
  * the service is off, past the chat's hourly limit, or past the workspace's
  * monthly one (videos have their own). An audio file of the attached PDF
- * reads the PDF's text on the server.
+ * reads the PDF's text on the server. A queued job that dies marks its item
+ * timed out, so the chat never waits for good.
  */
 beforeEach(function (): void {
     Queue::fake();
@@ -187,4 +191,17 @@ it('counts videos against the workspace\'s video limit, apart from pictures', fu
         ->and(rmgRequest(MediaRequestData::video('Two'))->refusal)->toBe(MediaRequestRefusal::MonthlyLimit)
         ->and(rmgRequest(MediaRequestData::image('A picture'))->isAccepted())->toBeTrue()
         ->and(MediaRequestRefusal::MonthlyLimit->reason(GeneratedMediaKind::Video))->toContain('limit of videos');
+});
+
+it('marks the item timed out when its queued job dies', function (): void {
+    Storage::fake(GeneratedMedia::DISK);
+    Event::fake([GeneratedMediaUpdated::class]);
+    $result = rmgRequest(MediaRequestData::image('A red fox', ImageShape::Landscape));
+    $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
+    $job = Queue::pushed(GenerateMediaJob::class)->sole();
+
+    $job->failed(new RuntimeException('Timed out'));
+
+    expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed)
+        ->and($media->failure)->toBe(GeneratedMediaFailure::TimedOut);
 });

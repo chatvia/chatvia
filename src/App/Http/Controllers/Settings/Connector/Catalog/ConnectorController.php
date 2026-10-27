@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Settings\Connector\Catalog;
 
-use Domain\Integration\Connector\Actions\Account\ListAccountConnectorsAction;
 use Domain\Integration\Connector\Data\Account\AccountConnectorsResourceData;
+use Domain\Integration\Connector\Queries\AccountConnectorsQuery;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,9 +17,9 @@ use Inertia\Response;
  */
 class ConnectorController
 {
-    public function index(Request $request, ListAccountConnectorsAction $list): AccountConnectorsResourceData
+    public function index(Request $request, AccountConnectorsQuery $list): AccountConnectorsResourceData
     {
-        return $list->execute($request->user());
+        return $list->get($request->user());
     }
 
     public function edit(): Response

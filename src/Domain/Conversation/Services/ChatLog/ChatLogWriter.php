@@ -42,7 +42,7 @@ class ChatLogWriter
         // chat creates the session row before it knows the chatter, so keying
         // on chatter_id would never match that row and the chatter would never
         // land on the session.
-        $session = Session::firstOrCreate(
+        $session = Session::query()->firstOrCreate(
             ['external_id' => $sessionExternalId, 'agent_id' => $agent->id],
             [
                 'workspace_id' => $agent->workspace_id,
@@ -104,7 +104,7 @@ class ChatLogWriter
      */
     private function findOrCreateConversation(Session $session, string $conversationExternalId, ?string $messageSource): Conversation
     {
-        $conversation = Conversation::withTrashed()
+        $conversation = Conversation::query()->withTrashed()
             ->where('external_id', $conversationExternalId)
             ->where('chat_session_id', $session->id)
             ->first();
@@ -113,7 +113,7 @@ class ChatLogWriter
             $this->reviveExpiredEmptyConversation($conversation);
         }
 
-        return $conversation ?? Conversation::createOrFirst(
+        return $conversation ?? Conversation::query()->createOrFirst(
             ['external_id' => $conversationExternalId, 'chat_session_id' => $session->id],
             [
                 'workspace_id' => $session->workspace_id,

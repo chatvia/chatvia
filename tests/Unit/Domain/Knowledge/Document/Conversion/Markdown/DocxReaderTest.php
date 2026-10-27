@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\DocxReader;
+use Illuminate\Support\Facades\File;
 use Tests\Support\Knowledge\Document\DocxFile;
 
 /**
@@ -13,7 +14,7 @@ function docxrRead(string $path): string
     try {
         return new DocxReader()->toMarkdown($path);
     } finally {
-        @unlink($path);
+        File::delete($path);
     }
 }
 

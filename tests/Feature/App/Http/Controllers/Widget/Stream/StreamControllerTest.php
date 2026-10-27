@@ -18,7 +18,7 @@ use Tests\Support\Widget\EmbeddedWidget;
  * that is not the caller's:
  * one of another agent, or, on a protected agent, one of another signed-in
  * chatter. It answers with the model the chatter picked when the agent
- * offers it. The turn itself is covered by the ChatStreamService tests.
+ * offers it. The turn itself is covered by the ChatTurnStreamer tests.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);

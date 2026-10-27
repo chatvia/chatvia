@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Account\Audience\TopUserData;
 use Domain\Analytics\Queries\Account\Audience\TopUsersQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Number;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -48,9 +49,9 @@ class GetTopUsersTool extends AnalyticsTool
                 'Most active %s: %s with %s messages. %s identified users in total, %s new visitors.',
                 $period->label,
                 $top[0]['name'],
-                number_format($top[0]['messages']),
-                number_format($data->uniqueIdentifiedUsers),
-                number_format($data->newVisitors),
+                Number::format($top[0]['messages']),
+                Number::format($data->uniqueIdentifiedUsers),
+                Number::format($data->newVisitors),
             );
 
         $structured = [

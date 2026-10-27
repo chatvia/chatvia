@@ -38,7 +38,7 @@ class ConnectSlackAppAction
             throw ChannelConnectException::rejected();
         }
 
-        return AgentSlackApp::updateOrCreate(
+        return AgentSlackApp::query()->updateOrCreate(
             ['agent_id' => $agent->id],
             [
                 'bot_token' => $data->botToken,

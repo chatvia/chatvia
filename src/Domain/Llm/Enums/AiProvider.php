@@ -224,7 +224,8 @@ enum AiProvider: string
         return match ($this) {
             self::Azure => 'Your resource\'s endpoint, from the Azure portal, such as https://my-resource.cognitiveservices.azure.com.',
             self::AzureOpenAi => 'Your resource\'s endpoint, from the Azure portal or Microsoft Foundry, such as https://my-resource.openai.azure.com.',
-            default => null,
+            self::Scaleway, self::OpenRouter, self::ElevenLabs, self::OpenAi, self::Mistral, self::Google, self::Groq,
+            self::Anthropic, self::Cohere, self::Jina, self::Voyage, self::Kling, self::BytePlus, self::Runway, self::Fal => null,
         };
     }
 

@@ -9,7 +9,7 @@ use App\Identity\Workspace\Exceptions\WorkspaceLimitReachedException;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\WorkspaceAllowance;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,7 +25,7 @@ class CreateWorkspaceAction
     private const int LOCK = 7_301_001;
 
     public function __construct(
-        private readonly TeamService $teams,
+        private readonly CreateDefaultTeamAction $createDefaultTeam,
         private readonly WorkspaceAllowance $allowance,
     ) {}
 
@@ -47,7 +47,7 @@ class CreateWorkspaceAction
             $workspace->members()->attach($owner->id, ['role' => WorkspaceRole::Owner->value]);
             $owner->unsetRelation('workspaceMembership');
 
-            $this->teams->createDefaultTeam($owner);
+            $this->createDefaultTeam->execute($owner);
             $owner->bootstrapCurrentTeam();
 
             return $workspace;

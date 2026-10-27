@@ -5,7 +5,7 @@ namespace App\Http\Middleware\Auth;
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatViewer;
 use App\Http\Chat\PendingChatSignIn;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthenticateChatViaSignInToken
 {
     public function __construct(
-        private readonly AgentSignInTokenService $tokens,
+        private readonly AgentSignInTokens $tokens,
     ) {}
 
     public function handle(Request $request, Closure $next): Response

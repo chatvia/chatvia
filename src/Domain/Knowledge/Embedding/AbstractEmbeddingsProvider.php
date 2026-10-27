@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  * the shared configuration helpers. Documents and queries are embedded
  * separately because some models expect a different input for each.
  */
-abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
+abstract class AbstractEmbeddingsProvider implements EmbeddingsProvider
 {
     /** The size a model returns when it cannot return the stored size. */
     protected const int DEFAULT_DIMENSIONS = 1024;

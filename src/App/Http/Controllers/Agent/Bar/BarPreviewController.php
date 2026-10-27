@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Bar;
 
 use App\Http\Controllers\Agent\Concerns\RendersSurfacePreview;
-use App\Identity\Workspace\Services\SurfacePreviewTokenService;
+use App\Identity\Workspace\Services\SurfacePreviewTokens;
 use Domain\Agent\Models\Agent;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class BarPreviewController
 {
     use RendersSurfacePreview;
 
-    public function __invoke(Request $request, Agent $agent, SurfacePreviewTokenService $previewTokens): View
+    public function __invoke(Request $request, Agent $agent, SurfacePreviewTokens $previewTokens): View
     {
         return view('bar.preview', [
             'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),

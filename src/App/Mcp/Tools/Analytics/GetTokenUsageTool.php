@@ -6,6 +6,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\Usage\TokenUsageQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -39,10 +40,10 @@ class GetTokenUsageTool extends AnalyticsTool
             : sprintf(
                 '%s: %s tokens consumed (%s prompt, %s completion), ~%s per AI reply.',
                 Str::ucfirst($period->label),
-                number_format($data->total),
-                number_format($data->prompt),
-                number_format($data->completion),
-                number_format($data->avgPerReply),
+                Number::format($data->total),
+                Number::format($data->prompt),
+                Number::format($data->completion),
+                Number::format($data->avgPerReply),
             );
 
         $daily = array_map(static fn (DailyCountData $day): array => ['date' => $day->date, 'tokens' => $day->count], $data->daily);

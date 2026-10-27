@@ -3,6 +3,7 @@
 namespace Domain\Channel\Teams\Actions;
 
 use Domain\Channel\Services\InboundDeliveryLog;
+use Domain\Channel\Teams\Data\TeamsInboundActivityData;
 use Domain\Channel\Teams\Jobs\HandleTeamsActivityJob;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 
@@ -24,44 +25,32 @@ class ReceiveTeamsActivityAction
         private readonly InboundDeliveryLog $deliveries,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $activity  the activity as Microsoft delivered it; the queued job carries it whole
-     */
-    public function execute(AgentTeamsBot $bot, array $activity): void
+    public function execute(AgentTeamsBot $bot, TeamsInboundActivityData $activity): void
     {
         if (! $this->shouldAnswer($activity)) {
             return;
         }
 
-        $activityId = $activity['id'] ?? null;
-
         $this->deliveries->once(
-            filled($activityId) ? "msteams:activity:{$bot->id}:{$activityId}" : null,
+            $activity->id !== null ? "msteams:activity:{$bot->id}:{$activity->id}" : null,
             now()->addDay(),
             function () use ($bot, $activity): void {
-                HandleTeamsActivityJob::dispatch($bot, $activity);
+                HandleTeamsActivityJob::dispatch($bot, $activity->message);
             },
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $activity
-     */
-    private function shouldAnswer(array $activity): bool
+    private function shouldAnswer(TeamsInboundActivityData $activity): bool
     {
-        $text = $activity['text'] ?? null;
-
-        if (($activity['type'] ?? null) !== 'message' || blank($text)) {
+        if ($activity->type !== 'message' || ! $activity->hasText) {
             return false;
         }
 
-        if (blank($activity['conversation']['id'] ?? null) || blank($activity['serviceUrl'] ?? null)) {
+        if (blank($activity->message->conversationId) || blank($activity->message->serviceUrl)) {
             return false;
         }
 
-        $from = $activity['from'] ?? [];
-
-        return ($from['role'] ?? null) !== 'bot'
-            && ($from['id'] ?? null) !== ($activity['recipient']['id'] ?? null);
+        return $activity->fromRole !== 'bot'
+            && $activity->fromId !== $activity->recipientId;
     }
 }

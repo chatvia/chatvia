@@ -5,8 +5,8 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Integration\Connector\Catalog\Connectors\ChartsConnector;
 use Domain\Integration\Connector\Catalog\Connectors\WeatherConnector;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * A connector the catalog pins to some surfaces offers its tools only on
@@ -15,9 +15,9 @@ use Domain\Integration\Tool\Data\ToolName;
  */
 
 /** A tool entry named the way the registry compiles MCP tools: mcp__{slug}__{tool}. */
-function surfaceToolEntry(string $name): ToolEntry
+function surfaceToolEntry(string $name): ToolEntryData
 {
-    return new ToolEntry(
+    return new ToolEntryData(
         kind: ToolName::parse($name)->kind,
         sourceId: 'x:'.$name,
         name: $name,
@@ -34,7 +34,7 @@ function surfaceCatalogConfig(): void
 
 function surfaceToolNames(array $entries): array
 {
-    return array_map(static fn (ToolEntry $e): string => $e->name, $entries);
+    return array_map(static fn (ToolEntryData $e): string => $e->name, $entries);
 }
 
 beforeEach(function (): void {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Tooling;
 
 use Domain\Conversation\Services\ChatContext;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 
 /**
  * The injection guard on a tool's result, before a model reads it. A result
@@ -18,7 +18,7 @@ use Domain\Guardrail\Services\GuardrailService;
 class ToolResultGuard
 {
     public function __construct(
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
         private readonly GuardrailRecorder $recorder,
     ) {}
 

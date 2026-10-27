@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agent\ChatLog;
 
 use App\Http\Requests\Agent\ChatLog\ListChatLogConversationsRequest;
-use Domain\Agent\Actions\ChatLog\ListChatLogConversationsAction;
 use Domain\Agent\Data\Resources\ChatLog\Conversations\ChatLogConversationsResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Queries\ChatLogConversationsQuery;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
@@ -18,9 +18,9 @@ use Illuminate\Http\Request;
  */
 class ConversationController
 {
-    public function index(ListChatLogConversationsRequest $request, Agent $agent, ListChatLogConversationsAction $list): ChatLogConversationsResourceData
+    public function index(ListChatLogConversationsRequest $request, Agent $agent, ChatLogConversationsQuery $list): ChatLogConversationsResourceData
     {
-        return $list->execute($agent, $request->toData());
+        return $list->get($agent, $request->toData());
     }
 
     public function destroy(

@@ -4,6 +4,7 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\SourceRetrieved;
 use Domain\Knowledge\Retrieval\Actions\UpdateRetrievalStatsAction;
+use Domain\Knowledge\Retrieval\Data\SourceRefData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
@@ -37,7 +38,7 @@ it('leaves the source updated_at alone, since a retrieval is not an edit', funct
     $this->travel(1)->minutes();
 
     app(UpdateRetrievalStatsAction::class)->execute(
-        results: [['chunkable_type' => $source->getMorphClass(), 'chunkable_id' => $source->id]],
+        sources: collect([new SourceRefData($source->getMorphClass(), $source->id)]),
         agentId: $agent->id,
     );
 
@@ -59,9 +60,9 @@ it('increments the retrieval counter on the source and the agent_sources pivot',
     $type = $source->getMorphClass();
 
     app(UpdateRetrievalStatsAction::class)->execute(
-        results: [
-            ['chunkable_type' => $type, 'chunkable_id' => $source->id],
-        ],
+        sources: collect([
+            new SourceRefData($type, $source->id),
+        ]),
         agentId: $agent->id,
     );
 
@@ -95,12 +96,12 @@ it('names each kind of source for the rollup', function (): void {
     $titled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/dQw4w9WgXcQ', 'title' => 'Product tour']);
     $untitled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/aaaaaaaaaaa', 'title' => null]);
 
-    app(UpdateRetrievalStatsAction::class)->execute([
-        ['chunkable_type' => 'source_website', 'chunkable_id' => $website->id],
-        ['chunkable_type' => 'source_text', 'chunkable_id' => $text->id],
-        ['chunkable_type' => 'source_youtube_video', 'chunkable_id' => $titled->id],
-        ['chunkable_type' => 'source_youtube_video', 'chunkable_id' => $untitled->id],
-    ], $agent->id);
+    app(UpdateRetrievalStatsAction::class)->execute(collect([
+        new SourceRefData('source_website', $website->id),
+        new SourceRefData('source_text', $text->id),
+        new SourceRefData('source_youtube_video', $titled->id),
+        new SourceRefData('source_youtube_video', $untitled->id),
+    ]), $agent->id);
 
     expect(Event::dispatched(SourceRetrieved::class)->sole()[0]->sources)->toBe([
         ['type' => 'source_website', 'id' => $website->id, 'name' => 'https://docs.example.test', 'mime' => null],
@@ -117,7 +118,7 @@ it('still counts for the workspace when the agent was deleted during the turn', 
     $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->delete();
 
-    app(UpdateRetrievalStatsAction::class)->execute([['chunkable_type' => $source->getMorphClass(), 'chunkable_id' => $source->id]], $agent->id);
+    app(UpdateRetrievalStatsAction::class)->execute(collect([new SourceRefData($source->getMorphClass(), $source->id)]), $agent->id);
 
     Event::assertDispatched(SourceRetrieved::class, fn (SourceRetrieved $event): bool => $event->workspaceId === $agent->workspace_id);
 });
@@ -128,9 +129,9 @@ it('skips a result whose chunkable_type is no model, changing nothing and dispat
     $source = AgentFileFactory::new()->create(['retrieval_count' => 0]);
 
     app(UpdateRetrievalStatsAction::class)->execute(
-        results: [
-            ['chunkable_type' => 'NotAClass\\Made\\Up', 'chunkable_id' => $source->id],
-        ],
+        sources: collect([
+            new SourceRefData('NotAClass\\Made\\Up', $source->id),
+        ]),
         agentId: 1,
     );
 
@@ -141,7 +142,7 @@ it('skips a result whose chunkable_type is no model, changing nothing and dispat
 it('changes nothing and dispatches no rollup for no results', function (): void {
     $source = AgentFileFactory::new()->create(['retrieval_count' => 0]);
 
-    app(UpdateRetrievalStatsAction::class)->execute([], agentId: 1);
+    app(UpdateRetrievalStatsAction::class)->execute(collect(), agentId: 1);
 
     expect($source->refresh()->retrieval_count)->toBe(0);
     Event::assertNotDispatched(SourceRetrieved::class);

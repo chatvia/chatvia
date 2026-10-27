@@ -1,8 +1,8 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Services\TeamAgentAccess;
-use Domain\Membership\Team\Services\TeamService;
 
 /**
  * Which agents a team role reaches: the owner every agent of the workspace,
@@ -11,7 +11,7 @@ use Domain\Membership\Team\Services\TeamService;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->granted = makeTeamAgent($this->owner, 'Granted', $this->team);
     $this->other = makeTeamAgent($this->owner, 'Other', $this->team);
     $this->member = User::factory()->employee($this->owner)->create();
@@ -65,12 +65,12 @@ it('never lets a team owner reach another workspace agent', function (): void {
     $access = app(TeamAgentAccess::class);
 
     expect($access->canAccess($this->owner, $this->team, $foreignAgent))->toBeFalse()
-        ->and(app(TeamService::class)->canAccessAgent($this->owner, $this->team, $foreignAgent))->toBeFalse()
+        ->and(app(TeamAgentAccess::class)->canAccess($this->owner, $this->team, $foreignAgent))->toBeFalse()
         ->and($access->canAccess($this->owner, $this->team, $this->granted))->toBeTrue();
 });
 
 it('lets a team owner reach their own agent in another of their teams', function (): void {
-    $secondTeam = app(TeamService::class)->createDefaultTeam($this->owner);
+    $secondTeam = app(CreateDefaultTeamAction::class)->execute($this->owner);
     $agentInSecondTeam = makeTeamAgent($this->owner, 'Second', $secondTeam);
 
     expect(app(TeamAgentAccess::class)->canAccess($this->owner, $this->team, $agentInSecondTeam))->toBeTrue();

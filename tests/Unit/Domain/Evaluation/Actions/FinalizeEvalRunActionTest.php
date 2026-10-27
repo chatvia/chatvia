@@ -41,7 +41,7 @@ it('aggregates results and marks the run completed', function (): void {
     ferResult($run, true, 0.8, 50);
     ferResult($run, false, 0.0, 30);
 
-    $finalized = (new FinalizeEvalRunAction)->execute($run->fresh());
+    $finalized = app(FinalizeEvalRunAction::class)->execute($run->fresh());
 
     expect($finalized->status)->toBe(EvalRunStatus::Completed)
         ->and($finalized->passed_count)->toBe(2)
@@ -62,7 +62,7 @@ it('averages and sums only the scores and tokens there are, of this run only', f
     ferResult($run, true, 0.9999, 1);
     ferResult($other, true, 1.0, 500);
 
-    $finalized = (new FinalizeEvalRunAction)->execute($run->fresh());
+    $finalized = app(FinalizeEvalRunAction::class)->execute($run->fresh());
 
     expect($finalized->passed_count)->toBe(2)
         ->and($finalized->failed_count)->toBe(2)
@@ -76,7 +76,7 @@ it('marks the run failed when the batch was cancelled', function (): void {
     $agent = Agent::factory()->create();
     $run = ferRun($agent);
 
-    $finalized = (new FinalizeEvalRunAction)->execute($run->fresh(), cancelled: true);
+    $finalized = app(FinalizeEvalRunAction::class)->execute($run->fresh(), EvalRunStatus::Failed);
 
     expect($finalized->status)->toBe(EvalRunStatus::Failed)
         ->and($finalized->avg_score)->toBeNull()
@@ -90,7 +90,7 @@ it('broadcasts the finalized run so open Evals pages update live', function (): 
     $run = ferRun($agent, 1);
     ferResult($run, true, 1.0, 10);
 
-    (new FinalizeEvalRunAction)->execute($run->fresh());
+    app(FinalizeEvalRunAction::class)->execute($run->fresh());
 
     Event::assertDispatched(
         EvalRunProgressed::class,

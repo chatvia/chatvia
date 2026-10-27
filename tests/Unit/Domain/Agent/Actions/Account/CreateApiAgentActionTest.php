@@ -5,7 +5,7 @@ use Domain\Agent\Actions\Account\CreateApiAgentAction;
 use Domain\Agent\Data\Account\CreateApiAgentData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Support\Enums\CreatedVia;
 use Support\Exceptions\DomainValidationException;
 
@@ -19,7 +19,7 @@ use Support\Exceptions\DomainValidationException;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
 });
 
 it('creates an api-sourced agent owned by the resolved team and attaches the workspace topics', function (): void {

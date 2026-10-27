@@ -2,13 +2,14 @@
 
 namespace Domain\Integration\Tool\Search;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Enums\McpToolScope;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Enums\ToolSearchPool;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
@@ -74,13 +75,12 @@ class ToolHybridSearch
         $vectorString = '['.implode(',', $queryVector).']';
         $candidateLimit = max($limit * 3, $limit);
 
-        $startedAt = microtime(true);
-
         // Every channel scores its pool exactly — none of the three tables has
         // an ANN index, and the keyword channels score through LexicalSearch —
         // so this runs as a plain query with no per-query GUCs and no wrapping
         // transaction.
         $terms = $this->lexical->queryText($userMessage);
+        $started = CarbonImmutable::now();
         $rows = DB::select($this->sql(), [
             $agent->id,                                    // reachable_servers
             $vectorString, $vectorString, $candidateLimit, // preset_vector
@@ -94,7 +94,7 @@ class ToolHybridSearch
             $vectorString,                                 // final similarity
             $limit,                                        // final LIMIT
         ]);
-        $elapsedMs = (microtime(true) - $startedAt) * 1000;
+        $elapsedMs = $started->diffInMilliseconds(absolute: true);
 
         $hits = $this->uniqueByName(array_map($this->toHit(...), $rows));
 
@@ -116,12 +116,12 @@ class ToolHybridSearch
         $entry = match ($pool) {
             ToolSearchPool::McpPreset => $this->mcpEntry('connector_tool:'.$row->id, $row->preset_server_slug, $row->preset_name, $row->preset_description, $row->preset_schema, $row->preset_scope),
             ToolSearchPool::McpCustom => $this->mcpEntry('mcp_tool:'.$row->id, $row->custom_server_slug, $row->custom_name, $row->custom_description, $row->custom_schema, $row->custom_scope),
-            ToolSearchPool::Function => new ToolEntry(
+            ToolSearchPool::Function => new ToolEntryData(
                 kind: ToolKind::Function,
                 sourceId: 'function:'.$row->id,
                 name: (string) $row->fn_name,
                 description: (string) $row->fn_description,
-                parameters: ToolEntry::decodeSchema($row->fn_schema),
+                parameters: ToolEntryData::decodeSchema($row->fn_schema),
                 mutates: Str::upper((string) $row->fn_method) !== 'GET',
             ),
         };
@@ -135,14 +135,14 @@ class ToolHybridSearch
         );
     }
 
-    private function mcpEntry(string $sourceId, mixed $serverSlug, mixed $name, mixed $description, mixed $schema, mixed $scope): ToolEntry
+    private function mcpEntry(string $sourceId, mixed $serverSlug, mixed $name, mixed $description, mixed $schema, mixed $scope): ToolEntryData
     {
-        return new ToolEntry(
+        return new ToolEntryData(
             kind: ToolKind::Mcp,
             sourceId: $sourceId,
             name: ToolName::forMcp((string) $serverSlug, (string) $name)->value,
             description: (string) $description,
-            parameters: ToolEntry::decodeSchema($schema),
+            parameters: ToolEntryData::decodeSchema($schema),
             mutates: $scope !== McpToolScope::Read->value,
         );
     }

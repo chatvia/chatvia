@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
@@ -43,7 +44,7 @@ class IngestMediaAction
             return;
         }
 
-        $startTime = microtime(true);
+        $startedAt = CarbonImmutable::now();
 
         $sourceFile->update([
             'internal_ingestion_job_id' => $internalJobId,
@@ -63,7 +64,7 @@ class IngestMediaAction
 
         $this->dispatchBatch->execute($sourceFile, $agent, $jobs);
 
-        $sourceFile->update(['took_in_seconds' => (int) ceil(microtime(true) - $startTime)]);
+        $sourceFile->update(['took_in_seconds' => (int) ceil($startedAt->diffInSeconds(absolute: true))]);
     }
 
     /**

@@ -35,7 +35,7 @@ use Throwable;
  *
  * Fails OPEN: any error or unparseable response (or no model to ask) returns
  * a no-trigger verdict, with the kind of failure, so a classifier outage
- * never blocks live chat. The failure is logged here, and GuardrailService
+ * never blocks live chat. The failure is logged here, and GuardrailInspector
  * records the checks as skipped in the Activity log.
  */
 class GuardrailClassifier

@@ -17,7 +17,7 @@ Create a folder when its first class arrives; no empty or `Misc/` folders. Split
 Something the app does (create, publish, connect, delete) is an Action. Something the app uses (an adapter, a client, a stateless calculator) is a service. Name a service for its exact job (`TelegramClient`, `AgentChatRateLimiter`) with no `Service` suffix; if you cannot name it precisely, split it. No `Helper`, `Util` or `Manager` grab-bags.
 
 ## Services don't run use cases
-Clients, adapters and utilities never call Actions. Only an orchestrator that runs a whole turn or resolves a channel conversation (`ChatStreamService`, `ChannelReplyRunner`, the channel resolvers) may call Actions. A service never takes a `Request` and never returns an HTTP response.
+Clients, adapters and utilities never call Actions. Only an orchestrator that runs a whole turn or resolves a channel conversation (`ChatTurnStreamer`, `ChannelReplyRunner`, the channel resolvers) may call Actions. A service never takes a `Request` and never returns an HTTP response.
 
 ## Wrap every outside system in one class
 Each third-party API or SDK is called from one service (`{Vendor}Client`); Actions and controllers never call `Http::` or a vendor SDK directly. Credentials come from `config()` (filled from admin Settings), never from `env()` or a literal.

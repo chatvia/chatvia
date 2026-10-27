@@ -2,6 +2,7 @@
 
 namespace Domain\Analytics\Services\Chat;
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Tool;
@@ -25,6 +26,10 @@ use ReflectionClass;
  */
 class AnalyticsToolset
 {
+    public function __construct(
+        private readonly Container $container,
+    ) {}
+
     /**
      * @return array{definitions: array<int, array<string, mixed>>, routes: array<string, string>}
      */
@@ -40,7 +45,7 @@ class AnalyticsToolset
 
             foreach ($this->toolClasses($entry['class']) as $toolClass) {
                 /** @var Tool $tool */
-                $tool = app($toolClass);
+                $tool = $this->container->make($toolClass);
                 $schema = $tool->toArray();
                 $name = $schema['name'];
 

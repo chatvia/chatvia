@@ -2,7 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -11,7 +11,7 @@ use Support\Exceptions\DomainValidationException;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->role = teamRole($this->team, permissions: []);
 });
 

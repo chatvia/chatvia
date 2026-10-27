@@ -46,7 +46,7 @@ it('returns grouped suggestions with capped examples', function (): void {
 
     // The `title` column is encrypted at rest; the examples query reads it via a
     // raw join that bypasses the model cast, so the controller must decrypt it.
-    // Assert we get plaintext back, never the ciphertext blob (`eyJpdiI6...`).
+    // The response must carry plaintext, never the ciphertext blob (`eyJpdiI6...`).
     $titles = array_column($response[0]['examples'], 'title');
 
     expect($titles)->each->not->toStartWith('eyJ')

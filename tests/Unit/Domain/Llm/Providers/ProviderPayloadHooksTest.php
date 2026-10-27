@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Providers\OpenAi;
@@ -24,9 +24,9 @@ use Tests\Support\Llm\GuzzleRecorder;
 /**
  * The client of the given class, for a test provider.
  *
- * @param  class-string<LlmProviderInterface>  $provider
+ * @param  class-string<ChatCompletionProvider>  $provider
  */
-function hookClient(string $provider): LlmProviderInterface
+function hookClient(string $provider): ChatCompletionProvider
 {
     return new $provider(LlmProvider::factory()->make(), 'https://llm.test/v1');
 }
@@ -34,7 +34,7 @@ function hookClient(string $provider): LlmProviderInterface
 /**
  * Stream one turn through the provider and return the JSON body it sent.
  *
- * @param  class-string<LlmProviderInterface>  $provider
+ * @param  class-string<ChatCompletionProvider>  $provider
  * @return array<string, mixed>
  */
 function hookStreamBody(string $provider): array
@@ -49,7 +49,7 @@ function hookStreamBody(string $provider): array
 /**
  * Send one completion through the provider and return the JSON body it sent.
  *
- * @param  class-string<LlmProviderInterface>  $provider
+ * @param  class-string<ChatCompletionProvider>  $provider
  * @param  array<string, mixed>  $data
  * @return array<string, mixed>
  */

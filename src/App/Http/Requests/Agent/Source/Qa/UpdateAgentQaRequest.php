@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent\Source\Qa;
 
+use App\Http\Requests\Concerns\ValidatesQaEntry;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class UpdateAgentQaRequest extends FormRequest
 {
-    use AgentQaRequestRules;
+    use ValidatesQaEntry;
 
     /**
      * Access to the agent is checked by the route middleware.

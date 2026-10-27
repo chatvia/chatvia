@@ -20,7 +20,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
@@ -32,7 +32,7 @@ use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
@@ -41,10 +41,10 @@ use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\TaskModels;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use GuzzleHttp\Middleware as GuzzleMiddleware;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
@@ -113,7 +113,7 @@ pest()->in('Architecture');
  */
 function ownerTeam(User $owner): Team
 {
-    return $owner->ownedTeams()->oldest('id')->first() ?? app(TeamService::class)->createDefaultTeam($owner);
+    return $owner->ownedTeams()->oldest('id')->first() ?? app(CreateDefaultTeamAction::class)->execute($owner);
 }
 
 /**
@@ -239,7 +239,7 @@ function reactivateWorkspaceOf(Agent $agent): void
 /**
  * Every call to any model goes to this fake client.
  */
-function bindFakeLlmProvider(LlmProviderInterface $provider): void
+function bindFakeLlmProvider(ChatCompletionProvider $provider): void
 {
     app()->instance(LlmProviders::class, new FakeLlmProviders($provider));
 }
@@ -625,7 +625,7 @@ function storeSourceChunks(SourceFile|SourceText|SourceWebsite $source, array $p
  * @throws RuntimeException before any request, when no key is given
  * @throws Throwable when the real embeddings cannot be reached (a wrong key, no network)
  */
-function evalUseRealModels(): EmbeddingsProviderInterface
+function evalUseRealModels(): EmbeddingsProvider
 {
     $given = 0;
 
@@ -653,10 +653,10 @@ function evalUseRealModels(): EmbeddingsProviderInterface
         static fn (): int => 20_000,
     ));
 
-    app()->forgetInstance(EmbeddingsProviderInterface::class);
-    $embeddings = app(EmbeddingsProviderInterface::class);
+    app()->forgetInstance(EmbeddingsProvider::class);
+    $embeddings = app(EmbeddingsProvider::class);
     $embeddings->embedQuery('health check');
-    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
+    app()->instance(EmbeddingsProvider::class, $embeddings);
 
     app()->forgetInstance(Reranker::class);
     app()->instance(Reranker::class, app(Reranker::class));

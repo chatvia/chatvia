@@ -5,17 +5,17 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Tooling\Routing\ApprovalToolFilter;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Illuminate\Support\Str;
 
 /**
  * Only the hosted chat can ask a person to approve a tool call, so every other
  * surface is never offered a tool that needs approval.
  */
-function approvalFilterEntry(string $name): ToolEntry
+function approvalFilterEntry(string $name): ToolEntryData
 {
-    return new ToolEntry(kind: ToolName::parse($name)->kind, sourceId: 'x:'.$name, name: $name, description: '', parameters: []);
+    return new ToolEntryData(kind: ToolName::parse($name)->kind, sourceId: 'x:'.$name, name: $name, description: '', parameters: []);
 }
 
 /** A filter whose policy gates exactly the given tool names. */
@@ -33,10 +33,10 @@ function approvalFilter(string ...$gated): ApprovalToolFilter
     });
 }
 
-/** @param array<int, ToolEntry> $entries */
+/** @param array<int, ToolEntryData> $entries */
 function approvalFilterNames(array $entries): array
 {
-    return array_map(static fn (ToolEntry $entry): string => $entry->name, $entries);
+    return array_map(static fn (ToolEntryData $entry): string => $entry->name, $entries);
 }
 
 beforeEach(function (): void {
@@ -68,7 +68,7 @@ it('keeps every tool when the turn has no conversation, or an unknown one', func
 });
 
 it('drops tools that need approval for an anonymous visitor on any surface', function (): void {
-    $definitions = array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $this->entries);
+    $definitions = array_map(static fn (ToolEntryData $entry): array => $entry->toOpenAiFormat(), $this->entries);
 
     expect(array_column(array_column($this->filter->withoutGated(new Agent, $definitions), 'function'), 'name'))
         ->toBe(['mcp__stripe__list_customers']);

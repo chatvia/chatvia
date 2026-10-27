@@ -35,7 +35,7 @@ class RecordToolCallAuditAction
         [$arguments, $argumentsPreview, $argsTruncated] = $this->redactAndCapArguments($event->arguments);
         [$result, $resultTruncated] = $this->cap($event->resultText, (int) config('chatvia.governance.max_result_bytes', 8192));
 
-        AgentActivity::create([
+        AgentActivity::query()->create([
             'agent_id' => $event->agentId,
             'agent_name' => $event->agentName,
             'workspace_id' => $event->workspaceId,

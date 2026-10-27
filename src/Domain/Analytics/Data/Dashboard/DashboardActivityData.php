@@ -12,7 +12,7 @@ use Spatie\LaravelData\Data;
  * hours, AI replies per day for the last 7 and 30 days, and AI replies this
  * month and last month; from the main tables the knowledge sources attached
  * to its agents and the size of the viewer's team. Cached as one value by
- * GetDashboardStatsAction.
+ * DashboardStatsQuery.
  */
 class DashboardActivityData extends Data
 {

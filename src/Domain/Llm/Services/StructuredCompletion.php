@@ -2,7 +2,7 @@
 
 namespace Domain\Llm\Services;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Data\Chat\StructuredReplyData;
@@ -22,7 +22,7 @@ final readonly class StructuredCompletion
         private LlmChat $chat,
     ) {}
 
-    public function using(LlmProviderInterface $provider): self
+    public function using(ChatCompletionProvider $provider): self
     {
         return new self($this->chat->using($provider));
     }

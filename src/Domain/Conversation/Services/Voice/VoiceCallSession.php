@@ -12,7 +12,7 @@ use Domain\Conversation\Data\Voice\VoiceToolResultData;
 use Domain\Conversation\Enums\VoiceCallRefusal;
 use Domain\Conversation\Enums\VoiceToolOutcome;
 use Domain\Conversation\Models\Conversation;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Domain\Llm\Contracts\RealtimeCallHandler;
@@ -70,7 +70,7 @@ final class VoiceCallSession implements RealtimeCallHandler
 
     private StreamRequestData $request;
 
-    /** @var array<string, ToolEntry> */
+    /** @var array<string, ToolEntryData> */
     private array $tools = [];
 
     /** The actions held for the visitor's yes. */

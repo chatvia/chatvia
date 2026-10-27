@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
@@ -49,7 +49,7 @@ final class AnthropicAdapter extends OpenAiCompatibleAdapter
         return 'https://console.anthropic.com/settings/keys';
     }
 
-    public function client(LlmProvider $provider): LlmProviderInterface
+    public function client(LlmProvider $provider): ChatCompletionProvider
     {
         return new Anthropic($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }

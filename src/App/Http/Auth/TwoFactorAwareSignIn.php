@@ -3,7 +3,7 @@
 namespace App\Http\Auth;
 
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
@@ -28,7 +28,7 @@ final readonly class TwoFactorAwareSignIn
 {
     public function __construct(
         private AuthFactory $auth,
-        private ChatterAuthTokenService $chatTokens,
+        private ChatterAuthTokens $chatTokens,
     ) {}
 
     public function respond(User $user, string $intendedUrl, bool $remember = false): RedirectResponse

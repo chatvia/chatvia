@@ -6,7 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Illuminate\Support\Str;
 use Locale;
@@ -22,7 +22,7 @@ use Locale;
  *
  * The leak marker comes first, so a model tricked into dumping its prompt
  * repeats it and the output guard can replace the answer
- * ({@see GuardrailService::leakMarker()}).
+ * ({@see GuardrailInspector::leakMarker()}).
  *
  * Forms are not listed here: the agent discovers them through the Forms MCP
  * server (find-forms → render-form), so a form only enters the context when
@@ -31,7 +31,7 @@ use Locale;
 class SystemPromptBuilder
 {
     public function __construct(
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
         private readonly KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
 

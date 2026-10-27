@@ -10,7 +10,7 @@ use Spatie\LaravelData\Data;
 /**
  * One knowledge source the agent retrieved, with its retrieval count and the
  * last day it was used. The name is the one recorded at retrieval time, so a
- * deleted source still shows; legacy rows without one show null.
+ * deleted source still shows; a row recorded without one shows null.
  */
 class KnowledgeUsageData extends Data
 {

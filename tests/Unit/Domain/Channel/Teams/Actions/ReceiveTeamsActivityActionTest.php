@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Channel\Teams\Actions\ReceiveTeamsActivityAction;
+use Domain\Channel\Teams\Data\TeamsInboundActivityData;
 use Domain\Channel\Teams\Jobs\HandleTeamsActivityJob;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Illuminate\Support\Facades\Bus;
@@ -15,10 +16,10 @@ it('remembers queued activities per Teams bot', function (): void {
     Bus::fake();
     $first = AgentTeamsBot::factory()->create();
     $second = AgentTeamsBot::factory()->create();
-    $activity = [
+    $activity = TeamsInboundActivityData::fromPayload([
         'type' => 'message', 'id' => 'act-1', 'text' => 'hi', 'serviceUrl' => 'https://smba.example/',
         'conversation' => ['id' => 'conv-1'], 'from' => ['id' => 'user'], 'recipient' => ['id' => 'bot'],
-    ];
+    ]);
     $action = app(ReceiveTeamsActivityAction::class);
 
     $action->execute($first, $activity);
@@ -27,6 +28,6 @@ it('remembers queued activities per Teams bot', function (): void {
     $action->execute($second, $activity);
 
     Bus::assertDispatchedTimes(HandleTeamsActivityJob::class, 2);
-    Bus::assertDispatched(HandleTeamsActivityJob::class, fn (HandleTeamsActivityJob $job): bool => $job->bot->is($first) && $job->activity === $activity);
+    Bus::assertDispatched(HandleTeamsActivityJob::class, fn (HandleTeamsActivityJob $job): bool => $job->bot->is($first) && $job->activity == $activity->message);
     Bus::assertDispatched(HandleTeamsActivityJob::class, fn (HandleTeamsActivityJob $job): bool => $job->bot->is($second));
 });

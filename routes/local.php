@@ -15,7 +15,7 @@ if (app()->isLocal()) {
         );
 
         return response()->json([
-            'weather' => mt_rand(20, 50),
+            'weather' => random_int(20, 50),
             'unit' => 'celsius',
         ]);
     })->withoutMiddleware(PreventRequestForgery::class)->name('webhooks.get-weather');

@@ -7,10 +7,11 @@ use Domain\Conversation\Data\Turn\KnowledgeLookupData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Services\ChatContext;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
+use Domain\Knowledge\Retrieval\Data\SourceRefData;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Retrieval\Services\KnowledgeScope;
@@ -44,7 +45,7 @@ class KnowledgeEnricher
         private readonly KnowledgeBase $knowledgeBase,
         private readonly SourceLabeler $labeler,
         private readonly QaMatcher $qaMatcher,
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
         private readonly KnowledgeScope $scope,
         private readonly KnowledgeSearchSwitch $knowledgeSearch,
@@ -177,10 +178,9 @@ class KnowledgeEnricher
 
         UpdateRetrievalStatsJob::dispatch(
             $sources
-                ->map(static fn (RetrievedSourceData $source): array => ['chunkable_type' => $source->sourceable_type, 'chunkable_id' => $source->sourceable_id])
-                ->unique(static fn (array $reference): string => $reference['chunkable_type'].':'.$reference['chunkable_id'])
-                ->values()
-                ->all(),
+                ->map(static fn (RetrievedSourceData $source): SourceRefData => new SourceRefData($source->sourceable_type, $source->sourceable_id))
+                ->unique(static fn (SourceRefData $reference): string => "{$reference->type}:{$reference->id}")
+                ->values(),
             $context->requestData->agent->id,
         );
     }

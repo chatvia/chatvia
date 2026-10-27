@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * Creates a team for its owner together with the default roles, in one
  * transaction so a team never exists without its roles. Used for every new
  * team: the dashboard, the API and registration (through
- * TeamService::createDefaultTeam).
+ * CreateDefaultTeamAction).
  */
 class CreateTeamAction
 {
@@ -22,7 +22,7 @@ class CreateTeamAction
     public function execute(CreateTeamData $data): Team
     {
         return DB::transaction(function () use ($data): Team {
-            $team = Team::create([
+            $team = Team::query()->create([
                 'name' => $data->name,
                 'workspace_id' => $data->workspace->id,
             ]);

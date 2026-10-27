@@ -8,8 +8,8 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\McpServerLookup;
 use Domain\Integration\Tool\Data\ToolDisplayData;
-use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * Resolves display metadata for a tool name so the SSE start event can

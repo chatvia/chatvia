@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -38,7 +38,7 @@ class AgentFactory extends Factory
                 $workspace = Workspace::query()->findOrFail($attributes['workspace_id']);
                 $team = $workspace->teams()->oldest('id')->first();
 
-                return ($team ?? app(TeamService::class)->createDefaultTeam($workspace->owner ?? throw new \LogicException('A workspace always has an owner.')))->id;
+                return ($team ?? app(CreateDefaultTeamAction::class)->execute($workspace->owner ?? throw new \LogicException('A workspace always has an owner.')))->id;
             },
             'name' => fake()->words(2, true),
             // Exactly three words: a variable word count can pass the 63-character

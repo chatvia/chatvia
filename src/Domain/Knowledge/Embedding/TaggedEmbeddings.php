@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 
@@ -13,17 +13,17 @@ use Domain\Llm\Services\AiCallTags;
  * `embedding` for what is indexed (chunks, Q&A, tools, forms) and
  * `search-embedding` for search queries. Each provider sends its own
  * requests, so this wrapper is the one place that tags all of them. It is
- * what the container hands out for {@see EmbeddingsProviderInterface}.
+ * what the container hands out for {@see EmbeddingsProvider}.
  */
-final readonly class TaggedEmbeddings implements EmbeddingsProviderInterface
+final readonly class TaggedEmbeddings implements EmbeddingsProvider
 {
     public function __construct(
-        private EmbeddingsProviderInterface $provider,
+        private EmbeddingsProvider $provider,
         private AiCallTags $tags,
     ) {}
 
     /** The provider the calls go to. */
-    public function provider(): EmbeddingsProviderInterface
+    public function provider(): EmbeddingsProvider
     {
         return $this->provider;
     }

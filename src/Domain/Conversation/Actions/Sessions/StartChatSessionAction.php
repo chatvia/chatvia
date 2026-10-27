@@ -24,7 +24,7 @@ class StartChatSessionAction
      */
     public function execute(Agent $agent, ?ChatViewerData $viewer): string
     {
-        $session = Session::create([
+        $session = Session::query()->create([
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
             'user_id' => $viewer instanceof ChatViewerData && ! $viewer->isChatter() ? $viewer->id : null,

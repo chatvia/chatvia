@@ -33,7 +33,7 @@ class AddCustomConnectorAction
         $workspace = $data->user->workspace();
         $usesToken = $data->auth_strategy === ConnectorAuthStrategy::Token;
 
-        $server = AgentMcpServer::create([
+        $server = AgentMcpServer::query()->create([
             'workspace_id' => $workspace->id,
             'category' => McpServerCategory::Custom,
             'connector_slug' => null,

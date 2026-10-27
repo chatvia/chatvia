@@ -6,6 +6,7 @@ namespace App\Http\Requests\Api\V1\Agent;
 
 use Domain\Agent\Data\Account\UpdateApiAgentData;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\LaravelData\Optional;
 
 /**
  * Public API: validates a partial update of an agent. Only the fields sent are
@@ -41,6 +42,12 @@ class UpdateApiAgentRequest extends FormRequest
 
     public function toData(): UpdateApiAgentData
     {
-        return UpdateApiAgentData::from($this->validated());
+        return new UpdateApiAgentData(
+            name: $this->has('name') ? $this->string('name')->toString() : new Optional,
+            system_instructions: $this->has('system_instructions') ? $this->input('system_instructions') : new Optional,
+            prompt_id: $this->has('prompt_id') ? $this->input('prompt_id') : new Optional,
+            metadata: $this->has('metadata') ? $this->input('metadata') : new Optional,
+            is_public: $this->has('is_public') ? $this->boolean('is_public') : new Optional,
+        );
     }
 }

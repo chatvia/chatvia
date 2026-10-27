@@ -1,10 +1,10 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Actions\Team\DeleteTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
 /*
@@ -19,7 +19,7 @@ use Support\Exceptions\DomainValidationException;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
+    app(CreateDefaultTeamAction::class)->execute($this->owner);
 });
 
 it('deletes a secondary, empty team', function (): void {

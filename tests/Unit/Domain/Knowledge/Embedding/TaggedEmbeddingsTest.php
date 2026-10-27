@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\TaggedEmbeddings;
 use Domain\Llm\Services\AiCallTags;
 use Spectra\Spectra;
@@ -10,9 +10,9 @@ use Spectra\Spectra;
  * `embedding` and search queries `search-embedding`, and passes the rest
  * through to the provider.
  */
-function tembProvider(): EmbeddingsProviderInterface
+function tembProvider(): EmbeddingsProvider
 {
-    return new class implements EmbeddingsProviderInterface
+    return new class implements EmbeddingsProvider
     {
         /** @var list<list<string>> The Spectra tags each call was sent with. */
         public array $tags = [];

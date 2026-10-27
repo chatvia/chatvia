@@ -41,7 +41,7 @@ it('clamps the range to the future, one week, and the furthest day', function ()
 });
 
 it('asks nothing for a range past the furthest day', function (): void {
-    expect(app(ListBookingSlotsAction::class)->execute($this->instance, now()->addDays(40), now()->addDays(45)))->toBe([])
+    expect(app(ListBookingSlotsAction::class)->execute($this->instance, now()->addDays(40), now()->addDays(45)))->toBeEmpty()
         ->and($this->scheduler->asked)->toBe([]);
 });
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
@@ -14,7 +14,7 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
  * runs before the setup); every call to embed fails with a clear message
  * instead of going to a service nobody picked.
  */
-final readonly class UnconfiguredEmbeddings implements EmbeddingsProviderInterface
+final readonly class UnconfiguredEmbeddings implements EmbeddingsProvider
 {
     public function __construct(
         private EmbeddingStorage $storage,

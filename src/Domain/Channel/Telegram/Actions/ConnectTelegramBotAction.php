@@ -43,7 +43,7 @@ class ConnectTelegramBotAction
         $secret = Str::random(48);
         $headerSecret = Str::random(64);
 
-        $bot = AgentTelegramBot::updateOrCreate(
+        $bot = AgentTelegramBot::query()->updateOrCreate(
             ['agent_id' => $agent->id],
             [
                 'bot_token' => $data->botToken,

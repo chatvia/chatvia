@@ -8,9 +8,10 @@ use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Services\AgentUrlBuilder;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamRoleResolver;
 use Domain\Notification\Data\NotificationSummaryData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\URL;
 use Inertia\Middleware;
 use Support\License\Entitlements;
@@ -27,6 +28,12 @@ class HandleInertiaRequests extends Middleware
     #[\Override]
     protected $rootView = 'app';
 
+    public function __construct(
+        private readonly BotCheck $botCheck,
+        private readonly Entitlements $entitlements,
+        private readonly TeamRoleResolver $roles,
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -40,7 +47,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             // The Cloudflare Turnstile bot check of the public forms (Settings →
             // Security): its site key and the forms it protects, or null.
-            'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),
+            'turnstile' => fn (): ?array => $this->botCheck->forPages(),
             // The sign-in providers whose OAuth app is set up (Settings →
             // Sign-in): only their buttons are shown.
             'socialProviders' => fn (): array => array_map(fn (SocialProvider $provider): string => $provider->value, SocialProvider::configured()),
@@ -75,7 +82,7 @@ class HandleInertiaRequests extends Middleware
             'defaultLocale' => config('app.locale'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'schema' => $request->getScheme(),
-            'environment' => app()->environment(),
+            'environment' => App::environment(),
 
             // Where every agent's hosted chat lives (`{chatBaseUrl}/{slug}`),
             // for the address fields of the agent settings.
@@ -118,10 +125,10 @@ class HandleInertiaRequests extends Middleware
             ] : null,
             // Whether this install has an Enterprise key: the Security and
             // Governance pages lock their Enterprise features without one.
-            'enterprise' => $user instanceof User && app(Entitlements::class)->enterprise(),
+            'enterprise' => $user instanceof User && $this->entitlements->enterprise(),
             // Whether this install holds any license key; without one the
             // free-use limits apply and the pages say what is locked.
-            'license' => $user instanceof User ? $this->license(app(Entitlements::class)) : null,
+            'license' => $user instanceof User ? $this->license($this->entitlements) : null,
             // The knowledge file types this install accepts (Settings →
             // Ingestion), each with the extensions this server can read, for
             // the upload pages and the sources menu. An object even when empty.
@@ -173,7 +180,7 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
-        return app(TeamService::class)->userPermissionsMap($user);
+        return $this->roles->permissionsByTeam($user);
     }
 
     /**

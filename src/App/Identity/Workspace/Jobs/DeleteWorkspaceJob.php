@@ -32,7 +32,7 @@ class DeleteWorkspaceJob implements ShouldQueue
 
     public function handle(DeleteUserAccountAction $deleteAccount): void
     {
-        $user = User::find($this->userId);
+        $user = User::query()->find($this->userId);
 
         if (! $user) {
             return; // already torn down (e.g. a retry after completion)

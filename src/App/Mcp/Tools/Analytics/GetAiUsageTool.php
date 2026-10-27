@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Account\LabelCountData;
 use Domain\Analytics\Data\Account\Usage\McpToolUsageData;
 use Domain\Analytics\Queries\Account\Usage\AiUsageQuery;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -42,10 +43,10 @@ class GetAiUsageTool extends AnalyticsTool
 
         $parts = [];
         if ($functions !== []) {
-            $parts[] = 'top function "'.$functions[0]['name'].'" ('.number_format($functions[0]['calls']).' calls)';
+            $parts[] = 'top function "'.$functions[0]['name'].'" ('.Number::format($functions[0]['calls']).' calls)';
         }
         if ($mcpTools !== []) {
-            $parts[] = 'top MCP tool "'.$mcpTools[0]['tool'].'" ('.number_format($mcpTools[0]['calls']).')';
+            $parts[] = 'top MCP tool "'.$mcpTools[0]['tool'].'" ('.Number::format($mcpTools[0]['calls']).')';
         }
         if ($sources !== []) {
             $parts[] = 'most-used source "'.$sources[0]['name'].'"';

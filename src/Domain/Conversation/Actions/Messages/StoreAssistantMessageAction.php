@@ -43,7 +43,7 @@ class StoreAssistantMessageAction
             $session = $this->chatLog->session($agent, $turn->external_session_id);
             $conversation = $this->chatLog->conversation($session, $turn->external_conversation_id, $turn->source);
 
-            $message = Message::create($this->attributes($turn, $conversation, $usage));
+            $message = Message::query()->create($this->attributes($turn, $conversation, $usage));
 
             $this->storeSources($message, $turn);
 

@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Models\SecurityAuditLog;
 use Inertia\Testing\AssertableInertia;
@@ -13,7 +13,7 @@ use Inertia\Testing\AssertableInertia;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
+    app(CreateDefaultTeamAction::class)->execute($this->owner);
 });
 
 it('shows the audit log of the workspace', function (): void {

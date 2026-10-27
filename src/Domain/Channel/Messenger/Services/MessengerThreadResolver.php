@@ -57,6 +57,6 @@ class MessengerThreadResolver extends ChannelConversationResolver
      */
     protected function createMapping(array $attributes): Model
     {
-        return MessengerThread::create($attributes);
+        return MessengerThread::query()->create($attributes);
     }
 }

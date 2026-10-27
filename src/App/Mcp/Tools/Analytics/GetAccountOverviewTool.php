@@ -6,6 +6,7 @@ namespace App\Mcp\Tools\Analytics;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\Activity\AccountOverviewQuery;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -37,13 +38,13 @@ class GetAccountOverviewTool extends AnalyticsTool
         $summary = sprintf(
             '%s: %s messages (%s in, %s AI) across %s conversations from %s visitors, %s leads captured.%s%s',
             Str::ucfirst($scope->period->label),
-            number_format($data->totalMessages()),
-            number_format($data->incomingMessages),
-            number_format($data->aiMessages),
-            number_format($data->conversations),
-            number_format($data->uniqueVisitors),
-            number_format($data->leads),
-            $data->avgResponseMs !== null ? ' Avg response '.number_format((float) $data->avgResponseMs).'ms.' : '',
+            Number::format($data->totalMessages()),
+            Number::format($data->incomingMessages),
+            Number::format($data->aiMessages),
+            Number::format($data->conversations),
+            Number::format($data->uniqueVisitors),
+            Number::format($data->leads),
+            $data->avgResponseMs !== null ? ' Avg response '.Number::format(round((float) $data->avgResponseMs)).'ms.' : '',
             $feedback->rated() > 0 ? ' Feedback: '.$feedback->positive.'👍 / '.$feedback->negative.'👎.' : '',
         );
 

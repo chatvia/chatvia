@@ -35,12 +35,12 @@ class StartConversationAction
         $conversations = $memory->conversations();
 
         $conversation = DB::transaction(function () use ($scope, $source, $title): Conversation {
-            $session = Session::firstOrCreate([
+            $session = Session::query()->firstOrCreate([
                 'external_id' => $scope->sessionId,
                 'agent_id' => $scope->agent->id,
             ], ['workspace_id' => $scope->agent->workspace_id]);
 
-            return Conversation::create([
+            return Conversation::query()->create([
                 'workspace_id' => $scope->agent->workspace_id,
                 'chat_session_id' => $session->id,
                 'agent_id' => $scope->agent->id,

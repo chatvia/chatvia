@@ -4,7 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\Turn\SystemPromptBuilder;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Str;
 use Tests\Support\Conversation\TestChatContext;
@@ -120,7 +120,7 @@ it('asks an agent that cites for block numbers, only where chips can show', func
 
 it('opens the system prompt with the guardrails leak marker', function (): void {
     $agent = Agent::factory()->create();
-    $marker = app(GuardrailService::class)->leakMarker($agent);
+    $marker = app(GuardrailInspector::class)->leakMarker($agent);
 
     expect($marker)->toStartWith('CV-')
         ->and(spbPrompt($agent, null))->toStartWith("Internal reference: {$marker}.");

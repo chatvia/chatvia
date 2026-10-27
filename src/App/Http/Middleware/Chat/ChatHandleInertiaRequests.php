@@ -7,6 +7,7 @@ use App\Http\Chat\HostedChatViewer;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
 
 /**
@@ -19,6 +20,10 @@ class ChatHandleInertiaRequests extends Middleware
 {
     #[\Override]
     protected $rootView = 'app';
+
+    public function __construct(
+        private readonly BotCheck $botCheck,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -35,7 +40,7 @@ class ChatHandleInertiaRequests extends Middleware
             // chat (the admin panel's License page).
             'poweredBy' => config('chatvia.powered_by') === true,
             // The bot check of the chatter sign-in forms (Settings → Security).
-            'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),
+            'turnstile' => fn (): ?array => $this->botCheck->forPages(),
             'auth' => [
                 'user' => $account,
                 // Staff (a dashboard preview) chat too, but their profile is
@@ -54,7 +59,7 @@ class ChatHandleInertiaRequests extends Middleware
             'defaultLocale' => config('app.locale'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'schema' => $request->getScheme(),
-            'environment' => app()->environment(),
+            'environment' => App::environment(),
             // Per-chat upload ceiling (config: agent.files.upload.max_files).
             // The composer gates the paperclip on this; the server enforces
             // the same value via MaxConversationAttachments so a frontend

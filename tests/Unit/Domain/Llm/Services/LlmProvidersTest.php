@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\LlmProvider;
@@ -17,7 +17,7 @@ beforeEach(function (): void {
 });
 
 it('refuses a provider that is off, or one without its key', function (LlmProvider $provider): void {
-    expect(fn (): LlmProviderInterface => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
+    expect(fn (): ChatCompletionProvider => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
 })->with([
     'turned off' => fn (): LlmProvider => LlmProvider::factory()->disabled()->make(),
     'no key' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->make(),

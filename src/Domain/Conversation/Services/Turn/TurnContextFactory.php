@@ -15,8 +15,8 @@ use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Guardrail\Data\GuardResultData;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Models\Llm;
@@ -38,7 +38,7 @@ class TurnContextFactory
         private readonly ChatMemory $memory,
         private readonly AddMessageToConversationAction $addMessage,
         private readonly QueryRewriter $queryRewriter,
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
         private readonly KnowledgeSearchSwitch $knowledgeSearch,
     ) {}
@@ -126,7 +126,7 @@ class TurnContextFactory
     public function forResume(ToolApprovalCheckpoint $checkpoint): ChatContext
     {
         $saved = $checkpoint->approvalContext();
-        $model = Llm::findOrFail($saved->modelId);
+        $model = Llm::query()->findOrFail($saved->modelId);
 
         $requestData = new StreamRequestData(
             agent: $checkpoint->agent,

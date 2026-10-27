@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
@@ -49,7 +49,7 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
         return 'https://openrouter.ai/settings/keys';
     }
 
-    public function client(LlmProvider $provider): LlmProviderInterface
+    public function client(LlmProvider $provider): ChatCompletionProvider
     {
         return new OpenRouter($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }

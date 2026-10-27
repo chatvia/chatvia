@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Connector\Services\OAuth;
 
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -23,7 +23,7 @@ class OAuthStateStore
     /**
      * Store the pending flow and return the `state` value that identifies it.
      */
-    public function put(PendingOAuthState $pending): string
+    public function put(PendingOAuthStateData $pending): string
     {
         $state = Str::random(self::STATE_LENGTH);
 
@@ -36,9 +36,9 @@ class OAuthStateStore
      * The pending flow for this state, removed from the store; null when it
      * expired, was already used or never existed.
      */
-    public function pull(string $state): ?PendingOAuthState
+    public function pull(string $state): ?PendingOAuthStateData
     {
-        return PendingOAuthState::unseal($this->store()->pull($this->key($state)));
+        return PendingOAuthStateData::unseal($this->store()->pull($this->key($state)));
     }
 
     private function key(string $state): string

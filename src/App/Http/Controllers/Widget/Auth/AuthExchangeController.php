@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Widget\Auth;
 
 use App\Http\Widget\WidgetAgent;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
-use App\Identity\Workspace\Services\WidgetAuthSessionService;
+use App\Identity\Workspace\Data\Sessions\ClientOriginData;
+use App\Identity\Workspace\Services\AgentSignInTokens;
+use App\Identity\Workspace\Services\WidgetAuthSessions;
 use Domain\Agent\Models\Agent;
 use Domain\Widget\Data\Auth\WidgetAuthTokenData;
 use Illuminate\Http\JsonResponse;
@@ -26,8 +27,8 @@ class AuthExchangeController
     public function __invoke(
         Request $request,
         #[WidgetAgent] Agent $agent,
-        AgentSignInTokenService $signInTokens,
-        WidgetAuthSessionService $sessions,
+        AgentSignInTokens $signInTokens,
+        WidgetAuthSessions $sessions,
     ): JsonResponse {
         $verified = $signInTokens->verifyWithClaims($request->string('token')->toString(), $agent);
 
@@ -35,11 +36,11 @@ class AuthExchangeController
             return response()->json(['error' => 'Invalid or expired token'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $meta = ($verified['ctx'] ?? null) === AgentSignInTokenService::CTX_PLAYGROUND
+        $meta = ($verified['ctx'] ?? null) === AgentSignInTokens::CTX_PLAYGROUND
             ? ['is_playground' => true]
             : [];
 
-        $session = $sessions->issue($verified['user'], $agent, $request, $meta);
+        $session = $sessions->issue($verified['user'], $agent, new ClientOriginData($request->ip(), $request->userAgent()), $meta);
 
         // A plain 200 (a Data object would answer a POST with 201).
         return response()->json(new WidgetAuthTokenData(

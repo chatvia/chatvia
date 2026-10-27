@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
@@ -108,7 +108,7 @@ function hcsIndexes(string $kind): void
 beforeEach(function (): void {
     $query = hcsVector(1.0, 1);
 
-    app()->instance(EmbeddingsProviderInterface::class, Mockery::mock(EmbeddingsProviderInterface::class, [
+    app()->instance(EmbeddingsProvider::class, Mockery::mock(EmbeddingsProvider::class, [
         'embedQuery' => $query,
         'embed' => $query,
         'getDimensions' => 1024,

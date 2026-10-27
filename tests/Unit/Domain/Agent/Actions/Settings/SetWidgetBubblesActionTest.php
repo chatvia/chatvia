@@ -24,7 +24,7 @@ it('stores bubbles in the structured shape and drops blanks', function (): void 
         new BubbleData('Need help?'),
     ]));
 
-    expect(array_column($result, 'text'))->toBe(['Hi there?', 'Need help?'])
+    expect($result->pluck('text')->all())->toBe(['Hi there?', 'Need help?'])
         ->and($result[0])->toBeInstanceOf(BubbleData::class);
 
     expect(array_column($this->agent->fresh()->settings('widget')->get('bubbles'), 'text'))

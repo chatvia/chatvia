@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentLocator;
@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class ChatHandoffController
 {
-    public function __invoke(Request $request, string $agentSlug, ChatterAuthTokenService $tokens): RedirectResponse
+    public function __invoke(Request $request, string $agentSlug, ChatterAuthTokens $tokens): RedirectResponse
     {
         $agent = AgentLocator::resolveAgentBySlug($agentSlug);
 

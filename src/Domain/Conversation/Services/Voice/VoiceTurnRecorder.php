@@ -9,8 +9,8 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Conversation\Services\Turn\CitationMarkers;
 use Domain\Guardrail\Data\GuardResultData;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Illuminate\Support\Str;
 
 /**
@@ -30,7 +30,7 @@ final readonly class VoiceTurnRecorder
         private VoiceTurnFactory $factory,
         private AddMessageToConversationAction $addMessage,
         private AssistantReplyRecorder $replies,
-        private GuardrailService $guardrails,
+        private GuardrailInspector $guardrails,
         private GuardrailRecorder $guardrailRecorder,
         private CitationMarkers $citations,
     ) {}

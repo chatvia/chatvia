@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\AcceptInvitationData;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Support\Exceptions\DomainValidationException;
 
@@ -60,7 +61,7 @@ class AcceptTeamInvitationAction
 
                 $user = $existingUser;
             } else {
-                $user = User::create([
+                $user = User::query()->create([
                     'name' => $data->name,
                     'email' => $invitation->email,
                     'password' => Hash::make($data->password),
@@ -69,7 +70,7 @@ class AcceptTeamInvitationAction
 
                 $workspace->members()->attach($user->id, ['role' => WorkspaceRole::Member->value]);
 
-                event(new Registered($user));
+                Event::dispatch(new Registered($user));
             }
 
             $team->members()->attach($user->id, [

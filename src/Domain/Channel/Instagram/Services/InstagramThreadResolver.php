@@ -58,6 +58,6 @@ class InstagramThreadResolver extends ChannelConversationResolver
      */
     protected function createMapping(array $attributes): Model
     {
-        return InstagramThread::create($attributes);
+        return InstagramThread::query()->create($attributes);
     }
 }

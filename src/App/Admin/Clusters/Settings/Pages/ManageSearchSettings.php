@@ -13,6 +13,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Number;
 
 /**
  * How agents search their sources when someone asks a question: whether
@@ -88,7 +89,7 @@ class ManageSearchSettings extends AdminSettingsPage
                 .' · say what it can help with '.$this->shown($this->valueInUse('scope_hint'))),
             SettingsCard::make('tuning', 'Fine-tuning', 'Search speed, how much text an agent gets, and the minimum scores.', Heroicon::OutlinedAdjustmentsHorizontal, fn (): array => [
                 $this->choice('search_mode', 'Search mode', self::SEARCH_MODES,
-                    help: sprintf('Trade speed for accuracy on big knowledge bases, over %s pieces. Smaller ones are always searched in full.', number_format((int) config('chatvia.vector.search.exact_max_chunks')))),
+                    help: sprintf('Trade speed for accuracy on big knowledge bases, over %s pieces. Smaller ones are always searched in full.', Number::format((int) config('chatvia.vector.search.exact_max_chunks')))),
                 $this->integer('max_context_tokens', 'Most tokens per question', help: 'The most text the results may add to one question, in tokens. A token is about four letters. The best result always goes in. 0 means no limit.', min: 0, max: 32000),
                 $this->toggle('relevance_check', 'Leave out weak matches',
                     help: 'Skips results that barely match the question, so a message like "hello" gets none. Off always sends the top results.'),

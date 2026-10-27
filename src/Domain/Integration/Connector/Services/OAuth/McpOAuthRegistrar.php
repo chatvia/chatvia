@@ -3,7 +3,7 @@
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Illuminate\Http\Client\Response;
@@ -36,7 +36,7 @@ class McpOAuthRegistrar
      *   3. Otherwise register dynamically, and keep the row for the next
      *      connection.
      */
-    public function clientFor(OAuthServerMetadata $metadata, ?ConnectorData $connector = null): ConnectorOAuthClient
+    public function clientFor(OAuthServerMetadataData $metadata, ?ConnectorData $connector = null): ConnectorOAuthClient
     {
         if (! $metadata->supportsDynamicRegistration()) {
             if ($connector instanceof ConnectorData && $connector->hasPreRegisteredOAuth()) {
@@ -74,7 +74,7 @@ class McpOAuthRegistrar
             throw new McpOAuthException('Dynamic client registration returned no client_id.');
         }
 
-        return ConnectorOAuthClient::create([
+        return ConnectorOAuthClient::query()->create([
             'auth_server_url' => $metadata->authServerUrl,
             'client_id' => (string) $body['client_id'],
             'client_secret' => $body['client_secret'] ?? null,
@@ -90,7 +90,7 @@ class McpOAuthRegistrar
      * One RFC 7591 registration request. A transport failure is logged and
      * thrown; an HTTP error response is returned for the caller to judge.
      */
-    private function register(OAuthServerMetadata $metadata): Response
+    private function register(OAuthServerMetadataData $metadata): Response
     {
         $payload = [
             // Shown to the user on the provider's consent screen. Letters
@@ -128,7 +128,7 @@ class McpOAuthRegistrar
      * The OAuth app the admin registered for a connector, from config. Not
      * saved: each connection stores the id and secret it was made with.
      */
-    private function preRegistered(OAuthServerMetadata $metadata, ConnectorData $connector): ConnectorOAuthClient
+    private function preRegistered(OAuthServerMetadataData $metadata, ConnectorData $connector): ConnectorOAuthClient
     {
         return new ConnectorOAuthClient()->forceFill([
             'auth_server_url' => $metadata->authServerUrl,

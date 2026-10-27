@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
@@ -32,6 +32,7 @@ use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 
@@ -110,7 +111,7 @@ function retrievalEvalChunkLine(): string
     foreach (retrievalEvalDocuments() as $path => $kind) {
         $config = ChunkingConfigData::forKind($kind);
 
-        foreach (app(TextSplitter::class)->split((string) file_get_contents($path), $kind) as $chunk) {
+        foreach (app(TextSplitter::class)->split(File::get($path), $kind) as $chunk) {
             $sizes[] = $config->measure()->length($chunk);
         }
     }
@@ -145,7 +146,7 @@ function retrievalEvalAgent(): Agent
     $enhancement = env('EVAL_ENRICH') ? ChunkEnhancement::Text : ChunkEnhancement::Off;
 
     foreach (retrievalEvalDocuments() as $path => $kind) {
-        $text = (string) file_get_contents($path);
+        $text = File::get($path);
 
         $source = SourceText::factory()->ingested()->attachedTo($agent)->create([
             'excerpt' => Str::substr($text, 0, 200),
@@ -177,7 +178,7 @@ function retrievalEvalWithout(Agent $agent, string $part): void
     }
 
     $cast = app(EmbeddingStorage::class)->columnType();
-    $vectors = app(EmbeddingsProviderInterface::class)->embedBatch($chunks->pluck('chunk')->all());
+    $vectors = app(EmbeddingsProvider::class)->embedBatch($chunks->pluck('chunk')->all());
 
     foreach ($chunks->values() as $index => $chunk) {
         DB::update("UPDATE chunks SET embedding = ?::{$cast}, search_text = chunk WHERE id = ?", ['['.implode(',', $vectors[$index]).']', $chunk->id]);
@@ -246,7 +247,7 @@ it('measures knowledge retrieval quality against the labelled set', function ():
 
     $settings = RetrievalSettingsData::fromConfig();
     $search = app(HybridChunkSearch::class);
-    $embeddings = app(EmbeddingsProviderInterface::class);
+    $embeddings = app(EmbeddingsProvider::class);
     $pool = max($settings->candidateLimit(), 25);
 
     $rows = [];
@@ -669,7 +670,7 @@ function retrievalEvalQaReport(Agent $agent): void
     $out = ['', '=== Saved answers by meaning ==='];
 
     foreach ($data['cases'] as $case) {
-        $vector = '['.implode(',', app(EmbeddingsProviderInterface::class)->embedQuery($case['query'])).']';
+        $vector = '['.implode(',', app(EmbeddingsProvider::class)->embedQuery($case['query'])).']';
         $closest = DB::selectOne("SELECT agent_question_answer_id, 1 - (embedding <=> ?::{$cast}) AS similarity FROM agent_question_answer_questions WHERE agent_id = ? ORDER BY embedding <=> ?::{$cast} LIMIT 1", [$vector, $agent->id, $vector]);
         $similarity = (float) ($closest->similarity ?? 0);
         $right = $case['match'] !== null && (int) ($closest->agent_question_answer_id ?? 0) === $entries[$case['match']];

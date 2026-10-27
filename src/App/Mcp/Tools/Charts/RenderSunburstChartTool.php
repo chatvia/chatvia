@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools\Charts;
 
+use App\Mcp\Tools\Charts\Concerns\NormalizesTreeNodes;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;

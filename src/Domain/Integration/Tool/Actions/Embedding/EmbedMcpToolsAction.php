@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Mcp\Models\McpTool;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -24,7 +24,7 @@ use Throwable;
 class EmbedMcpToolsAction
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
     ) {}
 
     public function execute(int $mcpServerId): void

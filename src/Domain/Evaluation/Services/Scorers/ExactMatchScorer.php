@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
  * Passes only when the agent's answer equals `expected_output` exactly (both
  * sides trimmed). The strictest scorer — for deterministic, canned replies.
  */
-class ExactMatchScorer implements ScorerInterface
+class ExactMatchScorer implements Scorer
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {

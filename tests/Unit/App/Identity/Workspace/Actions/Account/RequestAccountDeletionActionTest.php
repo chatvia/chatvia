@@ -15,7 +15,7 @@ use Illuminate\Support\Uri;
  * AccountDeletionRequested.
  */
 it('dispatches AccountDeletionRequested with a signed confirmation link for the user', function (): void {
-    Event::fake();
+    Event::fake([AccountDeletionRequested::class]);
 
     $user = User::factory()->create();
 
@@ -32,7 +32,7 @@ it('dispatches AccountDeletionRequested with a signed confirmation link for the 
 });
 
 it('mints a confirmation link that is valid for 30 minutes', function (): void {
-    Event::fake();
+    Event::fake([AccountDeletionRequested::class]);
     $this->freezeTime();
     $user = User::factory()->create();
 

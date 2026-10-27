@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\RtfReader;
+use Illuminate\Support\Facades\File;
 
 /**
  * The built-in RTF reader: files are written here as RTF strings, one case
@@ -14,7 +15,7 @@ function rtfrRead(string $rtf): string
     try {
         return new RtfReader()->toMarkdown($path);
     } finally {
-        @unlink($path);
+        File::delete($path);
     }
 }
 

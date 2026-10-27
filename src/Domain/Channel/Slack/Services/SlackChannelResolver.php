@@ -61,6 +61,6 @@ class SlackChannelResolver extends ChannelConversationResolver
      */
     protected function createMapping(array $attributes): Model
     {
-        return SlackChannel::create($attributes);
+        return SlackChannel::query()->create($attributes);
     }
 }

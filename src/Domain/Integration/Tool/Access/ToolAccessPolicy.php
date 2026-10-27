@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Domain\Integration\Tool\Access;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolAccessDecision;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * The single dispatch-time governance gate for a tool call. It composes the

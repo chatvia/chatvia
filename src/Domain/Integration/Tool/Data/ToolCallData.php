@@ -3,6 +3,7 @@
 namespace Domain\Integration\Tool\Data;
 
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * One tool call the LLM asked for, as handed to a dispatcher: which tool, the

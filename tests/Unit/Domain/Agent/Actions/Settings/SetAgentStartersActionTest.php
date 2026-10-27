@@ -24,8 +24,8 @@ it('writes the agent starters as an ordered list and assigns each an id', functi
         new StarterData(null, 'Second?'),
     ]));
 
-    expect(array_column($result, 'text'))->toBe(['First?', 'Second?'])
-        ->and(array_column($result, 'icon'))->toBe(['SparklesIcon', null])
+    expect($result->pluck('text')->all())->toBe(['First?', 'Second?'])
+        ->and($result->pluck('icon')->all())->toBe(['SparklesIcon', null])
         ->and($result[0]->id)->not->toBeEmpty()
         ->and($result[1]->id)->not->toBeEmpty()
         ->and($result[0]->id)->not->toBe($result[1]->id);
@@ -53,6 +53,6 @@ it('reindexes sparse keys, drops blanks, and defaults a missing icon to null', f
         7 => new StarterData(null, 'a'),
     ]));
 
-    expect(array_column($result, 'text'))->toBe(['b', 'a'])
+    expect($result->pluck('text')->all())->toBe(['b', 'a'])
         ->and($result[0]->icon)->toBeNull();
 });

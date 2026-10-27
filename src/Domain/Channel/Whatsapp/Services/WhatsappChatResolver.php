@@ -44,6 +44,6 @@ class WhatsappChatResolver extends ChannelConversationResolver
      */
     protected function createMapping(array $attributes): Model
     {
-        return WhatsappChat::create($attributes);
+        return WhatsappChat::query()->create($attributes);
     }
 }

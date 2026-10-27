@@ -4,8 +4,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpServerLookup;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 

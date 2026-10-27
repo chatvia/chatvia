@@ -34,7 +34,7 @@ class StoreUserMessageAction
             $session = $this->chatLog->session($agent, $turn->external_session_id, $turn);
             $conversation = $this->chatLog->conversation($session, $turn->external_conversation_id, $turn->source);
 
-            $message = Message::create($this->attributes($turn, $conversation));
+            $message = Message::query()->create($this->attributes($turn, $conversation));
 
             $this->claimUploadedFiles($conversation, $message);
 

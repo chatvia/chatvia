@@ -37,6 +37,10 @@ class CrawlSourceUrlRequest extends FormRequest
 
     public function toData(): CrawlerData
     {
-        return CrawlerData::from($this->validated());
+        return new CrawlerData(
+            url: $this->string('url')->toString(),
+            include_paths: $this->input('include_paths'),
+            exclude_paths: $this->input('exclude_paths'),
+        );
     }
 }

@@ -16,10 +16,10 @@ use Illuminate\Database\Query\Builder;
  *
  * A daily range counts whole days: it starts at its first day's midnight.
  */
-enum RollupGrain
+enum RollupGrain: string
 {
-    case Hourly;
-    case Daily;
+    case Hourly = 'hourly';
+    case Daily = 'daily';
 
     /** The longest range, in days, still summed from the hourly rollup. */
     public const int MAX_HOURLY_DAYS = 92;

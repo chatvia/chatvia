@@ -2,7 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Spectra\Spectra;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
@@ -25,7 +25,7 @@ it('tags its calls as tool routing in Spectra', function (): void {
             return parent::embedQuery($text, $returnAsText);
         }
     };
-    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
+    app()->instance(EmbeddingsProvider::class, $embeddings);
 
     app(SemanticToolRouter::class)->route('refund this customer', Agent::factory()->create());
 

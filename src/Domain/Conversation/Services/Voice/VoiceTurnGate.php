@@ -9,10 +9,10 @@ use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\VoiceCallRefusal;
 use Domain\Conversation\Services\AgentChatRateLimiter;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 
 /**
- * The per-turn checks of a typed turn ({@see ChatStreamService}), for a voice
+ * The per-turn checks of a typed turn ({@see ChatTurnStreamer}), for a voice
  * call: a deactivated workspace ({@see WorkspaceActivation}), the workspace's
  * monthly message limit, the chatter's own limit, and the agent's
  * messages-per-minute cap. Run when a call starts and before every spoken

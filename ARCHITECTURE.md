@@ -102,7 +102,7 @@ locators there; use constructor injection instead.
 
 | Test | What it checks |
 |---|---|
-| `tests/Architecture/ConventionsTest.php` | Domain does not use `Illuminate\Http\Request` (except the two bridges); Domain uses App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App (these read the code, not comments, so a fully-qualified name counts); Actions (in every layer, the admin panel's too) use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions, on one line or split over several, go through `WidgetVerification` (an allowlist names the others and why each is safe); form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is passed to `Event::listen()`/`Event::subscribe()` in a service provider; every test file starts with a docblock, and tests use `it()`, never `test('…')`. |
+| `tests/Architecture/ConventionsTest.php` | Domain does not use `Illuminate\Http\Request` (except the two bridges); Domain uses App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App (these read the code, not comments, so a fully-qualified name counts); Actions (in every layer, the admin panel's too) use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions, on one line or split over several, go through `WidgetVerification` (an allowlist names the others and why each is safe); form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is passed to `Event::listen()`/`Event::subscribe()` in a service provider; every test file starts with a docblock, and tests use `it()`, never `test('…')`; plain PHP file, process, time, number and string calls are refused outside short allowlists; `array_map`/`array_filter`/`array_column` and `json_*` calls without `JSON_THROW_ON_ERROR` are pinned by shrink-only baselines in `tests/Architecture/baselines/` (rewrite with `CONVENTIONS_BASELINE_WRITE=1`). |
 | `tests/Architecture/ActionsHaveTestsTest.php` | Every Action is named in the code of a test file (not a comment or a `use` line, not a helper in `tests/Pest.php` or `tests/Support/`), or is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/ClassesHaveDocblocksTest.php` | Every class, interface, trait and enum under `src/` has a docblock with at least one sentence of prose, or its file is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/FrontendConventionsTest.php` | Frontend rules: no `hsl(var(--x))`, no third-party icon CDN or Google Fonts, no `console.log`, `safeStorage` on the boot and hosted-chat paths, one shared Echo connection, `AlertDialog` for delete confirmations. |
@@ -164,7 +164,7 @@ limited account (no row means no limit):
   (**Chatters** → a chatter → **Limits**).
 
 `MessageAllowance::canSend()` is the per-turn check (cached per account and
-month). `ChatStreamService` ends a refused turn with the SSE error
+month). `ChatTurnStreamer` ends a refused turn with the SSE error
 `message_limit_reached` or `chatter_message_limit_reached`;
 `ChannelReplyRunner` replies with a short "unavailable" message; an eval run
 does not start, and a running one skips its remaining cases.
@@ -181,7 +181,7 @@ signed out, and its agents stop answering. `WorkspaceActivation::isActive()` is
 the check (cached per workspace; Deactivate and Reactivate drop it). The hosted
 chat shows the "agent not found" page, the widget and Command Bar do not appear
 (their settings report both off) and their chat calls get a 404
-`widget_disabled`. `ChatStreamService` ends the turn with an error,
+`widget_disabled`. `ChatTurnStreamer` ends the turn with an error,
 `ChannelAccessGate` and `ChannelReplyRunner` reply with a short "unavailable"
 message, and `VoiceTurnGate` refuses a new call and ends an open one at the
 visitor's next turn.
@@ -220,7 +220,7 @@ guard (chatters). Staff who open a chat from the dashboard sign in on the
 the viewer the default, and `HostedChatViewer` reads, signs in and signs out
 the viewer. Chat code uses the default guard, never `guard('web')`. Sign-ins that happen outside `/chat`
 (magic links with two-factor, invitations, dashboard previews) reach the chat
-with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokenService`). An
+with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokens`). An
 agent's custom domain redirects to its chat (`RedirectCustomDomainToChat`).
 
 ### `App\Mcp`: built-in MCP servers
@@ -294,10 +294,10 @@ for every surface, and keeps the chat log.
 
 - **Models**: `Conversation`, `Message`, `Session`, `Attachment`,
   `ToolApprovalCheckpoint`, `AgentActivity` (the tool-call audit row).
-- **`Services\ChatStreamService`**: decides how a web turn is answered
+- **`Services\ChatTurnStreamer`**: decides how a web turn is answered
   (replay, human handoff, the send gate, then guardrail refusal, Q&A match,
   PDF chat or the LLM) and yields the events.
-- **`Services\ChatService` and `Services\Turn\`**: prepare a turn the same way
+- **`Services\ChatTurnPreparer` and `Services\Turn\`**: prepare a turn the same way
   on every surface: `TurnContextFactory`, `KnowledgeEnricher`,
   `SystemPromptBuilder`, then `AssistantReplyRecorder` at the end.
   `Services\ChatContext` is the working state of one turn while it streams.
@@ -426,7 +426,7 @@ Nothing outside an adapter branches on the kind; adding a provider is an enum
 case and an adapter class. Every call goes to its model's provider:
 `LlmProviders::for($model)` asks the adapter for the client (`Scaleway`,
 `Mistral`, `OpenRouter`, `OpenAi`, or `OpenAiCompatible`; all implement
-`LlmProviderInterface`). Model facts come from the models.dev catalog
+`ChatCompletionProvider`). Model facts come from the models.dev catalog
 (`ModelsDevCatalog`: fetched when it changed, at most daily, never during a
 chat): each added model keeps its entry in `llms.capabilities` (whether it
 reasons, its `reasoning_options` effort values, whether it takes a
@@ -703,7 +703,7 @@ public function store(CreateAgentRequest $request, CreateAgentAction $createAgen
 A pure `index` or `show` that only queries and renders does not need an
 Action. Keep the query in the controller, or in a query class or Eloquent
 query builder. Add an Action only when the read has real logic worth testing
-on its own (for example `GetDashboardStatsAction`).
+on its own (for example `DashboardStatsQuery`).
 
 ### Jobs
 
@@ -745,8 +745,8 @@ A chat answer does not fit the normal flow, because it streams.
 ```
 Hosted chat / widget stream controller
   → StreamRequestDataFactory   (HTTP request → StreamRequestData)
-  → ChatStreamService::stream()  (replay? handoff? send gate? rate limit?)
-      → ChatService             (TurnContextFactory → KnowledgeEnricher → SystemPromptBuilder)
+  → ChatTurnStreamer::stream()  (replay? handoff? send gate? rate limit?)
+      → ChatTurnPreparer             (TurnContextFactory → KnowledgeEnricher → SystemPromptBuilder)
       → a Streaming source       (GuardBlock | Qa | Pdf | Llm)
           → ToolLoopRunner      (stream, run allowed tool calls, repeat)
       → AssistantReplyRecorder  (memory, chat log, AssistantReplyCompleted → message limit)
@@ -999,7 +999,7 @@ Use these words in code, UI and docs. Do not invent synonyms.
 | Working state of one turn while it streams | **ChatContext** | `Domain\Conversation\Services\ChatContext` |
 | The live chat history in the cache | **Chat memory** | `Domain\Conversation\Services\Memory\ChatMemory` |
 | Hosted-chat visitor session for the current request | **HostedChatSession** | `App\Http\Chat\HostedChatSession` |
-| Widget sign-in credential for a protected agent | **Widget session token** | `WidgetAuthSessionService`, sent as `X-AUTH-TOKEN` (not related to `Session`) |
+| Widget sign-in credential for a protected agent | **Widget session token** | `WidgetAuthSessions`, sent as `X-AUTH-TOKEN` (not related to `Session`) |
 | Chatter's access to an agent | **AgentMembership** | the `agent_chatter` pivot (`GrantAgentMembershipAction`) |
 | Teammate's role in a team | **TeamMembership** | the `team_user` pivot with `role_id` |
 | A group of agents and teammates | **Team** | `Domain\Membership\Team\Models\Team` |
@@ -1033,8 +1033,8 @@ unless a row names another page, its setting is on **Settings → AI models**.
 
 | Step | Contract | Drivers | Config key (admin setting) |
 |---|---|---|---|
-| Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `anthropic`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; tasks `chatvia.agent.default_model`, `chatvia.ai.tasks.*` |
-| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina`, `voyage` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
+| Chat answers | `ChatCompletionProvider`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `anthropic`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; tasks `chatvia.agent.default_model`, `chatvia.ai.tasks.*` |
+| Embeddings | `EmbeddingsProvider` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina`, `voyage` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `openrouter`, `cohere`, `custom` (a self-hosted `/rerank` server), `none` (a basic similarity check instead) | `chatvia.ai.reranker`, `chatvia.ai.rerank.*` |
 | Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |
 | Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Splitting) |

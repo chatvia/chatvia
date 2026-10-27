@@ -8,7 +8,7 @@ use App\Http\Requests\Chat\Tools\ResolveToolApprovalRequest;
 use App\Http\Responses\SseResponder;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Turn\RunningTurns;
 use Generator;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 readonly class ResolveToolApprovalController
 {
     public function __construct(
-        private ChatStreamService $chatStreamService,
+        private ChatTurnStreamer $chatTurnStreamer,
         private HostedChatSession $session,
         private SseResponder $sse,
         private RunningTurns $runningTurns,
@@ -45,7 +45,7 @@ readonly class ResolveToolApprovalController
 
         return $this->sse->respondUntilFinished($this->runningTurns->track(
             $approval->conversation_external_id,
-            fn (): Generator => $this->chatStreamService->resume($approval, $request->toData()),
+            fn (): Generator => $this->chatTurnStreamer->resume($approval, $request->toData()),
         ));
     }
 }

@@ -30,7 +30,7 @@ class RecordSecurityEventAction
     {
         [$metadata, $preview, $truncated] = $this->redactAndCap($event->metadata);
 
-        return SecurityAuditLog::create([
+        return SecurityAuditLog::query()->create([
             'workspace_id' => $event->workspaceId,
             'user_id' => $event->userId,
             'user_name' => $event->userName,

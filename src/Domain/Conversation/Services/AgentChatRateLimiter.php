@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\RateLimiter;
  * for everyone else.
  *
  * Shared by every chat surface so the cap applies uniformly regardless of where
- * a message arrives: the web SSE stream ({@see ChatStreamService}) and the
+ * a message arrives: the web SSE stream ({@see ChatTurnStreamer}) and the
  * messaging channels ({@see ChannelReplyRunner} —
  * Telegram, Slack, Messenger, WhatsApp, Instagram, Teams).
  *

@@ -27,7 +27,7 @@ class QueueStaleAgentPurgesAction
     {
         $queued = 0;
 
-        Agent::onlyTrashed()
+        Agent::query()->onlyTrashed()
             ->where('deleted_at', '<', now()->subHours(self::STALE_AFTER_HOURS))
             ->select('id')
             ->chunkById(500, function (Collection $agents) use (&$queued): void {

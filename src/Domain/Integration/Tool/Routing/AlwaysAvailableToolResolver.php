@@ -3,7 +3,7 @@
 namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 
 /**
  * The tools an agent ships on EVERY turn regardless of what the relevance
@@ -19,8 +19,8 @@ use Domain\Integration\Tool\Data\ToolEntry;
 class AlwaysAvailableToolResolver
 {
     /**
-     * @param  array<int, ToolEntry>  $pool  The agent's full tool pool.
-     * @return array<int, ToolEntry>
+     * @param  array<int, ToolEntryData>  $pool  The agent's full tool pool.
+     * @return array<int, ToolEntryData>
      */
     public function resolve(Agent $agent, array $pool): array
     {
@@ -36,7 +36,7 @@ class AlwaysAvailableToolResolver
 
         return array_values(array_filter(
             $pool,
-            static fn (ToolEntry $entry): bool => $entry->isFromAnyServer($slugs),
+            static fn (ToolEntryData $entry): bool => $entry->isFromAnyServer($slugs),
         ));
     }
 }

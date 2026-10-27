@@ -32,7 +32,7 @@ class CreateAgentTopicAction
         }
 
         return DB::transaction(function () use ($agent, $data): Topic {
-            $newTopic = Topic::create([
+            $newTopic = Topic::query()->create([
                 'workspace_id' => $agent->workspace_id,
                 'topic' => $data->topic,
                 'description' => $data->description,

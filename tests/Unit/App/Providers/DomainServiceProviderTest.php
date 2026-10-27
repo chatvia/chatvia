@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Knowledge\Embedding\Cohere;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
@@ -37,7 +37,7 @@ use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
  */
 beforeEach(function (): void {
     // TestCase pins offline fakes; these tests check the real bindings.
-    app()->forgetInstance(EmbeddingsProviderInterface::class);
+    app()->forgetInstance(EmbeddingsProvider::class);
     app()->forgetInstance(Reranker::class);
 
     config([
@@ -68,7 +68,7 @@ it('keeps the hosted services when their keys are set, as in production', functi
         ->and(app(DocumentParser::class)->name())->toBe(config('services.mistral.ocr_model'))
         ->and(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class)
         ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class)
-        ->and(app(EmbeddingsProviderInterface::class)->provider())->toBeInstanceOf(Qwen3::class);
+        ->and(app(EmbeddingsProvider::class)->provider())->toBeInstanceOf(Qwen3::class);
 });
 
 it('reads documents with Azure when only Azure is connected', function (): void {
@@ -162,7 +162,7 @@ it('fails fast when the embedding provider cannot return the size the database s
         'chatvia.embeddings.dimensions' => $stored,
     ]);
 
-    expect(fn (): EmbeddingsProviderInterface => app(EmbeddingsProviderInterface::class))
+    expect(fn (): EmbeddingsProvider => app(EmbeddingsProvider::class))
         ->toThrow(EmbeddingDimensionsMismatchException::class, "returns 1024 dimensions, but the database stores {$stored}");
 })->with([
     'mistral is fixed at 1024' => ['mistral', 1536],
@@ -180,7 +180,7 @@ it('asks the embedding provider for the size the database stores', function (str
         'chatvia.embeddings.dimensions' => $stored,
     ]);
 
-    $embeddings = app(EmbeddingsProviderInterface::class);
+    $embeddings = app(EmbeddingsProvider::class);
 
     expect($embeddings->provider())->toBeInstanceOf($class)
         ->and($embeddings->getDimensions())->toBe($stored);
@@ -198,7 +198,7 @@ it('asks the embedding provider for the size the database stores', function (str
 it('embeds nothing until the admin picks an embedding service', function (?string $provider): void {
     config(['chatvia.ai.models.embedding' => $provider]);
 
-    $embeddings = app(EmbeddingsProviderInterface::class);
+    $embeddings = app(EmbeddingsProvider::class);
 
     expect($embeddings)->toBeInstanceOf(UnconfiguredEmbeddings::class)
         ->and($embeddings->getDimensions())->toBe((int) config('chatvia.embeddings.dimensions'))

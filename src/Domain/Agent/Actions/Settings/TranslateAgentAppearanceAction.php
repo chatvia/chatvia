@@ -6,6 +6,7 @@ use Domain\Agent\Data\Settings\AppearanceTextData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentTextTranslator;
 use Domain\Agent\ValueObjects\TranslatableText;
+use Illuminate\Support\Collection;
 
 /**
  * Persists the agent's three base appearance strings and (re)generates their
@@ -20,9 +21,9 @@ class TranslateAgentAppearanceAction
     ) {}
 
     /**
-     * @return array<string, array<string, string>> field => (locale => translation)
+     * @return Collection<string, non-empty-array<string, string>> field => (locale => translation)
      */
-    public function execute(Agent $agent, AppearanceTextData $data): array
+    public function execute(Agent $agent, AppearanceTextData $data): Collection
     {
         $current = $agent->settings('appearance');
         $existing = (array) ($current->get('text_translations') ?? []);
@@ -48,7 +49,7 @@ class TranslateAgentAppearanceAction
         if ($copies === []) {
             $agent->setSetting('text_translations', [], 'appearance');
 
-            return [];
+            return collect();
         }
 
         // Skip the LLM round-trip only when the base text is identical AND we
@@ -58,15 +59,14 @@ class TranslateAgentAppearanceAction
         $locales = array_keys($agent->enabledLanguages());
 
         if ($unchanged && $existing !== [] && array_all($copies, static fn (TranslatableText $copy): bool => $copy->isTranslatedInto($locales))) {
-            return $existing;
+            return collect($existing);
         }
 
-        $translations = array_filter(array_map(
-            static fn (TranslatableText $copy): array => $copy->translations,
-            $this->translator->translate($agent, $copies),
-        ));
+        $translations = collect($this->translator->translate($agent, $copies))
+            ->map(static fn (TranslatableText $copy): array => $copy->translations)
+            ->filter();
 
-        $agent->setSetting('text_translations', $translations, 'appearance');
+        $agent->setSetting('text_translations', $translations->all(), 'appearance');
 
         return $translations;
     }

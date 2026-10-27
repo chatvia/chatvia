@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Mcp\Services;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Domain\Integration\Mcp\Data\ResolvedMcpTool;
+use Domain\Integration\Mcp\Data\ResolvedMcpToolData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 use Domain\Integration\Tool\Dispatch\ToolArgumentValidator;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
 use Domain\Integration\Tool\Exceptions\InvalidToolArgumentsException;
@@ -34,7 +35,7 @@ use Throwable;
  * offer now (a capability without a license key) is refused before any
  * request is sent; the chat withholds those tools, this is the backstop.
  */
-class McpToolDispatcher implements ToolDispatcherInterface
+class McpToolDispatcher implements ToolDispatcher
 {
     public function __construct(
         private readonly McpClient $client,
@@ -44,7 +45,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         private readonly ToolArgumentValidator $validator = new ToolArgumentValidator,
     ) {}
 
-    public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
+    public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResultData
     {
         if (! $call->name->hasServerAndTool()) {
             return $this->error("Tool \"{$call->name->value}\" is not a recognized MCP tool.");
@@ -96,18 +97,19 @@ class McpToolDispatcher implements ToolDispatcherInterface
      *
      * @param  array<string, mixed>  $arguments
      */
-    private function invoke(Agent $agent, ToolCallData $call, AgentMcpServer $server, ?ResolvedMcpTool $catalogEntry, array $arguments): ToolDispatchResult
+    private function invoke(Agent $agent, ToolCallData $call, AgentMcpServer $server, ?ResolvedMcpToolData $catalogEntry, array $arguments): ToolDispatchResultData
     {
         $toolName = $call->name->tool;
-        $start = microtime(true);
 
         try {
+            $started = CarbonImmutable::now();
             $result = $this->client->callTool(
                 $server,
                 $toolName,
                 $arguments,
                 ToolCallerIdentity::headers($agent, $call->conversationExternalId, $call->chatterExternalId),
             );
+            $elapsedMs = $started->diffInMilliseconds(absolute: true);
 
             $this->record($server, $agent, $toolName, $catalogEntry?->description, error: null);
 
@@ -115,7 +117,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
                 'server' => $server->slug,
                 'tool' => $toolName,
                 'arg_keys' => array_keys($arguments),
-                'latency_ms' => (int) round((microtime(true) - $start) * 1000),
+                'latency_ms' => (int) round($elapsedMs),
             ]);
 
             // A failure the tool reports itself reads like this dispatcher's
@@ -176,9 +178,9 @@ class McpToolDispatcher implements ToolDispatcherInterface
         return is_array($decoded) ? $decoded : null;
     }
 
-    private function error(string $message): ToolDispatchResult
+    private function error(string $message): ToolDispatchResultData
     {
-        return ToolDispatchResult::error('Tool error: '.$message);
+        return ToolDispatchResultData::error('Tool error: '.$message);
     }
 
     /**

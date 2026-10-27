@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Tool\Actions\Embedding\EmbedAgentFunctionAction;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Illuminate\Support\Facades\Log;
 use Tests\Support\Integration\Tool\ToolVectors;
 
@@ -38,9 +38,9 @@ it('writes the dense and sparse vectors for a function', function (): void {
 
 it('leaves the row unembedded and logs when the embedder fails', function (): void {
     $function = eafFunction();
-    $failing = Mockery::mock(EmbeddingsProviderInterface::class);
+    $failing = Mockery::mock(EmbeddingsProvider::class);
     $failing->shouldReceive('embed')->andThrow(new RuntimeException('embedder down'));
-    app()->instance(EmbeddingsProviderInterface::class, $failing);
+    app()->instance(EmbeddingsProvider::class, $failing);
     Log::spy();
 
     app(EmbedAgentFunctionAction::class)->execute($function->id);

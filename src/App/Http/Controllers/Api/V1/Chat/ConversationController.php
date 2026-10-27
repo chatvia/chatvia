@@ -10,10 +10,10 @@ use App\Http\Resources\Api\V1\Conversation\ConversationDetailData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\CreateApiConversationAction;
-use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
 use Domain\Conversation\Data\Conversations\ConversationSummaryData;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Queries\AgentConversationsQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -37,9 +37,9 @@ class ConversationController
      *
      * @return array{data: list<ConversationSummaryData>, next_cursor: string|null}
      */
-    public function index(CursorPageRequest $request, Agent $agent, ListAgentConversationsAction $list): array
+    public function index(CursorPageRequest $request, Agent $agent, AgentConversationsQuery $list): array
     {
-        $page = $list->execute(
+        $page = $list->get(
             agent: $agent,
             perPage: $request->perPage(),
             cursor: $request->cursor(),

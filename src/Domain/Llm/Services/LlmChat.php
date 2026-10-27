@@ -2,7 +2,7 @@
 
 namespace Domain\Llm\Services;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Enums\LlmFailure;
@@ -16,7 +16,7 @@ use Throwable;
  * Sends one non-streaming chat completion and returns a typed reply. Callers
  * build a {@see ChatRequestData} and read a {@see ChatResponseData}; only this
  * class touches the provider's wire format. It works with any
- * {@see LlmProviderInterface}, so the provider's own payload rules and token
+ * {@see ChatCompletionProvider}, so the provider's own payload rules and token
  * usage tracking still apply. The call carries the request's tag in
  * Spectra ({@see AiCallTags}).
  *
@@ -33,10 +33,10 @@ final readonly class LlmChat
     public function __construct(
         private LlmProviders $providers,
         private AiCallTags $tags,
-        private ?LlmProviderInterface $provider = null,
+        private ?ChatCompletionProvider $provider = null,
     ) {}
 
-    public function using(LlmProviderInterface $provider): self
+    public function using(ChatCompletionProvider $provider): self
     {
         return new self($this->providers, $this->tags, $provider);
     }
@@ -83,7 +83,7 @@ final readonly class LlmChat
      */
     private function reportRefusal(ChatRequestData $request, Throwable $e): void
     {
-        if (! $this->provider instanceof LlmProviderInterface && LlmFailure::of($e) === LlmFailure::ModelUnavailable) {
+        if (! $this->provider instanceof ChatCompletionProvider && LlmFailure::of($e) === LlmFailure::ModelUnavailable) {
             LlmCallRefused::dispatch($request->model->id);
         }
     }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Setup;
 
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
@@ -17,13 +17,13 @@ use Inertia\Response;
  */
 class AgentDeployController
 {
-    public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService): Response
+    public function __invoke(Request $request, Agent $agent, ChatterAuthTokens $authTokens): Response
     {
         return Inertia::render('agents/Deploy', [
             'agent' => AgentResourceData::fromModel($agent),
             // Private agents embed with a server-minted JWT — the snippets show a
             // `data-auth` placeholder and a "make it public" nudge.
-            'authToken' => $agent->is_public ? null : $authTokenService->generateToken($agent, $request->user()),
+            'authToken' => $agent->is_public ? null : $authTokens->generateToken($agent, $request->user()),
             'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),
             // The Widget/Bar snippets reflect the surface's configured behaviour
             // (theme/language, trigger/placement) so the copied code matches Setup.

@@ -13,6 +13,8 @@ use App\Admin\Status\Data\ServiceStatusData;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Benchmark;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -93,9 +95,8 @@ final readonly class ServiceChecks
 
     private function database(): ServiceStatusData
     {
-        $started = hrtime(true);
-        $version = (string) DB::scalar('show server_version');
-        $time = $this->millisecondsSince($started);
+        [$version, $elapsed] = Benchmark::value(fn (): string => (string) DB::scalar('show server_version'));
+        $time = $this->wholeMilliseconds($elapsed);
 
         /** @var array<string, string> $installed name => version */
         $installed = DB::table('pg_extension')->pluck('extversion', 'extname')->all();
@@ -140,9 +141,7 @@ final readonly class ServiceChecks
     {
         $redis = Redis::connection();
 
-        $started = hrtime(true);
-        $redis->command('ping');
-        $time = $this->millisecondsSince($started);
+        $time = $this->wholeMilliseconds(Benchmark::measure(fn (): mixed => $redis->command('ping')));
 
         // phpredis returns one flat list, Predis one list per section.
         $info = (array) $redis->command('info');
@@ -258,12 +257,11 @@ final readonly class ServiceChecks
         $addressCheck = fn (CheckMark $mark): ServiceCheckData => new ServiceCheckData(__('Address'), Str::after($address, '://'), $mark);
 
         try {
-            $started = hrtime(true);
-            $response = Http::withOptions((array) ($config['client_options'] ?? []))
+            [$response, $elapsed] = Benchmark::value(fn (): Response => Http::withOptions((array) ($config['client_options'] ?? []))
                 ->timeout(self::TIMEOUT_SECONDS)
                 ->connectTimeout(self::TIMEOUT_SECONDS)
-                ->get($address.$path, Pusher::build_auth_query_params((string) $config['key'], (string) $config['secret'], 'GET', $path));
-            $time = $this->millisecondsSince($started);
+                ->get($address.$path, Pusher::build_auth_query_params((string) $config['key'], (string) $config['secret'], 'GET', $path)));
+            $time = $this->wholeMilliseconds($elapsed);
         } catch (ConnectionException) {
             return new ServiceStatusData(ServiceState::Down, __('Reverb does not answer.'), checks: [
                 $addressCheck(CheckMark::Failed),
@@ -500,8 +498,8 @@ final readonly class ServiceChecks
         return new ServiceStatusData(ServiceState::Running, __('Every program is found.'), checks: $checks);
     }
 
-    private function millisecondsSince(int|float $started): int
+    private function wholeMilliseconds(float $milliseconds): int
     {
-        return max(1, (int) round((hrtime(true) - $started) / 1e6));
+        return max(1, (int) round($milliseconds));
     }
 }

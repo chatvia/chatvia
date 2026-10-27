@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
@@ -37,7 +37,7 @@ beforeEach(function (): void {
  */
 function kbAgentWithPages(int $count): Agent
 {
-    app()->instance(EmbeddingsProviderInterface::class, FakeEmbeddingsProvider::constant());
+    app()->instance(EmbeddingsProvider::class, FakeEmbeddingsProvider::constant());
 
     $agent = Agent::factory()->create();
     $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
@@ -57,7 +57,7 @@ it('ranks the agent\'s ingested pages closest in meaning first, the similarity a
     $ribosomes = 'Ribosomes build proteins out of amino acids.';
     $chloroplasts = 'Chloroplasts perform photosynthesis in plant cells.';
 
-    app()->instance(EmbeddingsProviderInterface::class, FakeEmbeddingsProvider::directions([
+    app()->instance(EmbeddingsProvider::class, FakeEmbeddingsProvider::directions([
         $query => [1.0, 0.0, 0.0],
         $mitochondria => [0.9, 0.4359, 0.0],
         $ribosomes => [0.6, 0.0, 0.8],
@@ -86,9 +86,9 @@ it('skips the query embedding when the agent reaches no chunks', function (): vo
     $agent = Agent::factory()->create();
     $agent->files()->attach(AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id])->id);
 
-    $embeddings = Mockery::mock(EmbeddingsProviderInterface::class);
+    $embeddings = Mockery::mock(EmbeddingsProvider::class);
     $embeddings->shouldNotReceive('embedQuery');
-    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
+    app()->instance(EmbeddingsProvider::class, $embeddings);
 
     expect(app(KnowledgeBase::class)->search($agent, 'anything'))->toBe([]);
 });

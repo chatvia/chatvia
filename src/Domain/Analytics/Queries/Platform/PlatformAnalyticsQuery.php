@@ -26,10 +26,14 @@ use Illuminate\Support\Facades\DB;
  */
 abstract class PlatformAnalyticsQuery
 {
+    public function __construct(
+        private readonly AnalyticsDatabase $analyticsDatabase,
+    ) {}
+
     /** The analytics DB connection (may be a separate Postgres database). */
     protected function analytics(): Connection
     {
-        return app(AnalyticsDatabase::class)->connection();
+        return $this->analyticsDatabase->connection();
     }
 
     /**

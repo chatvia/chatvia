@@ -32,7 +32,7 @@ class SaveFormDefinitionAction
             return $existing;
         }
 
-        return FormDefinition::create([
+        return FormDefinition::query()->create([
             ...$attributes,
             'agent_id' => $agent->id,
             'slug' => $this->uniqueSlug($agent, $data->name),

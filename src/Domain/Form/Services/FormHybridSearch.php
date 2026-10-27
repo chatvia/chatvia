@@ -5,7 +5,7 @@ namespace Domain\Form\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Collection;
@@ -39,7 +39,7 @@ class FormHybridSearch
     public const int PROMPT_LIMIT = 8;
 
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly EmbeddingStorage $storage,
         private readonly LexicalSearch $lexical,
     ) {}

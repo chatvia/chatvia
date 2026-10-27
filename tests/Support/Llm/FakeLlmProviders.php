@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Llm;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
 
@@ -15,10 +15,10 @@ use Domain\Llm\Services\LlmProviders;
 class FakeLlmProviders extends LlmProviders
 {
     public function __construct(
-        private readonly LlmProviderInterface $provider,
+        private readonly ChatCompletionProvider $provider,
     ) {}
 
-    public function forProvider(LlmProvider $provider): LlmProviderInterface
+    public function forProvider(LlmProvider $provider): ChatCompletionProvider
     {
         return $this->provider;
     }

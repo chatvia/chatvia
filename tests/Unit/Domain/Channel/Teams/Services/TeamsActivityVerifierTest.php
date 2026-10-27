@@ -63,7 +63,7 @@ function tavJwt(object $testCase, array $overrides = []): string
     $claims = array_merge([
         'iss' => 'https://api.botframework.com',
         'aud' => $testCase->appId,
-        'exp' => time() + 600,
+        'exp' => now()->addMinutes(10)->timestamp,
         'serviceurl' => $testCase->serviceUrl,
     ], $overrides);
 
@@ -89,7 +89,7 @@ it('rejects a token from a different issuer', function (): void {
 });
 
 it('rejects an expired token', function (): void {
-    $jwt = tavJwt($this, ['exp' => time() - 1000]); // beyond the 300 s leeway
+    $jwt = tavJwt($this, ['exp' => now()->subSeconds(1000)->timestamp]); // beyond the 300 s leeway
 
     expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", $this->appId))->toBeNull();
 });
@@ -112,7 +112,7 @@ it('matches a service URL whether or not either side ends in a slash', function 
 ]);
 
 it('refuses a token without a serviceurl claim, which every connector token carries', function (): void {
-    $claims = ['iss' => 'https://api.botframework.com', 'aud' => $this->appId, 'exp' => time() + 600];
+    $claims = ['iss' => 'https://api.botframework.com', 'aud' => $this->appId, 'exp' => now()->addMinutes(10)->timestamp];
     $jwt = JWT::encode($claims, $this->privatePem, 'RS256', 'test-kid');
 
     $verifier = new TeamsActivityVerifier;
@@ -157,7 +157,7 @@ it('rejects a forged token signed with a different key', function (): void {
     $jwt = JWT::encode([
         'iss' => 'https://api.botframework.com',
         'aud' => $this->appId,
-        'exp' => time() + 600,
+        'exp' => now()->addMinutes(10)->timestamp,
     ], $foreignPem, 'RS256', 'test-kid');
 
     expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", $this->appId))->toBeNull();
@@ -180,7 +180,7 @@ it('restores the global JWT leeway after verifying, so other JWT checks in the w
         $verifier = new TeamsActivityVerifier;
 
         // Within the 300 s Teams skew window: accepted.
-        expect($verifier->verify('Bearer '.tavJwt($this, ['exp' => time() - 60]), $this->appId))->not->toBeNull()
+        expect($verifier->verify('Bearer '.tavJwt($this, ['exp' => now()->subMinute()->timestamp]), $this->appId))->not->toBeNull()
             ->and(JWT::$leeway)->toBe(0);
 
         // A failed decode must restore it too.

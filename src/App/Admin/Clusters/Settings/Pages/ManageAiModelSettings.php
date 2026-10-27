@@ -1248,8 +1248,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $shared = $this->catalogName($this->valueInUse('task_model'));
         $own = count(array_filter(LlmTaskText::listedTasks(), fn (LlmTask $task): bool => filled($this->valueInUse($task->settingsProperty()))));
 
-        return ($shared ?? 'The default model').' for every task'
-            .($own === 0 ? '' : ' · '.$own.' '.Str::plural('task', $own).' with '.($own === 1 ? 'its' : 'their').' own model');
+        $summary = ($shared ?? 'The default model').' for every task';
+
+        if ($own === 0) {
+            return $summary;
+        }
+
+        $possessive = $own === 1 ? 'its' : 'their';
+
+        return "{$summary} · {$own} ".Str::plural('task', $own)." with {$possessive} own model";
     }
 
     /**
@@ -1307,9 +1314,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         $changed ??= fn (string $value): bool => $value !== $this->driverInUse($property);
         $marked = collect($options)
-            ->map(fn (string $name, string $value): string => ($provider = AiProvider::tryFrom($value)) instanceof AiProvider
-                ? $name.($provider->isConnected() ? ' (connected)' : ' (not connected)')
-                : $name)
+            ->map(function (string $name, string $value): string {
+                $provider = AiProvider::tryFrom($value);
+
+                if (! $provider instanceof AiProvider) {
+                    return $name;
+                }
+
+                return $name.($provider->isConnected() ? ' (connected)' : ' (not connected)');
+            })
             ->all();
 
         return $this->choice($property, $label, $marked, help: $help)

@@ -140,5 +140,5 @@ it('signs out a deactivated account instead of completing the flow', function ()
         ->get(route('connectors.oauth.callback', ['state' => 'valid-state', 'code' => 'auth-code']))
         ->assertRedirect(route('login'));
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 });

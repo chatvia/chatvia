@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Routing\ToolRelevanceGate;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
@@ -15,9 +15,9 @@ use Domain\Knowledge\Embedding\Rerank\NullReranker;
  * working reranker, those close enough by vector similarity. The reranker is
  * mocked so each test pins an exact score distribution and asserts what ships.
  */
-function relevanceGateEntry(string $name, string $description = '', bool $mutates = true): ToolEntry
+function relevanceGateEntry(string $name, string $description = '', bool $mutates = true): ToolEntryData
 {
-    return new ToolEntry(
+    return new ToolEntryData(
         kind: ToolKind::Function,
         sourceId: 'function:'.$name,
         name: $name,
@@ -204,7 +204,7 @@ it('only reranks up to the configured candidate cap', function (): void {
     $kept = relevanceGateWith($reranker)->gate('anything', $candidates);
 
     expect($kept)->toHaveCount(2)
-        ->and(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['tool_a', 'tool_b']);
+        ->and(array_map(static fn (ToolEntryData $e): string => $e->name, $kept))->toBe(['tool_a', 'tool_b']);
 });
 
 it('falls back to the similarity check when the reranker fails', function (): void {
@@ -224,7 +224,7 @@ it('falls back to the similarity check when the reranker fails', function (): vo
     ]);
 
     // The write misses its stricter bar; the unrelated read misses the read bar.
-    expect(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['get_charge']);
+    expect(array_map(static fn (ToolEntryData $e): string => $e->name, $kept))->toBe(['get_charge']);
 });
 
 it('gates by similarity without a reranker, with the embedding model\'s bars', function (): void {
@@ -237,7 +237,7 @@ it('gates by similarity without a reranker, with the embedding model\'s bars', f
 
     $kept = relevanceGateWith(new NullReranker)->gate('Hi', [$near, $far], [$near->sourceId => 0.9, $far->sourceId => 0.01]);
 
-    expect(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['get_weather']);
+    expect(array_map(static fn (ToolEntryData $e): string => $e->name, $kept))->toBe(['get_weather']);
 });
 
 it('passes the pool ungated when the embedding model was never measured', function (): void {

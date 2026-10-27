@@ -19,10 +19,10 @@ use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Conversation\Services\Turn\CitationMarkers;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\AbstractLlmProvider;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\LlmFailure;
 use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Events\LlmCallRefused;
@@ -55,12 +55,13 @@ abstract class ToolLoopSource
         protected readonly RequestDedupeStore $dedupe,
         protected readonly ToolSelector $toolSelector,
         protected readonly ToolLoopRunner $runner,
-        protected readonly GuardrailService $guardrails,
+        protected readonly GuardrailInspector $guardrails,
         protected readonly GuardrailRecorder $guardrailRecorder,
+        private readonly CitationMarkers $citations,
     ) {}
 
     /** The provider the tool loop streams this turn's completion from. */
-    abstract protected function provider(ChatContext $context): LlmProviderInterface;
+    abstract protected function provider(ChatContext $context): ChatCompletionProvider;
 
     /** The provider-side model name for this turn. */
     abstract protected function modelName(ChatContext $context): string;
@@ -324,7 +325,7 @@ abstract class ToolLoopSource
         $corrected = $this->applyOutputGuard($context);
         // Made-up or irregular citation markers are fixed before the answer
         // is stored; the client then swaps in the fixed text too.
-        $corrected = $this->citations()->clean($context) ?? $corrected;
+        $corrected = $this->citations->clean($context) ?? $corrected;
 
         if ($this->holdsAnswer($context)) {
             if ($context->streamedMessage !== '') {
@@ -482,7 +483,7 @@ abstract class ToolLoopSource
             return;
         }
 
-        $this->citations()->clean($context);
+        $this->citations->clean($context);
         $this->screenSteps($context);
 
         try {
@@ -515,16 +516,6 @@ abstract class ToolLoopSource
         } catch (Throwable $e) {
             report($e);
         }
-    }
-
-    /**
-     * The citation cleaner, resolved when first used: the sources that extend
-     * this class pass the constructor's arguments one by one, so it is not
-     * one of them.
-     */
-    private function citations(): CitationMarkers
-    {
-        return app(CitationMarkers::class);
     }
 
     /**

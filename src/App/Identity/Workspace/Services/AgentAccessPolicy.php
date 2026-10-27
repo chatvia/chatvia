@@ -7,7 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Policies\AgentPolicy;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamAgentAccess;
 use Illuminate\Support\Collection;
 
 /**
@@ -43,7 +43,7 @@ use Illuminate\Support\Collection;
 final readonly class AgentAccessPolicy
 {
     public function __construct(
-        private TeamService $teams,
+        private TeamAgentAccess $agentAccess,
     ) {}
 
     public function canManage(User $user, Agent $agent): bool
@@ -89,7 +89,7 @@ final readonly class AgentAccessPolicy
         $team = $this->teamOf($user);
 
         return $user->isTeammate() && $team instanceof Team
-            ? $this->teams->accessibleAgents($user, $team)->toBase()
+            ? $this->agentAccess->accessibleAgents($user, $team)->toBase()
             : collect();
     }
 
@@ -99,7 +99,7 @@ final readonly class AgentAccessPolicy
 
         return $team instanceof Team
             && $agent->team_id === $team->id
-            && $this->teams->canAccessAgent($user, $team, $agent);
+            && $this->agentAccess->canAccess($user, $team, $agent);
     }
 
     /**

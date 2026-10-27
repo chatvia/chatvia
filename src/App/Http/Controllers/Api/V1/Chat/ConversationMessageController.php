@@ -14,7 +14,7 @@ use Dedoc\Scramble\Attributes\Response as DocResponse;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Conversation\Services\Streaming\StreamedTurnCollector;
 use Support\Pagination\CursorPage;
@@ -82,7 +82,7 @@ class ConversationMessageController
         SendApiMessageRequest $request,
         Agent $agent,
         Conversation $conversation,
-        ChatStreamService $chat,
+        ChatTurnStreamer $chat,
         StreamRequestDataFactory $factory,
         SseResponder $sse,
         StreamedTurnCollector $collector,

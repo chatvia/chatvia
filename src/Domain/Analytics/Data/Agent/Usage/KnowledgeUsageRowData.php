@@ -10,8 +10,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * One knowledge source on the dashboard's source-usage analytics page. Every
  * field — including the denormalised name/mime — comes from the durable
  * analytics rollup, so a DELETED source still shows with its real label; the
- * generic fallback only covers legacy rows recorded before the name column
- * existed.
+ * generic fallback only covers a row recorded without a name.
  */
 #[TypeScript]
 class KnowledgeUsageRowData extends Data

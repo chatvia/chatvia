@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Connector\Catalog\Connectors;
 
-use Domain\Integration\Connector\Catalog\HostsOnChatvia;
+use Domain\Integration\Connector\Catalog\Concerns\HostsOnChatvia;
 use Domain\Integration\Connector\Catalog\TokenConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
 

@@ -19,8 +19,8 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormSubmission;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -46,7 +46,7 @@ it('hard-deletes the user row and its workspace', function (): void {
 it('tears down team memberships, owned teams, and workspace sub-users', function (): void {
     $owner = User::factory()->create();
     // A factory owner has no team yet, so create the default one.
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $role = $team->roles()->firstOrFail();
 
     // The owner is a member of their own team — this team_user row is exactly

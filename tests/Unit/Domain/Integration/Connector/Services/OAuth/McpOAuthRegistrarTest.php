@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
@@ -23,9 +23,9 @@ use Illuminate\Support\Facades\Log;
  * Metadata of an authorization server that supports dynamic client
  * registration (RFC 7591) at `/register`.
  */
-function morDcrMetadata(): OAuthServerMetadata
+function morDcrMetadata(): OAuthServerMetadataData
 {
-    return OAuthServerMetadata::fromArray('https://auth.example.test', [
+    return OAuthServerMetadataData::fromArray('https://auth.example.test', [
         'authorization_endpoint' => 'https://auth.example.test/authorize',
         'token_endpoint' => 'https://auth.example.test/token',
         'registration_endpoint' => 'https://auth.example.test/register',
@@ -117,9 +117,9 @@ it('stores nothing when the registration is rejected or returns no client id', f
  * A server without dynamic registration uses the OAuth app the admin set for
  * the connector (Settings → Connectors), read from config every time.
  */
-function morGoogleMetadata(): OAuthServerMetadata
+function morGoogleMetadata(): OAuthServerMetadataData
 {
-    return OAuthServerMetadata::fromArray('https://accounts.google.com', [
+    return OAuthServerMetadataData::fromArray('https://accounts.google.com', [
         'authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
         'token_endpoint' => 'https://oauth2.googleapis.com/token',
         'code_challenge_methods_supported' => ['S256'],

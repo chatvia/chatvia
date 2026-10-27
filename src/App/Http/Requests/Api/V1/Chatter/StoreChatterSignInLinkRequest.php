@@ -8,7 +8,7 @@ use App\Http\Requests\Concerns\ScopesRulesToWorkspace;
 use App\Http\Rules\WorkspaceRule;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -61,7 +61,7 @@ class StoreChatterSignInLinkRequest extends FormRequest
                 },
             ],
             // How long the link stays valid, in seconds (60–86400). Defaults to one hour.
-            'ttl_seconds' => ['sometimes', 'integer', 'min:60', 'max:'.AgentSignInTokenService::MAX_TTL_SECONDS],
+            'ttl_seconds' => ['sometimes', 'integer', 'min:60', 'max:'.AgentSignInTokens::MAX_TTL_SECONDS],
         ];
     }
 
@@ -104,7 +104,7 @@ class StoreChatterSignInLinkRequest extends FormRequest
 
     public function ttlSeconds(): int
     {
-        return $this->integer('ttl_seconds', AgentSignInTokenService::DEFAULT_TTL_SECONDS);
+        return $this->integer('ttl_seconds', AgentSignInTokens::DEFAULT_TTL_SECONDS);
     }
 
     private function workspaceUser(): User

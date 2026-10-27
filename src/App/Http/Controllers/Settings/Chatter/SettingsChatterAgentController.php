@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Settings\Chatter;
 use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
-use Domain\Membership\Agent\Actions\ListChatterAgentAssignmentAction;
 use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
+use Domain\Membership\Agent\Queries\ChatterAgentAssignmentQuery;
 use Illuminate\Http\Request;
 
 /**
@@ -24,9 +24,9 @@ use Illuminate\Http\Request;
  */
 class SettingsChatterAgentController
 {
-    public function index(Request $request, Chatter $chatter, ListChatterAgentAssignmentAction $list): AgentMembershipAssignmentData
+    public function index(Request $request, Chatter $chatter, ChatterAgentAssignmentQuery $list): AgentMembershipAssignmentData
     {
-        return $list->execute($chatter, $request->user());
+        return $list->get($chatter, $request->user());
     }
 
     public function store(
@@ -34,11 +34,11 @@ class SettingsChatterAgentController
         Chatter $chatter,
         Agent $agent,
         GrantAgentMembershipAction $grant,
-        ListChatterAgentAssignmentAction $list,
+        ChatterAgentAssignmentQuery $list,
     ): AgentMembershipAssignmentData {
         $grant->execute($agent, $chatter);
 
-        return $list->execute($chatter, $request->user());
+        return $list->get($chatter, $request->user());
     }
 
     public function destroy(
@@ -46,10 +46,10 @@ class SettingsChatterAgentController
         Chatter $chatter,
         Agent $agent,
         RevokeAgentMembershipAction $revoke,
-        ListChatterAgentAssignmentAction $list,
+        ChatterAgentAssignmentQuery $list,
     ): AgentMembershipAssignmentData {
         $revoke->execute($agent, $chatter);
 
-        return $list->execute($chatter, $request->user());
+        return $list->get($chatter, $request->user());
     }
 }

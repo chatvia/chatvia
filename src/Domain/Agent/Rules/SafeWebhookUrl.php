@@ -16,7 +16,7 @@ use Support\Http\SafeUrl;
  * dispatchers (HttpToolDispatcher, McpClient) MUST also call SafeUrl::assert()
  * immediately before connecting and disable redirect following.
  */
-class SafeWebhookUrl implements ValidationRule
+final readonly class SafeWebhookUrl implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

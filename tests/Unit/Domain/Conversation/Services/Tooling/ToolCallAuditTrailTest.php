@@ -3,7 +3,7 @@
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Illuminate\Support\Facades\Event;
@@ -31,13 +31,13 @@ function tatCall(string $name, bool $builtin): PendingToolCallData
 beforeEach(fn () => Event::fake([ToolCallCompleted::class]));
 
 it('skips a builtin call', function (): void {
-    new ToolCallAuditTrail()->record(TestChatContext::make(), tatCall('mcp__forms__render_form', builtin: true), ToolCallOutcome::Auto, ToolDispatchResult::text('ok'));
+    new ToolCallAuditTrail()->record(TestChatContext::make(), tatCall('mcp__forms__render_form', builtin: true), ToolCallOutcome::Auto, ToolDispatchResultData::text('ok'));
 
     Event::assertNotDispatched(ToolCallCompleted::class);
 });
 
 it('audits a custom server that took a builtin\'s slug', function (): void {
-    new ToolCallAuditTrail()->record(TestChatContext::make(), tatCall('mcp__forms__wire_money', builtin: false), ToolCallOutcome::Auto, ToolDispatchResult::text('ok'));
+    new ToolCallAuditTrail()->record(TestChatContext::make(), tatCall('mcp__forms__wire_money', builtin: false), ToolCallOutcome::Auto, ToolDispatchResultData::text('ok'));
 
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $event): bool => $event->toolName === 'wire_money'
         && $event->connectorSlug === 'forms');

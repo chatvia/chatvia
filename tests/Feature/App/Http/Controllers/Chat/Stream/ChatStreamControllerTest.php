@@ -14,7 +14,7 @@ use Tests\Support\Llm\ScriptedLlmProvider;
 /**
  * The hosted chat's streaming endpoint over HTTP: a valid POST goes through
  * the `chat` middleware stack (agent resolution, the message-limit gate), the
- * StreamRequestData factory and ChatStreamService, and comes out as an SSE
+ * StreamRequestData factory and ChatTurnStreamer, and comes out as an SSE
  * stream of the turn's events. The streaming engine's own branches are
  * covered by the unit tests of its sources.
  */

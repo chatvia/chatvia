@@ -13,7 +13,7 @@ use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\MessageSource;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
@@ -28,7 +28,7 @@ use Tests\Support\Llm\FakeLlmProviders;
  * workspace's token log land in one transaction; analytics and the
  * conversation title follow the commit.
  */
-function samaAction(LlmProviderInterface $provider): StoreAssistantMessageAction
+function samaAction(ChatCompletionProvider $provider): StoreAssistantMessageAction
 {
     return new StoreAssistantMessageAction(new FakeLlmProviders($provider), app(ChatLogWriter::class));
 }

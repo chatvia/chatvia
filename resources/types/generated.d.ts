@@ -369,7 +369,7 @@ declare namespace Domain {
                         video: number;
                         youtube: number;
                     };
-                    export type SourceFileDataResource = {
+                    export type SourceFileResourceData = {
                         id: number;
                         name: string;
                         type: Domain.Knowledge.Source.File.Enums.KnowledgeFileType;

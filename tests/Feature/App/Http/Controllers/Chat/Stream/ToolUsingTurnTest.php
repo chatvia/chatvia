@@ -21,7 +21,7 @@ use Tests\Support\Llm\ScriptedLlmProvider;
  * Integration coverage for a full tool-using conversation turn through the
  * public SSE endpoint — the seam the ToolLoopRunner unit suite cannot see.
  * One POST to chat.stream drives the real middleware stack, the
- * StreamRequestData factory, ChatService context build, LlmSource envelope,
+ * StreamRequestData factory, ChatTurnPreparer context build, LlmSource envelope,
  * ToolLoopRunner, RoutingToolDispatcher → HttpToolDispatcher (webhook via
  * Http::fake), and — with the queue running sync — the StoreMessageJob /
  * audit-listener persistence that normally happens on Horizon workers.

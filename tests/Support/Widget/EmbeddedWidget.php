@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Support\Widget;
 
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Workspace\Services\WidgetAuthSessionService;
+use App\Identity\Workspace\Data\Sessions\ClientOriginData;
+use App\Identity\Workspace\Services\WidgetAuthSessions;
 use Domain\Agent\Models\Agent;
 use Domain\Widget\WidgetHeaders;
-use Illuminate\Http\Request;
 
 /**
  * Calls the `/widget/*` API the way the embedded widget does on a customer's
@@ -52,10 +52,8 @@ final class EmbeddedWidget
      */
     public static function signedInHeaders(Agent $agent, Chatter $chatter, array $extra = []): array
     {
-        $client = Request::create('/widget', 'POST', server: ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_USER_AGENT' => self::USER_AGENT]);
-
         return self::headers($agent, [
-            WidgetHeaders::AUTH_TOKEN => app(WidgetAuthSessionService::class)->issue($chatter, $agent, $client)['token'],
+            WidgetHeaders::AUTH_TOKEN => app(WidgetAuthSessions::class)->issue($chatter, $agent, new ClientOriginData('127.0.0.1', self::USER_AGENT))['token'],
             'User-Agent' => self::USER_AGENT,
             ...$extra,
         ]);

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Support\Conversation\Tooling;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Contracts\StreamTransformer;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
-use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
 use Domain\Conversation\Services\Tooling\ToolCallFactory;
@@ -15,11 +15,11 @@ use Domain\Conversation\Services\Tooling\ToolResultGuard;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Access\ToolRateLimiter;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
 use Domain\Integration\Tool\Data\ToolDisplayData;
-use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Str;
 
@@ -34,7 +34,7 @@ final class ToolLoop
 {
     public static function runner(
         StreamTransformer $transformer,
-        ToolDispatcherInterface $dispatcher,
+        ToolDispatcher $dispatcher,
         ToolApprovalPolicy $policy,
     ): ToolLoopRunner {
         return new ToolLoopRunner(

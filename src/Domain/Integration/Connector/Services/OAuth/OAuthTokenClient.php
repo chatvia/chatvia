@@ -3,7 +3,7 @@
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\OAuth\OAuthTokenSetData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Domain\Integration\Connector\Enums\OAuthGrant;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
@@ -35,7 +35,7 @@ class OAuthTokenClient
     /**
      * Trade the authorization code from the consent screen for tokens.
      */
-    public function exchangeCode(PendingOAuthState $pending, string $code): OAuthTokenSetData
+    public function exchangeCode(PendingOAuthStateData $pending, string $code): OAuthTokenSetData
     {
         return $this->request(OAuthGrant::AuthorizationCode, $pending->tokenEndpoint, $this->withSecret([
             'grant_type' => OAuthGrant::AuthorizationCode->value,

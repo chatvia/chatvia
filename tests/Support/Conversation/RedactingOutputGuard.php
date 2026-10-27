@@ -10,7 +10,7 @@ use Domain\Guardrail\Data\GuardVerdictData;
 use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Illuminate\Support\Str;
 
 /**
@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
  * given texts comes back with it replaced, as a PII redaction, and any other
  * answer comes back unchanged.
  */
-final class RedactingOutputGuard extends GuardrailService
+final class RedactingOutputGuard extends GuardrailInspector
 {
     /** @param  array<string, string>  $replacements  text => what it is replaced with */
     public function __construct(private readonly array $replacements = [])

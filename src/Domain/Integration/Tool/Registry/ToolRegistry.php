@@ -8,9 +8,9 @@ use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Contracts\AttachableToAgents;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Pool catalog for an agent's tools — the full attached pool (MCP +
- * webhook functions) as `ToolEntry[]`, cached for an hour. Used by the
+ * webhook functions) as `ToolEntryData[]`, cached for an hour. Used by the
  * fallback path in `ToolSelector` (when query embedding fails).
  *
  * Per-turn ranked retrieval is **not** here — see `ToolHybridSearch`,
@@ -30,17 +30,17 @@ class ToolRegistry
     private const int CACHE_TTL = 3600;
 
     /**
-     * The cache holds serialized ToolEntry objects, so the prefix carries a
-     * version: bump it whenever ToolEntry's class name or properties change,
+     * The cache holds serialized ToolEntryData objects, so the prefix carries a
+     * version: bump it whenever ToolEntryData's class name or properties change,
      * or an old cached pool would unserialize into the wrong shape.
      */
-    private const string CACHE_PREFIX = 'agent:tools:v2:';
+    private const string CACHE_PREFIX = 'agent:tools:v3:';
 
     /**
-     * Returns the agent's tool pool as ToolEntry instances. Cached for
+     * Returns the agent's tool pool as ToolEntryData instances. Cached for
      * an hour and invalidated by observers on relevant pivot changes.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     public function for(Agent $agent): array
     {
@@ -88,7 +88,7 @@ class ToolRegistry
     }
 
     /**
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function compile(int $agentId): array
     {
@@ -104,7 +104,7 @@ class ToolRegistry
      * through the `connector_tool_mcp_server` membership). Used by the cache + fallback
      * path; per-turn ranked retrieval goes through `ToolHybridSearch`.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function compileMcpTools(int $agentId): array
     {
@@ -115,7 +115,7 @@ class ToolRegistry
 
         // De-dupe a slug present as both an attached row and a global one.
         return Collection::make($entries)
-            ->unique(fn (ToolEntry $entry): string => $entry->name)
+            ->unique(fn (ToolEntryData $entry): string => $entry->name)
             ->values()
             ->all();
     }
@@ -125,11 +125,11 @@ class ToolRegistry
      * servers AND presets with a workspace-supplied URL (TokenConnector::$requiresUrl /
      * BYO-OAuth), which never share the central catalog.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function compileCustomMcpTools(int $agentId): array
     {
-        // Only what a ToolEntry needs: the embedding and search text are
+        // Only what a ToolEntryData needs: the embedding and search text are
         // large and only the ranked search reads them.
         $tools = McpTool::query()
             ->select(['mcp_tools.id', 'mcp_tools.name', 'mcp_tools.description', 'mcp_tools.input_schema', 'mcp_tools.scope', 'mcp_servers.slug as server_slug'])
@@ -148,7 +148,7 @@ class ToolRegistry
             ->get();
 
         return $tools
-            ->map(fn (McpTool $tool): ToolEntry => new ToolEntry(
+            ->map(fn (McpTool $tool): ToolEntryData => new ToolEntryData(
                 kind: ToolKind::Mcp,
                 sourceId: 'mcp_tool:'.$tool->id,
                 name: ToolName::forMcp((string) $tool->getAttribute('server_slug'), $tool->name)->value,
@@ -166,7 +166,7 @@ class ToolRegistry
      * than relations: one round-trip for the whole pool, without hydrating a
      * model per catalog row and per pivot row.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function compilePresetMcpTools(int $agentId): array
     {
@@ -187,12 +187,12 @@ class ToolRegistry
             ->get();
 
         return $rows
-            ->map(fn (object $row): ToolEntry => new ToolEntry(
+            ->map(fn (object $row): ToolEntryData => new ToolEntryData(
                 kind: ToolKind::Mcp,
                 sourceId: 'connector_tool:'.$row->connector_tool_id,
                 name: ToolName::forMcp((string) $row->server_slug, (string) $row->name)->value,
                 description: (string) $row->description,
-                parameters: ToolEntry::decodeSchema($row->input_schema),
+                parameters: ToolEntryData::decodeSchema($row->input_schema),
                 mutates: $row->scope !== McpToolScope::Read->value,
             ))
             ->all();
@@ -203,11 +203,11 @@ class ToolRegistry
      * `functions.is_enabled` flag covers both server-level and tool-level
      * enable. No second-tier opt-out table needed.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function compileWebhookTools(int $agentId): array
     {
-        // Only what a ToolEntry needs, named per table: a bare `*` would also
+        // Only what a ToolEntryData needs, named per table: a bare `*` would also
         // read the large embedding and search text, and the pivot's own
         // invocation_count and last_invoked_at would overwrite the function's.
         $functions = AgentFunction::query()
@@ -220,13 +220,15 @@ class ToolRegistry
             ->orderBy('functions.internal_name')
             ->get();
 
-        return $functions->map(function (AgentFunction $fn): ToolEntry {
+        return $functions->map(function (AgentFunction $fn): ToolEntryData {
             $schema = $fn->parameters_schema;
-            $parameters = $schema === null
-                ? []
-                : (is_object($schema) && method_exists($schema, 'toArray') ? $schema->toArray() : (array) $schema);
+            $parameters = match (true) {
+                $schema === null => [],
+                is_object($schema) && method_exists($schema, 'toArray') => $schema->toArray(),
+                default => (array) $schema,
+            };
 
-            return new ToolEntry(
+            return new ToolEntryData(
                 kind: ToolKind::Function,
                 sourceId: 'function:'.$fn->id,
                 name: $fn->internal_name,

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Chatter;
 
 use App\Http\Requests\Api\V1\Chatter\StoreChatterSignInLinkRequest;
 use App\Http\Resources\Api\V1\Auth\SignInLinkData;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
@@ -20,7 +20,7 @@ use Illuminate\Http\JsonResponse;
 class ChatterSignInLinkController
 {
     public function __construct(
-        private readonly AgentSignInTokenService $tokens,
+        private readonly AgentSignInTokens $tokens,
     ) {}
 
     /**

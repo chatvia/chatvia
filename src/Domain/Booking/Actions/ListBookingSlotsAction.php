@@ -11,6 +11,7 @@ use Domain\Booking\Services\BookingInstanceMeetingType;
 use Domain\Booking\Services\BookingWindow;
 use Domain\Form\Exceptions\FormNotClaimableException;
 use Domain\Form\Models\FormSubmission;
+use Illuminate\Support\Collection;
 
 /**
  * The free times of a shown calendar for the week the visitor browses to,
@@ -22,12 +23,12 @@ class ListBookingSlotsAction
     public function __construct(private readonly BookingInstanceMeetingType $meetingType) {}
 
     /**
-     * @return list<CarbonImmutable>
+     * @return Collection<int, CarbonImmutable>
      *
      * @throws FormNotClaimableException when the calendar was booked or has expired
      * @throws BookingException
      */
-    public function execute(FormSubmission $instance, CarbonInterface $from, CarbonInterface $to): array
+    public function execute(FormSubmission $instance, CarbonInterface $from, CarbonInterface $to): Collection
     {
         if (! $instance->isPending()) {
             throw FormNotClaimableException::alreadySubmitted();
@@ -40,9 +41,9 @@ class ListBookingSlotsAction
         [$from, $to] = BookingWindow::clamp($from, $to);
 
         if ($to->lessThanOrEqualTo($from)) {
-            return [];
+            return collect();
         }
 
-        return $this->meetingType->schedulerOf($instance)->availableTimes($instance->agent, $this->meetingType->of($instance), $from, $to);
+        return collect($this->meetingType->schedulerOf($instance)->availableTimes($instance->agent, $this->meetingType->of($instance), $from, $to));
     }
 }

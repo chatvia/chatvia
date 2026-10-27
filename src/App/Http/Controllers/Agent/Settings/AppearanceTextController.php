@@ -24,7 +24,7 @@ class AppearanceTextController
         $overrides = (array) ($agent->settings('appearance')->get('text_overrides') ?? []);
 
         return response()->json([
-            'translations' => $translations === [] ? (object) [] : $translations,
+            'translations' => $translations->isEmpty() ? (object) [] : $translations->all(),
             'overrides' => $overrides === [] ? (object) [] : $overrides,
         ]);
     }

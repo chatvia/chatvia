@@ -3,7 +3,7 @@
 namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -21,7 +21,7 @@ use Throwable;
 class EmbedAgentFunctionAction
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
     ) {}
 
     public function execute(int $functionId): void

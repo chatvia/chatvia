@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Actions\Embedding\EmbedMcpToolsAction;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Tests\Support\Integration\Tool\ToolVectors;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
@@ -41,7 +41,7 @@ it('embeds the server name and description alongside each tool', function (): vo
     emtTool($server, 'lookup_customer');
 
     $embedder = new FakeEmbeddingsProvider;
-    app()->instance(EmbeddingsProviderInterface::class, $embedder);
+    app()->instance(EmbeddingsProvider::class, $embedder);
 
     app(EmbedMcpToolsAction::class)->execute($server->id);
 

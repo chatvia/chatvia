@@ -65,6 +65,6 @@ class TeamsChatResolver extends ChannelConversationResolver
      */
     protected function createMapping(array $attributes): Model
     {
-        return TeamsChat::create($attributes);
+        return TeamsChat::query()->create($attributes);
     }
 }

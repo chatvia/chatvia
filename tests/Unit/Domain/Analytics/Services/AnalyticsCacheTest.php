@@ -1,11 +1,11 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Analytics\Actions\Dashboard\GetDashboardStatsAction;
 use Domain\Analytics\Data\DateRangeData;
 use Domain\Analytics\Queries\Agent\AgentDailyCountsQuery;
 use Domain\Analytics\Queries\Agent\AgentMessageTotalsQuery;
 use Domain\Analytics\Queries\Agent\AgentTotalsQuery;
+use Domain\Analytics\Queries\Dashboard\DashboardStatsQuery;
 use Illuminate\Support\Carbon;
 
 /**
@@ -22,14 +22,14 @@ it('reuses the dashboard numbers within five minutes and recounts on a new day',
     $agent = createAgent($owner);
 
     analyticsRollup($agent, '2026-06-15 10:00:00+00', ['conversations_started' => 2, 'assistant_messages' => 3]);
-    $first = app(GetDashboardStatsAction::class)->execute($owner, null);
+    $first = app(DashboardStatsQuery::class)->get($owner, null);
 
     analyticsRollup($agent, '2026-06-15 11:00:00+00', ['conversations_started' => 5, 'assistant_messages' => 7]);
     $this->travel(4)->minutes();
-    $second = app(GetDashboardStatsAction::class)->execute($owner, null);
+    $second = app(DashboardStatsQuery::class)->get($owner, null);
 
     $this->travelTo(Carbon::parse('2026-06-16 09:00:00', 'UTC'));
-    $nextDay = app(GetDashboardStatsAction::class)->execute($owner, null);
+    $nextDay = app(DashboardStatsQuery::class)->get($owner, null);
 
     expect($first->conversations)->toBe(2)
         ->and($second->conversations)->toBe(2)

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Connector\Services\OAuth;
 
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Illuminate\Support\Uri;
 
 /**
@@ -19,7 +19,7 @@ class OAuthAuthorizationRedirect
         private readonly McpOAuthRegistrar $registrar,
     ) {}
 
-    public function start(PendingOAuthState $pending, string $authorizationEndpoint): string
+    public function start(PendingOAuthStateData $pending, string $authorizationEndpoint): string
     {
         $params = [
             'response_type' => 'code',

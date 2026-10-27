@@ -2,9 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\PruneExpiredTeamInvitationsAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 /**
@@ -23,7 +23,7 @@ function petiInvitation(Team $team, int $sentDaysAgo): Invitation
 }
 
 it('deletes invitations 30 days after they expired', function (): void {
-    $team = app(TeamService::class)->createDefaultTeam(User::factory()->create());
+    $team = app(CreateDefaultTeamAction::class)->execute(User::factory()->create());
     $old = [petiInvitation($team, 38)->id, petiInvitation($team, 100)->id];
     $kept = [petiInvitation($team, 36)->id, petiInvitation($team, 1)->id];
 

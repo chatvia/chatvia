@@ -4,7 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Domain\Conversation\Events\ToolCallCompleted;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Security\Actions\RecordSecurityEventAction;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
@@ -24,7 +24,7 @@ beforeEach(function (): void {
     config(['chatvia.governance.max_arg_bytes' => 40, 'chatvia.security_audit.max_metadata_bytes' => 20]);
 
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
+    app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->agent = createAgent($this->owner);
 
     app(RecordToolCallAuditAction::class)->execute(new ToolCallCompleted(

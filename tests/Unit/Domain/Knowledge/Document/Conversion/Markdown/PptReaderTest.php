@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\PptReader;
+use Illuminate\Support\Facades\File;
 use Tests\Support\Knowledge\Document\OldOffice\CompoundFileWriter;
 use Tests\Support\Knowledge\Document\OldOffice\PowerPointBinaryFile;
 
@@ -14,7 +15,7 @@ function pptrSlides(string $path): array
     try {
         return new PptReader()->slides($path);
     } finally {
-        @unlink($path);
+        File::delete($path);
     }
 }
 

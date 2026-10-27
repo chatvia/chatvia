@@ -16,7 +16,7 @@ use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Llm\Enums\AiProvider;
@@ -91,7 +91,7 @@ it('opens the call, keeps it and sends a worker to join it', function (): void {
 it('offers a tool that needs approval to a signed-in caller only', function (): void {
     $tool = 'mcp__stripe__send_stripe_feedback';
     $this->mock(ToolRegistry::class)->shouldReceive('for')->andReturn([
-        new ToolEntry(ToolKind::Mcp, '1', $tool, 'Send feedback to Stripe.', ['type' => 'object', 'properties' => []]),
+        new ToolEntryData(ToolKind::Mcp, '1', $tool, 'Send feedback to Stripe.', ['type' => 'object', 'properties' => []]),
     ]);
     $this->mock(ToolApprovalPolicy::class)->shouldReceive('requiresApproval')->andReturn(true);
     $chatter = Chatter::factory()->ofWorkspace($this->agent->workspace)->create();

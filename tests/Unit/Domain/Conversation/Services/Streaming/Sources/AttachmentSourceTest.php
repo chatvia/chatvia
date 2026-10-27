@@ -8,6 +8,7 @@ use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\CitationMarkers;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\ChatFileModel;
@@ -69,6 +70,7 @@ function attachmentSource(ToolSelector $tools = new NoToolSelector, ?RecordingRe
         app(ToolLoopRunner::class),
         new RedactingOutputGuard,
         new RecordingGuardrailRecorder,
+        app(CitationMarkers::class),
     );
 }
 

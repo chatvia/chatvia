@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Document\Conversion\PdfEncryption;
 use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Illuminate\Support\Facades\File;
 
 /**
  * PdfEncryption decides "locked" the way pdfinfo does: an encrypted PDF whose
@@ -57,7 +58,7 @@ it('agrees with pdfinfo on every fixture', function (): void {
         $this->markTestSkipped('pdfinfo is not installed.');
     }
 
-    foreach (glob(base_path('tests/Fixtures/pdf/*.pdf')) ?: [] as $path) {
+    foreach (File::glob(base_path('tests/Fixtures/pdf/*.pdf')) ?: [] as $path) {
         expect(new PdfEncryption()->needsPassword($path))->toBe(new PdfInfo()->isLocked($path), basename($path));
     }
 });

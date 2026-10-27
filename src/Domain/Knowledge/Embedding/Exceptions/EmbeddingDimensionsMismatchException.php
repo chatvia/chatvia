@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Embedding\Exceptions;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use RuntimeException;
 
 /**
@@ -12,7 +12,7 @@ use RuntimeException;
  */
 class EmbeddingDimensionsMismatchException extends RuntimeException
 {
-    public static function for(EmbeddingsProviderInterface $provider, int $stored): self
+    public static function for(EmbeddingsProvider $provider, int $stored): self
     {
         return new self(sprintf(
             'The embedding model "%s" returns %d dimensions, but the database stores %d (EMBEDDING_DIMENSIONS). Choose a provider that can return %d dimensions.',

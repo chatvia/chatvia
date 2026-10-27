@@ -8,7 +8,7 @@ use App\Http\Requests\Widget\WidgetStreamRequest;
 use App\Http\Responses\SseResponder;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +23,7 @@ readonly class StreamController
     use InteractsWithWidgetRequest;
 
     public function __construct(
-        private ChatStreamService $chatStreamService,
+        private ChatTurnStreamer $chatTurnStreamer,
         private StreamRequestDataFactory $factory,
     ) {}
 
@@ -48,7 +48,7 @@ readonly class StreamController
         // a hand-made Referer or header cannot switch it on.
         $isPlayground = $request->attributes->getBoolean(EnsureWidgetIsAccessible::PLAYGROUND_ATTRIBUTE);
 
-        return $sse->respond($this->chatStreamService->stream(
+        return $sse->respond($this->chatTurnStreamer->stream(
             $this->factory->forWidget(
                 $request,
                 $agent,

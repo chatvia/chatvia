@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings\Function;
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Tool\Actions\Assignment\ListToolAgentAssignmentAction;
+use Domain\Integration\Tool\Queries\ToolAgentAssignmentQuery;
 use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
 use Illuminate\Http\Request;
 
@@ -18,22 +18,22 @@ use Illuminate\Http\Request;
  */
 class FunctionAgentController
 {
-    public function index(Request $request, AgentFunction $function, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
+    public function index(Request $request, AgentFunction $function, ToolAgentAssignmentQuery $list): AgentMembershipAssignmentData
     {
-        return $list->execute($request->user(), $function);
+        return $list->get($request->user(), $function);
     }
 
-    public function store(Request $request, AgentFunction $function, Agent $agent, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
+    public function store(Request $request, AgentFunction $function, Agent $agent, ToolAgentAssignmentQuery $list): AgentMembershipAssignmentData
     {
         $agent->attachFunction($function);
 
-        return $list->execute($request->user(), $function);
+        return $list->get($request->user(), $function);
     }
 
-    public function destroy(Request $request, AgentFunction $function, Agent $agent, ListToolAgentAssignmentAction $list): AgentMembershipAssignmentData
+    public function destroy(Request $request, AgentFunction $function, Agent $agent, ToolAgentAssignmentQuery $list): AgentMembershipAssignmentData
     {
         $agent->detachFunction($function);
 
-        return $list->execute($request->user(), $function);
+        return $list->get($request->user(), $function);
     }
 }

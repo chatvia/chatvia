@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
+    app(CreateDefaultTeamAction::class)->execute($this->owner);
 });
 
 // [route name, permission] — sections gated by `team.permission:*,404` route

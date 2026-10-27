@@ -7,6 +7,7 @@ namespace Domain\Security\Listeners;
 use Domain\Security\Actions\DeliverSecurityWebhookAction;
 use Domain\Security\Actions\RecordSiemDeliveryFailureAction;
 use Domain\Security\Events\SecurityEventOccurred;
+use Domain\Security\Services\SiemWebhookPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\Attributes\Backoff;
 use Illuminate\Queue\Attributes\Tries;
@@ -42,6 +43,7 @@ class SendSecurityEventToSiem implements ShouldQueue
     public function __construct(
         private readonly DeliverSecurityWebhookAction $action,
         private readonly RecordSiemDeliveryFailureAction $recordFailure,
+        private readonly SiemWebhookPolicy $policies,
     ) {}
 
     // The queue name comes from config, which an attribute cannot read.
@@ -52,7 +54,7 @@ class SendSecurityEventToSiem implements ShouldQueue
 
     public function shouldQueue(SecurityEventOccurred $event): bool
     {
-        return $this->action->wants($event);
+        return $this->policies->accepts($event);
     }
 
     public function handle(SecurityEventOccurred $event): void

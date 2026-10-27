@@ -2,7 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentSlugGenerator;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Psr7\Response as Psr7Response;
@@ -17,7 +17,7 @@ use Illuminate\Http\Client\Response;
  */
 function asgGenerator(array|Throwable $replies): AgentSlugGenerator
 {
-    $provider = Mockery::mock(LlmProviderInterface::class);
+    $provider = Mockery::mock(ChatCompletionProvider::class);
 
     if ($replies instanceof Throwable) {
         $provider->shouldReceive('completion')->andThrow($replies);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Services\Voice;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Data\Turn\QaMatchData;
@@ -17,13 +18,13 @@ use Domain\Conversation\Services\Tooling\ToolResultGuard;
 use Domain\Conversation\Services\Turn\KnowledgeEnricher;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolAccessDecision;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Illuminate\Support\Str;
 
 /**
@@ -58,7 +59,7 @@ final readonly class VoiceToolRunner
 
     public function __construct(
         private KnowledgeEnricher $knowledge,
-        private ToolDispatcherInterface $dispatcher,
+        private ToolDispatcher $dispatcher,
         private ToolDisplayResolver $display,
         private ToolAccessPolicy $access,
         private ToolApprovalPolicy $approvalPolicy,
@@ -70,7 +71,7 @@ final readonly class VoiceToolRunner
     /**
      * Whether a tool the call offers needs the visitor's yes before it runs.
      *
-     * @param  array<string, ToolEntry>  $tools  the call's tools, by name
+     * @param  array<string, ToolEntryData>  $tools  the call's tools, by name
      */
     public function requiresApproval(Agent $agent, array $tools, string $name): bool
     {
@@ -78,7 +79,7 @@ final readonly class VoiceToolRunner
     }
 
     /**
-     * @param  array<string, ToolEntry>  $tools  the call's tools, by name
+     * @param  array<string, ToolEntryData>  $tools  the call's tools, by name
      */
     public function run(VoiceTurn $turn, array $tools, string $callId, string $name, string $arguments): VoiceToolResultData
     {
@@ -101,7 +102,7 @@ final readonly class VoiceToolRunner
                 access: null,
                 kind: ToolName::parse($loggedName)->kind,
                 label: null,
-            ), ToolCallOutcome::NotOffered, ToolDispatchResult::error($message));
+            ), ToolCallOutcome::NotOffered, ToolDispatchResultData::error($message));
 
             return new VoiceToolResultData($message, VoiceToolOutcome::Failed);
         }
@@ -115,7 +116,7 @@ final readonly class VoiceToolRunner
         $call = $this->pendingCall($agent, $callId, $name, $arguments, $decision);
 
         if ($decision === ToolAccessDecision::Deny) {
-            $this->audit->record($context, $call, ToolCallOutcome::RateLimited, ToolDispatchResult::error(ToolLoopRunner::RATE_LIMITED_RESULT));
+            $this->audit->record($context, $call, ToolCallOutcome::RateLimited, ToolDispatchResultData::error(ToolLoopRunner::RATE_LIMITED_RESULT));
 
             return new VoiceToolResultData(ToolLoopRunner::RATE_LIMITED_RESULT, VoiceToolOutcome::Failed);
         }
@@ -139,12 +140,13 @@ final readonly class VoiceToolRunner
     private function dispatch(VoiceTurn $turn, PendingToolCallData $call, ToolCallOutcome $outcome, ?string $decisionNote = null): VoiceToolResultData
     {
         $context = $turn->context;
-        $startedAt = microtime(true);
 
+        $started = CarbonImmutable::now();
         $result = $this->dispatcher->dispatch(
             $context->requestData->agent,
             $this->calls->make($context->requestData, $call->name, $call->arguments),
         );
+        $elapsedMs = $started->diffInMilliseconds(absolute: true);
 
         $context->toolCallNames[] = $call->name;
         $this->audit->record(
@@ -152,7 +154,7 @@ final readonly class VoiceToolRunner
             $call,
             $outcome,
             $result,
-            (int) round((microtime(true) - $startedAt) * 1000),
+            (int) round($elapsedMs),
             decidedByPerson: $outcome->wasGated(),
             decisionNote: $decisionNote,
         );

@@ -87,7 +87,7 @@ class ScoreEvalCaseAction
     {
         [$output, $truncated] = $this->cap($result->answer, (int) config('chatvia.evals.max_output_bytes', 8192));
 
-        $evalResult = EvalResult::create([
+        $evalResult = EvalResult::query()->create([
             'run_id' => $run->id,
             'case_id' => $case->id,
             'case_name' => $case->name,

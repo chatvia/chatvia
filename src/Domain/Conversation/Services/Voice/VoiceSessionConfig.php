@@ -10,7 +10,7 @@ use Domain\Conversation\Data\Voice\VoiceCallerData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Turn\SystemPromptBuilder;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Enums\RealtimeVoice;
 use Illuminate\Support\Str;
@@ -39,7 +39,7 @@ final readonly class VoiceSessionConfig
     ) {}
 
     /**
-     * @param  array<string, ToolEntry>  $tools  the call's tools, by name ({@see VoiceToolCatalog::for()})
+     * @param  array<string, ToolEntryData>  $tools  the call's tools, by name ({@see VoiceToolCatalog::for()})
      * @return array<string, mixed>
      */
     public function build(VoiceCallerData $caller, RealtimeVoice $voice, array $tools): array

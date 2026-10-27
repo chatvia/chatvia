@@ -227,7 +227,11 @@ final class OdtReader
                 }
 
                 // The first paragraph carries the marker, later ones line up under it.
-                $marker = $first && $marked ? ($format['bullet'] ? '-' : $number.'.') : ' ';
+                $marker = match (true) {
+                    ! ($first && $marked) => ' ',
+                    $format['bullet'] => '-',
+                    default => "{$number}.",
+                };
                 $blocks[] = [$level === 0 && $blocks === [] ? MarkdownText::LIST_START : MarkdownText::ITEM, MarkdownText::item($level, $marker, $text)];
                 $first = false;
             }
@@ -274,9 +278,11 @@ final class OdtReader
                     }
 
                     // A cell under a merged cell is covered: it stays empty.
-                    $text = $cell->localName === 'table-cell'
-                        ? implode("\n", array_column($this->blocks($cell, 0), 1))
-                        : ($cell->localName === 'covered-table-cell' ? '' : null);
+                    $text = match ($cell->localName) {
+                        'table-cell' => implode("\n", array_column($this->blocks($cell, 0), 1)),
+                        'covered-table-cell' => '',
+                        default => null,
+                    };
 
                     if ($text === null) {
                         continue;

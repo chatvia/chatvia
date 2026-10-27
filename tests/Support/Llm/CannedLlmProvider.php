@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Llm;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response as PsrResponse;
@@ -21,7 +21,7 @@ use RuntimeException;
  * can check what was sent. Pass it to LlmChat::using(), FakeLlmProviders or
  * bindFakeLlmProvider().
  */
-final class CannedLlmProvider implements LlmProviderInterface
+final class CannedLlmProvider implements ChatCompletionProvider
 {
     /** @var list<array<string, mixed>> the request body of every completion() call */
     public array $completions = [];

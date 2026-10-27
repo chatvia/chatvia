@@ -53,7 +53,7 @@ it('refuses a blank reply, so the editor keeps the draft', function (): void {
     );
 })->throws(DomainValidationException::class);
 
-it('works from an empty draft using the name and type', function (): void {
+it('writes a description from an empty draft using the name and type', function (): void {
     fakeLlmCompletion('Show this form when the visitor wants to schedule a booking.');
 
     $result = app(RewriteFormDescriptionAction::class)->execute(

@@ -61,9 +61,11 @@ final class RequestMacros
             // visitor. On a connection that did not come through Cloudflare or
             // a trusted proxy that header is untrusted, and $this->ip() is the
             // peer itself.
-            $clientIp = $cloudflareTrusted
-                ? ((string) $this->header('CF-Connecting-IP') ?: (string) $this->ip())
-                : (string) $this->ip();
+            $clientIp = (string) $this->ip();
+
+            if ($cloudflareTrusted) {
+                $clientIp = (string) $this->header('CF-Connecting-IP') ?: $clientIp;
+            }
 
             $country = app(NetworkAccessGuard::class)->countryFor($clientIp);
 

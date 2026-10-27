@@ -8,6 +8,7 @@ use Domain\Analytics\Data\Account\LabelCountData;
 use Domain\Analytics\Queries\Account\Audience\GeographyStatsQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Number;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -49,7 +50,7 @@ class GetGeographyStatsTool extends AnalyticsTool
                 'Top country %s is %s (%s conversations, %s%%).',
                 $period->label,
                 $countries[0]['name'],
-                number_format($countries[0]['conversations']),
+                Number::format($countries[0]['conversations']),
                 $countries[0]['pct'],
             );
 

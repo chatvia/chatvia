@@ -9,7 +9,7 @@ use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpTool;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +28,7 @@ use Illuminate\Support\Str;
 /** @return list<string> */
 function toolRegistryPoolOf(Agent $agent): array
 {
-    return array_map(static fn (ToolEntry $entry): string => $entry->name, app(ToolRegistry::class)->for($agent));
+    return array_map(static fn (ToolEntryData $entry): string => $entry->name, app(ToolRegistry::class)->for($agent));
 }
 
 /** A shared catalog tool of the server's connector, reached through a membership with the given permission. */
@@ -55,10 +55,10 @@ it('compiles the attached custom tools, preset catalog tools and functions into 
         'webhook_method' => FunctionWebhookMethod::Get,
     ]);
 
-    $pool = collect(app(ToolRegistry::class)->for($agent))->keyBy(fn (ToolEntry $entry): string => $entry->name);
+    $pool = collect(app(ToolRegistry::class)->for($agent))->keyBy(fn (ToolEntryData $entry): string => $entry->name);
 
     expect($pool->keys()->all())->toBe(['mcp__crm__find_contact', 'mcp__notion__create_page', 'lookup_order'])
-        ->and($pool['mcp__crm__find_contact'])->toEqual(new ToolEntry(
+        ->and($pool['mcp__crm__find_contact'])->toEqual(new ToolEntryData(
             kind: ToolKind::Mcp,
             sourceId: 'mcp_tool:'.$ownTool->id,
             name: 'mcp__crm__find_contact',

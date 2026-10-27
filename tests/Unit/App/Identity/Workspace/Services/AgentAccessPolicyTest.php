@@ -3,7 +3,7 @@
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Illuminate\Support\Facades\Gate;
 
 /*
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Gate;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->workspace()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->owner->update(['current_team_id' => $this->team->id]);
     $this->agent = makeTeamAgent($this->owner, 'Support', $this->team);
     $this->policy = app(AgentAccessPolicy::class);
@@ -34,7 +34,7 @@ describe('canManage and canChat', function (): void {
     it('keeps the owner of another workspace out, even with a current team of their own', function (): void {
         // Owning a team of their own gives them no reach into this workspace.
         $intruder = User::factory()->workspace()->create();
-        $intruderTeam = app(TeamService::class)->createDefaultTeam($intruder);
+        $intruderTeam = app(CreateDefaultTeamAction::class)->execute($intruder);
         $intruder->update(['current_team_id' => $intruderTeam->id]);
         $intruder = $intruder->fresh();
 
@@ -98,7 +98,7 @@ describe('canManage and canChat', function (): void {
 
 describe('chattableAgents', function (): void {
     it('lists every agent of the workspace for its owner, whatever the team', function (): void {
-        $secondTeam = app(TeamService::class)->createDefaultTeam($this->owner);
+        $secondTeam = app(CreateDefaultTeamAction::class)->execute($this->owner);
         $other = makeTeamAgent($this->owner, 'B', $secondTeam);
 
         expect($this->policy->chattableAgents($this->owner)->pluck('id')->sort()->values()->all())
@@ -121,7 +121,7 @@ describe('chattableAgents', function (): void {
     });
 
     it('lists the first team\'s agents for a teammate without a current team', function (): void {
-        $otherTeam = app(TeamService::class)->createDefaultTeam($this->owner);
+        $otherTeam = app(CreateDefaultTeamAction::class)->execute($this->owner);
         makeTeamAgent($this->owner, 'Elsewhere', $otherTeam);
         $teammate = teammateWithPermissions($this->owner, [], $this->team);
         $teammate->update(['current_team_id' => null]);

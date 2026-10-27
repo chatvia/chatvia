@@ -2,8 +2,9 @@
 
 namespace Domain\Knowledge\Retrieval\Services;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
@@ -39,7 +40,7 @@ class KnowledgeBase
     public function __construct(
         private readonly HybridChunkSearch $hybridSearch,
         private readonly Reranker $reranker,
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly AiCallTags $tags,
     ) {}
 
@@ -60,7 +61,7 @@ class KnowledgeBase
     private function find(Agent $agent, string $query): array
     {
         $settings = RetrievalSettingsData::fromConfig();
-        $searchStart = microtime(true);
+        $searchStartedAt = CarbonImmutable::now();
 
         // A bounded count of the agent's chunks picks the search path. An
         // agent with none (no sources, or none ingested yet) skips the
@@ -74,23 +75,23 @@ class KnowledgeBase
         // Query embeddings follow the provider's query conventions (for
         // example Qwen3's instruction prefix), unlike document embeddings, and
         // are cached for 24h: a sub-millisecond embed_ms means a cache hit.
-        $embedStart = microtime(true);
+        $embedStarted = CarbonImmutable::now();
         $queryVector = '['.implode(',', $this->embeddings->embedQuery($query)).']';
-        $embedMs = $this->elapsedMs($embedStart);
+        $embedMs = $embedStarted->diffInMilliseconds(absolute: true);
 
-        $sqlStart = microtime(true);
+        $sqlStarted = CarbonImmutable::now();
         $candidates = $this->hybridSearch->search($agent, $query, $queryVector, $settings->candidateLimit(), $scope, $settings->accuracy);
-        $sqlMs = $this->elapsedMs($sqlStart);
+        $sqlMs = $sqlStarted->diffInMilliseconds(absolute: true);
 
         $check = 'none';
         $checkMs = 0.0;
         $results = [];
 
         if ($candidates !== []) {
-            $checkStart = microtime(true);
+            $checkStarted = CarbonImmutable::now();
             [$check, $selected] = $this->select($query, $candidates, $settings);
+            $checkMs = $checkStarted->diffInMilliseconds(absolute: true);
             $results = $this->readable($this->withinBudget($selected, $settings));
-            $checkMs = $this->elapsedMs($checkStart);
         }
 
         $this->logTimings($settings, [
@@ -105,7 +106,7 @@ class KnowledgeBase
             'embed_ms' => round($embedMs, 2),
             'sql_ms' => round($sqlMs, 2),
             'check_ms' => round($checkMs, 2),
-            'total_ms' => round($this->elapsedMs($searchStart), 2),
+            'total_ms' => round($searchStartedAt->diffInMilliseconds(absolute: true), 2),
             'results' => array_map(static fn (RetrievedChunkData $result): array => [
                 'chunk_id' => $result->id,
                 'search_type' => $result->search_type,
@@ -237,10 +238,5 @@ class KnowledgeBase
         if ($settings->slowLogMs > 0 && $sqlMs >= $settings->slowLogMs) {
             Log::warning('KnowledgeBase: slow vector search', $breakdown + ['slow_threshold_ms' => $settings->slowLogMs]);
         }
-    }
-
-    private function elapsedMs(float $start): float
-    {
-        return (microtime(true) - $start) * 1000;
     }
 }

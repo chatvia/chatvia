@@ -61,9 +61,14 @@ class GoogleImageGenerator implements ImageGenerator
 
         foreach ((array) $response->json('candidates.0.content.parts') as $part) {
             $data = is_array($part) ? ($part['inlineData'] ?? $part['inline_data'] ?? null) : null;
-            $bytes = is_array($data) ? (base64_decode((string) ($data['data'] ?? ''), true) ?: '') : '';
 
-            if (filled($bytes)) {
+            if (! is_array($data)) {
+                continue;
+            }
+
+            $bytes = base64_decode((string) ($data['data'] ?? ''), true);
+
+            if ($bytes !== false && filled($bytes)) {
                 return new GeneratedImageData($bytes, (string) ($data['mimeType'] ?? $data['mime_type'] ?? 'image/png'));
             }
         }

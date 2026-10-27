@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Qa\Actions;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 
@@ -16,7 +16,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 class EmbedQaQuestionsAction
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
     ) {}
 
     public function execute(AgentQuestionAnswer $qa): void

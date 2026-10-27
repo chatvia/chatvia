@@ -13,7 +13,7 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 it('updates the chatter name when no password change is requested', function (): void {
     $chatter = Chatter::factory()->create(['name' => 'Old Name']);
@@ -42,7 +42,7 @@ it('updates the password when the current password matches and rotates the remem
         ->and($chatter->fresh()->remember_token)->not->toBe('old-remember-token');
 });
 
-it('throws ValidationException when the current password is wrong', function (): void {
+it('refuses a wrong current password', function (): void {
     $chatter = Chatter::factory()->create([
         'password' => Hash::make('current-pass'),
     ]);
@@ -52,7 +52,7 @@ it('throws ValidationException when the current password is wrong', function ():
         currentPassword: 'wrong-pass',
         newPassword: 'brand-new-pass',
     ));
-})->throws(ValidationException::class);
+})->throws(DomainValidationException::class);
 
 it('checks the current password against this chatter only, not another account with the same email', function (string $foreignPassword): void {
     $workspace = User::factory()->workspace()->create();
@@ -72,7 +72,7 @@ it('checks the current password against this chatter only, not another account w
         user: $chatter,
         currentPassword: $foreignPassword,
         newPassword: 'brand-new-pass',
-    )))->toThrow(ValidationException::class)
+    )))->toThrow(DomainValidationException::class)
         ->and(Hash::check('current-pass', $chatter->fresh()->password))->toBeTrue();
 })->with([
     'the staff account\'s password' => 'staff-pass',

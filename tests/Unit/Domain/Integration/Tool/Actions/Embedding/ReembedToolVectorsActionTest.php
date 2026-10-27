@@ -11,7 +11,7 @@ use Domain\Integration\Tool\Actions\Embedding\ReembedToolVectorsAction;
 use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
 use Domain\Integration\Tool\Jobs\EmbedFunctionJob;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Illuminate\Support\Facades\Bus;
 use Tests\Support\Integration\Tool\ToolVectors;
 
@@ -22,7 +22,7 @@ use Tests\Support\Integration\Tool\ToolVectors;
  * keyword (BM25) columns do not depend on the model, so they stay.
  */
 it('clears the dense vectors, keeps the keyword vectors and queues an embed job for every tool', function (): void {
-    $vector = app(EmbeddingsProviderInterface::class)->embed('a tool', true);
+    $vector = app(EmbeddingsProvider::class)->embed('a tool', true);
     $bm25 = 'a tool';
     $connectorTool = ConnectorTool::factory()->create(['connector_slug' => 'acme']);
     $mcpTool = McpTool::factory()->create();

@@ -8,6 +8,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\Activity\AgentBreakdownQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Number;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -44,8 +45,8 @@ class GetAgentBreakdownTool extends AnalyticsTool
                 'Busiest agent %s is %s with %s messages across %s conversations.',
                 $period->label,
                 $agents[0]['name'],
-                number_format($agents[0]['messages']),
-                number_format($agents[0]['conversations']),
+                Number::format($agents[0]['messages']),
+                Number::format($agents[0]['conversations']),
             );
 
         $structured = [

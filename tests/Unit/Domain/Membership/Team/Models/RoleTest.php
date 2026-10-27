@@ -1,9 +1,9 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 function roleTestRole(array $permissions, bool $allAgents = false, array $agentExternalIds = []): Role
 {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
 
     return teamRole($team, permissions: $permissions, allAgents: $allAgents, agentExternalIds: $agentExternalIds);
 }
@@ -56,7 +56,7 @@ it('grants all agents through the meta-permission or as the owner role', functio
 
 it('checks its own agent list once per agent', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $listed = createAgent($owner, ['team_id' => $team->id]);
     $other = createAgent($owner, ['team_id' => $team->id]);
     $role = teamRole($team, allAgents: false, agentExternalIds: [$listed->external_id])->fresh();

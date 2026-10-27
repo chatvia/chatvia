@@ -10,12 +10,12 @@ use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Services\Detectors\InjectionPatternDetector;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
 use Domain\Guardrail\Services\GuardrailClassifier;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 use GuzzleHttp\Promise\Create;
 use Mockery;
 
 /**
- * What the GuardrailService tests build on: an agent whose guardrail and
+ * What the GuardrailInspector tests build on: an agent whose guardrail and
  * business settings are saved as the Guardrails page saves them (every PII
  * filter of the defaults on, and a fixed refusal), and the service with a
  * classifier, the LLM boundary, that answers with a fixed verdict.
@@ -44,7 +44,7 @@ final class GuardedAgent
     }
 
     /** The service, its classifier answering every check with this verdict (no finding by default). */
-    public static function service(?ClassifierVerdictData $verdict = null): GuardrailService
+    public static function service(?ClassifierVerdictData $verdict = null): GuardrailInspector
     {
         $classifier = Mockery::mock(GuardrailClassifier::class);
         $classifier->shouldReceive('classifyAsync')->andReturn(Create::promiseFor($verdict ?? new ClassifierVerdictData));
@@ -53,13 +53,13 @@ final class GuardedAgent
     }
 
     /** The service with a classifier the test set up, to check how it is called. */
-    public static function serviceWith(GuardrailClassifier $classifier): GuardrailService
+    public static function serviceWith(GuardrailClassifier $classifier): GuardrailInspector
     {
-        return new GuardrailService(new PiiDetector, $classifier, new InjectionPatternDetector);
+        return new GuardrailInspector(new PiiDetector, $classifier, new InjectionPatternDetector);
     }
 
     /** The service with a classifier that must not be called. */
-    public static function serviceWithoutClassifier(): GuardrailService
+    public static function serviceWithoutClassifier(): GuardrailInspector
     {
         $classifier = Mockery::mock(GuardrailClassifier::class);
         $classifier->shouldNotReceive('classifyAsync');

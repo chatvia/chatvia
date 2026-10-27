@@ -5,12 +5,12 @@ namespace Domain\Integration\Tool\Access;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Mcp\Data\ResolvedMcpTool;
+use Domain\Integration\Mcp\Data\ResolvedMcpToolData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpServerLookup;
 use Domain\Integration\Mcp\Services\McpToolPermissionResolver;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * Decides whether a given tool call must pause for human approval before it
@@ -83,7 +83,7 @@ class ToolApprovalPolicy
         $resolved = $this->permissions->resolve($server, $tool->tool);
 
         // Unknown tool (catalog out of sync) → be safe and gate it.
-        if (! $resolved instanceof ResolvedMcpTool) {
+        if (! $resolved instanceof ResolvedMcpToolData) {
             return true;
         }
 

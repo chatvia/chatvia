@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginConnectorOAuthAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
 use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
 use Domain\Integration\Connector\Exceptions\ConnectorMisconfiguredException;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
@@ -71,7 +71,7 @@ it('returns the authorize URL with PKCE and caches the encrypted, bound state', 
 
 it('refuses to start when the authorization server does not advertise S256 PKCE', function (array $metadata): void {
     test()->mock(McpOAuthDiscoverer::class)->shouldReceive('discover')
-        ->andReturn(OAuthServerMetadata::fromArray('https://auth.example.test', $metadata));
+        ->andReturn(OAuthServerMetadataData::fromArray('https://auth.example.test', $metadata));
     test()->mock(McpOAuthRegistrar::class)->shouldNotReceive('clientFor');
 
     expect(fn (): string => app(BeginConnectorOAuthAction::class)->execute(User::factory()->create(), bcoConnector(), 'binding'))

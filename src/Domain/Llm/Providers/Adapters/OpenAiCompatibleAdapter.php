@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\LlmProvider;
@@ -66,7 +66,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
         return null;
     }
 
-    public function client(LlmProvider $provider): LlmProviderInterface
+    public function client(LlmProvider $provider): ChatCompletionProvider
     {
         return new OpenAiCompatible($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }
@@ -115,7 +115,11 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
         $account = $this->account();
 
-        return $account instanceof AiProvider ? (config($account->apiKeyConfig()) ?: null) : null;
+        if (! $account instanceof AiProvider) {
+            return null;
+        }
+
+        return config($account->apiKeyConfig()) ?: null;
     }
 
     public function isConnected(LlmProvider $provider): bool
@@ -136,7 +140,11 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
     {
         $config = $this->sharesAccountAddress() ? $this->account()?->baseUrlConfig() : null;
 
-        return $config === null ? null : (config($config) ?: null);
+        if ($config === null) {
+            return null;
+        }
+
+        return config($config) ?: null;
     }
 
     /** Whether chat calls the address set for the account. */

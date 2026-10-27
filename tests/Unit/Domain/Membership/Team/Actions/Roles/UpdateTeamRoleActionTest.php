@@ -2,9 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamAgentAccess;
-use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -13,7 +13,7 @@ use Support\Exceptions\DomainValidationException;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
 });
 
 /*

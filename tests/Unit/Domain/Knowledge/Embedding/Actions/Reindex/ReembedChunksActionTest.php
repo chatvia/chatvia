@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Embedding\Actions\Reindex\ReembedChunksAction;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -23,7 +23,7 @@ function rcaNewModel(): FakeEmbeddingsProvider
 {
     $provider = FakeEmbeddingsProvider::constant(0.5, 'new-model');
 
-    app()->instance(EmbeddingsProviderInterface::class, $provider);
+    app()->instance(EmbeddingsProvider::class, $provider);
 
     return $provider;
 }

@@ -9,6 +9,7 @@ use App\Admin\Settings\SettingsConfig;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Container\Container;
 
 /**
  * Lists the keys of the admin panel's Settings with the value in use, for
@@ -18,7 +19,7 @@ use Illuminate\Console\Command;
 #[Signature('chatvia:settings:list {group? : Only this group, such as mail}')]
 class ListSettings extends Command
 {
-    public function handle(SettingsConfig $settingsConfig): int
+    public function handle(SettingsConfig $settingsConfig, Container $container): int
     {
         $rows = [];
 
@@ -28,7 +29,7 @@ class ListSettings extends Command
             }
 
             /** @var AdminSettings $settings */
-            $settings = app($class);
+            $settings = $container->make($class);
 
             foreach ($settings->toArray() as $property => $saved) {
                 $rows[] = [

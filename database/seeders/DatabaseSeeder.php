@@ -9,8 +9,8 @@ use Database\Seeders\Demo\DemoAgents;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Models\Llm;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 
@@ -64,7 +64,7 @@ class DatabaseSeeder extends Seeder
 
         $workspace = $user->workspace();
         $workspace->update(['name' => DemoAgents::WORKSPACE_NAME]);
-        $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
+        $team = $user->primaryTeam() ?? app(CreateDefaultTeamAction::class)->execute($user);
 
         foreach (DemoAgents::AGENTS as $slug => $definition) {
             $this->seedAgent($workspace, $team, $slug, $definition);

@@ -10,7 +10,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\ChatStoragePath;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -26,7 +26,7 @@ class CreateConversationAction
     public function __construct(
         private readonly StartConversationAction $startConversation,
         private readonly AddMessageToConversationAction $addMessage,
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
     ) {}
 
     /**

@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Agent\Eval;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
 use Domain\Evaluation\Data\Resources\EvalCaseResourceData;
 use Domain\Evaluation\Data\Resources\EvalRunResourceData;
 use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Evaluation\Queries\EvalSourceCoverageQuery;
+use Domain\Evaluation\Queries\KnowledgeQuestionCandidatesQuery;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +25,7 @@ class AgentEvalController
 {
     public function __invoke(
         Agent $agent,
-        ListKnowledgeQuestionCandidatesAction $knowledgeQuestions,
+        KnowledgeQuestionCandidatesQuery $knowledgeQuestions,
         EvalSourceCoverageQuery $coverage,
     ): Response {
         $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
@@ -41,7 +42,7 @@ class AgentEvalController
             // Optional: only evaluated on the partial reload fired when the
             // "From knowledge" picker opens — mining questions reads up to
             // 200 chunk rows, too costly for first load / the runs polling.
-            'knowledgeQuestions' => Inertia::optional(fn (): array => $knowledgeQuestions->execute($agent)),
+            'knowledgeQuestions' => Inertia::optional(fn (): Collection => $knowledgeQuestions->get($agent)),
         ]);
     }
 }

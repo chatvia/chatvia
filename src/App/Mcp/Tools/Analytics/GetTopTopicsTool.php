@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Account\LabelCountData;
 use Domain\Analytics\Queries\Account\Audience\TopTopicsQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Number;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -44,7 +45,7 @@ class GetTopTopicsTool extends AnalyticsTool
                 'Top topic %s is "%s" (%s conversations).',
                 $period->label,
                 $topics[0]['topic'],
-                number_format($topics[0]['conversations']),
+                Number::format($topics[0]['conversations']),
             );
 
         $structured = [

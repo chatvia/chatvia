@@ -2,7 +2,7 @@
 
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 
 /**
  * Renewing an agent's signing secret stops every sign-in token signed with the
@@ -12,7 +12,7 @@ it('stops every sign-in token signed with the old secret once the secret is rene
     $owner = User::factory()->create();
     $agent = createAgent($owner);
     $chatter = Chatter::factory()->grantedTo($agent)->create();
-    $tokens = app(AgentSignInTokenService::class);
+    $tokens = app(AgentSignInTokens::class);
     $token = $tokens->issue($chatter, $agent)['token'];
 
     expect($tokens->verify($token, $agent->fresh())?->is($chatter))->toBeTrue();

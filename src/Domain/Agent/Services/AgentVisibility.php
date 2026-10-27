@@ -6,7 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamAgentAccess;
 
 /**
  * Which agents a user's agent list shows — one rule for the dashboard and the
@@ -18,7 +18,7 @@ use Domain\Membership\Team\Services\TeamService;
 final readonly class AgentVisibility
 {
     public function __construct(
-        private TeamService $teams,
+        private TeamAgentAccess $agentAccess,
     ) {}
 
     /**
@@ -27,7 +27,7 @@ final readonly class AgentVisibility
     public function query(User $user, ?Team $currentTeam): AgentQueryBuilder
     {
         $granted = $currentTeam instanceof Team && ! $user->ownsTeam($currentTeam)
-            ? $this->teams->accessibleAgents($user, $currentTeam)->pluck('id')->all()
+            ? $this->agentAccess->accessibleAgents($user, $currentTeam)->pluck('id')->all()
             : [];
 
         return Agent::query()->where(fn (AgentQueryBuilder $query) => $query

@@ -79,7 +79,7 @@ abstract class ChannelConversationResolver
         // a failure on the final write would otherwise leak an orphan Session +
         // Conversation that no channel row points at.
         return DB::transaction(function () use ($agent, $name, $context, $source, $identity): Model {
-            $session = Session::create([
+            $session = Session::query()->create([
                 'workspace_id' => $agent->workspace_id,
                 'agent_id' => $agent->id,
                 'user_id' => null,

@@ -3,8 +3,9 @@
 namespace App\Http\Middleware\Widget;
 
 use App\Http\Widget\WidgetAgent;
+use App\Identity\Workspace\Data\Sessions\ClientOriginData;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\WidgetAuthSessionService;
+use App\Identity\Workspace\Services\WidgetAuthSessions;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Closure;
 use Domain\Agent\Models\Agent;
@@ -45,7 +46,7 @@ class EnsureWidgetIsAccessible
     public const string PLAYGROUND_ATTRIBUTE = 'widget_is_playground';
 
     public function __construct(
-        private readonly WidgetAuthSessionService $sessions,
+        private readonly WidgetAuthSessions $sessions,
         private readonly WorkspaceActivation $activation,
     ) {}
 
@@ -106,7 +107,7 @@ class EnsureWidgetIsAccessible
             return false;
         }
 
-        $resolved = $this->sessions->resolveWithMeta($token, $agent, $request);
+        $resolved = $this->sessions->resolveWithMeta($token, $agent, new ClientOriginData($request->ip(), $request->userAgent()));
 
         if (! $resolved) {
             return false;

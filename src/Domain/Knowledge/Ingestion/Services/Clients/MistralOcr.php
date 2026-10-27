@@ -4,7 +4,7 @@ namespace Domain\Knowledge\Ingestion\Services\Clients;
 
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\AiCallTags;
@@ -26,7 +26,7 @@ use Symfony\Component\Mime\MimeTypes;
  */
 class MistralOcr
 {
-    private readonly LlmProviderInterface $mistral;
+    private readonly ChatCompletionProvider $mistral;
 
     private readonly string $baseUrl;
 

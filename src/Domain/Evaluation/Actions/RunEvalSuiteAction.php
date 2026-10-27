@@ -40,7 +40,7 @@ class RunEvalSuiteAction
             ->limit((int) config('chatvia.evals.max_cases_per_run', 100))
             ->get();
 
-        $run = EvalRun::create([
+        $run = EvalRun::query()->create([
             'agent_id' => $agent->id,
             'agent_name' => $agent->name,
             'workspace_id' => $agent->workspace_id,
@@ -77,7 +77,7 @@ class RunEvalSuiteAction
                 $run = EvalRun::query()->find($runId);
 
                 if ($run !== null) {
-                    app(FinalizeEvalRunAction::class)->execute($run, $batch->cancelled());
+                    app(FinalizeEvalRunAction::class)->execute($run, $batch->cancelled() ? EvalRunStatus::Failed : EvalRunStatus::Completed);
                 }
             })
             ->dispatch();

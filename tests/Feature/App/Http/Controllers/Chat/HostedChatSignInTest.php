@@ -1,13 +1,13 @@
 <?php
 
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\UpdatePasswordAction;
 use App\Identity\Workspace\Data\Account\UpdatePasswordData;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Domain\Agent\Models\Agent;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +33,7 @@ beforeEach(function (): void {
 /** Sign the chatter in to the hosted chat with a sign-in link. */
 function hcsiSignIn(string $issue = 'issue'): void
 {
-    $token = app(AgentSignInTokenService::class)->{$issue}(test()->chatter, test()->agent)['token'];
+    $token = app(AgentSignInTokens::class)->{$issue}(test()->chatter, test()->agent)['token'];
 
     test()->get(test()->chat.'?token='.$token)
         ->assertRedirect(test()->chat);
@@ -52,7 +52,7 @@ it('keeps the chatter signed in across the redirect that strips the token', func
 
 it('signs a staff owner in on chat_staff from an auth_token and opens the private chat', function (): void {
     $owner = $this->agent->workspace->owner;
-    $token = app(ChatterAuthTokenService::class)->generateToken($this->agent, $owner, 5);
+    $token = app(ChatterAuthTokens::class)->generateToken($this->agent, $owner, 5);
 
     $this->get("{$this->chat}?auth_token={$token}")
         ->assertRedirect($this->chat);
@@ -100,7 +100,7 @@ it('lets a chatter back in once reactivated', function (): void {
 
 it('signs staff out of the hosted chat once their password changes', function (): void {
     $owner = $this->agent->workspace->owner;
-    $token = app(ChatterAuthTokenService::class)->generateToken($this->agent, $owner, 5);
+    $token = app(ChatterAuthTokens::class)->generateToken($this->agent, $owner, 5);
     $this->get("{$this->chat}?auth_token={$token}")->assertRedirect($this->chat);
     $this->get($this->chat)->assertOk();
 

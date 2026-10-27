@@ -7,6 +7,7 @@ use Domain\Integration\Builtin\Data\Currency\CurrencyConversionRequestData;
 use Domain\Integration\Builtin\Exceptions\CurrencyConversionException;
 use Domain\Integration\Builtin\Services\CurrencyConverter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -59,12 +60,12 @@ class ExchangeRateTool extends Tool
 
         $text = sprintf(
             '%s %s = %s %s (1 %s = %s %s).',
-            number_format($result->amount, 2),
+            Number::format(round($result->amount, 2), precision: 2),
             $result->from,
-            number_format($result->converted, 4),
+            Number::format(round($result->converted, 4), precision: 4),
             $result->to,
             $result->from,
-            number_format($result->rate, 6),
+            Number::format(round($result->rate, 6), precision: 6),
             $result->to,
         );
 

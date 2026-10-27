@@ -7,7 +7,7 @@ namespace App\Identity\Workspace\Services;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamAgentAccess;
 
 /**
  * What a user's team role lets them do in the dashboard. Permissions are
@@ -29,7 +29,7 @@ use Domain\Membership\Team\Services\TeamService;
 final readonly class TeamPermissionPolicy
 {
     public function __construct(
-        private TeamService $teams,
+        private TeamAgentAccess $agentAccess,
     ) {}
 
     /** Whether the user holds a team-level (not agent-scoped) permission. */
@@ -49,7 +49,7 @@ final readonly class TeamPermissionPolicy
     {
         $team = $this->teamOf($user);
 
-        if (! $team instanceof Team || ! $this->teams->canAccessAgent($user, $team, $agent)) {
+        if (! $team instanceof Team || ! $this->agentAccess->canAccess($user, $team, $agent)) {
             return false;
         }
 

@@ -6,6 +6,7 @@ namespace Domain\Llm\Services;
 
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
+use Illuminate\Contracts\Container\Container;
 
 /**
  * The adapter of each provider kind ({@see LlmProviderKind::adapter()}), and
@@ -18,9 +19,13 @@ class ProviderAdapters
     /** @var array<string, ProviderAdapter> */
     private array $resolved = [];
 
+    public function __construct(
+        private readonly Container $container,
+    ) {}
+
     public function for(LlmProviderKind $kind): ProviderAdapter
     {
-        return $this->resolved[$kind->value] ??= app($kind->adapter());
+        return $this->resolved[$kind->value] ??= $this->container->make($kind->adapter());
     }
 
     /**

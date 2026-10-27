@@ -2,13 +2,14 @@
 
 namespace Domain\Evaluation\Services;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
+use Domain\Conversation\Services\ChatTurnPreparer;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Data\AgentRunResultData;
@@ -24,7 +25,7 @@ use Throwable;
  * Runs a single eval prompt through an agent's REAL pipeline (system prompt +
  * RAG + tool loop) off the SSE/HTTP path, and returns the captured turn state.
  *
- * It reuses {@see ChatService} (context build + RAG + system prompt) and drives
+ * It reuses {@see ChatTurnPreparer} (context build + RAG + system prompt) and drives
  * {@see ToolLoopRunner::run()} directly — deliberately NOT going through
  * LlmSource::finishTurn(), so the runner itself never persists a chat message
  * or counts it. Counting happens one level up: ScoreEvalCaseAction counts one
@@ -42,7 +43,7 @@ use Throwable;
  * answer quality, and a guard must not block a case or bill a classifier call.
  *
  * A fresh, unique conversationId per run means no prior history, so
- * ChatService::initializeChatContext never persists the user message either.
+ * ChatTurnPreparer::initializeChatContext never persists the user message either.
  *
  * Every AI call of the run is tagged `evaluation` in Spectra, on top of its
  * own tag (`chat-reply`, `search-embedding`…), so eval traffic is told apart
@@ -51,7 +52,7 @@ use Throwable;
 class EvalAgentRunner
 {
     public function __construct(
-        private readonly ChatService $chatService,
+        private readonly ChatTurnPreparer $chatTurnPreparer,
         private readonly ToolLoopRunner $runner,
         private readonly ToolSelector $toolSelector,
         private readonly LlmProviders $providers,
@@ -64,7 +65,7 @@ class EvalAgentRunner
         $agent->loadMissing(['agentPrompt', 'llm']);
         // Its own model, or the default one while it has none (as in chats).
         $model = $this->models->for($agent);
-        $started = microtime(true);
+        $started = CarbonImmutable::now();
 
         if (! $model instanceof Llm) {
             return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent has no model, and no model can answer.');
@@ -95,7 +96,7 @@ class EvalAgentRunner
                 sources: $this->summarizeSources($context->sources),
                 toolsCalled: array_values(array_unique($context->toolCallNames)),
                 tokens: $context->usage['total_tokens'] ?? null,
-                latencyMs: (int) round((microtime(true) - $started) * 1000),
+                latencyMs: (int) round($started->diffInMilliseconds(absolute: true)),
                 traceId: $context->assistantMessageId,
                 toolCalls: $context->capturedToolCalls,
                 sourceRefs: $this->sourceRefs($context->sources),
@@ -111,7 +112,7 @@ class EvalAgentRunner
                 sources: [],
                 toolsCalled: [],
                 tokens: null,
-                latencyMs: (int) round((microtime(true) - $started) * 1000),
+                latencyMs: (int) round($started->diffInMilliseconds(absolute: true)),
                 traceId: $requestData->requestId ?? (string) Str::uuid(),
                 error: $e->getMessage(),
             );
@@ -124,9 +125,9 @@ class EvalAgentRunner
      */
     private function runTurn(Agent $agent, Llm $model, StreamRequestData $requestData): ChatContext
     {
-        $context = $this->chatService->initializeChatContext($requestData);
-        $context = $this->chatService->enrichContextWithKnowledge($context);
-        $llmMessages = $this->chatService->prepareLlmMessages($context);
+        $context = $this->chatTurnPreparer->initializeChatContext($requestData);
+        $context = $this->chatTurnPreparer->enrichContextWithKnowledge($context);
+        $llmMessages = $this->chatTurnPreparer->prepareLlmMessages($context);
 
         // A model that cannot call tools answers without them, as in a chat.
         $toolDefinitions = $model->callsTools() ? $this->toolSelector->selectForTurn(

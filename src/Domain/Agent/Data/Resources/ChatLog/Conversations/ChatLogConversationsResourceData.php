@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Agent\Data\Resources\ChatLog\Conversations;
 
-use Domain\Agent\Actions\ChatLog\ListChatLogConversationsAction;
+use Domain\Agent\Queries\ChatLogConversationsQuery;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -12,7 +12,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 /**
  * One page of an agent's chat log, the cursor of the next page, and the ids of
  * the page's conversations that captured a lead. Built by
- * {@see ListChatLogConversationsAction}.
+ * {@see ChatLogConversationsQuery}.
  */
 #[TypeScript]
 class ChatLogConversationsResourceData extends Data

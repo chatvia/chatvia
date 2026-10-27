@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Data\Conversations;
 
-use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
+use Domain\Conversation\Queries\AgentConversationsQuery;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 
 /**
  * One keyset page of the API conversation list and the cursor of the next
- * page. Built by {@see ListAgentConversationsAction}.
+ * page. Built by {@see AgentConversationsQuery}.
  */
 class ConversationSummaryPageData extends Data
 {

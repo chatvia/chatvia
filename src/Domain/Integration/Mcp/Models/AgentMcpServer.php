@@ -11,7 +11,7 @@ use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpTransport;
 use Domain\Integration\Tool\Contracts\AttachableToAgents;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -311,7 +311,7 @@ class AgentMcpServer extends Model implements AttachableToAgents
     {
         $base = self::makeSlug($name);
         $slug = $base;
-        $reserved = resolve(ConnectorCatalog::class)->reservedServerSlugs();
+        $reserved = app(ConnectorCatalog::class)->reservedServerSlugs();
 
         for ($suffix = 2; in_array($slug, $reserved, true) || $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
             $slug = Str::substr($base, 0, 38).'_'.$suffix;

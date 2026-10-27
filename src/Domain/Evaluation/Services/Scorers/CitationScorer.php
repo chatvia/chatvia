@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -27,7 +28,7 @@ use Throwable;
  * nothing fails: this case is about citing. The prompts live in
  * resources/prompts/evals.
  */
-class CitationScorer implements ScorerInterface
+class CitationScorer implements Scorer
 {
     private const float DEFAULT_MIN_SUPPORTED = 0.8;
 

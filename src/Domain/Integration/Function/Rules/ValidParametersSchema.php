@@ -11,12 +11,12 @@ use Illuminate\Contracts\Validation\ValidationRule;
  * the LLM can fill in. Accepts the dashboard's JSON string and the API's
  * decoded array; the shape rules live in {@see FunctionSchemaValidator}.
  */
-class ValidParametersSchema implements ValidationRule
+final readonly class ValidParametersSchema implements ValidationRule
 {
     /**
      * @param  array<string, mixed>|null  $current  the schema already stored on the function being edited
      */
-    public function __construct(private readonly ?array $current = null) {}
+    public function __construct(private ?array $current = null) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

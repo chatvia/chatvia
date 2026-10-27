@@ -6,7 +6,9 @@ use App\Http\Controllers\Agent\Channel\AgentMessengerOAuthCallbackController;
 use App\Http\Controllers\Agent\Channel\AgentMessengerOAuthRedirectController;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Actions\CompleteMetaOAuthAction;
+use Domain\Channel\Data\MetaPageData;
 use Domain\Channel\Enums\MetaOAuthChannel;
+use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Domain\Channel\Services\MetaOAuthClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,7 +70,7 @@ trait InteractsWithMetaOAuth
             ]);
         }
 
-        $agent = Agent::find($pending['agent_id']);
+        $agent = Agent::query()->find($pending['agent_id']);
 
         if ($agent === null) {
             return redirect()->route('agents.index');
@@ -88,16 +90,16 @@ trait InteractsWithMetaOAuth
 
         $accounts = $complete->execute($channel, $code);
 
-        if ($accounts === []) {
+        if ($accounts->isEmpty()) {
             return $this->backToChannels($agent, $channel, self::nothingGranted($channel));
         }
 
         session()->put($channel->value.'_oauth_pages', [
             'agent_id' => $agent->id,
-            'pages' => array_map(static fn ($account): array => $account->toArray(), $accounts),
+            'pages' => $accounts->map(static fn (MetaPageData|InstagramAccountData $account): array => $account->toArray())->all(),
         ]);
 
-        Log::info("{$channel->label()} OAuth callback: accounts ready to pick", ['agent_id' => $agent->id, 'count' => count($accounts)]);
+        Log::info("{$channel->label()} OAuth callback: accounts ready to pick", ['agent_id' => $agent->id, 'count' => $accounts->count()]);
 
         return $this->backToChannels($agent, $channel);
     }

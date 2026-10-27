@@ -7,6 +7,7 @@ use Domain\Agent\Data\Settings\Copy\UpdateStartersData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentTextTranslator;
 use Domain\Agent\ValueObjects\TranslatableText;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -24,9 +25,9 @@ class SetAgentStartersAction
     ) {}
 
     /**
-     * @return list<StarterData>
+     * @return Collection<int, StarterData>
      */
-    public function execute(Agent $agent, UpdateStartersData $data): array
+    public function execute(Agent $agent, UpdateStartersData $data): Collection
     {
         $starters = $data->starters;
         $languages = $agent->enabledLanguages();
@@ -58,14 +59,12 @@ class SetAgentStartersAction
 
         $items = $this->translateMissing($agent, $items, array_keys($languages));
 
-        $final = array_map(
-            static fn (string $id, array $item): StarterData => StarterData::fromCopy($id, $item['icon'], $item['copy']),
-            array_keys($items),
-            $items,
-        );
+        $final = collect($items)
+            ->map(static fn (array $item, string $id): StarterData => StarterData::fromCopy($id, $item['icon'], $item['copy']))
+            ->values();
 
         $agent->starterSet()->updateOrCreate([], [
-            'starters' => array_map(static fn (StarterData $starter): array => $starter->toArray(), $final),
+            'starters' => $final->map(static fn (StarterData $starter): array => $starter->toArray())->all(),
         ]);
 
         return $final;

@@ -65,8 +65,8 @@ class StartWebsiteIngestionAction
             })
             ->allowFailures()
             ->finally(static function () use ($websiteId, $agentId, $triggerValue): void {
-                $agent = Agent::find($agentId);
-                $website = SourceWebsite::find($websiteId);
+                $agent = Agent::query()->find($agentId);
+                $website = SourceWebsite::query()->find($websiteId);
 
                 // The website or the agent may have been deleted meanwhile.
                 if ($agent !== null && $website !== null) {

@@ -3,7 +3,7 @@
 namespace Domain\Integration\Connector\Actions\OAuth;
 
 use Domain\Integration\Connector\Data\Custom\AddCustomConnectorData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Domain\Integration\Connector\Services\OAuth\OAuthAuthorizationRedirect;
 use Domain\Integration\Connector\Services\OAuth\OAuthClientDiscovery;
 use Domain\Integration\Connector\Services\OAuth\Pkce;
@@ -26,7 +26,7 @@ class BeginCustomConnectorOAuthAction
     {
         $client = $this->clients->forMcpUrl($data->url);
 
-        return $this->redirect->start(new PendingOAuthState(
+        return $this->redirect->start(new PendingOAuthStateData(
             userId: $data->user->id,
             connectorSlug: null,
             authServerUrl: $client->auth_server_url,
@@ -34,7 +34,7 @@ class BeginCustomConnectorOAuthAction
             clientId: $client->client_id,
             codeVerifier: Pkce::verifier(),
             mcpUrl: $data->url,
-            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
+            sessionBindingHash: PendingOAuthStateData::hashBinding($sessionBinding),
             clientSecret: $client->client_secret,
             customName: $data->name,
             customSlug: AgentMcpServer::uniqueSlugFor($data->user->workspace(), $data->name),

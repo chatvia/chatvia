@@ -26,8 +26,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
-    // The teardown wipes workspaces/{external_id}, users/{external_id} and
-    // chatters/{external_id} on the default, assets and local disks.
+    // The teardown wipes workspaces/{external_id} on the default, assets and
+    // local disks.
     Storage::fake();
     Storage::fake('assets');
     Storage::fake('local');

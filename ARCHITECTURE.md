@@ -876,13 +876,29 @@ the frontend. Do not rename or move them without a migration plan:
 Key workspace data to the **workspace** (`workspace_id`: `$agent->workspace_id`,
 `$user->workspace()->id`), never to the person who is acting. Otherwise
 removing a teammate would delete workspace data. Storage follows the same
-rule: workspace files live under `workspaces/{external_id}/…` (an agent's
-under `workspaces/{external_id}/agents/{external_id}/…`; a knowledge source,
-which several agents can share, under
-`workspaces/{external_id}/sources/{type}/{external_id}/…`, where `{type}` is
-its morph alias such as `source_file`), a person's own files under
-`users/{external_id}/…` and a chatter's photo under
-`chatters/{external_id}/…`, so deleting an entity is one prefix wipe.
+rule: every file lives under `workspaces/{external_id}/…`, so deleting an
+entity is one prefix wipe:
+
+```
+workspaces/{workspace}/
+  agents/{agent}/
+    settings/{group}/…                 widget logo, avatar (assets disk)
+    chat/{conversation}/
+      images/ videos/ audio/ files/    uploads and generated media, by kind
+      speech/                          replies read aloud
+    chat/pending/…                     uploads made before the chat exists
+  sources/{type}/{source}/…            knowledge, shared by the agents
+  members/{user}/…                     a person's photo, setting images, data exports
+  chatters/{chatter}/…                 a chatter's photo
+```
+
+`{type}` is a source's morph alias such as `source_file`. `ChatStoragePath`
+and `KnowledgeStoragePath` build these paths, and `Workspace`, `Agent`,
+`User` and `Chatter` each have `storageRoot()`. A file uploaded on the hosted
+chat's home screen moves from `chat/pending/` into its conversation's folder
+when the conversation is created. Deleting a conversation wipes its folder
+(`ConversationFiles`), purging an agent wipes `agents/{agent}`, and deleting
+the workspace wipes `workspaces/{workspace}` on every disk.
 
 ### Keeping workspaces apart
 

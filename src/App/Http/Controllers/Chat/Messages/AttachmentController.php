@@ -25,18 +25,18 @@ class AttachmentController
         StoreAttachmentAction $action,
         HostedChatSession $session,
     ): JsonResponse {
-        $attachment = $action->execute($request->toData($agent, $this->conversationId($request, $agent, $session)));
+        $attachment = $action->execute($request->toData($agent, $this->conversation($request, $agent, $session)));
 
         return response()->json(['data' => AttachmentData::fromModel($attachment)]);
     }
 
     /**
-     * The conversation's key, from the external id header. `pending` means the
+     * The conversation, from the external id header. `pending` means the
      * visitor is still on the home screen (no conversation yet): the row is
      * stored without one, and the conversation claims it when it is created.
      * Only a conversation in the caller's own session is used.
      */
-    private function conversationId(UploadAttachmentRequest $request, Agent $agent, HostedChatSession $session): ?int
+    private function conversation(UploadAttachmentRequest $request, Agent $agent, HostedChatSession $session): ?Conversation
     {
         $externalId = $request->header('X-CONVERSATION-ID') ?: self::PENDING_CONVERSATION;
 
@@ -53,6 +53,6 @@ class AttachmentController
         return Conversation::query()
             ->inSession($sessionId, $agent->id)
             ->where('external_id', $externalId)
-            ->value('id');
+            ->first();
     }
 }

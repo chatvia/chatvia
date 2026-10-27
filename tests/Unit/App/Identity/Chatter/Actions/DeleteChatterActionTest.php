@@ -16,6 +16,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Session as ChatSession;
+use Domain\Conversation\Services\ChatStoragePath;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
@@ -120,6 +121,21 @@ it('wipes the attachment files of the deleted chatter\'s conversations', functio
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
 });
 
+it('wipes the replies read aloud in the deleted chatter\'s conversations', function (): void {
+    $workspace = User::factory()->workspace()->create();
+    $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
+    $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
+
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
+    $speech = ChatStoragePath::forConversation($agent, $conversation->external_id, 'speech').'/m1-abc.mp3';
+    Storage::disk(Attachment::DISK)->put($speech, 'mp3');
+
+    app(DeleteChatterAction::class)->execute($chatter);
+
+    Storage::disk(Attachment::DISK)->assertMissing($speech);
+});
+
 it('wipes the images and audio made in the deleted chatter\'s conversations', function (): void {
     $workspace = User::factory()->workspace()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
@@ -139,8 +155,8 @@ it('wipes the deleted chatter\'s profile photo and keeps other chatters\' photos
     $chatter = Chatter::factory()->create();
     $other = Chatter::factory()->create();
 
-    $photoPath = 'chatters/'.$chatter->external_id.'/profile-photos/avatar.jpg';
-    $otherPath = 'chatters/'.$other->external_id.'/profile-photos/avatar.jpg';
+    $photoPath = $chatter->storageRoot().'/profile-photos/avatar.jpg';
+    $otherPath = $other->storageRoot().'/profile-photos/avatar.jpg';
     Storage::disk('assets')->put($photoPath, 'img');
     Storage::disk('assets')->put($otherPath, 'img');
     $chatter->update(['profile_image_path' => $photoPath]);

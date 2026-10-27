@@ -91,7 +91,7 @@ class BuildDataExportArchiveAction
 
         $user = $export->user;
         $tempDir = self::TEMP_PREFIX.'/'.$export->id;
-        $zipRelativePath = 'users/'.$user->external_id.'/data-exports/'.Str::uuid()->toString().'.zip';
+        $zipRelativePath = $user->storageRoot().'/data-exports/'.Str::uuid()->toString().'.zip';
 
         $localDisk = Storage::disk(self::ARCHIVE_DISK);
         $localDisk->makeDirectory($tempDir);

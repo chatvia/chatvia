@@ -9,9 +9,11 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\ChatStoragePath;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Guardrail\Enums\PiiFilterType;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -47,6 +49,39 @@ it('caps the number of attachments bound to a new conversation at config(chatvia
         ->count();
 
     expect($boundCount)->toBe(3);
+});
+
+it('moves the claimed files from the pending folder into the conversation\'s', function (): void {
+    Storage::fake(Attachment::DISK);
+    $agent = Agent::factory()->create();
+    $orphan = Attachment::factory()->pending($agent)->stored()->create();
+    $pendingPath = $orphan->filepath;
+
+    $conversationId = app(CreateConversationAction::class)->execute(new CreateConversationData(
+        scope: new ChatScopeData($agent, (string) Str::uuid()),
+        message: 'Hello',
+        attachmentIds: [$orphan->external_id],
+    ));
+
+    $orphan->refresh();
+    expect($orphan->filepath)->toStartWith(ChatStoragePath::forConversation($agent, $conversationId, 'files').'/')
+        ->and($orphan->conversation->external_id)->toBe($conversationId);
+    Storage::disk(Attachment::DISK)->assertExists($orphan->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($pendingPath);
+});
+
+it('does not claim another agent\'s upload in the same workspace', function (): void {
+    $agent = Agent::factory()->create();
+    $sibling = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+    $orphan = Attachment::factory()->pending($sibling)->create();
+
+    app(CreateConversationAction::class)->execute(new CreateConversationData(
+        scope: new ChatScopeData($agent, (string) Str::uuid()),
+        message: 'Hello',
+        attachmentIds: [$orphan->external_id],
+    ));
+
+    expect($orphan->fresh()->chat_conversation_id)->toBeNull();
 });
 
 it('does NOT re-bind attachments that already belong to a different conversation', function (): void {

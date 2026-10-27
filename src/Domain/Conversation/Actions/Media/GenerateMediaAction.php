@@ -89,7 +89,7 @@ class GenerateMediaAction
             return;
         }
 
-        $path = $this->files->pathFor($agent, $conversation->external_id, $media->external_id, $extension);
+        $path = $this->files->pathFor($agent, $conversation->external_id, $media, $extension);
         Storage::disk(GeneratedMedia::DISK)->put($path, $bytes);
 
         $media->update([

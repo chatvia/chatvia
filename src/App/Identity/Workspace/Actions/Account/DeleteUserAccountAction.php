@@ -26,10 +26,10 @@ use Throwable;
  * tables.
  *
  * What the FK cascade can't do, handled explicitly here:
- *  - Files: the workspace's storage tree (knowledge files, chat attachments
- *    under `workspaces/{external_id}/agents/…/attachments`, settings images),
- *    each member's own tree (on the `local` disk too, where data exports
- *    live) and the chatters' photos are wiped by prefix.
+ *  - Files: the workspace's storage tree `workspaces/{external_id}` (knowledge
+ *    files, agents' chat files and settings images, members' own files and
+ *    chatters' photos) is wiped by prefix on every disk, `local` too, where
+ *    data exports live.
  *  - The workspace's Redis chat memory — cache, not DB ({@see self::flushChatMemoryCache()}).
  *  - `model_settings` rows of its agents and members (polymorphic, no FK).
  *  - Sanctum tokens (`personal_access_tokens`, polymorphic — no FK) and HTTP
@@ -100,14 +100,11 @@ class DeleteUserAccountAction
             );
         }
 
-        // Capture every external id BEFORE the teardown so the storage trees
-        // can be wiped once the rows are gone: the workspace's data lives under
-        // workspaces/{external_id}/ (knowledge, audio, attachments, settings
-        // images), each member's own files under users/{external_id}/ (profile
-        // photo, data exports), each chatter's photo under chatters/….
+        // Capture the storage root BEFORE the teardown so it can be wiped once
+        // the rows are gone: everything the workspace holds, its members' and
+        // chatters' files included, lives under workspaces/{external_id}/.
         $workspaceExternalId = $workspace->external_id;
-        $memberExternalIds = $workspace->members()->pluck('users.external_id')->filter()->all();
-        $chatterExternalIds = $workspace->chatters()->pluck('external_id')->all();
+        $storageRoot = $workspace->storageRoot();
 
         DB::transaction(function () use ($workspace): void {
             $teamIds = $workspace->teams()->pluck('id')->all();
@@ -144,29 +141,8 @@ class DeleteUserAccountAction
             $workspace->delete();
         });
 
-        $this->wipeWorkspaceStorage($workspaceExternalId, $memberExternalIds);
-        $this->wipeChatterAvatars($chatterExternalIds);
+        $this->wipeWorkspaceStorage($storageRoot);
         $this->flushChatMemoryCache($workspaceExternalId);
-    }
-
-    /**
-     * Chatters keep only their profile photo in storage, on the assets disk.
-     * Best-effort, like the workspace storage wipe.
-     *
-     * @param  array<int, string>  $externalIds
-     */
-    private function wipeChatterAvatars(array $externalIds): void
-    {
-        foreach ($externalIds as $externalId) {
-            try {
-                Storage::disk('assets')->deleteDirectory('chatters/'.$externalId);
-            } catch (Throwable $e) {
-                Log::warning('Account deletion: failed to wipe a chatter avatar tree.', [
-                    'external_id' => $externalId,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
     }
 
     /**
@@ -211,30 +187,23 @@ class DeleteUserAccountAction
     }
 
     /**
-     * Wipe the workspace's storage tree (`workspaces/{external_id}/…`) and each
-     * member's own tree (`users/{external_id}/…`) on every disk in
-     * {@see self::STORAGE_DISKS}. The FK cascade drops the rows without firing
-     * the per-file Eloquent observers, so without this the objects would leak.
-     * Best-effort, disk by disk: a teardown must not fail because remote
-     * storage is briefly unreachable.
-     *
-     * @param  array<int, string>  $memberExternalIds
+     * Wipe the workspace's storage tree (`workspaces/{external_id}/…`) on
+     * every disk in {@see self::STORAGE_DISKS}. The FK cascade drops the rows
+     * without firing the per-file Eloquent observers, so without this the
+     * objects would leak. Best-effort, disk by disk: a teardown must not fail
+     * because remote storage is briefly unreachable.
      */
-    private function wipeWorkspaceStorage(string $workspaceExternalId, array $memberExternalIds): void
+    private function wipeWorkspaceStorage(string $storageRoot): void
     {
-        $prefixes = ['workspaces/'.$workspaceExternalId, ...array_map(fn (string $id): string => 'users/'.$id, $memberExternalIds)];
-
-        foreach ($prefixes as $prefix) {
-            foreach (self::STORAGE_DISKS as $disk) {
-                try {
-                    Storage::disk($disk)->deleteDirectory($prefix);
-                } catch (Throwable $e) {
-                    Log::warning('Account deletion: failed to wipe workspace storage tree.', [
-                        'disk' => $disk,
-                        'prefix' => $prefix,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+        foreach (self::STORAGE_DISKS as $disk) {
+            try {
+                Storage::disk($disk)->deleteDirectory($storageRoot);
+            } catch (Throwable $e) {
+                Log::warning('Account deletion: failed to wipe workspace storage tree.', [
+                    'disk' => $disk,
+                    'prefix' => $storageRoot,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
     }

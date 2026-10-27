@@ -37,7 +37,7 @@ class ConversationAttachmentController
         $conversation = $findConversation->execute($conversationId, $sessionId, $agent, $this->widgetViewer($request));
         abort_if(! $conversation, JsonResponse::HTTP_FORBIDDEN, 'Invalid thread');
 
-        $attachment = $action->execute($request->toData($agent, $conversation->id));
+        $attachment = $action->execute($request->toData($agent, $conversation));
 
         return response()->json(['data' => AttachmentData::fromModel($attachment)]);
     }

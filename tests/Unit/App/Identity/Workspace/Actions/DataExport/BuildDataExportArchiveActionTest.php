@@ -37,7 +37,7 @@ it('packages user data into a zip and marks the export ready', function (): void
     $export->refresh();
 
     expect($export->status)->toBe(DataExportStatus::Ready)
-        ->and($export->file_path)->toStartWith('users/'.$user->external_id.'/data-exports/')
+        ->and($export->file_path)->toStartWith('workspaces/'.$user->workspace()->external_id.'/members/'.$user->external_id.'/data-exports/')
         ->and($export->file_path)->toEndWith('.zip')
         ->and($export->file_size)->toBeGreaterThan(0)
         ->and($export->expires_at)->not->toBeNull();
@@ -250,7 +250,7 @@ it('marks the export failed, leaves no archive or temp files, and rethrows when 
         ->and($export->file_path)->toBeNull()
         ->and($export->file_size)->toBeNull()
         ->and($export->expires_at)->toBeNull()
-        ->and(Storage::disk('local')->allFiles('users/'.$owner->external_id.'/data-exports'))->toBe([])
+        ->and(Storage::disk('local')->allFiles($owner->storageRoot().'/data-exports'))->toBe([])
         ->and(Storage::disk('local')->allFiles('data-exports/tmp'))->toBe([]);
 
     Event::assertNotDispatched(DataExportReady::class);

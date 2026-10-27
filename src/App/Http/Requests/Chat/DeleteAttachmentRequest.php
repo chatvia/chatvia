@@ -7,6 +7,7 @@ use App\Http\Chat\HostedChatViewer;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Services\ChatStoragePath;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -65,13 +66,13 @@ class DeleteAttachmentRequest extends FormRequest
     }
 
     /**
-     * An orphan upload is the agent's when it sits under the agent's upload
+     * An orphan upload is the agent's when it sits in the agent's pending
      * folder; a bound one when its conversation (deleted or not) is the agent's.
      */
     private function belongsToAgent(Attachment $attachment, Agent $agent): bool
     {
         if ($attachment->chat_conversation_id === null) {
-            return Str::startsWith($attachment->filepath, sprintf('workspaces/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id));
+            return Str::startsWith($attachment->filepath, ChatStoragePath::pending($agent).'/');
         }
 
         return $attachment->conversation()->withTrashed()->first()?->session?->agent_id === $agent->id;

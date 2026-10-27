@@ -7,9 +7,9 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\ConversationFiles;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,7 +23,7 @@ class DeleteSessionConversationsAction
 {
     public function __construct(
         private readonly ChatMemory $memory,
-        private readonly MessageSpeechFiles $speechFiles,
+        private readonly ConversationFiles $conversationFiles,
         private readonly GeneratedMediaFiles $generatedMedia,
     ) {}
 
@@ -55,7 +55,7 @@ class DeleteSessionConversationsAction
             ->get(['id', 'external_id', 'agent_id']);
         $conversationIds = $conversations->pluck('id');
 
-        $this->speechFiles->forgetConversations($conversations);
+        $this->conversationFiles->forget($conversations);
         $this->generatedMedia->forgetConversations($conversationIds);
 
         Attachment::query()

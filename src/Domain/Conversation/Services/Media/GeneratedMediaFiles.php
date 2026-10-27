@@ -7,12 +7,14 @@ namespace Domain\Conversation\Services\Media;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Models\GeneratedMedia;
+use Domain\Conversation\Services\ChatStoragePath;
 
 /**
  * Where an agent's generated images, audio and videos are kept, and how they go: one
- * file per row on the private disk under the agent's folder
- * (`…/agents/{agent}/generated/{conversation}/`), so purging the agent or
- * deleting the workspace wipes them with the rest.
+ * file per row on the private disk in the conversation's chat folder, by kind
+ * (`…/agents/{agent}/chat/{conversation}/images/`, see {@see ChatStoragePath}),
+ * so deleting the conversation, purging the agent or deleting the workspace
+ * wipes them with the rest.
  *
  * Every path that deletes a conversation or a reply calls this, because the
  * bulk deletes and the foreign-key cascade skip model events: deleting the
@@ -21,9 +23,9 @@ use Domain\Conversation\Models\GeneratedMedia;
 final class GeneratedMediaFiles
 {
     /** The file of one generated item. */
-    public function pathFor(Agent $agent, string $conversationId, string $mediaId, string $extension): string
+    public function pathFor(Agent $agent, string $conversationId, GeneratedMedia $media, string $extension): string
     {
-        return $agent->settingsStorageRoot().'/generated/'.$conversationId.'/'.$mediaId.'.'.$extension;
+        return ChatStoragePath::forConversation($agent, $conversationId, ChatStoragePath::kindFolder($media->kind->value)).'/'.$media->external_id.'.'.$extension;
     }
 
     /**

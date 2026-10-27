@@ -1,10 +1,10 @@
 <?php
 
 /**
- * DeleteUserAccountAction wipes the storage trees the FK cascade would
- * orphan: `workspaces/{ext}` (attachments, knowledge files), each member's
- * `users/{ext}` (photos, data exports) and the chatters' `chatters/{ext}`
- * avatars, and leaves other workspaces' files alone.
+ * DeleteUserAccountAction wipes the storage tree the FK cascade would orphan:
+ * `workspaces/{ext}`, which holds the agents' chat files, knowledge files,
+ * each member's own files (photos, data exports) and the chatters' avatars,
+ * and leaves other workspaces' files alone.
  */
 
 use App\Identity\Chatter\Models\Chatter;
@@ -19,8 +19,8 @@ use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
-    // The teardown wipes workspaces/{external_id}, users/{external_id} and
-    // chatters/{external_id} on the default, assets and local disks.
+    // The teardown wipes workspaces/{external_id} on the default, assets and
+    // local disks.
     Storage::fake();
     Storage::fake('assets');
     Storage::fake('local');
@@ -31,8 +31,8 @@ it('wipes the chatters avatar trees and keeps those of other workspaces', functi
     $chatter = Chatter::factory()->ofWorkspace($owner)->create();
     $otherChatter = Chatter::factory()->create();
 
-    $photo = 'chatters/'.$chatter->external_id.'/profile-photos/avatar.jpg';
-    $otherPhoto = 'chatters/'.$otherChatter->external_id.'/profile-photos/avatar.jpg';
+    $photo = $chatter->storageRoot().'/profile-photos/avatar.jpg';
+    $otherPhoto = $otherChatter->storageRoot().'/profile-photos/avatar.jpg';
     Storage::disk('assets')->put($photo, 'img');
     Storage::disk('assets')->put($otherPhoto, 'img');
 
@@ -47,9 +47,9 @@ it('wipes each member own storage tree and keeps those of other workspaces', fun
     $employee = User::factory()->employee($owner)->create();
     $bystander = User::factory()->create();
 
-    $ownerPhoto = 'users/'.$owner->external_id.'/profile-photos/me.jpg';
-    $employeeExport = 'users/'.$employee->external_id.'/data-exports/export.zip';
-    $bystanderPhoto = 'users/'.$bystander->external_id.'/profile-photos/me.jpg';
+    $ownerPhoto = $owner->storageRoot().'/profile-photos/me.jpg';
+    $employeeExport = $employee->storageRoot().'/data-exports/export.zip';
+    $bystanderPhoto = $bystander->storageRoot().'/profile-photos/me.jpg';
     Storage::disk('assets')->put($ownerPhoto, 'img');
     Storage::put($employeeExport, 'zip');
     Storage::disk('assets')->put($bystanderPhoto, 'img');
@@ -66,9 +66,9 @@ it('wipes the members\' data exports on the local disk', function (): void {
     $employee = User::factory()->employee($owner)->create();
     $bystander = User::factory()->create();
 
-    $ownerExport = 'users/'.$owner->external_id.'/data-exports/owner.zip';
-    $employeeExport = 'users/'.$employee->external_id.'/data-exports/employee.zip';
-    $bystanderExport = 'users/'.$bystander->external_id.'/data-exports/bystander.zip';
+    $ownerExport = $owner->storageRoot().'/data-exports/owner.zip';
+    $employeeExport = $employee->storageRoot().'/data-exports/employee.zip';
+    $bystanderExport = $bystander->storageRoot().'/data-exports/bystander.zip';
     foreach ([$ownerExport, $employeeExport, $bystanderExport] as $path) {
         Storage::disk('local')->put($path, 'zip');
     }

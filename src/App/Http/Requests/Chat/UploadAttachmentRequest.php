@@ -5,8 +5,9 @@ namespace App\Http\Requests\Chat;
 use App\Http\Requests\Concerns\ValidatesChatAttachment;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\ChatStoragePath;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 
 /**
  * Validates a file uploaded from the hosted-chat composer and decides where
@@ -19,27 +20,21 @@ class UploadAttachmentRequest extends FormRequest
     /**
      * @param  Agent  $agent  The agent the hosted chat resolved for this
      *                        request — the authoritative identity, not the
-     *                        client-supplied X-AGENT-ID header. Storage is
-     *                        entity-first (users/{workspace}/agents/{agent}),
-     *                        so deleting a workspace or agent is one prefix wipe.
+     *                        client-supplied X-AGENT-ID header.
+     * @param  Conversation|null  $conversation  the caller's own conversation, or
+     *                                           null on the home screen: the file
+     *                                           then waits in the agent's pending
+     *                                           folder ({@see ChatStoragePath})
      */
-    public function toData(Agent $agent, ?int $conversationId): UploadAttachmentData
+    public function toData(Agent $agent, ?Conversation $conversation): UploadAttachmentData
     {
-        // Sanitize the client-supplied conversation id before it becomes a
-        // storage path segment — block `../` cross-prefix writes (see the widget
-        // UploadAttachmentRequest).
-        $conversationExternalId = Str::replaceMatches('/[^A-Za-z0-9-]/', '', (string) $this->header('X-CONVERSATION-ID')) ?: 'pending';
-
         return new UploadAttachmentData(
             file: $this->file('file'),
-            directory: sprintf(
-                'workspaces/%s/agents/%s/attachments/%s',
-                $agent->workspaceExternalId(),
-                $agent->external_id,
-                $conversationExternalId,
-            ),
+            directory: $conversation instanceof Conversation
+                ? ChatStoragePath::forConversation($agent, $conversation->external_id)
+                : ChatStoragePath::pending($agent),
             workspaceId: $agent->workspace_id,
-            conversationId: $conversationId,
+            conversationId: $conversation?->id,
         );
     }
 }

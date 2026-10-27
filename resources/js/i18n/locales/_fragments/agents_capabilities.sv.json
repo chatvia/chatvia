@@ -11,7 +11,10 @@
             "empty": "Inga förmågor är tillgängliga ännu.",
             "enable_failed": "Det gick inte att aktivera den här förmågan",
             "disable_failed": "Det gick inte att inaktivera den här förmågan",
-            "turned_off_by_admin": "Avstängt av din administratör"
+            "turned_off_by_admin": "Avstängt av din administratör",
+            "model_choice_image": "Låt personer välja bildmodellen",
+            "model_choice_video": "Låt personer välja videomodellen",
+            "model_choice_failed": "Det gick inte att ändra modellvalet"
         }
     }
 }

@@ -6,8 +6,10 @@ use App\Identity\Workspace\Services\MessageAllowance;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
+use Domain\Conversation\Actions\Media\RememberMediaModelPickAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
+use Domain\Conversation\Data\Media\MediaModelPickData;
 use Domain\Conversation\Data\Turn\ReplaySnapshotData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
@@ -70,6 +72,7 @@ readonly class ChatTurnStreamer
         private RequestHandoffAction $requestHandoff,
         private VisitorBlocklist $blocklist,
         private SpectraTurnTagger $spectraTagger,
+        private RememberMediaModelPickAction $rememberMediaModels,
     ) {}
 
     /**
@@ -286,10 +289,17 @@ readonly class ChatTurnStreamer
     private function answer(StreamRequestData $data, ?Conversation $conversation): Generator
     {
         $context = $this->chatTurnPreparer->enrichContextWithKnowledge($this->chatTurnPreparer->initializeChatContext($data));
+        // A new conversation exists once its first message is recorded, above.
+        $conversation ??= $this->conversation($data);
+
+        // The image and video tools read the chatter's pick from the conversation.
+        if ($conversation instanceof Conversation && $data->message->mediaModels instanceof MediaModelPickData) {
+            $this->rememberMediaModels->execute($conversation, $data->message->mediaModels);
+        }
 
         // An input guardrail refused the message: no model call, not counted.
         if ($context->guardBlocked) {
-            return $this->guardBlockSource->events($context, $this->guardHandoff($context, $conversation ?? $this->conversation($data)));
+            return $this->guardBlockSource->events($context, $this->guardHandoff($context, $conversation));
         }
 
         if ($context->hasQaMatch()) {
@@ -302,7 +312,7 @@ readonly class ChatTurnStreamer
         // chat files, which reads them whole, instead of the agent's model.
         // The rows come from the upload endpoints (claimed by the
         // conversation on its first hosted-chat turn).
-        $attachments = ($conversation ?? $this->conversation($data))?->attachments()->get();
+        $attachments = $conversation?->attachments()->get();
 
         if ($attachments !== null && $attachments->isNotEmpty()) {
             return $this->attachmentSource->events($context, $llmMessages, $attachments);

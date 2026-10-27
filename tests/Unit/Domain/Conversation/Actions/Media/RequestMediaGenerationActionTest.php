@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Identity\Workspace\Models\GenerationLimit;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\OfferedMediaModels;
 use Domain\Conversation\Actions\Media\RequestMediaGenerationAction;
 use Domain\Conversation\Data\Media\MediaRequestData;
 use Domain\Conversation\Enums\ConversationSource;
@@ -16,6 +17,7 @@ use Domain\Conversation\Jobs\GenerateMediaJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Operations\Media\NullSpeaker;
@@ -63,7 +65,7 @@ it('stores a pending picture under the workspace and queues its job', function (
         ->and($media->status)->toBe(GeneratedMediaStatus::Pending)
         ->and($media->metadata)->toBe(['shape' => 'landscape'])
         ->and($media->service)->toBe('fake image-model')
-        ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red fox']);
+        ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red fox', 'model_name' => null]);
 
     Queue::assertPushedOn('generation', GenerateMediaJob::class, fn (GenerateMediaJob $job): bool => $job->media->is($media));
 });
@@ -170,7 +172,7 @@ it('stores a pending video in the shape asked for, with the admin\'s length and 
         ->and($media->kind)->toBe(GeneratedMediaKind::Video)
         ->and($media->metadata)->toBe(['shape' => 'portrait', 'seconds' => 6, 'resolution' => '1080p'])
         ->and($media->service)->toBe('fake video-model')
-        ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A fox running']);
+        ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A fox running', 'model_name' => null]);
 
     Queue::assertPushedOn('generation', GenerateMediaJob::class, fn (GenerateMediaJob $job): bool => $job->media->is($media));
 });
@@ -203,4 +205,41 @@ it('marks the item timed out when its queued job dies', function (): void {
 
     expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed)
         ->and($media->failure)->toBe(GeneratedMediaFailure::TimedOut);
+});
+
+function rmgOfferImageModels(): void
+{
+    config([
+        'chatvia.ai.image_generator' => 'fal',
+        'services.fal.image_model' => 'fal-ai/flux-2',
+        'chatvia.ai.image_model_choice' => true,
+        'chatvia.ai.image_models' => ['fal-ai/qwen-image'],
+    ]);
+    test()->agent->setSetting('image', true, OfferedMediaModels::SETTINGS_GROUP);
+    $server = AgentMcpServer::factory()->builtin('image-generation')->create(['workspace_id' => test()->agent->workspace_id]);
+    test()->agent->mcpServers()->attach($server->id);
+}
+
+it('stores the model the chatter picked while the agent offers it', function (): void {
+    rmgOfferImageModels();
+    $this->conversation->update(['media_models' => ['image' => 'fal-ai/qwen-image']]);
+
+    $result = rmgRequest(MediaRequestData::image('A red fox'));
+    $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
+
+    expect($media->metadata)->toEqual(['shape' => 'square', 'model' => 'fal-ai/qwen-image', 'model_name' => 'Qwen-Image'])
+        ->and($media->service)->toBe('fake fal-ai/qwen-image')
+        ->and($result->artifact()['model_name'])->toBe('Qwen-Image');
+});
+
+it('uses the admin\'s model for a pick the agent does not offer', function (): void {
+    rmgOfferImageModels();
+    $this->conversation->update(['media_models' => ['image' => 'fal-ai/flux-2-pro']]);
+
+    $result = rmgRequest(MediaRequestData::image('A red fox'));
+    $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
+
+    expect($media->metadata)->toBe(['shape' => 'square'])
+        ->and($media->service)->toBe('fake image-model')
+        ->and($result->artifact()['model_name'])->toBeNull();
 });

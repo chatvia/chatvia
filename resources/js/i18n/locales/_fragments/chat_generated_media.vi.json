@@ -17,7 +17,8 @@
             "files_ready": "Các tệp của bạn đã sẵn sàng.",
             "refused": "Dịch vụ đã từ chối yêu cầu này.",
             "timed_out": "Quá lâu. Vui lòng yêu cầu lại.",
-            "download": "Tải xuống"
+            "download": "Tải xuống",
+            "made_with": "Tạo bằng {model}"
         }
     }
 }

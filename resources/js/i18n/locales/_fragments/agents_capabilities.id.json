@@ -11,7 +11,10 @@
             "empty": "Belum ada kemampuan yang tersedia.",
             "enable_failed": "Tidak dapat mengaktifkan kemampuan ini",
             "disable_failed": "Tidak dapat menonaktifkan kemampuan ini",
-            "turned_off_by_admin": "Dimatikan oleh admin Anda"
+            "turned_off_by_admin": "Dimatikan oleh admin Anda",
+            "model_choice_image": "Izinkan orang memilih model gambar",
+            "model_choice_video": "Izinkan orang memilih model video",
+            "model_choice_failed": "Tidak dapat mengubah pilihan model"
         }
     }
 }

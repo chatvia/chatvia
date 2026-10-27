@@ -49,7 +49,9 @@
         "incognito_mode": "Incognito",
         "delete_conversation": "Poista keskustelu",
         "delete_dialog_title": "Poistetaanko keskustelu?",
-        "delete_dialog_description": "Tätä toimintoa ei voi peruuttaa."
+        "delete_dialog_description": "Tätä toimintoa ei voi peruuttaa.",
+        "image_model": "Kuvamalli",
+        "video_model": "Videomalli"
     },
     "sidebar": {
         "new_chat": "Uusi keskustelu",
@@ -176,7 +178,8 @@
             "image_ready": "Kuvasi on valmis. | Kuvasi ovat valmiita.",
             "audio_ready": "Äänitiedostosi on valmis. | Äänitiedostosi ovat valmiita.",
             "video_ready": "Videosi on valmis. | Videosi ovat valmiita.",
-            "files_ready": "Tiedostosi ovat valmiita."
+            "files_ready": "Tiedostosi ovat valmiita.",
+            "made_with": "Tehty mallilla {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Yhdistä {names}",
             "book_through": "Varauspalvelu",
             "provider_failed": "Varauspalvelun vaihtaminen epäonnistui",
-            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä"
+            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä",
+            "model_choice_image": "Anna ihmisten valita kuvamalli",
+            "model_choice_video": "Anna ihmisten valita videomalli",
+            "model_choice_failed": "Mallivalintaa ei voitu muuttaa"
         },
         "forms": {
             "page_title": "Lomakkeet",

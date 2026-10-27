@@ -4,8 +4,9 @@
  * connects the capability, so it can take a moment and can fail with a 422
  * whose message is meant for the user. A capability that works through one
  * of several connectors (Calendar: Calendly or Cal.com) can be told which.
+ * Image and Video generation can let chatters pick the model.
  */
-import { disable, enable, provider } from '@/routes/agents/capabilities';
+import { disable, enable, modelChoice, provider } from '@/routes/agents/capabilities';
 import { del, post, put } from './http';
 
 export type AgentCapabilityRow = Domain.Integration.Connector.Data.Agent.AgentCapabilityRowData;
@@ -23,4 +24,9 @@ export async function disableCapability(agentId: string, slug: string): Promise<
 /** Pick the connector a capability works through for this agent (e.g. Calendar through Cal.com). */
 export async function chooseCapabilityProvider(agentId: string, slug: string, connectorSlug: string): Promise<void> {
     await put(provider.url({ agent: agentId, slug }), { provider: connectorSlug });
+}
+
+/** Let chatters pick the image or video model in the hosted chat, or stop it. */
+export async function setCapabilityModelChoice(agentId: string, slug: string, enabled: boolean): Promise<void> {
+    await put(modelChoice.url({ agent: agentId, slug }), { enabled });
 }

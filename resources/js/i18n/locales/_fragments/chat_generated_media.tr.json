@@ -17,7 +17,8 @@
             "files_ready": "Dosyalarınız hazır.",
             "refused": "Hizmet bu isteği reddetti.",
             "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
-            "download": "İndir"
+            "download": "İndir",
+            "made_with": "{model} ile yapıldı"
         }
     }
 }

@@ -50,7 +50,7 @@ class GoogleVideoGenerator implements VideoGenerator
 
     public function start(VideoPromptData $prompt): string
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
         $interactions = (self::MODELS[$model] ?? 'veo') === 'interactions';
 
         $response = $this->call(fn (PendingRequest $google): Response => $interactions
@@ -106,9 +106,9 @@ class GoogleVideoGenerator implements VideoGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'google '.$this->model();
+        return 'google '.$this->model($model);
     }
 
     /** A background interaction: the video is a `video` part of its output once it is completed. */
@@ -205,8 +205,8 @@ class GoogleVideoGenerator implements VideoGenerator
         return Str::rtrim((string) config('services.gemini.api_endpoint'), '/');
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.gemini.video_model');
+        return filled($picked) ? $picked : (string) config('services.gemini.video_model');
     }
 }

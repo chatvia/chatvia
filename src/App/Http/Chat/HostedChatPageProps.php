@@ -3,7 +3,9 @@
 namespace App\Http\Chat;
 
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\OfferedMediaModels;
 use Domain\Agent\Services\OfferedModels;
+use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Llm\Contracts\Transcriber;
@@ -23,6 +25,7 @@ final readonly class HostedChatPageProps
         private Transcriber $transcriber,
         private ReadAloudAvailability $readAloud,
         private OfferedModels $offeredModels,
+        private OfferedMediaModels $offeredMediaModels,
     ) {}
 
     /**
@@ -58,6 +61,9 @@ final readonly class HostedChatPageProps
             'feedbackComment' => $agent instanceof Agent && $agent->acceptsFeedbackComments(),
             // The models the chatter may pick from; empty hides the picker.
             'models' => $agent instanceof Agent ? $this->offeredModels->for($agent) : [],
+            // The image and video models the chatter may pick in the header; empty hides each picker.
+            'image_models' => $agent instanceof Agent ? $this->offeredMediaModels->for($agent, GeneratedMediaKind::Image) : [],
+            'video_models' => $agent instanceof Agent ? $this->offeredMediaModels->for($agent, GeneratedMediaKind::Video) : [],
             'removeSidebar' => $embed?->get('remove_sidebar'),
             'hideSidebarOnPageLoad' => $embed?->get('hide_sidebar_on_page_load'),
             'enableThemeSwitcher' => $embed?->get('enable_theme_switcher'),

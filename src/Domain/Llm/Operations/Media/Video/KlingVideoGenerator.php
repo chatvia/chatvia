@@ -44,7 +44,7 @@ class KlingVideoGenerator implements VideoGenerator
 
     public function start(VideoPromptData $prompt): string
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
 
         $response = $this->call(fn (PendingRequest $kling): Response => $kling->post($this->endpoint().'/text-to-video/'.$model, [
             'prompt' => $prompt->prompt,
@@ -93,9 +93,9 @@ class KlingVideoGenerator implements VideoGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'kling '.$this->model();
+        return 'kling '.$this->model($model);
     }
 
     /**
@@ -132,8 +132,8 @@ class KlingVideoGenerator implements VideoGenerator
         return Str::rtrim((string) config('services.kling.endpoint'), '/');
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.kling.video_model');
+        return filled($picked) ? $picked : (string) config('services.kling.video_model');
     }
 }

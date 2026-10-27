@@ -63,6 +63,7 @@ use Support\Localization\Language\Models\Language;
  * @property Carbon|null $last_activity_at
  * @property Carbon|null $expires_at
  * @property Carbon|null $cleared_at
+ * @property array{image?: string, video?: string}|null $media_models the image and video model the chatter last picked in the hosted chat (checked against what the agent offers when used)
  * @property string|null $deleted_by
  * @property Carbon|null $deleted_at
  * @property Carbon|null $created_at
@@ -139,6 +140,7 @@ use Support\Localization\Language\Models\Language;
     'expires_at',
     'deleted_by',
     'cleared_at',
+    'media_models',
 ])]
 #[Table(name: 'chat_conversations')]
 #[RouteKey('external_id')]
@@ -201,6 +203,7 @@ class Conversation extends Model
             'analyzed_at' => 'datetime',
             'cleared_at' => 'datetime',
             'is_visible' => 'boolean',
+            'media_models' => 'array',
         ];
     }
 

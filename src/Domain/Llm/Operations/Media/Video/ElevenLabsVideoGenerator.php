@@ -52,7 +52,7 @@ class ElevenLabsVideoGenerator implements VideoGenerator
 
     public function start(VideoPromptData $prompt): string
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
         $facts = self::MODELS[$model] ?? self::MODELS['veo-3.1-fast-generate-001'];
         $hd = $facts['hd'] && $prompt->resolution === VideoResolution::Hd1080;
         $seconds = match (true) {
@@ -93,9 +93,9 @@ class ElevenLabsVideoGenerator implements VideoGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'elevenlabs '.$this->model();
+        return 'elevenlabs '.$this->model($model);
     }
 
     /** @param callable(PendingRequest): Response $request */
@@ -124,8 +124,8 @@ class ElevenLabsVideoGenerator implements VideoGenerator
         return Str::rtrim((string) config('services.elevenlabs.endpoint'), '/');
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.elevenlabs.video_model');
+        return filled($picked) ? $picked : (string) config('services.elevenlabs.video_model');
     }
 }

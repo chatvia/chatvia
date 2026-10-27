@@ -6,6 +6,7 @@ namespace Domain\Conversation\Actions\Media;
 
 use App\Identity\Workspace\Services\GenerationAllowance;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\OfferedMediaModels;
 use Domain\Conversation\Data\Media\AttachedTextData;
 use Domain\Conversation\Data\Media\MediaRequestData;
 use Domain\Conversation\Data\Media\MediaRequestResultData;
@@ -34,8 +35,10 @@ use Illuminate\Support\Str;
  * files for the hour, or once the workspace has used its monthly generation
  * limit (videos have a limit of their own). An audio file of the attached PDF reads the PDF's text here, and is
  * turned down when there is none, no text in it, or more than one file may
- * read. Otherwise the item is stored as pending, a slot of the monthly limit
- * is taken, and {@see GenerateMediaJob} makes the file in the background.
+ * read. Otherwise the item is stored as pending, with the model the chatter
+ * picked when the agent offers a choice ({@see OfferedMediaModels}), a slot
+ * of the monthly limit is taken, and {@see GenerateMediaJob} makes the file
+ * in the background.
  *
  * The tool call returns at once: a picture takes up to a minute and a video
  * several, longer than a reply should wait, and a reload must not lose it.
@@ -55,6 +58,7 @@ class RequestMediaGenerationAction
         private readonly ReadAloudAvailability $readAloud,
         private readonly AttachedFileText $attachedText,
         private readonly GenerationAllowance $allowance,
+        private readonly OfferedMediaModels $offeredModels,
     ) {}
 
     public function execute(Agent $agent, Conversation $conversation, MediaRequestData $request): MediaRequestResultData
@@ -84,6 +88,9 @@ class RequestMediaGenerationAction
 
         $audio = $request->kind === GeneratedMediaKind::Audio;
         $prompt = $attached instanceof AttachedTextData ? $attached->text : $request->prompt;
+        // The chatter's pick from the header, while the agent still offers it.
+        $model = $this->offeredModels->resolve($agent, $request->kind, $conversation->media_models[$request->kind->value] ?? null);
+        $picked = $model !== null ? ['model' => $model, 'model_name' => $this->offeredModels->name($request->kind, $model)] : [];
         $media = GeneratedMedia::query()->create([
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
@@ -92,20 +99,24 @@ class RequestMediaGenerationAction
             'status' => GeneratedMediaStatus::Pending,
             'prompt' => $prompt,
             'metadata' => match ($request->kind) {
-                GeneratedMediaKind::Image => ['shape' => ($request->shape instanceof ImageShape ? $request->shape : ImageShape::Square)->value],
+                GeneratedMediaKind::Image => [
+                    'shape' => ($request->shape instanceof ImageShape ? $request->shape : ImageShape::Square)->value,
+                    ...$picked,
+                ],
                 // The admin's length and resolution as they are now, so a
                 // change made while the job waits does not reach this video.
                 GeneratedMediaKind::Video => [
                     'shape' => ($request->shape instanceof VideoShape ? $request->shape : VideoShape::Landscape)->value,
                     'seconds' => (int) config('chatvia.ai.video_duration'),
                     'resolution' => (VideoResolution::tryFrom((string) config('chatvia.ai.video_resolution')) ?? VideoResolution::Hd720)->value,
+                    ...$picked,
                 ],
                 GeneratedMediaKind::Audio => ['voice' => $this->readAloud->voiceFor($agent, $this->audio->speaker)],
             },
             'service' => match ($request->kind) {
-                GeneratedMediaKind::Image => $this->images->name(),
+                GeneratedMediaKind::Image => $this->images->name($model),
                 GeneratedMediaKind::Audio => $this->audio->name(),
-                GeneratedMediaKind::Video => $this->videos->name(),
+                GeneratedMediaKind::Video => $this->videos->name($model),
             },
         ]);
 
@@ -115,7 +126,7 @@ class RequestMediaGenerationAction
             ! $audio => $prompt,
             $attached instanceof AttachedTextData => $attached->filename,
             default => Str::limit($prompt, self::CAPTION),
-        });
+        }, $picked['model_name'] ?? null);
     }
 
     private function refusal(Conversation $conversation, GeneratedMediaKind $kind): ?MediaRequestRefusal

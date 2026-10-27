@@ -40,9 +40,9 @@ final class FakeImageGenerator implements ImageGenerator
         return $this->enabled;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'fake image-model';
+        return 'fake '.($model ?? 'image-model');
     }
 
     /** Bind it as the image service, and return it to check what it drew. */

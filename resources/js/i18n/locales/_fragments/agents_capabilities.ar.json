@@ -11,7 +11,10 @@
             "empty": "لا توجد قدرات متاحة بعد.",
             "enable_failed": "تعذّر تفعيل هذه القدرة",
             "disable_failed": "تعذّر إيقاف هذه القدرة",
-            "turned_off_by_admin": "أوقفه المسؤول"
+            "turned_off_by_admin": "أوقفه المسؤول",
+            "model_choice_image": "السماح للأشخاص باختيار نموذج الصور",
+            "model_choice_video": "السماح للأشخاص باختيار نموذج الفيديو",
+            "model_choice_failed": "تعذّر تغيير خيار النموذج"
         }
     }
 }

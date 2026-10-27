@@ -49,7 +49,9 @@
         "incognito_mode": "Inkognito",
         "delete_conversation": "Radera konversation",
         "delete_dialog_title": "Radera konversationen?",
-        "delete_dialog_description": "Den här åtgärden kan inte ångras."
+        "delete_dialog_description": "Den här åtgärden kan inte ångras.",
+        "image_model": "Bildmodell",
+        "video_model": "Videomodell"
     },
     "sidebar": {
         "new_chat": "Ny chatt",
@@ -176,7 +178,8 @@
             "image_ready": "Din bild är klar. | Dina bilder är klara.",
             "audio_ready": "Ditt ljud är klart. | Dina ljudfiler är klara.",
             "video_ready": "Din video är klar. | Dina videor är klara.",
-            "files_ready": "Dina filer är klara."
+            "files_ready": "Dina filer är klara.",
+            "made_with": "Skapad med {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Anslut {names}",
             "book_through": "Boka via",
             "provider_failed": "Det gick inte att ändra bokningstjänsten",
-            "turned_off_by_admin": "Avstängt av din administratör"
+            "turned_off_by_admin": "Avstängt av din administratör",
+            "model_choice_image": "Låt personer välja bildmodellen",
+            "model_choice_video": "Låt personer välja videomodellen",
+            "model_choice_failed": "Det gick inte att ändra modellvalet"
         },
         "forms": {
             "page_title": "Formulär",

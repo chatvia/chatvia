@@ -49,7 +49,9 @@
         "incognito_mode": "Ẩn danh",
         "delete_conversation": "Xoá cuộc trò chuyện",
         "delete_dialog_title": "Xoá cuộc trò chuyện?",
-        "delete_dialog_description": "Hành động này không thể hoàn tác."
+        "delete_dialog_description": "Hành động này không thể hoàn tác.",
+        "image_model": "Mô hình hình ảnh",
+        "video_model": "Mô hình video"
     },
     "sidebar": {
         "new_chat": "Trò chuyện mới",
@@ -176,7 +178,8 @@
             "image_ready": "Hình ảnh của bạn đã sẵn sàng. | Các hình ảnh của bạn đã sẵn sàng.",
             "audio_ready": "Âm thanh của bạn đã sẵn sàng. | Các tệp âm thanh của bạn đã sẵn sàng.",
             "video_ready": "Video của bạn đã sẵn sàng. | Các video của bạn đã sẵn sàng.",
-            "files_ready": "Các tệp của bạn đã sẵn sàng."
+            "files_ready": "Các tệp của bạn đã sẵn sàng.",
+            "made_with": "Tạo bằng {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Kết nối {names}",
             "book_through": "Đặt lịch qua",
             "provider_failed": "Không thể thay đổi dịch vụ đặt lịch",
-            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt",
+            "model_choice_image": "Cho phép mọi người chọn mô hình hình ảnh",
+            "model_choice_video": "Cho phép mọi người chọn mô hình video",
+            "model_choice_failed": "Không thể thay đổi lựa chọn mô hình"
         },
         "forms": {
             "page_title": "Biểu mẫu",

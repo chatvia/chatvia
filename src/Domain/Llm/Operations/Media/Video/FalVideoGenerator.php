@@ -50,7 +50,7 @@ class FalVideoGenerator implements VideoGenerator
 
     public function start(VideoPromptData $prompt): string
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
         $response = $this->call(fn (): Response => $this->fal->submit($model, ['prompt' => $prompt->prompt, ...$this->input($model, $prompt)]));
 
         if (blank($response->json('request_id'))) {
@@ -86,9 +86,9 @@ class FalVideoGenerator implements VideoGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'fal '.$this->model();
+        return 'fal '.$this->model($model);
     }
 
     /**
@@ -148,8 +148,8 @@ class FalVideoGenerator implements VideoGenerator
             : new VideoGenerationFailedException("fal.ai could not make the video: {$reason}");
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.fal.video_model');
+        return filled($picked) ? $picked : (string) config('services.fal.video_model');
     }
 }

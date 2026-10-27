@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /**
- * Top bar of the hosted chat: reopen-sidebar and expand toggles on one side;
+ * Top bar of the hosted chat: reopen-sidebar and expand toggles, then the
+ * image and video model pickers (when the agent offers a choice), on one side;
  * incognito badge, delete-conversation, language and theme switchers on the
  * other. When the theme switcher is hidden it applies the owner's default theme.
  */
+import ChatMediaModelPicker from '@/components/chat/ChatMediaModelPicker.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import {
@@ -131,6 +133,9 @@ function confirmDelete() {
                         </TooltipTrigger>
                         <TooltipContent side="bottom">{{ t('header.toggle_expand') }}</TooltipContent>
                     </Tooltip>
+
+                    <ChatMediaModelPicker kind="image" />
+                    <ChatMediaModelPicker kind="video" />
                 </div>
 
                 <div class="flex items-center gap-1">

@@ -11,7 +11,10 @@
             "empty": "Ingen kapabiliteter er tilgjengelige ennå.",
             "enable_failed": "Kunne ikke slå på denne kapabiliteten",
             "disable_failed": "Kunne ikke slå av denne kapabiliteten",
-            "turned_off_by_admin": "Slått av av administratoren din"
+            "turned_off_by_admin": "Slått av av administratoren din",
+            "model_choice_image": "La folk velge bildemodellen",
+            "model_choice_video": "La folk velge videomodellen",
+            "model_choice_failed": "Kunne ikke endre modellvalget"
         }
     }
 }

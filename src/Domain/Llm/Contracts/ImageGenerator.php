@@ -26,6 +26,6 @@ interface ImageGenerator
     /** Whether an image service is set up (Settings → AI models → Image generation). */
     public function isEnabled(): bool;
 
-    /** The service and model that draw, stored with each picture made. */
-    public function name(): string;
+    /** The service and model that draw (the admin's, or the one given), stored with each picture made. */
+    public function name(?string $model = null): string;
 }

@@ -9,8 +9,9 @@ use Domain\Llm\Enums\VideoShape;
 use Spatie\LaravelData\Data;
 
 /**
- * What to film: the prompt the agent wrote, the shape, and the length and
- * resolution the admin picked. Services take other lengths, so each one
+ * What to film: the prompt the agent wrote, the shape, the length and
+ * resolution the admin picked, and the model the chatter picked (null: the
+ * admin's). Services take other lengths, so each one
  * asks for the nearest it makes ({@see secondsAmong()}, {@see secondsBetween()}).
  */
 class VideoPromptData extends Data
@@ -20,6 +21,7 @@ class VideoPromptData extends Data
         public VideoShape $shape = VideoShape::Landscape,
         public int $seconds = 8,
         public VideoResolution $resolution = VideoResolution::Hd720,
+        public ?string $model = null,
     ) {}
 
     /**

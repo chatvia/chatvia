@@ -48,7 +48,7 @@ use Throwable;
  * @property GeneratedMediaKind $kind
  * @property GeneratedMediaStatus $status
  * @property string $prompt The picture asked for, or the text to speak
- * @property array{shape?: string, seconds?: int, resolution?: string, voice?: string}|null $metadata What it is made with: an image's shape, a video's shape, seconds and resolution, or the voice an audio file is read in
+ * @property array{shape?: string, seconds?: int, resolution?: string, voice?: string, model?: string, model_name?: string}|null $metadata What it is made with: an image's shape, a video's shape, seconds and resolution, or the voice an audio file is read in; and the model the chatter picked, when the agent offered a choice
  * @property string $service The service and model that make it
  * @property string|null $task_id A video's task at its service, while it is being made
  * @property string|null $filepath

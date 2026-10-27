@@ -41,6 +41,6 @@ interface VideoGenerator
     /** Whether a video service is set up (Settings → AI models → Video generation). */
     public function isEnabled(): bool;
 
-    /** The service and model that make videos, stored with each video. */
-    public function name(): string;
+    /** The service and model that make videos (the admin's, or the one given), stored with each video. */
+    public function name(?string $model = null): string;
 }

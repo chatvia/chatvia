@@ -11,7 +11,10 @@
             "empty": "Brak dostępnych możliwości.",
             "enable_failed": "Nie udało się włączyć tej możliwości",
             "disable_failed": "Nie udało się wyłączyć tej możliwości",
-            "turned_off_by_admin": "Wyłączone przez administratora"
+            "turned_off_by_admin": "Wyłączone przez administratora",
+            "model_choice_image": "Pozwól wybierać model obrazów",
+            "model_choice_video": "Pozwól wybierać model wideo",
+            "model_choice_failed": "Nie udało się zmienić wyboru modelu"
         }
     }
 }

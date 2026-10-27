@@ -32,6 +32,8 @@
     "settings/ai-models#image-generation": [
         "Image generation",
         "Model",
+        "Let workspaces offer a choice of models",
+        "Models people can pick",
         "Pictures per chat per hour"
     ],
     "settings/ai-models#models-for-app-tasks": [
@@ -71,6 +73,8 @@
     "settings/ai-models#video-generation": [
         "Video generation",
         "Model",
+        "Let workspaces offer a choice of models",
+        "Models people can pick",
         "Videos per chat per hour",
         "Length, in seconds",
         "Resolution"

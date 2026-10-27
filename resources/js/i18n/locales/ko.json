@@ -49,7 +49,9 @@
         "incognito_mode": "시크릿",
         "delete_conversation": "대화 삭제",
         "delete_dialog_title": "대화를 삭제할까요?",
-        "delete_dialog_description": "이 작업은 취소할 수 없습니다."
+        "delete_dialog_description": "이 작업은 취소할 수 없습니다.",
+        "image_model": "이미지 모델",
+        "video_model": "동영상 모델"
     },
     "sidebar": {
         "new_chat": "새 채팅",
@@ -176,7 +178,8 @@
             "image_ready": "이미지가 준비되었습니다. | 이미지가 준비되었습니다.",
             "audio_ready": "오디오가 준비되었습니다. | 오디오가 준비되었습니다.",
             "video_ready": "동영상이 준비되었습니다. | 동영상이 준비되었습니다.",
-            "files_ready": "파일이 준비되었습니다."
+            "files_ready": "파일이 준비되었습니다.",
+            "made_with": "{model}(으)로 만듦"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "{names} 연결",
             "book_through": "예약 서비스",
             "provider_failed": "예약 서비스를 변경하지 못했습니다",
-            "turned_off_by_admin": "관리자가 꺼 두었습니다"
+            "turned_off_by_admin": "관리자가 꺼 두었습니다",
+            "model_choice_image": "사람들이 이미지 모델을 선택하도록 허용",
+            "model_choice_video": "사람들이 동영상 모델을 선택하도록 허용",
+            "model_choice_failed": "모델 선택을 변경할 수 없습니다"
         },
         "forms": {
             "page_title": "양식",

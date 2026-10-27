@@ -49,7 +49,9 @@
         "incognito_mode": "シークレット",
         "delete_conversation": "会話を削除",
         "delete_dialog_title": "会話を削除しますか?",
-        "delete_dialog_description": "この操作は取り消せません。"
+        "delete_dialog_description": "この操作は取り消せません。",
+        "image_model": "画像モデル",
+        "video_model": "動画モデル"
     },
     "sidebar": {
         "new_chat": "新しいチャット",
@@ -176,7 +178,8 @@
             "image_ready": "画像ができました。 | 画像ができました。",
             "audio_ready": "音声ができました。 | 音声ができました。",
             "video_ready": "動画ができました。 | 動画ができました。",
-            "files_ready": "ファイルができました。"
+            "files_ready": "ファイルができました。",
+            "made_with": "{model} で作成"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "{names} を接続",
             "book_through": "予約サービス",
             "provider_failed": "予約サービスを変更できませんでした",
-            "turned_off_by_admin": "管理者によってオフにされています"
+            "turned_off_by_admin": "管理者によってオフにされています",
+            "model_choice_image": "画像モデルを選べるようにする",
+            "model_choice_video": "動画モデルを選べるようにする",
+            "model_choice_failed": "モデルの選択を変更できませんでした"
         },
         "forms": {
             "page_title": "フォーム",

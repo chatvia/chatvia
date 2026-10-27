@@ -49,7 +49,9 @@
         "incognito_mode": "Inkognito",
         "delete_conversation": "Slett samtale",
         "delete_dialog_title": "Slett samtale?",
-        "delete_dialog_description": "Denne handlingen kan ikke angres."
+        "delete_dialog_description": "Denne handlingen kan ikke angres.",
+        "image_model": "Bildemodell",
+        "video_model": "Videomodell"
     },
     "sidebar": {
         "new_chat": "Ny chat",
@@ -176,7 +178,8 @@
             "image_ready": "Bildet ditt er klart. | Bildene dine er klare.",
             "audio_ready": "Lyden din er klar. | Lydfilene dine er klare.",
             "video_ready": "Videoen din er klar. | Videoene dine er klare.",
-            "files_ready": "Filene dine er klare."
+            "files_ready": "Filene dine er klare.",
+            "made_with": "Laget med {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Koble til {names}",
             "book_through": "Book via",
             "provider_failed": "Kunne ikke endre bookingtjenesten",
-            "turned_off_by_admin": "Slått av av administratoren din"
+            "turned_off_by_admin": "Slått av av administratoren din",
+            "model_choice_image": "La folk velge bildemodellen",
+            "model_choice_video": "La folk velge videomodellen",
+            "model_choice_failed": "Kunne ikke endre modellvalget"
         },
         "forms": {
             "page_title": "Skjemaer",

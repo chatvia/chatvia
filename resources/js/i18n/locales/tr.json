@@ -49,7 +49,9 @@
         "incognito_mode": "Gizli",
         "delete_conversation": "Konuşmayı sil",
         "delete_dialog_title": "Konuşma silinsin mi?",
-        "delete_dialog_description": "Bu işlem geri alınamaz."
+        "delete_dialog_description": "Bu işlem geri alınamaz.",
+        "image_model": "Görsel modeli",
+        "video_model": "Video modeli"
     },
     "sidebar": {
         "new_chat": "Yeni sohbet",
@@ -176,7 +178,8 @@
             "image_ready": "Görseliniz hazır. | Görselleriniz hazır.",
             "audio_ready": "Sesiniz hazır. | Ses dosyalarınız hazır.",
             "video_ready": "Videonuz hazır. | Videolarınız hazır.",
-            "files_ready": "Dosyalarınız hazır."
+            "files_ready": "Dosyalarınız hazır.",
+            "made_with": "{model} ile yapıldı"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "{names} bağla",
             "book_through": "Rezervasyon hizmeti",
             "provider_failed": "Rezervasyon hizmeti değiştirilemedi",
-            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı"
+            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı",
+            "model_choice_image": "Kişilerin görsel modelini seçmesine izin ver",
+            "model_choice_video": "Kişilerin video modelini seçmesine izin ver",
+            "model_choice_failed": "Model seçimi değiştirilemedi"
         },
         "forms": {
             "page_title": "Formlar",

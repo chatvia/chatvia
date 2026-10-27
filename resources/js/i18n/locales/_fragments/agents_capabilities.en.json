@@ -11,7 +11,10 @@
             "empty": "No capabilities are available yet.",
             "enable_failed": "Could not turn on this capability",
             "disable_failed": "Could not turn off this capability",
-            "turned_off_by_admin": "Turned off by your admin"
+            "turned_off_by_admin": "Turned off by your admin",
+            "model_choice_image": "Let people choose the image model",
+            "model_choice_video": "Let people choose the video model",
+            "model_choice_failed": "Could not change the model choice"
         }
     }
 }

@@ -17,7 +17,8 @@
             "files_ready": "Deine Dateien sind fertig.",
             "refused": "Der Dienst hat diese Anfrage abgelehnt.",
             "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
-            "download": "Herunterladen"
+            "download": "Herunterladen",
+            "made_with": "Erstellt mit {model}"
         }
     }
 }

@@ -59,5 +59,9 @@ const failureText = computed(() => {
             <Clapperboard class="h-5 w-5" aria-hidden="true" />
             {{ t('chat.generated_media.video_pending') }}
         </div>
+        <!-- The agent offers a choice of model: say which one the chatter picked. -->
+        <p v-if="media.model_name && media.status !== 'failed'" class="text-muted-foreground mt-1 text-xs">
+            {{ t('chat.generated_media.made_with', { model: media.model_name }) }}
+        </p>
     </div>
 </template>

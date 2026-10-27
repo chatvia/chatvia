@@ -18,7 +18,6 @@ use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
-use App\Http\Middleware\Chat\RedirectCustomDomainToChat;
 use App\Http\Middleware\Chat\ResolveHostedChatAgent;
 use App\Http\Middleware\Chat\UseHostedChatSession;
 use App\Http\Middleware\Chat\UseSignedInChatGuard;
@@ -81,7 +80,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(UseHostedChatSession::class);
 
         // Links are built on APP_URL unless the request came to APP_URL's
-        // host or an agent's custom domain, so a forged Host header cannot
+        // host, so a forged Host header cannot
         // move an e-mailed sign-in link to another site. Appended: it runs
         // after TrustProxies has settled which host the request is for.
         $middleware->append(UseAppUrlForUnknownHosts::class);
@@ -93,7 +92,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
             // covers the `chat` guard; UseSignedInChatGuard runs the same
             // check for `chat_staff`, once that guard is the default.
             AuthenticateSession::class,
-            RedirectCustomDomainToChat::class,
             HandleAppearance::class,
             SetLocale::class,
             EnsureWorkspaceNetworkAllowed::class,

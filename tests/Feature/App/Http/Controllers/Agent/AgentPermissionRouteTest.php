@@ -317,8 +317,6 @@ describe('setup', function (): void {
             fn (Agent $agent): bool => $agent->name === 'Renamed Bot' && $agent->slug === 'renamed-bot'],
         'update the persona' => ['PATCH', 'agents.update', 'agent.setup', ['system_instructions' => 'Answer in one line.'], 200,
             fn (Agent $agent): bool => $agent->system_instructions === 'Answer in one line.'],
-        'set the custom domain' => ['PATCH', 'agents.domain.update', 'agent.setup', ['domain' => 'chat.acme-bot.test'], 302,
-            fn (Agent $agent): bool => $agent->pending_domain === 'chat.acme-bot.test'],
         'open it to the internet' => ['PATCH', 'agents.security.update', 'agent.setup', ['is_public' => true], 302,
             fn (Agent $agent): bool => $agent->is_public === true],
         'renew the signing secret' => ['POST', 'agents.identity.regenerate', 'agent.identity.manage', [], 302,

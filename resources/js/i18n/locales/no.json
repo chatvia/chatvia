@@ -1859,7 +1859,6 @@
                 "branding": "Profil",
                 "behavior": "Atferd",
                 "settings": "Innstillinger",
-                "domain": "Domene",
                 "languages": "Språk",
                 "bubbles": "Snakkebobler"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Kunne ikke lagre startemeldinger",
                 "saved": "Lagret",
                 "save_error": "Kunne ikke lagre",
-                "domain_saved": "Egendefinert domene lagret",
-                "domain_removed": "Egendefinert domene fjernet",
-                "domain_error": "Kunne ikke lagre domene",
                 "copy_error": "Kunne ikke kopiere til utklippstavlen",
                 "colors_saved": "Farger lagret",
                 "colors_error": "Kunne ikke lagre farger",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Kunne ikke fjerne logoen",
                 "replies_saved": "Svarinnstillinger lagret",
                 "replies_error": "Kunne ikke lagre svarinnstillinger",
-                "domain_verified": "Egendefinert domene bekreftet",
-                "domain_verify_error": "Kunne ikke bekrefte domenet",
                 "feedback_saved": "Tilbakemeldingsvalg lagret",
                 "feedback_error": "Kunne ikke lagre tilbakemeldingsvalg"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Flateforhåndsvisning"
-            },
-            "domain": {
-                "title": "Egendefinert domene",
-                "description": "Server denne agentens Hosted Chat fra ditt eget domene i stedet for {target}.",
-                "step1": "Steg 1 — Legg til en CNAME-post hos din DNS-leverandør",
-                "type": "Type",
-                "name": "Navn",
-                "value": "Verdi",
-                "cname_name": "ditt-underdomene",
-                "dns_hint": "DNS-endringer kan ta opptil 24 timer å spre seg. Når det er løst, vil besøkende se denne agentens Hosted Chat på domenet ditt.",
-                "step2": "Steg 2 — Skriv inn domenet du pekte mot oss",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Skriv inn det fullstendige vertsnavnet uten protokoll — f.eks. chat.example.com.",
-                "step3": "Steg 3: bevis med en TXT-post at du eier domenet",
-                "pending": "{domain} er ikke aktivt ennå. Legg til TXT-posten ovenfor hos DNS-leverandøren din, og velg deretter Bekreft. DNS-endringer kan ta litt tid.",
-                "active": "Aktivt på {domain}.",
-                "verify": "Bekreft",
-                "verifying": "Bekrefter…"
             },
             "preview": {
                 "title": "Live forhåndsvisning",

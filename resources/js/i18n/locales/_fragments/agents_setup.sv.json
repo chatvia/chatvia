@@ -14,8 +14,7 @@
                 "model": "Modell",
                 "branding": "Varumärke",
                 "behavior": "Beteende",
-                "settings": "Inställningar",
-                "domain": "Domän"
+                "settings": "Inställningar"
             },
             "view_only_title": "Skrivskyddad",
             "view_only_description": "Du har inte behörighet att redigera inställningarna.",
@@ -36,11 +35,6 @@
                 "starters_error": "Det gick inte att spara startfrågor",
                 "saved": "Sparat",
                 "save_error": "Det gick inte att spara",
-                "domain_saved": "Anpassad domän sparad",
-                "domain_removed": "Anpassad domän borttagen",
-                "domain_error": "Det gick inte att spara domänen",
-                "domain_verified": "Anpassad domän verifierad",
-                "domain_verify_error": "Det gick inte att verifiera domänen",
                 "copy_error": "Det gick inte att kopiera till urklipp",
                 "colors_saved": "Färger sparade",
                 "colors_error": "Det gick inte att spara färger",
@@ -149,24 +143,6 @@
             },
             "embed": {
                 "surface_preview": "Ytförhandsvisning"
-            },
-            "domain": {
-                "title": "Anpassad domän",
-                "description": "Servera den här agentens Hosted Chat från din egen domän istället för {target}.",
-                "step1": "Steg 1 — Lägg till en CNAME-post hos din DNS-leverantör",
-                "type": "Typ",
-                "name": "Namn",
-                "value": "Värde",
-                "cname_name": "din-subdomän",
-                "dns_hint": "DNS-ändringar kan ta upp till 24 timmar att spridas. När det löser sig kommer dina besökare att se den här agentens Hosted Chat på din domän.",
-                "step2": "Steg 2 — Ange den domän du pekade mot oss",
-                "placeholder": "chatt.example.com",
-                "hostname_hint": "Ange det fullständiga värdnamnet utan schema — t.ex. chatt.example.com.",
-                "step3": "Steg 3: visa med en TXT-post att du äger domänen",
-                "pending": "{domain} är inte aktiv än. Lägg till TXT-posten ovan hos din DNS-leverantör och välj sedan Verifiera. DNS-ändringar kan ta en stund.",
-                "active": "Aktiv på {domain}.",
-                "verify": "Verifiera",
-                "verifying": "Verifierar…"
             },
             "preview": {
                 "title": "Liveförhandsvisning",

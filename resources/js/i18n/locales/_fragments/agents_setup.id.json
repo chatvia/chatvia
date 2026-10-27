@@ -3,9 +3,7 @@
         "setup": {
             "toasts": {
                 "replies_saved": "Opsi balasan disimpan",
-                "replies_error": "Tidak dapat menyimpan opsi balasan",
-                "domain_verified": "Domain khusus terverifikasi",
-                "domain_verify_error": "Tidak dapat memverifikasi domain"
+                "replies_error": "Tidak dapat menyimpan opsi balasan"
             },
             "settings": {
                 "file_uploads_unavailable": "Nonaktif di server ini. Admin dapat mengaktifkan unggahan file di chat melalui panel admin, di Settings → AI models."
@@ -22,13 +20,6 @@
             "multi_model_help": "Pilih beberapa model. Pengguna chat lalu memilih model yang menjawab, di chat yang di-host, widget chat, dan bilah perintah, untuk setiap pesan dan saat meminta jawaban baru.",
             "multi_model_placeholder": "Pilih model",
             "multi_model_hint": "Model pertama menjawab sampai pengguna chat memilih yang lain. Pilih setidaknya dua, atau pengguna chat tidak melihat pemilih.",
-            "domain": {
-                "step3": "Langkah 3: buktikan bahwa domain ini milik Anda dengan catatan TXT",
-                "pending": "{domain} belum aktif. Tambahkan catatan TXT di atas di penyedia DNS Anda, lalu pilih Verifikasi. Perubahan DNS bisa memakan waktu.",
-                "active": "Aktif di {domain}.",
-                "verify": "Verifikasi",
-                "verifying": "Memverifikasi…"
-            },
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget.",
             "reasoning_title": "Penalaran",
             "reasoning_description": "Seberapa keras model berpikir sebelum menjawab. Berpikir lebih banyak membantu untuk pertanyaan sulit, tetapi jawaban datang lebih lambat dan biayanya lebih tinggi. Pengguna chat melihat penalaran berwarna abu-abu di atas jawaban.",

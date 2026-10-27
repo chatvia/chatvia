@@ -11,7 +11,6 @@ use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Uri;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +21,6 @@ use Symfony\Component\HttpFoundation\Response;
  * id) and keeps it on the request for {@see HostedChatAgent}.
  *
  *  - An unknown agent shows the not-found page.
- *  - On an agent's custom domain, only that agent is served there.
  *  - URL::defaults() fills in `agentSlug`, so route('chat.home') and the other
  *    chat routes need no agent argument.
  *  - The segment is then dropped from the route parameters: controllers take
@@ -36,7 +34,7 @@ final class ResolveHostedChatAgent
         $slug = (string) $request->route('agentSlug');
         $agent = AgentLocator::resolveAgentBySlug($slug);
 
-        if (! $agent instanceof Agent || ! $this->servedOnThisHost($request, $agent)) {
+        if (! $agent instanceof Agent) {
             return Inertia::render('agents/chat/AgentNotFound');
         }
 
@@ -47,23 +45,5 @@ final class ResolveHostedChatAgent
         $request->route()?->forgetParameter('agentSlug');
 
         return $next($request);
-    }
-
-    /**
-     * A custom domain belongs to one agent, so it never serves another
-     * agent's chat. Any other host (the app's own, or an address that is not
-     * a custom domain) serves every agent.
-     */
-    private function servedOnThisHost(Request $request, Agent $agent): bool
-    {
-        $host = $request->getHost();
-
-        if ($host === Uri::of((string) config('app.url'))->host()) {
-            return true;
-        }
-
-        $owner = AgentLocator::resolveByHost($host);
-
-        return ! $owner instanceof Agent || $owner->is($agent);
     }
 }

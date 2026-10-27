@@ -14,8 +14,7 @@
                 "model": "Modelo",
                 "branding": "Marca",
                 "behavior": "Comportamento",
-                "settings": "Definições",
-                "domain": "Domínio"
+                "settings": "Definições"
             },
             "view_only_title": "Apenas Leitura",
             "view_only_description": "Não tem permissão para editar a Configuração.",
@@ -36,11 +35,6 @@
                 "starters_error": "Não foi possível guardar os iniciadores",
                 "saved": "Guardado",
                 "save_error": "Não foi possível guardar",
-                "domain_saved": "Domínio personalizado guardado",
-                "domain_removed": "Domínio personalizado removido",
-                "domain_error": "Não foi possível guardar o domínio",
-                "domain_verified": "Domínio personalizado verificado",
-                "domain_verify_error": "Não foi possível verificar o domínio",
                 "copy_error": "Não foi possível copiar para a área de transferência",
                 "colors_saved": "Cores guardadas",
                 "colors_error": "Não foi possível guardar as cores",
@@ -149,24 +143,6 @@
             },
             "embed": {
                 "surface_preview": "Pré-visualização da superfície"
-            },
-            "domain": {
-                "title": "Domínio Personalizado",
-                "description": "Sirva o Chat Alojado deste agente a partir do seu próprio domínio em vez de {target}.",
-                "step1": "Passo 1 — Adicione um registo CNAME no seu fornecedor de DNS",
-                "type": "Tipo",
-                "name": "Nome",
-                "value": "Valor",
-                "cname_name": "o-seu-subdomínio",
-                "dns_hint": "As alterações de DNS podem demorar até 24 horas a propagar-se. Assim que for resolvido, os seus visitantes verão o Chat Alojado deste agente no seu domínio.",
-                "step2": "Passo 2 — Introduza o domínio que apontou para nós",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Introduza o hostname completo sem esquema — ex.: chat.example.com.",
-                "step3": "Passo 3: prove que o domínio é seu com um registo TXT",
-                "pending": "{domain} ainda não está ativo. Adicione o registo TXT acima no seu fornecedor de DNS e depois selecione Verificar. As alterações de DNS podem demorar algum tempo.",
-                "active": "Ativo em {domain}.",
-                "verify": "Verificar",
-                "verifying": "A verificar…"
             },
             "preview": {
                 "title": "Pré-visualização em Direto",

@@ -12,7 +12,6 @@ import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
 import SetupBarBehaviorPanel from '@/components/agents/setup/SetupBarBehaviorPanel.vue';
 import SetupBrandingPanel from '@/components/agents/setup/SetupBrandingPanel.vue';
 import SetupBubblesPanel from '@/components/agents/setup/SetupBubblesPanel.vue';
-import SetupDomainPanel from '@/components/agents/setup/SetupDomainPanel.vue';
 import SetupHostedBehaviorPanel from '@/components/agents/setup/SetupHostedBehaviorPanel.vue';
 import SetupInfoPanel from '@/components/agents/setup/SetupInfoPanel.vue';
 import SetupLanguagesPanel from '@/components/agents/setup/SetupLanguagesPanel.vue';
@@ -31,7 +30,6 @@ import { useSetupBehavior } from '@/composables/agents/setup/useSetupBehavior';
 import { useSetupBranding } from '@/composables/agents/setup/useSetupBranding';
 import { useSetupBubbles } from '@/composables/agents/setup/useSetupBubbles';
 import { provideSetupContext } from '@/composables/agents/setup/useSetupContext';
-import { useSetupDomain, type SetupDomainContext } from '@/composables/agents/setup/useSetupDomain';
 import { useSetupGeneralSettings, type SetupReadAloudOptions, type SetupVoiceOptions } from '@/composables/agents/setup/useSetupGeneralSettings';
 import { useSetupLanguages } from '@/composables/agents/setup/useSetupLanguages';
 import { useSetupModel, type ModelChoice } from '@/composables/agents/setup/useSetupModel';
@@ -91,8 +89,6 @@ interface Props {
     modelChoiceAllowed: boolean;
 
     availableLanguages: Record<string, string>;
-
-    domain: SetupDomainContext;
 }
 
 const props = defineProps<Props>();
@@ -129,7 +125,6 @@ provideSetupContext({
         settingsReader(props.widgetSettings, props.defaultWidget),
         settingsReader(props.barSettings, props.defaultBar),
     ),
-    domain: useSetupDomain(deps, () => props.domain),
 });
 </script>
 
@@ -188,8 +183,6 @@ provideSetupContext({
                                     <SetupWidgetBehaviorPanel v-else-if="surface === 'widget'" :available-languages="availableLanguages" />
                                     <SetupBarBehaviorPanel v-else />
                                 </template>
-
-                                <SetupDomainPanel v-if="activeSection === 'domain'" :domain="domain" />
                             </div>
                         </div>
                     </div>

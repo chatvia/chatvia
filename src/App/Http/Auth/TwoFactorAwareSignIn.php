@@ -57,8 +57,7 @@ final readonly class TwoFactorAwareSignIn
      * two-factor authentication the user goes straight into the chat with a
      * one-time token. With it, the challenge runs first (Fortify's, on the
      * dashboard session) and then lands on the chat hand-off route, which
-     * moves the sign-in into the chat. Redirects stay on the current host, so
-     * a sign-in started on an agent's custom domain ends there.
+     * moves the sign-in into the chat.
      */
     public function respondForChat(User $user, Agent $agent): RedirectResponse
     {

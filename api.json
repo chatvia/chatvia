@@ -348,7 +348,7 @@
             },
             "delete": {
                 "operationId": "v1.agents.destroy",
-                "description": "The agent is gone at once: its chat address, custom domain and API\nroutes stop working right away. Its conversations, the knowledge\nsources no other agent uses and its uploaded files are then removed in\nthe background. Account-level MCP servers and functions stay; only\ntheir link to this agent is removed.",
+                "description": "The agent is gone at once: its chat address and API routes stop\nworking right away. Its conversations, the knowledge\nsources no other agent uses and its uploaded files are then removed in\nthe background. Account-level MCP servers and functions stay; only\ntheir link to this agent is removed.",
                 "summary": "Delete agent",
                 "tags": [
                     "Agents"

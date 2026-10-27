@@ -11,7 +11,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Data\Resources\AgentPromptPickerData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\Services\AgentModel;
-use Domain\Agent\Services\CustomDomain\CustomDomainVerification;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
@@ -25,7 +24,6 @@ use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Domain\Llm\Services\TaskModels;
-use Illuminate\Support\Uri;
 
 /**
  * The props of the unified Setup page, drawn from many sources: the agent's
@@ -150,18 +148,6 @@ final readonly class SetupPageProps
             'modelChoiceAllowed' => (bool) config('chatvia.ai.chatter_model_choice'),
 
             'availableLanguages' => config('chatvia.languages'),
-
-            // Custom domain (Hosted Chat only): the domain in use, the one
-            // waiting for its TXT record, the CNAME target (the app's own
-            // host, which serves every chat) and the TXT record that proves
-            // the workspace controls the pending domain.
-            'domain' => [
-                'value' => $agent->domain,
-                'pending' => $agent->pending_domain,
-                'cname_target' => (string) Uri::of((string) config('app.url'))->host(),
-                'txt_name' => $agent->pending_domain !== null ? CustomDomainVerification::recordName($agent->pending_domain) : null,
-                'txt_value' => $agent->pending_domain !== null ? $agent->domain_verification_token : null,
-            ],
         ];
     }
 

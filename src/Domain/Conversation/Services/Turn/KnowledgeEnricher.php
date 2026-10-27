@@ -326,7 +326,7 @@ class KnowledgeEnricher
                 // delimiters so it cannot break out of the alt text and add
                 // another image URL.
                 'description' => Str::replace([']', '[', '(', ')', "\n", "\r"], ' ', (string) $description),
-                // Always the main domain (not an agent's custom domain). The path
+                // Always APP_URL, whichever host the chat was opened on. The path
                 // carries an HMAC over (chunk, index), so the public image route
                 // only serves links the server minted.
                 'url' => Str::rtrim((string) config('app.url'), '/').ChunkImageLink::path($source->external_id ?? '', $index),

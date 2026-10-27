@@ -168,7 +168,6 @@ declare namespace Domain {
                         external_id: string;
                         name: string;
                         slug: string | null;
-                        domain: string | null;
                         system_instructions: string | null;
                         prompt_id: string | null;
                         is_public: boolean;

@@ -1859,7 +1859,6 @@
                 "branding": "Thương hiệu",
                 "behavior": "Hành vi",
                 "settings": "Cài đặt",
-                "domain": "Tên miền",
                 "languages": "Ngôn ngữ",
                 "bubbles": "Bong bóng chat"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Không thể lưu câu mở đầu",
                 "saved": "Đã lưu",
                 "save_error": "Không thể lưu",
-                "domain_saved": "Đã lưu tên miền tùy chỉnh",
-                "domain_removed": "Đã xóa tên miền tùy chỉnh",
-                "domain_error": "Không thể lưu tên miền",
                 "copy_error": "Không thể sao chép vào bộ nhớ tạm",
                 "colors_saved": "Đã lưu màu sắc",
                 "colors_error": "Không thể lưu màu sắc",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Không thể xóa logo",
                 "replies_saved": "Đã lưu tùy chọn câu trả lời",
                 "replies_error": "Không thể lưu tùy chọn câu trả lời",
-                "domain_verified": "Đã xác minh tên miền tùy chỉnh",
-                "domain_verify_error": "Không thể xác minh tên miền",
                 "feedback_saved": "Đã lưu tùy chọn phản hồi",
                 "feedback_error": "Không thể lưu tùy chọn phản hồi"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Xem trước bề mặt"
-            },
-            "domain": {
-                "title": "Tên miền tùy chỉnh",
-                "description": "Phục vụ Hosted Chat của trợ lý AI này từ tên miền của riêng bạn thay vì {target}.",
-                "step1": "Bước 1 — Thêm bản ghi CNAME tại nhà cung cấp DNS của bạn",
-                "type": "Loại",
-                "name": "Tên",
-                "value": "Giá trị",
-                "cname_name": "your-subdomain",
-                "dns_hint": "Các thay đổi DNS có thể mất tới 24 giờ để lan truyền. Sau khi nó phân giải, khách truy cập của bạn sẽ thấy Hosted Chat của trợ lý AI này trên tên miền của bạn.",
-                "step2": "Bước 2 — Nhập tên miền bạn đã trỏ về chúng tôi",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Nhập tên máy chủ đầy đủ không kèm giao thức — ví dụ chat.example.com.",
-                "step3": "Bước 3: chứng minh bạn sở hữu tên miền bằng bản ghi TXT",
-                "pending": "{domain} chưa hoạt động. Thêm bản ghi TXT ở trên tại nhà cung cấp DNS của bạn, rồi chọn Xác minh. Thay đổi DNS có thể mất một lúc.",
-                "active": "Đang hoạt động trên {domain}.",
-                "verify": "Xác minh",
-                "verifying": "Đang xác minh…"
             },
             "preview": {
                 "title": "Xem trước trực tiếp",

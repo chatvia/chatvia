@@ -1859,7 +1859,6 @@
                 "branding": "Marka",
                 "behavior": "Davranış",
                 "settings": "Ayarlar",
-                "domain": "Alan adı",
                 "languages": "Diller",
                 "bubbles": "Sohbet Balonları"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Başlatıcılar kaydedilemedi",
                 "saved": "Kaydedildi",
                 "save_error": "Kaydedilemedi",
-                "domain_saved": "Özel alan adı kaydedildi",
-                "domain_removed": "Özel alan adı kaldırıldı",
-                "domain_error": "Alan adı kaydedilemedi",
                 "copy_error": "Panoya kopyalanamadı",
                 "colors_saved": "Renkler kaydedildi",
                 "colors_error": "Renkler kaydedilemedi",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Logo kaldırılamadı",
                 "replies_saved": "Yanıt seçenekleri kaydedildi",
                 "replies_error": "Yanıt seçenekleri kaydedilemedi",
-                "domain_verified": "Özel alan adı doğrulandı",
-                "domain_verify_error": "Alan adı doğrulanamadı",
                 "feedback_saved": "Geri bildirim seçenekleri kaydedildi",
                 "feedback_error": "Geri bildirim seçenekleri kaydedilemedi"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Yüzey önizlemesi"
-            },
-            "domain": {
-                "title": "Özel Alan Adı",
-                "description": "Bu asistanın Hosted Chat hizmetini {target} yerine kendi alan adınızdan sunun.",
-                "step1": "1. Adım — DNS sağlayıcınızda bir CNAME kaydı ekleyin",
-                "type": "Tür",
-                "name": "Ad",
-                "value": "Değer",
-                "cname_name": "alt-alan-adınız",
-                "dns_hint": "DNS değişikliklerinin yayılması 24 saate kadar sürebilir. Çözümlendiğinde ziyaretçileriniz bu asistanın Hosted Chat hizmetini sizin alan adınızda görür.",
-                "step2": "2. Adım — Bize yönlendirdiğiniz alan adını girin",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Tam ana makine adını şema olmadan girin — ör. chat.example.com.",
-                "step3": "3. Adım: Alan adının size ait olduğunu bir TXT kaydıyla kanıtlayın",
-                "pending": "{domain} henüz yayında değil. Yukarıdaki TXT kaydını DNS sağlayıcınıza ekleyin, ardından Doğrula'yı seçin. DNS değişikliklerinin geçerli olması biraz zaman alabilir.",
-                "active": "{domain} üzerinde yayında.",
-                "verify": "Doğrula",
-                "verifying": "Doğrulanıyor…"
             },
             "preview": {
                 "title": "Canlı Önizleme",

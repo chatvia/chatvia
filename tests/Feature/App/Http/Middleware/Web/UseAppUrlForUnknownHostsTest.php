@@ -10,8 +10,7 @@ use Illuminate\Support\Str;
  * The e-mailed sign-in link is built from the request's host. A forged Host
  * header must not move it to another site (the click would hand the token
  * to whoever runs that site): on an unknown host the link is built on
- * APP_URL. An agent's custom domain keeps its own host, so the chat's
- * sign-in brings the person back to the same domain.
+ * APP_URL.
  */
 beforeEach(function (): void {
     Event::fake([MagicLinkRequested::class]);
@@ -50,21 +49,13 @@ it('builds the hosted chat sign-in link on APP_URL when the Host header is forge
         ->not->toContain('evil.example');
 });
 
-it('keeps the sign-in link on the agent\'s custom domain', function (): void {
-    $this->agent->update(['domain' => 'support.customer.test']);
-    Chatter::factory()->grantedTo($this->agent)->create(['email' => 'chatter@example.test']);
-
-    $this->post('http://support.customer.test/chat/'.$this->agent->slug.'/magic-link', ['email' => 'chatter@example.test']);
-
-    expect(uauhSentLink())->toStartWith('http://support.customer.test/magiclink/');
-});
-
 it('builds links on the request host again after a request to an unknown host', function (): void {
-    $this->agent->update(['domain' => 'support.customer.test']);
     Chatter::factory()->grantedTo($this->agent)->create(['email' => 'chatter@example.test']);
 
     $this->get('http://evil.example/up');
-    $this->post('http://support.customer.test/chat/'.$this->agent->slug.'/magic-link', ['email' => 'chatter@example.test']);
+    // APP_URL is http://localhost: an https link shows the request's own
+    // root was used, not one left forced by the request before.
+    $this->post('https://localhost/chat/'.$this->agent->slug.'/magic-link', ['email' => 'chatter@example.test']);
 
-    expect(uauhSentLink())->toStartWith('http://support.customer.test/magiclink/');
+    expect(uauhSentLink())->toStartWith('https://localhost/magiclink/');
 });

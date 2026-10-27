@@ -1859,7 +1859,6 @@
                 "branding": "브랜딩",
                 "behavior": "동작",
                 "settings": "설정",
-                "domain": "도메인",
                 "languages": "언어",
                 "bubbles": "채팅 말풍선"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "스타터를 저장할 수 없습니다",
                 "saved": "저장됨",
                 "save_error": "저장할 수 없습니다",
-                "domain_saved": "사용자 지정 도메인이 저장되었습니다",
-                "domain_removed": "사용자 지정 도메인이 제거되었습니다",
-                "domain_error": "도메인을 저장할 수 없습니다",
                 "copy_error": "클립보드에 복사할 수 없습니다",
                 "colors_saved": "색상이 저장되었습니다",
                 "colors_error": "색상을 저장할 수 없습니다",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "로고를 삭제할 수 없습니다",
                 "replies_saved": "답변 옵션이 저장되었습니다",
                 "replies_error": "답변 옵션을 저장하지 못했습니다",
-                "domain_verified": "사용자 지정 도메인이 확인되었습니다",
-                "domain_verify_error": "도메인을 확인할 수 없습니다",
                 "feedback_saved": "피드백 옵션을 저장했습니다",
                 "feedback_error": "피드백 옵션을 저장하지 못했습니다"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "화면 미리보기"
-            },
-            "domain": {
-                "title": "사용자 지정 도메인",
-                "description": "이 에이전트의 Hosted Chat을 {target} 대신 직접 보유한 도메인에서 제공하세요.",
-                "step1": "1단계 — DNS 공급자에서 CNAME 레코드 추가",
-                "type": "유형",
-                "name": "이름",
-                "value": "값",
-                "cname_name": "your-subdomain",
-                "dns_hint": "DNS 변경 사항이 전파되는 데 최대 24시간이 걸릴 수 있습니다. 확인되면 방문자에게 이 에이전트의 Hosted Chat이 직접 보유한 도메인에 표시됩니다.",
-                "step2": "2단계 — 저희 쪽으로 연결한 도메인 입력",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "스킴 없이 전체 호스트명을 입력하세요 — 예: chat.example.com.",
-                "step3": "3단계: TXT 레코드로 도메인 소유권 증명",
-                "pending": "{domain}은(는) 아직 활성화되지 않았습니다. DNS 공급자에서 위의 TXT 레코드를 추가한 다음 확인을 선택하세요. DNS 변경 사항이 반영되기까지 시간이 걸릴 수 있습니다.",
-                "active": "{domain}에서 활성화되었습니다.",
-                "verify": "확인",
-                "verifying": "확인 중…"
             },
             "preview": {
                 "title": "실시간 미리보기",

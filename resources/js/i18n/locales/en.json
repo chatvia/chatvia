@@ -1859,7 +1859,6 @@
                 "branding": "Branding",
                 "behavior": "Behavior",
                 "settings": "Settings",
-                "domain": "Domain",
                 "languages": "Languages",
                 "bubbles": "Chat Bubbles"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Could not save starters",
                 "saved": "Saved",
                 "save_error": "Could not save",
-                "domain_saved": "Custom domain saved",
-                "domain_removed": "Custom domain removed",
-                "domain_error": "Could not save domain",
                 "copy_error": "Could not copy to clipboard",
                 "colors_saved": "Colors saved",
                 "colors_error": "Could not save colors",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Could not remove the logo",
                 "replies_saved": "Reply options saved",
                 "replies_error": "Could not save reply options",
-                "domain_verified": "Custom domain verified",
-                "domain_verify_error": "Could not verify the domain",
                 "feedback_saved": "Feedback options saved",
                 "feedback_error": "Could not save feedback options"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Surface preview"
-            },
-            "domain": {
-                "title": "Custom Domain",
-                "description": "Serve this agent's Hosted Chat from your own domain instead of {target}.",
-                "step1": "Step 1 — Add a CNAME record at your DNS provider",
-                "type": "Type",
-                "name": "Name",
-                "value": "Value",
-                "cname_name": "your-subdomain",
-                "dns_hint": "DNS changes can take up to 24 hours to propagate. Once it resolves, your visitors will see this agent's Hosted Chat on your domain.",
-                "step2": "Step 2 — Enter the domain you pointed at us",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Enter the full hostname without scheme — e.g. chat.example.com.",
-                "step3": "Step 3: prove you own the domain with a TXT record",
-                "pending": "{domain} is not live yet. Add the TXT record above at your DNS provider, then select Verify. DNS changes can take a while.",
-                "active": "Live on {domain}.",
-                "verify": "Verify",
-                "verifying": "Verifying…"
             },
             "preview": {
                 "title": "Live Preview",

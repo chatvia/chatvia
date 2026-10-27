@@ -1,8 +1,8 @@
 /**
  * Navigation of the Setup page: the surface tabs above the page and the
  * section menu on the left. Some sections only exist on one surface (Chat
- * Bubbles on the Widget, Domain on Hosted Chat), so the menu follows the
- * active surface and falls back to Info when the open section disappears.
+ * Bubbles on the Widget), so the menu follows the active surface and falls
+ * back to Info when the open section disappears.
  */
 import {
     Bot,
@@ -21,7 +21,7 @@ import { computed, ref, watch, type Component, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { SetupSurface } from './useSetupPreview';
 
-export type SetupSection = 'info' | 'persona' | 'starters' | 'bubbles' | 'languages' | 'model' | 'branding' | 'behavior' | 'settings' | 'domain';
+export type SetupSection = 'info' | 'persona' | 'starters' | 'bubbles' | 'languages' | 'model' | 'branding' | 'behavior' | 'settings';
 
 export interface SetupNavItem<T extends string> {
     value: T;
@@ -62,18 +62,11 @@ export function useSetupSections(surface: Ref<SetupSurface>) {
             { value: 'settings', label: t('agents.setup.menu.settings'), icon: SlidersHorizontal },
         );
 
-        if (surface.value === 'hosted_chat') {
-            items.push({ value: 'domain', label: t('agents.setup.menu.domain'), icon: Globe });
-        }
-
         return items;
     });
 
     // Don't leave a section open that the new surface hides.
     watch(surface, (next) => {
-        if (next !== 'hosted_chat' && active.value === 'domain') {
-            active.value = 'info';
-        }
         if (next !== 'widget' && active.value === 'bubbles') {
             active.value = 'info';
         }

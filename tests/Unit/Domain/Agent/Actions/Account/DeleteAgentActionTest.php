@@ -14,13 +14,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Bus;
 
 /**
- * Deleting an agent hides it at once (soft delete), frees its slug and custom
- * domain, silences its messaging channels and queues the purge of its data.
+ * Deleting an agent hides it at once (soft delete), frees its slug, silences
+ * its messaging channels and queues the purge of its data.
  */
 it('hides the agent at once and queues its purge', function (): void {
     Bus::fake([PurgeAgentJob::class]);
 
-    $agent = Agent::factory()->create(['domain' => 'help.example.test']);
+    $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
 
     app(DeleteAgentAction::class)->execute($agent);
@@ -30,7 +30,6 @@ it('hides the agent at once and queues its purge', function (): void {
     expect(Agent::find($agent->id))->toBeNull()
         ->and($trashed->trashed())->toBeTrue()
         ->and($trashed->slug)->toBeNull()
-        ->and($trashed->domain)->toBeNull()
         ->and($trashed->external_id)->toBe($agent->external_id)
         // The data waits for the purge.
         ->and(Session::find($session->id))->not->toBeNull();
@@ -38,19 +37,18 @@ it('hides the agent at once and queues its purge', function (): void {
     Bus::assertDispatched(PurgeAgentJob::class, fn (PurgeAgentJob $job): bool => $job->agentId === $agent->id);
 });
 
-it('frees the slug and the custom domain for another agent at once', function (): void {
+it('frees the slug for another agent at once', function (): void {
     Bus::fake([PurgeAgentJob::class]);
 
-    $agent = Agent::factory()->create(['domain' => 'help.example.test']);
+    $agent = Agent::factory()->create();
     $slug = $agent->slug;
 
     app(DeleteAgentAction::class)->execute($agent);
 
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
-    $other->update(['slug' => $slug, 'domain' => 'help.example.test']);
+    $other->update(['slug' => $slug]);
 
-    expect($other->fresh()->slug)->toBe($slug)
-        ->and($other->fresh()->domain)->toBe('help.example.test');
+    expect($other->fresh()->slug)->toBe($slug);
 });
 
 it('switches off each of the agent messaging channels', function (string $model): void {
@@ -89,7 +87,7 @@ it('purges the agent once its queued purge runs', function (): void {
 it('keeps the agent as it was and queues nothing when the delete fails', function (): void {
     Bus::fake([PurgeAgentJob::class]);
 
-    $agent = Agent::factory()->create(['domain' => 'help.example.test']);
+    $agent = Agent::factory()->create();
     $slug = $agent->slug;
 
     Agent::deleting(static fn (): bool => throw new RuntimeException('boom'));
@@ -99,8 +97,7 @@ it('keeps the agent as it was and queues nothing when the delete fails', functio
     $fresh = Agent::find($agent->id);
 
     expect($fresh)->not->toBeNull()
-        ->and($fresh->slug)->toBe($slug)
-        ->and($fresh->domain)->toBe('help.example.test');
+        ->and($fresh->slug)->toBe($slug);
 
     Bus::assertNotDispatched(PurgeAgentJob::class);
 });

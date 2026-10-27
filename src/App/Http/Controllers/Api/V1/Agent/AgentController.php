@@ -102,8 +102,8 @@ class AgentController
     /**
      * Delete agent
      *
-     * The agent is gone at once: its chat address, custom domain and API
-     * routes stop working right away. Its conversations, the knowledge
+     * The agent is gone at once: its chat address and API routes stop
+     * working right away. Its conversations, the knowledge
      * sources no other agent uses and its uploaded files are then removed in
      * the background. Account-level MCP servers and functions stay; only
      * their link to this agent is removed.

@@ -220,8 +220,7 @@ guard (chatters). Staff who open a chat from the dashboard sign in on the
 the viewer the default, and `HostedChatViewer` reads, signs in and signs out
 the viewer. Chat code uses the default guard, never `guard('web')`. Sign-ins that happen outside `/chat`
 (magic links with two-factor, invitations, dashboard previews) reach the chat
-with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokens`). An
-agent's custom domain redirects to its chat (`RedirectCustomDomainToChat`).
+with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokens`).
 
 ### `App\Mcp`: built-in MCP servers
 

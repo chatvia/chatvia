@@ -82,9 +82,7 @@ use App\Http\Controllers\Agent\Settings\AppearanceTextController;
 use App\Http\Controllers\Agent\Settings\UpdateAppearanceTranslationsController;
 use App\Http\Controllers\Agent\Setup\AgentDeployController;
 use App\Http\Controllers\Agent\Setup\SetupController;
-use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
-use App\Http\Controllers\Agent\Setup\VerifyAgentDomainController;
 use App\Http\Controllers\Agent\Slug\GenerateAgentSlugController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAlwaysAvailableController;
@@ -419,14 +417,6 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // made available) and its answer temperature.
         Route::patch('llm', UpdateAgentLlmController::class)
             ->middleware('agent.permission:agent.setup')->name('llm.update');
-
-        // Custom domain (Hosted Chat) — pass an empty value to clear.
-        Route::patch('domain', UpdateAgentDomainController::class)
-            ->middleware('agent.permission:agent.setup')->name('domain.update');
-        // Turns a pending domain on once its TXT record proves the workspace
-        // controls it. Each try is a DNS lookup, so it is throttled.
-        Route::post('domain/verify', VerifyAgentDomainController::class)
-            ->middleware(['agent.permission:agent.setup', 'throttle:10,1,domain-verify'])->name('domain.verify');
 
         // Toggling `is_public` exposes/locks the agent on the public internet —
         // gate it on the documented `agent.setup` permission, not mere access.

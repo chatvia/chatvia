@@ -1859,7 +1859,6 @@
                 "branding": "Brändäys",
                 "behavior": "Käyttäytyminen",
                 "settings": "Asetukset",
-                "domain": "Verkkotunnus",
                 "languages": "Kielet",
                 "bubbles": "Chat-kuplat"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Aloitusviestejä ei voitu tallentaa",
                 "saved": "Tallennettu",
                 "save_error": "Tallentaminen epäonnistui",
-                "domain_saved": "Mukautettu verkkotunnus tallennettu",
-                "domain_removed": "Mukautettu verkkotunnus poistettu",
-                "domain_error": "Verkkotunnusta ei voitu tallentaa",
                 "copy_error": "Kopioiminen leikepöydälle epäonnistui",
                 "colors_saved": "Värit tallennettu",
                 "colors_error": "Värejä ei voitu tallentaa",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Logon poistaminen epäonnistui",
                 "replies_saved": "Vastausasetukset tallennettu",
                 "replies_error": "Vastausasetuksia ei voitu tallentaa",
-                "domain_verified": "Mukautettu verkkotunnus vahvistettu",
-                "domain_verify_error": "Verkkotunnusta ei voitu vahvistaa",
                 "feedback_saved": "Palauteasetukset tallennettu",
                 "feedback_error": "Palauteasetuksia ei voitu tallentaa"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Pinnan esikatselu"
-            },
-            "domain": {
-                "title": "Mukautettu verkkotunnus",
-                "description": "Tarjoa tämän agentin isännöity chat omalta verkkotunnukseltasi {target} sijaan.",
-                "step1": "Vaihe 1 — Lisää CNAME-tietue DNS-palveluntarjoajallesi",
-                "type": "Tyyppi",
-                "name": "Nimi",
-                "value": "Arvo",
-                "cname_name": "aliverkkotunnuksesi",
-                "dns_hint": "DNS-muutosten leviäminen voi kestää jopa 24 tuntia. Kun se on selvitetty, vierailijasi näkevät tämän agentin isännöidyn chatin verkkotunnuksellasi.",
-                "step2": "Vaihe 2 — Syötä meille osoittamasi verkkotunnus",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Syötä täydellinen isäntänimi ilman schemaa — esim. chat.example.com.",
-                "step3": "Vaihe 3: todista TXT-tietueella, että verkkotunnus on sinun",
-                "pending": "{domain} ei ole vielä käytössä. Lisää yllä oleva TXT-tietue DNS-palveluntarjoajallesi ja valitse sitten Vahvista. DNS-muutokset voivat viedä jonkin aikaa.",
-                "active": "Käytössä osoitteessa {domain}.",
-                "verify": "Vahvista",
-                "verifying": "Vahvistetaan…"
             },
             "preview": {
                 "title": "Live-esikatselu",

@@ -34,7 +34,7 @@ return [
         // deleting one is its own grant below.)
         'agent.setup' => [
             'label' => 'Setup agent',
-            'description' => 'Edit the agent itself — its name, AI model & temperature, system instructions / persona, branding, chat widget & embed, custom domain, and conversation starters.',
+            'description' => 'Edit the agent itself — its name, AI model & temperature, system instructions / persona, branding, chat widget & embed, and conversation starters.',
         ],
 
         // Connecting the agent to messaging apps. Split out from `agent.setup`

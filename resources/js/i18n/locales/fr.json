@@ -1859,7 +1859,6 @@
                 "branding": "Identité visuelle",
                 "behavior": "Comportement",
                 "settings": "Paramètres",
-                "domain": "Domaine",
                 "languages": "Langues",
                 "bubbles": "Bulles de chat"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Impossible d'enregistrer les amorces",
                 "saved": "Enregistré",
                 "save_error": "Impossible d'enregistrer",
-                "domain_saved": "Domaine personnalisé enregistré",
-                "domain_removed": "Domaine personnalisé supprimé",
-                "domain_error": "Impossible d'enregistrer le domaine",
                 "copy_error": "Impossible de copier dans le presse-papier",
                 "colors_saved": "Couleurs enregistrées",
                 "colors_error": "Impossible d'enregistrer les couleurs",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Impossible de supprimer le logo",
                 "replies_saved": "Options de réponse enregistrées",
                 "replies_error": "Impossible d'enregistrer les options de réponse",
-                "domain_verified": "Domaine personnalisé vérifié",
-                "domain_verify_error": "Impossible de vérifier le domaine",
                 "feedback_saved": "Options d’avis enregistrées",
                 "feedback_error": "Impossible d’enregistrer les options d’avis"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Aperçu de la surface"
-            },
-            "domain": {
-                "title": "Domaine personnalisé",
-                "description": "Servez le chat hébergé de cet agent depuis votre propre domaine plutôt que {target}.",
-                "step1": "Étape 1 — Ajoutez un enregistrement CNAME chez votre fournisseur DNS",
-                "type": "Type",
-                "name": "Nom",
-                "value": "Valeur",
-                "cname_name": "votre-sous-domaine",
-                "dns_hint": "Les modifications DNS peuvent prendre jusqu'à 24 heures pour se propager. Une fois résolu, vos visiteurs verront le chat hébergé de cet agent sur votre domaine.",
-                "step2": "Étape 2 — Saisissez le domaine que vous avez pointé vers nous",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Saisissez le nom d'hôte complet sans le schéma — ex. chat.example.com.",
-                "step3": "Étape 3 : prouvez que le domaine vous appartient avec un enregistrement TXT",
-                "pending": "{domain} n'est pas encore actif. Ajoutez l'enregistrement TXT ci-dessus chez votre fournisseur DNS, puis sélectionnez Vérifier. Les changements DNS peuvent prendre un certain temps.",
-                "active": "Actif sur {domain}.",
-                "verify": "Vérifier",
-                "verifying": "Vérification…"
             },
             "preview": {
                 "title": "Aperçu en direct",

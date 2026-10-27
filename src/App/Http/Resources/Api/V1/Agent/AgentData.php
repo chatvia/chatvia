@@ -61,10 +61,6 @@ class AgentData extends Data
          */
         public ?string $slug,
         /**
-         * Custom domain mapped to the agent's chat, if one is set.
-         */
-        public ?string $domain,
-        /**
          * Canonical URL of the agent's chat.
          */
         public string $url,
@@ -94,7 +90,6 @@ class AgentData extends Data
             system_instructions: $agent->system_instructions,
             prompt_id: $agent->agentPrompt?->external_id,
             slug: $agent->slug,
-            domain: $agent->domain,
             url: $agent->url,
             permanent_url: $agent->permanent_url,
             created_at: $agent->created_at,

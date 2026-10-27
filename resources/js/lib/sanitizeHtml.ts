@@ -65,8 +65,7 @@ const allowedImageOrigins = new Set<string>();
 
 /**
  * Whether an <img> may load from `src`: inline data: images (no request),
- * this site, or the app's own origin (chunk images are absolute to the main
- * domain even on an agent's custom domain).
+ * this site, or the app's own origin (chunk images are absolute to APP_URL).
  */
 function isAllowedImageSource(src: string): boolean {
     if (src.startsWith('data:image/')) {

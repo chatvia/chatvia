@@ -1859,7 +1859,6 @@
                 "branding": "品牌",
                 "behavior": "行为",
                 "settings": "设置",
-                "domain": "域名",
                 "languages": "语言",
                 "bubbles": "聊天气泡"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "无法保存开场白",
                 "saved": "已保存",
                 "save_error": "无法保存",
-                "domain_saved": "自定义域名已保存",
-                "domain_removed": "自定义域名已移除",
-                "domain_error": "无法保存域名",
                 "copy_error": "无法复制到剪贴板",
                 "colors_saved": "颜色已保存",
                 "colors_error": "无法保存颜色",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "无法移除 Logo",
                 "replies_saved": "回复选项已保存",
                 "replies_error": "无法保存回复选项",
-                "domain_verified": "自定义域名已验证",
-                "domain_verify_error": "无法验证域名",
                 "feedback_saved": "反馈选项已保存",
                 "feedback_error": "无法保存反馈选项"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "界面预览"
-            },
-            "domain": {
-                "title": "自定义域名",
-                "description": "用你自己的域名而非 {target} 来提供此智能体的托管聊天。",
-                "step1": "第 1 步——在你的 DNS 提供商处添加一条 CNAME 记录",
-                "type": "类型",
-                "name": "名称",
-                "value": "值",
-                "cname_name": "your-subdomain",
-                "dns_hint": "DNS 变更最多可能需要 24 小时才能生效。一旦解析成功，你的访客就会在你的域名上看到此智能体的托管聊天。",
-                "step2": "第 2 步——输入你指向我们的域名",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "输入不带协议头的完整主机名——例如 chat.example.com。",
-                "step3": "第 3 步：用 TXT 记录证明你拥有该域名",
-                "pending": "{domain} 尚未生效。请在你的 DNS 提供商处添加上方的 TXT 记录，然后选择“验证”。DNS 更改可能需要一段时间才能生效。",
-                "active": "已在 {domain} 上线。",
-                "verify": "验证",
-                "verifying": "正在验证…"
             },
             "preview": {
                 "title": "实时预览",

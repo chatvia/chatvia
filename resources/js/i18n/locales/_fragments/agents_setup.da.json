@@ -14,8 +14,7 @@
                 "model": "Model",
                 "branding": "Branding",
                 "behavior": "Adfærd",
-                "settings": "Indstillinger",
-                "domain": "Domæne"
+                "settings": "Indstillinger"
             },
             "view_only_title": "Kun visning",
             "view_only_description": "Du har ikke tilladelse til at redigere opsætningen.",
@@ -36,11 +35,6 @@
                 "starters_error": "Kunne ikke gemme startere",
                 "saved": "Gemt",
                 "save_error": "Kunne ikke gemme",
-                "domain_saved": "Brugerdefineret domæne gemt",
-                "domain_removed": "Brugerdefineret domæne fjernet",
-                "domain_error": "Kunne ikke gemme domæne",
-                "domain_verified": "Brugerdefineret domæne bekræftet",
-                "domain_verify_error": "Kunne ikke bekræfte domænet",
                 "copy_error": "Kunne ikke kopiere til udklipsholderen",
                 "colors_saved": "Farver gemt",
                 "colors_error": "Kunne ikke gemme farver",
@@ -149,24 +143,6 @@
             },
             "embed": {
                 "surface_preview": "Overfladeforhåndsvisning"
-            },
-            "domain": {
-                "title": "Brugerdefineret domæne",
-                "description": "Vis denne agents hostede chat fra dit eget domæne i stedet for {target}.",
-                "step1": "Trin 1 — Tilføj en CNAME-post hos din DNS-udbyder",
-                "type": "Type",
-                "name": "Navn",
-                "value": "Værdi",
-                "cname_name": "dit-subdomæne",
-                "dns_hint": "DNS-ændringer kan tage op til 24 timer at slå igennem. Når det er aktivt, vil dine besøgende se denne agents hostede chat på dit domæne.",
-                "step2": "Trin 2 — Angiv det domæne, du pegede mod os",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Angiv det fulde hostnavn uden scheme – f.eks. chat.example.com.",
-                "step3": "Trin 3: bevis med en TXT-post, at du ejer domænet",
-                "pending": "{domain} er ikke aktivt endnu. Tilføj TXT-posten ovenfor hos din DNS-udbyder, og vælg derefter Bekræft. DNS-ændringer kan tage noget tid.",
-                "active": "Aktivt på {domain}.",
-                "verify": "Bekræft",
-                "verifying": "Bekræfter…"
             },
             "preview": {
                 "title": "Live forhåndsvisning",

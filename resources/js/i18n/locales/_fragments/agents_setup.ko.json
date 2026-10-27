@@ -3,9 +3,7 @@
         "setup": {
             "toasts": {
                 "replies_saved": "답변 옵션이 저장되었습니다",
-                "replies_error": "답변 옵션을 저장하지 못했습니다",
-                "domain_verified": "사용자 지정 도메인이 확인되었습니다",
-                "domain_verify_error": "도메인을 확인할 수 없습니다"
+                "replies_error": "답변 옵션을 저장하지 못했습니다"
             },
             "settings": {
                 "file_uploads_unavailable": "이 서버에서는 꺼져 있습니다. 관리자는 관리자 패널의 Settings → AI models에서 채팅 파일 업로드를 켤 수 있습니다."
@@ -22,13 +20,6 @@
             "multi_model_help": "여러 모델을 선택하세요. 그러면 채터가 호스팅 채팅, 채팅 위젯, 명령 바에서 메시지마다, 그리고 새 답변을 요청할 때 어떤 모델이 답할지 고릅니다.",
             "multi_model_placeholder": "모델 선택",
             "multi_model_hint": "채터가 다른 모델을 고를 때까지 첫 번째 모델이 답합니다. 두 개 이상 선택하세요. 그렇지 않으면 채터에게 선택기가 보이지 않습니다.",
-            "domain": {
-                "step3": "3단계: TXT 레코드로 도메인 소유권 증명",
-                "pending": "{domain}은(는) 아직 활성화되지 않았습니다. DNS 공급자에서 위의 TXT 레코드를 추가한 다음 확인을 선택하세요. DNS 변경 사항이 반영되기까지 시간이 걸릴 수 있습니다.",
-                "active": "{domain}에서 활성화되었습니다.",
-                "verify": "확인",
-                "verifying": "확인 중…"
-            },
             "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다.",
             "reasoning_title": "추론",
             "reasoning_description": "모델이 답하기 전에 얼마나 깊이 생각할지 정합니다. 더 많이 생각하면 어려운 질문에 도움이 되지만, 답변이 느려지고 비용이 더 듭니다. 채팅 사용자는 답변 위에 회색으로 추론을 봅니다.",

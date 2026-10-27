@@ -59,7 +59,7 @@ class BuildDataExportArchiveAction
 
     private const array API_KEY_COLUMNS = ['id', 'name', 'abilities', 'last_used_at', 'expires_at', 'created_at', 'updated_at'];
 
-    private const array AGENT_COLUMNS = ['id', 'external_id', 'team_id', 'name', 'slug', 'domain', 'system_instructions', 'agent_prompt_id', 'llm_id', 'is_public', 'metadata', 'source', 'created_at', 'updated_at'];
+    private const array AGENT_COLUMNS = ['id', 'external_id', 'team_id', 'name', 'slug', 'system_instructions', 'agent_prompt_id', 'llm_id', 'is_public', 'metadata', 'source', 'created_at', 'updated_at'];
 
     private const array FUNCTION_COLUMNS = ['id', 'external_id', 'internal_name', 'display_name', 'description', 'parameters_schema', 'webhook_url', 'webhook_method', 'auth_type', 'requires_approval', 'timeout_ms', 'max_response_bytes', 'is_enabled', 'last_invoked_at', 'invocation_count', 'created_at', 'updated_at'];
 

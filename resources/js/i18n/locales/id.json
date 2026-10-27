@@ -1859,7 +1859,6 @@
                 "branding": "Pencitraan Merek",
                 "behavior": "Perilaku",
                 "settings": "Pengaturan",
-                "domain": "Domain",
                 "languages": "Bahasa",
                 "bubbles": "Gelembung Obrolan"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Tidak dapat menyimpan pembuka",
                 "saved": "Disimpan",
                 "save_error": "Tidak dapat menyimpan",
-                "domain_saved": "Domain khusus disimpan",
-                "domain_removed": "Domain khusus dihapus",
-                "domain_error": "Tidak dapat menyimpan domain",
                 "copy_error": "Tidak dapat menyalin ke papan klip",
                 "colors_saved": "Warna disimpan",
                 "colors_error": "Tidak dapat menyimpan warna",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Tidak dapat menghapus logo",
                 "replies_saved": "Opsi balasan disimpan",
                 "replies_error": "Tidak dapat menyimpan opsi balasan",
-                "domain_verified": "Domain khusus terverifikasi",
-                "domain_verify_error": "Tidak dapat memverifikasi domain",
                 "feedback_saved": "Opsi umpan balik disimpan",
                 "feedback_error": "Tidak dapat menyimpan opsi umpan balik"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Pratinjau permukaan"
-            },
-            "domain": {
-                "title": "Domain Kustom",
-                "description": "Sajikan Hosted Chat agen ini dari domain Anda sendiri alih-alih {target}.",
-                "step1": "Langkah 1 — Tambahkan catatan CNAME di penyedia DNS Anda",
-                "type": "Tipe",
-                "name": "Nama",
-                "value": "Nilai",
-                "cname_name": "subdomain-anda",
-                "dns_hint": "Perubahan DNS dapat memakan waktu hingga 24 jam untuk menyebar. Setelah teratasi, pengunjung Anda akan melihat Hosted Chat agen ini di domain Anda.",
-                "step2": "Langkah 2 — Masukkan domain yang Anda arahkan ke kami",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Masukkan nama host lengkap tanpa skema — mis. chat.example.com.",
-                "step3": "Langkah 3: buktikan bahwa domain ini milik Anda dengan catatan TXT",
-                "pending": "{domain} belum aktif. Tambahkan catatan TXT di atas di penyedia DNS Anda, lalu pilih Verifikasi. Perubahan DNS bisa memakan waktu.",
-                "active": "Aktif di {domain}.",
-                "verify": "Verifikasi",
-                "verifying": "Memverifikasi…"
             },
             "preview": {
                 "title": "Pratinjau Langsung",

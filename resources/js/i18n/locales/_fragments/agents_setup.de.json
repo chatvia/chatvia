@@ -14,8 +14,7 @@
                 "model": "Modell",
                 "branding": "Branding",
                 "behavior": "Verhalten",
-                "settings": "Einstellungen",
-                "domain": "Domain"
+                "settings": "Einstellungen"
             },
             "view_only_title": "Nur Ansicht",
             "view_only_description": "Sie haben keine Berechtigung, die Einrichtung zu bearbeiten.",
@@ -36,11 +35,6 @@
                 "starters_error": "Gesprächseinstiege konnten nicht gespeichert werden",
                 "saved": "Gespeichert",
                 "save_error": "Konnte nicht gespeichert werden",
-                "domain_saved": "Benutzerdefinierte Domain gespeichert",
-                "domain_removed": "Benutzerdefinierte Domain entfernt",
-                "domain_error": "Domain konnte nicht gespeichert werden",
-                "domain_verified": "Benutzerdefinierte Domain bestätigt",
-                "domain_verify_error": "Domain konnte nicht bestätigt werden",
                 "copy_error": "Konnte nicht in die Zwischenablage kopiert werden",
                 "colors_saved": "Farben gespeichert",
                 "colors_error": "Farben konnten nicht gespeichert werden",
@@ -149,24 +143,6 @@
             },
             "embed": {
                 "surface_preview": "Oberflächen-Vorschau"
-            },
-            "domain": {
-                "title": "Benutzerdefinierte Domain",
-                "description": "Stellen Sie den gehosteten Chat dieses Agenten über Ihre eigene Domain anstelle von {target} bereit.",
-                "step1": "Schritt 1 — Fügen Sie einen CNAME-Eintrag bei Ihrem DNS-Anbieter hinzu",
-                "type": "Typ",
-                "name": "Name",
-                "value": "Wert",
-                "cname_name": "ihre-subdomain",
-                "dns_hint": "DNS-Änderungen können bis zu 24 Stunden dauern, bis sie sich verbreiten. Sobald die Auflösung erfolgt, sehen Ihre Besucher den gehosteten Chat dieses Agenten auf Ihrer Domain.",
-                "step2": "Schritt 2 — Geben Sie die Domain ein, die Sie auf uns gezeigt haben",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Geben Sie den vollständigen Hostnamen ohne Schema ein — z. B. chat.example.com.",
-                "step3": "Schritt 3: Weisen Sie mit einem TXT-Eintrag nach, dass Ihnen die Domain gehört",
-                "pending": "{domain} ist noch nicht aktiv. Fügen Sie den TXT-Eintrag oben bei Ihrem DNS-Anbieter hinzu und wählen Sie dann „Bestätigen“. DNS-Änderungen können eine Weile dauern.",
-                "active": "Aktiv unter {domain}.",
-                "verify": "Bestätigen",
-                "verifying": "Wird bestätigt…"
             },
             "preview": {
                 "title": "Live-Vorschau",

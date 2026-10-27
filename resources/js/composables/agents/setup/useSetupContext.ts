@@ -8,7 +8,6 @@ import { inject, provide, type ComputedRef, type InjectionKey } from 'vue';
 import type { SetupBehavior } from './useSetupBehavior';
 import type { SetupBranding } from './useSetupBranding';
 import type { SetupBubbles } from './useSetupBubbles';
-import type { SetupDomain } from './useSetupDomain';
 import type { SetupGeneralSettings } from './useSetupGeneralSettings';
 import type { SetupLanguages } from './useSetupLanguages';
 import type { SetupModel } from './useSetupModel';
@@ -28,7 +27,6 @@ export interface SetupContext {
     model: SetupModel;
     branding: SetupBranding;
     behavior: SetupBehavior;
-    domain: SetupDomain;
 }
 
 const SETUP_CONTEXT: InjectionKey<SetupContext> = Symbol('agent-setup');

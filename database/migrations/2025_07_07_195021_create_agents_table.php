@@ -16,9 +16,6 @@ return new class extends Migration
             $table->foreignIdFor(Team::class)->index()->constrained()->noActionOnDelete();
             $table->string('name');
             $table->string('slug')->nullable()->unique();
-            $table->string('domain')->nullable()->unique();
-            $table->string('pending_domain')->nullable();
-            $table->string('domain_verification_token', 64)->nullable();
             $table->text('system_instructions')->nullable();
             $table->foreignId('agent_prompt_id')->nullable()->index()->constrained('agent_prompts')->nullOnDelete();
 

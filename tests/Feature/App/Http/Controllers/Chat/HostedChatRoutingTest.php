@@ -9,8 +9,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 /**
  * Every hosted chat lives at /chat/{agentSlug}: the agent's slug, or its
- * external id for the permanent and embed addresses. An agent's custom domain
- * shows only that agent's chat.
+ * external id for the permanent and embed addresses.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create([
@@ -61,28 +60,7 @@ it('passes route parameters after the agent segment to the controller in order',
             ->where('agent_id', $this->agent->id));
 });
 
-it('redirects any page of a custom domain to its agent chat', function (): void {
-    $this->agent->update(['domain' => 'support.customer.test']);
-
-    $this->get('https://support.customer.test/')
-        ->assertRedirect('/chat/'.$this->agent->slug);
-
-    $this->get('https://support.customer.test/login')
-        ->assertRedirect('/chat/'.$this->agent->slug);
-});
-
-it('serves only its own agent on a custom domain', function (): void {
-    $this->agent->update(['domain' => 'support.customer.test']);
-    $other = Agent::factory()->create(['is_public' => true]);
-
-    $this->get('https://support.customer.test/chat/'.$this->agent->slug)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
-
-    $this->get('https://support.customer.test/chat/'.$other->slug)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
-});
-
-it('serves every agent on a host that is no custom domain', function (): void {
+it('serves every agent on any host', function (): void {
     $this->get('http://192.168.1.10/chat/'.$this->agent->slug)
         ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
 });

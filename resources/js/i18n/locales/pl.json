@@ -1859,7 +1859,6 @@
                 "branding": "Identyfikacja wizualna",
                 "behavior": "Zachowanie",
                 "settings": "Ustawienia",
-                "domain": "Domena",
                 "languages": "Języki",
                 "bubbles": "Dymki czatu"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "Nie można zapisać starterów",
                 "saved": "Zapisano",
                 "save_error": "Nie można zapisać",
-                "domain_saved": "Domena niestandardowa zapisana",
-                "domain_removed": "Domena niestandardowa usunięta",
-                "domain_error": "Nie można zapisać domeny",
                 "copy_error": "Nie można skopiować do schowka",
                 "colors_saved": "Kolory zapisane",
                 "colors_error": "Nie można zapisać kolorów",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "Nie można usunąć logo",
                 "replies_saved": "Opcje odpowiedzi zapisane",
                 "replies_error": "Nie można zapisać opcji odpowiedzi",
-                "domain_verified": "Domena niestandardowa zweryfikowana",
-                "domain_verify_error": "Nie można zweryfikować domeny",
                 "feedback_saved": "Zapisano opcje opinii",
                 "feedback_error": "Nie udało się zapisać opcji opinii"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "Podgląd powierzchni"
-            },
-            "domain": {
-                "title": "Domena niestandardowa",
-                "description": "Serwuj hostowany czat tego agenta z własnej domeny zamiast {target}.",
-                "step1": "Krok 1 — Dodaj rekord CNAME u swojego dostawcy DNS",
-                "type": "Typ",
-                "name": "Nazwa",
-                "value": "Wartość",
-                "cname_name": "twoja-subdomena",
-                "dns_hint": "Zmiany DNS mogą potrwać do 24 godzin, zanim się rozpropagują. Gdy zostanie rozwiązane, Twoi odwiedzający będą widzieć hostowany czat tego agenta na Twojej domenie.",
-                "step2": "Krok 2 — Wprowadź domenę, którą wskazałeś na nas",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "Wprowadź pełną nazwę hosta bez schematu — np. chat.example.com.",
-                "step3": "Krok 3: potwierdź rekordem TXT, że domena należy do Ciebie",
-                "pending": "Domena {domain} nie jest jeszcze aktywna. Dodaj powyższy rekord TXT u swojego dostawcy DNS, a następnie wybierz Zweryfikuj. Zmiany DNS mogą chwilę potrwać.",
-                "active": "Działa pod adresem {domain}.",
-                "verify": "Zweryfikuj",
-                "verifying": "Weryfikowanie…"
             },
             "preview": {
                 "title": "Podgląd na żywo",

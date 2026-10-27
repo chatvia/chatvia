@@ -1859,7 +1859,6 @@
                 "branding": "ブランディング",
                 "behavior": "動作",
                 "settings": "設定",
-                "domain": "ドメイン",
                 "languages": "言語",
                 "bubbles": "チャットバブル"
             },
@@ -1880,9 +1879,6 @@
                 "starters_error": "スターターを保存できませんでした",
                 "saved": "保存しました",
                 "save_error": "保存できませんでした",
-                "domain_saved": "カスタムドメインを保存しました",
-                "domain_removed": "カスタムドメインを削除しました",
-                "domain_error": "ドメインを保存できませんでした",
                 "copy_error": "クリップボードにコピーできませんでした",
                 "colors_saved": "色を保存しました",
                 "colors_error": "色を保存できませんでした",
@@ -1907,8 +1903,6 @@
                 "logo_remove_error": "ロゴを削除できませんでした",
                 "replies_saved": "返信オプションを保存しました",
                 "replies_error": "返信オプションを保存できませんでした",
-                "domain_verified": "カスタムドメインを確認しました",
-                "domain_verify_error": "ドメインを確認できませんでした",
                 "feedback_saved": "フィードバック設定を保存しました",
                 "feedback_error": "フィードバック設定を保存できませんでした"
             },
@@ -2022,24 +2016,6 @@
             },
             "embed": {
                 "surface_preview": "画面プレビュー"
-            },
-            "domain": {
-                "title": "カスタムドメイン",
-                "description": "このエージェントの Hosted Chat を {target} ではなく独自のドメインから配信します。",
-                "step1": "ステップ 1 — DNS プロバイダーで CNAME レコードを追加",
-                "type": "タイプ",
-                "name": "名前",
-                "value": "値",
-                "cname_name": "your-subdomain",
-                "dns_hint": "DNS の変更が反映されるまで最大 24 時間かかる場合があります。反映されると、訪問者にはこのエージェントの Hosted Chat があなたのドメインで表示されます。",
-                "step2": "ステップ 2 — 当社に向けたドメインを入力",
-                "placeholder": "chat.example.com",
-                "hostname_hint": "スキームなしで完全なホスト名を入力してください。例：chat.example.com。",
-                "step3": "ステップ 3: TXT レコードでドメインの所有権を証明",
-                "pending": "{domain} はまだ有効になっていません。上記の TXT レコードを DNS プロバイダーで追加してから、「確認」を選択してください。DNS の変更が反映されるまで時間がかかる場合があります。",
-                "active": "{domain} で公開中です。",
-                "verify": "確認",
-                "verifying": "確認中…"
             },
             "preview": {
                 "title": "ライブプレビュー",

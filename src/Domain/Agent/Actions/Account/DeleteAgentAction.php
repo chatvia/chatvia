@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Deletes an agent for the user at once and leaves the heavy work to the
  * queue. In one short transaction the agent is soft-deleted (route binding,
- * the hosted chat, the widget and every list stop seeing it), its slug and
- * custom domain are cleared (both are unique across the install, so they are
- * free again right away) and its messaging channels stop answering.
+ * the hosted chat, the widget and every list stop seeing it), its slug is
+ * cleared (it is unique across the install, so it is free again right away)
+ * and its messaging channels stop answering.
  * {@see PurgeAgentJob} then removes its chats, sources, settings, chat memory
  * and files in small batches, and finally the agent row.
  * Used by the dashboard and the public API.
@@ -23,7 +23,7 @@ class DeleteAgentAction
     public function execute(Agent $agent): void
     {
         DB::transaction(function () use ($agent): void {
-            $agent->forceFill(['slug' => null, 'domain' => null])->save();
+            $agent->forceFill(['slug' => null])->save();
 
             $agent->delete();
 

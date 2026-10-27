@@ -75,9 +75,6 @@ use Support\MimeType;
  * @property int $team_id
  * @property string $name
  * @property string|null $slug
- * @property string|null $domain
- * @property string|null $pending_domain
- * @property string|null $domain_verification_token
  * @property string|null $system_instructions
  * @property int|null $agent_prompt_id
  * @property int|null $llm_id

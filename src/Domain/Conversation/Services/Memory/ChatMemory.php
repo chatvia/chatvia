@@ -11,6 +11,7 @@ use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Media\GeneratedMediaNotes;
 use InvalidArgumentException;
 
 /**
@@ -37,6 +38,8 @@ class ChatMemory
     private ?ChatScopeData $scope = null;
 
     private ?ChatCache $cache = null;
+
+    public function __construct(private readonly GeneratedMediaNotes $mediaNotes) {}
 
     /**
      * Bind the memory to a visitor session (and optionally one of its
@@ -232,7 +235,9 @@ class ChatMemory
 
     /**
      * The last messages in the shape an LLM expects (role + content), using
-     * the LLM-facing text when a message has one. Bounded to
+     * the LLM-facing text when a message has one. A reply that asked for an
+     * image, audio file or video ends with a note on each
+     * ({@see GeneratedMediaNotes}), never the file. Bounded to
      * `chatvia.agent.history_messages` unless a limit is given, so the context
      * window stays small as the conversation grows.
      *
@@ -241,13 +246,13 @@ class ChatMemory
     public function getLlmMessages(?int $limit = null): array
     {
         $limit ??= (int) config('chatvia.agent.history_messages', 3);
+        $messages = collect($this->cachedMessages())->slice(-$limit)->values()->all();
 
-        return collect($this->cachedMessages())
+        return collect($this->mediaNotes->forLlm($messages, $this->scope()->agent, $this->conversationId()))
             ->map(static fn (MessageData $message): LlmMessageData => new LlmMessageData(
                 role: $message->role,
                 content: $message->message_for_llm ?? $message->content,
             ))
-            ->slice(-$limit)
             ->values()
             ->all();
     }

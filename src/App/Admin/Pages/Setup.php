@@ -1289,7 +1289,7 @@ class Setup extends SimplePage
     private function licenseCallout(): Callout
     {
         $limits = 'A free install has one workspace, '.FreeTier::AGENTS.' agents, one team and '.Number::format(FreeTier::MONTHLY_MESSAGES).' agent replies a month, '
-            .'with no API, voice conversations, capabilities or forms, and the "Powered by ChatVia.ai" credit under every chat.';
+            .'with no API, voice conversations, live chat, capabilities or forms, and the "Powered by ChatVia.ai" credit under every chat.';
 
         return Callout::make(fn (): string => match ($this->licenseStatus()) {
             LicenseStatus::Valid => $this->licenseType().' license, licensed to '.$this->license()->read($this->savedLicenseKey())?->licensee,

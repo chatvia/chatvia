@@ -7,11 +7,13 @@ use Domain\Conversation\Models\Conversation;
 /**
  * The Inbox list as JSON: who is chatting right now across the agents a
  * person may view, with a flag for the chats they may join. Another
- * workspace's chats never show; joining stays Chat Widget only. Which agents
+ * workspace's chats never show; joining stays Chat Widget only and needs a
+ * license key, though the person holding a chat keeps it. Which agents
  * a teammate sees and where they may reply are the Inbox agents' rules; the
  * order of the list is the Inbox query's.
  */
 beforeEach(function (): void {
+    withLicense();
     $this->owner = User::factory()->create();
     $this->support = makeTeamAgent($this->owner, 'Support');
 });
@@ -65,4 +67,18 @@ it('names the colleague who holds a chat to everyone but the holder', function (
         ->assertJsonPath('conversations.0.held_by_me', true)
         ->assertJsonPath('conversations.0.holder_name', null)
         ->assertJsonPath('conversations.0.can_join', true);
+});
+
+it('lets nobody join without a license key, but the holder keeps their chat', function (): void {
+    withoutLicense();
+    $colleague = teammateWithPermissions($this->owner, ['agent.chat.view', 'agent.chat.takeover']);
+    $held = Conversation::factory()->forAgent($this->support)->live()->handedOff(HandoffStatus::Human, $colleague)->create();
+    $open = Conversation::factory()->forAgent($this->support)->live()->create();
+
+    $joinable = fn (User $user): array => collect($this->actingAs($user)->getJson(route('inbox.conversations'))->assertOk()->json('conversations'))
+        ->pluck('can_join', 'conversation_id')
+        ->all();
+
+    expect($joinable($this->owner))->toMatchArray([$held->external_id => false, $open->external_id => false])
+        ->and($joinable($colleague))->toMatchArray([$held->external_id => true, $open->external_id => false]);
 });

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Event;
  */
 beforeEach(function (): void {
     Event::fake([HandedOff::class]);
+    withLicense();
     $this->owner = User::factory()->create();
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
 });

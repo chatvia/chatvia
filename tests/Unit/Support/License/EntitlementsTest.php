@@ -32,6 +32,7 @@ it('applies the free-use limits without a key', function (): void {
         ->and($entitlements->monthlyMessageLimit())->toBe(FreeTier::MONTHLY_MESSAGES)
         ->and($entitlements->api())->toBeFalse()
         ->and($entitlements->voice())->toBeFalse()
+        ->and($entitlements->handoff())->toBeFalse()
         ->and($entitlements->capabilities())->toBeFalse()
         ->and($entitlements->customSplitting())->toBeFalse();
 });
@@ -47,6 +48,7 @@ it('lifts every free-use limit with a key', function (): void {
         ->and($entitlements->monthlyMessageLimit())->toBeNull()
         ->and($entitlements->api())->toBeTrue()
         ->and($entitlements->voice())->toBeTrue()
+        ->and($entitlements->handoff())->toBeTrue()
         ->and($entitlements->capabilities())->toBeTrue()
         ->and($entitlements->customSplitting())->toBeTrue();
 });

@@ -3,8 +3,8 @@
  * The Inbox's open chat: who it is, whether they are online or typing, the
  * messages, and the reply box. Sending takes the chat from the AI; "Give back
  * to AI" hands it back. A chat that cannot be joined (not on the Chat Widget,
- * live chat switched off, no permission, or a colleague holds it) shows a
- * note in place of the reply box.
+ * no license key, live chat switched off, no permission, or a colleague holds
+ * it) shows a note in place of the reply box.
  */
 import { chatLogUrl } from '@/api/chatLog';
 import HandoffComposer from '@/components/handoff/HandoffComposer.vue';
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getInitials } from '@/composables/useInitials';
+import { useLicense } from '@/composables/useLicense';
 import { getSourceDisplayName } from '@/pages/agents/ChatLog/chatLogFormat';
 import { Link } from '@inertiajs/vue3';
 import { ArrowLeft, Bot, ExternalLink, Info, LoaderCircle, MessagesSquare, PhoneOff } from 'lucide-vue-next';
@@ -28,6 +29,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { licensed } = useLicense();
 
 const {
     selected,
@@ -59,6 +61,7 @@ const readOnlyNote = computed(() => {
     if (!row || canReply.value) return null;
     if (heldByOther.value) return t('inbox.thread.held_by_other', { name: handoffState.value.adminName || t('inbox.thread.a_colleague') });
     if (row.source !== 'widget') return t('inbox.thread.widget_only', { surface: getSourceDisplayName(row.source) });
+    if (!licensed.value) return t('license.unavailable');
 
     return t('inbox.thread.cannot_join');
 });

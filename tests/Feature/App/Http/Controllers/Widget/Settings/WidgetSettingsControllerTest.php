@@ -8,7 +8,8 @@ use Tests\Support\Widget\EmbeddedWidget;
  * The widget's settings tell it which voice features to show: the dictation
  * mic only while speech to text is set up, the voice button only while voice
  * calls are; which models the chatter may pick; whether a thumbs-down asks
- * what was wrong; and what removing a chat does.
+ * what was wrong; whether live chat is on (it needs a license key); and what
+ * removing a chat does.
  */
 beforeEach(function (): void {
     withLicense();
@@ -33,6 +34,20 @@ it('tells the widget which voice features to show', function (array $config, str
     'dictation, speech to text set up' => [['chatvia.ai.transcriber' => 'openai'], 'allow_voice_input', true],
     'voice button, voice calls set up' => [[], 'voice_conversation', true],
     'voice button, voice calls not set up' => [['chatvia.ai.voice' => 'none'], 'voice_conversation', false],
+]);
+
+it('tells the widget live chat is on only with a license key and the agent\'s switch', function (bool $licensed, bool $switch, bool $sent): void {
+    $licensed ? withLicense() : withoutLicense();
+    $this->agent->setSetting('handoff_enabled', $switch, 'widget');
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
+        ->getJson('/widget/agents/settings')
+        ->assertOk()
+        ->assertJsonPath('handoff_enabled', $sent);
+})->with([
+    'key, switch on' => [true, true, true],
+    'key, switch off' => [true, false, false],
+    'no key, switch on' => [false, true, false],
 ]);
 
 it('tells the widget whether a thumbs-down asks what was wrong, by default yes', function (?bool $stored, bool $sent): void {

@@ -7,6 +7,7 @@ use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureCapabilityLicense;
 use App\Http\Middleware\Access\EnsureEnterpriseLicense;
+use App\Http\Middleware\Access\EnsureHandoffLicense;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
@@ -126,6 +127,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'team.permission' => EnsureTeamPermission::class,
             'license.api' => EnsureApiLicense::class,
             'license.capabilities' => EnsureCapabilityLicense::class,
+            'license.handoff' => EnsureHandoffLicense::class,
             'license.enterprise' => EnsureEnterpriseLicense::class,
         ]);
 

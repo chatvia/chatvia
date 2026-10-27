@@ -6,9 +6,10 @@ use Domain\Conversation\Services\Inbox\InboxAgents;
 /**
  * Which agents' chats a staff member sees in the Inbox and where they may
  * reply: the Chat Log's own view and takeover permissions, plus the agent's
- * handoff switch.
+ * handoff switch and the install's license key.
  */
 beforeEach(function (): void {
+    withLicense();
     $this->owner = User::factory()->create();
     $this->support = makeTeamAgent($this->owner, 'Support');
     $this->sales = makeTeamAgent($this->owner, 'Sales');
@@ -38,4 +39,11 @@ it('does not let anyone reply when the agent has handoff off', function (): void
     $this->support->setSetting('handoff_enabled', false, 'widget');
 
     expect($this->inboxAgents->canReplyOn($this->owner, $this->support->fresh()))->toBeFalse();
+});
+
+it('does not let anyone reply without a license key, but still shows the agents', function (): void {
+    withoutLicense();
+
+    expect($this->inboxAgents->viewableBy($this->owner))->toHaveCount(2)
+        ->and($this->inboxAgents->canReplyOn($this->owner, $this->support))->toBeFalse();
 });

@@ -68,7 +68,9 @@ class InboxConversationData extends Data
             last_message_role: $lastMessage?->role,
             last_activity_at: $conversation->last_activity_at?->toIso8601String(),
             is_online: $conversation->last_activity_at?->isAfter(now()->subMinutes(ConversationQueryBuilder::ONLINE_WINDOW_MINUTES)) ?? false,
-            can_join: $mayJoinOnAgent && $conversation->isSourceWidget(),
+            // The holder keeps replying when live chat goes off (a lapsed key,
+            // the toggle): a chat a person holds finishes.
+            can_join: ($mayJoinOnAgent || $heldByMe) && $conversation->isSourceWidget(),
         );
     }
 }

@@ -9,6 +9,7 @@ use App\Identity\Workspace\Services\AgentAccessPolicy;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\Handoff\HandoffAvailability;
 use Illuminate\Support\Collection;
 
 /**
@@ -22,6 +23,7 @@ final readonly class InboxAgents
     public function __construct(
         private AgentAccessPolicy $access,
         private TeamPermissionPolicy $permissions,
+        private HandoffAvailability $handoff,
     ) {}
 
     /**
@@ -35,13 +37,14 @@ final readonly class InboxAgents
     }
 
     /**
-     * Whether this person may take over the agent's widget chats: the agent
-     * allows handoff and their role holds the takeover permission. The
-     * surface check is the conversation's ({@see Conversation::canBeTakenOverBy()}).
+     * Whether this person may take over the agent's widget chats: live chat
+     * is on for the agent (license key and toggle) and their role holds the
+     * takeover permission. The surface check is the conversation's
+     * ({@see Conversation::canBeTakenOverBy()}).
      */
     public function canReplyOn(User $user, Agent $agent): bool
     {
-        return $agent->handoffEnabled()
+        return $this->handoff->isOnFor($agent)
             && $this->permissions->allowsOnAgent($user, $agent, 'agent.chat.takeover');
     }
 }

@@ -91,7 +91,7 @@ class WidgetSettingsData extends Data
         public SourcesDisplay $sources_display,
         // Whether visitors can hand off to a human (Live Chat). Widget-only; the
         // widget hides the "Talk to a human" affordance when false. Already
-        // ANDed with the workspace's handoff capability on the server.
+        // ANDed with the install's license on the server (live chat needs a key).
         public bool $handoff_enabled,
         // What the widget's "remove this chat" does: `end` (the widget offers
         // only "End chat", which starts a new chat; DELETE is refused), `hide`

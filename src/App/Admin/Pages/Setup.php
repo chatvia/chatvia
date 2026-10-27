@@ -156,8 +156,9 @@ use Support\License\LicenseFeature;
  * 8. Observability: Spectra, the log of every AI call (the default), or
  *    none. What it saves of each call is changed in Settings →
  *    Observability.
- * 9. Final: "Congratulations", and a link to the workspace sign-in page
- *    for after Finish setup.
+ * 9. Final: "Congratulations", a link to the workspace sign-in page for
+ *    after Finish setup, and the Finish setup button itself, in the middle
+ *    in place of the action bar.
  *
  * Each step starts on the safe choice ("Not now", "This server", Spectra
  * on) unless it is set up already: what `.env` suggests is not a choice. The one
@@ -375,13 +376,10 @@ class Setup extends SimplePage
             ])
                 ->contained(false)
                 ->extraAttributes(['class' => 'cv-setup-wizard'])
-                // Shown on every step, in the bar with Back and Next.
-                ->cancelAction($this->wayOutLink())
-                ->submitAction(new HtmlString(Blade::render(<<<'BLADE'
-                    <x-filament::button type="submit" icon="heroicon-m-check" wire:target="complete">
-                        Finish setup
-                    </x-filament::button>
-                    BLADE))),
+                // The last step has no action bar: its own Finish setup button replaces it.
+                ->extraAlpineAttributes(['x-bind:class' => "{ 'cv-setup-wizard--last': isLastStep() }"])
+                // Shown on every step but the last, in the bar with Back and Next.
+                ->cancelAction($this->wayOutLink()),
         ]);
     }
 

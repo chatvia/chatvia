@@ -1467,6 +1467,11 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
         0 12px 32px -12px oklch(0 0 0 / 0.7);
 }
 
+/* The last step has its own Finish setup button, in the middle. */
+.cv-setup-wizard.cv-setup-wizard--last > .fi-sc-wizard-footer {
+    display: none;
+}
+
 /* The step marks: a plain ring for the steps to come, a tinted ring with a
  * soft, slow halo for the current step, a check on a filled circle once a
  * step is done. The marks cover the dots that join them. */
@@ -1865,6 +1870,31 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
     &:hover {
         text-decoration: underline;
+    }
+}
+
+/* Green as the check above it, white text (darker on hover in both modes),
+ * and larger than the panel's other buttons: it ends the setup. */
+.fi-btn.cv-setup-complete__finish {
+    --bg: var(--success-600);
+    --dark-bg: var(--success-600);
+    --hover-bg: var(--success-700);
+    --dark-hover-bg: var(--success-700);
+    --text: oklch(1 0 0);
+    --dark-text: oklch(1 0 0);
+    --hover-text: oklch(1 0 0);
+    --dark-hover-text: oklch(1 0 0);
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding-block: 0.875rem;
+    padding-inline: 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+
+    & > .fi-icon {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 }
 

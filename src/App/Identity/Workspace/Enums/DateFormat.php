@@ -5,38 +5,25 @@ namespace App\Identity\Workspace\Enums;
 use Illuminate\Support\Carbon;
 
 /**
- * Per-user preferred date display format (Settings → Date & time).
+ * Per-user preferred date and time display format (Settings → Date & time).
  *
- * The enum value is the single source of truth: {@see phpFormat()} renders a
- * date on the server, and the same keys are matched
- * by the frontend `useDateFormat` composable so the dashboard renders dates the
- * customer's way everywhere. Keep the two in lock-step when adding a case.
+ * Each value is the PHP `date()` format string itself, stored as-is in
+ * `users.date_format`: the server formats with it directly and the frontend
+ * `useDateFormat` composable translates its tokens to dayjs, so a new case
+ * only needs tokens that composable knows.
  */
 enum DateFormat: string
 {
-    case Iso = 'iso';
-    case DmySlash = 'dmy_slash';
-    case MdySlash = 'mdy_slash';
-    case DmyDot = 'dmy_dot';
-    case Long = 'long';
+    case Iso = 'Y-m-d H:i:s';
+    case YmdSlash = 'Y/m/d H:i:s';
+    case DmySlash = 'd/m/Y H:i';
+    case MdySlash = 'm/d/Y h:i A';
+    case DmyDot = 'd.m.Y H:i';
+    case Long = 'M j, Y g:i A';
 
     public static function default(): self
     {
         return self::Iso;
-    }
-
-    /**
-     * PHP `date()`-style token for Carbon `->format()` on the server side.
-     */
-    public function phpFormat(): string
-    {
-        return match ($this) {
-            self::Iso => 'Y-m-d',
-            self::DmySlash => 'd/m/Y',
-            self::MdySlash => 'm/d/Y',
-            self::DmyDot => 'd.m.Y',
-            self::Long => 'M j, Y',
-        };
     }
 
     /**
@@ -45,28 +32,32 @@ enum DateFormat: string
     public function label(): string
     {
         return match ($this) {
-            self::Iso => 'Year-Month-Day',
-            self::DmySlash => 'Day/Month/Year',
-            self::MdySlash => 'Month/Day/Year',
-            self::DmyDot => 'Day.Month.Year',
-            self::Long => 'Month Day, Year',
+            self::Iso => 'Year-Month-Day, 24-hour',
+            self::YmdSlash => 'Year/Month/Day, 24-hour',
+            self::DmySlash => 'Day/Month/Year, 24-hour',
+            self::MdySlash => 'Month/Day/Year, 12-hour',
+            self::DmyDot => 'Day.Month.Year, 24-hour',
+            self::Long => 'Month Day, Year, 12-hour',
         };
     }
 
     /**
      * Option metadata for the settings dropdown — value, label, and a worked
-     * example (8 June 2026) so the customer sees exactly what each choice yields.
+     * example (8 June 2026, 14:30:05) so the customer sees exactly what each
+     * choice yields.
      *
      * @return array<int, array{value: string, label: string, example: string}>
      */
     public static function options(): array
     {
-        $sample = Carbon::create(2026, 6, 8);
+        $sample = Carbon::create(2026, 6, 8, 14, 30, 5);
 
-        return array_map(static fn (self $case): array => [
-            'value' => $case->value,
-            'label' => $case->label(),
-            'example' => $sample->format($case->phpFormat()),
-        ], self::cases());
+        return collect(self::cases())
+            ->map(static fn (self $case): array => [
+                'value' => $case->value,
+                'label' => $case->label(),
+                'example' => $sample->format($case->value),
+            ])
+            ->all();
     }
 }

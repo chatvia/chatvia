@@ -1,52 +1,91 @@
 /**
- * Calendar dates in the signed-in user's preferred format (Settings → Date &
- * time), formatted with dayjs: `useDateFormat()` inside components, the pure
- * `formatDateWith()` where an explicit format key is already known.
+ * Dates in the signed-in user's preferred format (Settings → Date & time),
+ * formatted with dayjs: `useDateFormat()` inside components, the pure
+ * `formatDateWith()` where an explicit format is already known.
  */
 import { usePage } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
 
 /**
- * Keys must stay in lock-step with App\Identity\Workspace\Enums\DateFormat on the server.
+ * A PHP `date()` format string, as stored in `users.date_format` (one of the
+ * values of App\Identity\Workspace\Enums\DateFormat).
  */
-export type DateFormatKey = 'iso' | 'dmy_slash' | 'mdy_slash' | 'dmy_dot' | 'long';
+export type DateFormatString = string;
 
-const FALLBACK: DateFormatKey = 'iso';
+export const DEFAULT_DATE_FORMAT: DateFormatString = 'Y-m-d H:i:s';
 
-/**
- * dayjs format tokens for each preset. The server stores the enum *key* (the
- * single source of truth); this maps that key to a dayjs token, mirroring the
- * PHP tokens in App\Identity\Workspace\Enums\DateFormat::phpFormat().
- */
-const DATE_TOKENS: Record<DateFormatKey, string> = {
-    iso: 'YYYY-MM-DD',
-    dmy_slash: 'DD/MM/YYYY',
-    mdy_slash: 'MM/DD/YYYY',
-    dmy_dot: 'DD.MM.YYYY',
-    long: 'MMM D, YYYY',
+/** PHP format characters and their dayjs equivalents. */
+const PHP_TO_DAYJS: Record<string, string> = {
+    Y: 'YYYY',
+    y: 'YY',
+    m: 'MM',
+    n: 'M',
+    M: 'MMM',
+    F: 'MMMM',
+    d: 'DD',
+    j: 'D',
+    D: 'ddd',
+    l: 'dddd',
+    H: 'HH',
+    G: 'H',
+    h: 'hh',
+    g: 'h',
+    i: 'mm',
+    s: 'ss',
+    A: 'A',
+    a: 'a',
 };
+
+/** PHP characters that print part of the time, where the date-only form is cut. */
+const TIME_CHARACTERS = new Set(['H', 'G', 'h', 'g', 'i', 's', 'A', 'a']);
+
+/** Separators dayjs prints as they are; any other literal is bracket-escaped. */
+const PLAIN_SEPARATORS = new Set([' ', '-', '/', '.', ':', ',']);
 
 type DateInput = string | number | Date | null | undefined;
 
-function dateToken(key: DateFormatKey): string {
-    return DATE_TOKENS[key] ?? DATE_TOKENS[FALLBACK];
+/** Translates a PHP format string to dayjs tokens; `\x` escapes stay literal. */
+function toDayjs(format: DateFormatString): string {
+    let tokens = '';
+
+    for (let index = 0; index < format.length; index++) {
+        const character = format[index];
+
+        if (character === '\\' && index + 1 < format.length) {
+            tokens += `[${format[++index]}]`;
+        } else if (character in PHP_TO_DAYJS) {
+            tokens += PHP_TO_DAYJS[character];
+        } else if (PLAIN_SEPARATORS.has(character)) {
+            tokens += character;
+        } else {
+            tokens += `[${character}]`;
+        }
+    }
+
+    return tokens;
+}
+
+/** The date part of a format: everything before its first time character. */
+function datePart(format: DateFormatString): DateFormatString {
+    const cut = [...format].findIndex((character, index) => TIME_CHARACTERS.has(character) && format[index - 1] !== '\\');
+
+    return cut === -1 ? format : format.slice(0, cut).replace(/[\s,:]+$/, '');
 }
 
 /**
- * Format a date with an explicit key — pure, no Inertia access. Mirrors the PHP
- * tokens in App\Identity\Workspace\Enums\DateFormat. Returns '' for empty/invalid input.
+ * Format a date with an explicit PHP format string — pure, no Inertia access.
+ * Returns '' for empty/invalid input.
  */
-export function formatDateWith(key: DateFormatKey, value: DateInput): string {
+export function formatDateWith(format: DateFormatString, value: DateInput): string {
     if (value === null || value === undefined || value === '') return '';
     const date = dayjs(value);
-    return date.isValid() ? date.format(dateToken(key)) : '';
+    return date.isValid() ? date.format(toDayjs(format || DEFAULT_DATE_FORMAT)) : '';
 }
 
 /**
- * Reads the authenticated user's preferred date format from the shared Inertia
+ * Reads the authenticated user's preferred format from the shared Inertia
  * props and returns dayjs-backed formatters bound to it. The single place the
- * dashboard should reach for to render a calendar date — see Settings → Date &
- * time.
+ * dashboard should reach for to render a date — see Settings → Date & time.
  *
  * Falls back to ISO when there is no auth user (widget / embed) or the pref is
  * unset.
@@ -54,19 +93,13 @@ export function formatDateWith(key: DateFormatKey, value: DateInput): string {
 export function useDateFormat() {
     const page = usePage();
 
-    const key = (): DateFormatKey => (page.props.auth?.user?.date_format as DateFormatKey) || FALLBACK;
+    const format = (): DateFormatString => page.props.auth?.user?.date_format || DEFAULT_DATE_FORMAT;
 
-    const formatDate = (value: DateInput): string => formatDateWith(key(), value);
+    /** The calendar date alone: the preferred format without its time. */
+    const formatDate = (value: DateInput): string => formatDateWith(datePart(format()), value);
 
-    /**
-     * Preferred date + a fixed 24h HH:mm time. Only the date portion is
-     * user-configurable for now; the time format is intentionally constant.
-     */
-    const formatDateTime = (value: DateInput): string => {
-        if (value === null || value === undefined || value === '') return '';
-        const date = dayjs(value);
-        return date.isValid() ? date.format(`${dateToken(key())} HH:mm`) : '';
-    };
+    /** The full preferred format, date and time. */
+    const formatDateTime = (value: DateInput): string => formatDateWith(format(), value);
 
-    return { formatDate, formatDateTime, dateFormatKey: key };
+    return { formatDate, formatDateTime, dateFormat: format };
 }

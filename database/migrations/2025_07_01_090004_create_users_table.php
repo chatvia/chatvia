@@ -43,7 +43,7 @@ return new class extends Migration
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
 
-            $table->enum('date_format', ['iso', 'dmy_slash', 'mdy_slash', 'dmy_dot', 'long'])->nullable();
+            $table->string('date_format', 32)->nullable();
 
             $table->string('locale', 5)->nullable();
 

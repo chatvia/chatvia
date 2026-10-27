@@ -226,6 +226,12 @@ it('can be finished after a skip, from Settings', function (): void {
     $this->get(route('filament.admin.setup'))->assertOk()->assertSee('Back to the admin panel')->assertDontSee('Skip the setup for now');
 });
 
+it('ends on its own Finish setup button, with no action bar on the last step', function (): void {
+    adminPage(Setup::class, $this->admin)
+        ->assertSeeHtml("{ 'cv-setup-wizard--last': isLastStep() }")
+        ->assertSeeHtmlInOrder(['Congratulations', route('login'), 'cv-setup-complete__finish" type="submit"', 'wire:target="complete"', 'Finish setup', 'goToPreviousStep()', 'fi-sc-wizard-footer']);
+});
+
 it('opens on the server step and checks the services ChatVia.ai runs on', function (): void {
     adminPage(Setup::class, $this->admin)
         ->assertWizardCurrentStep(1)

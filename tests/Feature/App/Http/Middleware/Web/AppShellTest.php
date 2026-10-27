@@ -8,7 +8,8 @@ use Illuminate\Support\Str;
  * the root view of the Inertia middleware) must not carry one operator's
  * identity (tracking code, social handle, website) into another install,
  * and must not load web fonts from a third-party CDN. The tracking code an
- * admin sets goes into it only in production.
+ * admin sets goes into it only in production; the Sentry DSN for the
+ * browser only once an admin sets one.
  */
 it('adds the tracking code only when one is set, and only in production', function (?string $code, string $environment, bool $shown): void {
     $snippet = '<script defer src="https://stats.acme.example/js/script.js"></script>';
@@ -23,6 +24,17 @@ it('adds the tracking code only when one is set, and only in production', functi
     'not set' => [null, 'production', false],
     'set, outside production' => ['set', 'local', false],
 ]);
+
+it('gives the browser the Sentry DSN only when one is set', function (): void {
+    $this->get('/login')->assertOk()->assertDontSee('name="sentry-dsn"', false);
+
+    config(['chatvia.sentry.browser_dsn' => 'https://def456@o1.ingest.sentry.io/22', 'sentry.environment' => 'staging']);
+
+    $this->get('/login')
+        ->assertOk()
+        ->assertSee('<meta name="sentry-dsn" content="https://def456@o1.ingest.sentry.io/22">', false)
+        ->assertSee('<meta name="sentry-environment" content="staging">', false);
+});
 
 it('serves the app shell with self-hosted fonts and the product name only', function (): void {
     $this->get('/login')

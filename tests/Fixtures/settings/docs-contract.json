@@ -327,6 +327,11 @@
         "Live voice calls",
         "Pictures, audio and video"
     ],
+    "settings/platform#sentry": [
+        "Server DSN",
+        "Browser DSN",
+        "Environment"
+    ],
     "settings/platform#tracking-code": [
         "Code"
     ],

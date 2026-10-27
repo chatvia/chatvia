@@ -27,10 +27,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
- * Install-wide options: the app's name, default language, the tracking code, visitor
- * location, alerts, what makes PDFs, the number of queue workers, where the
- * programs that read files are, and the panel's Logs page. The chat widget's
- * options are on Settings → Widget.
+ * Install-wide options: the app's name, default language, the tracking code,
+ * visitor location, alerts, error reports to Sentry, what makes PDFs, the
+ * number of queue workers, where the programs that read files are, and the
+ * panel's Logs page. The chat widget's options are on Settings → Widget.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -88,7 +88,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'App name, language, tracking code, visitor location, PDF maker, queue workers, programs and logs.';
+        return 'App name, language, tracking code, visitor location, Sentry, PDF maker, queue workers, programs and logs.';
     }
 
     /**
@@ -135,6 +135,16 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->email('horizon_notify_email', 'Alert email',
                     help: 'Gets an email when background jobs wait too long to start. A change applies after the queue restarts.'),
             ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? 'To '.$this->valueInUse('horizon_notify_email') : 'No alerts'),
+            SettingsCard::make('sentry', 'Sentry', 'Sends errors to Sentry, so you see what went wrong on the server and in people\'s browsers.', Heroicon::OutlinedBugAnt, fn (): array => [
+                $this->url('sentry_dsn', 'Server DSN',
+                    help: 'For errors on the server, in the queue and in scheduled tasks. Use the DSN of a Laravel project in Sentry. A change applies to the queue after it restarts.'),
+                $this->url('sentry_browser_dsn', 'Browser DSN',
+                    help: 'For errors in the dashboard and the hosted chat, in people\'s browsers. Use the DSN of a Vue project in Sentry. Every page holds it, which Sentry expects.'),
+            ])->advancedFields(fn (): array => [
+                $this->text('sentry_environment', 'Environment',
+                    help: 'The name Sentry shows for this install, such as production or staging. Empty uses the app\'s own environment.')->maxLength(64),
+            ])->summary(fn (): string => $this->sentrySummary())
+                ->console('https://sentry.io/settings/projects/', 'Open Sentry'),
             SettingsCard::make('pdf_maker', 'PDF maker', 'What makes PDFs: chat exports, and the PDF of an office file for its summary.', Heroicon::OutlinedDocumentArrowDown, fn (): array => [
                 $this->pdfMakerChoice(),
                 $this->pdfMakerField(PdfMaker::Cloudflare, $this->text('pdf_cloudflare_account_id', 'Account ID', help: 'Shown on the right side of the home page of your Cloudflare dashboard.'), required: true),
@@ -174,6 +184,17 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->summary(fn (): string => $this->valueInUse('logs_page_enabled') === true ? __('Logs page on') : __('Logs page off'))
                 ->advanced(),
         ];
+    }
+
+    /** Which errors the Sentry card sends: a DSN each for the server and the browser. */
+    private function sentrySummary(): string
+    {
+        return match ([filled($this->valueInUse('sentry_dsn')), filled($this->valueInUse('sentry_browser_dsn'))]) {
+            [true, true] => 'Server and browser errors',
+            [true, false] => 'Server errors',
+            [false, true] => 'Browser errors',
+            default => 'Off',
+        };
     }
 
     /**

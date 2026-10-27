@@ -43,6 +43,7 @@ use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Sentry\Laravel\Integration as Sentry;
 use Support\Exceptions\DomainValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -159,6 +160,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // loaded, so env() would see nothing here.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Reported errors also go to Sentry while Settings → Platform has a
+        // server DSN; without one this does nothing.
+        Sentry::handles($exceptions);
+
         // The public API always answers errors as JSON, even when a client
         // leaves out `Accept: application/json`: a 401 or a 422, never a
         // redirect to the login page or back to a form.

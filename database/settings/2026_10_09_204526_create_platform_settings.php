@@ -31,6 +31,9 @@ return new class extends SettingsMigration
             $group->addEncrypted('ip2location_api_key');
             $group->add('ip2location_endpoint');
             $group->add('horizon_notify_email');
+            $group->add('sentry_dsn');
+            $group->add('sentry_browser_dsn');
+            $group->add('sentry_environment');
             $group->add('chat_workers');
             $group->add('ingestion_workers');
             $group->add('analytics_workers');

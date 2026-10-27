@@ -17,10 +17,16 @@ use App\Providers\PulseServiceProvider;
 use App\Providers\RateLimitServiceProvider;
 use App\Providers\SpectraServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
+use Sentry\Laravel\ServiceProvider as SentryServiceProvider;
+use Sentry\Laravel\Tracing\ServiceProvider as SentryTracingServiceProvider;
 
 return [
     // First: the other providers boot with the admin panel's saved settings.
     AdminSettingsServiceProvider::class,
+    // Not discovered (composer.json): Sentry builds its client while it
+    // boots, so it must boot after the DSN from Settings → Platform is in.
+    SentryServiceProvider::class,
+    SentryTracingServiceProvider::class,
     AppServiceProvider::class,
     HttpMacroServiceProvider::class,
     AuthServiceProvider::class,

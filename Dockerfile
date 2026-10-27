@@ -167,12 +167,14 @@ RUN python3 -m venv /opt/weasyprint \
     && weasyprint --version
 
 # Container scripts: the entrypoint wrapper, the one-shot commands, a start-up
-# hook and nginx settings.
+# hook, nginx settings and the PHP-FPM pool for chat answers.
 COPY --chmod=755 docker/app/bin/ /usr/local/bin/
 COPY --chmod=755 docker/app/entrypoint.d/ /etc/entrypoint.d/
 COPY docker/app/nginx/ /etc/chatvia/nginx/
 COPY docker/app/nginx/security.conf /etc/nginx/server-opts.d/security.conf
 COPY docker/app/nginx/shakomako.conf /etc/nginx/server-opts.d/shakomako.conf
+COPY docker/app/nginx/streams.conf /etc/nginx/server-opts.d/streams.conf
+COPY docker/app/php-fpm/chatvia-streams.conf /usr/local/etc/php-fpm.d/chatvia-streams.conf
 
 # The app lives in /var/www/chatvia. The base image's scripts, its artisan
 # helper and nginx follow these two settings.
@@ -187,7 +189,7 @@ ENV APP_BASE_DIR=/var/www/chatvia \
 RUN install -d -m 0755 /var/www/chatvia \
     && install -d -o www-data -g www-data -m 0755 /var/lib/chatvia \
     && rmdir /var/www/html \
-    && chown www-data:www-data /etc/nginx/server-opts.d/security.conf /etc/nginx/server-opts.d/shakomako.conf
+    && chown www-data:www-data /etc/nginx/server-opts.d/security.conf /etc/nginx/server-opts.d/shakomako.conf /etc/nginx/server-opts.d/streams.conf
 
 WORKDIR /var/www/chatvia
 
@@ -228,6 +230,12 @@ USER www-data
 # the CPU work of the queue workers and the WebSocket server (the CLI uses
 # OPcache too). An FPM worker is replaced after 500 requests, so a slow leak
 # in a package cannot grow without end.
+#
+# PHP-FPM has two pools: up to 16 workers for pages and API calls
+# (PHP_FPM_PM_MAX_CHILDREN), and up to 32 for chat answers
+# (CHATVIA_STREAM_WORKERS, docker/app/php-fpm/chatvia-streams.conf), which
+# each keep a worker busy until they end. A busy worker also holds one
+# PostgreSQL connection, so 48 fit next to Horizon in the default 100.
 ENV AUTORUN_ENABLED=false \
     SHOW_WELCOME_MESSAGE=false \
     PHP_OPCACHE_ENABLE=1 \
@@ -236,8 +244,9 @@ ENV AUTORUN_ENABLED=false \
     PHP_OPCACHE_JIT_BUFFER_SIZE=64M \
     PHP_MEMORY_LIMIT=512M \
     PHP_MAX_EXECUTION_TIME=300 \
-    PHP_FPM_PM_MAX_CHILDREN=32 \
+    PHP_FPM_PM_MAX_CHILDREN=16 \
     PHP_FPM_PM_MAX_REQUESTS=500 \
+    CHATVIA_STREAM_WORKERS=32 \
     NGINX_FASTCGI_BUFFER_SIZE=32k \
     NGINX_FASTCGI_BUFFERS="16 32k" \
     CHATVIA_REVERB_UPSTREAM=reverb:8080

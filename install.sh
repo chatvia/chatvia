@@ -2933,11 +2933,12 @@ native_create_user() {
     install -d -o "$NATIVE_USER" -g "$NATIVE_USER" -m 755 "$NATIVE_ROOT" "$NATIVE_ROOT/shared"
 }
 
-# A PHP-FPM pool of its own, run by chatvia, and room in OPcache for all of
-# Chatvia's PHP files (about 30,000).
+# Two PHP-FPM pools of its own, run by chatvia: one for pages and one for chat
+# answers (nginx sends those to it), and room in OPcache for all of Chatvia's
+# PHP files (about 30,000).
 native_configure_php() {
     cat >"/etc/php/$NATIVE_PHP/fpm/pool.d/chatvia.conf" <<'EOF'
-; Chatvia's PHP-FPM pool. Written by the Chatvia installer.
+; Chatvia's PHP-FPM pools. Written by the Chatvia installer.
 [chatvia]
 user = chatvia
 group = chatvia
@@ -2946,9 +2947,8 @@ listen = /run/php/chatvia.sock
 listen.owner = www-data
 listen.group = www-data
 
-; A streaming chat answer keeps one worker busy until it ends.
 pm = dynamic
-pm.max_children = 20
+pm.max_children = 10
 pm.start_servers = 4
 pm.min_spare_servers = 2
 pm.max_spare_servers = 6
@@ -2957,6 +2957,28 @@ pm.max_requests = 500
 php_admin_value[memory_limit] = 512M
 php_admin_value[max_execution_time] = 300
 ; Knowledge files can be up to 50 MB.
+php_admin_value[upload_max_filesize] = 64M
+php_admin_value[post_max_size] = 64M
+
+; Chat answers. Each one keeps a worker busy until it ends, so they get
+; workers of their own and a busy chat cannot make pages wait.
+[chatvia-streams]
+user = chatvia
+group = chatvia
+
+listen = /run/php/chatvia-streams.sock
+listen.owner = www-data
+listen.group = www-data
+
+pm = dynamic
+pm.max_children = 20
+pm.start_servers = 1
+pm.min_spare_servers = 1
+pm.max_spare_servers = 2
+pm.max_requests = 500
+
+php_admin_value[memory_limit] = 512M
+php_admin_value[max_execution_time] = 300
 php_admin_value[upload_max_filesize] = 64M
 php_admin_value[post_max_size] = 64M
 EOF
@@ -3029,6 +3051,20 @@ server {
     location = /robots.txt  { access_log off; log_not_found off; }
 
     error_page 404 /index.php;
+
+    # Chat answers go to the chatvia-streams pool. The same paths as
+    # docker/app/nginx/streams.conf.
+    location ~ ^/(?:chat/[^/]+/(?:stream/[^/]+|tools/[^/]+/resolve|conversations/[^/]+/messages/[^/]+/speech)|widget/stream|my/ask/stream|api/v1/agents/[^/]+/conversations/[^/]+/messages)/?$ {
+        fastcgi_pass unix:/run/php/chatvia-streams.sock;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+        fastcgi_param SCRIPT_NAME /index.php;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_read_timeout 300s;
+        fastcgi_buffer_size 32k;
+        fastcgi_buffers 16 32k;
+    }
 
     # $realpath_root: the release that `current` points at, so the first
     # request after a deploy runs the new one.

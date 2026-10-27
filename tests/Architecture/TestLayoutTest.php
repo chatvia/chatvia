@@ -13,7 +13,8 @@ use Illuminate\Support\Str;
  * tests/Feature/App/Http/Controllers/Agent/AgentControllerTest.php. A test of
  * behaviour across several classes, named for that behaviour, sits in their
  * nearest common folder. Tests of files outside src/ sit under the folder of
- * that file (config/ → tests/Unit/Config/, routes/ → tests/Feature/Routes/).
+ * that file (config/ → tests/Unit/Config/, docker/ → tests/Unit/Docker/,
+ * routes/ → tests/Feature/Routes/).
  *
  * A feature test goes through an entry point the outside world uses (an HTTP
  * route, an admin page, an artisan command, broadcasting auth); a unit test
@@ -23,7 +24,7 @@ use Illuminate\Support\Str;
  */
 
 /** The only folders tests/Unit holds: the three layers of src/, and the repo folders tested outside it. */
-const LAYOUT_UNIT_ROOTS = ['App', 'Domain', 'Support', 'Config', 'Database'];
+const LAYOUT_UNIT_ROOTS = ['App', 'Domain', 'Support', 'Config', 'Database', 'Docker'];
 
 /** The only folders tests/Feature holds: the app's entry points, and the repo folders tested outside src/. */
 const LAYOUT_FEATURE_ROOTS = ['App', 'Bootstrap', 'Database', 'Routes'];

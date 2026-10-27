@@ -39,8 +39,7 @@ class GeneratedMediaFactory extends Factory
             'kind' => GeneratedMediaKind::Image,
             'status' => GeneratedMediaStatus::Pending,
             'prompt' => 'A red bicycle by the sea',
-            'shape' => 'square',
-            'voice' => null,
+            'metadata' => ['shape' => 'square'],
             'service' => 'fake:image-model',
         ];
     }
@@ -59,8 +58,7 @@ class GeneratedMediaFactory extends Factory
         return $this->state([
             'kind' => GeneratedMediaKind::Audio,
             'prompt' => 'Welcome to our shop.',
-            'shape' => null,
-            'voice' => 'fake-voice',
+            'metadata' => ['voice' => 'fake-voice'],
             'service' => 'fake:speech-model',
         ]);
     }
@@ -71,8 +69,7 @@ class GeneratedMediaFactory extends Factory
         return $this->state([
             'kind' => GeneratedMediaKind::Video,
             'prompt' => 'Waves rolling onto a beach at sunset',
-            'shape' => 'landscape',
-            'voice' => null,
+            'metadata' => ['shape' => 'landscape', 'seconds' => 8, 'resolution' => '720p'],
             'service' => 'fake:video-model',
             'task_id' => 'fake-task-1',
         ]);

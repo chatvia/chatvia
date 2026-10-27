@@ -61,7 +61,7 @@ it('stores a pending picture under the workspace and queues its job', function (
         ->and($media->chat_conversation_id)->toBe($this->conversation->id)
         ->and($media->kind)->toBe(GeneratedMediaKind::Image)
         ->and($media->status)->toBe(GeneratedMediaStatus::Pending)
-        ->and($media->shape)->toBe('landscape')
+        ->and($media->metadata)->toBe(['shape' => 'landscape'])
         ->and($media->service)->toBe('fake image-model')
         ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red fox']);
 
@@ -74,8 +74,7 @@ it('stores an audio file with the agent\'s voice', function (): void {
     $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
 
     expect($media->kind)->toBe(GeneratedMediaKind::Audio)
-        ->and($media->voice)->toBe('alto')
-        ->and($media->shape)->toBeNull()
+        ->and($media->metadata)->toBe(['voice' => 'alto'])
         ->and($media->service)->toBe('fake tts');
 });
 
@@ -161,15 +160,15 @@ it('turns down an attached-file request it cannot read aloud', function (?string
     'longer than one file reads' => [Str::repeat('A long sentence. ', 5), MediaRequestRefusal::TooLong],
 ]);
 
-it('stores a pending video in the shape asked for and queues its job', function (): void {
+it('stores a pending video in the shape asked for, with the admin\'s length and resolution, and queues its job', function (): void {
+    config(['chatvia.ai.video_duration' => 6, 'chatvia.ai.video_resolution' => '1080p']);
     $result = rmgRequest(MediaRequestData::video('A fox running', VideoShape::Portrait));
 
     $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
 
     expect($result->isAccepted())->toBeTrue()
         ->and($media->kind)->toBe(GeneratedMediaKind::Video)
-        ->and($media->shape)->toBe('portrait')
-        ->and($media->voice)->toBeNull()
+        ->and($media->metadata)->toBe(['shape' => 'portrait', 'seconds' => 6, 'resolution' => '1080p'])
         ->and($media->service)->toBe('fake video-model')
         ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A fox running']);
 

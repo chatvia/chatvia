@@ -43,7 +43,7 @@ function gmaMedia(array $state = []): GeneratedMedia
 
 it('draws a picture, saves it and tells the chat', function (): void {
     $images = FakeImageGenerator::install();
-    $media = gmaMedia(['prompt' => 'A red fox', 'shape' => 'portrait']);
+    $media = gmaMedia(['prompt' => 'A red fox', 'metadata' => ['shape' => 'portrait']]);
 
     app(GenerateMediaAction::class)->execute($media);
 
@@ -63,7 +63,7 @@ it('draws a picture, saves it and tells the chat', function (): void {
 
 it('reads an audio file in the stored voice', function (): void {
     app()->instance(AudioGeneration::class, new AudioGeneration($speaker = new FakeSpeaker));
-    $media = GeneratedMedia::factory()->forConversation($this->conversation)->audio()->create(['voice' => 'tenor', 'prompt' => 'Hello there.']);
+    $media = GeneratedMedia::factory()->forConversation($this->conversation)->audio()->create(['metadata' => ['voice' => 'tenor'], 'prompt' => 'Hello there.']);
 
     app(GenerateMediaAction::class)->execute($media);
 
@@ -103,11 +103,16 @@ it('leaves an item that is no longer pending alone', function (): void {
     Event::assertNotDispatched(GeneratedMediaUpdated::class);
 });
 
-it('starts a video and checks on it later, without waiting for it', function (): void {
+it('starts a video with its saved length and resolution and checks on it later, without waiting for it', function (): void {
     Queue::fake();
-    config(['chatvia.ai.video_duration' => 6, 'chatvia.ai.video_resolution' => '1080p']);
+    // The admin changed the settings after the video was asked for.
+    config(['chatvia.ai.video_duration' => 4, 'chatvia.ai.video_resolution' => '720p']);
     $videos = FakeVideoGenerator::install();
-    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create(['task_id' => null, 'shape' => 'portrait', 'prompt' => 'Rain on a window']);
+    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create([
+        'task_id' => null,
+        'metadata' => ['shape' => 'portrait', 'seconds' => 6, 'resolution' => '1080p'],
+        'prompt' => 'Rain on a window',
+    ]);
 
     app(GenerateMediaAction::class)->execute($media);
     app(GenerateMediaAction::class)->execute($media->refresh());

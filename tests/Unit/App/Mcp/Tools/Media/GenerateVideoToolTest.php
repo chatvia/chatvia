@@ -41,7 +41,7 @@ it('asks for the video and returns a pending video artifact', function (): void 
         ->and($result['content'][0]['text'])->toContain('Do not say where on the screen it will appear')
         ->and($result['structuredContent']['video'])->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A lighthouse in a storm'])
         ->and($media->kind)->toBe(GeneratedMediaKind::Video)
-        ->and($media->shape)->toBe('portrait');
+        ->and($media->metadata['shape'] ?? null)->toBe('portrait');
 });
 
 it('passes on why no video can be made', function (): void {

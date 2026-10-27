@@ -21,6 +21,7 @@ use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Llm\Contracts\ImageGenerator;
 use Domain\Llm\Contracts\VideoGenerator;
 use Domain\Llm\Enums\ImageShape;
+use Domain\Llm\Enums\VideoResolution;
 use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Support\Facades\RateLimiter;
@@ -90,12 +91,17 @@ class RequestMediaGenerationAction
             'kind' => $request->kind,
             'status' => GeneratedMediaStatus::Pending,
             'prompt' => $prompt,
-            'shape' => match ($request->kind) {
-                GeneratedMediaKind::Image => ($request->shape instanceof ImageShape ? $request->shape : ImageShape::Square)->value,
-                GeneratedMediaKind::Video => ($request->shape instanceof VideoShape ? $request->shape : VideoShape::Landscape)->value,
-                GeneratedMediaKind::Audio => null,
+            'metadata' => match ($request->kind) {
+                GeneratedMediaKind::Image => ['shape' => ($request->shape instanceof ImageShape ? $request->shape : ImageShape::Square)->value],
+                // The admin's length and resolution as they are now, so a
+                // change made while the job waits does not reach this video.
+                GeneratedMediaKind::Video => [
+                    'shape' => ($request->shape instanceof VideoShape ? $request->shape : VideoShape::Landscape)->value,
+                    'seconds' => (int) config('chatvia.ai.video_duration'),
+                    'resolution' => (VideoResolution::tryFrom((string) config('chatvia.ai.video_resolution')) ?? VideoResolution::Hd720)->value,
+                ],
+                GeneratedMediaKind::Audio => ['voice' => $this->readAloud->voiceFor($agent, $this->audio->speaker)],
             },
-            'voice' => $audio ? $this->readAloud->voiceFor($agent, $this->audio->speaker) : null,
             'service' => match ($request->kind) {
                 GeneratedMediaKind::Image => $this->images->name(),
                 GeneratedMediaKind::Audio => $this->audio->name(),

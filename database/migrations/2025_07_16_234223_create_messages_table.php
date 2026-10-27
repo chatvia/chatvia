@@ -202,8 +202,10 @@ return new class extends Migration
             $table->enum('kind', ['image', 'audio', 'video']);
             $table->enum('status', ['pending', 'ready', 'failed'])->default('pending');
             $table->text('prompt');
-            $table->enum('shape', ['square', 'landscape', 'portrait'])->nullable();
-            $table->string('voice', 100)->nullable();
+            // What the kind is made with, saved when it is asked for: an
+            // image's shape; a video's shape, seconds and resolution; an
+            // audio file's voice. The job reads it, nothing queries it.
+            $table->jsonb('metadata')->nullable();
             $table->string('service', 100);
             $table->string('task_id', 255)->nullable();
 

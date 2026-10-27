@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use App\Admin\Settings\Data\LicenseActivationData;
+use App\Admin\Settings\Data\LicenseCheckData;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
@@ -18,7 +19,9 @@ use Support\License\LicenseSignature;
  * domain at a time: chatvia.ai records where it is activated, refuses it on
  * any other domain, and answers an activation with the key signed for this
  * domain, which the install saves and checks offline ({@see CreditLicense}).
- * The buyer can deactivate a key there to move it; the daily check notices.
+ * The buyer can deactivate a key there to move it; the daily check notices,
+ * and hands back the key signed afresh so a renewed yearly key's last day
+ * moves on.
  *
  * Only the key (or its id, for the check) and the domain are sent.
  */
@@ -69,26 +72,33 @@ final readonly class LicenseActivation
     }
 
     /**
-     * Whether chatvia.ai still has the key active for this domain: null when
-     * it could not say (unreachable, or an error on its side).
+     * Whether chatvia.ai still has the key active for this domain (null when
+     * it could not say: unreachable, or an error on its side), with the key
+     * signed afresh while it is.
      */
-    public function isActive(string $key): ?bool
+    public function check(string $key): LicenseCheckData
     {
         $license = LicenseSignature::verify($key, $this->config->get('chatvia.license.public_key'));
 
         if (! $license instanceof LicenseKey) {
-            return false;
+            return new LicenseCheckData(active: false);
         }
 
         try {
             $response = $this->post('check', ['id' => $license->id]);
         } catch (ConnectionException) {
-            return null;
+            return new LicenseCheckData;
         }
 
         $active = $response->json('active');
 
-        return $response->successful() && is_bool($active) ? $active : null;
+        if (! $response->successful() || ! is_bool($active)) {
+            return new LicenseCheckData;
+        }
+
+        $fresh = $response->json('key');
+
+        return new LicenseCheckData(active: $active, key: $active && filled($fresh) ? $fresh : null);
     }
 
     /**
@@ -100,7 +110,7 @@ final readonly class LicenseActivation
     {
         return Http::acceptJson()
             ->timeout(15)
-            ->post(Str::rtrim((string) $this->config->get('chatvia.license.api_url'), '/').'/'.$endpoint, [
+            ->post(Str::rtrim((string) $this->config->get('chatvia.license.api_url'), '/')."/{$endpoint}", [
                 ...$payload,
                 'domain' => $this->license->host(),
             ]);

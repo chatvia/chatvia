@@ -155,6 +155,8 @@ it('unlocks the Enterprise features only with an Enterprise key activated for th
     'Enterprise key for this domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.acme.com'), true],
     'Pro key for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), false],
     'Enterprise key for another domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.other.com'), false],
+    'Enterprise key on its last day' => fn (): array => [LicenseKeys::enterpriseUntil(now()->toDateString(), 'chat.acme.com'), true],
+    'Enterprise key past its last day' => fn (): array => [LicenseKeys::enterpriseUntil(now()->subDay()->toDateString(), 'chat.acme.com'), false],
     'no key' => [null, false],
 ]);
 
@@ -171,6 +173,7 @@ it('lifts the free-use limits with any key activated for this domain', function 
     'Pro key for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), true],
     'Enterprise key for this domain' => fn (): array => [LicenseKeys::enterpriseFor('chat.acme.com'), true],
     'Pro key for another domain' => fn (): array => [LicenseKeys::activatedFor('chat.other.com'), false],
+    'yearly key past its last day' => fn (): array => [LicenseKeys::enterpriseUntil(now()->subDay()->toDateString(), 'chat.acme.com'), false],
     'no key' => [null, false],
 ]);
 

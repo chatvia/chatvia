@@ -151,8 +151,9 @@ class License extends AdminSettingsPage
     private function licenseCallout(): Callout
     {
         return Callout::make(fn (): string => match ($this->savedStatus()) {
-            LicenseStatus::Valid => $this->licenseType().' license, licensed to '.$this->license()->read($this->savedKey())?->licensee,
+            LicenseStatus::Valid => "{$this->licenseType()} license, licensed to ".$this->license()->read($this->savedKey())?->licensee,
             LicenseStatus::Missing => 'Hiding the credit needs a license',
+            LicenseStatus::Expired => 'The license has ended',
             default => 'The license is not active here',
         })
             ->description(fn (): string => match ($this->savedStatus()) {
@@ -161,6 +162,7 @@ class License extends AdminSettingsPage
                     : 'You can hide the credit.',
                 LicenseStatus::Missing => 'A Pro license costs $399, one time, and never expires. An Enterprise license costs $1,490 a year: it also hides the credit and turns on the Enterprise security features.',
                 LicenseStatus::Invalid => 'The saved key is not valid. The credit stays on until you add a valid key.',
+                LicenseStatus::Expired => "It ended on {$this->license()->read($this->savedKey())?->expires}, so the free limits and the credit are back. Renew it with Manage license: it works again after the next daily check, or right away when you save the key again.",
                 default => 'Paste your license key below and save to activate it. The credit stays on until then.',
             })
             ->icon(fn (): Heroicon => match ($this->savedStatus()) {

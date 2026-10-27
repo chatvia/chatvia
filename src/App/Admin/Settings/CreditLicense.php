@@ -13,8 +13,8 @@ use Support\License\LicenseSignature;
 /**
  * Decides whether a license key allows hiding the "Powered by" credit on this
  * install: it must be signed for the public key in `chatvia.license`, unlock
- * {@see LicenseFeature::HideCredit} and be activated for the host of
- * `app.url`. A key as bought names no domain; {@see LicenseActivation} swaps
+ * {@see LicenseFeature::HideCredit}, be activated for the host of `app.url`
+ * and, for a yearly key, not be past its last day. A key as bought names no domain; {@see LicenseActivation} swaps
  * it for one that does. {@see SettingsConfig} keeps the credit on unless this
  * says yes, and turns the Enterprise features on only when it allows them.
  */
@@ -32,6 +32,7 @@ final readonly class CreditLicense
 
         return match (true) {
             ! $license instanceof LicenseKey || ! $license->allows(LicenseFeature::HideCredit) => LicenseStatus::Invalid,
+            $license->isExpired() => LicenseStatus::Expired,
             $license->domains === [] => LicenseStatus::NotActivated,
             ! $license->coversHost($this->host()) => LicenseStatus::OtherDomain,
             default => LicenseStatus::Valid,

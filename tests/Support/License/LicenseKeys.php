@@ -43,12 +43,18 @@ final class LicenseKeys
         return self::sign(array_values($domains), [LicenseFeature::HideCredit, LicenseFeature::Enterprise]);
     }
 
+    /** Acme Ltd's yearly Enterprise key activated for $domains, working through $expires (Y-m-d). */
+    public static function enterpriseUntil(string $expires, string ...$domains): string
+    {
+        return self::sign(array_values($domains), [LicenseFeature::HideCredit, LicenseFeature::Enterprise], $expires);
+    }
+
     /**
      * @param  list<string>  $domains
      * @param  list<LicenseFeature>  $features
      */
-    private static function sign(array $domains, array $features): string
+    private static function sign(array $domains, array $features, ?string $expires = null): string
     {
-        return LicenseSignature::sign(new LicenseKey(self::ID, 'Acme Ltd', $domains, $features, '2026-10-15'), self::SECRET_KEY);
+        return LicenseSignature::sign(new LicenseKey(self::ID, 'Acme Ltd', $domains, $features, '2026-10-15', $expires), self::SECRET_KEY);
     }
 }

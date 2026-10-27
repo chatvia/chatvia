@@ -7,9 +7,10 @@ namespace Support\License;
 use Illuminate\Support\Str;
 
 /**
- * The terms a license key carries: who bought it, the domains it works on and
- * what it unlocks. This is only the content of a key; it is trusted once
- * {@see LicenseSignature::verify()} has checked its signature.
+ * The terms a license key carries: who bought it, the domains it works on,
+ * what it unlocks and, for a yearly key, the last day it works. This is only
+ * the content of a key; it is trusted once {@see LicenseSignature::verify()}
+ * has checked its signature.
  */
 final readonly class LicenseKey
 {
@@ -17,6 +18,8 @@ final readonly class LicenseKey
      * @param  list<string>  $domains  Host names, as {@see host()} writes them.
      * @param  list<LicenseFeature>  $features
      * @param  string  $issued  The day the key was made (Y-m-d).
+     * @param  string|null  $expires  The last day a yearly key works, grace
+     *                                included (Y-m-d); null for a key that never ends.
      */
     public function __construct(
         public string $id,
@@ -24,6 +27,7 @@ final readonly class LicenseKey
         public array $domains,
         public array $features,
         public string $issued,
+        public ?string $expires = null,
     ) {}
 
     /** Whether the key works on this host (a port or a trailing dot is ignored). */
@@ -31,12 +35,21 @@ final readonly class LicenseKey
     {
         $host = self::host($host);
 
-        return $host !== '' && in_array($host, array_map(self::host(...), $this->domains), true);
+        return $host !== '' && collect($this->domains)->map(fn (string $domain): string => self::host($domain))->containsStrict($host);
     }
 
     public function allows(LicenseFeature $feature): bool
     {
-        return in_array($feature, $this->features, true);
+        return collect($this->features)->containsStrict($feature);
+    }
+
+    /**
+     * Whether the last day of a yearly key is over. Checked offline, so a
+     * lapsed key stops working even on an install that cannot reach chatvia.ai.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires !== null && now()->toDateString() > $this->expires;
     }
 
     /** A host name as keys hold it: lowercase, with no port or trailing dot. */
@@ -51,7 +64,7 @@ final readonly class LicenseKey
     }
 
     /**
-     * The terms as the key's JSON holds them.
+     * The terms as the key's JSON holds them; `expires` only on a key that ends.
      *
      * @return array<string, mixed>
      */
@@ -63,13 +76,14 @@ final readonly class LicenseKey
             'domains' => $this->domains,
             'features' => array_map(fn (LicenseFeature $feature): string => $feature->value, $this->features),
             'issued' => $this->issued,
+            ...($this->expires === null ? [] : ['expires' => $this->expires]),
         ];
     }
 
     /**
-     * The terms read back from a key's JSON, or null when a field is missing.
-     * A feature this version does not know is left out, so a newer key still
-     * works for what this version can do.
+     * The terms read back from a key's JSON, or null when a field is missing
+     * or `expires` is not a date. A feature this version does not know is left
+     * out, so a newer key still works for what this version can do.
      *
      * @param  array<mixed>  $payload
      */
@@ -80,8 +94,10 @@ final readonly class LicenseKey
         $domains = $payload['domains'] ?? null;
         $features = $payload['features'] ?? null;
         $issued = $payload['issued'] ?? null;
+        $expires = $payload['expires'] ?? null;
 
-        if (blank($id) || blank($licensee) || blank($issued) || ! is_array($domains) || ! is_array($features)) {
+        if (blank($id) || blank($licensee) || blank($issued) || ! is_array($domains) || ! is_array($features)
+            || ($expires !== null && ! Str::isMatch('/^\d{4}-\d{2}-\d{2}$/', (string) $expires))) {
             return null;
         }
 
@@ -94,6 +110,7 @@ final readonly class LicenseKey
                 $features,
             ))),
             issued: $issued,
+            expires: $expires,
         );
     }
 }

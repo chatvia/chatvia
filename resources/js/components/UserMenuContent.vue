@@ -14,6 +14,7 @@ import {
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
+import { DEFAULT_DATE_FORMAT } from '@/composables/useDateFormat';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { LOCALES, normalizeLocale, persistLocale, setI18nLocale } from '@/i18n';
 import { home } from '@/routes';
@@ -73,7 +74,7 @@ const changeLocale = (code: string): void => {
     // required by the endpoint, so echo the current value back unchanged.
     router.patch(
         updatePreferences.url(),
-        { locale: code, date_format: page.props.auth.user?.date_format ?? 'iso' },
+        { locale: code, date_format: page.props.auth.user?.date_format || DEFAULT_DATE_FORMAT },
         { preserveScroll: true, preserveState: true },
     );
 };

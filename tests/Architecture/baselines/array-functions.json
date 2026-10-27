@@ -86,7 +86,6 @@
     "src/App/Http/Resources/Api/V1/Analytics/SourceUsageReportData.php": 3,
     "src/App/Http/Resources/Notification/NotificationFeedResourceData.php": 1,
     "src/App/Identity/Chatter/Actions/BlockChatterAction.php": 1,
-    "src/App/Identity/Workspace/Enums/DateFormat.php": 1,
     "src/App/Identity/Workspace/Enums/SocialProvider.php": 1,
     "src/App/Identity/Workspace/Models/MessageLimit.php": 1,
     "src/App/Identity/Workspace/Notifications/NewDeviceSignInNotification.php": 1,

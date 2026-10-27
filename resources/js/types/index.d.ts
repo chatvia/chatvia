@@ -137,8 +137,8 @@ export interface User {
     // Platform staff: may open the admin panel. Whether the user owns their
     // workspace is `auth.is_workspace_owner`.
     is_admin?: boolean;
-    // Preferred date display format key — see App\Identity\Workspace\Enums\DateFormat and
-    // the useDateFormat composable. Null/undefined falls back to ISO.
+    // Preferred date display format, a PHP date() string — see App\Identity\Workspace\Enums\DateFormat
+    // and the useDateFormat composable. Null/undefined falls back to ISO.
     date_format?: string | null;
     // Preferred UI language key (e.g. `en`, `ar`). Null/undefined follows the
     // browser locale — see resources/js/i18n and the language switcher.

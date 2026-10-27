@@ -1,9 +1,9 @@
 <script lang="ts">
-import { type DateFormatKey } from '@/composables/useDateFormat';
+import { type DateFormatString } from '@/composables/useDateFormat';
 
 /** One choice in the date-format picker, as the server lists them. */
 export interface DateFormatOption {
-    value: DateFormatKey;
+    value: DateFormatString;
     label: string;
     example: string;
 }
@@ -11,7 +11,7 @@ export interface DateFormatOption {
 
 <script setup lang="ts">
 // "Date & time" card on the profile page: pick how calendar dates are shown
-// across the dashboard, with a live preview of today's date.
+// across the dashboard, with a live preview of the current moment.
 import { useForm } from '@inertiajs/vue3';
 import { CheckCircle, Save } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { formatDateWith } from '@/composables/useDateFormat';
+import { DEFAULT_DATE_FORMAT, formatDateWith } from '@/composables/useDateFormat';
 import { update as updatePreferences } from '@/routes/account/preferences';
 import { type User } from '@/types';
 
@@ -34,12 +34,12 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const dateForm = useForm({
-    date_format: (props.user.date_format as DateFormatKey) ?? 'iso',
+    date_format: props.user.date_format || DEFAULT_DATE_FORMAT,
 });
 
 const selectedFormat = computed(() => props.dateFormats.find((option) => option.value === dateForm.date_format));
 
-// Live preview of today's date in the currently selected format.
+// Live preview of the current moment in the selected format.
 const datePreview = computed(() => formatDateWith(dateForm.date_format, new Date()));
 
 const submitDateFormat = () => {

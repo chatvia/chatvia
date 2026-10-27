@@ -49,5 +49,5 @@ it('refuses an invalid preference', function (array $form, string $field): void 
 })->with([
     'no date format' => [[], 'date_format'],
     'an unknown date format' => [['date_format' => 'not-a-format'], 'date_format'],
-    'an unsupported language' => [['date_format' => 'dmy_slash', 'locale' => 'not-a-locale'], 'locale'],
+    'an unsupported language' => [['date_format' => DateFormat::DmySlash->value, 'locale' => 'not-a-locale'], 'locale'],
 ]);

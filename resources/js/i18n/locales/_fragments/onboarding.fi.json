@@ -7,7 +7,7 @@
         "finish": "Valmis",
         "step_of": "{current}/{total}",
         "welcome": {
-            "title": "Tervetuloa ChatVia.ai:hin",
+            "title": "Tervetuloa palveluun {name}",
             "description": "Lyhyt esittely näyttää hallintapaneelin ja auttaa sinua ottamaan ensimmäisen agenttisi käyttöön.",
             "how_title": "Näin se toimii",
             "how_move": "Siirry vaiheesta toiseen painikkeilla Seuraava ja Takaisin tai nuolinäppäimillä.",

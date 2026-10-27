@@ -7,7 +7,7 @@
         "finish": "Zakończ",
         "step_of": "{current} z {total}",
         "welcome": {
-            "title": "Witaj w ChatVia.ai",
+            "title": "Witaj w {name}",
             "description": "Krótki przewodnik pokaże Ci panel i pomoże skonfigurować pierwszego agenta.",
             "how_title": "Jak to działa",
             "how_move": "Używaj przycisków Dalej i Wstecz albo strzałek, aby przechodzić między krokami.",

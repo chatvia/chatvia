@@ -1249,6 +1249,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     display: inline-flex;
     align-items: center;
     gap: 0.625rem;
+    max-width: 100%;
     line-height: 1;
     white-space: nowrap;
 }
@@ -1270,7 +1271,11 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
+/* The app's name is the admin's own (Settings → Platform): a long one is cut. */
 .cv-brand__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: -0.02em;

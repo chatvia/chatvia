@@ -21,14 +21,14 @@ use Spatie\LaravelData\Data;
  * uploads are off), the embedding service and model (with its account's
  * key when that is another account), the reranker, the document reader,
  * the Firecrawl key for the web scraper, speech to text, voice
- * conversations, where files are kept, how email is sent, and whether
- * Spectra records AI calls.
+ * conversations, where files are kept, how email is sent, whether
+ * Spectra records AI calls, and the app's name.
  *
  * A null key (or endpoint, for Azure OpenAI) keeps the saved one. A null
  * embedding provider keeps the one in use (sources are trained with it
  * already); a null embedding model the saved one. A null reader, speech or
  * voice service turns that service off ("Not now"). A null reranker,
- * storage or mail leaves those settings as they are.
+ * storage, mail or app name leaves those settings as they are.
  */
 final class SetupData extends Data
 {
@@ -61,5 +61,6 @@ final class SetupData extends Data
         public ?StorageSetupData $storage = null,
         public ?MailSetupData $mail = null,
         public bool $recordAiCalls = true,
+        public ?string $appName = null,
     ) {}
 }

@@ -67,7 +67,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('ChatVia.ai Admin')
+            // The app's name (Settings → Platform), in every page title: "Agents - Acme Admin".
+            ->brandName(fn (): string => config('app.name').' Admin')
             ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('filament.brand'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/favicons/favicon.svg'))

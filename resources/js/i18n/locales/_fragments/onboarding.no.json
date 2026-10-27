@@ -7,7 +7,7 @@
         "finish": "Ferdig",
         "step_of": "{current} av {total}",
         "welcome": {
-            "title": "Velkommen til ChatVia.ai",
+            "title": "Velkommen til {name}",
             "description": "En kort omvisning viser deg dashbordet og hjelper deg å sette opp din første agent.",
             "how_title": "Slik fungerer det",
             "how_move": "Bruk Neste og Tilbake, eller piltastene, for å gå mellom stegene.",

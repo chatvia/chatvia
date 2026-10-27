@@ -27,7 +27,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
- * Install-wide options: default language, the tracking code, visitor
+ * Install-wide options: the app's name, default language, the tracking code, visitor
  * location, alerts, what makes PDFs, the number of queue workers, where the
  * programs that read files are, and the panel's Logs page. The chat widget's
  * options are on Settings → Widget.
@@ -88,7 +88,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, tracking code, visitor location, PDF maker, queue workers, programs and logs.';
+        return 'App name, language, tracking code, visitor location, PDF maker, queue workers, programs and logs.';
     }
 
     /**
@@ -116,6 +116,9 @@ class ManagePlatformSettings extends AdminSettingsPage
     protected function cards(): array
     {
         return [
+            SettingsCard::make('app_name', 'App name', 'The name people see in browser tabs, the dashboard, the admin panel and emails.', Heroicon::OutlinedTag, fn (): array => [
+                $this->text('app_name', 'App name')->maxLength(60),
+            ])->summary(fn (): string => (string) $this->valueInUse('app_name')),
             SettingsCard::make('language', 'Language', 'The language for people who have not chosen one, and for messaging channels.', Heroicon::OutlinedLanguage, fn (): array => [
                 $this->choice('default_locale', 'Default language', $this->languages()),
             ])->summary(fn (): string => $this->languages()[(string) $this->valueInUse('default_locale')] ?? $this->shown($this->valueInUse('default_locale'))),

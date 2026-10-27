@@ -21,6 +21,7 @@ return new class extends SettingsMigration
     {
         $this->migrator->inGroup('platform', function (SettingsBlueprint $group): void {
             $group->add('setup_status');
+            $group->add('app_name');
             $group->add('default_locale');
             $group->add('widget_allowed_origins');
             $group->add('widget_script_url');

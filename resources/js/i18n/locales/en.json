@@ -4515,7 +4515,7 @@
         "finish": "Finish",
         "step_of": "{current} of {total}",
         "welcome": {
-            "title": "Welcome to ChatVia.ai",
+            "title": "Welcome to {name}",
             "description": "A short tour shows you around the dashboard and helps you set up your first agent.",
             "how_title": "How it works",
             "how_move": "Use Next and Back, or the arrow keys, to move between steps.",

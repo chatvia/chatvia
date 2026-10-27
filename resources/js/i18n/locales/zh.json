@@ -4443,7 +4443,7 @@
         "finish": "完成",
         "step_of": "{current} / {total}",
         "welcome": {
-            "title": "欢迎使用 ChatVia.ai",
+            "title": "欢迎使用 {name}",
             "description": "简短的导览会带您了解控制台，并帮您设置第一个智能体。",
             "how_title": "使用方法",
             "how_move": "使用下一步和上一步，或方向键，在各步骤之间切换。",

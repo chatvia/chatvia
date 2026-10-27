@@ -200,6 +200,17 @@ it('leaves a choice that equals its default unsaved, so a later default applies'
     expect(savedSetting(StorageSettings::class, 'driver'))->toBeNull();
 });
 
+it('saves the app name, and leaves ChatVia.ai, the default, unsaved', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData(['appName' => 'ChatVia.ai']));
+
+    expect(savedSetting(PlatformSettings::class, 'app_name'))->toBeNull();
+
+    app(CompleteSetupAction::class)->execute(completeSetupData(['appName' => 'Acme Support']));
+
+    expect(savedSetting(PlatformSettings::class, 'app_name'))->toBe('Acme Support')
+        ->and(config('app.name'))->toBe('Acme Support');
+});
+
 it('keeps Spectra recording by default, and turns it off when asked', function (): void {
     app(CompleteSetupAction::class)->execute(completeSetupData());
 

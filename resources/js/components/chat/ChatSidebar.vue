@@ -26,6 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { chatPages } from '@/composables/chat/chatPages';
 import { useChatConversations } from '@/composables/chat/useChatConversations';
+import { useAppName } from '@/composables/useAppName';
 import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useIsMobile } from '@/composables/useIsMobile';
 import chat from '@/routes/chat';
@@ -53,6 +54,7 @@ const { params: routeParams } = useCurrentRoute();
 
 const { t } = useI18n();
 const page = usePage();
+const appName = useAppName();
 const isMobileDevice = useIsMobile();
 const { conversations, isLoading: isLoadingConversations, search, rename, remove, removeAll } = useChatConversations();
 
@@ -123,16 +125,11 @@ function logout() {
         <div class="flex h-full flex-col px-3 py-3">
             <div class="mb-2 flex items-center justify-between">
                 <Link :href="chat.home.url()" class="hover:bg-accent flex items-center gap-2 rounded-lg p-2 transition-colors">
-                    <img
-                        v-if="appearance?.logo"
-                        :src="appearance.logo"
-                        :alt="appearance?.chat_window_title || 'ChatVia.ai'"
-                        class="h-8 object-contain"
-                    />
+                    <img v-if="appearance?.logo" :src="appearance.logo" :alt="appearance?.chat_window_title || appName" class="h-8 object-contain" />
                     <template v-else>
                         <AppLogoIcon class="h-7 w-7" />
                         <span class="text-foreground text-sm font-semibold tracking-tight">
-                            {{ appearance?.chat_window_title || 'ChatVia.ai' }}
+                            {{ appearance?.chat_window_title || appName }}
                         </span>
                     </template>
                 </Link>

@@ -4515,7 +4515,7 @@
         "finish": "Terminer",
         "step_of": "{current} sur {total}",
         "welcome": {
-            "title": "Bienvenue sur ChatVia.ai",
+            "title": "Bienvenue sur {name}",
             "description": "Une courte visite vous présente le tableau de bord et vous aide à configurer votre premier agent.",
             "how_title": "Comment ça marche",
             "how_move": "Utilisez Suivant et Retour, ou les flèches du clavier, pour passer d'une étape à l'autre.",

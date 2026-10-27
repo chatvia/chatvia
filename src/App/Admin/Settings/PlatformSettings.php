@@ -7,8 +7,8 @@ namespace App\Admin\Settings;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
- * Install-wide options that fit nowhere else: the default language, the
- * tracking code, visitor location, where Horizon sends
+ * Install-wide options that fit nowhere else: the app's name, the default
+ * language, the tracking code, visitor location, where Horizon sends
  * alerts, how many queue workers it may run, where the programs that read
  * files are, whether the panel shows its Logs page, and when the admin
  * setup of the install was completed.
@@ -18,6 +18,10 @@ class PlatformSettings extends AdminSettings
     /** @see SetupStatus */
     #[ConfigKey('chatvia.admin.setup_status')]
     public ?string $setup_status = null;
+
+    /** The name people see in browser tabs, the dashboard, the admin panel and emails. */
+    #[ConfigKey('app.name')]
+    public ?string $app_name = null;
 
     #[ConfigKey('app.locale')]
     public ?string $default_locale = null;

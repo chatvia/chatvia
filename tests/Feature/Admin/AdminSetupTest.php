@@ -1543,6 +1543,37 @@ it('sends email with the provider set up, or warns that nobody gets email', func
         ->and(savedSetting(MailSettings::class, 'from_address'))->toBe('support@acme.test');
 });
 
+it('names the app on the first step, and the sender name of emails follows until it is changed', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    adminPage(Setup::class, $this->admin)
+        ->set('server', setupServicesRunning())
+        ->assertFormSet(['app_name' => 'ChatVia.ai', 'from_name' => 'ChatVia.ai'])
+        ->fillForm(['app_name' => 'Acme Support'])
+        ->assertFormSet(['from_name' => 'Acme Support'])
+        ->goToNextWizardStep()
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->fillForm(['mailer' => 'smtp', 'smtp_host' => 'smtp.example.com', 'smtp_port' => 587, 'smtp_password' => 'mail-secret', 'from_address' => 'support@acme.test', 'from_name' => 'Acme Team'])
+        ->fillForm(['app_name' => 'Acme Help'])
+        ->assertFormSet(['from_name' => 'Acme Team'])
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(PlatformSettings::class, 'app_name'))->toBe('Acme Help')
+        ->and(savedSetting(MailSettings::class, 'from_name'))->toBe('Acme Team')
+        ->and(config('app.name'))->toBe('Acme Help');
+});
+
+it('needs an app name before the next step', function (): void {
+    adminPage(Setup::class, $this->admin)
+        ->set('server', setupServicesRunning())
+        ->fillForm(['app_name' => ''])
+        ->goToNextWizardStep()
+        ->assertHasFormErrors(['app_name' => 'required'])
+        ->assertWizardCurrentStep(1);
+});
+
 it('ends on a final step that says congratulations and links to the workspace sign-in', function (): void {
     setupFakeScaleway($this->dimensions);
 

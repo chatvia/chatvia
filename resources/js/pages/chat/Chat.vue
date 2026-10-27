@@ -64,8 +64,8 @@ interface Props {
     /** The models the chatter may pick from; empty hides the picker. */
     models?: OfferedModel[];
     /** The image and video models the chatter may pick from in the header; fewer than two hide the picker. */
-    image_models?: OfferedMediaModel[];
-    video_models?: OfferedMediaModel[];
+    imageModels?: OfferedMediaModel[];
+    videoModels?: OfferedMediaModel[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -93,8 +93,8 @@ const props = withDefaults(defineProps<Props>(), {
     readAloud: false,
     feedbackComment: true,
     models: () => [],
-    image_models: () => [],
-    video_models: () => [],
+    imageModels: () => [],
+    videoModels: () => [],
 });
 
 const { t } = useI18n();
@@ -107,7 +107,7 @@ const scroll = useChatScroll(messagesContainer, transcriptContent);
 const transcript = useChatMessages(props.conversation_id);
 useGeneratedMediaUpdates(props.conversation_id, transcript);
 const modelChoice = provideChatModelChoice(props.agent_id, () => props.models);
-const mediaModelChoice = provideChatMediaModelChoice(props.agent_id, { image: () => props.image_models, video: () => props.video_models });
+const mediaModelChoice = provideChatMediaModelChoice(props.agent_id, { image: () => props.imageModels, video: () => props.videoModels });
 const turn = useChatStreamTurn({
     conversationId: props.conversation_id,
     transcript,

@@ -10,6 +10,7 @@ use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Services\ChatFileModel;
+use Illuminate\Support\Arr;
 
 /**
  * The page props every hosted-chat page shares (the standalone chat and the
@@ -44,7 +45,7 @@ final readonly class HostedChatPageProps
             'allowFileUploads' => $agent instanceof Agent
                 && (bool) ($appearance?->get('allow_file_uploads') ?? true)
                 && $this->fileModel->isAvailable(),
-            'uploadAccept' => implode(',', $this->fileModel->acceptedMimeTypes()),
+            'uploadAccept' => Arr::join($this->fileModel->acceptedMimeTypes(), ','),
             // The mic (dictation) records, then the server writes it down, so
             // it only shows when the owner allows it AND a speech-to-text
             // service is set up (the same rule as the widget settings).
@@ -62,8 +63,8 @@ final readonly class HostedChatPageProps
             // The models the chatter may pick from; empty hides the picker.
             'models' => $agent instanceof Agent ? $this->offeredModels->for($agent) : [],
             // The image and video models the chatter may pick in the header; empty hides each picker.
-            'image_models' => $agent instanceof Agent ? $this->offeredMediaModels->for($agent, GeneratedMediaKind::Image) : [],
-            'video_models' => $agent instanceof Agent ? $this->offeredMediaModels->for($agent, GeneratedMediaKind::Video) : [],
+            'imageModels' => $agent instanceof Agent ? $this->offeredMediaModels->for($agent, GeneratedMediaKind::Image) : [],
+            'videoModels' => $agent instanceof Agent ? $this->offeredMediaModels->for($agent, GeneratedMediaKind::Video) : [],
             'removeSidebar' => $embed?->get('remove_sidebar'),
             'hideSidebarOnPageLoad' => $embed?->get('hide_sidebar_on_page_load'),
             'enableThemeSwitcher' => $embed?->get('enable_theme_switcher'),

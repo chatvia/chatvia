@@ -9,45 +9,62 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\OfferedMediaModels;
 use Domain\Conversation\Enums\GeneratedMediaKind;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 /**
  * Turning an agent's choice of image or video model for chatters on or off.
  * While the admin does not let agents offer one, it can only be turned off
- * or kept as it is (it then waits, unused).
+ * or kept as it is (it then waits, unused). Any other capability in the URL
+ * has no such choice: a 404.
+ *
+ * Gated on the route by `agent.permission:agent.sources.train.connectors`
+ * and `license.capabilities`.
  */
 class UpdateCapabilityModelChoiceRequest extends FormRequest
 {
+    private ?GeneratedMediaKind $kind = null;
+
     public function authorize(): bool
     {
+        $this->kind();
+
         return true;
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function rules(OfferedMediaModels $offered): array
+    public function rules(): array
     {
-        /** @var Agent $agent */
-        $agent = $this->route('agent');
-
         return [
-            'enabled' => ['required', 'boolean', function (string $attribute, mixed $value, Closure $fail) use ($agent, $offered): void {
-                $kind = $this->kind();
-
-                if ($kind instanceof GeneratedMediaKind && $this->boolean('enabled') && ! $offered->isEnabled($agent, $kind) && ! $offered->isAllowed($kind)) {
-                    $fail(__('Your admin does not let agents offer a choice of models.'));
-                }
-            }],
+            'enabled' => ['required', 'boolean'],
         ];
     }
 
-    /** The kind the capability in the URL makes; null for any other capability. */
-    public function kind(): ?GeneratedMediaKind
+    /**
+     * @return array<int, Closure(Validator): void>
+     */
+    public function after(OfferedMediaModels $offered): array
     {
-        return match ($this->route('slug')) {
-            'image-generation' => GeneratedMediaKind::Image,
-            'video-generation' => GeneratedMediaKind::Video,
-            default => null,
-        };
+        return [
+            function (Validator $validator) use ($offered): void {
+                /** @var Agent $agent */
+                $agent = $this->route('agent');
+
+                if ($this->boolean('enabled') && ! $offered->isEnabled($agent, $this->kind()) && ! $offered->isAllowed($this->kind())) {
+                    $validator->errors()->add('enabled', __('Your admin does not let agents offer a choice of models.'));
+                }
+            },
+        ];
+    }
+
+    /** The kind the capability in the URL makes. */
+    public function kind(): GeneratedMediaKind
+    {
+        $this->kind ??= GeneratedMediaKind::withModelChoiceFor((string) $this->route('slug'));
+
+        abort_if($this->kind === null, 404, __('Capability not found.'));
+
+        return $this->kind;
     }
 }

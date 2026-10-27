@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Services;
 
+use Domain\Llm\Enums\AiProvider;
 use Illuminate\Support\Str;
 
 /**
@@ -81,9 +82,6 @@ final readonly class MediaModelCatalog
         ],
     ];
 
-    /** Services whose `services.*` config key differs from the service name. */
-    private const array CONFIG_KEYS = ['google' => 'gemini'];
-
     public function __construct(
         private OpenRouterImageModels $openRouter,
     ) {}
@@ -107,7 +105,7 @@ final readonly class MediaModelCatalog
     {
         $service ??= $this->imageService();
 
-        return $service === 'openrouter' ? $this->openRouter->options() : self::IMAGE_MODELS[$service] ?? [];
+        return $service === AiProvider::OpenRouter->value ? $this->openRouter->options() : self::IMAGE_MODELS[$service] ?? [];
     }
 
     /**
@@ -168,10 +166,12 @@ final readonly class MediaModelCatalog
 
     private function configured(string $service, string $key): string
     {
-        if ($service === 'none') {
+        $provider = AiProvider::tryFrom($service);
+
+        if ($provider === null) {
             return '';
         }
 
-        return (string) config('services.'.(self::CONFIG_KEYS[$service] ?? $service).'.'.$key);
+        return (string) config("services.{$provider->configGroup()}.{$key}");
     }
 }

@@ -63,7 +63,12 @@ it('keeps an offered pick and drops any other', function (): void {
         ->and(omm()->resolve($this->agent, GeneratedMediaKind::Image, null))->toBeNull();
 });
 
-it('keeps videos apart from pictures, and audio has no choice', function (): void {
+it('offers no choice for audio files', function (): void {
+    expect(omm()->isAllowed(GeneratedMediaKind::Audio))->toBeFalse()
+        ->and(omm()->isEnabled($this->agent, GeneratedMediaKind::Audio))->toBeFalse();
+});
+
+it('keeps videos apart from pictures', function (): void {
     config([
         'chatvia.ai.video_generator' => 'kling',
         'services.kling.video_model' => 'kling-3.0-turbo',
@@ -72,9 +77,7 @@ it('keeps videos apart from pictures, and audio has no choice', function (): voi
     ]);
 
     expect(omm()->for($this->agent, GeneratedMediaKind::Video))->toBe([])
-        ->and(omm()->isAllowed(GeneratedMediaKind::Video))->toBeTrue()
-        ->and(omm()->isAllowed(GeneratedMediaKind::Audio))->toBeFalse()
-        ->and(omm()->isEnabled($this->agent, GeneratedMediaKind::Audio))->toBeFalse();
+        ->and(omm()->isAllowed(GeneratedMediaKind::Video))->toBeTrue();
 
     $this->agent->setSetting('video', true, OfferedMediaModels::SETTINGS_GROUP);
     ommCapability($this->agent, 'video-generation');

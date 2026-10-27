@@ -65,7 +65,7 @@ enum AiProvider: string
 
     public function can(AiCapability $capability): bool
     {
-        return in_array($capability, $this->capabilities(), true);
+        return collect($this->capabilities())->containsStrict($capability);
     }
 
     public function label(): string
@@ -112,6 +112,30 @@ enum AiProvider: string
             self::BytePlus => 'ByteDance\'s Seedance video models.',
             self::Runway => 'Runway\'s video models, and others such as Veo and Kling.',
             self::Fal => 'Many image and video models, open ones too, with one key.',
+        };
+    }
+
+    /** The `services.*` config group its settings live under. */
+    public function configGroup(): string
+    {
+        return match ($this) {
+            self::Scaleway => 'scalewayai',
+            self::OpenRouter => 'openrouter',
+            self::ElevenLabs => 'elevenlabs',
+            self::OpenAi => 'openai',
+            self::Mistral => 'mistral',
+            self::Google => 'gemini',
+            self::Groq => 'groq',
+            self::Anthropic => 'anthropic',
+            self::AzureOpenAi => 'azure_openai',
+            self::Cohere => 'cohere',
+            self::Jina => 'jina',
+            self::Voyage => 'voyage',
+            self::Azure => 'azure_document_intelligence',
+            self::Kling => 'kling',
+            self::BytePlus => 'byteplus',
+            self::Runway => 'runway',
+            self::Fal => 'fal',
         };
     }
 
@@ -215,7 +239,7 @@ enum AiProvider: string
     /** Whether the admin must give its address: each Azure resource has its own. */
     public function needsBaseUrl(): bool
     {
-        return in_array($this, [self::Azure, self::AzureOpenAi], true);
+        return collect([self::Azure, self::AzureOpenAi])->containsStrict($this);
     }
 
     /** Help under the address field, for the providers that need one. */

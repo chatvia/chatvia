@@ -37,11 +37,7 @@ class AgentCapabilitiesController
 
         $rows = $capabilities->values()->map(function (ConnectorData $capability) use ($agent, $catalog, $providers, $serverIdBySlug, $attachedIds, $mediaModels): AgentCapabilityRowData {
             $connected = $providers->connected($agent, $capability);
-            $kind = match ($capability->slug) {
-                'image-generation' => GeneratedMediaKind::Image,
-                'video-generation' => GeneratedMediaKind::Video,
-                default => null,
-            };
+            $kind = GeneratedMediaKind::withModelChoiceFor($capability->slug);
 
             return new AgentCapabilityRowData(
                 connector: $capability,
@@ -50,7 +46,7 @@ class AgentCapabilitiesController
                 providers: collect($capability->worksThrough)
                     ->map(fn (string $slug): ?ConnectorData => $catalog->find($slug))
                     ->filter()
-                    ->map(fn (ConnectorData $connector): CapabilityProviderData => new CapabilityProviderData($connector, in_array($connector->slug, $connected, true)))
+                    ->map(fn (ConnectorData $connector): CapabilityProviderData => new CapabilityProviderData($connector, collect($connected)->containsStrict($connector->slug)))
                     ->values()
                     ->all(),
                 provider: $providers->providerFor($agent, $capability),

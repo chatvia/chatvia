@@ -60,3 +60,11 @@ it('404s for a capability with no model choice', function (): void {
 it('404s for another workspace\'s agent', function (): void {
     ucmcSet(User::factory()->create(), $this->agent->external_id, 'image-generation', true)->assertNotFound();
 });
+
+it('forbids a teammate who may not change the agent\'s connectors and changes nothing', function (): void {
+    $viewer = teammateWithPermissions($this->owner, ['agent.chat.view']);
+
+    ucmcSet($viewer, $this->agent->external_id, 'image-generation', true)->assertForbidden();
+
+    expect($this->agent->fresh()->settings(OfferedMediaModels::SETTINGS_GROUP)->get('image'))->toBeFalse();
+});

@@ -23,14 +23,14 @@ beforeEach(function (): void {
 function pmmTurn(Agent $agent, string $conversationId, array $picks): void
 {
     test()->post(
-        "/chat/{$agent->external_id}/stream/{$conversationId}",
+        route('chat.stream', ['agentSlug' => $agent->external_id, 'conversationId' => $conversationId]),
         ['message' => 'Draw a fox', 'save_user_message_immediately' => true, ...$picks],
         ['Accept' => 'text/event-stream'],
     )->assertOk()->streamedContent();
 }
 
 it('keeps the picked models on the conversation, a new one included', function (): void {
-    $conversationId = (string) Str::uuid();
+    $conversationId = (string) Str::uuid7();
 
     pmmTurn($this->agent, $conversationId, ['image_model' => 'fal-ai/qwen-image', 'video_model' => 'kling-4.0']);
 
@@ -40,7 +40,7 @@ it('keeps the picked models on the conversation, a new one included', function (
 
 it('refuses a model id that is too long', function (): void {
     $this->post(
-        "/chat/{$this->agent->external_id}/stream/".Str::uuid(),
+        route('chat.stream', ['agentSlug' => $this->agent->external_id, 'conversationId' => Str::uuid7()->toString()]),
         ['message' => 'Draw a fox', 'image_model' => Str::repeat('a', 201)],
         ['Accept' => 'application/json'],
     )->assertUnprocessable();

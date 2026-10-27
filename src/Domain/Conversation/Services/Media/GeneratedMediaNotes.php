@@ -26,7 +26,7 @@ use Illuminate\Support\Str;
 final class GeneratedMediaNotes
 {
     /** How much of the description or text a note repeats. */
-    private const int DESCRIPTION = 300;
+    private const int DESCRIPTION_LIMIT = 300;
 
     public function __construct(private readonly GeneratedMediaArtifacts $artifacts) {}
 
@@ -98,10 +98,10 @@ final class GeneratedMediaNotes
             return null;
         }
 
-        $data = $artifact['data'];
-        $description = Str::of((string) ($data['prompt'] ?? ''))->squish()->limit(self::DESCRIPTION)->toString();
-        $status = GeneratedMediaStatus::tryFrom((string) ($data['status'] ?? '')) ?? GeneratedMediaStatus::Pending;
-        $failure = GeneratedMediaFailure::tryFrom((string) ($data['failure'] ?? ''));
+        $media = $artifact['data'];
+        $description = Str::of((string) ($media['prompt'] ?? ''))->squish()->limit(self::DESCRIPTION_LIMIT)->toString();
+        $status = GeneratedMediaStatus::tryFrom((string) ($media['status'] ?? '')) ?? GeneratedMediaStatus::Pending;
+        $failure = GeneratedMediaFailure::tryFrom((string) ($media['failure'] ?? ''));
 
         $asked = match ($kind) {
             GeneratedMediaKind::Image => 'a picture',
@@ -121,7 +121,7 @@ final class GeneratedMediaNotes
             GeneratedMediaStatus::Failed => match ($failure) {
                 GeneratedMediaFailure::Refused => 'It was not made: the service refused the request.',
                 GeneratedMediaFailure::TimedOut => 'It was not made: the service took too long.',
-                default => 'It was not made: the service failed.',
+                GeneratedMediaFailure::Failed, null => 'It was not made: the service failed.',
             },
         };
 

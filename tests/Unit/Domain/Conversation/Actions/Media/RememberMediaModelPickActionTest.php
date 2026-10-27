@@ -16,6 +16,10 @@ it('keeps the pick on the conversation', function (): void {
     app(RememberMediaModelPickAction::class)->execute($conversation, new MediaModelPickData(image: 'fal-ai/qwen-image'));
 
     expect($conversation->fresh()->media_models)->toBe(['image' => 'fal-ai/qwen-image']);
+});
+
+it('clears the kept pick when the turn picks nothing', function (): void {
+    $conversation = Conversation::factory()->create(['media_models' => ['image' => 'fal-ai/qwen-image']]);
 
     app(RememberMediaModelPickAction::class)->execute($conversation, new MediaModelPickData);
 

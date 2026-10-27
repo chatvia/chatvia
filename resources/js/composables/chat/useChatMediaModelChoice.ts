@@ -1,6 +1,6 @@
 /**
  * The image and video model the chatter picked in the hosted chat's header,
- * from the ones the agent offers (`image_models` / `video_models` page props;
+ * from the ones the agent offers (`imageModels` / `videoModels` page props;
  * fewer than two: no picker). Each pick is remembered per agent in this
  * browser and sent with every message as `image_model` / `video_model`; one
  * the agent no longer offers falls back to the admin's model.

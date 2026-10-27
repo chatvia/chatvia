@@ -26,4 +26,31 @@ enum GeneratedMediaKind: string
             self::Video => 'mp4',
         };
     }
+
+    /** The slug of the capability (connector) that makes this kind. */
+    public function capabilitySlug(): string
+    {
+        return match ($this) {
+            self::Image => 'image-generation',
+            self::Audio => 'audio-generation',
+            self::Video => 'video-generation',
+        };
+    }
+
+    /** Whether chatters may pick the model: audio files have no choice. */
+    public function offersModelChoice(): bool
+    {
+        return match ($this) {
+            self::Image, self::Video => true,
+            self::Audio => false,
+        };
+    }
+
+    /** The kind with a model choice that the capability makes; null for any other capability. */
+    public static function withModelChoiceFor(string $capabilitySlug): ?self
+    {
+        return collect(self::cases())->first(
+            fn (self $kind): bool => $kind->offersModelChoice() && $kind->capabilitySlug() === $capabilitySlug,
+        );
+    }
 }

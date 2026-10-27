@@ -52,8 +52,8 @@ interface Props {
     /** The models the chatter may pick from; empty hides the picker. */
     models?: OfferedModel[];
     /** The image and video models the chatter may pick from in the header; fewer than two hide the picker. */
-    image_models?: OfferedMediaModel[];
-    video_models?: OfferedMediaModel[];
+    imageModels?: OfferedMediaModel[];
+    videoModels?: OfferedMediaModel[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -81,8 +81,8 @@ const props = withDefaults(defineProps<Props>(), {
     allowVoiceInput: false,
     voiceConversation: false,
     models: () => [],
-    image_models: () => [],
-    video_models: () => [],
+    imageModels: () => [],
+    videoModels: () => [],
 });
 
 const { t, locale: i18nLocale } = useI18n();
@@ -98,7 +98,7 @@ const resolvedStarters = computed(() => resolveStarters(starters.value, normaliz
 // Uploads need an agent to scope them to; without one the composer hides the upload button.
 // The first reply streams on the conversation page, which reads the same remembered pick.
 provideChatModelChoice(props.agent_id ?? 'none', () => props.models);
-provideChatMediaModelChoice(props.agent_id ?? 'none', { image: () => props.image_models, video: () => props.video_models });
+provideChatMediaModelChoice(props.agent_id ?? 'none', { image: () => props.imageModels, video: () => props.videoModels });
 
 const uploadEndpoint = computed(() => (props.agent_id ? storeAttachment.url() : undefined));
 const uploadHeaders = computed(() => (props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined));

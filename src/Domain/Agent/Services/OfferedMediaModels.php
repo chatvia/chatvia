@@ -56,7 +56,7 @@ final readonly class OfferedMediaModels
     /** Whether the agent has the choice of this kind turned on. */
     public function isEnabled(Agent $agent, GeneratedMediaKind $kind): bool
     {
-        return $kind !== GeneratedMediaKind::Audio && (bool) $agent->settings(self::SETTINGS_GROUP)->get($kind->value);
+        return $kind->offersModelChoice() && (bool) $agent->settings(self::SETTINGS_GROUP)->get($kind->value);
     }
 
     /** A model's name for chatters. */
@@ -76,7 +76,7 @@ final readonly class OfferedMediaModels
 
         $allowed = $this->allowed($kind);
 
-        if ($allowed->isEmpty() || ! $agent->mcpServers()->where('connector_slug', "{$kind->value}-generation")->exists()) {
+        if ($allowed->isEmpty() || ! $agent->mcpServers()->where('connector_slug', $kind->capabilitySlug())->exists()) {
             return collect();
         }
 
@@ -91,20 +91,20 @@ final readonly class OfferedMediaModels
      */
     private function allowed(GeneratedMediaKind $kind): Collection
     {
-        [$on, $ticked, $models, $default] = match ($kind) {
+        [$switchKey, $tickedKey, $listModels, $defaultModel] = match ($kind) {
             GeneratedMediaKind::Image => ['image_model_choice', 'image_models', $this->catalog->imageModels(...), $this->catalog->defaultImageModel(...)],
             GeneratedMediaKind::Video => ['video_model_choice', 'video_models', $this->catalog->videoModels(...), $this->catalog->defaultVideoModel(...)],
             GeneratedMediaKind::Audio => [null, null, null, null],
         };
 
-        if ($on === null || ! config("chatvia.ai.{$on}")) {
+        if ($switchKey === null || ! config("chatvia.ai.{$switchKey}")) {
             return collect();
         }
 
-        $listed = array_keys($models());
-        $ids = collect([$default(), ...(array) config("chatvia.ai.{$ticked}")])
+        $listed = collect($listModels())->keys();
+        $ids = collect([$defaultModel(), ...(array) config("chatvia.ai.{$tickedKey}")])
             ->map(fn (mixed $id): string => (string) $id)
-            ->filter(fn (string $id): bool => in_array($id, $listed, true))
+            ->filter(fn (string $id): bool => $listed->containsStrict($id))
             ->unique()
             ->values();
 

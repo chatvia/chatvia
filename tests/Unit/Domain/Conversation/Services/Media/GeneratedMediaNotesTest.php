@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 function gmnReply(string $kind, string $id, string $prompt): MessageData
 {
     return new MessageData(
-        id: (string) Str::uuid(),
+        id: (string) Str::uuid7(),
         role: MessageRole::Assistant,
         content: 'Here it is.',
         type: MessageData::TYPE_TEXT,
@@ -74,7 +74,7 @@ it('leaves a history without files alone, without a query', function (): void {
     $agent = Agent::factory()->create();
 
     DB::enableQueryLog();
-    $messages = app(GeneratedMediaNotes::class)->forLlm([$message], $agent, (string) Str::uuid());
+    $messages = app(GeneratedMediaNotes::class)->forLlm([$message], $agent, (string) Str::uuid7());
 
     expect($messages)->toBe([$message])
         ->and(DB::getQueryLog())->toBe([]);

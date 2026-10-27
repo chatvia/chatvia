@@ -18,7 +18,6 @@
                 "web": "Tilføj sider fra et websted, som din agent kan lære af.",
                 "text": "Skriv eller indsæt tekst, som din agent kan lære af.",
                 "qa": "Skriv svar på de spørgsmål, folk stiller oftest.",
-                "youtube": "Tilføj YouTube-videoer. Din agent lærer af deres transskriptioner.",
                 "audio": "Upload eller optag lyd. Din agent lærer af transskriptionen.",
                 "video": "Upload videoer. Din agent lærer af deres transskriptioner.",
                 "markdown": "Upload Markdown-filer, som din agent kan lære af."

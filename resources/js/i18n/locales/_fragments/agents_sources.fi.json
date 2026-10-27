@@ -23,7 +23,6 @@
                 "web": "Verkkosivusto",
                 "audio": "Ääni",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "K&V",
                 "markdown": "Markdown",
                 "connectors": "Liittimet"
@@ -189,35 +188,6 @@
                 "created_at": "Luotu {date}",
                 "delete_title": "Poista K&V-merkintä",
                 "delete_description": "Haluatko varmasti poistaa tämän K&V-merkinnän? Tätä toimintoa ei voi peruuttaa."
-            },
-            "youtube": {
-                "load_failed": "YouTube-videoiden lataaminen epäonnistui",
-                "added": "YouTube-video lisätty onnistuneesti",
-                "add_failed": "YouTube-videon lisääminen epäonnistui",
-                "deleted": "YouTube-video poistettu onnistuneesti",
-                "delete_failed": "Videon poistaminen epäonnistui",
-                "retrain_started": "YouTube-videon uudelleenkoulutus aloitettu",
-                "retrain_failed": "Videon uudelleenkoulutus epäonnistui",
-                "status": {
-                    "completed": "Valmis",
-                    "processing": "Käsitellään",
-                    "pending": "Odottaa",
-                    "failed": "Epäonnistui"
-                },
-                "add_title": "Lisää YouTube-video",
-                "add_description": "Syötä YouTube-videon URL-osoite purkaaksesi sen tekstin ja lisätäksesi sen agentin tietokantaan.",
-                "url_label": "YouTube-URL",
-                "add_video": "Lisää video",
-                "list_title": "YouTube-videot ({count})",
-                "list_description": "Hallinnoi YouTube-videoita agentin tietokannassa.",
-                "empty_title": "Ei YouTube-videoita vielä",
-                "empty_description": "Lisää ensimmäinen YouTube-video päästäksesi alkuun.",
-                "video_alt": "YouTube-video",
-                "video_fallback_title": "YouTube-video",
-                "added_at": "Lisätty {date}",
-                "retrain": "Kouluta uudelleen",
-                "delete_title": "Poista YouTube-video",
-                "delete_description": "Haluatko varmasti poistaa tämän YouTube-videon? Tämä poistaa sen agentin tietokannasta."
             },
             "connectors": {
                 "load_failed": "Connectorien lataaminen epäonnistui",

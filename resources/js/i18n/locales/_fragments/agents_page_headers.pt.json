@@ -18,7 +18,6 @@
                 "web": "Adicione páginas de um site para seu agente aprender.",
                 "text": "Escreva ou cole texto para seu agente aprender.",
                 "qa": "Escreva respostas para as perguntas mais frequentes.",
-                "youtube": "Adicione vídeos do YouTube. Seu agente aprende com as transcrições.",
                 "audio": "Envie ou grave áudio. Seu agente aprende com a transcrição.",
                 "video": "Envie vídeos. Seu agente aprende com as transcrições.",
                 "markdown": "Envie arquivos Markdown para seu agente aprender."

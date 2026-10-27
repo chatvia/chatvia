@@ -22,6 +22,5 @@ class AgentSourcesStatsData extends Data
         public int $markdown,
         public int $audio,
         public int $video,
-        public int $youtube,
     ) {}
 }

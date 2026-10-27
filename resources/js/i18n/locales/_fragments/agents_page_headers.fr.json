@@ -18,7 +18,6 @@
                 "web": "Ajoutez des pages d'un site web dont votre agent va apprendre.",
                 "text": "Écrivez ou collez du texte dont votre agent va apprendre.",
                 "qa": "Rédigez les réponses aux questions les plus fréquentes.",
-                "youtube": "Ajoutez des vidéos YouTube. Votre agent apprend de leurs transcriptions.",
                 "audio": "Importez ou enregistrez de l'audio. Votre agent apprend de la transcription.",
                 "video": "Importez des vidéos. Votre agent apprend de leurs transcriptions.",
                 "markdown": "Importez des fichiers Markdown dont votre agent va apprendre."

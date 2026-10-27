@@ -27,7 +27,6 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Role;
@@ -123,8 +122,6 @@ use Support\MimeType;
  * @property-read int|null $websites_count
  * @property-read Collection<int, SourceFile> $wordFiles
  * @property-read int|null $word_files_count
- * @property-read Collection<int, SourceYoutubeVideo> $youtubeVideos
- * @property-read int|null $youtube_videos_count
  *
  * @method static Collection<int, static> all($columns = ['*'])
  * @method static \Database\Factories\AgentFactory factory($count = null, $state = [])
@@ -409,15 +406,6 @@ class Agent extends Model
     public function qas(): HasMany
     {
         return $this->hasMany(AgentQuestionAnswer::class);
-    }
-
-    /**
-     * @return MorphToMany<SourceYoutubeVideo, $this, AgentSource>
-     */
-    public function youtubeVideos(): MorphToMany
-    {
-        return $this->morphedByMany(SourceYoutubeVideo::class, 'sourceable', 'agent_sources')
-            ->using(AgentSource::class);
     }
 
     /**

@@ -386,7 +386,7 @@ The knowledge base behind the agents' answers (RAG).
 
 | Sub-namespace | Holds |
 |---|---|
-| `Knowledge\Source` | The source types: `File` (`SourceFile`), `Web` (`SourceWebsite` and its pages, `AgentWebsiteUrl`), `Text` (`SourceText`), `Qa` (`AgentQuestionAnswer`), `Youtube` (behind `FEATURE_YOUTUBE_SOURCES`). Sources belong to the workspace and are attached to agents through `agent_sources`. |
+| `Knowledge\Source` | The source types: `File` (`SourceFile`), `Web` (`SourceWebsite` and its pages, `AgentWebsiteUrl`), `Text` (`SourceText`), `Qa` (`AgentQuestionAnswer`). Sources belong to the workspace and are attached to agents through `agent_sources`. |
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
 | `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`, `Voyage`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. The re-index after a change of the embedding model (`StartEmbeddingReindexAction`: one job batch that embeds the stored chunk text and Q&A questions again, then rebuilds partitioned vector indexes; progress in `EmbeddingReindexStatus`). |
 | `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + keyword in one SQL query), `LexicalSearch` (the keyword driver: pg_textsearch or built-in full-text search), `KnowledgeBase` (embed, search, relevance check, context budget), `SourceLabeler` (names each chunk's source), retrieval stats. |
@@ -1178,7 +1178,6 @@ Switches for a self-hosted install:
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
 | License (admin panel, **License** in the sidebar) | Shows or hides the "Powered by ChatVia.ai" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `chatvia:license:check` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
-| `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: <https://chatvia.ai/docs/guide/installation>.
 

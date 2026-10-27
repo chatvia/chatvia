@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "No knowledge sources retrieved yet",
-            "knowledge_empty_hint": "Files, websites, text snippets, and YouTube videos appear here once the agent uses them.",
+            "knowledge_empty_hint": "Files, websites and text snippets appear here once the agent uses them.",
             "functions_empty": "No function calls yet",
             "functions_empty_hint": "Webhook functions appear here once the agent invokes them.",
             "mcp_empty": "No MCP tool calls yet",
@@ -25,7 +25,6 @@
                 "source_file": "File",
                 "source_website": "Website",
                 "source_text": "Text",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Web page"
             },
             "relative": {

@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Ingen videnskilder er hentet endnu",
-            "knowledge_empty_hint": "Filer, hjemmesider, tekstuddrag og YouTube-videoer vises her, når agenten bruger dem.",
+            "knowledge_empty_hint": "Filer, hjemmesider og tekstuddrag vises her, når agenten bruger dem.",
             "functions_empty": "Ingen funktionskald endnu",
             "functions_empty_hint": "Webhook-funktioner vises her, når agenten kalder dem.",
             "mcp_empty": "Ingen MCP-værktøjskald endnu",
@@ -25,7 +25,6 @@
                 "source_file": "Fil",
                 "source_website": "Hjemmeside",
                 "source_text": "Tekst",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Webside"
             },
             "relative": {

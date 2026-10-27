@@ -23,7 +23,6 @@
                 "web": "Strona internetowa",
                 "audio": "Audio",
                 "video": "Wideo",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "Konektory"
@@ -189,35 +188,6 @@
                 "created_at": "Utworzono {date}",
                 "delete_title": "Usuń wpis Q&A",
                 "delete_description": "Czy na pewno chcesz usunąć ten wpis Q&A? Tej operacji nie można cofnąć."
-            },
-            "youtube": {
-                "load_failed": "Nie udało się wczytać filmów z YouTube",
-                "added": "Film z YouTube został pomyślnie dodany",
-                "add_failed": "Nie udało się dodać filmu z YouTube",
-                "deleted": "Film z YouTube został pomyślnie usunięty",
-                "delete_failed": "Nie udało się usunąć filmu",
-                "retrain_started": "Ponowne trenowanie filmu z YouTube zostało rozpoczęte",
-                "retrain_failed": "Nie udało się przeprowadzić ponownego trenowania filmu",
-                "status": {
-                    "completed": "Ukończony",
-                    "processing": "Przetwarzanie",
-                    "pending": "Oczekujący",
-                    "failed": "Nieudany"
-                },
-                "add_title": "Dodaj film z YouTube",
-                "add_description": "Wprowadź adres URL filmu z YouTube, aby wyodrębnić jego transkrypcję i dodać ją do bazy wiedzy agenta.",
-                "url_label": "Adres URL YouTube",
-                "add_video": "Dodaj film",
-                "list_title": "Filmy z YouTube ({count})",
-                "list_description": "Zarządzaj filmami z YouTube w bazie wiedzy agenta.",
-                "empty_title": "Brak filmów z YouTube",
-                "empty_description": "Dodaj swój pierwszy film z YouTube, aby rozpocząć.",
-                "video_alt": "Film z YouTube",
-                "video_fallback_title": "Film z YouTube",
-                "added_at": "Dodano {date}",
-                "retrain": "Trenuj ponownie",
-                "delete_title": "Usuń film z YouTube",
-                "delete_description": "Czy na pewno chcesz usunąć ten film z YouTube? Zostanie on usunięty z bazy wiedzy agenta."
             },
             "connectors": {
                 "load_failed": "Nie udało się wczytać konektorów",

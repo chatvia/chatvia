@@ -23,7 +23,6 @@
                 "web": "Website",
                 "audio": "Audio",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "Connectors"
@@ -189,35 +188,6 @@
                 "created_at": "Erstellt am {date}",
                 "delete_title": "Q&A-Eintrag löschen",
                 "delete_description": "Möchten Sie diesen Q&A-Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
-            },
-            "youtube": {
-                "load_failed": "YouTube-Videos konnten nicht geladen werden",
-                "added": "YouTube-Video erfolgreich hinzugefügt",
-                "add_failed": "YouTube-Video konnte nicht hinzugefügt werden",
-                "deleted": "YouTube-Video erfolgreich gelöscht",
-                "delete_failed": "Video konnte nicht gelöscht werden",
-                "retrain_started": "Nachtraining für YouTube-Video gestartet",
-                "retrain_failed": "Video konnte nicht erneut trainiert werden",
-                "status": {
-                    "completed": "Abgeschlossen",
-                    "processing": "Wird verarbeitet",
-                    "pending": "Ausstehend",
-                    "failed": "Fehlgeschlagen"
-                },
-                "add_title": "YouTube-Video hinzufügen",
-                "add_description": "Geben Sie eine YouTube-Video-URL ein, um das Transkript zu extrahieren und es zur Wissensdatenbank Ihres Agenten hinzuzufügen.",
-                "url_label": "YouTube-URL",
-                "add_video": "Video hinzufügen",
-                "list_title": "YouTube-Videos ({count})",
-                "list_description": "YouTube-Videos in der Wissensdatenbank Ihres Agenten verwalten.",
-                "empty_title": "Noch keine YouTube-Videos vorhanden",
-                "empty_description": "Fügen Sie Ihr erstes YouTube-Video hinzu, um loszulegen.",
-                "video_alt": "YouTube-Video",
-                "video_fallback_title": "YouTube-Video",
-                "added_at": "Hinzugefügt am {date}",
-                "retrain": "Erneut trainieren",
-                "delete_title": "YouTube-Video löschen",
-                "delete_description": "Möchten Sie dieses YouTube-Video wirklich löschen? Es wird aus der Wissensdatenbank Ihres Agenten entfernt."
             },
             "connectors": {
                 "load_failed": "Connectors konnten nicht geladen werden",

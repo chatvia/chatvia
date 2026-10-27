@@ -18,7 +18,6 @@
                 "web": "Legg til sider fra et nettsted som agenten din kan lære av.",
                 "text": "Skriv eller lim inn tekst som agenten din kan lære av.",
                 "qa": "Skriv svar på spørsmålene folk stiller oftest.",
-                "youtube": "Legg til YouTube-videoer. Agenten din lærer av transkripsjonene.",
                 "audio": "Last opp eller ta opp lyd. Agenten din lærer av transkripsjonen.",
                 "video": "Last opp videoer. Agenten din lærer av transkripsjonene.",
                 "markdown": "Last opp Markdown-filer som agenten din kan lære av."

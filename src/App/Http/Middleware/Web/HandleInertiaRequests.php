@@ -19,7 +19,7 @@ use Support\License\Entitlements;
 /**
  * Inertia root for the dashboard and the rest of the `web` group: the props
  * every page shares — the signed-in user, flash messages, locale, current
- * team and its permissions, and feature flags.
+ * team and its permissions.
  * The hosted chat has its own root middleware
  * ({@see ChatHandleInertiaRequests}).
  */
@@ -105,11 +105,6 @@ class HandleInertiaRequests extends Middleware
             // for them skips the team and permission queries.
             'permissions' => fn (): array => $this->getTeamPermissions($request),
             'currentTeam' => fn (): ?array => $user ? $this->getCurrentTeam($request) : null,
-            // Install-wide switches for unfinished features (`chatvia.features`).
-            // Frontend gates via `useFeature().hasFeature('youtube_sources')`.
-            'features' => $user ? [
-                'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
-            ] : [],
             // Whether the owner may download their data and delete their
             // account from the Account area (Settings → Workspaces → Owner
             // account); the routes answer 404 while a switch is off.

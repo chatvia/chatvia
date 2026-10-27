@@ -1317,7 +1317,6 @@
                 "web": "Situs Web",
                 "audio": "Audio",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Tanya Jawab",
                 "markdown": "Markdown",
                 "connectors": "Konektor"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Apakah Anda yakin ingin menghapus entri Q&A ini? Tindakan ini tidak dapat dibatalkan.",
                 "remove_question": "Hapus pertanyaan",
                 "actions": "Tindakan"
-            },
-            "youtube": {
-                "load_failed": "Gagal memuat video YouTube",
-                "added": "Video YouTube berhasil ditambahkan",
-                "add_failed": "Gagal menambahkan video YouTube",
-                "deleted": "Video YouTube berhasil dihapus",
-                "delete_failed": "Gagal menghapus video",
-                "retrain_started": "Pelatihan ulang video YouTube dimulai",
-                "retrain_failed": "Gagal melatih ulang video",
-                "status": {
-                    "completed": "Selesai",
-                    "processing": "Memproses",
-                    "pending": "Menunggu",
-                    "failed": "Gagal"
-                },
-                "add_title": "Tambah Video YouTube",
-                "add_description": "Masukkan URL video YouTube untuk mengekstrak transkripnya dan menambahkannya ke basis pengetahuan agen Anda.",
-                "url_label": "URL YouTube",
-                "add_video": "Tambah Video",
-                "list_title": "Video YouTube ({count})",
-                "list_description": "Kelola video YouTube di basis pengetahuan agen Anda.",
-                "empty_title": "Belum ada video YouTube",
-                "empty_description": "Tambahkan video YouTube pertama Anda untuk memulai.",
-                "video_alt": "Video YouTube",
-                "video_fallback_title": "Video YouTube",
-                "added_at": "Ditambahkan {date}",
-                "retrain": "Latih Ulang",
-                "delete_title": "Hapus Video YouTube",
-                "delete_description": "Apakah Anda yakin ingin menghapus video YouTube ini? Ini akan menghapusnya dari basis pengetahuan agen Anda."
             },
             "connectors": {
                 "load_failed": "Gagal memuat konektor",
@@ -1699,7 +1669,6 @@
                 "web": "Tambahkan halaman dari situs web untuk dipelajari agen Anda.",
                 "text": "Tulis atau tempel teks untuk dipelajari agen Anda.",
                 "qa": "Tulis jawaban untuk pertanyaan yang paling sering diajukan.",
-                "youtube": "Tambahkan video YouTube. Agen Anda belajar dari transkripnya.",
                 "audio": "Unggah atau rekam audio. Agen Anda belajar dari transkripnya.",
                 "video": "Unggah video. Agen Anda belajar dari transkripnya.",
                 "markdown": "Unggah file Markdown untuk dipelajari agen Anda."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Belum ada sumber pengetahuan yang diambil",
-            "knowledge_empty_hint": "File, situs web, cuplikan teks, dan video YouTube muncul di sini setelah agen menggunakannya.",
+            "knowledge_empty_hint": "File, situs web, dan cuplikan teks muncul di sini setelah agen menggunakannya.",
             "functions_empty": "Belum ada panggilan fungsi",
             "functions_empty_hint": "Fungsi Webhook muncul di sini setelah agen memanggilnya.",
             "mcp_empty": "Belum ada panggilan alat MCP",
@@ -2289,7 +2258,6 @@
                 "source_file": "File",
                 "source_website": "Situs Web",
                 "source_text": "Teks",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Halaman web"
             },
             "relative": {

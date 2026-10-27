@@ -597,8 +597,6 @@ theme.
   (<https://chatvia.ai/docs/guide/installation>).
 - The widget can be pointed at any server at runtime with `data-api-url` and
   `data-reverb-*` attributes on the embed tag.
-- YouTube sources are hidden unless `FEATURE_YOUTUBE_SOURCES=true` (they are
-  not finished).
 
 ### Database
 

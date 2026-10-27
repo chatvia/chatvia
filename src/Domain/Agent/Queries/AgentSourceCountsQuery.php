@@ -27,7 +27,6 @@ class AgentSourceCountsQuery
             markdown: (int) ($files->markdown ?? 0),
             audio: (int) ($files->audio ?? 0),
             video: (int) ($files->video ?? 0),
-            youtube: 0, // YouTube sources are behind a feature flag and never trained yet.
         );
     }
 

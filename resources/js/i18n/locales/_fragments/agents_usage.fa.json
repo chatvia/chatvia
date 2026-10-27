@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "هنوز هیچ منبع دانشی بازیابی نشده",
-            "knowledge_empty_hint": "فایل‌ها، وب‌سایت‌ها، قطعات متنی و ویدیوهای YouTube پس از استفاده توسط عامل اینجا نمایش داده می‌شوند.",
+            "knowledge_empty_hint": "فایل‌ها، وب‌سایت‌ها و قطعات متنی پس از استفاده توسط عامل اینجا نمایش داده می‌شوند.",
             "functions_empty": "هنوز هیچ فراخوانی تابعی انجام نشده",
             "functions_empty_hint": "توابع وب‌هوک پس از فراخوانی توسط عامل اینجا نمایش داده می‌شوند.",
             "mcp_empty": "هنوز هیچ فراخوانی ابزار MCP انجام نشده",
@@ -25,7 +25,6 @@
                 "source_file": "فایل",
                 "source_website": "وب‌سایت",
                 "source_text": "متن",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "صفحه وب"
             },
             "relative": {

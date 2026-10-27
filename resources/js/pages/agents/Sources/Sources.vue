@@ -2,11 +2,9 @@
 /**
  * The agent's Knowledge Sources page (`agents.sources`). It shows the source
  * screen that matches the current URL (web, text, Q&A, …) and falls back to
- * the files screen, under the agent's "Search knowledge" switch. YouTube only
- * counts when the `youtube_sources` feature is on.
+ * the files screen, under the agent's "Search knowledge" switch.
  */
 import KnowledgeSearchSwitch from '@/components/agents/sources/KnowledgeSearchSwitch.vue';
-import { useFeature } from '@/composables/useFeature';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { usePage } from '@inertiajs/vue3';
 import type { Component } from 'vue';
@@ -15,9 +13,8 @@ import Files from './Files.vue';
 import QaComponent from './QaComponent.vue';
 import TextComponent from './TextComponent.vue';
 import WebComponent from './WebComponent.vue';
-import YoutubeComponent from './YoutubeComponent.vue';
 
-type ContentType = 'web' | 'text' | 'youtube' | 'pdf' | 'word' | 'markdown' | 'audio' | 'video' | 'qa';
+type ContentType = 'web' | 'text' | 'pdf' | 'word' | 'markdown' | 'audio' | 'video' | 'qa';
 
 defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -26,13 +23,11 @@ defineProps<{
 
 const page = usePage();
 const { t } = useI18n();
-const { hasFeature } = useFeature();
 
 /** URL part → content type, checked in this order; the first match wins. */
 const URL_CONTENT_TYPES: [string, ContentType][] = [
     ['/sources/web', 'web'],
     ['/sources/text', 'text'],
-    ['/sources/youtube', 'youtube'],
     ['/sources/pdf', 'pdf'],
     ['/sources/word', 'word'],
     ['/sources/markdown', 'markdown'],
@@ -49,7 +44,6 @@ const SCREENS: Record<ContentType, Component> = {
     video: Files,
     web: WebComponent,
     text: TextComponent,
-    youtube: YoutubeComponent,
     qa: QaComponent,
 };
 
@@ -62,12 +56,11 @@ const DESCRIPTION_KEYS: Record<ContentType, string> = {
     video: 'agents.sources.page_description.video',
     web: 'agents.sources.page_description.web',
     text: 'agents.sources.page_description.text',
-    youtube: 'agents.sources.page_description.youtube',
     qa: 'agents.sources.page_description.qa',
 };
 
 function contentTypeFromUrl(url: string): ContentType {
-    const match = URL_CONTENT_TYPES.find(([urlPart, type]) => url.includes(urlPart) && (type !== 'youtube' || hasFeature('youtube_sources')));
+    const match = URL_CONTENT_TYPES.find(([urlPart]) => url.includes(urlPart));
 
     return match?.[1] ?? 'pdf';
 }

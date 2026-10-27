@@ -23,7 +23,6 @@
                 "web": "Webbplats",
                 "audio": "Ljud",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "Kopplingar"
@@ -189,35 +188,6 @@
                 "created_at": "Skapad {date}",
                 "delete_title": "Ta bort Q&A-post",
                 "delete_description": "Är du säker på att du vill ta bort den här Q&A-posten? Åtgärden kan inte ångras."
-            },
-            "youtube": {
-                "load_failed": "Det gick inte att läsa in YouTube-videor",
-                "added": "YouTube-videon lades till",
-                "add_failed": "Det gick inte att lägga till YouTube-videon",
-                "deleted": "YouTube-videon togs bort",
-                "delete_failed": "Det gick inte att ta bort videon",
-                "retrain_started": "Omträning av YouTube-video startad",
-                "retrain_failed": "Det gick inte att träna om videon",
-                "status": {
-                    "completed": "Klar",
-                    "processing": "Bearbetar",
-                    "pending": "Väntar",
-                    "failed": "Misslyckades"
-                },
-                "add_title": "Lägg till YouTube-video",
-                "add_description": "Ange en YouTube-video-URL för att extrahera transkriptet och lägga till det i agentens kunskapsbas.",
-                "url_label": "YouTube-URL",
-                "add_video": "Lägg till video",
-                "list_title": "YouTube-videor ({count})",
-                "list_description": "Hantera YouTube-videor i agentens kunskapsbas.",
-                "empty_title": "Inga YouTube-videor ännu",
-                "empty_description": "Lägg till din första YouTube-video för att komma igång.",
-                "video_alt": "YouTube-video",
-                "video_fallback_title": "YouTube-video",
-                "added_at": "Lades till {date}",
-                "retrain": "Träna om",
-                "delete_title": "Ta bort YouTube-video",
-                "delete_description": "Är du säker på att du vill ta bort den här YouTube-videon? Det tar bort den från agentens kunskapsbas."
             },
             "connectors": {
                 "load_failed": "Det gick inte att läsa in kopplingar",

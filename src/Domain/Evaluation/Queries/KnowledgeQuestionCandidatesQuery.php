@@ -33,7 +33,6 @@ class KnowledgeQuestionCandidatesQuery
         'source_file' => 'File',
         'source_website' => 'Website',
         'source_text' => 'Text',
-        'source_youtube_video' => 'YouTube video',
     ];
 
     /**

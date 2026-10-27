@@ -42,7 +42,6 @@ class KnowledgeUsageRowData extends Data
             'source_file' => __('Deleted file'),
             'source_website' => __('Deleted website'),
             'source_text' => __('Deleted text snippet'),
-            'source_youtube_video' => __('Deleted YouTube video'),
             'agent_website_url' => __('Deleted web page'),
             default => __('Deleted source'),
         };

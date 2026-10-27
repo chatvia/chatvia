@@ -1317,7 +1317,6 @@
                 "web": "ウェブサイト",
                 "audio": "音声",
                 "video": "動画",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "コネクタ"
@@ -1490,35 +1489,6 @@
                 "delete_description": "このQ&Aエントリを削除してもよろしいですか？この操作は取り消せません。",
                 "remove_question": "質問を削除",
                 "actions": "操作"
-            },
-            "youtube": {
-                "load_failed": "YouTube動画の読み込みに失敗しました",
-                "added": "YouTube動画を追加しました",
-                "add_failed": "YouTube動画の追加に失敗しました",
-                "deleted": "YouTube動画を削除しました",
-                "delete_failed": "動画の削除に失敗しました",
-                "retrain_started": "YouTube動画の再トレーニングを開始しました",
-                "retrain_failed": "動画の再トレーニングに失敗しました",
-                "status": {
-                    "completed": "完了",
-                    "processing": "処理中",
-                    "pending": "保留中",
-                    "failed": "失敗"
-                },
-                "add_title": "YouTube動画を追加",
-                "add_description": "YouTube動画のURLを入力すると、文字起こしを抽出してエージェントのナレッジベースに追加します。",
-                "url_label": "YouTube URL",
-                "add_video": "動画を追加",
-                "list_title": "YouTube動画 ({count})",
-                "list_description": "エージェントのナレッジベース内のYouTube動画を管理します。",
-                "empty_title": "YouTube動画はまだありません",
-                "empty_description": "最初のYouTube動画を追加して始めましょう。",
-                "video_alt": "YouTube動画",
-                "video_fallback_title": "YouTube動画",
-                "added_at": "追加日 {date}",
-                "retrain": "再トレーニング",
-                "delete_title": "YouTube動画を削除",
-                "delete_description": "このYouTube動画を削除してもよろしいですか？エージェントのナレッジベースから削除されます。"
             },
             "connectors": {
                 "load_failed": "コネクタの読み込みに失敗しました",
@@ -1699,7 +1669,6 @@
                 "web": "エージェントが学習するウェブサイトのページを追加します。",
                 "text": "エージェントが学習するテキストを入力または貼り付けます。",
                 "qa": "よくある質問への回答を書きます。",
-                "youtube": "YouTube動画を追加します。エージェントは文字起こしから学習します。",
                 "audio": "音声をアップロードまたは録音します。エージェントは文字起こしから学習します。",
                 "video": "動画をアップロードします。エージェントは文字起こしから学習します。",
                 "markdown": "エージェントが学習するMarkdownファイルをアップロードします。"
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "まだ取得されたナレッジソースはありません",
-            "knowledge_empty_hint": "ファイル、ウェブサイト、テキストスニペット、YouTube 動画は、エージェントが使用するとここに表示されます。",
+            "knowledge_empty_hint": "ファイル、ウェブサイト、テキストスニペットは、エージェントが使用するとここに表示されます。",
             "functions_empty": "まだ関数呼び出しはありません",
             "functions_empty_hint": "Webhook 関数は、エージェントが呼び出すとここに表示されます。",
             "mcp_empty": "まだ MCP ツールの呼び出しはありません",
@@ -2289,7 +2258,6 @@
                 "source_file": "ファイル",
                 "source_website": "ウェブサイト",
                 "source_text": "テキスト",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "ウェブページ"
             },
             "relative": {

@@ -18,7 +18,6 @@
                 "web": "Lisää verkkosivuston sivuja, joista agenttisi oppii.",
                 "text": "Kirjoita tai liitä tekstiä, josta agenttisi oppii.",
                 "qa": "Kirjoita vastaukset yleisimpiin kysymyksiin.",
-                "youtube": "Lisää YouTube-videoita. Agenttisi oppii niiden tekstityksistä.",
                 "audio": "Lataa tai nauhoita ääntä. Agenttisi oppii sen tekstistä.",
                 "video": "Lataa videoita. Agenttisi oppii niiden tekstityksistä.",
                 "markdown": "Lataa Markdown-tiedostoja, joista agenttisi oppii."

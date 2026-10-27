@@ -9,7 +9,6 @@ use Domain\Knowledge\Retrieval\Enums\SourceKind;
 use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -65,20 +64,17 @@ it('names a website chunk after the page it came from, else the site', function 
         ->and($labels[$orphan->id])->toEqual(new SourceLabelData('https://shop.test', SourceKind::Website, 'https://shop.test'));
 });
 
-it('names a typed text by its start and a video by its title', function (): void {
+it('names a typed text by its start', function (): void {
     $agent = Agent::factory()->create();
     $text = SourceText::factory()->ingested()->create([
         'workspace_id' => $agent->workspace_id,
         'excerpt' => "Our shop opens at nine.\nIt closes at six and stays closed on Sundays and on every public holiday of the year.",
     ]);
-    $video = SourceYoutubeVideo::factory()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://www.youtube.com/watch?v=abc', 'title' => 'Pitching a tent']);
 
     $textChunk = slbChunk($text);
-    $videoChunk = slbChunk($video);
-    $labels = app(SourceLabeler::class)->forChunks([$textChunk, $videoChunk]);
+    $labels = app(SourceLabeler::class)->forChunks([$textChunk]);
 
-    expect($labels[$textChunk->id])->toEqual(new SourceLabelData('Our shop opens at nine. It closes at six and stays closed on Sundays and on...', SourceKind::Text))
-        ->and($labels[$videoChunk->id])->toEqual(new SourceLabelData('Pitching a tent', SourceKind::Video, 'https://www.youtube.com/watch?v=abc'));
+    expect($labels[$textChunk->id])->toEqual(new SourceLabelData('Our shop opens at nine. It closes at six and stays closed on Sundays and on...', SourceKind::Text));
 });
 
 it('names a chunk whose source is gone as unknown', function (): void {

@@ -1317,7 +1317,6 @@
                 "web": "Site web",
                 "audio": "Audio",
                 "video": "Vidéo",
-                "youtube": "YouTube",
                 "qa": "Q&R",
                 "markdown": "Markdown",
                 "connectors": "Connecteurs"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Êtes-vous sûr de vouloir supprimer cette entrée Q&R ? Cette action est irréversible.",
                 "remove_question": "Supprimer la question",
                 "actions": "Actions"
-            },
-            "youtube": {
-                "load_failed": "Échec du chargement des vidéos YouTube",
-                "added": "Vidéo YouTube ajoutée avec succès",
-                "add_failed": "Échec de l'ajout de la vidéo YouTube",
-                "deleted": "Vidéo YouTube supprimée avec succès",
-                "delete_failed": "Échec de la suppression de la vidéo",
-                "retrain_started": "Réentraînement de la vidéo YouTube démarré",
-                "retrain_failed": "Échec du réentraînement de la vidéo",
-                "status": {
-                    "completed": "Terminé",
-                    "processing": "Traitement",
-                    "pending": "En attente",
-                    "failed": "Échoué"
-                },
-                "add_title": "Ajouter une vidéo YouTube",
-                "add_description": "Saisissez l'URL d'une vidéo YouTube pour en extraire la transcription et l'ajouter à la base de connaissances de votre agent.",
-                "url_label": "URL YouTube",
-                "add_video": "Ajouter la vidéo",
-                "list_title": "Vidéos YouTube ({count})",
-                "list_description": "Gérez les vidéos YouTube dans la base de connaissances de votre agent.",
-                "empty_title": "Aucune vidéo YouTube pour le moment",
-                "empty_description": "Ajoutez votre première vidéo YouTube pour commencer.",
-                "video_alt": "Vidéo YouTube",
-                "video_fallback_title": "Vidéo YouTube",
-                "added_at": "Ajoutée le {date}",
-                "retrain": "Réentraîner",
-                "delete_title": "Supprimer la vidéo YouTube",
-                "delete_description": "Êtes-vous sûr de vouloir supprimer cette vidéo YouTube ? Elle sera retirée de la base de connaissances de votre agent."
             },
             "connectors": {
                 "load_failed": "Échec du chargement des connecteurs",
@@ -1699,7 +1669,6 @@
                 "web": "Ajoutez des pages d'un site web dont votre agent va apprendre.",
                 "text": "Écrivez ou collez du texte dont votre agent va apprendre.",
                 "qa": "Rédigez les réponses aux questions les plus fréquentes.",
-                "youtube": "Ajoutez des vidéos YouTube. Votre agent apprend de leurs transcriptions.",
                 "audio": "Importez ou enregistrez de l'audio. Votre agent apprend de la transcription.",
                 "video": "Importez des vidéos. Votre agent apprend de leurs transcriptions.",
                 "markdown": "Importez des fichiers Markdown dont votre agent va apprendre."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Aucune source de connaissances récupérée pour l'instant",
-            "knowledge_empty_hint": "Les fichiers, sites web, extraits de texte et vidéos YouTube apparaissent ici dès que l'agent les utilise.",
+            "knowledge_empty_hint": "Les fichiers, sites web et extraits de texte apparaissent ici dès que l'agent les utilise.",
             "functions_empty": "Aucun appel de fonction pour l'instant",
             "functions_empty_hint": "Les fonctions webhook apparaissent ici dès que l'agent les invoque.",
             "mcp_empty": "Aucun appel d'outil MCP pour l'instant",
@@ -2289,7 +2258,6 @@
                 "source_file": "Fichier",
                 "source_website": "Site web",
                 "source_text": "Texte",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Page web"
             },
             "relative": {

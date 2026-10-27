@@ -18,7 +18,6 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
@@ -272,30 +271,6 @@ describe('knowledge sources', function (): void {
         $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.files']);
         $this->actingAs($trainer)->getJson(route('agents.agent.files.summary', [$this->agent, $file]))->assertOk();
         $this->actingAs($trainer)->getJson(route('agents.agent.files.summary', [$this->agent, $otherFile]))->assertNotFound();
-    });
-
-    it('gates YouTube videos by agent.sources.train.video and removing one by agent.sources.delete', function (): void {
-        config(['chatvia.features.youtube_sources' => true]);
-        $video = SourceYoutubeVideo::factory()->ingested()->attachedTo($this->agent)->create();
-
-        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.video')))
-            ->getJson(route('agents.sources.youtube.index', $this->agent))
-            ->assertForbidden();
-        $this->actingAs(teammateWithPermissions($this->owner, ['agent.sources.train.video']))
-            ->getJson(route('agents.sources.youtube.index', $this->agent))
-            ->assertOk();
-
-        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.video')))
-            ->postJson(route('agents.sources.youtube.store', $this->agent), [])
-            ->assertForbidden();
-        $this->actingAs(teammateWithPermissions($this->owner, allAgentPermissionsBut('agent.sources.train.video')))
-            ->postJson(route('agents.sources.youtube.retrain', [$this->agent, $video]))
-            ->assertForbidden();
-
-        $this->actingAs(teammateWithPermissions($this->owner, ['agent.sources.train.video']))
-            ->deleteJson(route('agents.sources.youtube.destroy', [$this->agent, $video]))
-            ->assertForbidden();
-        expect(SourceYoutubeVideo::query()->whereKey($video->id)->exists())->toBeTrue();
     });
 });
 

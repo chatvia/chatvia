@@ -1317,7 +1317,6 @@
                 "web": "Nettside",
                 "audio": "Lyd",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Spørsmål og svar",
                 "markdown": "Markdown",
                 "connectors": "Koblinger"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Er du sikker på at du vil slette denne spørsmål og svar-oppføringen? Denne handlingen kan ikke angres.",
                 "remove_question": "Fjern spørsmål",
                 "actions": "Handlinger"
-            },
-            "youtube": {
-                "load_failed": "Kunne ikke laste YouTube-videoer",
-                "added": "YouTube-video lagt til",
-                "add_failed": "Kunne ikke legge til YouTube-video",
-                "deleted": "YouTube-video slettet",
-                "delete_failed": "Kunne ikke slette video",
-                "retrain_started": "Gjenopplæring av YouTube-video startet",
-                "retrain_failed": "Kunne ikke gjenopplære video",
-                "status": {
-                    "completed": "Fullført",
-                    "processing": "Behandler",
-                    "pending": "Venter",
-                    "failed": "Mislyktes"
-                },
-                "add_title": "Legg til YouTube-video",
-                "add_description": "Skriv inn en YouTube-video-URL for å hente transkripsjonen og legge den til i agentens kunnskapsbase.",
-                "url_label": "YouTube-URL",
-                "add_video": "Legg til video",
-                "list_title": "YouTube-videoer ({count})",
-                "list_description": "Administrer YouTube-videoer i agentens kunnskapsbase.",
-                "empty_title": "Ingen YouTube-videoer ennå",
-                "empty_description": "Legg til din første YouTube-video for å komme i gang.",
-                "video_alt": "YouTube-video",
-                "video_fallback_title": "YouTube-video",
-                "added_at": "Lagt til {date}",
-                "retrain": "Gjenopplær",
-                "delete_title": "Slett YouTube-video",
-                "delete_description": "Er du sikker på at du vil slette denne YouTube-videoen? Den vil bli fjernet fra agentens kunnskapsbase."
             },
             "connectors": {
                 "load_failed": "Kunne ikke laste koblinger",
@@ -1699,7 +1669,6 @@
                 "web": "Legg til sider fra et nettsted som agenten din kan lære av.",
                 "text": "Skriv eller lim inn tekst som agenten din kan lære av.",
                 "qa": "Skriv svar på spørsmålene folk stiller oftest.",
-                "youtube": "Legg til YouTube-videoer. Agenten din lærer av transkripsjonene.",
                 "audio": "Last opp eller ta opp lyd. Agenten din lærer av transkripsjonen.",
                 "video": "Last opp videoer. Agenten din lærer av transkripsjonene.",
                 "markdown": "Last opp Markdown-filer som agenten din kan lære av."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Ingen kunnskapskilder hentet ennå",
-            "knowledge_empty_hint": "Filer, nettsider, tekstutdrag og YouTube-videoer vises her når agenten bruker dem.",
+            "knowledge_empty_hint": "Filer, nettsider og tekstutdrag vises her når agenten bruker dem.",
             "functions_empty": "Ingen funksjonskall ennå",
             "functions_empty_hint": "Webhook-funksjoner vises her når agenten kaller dem.",
             "mcp_empty": "Ingen MCP-verktøykall ennå",
@@ -2289,7 +2258,6 @@
                 "source_file": "Fil",
                 "source_website": "Nettside",
                 "source_text": "Tekst",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Nettside"
             },
             "relative": {

@@ -18,7 +18,6 @@
                 "web": "Add pages from a website for your agent to learn from.",
                 "text": "Write or paste text for your agent to learn from.",
                 "qa": "Write answers to the questions people ask most.",
-                "youtube": "Add YouTube videos. Your agent learns from their transcripts.",
                 "audio": "Upload or record audio. Your agent learns from the transcript.",
                 "video": "Upload videos. Your agent learns from their transcripts.",
                 "markdown": "Upload Markdown files for your agent to learn from."

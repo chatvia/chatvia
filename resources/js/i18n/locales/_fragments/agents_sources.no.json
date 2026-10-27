@@ -23,7 +23,6 @@
                 "web": "Nettside",
                 "audio": "Lyd",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Spørsmål og svar",
                 "markdown": "Markdown",
                 "connectors": "Koblinger"
@@ -189,35 +188,6 @@
                 "created_at": "Opprettet {date}",
                 "delete_title": "Slett spørsmål og svar-oppføring",
                 "delete_description": "Er du sikker på at du vil slette denne spørsmål og svar-oppføringen? Denne handlingen kan ikke angres."
-            },
-            "youtube": {
-                "load_failed": "Kunne ikke laste YouTube-videoer",
-                "added": "YouTube-video lagt til",
-                "add_failed": "Kunne ikke legge til YouTube-video",
-                "deleted": "YouTube-video slettet",
-                "delete_failed": "Kunne ikke slette video",
-                "retrain_started": "Gjenopplæring av YouTube-video startet",
-                "retrain_failed": "Kunne ikke gjenopplære video",
-                "status": {
-                    "completed": "Fullført",
-                    "processing": "Behandler",
-                    "pending": "Venter",
-                    "failed": "Mislyktes"
-                },
-                "add_title": "Legg til YouTube-video",
-                "add_description": "Skriv inn en YouTube-video-URL for å hente transkripsjonen og legge den til i agentens kunnskapsbase.",
-                "url_label": "YouTube-URL",
-                "add_video": "Legg til video",
-                "list_title": "YouTube-videoer ({count})",
-                "list_description": "Administrer YouTube-videoer i agentens kunnskapsbase.",
-                "empty_title": "Ingen YouTube-videoer ennå",
-                "empty_description": "Legg til din første YouTube-video for å komme i gang.",
-                "video_alt": "YouTube-video",
-                "video_fallback_title": "YouTube-video",
-                "added_at": "Lagt til {date}",
-                "retrain": "Gjenopplær",
-                "delete_title": "Slett YouTube-video",
-                "delete_description": "Er du sikker på at du vil slette denne YouTube-videoen? Den vil bli fjernet fra agentens kunnskapsbase."
             },
             "connectors": {
                 "load_failed": "Kunne ikke laste koblinger",

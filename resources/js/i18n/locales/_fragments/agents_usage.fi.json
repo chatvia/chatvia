@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Tietolähteitä ei ole vielä haettu",
-            "knowledge_empty_hint": "Tiedostot, verkkosivustot, tekstikatkelmat ja YouTube-videot näkyvät tässä, kun agentti on käyttänyt niitä.",
+            "knowledge_empty_hint": "Tiedostot, verkkosivustot ja tekstikatkelmat näkyvät tässä, kun agentti on käyttänyt niitä.",
             "functions_empty": "Funktiokutsuja ei ole vielä tehty",
             "functions_empty_hint": "Webhook-funktiot näkyvät tässä, kun agentti on kutsunut niitä.",
             "mcp_empty": "MCP-työkalukutsuja ei ole vielä tehty",
@@ -25,7 +25,6 @@
                 "source_file": "Tiedosto",
                 "source_website": "Verkkosivusto",
                 "source_text": "Teksti",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Verkkosivu"
             },
             "relative": {

@@ -10,7 +10,6 @@ use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +45,7 @@ use Throwable;
 class PurgeAgentAction
 {
     /** @var list<class-string<Model>> */
-    private const array SOURCE_TYPES = [SourceFile::class, SourceWebsite::class, SourceText::class, SourceYoutubeVideo::class];
+    private const array SOURCE_TYPES = [SourceFile::class, SourceWebsite::class, SourceText::class];
 
     /** Tables whose rows outlive the agent: the foreign key sets their `agent_id` to NULL. */
     private const array DETACHED_TABLES = ['agent_activities', 'guardrail_events'];

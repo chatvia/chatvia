@@ -48,8 +48,6 @@ class KnowledgeScope
                 ->map(static fn (string $filename): string => Str::of(File::name($filename))->replace(['_', '-'], ' ')->squish()->value()))
             ->merge($agent->websites()->limit(self::MAX_NAMES)->pluck('url')
                 ->map(static fn (string $url): string => Str::after(Uri::of($url)->host(), 'www.')))
-            ->merge($agent->youtubeVideos()->limit(self::MAX_NAMES)->get(['title', 'url'])
-                ->map(static fn (object $video): string => (string) ($video->title ?: $video->url)))
             ->merge($agent->texts()->limit(self::MAX_NAMES)->pluck('excerpt'));
 
         return $this->tidy($names);

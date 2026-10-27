@@ -1317,7 +1317,6 @@
                 "web": "Webbplats",
                 "audio": "Ljud",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "Kopplingar"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Är du säker på att du vill ta bort den här Q&A-posten? Åtgärden kan inte ångras.",
                 "remove_question": "Ta bort fråga",
                 "actions": "Åtgärder"
-            },
-            "youtube": {
-                "load_failed": "Det gick inte att läsa in YouTube-videor",
-                "added": "YouTube-videon lades till",
-                "add_failed": "Det gick inte att lägga till YouTube-videon",
-                "deleted": "YouTube-videon togs bort",
-                "delete_failed": "Det gick inte att ta bort videon",
-                "retrain_started": "Omträning av YouTube-video startad",
-                "retrain_failed": "Det gick inte att träna om videon",
-                "status": {
-                    "completed": "Klar",
-                    "processing": "Bearbetar",
-                    "pending": "Väntar",
-                    "failed": "Misslyckades"
-                },
-                "add_title": "Lägg till YouTube-video",
-                "add_description": "Ange en YouTube-video-URL för att extrahera transkriptet och lägga till det i agentens kunskapsbas.",
-                "url_label": "YouTube-URL",
-                "add_video": "Lägg till video",
-                "list_title": "YouTube-videor ({count})",
-                "list_description": "Hantera YouTube-videor i agentens kunskapsbas.",
-                "empty_title": "Inga YouTube-videor ännu",
-                "empty_description": "Lägg till din första YouTube-video för att komma igång.",
-                "video_alt": "YouTube-video",
-                "video_fallback_title": "YouTube-video",
-                "added_at": "Lades till {date}",
-                "retrain": "Träna om",
-                "delete_title": "Ta bort YouTube-video",
-                "delete_description": "Är du säker på att du vill ta bort den här YouTube-videon? Det tar bort den från agentens kunskapsbas."
             },
             "connectors": {
                 "load_failed": "Det gick inte att läsa in kopplingar",
@@ -1699,7 +1669,6 @@
                 "web": "Lägg till sidor från en webbplats som din agent kan lära sig av.",
                 "text": "Skriv eller klistra in text som din agent kan lära sig av.",
                 "qa": "Skriv svar på de frågor som ställs oftast.",
-                "youtube": "Lägg till YouTube-videor. Din agent lär sig av deras transkriptioner.",
                 "audio": "Ladda upp eller spela in ljud. Din agent lär sig av transkriptionen.",
                 "video": "Ladda upp videor. Din agent lär sig av deras transkriptioner.",
                 "markdown": "Ladda upp Markdown-filer som din agent kan lära sig av."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Inga kunskapskällor har hämtats ännu",
-            "knowledge_empty_hint": "Filer, webbplatser, textavsnitt och YouTube-videor visas här när agenten använder dem.",
+            "knowledge_empty_hint": "Filer, webbplatser och textavsnitt visas här när agenten använder dem.",
             "functions_empty": "Inga funktionsanrop ännu",
             "functions_empty_hint": "Webhook-funktioner visas här när agenten anropar dem.",
             "mcp_empty": "Inga MCP-verktygsanrop ännu",
@@ -2289,7 +2258,6 @@
                 "source_file": "Fil",
                 "source_website": "Webbplats",
                 "source_text": "Text",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Webbsida"
             },
             "relative": {

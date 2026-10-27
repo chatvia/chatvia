@@ -8,7 +8,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * The ingestion lifecycle status shared by every knowledge source type (file,
- * text, website, website URL, YouTube video). Every source model casts its
+ * text, website, website URL). Every source model casts its
  * `status` column to this enum.
  *
  * The string values are the persisted column values and must not change. Each

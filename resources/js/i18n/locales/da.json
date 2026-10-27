@@ -1317,7 +1317,6 @@
                 "web": "Hjemmeside",
                 "audio": "Lyd",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Spørgsmål og svar",
                 "markdown": "Markdown",
                 "connectors": "Forbindelser"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Er du sikker på, at du vil slette denne spørgsmål og svar-indgang? Denne handling kan ikke fortrydes.",
                 "remove_question": "Fjern spørgsmål",
                 "actions": "Handlinger"
-            },
-            "youtube": {
-                "load_failed": "Det lykkedes ikke at indlæse YouTube-videoer",
-                "added": "YouTube-video tilføjet",
-                "add_failed": "Det lykkedes ikke at tilføje YouTube-video",
-                "deleted": "YouTube-video slettet",
-                "delete_failed": "Det lykkedes ikke at slette video",
-                "retrain_started": "Gentræning af YouTube-video startet",
-                "retrain_failed": "Det lykkedes ikke at gentræne video",
-                "status": {
-                    "completed": "Fuldført",
-                    "processing": "Behandler",
-                    "pending": "Afventer",
-                    "failed": "Mislykkedes"
-                },
-                "add_title": "Tilføj YouTube-video",
-                "add_description": "Indtast en YouTube-video-URL for at udtrække dens transskript og tilføje det til agentens vidensbase.",
-                "url_label": "YouTube-URL",
-                "add_video": "Tilføj video",
-                "list_title": "YouTube-videoer ({count})",
-                "list_description": "Administrer YouTube-videoer i agentens vidensbase.",
-                "empty_title": "Ingen YouTube-videoer endnu",
-                "empty_description": "Tilføj din første YouTube-video for at komme i gang.",
-                "video_alt": "YouTube-video",
-                "video_fallback_title": "YouTube-video",
-                "added_at": "Tilføjet {date}",
-                "retrain": "Gentræn",
-                "delete_title": "Slet YouTube-video",
-                "delete_description": "Er du sikker på, at du vil slette denne YouTube-video? Den vil blive fjernet fra agentens vidensbase."
             },
             "connectors": {
                 "load_failed": "Det lykkedes ikke at indlæse forbindelser",
@@ -1699,7 +1669,6 @@
                 "web": "Tilføj sider fra et websted, som din agent kan lære af.",
                 "text": "Skriv eller indsæt tekst, som din agent kan lære af.",
                 "qa": "Skriv svar på de spørgsmål, folk stiller oftest.",
-                "youtube": "Tilføj YouTube-videoer. Din agent lærer af deres transskriptioner.",
                 "audio": "Upload eller optag lyd. Din agent lærer af transskriptionen.",
                 "video": "Upload videoer. Din agent lærer af deres transskriptioner.",
                 "markdown": "Upload Markdown-filer, som din agent kan lære af."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Ingen videnskilder er hentet endnu",
-            "knowledge_empty_hint": "Filer, hjemmesider, tekstuddrag og YouTube-videoer vises her, når agenten bruger dem.",
+            "knowledge_empty_hint": "Filer, hjemmesider og tekstuddrag vises her, når agenten bruger dem.",
             "functions_empty": "Ingen funktionskald endnu",
             "functions_empty_hint": "Webhook-funktioner vises her, når agenten kalder dem.",
             "mcp_empty": "Ingen MCP-værktøjskald endnu",
@@ -2289,7 +2258,6 @@
                 "source_file": "Fil",
                 "source_website": "Hjemmeside",
                 "source_text": "Tekst",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Webside"
             },
             "relative": {

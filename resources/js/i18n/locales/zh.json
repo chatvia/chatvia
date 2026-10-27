@@ -1317,7 +1317,6 @@
                 "web": "网站",
                 "audio": "音频",
                 "video": "视频",
-                "youtube": "YouTube",
                 "qa": "问答",
                 "markdown": "Markdown",
                 "connectors": "连接器"
@@ -1490,35 +1489,6 @@
                 "delete_description": "确定要删除此问答条目吗？此操作无法撤销。",
                 "remove_question": "删除问题",
                 "actions": "操作"
-            },
-            "youtube": {
-                "load_failed": "加载 YouTube 视频失败",
-                "added": "YouTube 视频添加成功",
-                "add_failed": "添加 YouTube 视频失败",
-                "deleted": "YouTube 视频删除成功",
-                "delete_failed": "删除视频失败",
-                "retrain_started": "YouTube 视频重新训练已开始",
-                "retrain_failed": "重新训练视频失败",
-                "status": {
-                    "completed": "已完成",
-                    "processing": "处理中",
-                    "pending": "等待中",
-                    "failed": "失败"
-                },
-                "add_title": "添加 YouTube 视频",
-                "add_description": "输入 YouTube 视频 URL 以提取其字幕并将其添加到智能体的知识库中。",
-                "url_label": "YouTube URL",
-                "add_video": "添加视频",
-                "list_title": "YouTube 视频（{count}）",
-                "list_description": "管理智能体知识库中的 YouTube 视频。",
-                "empty_title": "暂无 YouTube 视频",
-                "empty_description": "添加您的第一个 YouTube 视频以开始使用。",
-                "video_alt": "YouTube 视频",
-                "video_fallback_title": "YouTube 视频",
-                "added_at": "添加于 {date}",
-                "retrain": "重新训练",
-                "delete_title": "删除 YouTube 视频",
-                "delete_description": "确定要删除此 YouTube 视频吗？这会将其从智能体的知识库中移除。"
             },
             "connectors": {
                 "load_failed": "加载连接器失败",
@@ -1699,7 +1669,6 @@
                 "web": "添加网站页面供你的智能体学习。",
                 "text": "输入或粘贴文本供你的智能体学习。",
                 "qa": "为最常见的问题编写答案。",
-                "youtube": "添加 YouTube 视频。你的智能体会从字幕中学习。",
                 "audio": "上传或录制音频。你的智能体会从转录文本中学习。",
                 "video": "上传视频。你的智能体会从字幕中学习。",
                 "markdown": "上传 Markdown 文件供你的智能体学习。"
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "尚未检索到任何知识来源",
-            "knowledge_empty_hint": "智能体使用后，文件、网站、文本片段和 YouTube 视频会显示在这里。",
+            "knowledge_empty_hint": "智能体使用后，文件、网站和文本片段会显示在这里。",
             "functions_empty": "尚无函数调用",
             "functions_empty_hint": "智能体调用后，Webhook 函数会显示在这里。",
             "mcp_empty": "尚无 MCP 工具调用",
@@ -2289,7 +2258,6 @@
                 "source_file": "文件",
                 "source_website": "网站",
                 "source_text": "文本",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "网页"
             },
             "relative": {

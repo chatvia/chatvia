@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Nie pobrano jeszcze żadnych źródeł wiedzy",
-            "knowledge_empty_hint": "Pliki, strony internetowe, fragmenty tekstu i filmy YouTube pojawią się tutaj, gdy agent z nich skorzysta.",
+            "knowledge_empty_hint": "Pliki, strony internetowe i fragmenty tekstu pojawią się tutaj, gdy agent z nich skorzysta.",
             "functions_empty": "Brak wywołań funkcji",
             "functions_empty_hint": "Funkcje webhook pojawią się tutaj, gdy agent je wywoła.",
             "mcp_empty": "Brak wywołań narzędzi MCP",
@@ -25,7 +25,6 @@
                 "source_file": "Plik",
                 "source_website": "Strona internetowa",
                 "source_text": "Tekst",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Strona WWW"
             },
             "relative": {

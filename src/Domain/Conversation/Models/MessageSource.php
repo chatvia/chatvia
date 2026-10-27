@@ -68,7 +68,6 @@ class MessageSource extends Model
     {
         return match ($this->sourceable_type) {
             'source_website', 'agent_website_url' => SourceKind::Website,
-            'source_youtube_video' => SourceKind::Video,
             'source_text' => SourceKind::Text,
             default => SourceKind::File,
         };

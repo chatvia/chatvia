@@ -1317,7 +1317,6 @@
                 "web": "Trang web",
                 "audio": "Âm thanh",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "Trình kết nối"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Bạn có chắc muốn xóa mục Hỏi & Đáp này không? Hành động này không thể hoàn tác.",
                 "remove_question": "Xóa câu hỏi",
                 "actions": "Thao tác"
-            },
-            "youtube": {
-                "load_failed": "Không tải được video YouTube",
-                "added": "Đã thêm video YouTube thành công",
-                "add_failed": "Không thêm được video YouTube",
-                "deleted": "Đã xóa video YouTube thành công",
-                "delete_failed": "Không xóa được video",
-                "retrain_started": "Đã bắt đầu huấn luyện lại video YouTube",
-                "retrain_failed": "Không huấn luyện lại được video",
-                "status": {
-                    "completed": "Hoàn tất",
-                    "processing": "Đang xử lý",
-                    "pending": "Đang chờ",
-                    "failed": "Thất bại"
-                },
-                "add_title": "Thêm video YouTube",
-                "add_description": "Nhập URL video YouTube để trích xuất bản chép lời và thêm vào cơ sở kiến thức của trợ lý AI.",
-                "url_label": "URL YouTube",
-                "add_video": "Thêm video",
-                "list_title": "Video YouTube ({count})",
-                "list_description": "Quản lý video YouTube trong cơ sở kiến thức của trợ lý AI.",
-                "empty_title": "Chưa có video YouTube nào",
-                "empty_description": "Thêm video YouTube đầu tiên của bạn để bắt đầu.",
-                "video_alt": "Video YouTube",
-                "video_fallback_title": "Video YouTube",
-                "added_at": "Đã thêm {date}",
-                "retrain": "Huấn luyện lại",
-                "delete_title": "Xóa video YouTube",
-                "delete_description": "Bạn có chắc muốn xóa video YouTube này không? Thao tác này sẽ gỡ video khỏi cơ sở kiến thức của trợ lý AI."
             },
             "connectors": {
                 "load_failed": "Không tải được trình kết nối",
@@ -1699,7 +1669,6 @@
                 "web": "Thêm các trang từ một trang web để trợ lý AI của bạn học.",
                 "text": "Viết hoặc dán văn bản để trợ lý AI của bạn học.",
                 "qa": "Viết câu trả lời cho những câu hỏi thường gặp nhất.",
-                "youtube": "Thêm video YouTube. Trợ lý AI của bạn học từ bản chép lời.",
                 "audio": "Tải lên hoặc ghi âm. Trợ lý AI của bạn học từ bản chép lời.",
                 "video": "Tải lên video. Trợ lý AI của bạn học từ bản chép lời.",
                 "markdown": "Tải lên tệp Markdown để trợ lý AI của bạn học."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Chưa truy xuất nguồn kiến thức nào",
-            "knowledge_empty_hint": "Tệp, trang web, đoạn văn bản và video YouTube sẽ xuất hiện ở đây khi trợ lý AI sử dụng chúng.",
+            "knowledge_empty_hint": "Tệp, trang web và đoạn văn bản sẽ xuất hiện ở đây khi trợ lý AI sử dụng chúng.",
             "functions_empty": "Chưa có lượt gọi hàm nào",
             "functions_empty_hint": "Các hàm Webhook sẽ xuất hiện ở đây khi trợ lý AI gọi chúng.",
             "mcp_empty": "Chưa có lượt gọi công cụ MCP nào",
@@ -2289,7 +2258,6 @@
                 "source_file": "Tệp",
                 "source_website": "Trang web",
                 "source_text": "Văn bản",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Trang web"
             },
             "relative": {

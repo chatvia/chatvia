@@ -958,20 +958,4 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Unfinished Features
-    |--------------------------------------------------------------------------
-    |
-    | Switches for features that are not finished. While one is off, the
-    | feature's routes answer 404 and the dashboard hides it.
-    | `youtube_sources` adds YouTube videos as knowledge sources; added
-    | videos are saved but not ingested yet.
-    |
-    */
-
-    'features' => [
-        'youtube_sources' => (bool) env('FEATURE_YOUTUBE_SOURCES', false),
-    ],
-
 ];

@@ -113,7 +113,6 @@ class UpdateRetrievalStatsAction
             'source_file' => ['id', 'filename', 'mime_type'],
             'source_website' => ['id', 'url'],
             'source_text' => ['id', 'excerpt'],
-            'source_youtube_video' => ['id', 'title', 'url'],
             default => ['id'],
         };
 
@@ -133,7 +132,6 @@ class UpdateRetrievalStatsAction
             'source_file' => (string) $row->getAttribute('filename'),
             'source_website' => (string) $row->getAttribute('url'),
             'source_text' => Str::of((string) $row->getAttribute('excerpt'))->replaceMatches('/\s+/', ' ')->trim()->limit(self::TEXT_LABEL_LENGTH)->toString(),
-            'source_youtube_video' => (string) ($row->getAttribute('title') ?: $row->getAttribute('url')),
             default => null,
         };
     }

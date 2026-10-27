@@ -107,8 +107,6 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Text\Observers\SourceTextObserver;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\ImageGenerator;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\Speaker;
@@ -372,7 +370,6 @@ class DomainServiceProvider extends ServiceProvider
         SourceFile::observe(SourceFileObserver::class);
         SourceText::observe(SourceTextObserver::class);
         SourceWebsite::observe(SourceWebsiteObserver::class);
-        SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
         AgentQuestionAnswer::observe(AgentQuestionAnswerObserver::class);
     }
 

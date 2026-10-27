@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Noch keine Wissensquellen abgerufen",
-            "knowledge_empty_hint": "Dateien, Websites, Textausschnitte und YouTube-Videos werden hier angezeigt, sobald der Agent sie verwendet.",
+            "knowledge_empty_hint": "Dateien, Websites und Textausschnitte werden hier angezeigt, sobald der Agent sie verwendet.",
             "functions_empty": "Noch keine Funktionsaufrufe",
             "functions_empty_hint": "Webhook-Funktionen werden hier angezeigt, sobald der Agent sie aufruft.",
             "mcp_empty": "Noch keine MCP-Tool-Aufrufe",
@@ -25,7 +25,6 @@
                 "source_file": "Datei",
                 "source_website": "Website",
                 "source_text": "Text",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Webseite"
             },
             "relative": {

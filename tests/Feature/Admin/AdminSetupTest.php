@@ -1080,13 +1080,16 @@ it('keeps the wizard on the models step while something did not answer, and says
         ->assertWizardCurrentStep(4);
 });
 
-it('lists what it tests in the test window, each waiting for its turn', function (): void {
-    $html = view('filament.setup.model-tests', ['image' => null, 'onFailure' => null, 'sections' => [['section' => 'chat', 'title' => null, 'rows' => [
-        ['key' => 'qwen/qwen3', 'label' => '<b>Qwen3</b>'],
-        ['key' => 'gpt-oss-120b', 'label' => 'gpt-oss-120b'],
+it('shows each section of the test window as one card: how many are done, the model asked, and a mark per model', function (): void {
+    $html = view('filament.setup.model-tests', ['image' => null, 'onFailure' => null, 'sections' => [['section' => 'chat', 'title' => 'Chat models', 'rows' => [
+        ['key' => 'qwen/qwen3', 'label' => '<b>Qwen3</b>', 'name' => 'Qwen3'],
+        ['key' => 'gpt-oss-120b', 'label' => 'gpt-oss-120b', 'name' => 'gpt-oss-120b'],
     ]]]])->render();
 
-    expect($html)->toContain('<b>Qwen3</b>', 'gpt-oss-120b', '$wire.testModel(test.section, test.key)', 'cv-model-test__spinner');
+    expect($html)->toContain('Chat models', '0/2', '<b>Qwen3</b>', 'gpt-oss-120b', 'Testing', 'Waiting', '$wire.testModel(test.section, test.key)', 'cv-model-test__spinner')
+        ->and(Str::substrCount($html, 'class="cv-model-test"'))->toBe(2)
+        ->and($html)->toContain("x-tooltip=\"{ content: 'Qwen3'")
+        ->not->toContain('cv-model-tests__section--single');
 });
 
 it('tests the embedding model with the key typed', function (): void {

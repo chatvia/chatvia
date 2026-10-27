@@ -18,6 +18,8 @@
   <img src="https://img.shields.io/badge/Filament-5-fdae4b.svg?logo=filament&logoColor=white" alt="Filament 5">
   <img src="https://img.shields.io/badge/PostgreSQL-18-336791.svg?logo=postgresql&logoColor=white" alt="PostgreSQL 18">
   <img src="https://img.shields.io/badge/pgvector-0.8-336791.svg" alt="pgvector 0.8">
+  <img src="https://img.shields.io/badge/pg__textsearch-1.5-336791.svg" alt="pg_textsearch 1.5">
+  <img src="https://img.shields.io/badge/pg__partman-5.5-336791.svg" alt="pg_partman 5.5">
   <img src="https://img.shields.io/badge/Redis-8-ff4438.svg?logo=redis&logoColor=white" alt="Redis 8">
   <br>
   <img src="https://img.shields.io/badge/Inertia.js-3-9553e9.svg?logo=inertia&logoColor=white" alt="Inertia.js 3">

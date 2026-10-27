@@ -73,7 +73,6 @@ use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Field;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -568,7 +567,7 @@ class Setup extends SimplePage
                     ->description('Reads PDF, Word, slides and images, with their tables, so agents can learn from them.')
                     ->icon(Heroicon::OutlinedDocumentMagnifyingGlass)
                     ->schema([
-                        Radio::make('document_reader')
+                        CardRadio::make('document_reader')
                             ->hiddenLabel()
                             ->options([
                                 AiProvider::Mistral->value => 'Mistral OCR',
@@ -579,6 +578,11 @@ class Setup extends SimplePage
                                 AiProvider::Mistral->value => 'Reads scans, images and tables, also the pictures inside Word and PowerPoint files. Each file is sent to Mistral directly.',
                                 AiProvider::Azure->value => 'Reads scans, images and tables; skips the pictures inside Word and PowerPoint files. Each file is sent to Azure directly. Use the standard tier (S0): the free one reads only 2 pages of each file.',
                                 self::NOT_NOW => 'People cannot upload PDF, Word, slides or images. Text, Markdown, spreadsheets (Excel, CSV) and ebooks still work: the app reads them itself.',
+                            ])
+                            ->icons([
+                                AiProvider::Mistral->value => AiProviderIcon::of(AiProvider::Mistral),
+                                AiProvider::Azure->value => AiProviderIcon::of(AiProvider::Azure),
+                                self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
                             ->required()
                             ->live()
@@ -597,12 +601,16 @@ class Setup extends SimplePage
                     ->description('To learn from a website, agents need Firecrawl. It finds the pages of the site and reads each one, also pages built with JavaScript.')
                     ->icon(Heroicon::OutlinedGlobeAlt)
                     ->schema([
-                        Radio::make('website_import')
+                        CardRadio::make('website_import')
                             ->hiddenLabel()
                             ->options([self::FIRECRAWL => 'Firecrawl', self::NOT_NOW => 'Not now'])
                             ->descriptions([
                                 self::FIRECRAWL => 'Pay per page read. You can also run your own Firecrawl server (Settings → Knowledge).',
                                 self::NOT_NOW => 'People cannot add websites as knowledge. Files, texts and Q&A still work.',
+                            ])
+                            ->icons([
+                                self::FIRECRAWL => Heroicon::OutlinedFire,
+                                self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
                             ->required()
                             ->live(),
@@ -642,7 +650,7 @@ class Setup extends SimplePage
                     ->description('Turns speech into text. Agents can then learn from audio and video files and search what is said in them, and voice messages become text.')
                     ->icon(Heroicon::OutlinedMicrophone)
                     ->schema([
-                        Radio::make('transcriber')
+                        CardRadio::make('transcriber')
                             ->hiddenLabel()
                             ->options([
                                 ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => $service->label()])->all(),
@@ -651,6 +659,10 @@ class Setup extends SimplePage
                             ->descriptions([
                                 ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "Whisper on {$service->label()}."])->all(),
                                 self::NOT_NOW => 'People cannot upload audio or video files, and voice messages are not turned into text.',
+                            ])
+                            ->icons([
+                                ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => AiProviderIcon::of($service)])->all(),
+                                self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
                             ->required()
                             ->live(),
@@ -661,7 +673,7 @@ class Setup extends SimplePage
                     ->description('Visitors can talk with an agent in a live call, in the hosted chat and the chat widget. The agent listens, answers out loud and uses its tools. This uses the OpenAI Realtime API, so it needs an OpenAI key, also when your agents answer with another provider.')
                     ->icon(Heroicon::OutlinedPhone)
                     ->schema([
-                        Radio::make('voice')
+                        CardRadio::make('voice')
                             ->hiddenLabel()
                             ->options([
                                 ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "{$service->label()} Realtime"])->all(),
@@ -670,6 +682,10 @@ class Setup extends SimplePage
                             ->descriptions([
                                 ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => 'Each agent still turns calls on in its own setup. A call costs much more than a typed chat.'])->all(),
                                 self::NOT_NOW => 'Visitors chat by typing. The call button is hidden. You can turn calls on later in Settings → AI models.',
+                            ])
+                            ->icons([
+                                ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => AiProviderIcon::of($service)])->all(),
+                                self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
                             ->required()
                             ->live(),
@@ -693,12 +709,16 @@ class Setup extends SimplePage
                     ->description('Knowledge files, chat attachments and backups.')
                     ->icon(Heroicon::OutlinedArchiveBox)
                     ->schema([
-                        Radio::make('storage_driver')
+                        CardRadio::make('storage_driver')
                             ->hiddenLabel()
                             ->options(['local' => 'This server', 's3' => 'S3-compatible storage'])
                             ->descriptions([
                                 'local' => 'No account needed. Fine for one server.',
                                 's3' => 'AWS S3, Scaleway Object Storage, Cloudflare R2, MinIO and others. Keeps files off the server.',
+                            ])
+                            ->icons([
+                                'local' => Heroicon::OutlinedServer,
+                                's3' => asset('images/logos/services/aws.svg'),
                             ])
                             ->required()
                             ->live(),
@@ -789,12 +809,16 @@ class Setup extends SimplePage
                     ->description('Spectra keeps a log of every call ChatVia.ai makes to an AI service: which model answered, how many tokens it used, what it cost and how long it took. It helps you see what your agents cost, and find out why an answer was slow or wrong. The log stays on this server, in a database of its own, and only admins can open it.')
                     ->icon(Heroicon::OutlinedCpuChip)
                     ->schema([
-                        Radio::make('observability')
+                        CardRadio::make('observability')
                             ->hiddenLabel()
                             ->options([self::SPECTRA => 'Record AI calls with Spectra', self::NOT_NOW => 'Not now'])
                             ->descriptions([
                                 self::SPECTRA => 'Recommended. It also saves the prompts and replies, so you can read a whole call. Choose what it saves, and for how many days, in Settings → Observability.',
                                 self::NOT_NOW => 'No AI call is logged, so Spectra shows no costs or times. You can turn it on later in Settings → Observability.',
+                            ])
+                            ->icons([
+                                self::SPECTRA => asset('images/logos/tools/spectra.svg'),
+                                self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
                             ->required(),
                         Callout::make('Spectra is left out of this install')

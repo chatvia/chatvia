@@ -330,11 +330,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise-ominaisuudet",
-            "locked_body": "Verkkosäännöt, oma tietojen säilytys ja SIEM-webhook tarvitsevat Enterprise-lisenssin tähän ChatVia.ai-asennukseen. Tallennetut asetuksesi säilyvät, mutta ne tulevat voimaan vasta, kun asennuksella on lisenssi.",
-            "export_csv": "Vie CSV",
-            "export_locked": "Tarkastuslokin vienti tarvitsee Enterprise-lisenssin."
+            "export_csv": "Vie CSV"
         }
     }
 }

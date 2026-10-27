@@ -14,6 +14,6 @@ class AgentLimitReachedException extends DomainException
 {
     public static function make(int $limit): self
     {
-        return new self(__('This workspace has :limit agents, the most it can have without a ChatVia.ai license key.', ['limit' => $limit]));
+        return new self(__('This workspace can have :limit agents. Please contact your administrator to add more.', ['limit' => $limit]));
     }
 }

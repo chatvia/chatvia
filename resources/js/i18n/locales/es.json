@@ -3516,11 +3516,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Funciones Enterprise",
-            "locked_body": "Las reglas de red, la retención de datos personalizada y el webhook SIEM necesitan una licencia Enterprise en esta instalación de ChatVia.ai. Tus ajustes guardados se conservan, pero no se aplican hasta que la instalación tenga una.",
-            "export_csv": "Exportar CSV",
-            "export_locked": "Exportar el registro de auditoría necesita una licencia Enterprise."
+            "export_csv": "Exportar CSV"
         }
     },
     "app": {
@@ -4567,13 +4563,10 @@
         "hide": "Ocultar pasos"
     },
     "license": {
-        "badge": "Pro",
-        "locked_title": "Necesita una clave de licencia",
-        "get_key": "Conseguir una clave de licencia",
-        "api_body": "La API necesita una clave de licencia en esta instalación de ChatVia.ai. Las claves que creaste antes se conservan y vuelven a funcionar cuando la instalación tenga una licencia.",
-        "teams_body": "Más equipos necesitan una clave de licencia en esta instalación de ChatVia.ai. Tu primer equipo y sus roles siguen funcionando, y los equipos que creaste antes se quedan como están.",
-        "agents_of_limit": "{count} de {limit} agentes sin clave de licencia",
-        "agents_body": "Sin una clave de licencia, un espacio de trabajo puede tener {limit} agentes. Elimina un agente o añade una clave de licencia a esta instalación de ChatVia.ai.",
-        "voice_hint": "Necesita una clave de licencia en esta instalación de ChatVia.ai."
+        "agents_of_limit": "{count} de {limit} agentes",
+        "agents_body": "Este espacio de trabajo puede tener {limit} agentes. Ponte en contacto con tu administrador para añadir más.",
+        "unavailable_title": "Esta función no está disponible",
+        "unavailable_body": "Ponte en contacto con tu administrador.",
+        "unavailable": "Esta función no está disponible. Ponte en contacto con tu administrador."
     }
 }

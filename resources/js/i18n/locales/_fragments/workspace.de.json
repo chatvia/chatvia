@@ -330,11 +330,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise-Funktionen",
-            "locked_body": "Netzwerkregeln, eigene Datenaufbewahrung und der SIEM-Webhook brauchen eine Enterprise-Lizenz für diese ChatVia.ai-Installation. Deine gespeicherten Einstellungen bleiben erhalten, gelten aber erst, wenn die Installation eine hat.",
-            "export_csv": "CSV exportieren",
-            "export_locked": "Der Export des Audit-Logs braucht eine Enterprise-Lizenz."
+            "export_csv": "CSV exportieren"
         }
     }
 }

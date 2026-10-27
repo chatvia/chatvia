@@ -330,11 +330,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise-funksjoner",
-            "locked_body": "Nettverksregler, egen datalagringstid og SIEM-webhooken krever en Enterprise-lisens på denne ChatVia.ai-installasjonen. De lagrede innstillingene dine beholdes, men de gjelder først når installasjonen har en.",
-            "export_csv": "Eksporter CSV",
-            "export_locked": "Eksport av revisjonsloggen krever en Enterprise-lisens."
+            "export_csv": "Eksporter CSV"
         }
     }
 }

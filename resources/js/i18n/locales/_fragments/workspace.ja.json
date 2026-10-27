@@ -35,11 +35,7 @@
             "empty_description": "キーを生成して ChatVia.ai API の利用を開始します。"
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise 機能",
-            "locked_body": "ネットワークルール、独自のデータ保持期間、SIEM Webhook には、この ChatVia.ai に Enterprise ライセンスが必要です。保存した設定は残りますが、ライセンスが入るまで適用されません。",
-            "export_csv": "CSV をエクスポート",
-            "export_locked": "監査ログのエクスポートには Enterprise ライセンスが必要です。"
+            "export_csv": "CSV をエクスポート"
         }
     }
 }

@@ -3,7 +3,7 @@
 // country rules), data retention and the SIEM webhook, saved together with one
 // button. All three need an Enterprise license; blocked visitors do not.
 import type { BlockedVisitor } from '@/api/blocking';
-import EnterpriseNotice from '@/components/license/EnterpriseNotice.vue';
+import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import BlockedVisitorsCard from '@/components/security/BlockedVisitorsCard.vue';
 import { Button } from '@/components/ui/button';
 import { useEnterprise } from '@/composables/useEnterprise';
@@ -69,7 +69,7 @@ const dropBlock = (blockId: string) => {
                     <p class="text-muted-foreground mt-1 text-sm">{{ t('workspace.security.description') }}</p>
                 </div>
 
-                <EnterpriseNotice v-if="!enterprise" />
+                <LicenseNotice v-if="!enterprise" />
 
                 <NetworkAccessCard
                     v-model:ip-allowlist-mode="form.ip_allowlist_mode"

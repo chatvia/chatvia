@@ -67,7 +67,7 @@ it('refuses building forms, their leads and the capabilities without a license k
     $this->get(route('agents.forms.submissions.export', ['agent' => $this->agent->external_id, 'form' => $this->form->external_id]))->assertForbidden();
     $this->postJson(route('agents.capabilities.enable', ['agent' => $this->agent->external_id, 'slug' => 'forms']))
         ->assertForbidden()
-        ->assertJsonPath('message', 'Capabilities and forms need a ChatVia.ai license key.');
+        ->assertJsonPath('message', 'This feature is unavailable. Please contact your administrator.');
 
     expect(FormDefinition::query()->where('name', 'Demo request')->exists())->toBeFalse()
         ->and($this->agent->isFormsEnabled())->toBeFalse();

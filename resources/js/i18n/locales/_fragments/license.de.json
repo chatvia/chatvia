@@ -1,12 +1,9 @@
 {
     "license": {
-        "badge": "Pro",
-        "locked_title": "Lizenzschlüssel nötig",
-        "get_key": "Lizenzschlüssel holen",
-        "api_body": "Die API braucht einen Lizenzschlüssel auf dieser ChatVia.ai-Installation. Bereits erstellte Schlüssel bleiben erhalten und funktionieren wieder, sobald die Installation eine Lizenz hat.",
-        "teams_body": "Weitere Teams brauchen einen Lizenzschlüssel auf dieser ChatVia.ai-Installation. Dein erstes Team und seine Rollen funktionieren weiter, und bereits erstellte Teams bleiben, wie sie sind.",
-        "agents_of_limit": "{count} von {limit} Agenten ohne Lizenzschlüssel",
-        "agents_body": "Ohne Lizenzschlüssel kann ein Workspace {limit} Agenten haben. Lösche einen Agenten oder füge dieser ChatVia.ai-Installation einen Lizenzschlüssel hinzu.",
-        "voice_hint": "Braucht einen Lizenzschlüssel auf dieser ChatVia.ai-Installation."
+        "unavailable_title": "Diese Funktion ist nicht verfügbar",
+        "unavailable_body": "Bitte wende dich an deinen Administrator.",
+        "unavailable": "Diese Funktion ist nicht verfügbar. Bitte wende dich an deinen Administrator.",
+        "agents_of_limit": "{count} von {limit} Agenten",
+        "agents_body": "Dieser Workspace kann {limit} Agenten haben. Bitte wende dich an deinen Administrator, um weitere hinzuzufügen."
     }
 }

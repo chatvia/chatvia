@@ -537,7 +537,7 @@
     "What each model supports, from :site": "Ce que prend en charge chaque modèle, selon :site",
     "Model catalog": "Catalogue de modèles",
     "Change": "Modifier",
-    "This needs an Enterprise license.": "Cela demande une licence Enterprise.",
+    "This feature is unavailable. Please contact your administrator.": "Cette fonctionnalité n'est pas disponible. Veuillez contacter votre administrateur.",
     "Read aloud": "Lecture à voix haute",
     "Play agent replies as speech": "Lire les réponses des agents à voix haute",
     "Image generation": "Génération d'images",
@@ -557,7 +557,6 @@
     "Analytics needs pg_partman to split its message log by month.": "Les statistiques ont besoin de pg_partman pour découper leur journal des messages par mois.",
     "Read more": "En savoir plus",
     "The API needs a ChatVia.ai license key.": "L'API demande une clé de licence ChatVia.ai.",
-    "This workspace has :limit agents, the most it can have without a ChatVia.ai license key.": "Cet espace de travail a :limit agents, le maximum sans clé de licence ChatVia.ai.",
-    "More teams need a ChatVia.ai license key.": "D'autres équipes demandent une clé de licence ChatVia.ai.",
-    "Capabilities and forms need a ChatVia.ai license key.": "Les capacités et les formulaires demandent une clé de licence ChatVia.ai."
+    "This workspace can have :limit agents. Please contact your administrator to add more.": "Cet espace de travail peut avoir :limit agents. Veuillez contacter votre administrateur pour en ajouter d'autres.",
+    "More teams need a ChatVia.ai license key.": "D'autres équipes demandent une clé de licence ChatVia.ai."
 }

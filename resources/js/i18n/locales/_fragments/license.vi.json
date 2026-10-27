@@ -1,12 +1,9 @@
 {
     "license": {
-        "badge": "Pro",
-        "locked_title": "Cần khóa giấy phép",
-        "get_key": "Lấy khóa giấy phép",
-        "api_body": "API cần khóa giấy phép trên bản cài đặt ChatVia.ai này. Các khóa bạn đã tạo trước đó được giữ lại và hoạt động trở lại khi bản cài đặt có giấy phép.",
-        "teams_body": "Thêm nhóm cần khóa giấy phép trên bản cài đặt ChatVia.ai này. Nhóm đầu tiên của bạn và các vai trò của nó vẫn hoạt động, và các nhóm bạn đã tạo trước đó vẫn giữ nguyên.",
-        "agents_of_limit": "{count} trên {limit} trợ lý khi không có khóa giấy phép",
-        "agents_body": "Khi không có khóa giấy phép, một không gian làm việc có thể có {limit} trợ lý. Hãy xóa một trợ lý, hoặc thêm khóa giấy phép vào bản cài đặt ChatVia.ai này.",
-        "voice_hint": "Cần khóa giấy phép trên bản cài đặt ChatVia.ai này."
+        "unavailable_title": "Tính năng này không khả dụng",
+        "unavailable_body": "Vui lòng liên hệ quản trị viên của bạn.",
+        "unavailable": "Tính năng này không khả dụng. Vui lòng liên hệ quản trị viên của bạn.",
+        "agents_of_limit": "{count} trên {limit} trợ lý",
+        "agents_body": "Không gian làm việc này có thể có {limit} trợ lý. Vui lòng liên hệ quản trị viên của bạn để thêm."
     }
 }

@@ -74,7 +74,7 @@ it('refuses an agent past the free limit with a message on the name field', func
 
     $this->actingAs($this->owner)
         ->postJson(route('agents.store'), ['name' => 'Eleventh'])
-        ->assertJsonValidationErrors(['name' => 'the most it can have without a ChatVia.ai license key']);
+        ->assertJsonValidationErrors(['name' => 'Please contact your administrator to add more']);
 
     withLicense();
 

@@ -20,7 +20,7 @@ class EnsureEnterpriseLicense
 
     public function handle(Request $request, Closure $next): Response
     {
-        abort_unless($this->entitlements->enterprise(), 403, __('This needs an Enterprise license.'));
+        abort_unless($this->entitlements->enterprise(), 403, __('This feature is unavailable. Please contact your administrator.'));
 
         return $next($request);
     }

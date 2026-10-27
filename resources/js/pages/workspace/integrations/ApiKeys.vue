@@ -148,7 +148,7 @@ const dismissDialog = () => {
                     </Button>
                 </div>
 
-                <LicenseNotice v-if="!licensed" :body="t('license.api_body')" />
+                <LicenseNotice v-if="!licensed" />
 
                 <Separator />
 

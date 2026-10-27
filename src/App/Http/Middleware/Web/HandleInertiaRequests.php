@@ -177,13 +177,12 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * @return array{licensed: bool, buyUrl: string, limits: array{workspaces: ?int, agents: ?int, messages: ?int}}
+     * @return array{licensed: bool, limits: array{workspaces: ?int, agents: ?int, messages: ?int}}
      */
     private function license(Entitlements $entitlements): array
     {
         return [
             'licensed' => $entitlements->licensed(),
-            'buyUrl' => (string) config('chatvia.license.buy_url'),
             'limits' => [
                 'workspaces' => $entitlements->workspaceLimit(),
                 'agents' => $entitlements->agentLimit(),

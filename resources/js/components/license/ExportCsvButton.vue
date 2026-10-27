@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // Downloads an audit log as CSV. Exporting is an Enterprise feature: without
 // an Enterprise key the button is disabled and says why.
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEnterprise } from '@/composables/useEnterprise';
 import { Download, Lock } from 'lucide-vue-next';
@@ -21,11 +20,8 @@ const { enterprise } = useEnterprise();
         <Download class="me-2 size-4" />
         {{ t('workspace.enterprise.export_csv') }}
     </Button>
-    <div v-else class="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled :title="t('workspace.enterprise.export_locked')">
-            <Lock class="me-2 size-4" />
-            {{ t('workspace.enterprise.export_csv') }}
-        </Button>
-        <Badge variant="secondary">{{ t('workspace.enterprise.badge') }}</Badge>
-    </div>
+    <Button v-else variant="outline" size="sm" disabled :title="t('license.unavailable')">
+        <Lock class="me-2 size-4" />
+        {{ t('workspace.enterprise.export_csv') }}
+    </Button>
 </template>

@@ -137,7 +137,7 @@ const SOURCES_DISPLAY: Domain.Agent.Enums.SourcesDisplay[] = ['hidden', 'list', 
                         :label="t('agents.setup.settings.voice_conversation_label')"
                         :hint="
                             !voice.licensed
-                                ? t('license.voice_hint')
+                                ? t('license.unavailable')
                                 : voice.available
                                   ? t('agents.setup.settings.voice_conversation_hint')
                                   : t('agents.setup.settings.voice_conversation_unavailable')

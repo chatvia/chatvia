@@ -42,7 +42,7 @@ class PushSubmissionToCrm implements ShouldQueue
 
     public function handle(FormSubmitted $event): void
     {
-        $agent = Agent::find($event->submission->agentId);
+        $agent = Agent::query()->find($event->submission->agentId);
         if ($agent === null) {
             return;
         }
@@ -89,7 +89,7 @@ class PushSubmissionToCrm implements ShouldQueue
             'error' => $e->getMessage(),
         ]);
 
-        $agent = Agent::find($event->submission->agentId);
+        $agent = Agent::query()->find($event->submission->agentId);
         if ($agent !== null) {
             $this->recordFailure->execute($agent);
         }

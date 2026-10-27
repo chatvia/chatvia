@@ -20,6 +20,7 @@ use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Illuminate\Support\Benchmark;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -87,17 +88,15 @@ function dreFiles(string $folder): array
  */
 function dreRead(callable $read): array
 {
-    $started = hrtime(true);
+    [$outcome, $ms] = Benchmark::value(function () use ($read): array {
+        try {
+            return ['markdown' => $read(), 'error' => null];
+        } catch (Throwable $e) {
+            return ['markdown' => null, 'error' => $e->getMessage()];
+        }
+    });
 
-    try {
-        $markdown = $read();
-        $error = null;
-    } catch (Throwable $e) {
-        $markdown = null;
-        $error = $e->getMessage();
-    }
-
-    return ['markdown' => $markdown, 'ms' => (hrtime(true) - $started) / 1e6, 'error' => $error];
+    return ['markdown' => $outcome['markdown'], 'ms' => $ms, 'error' => $outcome['error']];
 }
 
 /**
@@ -166,7 +165,7 @@ it('compares the built-in readers with the programs on the sample documents', fu
 
     $report = dreReport($rows, $folder);
 
-    if (env('EVAL_RETRIEVAL') && is_file($folder.'/questions.php')) {
+    if (env('EVAL_RETRIEVAL') && File::isFile($folder.'/questions.php')) {
         $report .= "\n".dreRetrieval($folder, require $folder.'/questions.php');
     }
 

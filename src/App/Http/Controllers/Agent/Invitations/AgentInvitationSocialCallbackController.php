@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Enums\SocialProvider;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
@@ -31,7 +31,7 @@ class AgentInvitationSocialCallbackController
         Request $request,
         string $provider,
         AcceptAgentInvitationAction $accept,
-        ChatterAuthTokenService $authTokens,
+        ChatterAuthTokens $authTokens,
     ): RedirectResponse {
         $providerEnum = SocialProvider::tryFrom($provider);
 

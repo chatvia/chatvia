@@ -71,7 +71,7 @@ class RenderBookingCalendarAction
         [$from, $to] = BookingWindow::firstWeek();
         $slots = $scheduler->availableTimes($agent, $type, $from, $to);
 
-        $submission = FormSubmission::create([
+        $submission = FormSubmission::query()->create([
             'form_definition_id' => $form->id,
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,

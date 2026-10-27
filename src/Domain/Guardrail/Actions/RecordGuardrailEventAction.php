@@ -20,7 +20,7 @@ class RecordGuardrailEventAction
     {
         [$snippet, $sha] = $this->cap($event->sample);
 
-        GuardrailEvent::create([
+        GuardrailEvent::query()->create([
             'agent_id' => $event->agentId,
             'agent_name' => $event->agentName,
             'workspace_id' => $event->workspaceId,

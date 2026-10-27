@@ -36,7 +36,7 @@ class ConnectTeamsBotAction
             throw ChannelConnectException::rejected();
         }
 
-        return AgentTeamsBot::updateOrCreate(
+        return AgentTeamsBot::query()->updateOrCreate(
             ['agent_id' => $agent->id],
             [
                 'app_id' => $data->appId,

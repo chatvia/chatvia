@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services;
 
+use Carbon\CarbonImmutable;
 use Domain\Conversation\Data\Messages\MessageStepData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Tooling\EmittedToolCallData;
@@ -140,9 +141,9 @@ class ChatContext
      */
     public bool $showsReasoning = false;
 
-    private readonly float $startTime;
+    private readonly CarbonImmutable $startTime;
 
-    private ?float $endTime = null;
+    private ?CarbonImmutable $endTime = null;
 
     /**
      * @param  array<int, array<string, mixed>>  $llmMessages  the history sent to the LLM (OpenAI message shape)
@@ -154,7 +155,7 @@ class ChatContext
         public readonly ?string $userMessageId,
         public readonly string $assistantMessageId,
         public readonly ?string $queryLanguage = null,
-        ?float $startTime = null,
+        ?CarbonImmutable $startTime = null,
         /**
          * The question the knowledge is searched with: the visitor's message,
          * or, for a follow-up, the full question written from the chat.
@@ -168,10 +169,10 @@ class ChatContext
         public readonly ?string $clarifyingQuestion = null,
     ) {
         $this->sources = collect();
-        $this->startTime = $startTime ?? microtime(true);
+        $this->startTime = $startTime ?? CarbonImmutable::now();
     }
 
-    public function getStartTime(): float
+    public function getStartTime(): CarbonImmutable
     {
         return $this->startTime;
     }
@@ -276,14 +277,12 @@ class ChatContext
     public function markEndTime(): void
     {
         // Only set endTime once (first call wins)
-        $this->endTime ??= microtime(true);
+        $this->endTime ??= CarbonImmutable::now();
     }
 
     public function getResponseTimeMs(): int
     {
         // If endTime hasn't been set yet, use current time
-        $endTime = $this->endTime ?? microtime(true);
-
-        return (int) round(($endTime - $this->startTime) * 1000);
+        return (int) round($this->startTime->diffInMilliseconds($this->endTime ?? CarbonImmutable::now(), absolute: true));
     }
 }

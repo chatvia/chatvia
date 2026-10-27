@@ -6,6 +6,7 @@ namespace App\Mcp\Tools\Analytics;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Queries\Account\Activity\ResponseTimeStatsQuery;
+use Illuminate\Support\Number;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -40,13 +41,13 @@ class GetResponseTimeStatsTool extends AnalyticsTool
         // the raw events, which a window older than their retention lacks.
         $summary = match (true) {
             $data->avgMs === null => sprintf('No response-time data %s yet.', $period->label),
-            $data->p95Ms === null => sprintf('Avg reply %s: %sms.', $period->label, number_format((float) $data->avgMs)),
+            $data->p95Ms === null => sprintf('Avg reply %s: %sms.', $period->label, Number::format(round((float) $data->avgMs))),
             default => sprintf(
                 'Avg reply %s: %sms (p95 %sms, slowest %sms)%s.',
                 $period->label,
-                number_format((float) $data->avgMs),
-                number_format((float) $data->p95Ms),
-                number_format((int) $data->maxMs),
+                Number::format(round((float) $data->avgMs)),
+                Number::format(round((float) $data->p95Ms)),
+                Number::format((int) $data->maxMs),
                 $data->avgFirstResponseSeconds !== null ? ', first reply ~'.$data->avgFirstResponseSeconds.'s' : '',
             ),
         };

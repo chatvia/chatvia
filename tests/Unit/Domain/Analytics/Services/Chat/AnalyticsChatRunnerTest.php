@@ -5,7 +5,7 @@ use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Analytics\Services\Chat\AnalyticsChatRunner;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +31,7 @@ function acrText(array $events): string
 
 it('streams the answer and stores no chat', function (): void {
     $workspace = User::factory()->create()->workspace();
-    $provider = Mockery::mock(LlmProviderInterface::class);
+    $provider = Mockery::mock(ChatCompletionProvider::class);
     $provider->shouldReceive('stream')->andReturn(new Psr7Response(200, [], acrSse('{"choices":[{"delta":{"content":"You received 15 messages this cycle."}}]}')));
     bindFakeLlmProvider($provider);
     $tables = ['chat_conversations', 'chat_sessions', 'chat_messages'];
@@ -49,7 +49,7 @@ it('answers without tools once the model has used its last tool round', function
     $workspace = User::factory()->create()->workspace();
 
     $settingsSeen = [];
-    $provider = Mockery::mock(LlmProviderInterface::class);
+    $provider = Mockery::mock(ChatCompletionProvider::class);
     $provider->shouldReceive('stream')->twice()->andReturnUsing(function (string $model, array $messages, array $settings) use (&$settingsSeen): Psr7Response {
         $settingsSeen[] = $settings;
 

@@ -6,7 +6,7 @@ namespace Domain\Form\Actions;
 
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -21,7 +21,7 @@ use Throwable;
 class EmbedFormDefinitionAction
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
     ) {}
 
     public function execute(int $formId): void

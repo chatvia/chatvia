@@ -7,6 +7,7 @@ use App\Admin\Pages\Tools;
 use App\Admin\Settings\PlatformSettings;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
 use Saade\FilamentLaravelLog\Pages\ViewLog;
@@ -26,7 +27,7 @@ beforeEach(function (): void {
     $this->admin = adminUser();
     lpTurn(true);
 
-    $this->logDir = storage_path('framework/testing/logs-'.uniqid());
+    $this->logDir = storage_path('framework/testing/logs-'.Str::random());
     File::ensureDirectoryExists($this->logDir);
 
     FilamentLaravelLogPlugin::get(Filament::getPanel('admin'))->logDirs([$this->logDir]);

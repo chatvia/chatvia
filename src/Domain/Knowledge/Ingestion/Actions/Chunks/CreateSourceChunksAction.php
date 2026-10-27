@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
@@ -31,7 +31,7 @@ use Illuminate\Support\Str;
 class CreateSourceChunksAction
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly EnhanceChunkAction $enhance,
     ) {}
 

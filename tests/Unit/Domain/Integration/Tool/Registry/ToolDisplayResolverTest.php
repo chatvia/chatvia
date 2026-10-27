@@ -2,9 +2,9 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * The display resolver flags first-party builtins (forms, charts, leads) as

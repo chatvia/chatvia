@@ -4,6 +4,7 @@ use Domain\Knowledge\Document\Concerns\HasStorageFile;
 use Domain\Knowledge\Document\Conversion\OfficePdf;
 use Illuminate\Database\Eloquent\Attributes\Unguarded;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File as LocalFiles;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\File;
@@ -52,11 +53,11 @@ it('creates exactly one local copy, with the stored extension', function (): voi
 
     try {
         // No empty sibling without the extension is left next to the copy.
-        expect(file_exists(Str::chopEnd($file->getPathname(), '.docx')))->toBeFalse()
+        expect(LocalFiles::exists(Str::chopEnd($file->getPathname(), '.docx')))->toBeFalse()
             ->and($file->getExtension())->toBe('docx')
             ->and($file->getContent())->toBe('docx-bytes');
     } finally {
-        @unlink($file->getPathname());
+        LocalFiles::delete($file->getPathname());
     }
 });
 
@@ -65,7 +66,7 @@ it('deletes the local copy after withLocalFile, even when the callback throws', 
     $model = hsfModel(['id' => 1, 'filepath' => 'users/u/doc.txt']);
 
     $path = $model->withLocalFile(fn (File $file): string => $file->getPathname());
-    expect(file_exists($path))->toBeFalse();
+    expect(LocalFiles::exists($path))->toBeFalse();
 
     $thrownPath = null;
     try {
@@ -78,7 +79,7 @@ it('deletes the local copy after withLocalFile, even when the callback throws', 
     }
 
     expect($thrownPath)->not->toBeNull()
-        ->and(file_exists($thrownPath))->toBeFalse();
+        ->and(LocalFiles::exists($thrownPath))->toBeFalse();
 });
 
 it('hands a stored PDF to withPdf as-is and never deletes it', function (): void {
@@ -100,14 +101,14 @@ it('converts other files to a temporary PDF under the file\'s own root and clean
     Storage::put($root.'/agents/a/files/notes.docx', 'docx-bytes');
     $model = hsfModel(['id' => 1, 'filepath' => $root.'/agents/a/files/notes.docx']);
 
-    $converted = sys_get_temp_dir().'/converted_'.uniqid().'.pdf';
+    $converted = create_temp_dir().'/converted_'.Str::random().'.pdf';
     $inputSeen = null;
 
     $office = Mockery::mock(OfficePdf::class);
     $office->shouldReceive('toPdf')->once()->andReturnUsing(function (string $input, string $extension) use ($converted, &$inputSeen): string {
         expect($extension)->toBe('docx');
         $inputSeen = $input;
-        file_put_contents($converted, '%PDF-converted');
+        LocalFiles::put($converted, '%PDF-converted');
 
         return $converted;
     });
@@ -122,8 +123,8 @@ it('converts other files to a temporary PDF under the file\'s own root and clean
     // Under the workspace root, so a workspace delete also wipes a copy a
     // crash left behind.
     expect($pdfPath)->toStartWith($root.'/tmp/')
-        ->and(file_exists($converted))->toBeFalse()
-        ->and(file_exists((string) $inputSeen))->toBeFalse();
+        ->and(LocalFiles::exists($converted))->toBeFalse()
+        ->and(LocalFiles::exists((string) $inputSeen))->toBeFalse();
     Storage::assertMissing($pdfPath);
     Storage::assertExists($root.'/agents/a/files/notes.docx');
 });
@@ -136,17 +137,17 @@ it('makes the PDF from the parsed pages, not the raw JSON, when a source has the
     ]));
     $model = hsfModel(['id' => 1, 'filepath' => 'users/u/scan.png', 'parser_filepath' => 'users/u/pages.json']);
 
-    $converted = sys_get_temp_dir().'/converted_'.uniqid().'.pdf';
+    $converted = create_temp_dir().'/converted_'.Str::random().'.pdf';
 
     $office = Mockery::mock(OfficePdf::class);
     $office->shouldNotReceive('toPdf');
     $office->shouldReceive('fromPages')->once()->with(['First page text.', 'Second page text.'])->andReturnUsing(function () use ($converted): string {
-        file_put_contents($converted, '%PDF-pages');
+        LocalFiles::put($converted, '%PDF-pages');
 
         return $converted;
     });
 
     $model->withPdf($office, fn (string $path): string => $path);
 
-    expect(file_exists($converted))->toBeFalse();
+    expect(LocalFiles::exists($converted))->toBeFalse();
 });

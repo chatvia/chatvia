@@ -95,7 +95,8 @@ final class ZipPackage
     {
         $target = rawurldecode(Str::before($target, '#'));
 
-        $path = Str::startsWith($target, '/') ? $target : (dirname($base) === '.' ? '' : dirname($base).'/').$target;
+        $folder = dirname($base) === '.' ? '' : dirname($base).'/';
+        $path = Str::startsWith($target, '/') ? $target : $folder.$target;
         $parts = [];
 
         foreach (explode('/', $path) as $segment) {

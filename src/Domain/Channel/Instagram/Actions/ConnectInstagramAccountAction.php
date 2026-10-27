@@ -32,7 +32,7 @@ class ConnectInstagramAccountAction
         $this->guard->ensureAgentIsPublic($agent);
         $this->guard->ensureAccountIsFree($agent, AgentInstagramAccount::query()->where('ig_id', $account->ig_id));
 
-        $connection = $this->guard->store(fn (): AgentInstagramAccount => AgentInstagramAccount::updateOrCreate(
+        $connection = $this->guard->store(fn (): AgentInstagramAccount => AgentInstagramAccount::query()->updateOrCreate(
             ['agent_id' => $agent->id],
             [
                 'page_access_token' => $account->page_access_token,

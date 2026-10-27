@@ -4,7 +4,7 @@ namespace Domain\Integration\Connector\Actions\OAuth;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
 use Domain\Integration\Connector\Exceptions\ConnectorMisconfiguredException;
 use Domain\Integration\Connector\Services\OAuth\OAuthAuthorizationRedirect;
@@ -31,7 +31,7 @@ class BeginConnectorOAuthAction
 
         $client = $this->clients->forMcpUrl($connector->mcpUrl, $connector);
 
-        return $this->redirect->start(new PendingOAuthState(
+        return $this->redirect->start(new PendingOAuthStateData(
             userId: $user->id,
             connectorSlug: $connector->slug,
             authServerUrl: $client->auth_server_url,
@@ -39,7 +39,7 @@ class BeginConnectorOAuthAction
             clientId: $client->client_id,
             codeVerifier: Pkce::verifier(),
             mcpUrl: $connector->mcpUrl,
-            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
+            sessionBindingHash: PendingOAuthStateData::hashBinding($sessionBinding),
             clientSecret: $client->client_secret,
             scopes: $connector->oauthScopes,
         ), $client->authorization_endpoint);

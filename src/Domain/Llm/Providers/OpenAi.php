@@ -6,7 +6,7 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Providers\Responses\StreamsThroughResponses;
+use Domain\Llm\Providers\Concerns\StreamsThroughResponses;
 
 /**
  * Chat completions through OpenAI's own API, which is stricter than the

@@ -7,6 +7,7 @@ use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Document\PngImage;
 
 /**
@@ -36,7 +37,7 @@ beforeEach(function (): void {
 });
 
 it('prepends the summary to the text to embed and returns the questions', function (): void {
-    $page = new PageData(pageNumber: 1, content: 'The Pacific is the largest ocean.', checksum: md5(uniqid()));
+    $page = new PageData(pageNumber: 1, content: 'The Pacific is the largest ocean.', checksum: md5(Str::random()));
 
     $enhanced = app(EnhanceChunkAction::class)->execute(new EnhanceChunkData(page: $page));
 
@@ -53,7 +54,7 @@ it('describes the images and tables of a document page and returns them as metad
     $page = new PageData(
         pageNumber: 1,
         content: 'Depths of the oceans.',
-        checksum: md5(uniqid()),
+        checksum: md5(Str::random()),
         imagesBase64: [PngImage::BASE64],
         tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |", '  '],
     );
@@ -78,7 +79,7 @@ it('skips the images of a page when image descriptions are off, and still descri
     $page = new PageData(
         pageNumber: 1,
         content: 'Depths of the oceans.',
-        checksum: md5(uniqid()),
+        checksum: md5(Str::random()),
         imagesBase64: [PngImage::BASE64],
         tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |"],
     );

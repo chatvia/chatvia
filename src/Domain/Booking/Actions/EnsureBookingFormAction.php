@@ -44,7 +44,7 @@ class EnsureBookingFormAction
         return DB::transaction(function () use ($agent): FormDefinition {
             Agent::query()->whereKey($agent->id)->lockForUpdate()->first();
 
-            return $this->find($agent) ?? FormDefinition::create([
+            return $this->find($agent) ?? FormDefinition::query()->create([
                 'agent_id' => $agent->id,
                 'name' => 'Meeting bookings',
                 'subtitle' => null,

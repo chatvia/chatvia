@@ -7,6 +7,7 @@ namespace Domain\Integration\Connector\Catalog\Connectors;
 use Domain\Integration\Connector\Catalog\CapabilityConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
 use Domain\Llm\Services\AudioGeneration;
+use Support\License\Entitlements;
 
 /**
  * Audio files of a text read aloud, made by the agent for the visitor and
@@ -17,6 +18,13 @@ use Domain\Llm\Services\AudioGeneration;
  */
 final class AudioGenerationConnector extends CapabilityConnector
 {
+    public function __construct(
+        Entitlements $entitlements,
+        private readonly AudioGeneration $audio,
+    ) {
+        parent::__construct($entitlements);
+    }
+
     #[\Override]
     public string $slug { get => 'audio-generation'; }
 
@@ -48,6 +56,6 @@ final class AudioGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return parent::isAvailable() && app(AudioGeneration::class)->isEnabled();
+        return parent::isAvailable() && $this->audio->isEnabled();
     }
 }

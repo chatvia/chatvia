@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Connector\Catalog;
 
+use Domain\Integration\Connector\Catalog\Concerns\HostsOnChatvia;
 use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Support\License\Entitlements;
@@ -21,6 +22,10 @@ abstract class CapabilityConnector extends Connector
 {
     use HostsOnChatvia;
 
+    public function __construct(
+        private readonly Entitlements $entitlements,
+    ) {}
+
     #[\Override]
     public ConnectorAuthStrategy $authStrategy {
         get => ConnectorAuthStrategy::None;
@@ -34,7 +39,7 @@ abstract class CapabilityConnector extends Connector
     #[\Override]
     public function isAvailable(): bool
     {
-        return app(Entitlements::class)->capabilities();
+        return $this->entitlements->capabilities();
     }
 
     #[\Override]

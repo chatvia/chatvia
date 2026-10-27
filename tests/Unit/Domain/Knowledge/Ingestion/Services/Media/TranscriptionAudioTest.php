@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\Media\TranscriptionAudio;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Tests\Support\Llm\FakeTranscriber;
 
@@ -39,7 +40,7 @@ it('hands over the file itself when the service takes it, without compressing it
     $sent = new TranscriptionAudio(FakeTranscriber::takingAsIs(['mp3', 'webm'], maxBytes: 100), $compressor)->withPrepared($file, fn (string $path): string => $path);
 
     expect($sent)->toBe($file)
-        ->and(file_exists($file))->toBeTrue();
+        ->and(File::exists($file))->toBeTrue();
 });
 
 it('hands over a compressed copy otherwise, and deletes it afterwards, also on failure', function (): void {
@@ -54,6 +55,6 @@ it('hands over a compressed copy otherwise, and deletes it afterwards, also on f
         throw new RuntimeException('The service failed.');
     }))->toThrow(RuntimeException::class, 'The service failed.');
 
-    expect(file_exists($compressed))->toBeFalse()
-        ->and(file_exists($file))->toBeTrue();
+    expect(File::exists($compressed))->toBeFalse()
+        ->and(File::exists($file))->toBeTrue();
 });

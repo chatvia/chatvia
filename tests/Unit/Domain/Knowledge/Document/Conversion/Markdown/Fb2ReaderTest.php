@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\Fb2Reader;
+use Illuminate\Support\Facades\File;
 
 /**
  * The built-in FictionBook reader: books are built here as XML strings.
@@ -12,7 +13,7 @@ function fb2rRead(string $xml): string
     try {
         return new Fb2Reader()->toMarkdown($path);
     } finally {
-        @unlink($path);
+        File::delete($path);
     }
 }
 

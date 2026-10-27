@@ -3,7 +3,7 @@
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +49,7 @@ function acvstHandle(Request $request): Response
 }
 
 it('signs the chatter in on a valid token and strips it from the address', function (string $issue): void {
-    $token = app(AgentSignInTokenService::class)->{$issue}($this->chatter, $this->agent)['token'];
+    $token = app(AgentSignInTokens::class)->{$issue}($this->chatter, $this->agent)['token'];
 
     $response = acvstHandle(acvstRequest($this->agent, $token));
 
@@ -77,14 +77,14 @@ it('signs nobody in for a token it cannot verify, and still strips it from the a
 })->with([
     'a made-up token' => [fn (): string => 'bogus-token'],
     'a tampered HMAC token' => [fn (): string => 'cvh1.user_123.not-a-real-credential'],
-    'a token minted for another agent' => [fn (Agent $agent, Chatter $chatter): string => app(AgentSignInTokenService::class)
+    'a token minted for another agent' => [fn (Agent $agent, Chatter $chatter): string => app(AgentSignInTokens::class)
         ->issue($chatter, Agent::factory()->create(['workspace_id' => $agent->workspace_id, 'is_public' => false]))['token']],
 ]);
 
 it('does not switch away from another signed-in chatter, but sends the browser to confirm', function (): void {
     $signedIn = Chatter::factory()->grantedTo($this->agent)->create();
     Auth::guard('chat')->login($signedIn);
-    $token = app(AgentSignInTokenService::class)->issue($this->chatter, $this->agent)['token'];
+    $token = app(AgentSignInTokens::class)->issue($this->chatter, $this->agent)['token'];
 
     $response = acvstHandle(acvstRequest($this->agent, $token));
 

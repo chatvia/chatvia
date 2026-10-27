@@ -5,9 +5,9 @@ namespace Domain\Security\Actions;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Domain\Security\Services\SiemWebhookPolicy;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SignedWebhookSender;
-use Support\License\Entitlements;
 
 /**
  * Delivers a {@see SecurityEventOccurred} to the workspace's configured SIEM
@@ -20,10 +20,9 @@ use Support\License\Entitlements;
  * tracks consecutive failures and auto-disables a dead endpoint. An unsafe URL
  * throws {@see UnsafeUrlException}, which the listener fails without retrying.
  *
- * Each step reads the policy once: {@see wants()} when the event is queued,
- * and {@see execute()} when the job sends it. SIEM delivery is an Enterprise
- * feature: without an Enterprise key nothing is sent, and the saved webhook
- * stays for when one is added.
+ * {@see SiemWebhookPolicy} decides whether the workspace takes the event.
+ * SIEM delivery is an Enterprise feature: without an Enterprise key nothing is
+ * sent, and the saved webhook stays for when one is added.
  */
 class DeliverSecurityWebhookAction
 {
@@ -32,12 +31,12 @@ class DeliverSecurityWebhookAction
 
     public function __construct(
         private readonly SignedWebhookSender $sender,
-        private readonly Entitlements $entitlements,
+        private readonly SiemWebhookPolicy $policies,
     ) {}
 
     public function execute(SecurityEventOccurred $event): void
     {
-        $policy = $this->deliverablePolicy($event);
+        $policy = $this->policies->for($event);
 
         if (! $policy instanceof WorkspaceSecurityPolicy) {
             return;
@@ -70,37 +69,6 @@ class DeliverSecurityWebhookAction
             'webhook_failures' => 0,
             'webhook_last_delivered_at' => now(),
         ])->save();
-    }
-
-    /**
-     * Whether the workspace's SIEM webhook takes this event. The listener asks
-     * before queuing, so a workspace without SIEM never gets a job (and the
-     * actor's details never sit in the queue); execute() asks again because
-     * the policy can change while the job waits.
-     */
-    public function wants(SecurityEventOccurred $event): bool
-    {
-        return $this->deliverablePolicy($event) instanceof WorkspaceSecurityPolicy;
-    }
-
-    private function deliverablePolicy(SecurityEventOccurred $event): ?WorkspaceSecurityPolicy
-    {
-        if (! $this->entitlements->enterprise()) {
-            return null;
-        }
-
-        $policy = WorkspaceSecurityPolicy::query()
-            ->where('workspace_id', $event->workspaceId)
-            ->first();
-
-        if (! $policy instanceof WorkspaceSecurityPolicy || ! $policy->is_webhook_enabled || blank($policy->webhook_url) || blank($policy->webhook_secret)) {
-            return null;
-        }
-
-        // Per-action allowlist; null = deliver every event.
-        $allowlist = $policy->webhook_events;
-
-        return ! is_array($allowlist) || in_array($event->action, $allowlist, true) ? $policy : null;
     }
 
     /**

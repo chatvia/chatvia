@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +35,7 @@ class SemanticToolRouter
     public const int MAX_TOOLS = 30;
 
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly ToolRegistry $registry,
         private readonly ToolHybridSearch $search,
         private readonly ToolRelevanceGate $gate,
@@ -47,7 +47,7 @@ class SemanticToolRouter
      * Its query embedding and rerank are tagged `tool-routing` in Spectra,
      * apart from the same kinds of call that the knowledge search makes.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     public function route(string $userMessage, Agent $agent): array
     {
@@ -55,7 +55,7 @@ class SemanticToolRouter
     }
 
     /**
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function pick(string $userMessage, Agent $agent): array
     {
@@ -74,7 +74,7 @@ class SemanticToolRouter
             limit: self::MAX_TOOLS,
         );
 
-        $entries = array_map(static fn (ToolSearchHitData $hit): ToolEntry => $hit->entry, $ranked);
+        $entries = array_map(static fn (ToolSearchHitData $hit): ToolEntryData => $hit->entry, $ranked);
 
         // Recall is done; now the precision gate. RRF ranked these candidates but
         // can't say whether the strongest is actually relevant — the reranker
@@ -114,8 +114,8 @@ class SemanticToolRouter
      * didn't pick. Reads, functions, and tools with no parseable connector pass
      * through. Fails open: a null route (declined / errored) prunes nothing.
      *
-     * @param  array<int, ToolEntry>  $gated
-     * @return array<int, ToolEntry>
+     * @param  array<int, ToolEntryData>  $gated
+     * @return array<int, ToolEntryData>
      */
     private function routeByConnector(Agent $agent, string $userMessage, array $gated): array
     {
@@ -130,7 +130,7 @@ class SemanticToolRouter
         // turn that has nothing a connector route could touch.
         $hasConnectorWrite = array_any(
             $gated,
-            static fn (ToolEntry $entry): bool => $entry->mutates && self::connectorSlug($entry) !== null,
+            static fn (ToolEntryData $entry): bool => $entry->mutates && self::connectorSlug($entry) !== null,
         );
         if (! $hasConnectorWrite) {
             return $gated;
@@ -144,7 +144,7 @@ class SemanticToolRouter
         $allowed = array_flip($picked);
         $dropped = [];
 
-        $kept = array_values(array_filter($gated, static function (ToolEntry $entry) use ($allowed, &$dropped): bool {
+        $kept = array_values(array_filter($gated, static function (ToolEntryData $entry) use ($allowed, &$dropped): bool {
             if (! $entry->mutates) {
                 return true;
             }
@@ -173,7 +173,7 @@ class SemanticToolRouter
      * The connector slug of an MCP tool, or null for a webhook function or a
      * name without a server slug.
      */
-    private static function connectorSlug(ToolEntry $entry): ?string
+    private static function connectorSlug(ToolEntryData $entry): ?string
     {
         return $entry->kind === ToolKind::Mcp ? $entry->toolName()->serverSlug : null;
     }

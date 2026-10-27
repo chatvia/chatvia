@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Invitations;
 
 use App\Http\Requests\Agent\Chatter\AcceptAgentInvitationRequest;
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
@@ -29,7 +29,7 @@ class AcceptAgentInvitationController
         AcceptAgentInvitationRequest $request,
         AgentChatterInvitation $invitation,
         AcceptAgentInvitationAction $accept,
-        ChatterAuthTokenService $authTokens,
+        ChatterAuthTokens $authTokens,
     ): Response {
         $invitation->loadMissing('agent');
 

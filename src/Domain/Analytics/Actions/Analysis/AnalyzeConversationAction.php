@@ -131,7 +131,7 @@ class AnalyzeConversationAction
         $assigned = [];
 
         foreach ($analysis->topicIds as $topicId) {
-            $row = ConversationTopic::firstOrCreate([
+            $row = ConversationTopic::query()->firstOrCreate([
                 'chat_conversation_id' => $conversation->id,
                 'topic_id' => $topicId,
             ], ['workspace_id' => $conversation->workspace_id]);
@@ -142,7 +142,7 @@ class AnalyzeConversationAction
         }
 
         foreach ($analysis->suggestedTopics as $label) {
-            ConversationTopic::firstOrCreate([
+            ConversationTopic::query()->firstOrCreate([
                 'chat_conversation_id' => $conversation->id,
                 'suggested_label' => $label,
             ], ['workspace_id' => $conversation->workspace_id]);

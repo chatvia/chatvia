@@ -2,10 +2,10 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
 
 /*
@@ -19,7 +19,7 @@ function ctiTeamWithSupportRole(): Team
 {
     $owner = User::factory()->create(['email' => 'owner@example.com']);
 
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
 
     // Default teams ship only the (never-invitable) `owner` role.
     teamRole($team);

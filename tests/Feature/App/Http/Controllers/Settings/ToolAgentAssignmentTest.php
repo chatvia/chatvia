@@ -13,7 +13,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 
 dataset('workspace tools', [
     'connector' => 'connector',
@@ -94,7 +94,7 @@ it('detaches the tool from an agent', function (string $kind): void {
 
 it('lists and attaches the agents of another team of the workspace', function (string $kind): void {
     $tool = taaTool($kind, $this->owner);
-    $otherTeamAgent = makeTeamAgent($this->owner, 'Sales Bot', app(TeamService::class)->createDefaultTeam($this->owner));
+    $otherTeamAgent = makeTeamAgent($this->owner, 'Sales Bot', app(CreateDefaultTeamAction::class)->execute($this->owner));
 
     $this->actingAs($this->owner)
         ->getJson(taaUrl($tool, 'index'))

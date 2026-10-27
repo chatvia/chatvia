@@ -12,8 +12,9 @@ use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\CitationMarkers;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -51,8 +52,9 @@ function lsSource(ToolLoopRunner $runner): LlmSource
         dedupe: new RequestDedupeStore,
         toolSelector: new NoToolSelector,
         runner: $runner,
-        guardrails: app(GuardrailService::class),
+        guardrails: app(GuardrailInspector::class),
         guardrailRecorder: app(GuardrailRecorder::class),
+        citations: app(CitationMarkers::class),
     );
 }
 
@@ -190,8 +192,9 @@ function lsSavedAfter(ToolLoopRunner $runner, ChatContext $context): RecordingRe
         dedupe: new RequestDedupeStore,
         toolSelector: new NoToolSelector,
         runner: $runner,
-        guardrails: app(GuardrailService::class),
+        guardrails: app(GuardrailInspector::class),
         guardrailRecorder: app(GuardrailRecorder::class),
+        citations: app(CitationMarkers::class),
     );
     iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hi']]), preserve_keys: false);
 

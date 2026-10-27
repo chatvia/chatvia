@@ -3,7 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
 use Domain\Knowledge\Document\Conversion\OfficePdf;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Ingestion\Data\Analysis\ContentAnalysisData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
@@ -31,7 +31,7 @@ class CreateSourceSummaryAction
         private readonly ContentAnalyzer $contentAnalyzer,
         private readonly Summarizer $summarizer,
         private readonly SourceSummaryModel $summaryModel,
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly OfficePdf $officePdf,
     ) {}
 

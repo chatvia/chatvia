@@ -94,7 +94,7 @@ class InitializeWidgetSessionAction
     {
         $userAgent = $this->userAgentParser->detect($data->userAgent);
 
-        return Session::create([
+        return Session::query()->create([
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
             // Bound to the signed-in chatter (or staff preview) on a protected

@@ -7,8 +7,8 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Illuminate\Support\Str;
 
 /**
@@ -28,8 +28,8 @@ class SurfaceToolFilter
     ) {}
 
     /**
-     * @param  array<int, ToolEntry>  $entries
-     * @return array<int, ToolEntry>
+     * @param  array<int, ToolEntryData>  $entries
+     * @return array<int, ToolEntryData>
      */
     public function apply(array $entries, ?string $conversationExternalId): array
     {
@@ -69,7 +69,7 @@ class SurfaceToolFilter
 
         return array_values(array_filter(
             $entries,
-            static fn (ToolEntry $entry): bool => ! Str::startsWith($entry->name, $prefixes),
+            static fn (ToolEntryData $entry): bool => ! Str::startsWith($entry->name, $prefixes),
         ));
     }
 

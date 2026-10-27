@@ -3,6 +3,7 @@
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
 use Illuminate\Process\PendingProcess;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 
 /**
@@ -77,10 +78,10 @@ it('lets ffmpeg open local files only, with the demuxer it is told when there is
 
 it('fails on a file ffmpeg cannot read, and leaves no MP3 behind', function (): void {
     $folder = create_temp_dir('/audio-compression');
-    $before = glob("{$folder}/*.mp3") ?: [];
+    $before = File::glob("{$folder}/*.mp3") ?: [];
 
     expect(fn (): string => app(AudioCompressor::class)->process(tempTestFile('broken.ogg', 'not audio')))
         ->toThrow(RuntimeException::class, 'Compression failed');
 
-    expect(glob("{$folder}/*.mp3") ?: [])->toBe($before);
+    expect(File::glob("{$folder}/*.mp3") ?: [])->toBe($before);
 });

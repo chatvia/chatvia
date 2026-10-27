@@ -13,10 +13,10 @@ use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Integration\Tool\Registry\ToolRegistry;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Illuminate\Support\Str;
 
@@ -55,7 +55,7 @@ final readonly class VoiceToolCatalog
      * caller; null for an anonymous visitor, who gets no tool that needs
      * approval.
      *
-     * @return array<string, ToolEntry>
+     * @return array<string, ToolEntryData>
      */
     public function for(Agent $agent, string $conversationId, ?ChatViewerData $viewer = null): array
     {
@@ -94,7 +94,7 @@ final readonly class VoiceToolCatalog
      * How the call view names each tool, as the typed chat does. First-party
      * plumbing (forms, leads) is left out: the typed chat hides it too.
      *
-     * @param  array<string, ToolEntry>  $tools
+     * @param  array<string, ToolEntryData>  $tools
      * @return array<string, VoiceToolLabelData>
      */
     public function labels(Agent $agent, array $tools): array
@@ -117,12 +117,12 @@ final readonly class VoiceToolCatalog
      * The session's `tools` list: knowledge search (unless the agent does not
      * search its knowledge), then each tool in the Realtime shape.
      *
-     * @param  array<string, ToolEntry>  $tools
+     * @param  array<string, ToolEntryData>  $tools
      * @return list<array<string, mixed>>
      */
     public function definitions(Agent $agent, array $tools): array
     {
-        $realtime = array_map(static fn (ToolEntry $entry): array => $entry->toRealtimeFormat(), array_values($tools));
+        $realtime = array_map(static fn (ToolEntryData $entry): array => $entry->toRealtimeFormat(), array_values($tools));
 
         if (! $this->knowledgeSearch->for($agent)) {
             return $realtime;

@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Domain\Agent\Models\Agent;
 use Firebase\JWT\JWT;
 use Tests\Support\Widget\EmbeddedWidget;
@@ -35,5 +35,5 @@ it('refuses a staff account in a token signed with the agent secret, but takes a
 
     $exchange($sign($owner->external_id))->assertUnauthorized();
     $exchange($sign($chatter->external_id))->assertOk()->assertJsonStructure(['auth_token', 'expires_at']);
-    $exchange(app(AgentSignInTokenService::class)->issue($owner, $agent)['token'])->assertOk();
+    $exchange(app(AgentSignInTokens::class)->issue($owner, $agent)['token'])->assertOk();
 });

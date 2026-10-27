@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 
 /**
@@ -11,7 +11,7 @@ use GuzzleHttp\Psr7\Response as Psr7Response;
  */
 it('serves an SSE stream to the workspace owner', function (): void {
     $owner = User::factory()->create(['email_verified_at' => now()]);
-    $provider = Mockery::mock(LlmProviderInterface::class);
+    $provider = Mockery::mock(ChatCompletionProvider::class);
     $provider->shouldReceive('stream')->andReturn(new Psr7Response(200, [], "data: [DONE]\n\n"));
     bindFakeLlmProvider($provider);
 

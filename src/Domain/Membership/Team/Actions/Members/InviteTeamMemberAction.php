@@ -30,7 +30,7 @@ class InviteTeamMemberAction
         // key and the `team_invitations` unique index. The Action keeps only
         // the workspace-scoping check.
         if ($data->userId) {
-            $existingUser = User::findOrFail($data->userId);
+            $existingUser = User::query()->findOrFail($data->userId);
 
             if (! $existingUser->isTeammate() || $existingUser->workspace()->id !== $data->inviter->workspace()->id) {
                 throw new DomainValidationException('user_id', __('You can only add users you have invited.'));

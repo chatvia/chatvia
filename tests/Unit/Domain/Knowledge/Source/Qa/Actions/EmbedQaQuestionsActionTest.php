@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
@@ -18,9 +18,9 @@ it('embeds only the questions that have no embedding yet', function (): void {
     $qa = app(CreateAgentQaAction::class)->execute($agent, new QaEntryData('Hours', ['What are your opening hours?'], 'We are open from nine to five.'));
     app(EmbedQaQuestionsAction::class)->execute($qa);
 
-    $embeddings = Mockery::mock(EmbeddingsProviderInterface::class);
+    $embeddings = Mockery::mock(EmbeddingsProvider::class);
     $embeddings->shouldNotReceive('embedBatch');
-    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
+    app()->instance(EmbeddingsProvider::class, $embeddings);
 
     app(EmbedQaQuestionsAction::class)->execute($qa);
 

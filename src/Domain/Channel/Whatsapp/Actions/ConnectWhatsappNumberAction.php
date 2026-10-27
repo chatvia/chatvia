@@ -51,7 +51,7 @@ class ConnectWhatsappNumberAction
 
         // The partial unique index on (phone_number_id) WHERE enabled is the
         // real guard behind the up-front check when two agents race.
-        return $this->guard->store(fn (): AgentWhatsappNumber => AgentWhatsappNumber::updateOrCreate(
+        return $this->guard->store(fn (): AgentWhatsappNumber => AgentWhatsappNumber::query()->updateOrCreate(
             ['agent_id' => $agent->id],
             [
                 'access_token' => $token,

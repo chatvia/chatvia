@@ -2,7 +2,9 @@
 
 namespace Domain\Conversation\Services\Tooling;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Contracts\StreamTransformer;
 use Domain\Conversation\Data\Tooling\EmittedToolCallData;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Enums\ToolApprovalDecision;
@@ -10,18 +12,17 @@ use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
-use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Turn\TurnStops;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 use Domain\Integration\Tool\Enums\ToolAccessDecision;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Integration\Tool\ValueObjects\ToolName;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
 use Generator;
@@ -66,7 +67,7 @@ class ToolLoopRunner
 
     public function __construct(
         private readonly StreamTransformer $transformer,
-        private readonly ToolDispatcherInterface $dispatcher,
+        private readonly ToolDispatcher $dispatcher,
         private readonly ToolDisplayResolver $displayResolver,
         private readonly ToolAccessPolicy $accessPolicy,
         private readonly ToolApprovalStore $approvalStore,
@@ -94,7 +95,7 @@ class ToolLoopRunner
      */
     public function run(
         ChatContext $context,
-        LlmProviderInterface $provider,
+        ChatCompletionProvider $provider,
         string $modelName,
         array &$llmMessages,
         array $toolDefinitions,
@@ -182,7 +183,7 @@ class ToolLoopRunner
 
             if ($call->requiresApproval && ! $approved) {
                 $this->appendToolResult($llmMessages, $call->toolCallId, self::DENIED_RESULT);
-                $this->auditTrail->record($context, $call, ToolCallOutcome::Denied, ToolDispatchResult::text(self::DENIED_RESULT), decidedByPerson: true);
+                $this->auditTrail->record($context, $call, ToolCallOutcome::Denied, ToolDispatchResultData::text(self::DENIED_RESULT), decidedByPerson: true);
 
                 continue;
             }
@@ -302,7 +303,7 @@ class ToolLoopRunner
      * @param  array<int, string>  $offeredNames
      * @return Generator<int, StreamEvent>
      */
-    private function finalAnswer(ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $settings, array $offeredNames): Generator
+    private function finalAnswer(ChatContext $context, ChatCompletionProvider $provider, string $modelName, array $llmMessages, array $settings, array $offeredNames): Generator
     {
         $context->offeredToolNames = $offeredNames;
 
@@ -324,7 +325,7 @@ class ToolLoopRunner
      * @param  array<string, mixed>  $settings
      * @return Generator<int, StreamEvent>
      */
-    private function streamCompletion(ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $settings): Generator
+    private function streamCompletion(ChatContext $context, ChatCompletionProvider $provider, string $modelName, array $llmMessages, array $settings): Generator
     {
         $response = $this->tags->during(AiCallTag::ChatReply, fn (): ResponseInterface => $provider->stream($modelName, $llmMessages, $settings));
 
@@ -391,7 +392,7 @@ class ToolLoopRunner
                 'tool' => $loggedName,
             ]);
 
-            $this->auditTrail->record($context, $this->unofferedCall($call, $loggedName), ToolCallOutcome::NotOffered, ToolDispatchResult::error($message));
+            $this->auditTrail->record($context, $this->unofferedCall($call, $loggedName), ToolCallOutcome::NotOffered, ToolDispatchResultData::error($message));
         }
 
         return $offeredCalls;
@@ -522,12 +523,13 @@ class ToolLoopRunner
             internal: $call->isBuiltin,
         );
 
-        $startedAt = microtime(true);
+        $started = CarbonImmutable::now();
         $result = $this->dispatcher->dispatch(
             $context->requestData->agent,
             $this->calls->make($context->requestData, $call->name, $call->arguments),
         );
-        $latencyMs = (int) round((microtime(true) - $startedAt) * 1000);
+        $elapsedMs = $started->diffInMilliseconds(absolute: true);
+        $latencyMs = (int) round($elapsedMs);
 
         $context->toolCallNames[] = $call->name;
         $resultText = $this->resultGuard->guarded($context, $call->name, $result->text);
@@ -570,7 +572,7 @@ class ToolLoopRunner
 
         $this->appendToolResult($llmMessages, $call->toolCallId, $message);
 
-        $this->auditTrail->record($context, $call, $outcome, ToolDispatchResult::text($message));
+        $this->auditTrail->record($context, $call, $outcome, ToolDispatchResultData::text($message));
     }
 
     /**

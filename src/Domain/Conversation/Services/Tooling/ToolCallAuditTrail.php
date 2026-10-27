@@ -5,10 +5,10 @@ namespace Domain\Conversation\Services\Tooling;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * Announces every resolved tool call for the governance audit. A queued
@@ -23,7 +23,7 @@ class ToolCallAuditTrail
         ChatContext $context,
         PendingToolCallData $call,
         ToolCallOutcome $outcome,
-        ToolDispatchResult $result,
+        ToolDispatchResultData $result,
         ?int $latencyMs = null,
         bool $decidedByPerson = false,
         ?string $decisionNote = null,

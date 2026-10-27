@@ -10,6 +10,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Str;
@@ -27,6 +28,7 @@ final readonly class EmbeddingCheck
 
     public function __construct(
         private AiCallTags $tags,
+        private Container $container,
     ) {}
 
     public function check(EmbeddingProvider $provider, ?string $model = null, ?string $apiKey = null, ?int $dimensions = null): EmbeddingCheckData
@@ -37,7 +39,7 @@ final readonly class EmbeddingCheck
         ], filled(...));
 
         try {
-            $returned = $this->tags->during(AiCallTag::ServiceCheck, fn (): int => $this->withConfig($values, fn (): int => count((array) app($provider->providerClass())->embed(self::TEXT))));
+            $returned = $this->tags->during(AiCallTag::ServiceCheck, fn (): int => $this->withConfig($values, fn (): int => count((array) $this->container->make($provider->providerClass())->embed(self::TEXT))));
         } catch (RequestException $e) {
             $status = $e->response->status();
 

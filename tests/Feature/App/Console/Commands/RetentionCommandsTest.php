@@ -12,8 +12,8 @@ use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Invitation;
-use Domain\Membership\Team\Services\TeamService;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -91,7 +91,7 @@ it('forgets sign-in devices unused for 180 days with chatvia:prune:known-devices
 it('deletes chatter and team invitations long expired with chatvia:prune:invitations', function (): void {
     $agent = Agent::factory()->create();
     $chatterInvitation = AgentChatterInvitation::factory()->forAgent($agent)->create(['expires_at' => now()->subDays(40)]);
-    $team = app(TeamService::class)->createDefaultTeam(User::factory()->create());
+    $team = app(CreateDefaultTeamAction::class)->execute(User::factory()->create());
     $teamInvitation = $team->invitations()->create(['role_id' => $team->roles()->firstOrFail()->id, 'email' => 'old@example.test']);
     $teamInvitation->forceFill(['created_at' => now()->subDays(40)])->save();
 

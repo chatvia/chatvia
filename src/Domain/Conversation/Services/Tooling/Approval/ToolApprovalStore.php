@@ -29,7 +29,7 @@ class ToolApprovalStore
      */
     public function persist(ChatContext $context, array $llmMessages, array $pendingCalls, int $iteration): ToolApprovalCheckpoint
     {
-        return ToolApprovalCheckpoint::create([
+        return ToolApprovalCheckpoint::query()->create([
             'workspace_id' => $context->requestData->agent->workspace_id,
             'agent_id' => $context->requestData->agent->id,
             'conversation_external_id' => $context->requestData->conversationId,

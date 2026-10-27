@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Contracts;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
@@ -54,7 +54,7 @@ interface ProviderAdapter
     public function keysUrl(): ?string;
 
     /** The chat client for a provider row of this kind. */
-    public function client(LlmProvider $provider): LlmProviderInterface;
+    public function client(LlmProvider $provider): ChatCompletionProvider;
 
     /**
      * The chat models the provider offers, with what it (and the adapter)

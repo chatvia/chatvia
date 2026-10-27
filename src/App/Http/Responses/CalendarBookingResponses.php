@@ -11,6 +11,7 @@ use Domain\Booking\Exceptions\BookingException;
 use Domain\Form\Enums\FormClaimFailure;
 use Domain\Form\Exceptions\FormNotClaimableException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 
 /**
  * The JSON the chat's and widget's booking calendar reads, shared by both
@@ -20,12 +21,12 @@ use Illuminate\Http\JsonResponse;
 final class CalendarBookingResponses
 {
     /**
-     * @param  list<CarbonImmutable>  $slots
+     * @param  Collection<int, CarbonImmutable>  $slots
      */
-    public static function slots(array $slots): JsonResponse
+    public static function slots(Collection $slots): JsonResponse
     {
         return response()->json([
-            'slots' => array_map(static fn (CarbonImmutable $slot): array => ['start_time' => $slot->toIso8601ZuluString()], $slots),
+            'slots' => $slots->map(static fn (CarbonImmutable $slot): array => ['start_time' => $slot->toIso8601ZuluString()])->values()->all(),
         ]);
     }
 

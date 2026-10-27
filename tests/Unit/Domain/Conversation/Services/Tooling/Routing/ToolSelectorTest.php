@@ -10,11 +10,11 @@ use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\Routing\UnavailableToolFilter;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Routing\AlwaysAvailableToolResolver;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * The tools offered on a turn: the semantic router's pick, joined by the
@@ -22,9 +22,9 @@ use Domain\Integration\Tool\Routing\SemanticToolRouter;
  * duplicates. A fully pinned pool skips the router; a router failure offers
  * the whole pool.
  */
-function tsEntry(string $name): ToolEntry
+function tsEntry(string $name): ToolEntryData
 {
-    return new ToolEntry(kind: ToolName::parse($name)->kind, sourceId: 'x:'.$name, name: $name, description: '', parameters: []);
+    return new ToolEntryData(kind: ToolName::parse($name)->kind, sourceId: 'x:'.$name, name: $name, description: '', parameters: []);
 }
 
 /** Attach a custom MCP server to the agent, optionally marked always-on. */
@@ -34,14 +34,14 @@ function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpSe
 }
 
 /**
- * @param  array<int, ToolEntry>  $pool  the agent's full pool
- * @param  array<int, ToolEntry>  $routed  what the semantic router would return
+ * @param  array<int, ToolEntryData>  $pool  the agent's full pool
+ * @param  array<int, ToolEntryData>  $routed  what the semantic router would return
  */
 function tsSelector(array $pool, array $routed): ToolSelector
 {
     $registry = new class($pool) extends ToolRegistry
     {
-        /** @param array<int, ToolEntry> $pool */
+        /** @param array<int, ToolEntryData> $pool */
         public function __construct(private readonly array $pool) {}
 
         public function for(Agent $agent): array
@@ -52,7 +52,7 @@ function tsSelector(array $pool, array $routed): ToolSelector
 
     $router = new class($routed) extends SemanticToolRouter
     {
-        /** @param array<int, ToolEntry> $routed */
+        /** @param array<int, ToolEntryData> $routed */
         public function __construct(private readonly array $routed) {}
 
         public function route(string $userMessage, Agent $agent): array
@@ -96,7 +96,7 @@ it('ignores an always-on flag on a disabled connector and ships nothing for an u
 
 it('ships every always-on tool, however many there are', function (): void {
     tsAttach($this->agent, 'big', alwaysAvailable: true);
-    $pool = array_map(fn (int $i): ToolEntry => tsEntry("mcp__big__tool_{$i}"), range(1, 14));
+    $pool = array_map(fn (int $i): ToolEntryData => tsEntry("mcp__big__tool_{$i}"), range(1, 14));
 
     expect(tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null))->toHaveCount(14);
 });
@@ -107,7 +107,7 @@ it('skips the router entirely when every tool in the pool is always-on', functio
 
     $registry = new class($pool) extends ToolRegistry
     {
-        /** @param array<int, ToolEntry> $pool */
+        /** @param array<int, ToolEntryData> $pool */
         public function __construct(private readonly array $pool) {}
 
         public function for(Agent $agent): array
@@ -146,7 +146,7 @@ it('ships the full pool when routing fails', function (): void {
 
     $registry = new class($pool) extends ToolRegistry
     {
-        /** @param array<int, ToolEntry> $pool */
+        /** @param array<int, ToolEntryData> $pool */
         public function __construct(private readonly array $pool) {}
 
         public function for(Agent $agent): array

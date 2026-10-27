@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Mcp\Services;
 
-use Domain\Integration\Mcp\Data\ResolvedMcpTool;
+use Domain\Integration\Mcp\Data\ResolvedMcpToolData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
@@ -26,14 +26,14 @@ use Domain\Integration\Mcp\Models\McpTool;
  */
 class McpToolPermissionResolver
 {
-    public function resolve(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
+    public function resolve(AgentMcpServer $server, string $toolName): ?ResolvedMcpToolData
     {
         return $server->usesCentralCatalog()
             ? $this->fromMembership($server, $toolName)
             : $this->fromOwnTools($server, $toolName);
     }
 
-    private function fromMembership(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
+    private function fromMembership(AgentMcpServer $server, string $toolName): ?ResolvedMcpToolData
     {
         /** @var ConnectorTool|null $tool */
         $tool = $server->connectorTools()
@@ -48,14 +48,14 @@ class McpToolPermissionResolver
         /** @var McpServerTool $membership */
         $membership = $tool->getRelation('pivot');
 
-        return new ResolvedMcpTool($membership->permission, $tool->description, $tool->input_schema);
+        return new ResolvedMcpToolData($membership->permission, $tool->description, $tool->input_schema);
     }
 
-    private function fromOwnTools(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
+    private function fromOwnTools(AgentMcpServer $server, string $toolName): ?ResolvedMcpToolData
     {
         /** @var McpTool|null $tool */
         $tool = $server->tools()->where('name', $toolName)->first(['permission', 'description', 'input_schema']);
 
-        return $tool !== null ? new ResolvedMcpTool($tool->permission, $tool->description, $tool->input_schema) : null;
+        return $tool !== null ? new ResolvedMcpToolData($tool->permission, $tool->description, $tool->input_schema) : null;
     }
 }

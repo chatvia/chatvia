@@ -9,6 +9,7 @@ use Domain\Agent\Data\Settings\Copy\UpdateBubblesData;
 use Domain\Agent\Data\Settings\Copy\UpdateStartersData;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Illuminate\Support\Collection;
 
 /**
  * Conversation starters and widget bubbles are translated the same way when
@@ -26,10 +27,10 @@ beforeEach(function (): void {
  * the id the first one returned.
  */
 dataset('translated copy', [
-    'starters' => [fn (Agent $agent, string $text, array $overrides = [], ?StarterData $saved = null): array => app(SetAgentStartersAction::class)->execute($agent, new UpdateStartersData(starters: [
+    'starters' => [fn (Agent $agent, string $text, array $overrides = [], ?StarterData $saved = null): Collection => app(SetAgentStartersAction::class)->execute($agent, new UpdateStartersData(starters: [
         new StarterData($saved?->id, $text, null, overrides: $overrides),
     ]))],
-    'bubbles' => [fn (Agent $agent, string $text, array $overrides = []): array => app(SetWidgetBubblesAction::class)->execute($agent, new UpdateBubblesData(bubbles: [
+    'bubbles' => [fn (Agent $agent, string $text, array $overrides = []): Collection => app(SetWidgetBubblesAction::class)->execute($agent, new UpdateBubblesData(bubbles: [
         new BubbleData($text, overrides: $overrides),
     ]))],
 ]);

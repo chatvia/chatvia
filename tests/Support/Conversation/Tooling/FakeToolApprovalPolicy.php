@@ -6,7 +6,7 @@ namespace Tests\Support\Conversation\Tooling;
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * An approval policy without the agent's stored settings: it gates every

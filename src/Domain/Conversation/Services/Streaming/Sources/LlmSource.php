@@ -8,9 +8,10 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
+use Domain\Conversation\Services\Turn\CitationMarkers;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\ReasoningEffort;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
@@ -29,10 +30,11 @@ class LlmSource extends ToolLoopSource
         RequestDedupeStore $dedupe,
         ToolSelector $toolSelector,
         ToolLoopRunner $runner,
-        GuardrailService $guardrails,
+        GuardrailInspector $guardrails,
         GuardrailRecorder $guardrailRecorder,
+        CitationMarkers $citations,
     ) {
-        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
+        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder, $citations);
     }
 
     /**
@@ -46,7 +48,7 @@ class LlmSource extends ToolLoopSource
         yield from $this->streamTurn($context, $llmMessages);
     }
 
-    protected function provider(ChatContext $context): LlmProviderInterface
+    protected function provider(ChatContext $context): ChatCompletionProvider
     {
         return $this->providers->for($context->requestData->message->model);
     }

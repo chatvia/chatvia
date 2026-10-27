@@ -58,8 +58,8 @@ it('dispatches a job for a verified message activity', function (): void {
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleTeamsActivityJob::class, fn (HandleTeamsActivityJob $job): bool => $job->activity['conversation']['id'] === 'a:1conversation'
-        && $job->activity['text'] === 'hello agent'
+    Bus::assertDispatched(HandleTeamsActivityJob::class, fn (HandleTeamsActivityJob $job): bool => $job->activity->conversationId === 'a:1conversation'
+        && $job->activity->text === 'hello agent'
         && $job->bot->is($this->teamsBot)
         && jobQueue($job) === 'messages');
 });

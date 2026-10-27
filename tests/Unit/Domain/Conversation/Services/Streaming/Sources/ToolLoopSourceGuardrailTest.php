@@ -9,6 +9,7 @@ use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\CitationMarkers;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\LlmProviders;
@@ -39,7 +40,7 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
     $replyRecorder = new RecordingReplyRecorder;
     $recorder = new RecordingGuardrailRecorder;
 
-    $shared = [$replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, new RedactingOutputGuard(['a@b.com' => '[EMAIL]']), $recorder];
+    $shared = [$replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, new RedactingOutputGuard(['a@b.com' => '[EMAIL]']), $recorder, app(CitationMarkers::class)];
 
     $events = match ($source) {
         'files' => new AttachmentSource(app(ChatFileModel::class), app(LlmProviders::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),

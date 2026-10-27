@@ -34,7 +34,7 @@ class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(BuildDataExportArchiveAction $action): void
     {
-        $export = DataExport::find($this->dataExportId);
+        $export = DataExport::query()->find($this->dataExportId);
 
         if ($export === null) {
             return;
@@ -45,7 +45,7 @@ class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
 
     public function failed(Throwable $e): void
     {
-        $export = DataExport::find($this->dataExportId);
+        $export = DataExport::query()->find($this->dataExportId);
 
         if ($export === null) {
             return;

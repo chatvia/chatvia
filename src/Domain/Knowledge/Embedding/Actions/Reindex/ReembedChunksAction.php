@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding\Actions\Reindex;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 class ReembedChunksAction
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly EmbeddingStorage $storage,
     ) {}
 

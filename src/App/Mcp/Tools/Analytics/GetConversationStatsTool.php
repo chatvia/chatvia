@@ -7,6 +7,7 @@ namespace App\Mcp\Tools\Analytics;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\Activity\ConversationStatsQuery;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -37,10 +38,10 @@ class GetConversationStatsTool extends AnalyticsTool
         $summary = sprintf(
             '%s: %s conversations, averaging %s messages each%s.%s',
             Str::ucfirst($scope->period->label),
-            number_format($data->conversations),
-            $data->avgMessagesPerConversation !== null ? number_format((float) $data->avgMessagesPerConversation, 1) : '0',
-            $data->avgDurationSeconds !== null ? ' and about '.number_format((float) $data->avgDurationSeconds).'s long' : '',
-            $busiest instanceof DailyCountData ? ' Busiest day was '.$busiest->date.' ('.number_format($busiest->count).' conversations).' : '',
+            Number::format($data->conversations),
+            $data->avgMessagesPerConversation !== null ? Number::format(round((float) $data->avgMessagesPerConversation, 1), precision: 1) : '0',
+            $data->avgDurationSeconds !== null ? ' and about '.Number::format(round((float) $data->avgDurationSeconds)).'s long' : '',
+            $busiest instanceof DailyCountData ? ' Busiest day was '.$busiest->date.' ('.Number::format($busiest->count).' conversations).' : '',
         );
 
         return Response::make(Response::text($summary))->withStructuredContent([

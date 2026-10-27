@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Source\Qa\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
@@ -23,7 +23,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 class QaMatcher
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly EmbeddingStorage $storage,
     ) {}
 

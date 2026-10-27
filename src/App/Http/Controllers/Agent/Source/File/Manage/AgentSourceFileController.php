@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
 use App\Http\Requests\Agent\Source\File\ListSourceFilesRequest;
-use Domain\Agent\Data\Resources\Sources\SourceFileDataResource;
+use Domain\Agent\Data\Resources\Sources\SourceFileResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -23,7 +23,7 @@ class AgentSourceFileController
     private const int PER_PAGE = 50;
 
     /**
-     * @return LengthAwarePaginator<int, SourceFileDataResource>
+     * @return LengthAwarePaginator<int, SourceFileResourceData>
      */
     public function __invoke(ListSourceFilesRequest $request, Agent $agent): LengthAwarePaginator
     {
@@ -40,7 +40,7 @@ class AgentSourceFileController
             ->filter(fn (SourceFile $file): bool => $file->status === SourceStatus::Processing)
             ->loadCount('chunks');
 
-        return $files->through(fn (SourceFile $file): SourceFileDataResource => SourceFileDataResource::fromFile($file));
+        return $files->through(fn (SourceFile $file): SourceFileResourceData => SourceFileResourceData::fromFile($file));
     }
 
     /**

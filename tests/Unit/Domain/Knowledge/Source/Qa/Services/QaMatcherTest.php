@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
@@ -19,7 +19,7 @@ use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 /** @param  array<string, list<float>>  $directions */
 function qamEmbeddings(array $directions): void
 {
-    app()->instance(EmbeddingsProviderInterface::class, FakeEmbeddingsProvider::directions($directions));
+    app()->instance(EmbeddingsProvider::class, FakeEmbeddingsProvider::directions($directions));
 }
 
 function qamEntry(Agent $agent): AgentQuestionAnswer
@@ -40,9 +40,9 @@ it('matches a whole question first, without an embedding call', function (): voi
     $agent = Agent::factory()->create();
     $qa = qamEntry($agent);
 
-    $embeddings = Mockery::mock(EmbeddingsProviderInterface::class);
+    $embeddings = Mockery::mock(EmbeddingsProvider::class);
     $embeddings->shouldNotReceive('embedQuery');
-    app()->instance(EmbeddingsProviderInterface::class, $embeddings);
+    app()->instance(EmbeddingsProvider::class, $embeddings);
 
     expect(app(QaMatcher::class)->match($agent, 'what are your OPENING hours', 'what are your OPENING hours')?->id)->toBe($qa->id);
 });

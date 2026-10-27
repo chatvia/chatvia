@@ -8,6 +8,7 @@ use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Exceptions\TranscriptionNotConfiguredException;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 /**
@@ -28,7 +29,7 @@ function taaTranscriber(bool $takesAsIs): Transcriber
         public function transcribe(string $filePath): string
         {
             $this->path = $filePath;
-            $this->fileExisted = is_file($filePath);
+            $this->fileExisted = File::isFile($filePath);
 
             return 'hello there';
         }
@@ -62,8 +63,8 @@ it('sends a recording the service takes as it is, without compressing it, and re
     expect($text)->toBe('hello there')
         ->and($transcriber->fileExisted)->toBeTrue()
         ->and($transcriber->path)->toEndWith('.webm')
-        ->and(file_exists((string) $transcriber->path))->toBeFalse()
-        ->and(file_exists($recording->getRealPath()))->toBeTrue();
+        ->and(File::exists((string) $transcriber->path))->toBeFalse()
+        ->and(File::exists($recording->getRealPath()))->toBeTrue();
 });
 
 it('compresses a recording the service does not take with the demuxer of its detected format, and removes the copy and the compressed file', function (): void {
@@ -80,7 +81,7 @@ it('compresses a recording the service does not take with the demuxer of its det
 
     expect($transcriber->path)->toBe($compressed)
         ->and($transcriber->fileExisted)->toBeTrue()
-        ->and(file_exists($compressed))->toBeFalse();
+        ->and(File::exists($compressed))->toBeFalse();
 });
 
 it('fails with the "not configured" error, before compressing, when no transcriber is set up', function (): void {

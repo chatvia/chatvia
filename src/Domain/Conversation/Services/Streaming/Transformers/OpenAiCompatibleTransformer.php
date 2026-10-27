@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Streaming\Transformers;
 
+use Domain\Conversation\Contracts\StreamTransformer;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;

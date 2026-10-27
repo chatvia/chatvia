@@ -4,11 +4,11 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Data\AcceptInvitationData;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -38,7 +38,7 @@ function atiTeamAndInvitation(string $invitedEmail = 'invitee@example.com'): arr
 {
     $owner = User::factory()->create(['email' => 'owner@example.com']);
 
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
 
     $role = teamRole($team);
 

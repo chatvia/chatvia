@@ -73,7 +73,7 @@ class InviteAgentChatterAction
                 ->where('email', $email)
                 ->delete();
 
-            return AgentChatterInvitation::create([
+            return AgentChatterInvitation::query()->create([
                 'agent_id' => $agent->id,
                 'email' => $email,
                 'token' => Str::random(64),

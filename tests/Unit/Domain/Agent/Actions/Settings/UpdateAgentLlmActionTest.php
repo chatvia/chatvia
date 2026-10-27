@@ -49,7 +49,7 @@ it('persists every hyperparameter into the llm_settings group', function (): voi
         frequency_penalty: 0.3,
     ));
 
-    // Assert against the persisted setting rows (the source of truth the action
+    // The persisted setting rows are checked (the source of truth the action
     // writes), comparing numerics by value so the test isn't coupled to the
     // settings read-back casting.
     $stored = $this->agent->modelSettings()

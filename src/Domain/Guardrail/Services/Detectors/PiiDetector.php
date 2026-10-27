@@ -14,7 +14,7 @@ use Domain\Guardrail\Services\Detectors\Filters\IpAddressFilter;
 use Domain\Guardrail\Services\Detectors\Filters\PhoneFilter;
 use Domain\Guardrail\Services\Detectors\Filters\UkNinoFilter;
 use Domain\Guardrail\Services\Detectors\Filters\UsSsnFilter;
-use Illuminate\Pipeline\Pipeline;
+use Illuminate\Support\Facades\Pipeline;
 
 /**
  * Rules-based PII detection + redaction. Deterministic, instant, and free — no
@@ -70,8 +70,7 @@ class PiiDetector
             $state->mask($pattern->regex(), $pattern->label(), $pattern->type());
         }
 
-        return app(Pipeline::class)
-            ->send($state)
+        return Pipeline::send($state)
             ->through($filters)
             ->then(fn (PiiRedactionState $state): PiiRedactionData => $state->result());
     }

@@ -8,9 +8,9 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Voice\VoiceCallSession;
 use Domain\Conversation\Services\Voice\VoiceToolRunner;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Llm\Contracts\RealtimeCalls;
@@ -42,17 +42,17 @@ beforeEach(function (): void {
 
     $this->tool = 'mcp__stripe__send_stripe_feedback';
     $this->mock(ToolRegistry::class)->shouldReceive('for')->andReturn([
-        new ToolEntry(ToolKind::Mcp, '1', $this->tool, 'Send feedback to Stripe.', ['type' => 'object', 'properties' => ['feedback' => ['type' => 'string']]]),
+        new ToolEntryData(ToolKind::Mcp, '1', $this->tool, 'Send feedback to Stripe.', ['type' => 'object', 'properties' => ['feedback' => ['type' => 'string']]]),
     ]);
     $this->mock(ToolApprovalPolicy::class)->shouldReceive('requiresApproval')->andReturn(true);
-    $this->dispatcher = $this->mock(ToolDispatcherInterface::class);
+    $this->dispatcher = $this->mock(ToolDispatcher::class);
 
     $this->session = app(VoiceCallSession::class)->for($this->call, $this->agent);
     $this->session->opened($this->connection = new RecordingVoiceConnection);
 });
 
 it('tells the call view a held action is not done yet, and when a run failed', function (): void {
-    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::error('Stripe is down.'));
+    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResultData::error('Stripe is down.'));
 
     RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
     $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
@@ -96,7 +96,7 @@ it('holds the action and has the model ask first', function (): void {
 });
 
 it('runs it when the model repeats it after the visitor\'s yes, and audits their words', function (): void {
-    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::text('Feedback sent.'));
+    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResultData::text('Feedback sent.'));
 
     RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
     $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
@@ -114,7 +114,7 @@ it('runs it when the model repeats it after the visitor\'s yes, and audits their
 });
 
 it('waits for the yes to be written down before it runs', function (): void {
-    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::text('Feedback sent.'));
+    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResultData::text('Feedback sent.'));
 
     RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
     $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));

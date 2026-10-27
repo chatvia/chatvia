@@ -139,10 +139,7 @@ final class WordBinaryFile
     /** Writes the document to a temporary file and returns its path. */
     public function save(): string
     {
-        $path = (string) tempnam(sys_get_temp_dir(), 'doc');
-        file_put_contents($path, CompoundFileWriter::write($this->streams()));
-
-        return $path;
+        return create_temp_file('document.doc', CompoundFileWriter::write($this->streams()));
     }
 
     /**
@@ -162,10 +159,7 @@ final class WordBinaryFile
         $put(0x34, pack('V', strlen($bytes)));
 
         // str_pad, not Str::padRight: these are bytes, and mb_str_pad counts characters.
-        $path = (string) tempnam(sys_get_temp_dir(), 'doc');
-        file_put_contents($path, CompoundFileWriter::write(['WordDocument' => str_pad($header.$bytes, 4096, "\0")]));
-
-        return $path;
+        return create_temp_file('document.doc', CompoundFileWriter::write(['WordDocument' => str_pad($header.$bytes, 4096, "\0")]));
     }
 
     /**

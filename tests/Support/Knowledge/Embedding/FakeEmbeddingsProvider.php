@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support\Knowledge\Embedding;
 
 use Closure;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
 /**
@@ -21,7 +21,7 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
  * the size the install stores ({@see EmbeddingStorage}), so the suite runs on
  * an install that picked another size too.
  */
-class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
+class FakeEmbeddingsProvider implements EmbeddingsProvider
 {
     /** @var list<string> */
     public array $texts = [];

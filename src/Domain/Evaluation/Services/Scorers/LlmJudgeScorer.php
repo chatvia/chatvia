@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -27,7 +28,7 @@ use Throwable;
  * A failed/garbled judge call fails the case (rather than silently passing) so a
  * provider outage can never be mistaken for a green eval.
  */
-class LlmJudgeScorer implements ScorerInterface
+class LlmJudgeScorer implements Scorer
 {
     public function __construct(
         private readonly StructuredCompletion $completion,

@@ -14,13 +14,13 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\AgentChatRateLimiter;
-use Domain\Conversation\Services\ChatService;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnPreparer;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\QaSource;
 use Domain\Conversation\Services\Turn\SpectraTurnTagger;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -35,7 +35,7 @@ use Throwable;
  * happens *while* the reply generates (refresh a typing indicator, push
  * streamed partials) via `$onProgress`.
  *
- * Mirrors {@see ChatStreamService}: the same deactivated-workspace stop
+ * Mirrors {@see ChatTurnStreamer}: the same deactivated-workspace stop
  * ({@see WorkspaceActivation}), the same workspace message limit
  * ({@see MessageAllowance}), the same per-agent rate limit, the same source
  * selection (guard-block → Q&A → LLM). The fixed replies below are sent in
@@ -47,7 +47,7 @@ use Throwable;
 class ChannelReplyRunner
 {
     public function __construct(
-        private readonly ChatService $chatService,
+        private readonly ChatTurnPreparer $chatTurnPreparer,
         private readonly LlmSource $llmSource,
         private readonly QaSource $qaSource,
         private readonly GuardBlockSource $guardBlockSource,
@@ -55,7 +55,7 @@ class ChannelReplyRunner
         private readonly AgentChatRateLimiter $rateLimiter,
         private readonly AgentModel $models,
         private readonly WorkspaceActivation $activation,
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
         private readonly SpectraTurnTagger $spectraTagger,
     ) {}
 
@@ -118,7 +118,7 @@ class ChannelReplyRunner
         }
 
         // Per-agent chat rate limit (owner-configurable on the Security page).
-        // The web SSE surface applies this in ChatStreamService; channels reach
+        // The web SSE surface applies this in ChatTurnStreamer; channels reach
         // the pipeline directly, so the cap is enforced here too — otherwise a
         // visitor could bypass it by messaging through Telegram/Slack/etc.
         // The visitor's own cap comes first, as on the web.
@@ -154,7 +154,7 @@ class ChannelReplyRunner
             ->where('external_id', $turn->conversationExternalId)
             ->first());
 
-        $context = $this->chatService->initializeChatContext(new StreamRequestData(
+        $context = $this->chatTurnPreparer->initializeChatContext(new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(model: $model, message: $turn->message),
             externalSessionId: $turn->sessionExternalId,
@@ -163,12 +163,12 @@ class ChannelReplyRunner
             source: $turn->source->value,
             requestId: $turn->requestIdPrefix.Str::uuid(),
         ));
-        $context = $this->chatService->enrichContextWithKnowledge($context);
+        $context = $this->chatTurnPreparer->enrichContextWithKnowledge($context);
 
         $events = match (true) {
             $context->guardBlocked => $this->guardBlockSource->events($context),
             $context->hasQaMatch() => $this->qaSource->events($context),
-            default => $this->llmSource->events($context, $this->chatService->prepareLlmMessages($context)),
+            default => $this->llmSource->events($context, $this->chatTurnPreparer->prepareLlmMessages($context)),
         };
 
         // An answer held until the output guards checked it is not shown in

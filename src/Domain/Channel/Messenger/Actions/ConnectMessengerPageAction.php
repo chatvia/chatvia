@@ -33,7 +33,7 @@ class ConnectMessengerPageAction
         $this->guard->ensureAgentIsPublic($agent);
         $this->guard->ensureAccountIsFree($agent, AgentMessengerPage::query()->where('page_id', $page->id));
 
-        $connection = $this->guard->store(fn (): AgentMessengerPage => AgentMessengerPage::updateOrCreate(
+        $connection = $this->guard->store(fn (): AgentMessengerPage => AgentMessengerPage::query()->updateOrCreate(
             ['agent_id' => $agent->id],
             [
                 'page_access_token' => $page->access_token,

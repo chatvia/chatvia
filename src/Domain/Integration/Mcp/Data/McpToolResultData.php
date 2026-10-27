@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Mcp\Data;
 
-use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 
 /**
  * A `tools/call` result envelope (`{content, isError?, structuredContent?}`)
@@ -71,11 +71,11 @@ final readonly class McpToolResultData
      * As the tool layer's result: the text plus the renderable blocks, or a
      * recoverable error carrying the tool's own error text.
      */
-    public function toDispatchResult(): ToolDispatchResult
+    public function toDispatchResult(): ToolDispatchResultData
     {
         return $this->isError
-            ? ToolDispatchResult::error($this->text)
-            : new ToolDispatchResult($this->text, $this->artifacts());
+            ? ToolDispatchResultData::error($this->text)
+            : new ToolDispatchResultData($this->text, $this->artifacts());
     }
 
     /**

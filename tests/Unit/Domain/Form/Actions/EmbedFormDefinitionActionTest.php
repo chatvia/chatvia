@@ -3,7 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\EmbedFormDefinitionAction;
 use Domain\Form\Models\FormDefinition;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -44,9 +44,9 @@ it('writes the dense and sparse vectors for a form', function (): void {
 
 it('leaves the form unembedded and logs when the embedder fails', function (): void {
     $form = efdUnembeddedForm();
-    $failing = Mockery::mock(EmbeddingsProviderInterface::class);
+    $failing = Mockery::mock(EmbeddingsProvider::class);
     $failing->shouldReceive('embed')->andThrow(new RuntimeException('embedder down'));
-    app()->instance(EmbeddingsProviderInterface::class, $failing);
+    app()->instance(EmbeddingsProvider::class, $failing);
     Log::spy();
 
     app(EmbedFormDefinitionAction::class)->execute($form->id);

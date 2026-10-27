@@ -6,7 +6,7 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Enums\LlmProviderKind;
-use Domain\Llm\Providers\Responses\StreamsThroughResponses;
+use Domain\Llm\Providers\Concerns\StreamsThroughResponses;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;

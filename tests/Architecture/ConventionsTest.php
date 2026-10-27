@@ -564,10 +564,12 @@ it('checks values with filled()/blank(), never is_string()', function (): void {
 });
 
 /**
- * Local files, outside programs, waits, clocks and ids go through Laravel
- * (.ai/rules/laravel-first.md): File, Process, Http, Sleep, now() and
- * Str::uuid7() can be faked in tests, the plain functions cannot. Listed:
- * files that still call one, with how many calls each may keep.
+ * Local files, outside programs, waits, clocks, numbers and ids go through
+ * Laravel (.ai/rules/laravel-first.md): File, Process, Http, Sleep, now(),
+ * Number and Str::uuid7() can be faked or read left to right, the plain
+ * functions cannot. Scanned: src, tests, database, config and routes, except
+ * tests/Architecture, which runs without the app container and so without
+ * facades. Listed: files that still call one, with how many calls each may keep.
  */
 const NATIVE_IO_CALL_ALLOWLIST = [
     // Streams: written or read piece by piece, which File has no call for.
@@ -583,6 +585,12 @@ const NATIVE_IO_CALL_ALLOWLIST = [
     // Not converted yet.
     'src/Domain/Knowledge/Document/Conversion/Markdown/RtfReader.php' => 1,
     'src/Domain/Knowledge/Ingestion/Services/Parsing/LocalDocumentParser.php' => 1,
+    // Seeded with mt_srand() so the sample is the same on every run; random_int() cannot be seeded.
+    'tests/Unit/Domain/Analytics/Services/ResponseTimeHistogramTest.php' => 1,
+    // PDF encryption is AES over raw bytes with the PDF's own keys; Crypt has its own format.
+    'src/Domain/Knowledge/Document/Conversion/PdfEncryption.php' => 4,
+    // Makes RSA key pairs to sign test tokens, which Laravel has no call for.
+    'tests/Unit/Domain/Channel/Teams/Services/TeamsActivityVerifierTest.php' => 5,
 ];
 
 /** The plain PHP functions the rule replaces; every `curl_*` function too. */
@@ -590,6 +598,8 @@ const NATIVE_IO_FUNCTIONS = [
     'file_get_contents', 'file_put_contents', 'fopen', 'unlink', 'mkdir', 'rmdir',
     'is_file', 'file_exists', 'glob', 'exec', 'shell_exec', 'system', 'passthru',
     'proc_open', 'sleep', 'usleep', 'time', 'strtotime', 'uniqid',
+    'microtime', 'hrtime', 'date', 'gmdate', 'mktime', 'number_format', 'rand', 'mt_rand',
+    'error_log', 'password_hash', 'password_verify', 'flock',
 ];
 
 /**
@@ -632,12 +642,38 @@ function conventionNativeCalls(string $code, array $functions, array $prefixes =
     return $lines;
 }
 
-it('local files, programs, waits and clocks go through Laravel, not plain PHP functions', function (): void {
+/**
+ * Every PHP file .ai/rules/laravel-first.md covers: src, tests, database,
+ * config and routes, without compiled caches.
+ *
+ * @return list<string>
+ */
+function conventionLaravelFirstFiles(): array
+{
+    $files = [];
+
+    foreach (['src', 'tests', 'config', 'routes', 'database'] as $dir) {
+        foreach (conventionPhpFiles($dir) as $path) {
+            if (! Str::contains($path, DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR)) {
+                $files[] = $path;
+            }
+        }
+    }
+
+    return $files;
+}
+
+it('local files, programs, waits, clocks and numbers go through Laravel, not plain PHP functions', function (): void {
     $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $architecture = DIRECTORY_SEPARATOR.'tests'.DIRECTORY_SEPARATOR.'Architecture'.DIRECTORY_SEPARATOR;
     $found = [];
 
-    foreach (conventionPhpFiles('src') as $path) {
-        $lines = conventionNativeCalls((string) file_get_contents($path), NATIVE_IO_FUNCTIONS, ['curl_']);
+    foreach (conventionLaravelFirstFiles() as $path) {
+        if (Str::contains($path, $architecture)) {
+            continue;
+        }
+
+        $lines = conventionNativeCalls((string) file_get_contents($path), NATIVE_IO_FUNCTIONS, ['curl_', 'openssl_']);
 
         if ($lines !== []) {
             $found[Str::replace($root, '', $path)] = $lines;
@@ -657,7 +693,7 @@ it('local files, programs, waits and clocks go through Laravel, not plain PHP fu
 
     expect($newOffenders)->toBe([], implode("\n", [
         '',
-        'Plain PHP file/process/time call(s) — use File, Process, Http, Sleep, now() or Str::uuid7() (.ai/rules/laravel-first.md):',
+        'Plain PHP file/process/time/number call(s) — use File, Process, Http, Sleep, now(), Number, Hash, Crypt or Str::uuid7() (.ai/rules/laravel-first.md):',
         ...array_map(fn (string $o): string => "  - {$o}", $newOffenders),
         '',
         'Or, where Laravel has no equivalent (a stream, a partial read), add the file to NATIVE_IO_CALL_ALLOWLIST in this file.',
@@ -704,7 +740,7 @@ const NATIVE_STRING_CALL_ALLOWLIST = [
     'src/Domain/Llm/Providers/Messages/MessagesStream.php' => 1,
     'src/Domain/Llm/Providers/Responses/ResponsesStream.php' => 1,
     // Splits a signed token at byte offsets; the HMAC covers raw bytes.
-    'src/App/Identity/Workspace/Services/AgentSignInTokenService.php' => 2,
+    'src/App/Identity/Workspace/Services/AgentSignInTokens.php' => 2,
     // Counts lines up to a byte offset from PREG_OFFSET_CAPTURE.
     'tests/Architecture/ConventionsTest.php' => 1,
     // Builds binary OLE files: padding counts bytes.
@@ -824,6 +860,137 @@ it('class constants declare their type', function (): void {
         'Untyped constant(s): write `public const string NAME = …;` (.ai/rules/src.md):',
         ...array_map(fn (string $o): string => "  - {$o}", $offenders),
     ]));
+});
+
+// --- Shrink-only baselines ----------------------------------------------
+
+/**
+ * Compares per-file counts with a stored baseline that may only shrink. A new
+ * file or a higher count fails; a lower count fails too until the baseline is
+ * lowered, so a fixed call can never come back unnoticed. Rewrite every
+ * baseline from the code as it is with CONVENTIONS_BASELINE_WRITE=1.
+ *
+ * @param  array<string, int>  $found  count per relative path
+ */
+function conventionExpectBaseline(string $name, array $found, string $rule): void
+{
+    $path = __DIR__."/baselines/{$name}.json";
+    ksort($found);
+
+    if (getenv('CONVENTIONS_BASELINE_WRITE')) {
+        file_put_contents($path, json_encode($found, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
+    }
+
+    /** @var array<string, int> $baseline */
+    $baseline = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+
+    $up = [];
+
+    foreach ($found as $file => $count) {
+        if ($count > ($baseline[$file] ?? 0)) {
+            $up[] = "{$file}: {$count} (baseline ".($baseline[$file] ?? 0).')';
+        }
+    }
+
+    expect($up)->toBe([], implode("\n", ['', "{$rule}:", ...array_map(fn (string $o): string => "  - {$o}", $up)]));
+
+    $down = [];
+
+    foreach ($baseline as $file => $count) {
+        if (($found[$file] ?? 0) < $count) {
+            $down[] = $file;
+        }
+    }
+
+    expect($down)->toBe([], implode("\n", [
+        '',
+        "Fewer calls than tests/Architecture/baselines/{$name}.json allows — lower it with CONVENTIONS_BASELINE_WRITE=1 vendor/bin/pest tests/Architecture:",
+        ...array_map(fn (string $f): string => "  - {$f}", $down),
+    ]));
+}
+
+/**
+ * Line numbers in $code of json_encode()/json_decode() calls that do not pass
+ * JSON_THROW_ON_ERROR, which would turn bad JSON into a silent null or false.
+ *
+ * @return list<int>
+ */
+function conventionJsonCallsWithoutThrow(string $code): array
+{
+    $tokens = array_values(array_filter(
+        PhpToken::tokenize($code),
+        fn (PhpToken $token): bool => ! $token->isIgnorable(),
+    ));
+    $lines = [];
+
+    foreach ($tokens as $i => $token) {
+        if (! $token->is([T_STRING, T_NAME_FULLY_QUALIFIED])
+            || ! in_array(Str::lower(Str::ltrim($token->text, '\\')), ['json_encode', 'json_decode'], true)
+            || ($tokens[$i + 1] ?? null)?->text !== '('
+            || ($tokens[$i - 1] ?? null)?->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW])) {
+            continue;
+        }
+
+        $depth = 0;
+        $throws = false;
+
+        for ($j = $i + 1; isset($tokens[$j]); $j++) {
+            if ($tokens[$j]->text === '(') {
+                $depth++;
+            } elseif ($tokens[$j]->text === ')' && --$depth === 0) {
+                break;
+            }
+
+            $throws = $throws || Str::ltrim($tokens[$j]->text, '\\') === 'JSON_THROW_ON_ERROR';
+        }
+
+        if (! $throws) {
+            $lines[] = $token->line;
+        }
+    }
+
+    return $lines;
+}
+
+/**
+ * Arrays go through collections and Arr (.ai/rules/laravel-first.md). Older
+ * code still calls array_map(), array_filter() and array_column(); the
+ * baseline pins how many each file may keep, so new code uses collect() or
+ * Arr and the count only goes down.
+ */
+it('chains arrays with collections or Arr, not array_map/array_filter/array_column', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $found = [];
+
+    foreach (conventionLaravelFirstFiles() as $path) {
+        $count = count(conventionNativeCalls((string) file_get_contents($path), ['array_map', 'array_filter', 'array_column']));
+
+        if ($count > 0) {
+            $found[Str::replace($root, '', $path)] = $count;
+        }
+    }
+
+    conventionExpectBaseline('array-functions', $found, 'New array_map()/array_filter()/array_column() call(s) — use collect() or Arr::map()/Arr::where()/Arr::pluck() (.ai/rules/laravel-first.md)');
+});
+
+/**
+ * JSON is decoded and encoded by Laravel where it can be, and by hand only
+ * with JSON_THROW_ON_ERROR (.ai/rules/laravel-first.md). The baseline pins the
+ * calls older code still makes without the flag.
+ */
+it('passes JSON_THROW_ON_ERROR to every json_encode/json_decode call', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $found = [];
+
+    foreach (conventionLaravelFirstFiles() as $path) {
+        $count = count(conventionJsonCallsWithoutThrow((string) file_get_contents($path)));
+
+        if ($count > 0) {
+            $found[Str::replace($root, '', $path)] = $count;
+        }
+    }
+
+    conventionExpectBaseline('json-without-throw', $found, 'json_encode()/json_decode() without JSON_THROW_ON_ERROR — pass the flag, or let a cast, $response->json() or response()->json() do it (.ai/rules/laravel-first.md)');
 });
 
 // --- Tests ---------------------------------------------------------------

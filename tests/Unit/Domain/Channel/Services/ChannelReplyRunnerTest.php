@@ -17,8 +17,8 @@ use Tests\Support\Llm\ScriptedLlmProvider;
 
 /**
  * One messaging-channel turn through the real chat pipeline, with a scripted
- * model. The runner mirrors the per-turn gates of ChatStreamService (its
- * ChatStreamService*Test files are the web side): a deactivated workspace, a
+ * model. The runner mirrors the per-turn gates of ChatTurnStreamer (its
+ * ChatTurnStreamer*Test files are the web side): a deactivated workspace, a
  * reached message limit, no model, and the visitor's and the agent's rate
  * limits each answer with a fixed reply and run nothing. It also strips the
  * web-only `<render-form …>` tag from a reply, and tags the turn's AI calls

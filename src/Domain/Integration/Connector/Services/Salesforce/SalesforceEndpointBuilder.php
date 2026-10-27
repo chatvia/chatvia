@@ -35,9 +35,11 @@ class SalesforceEndpointBuilder
 
         // OAuth login host: the org's My Domain if given (required for orgs that
         // enforce it), else the generic prod/sandbox login host.
-        $loginHost = filled($org->myDomain)
-            ? Str::rtrim(Str::trim($org->myDomain), '/')
-            : ($isSandbox ? 'https://test.salesforce.com' : 'https://login.salesforce.com');
+        $loginHost = match (true) {
+            filled($org->myDomain) => Str::rtrim(Str::trim($org->myDomain), '/'),
+            $isSandbox => 'https://test.salesforce.com',
+            default => 'https://login.salesforce.com',
+        };
 
         $segment = $isSandbox ? 'sandbox' : 'platform';
 

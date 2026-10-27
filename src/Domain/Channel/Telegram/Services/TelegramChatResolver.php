@@ -73,6 +73,6 @@ class TelegramChatResolver extends ChannelConversationResolver
      */
     protected function createMapping(array $attributes): Model
     {
-        return TelegramChat::create($attributes);
+        return TelegramChat::query()->create($attributes);
     }
 }

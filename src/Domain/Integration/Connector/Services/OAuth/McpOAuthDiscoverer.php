@@ -3,7 +3,7 @@
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -30,7 +30,7 @@ use Throwable;
  */
 class McpOAuthDiscoverer
 {
-    public function discover(string $mcpUrl, ?ConnectorData $connector = null): OAuthServerMetadata
+    public function discover(string $mcpUrl, ?ConnectorData $connector = null): OAuthServerMetadataData
     {
         $authServers = $this->fetchProtectedResource($mcpUrl, $this->resourceMetadataCandidates($mcpUrl));
 
@@ -147,7 +147,7 @@ class McpOAuthDiscoverer
         throw new McpOAuthException($lastError, previous: $lastFailure);
     }
 
-    private function fetchAuthServerMetadata(string $authServerUrl, ?ConnectorData $connector): OAuthServerMetadata
+    private function fetchAuthServerMetadata(string $authServerUrl, ?ConnectorData $connector): OAuthServerMetadataData
     {
         $lastStatus = null;
         $lastFailure = null;
@@ -164,7 +164,7 @@ class McpOAuthDiscoverer
             if ($response->successful()) {
                 $body = $response->json();
                 if (is_array($body) && ! empty($body['authorization_endpoint']) && ! empty($body['token_endpoint'])) {
-                    return OAuthServerMetadata::fromArray($authServerUrl, $body);
+                    return OAuthServerMetadataData::fromArray($authServerUrl, $body);
                 }
             }
 
@@ -255,9 +255,9 @@ class McpOAuthDiscoverer
         ];
     }
 
-    private function fallbackFromConnector(string $authServerUrl, ConnectorData $connector): OAuthServerMetadata
+    private function fallbackFromConnector(string $authServerUrl, ConnectorData $connector): OAuthServerMetadataData
     {
-        return OAuthServerMetadata::fromArray($authServerUrl, [
+        return OAuthServerMetadataData::fromArray($authServerUrl, [
             'authorization_endpoint' => $connector->oauthAuthorizationEndpoint ?? '',
             'token_endpoint' => $connector->oauthTokenEndpoint ?? '',
             'code_challenge_methods_supported' => ['S256'],

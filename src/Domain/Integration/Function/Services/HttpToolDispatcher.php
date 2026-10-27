@@ -2,19 +2,21 @@
 
 namespace Domain\Integration\Function\Services;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\FunctionInvoked;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 use Domain\Integration\Tool\Dispatch\ToolArgumentValidator;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
 use Domain\Integration\Tool\Exceptions\InvalidToolArgumentsException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -40,7 +42,7 @@ use Throwable;
  * The `X-Chatvia-*` header names are a public contract that customers' webhook
  * receivers check, so they keep this name even when the product is rebranded.
  */
-class HttpToolDispatcher implements ToolDispatcherInterface
+class HttpToolDispatcher implements ToolDispatcher
 {
     public const string TIMESTAMP_HEADER = 'X-Chatvia-Timestamp';
 
@@ -59,7 +61,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         private readonly ToolArgumentValidator $validator = new ToolArgumentValidator,
     ) {}
 
-    public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
+    public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResultData
     {
         $name = $call->name->value;
         $function = $this->findAttachedFunction($agent, $name);
@@ -144,20 +146,20 @@ class HttpToolDispatcher implements ToolDispatcherInterface
      * @param  array<string, string>  $headers
      * @param  array<string, mixed>  $clientOptions  From {@see SafeUrl::pinnedClientOptions()}.
      */
-    private function send(AgentFunction $function, Agent $agent, FunctionWebhookMethod $method, string $payload, array $headers, array $clientOptions): ToolDispatchResult
+    private function send(AgentFunction $function, Agent $agent, FunctionWebhookMethod $method, string $payload, array $headers, array $clientOptions): ToolDispatchResultData
     {
-        $start = microtime(true);
-
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
                 ->withOptions($clientOptions)
                 ->withHeaders($headers);
 
+            $started = CarbonImmutable::now();
             $response = $method === FunctionWebhookMethod::Get
                 ? $request->send($method->value, $function->webhook_url, ['query' => $payload])
                 : $request->withBody($payload, 'application/json')->send($method->value, $function->webhook_url);
+            $elapsedMs = $started->diffInMilliseconds(absolute: true);
 
-            $latency = (int) round((microtime(true) - $start) * 1000);
+            $latency = (int) round($elapsedMs);
 
             if ($response->failed()) {
                 $error = sprintf('webhook returned %d', $response->status());
@@ -175,7 +177,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
                 'latency_ms' => $latency,
             ]);
 
-            return ToolDispatchResult::text($truncated);
+            return ToolDispatchResultData::text($truncated);
         } catch (Throwable $e) {
             $message = $this->withoutUrls($e->getMessage());
             $this->record($function, $agent, error: $message);
@@ -304,8 +306,8 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         );
     }
 
-    private function error(string $message): ToolDispatchResult
+    private function error(string $message): ToolDispatchResultData
     {
-        return ToolDispatchResult::error('Tool error: '.$message);
+        return ToolDispatchResultData::error('Tool error: '.$message);
     }
 }

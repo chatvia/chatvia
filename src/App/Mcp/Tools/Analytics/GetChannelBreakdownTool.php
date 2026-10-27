@@ -6,6 +6,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\Audience\ChannelShareData;
 use Domain\Analytics\Queries\Account\Audience\ChannelBreakdownQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
+use Illuminate\Support\Number;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -46,9 +47,9 @@ class GetChannelBreakdownTool extends AnalyticsTool
                 'Busiest channel %s is %s with %s conversations (%s%% of %s total).',
                 $period->label,
                 $channels[0]['label'],
-                number_format($channels[0]['conversations']),
+                Number::format($channels[0]['conversations']),
                 $channels[0]['pct'],
-                number_format($data->totalConversations),
+                Number::format($data->totalConversations),
             );
 
         $structured = [

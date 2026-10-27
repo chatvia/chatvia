@@ -416,9 +416,11 @@ class ManagePlatformSettings extends AdminSettingsPage
     private function pdfMakerOptions(): array
     {
         return collect(PdfMaker::cases())->mapWithKeys(fn (PdfMaker $maker): array => [
-            $maker->value => $maker === PdfMaker::Weasyprint
-                ? $maker->label().($this->programPath(ServerProgram::Weasyprint) !== null ? ' (found)' : ' (not found)')
-                : $maker->label(),
+            $maker->value => match (true) {
+                $maker !== PdfMaker::Weasyprint => $maker->label(),
+                $this->programPath(ServerProgram::Weasyprint) !== null => "{$maker->label()} (found)",
+                default => "{$maker->label()} (not found)",
+            },
         ])->all();
     }
 

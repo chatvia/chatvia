@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -26,7 +27,7 @@ use Illuminate\Support\Str;
  * The score is the fraction of expected arguments that matched (1.0 when only the
  * tool name is checked), and `pass` requires every expected argument to match.
  */
-class ToolCallScorer implements ScorerInterface
+class ToolCallScorer implements Scorer
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {

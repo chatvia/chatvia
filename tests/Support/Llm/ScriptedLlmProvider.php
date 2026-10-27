@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Llm;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response as PsrResponse;
@@ -18,7 +18,7 @@ use RuntimeException;
  * tool loop calls stream() once per round, so body N is model round N; after
  * the last body it streams an empty answer. Bind it with bindFakeLlmProvider().
  */
-final class ScriptedLlmProvider implements LlmProviderInterface
+final class ScriptedLlmProvider implements ChatCompletionProvider
 {
     /** @var list<array<string, mixed>> the settings of each stream() call, in order */
     public array $sentSettings = [];

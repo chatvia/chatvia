@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Tooling\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Routing\AlwaysAvailableToolResolver;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
@@ -61,7 +61,7 @@ class ToolSelector
         // router and its embedding call outright.
         $pinned = $this->alwaysAvailable->resolve($agent, $pool);
         $pinnedNames = array_fill_keys($this->names($pinned), true);
-        $searchable = array_filter($pool, static fn (ToolEntry $entry): bool => ! isset($pinnedNames[$entry->name]));
+        $searchable = array_filter($pool, static fn (ToolEntryData $entry): bool => ! isset($pinnedNames[$entry->name]));
 
         if ($searchable === []) {
             return $this->shipPinnedOnly($agent, $pinned, $conversationId);
@@ -121,7 +121,7 @@ class ToolSelector
     /**
      * The whole pool is always-on: ship it (surface-filtered) without routing.
      *
-     * @param  array<int, ToolEntry>  $pinned
+     * @param  array<int, ToolEntryData>  $pinned
      * @return array<int, array<string, mixed>>
      */
     private function shipPinnedOnly(Agent $agent, array $pinned, ?string $conversationId): array
@@ -162,8 +162,8 @@ class ToolSelector
      * surface, none of a capability whose service is off, and none that need
      * an approval the surface cannot ask for.
      *
-     * @param  array<int, ToolEntry>  $entries
-     * @return array<int, ToolEntry>
+     * @param  array<int, ToolEntryData>  $entries
+     * @return array<int, ToolEntryData>
      */
     private function forSurface(Agent $agent, array $entries, ?string $conversationId): array
     {
@@ -178,7 +178,7 @@ class ToolSelector
      * the router didn't rank it this turn. Pulls from the full cached pool so
      * it doesn't matter whether the sticky tool is MCP or function.
      *
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function stickyTools(Agent $agent, ?string $conversationId): array
     {
@@ -190,16 +190,16 @@ class ToolSelector
 
         return array_values(array_filter(
             $this->registry->for($agent),
-            static fn (ToolEntry $entry): bool => in_array($entry->name, $stickyNames, true),
+            static fn (ToolEntryData $entry): bool => in_array($entry->name, $stickyNames, true),
         ));
     }
 
     /**
      * `$base` followed by every `$extra` entry whose name is not already in it.
      *
-     * @param  array<int, ToolEntry>  $base
-     * @param  array<int, ToolEntry>  $extra
-     * @return array<int, ToolEntry>
+     * @param  array<int, ToolEntryData>  $base
+     * @param  array<int, ToolEntryData>  $extra
+     * @return array<int, ToolEntryData>
      */
     private function union(array $base, array $extra): array
     {
@@ -216,20 +216,20 @@ class ToolSelector
     }
 
     /**
-     * @param  array<int, ToolEntry>  $entries
+     * @param  array<int, ToolEntryData>  $entries
      * @return array<int, string>
      */
     private function names(array $entries): array
     {
-        return array_map(static fn (ToolEntry $entry): string => $entry->name, $entries);
+        return array_map(static fn (ToolEntryData $entry): string => $entry->name, $entries);
     }
 
     /**
-     * @param  array<int, ToolEntry>  $entries
+     * @param  array<int, ToolEntryData>  $entries
      * @return array<int, array<string, mixed>>
      */
     private function toOpenAiTools(array $entries): array
     {
-        return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $entries);
+        return array_map(static fn (ToolEntryData $entry): array => $entry->toOpenAiFormat(), $entries);
     }
 }

@@ -51,7 +51,7 @@ Move time with `$this->travelTo()`, `$this->travel()` or `$this->freezeTime()`, 
 A teammate without the permission gets 403; another workspace's record gets 404.
 
 ## Architecture tests
-Add a structural rule as a plain `it()` in `tests/Architecture/ConventionsTest.php` that scans files without booting the app; don't use Pest's `arch()`. The allowlists there only shrink: fix an offender, then remove its entry.
+Add a structural rule as a plain `it()` in `tests/Architecture/ConventionsTest.php` that scans files without booting the app; don't use Pest's `arch()`. The allowlists there only shrink: fix an offender, then remove its entry. Counts too large for an allowlist live in `tests/Architecture/baselines/*.json`; after fixing calls, lower them with `CONVENTIONS_BASELINE_WRITE=1 vendor/bin/pest tests/Architecture`.
 
 ## Run targeted tests
 Run `php artisan test --compact <files>`, and `vendor/bin/pest tests/Architecture` after a structural change.

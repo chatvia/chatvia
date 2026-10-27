@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Support\Conversation\Tooling;
 
 use Closure;
+use Domain\Conversation\Contracts\StreamTransformer;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Generator;
 use Psr\Http\Message\ResponseInterface;
 

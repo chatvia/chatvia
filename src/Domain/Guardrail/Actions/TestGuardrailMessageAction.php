@@ -7,7 +7,7 @@ namespace Domain\Guardrail\Actions;
 use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Data\GuardrailSettingsData;
 use Domain\Guardrail\Data\GuardResultData;
-use Domain\Guardrail\Services\GuardrailService;
+use Domain\Guardrail\Services\GuardrailInspector;
 
 /**
  * Runs the input guards over a sample message with the settings on the
@@ -18,7 +18,7 @@ use Domain\Guardrail\Services\GuardrailService;
 class TestGuardrailMessageAction
 {
     public function __construct(
-        private readonly GuardrailService $guardrails,
+        private readonly GuardrailInspector $guardrails,
     ) {}
 
     public function execute(Agent $agent, GuardrailSettingsData $settings, string $message): GuardResultData

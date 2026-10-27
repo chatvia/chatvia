@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Scaleway;
@@ -91,7 +91,7 @@ final class ScalewayAdapter extends OpenAiCompatibleAdapter
         return 'https://console.scaleway.com/iam/api-keys';
     }
 
-    public function client(LlmProvider $provider): LlmProviderInterface
+    public function client(LlmProvider $provider): ChatCompletionProvider
     {
         return new Scaleway($provider, $this->baseUrl($provider), $this->apiKey($provider) ?? '');
     }

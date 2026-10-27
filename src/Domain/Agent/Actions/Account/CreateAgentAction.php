@@ -45,7 +45,7 @@ class CreateAgentAction
             $externalId = AgentService::generateRandomExternalId();
 
             /** @var Agent $agent */
-            $agent = Agent::create([
+            $agent = Agent::query()->create([
                 'workspace_id' => $workspace->id,
                 'team_id' => $data->team->id,
                 'name' => $data->name,

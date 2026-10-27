@@ -4,6 +4,7 @@ namespace App\Http\Auth;
 
 use App\Identity\Workspace\Actions\Social\LinkSocialAccountAction;
 use App\Identity\Workspace\Actions\Social\SocialLoginAction;
+use App\Identity\Workspace\Data\Social\SocialLoginData;
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
 use Illuminate\Http\RedirectResponse;
@@ -65,12 +66,12 @@ final readonly class SocialOauthCallback
         $driver = Socialite::driver($provider->value);
         $socialUser = $driver->user();
 
-        $user = $this->login->execute(
-            $provider,
-            (string) $socialUser->getId(),
-            $socialUser->getEmail(),
-            $this->providerEmailVerified($socialUser),
-        );
+        $user = $this->login->execute(new SocialLoginData(
+            provider: $provider,
+            providerId: (string) $socialUser->getId(),
+            email: $socialUser->getEmail(),
+            emailVerified: $this->providerEmailVerified($socialUser),
+        ));
 
         if (! $user instanceof \App\Identity\Workspace\Models\User) {
             return to_route('login')->with('error', __('No account found!'));

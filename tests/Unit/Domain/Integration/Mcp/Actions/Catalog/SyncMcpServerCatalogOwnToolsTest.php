@@ -10,7 +10,7 @@ use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Mcp\Services\McpClient;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Database\Eloquent\Collection;
@@ -108,7 +108,7 @@ it('busts every attached agent\'s cached tool pool so the next turn sees the fre
 
     sotAdvertise([['ask-tutor', 'ask']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
-    $names = fn (): array => array_map(fn (ToolEntry $e): string => $e->name, app(ToolRegistry::class)->for($agent));
+    $names = fn (): array => array_map(fn (ToolEntryData $e): string => $e->name, app(ToolRegistry::class)->for($agent));
     expect($names())->toBe(['mcp__hejly-tutor__ask-tutor']);
 
     sotAdvertise([['ask-tutor', 'ask'], ['correct-writing', 'correct']]);

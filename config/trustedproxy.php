@@ -1,8 +1,7 @@
 <?php
 
 declare(strict_types=1);
-use Illuminate\Support\Str;
-use Support\Http\CloudflareIps;
+use Support\Http\TrustedProxies;
 
 /*
 |--------------------------------------------------------------------------
@@ -11,8 +10,8 @@ use Support\Http\CloudflareIps;
 |
 | The proxies in front of the app (a load balancer, Cloudflare) whose
 | X-Forwarded-* headers are believed: TRUSTED_PROXIES, a comma-separated list
-| of IPs or CIDRs. The entry `cloudflare` expands to Cloudflare's published
-| edge ranges (Support\Http\CloudflareIps), so an install behind Cloudflare
+| of IPs or CIDRs, parsed by Support\Http\TrustedProxies. The entry
+| `cloudflare` expands to Cloudflare's published edge ranges, so an install behind Cloudflare
 | sets `TRUSTED_PROXIES=cloudflare` — plus its own proxy's IP when one sits
 | in between, e.g. `cloudflare,172.16.0.0/12` for the Docker stack. The
 | TrustProxies middleware reads `proxies` on every
@@ -26,19 +25,8 @@ use Support\Http\CloudflareIps;
 |
 */
 
-$proxies = Str::trim((string) env('TRUSTED_PROXIES', ''));
-
-$expand = fn (string $entry): array => strcasecmp($entry, 'cloudflare') === 0
-    ? CloudflareIps::ranges()
-    : [$entry];
-
 return [
 
-    'proxies' => match (true) {
-        $proxies === '*', $proxies === '' => env('APP_ENV') === 'local' ? '*' : null,
-        default => array_values(array_unique(array_merge(
-            ...array_map($expand, array_filter(array_map(Str::trim(...), explode(',', $proxies)))),
-        ))),
-    },
+    'proxies' => TrustedProxies::parse(env('TRUSTED_PROXIES'), env('APP_ENV')),
 
 ];

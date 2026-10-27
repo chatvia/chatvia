@@ -34,16 +34,13 @@ class HandleTeamsActivityJob implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * @param  array<string, mixed>  $activity
-     */
     public function __construct(
         public readonly AgentTeamsBot $bot,
-        public readonly array $activity,
+        public readonly TeamsActivityData $activity,
     ) {}
 
     public function handle(HandleTeamsActivityAction $action, TeamsClient $client, TeamsChatResolver $resolver): void
     {
-        $action->execute(new TeamsAdapter($client, $resolver, $this->bot, TeamsActivityData::fromArray($this->activity)));
+        $action->execute(new TeamsAdapter($client, $resolver, $this->bot, $this->activity));
     }
 }

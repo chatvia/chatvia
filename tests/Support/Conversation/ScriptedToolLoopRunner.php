@@ -8,7 +8,7 @@ use Closure;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Generator;
 use LogicException;
 
@@ -56,7 +56,7 @@ final class ScriptedToolLoopRunner extends ToolLoopRunner
 
     public function run(
         ChatContext $context,
-        LlmProviderInterface $provider,
+        ChatCompletionProvider $provider,
         string $modelName,
         array &$llmMessages,
         array $toolDefinitions,

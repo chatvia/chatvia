@@ -2,9 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Members\UpdateTeamMemberRoleAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Exceptions\TeamOwnerImmutableException;
 use Domain\Membership\Team\Models\Role;
-use Domain\Membership\Team\Services\TeamService;
 
 /**
  * Moving a member between roles updates the pivot; the owner, who holds the
@@ -12,7 +12,7 @@ use Domain\Membership\Team\Services\TeamService;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->role = fn (string $name): Role => teamRole($this->team, $name, permissions: []);
 });
 

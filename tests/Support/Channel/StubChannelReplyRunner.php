@@ -9,7 +9,6 @@ use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Services\ChannelReplyRunner;
 use Domain\Channel\Services\Replies\StreamingReplyStrategy;
 use Domain\Channel\Services\Replies\TypingReplyStrategy;
-use Illuminate\Support\Carbon;
 
 /**
  * Stand-in for {@see ChannelReplyRunner} so channel tests never run the real
@@ -37,7 +36,7 @@ class StubChannelReplyRunner extends ChannelReplyRunner
         $this->turn = $turn;
 
         foreach ($this->partials as $partial) {
-            Carbon::setTestNow(now()->addSeconds($this->secondsBetweenPartials));
+            test()->travel($this->secondsBetweenPartials)->seconds();
 
             if ($onProgress instanceof Closure) {
                 $onProgress($partial);

@@ -19,7 +19,7 @@ use Domain\Integration\Tool\Search\ToolHybridSearch;
 final readonly class ToolSearchHitData
 {
     public function __construct(
-        public ToolEntry $entry,
+        public ToolEntryData $entry,
         public float $score,
         public string $channels,
         public ToolSearchPool $pool,

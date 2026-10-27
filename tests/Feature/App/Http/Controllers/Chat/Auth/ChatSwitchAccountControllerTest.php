@@ -1,8 +1,8 @@
 <?php
 
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Domain\Agent\Models\Agent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Testing\TestResponse;
@@ -21,7 +21,7 @@ beforeEach(function (): void {
     $this->chat = '/chat/'.$this->agent->slug;
 
     // The browser is signed in to the chat as the current chatter.
-    $token = app(AgentSignInTokenService::class)->issue($this->current, $this->agent)['token'];
+    $token = app(AgentSignInTokens::class)->issue($this->current, $this->agent)['token'];
     $this->get("{$this->chat}?token={$token}")->assertRedirect($this->chat);
 });
 
@@ -29,8 +29,8 @@ beforeEach(function (): void {
 function csacOpenLinkForOther(string $param = 'token'): TestResponse
 {
     $token = $param === 'token'
-        ? app(AgentSignInTokenService::class)->issue(test()->other, test()->agent)['token']
-        : app(ChatterAuthTokenService::class)->generateToken(test()->agent, test()->other, 5);
+        ? app(AgentSignInTokens::class)->issue(test()->other, test()->agent)['token']
+        : app(ChatterAuthTokens::class)->generateToken(test()->agent, test()->other, 5);
 
     return test()->get(test()->chat."?{$param}={$token}");
 }
@@ -71,7 +71,7 @@ it('keeps the current account when the person stays', function (): void {
 });
 
 it('re-signs the same account without asking', function (): void {
-    $token = app(AgentSignInTokenService::class)->issue($this->current, $this->agent)['token'];
+    $token = app(AgentSignInTokens::class)->issue($this->current, $this->agent)['token'];
 
     $this->get("{$this->chat}?token={$token}")->assertRedirect($this->chat);
 

@@ -9,8 +9,8 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Voice\VoiceToolCatalog;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Data\ToolEntryData;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * Drops the tools that need a person's approval where nobody can approve:
@@ -34,8 +34,8 @@ class ApprovalToolFilter
     ) {}
 
     /**
-     * @param  array<int, ToolEntry>  $entries
-     * @return array<int, ToolEntry>
+     * @param  array<int, ToolEntryData>  $entries
+     * @return array<int, ToolEntryData>
      */
     public function apply(Agent $agent, array $entries, ?string $conversationExternalId): array
     {
@@ -53,7 +53,7 @@ class ApprovalToolFilter
 
         return array_values(array_filter(
             $entries,
-            fn (ToolEntry $entry): bool => ! $this->approvalPolicy->requiresApproval($agent, $entry->toolName()),
+            fn (ToolEntryData $entry): bool => ! $this->approvalPolicy->requiresApproval($agent, $entry->toolName()),
         ));
     }
 

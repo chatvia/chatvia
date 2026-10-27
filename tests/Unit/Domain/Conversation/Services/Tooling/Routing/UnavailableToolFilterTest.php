@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Conversation\Services\Tooling\Routing\UnavailableToolFilter;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Llm\Operations\Media\NullSpeaker;
 use Domain\Llm\Services\AudioGeneration;
@@ -17,14 +17,14 @@ use Tests\Support\Llm\FakeSpeaker;
 function utfEntries(): array
 {
     return array_map(
-        fn (string $name): ToolEntry => new ToolEntry(kind: ToolKind::Mcp, sourceId: 'x:'.$name, name: $name, description: '', parameters: []),
+        fn (string $name): ToolEntryData => new ToolEntryData(kind: ToolKind::Mcp, sourceId: 'x:'.$name, name: $name, description: '', parameters: []),
         ['mcp__image_generation__generate-image', 'mcp__audio_generation__generate-audio', 'mcp__charts__render-chart'],
     );
 }
 
 function utfNames(array $entries): array
 {
-    return array_map(fn (ToolEntry $entry): string => $entry->name, $entries);
+    return array_map(fn (ToolEntryData $entry): string => $entry->name, $entries);
 }
 
 // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
@@ -49,7 +49,7 @@ it('drops every capability tool without a license key and keeps other tools', fu
     app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
     config(['chatvia.license.licensed' => false]);
 
-    $entries = [...utfEntries(), new ToolEntry(kind: ToolKind::Mcp, sourceId: 'x:weather', name: 'mcp__weather__get-forecast', description: '', parameters: [])];
+    $entries = [...utfEntries(), new ToolEntryData(kind: ToolKind::Mcp, sourceId: 'x:weather', name: 'mcp__weather__get-forecast', description: '', parameters: [])];
 
     expect(utfNames(app(UnavailableToolFilter::class)->apply($entries)))->toBe(['mcp__weather__get-forecast']);
 });

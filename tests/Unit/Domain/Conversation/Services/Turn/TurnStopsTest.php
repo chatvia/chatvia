@@ -2,7 +2,6 @@
 
 use Domain\Conversation\Services\Streaming\Exceptions\TurnStopped;
 use Domain\Conversation\Services\Turn\TurnStops;
-use Illuminate\Support\Carbon;
 use Tests\Support\Conversation\TestChatContext;
 
 /**
@@ -36,16 +35,16 @@ it('lets a turn without a request id run', function (): void {
 });
 
 it('looks at most every half second from the read loop', function (): void {
-    Carbon::setTestNow('2026-10-26 12:00:00.000');
+    $this->travelTo('2026-10-26 12:00:00.000');
     $stops = new TurnStops;
     $context = TestChatContext::make(requestId: 'chat.a.s.c.r1');
 
     $stops->throwIfStoppedLately($context);
     $stops->request('chat.a.s.c.r1');
 
-    Carbon::setTestNow('2026-10-26 12:00:00.300');
+    $this->travelTo('2026-10-26 12:00:00.300');
     $stops->throwIfStoppedLately($context);
 
-    Carbon::setTestNow('2026-10-26 12:00:00.600');
+    $this->travelTo('2026-10-26 12:00:00.600');
     expect(fn () => $stops->throwIfStoppedLately($context))->toThrow(TurnStopped::class);
 });

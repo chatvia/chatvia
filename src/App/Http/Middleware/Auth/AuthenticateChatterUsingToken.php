@@ -5,7 +5,7 @@ namespace App\Http\Middleware\Auth;
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatViewer;
 use App\Http\Chat\PendingChatSignIn;
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Signs a user in to an agent's hosted chat from a `?auth_token=` URL.
  *
- * Consumes a one-time token minted by ChatterAuthTokenService for this agent:
+ * Consumes a one-time token minted by ChatterAuthTokens for this agent:
  * a token that resolves signs its chatter or staff account in to the chat
  * ({@see HostedChatViewer}, never the dashboard) and is used up at once — strictly single-use, unlike the
  * multi-use `?token=` sign-in-link flow handled by
@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthenticateChatterUsingToken
 {
     public function __construct(
-        private readonly ChatterAuthTokenService $authTokenService
+        private readonly ChatterAuthTokens $authTokens
     ) {}
 
     /**
@@ -49,7 +49,7 @@ class AuthenticateChatterUsingToken
         // An invalid, expired, used or foreign token is a no-op here: the
         // chat's access rules then send a still-anonymous visitor to login.
         if ($agent instanceof Agent) {
-            $account = $this->authTokenService->consume($request->string('auth_token')->toString(), $agent);
+            $account = $this->authTokens->consume($request->string('auth_token')->toString(), $agent);
 
             // The token is spent either way; someone else signed in confirms
             // the switch first.

@@ -5,6 +5,7 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\CharacterMeasure;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\MarkdownSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\RecursiveSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 /**
@@ -185,7 +186,7 @@ it('splits a crawled page and an ebook into chunks that fit', function (string $
             ->and(Str::trim($chunk))->not->toBe('');
     }
 })->with([
-    'help centre sample' => [fn (): string => file_get_contents(resource_path('chunking/markdown.md'))],
+    'help centre sample' => [fn (): string => File::get(resource_path('chunking/markdown.md'))],
     'Pandoc ebook' => [fn (): string => implode("\n\n", array_map(
         fn (int $chapter): string => "Chapter {$chapter}\n=========\n\n".Str::repeat("The night was cold and the road was long. She walked on, thinking of home.\n\n", 5),
         range(1, 3),

@@ -40,7 +40,7 @@ class RequestDataExportAction
             throw ActiveDataExportExistsException::forUser($userId);
         }
 
-        $export = DataExport::create([
+        $export = DataExport::query()->create([
             'user_id' => $userId,
             'status' => DataExportStatus::Pending,
             'download_token' => Str::random(64),

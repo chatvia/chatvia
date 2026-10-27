@@ -3,6 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -28,7 +29,7 @@ beforeEach(function (): void {
 /** The text of a downloaded export. */
 function cecDownloaded(TestResponse $response): string
 {
-    return (string) file_get_contents($response->baseResponse->getFile()->getPathname());
+    return File::get($response->baseResponse->getFile()->getPathname());
 }
 
 it('exports a conversation as a PDF', function (): void {
@@ -66,13 +67,13 @@ it('deletes the temporary copy of a text export once it is sent', function (stri
     $response = $this->get("{$this->export}?type={$type}")->assertOk();
     $path = $response->baseResponse->getFile()->getPathname();
 
-    expect(file_exists($path))->toBeTrue();
+    expect(File::exists($path))->toBeTrue();
 
     ob_start();
     $response->baseResponse->sendContent();
     ob_end_clean();
 
-    expect(file_exists($path))->toBeFalse();
+    expect(File::exists($path))->toBeFalse();
 })->with(['markdown', 'text']);
 
 it('exports a single message of the conversation', function (): void {

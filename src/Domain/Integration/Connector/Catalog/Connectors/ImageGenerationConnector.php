@@ -7,6 +7,7 @@ namespace Domain\Integration\Connector\Catalog\Connectors;
 use Domain\Integration\Connector\Catalog\CapabilityConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
 use Domain\Llm\Contracts\ImageGenerator;
+use Support\License\Entitlements;
 
 /**
  * Pictures the agent makes for the visitor, shown under its reply. Only the
@@ -16,6 +17,13 @@ use Domain\Llm\Contracts\ImageGenerator;
  */
 final class ImageGenerationConnector extends CapabilityConnector
 {
+    public function __construct(
+        Entitlements $entitlements,
+        private readonly ImageGenerator $images,
+    ) {
+        parent::__construct($entitlements);
+    }
+
     #[\Override]
     public string $slug { get => 'image-generation'; }
 
@@ -47,6 +55,6 @@ final class ImageGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return parent::isAvailable() && app(ImageGenerator::class)->isEnabled();
+        return parent::isAvailable() && $this->images->isEnabled();
     }
 }

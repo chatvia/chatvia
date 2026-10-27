@@ -69,7 +69,7 @@ class CreateEvalCasesFromQuestionsAction
                     ? $chunks[$item->id]->chunk
                     : $qas[$item->id]->answer;
 
-                $created->push(EvalCase::create([
+                $created->push(EvalCase::query()->create([
                     'agent_id' => $agent->id,
                     'agent_name' => $agent->name,
                     'workspace_id' => $agent->workspace_id,

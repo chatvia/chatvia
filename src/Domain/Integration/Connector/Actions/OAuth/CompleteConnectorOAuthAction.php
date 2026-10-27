@@ -5,7 +5,7 @@ namespace Domain\Integration\Connector\Actions\OAuth;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\OAuth\ConnectorOAuthCallbackData;
 use Domain\Integration\Connector\Data\OAuth\OAuthTokenSetData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Connector\Services\OAuth\OAuthStateStore;
@@ -38,7 +38,7 @@ class CompleteConnectorOAuthAction
     {
         $pending = $this->states->pull($callback->state);
 
-        if (! $pending instanceof PendingOAuthState) {
+        if (! $pending instanceof PendingOAuthStateData) {
             throw new McpOAuthException('This connection request has expired or was already used. Please try again.');
         }
 
@@ -68,7 +68,7 @@ class CompleteConnectorOAuthAction
      * teammate and every agent of the workspace sees the same row. A repeat
      * connect updates the existing row.
      */
-    private function saveServer(User $user, PendingOAuthState $pending, OAuthTokenSetData $tokens): AgentMcpServer
+    private function saveServer(User $user, PendingOAuthStateData $pending, OAuthTokenSetData $tokens): AgentMcpServer
     {
         $workspace = $user->workspace();
         $isCustom = $pending->connectorSlug === null;

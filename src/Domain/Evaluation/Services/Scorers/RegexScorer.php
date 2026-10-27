@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -12,7 +13,7 @@ use Domain\Evaluation\Models\EvalCase;
  * Passes when the agent's answer matches the `scorer_config.pattern` regex.
  * An invalid pattern fails the case rather than throwing.
  */
-class RegexScorer implements ScorerInterface
+class RegexScorer implements Scorer
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {

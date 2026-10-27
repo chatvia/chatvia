@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Providers\Responses;
 
 use Domain\Llm\AbstractLlmProvider;
+use Domain\Llm\Providers\Concerns\StreamsThroughResponses;
 use stdClass;
 
 /**

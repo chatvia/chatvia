@@ -241,7 +241,7 @@ class StreamRequestDataFactory
      * The model the agent answers with ({@see AgentModel}): the one the
      * chatter picked when the agent offers it, else its own, or the default
      * one while it has none. Downstream code (StreamRequestMessageData,
-     * ChatService, LlmSource) treats `model` as non-nullable, so fail fast
+     * ChatTurnPreparer, LlmSource) treats `model` as non-nullable, so fail fast
      * with a clear error when no model can answer at all, rather than letting
      * a typed null surface deep in the streaming pipeline.
      */

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Services;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
@@ -24,7 +24,7 @@ class LlmProviders
     /**
      * @throws LlmProviderUnavailableException
      */
-    public function for(Llm $model): LlmProviderInterface
+    public function for(Llm $model): ChatCompletionProvider
     {
         return $this->forProvider($model->provider);
     }
@@ -32,7 +32,7 @@ class LlmProviders
     /**
      * @throws LlmProviderUnavailableException
      */
-    public function forProvider(LlmProvider $provider): LlmProviderInterface
+    public function forProvider(LlmProvider $provider): ChatCompletionProvider
     {
         if (! $provider->is_enabled) {
             throw LlmProviderUnavailableException::disabled($provider);

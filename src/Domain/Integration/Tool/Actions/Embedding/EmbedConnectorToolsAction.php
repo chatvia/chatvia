@@ -7,7 +7,7 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\ConnectorTool;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingServiceMissingException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -27,7 +27,7 @@ class EmbedConnectorToolsAction
 {
     public function __construct(
         private readonly ConnectorCatalog $catalog,
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
     ) {}
 
     public function execute(string $connectorSlug): void

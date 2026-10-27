@@ -11,14 +11,15 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Integration\Mcp\Models\McpTool;
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 
 /**
@@ -143,7 +144,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
             // its brand signal.
             $text = Str::trim($connector['name']."\n".$connector['description']."\n\n".$tool['name']."\n\n".$tool['description']);
             $vectors = [
-                'embedding' => app(EmbeddingsProviderInterface::class)->embed($text),
+                'embedding' => app(EmbeddingsProvider::class)->embed($text),
                 'search_text' => $text,
             ];
 
@@ -221,7 +222,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
         // Shipped set via the REAL router (hybrid search → per-scope relevance
         // gate), so the eval always reflects the full live pipeline.
         $shipped = $router->route($case['query'], $agent);
-        $shippedNames = array_map(static fn (ToolEntry $e): string => $e->name, $shipped);
+        $shippedNames = array_map(static fn (ToolEntryData $e): string => $e->name, $shipped);
 
         $rank = array_search($expected, $rankedNames, true);
         $rank = $rank === false ? null : $rank + 1;
@@ -271,7 +272,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     $w = max($agg['write_cases'], 1);
 
     // --- Scoreboard ---
-    $pct = static fn (float $v): string => Str::padLeft(number_format($v * 100, 1).'%', 7, ' ');
+    $pct = static fn (float $v): string => Str::padLeft(Number::format(round($v * 100, 1), precision: 1).'%', 7, ' ');
     $out = "\n".Str::repeat('=', 96)."\n";
     $reranker = app(Reranker::class);
     $bars = $reranker->isEnabled()
@@ -300,10 +301,10 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     $out .= Str::repeat('-', 96)."\n";
     $out .= 'top-1 accuracy (pre-gate) : '.$pct($agg['top1'] / $n)."   ({$agg['top1']}/{$n})\n";
     $out .= 'recall@5                  : '.$pct($agg['recall5'] / $n)."   ({$agg['recall5']}/{$n})\n";
-    $out .= 'MRR                       : '.Str::padLeft(number_format($agg['mrr'] / $n, 3), 7, ' ')."\n";
+    $out .= 'MRR                       : '.Str::padLeft(Number::format(round($agg['mrr'] / $n, 3), precision: 3), 7, ' ')."\n";
     $out .= 'shipped top-1 accuracy    : '.$pct($agg['shipped_top1'] / $n)."   ({$agg['shipped_top1']}/{$n})\n";
     $out .= 'shipped recall (in set)   : '.$pct($agg['shipped_recall'] / $n)."   ({$agg['shipped_recall']}/{$n})\n";
-    $out .= 'avg tools shipped / turn  : '.number_format($agg['shipped_size'] / $n, 1)."\n";
+    $out .= 'avg tools shipped / turn  : '.Number::format(round($agg['shipped_size'] / $n, 1), precision: 1)."\n";
     $out .= Str::repeat('-', 96)."\n";
     $out .= 'WRONG-MUTATION (write cases only, n='.$agg['write_cases'].")\n";
     $out .= '  wrong write as top-1     : '.$pct($agg['wrong_write_top1'] / $w)."   ({$agg['wrong_write_top1']}/{$agg['write_cases']})\n";

@@ -3,7 +3,7 @@
 use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Services\IP2Country;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 
 /**
@@ -20,7 +20,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 beforeEach(function (): void {
     withEnterpriseLicense();
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
+    app(CreateDefaultTeamAction::class)->execute($this->owner);
 });
 
 /**
@@ -88,7 +88,7 @@ it("applies the admin's own workspace rules to an admin like anyone else", funct
     // On the dashboard an admin only reaches their own workspace, so its rules
     // apply to them: no bypass.
     $admin = User::factory()->admin()->create();
-    app(TeamService::class)->createDefaultTeam($admin);
+    app(CreateDefaultTeamAction::class)->execute($admin);
     WorkspaceSecurityPolicy::forWorkspace($admin->workspace()->id)->update(['ip_allowlist_mode' => 'dashboard', 'ip_allowlist' => ['10.0.0.0/8'], 'geo_mode' => 'off']);
 
     $this->actingAs($admin)

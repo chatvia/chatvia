@@ -68,7 +68,11 @@ final readonly class AiProviderCheck
 
         if ($kind instanceof LlmProviderKind) {
             // An unsaved row may hold the endpoint being checked: only saved rows of your own server keep one.
-            $endpoint = $provider->needsBaseUrl() ? (filled($baseUrl) ? $baseUrl : config($provider->baseUrlConfig() ?? '')) : null;
+            $endpoint = match (true) {
+                ! $provider->needsBaseUrl() => null,
+                filled($baseUrl) => $baseUrl,
+                default => config($provider->baseUrlConfig() ?? ''),
+            };
 
             if ($provider->needsBaseUrl() && blank($endpoint)) {
                 return new ConnectionCheckData(false, message: "Add the endpoint of your {$provider->label()} resource too.");

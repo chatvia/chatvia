@@ -2,7 +2,7 @@
 
 namespace Domain\Llm;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\SharedHttpHandler;
@@ -25,7 +25,7 @@ use Throwable;
  * non-streaming callers use LlmChat, which wraps completion() in typed
  * request and response objects.
  */
-abstract class AbstractLlmProvider implements LlmProviderInterface
+abstract class AbstractLlmProvider implements ChatCompletionProvider
 {
     /**
      * The request key for how hard the model thinks: a value the model takes,

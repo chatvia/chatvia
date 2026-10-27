@@ -15,6 +15,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Support\Knowledge\Document\PngImage;
 
 /**
@@ -33,7 +34,7 @@ beforeEach(function (): void {
 function iscGroup(string ...$contents): PageGroupData
 {
     return new PageGroupData(array_values(array_map(
-        fn (string $content, int $index): PageData => new PageData(pageNumber: $index + 1, content: $content, checksum: md5($content.uniqid())),
+        fn (string $content, int $index): PageData => new PageData(pageNumber: $index + 1, content: $content, checksum: md5($content.Str::random())),
         $contents,
         array_keys($contents),
     )));
@@ -72,7 +73,7 @@ it('saves the images of document pages in the source folder, not under the agent
 
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
-    $group = new PageGroupData([new PageData(pageNumber: 1, content: 'A chart.', checksum: md5(uniqid()), imagesBase64: [PngImage::BASE64])]);
+    $group = new PageGroupData([new PageData(pageNumber: 1, content: 'A chart.', checksum: md5(Str::random()), imagesBase64: [PngImage::BASE64])]);
 
     app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $file, $group));
 

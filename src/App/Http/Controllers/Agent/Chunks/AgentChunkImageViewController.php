@@ -20,7 +20,7 @@ class AgentChunkImageViewController
         // This route is public (anonymous visitor browsers load the agent's
         // markdown images), so it cannot sit behind `auth`. Instead every
         // legitimate URL carries a constant-time HMAC the server minted in
-        // ChatService; reject anything else so a guessed chunk id can't be used
+        // ChatTurnPreparer; reject anything else so a guessed chunk id can't be used
         // to read another tenant's ingested page images (cross-tenant IDOR).
         abort_unless(
             ChunkImageLink::verify($chunkExternalId, $imageIndex, $request->query(ChunkImageLink::SIGNATURE_PARAM)),

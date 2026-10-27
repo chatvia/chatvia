@@ -8,7 +8,7 @@ use App\Http\Controllers\Chat\Conversations\StopTurnController;
 use App\Http\Requests\Chat\ChatStreamRequest;
 use App\Http\Responses\SseResponder;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Conversation\Services\Turn\RunningTurns;
 use Generator;
@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 readonly class ChatStreamController
 {
     public function __construct(
-        private ChatStreamService $chatStreamService,
+        private ChatTurnStreamer $chatTurnStreamer,
         private HostedChatSession $session,
         private StreamRequestDataFactory $factory,
         private SseResponder $sse,
@@ -38,7 +38,7 @@ readonly class ChatStreamController
 
         return $this->sse->respondUntilFinished($this->runningTurns->track(
             $conversationId,
-            fn (): Generator => $this->chatStreamService->stream($data),
+            fn (): Generator => $this->chatTurnStreamer->stream($data),
         ));
     }
 }

@@ -8,7 +8,7 @@ use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Mcp\Services\McpToolDispatcher;
-use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolDispatchResultData;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Uri;
 use Throwable;
@@ -39,7 +39,7 @@ class AnalyticsToolDispatcher
     /**
      * @param  array<string, mixed>  $arguments
      */
-    public function dispatch(Workspace $workspace, string $toolName, string $url, array $arguments): ToolDispatchResult
+    public function dispatch(Workspace $workspace, string $toolName, string $url, array $arguments): ToolDispatchResultData
     {
         try {
             $result = $this->client->callTool($this->serverFor($url), $toolName, $arguments, [
@@ -52,7 +52,7 @@ class AnalyticsToolDispatcher
                 'code' => $e->getCode(),
             ]);
 
-            return ToolDispatchResult::error('The tool failed unexpectedly. Try again later.');
+            return ToolDispatchResultData::error('The tool failed unexpectedly. Try again later.');
         }
 
         return $result->toDispatchResult();

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Links a `User` to an external OAuth identity. One row per (user, provider).
  *
- * Replaces the per-provider `*_id` columns that used to live on `users`.
+ * Kept apart from `users` so one account can link several providers.
  * Look up a user by social identity with `UserSocial::query()
  *   ->where('provider', SocialProvider::Google)
  *   ->where('provider_id', $providerId)->first()?->user`.

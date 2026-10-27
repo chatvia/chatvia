@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Agent\Source\Connector;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Connector\Actions\Catalog\ListConnectorToolsAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorToolsResourceData;
+use Domain\Integration\Connector\Queries\ConnectorToolsQuery;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 
 /**
@@ -12,7 +12,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
  */
 class AgentConnectorToolController
 {
-    public function __invoke(Agent $agent, string $slug, ListConnectorToolsAction $list): ConnectorToolsResourceData
+    public function __invoke(Agent $agent, string $slug, ConnectorToolsQuery $list): ConnectorToolsResourceData
     {
         $server = AgentMcpServer::query()
             ->attachedToAgent($agent)
@@ -21,6 +21,6 @@ class AgentConnectorToolController
 
         abort_unless($server !== null, 404);
 
-        return $list->execute($server);
+        return $list->get($server);
     }
 }

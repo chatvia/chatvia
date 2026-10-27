@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\EpubReader;
+use Illuminate\Support\Facades\File;
 use Tests\Support\Knowledge\Document\EpubFile;
 
 /**
@@ -12,7 +13,7 @@ function epubrRead(string $path): string
     try {
         return new EpubReader()->toMarkdown($path);
     } finally {
-        @unlink($path);
+        File::delete($path);
     }
 }
 

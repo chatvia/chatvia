@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
  * `scorer_config.required`. A pragmatic structural check (not full JSON Schema
  * validation) — enough to gate "did the agent return the expected shape?".
  */
-class JsonSchemaScorer implements ScorerInterface
+class JsonSchemaScorer implements Scorer
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {

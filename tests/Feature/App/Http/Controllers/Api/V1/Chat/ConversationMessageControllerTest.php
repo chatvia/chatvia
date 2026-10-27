@@ -19,7 +19,7 @@ use Tests\Support\Llm\ScriptedLlmProvider;
 /**
  * Chatting with an agent through the public API. A message is answered as
  * one JSON response (the default) or as SSE. Both run the same
- * ChatStreamService pipeline, so every per-turn gate answers with its SSE
+ * ChatTurnStreamer pipeline, so every per-turn gate answers with its SSE
  * error code, which the JSON answer maps to a status. A repeated request id
  * replays the answer it got. The messages list pages by the time a message
  * was sent.

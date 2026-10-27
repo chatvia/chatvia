@@ -4,7 +4,7 @@ namespace Domain\Integration\Mcp\Data;
 
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * One tool as an MCP server describes it — an entry of a `tools/list`

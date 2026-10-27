@@ -7,6 +7,8 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
+use JsonException;
 
 /**
  * The starter catalog of a demo database (DatabaseSeeder): the providers and
@@ -27,16 +29,16 @@ class LlmSeeder extends Seeder
 
         $jsonPath = database_path('data/llms.json');
 
-        if (! file_exists($jsonPath)) {
-            $this->command->error('LLM data file not found at: '.$jsonPath);
+        if (! File::exists($jsonPath)) {
+            $this->command->error("LLM data file not found at: {$jsonPath}");
 
             return;
         }
 
-        $llms = json_decode(file_get_contents($jsonPath), true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->command->error('Failed to parse LLM data file: '.json_last_error_msg());
+        try {
+            $llms = File::json($jsonPath, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $this->command->error("Failed to parse LLM data file: {$e->getMessage()}");
 
             return;
         }

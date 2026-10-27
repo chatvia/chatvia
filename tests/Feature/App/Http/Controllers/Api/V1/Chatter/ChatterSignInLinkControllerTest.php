@@ -2,7 +2,7 @@
 
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\AgentSignInTokenService;
+use App\Identity\Workspace\Services\AgentSignInTokens;
 use Illuminate\Support\Str;
 use Tests\Support\Api\ActsAsApiOwner;
 
@@ -32,7 +32,7 @@ it('answers with a ready-to-open link whose token signs the chatter in on every 
     // Read the secret minting provisioned on the agent, as a separate
     // request would, not the one this instance remembers from before.
     $this->agent->refresh();
-    $service = app(AgentSignInTokenService::class);
+    $service = app(AgentSignInTokens::class);
 
     expect($service->verify($token, $this->agent)?->id)->toBe($this->chatter->id)
         ->and($service->verify($token, $this->agent)?->id)->toBe($this->chatter->id);

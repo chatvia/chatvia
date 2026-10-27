@@ -35,6 +35,7 @@ use Domain\Analytics\Listeners\QueueMessageAnalysis;
 use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Booking\Contracts\Schedulers;
 use Domain\Booking\Services\SchedulerRouter;
+use Domain\Conversation\Contracts\StreamTransformer;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\HandedOff;
@@ -48,7 +49,6 @@ use Domain\Conversation\Listeners\NotifyRateLimitExceeded;
 use Domain\Conversation\Listeners\RecordToolCallAudit;
 use Domain\Conversation\Listeners\SendAgentRateLimitNotification;
 use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
-use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Evaluation\Events\EvalRunFinished;
 use Domain\Evaluation\Listeners\NotifyEvalRegression;
 use Domain\Evaluation\Listeners\NotifyEvalRunFinished;
@@ -73,12 +73,12 @@ use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Domain\Integration\Mcp\Listeners\UpdateMcpInvocationCounters;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
-use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Contracts\ToolDispatcher;
 use Domain\Integration\Tool\Dispatch\RoutingToolDispatcher;
 use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Document\Conversion\BuiltinPdfInspector;
 use Domain\Knowledge\Document\Conversion\PdfInfo;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
@@ -182,7 +182,7 @@ class DomainServiceProvider extends ServiceProvider
     {
         // Tool dispatcher: routes by tool name to either the webhook
         // (AgentFunctions) or MCP backend.
-        $this->app->bind(ToolDispatcherInterface::class, RoutingToolDispatcher::class);
+        $this->app->bind(ToolDispatcher::class, RoutingToolDispatcher::class);
 
         // The MCP client asks for a fresh OAuth token through this contract, so
         // it does not depend on the connector OAuth flow (which syncs tool
@@ -231,7 +231,7 @@ class DomainServiceProvider extends ServiceProvider
      */
     private function registerAiServices(): void
     {
-        $this->app->bind(function ($app): EmbeddingsProviderInterface {
+        $this->app->bind(function ($app): EmbeddingsProvider {
             $configured = EmbeddingProvider::configured();
 
             // Only the admin's choice picks the service: none chosen yet

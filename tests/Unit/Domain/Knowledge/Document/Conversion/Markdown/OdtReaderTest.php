@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\Markdown\OdtReader;
+use Illuminate\Support\Facades\File;
 
 /**
  * The built-in OpenDocument reader: files are built here from content.xml
@@ -25,7 +26,7 @@ function odtrRead(string $path): string
     try {
         return new OdtReader()->toMarkdown($path);
     } finally {
-        @unlink($path);
+        File::delete($path);
     }
 }
 

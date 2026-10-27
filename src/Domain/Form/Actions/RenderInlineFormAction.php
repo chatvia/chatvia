@@ -63,7 +63,7 @@ class RenderInlineFormAction
             return RenderFormOutcomeData::alreadySubmitted($definition->name);
         }
 
-        $submission = FormSubmission::create([
+        $submission = FormSubmission::query()->create([
             'form_definition_id' => $definition->id,
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,

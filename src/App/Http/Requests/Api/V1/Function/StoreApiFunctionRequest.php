@@ -7,8 +7,11 @@ namespace App\Http\Requests\Api\V1\Function;
 use App\Http\Requests\Concerns\ValidatesFunctionAuth;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
+use Spatie\LaravelData\Optional;
 
 /**
  * `POST /api/v1/functions` — define a new webhook function. Credentials
@@ -52,6 +55,19 @@ class StoreApiFunctionRequest extends FormRequest
 
     public function toData(): FunctionDefinitionData
     {
-        return FunctionDefinitionData::from($this->validated());
+        return new FunctionDefinitionData(
+            internal_name: $this->string('internal_name')->toString(),
+            display_name: $this->has('display_name') ? $this->input('display_name') : new Optional,
+            description: $this->string('description')->toString(),
+            parameters_schema: $this->array('parameters_schema'),
+            webhook_url: $this->string('webhook_url')->toString(),
+            webhook_method: $this->has('webhook_method') ? $this->enum('webhook_method', FunctionWebhookMethod::class) : new Optional,
+            webhook_headers: $this->has('webhook_headers') ? $this->input('webhook_headers') : new Optional,
+            auth_type: $this->has('auth_type') ? $this->enum('auth_type', FunctionAuthType::class) : new Optional,
+            auth_header_name: $this->has('auth_header_name') ? $this->input('auth_header_name') : new Optional,
+            auth_value: $this->has('auth_value') ? $this->input('auth_value') : new Optional,
+            timeout_ms: $this->has('timeout_ms') ? $this->integer('timeout_ms') : new Optional,
+            is_enabled: $this->has('is_enabled') ? $this->boolean('is_enabled') : new Optional,
+        );
     }
 }

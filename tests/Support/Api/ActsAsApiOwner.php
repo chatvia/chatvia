@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support\Api;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 
 /**
  * The caller most public API tests run as: a workspace owner with the
@@ -19,7 +19,7 @@ trait ActsAsApiOwner
     protected function actAsApiOwner(): void
     {
         $this->owner = User::factory()->create();
-        app(TeamService::class)->createDefaultTeam($this->owner);
+        app(CreateDefaultTeamAction::class)->execute($this->owner);
         $this->agent = createAgent($this->owner);
         $this->token = $this->owner->createToken('account')->plainTextToken;
     }

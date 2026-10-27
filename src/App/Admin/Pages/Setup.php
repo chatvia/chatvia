@@ -2616,9 +2616,11 @@ class Setup extends SimplePage
         return new LlmProvider([
             'kind' => $this->chatKind($state),
             'name' => $account?->label() ?? (string) ($state['server_name'] ?? 'Server'),
-            'base_url' => $account instanceof AiProvider
-                ? ($account->needsBaseUrl() ? $this->filled($state, 'chat_endpoint') : null)
-                : Str::rtrim((string) ($state['server_url'] ?? ''), '/'),
+            'base_url' => match (true) {
+                ! $account instanceof AiProvider => Str::rtrim((string) ($state['server_url'] ?? ''), '/'),
+                $account->needsBaseUrl() => $this->filled($state, 'chat_endpoint'),
+                default => null,
+            },
             'api_key' => $this->filled($state, 'api_key'),
         ]);
     }

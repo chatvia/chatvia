@@ -2,10 +2,10 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Members\InviteTeamMemberAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
 use Support\Exceptions\DomainValidationException;
 
@@ -20,7 +20,7 @@ beforeEach(function (): void {
     Event::fake([TeamInvitationCreated::class]);
 
     $this->owner = User::factory()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
 
     // Default teams only carry the `owner` role, which is never invitable.
     teamRole($this->team);

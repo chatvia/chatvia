@@ -30,9 +30,11 @@ class RecordFailedLoginSecurityEvent
     {
         $email = filled($event->credentials['email'] ?? null) ? $event->credentials['email'] : null;
 
-        $user = $event->user instanceof User
-            ? $event->user
-            : ($email !== null ? User::query()->where('email', Str::lower($email))->first() : null);
+        $user = match (true) {
+            $event->user instanceof User => $event->user,
+            $email !== null => User::query()->where('email', Str::lower($email))->first(),
+            default => null,
+        };
 
         if (! $user instanceof User) {
             return;

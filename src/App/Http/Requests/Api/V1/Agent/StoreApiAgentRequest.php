@@ -61,6 +61,13 @@ class StoreApiAgentRequest extends FormRequest
 
     public function toData(): CreateApiAgentData
     {
-        return CreateApiAgentData::from($this->validated());
+        return new CreateApiAgentData(
+            name: $this->string('name')->toString(),
+            team_id: $this->string('team_id')->toString(),
+            is_public: $this->boolean('is_public'),
+            prompt_id: $this->input('prompt_id'),
+            system_instructions: $this->input('system_instructions'),
+            metadata: $this->input('metadata'),
+        );
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Tool\Routing;
 
-use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolEntryData;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
@@ -31,7 +31,7 @@ use Throwable;
  * LLM request entirely, so the model can't see, list, or advertise a tool that
  * isn't relevant to the turn.
  *
- * The bar is per-scope: write/delete tools ({@see ToolEntry::$mutates}) get the
+ * The bar is per-scope: write/delete tools ({@see ToolEntryData::$mutates}) get the
  * write bar, read-only tools the read bar. A missed read just costs the user a
  * re-ask; a wrong write executes against the wrong system. Each reranking or
  * embedding model scores on its own scale, so the bars are the model's
@@ -52,9 +52,9 @@ class ToolRelevanceGate
     ) {}
 
     /**
-     * @param  array<int, ToolEntry>  $candidates  RRF-ranked, strongest first.
+     * @param  array<int, ToolEntryData>  $candidates  RRF-ranked, strongest first.
      * @param  array<string, float>  $similarities  each candidate's similarity to the message, by `sourceId`
-     * @return array<int, ToolEntry> The relevant subset, strongest first.
+     * @return array<int, ToolEntryData> The relevant subset, strongest first.
      */
     public function gate(string $userMessage, array $candidates, array $similarities = []): array
     {
@@ -89,9 +89,9 @@ class ToolRelevanceGate
     /**
      * Keep the candidates whose reranker score clears their scope's bar.
      *
-     * @param  array<int, ToolEntry>  $pool
+     * @param  array<int, ToolEntryData>  $pool
      * @param  list<RerankedDocumentData>  $ranked
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function keepRelevant(array $pool, array $ranked): array
     {
@@ -129,7 +129,7 @@ class ToolRelevanceGate
             'read_threshold' => $readThreshold,
             'write_threshold' => $writeThreshold,
             'candidates' => count($pool),
-            'kept' => array_map(static fn (ToolEntry $e): string => $e->name, $kept),
+            'kept' => array_map(static fn (ToolEntryData $e): string => $e->name, $kept),
             'dropped' => $dropped,
         ]);
 
@@ -141,9 +141,9 @@ class ToolRelevanceGate
      * message clears their scope's bar, in the search's order. With no
      * measured bar (or no similarities), the pool passes ungated.
      *
-     * @param  array<int, ToolEntry>  $pool
+     * @param  array<int, ToolEntryData>  $pool
      * @param  array<string, float>  $similarities
-     * @return array<int, ToolEntry>
+     * @return array<int, ToolEntryData>
      */
     private function bySimilarity(array $pool, array $similarities): array
     {
@@ -156,7 +156,7 @@ class ToolRelevanceGate
 
         $kept = array_values(array_filter(
             $pool,
-            static fn (ToolEntry $entry): bool => ($similarities[$entry->sourceId] ?? 0.0) >= ($entry->mutates ? $writeThreshold : $readThreshold),
+            static fn (ToolEntryData $entry): bool => ($similarities[$entry->sourceId] ?? 0.0) >= ($entry->mutates ? $writeThreshold : $readThreshold),
         ));
 
         Log::debug('ToolRelevanceGate: gate complete', [
@@ -164,7 +164,7 @@ class ToolRelevanceGate
             'read_threshold' => $readThreshold,
             'write_threshold' => $writeThreshold,
             'candidates' => count($pool),
-            'kept' => array_map(static fn (ToolEntry $e): string => $e->name, $kept),
+            'kept' => array_map(static fn (ToolEntryData $e): string => $e->name, $kept),
         ]);
 
         return $kept;
@@ -175,7 +175,7 @@ class ToolRelevanceGate
      * carries keyword signal (`mcp__github__search_issues`), the description
      * carries intent — both help the cross-encoder.
      */
-    private function document(ToolEntry $entry): string
+    private function document(ToolEntryData $entry): string
     {
         return Str::trim($entry->name."\n".$entry->description);
     }

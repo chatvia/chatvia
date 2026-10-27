@@ -42,7 +42,7 @@ class VerifyAgentDomainAction
             throw new DomainValidationException('domain', __("We couldn't find the TXT record for this domain yet. DNS changes can take a while, so try again later."));
         }
 
-        if (Agent::withTrashed()->where('domain', $domain)->whereKeyNot($agent->id)->exists()) {
+        if (Agent::query()->withTrashed()->where('domain', $domain)->whereKeyNot($agent->id)->exists()) {
             throw $this->unavailable();
         }
 

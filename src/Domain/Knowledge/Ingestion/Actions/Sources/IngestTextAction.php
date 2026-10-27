@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
+use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
@@ -26,7 +27,7 @@ class IngestTextAction
 
     public function execute(SourceText $sourceText, Agent $agent): void
     {
-        $startTime = microtime(true);
+        $startedAt = CarbonImmutable::now();
 
         $sourceText->update(['status' => SourceStatus::Processing]);
         TextIngestionStarted::dispatch($sourceText, $agent->external_id);
@@ -37,6 +38,6 @@ class IngestTextAction
 
         $this->dispatchBatch->execute($sourceText, $agent, $jobs);
 
-        $sourceText->update(['took_in_seconds' => (int) ceil(microtime(true) - $startTime)]);
+        $sourceText->update(['took_in_seconds' => (int) ceil($startedAt->diffInSeconds(absolute: true))]);
     }
 }

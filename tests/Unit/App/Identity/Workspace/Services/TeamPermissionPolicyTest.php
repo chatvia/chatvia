@@ -2,8 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 
 /*
  * What a team role lets a user do: the rule behind the `team.permission:*`
@@ -15,7 +15,7 @@ use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->workspace()->create();
-    $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->agent = createAgent($this->owner);
     $this->policy = app(TeamPermissionPolicy::class);
 });
@@ -29,7 +29,7 @@ it('denies a team owner any permission on another workspace agent', function ():
     // A team owner's every-permission shortcut covers their own agents only,
     // never another workspace's agent.
     $otherOwner = User::factory()->workspace()->create();
-    app(TeamService::class)->createDefaultTeam($otherOwner);
+    app(CreateDefaultTeamAction::class)->execute($otherOwner);
     $otherAgent = createAgent($otherOwner);
 
     expect($this->policy->allowsOnAgent($this->owner, $otherAgent, 'agent.setup'))->toBeFalse()

@@ -7,6 +7,7 @@ use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Domain\Security\Services\SiemWebhookPolicy;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -149,7 +150,7 @@ it('sends nothing without an Enterprise license and keeps the webhook for later'
     $policy = dswEnableSiem($owner);
     saveSettings(BrandSettings::class, ['license_key' => null]);
 
-    expect(app(DeliverSecurityWebhookAction::class)->wants(dswEvent($owner->workspace()->id)))->toBeFalse();
+    expect(app(SiemWebhookPolicy::class)->accepts(dswEvent($owner->workspace()->id)))->toBeFalse();
 
     app(DeliverSecurityWebhookAction::class)->execute(dswEvent($owner->workspace()->id));
 

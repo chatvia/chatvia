@@ -7,8 +7,8 @@ use App\Identity\Workspace\Services\ProfilePhotoStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Spatie\LaravelData\Optional;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * A chatter edits their own profile on the hosted chat: name, password (the
@@ -26,7 +26,7 @@ class UpdateChatterProfileAction
     ) {}
 
     /**
-     * @throws ValidationException
+     * @throws DomainValidationException
      */
     public function execute(UpdateChatterProfileData $data): void
     {
@@ -36,9 +36,7 @@ class UpdateChatterProfileAction
         // that could find a different account.
         if ($data->currentPassword) {
             if (! Hash::check($data->currentPassword, $user->password)) {
-                throw ValidationException::withMessages([
-                    'current_password' => __('auth.failed'),
-                ]);
+                throw new DomainValidationException('current_password', __('auth.failed'));
             }
         }
 

@@ -7,6 +7,7 @@ namespace Domain\Integration\Connector\Catalog\Connectors;
 use Domain\Integration\Connector\Catalog\CapabilityConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
 use Domain\Llm\Contracts\VideoGenerator;
+use Support\License\Entitlements;
 
 /**
  * Short videos the agent makes for the visitor, shown under its reply once
@@ -17,6 +18,13 @@ use Domain\Llm\Contracts\VideoGenerator;
  */
 final class VideoGenerationConnector extends CapabilityConnector
 {
+    public function __construct(
+        Entitlements $entitlements,
+        private readonly VideoGenerator $videos,
+    ) {
+        parent::__construct($entitlements);
+    }
+
     #[\Override]
     public string $slug { get => 'video-generation'; }
 
@@ -48,6 +56,6 @@ final class VideoGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return parent::isAvailable() && app(VideoGenerator::class)->isEnabled();
+        return parent::isAvailable() && $this->videos->isEnabled();
     }
 }

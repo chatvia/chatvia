@@ -21,9 +21,12 @@ use Domain\Evaluation\Models\EvalRun;
  */
 class FinalizeEvalRunAction
 {
-    public function execute(EvalRun $run, bool $cancelled = false): EvalRun
+    /**
+     * @param  EvalRunStatus  $status  Completed, or Failed when the batch was cancelled
+     */
+    public function execute(EvalRun $run, EvalRunStatus $status = EvalRunStatus::Completed): EvalRun
     {
-        // avg and sum skip NULL scores and tokens, as the old in-memory sums did.
+        // avg and sum skip NULL scores and tokens, so a case with no score does not count as zero.
         $totals = $run->results()->toBase()
             ->selectRaw('count(*) AS total, count(*) FILTER (WHERE has_passed) AS passed, avg(score) AS avg_score, sum(tokens) AS total_tokens')
             ->first();
@@ -32,7 +35,7 @@ class FinalizeEvalRunAction
         $passed = (int) $totals->passed;
 
         $run->update([
-            'status' => $cancelled ? EvalRunStatus::Failed : EvalRunStatus::Completed,
+            'status' => $status,
             'passed_count' => $passed,
             'failed_count' => $total - $passed,
             'avg_score' => $total === 0 ? null : round((float) $totals->avg_score, 4),

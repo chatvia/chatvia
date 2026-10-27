@@ -4,7 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\CreateAgentAction;
 use Domain\Agent\Data\Account\CreateAgentData;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 
 /**
  * CreateAgentAction wraps the agent insert + the topic attach in one
@@ -15,7 +15,7 @@ use Domain\Membership\Team\Services\TeamService;
  */
 it('creates a protected agent with generated identity and attaches the workspace topics', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
 
     // System topics belong to no workspace.
     $topicA = Topic::factory()->create(['workspace_id' => null, 'topic' => 'Billing']);
@@ -49,7 +49,7 @@ it('creates a protected agent with generated identity and attaches the workspace
 
 it('keys the agent to the workspace when a teammate creates it', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $employee = User::factory()->employee($owner)->create();
 
     $agent = app(CreateAgentAction::class)->execute(new CreateAgentData(
@@ -66,7 +66,7 @@ it('keys the agent to the workspace when a teammate creates it', function (): vo
 
 it('generates a distinct identity per agent', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
 
     $first = app(CreateAgentAction::class)->execute(new CreateAgentData(
         user: $owner,
@@ -85,7 +85,7 @@ it('generates a distinct identity per agent', function (): void {
 
 it('attaches the workspace own topics but never another workspace custom topics', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $stranger = User::factory()->create();
 
     $own = Topic::factory()->create(['workspace_id' => $owner->workspace()->id]);

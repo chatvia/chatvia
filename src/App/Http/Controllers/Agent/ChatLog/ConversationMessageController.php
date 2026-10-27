@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Agent\ChatLog;
 
-use Domain\Agent\Actions\ChatLog\ListConversationMessagesAction;
 use Domain\Agent\Data\Resources\ChatLog\Messages\ChatLogMessagesResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Queries\ConversationMessagesQuery;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\Request;
 
@@ -18,10 +18,10 @@ class ConversationMessageController
         Request $request,
         Agent $agent,
         Conversation $conversation,
-        ListConversationMessagesAction $list,
+        ConversationMessagesQuery $list,
     ): ChatLogMessagesResourceData {
         abort_unless($conversation->belongsToAgent($agent), 404);
 
-        return $list->execute($agent, $conversation, $request->integer('page', 1));
+        return $list->get($agent, $conversation, $request->integer('page', 1));
     }
 }

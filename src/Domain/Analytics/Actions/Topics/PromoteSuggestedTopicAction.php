@@ -52,7 +52,7 @@ class PromoteSuggestedTopicAction
                     continue;
                 }
 
-                $committed = ConversationTopic::firstOrCreate([
+                $committed = ConversationTopic::query()->firstOrCreate([
                     'chat_conversation_id' => $conversation->id,
                     'topic_id' => $topic->id,
                 ], ['workspace_id' => $agent->workspace_id]);

@@ -5,16 +5,17 @@ namespace Domain\Conversation\Services\Streaming\Sources;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
+use Domain\Conversation\Services\Turn\CitationMarkers;
+use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Guardrail\Services\GuardrailRecorder;
-use Domain\Guardrail\Services\GuardrailService;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\FileInput;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\Llm;
@@ -37,7 +38,7 @@ use Throwable;
  * site: a model handed a link it cannot open (a local or private install)
  * answers about the link instead of the file.
  *
- * Activated by {@see ChatStreamService} whenever the conversation has any
+ * Activated by {@see ChatTurnStreamer} whenever the conversation has any
  * attachment. The agent's own model answers when it reads PDF files and
  * images; otherwise the platform's model for chat files does
  * ({@see ChatFileModel}), so an agent on a text-only model can still take
@@ -67,10 +68,11 @@ class AttachmentSource extends ToolLoopSource
         RequestDedupeStore $dedupe,
         ToolSelector $toolSelector,
         ToolLoopRunner $runner,
-        GuardrailService $guardrails,
+        GuardrailInspector $guardrails,
         GuardrailRecorder $guardrailRecorder,
+        CitationMarkers $citations,
     ) {
-        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
+        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder, $citations);
     }
 
     /**
@@ -104,7 +106,7 @@ class AttachmentSource extends ToolLoopSource
         yield from $this->streamTurn($context, $this->withParts($llmMessages, $parts->values()->all()));
     }
 
-    protected function provider(ChatContext $context): LlmProviderInterface
+    protected function provider(ChatContext $context): ChatCompletionProvider
     {
         return $this->providers->for($this->model($context));
     }

@@ -8,13 +8,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\AgentChatRateLimiter;
-use Domain\Conversation\Services\ChatStreamService;
+use Domain\Conversation\Services\ChatTurnStreamer;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Illuminate\Support\Str;
 
 /**
- * Runs one web turn through {@see ChatStreamService} the way the hosted chat
+ * Runs one web turn through {@see ChatTurnStreamer} the way the hosted chat
  * and the widget do, and reads its events back. A test of a per-turn gate can
  * {@see stopAtTheRateLimit()} so a turn that passes its gate ends on the
  * agent's per-minute cap instead of calling a model.
@@ -38,7 +38,7 @@ final class StreamTurn
             ...$request,
         ]);
 
-        return iterator_to_array(app(ChatStreamService::class)->stream($data), preserve_keys: false);
+        return iterator_to_array(app(ChatTurnStreamer::class)->stream($data), preserve_keys: false);
     }
 
     /**

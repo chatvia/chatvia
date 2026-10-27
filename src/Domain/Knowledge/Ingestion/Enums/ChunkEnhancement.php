@@ -19,11 +19,11 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
  * the right passages). The same switch decides the summary of the whole
  * source, so with both off ingestion makes no model calls.
  */
-enum ChunkEnhancement
+enum ChunkEnhancement: string
 {
-    case Off;
-    case Text;
-    case Document;
+    case Off = 'off';
+    case Text = 'text';
+    case Document = 'document';
 
     /** Pages one chunk job stores when nothing is enhanced: one embedding request and one insert. */
     private const int PLAIN_PAGES_PER_JOB = 32;

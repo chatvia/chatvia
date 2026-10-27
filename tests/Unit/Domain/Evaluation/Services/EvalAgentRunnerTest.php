@@ -8,12 +8,12 @@ use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
+use Domain\Conversation\Services\ChatTurnPreparer;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Evaluation\Services\EvalAgentRunner;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\ChatCompletionProvider;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\AiCallTags;
@@ -33,13 +33,13 @@ use Illuminate\Support\Facades\Exceptions;
  * and drive the orchestration body.
  */
 /**
- * ChatService is a readonly class, so Mockery can't extend it — use a readonly
+ * ChatTurnPreparer is a readonly class, so Mockery can't extend it — use a readonly
  * anonymous subclass double that builds a ChatContext from the request and
  * leaves RAG a no-op (the real method would hit embeddings).
  */
-function earChatService(?Closure $onInit = null): ChatService
+function earChatTurnPreparer(?Closure $onInit = null): ChatTurnPreparer
 {
-    return new readonly class($onInit) extends ChatService
+    return new readonly class($onInit) extends ChatTurnPreparer
     {
         public function __construct(private ?Closure $onInit = null) {}
 
@@ -81,7 +81,7 @@ function earChatService(?Closure $onInit = null): ChatService
 
 function earRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $models = null): EvalAgentRunner
 {
-    $chatService = earChatService($onInit);
+    $chatTurnPreparer = earChatTurnPreparer($onInit);
 
     $toolSelector = Mockery::mock(ToolSelector::class);
     $toolSelector->shouldReceive('selectForTurn')->andReturn([]);
@@ -95,7 +95,7 @@ function earRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $models 
         })();
     });
 
-    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class), $models ?? app(AgentModel::class), new AiCallTags);
+    return new EvalAgentRunner($chatTurnPreparer, $runner, $toolSelector, app(LlmProviders::class), $models ?? app(AgentModel::class), new AiCallTags);
 }
 
 it('captures the answer without recording a reply or counting it against the message limit', function (): void {
@@ -205,7 +205,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
 
     $runner = Mockery::mock(ToolLoopRunner::class);
     $runner->shouldReceive('run')->andReturnUsing(
-        function (ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $toolDefinitions, array $extraSettings = [], int $startIteration = 0, bool $captureToolCallsOnly = false) use (&$captureFlag): Generator {
+        function (ChatContext $context, ChatCompletionProvider $provider, string $modelName, array $llmMessages, array $toolDefinitions, array $extraSettings = [], int $startIteration = 0, bool $captureToolCallsOnly = false) use (&$captureFlag): Generator {
             $captureFlag = $captureToolCallsOnly;
             // What the runner records in capture mode: the intended call + its name.
             $context->capturedToolCalls[] = ['name' => 'send_email', 'arguments' => '{"to":"a@b.com"}'];
@@ -217,7 +217,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
         },
     );
 
-    $evalRunner = new EvalAgentRunner(earChatService(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class), new AiCallTags);
+    $evalRunner = new EvalAgentRunner(earChatTurnPreparer(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class), new AiCallTags);
     $result = $evalRunner->run($agent, 'Please email support.');
 
     expect($captureFlag)->toBeTrue()

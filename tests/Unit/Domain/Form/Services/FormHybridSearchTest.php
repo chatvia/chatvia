@@ -3,7 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 
 /**
  * Exercises the real two-channel RRF query (vector + keyword) against Postgres,
@@ -91,7 +91,7 @@ it('search() returns an empty collection when the query embedder fails', functio
 
     // Re-bind the provider to throw on the query-side embed (a flaky embedder must
     // not break the chat turn — search() swallows it and returns empty).
-    $this->mock(EmbeddingsProviderInterface::class)
+    $this->mock(EmbeddingsProvider::class)
         ->shouldReceive('embedQuery')->andThrow(new RuntimeException('embedder down'));
 
     expect(app(FormHybridSearch::class)->search($agent, 'refund'))->toBeEmpty();

@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Retrieval\Actions;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Analytics\Events\SourceRetrieved;
+use Domain\Knowledge\Retrieval\Data\SourceRefData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
@@ -22,15 +23,13 @@ class UpdateRetrievalStatsAction
     private const int TEXT_LABEL_LENGTH = 80;
 
     /**
-     * Each entry is a `{chunkable_type, chunkable_id}` pair.
-     *
-     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
+     * @param  Collection<int, SourceRefData>  $sources
      */
-    public function execute(array $results, int $agentId): void
+    public function execute(Collection $sources, int $agentId): void
     {
         $retrieved = [];
 
-        foreach ($this->idsByType($results) as $type => $ids) {
+        foreach ($this->idsByType($sources) as $type => $ids) {
             // chunks.chunkable_type stores the morph alias (e.g. "source_file");
             // agent_sources.sourceable_type stores the same alias.
             $class = Relation::getMorphedModel($type);
@@ -57,21 +56,21 @@ class UpdateRetrievalStatsAction
         // The workspace owner is denormalised onto the rollup so it survives
         // agent deletion and is queryable for account-wide stats. A turn that
         // ends just after its agent was deleted still counts for the workspace.
-        $workspaceId = (int) Agent::withTrashed()->whereKey($agentId)->value('workspace_id');
+        $workspaceId = (int) Agent::query()->withTrashed()->whereKey($agentId)->value('workspace_id');
 
         SourceRetrieved::dispatch($agentId, $workspaceId, $retrieved, now());
     }
 
     /**
-     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
+     * @param  Collection<int, SourceRefData>  $sources
      * @return Collection<string, Collection<int, int>> distinct source ids per morph alias
      */
-    private function idsByType(array $results): Collection
+    private function idsByType(Collection $sources): Collection
     {
-        return collect($results)
-            ->groupBy(fn (array $result): string => (string) $result['chunkable_type'])
+        return $sources
+            ->groupBy(fn (SourceRefData $source): string => $source->type)
             ->map(fn (Collection $group): Collection => $group
-                ->map(fn (array $result): int => (int) $result['chunkable_id'])
+                ->map(fn (SourceRefData $source): int => $source->id)
                 ->unique()
                 ->values());
     }

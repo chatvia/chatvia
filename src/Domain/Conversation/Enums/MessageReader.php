@@ -10,10 +10,10 @@ namespace Domain\Conversation\Enums;
  * replies, the operator reads the visitor's messages. AI replies never carry a
  * read receipt.
  */
-enum MessageReader
+enum MessageReader: string
 {
-    case Visitor;
-    case Operator;
+    case Visitor = 'visitor';
+    case Operator = 'operator';
 
     /** The role whose messages this reader marks as read. */
     public function reads(): MessageRole

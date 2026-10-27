@@ -9,7 +9,7 @@ use Inertia\Testing\AssertableInertia;
  * The Evals page loads the "From knowledge" question candidates only when the
  * picker asks for them (a partial reload): building them reads every chunk of
  * the agent. Which questions they are is in
- * ListKnowledgeQuestionCandidatesActionTest.
+ * KnowledgeQuestionCandidatesQueryTest.
  */
 it('leaves the knowledge questions out of the first load and serves them on a partial reload', function (): void {
     $owner = User::factory()->create();

@@ -3,7 +3,7 @@
 namespace App\Http\Resources\Agent;
 
 use App\Admin\Settings\AiProviderIcon;
-use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
@@ -35,7 +35,7 @@ use Illuminate\Support\Uri;
 final readonly class SetupPageProps
 {
     public function __construct(
-        private ChatterAuthTokenService $authTokens,
+        private ChatterAuthTokens $authTokens,
         private TeamPermissionPolicy $permissions,
         private AgentModel $agentModel,
         private TaskModels $models,
@@ -76,7 +76,7 @@ final readonly class SetupPageProps
             'authToken' => $agent->is_public ? null : $this->authTokens->generateToken($agent, $user),
             'starters' => $agent->resolvedStarters(),
             // Widget chat-bubble prompts in editor shape ({ text, translations,
-            // overrides }), coerced from the legacy plain-string list.
+            // overrides }), so the editor can show each language.
             'bubbles' => $agent->normalizedBubbles(),
             // Whether the agent has ingested knowledge-base content. Gates the
             // Setup → Starters "Generate with AI" button (which scans the chunks).

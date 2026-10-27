@@ -7,6 +7,7 @@ use Domain\Agent\Data\Settings\Copy\UpdateBubblesData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentTextTranslator;
 use Domain\Agent\ValueObjects\TranslatableText;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -25,9 +26,9 @@ class SetWidgetBubblesAction
     ) {}
 
     /**
-     * @return list<BubbleData>
+     * @return Collection<int, BubbleData>
      */
-    public function execute(Agent $agent, UpdateBubblesData $data): array
+    public function execute(Agent $agent, UpdateBubblesData $data): Collection
     {
         $bubbles = $data->bubbles;
         $languages = $agent->enabledLanguages();
@@ -57,9 +58,9 @@ class SetWidgetBubblesAction
         $pending = array_filter($copies, static fn (TranslatableText $copy): bool => ! $copy->isTranslatedInto($locales));
         $copies = [...$copies, ...$this->translator->translate($agent, $pending)];
 
-        $final = array_values(array_map(BubbleData::fromCopy(...), $copies));
+        $final = collect($copies)->map(static fn (TranslatableText $copy): BubbleData => BubbleData::fromCopy($copy))->values();
 
-        $agent->setSetting('bubbles', array_map(static fn (BubbleData $bubble): array => $bubble->toArray(), $final), 'widget');
+        $agent->setSetting('bubbles', $final->map(static fn (BubbleData $bubble): array => $bubble->toArray())->all(), 'widget');
 
         return $final;
     }

@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Document\Conversion\BuiltinPdfInspector;
 use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Illuminate\Support\Facades\File;
 
 /**
  * BuiltinPdfInspector stands in for pdfinfo on a server without poppler: the
@@ -33,7 +34,7 @@ it('counts the pages of an encrypted PDF that opens without a password', functio
 it('takes the page count from the root of a page tree an update rewrote', function (): void {
     // The second revision appends a new root /Pages (the same object) whose
     // /Count is 2 and drops the third page; the first root still says 3.
-    $original = (string) file_get_contents(pdfFixture('plain'));
+    $original = File::get(pdfFixture('plain'));
     $update = "2 0 obj\n<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>\nendobj\n";
     $xref = strlen($original) + strlen($update);
     preg_match('/startxref\s+(\d+)/', $original, $previous);
@@ -63,7 +64,7 @@ it('agrees with pdfinfo on every fixture it can open', function (): void {
         $this->markTestSkipped('pdfinfo is not installed.');
     }
 
-    foreach (glob(base_path('tests/Fixtures/pdf/*.pdf')) ?: [] as $path) {
+    foreach (File::glob(base_path('tests/Fixtures/pdf/*.pdf')) ?: [] as $path) {
         if (new PdfInfo()->isLocked($path)) {
             continue;
         }

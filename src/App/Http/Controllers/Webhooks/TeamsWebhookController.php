@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use Domain\Channel\Teams\Actions\ReceiveTeamsActivityAction;
+use Domain\Channel\Teams\Data\TeamsInboundActivityData;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Services\TeamsActivityVerifier;
 use Illuminate\Http\JsonResponse;
@@ -51,7 +52,7 @@ class TeamsWebhookController
             return $ok;
         }
 
-        $receive->execute($bot, $activity);
+        $receive->execute($bot, TeamsInboundActivityData::fromPayload($activity));
 
         return $ok;
     }

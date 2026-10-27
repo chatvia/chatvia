@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
  * `scorer_config.value` (falling back to `expected_output`); matching is
  * case-insensitive unless `scorer_config.case_sensitive` is true.
  */
-class ContainsScorer implements ScorerInterface
+class ContainsScorer implements Scorer
 {
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {

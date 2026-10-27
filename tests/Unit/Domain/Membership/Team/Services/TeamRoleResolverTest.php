@@ -1,11 +1,11 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Services\TeamPermissionCatalog;
 use Domain\Membership\Team\Services\TeamRoleResolver;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  */
 it('maps every team of the owner to all codes, without reading team_user', function (): void {
     $owner = User::factory()->create();
-    $ownTeam = app(TeamService::class)->createDefaultTeam($owner);
+    $ownTeam = app(CreateDefaultTeamAction::class)->execute($owner);
     $spare = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $owner->workspace(), name: 'Spare'));
     $owner->isWorkspaceOwner(); // load the membership before counting queries
 
@@ -35,7 +35,7 @@ it('maps every team of the owner to all codes, without reading team_user', funct
 
 it('maps every joined team of a teammate to its role permissions', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $role = teamRole($team, 'Viewer', allAgents: false);
     $teammate = User::factory()->employee($owner)->create();
     $team->members()->attach($teammate->id, ['role_id' => $role->id]);

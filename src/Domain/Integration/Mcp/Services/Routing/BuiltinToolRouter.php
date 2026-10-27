@@ -4,7 +4,7 @@ namespace Domain\Integration\Mcp\Services\Routing;
 
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +30,7 @@ class BuiltinToolRouter
     private const int RRF_K = 60;
 
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingsProvider $embeddings,
         private readonly EmbeddingStorage $storage,
         private readonly LexicalSearch $lexical,
     ) {}

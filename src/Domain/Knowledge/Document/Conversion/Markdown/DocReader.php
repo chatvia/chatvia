@@ -160,9 +160,12 @@ final class DocReader
             $this->word = $file->read('WordDocument') ?? throw new RuntimeException('The file is not a Word document.');
             $flags = $this->readHeader();
 
+            $tableStream = ($flags & self::TABLE_STREAM_1) !== 0 ? '1Table' : '0Table';
+
             // Word 6 and 95 keep the tables in the main stream.
-            $this->table = $this->codePage !== null ? $this->word : ($file->read(($flags & self::TABLE_STREAM_1) !== 0 ? '1Table' : '0Table')
-                ?? throw new RuntimeException('The Word document has no table stream.'));
+            $this->table = $this->codePage !== null
+                ? $this->word
+                : ($file->read($tableStream) ?? throw new RuntimeException('The Word document has no table stream.'));
         } finally {
             $file->close();
         }
@@ -310,7 +313,11 @@ final class DocReader
             $this->pieces[] = [
                 'cp' => $positions[$index],
                 'end' => $positions[$index + 1],
-                'fc' => $this->codePage !== null ? $fc : ($compressed ? intdiv($fc & 0x3FFFFFFF, 2) : $fc & 0x3FFFFFFF),
+                'fc' => match (true) {
+                    $this->codePage !== null => $fc,
+                    $compressed => intdiv($fc & 0x3FFFFFFF, 2),
+                    default => $fc & 0x3FFFFFFF,
+                },
                 'compressed' => $compressed,
             ];
         }
@@ -731,9 +738,11 @@ final class DocReader
             return [MarkdownText::BLOCK, ''];
         }
 
-        $heading = $properties['outline'] !== null
-            ? ($properties['outline'] < 9 ? $properties['outline'] + 1 : null)
-            : $this->styleHeading($properties['style']);
+        $heading = match (true) {
+            $properties['outline'] === null => $this->styleHeading($properties['style']),
+            $properties['outline'] < 9 => $properties['outline'] + 1,
+            default => null,
+        };
 
         if ($heading !== null) {
             return [MarkdownText::BLOCK, MarkdownText::heading($heading, $text)];

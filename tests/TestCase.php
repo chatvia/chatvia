@@ -3,7 +3,7 @@
 namespace Tests;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Llm\Services\ModelsDevCatalog;
@@ -83,7 +83,7 @@ abstract class TestCase extends BaseTestCase
         // embeddings provider by default — keeps the embedding paths (sync,
         // routing, function/KB indexing) fast + silent instead of tripping the
         // typed getApiKey(). A test needing specific vectors re-binds its own.
-        $this->app->instance(EmbeddingsProviderInterface::class, new FakeEmbeddingsProvider);
+        $this->app->instance(EmbeddingsProvider::class, new FakeEmbeddingsProvider);
 
         // Same for the reranker: an offline identity reranker keeps the rerank
         // paths (knowledge search, tool relevance gate) running without a key.

@@ -9,7 +9,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
-use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * Whether a tool call waits for a person's approval: an MCP tool by the

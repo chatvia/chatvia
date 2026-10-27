@@ -623,7 +623,11 @@ final class RtfReader
             return;
         }
 
-        $heading = $state['outline'] !== null ? ($state['outline'] < 9 ? $state['outline'] + 1 : null) : $this->styleHeading($state['style']);
+        $heading = match (true) {
+            $state['outline'] === null => $this->styleHeading($state['style']),
+            $state['outline'] < 9 => $state['outline'] + 1,
+            default => null,
+        };
 
         if ($heading !== null) {
             $this->blocks[] = [MarkdownText::BLOCK, MarkdownText::heading($heading, $text)];

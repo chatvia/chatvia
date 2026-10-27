@@ -32,7 +32,7 @@ it('persists the base strings and stores the AI translations', function (): void
 
     $appearance = $this->agent->fresh()->settings('appearance');
 
-    expect($result)->toBe($map)
+    expect($result->all())->toBe($map)
         ->and($appearance->get('welcome_message'))->toBe('How can I help?')
         ->and($appearance->get('chat_window_title'))->toBe('Chat')
         ->and($appearance->get('composer_placeholder'))->toBe('Ask me anything…')
@@ -60,7 +60,7 @@ it('skips the LLM call when the base text is unchanged and every enabled languag
         composer_placeholder: 'Ask me anything…',
     ));
 
-    expect($result)->toBe($existing);
+    expect($result->all())->toBe($existing);
 });
 
 it('re-translates when the owner enables a language the cached set does not cover', function (): void {

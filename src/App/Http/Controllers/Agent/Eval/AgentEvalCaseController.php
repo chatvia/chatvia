@@ -20,7 +20,7 @@ class AgentEvalCaseController
     {
         $data = $request->toData();
 
-        EvalCase::create([
+        EvalCase::query()->create([
             'agent_id' => $agent->id,
             'agent_name' => $agent->name,
             'workspace_id' => $agent->workspace_id,

@@ -41,13 +41,17 @@ class UpdateApiChatterRequest extends FormRequest
     {
         return new UpdateChatterAccessData(
             chatter: $chatter,
-            messagesLimit: $this->has('messages_limit')
-                ? ($this->filled('messages_limit') ? $this->integer('messages_limit') : null)
-                : new Optional,
+            messagesLimit: match (true) {
+                ! $this->has('messages_limit') => new Optional,
+                $this->filled('messages_limit') => $this->integer('messages_limit'),
+                default => null,
+            },
             deactivated: $this->has('deactivated') ? $this->boolean('deactivated') : new Optional,
-            deactivationReason: $this->has('deactivation_reason')
-                ? ($this->string('deactivation_reason')->toString() ?: null)
-                : new Optional,
+            deactivationReason: match (true) {
+                ! $this->has('deactivation_reason') => new Optional,
+                $this->filled('deactivation_reason') => $this->string('deactivation_reason')->toString(),
+                default => null,
+            },
         );
     }
 }

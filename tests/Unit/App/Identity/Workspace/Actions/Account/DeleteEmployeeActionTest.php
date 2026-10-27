@@ -16,7 +16,7 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,7 +34,7 @@ it('hard-deletes the employee while leaving the owner and sibling teammates inta
 
 it('deletes the Sanctum tokens, HTTP sessions and team membership the FK graph cannot reach', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $role = $team->roles()->firstOrFail();
 
     $employee = User::factory()->employee($owner)->create();

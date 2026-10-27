@@ -4,6 +4,7 @@ use Database\Seeders\LlmSeeder;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Illuminate\Support\Facades\File;
 
 /**
  * A demo install starts with the catalog of `database/data/llms.json` (each
@@ -17,7 +18,7 @@ it('adds the starter catalog to an install without providers', function (): void
     $this->seed(LlmSeeder::class);
 
     $provider = LlmProvider::query()->sole();
-    $starter = collect(json_decode(file_get_contents(database_path('data/llms.json')), true));
+    $starter = collect(File::json(database_path('data/llms.json')));
 
     expect($provider->kind)->toBe(LlmProviderKind::Scaleway)
         ->and($provider->api_key)->toBeNull()

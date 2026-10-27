@@ -29,7 +29,7 @@ Controller → `Receive{Channel}…Action` (filter, dedupe, dispatch) → `Handl
 Before dispatching, claim the event with `InboundDeliveryLog::firstDelivery("{channel}:{kind}:{tenantId}:{eventId}", $until)`, where `$until` outlasts the provider's retry window. Inbound reply jobs get one try: an agent turn bills a message and sends a reply, so it must never run twice.
 
 ## Mirror the web chat's gates
-`ChannelReplyRunner` applies the same per-turn gates as `ChatStreamService`. When you add or change a gate in one, change the other. Agent protection is checked only by the web middleware, so a channel needs its own check.
+`ChannelReplyRunner` applies the same per-turn gates as `ChatTurnStreamer`. When you add or change a gate in one, change the other. Agent protection is checked only by the web middleware, so a channel needs its own check.
 
 ## Send outgoing webhooks through one sender
 Every webhook to a customer goes through `Support\Http\SignedWebhookSender` (HMAC of the raw JSON, `SafeUrl` pinning, no redirects, short timeout, throws on a non-2xx). Send it from a queued job or listener with `afterCommit`, tries and backoff, and a `failed()` that records the failure; switch the endpoint off after repeated final failures. Never rename the `X-Chatvia-*` headers.

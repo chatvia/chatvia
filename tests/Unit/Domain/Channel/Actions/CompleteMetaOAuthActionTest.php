@@ -4,6 +4,7 @@ use Domain\Channel\Actions\CompleteMetaOAuthAction;
 use Domain\Channel\Data\MetaPageData;
 use Domain\Channel\Enums\MetaOAuthChannel;
 use Domain\Channel\Instagram\Data\InstagramAccountData;
+use Domain\Channel\Services\MetaOAuthClient;
 use Tests\Support\Channel\FakeMetaOAuthClient;
 
 /**
@@ -18,10 +19,12 @@ it('exchanges the code on the channel’s own callback URL and lists what was gr
     ]);
     $oauth = new FakeMetaOAuthClient;
 
-    $accounts = new CompleteMetaOAuthAction($oauth)->execute($channel, 'code');
+    app()->instance(MetaOAuthClient::class, $oauth);
+
+    $accounts = app(CompleteMetaOAuthAction::class)->execute($channel, 'code');
 
     expect($oauth->exchangedOn)->toBe($callback)
-        ->and($accounts)->toEqual($granted());
+        ->and($accounts->all())->toEqual($granted());
 })->with([
     'Messenger lists the Pages' => [
         MetaOAuthChannel::Messenger,
@@ -39,5 +42,7 @@ it('returns nothing when the code exchange fails', function (): void {
     $oauth = new FakeMetaOAuthClient;
     $oauth->userToken = null;
 
-    expect(new CompleteMetaOAuthAction($oauth)->execute(MetaOAuthChannel::Messenger, 'code'))->toBe([]);
+    app()->instance(MetaOAuthClient::class, $oauth);
+
+    expect(app(CompleteMetaOAuthAction::class)->execute(MetaOAuthChannel::Messenger, 'code'))->toBeEmpty();
 });

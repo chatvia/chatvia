@@ -367,9 +367,11 @@ class OfficeText
         }
 
         $header = array_shift($cells);
-        $lines = $header === null
-            ? []
-            : ($cells === [] ? [implode(' · ', array_filter($header, static fn (string $cell): bool => $cell !== ''))] : array_map(fn (array $row): string => $this->record($header, $row), $cells));
+        $lines = match (true) {
+            $header === null => [],
+            $cells === [] => [implode(' · ', array_filter($header, static fn (string $cell): bool => $cell !== ''))],
+            default => array_map(fn (array $row): string => $this->record($header, $row), $cells),
+        };
 
         return $this->pagesOfRows($title, $lead, $lines);
     }

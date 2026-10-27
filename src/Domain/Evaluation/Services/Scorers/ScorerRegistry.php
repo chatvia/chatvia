@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Enums\ScorerType;
 
 /**
- * Resolves the {@see ScorerInterface} for a given {@see ScorerType}. The
+ * Resolves the {@see Scorer} for a given {@see ScorerType}. The
  * concrete scorers are container-resolved (the judge gets its provider
  * injected), so a single `for()` call returns a ready-to-use scorer.
  */
@@ -23,7 +24,7 @@ class ScorerRegistry
         private readonly CitationScorer $citations,
     ) {}
 
-    public function for(ScorerType $type): ScorerInterface
+    public function for(ScorerType $type): Scorer
     {
         return match ($type) {
             ScorerType::Contains => $this->contains,

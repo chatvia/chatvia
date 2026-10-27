@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
 use Illuminate\Http\Client\ConnectionException;
@@ -65,7 +65,7 @@ it('throws when no authorization server is advertised', function (): void {
         ]),
     ]);
 
-    expect(fn (): OAuthServerMetadata => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
+    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
         ->toThrow(McpOAuthException::class, 'did not list authorization_servers');
 });
 
@@ -81,7 +81,7 @@ it('rejects protected resource metadata for another address', function (): void 
         ]),
     ]);
 
-    expect(fn (): OAuthServerMetadata => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
+    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
         ->toThrow(McpOAuthException::class, 'different address');
 });
 
@@ -118,7 +118,7 @@ it('rejects a sibling path on the same origin', function (): void {
 
     // The message proves the resource check refused it: any later failure
     // (such as the unfaked authorization server) is an McpOAuthException too.
-    expect(fn (): OAuthServerMetadata => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
+    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
         ->toThrow(McpOAuthException::class, 'different address');
 });
 

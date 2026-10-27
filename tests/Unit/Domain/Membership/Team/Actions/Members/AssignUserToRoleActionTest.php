@@ -2,8 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Members\AssignUserToRoleAction;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Models\Role;
-use Domain\Membership\Team\Services\TeamService;
 
 /**
  * Putting a person on a team under a role: a new member is attached, an
@@ -11,7 +11,7 @@ use Domain\Membership\Team\Services\TeamService;
  */
 it('attaches a new member and moves an existing one to the new role', function (): void {
     $owner = User::factory()->create();
-    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $team = app(CreateDefaultTeamAction::class)->execute($owner);
     $roleFor = fn (string $name): Role => teamRole($team, $name, permissions: []);
     $support = $roleFor('Support');
     $sales = $roleFor('Sales');

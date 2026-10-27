@@ -31,7 +31,7 @@ class PurgeAgentJob implements ShouldQueue
 
     public function handle(PurgeAgentAction $purge): void
     {
-        $agent = Agent::onlyTrashed()->find($this->agentId);
+        $agent = Agent::query()->onlyTrashed()->find($this->agentId);
 
         if ($agent === null) {
             return; // already purged (e.g. a retry after completion)

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Support\Integration\Connector;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
+use Domain\Integration\Connector\Data\OAuth\PendingOAuthStateData;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
@@ -30,7 +30,7 @@ final class PendingConnectorOAuth
      */
     public static function stash(string $state, User $starter, string $binding, ?string $connectorSlug = 'notion'): void
     {
-        $pending = new PendingOAuthState(
+        $pending = new PendingOAuthStateData(
             userId: $starter->id,
             connectorSlug: $connectorSlug,
             authServerUrl: 'https://auth.example.test',
@@ -38,7 +38,7 @@ final class PendingConnectorOAuth
             clientId: 'client-123',
             codeVerifier: 'verifier',
             mcpUrl: 'https://mcp.example.test/rpc',
-            sessionBindingHash: PendingOAuthState::hashBinding($binding),
+            sessionBindingHash: PendingOAuthStateData::hashBinding($binding),
             customName: $connectorSlug === null ? 'My server' : null,
             customSlug: $connectorSlug === null ? 'my_server' : null,
         );
@@ -47,9 +47,9 @@ final class PendingConnectorOAuth
     }
 
     /** The pending state cached for the `state` of an authorize URL. */
-    public static function fromAuthorizeUrl(string $url): ?PendingOAuthState
+    public static function fromAuthorizeUrl(string $url): ?PendingOAuthStateData
     {
-        return PendingOAuthState::unseal(self::sealedFor($url));
+        return PendingOAuthStateData::unseal(self::sealedFor($url));
     }
 
     /** The sealed form of that state, as the cache holds it. */
@@ -68,7 +68,7 @@ final class PendingConnectorOAuth
     public static function stubAuthorizationServer(?array $metadata = null, ?string $clientSecret = null): ConnectorOAuthClient
     {
         test()->mock(McpOAuthDiscoverer::class)->shouldReceive('discover')
-            ->andReturn(OAuthServerMetadata::fromArray('https://auth.example.test', $metadata ?? self::pkceMetadata()));
+            ->andReturn(OAuthServerMetadataData::fromArray('https://auth.example.test', $metadata ?? self::pkceMetadata()));
 
         $client = new ConnectorOAuthClient()->forceFill([
             'auth_server_url' => 'https://auth.example.test',

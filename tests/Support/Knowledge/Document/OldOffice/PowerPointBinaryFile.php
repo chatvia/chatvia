@@ -97,13 +97,10 @@ final class PowerPointBinaryFile
         $currentUser = $this->atom(0x0FF6, pack('VVVvvCCv', 0x14, $this->encrypted ? self::ENCRYPTED_TOKEN : self::PLAIN_TOKEN, $currentEdit, 4, 0x03F4, 3, 0, 0).'test');
 
         // str_pad, not Str::padRight: these are bytes, and mb_str_pad counts characters.
-        $path = (string) tempnam(sys_get_temp_dir(), 'ppt');
-        file_put_contents($path, CompoundFileWriter::write([
+        return create_temp_file('presentation.ppt', CompoundFileWriter::write([
             'Current User' => $currentUser,
             'PowerPoint Document' => str_pad($stream, 4096, "\0"),
         ]));
-
-        return $path;
     }
 
     private function documentContainer(): string

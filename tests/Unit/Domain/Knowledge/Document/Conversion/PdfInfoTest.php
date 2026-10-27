@@ -3,13 +3,14 @@
 use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 
 /**
  * PdfInfo turns `pdfinfo` text output into the PDF's page count. A file
  * without a readable page count must be rejected, never measured as zero pages.
  */
 beforeEach(function (): void {
-    $this->pdfPath = sys_get_temp_dir().'/pdfinfo-test-'.uniqid().'.pdf';
+    $this->pdfPath = create_temp_dir().'/pdfinfo-test-'.Str::random().'.pdf';
     File::put($this->pdfPath, "%PDF-1.4\n%%EOF\n");
 });
 

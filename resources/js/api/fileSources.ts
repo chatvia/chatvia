@@ -10,7 +10,7 @@ import { isAxiosError } from 'axios';
 import { del, get, post } from './http';
 import type { LengthAwarePage } from './pagination';
 
-export type SourceFile = Domain.Agent.Data.Resources.Sources.SourceFileDataResource;
+export type SourceFile = Domain.Agent.Data.Resources.Sources.SourceFileResourceData;
 
 /** The AI analysis of a trained file. Every field is optional: older files may lack some. */
 export interface FileSummary {

@@ -59,7 +59,7 @@ class SendHandoffAdminMessageAction
 
             // Same id as the cached copy and the broadcast: read receipts look
             // the row up by this external_id, so a fresh id would never match.
-            $message = Message::create([
+            $message = Message::query()->create([
                 'external_id' => $messageId,
                 'workspace_id' => $conversation->workspace_id,
                 'chat_conversation_id' => $conversation->id,

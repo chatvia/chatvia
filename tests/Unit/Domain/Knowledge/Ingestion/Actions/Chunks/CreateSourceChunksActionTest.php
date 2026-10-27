@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
@@ -45,7 +45,7 @@ function cscCountingEmbeddings(): FakeEmbeddingsProvider
 {
     $provider = new FakeEmbeddingsProvider;
 
-    app()->instance(EmbeddingsProviderInterface::class, $provider);
+    app()->instance(EmbeddingsProvider::class, $provider);
 
     return $provider;
 }

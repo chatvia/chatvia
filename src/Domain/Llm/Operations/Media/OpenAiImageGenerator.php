@@ -76,9 +76,9 @@ class OpenAiImageGenerator implements ImageGenerator
 
         $output = collect((array) $response->json('output'));
         $image = $output->first(fn (mixed $item): bool => is_array($item) && ($item['type'] ?? null) === 'image_generation_call' && filled($item['result'] ?? null));
-        $bytes = is_array($image) ? (base64_decode((string) $image['result'], true) ?: '') : '';
+        $bytes = is_array($image) ? base64_decode((string) $image['result'], true) : false;
 
-        if (filled($bytes)) {
+        if ($bytes !== false && filled($bytes)) {
             return new GeneratedImageData($bytes, 'image/png');
         }
 

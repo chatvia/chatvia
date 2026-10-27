@@ -3,7 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Policies\AgentPolicy;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 
 /**
  * AgentPolicy: create needs the target team's owner, and view/update/delete
@@ -16,7 +16,7 @@ beforeEach(function (): void {
 
 it('create is granted only to the owner of the target team', function (): void {
     $workspace = User::factory()->workspace()->create();
-    $team = app(TeamService::class)->createDefaultTeam($workspace);
+    $team = app(CreateDefaultTeamAction::class)->execute($workspace);
     $otherOwner = User::factory()->workspace()->create();
     $admin = User::factory()->admin()->create();
 

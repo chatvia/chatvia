@@ -8,6 +8,7 @@ use Domain\Channel\Data\MetaPageData;
 use Domain\Channel\Enums\MetaOAuthChannel;
 use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Domain\Channel\Services\MetaOAuthClient;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -25,19 +26,19 @@ class CompleteMetaOAuthAction
     ) {}
 
     /**
-     * @return list<MetaPageData>|list<InstagramAccountData>
+     * @return Collection<int, MetaPageData|InstagramAccountData>
      */
-    public function execute(MetaOAuthChannel $channel, string $code): array
+    public function execute(MetaOAuthChannel $channel, string $code): Collection
     {
         $userToken = $this->oauth->exchangeCodeForUserToken($channel->app(), $code);
 
-        $accounts = match (true) {
+        $accounts = collect(match (true) {
             $userToken === null => [],
             $channel === MetaOAuthChannel::Messenger => $this->oauth->pages($userToken),
             default => $this->oauth->pagesWithInstagram($userToken),
-        };
+        });
 
-        if ($accounts === []) {
+        if ($accounts->isEmpty()) {
             Log::warning("{$channel->label()} OAuth callback: nothing usable was granted", [
                 'got_user_token' => $userToken !== null,
             ]);

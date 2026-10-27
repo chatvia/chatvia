@@ -105,6 +105,7 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Async;
 use Livewire\Attributes\Renderless;
 use Support\License\FreeTier;
 use Support\License\LicenseFeature;
@@ -265,12 +266,6 @@ class Setup extends SimplePage
     /** The provider, address and key the list was last read with, so Next does not read it again. */
     public ?string $listedFor = null;
 
-    /** The embedding service, model and key last checked, so Finish does not check them again. */
-    public ?string $embeddingCheckedFor = null;
-
-    /** The reranker, model, key and address last checked, so Finish does not check them again. */
-    public ?string $rerankerCheckedFor = null;
-
     /** @var array<string, array<string, mixed>> The server step's checks, by {@see Service} value. */
     public array $server = [];
 
@@ -279,12 +274,6 @@ class Setup extends SimplePage
 
     /** Whether the admin agreed to go on without a document reader, so Next does not warn again. */
     public bool $noReaderConfirmed = false;
-
-    /** @var array<string, string> How each chat model answered its test, by model id ({@see ModelCheckData} state), with the provider, address and key below. */
-    public array $chatModelChecks = [];
-
-    /** The provider, address and key the chat models were tested with: a change tests them again. */
-    public ?string $chatModelsTestedFor = null;
 
     /** How ready pg_textsearch is, read once per request. */
     private ?PgTextsearchState $pgTextsearch = null;
@@ -1520,7 +1509,7 @@ class Setup extends SimplePage
 
     /**
      * The test window: it asks each model of the sections given to answer
-     * now, with the key typed, one after another as it opens. Each section
+     * now, with the key typed, a few at once as it opens. Each section
      * is one short card: how many are done, the model being asked, and a
      * row of marks that turn into ticks, warnings when the provider is
      * busy, or crosses; the reasons are listed below ({@see testModel()}).
@@ -1600,12 +1589,15 @@ class Setup extends SimplePage
      * Checks one row of a section's test, called by the test window as it
      * opens; nothing on the page is drawn again. Only what the section
      * tests is asked: a chosen chat model, the model for image descriptions,
-     * the model for chat file uploads. How a chat model answered is kept
-     * (the embedding model and the reranker keep a pass themselves), so
-     * Next goes on once each one answered ({@see modelsAnswered()}).
+     * the model for chat file uploads. The window runs a few of these at
+     * once, each its own request, and the last answer back would overwrite
+     * the page state the others changed: so how each one answered is kept
+     * in the cache instead ({@see rememberCheck()}), and Next goes on once
+     * each one answered ({@see modelsAnswered()}).
      *
      * @return array{state: string, message: string|null}
      */
+    #[Async]
     #[Renderless]
     public function testModel(string $section, string $key): array
     {
@@ -1622,12 +1614,7 @@ class Setup extends SimplePage
         };
 
         if ($testable && $section === self::TEST_CHAT) {
-            if ($this->chatModelsTestedFor !== $this->fingerprint($state)) {
-                $this->chatModelChecks = [];
-                $this->chatModelsTestedFor = $this->fingerprint($state);
-            }
-
-            $this->chatModelChecks[$key] = $check->state;
+            $this->rememberCheck("chat:{$key}", $this->fingerprint($state), $check->state);
         }
 
         return ['state' => $check->state, 'message' => $check->message];
@@ -1853,7 +1840,7 @@ class Setup extends SimplePage
         $model = filled($state['embedding_model'] ?? null) ? (string) $state['embedding_model'] : null;
         $fingerprint = $this->embeddingFingerprint($state);
 
-        if ($this->embeddingCheckedFor === $fingerprint) {
+        if ($this->rememberedCheck(self::TEST_EMBEDDINGS, $fingerprint) === ModelCheckData::PASSED) {
             return null;
         }
 
@@ -1865,7 +1852,7 @@ class Setup extends SimplePage
             return [$field, $result->message($provider->label(), $this->storedDimensions())];
         }
 
-        $this->embeddingCheckedFor = $fingerprint;
+        $this->rememberCheck(self::TEST_EMBEDDINGS, $fingerprint, ModelCheckData::PASSED);
 
         return null;
     }
@@ -1915,7 +1902,7 @@ class Setup extends SimplePage
         $reranker = new RerankerSetupData($chosen->driver, $chosen->model, $this->filled($state, $keyField), $chosen->url);
         $fingerprint = $this->rerankerFingerprint($state);
 
-        if ($this->rerankerCheckedFor === $fingerprint) {
+        if ($this->rememberedCheck(self::TEST_RERANKER, $fingerprint) === ModelCheckData::PASSED) {
             return null;
         }
 
@@ -1931,7 +1918,7 @@ class Setup extends SimplePage
             return ["data.{$field}", (string) $check->message];
         }
 
-        $this->rerankerCheckedFor = $fingerprint;
+        $this->rememberCheck(self::TEST_RERANKER, $fingerprint, ModelCheckData::PASSED);
 
         return null;
     }
@@ -2031,10 +2018,9 @@ class Setup extends SimplePage
         $models = $this->chosenModels($state);
 
         $chat = $models !== []
-            && $this->chatModelsTestedFor === $this->fingerprint($state)
-            && collect($models)->every(fn (RemoteModelData $model): bool => in_array($this->chatModelChecks[$model->id] ?? null, [ModelCheckData::PASSED, ModelCheckData::BUSY], true));
-        $embeddings = ! $this->embeddingProvider($state) instanceof EmbeddingProvider || $this->embeddingCheckedFor === $this->embeddingFingerprint($state);
-        $reranker = ! $this->rerankerData($state)->isOn() || $this->rerankerCheckedFor === $this->rerankerFingerprint($state);
+            && collect($models)->every(fn (RemoteModelData $model): bool => in_array($this->rememberedCheck("chat:{$model->id}", $this->fingerprint($state)), [ModelCheckData::PASSED, ModelCheckData::BUSY], true));
+        $embeddings = ! $this->embeddingProvider($state) instanceof EmbeddingProvider || $this->rememberedCheck(self::TEST_EMBEDDINGS, $this->embeddingFingerprint($state)) === ModelCheckData::PASSED;
+        $reranker = ! $this->rerankerData($state)->isOn() || $this->rememberedCheck(self::TEST_RERANKER, $this->rerankerFingerprint($state)) === ModelCheckData::PASSED;
 
         return $chat && $embeddings && $reranker;
     }
@@ -2763,6 +2749,30 @@ class Setup extends SimplePage
     private function modelCacheKey(): string
     {
         return 'admin-setup:models:'.Filament::auth()->id();
+    }
+
+    /**
+     * Keeps how a test answered ({@see ModelCheckData} state) for what was
+     * tested and with what (the fingerprint of its service, model and key),
+     * so Next and Finish do not ask again. One entry per test: tests that
+     * run at once never write the same entry.
+     */
+    private function rememberCheck(string $what, string $fingerprint, string $state): void
+    {
+        Cache::put($this->checkCacheKey($what, $fingerprint), $state, now()->addHour());
+    }
+
+    /** How a test answered, while it is kept; null when it has not run with these settings. */
+    private function rememberedCheck(string $what, string $fingerprint): ?string
+    {
+        $state = Cache::get($this->checkCacheKey($what, $fingerprint));
+
+        return in_array($state, [ModelCheckData::PASSED, ModelCheckData::BUSY, ModelCheckData::FAILED], true) ? $state : null;
+    }
+
+    private function checkCacheKey(string $what, string $fingerprint): string
+    {
+        return 'admin-setup:checks:'.Filament::auth()->id().':'.hash('sha256', "{$what}\n{$fingerprint}");
     }
 
     /**

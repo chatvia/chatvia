@@ -739,7 +739,7 @@
             "injection_label": "프롬프트 인젝션 탐지",
             "injection_help": "메시지, 지식, 도구 결과에서 에이전트의 지침을 무시하거나 노출하려는 시도를 탐지하고 차단합니다.",
             "toxicity_label": "유해성 필터링",
-            "toxicity_help": "메시지에 포함된 유해하거나 혐오적이거나 모욕적인 언어를 탐지하고 차단합니다.",
+            "toxicity_help": "메시지와 답변에서 혐오, 괴롭힘, 위협, 성적인 콘텐츠, 자해를 찾아 차단합니다.",
             "guard_labels": {
                 "prompt_injection": "프롬프트 인젝션",
                 "pii": "PII",

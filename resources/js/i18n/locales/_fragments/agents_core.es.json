@@ -339,7 +339,7 @@
             "injection_label": "Detección de inyección de instrucciones",
             "injection_help": "Detecta y bloquea los intentos de saltarse o revelar las instrucciones del agente, en mensajes, conocimiento y resultados de herramientas.",
             "toxicity_label": "Filtrado de toxicidad",
-            "toxicity_help": "Detecta y bloquea lenguaje tóxico, de odio o abusivo en los mensajes.",
+            "toxicity_help": "Detecta y bloquea el odio, el acoso, las amenazas, el contenido sexual y las autolesiones en mensajes y respuestas.",
             "guard_labels": {
                 "prompt_injection": "Inyección de instrucciones",
                 "pii": "PII",

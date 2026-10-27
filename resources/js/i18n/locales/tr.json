@@ -739,7 +739,7 @@
             "injection_label": "İstem enjeksiyonu algılama",
             "injection_help": "Mesajlarda, bilgide ve araç sonuçlarında asistanın talimatlarını geçersiz kılma veya açığa çıkarma girişimlerini algılayıp engelleyin.",
             "toxicity_label": "Zararlı içerik filtreleme",
-            "toxicity_help": "Mesajlardaki zararlı, nefret dolu veya saldırgan dili algılayıp engelleyin.",
+            "toxicity_help": "Mesajlarda ve yanıtlarda nefret söylemini, tacizi, tehditleri, cinsel içeriği ve kendine zarar vermeyi algılar ve engeller.",
             "guard_labels": {
                 "prompt_injection": "İstem enjeksiyonu",
                 "pii": "PII",

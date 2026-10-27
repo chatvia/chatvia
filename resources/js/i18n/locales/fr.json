@@ -739,7 +739,7 @@
             "injection_label": "Détection d'injection de prompt",
             "injection_help": "Détecte et bloque les tentatives de contourner les instructions de l’agent ou de les révéler, dans les messages, les connaissances et les résultats d’outils.",
             "toxicity_label": "Filtrage de la toxicité",
-            "toxicity_help": "Détectez et bloquez le langage toxique, haineux ou abusif dans les messages.",
+            "toxicity_help": "Détecte et bloque la haine, le harcèlement, les menaces, le contenu sexuel et l'automutilation dans les messages et les réponses.",
             "guard_labels": {
                 "prompt_injection": "Injection de prompt",
                 "pii": "Données personnelles",

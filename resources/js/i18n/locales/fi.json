@@ -739,7 +739,7 @@
             "injection_label": "Kehoteinjektiohavaitseminen",
             "injection_help": "Tunnistaa ja estää yritykset ohittaa tai paljastaa agentin ohjeet viesteissä, tietopohjassa ja työkalujen tuloksissa.",
             "toxicity_label": "Myrkyllisyyden suodatus",
-            "toxicity_help": "Havaitse ja estä myrkyllinen, vihamielinen tai loukkaava kieli viesteissä.",
+            "toxicity_help": "Havaitse ja estä vihapuhe, häirintä, uhkaukset, seksuaalinen sisältö ja itsensä vahingoittaminen viesteissä ja vastauksissa.",
             "guard_labels": {
                 "prompt_injection": "Kehoteinjektio",
                 "pii": "Henkilötiedot",

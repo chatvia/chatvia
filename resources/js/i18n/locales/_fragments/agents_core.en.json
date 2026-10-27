@@ -340,7 +340,7 @@
             "injection_label": "Prompt injection detection",
             "injection_help": "Detect and block attempts to override the agent's instructions or reveal them, in messages, knowledge and tool results.",
             "toxicity_label": "Toxicity filtering",
-            "toxicity_help": "Detect and block toxic, hateful, or abusive language in messages.",
+            "toxicity_help": "Detect and block hate, harassment, threats, sexual content and self-harm in messages and answers.",
             "guard_labels": {
                 "prompt_injection": "Prompt injection",
                 "pii": "PII",

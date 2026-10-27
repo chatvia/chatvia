@@ -739,7 +739,7 @@
             "injection_label": "提示词注入检测",
             "injection_help": "检测并阻止在消息、知识库和工具结果中试图覆盖或泄露智能体指令的行为。",
             "toxicity_label": "有害内容过滤",
-            "toxicity_help": "检测并阻止消息中的有害、仇恨或辱骂性言语。",
+            "toxicity_help": "检测并拦截消息和回答中的仇恨、骚扰、威胁、色情内容和自残内容。",
             "guard_labels": {
                 "prompt_injection": "提示词注入",
                 "pii": "PII",

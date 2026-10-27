@@ -739,7 +739,7 @@
             "injection_label": "Deteksi injeksi prompt",
             "injection_help": "Deteksi dan blokir upaya untuk menimpa instruksi agen atau mengungkapkannya, dalam pesan, pengetahuan, dan hasil alat.",
             "toxicity_label": "Pemfilteran toksisitas",
-            "toxicity_help": "Deteksi dan blokir bahasa yang toksik, penuh kebencian, atau kasar dalam pesan.",
+            "toxicity_help": "Deteksi dan blokir ujaran kebencian, pelecehan, ancaman, konten seksual, dan tindakan menyakiti diri dalam pesan dan jawaban.",
             "guard_labels": {
                 "prompt_injection": "Injeksi prompt",
                 "pii": "PII",

@@ -3,6 +3,7 @@
 use Domain\Conversation\Models\GeneratedMedia;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 use League\Flysystem\FilesystemAdapter as FlysystemAdapter;
 
@@ -51,8 +52,9 @@ it('keeps the link valid on another host', function (): void {
 it('refuses a link without a valid signature', function (): void {
     $media = GeneratedMedia::factory()->stored()->create();
 
-    $this->get(route('generated-media.view', $media))->assertForbidden();
+    $this->get(route('generated-media.view', ['generatedMedia' => $media, 'extension' => 'png']))->assertForbidden();
     $this->get($media->url.'0')->assertForbidden();
+    $this->get(Str::replace('.png?', '.html?', $media->url))->assertForbidden();
 });
 
 it('is not found while the file is still being made, or when it failed', function (): void {

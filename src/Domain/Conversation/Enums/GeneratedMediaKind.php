@@ -16,4 +16,14 @@ enum GeneratedMediaKind: string
     case Image = 'image';
     case Audio = 'audio';
     case Video = 'video';
+
+    /** The usual file extension, for a link made before the file exists. */
+    public function extension(): string
+    {
+        return match ($this) {
+            self::Image => 'png',
+            self::Audio => 'mp3',
+            self::Video => 'mp4',
+        };
+    }
 }

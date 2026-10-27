@@ -55,8 +55,15 @@ it('goes with the reply that made it', function (): void {
 });
 
 it('opens through a signed link without the host', function (): void {
-    $media = GeneratedMedia::factory()->stored()->create();
+    $media = GeneratedMedia::factory()->video()->stored()->create();
 
-    expect($media->url)->toContain('/generated-media/'.$media->external_id)
+    expect($media->url)->toContain('/media/'.$media->external_id.'.mp4?')
         ->and($media->url)->toContain('signature=');
+});
+
+it('ends the link with the kind\'s usual extension while the file is not made', function (): void {
+    $media = GeneratedMedia::factory()->audio()->create();
+
+    expect($media->filepath)->toBeNull()
+        ->and($media->url)->toContain('/media/'.$media->external_id.'.mp3?');
 });

@@ -13,6 +13,7 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
+use Domain\Conversation\Services\Handoff\HandoffAvailability;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\AttachmentSource;
 use Domain\Conversation\Services\Streaming\Sources\ErrorSource;
@@ -39,7 +40,9 @@ use Generator;
  *      and neither does any agent of the workspace to a visitor it blocked
  *      ({@see VisitorBlocklist});
  *   2. a retried request replays its finished answer;
- *   3. a conversation held by a human operator relays the message to them;
+ *   3. a conversation held by a human operator relays the message to them,
+ *      with or without a license key: only new handoffs need one, so a held
+ *      chat finishes ({@see HandoffAvailability});
  *   4. the workspace's and the chatter's monthly message limits and the
  *      agent's rate limit can refuse the turn with a typed error;
  *   5. otherwise the turn is built and answered by the guardrail refusal, an

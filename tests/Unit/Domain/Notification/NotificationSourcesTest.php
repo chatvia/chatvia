@@ -52,6 +52,7 @@ function nsRecipients(NotificationKind $kind): array
 }
 
 it('tells the people who can take over that a visitor is waiting, and clears it once someone does', function (): void {
+    withLicense();
     $takesOver = teammateWithPermissions($this->owner, ['agent.chat.view', 'agent.chat.takeover']);
     teammateWithPermissions($this->owner, ['agent.chat.view']);
     $conversation = Conversation::factory()->create(['agent_id' => $this->agent->id, 'is_visible' => true]);

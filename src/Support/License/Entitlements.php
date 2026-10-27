@@ -66,6 +66,15 @@ final readonly class Entitlements
     }
 
     /**
+     * Whether a chat may be handed to a person (live chat): new handoffs and
+     * takeovers. A chat a person already holds finishes either way.
+     */
+    public function handoff(): bool
+    {
+        return $this->licensed();
+    }
+
+    /**
      * Whether agents may use their capabilities (charts, calendar booking,
      * forms and leads, image, audio and video generation).
      */

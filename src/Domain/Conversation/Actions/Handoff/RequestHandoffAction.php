@@ -7,6 +7,7 @@ use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Events\HandoffRequested;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\Handoff\HandoffAvailability;
 
 /**
  * Puts a visitor's conversation in the queue for a human operator. It only
@@ -16,8 +17,10 @@ use Domain\Conversation\Models\Conversation;
  */
 class RequestHandoffAction
 {
+    public function __construct(private readonly HandoffAvailability $handoff) {}
+
     /**
-     * @throws HandoffUnavailableException when the agent's live-chat toggle does not allow handoff
+     * @throws HandoffUnavailableException when the agent's live chat is off, or the install has no license key
      */
     public function execute(Conversation $conversation): HandoffStatus
     {
@@ -36,14 +39,14 @@ class RequestHandoffAction
     }
 
     /**
-     * Live chat is widget-only, so the agent's widget toggle can switch it off.
+     * Live chat is widget-only, so the agent's widget toggle can switch it
+     * off; without a license key it is off for every agent.
      */
     private function ensureHandoffIsAvailable(Conversation $conversation): void
     {
         $agent = $conversation->agent;
-        $widgetSettings = $agent?->settings('widget');
 
-        if ($agent === null || ($widgetSettings !== null && ! ($widgetSettings['handoff_enabled'] ?? true))) {
+        if ($agent === null || ! $this->handoff->isOnFor($agent)) {
             throw HandoffUnavailableException::liveChatDisabled();
         }
     }

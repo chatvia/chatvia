@@ -19,10 +19,11 @@ use Tests\Support\Conversation\StreamTurn;
 /**
  * Handoff on a web turn. While a teammate holds a conversation, a visitor's
  * message is relayed to them instead of being answered by the AI, but only in
- * the visitor's own conversation. A blocked topic set to hand off puts a Chat
- * Widget conversation in the queue; the surface comes from the conversation
- * row, as the widget's per-message requests carry none, so a hosted-chat
- * conversation (no live chat) gets the plain refusal.
+ * the visitor's own conversation, and with or without a license key (a held
+ * chat finishes). A blocked topic set to hand off puts a Chat Widget
+ * conversation in the queue when the install has a key; the surface comes
+ * from the conversation row, as the widget's per-message requests carry none,
+ * so a hosted-chat conversation (no live chat) gets the plain refusal.
  */
 beforeEach(function (): void {
     Bus::fake();
@@ -49,7 +50,9 @@ describe('a conversation a teammate holds', function (): void {
         $this->conversation = Conversation::factory()->forAgent($this->agent)->handedOff(HandoffStatus::Human, $this->agent->workspace->owner)->create();
     });
 
-    it('relays the visitor message to the teammate', function (): void {
+    it('relays the visitor message to the teammate', function (bool $licensed): void {
+        $licensed ? withLicense() : withoutLicense();
+
         $events = StreamTurn::run($this->agent, 'Are you there?', [
             'externalSessionId' => $this->conversation->session->external_id,
             'conversationId' => $this->conversation->external_id,
@@ -59,7 +62,10 @@ describe('a conversation a teammate holds', function (): void {
 
         Event::assertDispatched(MessagePosted::class, fn (MessagePosted $event): bool => $event->conversationId === $this->conversation->external_id
             && $event->content === 'Are you there?');
-    });
+    })->with([
+        'with a license key' => true,
+        'without one' => false,
+    ]);
 
     it('does not relay into a conversation of another visitor session', function (): void {
         // The conversation is looked up inside the visitor's own session, so a
@@ -81,6 +87,7 @@ describe('a blocked topic that hands off', function (): void {
     beforeEach(function (): void {
         Event::fake([HandedOff::class, HandoffRequested::class]);
         csshBlockAsHandoffTopic();
+        withLicense();
     });
 
     it('hands a widget conversation off', function (): void {
@@ -99,6 +106,22 @@ describe('a blocked topic that hands off', function (): void {
             ->and($meta->data['value']['status'])->toBe(HandoffStatus::Pending->value)
             ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending)
             ->and(StreamTurn::ofType($events, EventType::Delta)[0]->data['text'])->toBe('Let me connect you with someone from our team.');
+    });
+
+    it('keeps the refusal on the widget without a license key', function (): void {
+        withoutLicense();
+        $conversation = Conversation::factory()->forAgent($this->agent)->widget()->create();
+
+        $events = StreamTurn::run($this->agent, 'I want to cancel my contract', [
+            'externalSessionId' => $conversation->session->external_id,
+            'conversationId' => $conversation->external_id,
+            'saveUserMessageImmediately' => true,
+        ]);
+
+        expect(StreamTurn::ofType($events, EventType::Meta))->toBe([])
+            ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai)
+            ->and(StreamTurn::ofType($events, EventType::Delta)[0]->data['text'])->toBe('Sorry, I can’t help with that request.');
+        Event::assertNotDispatched(HandoffRequested::class);
     });
 
     it('keeps the refusal on the hosted chat, which has no live chat', function (): void {

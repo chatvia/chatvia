@@ -4,13 +4,16 @@
 // safety check what the topic covers), and what the visitor gets instead:
 // the refusal, the topic's own reply, or a hand-off to the team. It edits a
 // draft taken each time the dialog opens; "Done" writes the cleaned list
-// back, while closing any other way discards it.
+// back, while closing any other way discards it. The hand-off needs a license
+// key (live chat): without one it cannot be picked, and a topic that already
+// uses it gets the refusal in chats.
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useLicense } from '@/composables/useLicense';
 import { Ban, Check, Plus, Trash2, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,6 +33,7 @@ const open = defineModel<boolean>('open', { required: true });
 const topics = defineModel<BlockedTopic[]>({ required: true });
 
 const { t } = useI18n();
+const { licensed } = useLicense();
 
 const ACTIONS: TopicAction[] = ['refuse', 'reply', 'handoff'];
 
@@ -133,10 +137,14 @@ const apply = () => {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="action in ACTIONS" :key="action" :value="action">{{ t(TOPIC_ACTION_LABELS[action]) }}</SelectItem>
+                                <SelectItem v-for="action in ACTIONS" :key="action" :value="action" :disabled="action === 'handoff' && !licensed">
+                                    {{ t(TOPIC_ACTION_LABELS[action]) }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="topic.action === 'handoff'" class="text-muted-foreground text-xs">{{ t('agents.guardrails.topic_handoff_help') }}</p>
+                        <p v-if="topic.action === 'handoff'" class="text-muted-foreground text-xs">
+                            {{ licensed ? t('agents.guardrails.topic_handoff_help') : t('license.unavailable') }}
+                        </p>
                     </div>
 
                     <Textarea

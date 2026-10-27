@@ -9,7 +9,8 @@ use Inertia\Testing\AssertableInertia;
  * actually open /spectra: an active admin signed in to the admin panel's own
  * guard, or the owner of a workspace an admin granted Spectra access.
  * Spectra shows every workspace's AI calls, so everyone else gets null,
- * which hides the link.
+ * which hides the link. The Live chat tab shows only while live chat is on:
+ * the agent's switch and a license key.
  */
 beforeEach(function (): void {
     config(['spectra.enabled' => true]);
@@ -44,3 +45,15 @@ it('offers the Spectra trace link to the owner of a workspace granted Spectra ac
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('spectraTraceUrl', url('spectra/requests')));
 });
+
+it('turns the Live chat tab on only with a license key', function (bool $licensed): void {
+    $licensed ? withLicense() : withoutLicense();
+
+    $this->actingAs($this->owner)
+        ->get(route('agents.logs', $this->agent))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('handoffEnabled', $licensed));
+})->with([
+    'with a key' => true,
+    'without one' => false,
+]);

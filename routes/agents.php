@@ -405,9 +405,10 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
             ->middleware(['agent.permission:agent.chat.view', 'agent.permission:agent.sources.train.qa'])
             ->name('logs.revise-answer');
 
-        // Handoff (Admin Takeover) routes.
+        // Handoff (Admin Takeover) routes. Taking a chat over needs a license
+        // key (`license.handoff`); the rest stay open so a held chat finishes.
         Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('handoff.pending');
-        Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->middleware('agent.permission:agent.chat.takeover')->name('handoff.takeover');
+        Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->middleware(['agent.permission:agent.chat.takeover', 'license.handoff'])->name('handoff.takeover');
         Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
         Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
         Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');

@@ -57,8 +57,12 @@ const canDeleteConversation = computed(() => hasPermission('agent.chat.delete'))
 // Live chat needs the takeover permission and handoff switched on for the
 // agent (one page prop). It only works for widget conversations: a person can stream replies
 // into the embedded widget, but not into the hosted chat, the bar or Telegram.
+// A chat a person already holds keeps the tab when live chat goes off (a
+// lapsed license key), so it can finish.
 const handoffEnabled = computed(() => Boolean(page.props.handoffEnabled));
-const liveChatAvailable = computed(() => canTakeover.value && handoffEnabled.value && currentConversationData.value?.source === 'widget');
+const liveChatAvailable = computed(
+    () => canTakeover.value && (handoffEnabled.value || handoff.isHandedOff.value) && currentConversationData.value?.source === 'widget',
+);
 
 // When logging is off, a banner explains why no new chats appear (old ones still render).
 const chatlogEnabled = computed(() => page.props.chatlogEnabled !== false);

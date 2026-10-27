@@ -8,6 +8,7 @@ use Domain\Agent\Services\AppearanceTextResolver;
 use Domain\Agent\Services\OfferedModels;
 use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Services\Handoff\HandoffAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Services\ChatFileModel;
@@ -46,6 +47,7 @@ class BuildWidgetSettingsAction
         private readonly AppearanceTextResolver $appearanceText,
         private readonly ChatFileModel $fileModel,
         private readonly VoiceAvailability $voice,
+        private readonly HandoffAvailability $handoff,
         private readonly OfferedModels $offeredModels,
         private readonly Transcriber $transcriber,
         private readonly WorkspaceActivation $activation,
@@ -97,7 +99,7 @@ class BuildWidgetSettingsAction
             notice: filled($text['notice'] ?? null) ? $text['notice'] : null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             sources_display: $agent->sourcesDisplay(),
-            handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
+            handoff_enabled: $this->handoff->isOnFor($agent),
             chat_deletion_mode: ChatDeletionMode::inUse(),
             ai_disclosure: (bool) config('chatvia.widget.ai_disclosure', true),
             // Uploads need a model that reads files; it decides the types.

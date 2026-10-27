@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\Event;
  * A visitor asks for a person: an AI conversation goes to 'pending' and the
  * team hears it; one already waiting or with a teammate stays as it is. The
  * agent's widget `handoff_enabled` switch (on by default) can turn live chat
- * off.
+ * off, and without a license key it is off for every agent.
  */
 beforeEach(function (): void {
     Event::fake([HandedOff::class]);
+    withLicense();
 });
 
 it('puts an AI conversation in the queue and broadcasts it', function (): void {
@@ -53,6 +54,17 @@ it('refuses while the agent has live chat turned off', function (): void {
 
     expect(fn () => app(RequestHandoffAction::class)->execute($conversation))
         ->toThrow(HandoffUnavailableException::class, 'Live chat is turned off for this agent.');
+
+    expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
+    Event::assertNotDispatched(HandedOff::class);
+});
+
+it('refuses without a license key, even with live chat on', function (): void {
+    withoutLicense();
+    $conversation = Conversation::factory()->create();
+
+    expect(fn () => app(RequestHandoffAction::class)->execute($conversation))
+        ->toThrow(HandoffUnavailableException::class);
 
     expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
     Event::assertNotDispatched(HandedOff::class);

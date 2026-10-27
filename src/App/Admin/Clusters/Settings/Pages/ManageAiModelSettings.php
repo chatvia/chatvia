@@ -479,6 +479,27 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. Every picture counts against the workspace\'s monthly generation limit, when it has one.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
                     ->live(),
+                $this->choice('openai_image_model', 'Model', [
+                    'gpt-image-2.5-flare' => 'GPT Image 2.5 Flare (fast)',
+                    'gpt-image-2.5-sunburst' => 'GPT Image 2.5 Sunburst (best detail, costs more)',
+                    'gpt-image-2' => 'GPT Image 2',
+                    'gpt-image-1.5' => 'GPT Image 1.5',
+                    'gpt-image-1-mini' => 'GPT Image 1 mini (cheapest)',
+                ])->visible(fn (Get $get): bool => $get('image_generator') === 'openai'),
+                $this->choice('openrouter_image_model', 'Model', $openRouterImages = app(OpenRouterImageModels::class)->options(),
+                    help: 'Listed with a few good picks first, then every model on OpenRouter whose output includes images.')
+                    ->options(ModelLogo::labels($openRouterImages, LlmProviderKind::OpenRouter))
+                    ->allowHtml()
+                    ->searchable()
+                    ->visible(fn (Get $get): bool => $get('image_generator') === 'openrouter'),
+                $this->choice('google_image_model', 'Model', [
+                    'gemini-nano-banana-2.1' => 'Nano Banana 2.1 (fast, good pictures)',
+                    'gemini-3.1-flash-lite-image' => 'Nano Banana 2 Lite (fastest, cheapest)',
+                    'gemini-3-pro-image' => 'Nano Banana Pro (best pictures, costs more)',
+                    'gemini-3.1-flash-image' => 'Nano Banana 2',
+                ])->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
+                $this->choice('fal_image_model', 'Model', self::FAL_IMAGE_MODELS)
+                    ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
                 Callout::make('A small text model hands OpenAI the prompt')
                     ->description('OpenAI draws through its Responses API, so each picture also costs a few text tokens. OpenAI does not keep the pictures.')
                     ->icon(Heroicon::OutlinedInformationCircle)
@@ -501,26 +522,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
                 $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', min: 1, max: 100,
                     help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
-            ])->advancedFields(fn (): array => [
-                $this->choice('openai_image_model', 'OpenAI model', [
-                    'gpt-image-2.5-flare' => 'GPT Image 2.5 Flare (fast)',
-                    'gpt-image-2.5-sunburst' => 'GPT Image 2.5 Sunburst (best detail, costs more)',
-                    'gpt-image-2' => 'GPT Image 2',
-                    'gpt-image-1.5' => 'GPT Image 1.5',
-                    'gpt-image-1-mini' => 'GPT Image 1 mini (cheapest)',
-                ]),
-                $this->choice('openrouter_image_model', 'OpenRouter model', $openRouterImages = app(OpenRouterImageModels::class)->options(),
-                    help: 'Listed with a few good picks first, then every model on OpenRouter whose output includes images.')
-                    ->options(ModelLogo::labels($openRouterImages, LlmProviderKind::OpenRouter))
-                    ->allowHtml()
-                    ->searchable(),
-                $this->choice('google_image_model', 'Google model', [
-                    'gemini-nano-banana-2.1' => 'Nano Banana 2.1 (fast, good pictures)',
-                    'gemini-3.1-flash-lite-image' => 'Nano Banana 2 Lite (fastest, cheapest)',
-                    'gemini-3-pro-image' => 'Nano Banana Pro (best pictures, costs more)',
-                    'gemini-3.1-flash-image' => 'Nano Banana 2',
-                ]),
-                $this->choice('fal_image_model', 'fal.ai model', self::FAL_IMAGE_MODELS),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
             SettingsCard::make('audio_generation', 'Audio generation', 'Audio files agents make in the hosted chat when a chatter asks: a text, or an attached PDF, read aloud.', Heroicon::OutlinedMusicalNote, fn (): array => [
                 $this->serviceChoice('audio_generator', 'Audio generation', [
@@ -552,6 +553,18 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. A video takes a few minutes and costs far more than a picture, so it counts against the workspace\'s own monthly video limit, when it has one.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
                     ->live(),
+                $this->choice('google_video_model', 'Model', self::GOOGLE_VIDEO_MODELS)
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'google'),
+                $this->choice('elevenlabs_video_model', 'Model', self::ELEVENLABS_VIDEO_MODELS)
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'elevenlabs'),
+                $this->choice('kling_video_model', 'Model', self::KLING_VIDEO_MODELS)
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'kling'),
+                $this->choice('byteplus_video_model', 'Model', self::BYTEPLUS_VIDEO_MODELS)
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'byteplus'),
+                $this->choice('runway_video_model', 'Model', self::RUNWAY_VIDEO_MODELS)
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'runway'),
+                $this->choice('fal_video_model', 'Model', self::FAL_VIDEO_MODELS)
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'fal'),
                 Callout::make('Google moved on from Veo')
                     ->description('Google shut down the Veo 3.1 preview models on the Gemini API. Gemini Omni Flash is used by default, and Veo 3 is listed while Google still serves it. For Veo 3.1, pick ElevenLabs, Runway or fal.ai. Each video carries Google\'s SynthID watermark.')
                     ->icon(Heroicon::OutlinedInformationCircle)
@@ -585,13 +598,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     VideoResolution::Hd720->value => '720p (HD)',
                     VideoResolution::Hd1080->value => '1080p (Full HD, costs more)',
                 ], help: 'How sharp each video is. A model that does not make 1080p makes 720p. Some make 1080p only at their longest length, so they make that length.'),
-            ])->advancedFields(fn (): array => [
-                $this->choice('google_video_model', 'Google model', self::GOOGLE_VIDEO_MODELS),
-                $this->choice('elevenlabs_video_model', 'ElevenLabs model', self::ELEVENLABS_VIDEO_MODELS),
-                $this->choice('kling_video_model', 'Kling model', self::KLING_VIDEO_MODELS),
-                $this->choice('byteplus_video_model', 'BytePlus model', self::BYTEPLUS_VIDEO_MODELS),
-                $this->choice('runway_video_model', 'Runway model', self::RUNWAY_VIDEO_MODELS),
-                $this->choice('fal_video_model', 'fal.ai model', self::FAL_VIDEO_MODELS),
             ])->summary(fn (): string => $this->videoGenerationSummary()),
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),

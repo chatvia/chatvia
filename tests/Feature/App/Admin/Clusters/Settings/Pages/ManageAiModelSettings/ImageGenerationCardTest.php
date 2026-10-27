@@ -47,6 +47,31 @@ it('stays off while a key is connected and nothing is picked', function (): void
         ->and(app(ImageGenerator::class))->toBeInstanceOf(NullImageGenerator::class);
 });
 
+it('shows the model of the picked service right under it', function (): void {
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->assertFormFieldHidden('openai_image_model')
+        ->fillForm(['image_generator' => 'openrouter'])
+        ->assertFormFieldVisible('openrouter_image_model')
+        ->assertFormFieldHidden('openai_image_model')
+        ->assertFormFieldHidden('google_image_model')
+        ->assertFormFieldHidden('fal_image_model');
+});
+
+it('keeps the model of another service when the service changes', function (): void {
+    saveSettings(AiSettings::class, ['image_generator' => 'none', 'google_image_model' => 'gemini-3-pro-image']);
+    connectAiProviders(AiProvider::OpenAi);
+    Http::fake(['api.openai.com/v1/models' => Http::response(['data' => [['id' => 'gpt-image-2.5-flare', 'object' => 'model']]])]);
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['image_generator' => 'openai', 'openai_image_model' => 'gpt-image-2'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(AiSettings::class)->refresh())
+        ->openai_image_model->toBe('gpt-image-2')
+        ->google_image_model->toBe('gemini-3-pro-image');
+});
+
 it('saves the service, its model and the hourly limits', function (): void {
     connectAiProviders(AiProvider::OpenAi);
     Http::fake(['api.openai.com/v1/models' => Http::response(['data' => [['id' => 'gpt-image-2.5-flare', 'object' => 'model']]])]);

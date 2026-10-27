@@ -103,6 +103,15 @@ it('picks each service by its saved name', function (string $driver, string $cla
     'automatic stays off' => ['auto', NullVideoGenerator::class],
 ]);
 
+it('shows the model of the picked service right under it', function (): void {
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->assertFormFieldHidden('google_video_model')
+        ->fillForm(['video_generator' => 'kling'])
+        ->assertFormFieldVisible('kling_video_model')
+        ->assertFormFieldHidden('google_video_model')
+        ->assertFormFieldHidden('runway_video_model');
+});
+
 it('offers every model its generator knows', function (string $property, array $models): void {
     /** @var Select $field */
     $field = adminPage(ManageAiModelSettings::class, $this->admin)->instance()->form->getFlatFields(withHidden: true)[$property];

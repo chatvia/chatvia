@@ -31,11 +31,8 @@
     ],
     "settings/ai-models#image-generation": [
         "Image generation",
-        "Pictures per chat per hour",
-        "OpenAI model",
-        "OpenRouter model",
-        "Google model",
-        "fal.ai model"
+        "Model",
+        "Pictures per chat per hour"
     ],
     "settings/ai-models#models-for-app-tasks": [
         "Model for quick tasks",
@@ -73,15 +70,10 @@
     ],
     "settings/ai-models#video-generation": [
         "Video generation",
+        "Model",
         "Videos per chat per hour",
         "Length, in seconds",
-        "Resolution",
-        "Google model",
-        "ElevenLabs model",
-        "Kling model",
-        "BytePlus model",
-        "Runway model",
-        "fal.ai model"
+        "Resolution"
     ],
     "settings/ai-models#voice-conversations": [
         "Voice conversations",

@@ -760,8 +760,9 @@ async function deleteMessage() {
     font-size: 1rem;
 }
 
-/* Images */
-:deep(.prose img) {
+/* Images. Blocks marked `not-prose` (generated images, …) frame their own
+   picture, so a margin here would push it off their border. */
+:deep(.prose img:not(.not-prose img)) {
     border-radius: 0.5rem;
     margin: 1rem 0;
     max-width: 100%;

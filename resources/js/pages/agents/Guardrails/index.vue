@@ -210,7 +210,9 @@ const topicsOpen = ref(false);
                                             </div>
                                             <Switch v-model="form[guard.key]" :disabled="!canManage" class="pointer-events-none" />
                                         </div>
-                                        <!-- What the guard does, and how easily it blocks. -->
+                                        <!-- What the guard does, and how easily it blocks. Log only
+                                             records every finding, so the sensitivity only shows
+                                             for Block; the saved value comes back with it. -->
                                         <div v-if="form[guard.key]" class="flex flex-wrap items-center gap-2">
                                             <Select v-model="form[guard.mode]" :disabled="!canManage">
                                                 <SelectTrigger class="h-8 w-44" :aria-label="t('agents.guardrails.mode')">
@@ -222,7 +224,7 @@ const topicsOpen = ref(false);
                                                     }}</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            <Select v-model="form[guard.sensitivity]" :disabled="!canManage">
+                                            <Select v-if="form[guard.mode] === 'block'" v-model="form[guard.sensitivity]" :disabled="!canManage">
                                                 <SelectTrigger class="h-8 w-48" :aria-label="t('agents.guardrails.sensitivity')">
                                                     <SelectValue />
                                                 </SelectTrigger>

@@ -12,8 +12,10 @@ return new class extends Migration
         Schema::create('generation_limits', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('workspace_id')->unique()->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('monthly_limit');
+            $table->unsignedInteger('monthly_limit')->nullable();
             $table->unsignedInteger('generations_used')->default(0);
+            $table->unsignedInteger('monthly_video_limit')->nullable();
+            $table->unsignedInteger('videos_used')->default(0);
             $table->timestamp('period_starts_at');
             $table->timestamps();
         });

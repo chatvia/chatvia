@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace App\Identity\Workspace\Actions\GenerationLimits;
 
+use App\Identity\Workspace\Data\GenerationLimits\GenerationLimitData;
 use App\Identity\Workspace\Models\GenerationLimit;
 use App\Identity\Workspace\Models\Workspace;
 
 /**
- * Sets or clears a workspace's monthly cap on the pictures and audio files
- * its agents make. Null removes the cap. A number keeps what was already made
- * this month, so lowering the cap can stop new files right away.
+ * Sets or clears a workspace's monthly caps on what its agents make: one on
+ * pictures and audio files, one on videos. A null cap leaves that kind
+ * uncapped; both null removes the row. A number keeps what was already made
+ * this month, so lowering a cap can stop new files right away.
  */
 class SetGenerationLimitAction
 {
-    public function execute(Workspace $workspace, ?int $monthlyLimit): void
+    public function execute(Workspace $workspace, GenerationLimitData $limits): void
     {
-        if ($monthlyLimit === null) {
+        if ($limits->isEmpty()) {
             GenerationLimit::query()->where('workspace_id', $workspace->id)->delete();
 
             return;
@@ -27,9 +29,11 @@ class SetGenerationLimitAction
         if (! $limit->exists || ! $limit->isCurrentPeriod()) {
             $limit->period_starts_at = now()->startOfMonth();
             $limit->generations_used = 0;
+            $limit->videos_used = 0;
         }
 
-        $limit->monthly_limit = $monthlyLimit;
+        $limit->monthly_limit = $limits->monthlyLimit;
+        $limit->monthly_video_limit = $limits->monthlyVideoLimit;
         $limit->save();
     }
 }

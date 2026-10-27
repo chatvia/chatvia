@@ -168,7 +168,11 @@
             "audio_failed": "Äänitiedostoa ei voitu luoda.",
             "refused": "Palvelu hylkäsi tämän pyynnön.",
             "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
-            "download": "Lataa"
+            "download": "Lataa",
+            "video": "Luotu video",
+            "video_alt": "Luotu video: {prompt}",
+            "video_pending": "Videotasi luodaan… Tämä voi kestää muutaman minuutin.",
+            "video_failed": "Videota ei voitu luoda."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Äänen luonti",
                 "description": "Anna agentin luoda äänitiedostoja isännöidyssä chatissa, kun kävijä pyytää: mikä tahansa teksti luettuna ääneen, valmiina toistettavaksi tai ladattavaksi."
+            },
+            "video-generation": {
+                "name": "Videoiden luonti",
+                "description": "Anna agentin tehdä lyhyitä videoita isännöityyn chattiin, kun kävijä pyytää: tuotevideoita, kohtauksia, animoituja ideoita ja paljon muuta."
             }
         }
     },

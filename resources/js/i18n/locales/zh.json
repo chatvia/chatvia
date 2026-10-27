@@ -168,7 +168,11 @@
             "audio_failed": "无法生成此音频。",
             "refused": "服务拒绝了此请求。",
             "timed_out": "耗时过长。请重新请求。",
-            "download": "下载"
+            "download": "下载",
+            "video": "生成的视频",
+            "video_alt": "生成的视频：{prompt}",
+            "video_pending": "正在生成您的视频…可能需要几分钟。",
+            "video_failed": "无法生成此视频。"
         }
     },
     "messages": {

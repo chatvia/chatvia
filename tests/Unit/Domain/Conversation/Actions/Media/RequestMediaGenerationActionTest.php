@@ -15,6 +15,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Llm\Enums\ImageShape;
+use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Operations\Media\NullSpeaker;
 use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Support\Facades\Process;
@@ -23,16 +24,19 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Support\Llm\FakeImageGenerator;
 use Tests\Support\Llm\FakeSpeaker;
+use Tests\Support\Llm\FakeVideoGenerator;
 
 /**
- * An agent's request for a picture or an audio file: stored as pending with
- * its job queued, or turned down outside the hosted chat, while the service
- * is off, past the chat's hourly limit, or past the workspace's monthly one.
- * An audio file of the attached PDF reads the PDF's text on the server.
+ * An agent's request for a picture, an audio file or a video: stored as
+ * pending with its job queued, or turned down outside the hosted chat, while
+ * the service is off, past the chat's hourly limit, or past the workspace's
+ * monthly one (videos have their own). An audio file of the attached PDF
+ * reads the PDF's text on the server.
  */
 beforeEach(function (): void {
     Queue::fake();
     FakeImageGenerator::install();
+    FakeVideoGenerator::install();
     app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
     $this->agent = Agent::factory()->create();
     $this->conversation = Conversation::factory()->create(['agent_id' => $this->agent->id, 'source' => ConversationSource::HostedChat]);
@@ -82,12 +86,14 @@ it('turns down a request outside the hosted chat', function (): void {
 
 it('turns down a request while the service is off', function (MediaRequestData $request): void {
     FakeImageGenerator::install(enabled: false);
+    FakeVideoGenerator::install(enabled: false);
     app()->instance(AudioGeneration::class, new AudioGeneration(new NullSpeaker));
 
     expect(rmgRequest($request)->refusal)->toBe(MediaRequestRefusal::NotSetUp);
 })->with([
     'image' => [fn (): MediaRequestData => MediaRequestData::image('A fox')],
     'audio' => [fn (): MediaRequestData => MediaRequestData::audio('Hello.')],
+    'video' => [fn (): MediaRequestData => MediaRequestData::video('A fox running')],
 ]);
 
 it('turns down a request past the chat\'s hourly limit', function (): void {
@@ -150,3 +156,35 @@ it('turns down an attached-file request it cannot read aloud', function (?string
     'a scan with no text' => ["  \f\f", MediaRequestRefusal::NoReadableText],
     'longer than one file reads' => [Str::repeat('A long sentence. ', 5), MediaRequestRefusal::TooLong],
 ]);
+
+it('stores a pending video in the shape asked for and queues its job', function (): void {
+    $result = rmgRequest(MediaRequestData::video('A fox running', VideoShape::Portrait));
+
+    $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
+
+    expect($result->isAccepted())->toBeTrue()
+        ->and($media->kind)->toBe(GeneratedMediaKind::Video)
+        ->and($media->shape)->toBe('portrait')
+        ->and($media->voice)->toBeNull()
+        ->and($media->service)->toBe('fake video-model')
+        ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A fox running']);
+
+    Queue::assertPushedOn('generation', GenerateMediaJob::class, fn (GenerateMediaJob $job): bool => $job->media->is($media));
+});
+
+it('turns down a video past its own hourly limit', function (): void {
+    config(['chatvia.ai.videos_per_chat_per_hour' => 1]);
+
+    expect(rmgRequest(MediaRequestData::video('One'))->isAccepted())->toBeTrue()
+        ->and(rmgRequest(MediaRequestData::video('Two'))->refusal)->toBe(MediaRequestRefusal::HourlyLimit)
+        ->and(rmgRequest(MediaRequestData::image('Pictures have their own limit.'))->isAccepted())->toBeTrue();
+});
+
+it('counts videos against the workspace\'s video limit, apart from pictures', function (): void {
+    GenerationLimit::factory()->create(['workspace_id' => $this->agent->workspace_id, 'monthly_limit' => 5, 'monthly_video_limit' => 1]);
+
+    expect(rmgRequest(MediaRequestData::video('One'))->isAccepted())->toBeTrue()
+        ->and(rmgRequest(MediaRequestData::video('Two'))->refusal)->toBe(MediaRequestRefusal::MonthlyLimit)
+        ->and(rmgRequest(MediaRequestData::image('A picture'))->isAccepted())->toBeTrue()
+        ->and(MediaRequestRefusal::MonthlyLimit->reason(GeneratedMediaKind::Video))->toContain('limit of videos');
+});

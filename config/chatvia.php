@@ -357,16 +357,22 @@ return [
     | - voice: live voice calls (the OpenAI Realtime API). "openai" or
     |   "none". Each agent still turns it on.
     | - image_generator: pictures agents make in the hosted chat.
-    |   "openai", "openrouter", "google" or "none". Unlike the others it
-    |   starts at "none", and each agent still turns it on.
+    |   "openai", "openrouter", "google", "fal" or "none". Unlike the others
+    |   it starts at "none", and each agent still turns it on.
     | - audio_generator: the audio files agents make in the hosted chat, a
     |   speech service of its own apart from Read aloud (`speaker`).
     |   "elevenlabs", "openai" or "none"; it also starts at "none".
     |   `audio_max_characters` is the longest text one file reads (an
     |   attached PDF read aloud).
-    |   `images_per_chat_per_hour` and `audio_per_chat_per_hour` cap what
-    |   agents make in one chat; a workspace's monthly cap is a
-    |   GenerationLimit row.
+    | - video_generator: the short videos agents make in the hosted chat.
+    |   "google", "elevenlabs", "kling", "byteplus", "runway", "fal" or
+    |   "none"; it also starts at "none". `video_duration` (seconds) and
+    |   `video_resolution` ("720p" or "1080p") are asked of every video, and
+    |   each service takes the nearest it makes. A video not made within
+    |   `video_max_wait_minutes` turns failed.
+    |   `images_per_chat_per_hour`, `audio_per_chat_per_hour` and
+    |   `videos_per_chat_per_hour` cap what agents make in one chat; a
+    |   workspace's monthly caps are a GenerationLimit row.
     | - chat_files: whether chatters may attach a PDF file or an image in a
     |   chat (off: no agent can offer it), and the catalog model (its
     |   `llms.id`) that answers about it when the agent's own model cannot,
@@ -452,6 +458,11 @@ return [
         'audio_generator' => 'none',
         'audio_per_chat_per_hour' => 10,
         'audio_max_characters' => 20000,
+        'video_generator' => 'none',
+        'videos_per_chat_per_hour' => 2,
+        'video_duration' => 8,
+        'video_resolution' => '720p',
+        'video_max_wait_minutes' => 15,
         'chat_files' => [
             'enabled' => true,
             'model' => null,

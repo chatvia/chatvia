@@ -168,7 +168,11 @@
             "audio_failed": "Audio ini tidak dapat dibuat.",
             "refused": "Layanan menolak permintaan ini.",
             "timed_out": "Ini terlalu lama. Silakan minta lagi.",
-            "download": "Unduh"
+            "download": "Unduh",
+            "video": "Video yang dibuat",
+            "video_alt": "Video yang dibuat: {prompt}",
+            "video_pending": "Membuat video Anda… Ini bisa memakan waktu beberapa menit.",
+            "video_failed": "Video ini tidak dapat dibuat."
         }
     },
     "messages": {

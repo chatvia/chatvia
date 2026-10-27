@@ -168,7 +168,11 @@
             "audio_failed": "Diese Audiodatei konnte nicht erstellt werden.",
             "refused": "Der Dienst hat diese Anfrage abgelehnt.",
             "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
-            "download": "Herunterladen"
+            "download": "Herunterladen",
+            "video": "Erstelltes Video",
+            "video_alt": "Erstelltes Video: {prompt}",
+            "video_pending": "Dein Video wird erstellt… Das kann ein paar Minuten dauern.",
+            "video_failed": "Dieses Video konnte nicht erstellt werden."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Audioerzeugung",
                 "description": "Lass den Agenten im gehosteten Chat Audiodateien erstellen, wenn ein Besucher danach fragt: jeder Text vorgelesen, bereit zum Abspielen oder Herunterladen."
+            },
+            "video-generation": {
+                "name": "Videoerzeugung",
+                "description": "Lass den Agenten im gehosteten Chat kurze Videos erstellen, wenn ein Besucher danach fragt: Produktclips, Szenen, animierte Ideen und mehr."
             }
         }
     },

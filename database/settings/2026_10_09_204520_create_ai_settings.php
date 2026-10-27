@@ -30,6 +30,10 @@ return new class extends SettingsMigration
             $group->add('audio_generator');
             $group->add('audio_per_chat_per_hour');
             $group->add('audio_max_characters');
+            $group->add('video_generator');
+            $group->add('videos_per_chat_per_hour');
+            $group->add('video_duration');
+            $group->add('video_resolution');
             $group->add('chat_files_enabled');
             $group->add('chat_files_model');
             $group->add('source_summaries_enabled');
@@ -72,6 +76,13 @@ return new class extends SettingsMigration
             $group->add('openai_image_model');
             $group->add('openrouter_image_model');
             $group->add('google_image_model');
+            $group->add('fal_image_model');
+            $group->add('google_video_model');
+            $group->add('elevenlabs_video_model');
+            $group->add('kling_video_model');
+            $group->add('byteplus_video_model');
+            $group->add('runway_video_model');
+            $group->add('fal_video_model');
             $group->add('openai_realtime_transcription_model');
             $group->add('voice_max_call_minutes');
             $group->add('gemini_embedding_model');

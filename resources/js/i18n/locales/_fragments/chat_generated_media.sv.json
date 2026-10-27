@@ -3,10 +3,14 @@
         "generated_media": {
             "image": "Skapad bild",
             "image_alt": "Skapad bild: {prompt}",
+            "video": "Skapad video",
+            "video_alt": "Skapad video: {prompt}",
             "image_pending": "Skapar din bild…",
             "audio_pending": "Skapar ditt ljud…",
+            "video_pending": "Skapar din video… Det kan ta några minuter.",
             "image_failed": "Bilden kunde inte skapas.",
             "audio_failed": "Ljudet kunde inte skapas.",
+            "video_failed": "Videon kunde inte skapas.",
             "refused": "Tjänsten avvisade den här begäran.",
             "timed_out": "Det tog för lång tid. Fråga igen.",
             "download": "Ladda ner"

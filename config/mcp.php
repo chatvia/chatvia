@@ -8,6 +8,7 @@ use App\Mcp\Servers\CalendarServer;
 use App\Mcp\Servers\ChartsServer;
 use App\Mcp\Servers\FormsServer;
 use App\Mcp\Servers\ImageGenerationServer;
+use App\Mcp\Servers\VideoGenerationServer;
 
 return [
 
@@ -82,6 +83,10 @@ return [
         [
             'slug' => 'audio-generation',
             'class' => AudioGenerationServer::class,
+        ],
+        [
+            'slug' => 'video-generation',
+            'class' => VideoGenerationServer::class,
         ],
     ],
 

@@ -149,12 +149,14 @@ return [
 
     // Reads agent replies aloud (Settings → AI models → Read aloud). Voices
     // belong to the account, so an empty voice uses its first recommended
-    // one. The endpoint changes only for ElevenLabs' regional servers.
+    // one. The endpoint changes only for ElevenLabs' regional servers. The
+    // video model makes videos (Settings → AI models → Video generation).
     'elevenlabs' => [
         'api_key' => null,
         'endpoint' => 'https://api.elevenlabs.io/v1',
         'speech_model' => 'eleven_flash_v2_5',
         'speech_voice' => null,
+        'video_model' => 'veo-3.1-fast-generate-001',
     ],
 
     // Google Gemini embeddings (the Gemini API, not Vertex AI). Gemini chat
@@ -164,6 +166,7 @@ return [
         'api_endpoint' => 'https://generativelanguage.googleapis.com/v1beta',
         'embedding_model' => 'gemini-embedding-001',
         'image_model' => 'gemini-nano-banana-2.1',
+        'video_model' => 'gemini-omni-1.1-flash',
     ],
 
     'google' => [
@@ -256,6 +259,33 @@ return [
 
     'groq' => [
         'api_key' => null,
+    ],
+
+    // Video services (Settings → AI models → Video generation), each with
+    // its own key (Settings → AI providers). Kling and BytePlus ModelArk
+    // (Seedance) have regional servers, so their address can change.
+    'kling' => [
+        'api_key' => null,
+        'endpoint' => 'https://api-singapore.klingai.com',
+        'video_model' => 'kling-3.0-turbo',
+    ],
+
+    'byteplus' => [
+        'api_key' => null,
+        'endpoint' => 'https://ark.ap-southeast.bytepluses.com/api/v3',
+        'video_model' => 'dreamina-seedance-2-0-fast-260128',
+    ],
+
+    'runway' => [
+        'api_key' => null,
+        'video_model' => 'gen4.5',
+    ],
+
+    // fal.ai: one key for many image and video models, open ones too.
+    'fal' => [
+        'api_key' => null,
+        'image_model' => 'fal-ai/flux-2',
+        'video_model' => 'fal-ai/wan/v2.2-a14b/text-to-video',
     ],
 
     'anthropic' => [

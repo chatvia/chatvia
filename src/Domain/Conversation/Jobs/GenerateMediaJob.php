@@ -17,7 +17,7 @@ use Illuminate\Queue\Attributes\Tries;
 use Throwable;
 
 /**
- * Makes one generated picture or audio file off the chat request, on the
+ * Makes one generated picture or audio file (or starts a video) off the chat request, on the
  * `generation` queue (its own Horizon pool), so a slow image service never
  * holds up replies.
  */

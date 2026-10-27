@@ -85,8 +85,8 @@ final readonly class McpToolResultData
      *   - `echarts_option` → an interactive chart (Charts tools).
      *   - `form`           → an inline FormKit form (RenderFormTool).
      *   - `calendar`       → a booking calendar (RenderCalendarTool).
-     *   - `image`, `audio` → a generated file, pending until its job is done
-     *                        (GenerateImageTool, GenerateAudioTool).
+     *   - `image`, `audio`, `video` → a generated file, pending until its job
+     *                        is done (GenerateImageTool, GenerateAudioTool, GenerateVideoTool).
      *
      * @return list<array{kind: string, data: array<string, mixed>}>
      */
@@ -98,7 +98,7 @@ final readonly class McpToolResultData
 
         $artifacts = [];
 
-        foreach (['echarts_option', 'form', 'calendar', 'image', 'audio'] as $kind) {
+        foreach (['echarts_option', 'form', 'calendar', 'image', 'audio', 'video'] as $kind) {
             if (is_array($this->structuredContent[$kind] ?? null)) {
                 $artifacts[] = ['kind' => $kind, 'data' => $this->structuredContent[$kind]];
             }

@@ -11,9 +11,10 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * What runs on which AI provider (Settings → AI models): which service
  * handles each step (embeddings, reranking, document reading, speech to
- * text, voice conversations, reading aloud, image and audio generation),
- * the models those services call, how many files agents make in one chat
- * and how long an audio file may be, and the catalog model behind each of
+ * text, voice conversations, reading aloud, image, audio and video
+ * generation), the models those services call, how many files agents make
+ * in one chat, how long an audio file may be and how long and sharp a video
+ * is, and the catalog model behind each of
  * the app's own tasks ({@see LlmTask}: one shared model, and one per task).
  * The providers' keys are in {@see AiProviderSettings}; chat models are rows
  * (`llms`). The services are picked in App\Providers\DomainServiceProvider
@@ -68,6 +69,18 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.audio_max_characters')]
     public ?int $audio_max_characters = null;
+
+    #[ConfigKey('chatvia.ai.video_generator')]
+    public ?string $video_generator = null;
+
+    #[ConfigKey('chatvia.ai.videos_per_chat_per_hour')]
+    public ?int $videos_per_chat_per_hour = null;
+
+    #[ConfigKey('chatvia.ai.video_duration')]
+    public ?int $video_duration = null;
+
+    #[ConfigKey('chatvia.ai.video_resolution')]
+    public ?string $video_resolution = null;
 
     #[ConfigKey('chatvia.ai.chat_files.enabled')]
     public ?bool $chat_files_enabled = null;
@@ -197,6 +210,27 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('services.gemini.image_model')]
     public ?string $google_image_model = null;
+
+    #[ConfigKey('services.fal.image_model')]
+    public ?string $fal_image_model = null;
+
+    #[ConfigKey('services.gemini.video_model')]
+    public ?string $google_video_model = null;
+
+    #[ConfigKey('services.elevenlabs.video_model')]
+    public ?string $elevenlabs_video_model = null;
+
+    #[ConfigKey('services.kling.video_model')]
+    public ?string $kling_video_model = null;
+
+    #[ConfigKey('services.byteplus.video_model')]
+    public ?string $byteplus_video_model = null;
+
+    #[ConfigKey('services.runway.video_model')]
+    public ?string $runway_video_model = null;
+
+    #[ConfigKey('services.fal.video_model')]
+    public ?string $fal_video_model = null;
 
     #[ConfigKey('chatvia.voice.max_call_minutes')]
     public ?int $voice_max_call_minutes = null;

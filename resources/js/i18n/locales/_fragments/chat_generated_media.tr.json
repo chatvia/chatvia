@@ -3,10 +3,14 @@
         "generated_media": {
             "image": "Oluşturulan görsel",
             "image_alt": "Oluşturulan görsel: {prompt}",
+            "video": "Oluşturulan video",
+            "video_alt": "Oluşturulan video: {prompt}",
             "image_pending": "Görseliniz oluşturuluyor…",
             "audio_pending": "Sesiniz oluşturuluyor…",
+            "video_pending": "Videonuz oluşturuluyor… Bu birkaç dakika sürebilir.",
             "image_failed": "Bu görsel oluşturulamadı.",
             "audio_failed": "Bu ses oluşturulamadı.",
+            "video_failed": "Bu video oluşturulamadı.",
             "refused": "Hizmet bu isteği reddetti.",
             "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
             "download": "İndir"

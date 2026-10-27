@@ -12,7 +12,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
 
 /**
- * Every image and audio file made in one of the hosted-chat visitor's
+ * Every image, audio file and video made in one of the hosted-chat visitor's
  * conversations, as they stand now. The chat asks for it every few seconds
  * while a file is still being made and the WebSocket update has not come
  * (no connection, or it dropped). Another visitor's conversation is a 404.

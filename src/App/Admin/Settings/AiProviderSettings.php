@@ -10,8 +10,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * The API key (and address) of each AI provider account, set once in
  * Settings → AI providers and used for everything the provider does here:
- * its chat models, embeddings, speech to text, reading aloud, documents and
- * reranking ({@see AiProvider}). What runs on which provider is in {@see AiSettings}.
+ * its chat models, embeddings, speech to text, reading aloud, documents,
+ * reranking and image and video generation ({@see AiProvider}). What runs on which provider is in {@see AiSettings}.
  */
 class AiProviderSettings extends AdminSettings
 {
@@ -83,6 +83,24 @@ class AiProviderSettings extends AdminSettings
 
     #[ConfigKey('services.azure_openai.endpoint')]
     public ?string $azure_openai_endpoint = null;
+
+    #[ConfigKey('services.kling.api_key'), ShouldBeEncrypted]
+    public ?string $kling_api_key = null;
+
+    #[ConfigKey('services.kling.endpoint')]
+    public ?string $kling_endpoint = null;
+
+    #[ConfigKey('services.byteplus.api_key'), ShouldBeEncrypted]
+    public ?string $byteplus_api_key = null;
+
+    #[ConfigKey('services.byteplus.endpoint')]
+    public ?string $byteplus_endpoint = null;
+
+    #[ConfigKey('services.runway.api_key'), ShouldBeEncrypted]
+    public ?string $runway_api_key = null;
+
+    #[ConfigKey('services.fal.api_key'), ShouldBeEncrypted]
+    public ?string $fal_api_key = null;
 
     public static function group(): string
     {

@@ -272,9 +272,10 @@ return [
             'timeout' => 600,
             'nice' => 10,
         ],
-        // Pictures and audio files agents make in chats. Each one waits up
-        // to minutes on the AI service, so they get a pool of their own and
-        // never hold up replies or ingestion. A failed file is not retried
+        // Pictures, audio files and videos agents make in chats. Each one
+        // waits up to minutes on the AI service (a video is checked on every
+        // few seconds instead), so they get a pool of their own and never
+        // hold up replies or ingestion. A failed file is not retried
         // (its slot of the monthly cap is given back); `redis`'s
         // retry_after outlasts the timeout.
         'generation' => [

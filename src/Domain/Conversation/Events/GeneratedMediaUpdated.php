@@ -12,7 +12,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
- * A generated image or audio file was made, or could not be made. Broadcast
+ * A generated image, audio file or video was made, or could not be made. Broadcast
  * at once to the conversation's private media channel as
  * `GeneratedMediaUpdated`, so the hosted chat swaps the placeholder for the
  * file without a reload. A private channel, not the conversation's presence

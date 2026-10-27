@@ -8,7 +8,7 @@ namespace Domain\Llm\Enums;
  * Something an AI provider can do for this install: answer in chat, turn
  * text into search vectors, turn speech into text, hold live voice
  * conversations, read replies aloud, read documents, rank search results,
- * or make pictures and audio files.
+ * or make pictures, audio files and videos.
  * {@see AiProvider::capabilities()} says which provider does what.
  */
 enum AiCapability: string
@@ -22,6 +22,7 @@ enum AiCapability: string
     case Reranking = 'reranking';
     case ImageGeneration = 'image_generation';
     case AudioGeneration = 'audio_generation';
+    case VideoGeneration = 'video_generation';
 
     /** The short label of a chip on the AI providers page. */
     public function label(): string
@@ -36,6 +37,7 @@ enum AiCapability: string
             self::Reranking => 'reranking',
             self::ImageGeneration => 'image generation',
             self::AudioGeneration => 'audio generation',
+            self::VideoGeneration => 'video generation',
         };
     }
 }

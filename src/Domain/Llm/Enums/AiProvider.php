@@ -17,6 +17,7 @@ use Domain\Llm\Services\ModelPresets;
  * text uses Scaleway AI before OpenAI, reranking OpenRouter before Cohere,
  * document reading Mistral before Azure, reading aloud ElevenLabs (which
  * reads the text as it is) before OpenAI (whose realtime model talks).
+ * Image and video generation have no "Automatic": an admin picks one.
  */
 enum AiProvider: string
 {
@@ -33,6 +34,10 @@ enum AiProvider: string
     case Jina = 'jina';
     case Voyage = 'voyage';
     case Azure = 'azure';
+    case Kling = 'kling';
+    case BytePlus = 'byteplus';
+    case Runway = 'runway';
+    case Fal = 'fal';
 
     /**
      * @return list<AiCapability>
@@ -42,10 +47,10 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech],
             self::OpenRouter => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Reranking, AiCapability::ImageGeneration],
-            self::ElevenLabs => [AiCapability::TextToSpeech, AiCapability::AudioGeneration],
+            self::ElevenLabs => [AiCapability::TextToSpeech, AiCapability::AudioGeneration, AiCapability::VideoGeneration],
             self::OpenAi => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Speech, AiCapability::Voice, AiCapability::TextToSpeech, AiCapability::AudioGeneration, AiCapability::ImageGeneration],
             self::Mistral => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::Documents],
-            self::Google => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::ImageGeneration],
+            self::Google => [AiCapability::Chat, AiCapability::Embeddings, AiCapability::ImageGeneration, AiCapability::VideoGeneration],
             self::Groq => [AiCapability::Chat],
             self::Anthropic => [AiCapability::Chat],
             self::AzureOpenAi => [AiCapability::Chat],
@@ -53,6 +58,8 @@ enum AiProvider: string
             self::Jina => [AiCapability::Embeddings],
             self::Voyage => [AiCapability::Embeddings],
             self::Azure => [AiCapability::Documents],
+            self::Kling, self::BytePlus, self::Runway => [AiCapability::VideoGeneration],
+            self::Fal => [AiCapability::ImageGeneration, AiCapability::VideoGeneration],
         };
     }
 
@@ -77,6 +84,10 @@ enum AiProvider: string
             self::Jina => 'Jina',
             self::Voyage => 'Voyage AI',
             self::Azure => 'Azure Document Intelligence',
+            self::Kling => 'Kling',
+            self::BytePlus => 'BytePlus ModelArk',
+            self::Runway => 'Runway',
+            self::Fal => 'fal.ai',
         };
     }
 
@@ -86,7 +97,7 @@ enum AiProvider: string
         return match ($this) {
             self::Scaleway => 'Open models hosted in Europe.',
             self::OpenRouter => 'Hundreds of models from many companies, with one key.',
-            self::ElevenLabs => 'Natural voices in many languages, for reading replies aloud.',
+            self::ElevenLabs => 'Natural voices in many languages, for reading replies aloud, and videos.',
             self::OpenAi => 'The GPT models.',
             self::Mistral => 'Mistral\'s models, and reading of documents and PDFs.',
             self::Google => 'The Gemini models.',
@@ -97,6 +108,10 @@ enum AiProvider: string
             self::Jina => 'Embeddings.',
             self::Voyage => 'Embeddings made for search.',
             self::Azure => 'Reads PDFs, Word, PowerPoint and images, with their tables. Needs the standard tier (S0): the free one reads 2 pages of each file.',
+            self::Kling => 'Kling\'s video models.',
+            self::BytePlus => 'ByteDance\'s Seedance video models.',
+            self::Runway => 'Runway\'s video models, and others such as Veo and Kling.',
+            self::Fal => 'Many image and video models, open ones too, with one key.',
         };
     }
 
@@ -117,6 +132,10 @@ enum AiProvider: string
             self::Jina => 'services.jina.api_key',
             self::Voyage => 'services.voyage.api_key',
             self::Azure => 'services.azure_document_intelligence.key',
+            self::Kling => 'services.kling.api_key',
+            self::BytePlus => 'services.byteplus.api_key',
+            self::Runway => 'services.runway.api_key',
+            self::Fal => 'services.fal.api_key',
         };
     }
 
@@ -134,7 +153,9 @@ enum AiProvider: string
             self::Voyage => 'services.voyage.api_endpoint',
             self::Azure => 'services.azure_document_intelligence.endpoint',
             self::AzureOpenAi => 'services.azure_openai.endpoint',
-            self::OpenRouter, self::Groq, self::Anthropic => null,
+            self::Kling => 'services.kling.endpoint',
+            self::BytePlus => 'services.byteplus.endpoint',
+            self::OpenRouter, self::Groq, self::Anthropic, self::Runway, self::Fal => null,
         };
     }
 
@@ -155,6 +176,10 @@ enum AiProvider: string
             self::Jina => 'https://jina.ai/api-dashboard/key-manager',
             self::Voyage => 'https://dashboard.voyageai.com/organization/api-keys',
             self::Azure => 'https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/DocumentIntelligence',
+            self::Kling => 'https://app.klingai.com/global/dev/api-key',
+            self::BytePlus => 'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
+            self::Runway => 'https://dev.runwayml.com/',
+            self::Fal => 'https://fal.ai/dashboard/keys',
         };
     }
 
@@ -170,7 +195,7 @@ enum AiProvider: string
             self::Groq => LlmProviderKind::Groq,
             self::Anthropic => LlmProviderKind::Anthropic,
             self::AzureOpenAi => LlmProviderKind::Azure,
-            self::ElevenLabs, self::Cohere, self::Jina, self::Voyage, self::Azure => null,
+            self::ElevenLabs, self::Cohere, self::Jina, self::Voyage, self::Azure, self::Kling, self::BytePlus, self::Runway, self::Fal => null,
         };
     }
 
@@ -252,7 +277,7 @@ enum AiProvider: string
                 ['llama-3.3-70b-versatile'],
             ],
             self::Anthropic => [['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6']],
-            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure, self::Kling, self::BytePlus, self::Runway, self::Fal => [],
         };
     }
 
@@ -275,7 +300,7 @@ enum AiProvider: string
             self::Google => ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['openai/gpt-oss-20b'],
             self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
-            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure, self::Kling, self::BytePlus, self::Runway, self::Fal => [],
         };
     }
 
@@ -297,7 +322,7 @@ enum AiProvider: string
             self::Google => ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'],
             self::Groq => ['qwen/qwen3.8-27b', 'qwen/qwen3.6-27b', 'meta-llama/llama-4-scout-17b-16e-instruct'],
             self::Anthropic => ['claude-haiku-5-5', 'claude-haiku-4-5'],
-            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::ElevenLabs, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure, self::Kling, self::BytePlus, self::Runway, self::Fal => [],
         };
     }
 
@@ -319,7 +344,7 @@ enum AiProvider: string
             self::Mistral => ['mistral-large-2512', 'ministral-14b-2512'],
             self::Google => ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'],
             self::Anthropic => ['claude-sonnet-5-5', 'claude-sonnet-5', 'claude-sonnet-4-6'],
-            self::Scaleway, self::ElevenLabs, self::Groq, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure => [],
+            self::Scaleway, self::ElevenLabs, self::Groq, self::AzureOpenAi, self::Cohere, self::Jina, self::Voyage, self::Azure, self::Kling, self::BytePlus, self::Runway, self::Fal => [],
         };
     }
 }

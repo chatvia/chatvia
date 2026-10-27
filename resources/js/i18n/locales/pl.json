@@ -168,7 +168,11 @@
             "audio_failed": "Nie udało się utworzyć tego nagrania.",
             "refused": "Usługa odrzuciła tę prośbę.",
             "timed_out": "Trwało to zbyt długo. Poproś ponownie.",
-            "download": "Pobierz"
+            "download": "Pobierz",
+            "video": "Wygenerowany film",
+            "video_alt": "Wygenerowany film: {prompt}",
+            "video_pending": "Tworzę Twój film… To może potrwać kilka minut.",
+            "video_failed": "Nie udało się utworzyć tego filmu."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Generowanie dźwięku",
                 "description": "Pozwól agentowi tworzyć pliki audio w Hosted Chat, gdy odwiedzający o to poprosi: dowolny tekst przeczytany na głos, gotowy do odtworzenia lub pobrania."
+            },
+            "video-generation": {
+                "name": "Generowanie wideo",
+                "description": "Pozwól agentowi tworzyć krótkie filmy w hostowanym czacie, gdy odwiedzający o to poprosi: klipy produktów, sceny, animowane pomysły i więcej."
             }
         }
     },

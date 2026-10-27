@@ -23,6 +23,7 @@ use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
 use App\Identity\Workspace\Data\Account\UpdatePasswordData;
 use App\Identity\Workspace\Data\Account\UpdateWorkspaceData;
 use App\Identity\Workspace\Data\DataExport\RequestDataExportData;
+use App\Identity\Workspace\Data\GenerationLimits\GenerationLimitData;
 use App\Identity\Workspace\Exceptions\ActiveDataExportExistsException;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
@@ -226,28 +227,39 @@ class ViewWorkspace extends ViewRecord
             });
     }
 
-    /** The monthly cap on the pictures and audio files the workspace's agents make in chats. */
+    /** The monthly caps on the pictures, audio files and videos the workspace's agents make in chats. */
     private function generationLimitAction(): Action
     {
         return Action::make('generationLimit')
             ->label('Set generation limit')
             ->icon(Heroicon::OutlinedPhoto)
             ->color('gray')
-            ->fillForm(fn (Workspace $record): array => ['monthly_limit' => $record->generationLimit?->monthly_limit])
+            ->fillForm(fn (Workspace $record): array => [
+                'monthly_limit' => $record->generationLimit?->monthly_limit,
+                'monthly_video_limit' => $record->generationLimit?->monthly_video_limit,
+            ])
             ->schema([
                 TextInput::make('monthly_limit')
                     ->label('Pictures and audio files per month')
                     ->integer()
                     ->minValue(1)
                     ->helperText('Leave empty for no limit. The count of this month is kept.'),
+                TextInput::make('monthly_video_limit')
+                    ->label('Videos per month')
+                    ->integer()
+                    ->minValue(1)
+                    ->helperText('A video costs far more than a picture, so it has its own limit. Leave empty for no limit.'),
             ])
             ->action(function (Workspace $record, array $data, SetGenerationLimitAction $setLimit): void {
-                $limit = filled($data['monthly_limit'] ?? null) ? (int) $data['monthly_limit'] : null;
+                $limits = new GenerationLimitData(
+                    monthlyLimit: filled($data['monthly_limit'] ?? null) ? (int) $data['monthly_limit'] : null,
+                    monthlyVideoLimit: filled($data['monthly_video_limit'] ?? null) ? (int) $data['monthly_video_limit'] : null,
+                );
 
-                $setLimit->execute($record, $limit);
+                $setLimit->execute($record, $limits);
                 $record->load('generationLimit');
 
-                Notification::make()->success()->title($limit === null ? 'Generation limit removed' : 'Generation limit saved')->send();
+                Notification::make()->success()->title($limits->isEmpty() ? 'Generation limit removed' : 'Generation limit saved')->send();
             });
     }
 

@@ -168,7 +168,11 @@
             "audio_failed": "Không thể tạo âm thanh này.",
             "refused": "Dịch vụ đã từ chối yêu cầu này.",
             "timed_out": "Quá lâu. Vui lòng yêu cầu lại.",
-            "download": "Tải xuống"
+            "download": "Tải xuống",
+            "video": "Video đã tạo",
+            "video_alt": "Video đã tạo: {prompt}",
+            "video_pending": "Đang tạo video của bạn… Việc này có thể mất vài phút.",
+            "video_failed": "Không thể tạo video này."
         }
     },
     "messages": {

@@ -181,6 +181,10 @@
                 "name": "Generowanie dźwięku",
                 "description": "Pozwól agentowi tworzyć pliki audio w Hosted Chat, gdy odwiedzający o to poprosi: dowolny tekst przeczytany na głos, gotowy do odtworzenia lub pobrania."
             },
+            "video-generation": {
+                "name": "Generowanie wideo",
+                "description": "Pozwól agentowi tworzyć krótkie filmy w hostowanym czacie, gdy odwiedzający o to poprosi: klipy produktów, sceny, animowane pomysły i więcej."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Wyszukuj aktualne wyniki w Google, Bing, YouTube i innych wyszukiwarkach: wiadomości, ceny, miejsca. Dostarczane przez SerpApi.",

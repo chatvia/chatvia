@@ -30,6 +30,7 @@ import CitationCard from './CitationCard.vue';
 import EChartBlock from './EChartBlock.vue';
 import GeneratedAudioBlock from './GeneratedAudioBlock.vue';
 import GeneratedImageBlock from './GeneratedImageBlock.vue';
+import GeneratedVideoBlock from './GeneratedVideoBlock.vue';
 import ImageLightbox, { type LightboxImage } from './ImageLightbox.vue';
 import InlineCalendarBlock from './InlineCalendarBlock.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
@@ -87,6 +88,10 @@ const ARTIFACT_RENDERERS: Record<string, ArtifactRenderer> = {
     },
     audio: {
         component: GeneratedAudioBlock,
+        toProps: (data) => ({ media: data }),
+    },
+    video: {
+        component: GeneratedVideoBlock,
         toProps: (data) => ({ media: data }),
     },
 };

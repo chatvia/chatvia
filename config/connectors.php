@@ -28,6 +28,7 @@ return [
         Connectors\CalendarConnector::class,
         Connectors\ImageGenerationConnector::class,
         Connectors\AudioGenerationConnector::class,
+        Connectors\VideoGenerationConnector::class,
         Connectors\StripeConnector::class,
         Connectors\GithubConnector::class,
         Connectors\NotionConnector::class,

@@ -58,7 +58,7 @@ Route::get('attachments/{attachment}', AttachmentViewController::class)
     ->middleware('signed:relative')
     ->name('attachments.view');
 
-// An image or audio file an agent made in a chat, on the same terms.
+// An image, audio file or video an agent made in a chat, on the same terms.
 Route::get('generated-media/{generatedMedia}', GeneratedMediaViewController::class)
     ->middleware('signed:relative')
     ->name('generated-media.view');

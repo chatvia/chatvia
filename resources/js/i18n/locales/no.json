@@ -168,7 +168,11 @@
             "audio_failed": "Lyden kunne ikke lages.",
             "refused": "Tjenesten avviste denne forespørselen.",
             "timed_out": "Det tok for lang tid. Spør igjen.",
-            "download": "Last ned"
+            "download": "Last ned",
+            "video": "Generert video",
+            "video_alt": "Generert video: {prompt}",
+            "video_pending": "Lager videoen din… Dette kan ta noen minutter.",
+            "video_failed": "Videoen kunne ikke lages."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Lydgenerering",
                 "description": "La agenten lage lydfiler i den hostede chatten når en besøkende ber om det: hvilken som helst tekst lest høyt, klar til å spille av eller laste ned."
+            },
+            "video-generation": {
+                "name": "Videogenerering",
+                "description": "La agenten lage korte videoer i den hostede chatten når en besøkende ber om det: produktklipp, scener, animerte idéer og mer."
             }
         }
     },

@@ -49,8 +49,10 @@ use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Enums\RealtimeVoice;
+use Domain\Llm\Enums\VideoResolution;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Operations\Media\FalImageGenerator;
 use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\ElevenLabsVoices;
 use Domain\Llm\Services\ModelListing;
@@ -92,8 +94,8 @@ use InvalidArgumentException;
  * What runs on the connected AI providers: the chat models agents can use
  * (added from a provider's list, removed with their agents moved to another
  * model) and the default for new agents; the embedding service; the
- * reranker; document reading; speech to text; voice; reading aloud; image
- * and audio generation, which stay off until an admin picks a service. The models
+ * reranker; document reading; speech to text; voice; reading aloud; image,
+ * audio and video generation, which stay off until an admin picks a service. The models
  * behind the app's own tasks ({@see LlmTask}) are a closed card of their
  * own: the model for quick tasks, and one per task, grouped by when the
  * task runs. "Use the
@@ -118,6 +120,58 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private const string CHANGE_WARNING = 'Your documents were turned into vectors with the current model. Another model makes different vectors, so agents cannot find your documents until every document, Q&A and tool is embedded again. Saving starts this re-index in the background queue. With many documents it can take hours, and until it ends agents may miss documents.';
 
     private const string REINDEX_NOTE = 'Files are not read again: only the embeddings are made again.';
+
+    /** The fal.ai image models offered, open ones first ({@see FalImageGenerator::MODELS} says how each takes the shape). */
+    private const array FAL_IMAGE_MODELS = [
+        'fal-ai/flux-2' => 'FLUX.2 dev (open model)',
+        'fal-ai/qwen-image' => 'Qwen-Image (open model, good with text in pictures)',
+        'fal-ai/flux-2-pro' => 'FLUX.2 pro (costs more)',
+        'fal-ai/nano-banana-2' => 'Nano Banana 2 (Google)',
+        'fal-ai/nano-banana-pro' => 'Nano Banana Pro (Google, costs more)',
+        'fal-ai/bytedance/seedream/v4.5/text-to-image' => 'Seedream 4.5 (ByteDance)',
+        'fal-ai/recraft/v3/text-to-image' => 'Recraft V3 (logos and designs)',
+    ];
+
+    /** The video models offered per service, the default first; each generator's MODELS lists the same ids. */
+    private const array GOOGLE_VIDEO_MODELS = [
+        'gemini-omni-1.1-flash' => 'Gemini Omni Flash (with sound, 3 to 10 seconds)',
+        'veo-3.0-fast-generate-001' => 'Veo 3 Fast (deprecated by Google, 8 seconds)',
+        'veo-3.0-generate-001' => 'Veo 3 (deprecated by Google, 8 seconds, costs more)',
+    ];
+
+    private const array ELEVENLABS_VIDEO_MODELS = [
+        'veo-3.1-fast-generate-001' => 'Google Veo 3.1 Fast (with sound, 4 to 8 seconds)',
+        'veo-3.1-generate-001' => 'Google Veo 3.1 (best, costs more)',
+        'bytedance-seedance-v2-fast' => 'Seedance 2.0 Fast (720p, needs approval)',
+        'bytedance-seedance-v2' => 'Seedance 2.0 (needs approval)',
+        'bytedance-seedance-v2.5' => 'Seedance 2.5 (needs approval)',
+    ];
+
+    private const array KLING_VIDEO_MODELS = [
+        'kling-3.0-turbo' => 'Kling 3.0 Turbo (fast, 3 to 15 seconds)',
+        'kling-4.0' => 'Kling 4.0 (best, up to 30 seconds, costs more)',
+    ];
+
+    private const array BYTEPLUS_VIDEO_MODELS = [
+        'dreamina-seedance-2-0-fast-260128' => 'Seedance 2.0 Fast (720p, cheaper)',
+        'dreamina-seedance-2-0-260128' => 'Seedance 2.0 (up to 1080p)',
+    ];
+
+    private const array RUNWAY_VIDEO_MODELS = [
+        'gen4.5' => 'Gen-4.5 (2 to 10 seconds, 720p)',
+        'veo3.1_fast' => 'Google Veo 3.1 Fast (with sound)',
+        'veo3.1' => 'Google Veo 3.1 (with sound, costs more)',
+        'kling3.0_pro' => 'Kling 3.0 Pro (1080p)',
+        'seedance2' => 'Seedance 2.0',
+    ];
+
+    private const array FAL_VIDEO_MODELS = [
+        'fal-ai/wan/v2.2-a14b/text-to-video' => 'Wan 2.2 (open model, no sound, cheapest)',
+        'fal-ai/veo3.1/fast' => 'Google Veo 3.1 Fast (with sound)',
+        'fal-ai/veo3.1/lite' => 'Google Veo 3.1 Lite (with sound, cheaper)',
+        'fal-ai/veo3.1' => 'Google Veo 3.1 (with sound, costs more)',
+        'fal-ai/kling-video/v3/pro/text-to-video' => 'Kling 3.0 Pro (with sound)',
+    ];
 
     /** The app's tasks on the "Models for app tasks" card, by when they run. */
     #[\Override]
@@ -420,6 +474,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'openai' => 'OpenAI GPT Image',
                     'openrouter' => 'OpenRouter',
                     'google' => 'Google Gemini',
+                    'fal' => 'fal.ai',
                     'none' => 'Off',
                 ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. Every picture counts against the workspace\'s monthly generation limit, when it has one.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
@@ -439,6 +494,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
                     ->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
+                Callout::make('Prices differ between fal.ai models')
+                    ->description('Check a model\'s price on fal.ai before you pick it. FLUX.2 dev and Qwen-Image are open models.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
                 $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', min: 1, max: 100,
                     help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
             ])->advancedFields(fn (): array => [
@@ -460,6 +520,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'gemini-3-pro-image' => 'Nano Banana Pro (best pictures, costs more)',
                     'gemini-3.1-flash-image' => 'Nano Banana 2',
                 ]),
+                $this->choice('fal_image_model', 'fal.ai model', self::FAL_IMAGE_MODELS),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
             SettingsCard::make('audio_generation', 'Audio generation', 'Audio files agents make in the hosted chat when a chatter asks: a text, or an attached PDF, read aloud.', Heroicon::OutlinedMusicalNote, fn (): array => [
                 $this->serviceChoice('audio_generator', 'Audio generation', [
@@ -479,6 +540,59 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->integer('audio_max_characters', 'Longest text, in characters', min: 1000, max: 50000,
                     help: 'The most text one audio file reads, such as a PDF a chatter attached. 20,000 characters is about 6 pages, or 20 minutes of audio. A longer text is refused.'),
             ])->summary(fn (): string => $this->providerInUse('audio_generator')),
+            SettingsCard::make('video_generation', 'Video generation', 'Short videos agents make in the hosted chat when a chatter asks.', Heroicon::OutlinedFilm, fn (): array => [
+                $this->serviceChoice('video_generator', 'Video generation', [
+                    'google' => 'Google Gemini',
+                    'elevenlabs' => 'ElevenLabs',
+                    'kling' => 'Kling',
+                    'byteplus' => 'BytePlus Seedance',
+                    'runway' => 'Runway',
+                    'fal' => 'fal.ai',
+                    'none' => 'Off',
+                ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. A video takes a few minutes and costs far more than a picture, so it counts against the workspace\'s own monthly video limit, when it has one.',
+                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
+                    ->live(),
+                Callout::make('Google moved on from Veo')
+                    ->description('Google shut down the Veo 3.1 preview models on the Gemini API. Gemini Omni Flash is used by default, and Veo 3 is listed while Google still serves it. For Veo 3.1, pick ElevenLabs, Runway or fal.ai. Each video carries Google\'s SynthID watermark.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'google'),
+                Callout::make('ElevenLabs needs a Pro plan')
+                    ->description('Making videos through its API needs the Pro plan or above. Its Seedance models work only after ElevenLabs approves your account for them.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'elevenlabs'),
+                Callout::make('Seedance needs a resource pack')
+                    ->description('Buy a prepaid resource pack for the model in the BytePlus console first, or every video fails. A pack works for one model only.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'byteplus'),
+                Callout::make('Runway bills in credits')
+                    ->description('Each second of video costs credits from your Runway organization. Add credits in the Runway developer portal.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('video_generator') === 'runway'),
+                Callout::make('Prices differ a lot between models')
+                    ->description('A video can cost from a few cents to a few dollars. Check the model\'s price before you pick it.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => in_array($get('video_generator'), ['kling', 'fal'], true)),
+                $this->integer('videos_per_chat_per_hour', 'Videos per chat per hour', min: 1, max: 20,
+                    help: 'The most videos an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
+                $this->integer('video_duration', 'Length, in seconds', min: 2, max: 15,
+                    help: 'How long each video is. Each service makes the length nearest to this that its model can. Longer videos cost more.'),
+                $this->choice('video_resolution', 'Resolution', [
+                    VideoResolution::Hd720->value => '720p (HD)',
+                    VideoResolution::Hd1080->value => '1080p (Full HD, costs more)',
+                ], help: 'How sharp each video is. A model that does not make 1080p makes 720p. Some make 1080p only at their longest length, so they make that length.'),
+            ])->advancedFields(fn (): array => [
+                $this->choice('google_video_model', 'Google model', self::GOOGLE_VIDEO_MODELS),
+                $this->choice('elevenlabs_video_model', 'ElevenLabs model', self::ELEVENLABS_VIDEO_MODELS),
+                $this->choice('kling_video_model', 'Kling model', self::KLING_VIDEO_MODELS),
+                $this->choice('byteplus_video_model', 'BytePlus model', self::BYTEPLUS_VIDEO_MODELS),
+                $this->choice('runway_video_model', 'Runway model', self::RUNWAY_VIDEO_MODELS),
+                $this->choice('fal_video_model', 'fal.ai model', self::FAL_VIDEO_MODELS),
+            ])->summary(fn (): string => $this->videoGenerationSummary()),
             SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 Actions::make([$this->recommendedTaskModelsAction()])->key('recommended-task-models'),
                 $this->withHelp($this->modelChoice('task_model', 'Model for quick tasks'),
@@ -1274,7 +1388,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             'transcriber' => AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none',
             'voice' => AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none',
             'speaker' => AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none',
-            'image_generator', 'audio_generator' => 'none',
+            'image_generator', 'audio_generator', 'video_generator' => 'none',
             default => throw new InvalidArgumentException("{$property} is not a service choice."),
         };
     }
@@ -1389,10 +1503,31 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             'openai' => config('services.openai.image_model'),
             'openrouter' => config('services.openrouter.image_model'),
             'google' => config('services.gemini.image_model'),
+            'fal' => config('services.fal.image_model'),
             default => null,
         };
 
         return $provider === 'off' || blank($model) ? $provider : $provider.' · '.$model;
+    }
+
+    /** The video service in use, with its model and the length and resolution asked for, or "off". */
+    private function videoGenerationSummary(): string
+    {
+        $model = match ($this->driverInUse('video_generator')) {
+            'google' => config('services.gemini.video_model'),
+            'elevenlabs' => config('services.elevenlabs.video_model'),
+            'kling' => config('services.kling.video_model'),
+            'byteplus' => config('services.byteplus.video_model'),
+            'runway' => config('services.runway.video_model'),
+            'fal' => config('services.fal.video_model'),
+            default => null,
+        };
+
+        if (blank($model)) {
+            return 'off';
+        }
+
+        return $this->providerInUse('video_generator').' · '.$model.' · '.config('chatvia.ai.video_duration').' s, '.config('chatvia.ai.video_resolution');
     }
 
     private function embeddingSummary(): string

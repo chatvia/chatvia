@@ -13,6 +13,8 @@ use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Operations\Media\Video\RunwayVideoGenerator;
+use Domain\Llm\Services\FalQueue;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Http\Client\ConnectionException;
@@ -24,8 +26,9 @@ use Illuminate\Support\Str;
  * Checks an AI provider's key, the one typed or else the saved one: a chat
  * provider by reading its model list, Cohere and Jina with a test
  * embedding, Azure with a call to its resource, ElevenLabs by reading its
- * model list. Only a refused key or a provider
- * that cannot be reached counts as not connected.
+ * model list, and the video and image services (Kling, BytePlus, Runway,
+ * fal.ai) with a call that needs a key but makes nothing. Only a refused key
+ * or a provider that cannot be reached counts as not connected.
  */
 final readonly class AiProviderCheck
 {
@@ -55,6 +58,10 @@ final readonly class AiProviderCheck
 
         if ($provider === AiProvider::ElevenLabs) {
             return $this->checkElevenLabs((string) $key, (string) (filled($baseUrl) ? $baseUrl : config('services.elevenlabs.endpoint')));
+        }
+
+        if (in_array($provider, [AiProvider::Kling, AiProvider::BytePlus, AiProvider::Runway, AiProvider::Fal], true)) {
+            return $this->checkMediaService($provider, (string) $key, (string) (filled($baseUrl) ? $baseUrl : config($provider->baseUrlConfig() ?? '')));
         }
 
         $kind = $provider->chatKind();
@@ -120,6 +127,34 @@ final readonly class AiProviderCheck
             $response->successful() => new ConnectionCheckData(true),
             in_array($response->status(), [401, 403], true) => new ConnectionCheckData(false, true, 'ElevenLabs refused the key. Check that you copied all of it.'),
             default => new ConnectionCheckData(false, message: "ElevenLabs answered with an error ({$response->status()})."),
+        };
+    }
+
+    /**
+     * A call each media service answers with 401 or 403 for a wrong key:
+     * Kling's balance, BytePlus' task list, Runway's organization, and the
+     * status of a fal.ai request that does not exist (404 means the key was
+     * taken). Any other answer below 500 means the key was accepted.
+     */
+    private function checkMediaService(AiProvider $provider, string $key, string $endpoint): ConnectionCheckData
+    {
+        $address = Str::rtrim($endpoint, '/');
+
+        try {
+            $response = match ($provider) {
+                AiProvider::Kling => Http::withToken($key)->acceptJson()->timeout(15)->post($address.'/account/billing/balance', []),
+                AiProvider::BytePlus => Http::withToken($key)->acceptJson()->timeout(15)->get($address.'/contents/generations/tasks', ['page_size' => 1]),
+                AiProvider::Runway => Http::withToken($key)->withHeaders(['X-Runway-Version' => RunwayVideoGenerator::API_VERSION])->acceptJson()->timeout(15)->get(RunwayVideoGenerator::ENDPOINT.'/organization'),
+                default => Http::withHeaders(['Authorization' => 'Key '.$key])->acceptJson()->timeout(15)->get(FalQueue::ENDPOINT.'/fal-ai/flux-2/requests/'.Str::uuid7()->toString().'/status'),
+            };
+        } catch (ConnectionException) {
+            return new ConnectionCheckData(false, message: "{$provider->label()} could not be reached.");
+        }
+
+        return match (true) {
+            in_array($response->status(), [401, 403], true) => new ConnectionCheckData(false, true, "{$provider->label()} refused the key. Check that you copied all of it."),
+            $response->status() < 500 => new ConnectionCheckData(true),
+            default => new ConnectionCheckData(false, message: "{$provider->label()} answered with an error ({$response->status()})."),
         };
     }
 

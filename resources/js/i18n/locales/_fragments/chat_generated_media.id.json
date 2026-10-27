@@ -11,6 +11,10 @@
             "image_failed": "Gambar ini tidak dapat dibuat.",
             "audio_failed": "Audio ini tidak dapat dibuat.",
             "video_failed": "Video ini tidak dapat dibuat.",
+            "image_ready": "Gambar Anda sudah siap. | Gambar Anda sudah siap.",
+            "audio_ready": "Audio Anda sudah siap. | Audio Anda sudah siap.",
+            "video_ready": "Video Anda sudah siap. | Video Anda sudah siap.",
+            "files_ready": "File Anda sudah siap.",
             "refused": "Layanan menolak permintaan ini.",
             "timed_out": "Ini terlalu lama. Silakan minta lagi.",
             "download": "Unduh"

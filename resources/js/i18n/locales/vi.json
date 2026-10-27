@@ -172,7 +172,11 @@
             "video": "Video đã tạo",
             "video_alt": "Video đã tạo: {prompt}",
             "video_pending": "Đang tạo video của bạn… Việc này có thể mất vài phút.",
-            "video_failed": "Không thể tạo video này."
+            "video_failed": "Không thể tạo video này.",
+            "image_ready": "Hình ảnh của bạn đã sẵn sàng. | Các hình ảnh của bạn đã sẵn sàng.",
+            "audio_ready": "Âm thanh của bạn đã sẵn sàng. | Các tệp âm thanh của bạn đã sẵn sàng.",
+            "video_ready": "Video của bạn đã sẵn sàng. | Các video của bạn đã sẵn sàng.",
+            "files_ready": "Các tệp của bạn đã sẵn sàng."
         }
     },
     "messages": {

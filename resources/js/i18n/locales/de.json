@@ -172,7 +172,11 @@
             "video": "Erstelltes Video",
             "video_alt": "Erstelltes Video: {prompt}",
             "video_pending": "Dein Video wird erstellt… Das kann ein paar Minuten dauern.",
-            "video_failed": "Dieses Video konnte nicht erstellt werden."
+            "video_failed": "Dieses Video konnte nicht erstellt werden.",
+            "image_ready": "Dein Bild ist fertig. | Deine Bilder sind fertig.",
+            "audio_ready": "Deine Audiodatei ist fertig. | Deine Audiodateien sind fertig.",
+            "video_ready": "Dein Video ist fertig. | Deine Videos sind fertig.",
+            "files_ready": "Deine Dateien sind fertig."
         }
     },
     "messages": {

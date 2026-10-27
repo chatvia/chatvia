@@ -6,8 +6,9 @@
  * attachments, a generated file that is now made).
  */
 import { fetchConversationMessages, fetchConversationSources } from '@/api/chat';
+import { isMediaArtifact } from '@/lib/generatedMedia';
 import type { ChatAttachment, Message, MessageSource } from '@/types/chat';
-import { GENERATED_MEDIA_KINDS, type GeneratedMedia, type GeneratedMediaArtifactData } from '@/types/generatedMedia';
+import type { GeneratedMedia } from '@/types/generatedMedia';
 import type { ToolArtifact } from '@/types/stream';
 import { computed, ref } from 'vue';
 
@@ -70,10 +71,6 @@ export function useChatMessages(conversationId: string) {
     function addArtifacts(assistantMessageId: MessageId, list: ToolArtifact[]) {
         const existing = artifacts.value.get(assistantMessageId) ?? [];
         artifacts.value.set(assistantMessageId, [...existing, ...list]);
-    }
-
-    function isMediaArtifact(artifact: ToolArtifact): artifact is ToolArtifact & { data: GeneratedMediaArtifactData } {
-        return GENERATED_MEDIA_KINDS.includes(artifact.kind) && typeof (artifact.data as GeneratedMediaArtifactData | null)?.id === 'string';
     }
 
     /** The generated images and audio still being made, by id. */

@@ -172,7 +172,11 @@
             "video": "生成された動画",
             "video_alt": "生成された動画: {prompt}",
             "video_pending": "動画を作成しています… 数分かかることがあります。",
-            "video_failed": "この動画を作成できませんでした。"
+            "video_failed": "この動画を作成できませんでした。",
+            "image_ready": "画像ができました。 | 画像ができました。",
+            "audio_ready": "音声ができました。 | 音声ができました。",
+            "video_ready": "動画ができました。 | 動画ができました。",
+            "files_ready": "ファイルができました。"
         }
     },
     "messages": {

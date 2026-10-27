@@ -172,7 +172,11 @@
             "video": "Vidéo générée",
             "video_alt": "Vidéo générée : {prompt}",
             "video_pending": "Création de votre vidéo… Cela peut prendre quelques minutes.",
-            "video_failed": "Impossible de créer cette vidéo."
+            "video_failed": "Impossible de créer cette vidéo.",
+            "image_ready": "Votre image est prête. | Vos images sont prêtes.",
+            "audio_ready": "Votre audio est prêt. | Vos audios sont prêts.",
+            "video_ready": "Votre vidéo est prête. | Vos vidéos sont prêtes.",
+            "files_ready": "Vos fichiers sont prêts."
         }
     },
     "messages": {

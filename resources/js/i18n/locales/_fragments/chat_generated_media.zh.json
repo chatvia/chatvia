@@ -11,6 +11,10 @@
             "image_failed": "无法生成此图片。",
             "audio_failed": "无法生成此音频。",
             "video_failed": "无法生成此视频。",
+            "image_ready": "您的图片已生成。 | 您的图片已生成。",
+            "audio_ready": "您的音频已生成。 | 您的音频已生成。",
+            "video_ready": "您的视频已生成。 | 您的视频已生成。",
+            "files_ready": "您的文件已生成。",
             "refused": "服务拒绝了此请求。",
             "timed_out": "耗时过长。请重新请求。",
             "download": "下载"

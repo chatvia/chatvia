@@ -11,6 +11,10 @@
             "image_failed": "Bu görsel oluşturulamadı.",
             "audio_failed": "Bu ses oluşturulamadı.",
             "video_failed": "Bu video oluşturulamadı.",
+            "image_ready": "Görseliniz hazır. | Görselleriniz hazır.",
+            "audio_ready": "Sesiniz hazır. | Ses dosyalarınız hazır.",
+            "video_ready": "Videonuz hazır. | Videolarınız hazır.",
+            "files_ready": "Dosyalarınız hazır.",
             "refused": "Hizmet bu isteği reddetti.",
             "timed_out": "Bu çok uzun sürdü. Lütfen tekrar isteyin.",
             "download": "İndir"

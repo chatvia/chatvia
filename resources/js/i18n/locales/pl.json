@@ -172,7 +172,11 @@
             "video": "Wygenerowany film",
             "video_alt": "Wygenerowany film: {prompt}",
             "video_pending": "Tworzę Twój film… To może potrwać kilka minut.",
-            "video_failed": "Nie udało się utworzyć tego filmu."
+            "video_failed": "Nie udało się utworzyć tego filmu.",
+            "image_ready": "Twój obraz jest gotowy. | Twoje obrazy są gotowe.",
+            "audio_ready": "Twoje nagranie jest gotowe. | Twoje nagrania są gotowe.",
+            "video_ready": "Twój film jest gotowy. | Twoje filmy są gotowe.",
+            "files_ready": "Twoje pliki są gotowe."
         }
     },
     "messages": {

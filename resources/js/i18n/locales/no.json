@@ -172,7 +172,11 @@
             "video": "Generert video",
             "video_alt": "Generert video: {prompt}",
             "video_pending": "Lager videoen din… Dette kan ta noen minutter.",
-            "video_failed": "Videoen kunne ikke lages."
+            "video_failed": "Videoen kunne ikke lages.",
+            "image_ready": "Bildet ditt er klart. | Bildene dine er klare.",
+            "audio_ready": "Lyden din er klar. | Lydfilene dine er klare.",
+            "video_ready": "Videoen din er klar. | Videoene dine er klare.",
+            "files_ready": "Filene dine er klare."
         }
     },
     "messages": {

@@ -11,6 +11,10 @@
             "image_failed": "Não foi possível criar esta imagem.",
             "audio_failed": "Não foi possível criar este áudio.",
             "video_failed": "Não foi possível criar este vídeo.",
+            "image_ready": "Sua imagem está pronta. | Suas imagens estão prontas.",
+            "audio_ready": "Seu áudio está pronto. | Seus áudios estão prontos.",
+            "video_ready": "Seu vídeo está pronto. | Seus vídeos estão prontos.",
+            "files_ready": "Seus arquivos estão prontos.",
             "refused": "O serviço recusou este pedido.",
             "timed_out": "Demorou demais. Peça novamente.",
             "download": "Baixar"

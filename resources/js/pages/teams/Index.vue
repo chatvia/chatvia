@@ -7,7 +7,6 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import CreateTeamDialog from '@/components/CreateTeamDialog.vue';
-import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -116,8 +115,6 @@ const formatRole = (role: string) =>
                     {{ t('teams.index.create_team') }}
                 </Button>
             </div>
-
-            <LicenseNotice v-if="!licensed" />
 
             <div class="relative max-w-sm">
                 <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />

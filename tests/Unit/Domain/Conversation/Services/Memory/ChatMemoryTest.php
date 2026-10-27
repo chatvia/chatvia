@@ -11,6 +11,7 @@ use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -171,4 +172,23 @@ it('keeps the private LLM text out of the history but feeds it to the LLM', func
         ->and(array_map(static fn (LlmMessageData $message): array => $message->toWire(), $memory->getLlmMessages()))
         ->toBe([['role' => 'user', 'content' => 'price? [reference material]']])
         ->and($memory->llmTranscript(2))->toBe('price? [reference material]');
+});
+
+it('feeds the LLM a note on a file a reply asked for, never the file', function (): void {
+    $media = GeneratedMedia::factory()->ready()->create();
+    $session = ChatSession::factory()->create(['agent_id' => $media->agent_id]);
+    $memory = chatMemoryFor($media->agent, $session)->setConversationId($media->conversation->external_id);
+
+    $memory->appendMessage(new MessageData(
+        id: 'm1',
+        role: MessageRole::Assistant,
+        content: 'It is on its way.',
+        type: MessageData::TYPE_TEXT,
+        timestamp: now()->timestamp,
+        metadata: ['artifacts' => [['kind' => 'image', 'data' => ['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red bicycle']]]],
+    ));
+
+    expect($memory->getLlmMessages()[0]->content)->toBe(
+        "It is on its way.\n\n[You asked for a picture from the description \"A red bicycle\". It is ready, and the chat shows it. You have not seen it.]"
+    )->and($memory->getMessagesForConversation()[0]->message_for_llm)->toBeNull();
 });

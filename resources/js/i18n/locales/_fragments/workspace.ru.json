@@ -35,11 +35,7 @@
             "empty_description": "Создайте ключ, чтобы начать использовать ChatVia.ai API."
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Функции Enterprise",
-            "locked_body": "Сетевым правилам, своему сроку хранения данных и вебхуку SIEM нужна лицензия Enterprise для этой установки ChatVia.ai. Сохранённые настройки остаются, но не действуют, пока у установки нет лицензии.",
-            "export_csv": "Экспорт в CSV",
-            "export_locked": "Для экспорта журнала аудита нужна лицензия Enterprise."
+            "export_csv": "Экспорт в CSV"
         }
     }
 }

@@ -1,12 +1,9 @@
 {
     "license": {
-        "badge": "Pro",
-        "locked_title": "Kræver en licensnøgle",
-        "get_key": "Få en licensnøgle",
-        "api_body": "API'et kræver en licensnøgle på denne ChatVia.ai-installation. Nøgler, du har lavet før, bevares, og de virker igen, når installationen har en licens.",
-        "teams_body": "Flere teams kræver en licensnøgle på denne ChatVia.ai-installation. Dit første team og dets roller virker stadig, og teams, du har lavet før, forbliver som de er.",
-        "agents_of_limit": "{count} af {limit} agenter uden licensnøgle",
-        "agents_body": "Uden en licensnøgle kan et workspace have {limit} agenter. Slet en agent, eller tilføj en licensnøgle til denne ChatVia.ai-installation.",
-        "voice_hint": "Kræver en licensnøgle på denne ChatVia.ai-installation."
+        "unavailable_title": "Denne funktion er ikke tilgængelig",
+        "unavailable_body": "Kontakt din administrator.",
+        "unavailable": "Denne funktion er ikke tilgængelig. Kontakt din administrator.",
+        "agents_of_limit": "{count} af {limit} agenter",
+        "agents_body": "Dette workspace kan have {limit} agenter. Kontakt din administrator for at tilføje flere."
     }
 }

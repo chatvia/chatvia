@@ -537,7 +537,7 @@
     "What each model supports, from :site": "آنچه هر مدل پشتیبانی می‌کند، از :site",
     "Model catalog": "فهرست مدل‌ها",
     "Change": "تغییر",
-    "This needs an Enterprise license.": "این کار به مجوز Enterprise نیاز دارد.",
+    "This feature is unavailable. Please contact your administrator.": "این قابلیت در دسترس نیست. لطفاً با مدیر سیستم تماس بگیرید.",
     "Read aloud": "خواندن با صدا",
     "Play agent replies as speech": "پخش پاسخ‌های عامل‌ها به صورت گفتار",
     "Image generation": "ساخت تصویر",
@@ -557,7 +557,6 @@
     "Analytics needs pg_partman to split its message log by month.": "تحلیل‌ها برای تقسیم گزارش پیام‌ها بر اساس ماه به pg_partman نیاز دارند.",
     "Read more": "بیشتر بخوانید",
     "The API needs a ChatVia.ai license key.": "API به کلید لایسنس ChatVia.ai نیاز دارد.",
-    "This workspace has :limit agents, the most it can have without a ChatVia.ai license key.": "این فضای کاری :limit عامل دارد، که بیشترین تعداد بدون کلید لایسنس ChatVia.ai است.",
-    "More teams need a ChatVia.ai license key.": "تیم‌های بیشتر به کلید لایسنس ChatVia.ai نیاز دارند.",
-    "Capabilities and forms need a ChatVia.ai license key.": "قابلیت‌ها و فرم‌ها به کلید لایسنس ChatVia.ai نیاز دارند."
+    "This workspace can have :limit agents. Please contact your administrator to add more.": "این فضای کاری می‌تواند :limit عامل داشته باشد. برای افزودن عامل‌های بیشتر، با مدیر سیستم تماس بگیرید.",
+    "More teams need a ChatVia.ai license key.": "تیم‌های بیشتر به کلید لایسنس ChatVia.ai نیاز دارند."
 }

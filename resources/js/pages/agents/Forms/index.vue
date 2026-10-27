@@ -29,7 +29,7 @@ const { editing, saving, rewriting, startNew, edit, cancel, save, destroy, rewri
 <template>
     <AgentLayout :agent="agent" :title="t('agents.forms.page_title')" :description="t('agents.forms.page_description')">
         <div v-if="!licensed" class="mx-auto w-full max-w-5xl">
-            <LicenseNotice :body="t('license.forms_body')" />
+            <LicenseNotice />
         </div>
 
         <div v-else class="mx-auto w-full max-w-5xl space-y-6">

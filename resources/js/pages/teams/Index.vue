@@ -117,7 +117,7 @@ const formatRole = (role: string) =>
                 </Button>
             </div>
 
-            <LicenseNotice v-if="!licensed" :body="t('license.teams_body')" />
+            <LicenseNotice v-if="!licensed" />
 
             <div class="relative max-w-sm">
                 <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />

@@ -35,11 +35,7 @@
             "empty_description": "하나를 생성해 ChatVia.ai API를 사용하기 시작하세요."
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise 기능",
-            "locked_body": "네트워크 규칙, 사용자 지정 데이터 보존, SIEM 웹훅은 이 ChatVia.ai 설치에 Enterprise 라이선스가 필요합니다. 저장된 설정은 유지되지만 라이선스가 생길 때까지 적용되지 않습니다.",
-            "export_csv": "CSV 내보내기",
-            "export_locked": "감사 로그를 내보내려면 Enterprise 라이선스가 필요합니다."
+            "export_csv": "CSV 내보내기"
         }
     }
 }

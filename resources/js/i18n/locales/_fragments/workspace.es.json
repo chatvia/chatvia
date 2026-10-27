@@ -330,11 +330,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Funciones Enterprise",
-            "locked_body": "Las reglas de red, la retención de datos personalizada y el webhook SIEM necesitan una licencia Enterprise en esta instalación de ChatVia.ai. Tus ajustes guardados se conservan, pero no se aplican hasta que la instalación tenga una.",
-            "export_csv": "Exportar CSV",
-            "export_locked": "Exportar el registro de auditoría necesita una licencia Enterprise."
+            "export_csv": "Exportar CSV"
         }
     }
 }

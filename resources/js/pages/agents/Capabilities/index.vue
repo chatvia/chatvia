@@ -89,7 +89,7 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
     <AgentLayout :agent="agent" :title="t('agents.capabilities.page_title')" :description="t('agents.capabilities.description')">
         <div class="flex justify-center">
             <div class="w-full max-w-4xl space-y-6">
-                <LicenseNotice v-if="!licensed" :body="t('license.capabilities_body')" />
+                <LicenseNotice v-if="!licensed" />
 
                 <div v-if="rows.length === 0" class="bg-card text-muted-foreground rounded-lg border py-12 text-center text-sm">
                     {{ t('agents.capabilities.empty') }}

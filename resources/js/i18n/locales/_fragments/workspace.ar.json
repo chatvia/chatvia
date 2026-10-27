@@ -400,11 +400,7 @@
             "security": "الأمان"
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "ميزات Enterprise",
-            "locked_body": "تحتاج قواعد الشبكة والاحتفاظ المخصص بالبيانات وwebhook الخاص بـ SIEM إلى ترخيص Enterprise على نسخة ChatVia.ai هذه. تبقى إعداداتك المحفوظة، لكنها لا تُطبَّق حتى يتوفر الترخيص.",
-            "export_csv": "تصدير CSV",
-            "export_locked": "يحتاج تصدير سجل التدقيق إلى ترخيص Enterprise."
+            "export_csv": "تصدير CSV"
         }
     }
 }

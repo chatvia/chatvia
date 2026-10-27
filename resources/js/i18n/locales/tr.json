@@ -3516,11 +3516,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise özellikleri",
-            "locked_body": "Ağ kuralları, özel veri saklama ve SIEM webhook'u bu ChatVia.ai kurulumunda Enterprise lisansı gerektirir. Kaydedilen ayarlarınız korunur, ancak kurulumun lisansı olana kadar uygulanmaz.",
-            "export_csv": "CSV dışa aktar",
-            "export_locked": "Denetim günlüğünü dışa aktarmak Enterprise lisansı gerektirir."
+            "export_csv": "CSV dışa aktar"
         }
     },
     "app": {
@@ -4495,13 +4491,10 @@
         "hide": "Adımları gizle"
     },
     "license": {
-        "badge": "Pro",
-        "locked_title": "Lisans anahtarı gerekir",
-        "get_key": "Lisans anahtarı al",
-        "api_body": "API, bu ChatVia.ai kurulumunda bir lisans anahtarı gerektirir. Daha önce oluşturduğunuz anahtarlar korunur ve kurulumun lisansı olduğunda yeniden çalışır.",
-        "teams_body": "Daha fazla ekip, bu ChatVia.ai kurulumunda bir lisans anahtarı gerektirir. İlk ekibiniz ve rolleri çalışmaya devam eder, daha önce oluşturduğunuz ekipler olduğu gibi kalır.",
-        "agents_of_limit": "Lisans anahtarı olmadan {limit} asistandan {count} tanesi",
-        "agents_body": "Lisans anahtarı olmadan bir çalışma alanında {limit} asistan olabilir. Bir asistanı silin veya bu ChatVia.ai kurulumuna bir lisans anahtarı ekleyin.",
-        "voice_hint": "Bu ChatVia.ai kurulumunda bir lisans anahtarı gerekir."
+        "agents_of_limit": "{limit} asistandan {count} tanesi",
+        "agents_body": "Bu çalışma alanında en fazla {limit} asistan olabilir. Daha fazlasını eklemek için lütfen yöneticinizle iletişime geçin.",
+        "unavailable_title": "Bu özellik kullanılamıyor",
+        "unavailable_body": "Lütfen yöneticinizle iletişime geçin.",
+        "unavailable": "Bu özellik kullanılamıyor. Lütfen yöneticinizle iletişime geçin."
     }
 }

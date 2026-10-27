@@ -537,7 +537,7 @@
     "What each model supports, from :site": "Hva hver modell støtter, fra :site",
     "Model catalog": "Modellkatalog",
     "Change": "Endre",
-    "This needs an Enterprise license.": "Dette krever en Enterprise-lisens.",
+    "This feature is unavailable. Please contact your administrator.": "Denne funksjonen er ikke tilgjengelig. Kontakt administratoren din.",
     "Read aloud": "Les høyt",
     "Play agent replies as speech": "Spill av agentenes svar som tale",
     "Image generation": "Bildegenerering",
@@ -557,7 +557,6 @@
     "Analytics needs pg_partman to split its message log by month.": "Analyse trenger pg_partman for å dele meldingsloggen opp etter måned.",
     "Read more": "Les mer",
     "The API needs a ChatVia.ai license key.": "API-et krever en ChatVia.ai-lisensnøkkel.",
-    "This workspace has :limit agents, the most it can have without a ChatVia.ai license key.": "Dette arbeidsområdet har :limit agenter, det høyeste antallet uten en ChatVia.ai-lisensnøkkel.",
-    "More teams need a ChatVia.ai license key.": "Flere team krever en ChatVia.ai-lisensnøkkel.",
-    "Capabilities and forms need a ChatVia.ai license key.": "Funksjoner og skjemaer krever en ChatVia.ai-lisensnøkkel."
+    "This workspace can have :limit agents. Please contact your administrator to add more.": "Dette arbeidsområdet kan ha :limit agenter. Kontakt administratoren din for å legge til flere.",
+    "More teams need a ChatVia.ai license key.": "Flere team krever en ChatVia.ai-lisensnøkkel."
 }

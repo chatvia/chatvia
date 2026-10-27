@@ -21,7 +21,7 @@ class CreateTeamRequest extends FormRequest
 
         return $teams->canCreate($user->workspace())
             ? Response::allow()
-            : Response::deny(__('More teams need a ChatVia.ai license key.'));
+            : Response::deny(__('This feature is unavailable. Please contact your administrator.'));
     }
 
     /**

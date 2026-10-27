@@ -3516,11 +3516,7 @@
             }
         },
         "enterprise": {
-            "badge": "Enterprise",
-            "locked_title": "Enterprise 機能",
-            "locked_body": "ネットワークルール、独自のデータ保持期間、SIEM Webhook には、この ChatVia.ai に Enterprise ライセンスが必要です。保存した設定は残りますが、ライセンスが入るまで適用されません。",
-            "export_csv": "CSV をエクスポート",
-            "export_locked": "監査ログのエクスポートには Enterprise ライセンスが必要です。"
+            "export_csv": "CSV をエクスポート"
         }
     },
     "app": {
@@ -4495,13 +4491,10 @@
         "hide": "ステップを非表示"
     },
     "license": {
-        "badge": "Pro",
-        "locked_title": "ライセンスキーが必要です",
-        "get_key": "ライセンスキーを入手",
-        "api_body": "この ChatVia.ai のインストールで API を使うにはライセンスキーが必要です。以前に作成したキーは残り、インストールにライセンスが入ると再び使えます。",
-        "teams_body": "この ChatVia.ai のインストールでチームを増やすにはライセンスキーが必要です。最初のチームとそのロールは引き続き使え、以前に作成したチームもそのまま残ります。",
-        "agents_of_limit": "ライセンスキーなしで {count} / {limit} エージェント",
-        "agents_body": "ライセンスキーがない場合、ワークスペースのエージェントは {limit} 個までです。エージェントを削除するか、この ChatVia.ai のインストールにライセンスキーを追加してください。",
-        "voice_hint": "この ChatVia.ai のインストールにはライセンスキーが必要です。"
+        "agents_of_limit": "{count} / {limit} エージェント",
+        "agents_body": "このワークスペースのエージェントは {limit} 個までです。追加するには管理者にお問い合わせください。",
+        "unavailable_title": "この機能は利用できません",
+        "unavailable_body": "管理者にお問い合わせください。",
+        "unavailable": "この機能は利用できません。管理者にお問い合わせください。"
     }
 }

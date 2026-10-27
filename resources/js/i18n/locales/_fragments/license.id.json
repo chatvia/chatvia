@@ -1,12 +1,9 @@
 {
     "license": {
-        "badge": "Pro",
-        "locked_title": "Perlu kunci lisensi",
-        "get_key": "Dapatkan kunci lisensi",
-        "api_body": "API memerlukan kunci lisensi di instalasi ChatVia.ai ini. Kunci yang Anda buat sebelumnya tetap disimpan dan berfungsi lagi setelah instalasi punya lisensi.",
-        "teams_body": "Tim tambahan memerlukan kunci lisensi di instalasi ChatVia.ai ini. Tim pertama Anda dan perannya tetap berfungsi, dan tim yang Anda buat sebelumnya tetap seperti semula.",
-        "agents_of_limit": "{count} dari {limit} agen tanpa kunci lisensi",
-        "agents_body": "Tanpa kunci lisensi, sebuah workspace dapat memiliki {limit} agen. Hapus satu agen, atau tambahkan kunci lisensi ke instalasi ChatVia.ai ini.",
-        "voice_hint": "Perlu kunci lisensi di instalasi ChatVia.ai ini."
+        "unavailable_title": "Fitur ini tidak tersedia",
+        "unavailable_body": "Silakan hubungi administrator Anda.",
+        "unavailable": "Fitur ini tidak tersedia. Silakan hubungi administrator Anda.",
+        "agents_of_limit": "{count} dari {limit} agen",
+        "agents_body": "Workspace ini dapat memiliki {limit} agen. Silakan hubungi administrator Anda untuk menambah lebih banyak."
     }
 }

@@ -53,10 +53,10 @@ const failureText = computed(() => {
 
         <div
             v-else
-            class="bg-muted text-muted-foreground flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-md border px-4 text-center text-sm"
+            class="bg-muted text-muted-foreground flex aspect-video w-full animate-pulse flex-col items-center justify-center gap-2 rounded-md border px-4 text-center text-sm"
             role="status"
         >
-            <Clapperboard class="h-5 w-5 animate-pulse" aria-hidden="true" />
+            <Clapperboard class="h-5 w-5" aria-hidden="true" />
             {{ t('chat.generated_media.video_pending') }}
         </div>
     </div>

@@ -339,7 +339,7 @@
             "injection_label": "Wykrywanie wstrzykiwania promptów",
             "injection_help": "Wykrywa i blokuje próby obejścia lub ujawnienia instrukcji agenta w wiadomościach, wiedzy i wynikach narzędzi.",
             "toxicity_label": "Filtrowanie toksyczności",
-            "toxicity_help": "Wykrywaj i blokuj toksyczne, nienawistne lub obraźliwe treści w wiadomościach.",
+            "toxicity_help": "Wykrywa i blokuje mowę nienawiści, nękanie, groźby, treści seksualne i samookaleczenia w wiadomościach i odpowiedziach.",
             "guard_labels": {
                 "prompt_injection": "Wstrzykiwanie promptu",
                 "pii": "PII",

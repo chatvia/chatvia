@@ -17,6 +17,13 @@ Be precise and conservative:
 - matched_topic: the number of the blocked topic the text is about, or 0
   when it is about none of them (for example, only outside the scope).
 - toxic: true ONLY for hate, harassment, threats, sexual content, or
-  self-harm.
+  self-harm. Sexual content means explicit sexual descriptions, requests
+  for sexual role-play, sexual services or sexual images, and sexualising
+  a person. Plain medical, health, relationship or sex-education questions
+  are NOT sexual content.
+- toxicity_severity: explicit sexual content is at least medium; any
+  sexual content involving a minor is always high.
+- toxicity_categories: the ones that apply, from hate, harassment, threat,
+  sexual, self_harm.
 - language: the ISO 639-1 code of the language the text is written in.
 Return only the structured JSON — no prose.

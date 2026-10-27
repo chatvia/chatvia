@@ -339,7 +339,7 @@
             "injection_label": "Oppdagelse av prompt-injeksjon",
             "injection_help": "Oppdager og blokkerer forsøk på å omgå eller avsløre agentens instruksjoner, i meldinger, kunnskap og verktøyresultater.",
             "toxicity_label": "Toksisitetsfiltrering",
-            "toxicity_help": "Oppdag og blokker giftig, hatefullt eller fornærmelig språk i meldinger.",
+            "toxicity_help": "Finn og blokker hat, trakassering, trusler, seksuelt innhold og selvskading i meldinger og svar.",
             "guard_labels": {
                 "prompt_injection": "Prompt-injeksjon",
                 "pii": "PII",

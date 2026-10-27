@@ -739,7 +739,7 @@
             "injection_label": "Phát hiện tấn công chèn câu lệnh",
             "injection_help": "Phát hiện và chặn các nỗ lực ghi đè hoặc làm lộ hướng dẫn của trợ lý AI, trong tin nhắn, kiến thức và kết quả công cụ.",
             "toxicity_label": "Lọc nội dung độc hại",
-            "toxicity_help": "Phát hiện và chặn ngôn ngữ độc hại, thù ghét hoặc lăng mạ trong tin nhắn.",
+            "toxicity_help": "Phát hiện và chặn nội dung thù ghét, quấy rối, đe dọa, nội dung tình dục và tự gây hại trong tin nhắn và câu trả lời.",
             "guard_labels": {
                 "prompt_injection": "Chèn câu lệnh",
                 "pii": "PII",

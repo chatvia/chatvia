@@ -739,7 +739,7 @@
             "injection_label": "Prompt-Injection-Erkennung",
             "injection_help": "Erkennt und blockiert Versuche, die Anweisungen des Agenten zu umgehen oder offenzulegen – in Nachrichten, im Wissen und in Tool-Ergebnissen.",
             "toxicity_label": "Toxizitätsfilterung",
-            "toxicity_help": "Toxische, hasserfüllte oder beleidigende Sprache in Nachrichten erkennen und blockieren.",
+            "toxicity_help": "Hass, Belästigung, Drohungen, sexuelle Inhalte und Selbstverletzung in Nachrichten und Antworten erkennen und blockieren.",
             "guard_labels": {
                 "prompt_injection": "Prompt-Injection",
                 "pii": "PII",

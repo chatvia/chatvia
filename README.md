@@ -13,21 +13,21 @@
   <a href="https://github.com/chatvia/chatvia/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/chatvia/chatvia/tests.yml?branch=main&label=tests&logo=githubactions&logoColor=white" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-ChatVia.ai-blue.svg" alt="ChatVia.ai License"></a>
   <br>
-  <img src="https://img.shields.io/badge/PHP-8.5-777bb4.svg?logo=php&logoColor=white" alt="PHP 8.5">
-  <img src="https://img.shields.io/badge/Laravel-13-ff2d20.svg?logo=laravel&logoColor=white" alt="Laravel 13">
-  <img src="https://img.shields.io/badge/Filament-5-fdae4b.svg?logo=filament&logoColor=white" alt="Filament 5">
-  <img src="https://img.shields.io/badge/PostgreSQL-18-336791.svg?logo=postgresql&logoColor=white" alt="PostgreSQL 18">
-  <img src="https://img.shields.io/badge/pgvector-0.8-336791.svg" alt="pgvector 0.8">
-  <img src="https://img.shields.io/badge/pg__textsearch-1.5-336791.svg" alt="pg_textsearch 1.5">
-  <img src="https://img.shields.io/badge/pg__partman-5.5-336791.svg" alt="pg_partman 5.5">
-  <img src="https://img.shields.io/badge/Redis-8-ff4438.svg?logo=redis&logoColor=white" alt="Redis 8">
+  <a href="https://www.php.net"><img src="https://img.shields.io/badge/PHP-8.5-777bb4.svg?logo=php&logoColor=white" alt="PHP 8.5"></a>
+  <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-13-ff2d20.svg?logo=laravel&logoColor=white" alt="Laravel 13"></a>
+  <a href="https://filamentphp.com"><img src="https://img.shields.io/badge/Filament-5-fdae4b.svg?logo=filament&logoColor=white" alt="Filament 5"></a>
+  <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-18-336791.svg?logo=postgresql&logoColor=white" alt="PostgreSQL 18"></a>
+  <a href="https://github.com/pgvector/pgvector"><img src="https://img.shields.io/badge/pgvector-0.8-336791.svg" alt="pgvector 0.8"></a>
+  <a href="https://github.com/timescale/pg_textsearch"><img src="https://img.shields.io/badge/pg__textsearch-1.5-336791.svg" alt="pg_textsearch 1.5"></a>
+  <a href="https://github.com/pgpartman/pg_partman"><img src="https://img.shields.io/badge/pg__partman-5.5-336791.svg" alt="pg_partman 5.5"></a>
+  <a href="https://redis.io"><img src="https://img.shields.io/badge/Redis-8-ff4438.svg?logo=redis&logoColor=white" alt="Redis 8"></a>
   <br>
-  <img src="https://img.shields.io/badge/Inertia.js-3-9553e9.svg?logo=inertia&logoColor=white" alt="Inertia.js 3">
-  <img src="https://img.shields.io/badge/Vue-3.5-4fc08d.svg?logo=vuedotjs&logoColor=white" alt="Vue 3.5">
-  <img src="https://img.shields.io/badge/TypeScript-6-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript 6">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06b6d4.svg?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4">
-  <img src="https://img.shields.io/badge/Vite-8-646cff.svg?logo=vite&logoColor=white" alt="Vite 8">
-  <img src="https://img.shields.io/badge/Node.js-22-5fa04e.svg?logo=nodedotjs&logoColor=white" alt="Node.js 22">
+  <a href="https://inertiajs.com"><img src="https://img.shields.io/badge/Inertia.js-3-9553e9.svg?logo=inertia&logoColor=white" alt="Inertia.js 3"></a>
+  <a href="https://vuejs.org"><img src="https://img.shields.io/badge/Vue-3.5-4fc08d.svg?logo=vuedotjs&logoColor=white" alt="Vue 3.5"></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-6-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript 6"></a>
+  <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-4-06b6d4.svg?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4"></a>
+  <a href="https://vite.dev"><img src="https://img.shields.io/badge/Vite-8-646cff.svg?logo=vite&logoColor=white" alt="Vite 8"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-22-5fa04e.svg?logo=nodedotjs&logoColor=white" alt="Node.js 22"></a>
 </p>
 
 <p align="center">

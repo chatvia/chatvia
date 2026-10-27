@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -94,13 +95,17 @@ class Attachment extends Model
     /**
      * The link that opens the file. It never expires (chat history keeps
      * it) and its signature leaves out the host, so it works in the hosted
-     * chat, the widget on another site and the dashboard alike.
+     * chat, the widget on another site and the dashboard alike. It ends with
+     * the stored file's extension.
      *
      * @return Attribute<string, never>
      */
     public function url(): Attribute
     {
-        return Attribute::get(fn (): string => url(URL::signedRoute('attachments.view', ['attachment' => $this], absolute: false)));
+        return Attribute::get(fn (): string => url(URL::signedRoute('attachments.view', [
+            'attachment' => $this,
+            'extension' => File::extension($this->filepath) ?: 'bin',
+        ], absolute: false)));
     }
 
     /**

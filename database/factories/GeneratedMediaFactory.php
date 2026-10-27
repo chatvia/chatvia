@@ -99,11 +99,7 @@ class GeneratedMediaFactory extends Factory
                     $agent,
                     $conversation->external_id,
                     $media,
-                    match ($media->kind) {
-                        GeneratedMediaKind::Audio => 'mp3',
-                        GeneratedMediaKind::Video => 'mp4',
-                        GeneratedMediaKind::Image => 'png',
-                    },
+                    $media->kind->extension(),
                 );
             }
         });

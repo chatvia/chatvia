@@ -2,6 +2,7 @@
 
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 
 /**
@@ -25,7 +26,11 @@ function avcAttachment(string $mimeType = 'application/pdf', string $filename = 
 }
 
 it('opens a PDF through its signed link', function (): void {
-    $response = $this->get(avcAttachment()->url);
+    $attachment = avcAttachment();
+
+    expect($attachment->url)->toContain('/media/attachments/'.$attachment->external_id.'.pdf?signature=');
+
+    $response = $this->get($attachment->url);
 
     $response->assertOk()
         ->assertHeader('Content-Type', 'application/pdf')
@@ -45,8 +50,9 @@ it('keeps the link valid on another host', function (): void {
 it('refuses a link without a valid signature', function (): void {
     $attachment = avcAttachment();
 
-    $this->get(route('attachments.view', $attachment))->assertForbidden();
+    $this->get(route('attachments.view', ['attachment' => $attachment, 'extension' => 'pdf']))->assertForbidden();
     $this->get($attachment->url.'0')->assertForbidden();
+    $this->get(Str::replace('.pdf?', '.html?', $attachment->url))->assertForbidden();
 });
 
 it('opens an image chatters may attach in the browser', function (): void {

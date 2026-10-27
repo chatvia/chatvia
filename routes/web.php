@@ -53,13 +53,14 @@ Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewCo
 
 // A file attached to a conversation. Public like the chunk images, so only
 // the signed link the attachment makes is accepted. The signature leaves out
-// the host, so the link works wherever the chat is shown.
-Route::get('attachments/{attachment}', AttachmentViewController::class)
+// the host, so the link works wherever the chat is shown, and covers the
+// file's extension, which is there so the link says what it opens.
+Route::get('media/attachments/{attachment}.{extension}', AttachmentViewController::class)
     ->middleware('signed:relative')
     ->name('attachments.view');
 
 // An image, audio file or video an agent made in a chat, on the same terms.
-Route::get('generated-media/{generatedMedia}', GeneratedMediaViewController::class)
+Route::get('media/{generatedMedia}.{extension}', GeneratedMediaViewController::class)
     ->middleware('signed:relative')
     ->name('generated-media.view');
 

@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -106,13 +107,17 @@ class GeneratedMedia extends Model
     /**
      * The link that opens the file. Like {@see Attachment::url()}, it never
      * expires and its signature leaves out the host, so it works in the
-     * hosted chat and the dashboard alike.
+     * hosted chat and the dashboard alike. It ends with the file's extension,
+     * or the kind's usual one while the file is not made yet.
      *
      * @return Attribute<string, never>
      */
     public function url(): Attribute
     {
-        return Attribute::get(fn (): string => url(URL::signedRoute('generated-media.view', ['generatedMedia' => $this], absolute: false)));
+        return Attribute::get(fn (): string => url(URL::signedRoute('generated-media.view', [
+            'generatedMedia' => $this,
+            'extension' => File::extension($this->filepath ?? '') ?: $this->kind->extension(),
+        ], absolute: false)));
     }
 
     protected function casts(): array

@@ -389,6 +389,10 @@ return [
     |   `images_per_chat_per_hour`, `audio_per_chat_per_hour` and
     |   `videos_per_chat_per_hour` cap what agents make in one chat; a
     |   workspace's monthly caps are a GenerationLimit row.
+    |   `image_model_choice` / `video_model_choice` let an agent offer
+    |   chatters a choice of model in the hosted chat, among the service's
+    |   models in `image_models` / `video_models` (the admin's model is
+    |   always offered, as the default).
     | - chat_files: whether chatters may attach a PDF file or an image in a
     |   chat (off: no agent can offer it), and the catalog model (its
     |   `llms.id`) that answers about it when the agent's own model cannot,
@@ -471,11 +475,15 @@ return [
         'speaker' => 'auto',
         'image_generator' => 'none',
         'images_per_chat_per_hour' => 10,
+        'image_model_choice' => false,
+        'image_models' => [],
         'audio_generator' => 'none',
         'audio_per_chat_per_hour' => 10,
         'audio_max_characters' => 20000,
         'video_generator' => 'none',
         'videos_per_chat_per_hour' => 2,
+        'video_model_choice' => false,
+        'video_models' => [],
         'video_duration' => 8,
         'video_resolution' => '720p',
         'video_max_wait_minutes' => 15,

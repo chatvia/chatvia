@@ -58,7 +58,7 @@ class RunwayVideoGenerator implements VideoGenerator
 
     public function start(VideoPromptData $prompt): string
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
         $facts = self::MODELS[$model] ?? self::MODELS['gen4.5'];
 
         $response = $this->call(fn (PendingRequest $runway): Response => $runway->post(self::ENDPOINT.'/text_to_video', [
@@ -96,9 +96,9 @@ class RunwayVideoGenerator implements VideoGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'runway '.$this->model();
+        return 'runway '.$this->model($model);
     }
 
     /**
@@ -143,8 +143,8 @@ class RunwayVideoGenerator implements VideoGenerator
             ->acceptJson();
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.runway.video_model');
+        return filled($picked) ? $picked : (string) config('services.runway.video_model');
     }
 }

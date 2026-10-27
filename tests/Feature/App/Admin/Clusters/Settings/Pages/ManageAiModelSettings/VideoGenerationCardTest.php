@@ -143,3 +143,14 @@ it('sums up the service, model, length and resolution in use', function (): void
     adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertSee('fal.ai · fal-ai/veo3.1/fast · 6 s, 720p');
 });
+
+it('lets workspaces offer a choice of the picked service\'s models', function (): void {
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['video_generator' => 'kling', 'video_model_choice' => true])
+        ->assertFormFieldVisible('video_models');
+
+    expect(array_keys($page->instance()->form->getFlatFields(withHidden: true)['video_models']->getOptions()))
+        ->toEqualCanonicalizing(array_keys(KlingVideoGenerator::MODELS));
+
+    $page->fillForm(['video_model_choice' => false])->assertFormFieldHidden('video_models');
+});

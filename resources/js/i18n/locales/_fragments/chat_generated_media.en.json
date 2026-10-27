@@ -17,7 +17,8 @@
             "files_ready": "Your files are ready.",
             "refused": "This request was refused by the service.",
             "timed_out": "This took too long. Please ask again.",
-            "download": "Download"
+            "download": "Download",
+            "made_with": "Made with {model}"
         }
     }
 }

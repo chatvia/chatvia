@@ -55,7 +55,7 @@ class OpenAiImageGenerator implements ImageGenerator
                     'input' => $prompt->prompt,
                     'tools' => [[
                         'type' => 'image_generation',
-                        'model' => $this->model(),
+                        'model' => $this->model($prompt->model),
                         'action' => 'generate',
                         'size' => $prompt->shape->size(),
                         'output_format' => 'png',
@@ -98,13 +98,13 @@ class OpenAiImageGenerator implements ImageGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'openai '.$this->model();
+        return 'openai '.$this->model($model);
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.openai.image_model');
+        return filled($picked) ? $picked : (string) config('services.openai.image_model');
     }
 }

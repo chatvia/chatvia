@@ -17,7 +17,8 @@
             "files_ready": "您的文件已生成。",
             "refused": "服务拒绝了此请求。",
             "timed_out": "耗时过长。请重新请求。",
-            "download": "下载"
+            "download": "下载",
+            "made_with": "使用 {model} 制作"
         }
     }
 }

@@ -49,7 +49,9 @@
         "incognito_mode": "इनकॉग्निटो",
         "delete_conversation": "बातचीत हटाएँ",
         "delete_dialog_title": "बातचीत हटाएँ?",
-        "delete_dialog_description": "यह क्रिया वापस नहीं की जा सकती।"
+        "delete_dialog_description": "यह क्रिया वापस नहीं की जा सकती।",
+        "image_model": "इमेज मॉडल",
+        "video_model": "वीडियो मॉडल"
     },
     "sidebar": {
         "new_chat": "नई चैट",
@@ -176,7 +178,8 @@
             "image_ready": "आपकी छवि तैयार है। | आपकी छवियाँ तैयार हैं।",
             "audio_ready": "आपका ऑडियो तैयार है। | आपकी ऑडियो फ़ाइलें तैयार हैं।",
             "video_ready": "आपका वीडियो तैयार है। | आपके वीडियो तैयार हैं।",
-            "files_ready": "आपकी फ़ाइलें तैयार हैं।"
+            "files_ready": "आपकी फ़ाइलें तैयार हैं।",
+            "made_with": "{model} से बनाया गया"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "{names} कनेक्ट करें",
             "book_through": "बुकिंग का माध्यम",
             "provider_failed": "बुकिंग सेवा बदली नहीं जा सकी",
-            "turned_off_by_admin": "आपके एडमिन ने इसे बंद किया है"
+            "turned_off_by_admin": "आपके एडमिन ने इसे बंद किया है",
+            "model_choice_image": "लोगों को इमेज मॉडल चुनने दें",
+            "model_choice_video": "लोगों को वीडियो मॉडल चुनने दें",
+            "model_choice_failed": "मॉडल का विकल्प नहीं बदला जा सका"
         },
         "forms": {
             "page_title": "फ़ॉर्म",

@@ -49,7 +49,9 @@
         "incognito_mode": "ناشناس",
         "delete_conversation": "حذف گفتگو",
         "delete_dialog_title": "گفتگو حذف شود؟",
-        "delete_dialog_description": "این عمل قابل بازگشت نیست."
+        "delete_dialog_description": "این عمل قابل بازگشت نیست.",
+        "image_model": "مدل تصویر",
+        "video_model": "مدل ویدیو"
     },
     "sidebar": {
         "new_chat": "گفتگوی جدید",
@@ -176,7 +178,8 @@
             "image_ready": "تصویر شما آماده است. | تصاویر شما آماده‌اند.",
             "audio_ready": "صدای شما آماده است. | فایل‌های صوتی شما آماده‌اند.",
             "video_ready": "ویدیوی شما آماده است. | ویدیوهای شما آماده‌اند.",
-            "files_ready": "فایل‌های شما آماده‌اند."
+            "files_ready": "فایل‌های شما آماده‌اند.",
+            "made_with": "ساخته‌شده با {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "اتصال {names}",
             "book_through": "رزرو از طریق",
             "provider_failed": "تغییر سرویس رزرو ممکن نشد",
-            "turned_off_by_admin": "توسط مدیر شما خاموش شده است"
+            "turned_off_by_admin": "توسط مدیر شما خاموش شده است",
+            "model_choice_image": "اجازه دهید افراد مدل تصویر را انتخاب کنند",
+            "model_choice_video": "اجازه دهید افراد مدل ویدیو را انتخاب کنند",
+            "model_choice_failed": "تغییر انتخاب مدل ممکن نشد"
         },
         "forms": {
             "page_title": "فرم‌ها",

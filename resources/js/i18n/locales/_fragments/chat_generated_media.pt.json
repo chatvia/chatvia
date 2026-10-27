@@ -17,7 +17,8 @@
             "files_ready": "Seus arquivos estão prontos.",
             "refused": "O serviço recusou este pedido.",
             "timed_out": "Demorou demais. Peça novamente.",
-            "download": "Baixar"
+            "download": "Baixar",
+            "made_with": "Feito com {model}"
         }
     }
 }

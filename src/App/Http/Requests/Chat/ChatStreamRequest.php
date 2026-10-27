@@ -34,6 +34,9 @@ class ChatStreamRequest extends FormRequest
             'request_id' => ['nullable', 'string', 'uuid'],
             // The model the chatter picked; one the agent does not offer falls back to its own.
             'model_id' => ['nullable', 'integer'],
+            // The image and video model picked in the header; checked against what the agent offers when used.
+            'image_model' => ['nullable', 'string', 'max:200'],
+            'video_model' => ['nullable', 'string', 'max:200'],
         ];
     }
 

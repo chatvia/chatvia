@@ -39,7 +39,7 @@ it('asks for the video and returns a pending video artifact', function (): void 
 
     expect($result['content'][0]['text'])->toContain('may take a few minutes')
         ->and($result['content'][0]['text'])->toContain('Do not say where on the screen it will appear')
-        ->and($result['structuredContent']['video'])->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A lighthouse in a storm'])
+        ->and($result['structuredContent']['video'])->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A lighthouse in a storm', 'model_name' => null])
         ->and($media->kind)->toBe(GeneratedMediaKind::Video)
         ->and($media->metadata['shape'] ?? null)->toBe('portrait');
 });

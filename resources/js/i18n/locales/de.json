@@ -49,7 +49,9 @@
         "incognito_mode": "Inkognito",
         "delete_conversation": "Unterhaltung löschen",
         "delete_dialog_title": "Unterhaltung löschen?",
-        "delete_dialog_description": "Diese Aktion kann nicht rückgängig gemacht werden."
+        "delete_dialog_description": "Diese Aktion kann nicht rückgängig gemacht werden.",
+        "image_model": "Bildmodell",
+        "video_model": "Videomodell"
     },
     "sidebar": {
         "new_chat": "Neuer Chat",
@@ -176,7 +178,8 @@
             "image_ready": "Dein Bild ist fertig. | Deine Bilder sind fertig.",
             "audio_ready": "Deine Audiodatei ist fertig. | Deine Audiodateien sind fertig.",
             "video_ready": "Dein Video ist fertig. | Deine Videos sind fertig.",
-            "files_ready": "Deine Dateien sind fertig."
+            "files_ready": "Deine Dateien sind fertig.",
+            "made_with": "Erstellt mit {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "{names} verbinden",
             "book_through": "Buchen über",
             "provider_failed": "Der Buchungsdienst konnte nicht geändert werden",
-            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet"
+            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet",
+            "model_choice_image": "Personen das Bildmodell wählen lassen",
+            "model_choice_video": "Personen das Videomodell wählen lassen",
+            "model_choice_failed": "Die Modellauswahl konnte nicht geändert werden"
         },
         "forms": {
             "page_title": "Formulare",

@@ -49,7 +49,9 @@
         "incognito_mode": "Incognito",
         "delete_conversation": "Usuń rozmowę",
         "delete_dialog_title": "Usunąć rozmowę?",
-        "delete_dialog_description": "Tej operacji nie można cofnąć."
+        "delete_dialog_description": "Tej operacji nie można cofnąć.",
+        "image_model": "Model obrazów",
+        "video_model": "Model wideo"
     },
     "sidebar": {
         "new_chat": "Nowy czat",
@@ -176,7 +178,8 @@
             "image_ready": "Twój obraz jest gotowy. | Twoje obrazy są gotowe.",
             "audio_ready": "Twoje nagranie jest gotowe. | Twoje nagrania są gotowe.",
             "video_ready": "Twój film jest gotowy. | Twoje filmy są gotowe.",
-            "files_ready": "Twoje pliki są gotowe."
+            "files_ready": "Twoje pliki są gotowe.",
+            "made_with": "Utworzono za pomocą {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Połącz {names}",
             "book_through": "Rezerwuj przez",
             "provider_failed": "Nie udało się zmienić usługi rezerwacji",
-            "turned_off_by_admin": "Wyłączone przez administratora"
+            "turned_off_by_admin": "Wyłączone przez administratora",
+            "model_choice_image": "Pozwól wybierać model obrazów",
+            "model_choice_video": "Pozwól wybierać model wideo",
+            "model_choice_failed": "Nie udało się zmienić wyboru modelu"
         },
         "forms": {
             "page_title": "Formularze",

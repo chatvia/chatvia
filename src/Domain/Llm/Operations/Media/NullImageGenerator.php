@@ -26,7 +26,7 @@ class NullImageGenerator implements ImageGenerator
         return false;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
         return 'none';
     }

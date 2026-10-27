@@ -49,7 +49,9 @@
         "incognito_mode": "وضع التصفح الخاص",
         "delete_conversation": "حذف المحادثة",
         "delete_dialog_title": "حذف المحادثة؟",
-        "delete_dialog_description": "لا يمكن التراجع عن هذا الإجراء."
+        "delete_dialog_description": "لا يمكن التراجع عن هذا الإجراء.",
+        "image_model": "نموذج الصور",
+        "video_model": "نموذج الفيديو"
     },
     "sidebar": {
         "new_chat": "محادثة جديدة",
@@ -176,7 +178,8 @@
             "image_ready": "صورتك جاهزة. | صورك جاهزة.",
             "audio_ready": "الملف الصوتي جاهز. | الملفات الصوتية جاهزة.",
             "video_ready": "الفيديو جاهز. | مقاطع الفيديو جاهزة.",
-            "files_ready": "ملفاتك جاهزة."
+            "files_ready": "ملفاتك جاهزة.",
+            "made_with": "صُنع باستخدام {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "اربط {names}",
             "book_through": "الحجز عبر",
             "provider_failed": "تعذّر تغيير خدمة الحجز",
-            "turned_off_by_admin": "أوقفه المسؤول"
+            "turned_off_by_admin": "أوقفه المسؤول",
+            "model_choice_image": "السماح للأشخاص باختيار نموذج الصور",
+            "model_choice_video": "السماح للأشخاص باختيار نموذج الفيديو",
+            "model_choice_failed": "تعذّر تغيير خيار النموذج"
         },
         "forms": {
             "page_title": "النماذج",

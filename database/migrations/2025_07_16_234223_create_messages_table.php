@@ -83,6 +83,7 @@ return new class extends Migration
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'api']);
             $table->boolean('is_visible')->default(false);
             $table->text('title')->nullable();
+            $table->jsonb('media_models')->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
             $table->enum('tone', Tone::values())->nullable();

@@ -49,7 +49,7 @@ class FalImageGenerator implements ImageGenerator
 
     public function generate(ImagePromptData $prompt): GeneratedImageData
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
 
         try {
             $response = $this->tags->during(AiCallTag::ImageGeneration, fn (): Response => $this->fal->run($model, [
@@ -95,9 +95,9 @@ class FalImageGenerator implements ImageGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'fal '.$this->model();
+        return 'fal '.$this->model($model);
     }
 
     /**
@@ -128,8 +128,8 @@ class FalImageGenerator implements ImageGenerator
         return $types->contains(fn (string $type): bool => Str::contains($type, ['content_policy', 'nsfw', 'safety']));
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.fal.image_model');
+        return filled($picked) ? $picked : (string) config('services.fal.image_model');
     }
 }

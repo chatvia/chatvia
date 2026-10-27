@@ -17,7 +17,8 @@
             "files_ready": "File Anda sudah siap.",
             "refused": "Layanan menolak permintaan ini.",
             "timed_out": "Ini terlalu lama. Silakan minta lagi.",
-            "download": "Unduh"
+            "download": "Unduh",
+            "made_with": "Dibuat dengan {model}"
         }
     }
 }

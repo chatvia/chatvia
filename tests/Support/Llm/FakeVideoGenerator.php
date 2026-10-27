@@ -74,9 +74,9 @@ final class FakeVideoGenerator implements VideoGenerator
         return $this->enabled;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'fake video-model';
+        return 'fake '.($model ?? 'video-model');
     }
 
     /**

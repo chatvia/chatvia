@@ -17,7 +17,8 @@
             "files_ready": "Tiedostosi ovat valmiita.",
             "refused": "Palvelu hylkäsi tämän pyynnön.",
             "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
-            "download": "Lataa"
+            "download": "Lataa",
+            "made_with": "Tehty mallilla {model}"
         }
     }
 }

@@ -15,6 +15,7 @@ import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import { useChatMessages } from '@/composables/chat/useChatMessages';
 import { useGeneratedMediaUpdates } from '@/composables/chat/useGeneratedMediaUpdates';
+import { provideChatMediaModelChoice, type OfferedMediaModel } from '@/composables/chat/useChatMediaModelChoice';
 import { provideChatModelChoice, type OfferedModel } from '@/composables/chat/useChatModelChoice';
 import { useChatScroll } from '@/composables/chat/useChatScroll';
 import { isNewConversationVisit, useChatStreamTurn } from '@/composables/chat/useChatStreamTurn';
@@ -62,6 +63,9 @@ interface Props {
     feedbackComment?: boolean;
     /** The models the chatter may pick from; empty hides the picker. */
     models?: OfferedModel[];
+    /** The image and video models the chatter may pick from in the header; fewer than two hide the picker. */
+    image_models?: OfferedMediaModel[];
+    video_models?: OfferedMediaModel[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -89,6 +93,8 @@ const props = withDefaults(defineProps<Props>(), {
     readAloud: false,
     feedbackComment: true,
     models: () => [],
+    image_models: () => [],
+    video_models: () => [],
 });
 
 const { t } = useI18n();
@@ -101,7 +107,14 @@ const scroll = useChatScroll(messagesContainer, transcriptContent);
 const transcript = useChatMessages(props.conversation_id);
 useGeneratedMediaUpdates(props.conversation_id, transcript);
 const modelChoice = provideChatModelChoice(props.agent_id, () => props.models);
-const turn = useChatStreamTurn({ conversationId: props.conversation_id, transcript, scroll, modelId: () => modelChoice.modelId.value });
+const mediaModelChoice = provideChatMediaModelChoice(props.agent_id, { image: () => props.image_models, video: () => props.video_models });
+const turn = useChatStreamTurn({
+    conversationId: props.conversation_id,
+    transcript,
+    scroll,
+    modelId: () => modelChoice.modelId.value,
+    mediaModels: () => ({ image_model: mediaModelChoice.image.modelId.value, video_model: mediaModelChoice.video.modelId.value }),
+});
 const actions = useChatTurnActions({
     conversationId: props.conversation_id,
     pickModel: modelChoice.pick,

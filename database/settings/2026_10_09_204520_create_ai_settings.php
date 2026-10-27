@@ -27,11 +27,15 @@ return new class extends SettingsMigration
             $group->add('speaker');
             $group->add('image_generator');
             $group->add('images_per_chat_per_hour');
+            $group->add('image_model_choice');
+            $group->add('image_models');
             $group->add('audio_generator');
             $group->add('audio_per_chat_per_hour');
             $group->add('audio_max_characters');
             $group->add('video_generator');
             $group->add('videos_per_chat_per_hour');
+            $group->add('video_model_choice');
+            $group->add('video_models');
             $group->add('video_duration');
             $group->add('video_resolution');
             $group->add('chat_files_enabled');

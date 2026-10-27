@@ -49,7 +49,9 @@
         "incognito_mode": "Anônimo",
         "delete_conversation": "Excluir conversa",
         "delete_dialog_title": "Excluir conversa?",
-        "delete_dialog_description": "Esta ação não pode ser desfeita."
+        "delete_dialog_description": "Esta ação não pode ser desfeita.",
+        "image_model": "Modelo de imagem",
+        "video_model": "Modelo de vídeo"
     },
     "sidebar": {
         "new_chat": "Novo chat",
@@ -176,7 +178,8 @@
             "image_ready": "Sua imagem está pronta. | Suas imagens estão prontas.",
             "audio_ready": "Seu áudio está pronto. | Seus áudios estão prontos.",
             "video_ready": "Seu vídeo está pronto. | Seus vídeos estão prontos.",
-            "files_ready": "Seus arquivos estão prontos."
+            "files_ready": "Seus arquivos estão prontos.",
+            "made_with": "Feito com {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Ligar {names}",
             "book_through": "Marcar através de",
             "provider_failed": "Não foi possível alterar o serviço de marcação",
-            "turned_off_by_admin": "Desativado pelo seu administrador"
+            "turned_off_by_admin": "Desativado pelo seu administrador",
+            "model_choice_image": "Permitir que as pessoas escolham o modelo de imagem",
+            "model_choice_video": "Permitir que as pessoas escolham o modelo de vídeo",
+            "model_choice_failed": "Não foi possível alterar a escolha do modelo"
         },
         "forms": {
             "page_title": "Formulários",

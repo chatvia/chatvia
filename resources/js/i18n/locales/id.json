@@ -49,7 +49,9 @@
         "incognito_mode": "Penyamaran",
         "delete_conversation": "Hapus percakapan",
         "delete_dialog_title": "Hapus percakapan?",
-        "delete_dialog_description": "Tindakan ini tidak dapat dibatalkan."
+        "delete_dialog_description": "Tindakan ini tidak dapat dibatalkan.",
+        "image_model": "Model gambar",
+        "video_model": "Model video"
     },
     "sidebar": {
         "new_chat": "Obrolan baru",
@@ -176,7 +178,8 @@
             "image_ready": "Gambar Anda sudah siap. | Gambar Anda sudah siap.",
             "audio_ready": "Audio Anda sudah siap. | Audio Anda sudah siap.",
             "video_ready": "Video Anda sudah siap. | Video Anda sudah siap.",
-            "files_ready": "File Anda sudah siap."
+            "files_ready": "File Anda sudah siap.",
+            "made_with": "Dibuat dengan {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Hubungkan {names}",
             "book_through": "Pesan melalui",
             "provider_failed": "Layanan pemesanan tidak dapat diubah",
-            "turned_off_by_admin": "Dimatikan oleh admin Anda"
+            "turned_off_by_admin": "Dimatikan oleh admin Anda",
+            "model_choice_image": "Izinkan orang memilih model gambar",
+            "model_choice_video": "Izinkan orang memilih model video",
+            "model_choice_failed": "Tidak dapat mengubah pilihan model"
         },
         "forms": {
             "page_title": "Formulir",

@@ -40,6 +40,8 @@ interface StreamTurnDeps {
     scroll: ChatScroll;
     /** The model the chatter picked (sent as `model_id`); null answers with the agent's own. */
     modelId?: () => number | null;
+    /** The image and video model picked in the header (sent as `image_model` / `video_model`); null uses the admin's. */
+    mediaModels?: () => { image_model: string | null; video_model: string | null };
 }
 
 /** Home sends the visitor here with `?new=1` right after creating the conversation. */
@@ -63,7 +65,13 @@ function newRequestId(): string {
     return window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-export function useChatStreamTurn({ conversationId, transcript, scroll, modelId = () => null }: StreamTurnDeps) {
+export function useChatStreamTurn({
+    conversationId,
+    transcript,
+    scroll,
+    modelId = () => null,
+    mediaModels = () => ({ image_model: null, video_model: null }),
+}: StreamTurnDeps) {
     const { t } = useI18n();
     const bus = useChatEventBus();
     const stream = useChatStream();
@@ -120,6 +128,7 @@ export function useChatStreamTurn({ conversationId, transcript, scroll, modelId 
             request_id: requestId,
             attachments: options.attachments ?? [],
             model_id: model,
+            ...mediaModels(),
         });
 
         stream.start(

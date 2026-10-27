@@ -185,6 +185,13 @@ return [
                 'enabled' => false,
                 'models' => [],
             ],
+            // Whether chatters may pick the image / video model in the hosted
+            // chat (Capabilities), among the models the admin ticked; used only
+            // while the admin lets agents offer a choice (OfferedMediaModels).
+            'media_model_choice' => [
+                'image' => false,
+                'video' => false,
+            ],
             // Whether the agent searches its knowledge each turn. Off suits an
             // agent that only uses tools. Read through KnowledgeSearchSwitch:
             // it counts only while the admin lets agents choose.

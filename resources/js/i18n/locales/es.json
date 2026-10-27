@@ -49,7 +49,9 @@
         "incognito_mode": "Incógnito",
         "delete_conversation": "Eliminar conversación",
         "delete_dialog_title": "¿Eliminar conversación?",
-        "delete_dialog_description": "Esta acción no se puede deshacer."
+        "delete_dialog_description": "Esta acción no se puede deshacer.",
+        "image_model": "Modelo de imagen",
+        "video_model": "Modelo de vídeo"
     },
     "sidebar": {
         "new_chat": "Nuevo chat",
@@ -176,7 +178,8 @@
             "image_ready": "Tu imagen está lista. | Tus imágenes están listas.",
             "audio_ready": "Tu audio está listo. | Tus audios están listos.",
             "video_ready": "Tu vídeo está listo. | Tus vídeos están listos.",
-            "files_ready": "Tus archivos están listos."
+            "files_ready": "Tus archivos están listos.",
+            "made_with": "Hecho con {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Conectar {names}",
             "book_through": "Reservar con",
             "provider_failed": "No se pudo cambiar el servicio de reservas",
-            "turned_off_by_admin": "Desactivado por tu administrador"
+            "turned_off_by_admin": "Desactivado por tu administrador",
+            "model_choice_image": "Permitir que las personas elijan el modelo de imagen",
+            "model_choice_video": "Permitir que las personas elijan el modelo de vídeo",
+            "model_choice_failed": "No se pudo cambiar la elección de modelo"
         },
         "forms": {
             "page_title": "Formularios",

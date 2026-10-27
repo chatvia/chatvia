@@ -17,7 +17,8 @@
             "files_ready": "Dina filer är klara.",
             "refused": "Tjänsten avvisade den här begäran.",
             "timed_out": "Det tog för lång tid. Fråga igen.",
-            "download": "Ladda ner"
+            "download": "Ladda ner",
+            "made_with": "Skapad med {model}"
         }
     }
 }

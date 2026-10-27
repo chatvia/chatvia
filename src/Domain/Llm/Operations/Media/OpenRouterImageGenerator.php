@@ -40,7 +40,7 @@ class OpenRouterImageGenerator implements ImageGenerator
 
     public function generate(ImagePromptData $prompt): GeneratedImageData
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
 
         try {
             $response = $this->tags->during(AiCallTag::ImageGeneration, fn (): Response => ProviderRetry::request()
@@ -87,9 +87,9 @@ class OpenRouterImageGenerator implements ImageGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'openrouter '.$this->model();
+        return 'openrouter '.$this->model($model);
     }
 
     /** A picture from a `data:image/…;base64,…` URL; null for anything else. */
@@ -104,8 +104,8 @@ class OpenRouterImageGenerator implements ImageGenerator
         return filled($bytes) ? new GeneratedImageData($bytes, $parts[1]) : null;
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.openrouter.image_model');
+        return filled($picked) ? $picked : (string) config('services.openrouter.image_model');
     }
 }

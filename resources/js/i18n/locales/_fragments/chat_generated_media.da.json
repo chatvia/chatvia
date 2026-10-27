@@ -17,7 +17,8 @@
             "files_ready": "Dine filer er klar.",
             "refused": "Tjenesten afviste denne anmodning.",
             "timed_out": "Det tog for lang tid. Spørg igen.",
-            "download": "Download"
+            "download": "Download",
+            "made_with": "Lavet med {model}"
         }
     }
 }

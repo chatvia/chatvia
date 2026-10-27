@@ -17,7 +17,8 @@
             "files_ready": "Twoje pliki są gotowe.",
             "refused": "Usługa odrzuciła tę prośbę.",
             "timed_out": "Trwało to zbyt długo. Poproś ponownie.",
-            "download": "Pobierz"
+            "download": "Pobierz",
+            "made_with": "Utworzono za pomocą {model}"
         }
     }
 }

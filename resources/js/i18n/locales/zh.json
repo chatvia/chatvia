@@ -49,7 +49,9 @@
         "incognito_mode": "无痕模式",
         "delete_conversation": "删除对话",
         "delete_dialog_title": "删除对话?",
-        "delete_dialog_description": "此操作无法撤销。"
+        "delete_dialog_description": "此操作无法撤销。",
+        "image_model": "图像模型",
+        "video_model": "视频模型"
     },
     "sidebar": {
         "new_chat": "新对话",
@@ -176,7 +178,8 @@
             "image_ready": "您的图片已生成。 | 您的图片已生成。",
             "audio_ready": "您的音频已生成。 | 您的音频已生成。",
             "video_ready": "您的视频已生成。 | 您的视频已生成。",
-            "files_ready": "您的文件已生成。"
+            "files_ready": "您的文件已生成。",
+            "made_with": "使用 {model} 制作"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "连接 {names}",
             "book_through": "预订服务",
             "provider_failed": "无法更改预订服务",
-            "turned_off_by_admin": "已被管理员关闭"
+            "turned_off_by_admin": "已被管理员关闭",
+            "model_choice_image": "允许用户选择图像模型",
+            "model_choice_video": "允许用户选择视频模型",
+            "model_choice_failed": "无法更改模型选择"
         },
         "forms": {
             "page_title": "表单",

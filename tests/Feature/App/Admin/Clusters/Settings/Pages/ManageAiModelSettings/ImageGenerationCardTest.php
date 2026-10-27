@@ -167,3 +167,25 @@ it('offers every fal.ai model the generator knows how to shape', function (): vo
 
     expect(array_keys($field->getOptions()))->toBe(array_keys(FalImageGenerator::MODELS));
 });
+
+it('lets workspaces offer a choice of the picked service\'s models', function (): void {
+    connectAiProviders(AiProvider::Fal);
+    Http::fake(['queue.fal.run/*' => Http::response(['detail' => 'Request not found'], 404)]);
+
+    $page = adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['image_generator' => 'fal'])
+        ->assertFormFieldHidden('image_models')
+        ->fillForm(['image_model_choice' => true])
+        ->assertFormFieldVisible('image_models');
+
+    expect(array_keys($page->instance()->form->getFlatFields(withHidden: true)['image_models']->getOptions()))->toBe(array_keys(FalImageGenerator::MODELS));
+
+    $page->fillForm(['image_models' => ['fal-ai/qwen-image', 'fal-ai/flux-2-pro']])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $settings = app(AiSettings::class);
+
+    expect($settings->image_model_choice)->toBeTrue()
+        ->and($settings->image_models)->toBe(['fal-ai/qwen-image', 'fal-ai/flux-2-pro']);
+});

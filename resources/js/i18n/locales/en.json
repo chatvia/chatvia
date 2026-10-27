@@ -49,7 +49,9 @@
         "incognito_mode": "Incognito",
         "delete_conversation": "Delete conversation",
         "delete_dialog_title": "Delete Conversation?",
-        "delete_dialog_description": "This action cannot be undone."
+        "delete_dialog_description": "This action cannot be undone.",
+        "image_model": "Image model",
+        "video_model": "Video model"
     },
     "sidebar": {
         "new_chat": "New chat",
@@ -176,7 +178,8 @@
             "image_ready": "Your image is ready. | Your images are ready.",
             "audio_ready": "Your audio is ready. | Your audio files are ready.",
             "video_ready": "Your video is ready. | Your videos are ready.",
-            "files_ready": "Your files are ready."
+            "files_ready": "Your files are ready.",
+            "made_with": "Made with {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Connect {names}",
             "book_through": "Book through",
             "provider_failed": "Could not change the booking service",
-            "turned_off_by_admin": "Turned off by your admin"
+            "turned_off_by_admin": "Turned off by your admin",
+            "model_choice_image": "Let people choose the image model",
+            "model_choice_video": "Let people choose the video model",
+            "model_choice_failed": "Could not change the model choice"
         },
         "forms": {
             "page_title": "Forms",

@@ -107,7 +107,11 @@ class GenerateMediaAction
      */
     private function image(GeneratedMedia $media): array
     {
-        $image = $this->images->generate(new ImagePromptData($media->prompt, ImageShape::tryFrom((string) ($media->metadata['shape'] ?? '')) ?? ImageShape::Square));
+        $image = $this->images->generate(new ImagePromptData(
+            prompt: $media->prompt,
+            shape: ImageShape::tryFrom((string) ($media->metadata['shape'] ?? '')) ?? ImageShape::Square,
+            model: $media->metadata['model'] ?? null,
+        ));
 
         return [$image->bytes, $image->mimeType, $image->extension()];
     }
@@ -122,6 +126,7 @@ class GenerateMediaAction
             shape: VideoShape::tryFrom((string) ($metadata['shape'] ?? '')) ?? VideoShape::Landscape,
             seconds: (int) ($metadata['seconds'] ?? config('chatvia.ai.video_duration')),
             resolution: VideoResolution::tryFrom((string) ($metadata['resolution'] ?? config('chatvia.ai.video_resolution'))) ?? VideoResolution::Hd720,
+            model: $metadata['model'] ?? null,
         ));
 
         $media->update(['task_id' => $taskId]);

@@ -13,6 +13,7 @@ import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import HeroIcon from '@/components/common/HeroIcon.vue';
 import { chatPages } from '@/composables/chat/chatPages';
+import { provideChatMediaModelChoice, type OfferedMediaModel } from '@/composables/chat/useChatMediaModelChoice';
 import { provideChatModelChoice, type OfferedModel } from '@/composables/chat/useChatModelChoice';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
 import { useAppName } from '@/composables/useAppName';
@@ -50,6 +51,9 @@ interface Props {
     voiceConversation?: boolean;
     /** The models the chatter may pick from; empty hides the picker. */
     models?: OfferedModel[];
+    /** The image and video models the chatter may pick from in the header; fewer than two hide the picker. */
+    image_models?: OfferedMediaModel[];
+    video_models?: OfferedMediaModel[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,6 +81,8 @@ const props = withDefaults(defineProps<Props>(), {
     allowVoiceInput: false,
     voiceConversation: false,
     models: () => [],
+    image_models: () => [],
+    video_models: () => [],
 });
 
 const { t, locale: i18nLocale } = useI18n();
@@ -92,6 +98,7 @@ const resolvedStarters = computed(() => resolveStarters(starters.value, normaliz
 // Uploads need an agent to scope them to; without one the composer hides the upload button.
 // The first reply streams on the conversation page, which reads the same remembered pick.
 provideChatModelChoice(props.agent_id ?? 'none', () => props.models);
+provideChatMediaModelChoice(props.agent_id ?? 'none', { image: () => props.image_models, video: () => props.video_models });
 
 const uploadEndpoint = computed(() => (props.agent_id ? storeAttachment.url() : undefined));
 const uploadHeaders = computed(() => (props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined));

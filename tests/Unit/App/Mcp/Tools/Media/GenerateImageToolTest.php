@@ -38,7 +38,7 @@ it('asks for the picture and returns a pending image artifact', function (): voi
 
     expect($result['content'][0]['text'])->toContain('the chat shows it by itself when it is ready')
         ->and($result['content'][0]['text'])->toContain('Do not say where on the screen it will appear')
-        ->and($result['structuredContent']['image'])->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A lighthouse at dusk'])
+        ->and($result['structuredContent']['image'])->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A lighthouse at dusk', 'model_name' => null])
         ->and($media->metadata)->toBe(['shape' => 'landscape']);
 });
 

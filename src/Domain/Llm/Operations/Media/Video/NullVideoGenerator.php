@@ -33,7 +33,7 @@ class NullVideoGenerator implements VideoGenerator
         return false;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
         return 'none';
     }

@@ -138,3 +138,24 @@ it('marks a video the service refuses to start', function (): void {
     expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed)
         ->and($media->failure)->toBe(GeneratedMediaFailure::Refused);
 });
+
+it('draws with the model the chatter picked, and tells the chat its name', function (): void {
+    $images = FakeImageGenerator::install();
+    $media = gmaMedia(['prompt' => 'A red fox', 'metadata' => ['shape' => 'square', 'model' => 'fal-ai/qwen-image', 'model_name' => 'Qwen-Image']]);
+
+    app(GenerateMediaAction::class)->execute($media);
+
+    expect($images->drawn[0]->model)->toBe('fal-ai/qwen-image');
+
+    Event::assertDispatched(GeneratedMediaUpdated::class, fn (GeneratedMediaUpdated $event): bool => $event->media->model_name === 'Qwen-Image');
+});
+
+it('starts a video with the model the chatter picked', function (): void {
+    Queue::fake();
+    $videos = FakeVideoGenerator::install();
+    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create(['metadata' => ['shape' => 'landscape', 'seconds' => 8, 'resolution' => '720p', 'model' => 'kling-4.0'], 'task_id' => null]);
+
+    app(GenerateMediaAction::class)->execute($media);
+
+    expect($videos->started[0]->model)->toBe('kling-4.0');
+});

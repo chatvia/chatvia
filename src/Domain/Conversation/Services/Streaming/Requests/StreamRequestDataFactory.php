@@ -6,6 +6,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentModel;
+use Domain\Conversation\Data\Media\MediaModelPickData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Data\Voice\VoiceCallerData;
@@ -51,6 +52,10 @@ class StreamRequestDataFactory
                 message: $request->input('message'),
                 createdAt: $request->input('created_at'),
                 attachments: $this->attachments($request),
+                mediaModels: new MediaModelPickData(
+                    image: $request->filled('image_model') ? $request->string('image_model')->toString() : null,
+                    video: $request->filled('video_model') ? $request->string('video_model')->toString() : null,
+                ),
             ),
             externalSessionId: $externalSessionId,
             conversationId: $conversationId,

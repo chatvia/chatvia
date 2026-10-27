@@ -37,7 +37,7 @@ class GoogleImageGenerator implements ImageGenerator
 
     public function generate(ImagePromptData $prompt): GeneratedImageData
     {
-        $model = Str::chopStart($this->model(), 'models/');
+        $model = Str::chopStart($this->model($prompt->model), 'models/');
 
         try {
             $response = $this->tags->during(AiCallTag::ImageGeneration, fn (): Response => ProviderRetry::request()
@@ -87,13 +87,13 @@ class GoogleImageGenerator implements ImageGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'google '.$this->model();
+        return 'google '.$this->model($model);
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.gemini.image_model');
+        return filled($picked) ? $picked : (string) config('services.gemini.image_model');
     }
 }

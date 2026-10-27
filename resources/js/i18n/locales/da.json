@@ -49,7 +49,9 @@
         "incognito_mode": "Inkognito",
         "delete_conversation": "Slet samtale",
         "delete_dialog_title": "Slet samtale?",
-        "delete_dialog_description": "Denne handling kan ikke fortrydes."
+        "delete_dialog_description": "Denne handling kan ikke fortrydes.",
+        "image_model": "Billedmodel",
+        "video_model": "Videomodel"
     },
     "sidebar": {
         "new_chat": "Ny chat",
@@ -176,7 +178,8 @@
             "image_ready": "Dit billede er klar. | Dine billeder er klar.",
             "audio_ready": "Din lyd er klar. | Dine lydfiler er klar.",
             "video_ready": "Din video er klar. | Dine videoer er klar.",
-            "files_ready": "Dine filer er klar."
+            "files_ready": "Dine filer er klar.",
+            "made_with": "Lavet med {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Tilslut {names}",
             "book_through": "Book via",
             "provider_failed": "Bookingtjenesten kunne ikke ændres",
-            "turned_off_by_admin": "Slået fra af din administrator"
+            "turned_off_by_admin": "Slået fra af din administrator",
+            "model_choice_image": "Lad folk vælge billedmodellen",
+            "model_choice_video": "Lad folk vælge videomodellen",
+            "model_choice_failed": "Kunne ikke ændre modelvalget"
         },
         "forms": {
             "page_title": "Formularer",

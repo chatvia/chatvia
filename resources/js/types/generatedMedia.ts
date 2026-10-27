@@ -11,6 +11,8 @@ export interface GeneratedMedia {
     url: string | null;
     mime_type: string | null;
     failure: 'refused' | 'failed' | 'timed_out' | null;
+    /** The model the chatter picked in the header; null when the agent offers no choice. */
+    model_name?: string | null;
 }
 
 export type GeneratedMediaKind = 'image' | 'audio' | 'video';

@@ -13,7 +13,8 @@ use Spatie\LaravelData\Data;
 /**
  * Where one generated image, audio file or video stands, as the chat shows it: the
  * fields an image, audio or video artifact takes from its row on every load and on
- * every live update. The link is there only once the file is made.
+ * every live update. The link is there only once the file is made. The
+ * model's name is there when the chatter picked the model.
  */
 class GeneratedMediaData extends Data
 {
@@ -24,6 +25,7 @@ class GeneratedMediaData extends Data
         public ?string $url,
         public ?string $mime_type,
         public ?GeneratedMediaFailure $failure,
+        public ?string $model_name = null,
     ) {}
 
     public static function fromModel(GeneratedMedia $media): self
@@ -37,6 +39,7 @@ class GeneratedMediaData extends Data
             url: $ready ? $media->url : null,
             mime_type: $ready ? $media->mime_type : null,
             failure: $media->failure,
+            model_name: $media->metadata['model_name'] ?? null,
         );
     }
 }

@@ -49,7 +49,9 @@
         "incognito_mode": "Инкогнито",
         "delete_conversation": "Удалить беседу",
         "delete_dialog_title": "Удалить беседу?",
-        "delete_dialog_description": "Это действие нельзя отменить."
+        "delete_dialog_description": "Это действие нельзя отменить.",
+        "image_model": "Модель изображений",
+        "video_model": "Модель видео"
     },
     "sidebar": {
         "new_chat": "Новый чат",
@@ -176,7 +178,8 @@
             "image_ready": "Ваше изображение готово. | Ваши изображения готовы.",
             "audio_ready": "Ваш аудиофайл готов. | Ваши аудиофайлы готовы.",
             "video_ready": "Ваше видео готово. | Ваши видео готовы.",
-            "files_ready": "Ваши файлы готовы."
+            "files_ready": "Ваши файлы готовы.",
+            "made_with": "Создано с помощью {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Подключить {names}",
             "book_through": "Бронировать через",
             "provider_failed": "Не удалось изменить сервис бронирования",
-            "turned_off_by_admin": "Отключено вашим администратором"
+            "turned_off_by_admin": "Отключено вашим администратором",
+            "model_choice_image": "Разрешить выбирать модель изображений",
+            "model_choice_video": "Разрешить выбирать модель видео",
+            "model_choice_failed": "Не удалось изменить выбор модели"
         },
         "forms": {
             "page_title": "Формы",

@@ -52,9 +52,9 @@ use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Enums\VideoResolution;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
-use Domain\Llm\Operations\Media\FalImageGenerator;
 use Domain\Llm\Services\ChatFileModel;
 use Domain\Llm\Services\ElevenLabsVoices;
+use Domain\Llm\Services\MediaModelCatalog;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ModelsDevCatalog;
@@ -120,58 +120,6 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private const string CHANGE_WARNING = 'Your documents were turned into vectors with the current model. Another model makes different vectors, so agents cannot find your documents until every document, Q&A and tool is embedded again. Saving starts this re-index in the background queue. With many documents it can take hours, and until it ends agents may miss documents.';
 
     private const string REINDEX_NOTE = 'Files are not read again: only the embeddings are made again.';
-
-    /** The fal.ai image models offered, open ones first ({@see FalImageGenerator::MODELS} says how each takes the shape). */
-    private const array FAL_IMAGE_MODELS = [
-        'fal-ai/flux-2' => 'FLUX.2 dev (open model)',
-        'fal-ai/qwen-image' => 'Qwen-Image (open model, good with text in pictures)',
-        'fal-ai/flux-2-pro' => 'FLUX.2 pro (costs more)',
-        'fal-ai/nano-banana-2' => 'Nano Banana 2 (Google)',
-        'fal-ai/nano-banana-pro' => 'Nano Banana Pro (Google, costs more)',
-        'fal-ai/bytedance/seedream/v4.5/text-to-image' => 'Seedream 4.5 (ByteDance)',
-        'fal-ai/recraft/v3/text-to-image' => 'Recraft V3 (logos and designs)',
-    ];
-
-    /** The video models offered per service, the default first; each generator's MODELS lists the same ids. */
-    private const array GOOGLE_VIDEO_MODELS = [
-        'gemini-omni-1.1-flash' => 'Gemini Omni Flash (with sound, 3 to 10 seconds)',
-        'veo-3.0-fast-generate-001' => 'Veo 3 Fast (deprecated by Google, 8 seconds)',
-        'veo-3.0-generate-001' => 'Veo 3 (deprecated by Google, 8 seconds, costs more)',
-    ];
-
-    private const array ELEVENLABS_VIDEO_MODELS = [
-        'veo-3.1-fast-generate-001' => 'Google Veo 3.1 Fast (with sound, 4 to 8 seconds)',
-        'veo-3.1-generate-001' => 'Google Veo 3.1 (best, costs more)',
-        'bytedance-seedance-v2-fast' => 'Seedance 2.0 Fast (720p, needs approval)',
-        'bytedance-seedance-v2' => 'Seedance 2.0 (needs approval)',
-        'bytedance-seedance-v2.5' => 'Seedance 2.5 (needs approval)',
-    ];
-
-    private const array KLING_VIDEO_MODELS = [
-        'kling-3.0-turbo' => 'Kling 3.0 Turbo (fast, 3 to 15 seconds)',
-        'kling-4.0' => 'Kling 4.0 (best, up to 30 seconds, costs more)',
-    ];
-
-    private const array BYTEPLUS_VIDEO_MODELS = [
-        'dreamina-seedance-2-0-fast-260128' => 'Seedance 2.0 Fast (720p, cheaper)',
-        'dreamina-seedance-2-0-260128' => 'Seedance 2.0 (up to 1080p)',
-    ];
-
-    private const array RUNWAY_VIDEO_MODELS = [
-        'gen4.5' => 'Gen-4.5 (2 to 10 seconds, 720p)',
-        'veo3.1_fast' => 'Google Veo 3.1 Fast (with sound)',
-        'veo3.1' => 'Google Veo 3.1 (with sound, costs more)',
-        'kling3.0_pro' => 'Kling 3.0 Pro (1080p)',
-        'seedance2' => 'Seedance 2.0',
-    ];
-
-    private const array FAL_VIDEO_MODELS = [
-        'fal-ai/wan/v2.2-a14b/text-to-video' => 'Wan 2.2 (open model, no sound, cheapest)',
-        'fal-ai/veo3.1/fast' => 'Google Veo 3.1 Fast (with sound)',
-        'fal-ai/veo3.1/lite' => 'Google Veo 3.1 Lite (with sound, cheaper)',
-        'fal-ai/veo3.1' => 'Google Veo 3.1 (with sound, costs more)',
-        'fal-ai/kling-video/v3/pro/text-to-video' => 'Kling 3.0 Pro (with sound)',
-    ];
 
     /** The app's tasks on the "Models for app tasks" card, by when they run. */
     #[\Override]
@@ -479,26 +427,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. Every picture counts against the workspace\'s monthly generation limit, when it has one.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
                     ->live(),
-                $this->choice('openai_image_model', 'Model', [
-                    'gpt-image-2.5-flare' => 'GPT Image 2.5 Flare (fast)',
-                    'gpt-image-2.5-sunburst' => 'GPT Image 2.5 Sunburst (best detail, costs more)',
-                    'gpt-image-2' => 'GPT Image 2',
-                    'gpt-image-1.5' => 'GPT Image 1.5',
-                    'gpt-image-1-mini' => 'GPT Image 1 mini (cheapest)',
-                ])->visible(fn (Get $get): bool => $get('image_generator') === 'openai'),
+                $this->choice('openai_image_model', 'Model', MediaModelCatalog::IMAGE_MODELS['openai'])->visible(fn (Get $get): bool => $get('image_generator') === 'openai'),
                 $this->choice('openrouter_image_model', 'Model', $openRouterImages = app(OpenRouterImageModels::class)->options(),
                     help: 'Listed with a few good picks first, then every model on OpenRouter whose output includes images.')
                     ->options(ModelLogo::labels($openRouterImages, LlmProviderKind::OpenRouter))
                     ->allowHtml()
                     ->searchable()
                     ->visible(fn (Get $get): bool => $get('image_generator') === 'openrouter'),
-                $this->choice('google_image_model', 'Model', [
-                    'gemini-nano-banana-2.1' => 'Nano Banana 2.1 (fast, good pictures)',
-                    'gemini-3.1-flash-lite-image' => 'Nano Banana 2 Lite (fastest, cheapest)',
-                    'gemini-3-pro-image' => 'Nano Banana Pro (best pictures, costs more)',
-                    'gemini-3.1-flash-image' => 'Nano Banana 2',
-                ])->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
-                $this->choice('fal_image_model', 'Model', self::FAL_IMAGE_MODELS)
+                $this->choice('google_image_model', 'Model', MediaModelCatalog::IMAGE_MODELS['google'])->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
+                $this->choice('fal_image_model', 'Model', MediaModelCatalog::IMAGE_MODELS['fal'])
                     ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
                 Callout::make('A small text model hands OpenAI the prompt')
                     ->description('OpenAI draws through its Responses API, so each picture also costs a few text tokens. OpenAI does not keep the pictures.')
@@ -520,6 +457,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
                     ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
+                $this->toggle('image_model_choice', 'Let workspaces offer a choice of models',
+                    'Lets each agent show chatters an "Image model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Image generation.')
+                    ->live(),
+                $this->mediaModelPicker('image_models', 'image_generator', 'image_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->imageModels($service)),
                 $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', min: 1, max: 100,
                     help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
@@ -553,17 +494,17 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. A video takes a few minutes and costs far more than a picture, so it counts against the workspace\'s own monthly video limit, when it has one.',
                     check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
                     ->live(),
-                $this->choice('google_video_model', 'Model', self::GOOGLE_VIDEO_MODELS)
+                $this->choice('google_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['google'])
                     ->visible(fn (Get $get): bool => $get('video_generator') === 'google'),
-                $this->choice('elevenlabs_video_model', 'Model', self::ELEVENLABS_VIDEO_MODELS)
+                $this->choice('elevenlabs_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['elevenlabs'])
                     ->visible(fn (Get $get): bool => $get('video_generator') === 'elevenlabs'),
-                $this->choice('kling_video_model', 'Model', self::KLING_VIDEO_MODELS)
+                $this->choice('kling_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['kling'])
                     ->visible(fn (Get $get): bool => $get('video_generator') === 'kling'),
-                $this->choice('byteplus_video_model', 'Model', self::BYTEPLUS_VIDEO_MODELS)
+                $this->choice('byteplus_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['byteplus'])
                     ->visible(fn (Get $get): bool => $get('video_generator') === 'byteplus'),
-                $this->choice('runway_video_model', 'Model', self::RUNWAY_VIDEO_MODELS)
+                $this->choice('runway_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['runway'])
                     ->visible(fn (Get $get): bool => $get('video_generator') === 'runway'),
-                $this->choice('fal_video_model', 'Model', self::FAL_VIDEO_MODELS)
+                $this->choice('fal_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['fal'])
                     ->visible(fn (Get $get): bool => $get('video_generator') === 'fal'),
                 Callout::make('Google moved on from Veo')
                     ->description('Google shut down the Veo 3.1 preview models on the Gemini API. Gemini Omni Flash is used by default, and Veo 3 is listed while Google still serves it. For Veo 3.1, pick ElevenLabs, Runway or fal.ai. Each video carries Google\'s SynthID watermark.')
@@ -590,6 +531,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
                     ->visible(fn (Get $get): bool => in_array($get('video_generator'), ['kling', 'fal'], true)),
+                $this->toggle('video_model_choice', 'Let workspaces offer a choice of models',
+                    'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Video generation.')
+                    ->live(),
+                $this->mediaModelPicker('video_models', 'video_generator', 'video_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->videoModels($service)),
                 $this->integer('videos_per_chat_per_hour', 'Videos per chat per hour', min: 1, max: 20,
                     help: 'The most videos an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
                 $this->integer('video_duration', 'Length, in seconds', min: 2, max: 15,
@@ -1104,6 +1049,21 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return app(ChatFileModel::class)->automatic() instanceof Llm
             ? "{$does} Automatic uses the default model if it reads both, or else the first one that does."
             : "{$does} Automatic finds no model that reads both, so uploads are off.";
+    }
+
+    /**
+     * The models chatters may pick from, of the service picked above. Ticks
+     * of another service stay saved but are not offered.
+     *
+     * @param  Closure(string): array<string, string>  $models
+     */
+    private function mediaModelPicker(string $property, string $service, string $choice, Closure $models): ModelPicker
+    {
+        return ModelPicker::make($property)
+            ->hiddenLabel(false)
+            ->label('Models people can pick')
+            ->options(fn (Get $get): array => $models((string) $get($service)))
+            ->visible(fn (Get $get): bool => (bool) $get($choice) && $models((string) $get($service)) !== []);
     }
 
     /** The empty choice of a model picker that chooses for itself, with the model it takes now. */

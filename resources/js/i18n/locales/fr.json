@@ -49,7 +49,9 @@
         "incognito_mode": "Navigation privée",
         "delete_conversation": "Supprimer la conversation",
         "delete_dialog_title": "Supprimer la conversation ?",
-        "delete_dialog_description": "Cette action est irréversible."
+        "delete_dialog_description": "Cette action est irréversible.",
+        "image_model": "Modèle d'image",
+        "video_model": "Modèle vidéo"
     },
     "sidebar": {
         "new_chat": "Nouvelle conversation",
@@ -176,7 +178,8 @@
             "image_ready": "Votre image est prête. | Vos images sont prêtes.",
             "audio_ready": "Votre audio est prêt. | Vos audios sont prêts.",
             "video_ready": "Votre vidéo est prête. | Vos vidéos sont prêtes.",
-            "files_ready": "Vos fichiers sont prêts."
+            "files_ready": "Vos fichiers sont prêts.",
+            "made_with": "Créé avec {model}"
         }
     },
     "messages": {
@@ -2394,7 +2397,10 @@
             "connect_connector": "Connecter {names}",
             "book_through": "Réserver via",
             "provider_failed": "Impossible de modifier le service de réservation",
-            "turned_off_by_admin": "Désactivé par votre administrateur"
+            "turned_off_by_admin": "Désactivé par votre administrateur",
+            "model_choice_image": "Laisser les personnes choisir le modèle d'image",
+            "model_choice_video": "Laisser les personnes choisir le modèle vidéo",
+            "model_choice_failed": "Impossible de modifier le choix du modèle"
         },
         "forms": {
             "page_title": "Formulaires",

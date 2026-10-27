@@ -43,7 +43,7 @@ class SeedanceVideoGenerator implements VideoGenerator
 
     public function start(VideoPromptData $prompt): string
     {
-        $model = $this->model();
+        $model = $this->model($prompt->model);
         $hd = (self::MODELS[$model] ?? false) && $prompt->resolution === VideoResolution::Hd1080;
 
         $response = $this->call(fn (PendingRequest $ark): Response => $ark->post($this->endpoint().'/contents/generations/tasks', [
@@ -82,9 +82,9 @@ class SeedanceVideoGenerator implements VideoGenerator
         return true;
     }
 
-    public function name(): string
+    public function name(?string $model = null): string
     {
-        return 'byteplus '.$this->model();
+        return 'byteplus '.$this->model($model);
     }
 
     /** @param callable(PendingRequest): Response $request */
@@ -118,8 +118,8 @@ class SeedanceVideoGenerator implements VideoGenerator
         return Str::rtrim((string) config('services.byteplus.endpoint'), '/');
     }
 
-    private function model(): string
+    private function model(?string $picked = null): string
     {
-        return (string) config('services.byteplus.video_model');
+        return filled($picked) ? $picked : (string) config('services.byteplus.video_model');
     }
 }

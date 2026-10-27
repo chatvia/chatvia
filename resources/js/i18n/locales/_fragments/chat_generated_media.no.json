@@ -17,7 +17,8 @@
             "files_ready": "Filene dine er klare.",
             "refused": "Tjenesten avviste denne forespørselen.",
             "timed_out": "Det tok for lang tid. Spør igjen.",
-            "download": "Last ned"
+            "download": "Last ned",
+            "made_with": "Laget med {model}"
         }
     }
 }

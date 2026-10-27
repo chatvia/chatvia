@@ -61,6 +61,13 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.images_per_chat_per_hour')]
     public ?int $images_per_chat_per_hour = null;
 
+    #[ConfigKey('chatvia.ai.image_model_choice')]
+    public ?bool $image_model_choice = null;
+
+    /** @var list<string>|null */
+    #[ConfigKey('chatvia.ai.image_models')]
+    public ?array $image_models = null;
+
     #[ConfigKey('chatvia.ai.audio_generator')]
     public ?string $audio_generator = null;
 
@@ -75,6 +82,13 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.videos_per_chat_per_hour')]
     public ?int $videos_per_chat_per_hour = null;
+
+    #[ConfigKey('chatvia.ai.video_model_choice')]
+    public ?bool $video_model_choice = null;
+
+    /** @var list<string>|null */
+    #[ConfigKey('chatvia.ai.video_models')]
+    public ?array $video_models = null;
 
     #[ConfigKey('chatvia.ai.video_duration')]
     public ?int $video_duration = null;

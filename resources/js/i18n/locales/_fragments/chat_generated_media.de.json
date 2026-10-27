@@ -11,6 +11,10 @@
             "image_failed": "Dieses Bild konnte nicht erstellt werden.",
             "audio_failed": "Diese Audiodatei konnte nicht erstellt werden.",
             "video_failed": "Dieses Video konnte nicht erstellt werden.",
+            "image_ready": "Dein Bild ist fertig. | Deine Bilder sind fertig.",
+            "audio_ready": "Deine Audiodatei ist fertig. | Deine Audiodateien sind fertig.",
+            "video_ready": "Dein Video ist fertig. | Deine Videos sind fertig.",
+            "files_ready": "Deine Dateien sind fertig.",
             "refused": "Der Dienst hat diese Anfrage abgelehnt.",
             "timed_out": "Das hat zu lange gedauert. Bitte frag noch einmal.",
             "download": "Herunterladen"

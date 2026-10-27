@@ -11,6 +11,10 @@
             "image_failed": "Bilden kunde inte skapas.",
             "audio_failed": "Ljudet kunde inte skapas.",
             "video_failed": "Videon kunde inte skapas.",
+            "image_ready": "Din bild är klar. | Dina bilder är klara.",
+            "audio_ready": "Ditt ljud är klart. | Dina ljudfiler är klara.",
+            "video_ready": "Din video är klar. | Dina videor är klara.",
+            "files_ready": "Dina filer är klara.",
             "refused": "Tjänsten avvisade den här begäran.",
             "timed_out": "Det tog för lång tid. Fråga igen.",
             "download": "Ladda ner"

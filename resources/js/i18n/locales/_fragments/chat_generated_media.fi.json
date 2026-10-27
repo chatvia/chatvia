@@ -11,6 +11,10 @@
             "image_failed": "Kuvaa ei voitu luoda.",
             "audio_failed": "Äänitiedostoa ei voitu luoda.",
             "video_failed": "Videota ei voitu luoda.",
+            "image_ready": "Kuvasi on valmis. | Kuvasi ovat valmiita.",
+            "audio_ready": "Äänitiedostosi on valmis. | Äänitiedostosi ovat valmiita.",
+            "video_ready": "Videosi on valmis. | Videosi ovat valmiita.",
+            "files_ready": "Tiedostosi ovat valmiita.",
             "refused": "Palvelu hylkäsi tämän pyynnön.",
             "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
             "download": "Lataa"

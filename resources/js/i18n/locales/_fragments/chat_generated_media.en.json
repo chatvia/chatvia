@@ -11,6 +11,10 @@
             "image_failed": "This image could not be made.",
             "audio_failed": "This audio could not be made.",
             "video_failed": "This video could not be made.",
+            "image_ready": "Your image is ready. | Your images are ready.",
+            "audio_ready": "Your audio is ready. | Your audio files are ready.",
+            "video_ready": "Your video is ready. | Your videos are ready.",
+            "files_ready": "Your files are ready.",
             "refused": "This request was refused by the service.",
             "timed_out": "This took too long. Please ask again.",
             "download": "Download"

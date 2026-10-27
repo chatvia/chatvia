@@ -172,7 +172,11 @@
             "video": "Skapad video",
             "video_alt": "Skapad video: {prompt}",
             "video_pending": "Skapar din video… Det kan ta några minuter.",
-            "video_failed": "Videon kunde inte skapas."
+            "video_failed": "Videon kunde inte skapas.",
+            "image_ready": "Din bild är klar. | Dina bilder är klara.",
+            "audio_ready": "Ditt ljud är klart. | Dina ljudfiler är klara.",
+            "video_ready": "Din video är klar. | Dina videor är klara.",
+            "files_ready": "Dina filer är klara."
         }
     },
     "messages": {

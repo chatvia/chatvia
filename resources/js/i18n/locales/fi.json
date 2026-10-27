@@ -172,7 +172,11 @@
             "video": "Luotu video",
             "video_alt": "Luotu video: {prompt}",
             "video_pending": "Videotasi luodaan… Tämä voi kestää muutaman minuutin.",
-            "video_failed": "Videota ei voitu luoda."
+            "video_failed": "Videota ei voitu luoda.",
+            "image_ready": "Kuvasi on valmis. | Kuvasi ovat valmiita.",
+            "audio_ready": "Äänitiedostosi on valmis. | Äänitiedostosi ovat valmiita.",
+            "video_ready": "Videosi on valmis. | Videosi ovat valmiita.",
+            "files_ready": "Tiedostosi ovat valmiita."
         }
     },
     "messages": {

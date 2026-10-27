@@ -11,6 +11,10 @@
             "image_failed": "Billedet kunne ikke laves.",
             "audio_failed": "Lyden kunne ikke laves.",
             "video_failed": "Videoen kunne ikke laves.",
+            "image_ready": "Dit billede er klar. | Dine billeder er klar.",
+            "audio_ready": "Din lyd er klar. | Dine lydfiler er klar.",
+            "video_ready": "Din video er klar. | Dine videoer er klar.",
+            "files_ready": "Dine filer er klar.",
             "refused": "Tjenesten afviste denne anmodning.",
             "timed_out": "Det tog for lang tid. Spørg igen.",
             "download": "Download"

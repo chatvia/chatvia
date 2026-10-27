@@ -172,7 +172,11 @@
             "video": "Video yang dibuat",
             "video_alt": "Video yang dibuat: {prompt}",
             "video_pending": "Membuat video Anda… Ini bisa memakan waktu beberapa menit.",
-            "video_failed": "Video ini tidak dapat dibuat."
+            "video_failed": "Video ini tidak dapat dibuat.",
+            "image_ready": "Gambar Anda sudah siap. | Gambar Anda sudah siap.",
+            "audio_ready": "Audio Anda sudah siap. | Audio Anda sudah siap.",
+            "video_ready": "Video Anda sudah siap. | Video Anda sudah siap.",
+            "files_ready": "File Anda sudah siap."
         }
     },
     "messages": {

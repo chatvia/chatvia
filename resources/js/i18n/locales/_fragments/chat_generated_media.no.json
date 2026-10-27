@@ -11,6 +11,10 @@
             "image_failed": "Bildet kunne ikke lages.",
             "audio_failed": "Lyden kunne ikke lages.",
             "video_failed": "Videoen kunne ikke lages.",
+            "image_ready": "Bildet ditt er klart. | Bildene dine er klare.",
+            "audio_ready": "Lyden din er klar. | Lydfilene dine er klare.",
+            "video_ready": "Videoen din er klar. | Videoene dine er klare.",
+            "files_ready": "Filene dine er klare.",
             "refused": "Tjenesten avviste denne forespørselen.",
             "timed_out": "Det tok for lang tid. Spør igjen.",
             "download": "Last ned"

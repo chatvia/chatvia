@@ -4,6 +4,7 @@
  * agent reasons, live only), the chain of steps it took (what it said before
  * each tool call and the calls themselves), the rendered answer, a "still working"
  * indicator (dots or the tool-call stack), any tool calls awaiting approval,
+ * a done line in place of the text once its generated files are made,
  * and the action row (copy, read aloud, feedback, delete, regenerate (a menu
  * of models when the agent offers a choice), sources). After a
  * thumbs-down, an optional note on what was wrong.
@@ -41,6 +42,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { citedSources } from '@/lib/citations';
+import { settledMedia } from '@/lib/generatedMedia';
 import { messageSteps } from '@/lib/messageSteps';
 import AssistantMessageBody from './AssistantMessageBody.vue';
 import ChatModelLogo from './ChatModelLogo.vue';
@@ -134,6 +136,39 @@ const showsWorking = computed(() => {
 
     return !!props.isCallingExternal || !props.message.reasoning;
 });
+
+/**
+ * The reply's text was written while its generated files were being made
+ * ("Your video is on its way"), so once none is left a done line takes its
+ * place: none when every file failed, as each says why itself. Held back
+ * while the reply still streams.
+ */
+const mediaNotice = computed<string | null>(() => {
+    const settled = props.isStreaming ? null : settledMedia(props.artifacts ?? []);
+    if (!settled) return null;
+    if (settled.ready === 0) return '';
+
+    const count = { count: settled.ready };
+    const plural = { plural: settled.ready };
+    switch (settled.kind) {
+        case 'image':
+            return t('chat.generated_media.image_ready', count, plural);
+        case 'audio':
+            return t('chat.generated_media.audio_ready', count, plural);
+        case 'video':
+            return t('chat.generated_media.video_ready', count, plural);
+        default:
+            return t('chat.generated_media.files_ready');
+    }
+});
+
+// A file made while the chat is open streams its done line in a word at a
+// time, like a reply; after a reload the line is simply there.
+const streamsMediaNotice = ref(false);
+watch(mediaNotice, (notice, previous) => {
+    if (notice && previous === null) streamsMediaNotice.value = true;
+});
+const mediaNoticeWords = computed(() => (mediaNotice.value ?? '').split(/(?<=\s)/));
 
 // On devices with a mouse, older replies keep their action row out of the way
 // until hovered or focused. A thumb already given stays in sight.
@@ -263,7 +298,7 @@ async function deleteMessage() {
             />
             <StepChain v-if="hasSteps" :steps="steps" :isRTL="isRTL ?? false" />
             <AssistantMessageBody
-                :content="message.content ?? ''"
+                :content="mediaNotice === null ? (message.content ?? '') : ''"
                 :artifacts="props.artifacts"
                 :is-streaming="isStreaming ?? false"
                 :isRTL="isRTL ?? false"
@@ -271,6 +306,20 @@ async function deleteMessage() {
                 :sources="sources ?? []"
                 :cite="!!citeSources"
             />
+            <div v-if="mediaNotice" class="prose prose-sm dark:prose-invert w-full max-w-none" :data-rtl="isRTL">
+                <p dir="auto">
+                    <template v-if="streamsMediaNotice">
+                        <span
+                            v-for="(word, index) in mediaNoticeWords"
+                            :key="index"
+                            class="media-notice-word"
+                            :style="{ animationDelay: `${index * 70}ms` }"
+                            >{{ word }}</span
+                        >
+                    </template>
+                    <template v-else>{{ mediaNotice }}</template>
+                </p>
+            </div>
             <CitedSourcesList v-if="showsCitations && !isStreaming" :cited="cited" />
             <div v-if="showsWorking" class="flex items-center gap-2 py-1">
                 <ToolCallIndicator v-if="isCallingExternal" :calls="activeCallList" label-class="text-sm" />
@@ -310,7 +359,7 @@ async function deleteMessage() {
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
                         :aria-label="t('messages.copy_message')"
-                        @click="copy(message.content)"
+                        @click="copy(mediaNotice || message.content)"
                     >
                         <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
                         <Copy v-else class="h-3.5 w-3.5" />
@@ -491,6 +540,26 @@ async function deleteMessage() {
 </template>
 
 <style scoped>
+/* A generated file's done line streams in a word at a time, like a reply. */
+.media-notice-word {
+    animation: media-notice-in 500ms ease-out both;
+}
+
+@keyframes media-notice-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .media-notice-word {
+        animation: none;
+    }
+}
+
 /* Prose customizations */
 :deep(.prose) {
     font-size: 1rem;

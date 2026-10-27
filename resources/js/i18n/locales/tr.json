@@ -172,7 +172,11 @@
             "video": "Oluşturulan video",
             "video_alt": "Oluşturulan video: {prompt}",
             "video_pending": "Videonuz oluşturuluyor… Bu birkaç dakika sürebilir.",
-            "video_failed": "Bu video oluşturulamadı."
+            "video_failed": "Bu video oluşturulamadı.",
+            "image_ready": "Görseliniz hazır. | Görselleriniz hazır.",
+            "audio_ready": "Sesiniz hazır. | Ses dosyalarınız hazır.",
+            "video_ready": "Videonuz hazır. | Videolarınız hazır.",
+            "files_ready": "Dosyalarınız hazır."
         }
     },
     "messages": {

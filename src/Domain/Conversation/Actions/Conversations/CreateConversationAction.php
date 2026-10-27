@@ -2,19 +2,23 @@
 
 namespace Domain\Conversation\Actions\Conversations;
 
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\ChatStoragePath;
 use Domain\Guardrail\Services\GuardrailService;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
  * Opens a hosted-chat conversation from the visitor's first message: starts
  * the conversation, records the message (PII masked), and claims the files
- * uploaded before the conversation existed. The answer streams afterwards
+ * uploaded before the conversation existed, moving them from the agent's
+ * pending folder into the conversation's ({@see ChatStoragePath}). The answer streams afterwards
  * through the normal turn, which reuses this recorded message.
  */
 class CreateConversationAction
@@ -61,7 +65,7 @@ class CreateConversationAction
         // Files uploaded on the home screen, before the conversation existed,
         // now belong to it; PDFs among them route the next turn to the
         // document LLM.
-        $this->claimAttachments($scope->sessionId, $conversationId, $data->attachmentIds, $agent->id);
+        $this->claimAttachments($scope->sessionId, $conversationId, $data->attachmentIds, $agent);
 
         return $conversationId;
     }
@@ -69,14 +73,14 @@ class CreateConversationAction
     /**
      * @param  array<int, string>  $attachmentIds  external ids of orphan rows
      */
-    private function claimAttachments(string $sessionId, string $conversationId, array $attachmentIds, int $agentId): void
+    private function claimAttachments(string $sessionId, string $conversationId, array $attachmentIds, Agent $agent): void
     {
         if ($attachmentIds === []) {
             return;
         }
 
         $conversation = Conversation::query()
-            ->inSession($sessionId, $agentId)
+            ->inSession($sessionId, $agent->id)
             ->where('external_id', $conversationId)
             ->first();
 
@@ -87,13 +91,29 @@ class CreateConversationAction
         // The same per-chat ceiling as the upload limit: a script that skipped
         // the composer and uploaded more orphans cannot smuggle them all in.
         $max = (int) config('chatvia.agent.files.upload.max_files');
+        $pending = ChatStoragePath::pending($agent).'/';
+        $folder = ChatStoragePath::forConversation($agent, $conversationId).'/';
+        $disk = Storage::disk(Attachment::DISK);
 
         Attachment::query()
             ->whereIn('external_id', array_slice($attachmentIds, 0, $max))
-            // Only this workspace's orphans: a guessed external id can never
-            // pull another workspace's upload into this conversation.
             ->where('workspace_id', $conversation->workspace_id)
             ->whereNull('chat_conversation_id')
-            ->update(['chat_conversation_id' => $conversation->id]);
+            // Only this agent's orphans: a guessed external id can never pull
+            // another agent's upload into this conversation.
+            ->whereLike('filepath', $pending.'%', caseSensitive: true)
+            ->get()
+            ->each(function (Attachment $attachment) use ($conversation, $pending, $folder, $disk): void {
+                $path = $folder.Str::after($attachment->filepath, $pending);
+
+                // A failed move keeps the file in the pending folder: the row
+                // still deletes it, and so does purging the agent.
+                $moved = rescue(fn (): bool => $disk->move($attachment->filepath, $path), false);
+
+                $attachment->update([
+                    'chat_conversation_id' => $conversation->id,
+                    'filepath' => $moved ? $path : $attachment->filepath,
+                ]);
+            });
     }
 }

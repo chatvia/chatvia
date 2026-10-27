@@ -708,7 +708,7 @@ class Agent extends Model
 
     /**
      * The entity-first storage prefix of the agent's workspace:
-     * `workspaces/{external_id}`. The agent's own files (chat attachments)
+     * `workspaces/{external_id}`. The agent's own files (its chats' files)
      * live under `{storageRoot}/agents/{agent external_id}`; knowledge sources
      * are shared by the workspace's agents, so they live in their own folders
      * under `{storageRoot}/sources/…`.
@@ -718,7 +718,7 @@ class Agent extends Model
         return 'workspaces/'.$this->workspaceExternalId();
     }
 
-    /** This agent's own files (attachments, setting images), wiped when it is purged. */
+    /** This agent's own files (its chats' files, setting images), wiped when it is purged. */
     public function settingsStorageRoot(): string
     {
         return $this->storageRoot().'/agents/'.$this->external_id;

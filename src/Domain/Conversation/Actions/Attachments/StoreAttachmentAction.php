@@ -5,16 +5,19 @@ namespace Domain\Conversation\Actions\Attachments;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Services\ChatStoragePath;
 use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\MimeType;
 use Throwable;
 
 /**
- * Persist a visitor- or member-uploaded attachment to the public Scaleway
- * bucket and create the matching {@see Attachment} row. The DB row
- * persists immediately whether or not the conversation already exists —
- * the Home.vue path uploads first and {@see CreateConversationAction}
+ * Persist a visitor- or member-uploaded attachment to the attachments disk
+ * and create the matching {@see Attachment} row. The file goes in its kind's
+ * subfolder of the chat folder the caller picked ({@see ChatStoragePath}).
+ * The DB row persists immediately whether or not the conversation already
+ * exists — the Home.vue path uploads first and {@see CreateConversationAction}
  * claims orphan rows by external_id when the conversation is created.
  */
 class StoreAttachmentAction
@@ -28,7 +31,8 @@ class StoreAttachmentAction
         // and it's intentionally not on Fillable — we want callers using
         // ::create() to never overwrite it.
         $extension = Str::lower($data->file->getClientOriginalExtension() ?: 'pdf');
-        $directory = Str::trim($data->directory, '/');
+        $mimeType = $data->file->getMimeType() ?? 'application/octet-stream';
+        $directory = Str::trim($data->directory, '/').'/'.ChatStoragePath::kindFolder(MimeType::category($mimeType));
         $filename = Str::uuid().'.'.$extension;
         $filepath = $directory.'/'.$filename;
 
@@ -40,7 +44,7 @@ class StoreAttachmentAction
             'chat_conversation_id' => $data->conversationId,
             'filepath' => $filepath,
             'filename' => $data->file->getClientOriginalName(),
-            'mime_type' => $data->file->getMimeType() ?? 'application/octet-stream',
+            'mime_type' => $mimeType,
             'size_bytes' => $data->file->getSize() ?: 0,
             'pages' => $this->pageCount($data),
         ]);

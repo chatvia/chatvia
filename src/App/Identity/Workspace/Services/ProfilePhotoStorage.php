@@ -24,8 +24,9 @@ class ProfilePhotoStorage
 
     /**
      * Crop to a centered square, downscale, re-encode, and store the photo of
-     * a staff account (`users/…`) or a chatter (`chatters/…`), replacing their
-     * existing one. Returns the stored path to persist on the account.
+     * a staff account (`…/members/…`) or a chatter (`…/chatters/…`) in their
+     * workspace's folder, replacing their existing one. Returns the stored
+     * path to persist on the account.
      */
     public function store(Chatter|User $user, UploadedFile $photo): string
     {
@@ -39,8 +40,7 @@ class ProfilePhotoStorage
             ->cover(self::SIZE, self::SIZE)
             ->encode(new JpegEncoder(quality: self::QUALITY));
 
-        $root = $user instanceof Chatter ? 'chatters/' : 'users/';
-        $path = $root.$user->external_id.'/profile-photos/'.Str::uuid().'.jpg';
+        $path = $user->storageRoot().'/profile-photos/'.Str::uuid().'.jpg';
 
         $disk->put($path, (string) $encoded, ['visibility' => 'public']);
 

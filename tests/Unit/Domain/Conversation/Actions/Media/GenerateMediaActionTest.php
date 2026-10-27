@@ -50,7 +50,7 @@ it('draws a picture, saves it and tells the chat', function (): void {
     $media->refresh();
     expect($media->status)->toBe(GeneratedMediaStatus::Ready)
         ->and($media->mime_type)->toBe('image/png')
-        ->and($media->filepath)->toEndWith("/generated/{$this->conversation->external_id}/{$media->external_id}.png")
+        ->and($media->filepath)->toEndWith("/chat/{$this->conversation->external_id}/images/{$media->external_id}.png")
         ->and(Storage::disk(GeneratedMedia::DISK)->get((string) $media->filepath))->toBe('[portrait:A red fox]')
         ->and($media->size_bytes)->toBe(strlen('[portrait:A red fox]'))
         ->and($images->drawn[0]->shape)->toBe(ImageShape::Portrait);

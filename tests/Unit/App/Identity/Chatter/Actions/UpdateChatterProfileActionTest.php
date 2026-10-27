@@ -3,7 +3,7 @@
 /**
  * UpdateChatterProfileAction: a chatter edits their own name, password (the
  * current one is checked against this chatter's own hash) and photo (stored
- * under `chatters/{external_id}/profile-photos/`).
+ * under `workspaces/{ws}/chatters/{external_id}/profile-photos/`).
  */
 
 use App\Identity\Chatter\Actions\UpdateChatterProfileAction;
@@ -107,7 +107,7 @@ it('stores the uploaded photo under the chatter folder and sets the profile imag
     $path = $chatter->fresh()->profile_image_path;
 
     expect($path)->not->toBeNull()
-        ->and($path)->toStartWith('chatters/'.$chatter->external_id.'/profile-photos/')
+        ->and($path)->toStartWith('workspaces/'.$chatter->workspace->external_id.'/chatters/'.$chatter->external_id.'/profile-photos/')
         ->and($path)->toEndWith('.jpg');
 
     Storage::disk(User::PROFILE_IMAGE_DISK)->assertExists($path);
@@ -121,7 +121,7 @@ it('replaces the previous photo when a new one is uploaded', function (): void {
     Storage::fake(User::PROFILE_IMAGE_DISK);
 
     $chatter = Chatter::factory()->create();
-    $oldPath = 'chatters/'.$chatter->external_id.'/profile-photos/old.jpg';
+    $oldPath = $chatter->storageRoot().'/profile-photos/old.jpg';
     Storage::disk(User::PROFILE_IMAGE_DISK)->put($oldPath, 'old');
     $chatter->update(['profile_image_path' => $oldPath]);
 

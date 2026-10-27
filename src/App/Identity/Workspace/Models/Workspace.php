@@ -182,6 +182,15 @@ class Workspace extends Model
     }
 
     /**
+     * The storage prefix of everything the workspace holds: agents, knowledge
+     * sources, chatters' and members' files. Deleting the workspace wipes it.
+     */
+    public function storageRoot(): string
+    {
+        return 'workspaces/'.$this->external_id;
+    }
+
+    /**
      * The workspace's security and compliance policy, created on first read
      * so no caller ever sees null.
      */

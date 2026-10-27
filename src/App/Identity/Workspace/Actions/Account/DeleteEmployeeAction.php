@@ -35,8 +35,8 @@ use Throwable;
  *     teammate's HTTP `sessions` rows (no FK) have nothing to cascade them and
  *     would orphan; delete them explicitly.
  *
- * Their own files (`users/{external_id}/…`: data export ZIPs, profile photo,
- * settings images) have no row left to clean them, so the prefix is wiped on
+ * Their own files (`workspaces/{workspace}/members/{external_id}/…`: data
+ * export ZIPs, profile photo, settings images) have no row left to clean them, so the prefix is wiped on
  * every disk such files live on once the rows are gone.
  *
  * Callers must pass a teammate; owners and chatters are out of scope and must

@@ -6,7 +6,9 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\ConversationFiles;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormSubmission;
@@ -29,8 +31,9 @@ use Throwable;
  * are cleaned around it.
  *
  * Two artefacts the FK cascade can't reach are cleaned explicitly, because the
- * cascade drops rows WITHOUT firing Eloquent events: attachment files on S3
- * (the Attachment `deleting` observer) and the chatter's Redis chat memory
+ * cascade drops rows WITHOUT firing Eloquent events: their conversations'
+ * files (uploads, generated media and replies read aloud, in each
+ * conversation's chat folder) and the chatter's Redis chat memory
  * (cache, not DB — and the `forever` ownership markers never expire on their
  * own). Both are scoped to this chatter's own sessions, so siblings on the
  * same workspace keep their conversations. (The workspace-wide teardown does
@@ -42,6 +45,7 @@ class DeleteChatterAction
 {
     public function __construct(
         private readonly GeneratedMediaFiles $generatedMedia,
+        private readonly ConversationFiles $conversationFiles,
     ) {}
 
     public function execute(Chatter $chatter): void
@@ -54,19 +58,18 @@ class DeleteChatterAction
             ->with(['conversations' => fn ($query) => $query->withTrashed()])
             ->get();
 
-        $conversationIds = $sessions
-            ->flatMap(fn (Session $session): iterable => $session->conversations)
-            ->pluck('id');
+        $conversations = $sessions->flatMap(fn (Session $session): iterable => $session->conversations);
+        $conversationIds = $conversations->pluck('id');
 
         // Clean up the artefacts the FK cascade can't reach correctly BEFORE
         // $chatter->delete() drops the rows: attachment files on S3 (the cascade
         // never fires the S3-wiping observer) and captured leads (chat_conversation_id
         // is SET NULL, so a lead would otherwise outlive the chatter and keep its PII).
-        // Capture the external id before the row is gone — the chatter's avatar
-        // lives on the assets disk at chatters/{external_id}/profile-photos/….
-        $chatterExternalId = $chatter->external_id;
+        // Capture the storage root before the row is gone — the chatter's avatar
+        // lives on the assets disk at workspaces/{ws}/chatters/{external_id}/….
+        $storageRoot = $chatter->storageRoot();
 
-        $this->wipeAttachmentFiles($conversationIds);
+        $this->wipeConversationFiles($conversations, $conversationIds);
 
         DB::transaction(function () use ($chatter, $conversationIds): void {
             $this->deleteLeads($conversationIds);
@@ -75,7 +78,7 @@ class DeleteChatterAction
             $chatter->delete();
         });
 
-        $this->wipeAvatar($chatterExternalId);
+        $this->wipeAvatar($storageRoot);
 
         $this->flushChatMemory($sessions);
     }
@@ -85,22 +88,23 @@ class DeleteChatterAction
      * chatter row is already gone, so a briefly-unreachable CDN must not fail the
      * deletion — mirrors {@see DeleteUserAccountAction::wipeWorkspaceStorage()}.
      */
-    private function wipeAvatar(string $externalId): void
+    private function wipeAvatar(string $storageRoot): void
     {
         try {
-            Storage::disk('assets')->deleteDirectory('chatters/'.$externalId);
+            Storage::disk('assets')->deleteDirectory($storageRoot);
         } catch (Throwable $e) {
             Log::warning('Chatter deletion: failed to wipe avatar tree on the assets disk.', [
-                'external_id' => $externalId,
+                'prefix' => $storageRoot,
                 'error' => $e->getMessage(),
             ]);
         }
     }
 
     /**
+     * @param  SupportCollection<int, Conversation>  $conversations
      * @param  SupportCollection<int, int>  $conversationIds
      */
-    private function wipeAttachmentFiles(SupportCollection $conversationIds): void
+    private function wipeConversationFiles(SupportCollection $conversations, SupportCollection $conversationIds): void
     {
         if ($conversationIds->isEmpty()) {
             return;
@@ -112,6 +116,7 @@ class DeleteChatterAction
             ->each(static fn (Attachment $attachment) => $attachment->delete());
 
         $this->generatedMedia->forgetConversations($conversationIds);
+        $this->conversationFiles->forget($conversations);
     }
 
     /**

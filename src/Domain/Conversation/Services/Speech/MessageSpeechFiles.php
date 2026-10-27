@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Speech;
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\ChatStoragePath;
+use Domain\Conversation\Services\ConversationFiles;
 use Domain\Llm\Enums\SpeechFormat;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use stdClass;
 
 /**
  * Where a reply read aloud is saved, so playing it again costs nothing: one
- * audio file per message, service and voice, on the private disk under the agent's
- * folder (`…/agents/{agent}/speech/{conversation}/`), so purging the agent
- * or deleting the workspace wipes it with the rest. Deleting a conversation
- * or a message removes its recordings here.
+ * audio file per message, service and voice, on the private disk in the
+ * conversation's chat folder (`…/agents/{agent}/chat/{conversation}/speech/`,
+ * see {@see ChatStoragePath}), so deleting the conversation
+ * ({@see ConversationFiles}), purging the agent or deleting the workspace
+ * wipes it with the rest. Deleting a message removes its recordings here.
  */
 final class MessageSpeechFiles
 {
@@ -28,31 +29,6 @@ final class MessageSpeechFiles
         $variant = Str::substr(hash('sha256', $speaker."\n".$voice), 0, 16);
 
         return $this->folder($agent, $conversationId).'/'.$messageId.'-'.$variant.'.'.$format->extension();
-    }
-
-    public function forgetConversation(Agent $agent, string $conversationId): void
-    {
-        Storage::disk(self::DISK)->deleteDirectory($this->folder($agent, $conversationId));
-    }
-
-    /**
-     * The recordings of many conversations at once, for the bulk deletes
-     * that skip model events. Each agent is read once, a deleted one too.
-     *
-     * @param  iterable<Conversation|stdClass>  $conversations  each with its `agent_id` and `external_id`
-     */
-    public function forgetConversations(iterable $conversations): void
-    {
-        $conversations = collect($conversations);
-        $agents = Agent::withTrashed()->whereIn('id', $conversations->pluck('agent_id')->unique())->get()->keyBy('id');
-
-        $conversations->each(function (Conversation|stdClass $conversation) use ($agents): void {
-            $agent = $agents->get((int) $conversation->agent_id);
-
-            if ($agent instanceof Agent) {
-                $this->forgetConversation($agent, $conversation->external_id);
-            }
-        });
     }
 
     /** Every recording of one message, in any voice. */
@@ -70,6 +46,6 @@ final class MessageSpeechFiles
 
     private function folder(Agent $agent, string $conversationId): string
     {
-        return $agent->settingsStorageRoot().'/speech/'.$conversationId;
+        return ChatStoragePath::forConversation($agent, $conversationId, 'speech');
     }
 }

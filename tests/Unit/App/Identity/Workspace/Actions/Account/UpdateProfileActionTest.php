@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Saving the profile: name and email, a new photo under the person's own
- * `users/{ext}/profile-photos/` folder, and a changed email must be verified
- * again.
+ * `workspaces/{ws}/members/{ext}/profile-photos/` folder, and a changed email
+ * must be verified again.
  */
 it('updates name and email and returns the user', function (): void {
     $user = User::factory()->create([
@@ -41,7 +41,7 @@ it('stores a new photo under the user own folder', function (): void {
 
     $path = $user->fresh()->profile_image_path;
 
-    expect($path)->toStartWith('users/'.$user->external_id.'/profile-photos/')
+    expect($path)->toStartWith('workspaces/'.$user->workspace()->external_id.'/members/'.$user->external_id.'/profile-photos/')
         ->and($path)->toEndWith('.jpg');
     Storage::disk(User::PROFILE_IMAGE_DISK)->assertExists($path);
 });

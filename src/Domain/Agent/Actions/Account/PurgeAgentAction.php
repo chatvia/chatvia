@@ -155,11 +155,13 @@ class PurgeAgentAction
 
     /**
      * The agent's whole storage subtree, keyed entity-first by external id:
-     * chat attachments and anything else written for the agent alone. Knowledge sources live in their own folders, outside this one.
+     * its chats' files (uploads, generated media, replies read aloud), setting
+     * images and anything else written for the agent alone. Knowledge sources
+     * live in their own folders, outside this one.
      */
     private function wipeStorage(Agent $agent): void
     {
-        $prefix = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id;
+        $prefix = $agent->settingsStorageRoot();
 
         try {
             Storage::deleteDirectory($prefix);

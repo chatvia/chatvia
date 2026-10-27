@@ -67,7 +67,7 @@ it('saves a made video, forgets the service\'s copy and tells the chat', functio
     $media->refresh();
     expect($media->status)->toBe(GeneratedMediaStatus::Ready)
         ->and($media->mime_type)->toBe('video/mp4')
-        ->and($media->filepath)->toEndWith("/generated/{$this->conversation->external_id}/{$media->external_id}.mp4")
+        ->and($media->filepath)->toEndWith("/chat/{$this->conversation->external_id}/videos/{$media->external_id}.mp4")
         ->and(Storage::disk(GeneratedMedia::DISK)->get((string) $media->filepath))->toBe('mp4-bytes')
         ->and($media->size_bytes)->toBe(9)
         ->and($videos->forgotten)->toBe(['fake-task-1']);

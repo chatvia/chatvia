@@ -133,6 +133,15 @@ class Chatter extends Authenticatable implements HasLocalePreference
     }
 
     /**
+     * The storage prefix for the chatter's files (the profile photo), inside
+     * their workspace's: `workspaces/{workspace}/chatters/{external_id}`.
+     */
+    public function storageRoot(): string
+    {
+        return $this->workspace->storageRoot().'/chatters/'.$this->external_id;
+    }
+
+    /**
      * @return Attribute<string|null, never>
      */
     public function avatar(): Attribute

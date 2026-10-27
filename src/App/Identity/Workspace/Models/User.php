@@ -285,12 +285,13 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * The entity-first storage prefix for this person's own files (profile
-     * photo, settings images, data exports): `users/{external_id}`.
+     * The storage prefix for this person's own files (profile photo, settings
+     * images, data exports), inside their workspace's:
+     * `workspaces/{workspace}/members/{external_id}`.
      */
     public function storageRoot(): string
     {
-        return 'users/'.$this->external_id;
+        return $this->workspace()->storageRoot().'/members/'.$this->external_id;
     }
 
     /** A person's setting images sit with their own files. */

@@ -82,7 +82,7 @@ class CheckGeneratedVideoAction
             return;
         }
 
-        $path = $this->files->pathFor($agent, $conversation->external_id, $media->external_id, $video->extension());
+        $path = $this->files->pathFor($agent, $conversation->external_id, $media, $video->extension());
 
         try {
             $size = File::size($video->path);

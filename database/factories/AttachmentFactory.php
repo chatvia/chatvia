@@ -9,6 +9,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Conversation\Services\ChatStoragePath;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -16,7 +17,7 @@ use Illuminate\Support\Str;
 /**
  * A one-page PDF a visitor attached to a new conversation, not yet tied to a
  * message. Only the row is made unless {@see stored()} also writes the file,
- * under the workspace's own folder (`workspaces/{ext}/…`).
+ * in the conversation's chat folder ({@see ChatStoragePath}).
  *
  * @extends Factory<Attachment>
  */
@@ -34,7 +35,7 @@ class AttachmentFactory extends Factory
             'chat_conversation_id' => Conversation::factory(),
             'workspace_id' => fn (array $attributes): int => (int) Conversation::query()->whereKey($attributes['chat_conversation_id'])->value('workspace_id'),
             'chat_message_id' => null,
-            'filepath' => fn (array $attributes): string => 'workspaces/'.Workspace::query()->whereKey($attributes['workspace_id'])->value('external_id').'/attachments/'.Str::uuid().'.pdf',
+            'filepath' => fn (array $attributes): string => self::pathIn($attributes),
             'filename' => 'notes.pdf',
             'mime_type' => 'application/pdf',
             'size_bytes' => 1024,
@@ -49,7 +50,7 @@ class AttachmentFactory extends Factory
 
     /**
      * An upload in the composer, before any conversation exists: in the
-     * agent's own upload folder, the one the chat checks before deleting it,
+     * agent's pending folder, the one the chat checks before deleting it,
      * or in a new workspace when no agent is given.
      */
     public function pending(?Agent $agent = null): static
@@ -59,7 +60,7 @@ class AttachmentFactory extends Factory
             'chat_message_id' => null,
             'workspace_id' => $agent->workspace_id ?? Workspace::factory(),
         ])->state(fn (array $attributes): array => $agent instanceof Agent
-            ? ['filepath' => sprintf('workspaces/%s/agents/%s/attachments/pending/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, Str::uuid())]
+            ? ['filepath' => ChatStoragePath::pending($agent).'/files/'.Str::uuid().'.pdf']
             : []);
     }
 
@@ -70,6 +71,24 @@ class AttachmentFactory extends Factory
             'chat_message_id' => $message->id,
             'workspace_id' => $message->workspace_id,
         ]);
+    }
+
+    /**
+     * The conversation's `files` folder, or the workspace's when there is no
+     * conversation (a pending upload made without an agent).
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private static function pathIn(array $attributes): string
+    {
+        $conversation = Conversation::query()->find($attributes['chat_conversation_id'] ?? null);
+        $agent = $conversation instanceof Conversation ? Agent::withTrashed()->find($conversation->agent_id) : null;
+
+        if ($conversation instanceof Conversation && $agent instanceof Agent) {
+            return ChatStoragePath::forConversation($agent, $conversation->external_id, 'files').'/'.Str::uuid().'.pdf';
+        }
+
+        return 'workspaces/'.Workspace::query()->whereKey($attributes['workspace_id'])->value('external_id').'/'.Str::uuid().'.pdf';
     }
 
     /** With its file written to the attachments disk (fake it first). */

@@ -98,7 +98,7 @@ class GeneratedMediaFactory extends Factory
                 $media->filepath = app(GeneratedMediaFiles::class)->pathFor(
                     $agent,
                     $conversation->external_id,
-                    $media->external_id,
+                    $media,
                     match ($media->kind) {
                         GeneratedMediaKind::Audio => 'mp3',
                         GeneratedMediaKind::Video => 'mp4',

@@ -6,10 +6,10 @@ use Closure;
 use Domain\Conversation\Data\Retention\ConversationPruneResultData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\ConversationFiles;
 use Domain\Conversation\Services\ConversationRetention;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Memory\ChatCache;
-use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -45,7 +45,7 @@ class PruneExpiredConversationsAction
 
     public function __construct(
         private readonly Entitlements $entitlements,
-        private readonly MessageSpeechFiles $speechFiles,
+        private readonly ConversationFiles $conversationFiles,
         private readonly GeneratedMediaFiles $generatedMedia,
     ) {}
 
@@ -161,8 +161,8 @@ class PruneExpiredConversationsAction
      * each read finds rows not seen yet and the loop ends when none are left.
      *
      * Each batch does what the model's delete hook does for one row: the
-     * files go through their model (which removes the stored file), the
-     * replies read aloud are removed, one
+     * files go through their model (which removes the stored file), each
+     * conversation's chat folder is wiped (replies read aloud too), one
      * UPDATE moves the rows to the trash (kept soft, so the chat log writer
      * can bring an expired empty conversation back), and one flush clears
      * their live memory.
@@ -183,7 +183,7 @@ class PruneExpiredConversationsAction
             $ids = $batch->pluck('id')->map(static fn ($id): int => (int) $id);
 
             $this->deleteAttachments($ids);
-            $this->speechFiles->forgetConversations($batch);
+            $this->conversationFiles->forget($batch);
 
             $now = now();
             $trashed = DB::table('chat_conversations')

@@ -107,19 +107,21 @@ class GenerateMediaAction
      */
     private function image(GeneratedMedia $media): array
     {
-        $image = $this->images->generate(new ImagePromptData($media->prompt, ImageShape::tryFrom((string) $media->shape) ?? ImageShape::Square));
+        $image = $this->images->generate(new ImagePromptData($media->prompt, ImageShape::tryFrom((string) ($media->metadata['shape'] ?? '')) ?? ImageShape::Square));
 
         return [$image->bytes, $image->mimeType, $image->extension()];
     }
 
-    /** Asks for the video with the admin's length and resolution, then checks on it from time to time. */
+    /** Asks for the video with the length and resolution saved when it was asked for, then checks on it from time to time. */
     private function startVideo(GeneratedMedia $media): void
     {
+        $metadata = $media->metadata ?? [];
+
         $taskId = $this->videos->start(new VideoPromptData(
             prompt: $media->prompt,
-            shape: VideoShape::tryFrom((string) $media->shape) ?? VideoShape::Landscape,
-            seconds: (int) config('chatvia.ai.video_duration'),
-            resolution: VideoResolution::tryFrom((string) config('chatvia.ai.video_resolution')) ?? VideoResolution::Hd720,
+            shape: VideoShape::tryFrom((string) ($metadata['shape'] ?? '')) ?? VideoShape::Landscape,
+            seconds: (int) ($metadata['seconds'] ?? config('chatvia.ai.video_duration')),
+            resolution: VideoResolution::tryFrom((string) ($metadata['resolution'] ?? config('chatvia.ai.video_resolution'))) ?? VideoResolution::Hd720,
         ));
 
         $media->update(['task_id' => $taskId]);
@@ -133,7 +135,7 @@ class GenerateMediaAction
     private function audio(GeneratedMedia $media, Agent $agent): array
     {
         $speaker = $this->audio->speaker;
-        $voice = filled($media->voice) ? (string) $media->voice : $this->readAloud->voiceFor($agent, $speaker);
+        $voice = filled($media->metadata['voice'] ?? null) ? (string) $media->metadata['voice'] : $this->readAloud->voiceFor($agent, $speaker);
         $bytes = $speaker->speak($media->prompt, $voice, AiCallTag::AudioGeneration);
         $format = $speaker->format();
 

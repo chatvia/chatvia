@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "لم يُسترجَع أي مصدر معرفة بعد",
-            "knowledge_empty_hint": "تظهر الملفات والمواقع ومقتطفات النص وفيديوهات YouTube هنا بمجرد استخدام الوكيل لها.",
+            "knowledge_empty_hint": "تظهر الملفات والمواقع ومقتطفات النص هنا بمجرد استخدام الوكيل لها.",
             "functions_empty": "لا استدعاءات دوال بعد",
             "functions_empty_hint": "تظهر دوال webhook هنا بمجرد استدعاء الوكيل لها.",
             "mcp_empty": "لا استدعاءات أدوات MCP بعد",
@@ -25,7 +25,6 @@
                 "source_file": "ملف",
                 "source_website": "موقع",
                 "source_text": "نص",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "صفحة ويب"
             },
             "relative": {

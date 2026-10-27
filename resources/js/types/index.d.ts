@@ -68,9 +68,6 @@ export interface SharedData extends PageProps {
     // The install's default language (Settings → Platform), for `auto` when
     // the browser's language is not supported.
     defaultLocale?: string;
-    // Install-wide switches for unfinished features (`chatvia.features`), keyed
-    // by name (e.g. `youtube_sources`). Read them through `useFeature()`.
-    features: Record<string, boolean>;
     // Whether the owner may download their data and delete their account in
     // the Account area (admin Settings → Workspaces → Owner account). Null
     // when nobody is signed in.

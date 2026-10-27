@@ -23,7 +23,6 @@
                 "web": "Site web",
                 "audio": "Audio",
                 "video": "Vidéo",
-                "youtube": "YouTube",
                 "qa": "Q&R",
                 "markdown": "Markdown",
                 "connectors": "Connecteurs"
@@ -189,35 +188,6 @@
                 "created_at": "Créé le {date}",
                 "delete_title": "Supprimer l'entrée Q&R",
                 "delete_description": "Êtes-vous sûr de vouloir supprimer cette entrée Q&R ? Cette action est irréversible."
-            },
-            "youtube": {
-                "load_failed": "Échec du chargement des vidéos YouTube",
-                "added": "Vidéo YouTube ajoutée avec succès",
-                "add_failed": "Échec de l'ajout de la vidéo YouTube",
-                "deleted": "Vidéo YouTube supprimée avec succès",
-                "delete_failed": "Échec de la suppression de la vidéo",
-                "retrain_started": "Réentraînement de la vidéo YouTube démarré",
-                "retrain_failed": "Échec du réentraînement de la vidéo",
-                "status": {
-                    "completed": "Terminé",
-                    "processing": "Traitement",
-                    "pending": "En attente",
-                    "failed": "Échoué"
-                },
-                "add_title": "Ajouter une vidéo YouTube",
-                "add_description": "Saisissez l'URL d'une vidéo YouTube pour en extraire la transcription et l'ajouter à la base de connaissances de votre agent.",
-                "url_label": "URL YouTube",
-                "add_video": "Ajouter la vidéo",
-                "list_title": "Vidéos YouTube ({count})",
-                "list_description": "Gérez les vidéos YouTube dans la base de connaissances de votre agent.",
-                "empty_title": "Aucune vidéo YouTube pour le moment",
-                "empty_description": "Ajoutez votre première vidéo YouTube pour commencer.",
-                "video_alt": "Vidéo YouTube",
-                "video_fallback_title": "Vidéo YouTube",
-                "added_at": "Ajoutée le {date}",
-                "retrain": "Réentraîner",
-                "delete_title": "Supprimer la vidéo YouTube",
-                "delete_description": "Êtes-vous sûr de vouloir supprimer cette vidéo YouTube ? Elle sera retirée de la base de connaissances de votre agent."
             },
             "connectors": {
                 "load_failed": "Échec du chargement des connecteurs",

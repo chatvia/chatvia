@@ -123,15 +123,12 @@ use App\Http\Controllers\Agent\Source\Web\AgentWebsiteLinkController;
 use App\Http\Controllers\Agent\Source\Web\BulkDestroyAgentWebsiteLinksController;
 use App\Http\Controllers\Agent\Source\Web\RetrainAgentWebsiteLinkController;
 use App\Http\Controllers\Agent\Source\Web\TrainAgentWebsiteController;
-use App\Http\Controllers\Agent\Source\Youtube\AgentYoutubeController;
-use App\Http\Controllers\Agent\Source\Youtube\RetrainAgentYoutubeController;
 use App\Http\Controllers\Agent\Starters\AgentStarterController;
 use App\Http\Controllers\Agent\Starters\GenerateStartersController;
 use App\Http\Controllers\Agent\Topic\AgentTopicController as TopicsResourceController;
 use App\Http\Controllers\Agent\Widget\AgentBubbleController;
 use App\Http\Controllers\Agent\Widget\WidgetPreviewController;
 use App\Http\Controllers\Countries\CountriesListController;
-use App\Http\Middleware\Access\EnsureFeatureFlagIsOn;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'])->prefix('my/')->group(function (): void {
@@ -213,16 +210,6 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('sources/audio', AgentSourceAudioController::class)->middleware('agent.permission:agent.sources.train.audio')->name('sources.audio');
         Route::get('sources/video', AgentSourceVideoController::class)->middleware('agent.permission:agent.sources.train.video')->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.web');
-
-        // YouTube sources are not finished (added videos are never ingested),
-        // so they stay off unless FEATURE_YOUTUBE_SOURCES turns them on. Videos
-        // are trained under the video permission.
-        Route::middleware(EnsureFeatureFlagIsOn::class.':youtube_sources')->group(function (): void {
-            Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->middleware('agent.permission:agent.sources.train.video')->name('sources.youtube.index');
-            Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->middleware('agent.permission:agent.sources.train.video')->name('sources.youtube.store');
-            Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.youtube.destroy');
-            Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->middleware('agent.permission:agent.sources.train.video')->name('sources.youtube.retrain');
-        });
 
         Route::get('sources/text', [AgentTextController::class, 'index'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.index');
         Route::post('sources/text', [AgentTextController::class, 'store'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.store');

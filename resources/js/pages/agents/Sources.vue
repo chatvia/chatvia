@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench, Youtube } from 'lucide-vue-next';
+import { Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -93,7 +93,6 @@ const subKindIcon = (subKind: string) => {
             source_file: FileText,
             source_website: Globe,
             source_text: Type,
-            source_youtube_video: Youtube,
             agent_website_url: Globe,
         }[subKind] ?? FileText
     );

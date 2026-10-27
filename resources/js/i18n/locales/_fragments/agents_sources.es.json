@@ -23,7 +23,6 @@
                 "web": "Sitio web",
                 "audio": "Audio",
                 "video": "Video",
-                "youtube": "YouTube",
                 "qa": "P&R",
                 "markdown": "Markdown",
                 "connectors": "Conectores"
@@ -189,35 +188,6 @@
                 "created_at": "Creado {date}",
                 "delete_title": "Eliminar entrada de P&R",
                 "delete_description": "¿Estás seguro de que quieres eliminar esta entrada de P&R? Esta acción no se puede deshacer."
-            },
-            "youtube": {
-                "load_failed": "Error al cargar los videos de YouTube",
-                "added": "Video de YouTube agregado con éxito",
-                "add_failed": "Error al agregar el video de YouTube",
-                "deleted": "Video de YouTube eliminado con éxito",
-                "delete_failed": "Error al eliminar el video",
-                "retrain_started": "Reentrenamiento del video de YouTube iniciado",
-                "retrain_failed": "Error al reentrenar el video",
-                "status": {
-                    "completed": "Completado",
-                    "processing": "Procesando",
-                    "pending": "Pendiente",
-                    "failed": "Fallido"
-                },
-                "add_title": "Agregar video de YouTube",
-                "add_description": "Ingresa la URL de un video de YouTube para extraer su transcripción y agregarla a la base de conocimiento de tu agente.",
-                "url_label": "URL de YouTube",
-                "add_video": "Agregar video",
-                "list_title": "Videos de YouTube ({count})",
-                "list_description": "Administra los videos de YouTube en la base de conocimiento de tu agente.",
-                "empty_title": "Aún no hay videos de YouTube",
-                "empty_description": "Agrega tu primer video de YouTube para comenzar.",
-                "video_alt": "Video de YouTube",
-                "video_fallback_title": "Video de YouTube",
-                "added_at": "Agregado {date}",
-                "retrain": "Reentrenar",
-                "delete_title": "Eliminar video de YouTube",
-                "delete_description": "¿Estás seguro de que quieres eliminar este video de YouTube? Esto lo eliminará de la base de conocimiento de tu agente."
             },
             "connectors": {
                 "load_failed": "Error al cargar los conectores",

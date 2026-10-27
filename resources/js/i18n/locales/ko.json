@@ -1317,7 +1317,6 @@
                 "web": "웹사이트",
                 "audio": "오디오",
                 "video": "비디오",
-                "youtube": "YouTube",
                 "qa": "Q&A",
                 "markdown": "Markdown",
                 "connectors": "커넥터"
@@ -1490,35 +1489,6 @@
                 "delete_description": "이 Q&A 항목을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
                 "remove_question": "질문 삭제",
                 "actions": "작업"
-            },
-            "youtube": {
-                "load_failed": "YouTube 동영상을 불러오지 못했습니다",
-                "added": "YouTube 동영상이 추가되었습니다",
-                "add_failed": "YouTube 동영상을 추가하지 못했습니다",
-                "deleted": "YouTube 동영상이 삭제되었습니다",
-                "delete_failed": "동영상을 삭제하지 못했습니다",
-                "retrain_started": "YouTube 동영상 재학습이 시작되었습니다",
-                "retrain_failed": "동영상을 재학습하지 못했습니다",
-                "status": {
-                    "completed": "완료됨",
-                    "processing": "처리 중",
-                    "pending": "대기 중",
-                    "failed": "실패"
-                },
-                "add_title": "YouTube 동영상 추가",
-                "add_description": "YouTube 동영상 URL을 입력하면 자막을 추출하여 에이전트의 지식 베이스에 추가합니다.",
-                "url_label": "YouTube URL",
-                "add_video": "동영상 추가",
-                "list_title": "YouTube 동영상 ({count})",
-                "list_description": "에이전트의 지식 베이스에 있는 YouTube 동영상을 관리합니다.",
-                "empty_title": "아직 YouTube 동영상이 없습니다",
-                "empty_description": "첫 YouTube 동영상을 추가하여 시작하세요.",
-                "video_alt": "YouTube 동영상",
-                "video_fallback_title": "YouTube 동영상",
-                "added_at": "{date} 추가됨",
-                "retrain": "재학습",
-                "delete_title": "YouTube 동영상 삭제",
-                "delete_description": "이 YouTube 동영상을 삭제하시겠습니까? 에이전트의 지식 베이스에서 제거됩니다."
             },
             "connectors": {
                 "load_failed": "커넥터를 불러오지 못했습니다",
@@ -1699,7 +1669,6 @@
                 "web": "에이전트가 학습할 웹사이트 페이지를 추가하세요.",
                 "text": "에이전트가 학습할 텍스트를 작성하거나 붙여 넣으세요.",
                 "qa": "가장 많이 묻는 질문에 대한 답변을 작성하세요.",
-                "youtube": "YouTube 동영상을 추가하세요. 에이전트가 자막에서 학습합니다.",
                 "audio": "오디오를 업로드하거나 녹음하세요. 에이전트가 스크립트에서 학습합니다.",
                 "video": "동영상을 업로드하세요. 에이전트가 자막에서 학습합니다.",
                 "markdown": "에이전트가 학습할 Markdown 파일을 업로드하세요."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "아직 검색된 지식 소스가 없습니다",
-            "knowledge_empty_hint": "파일, 웹사이트, 텍스트 스니펫, YouTube 동영상은 에이전트가 사용하면 여기에 표시됩니다.",
+            "knowledge_empty_hint": "파일, 웹사이트, 텍스트 스니펫은 에이전트가 사용하면 여기에 표시됩니다.",
             "functions_empty": "아직 함수 호출이 없습니다",
             "functions_empty_hint": "Webhook 함수는 에이전트가 호출하면 여기에 표시됩니다.",
             "mcp_empty": "아직 MCP 도구 호출이 없습니다",
@@ -2289,7 +2258,6 @@
                 "source_file": "파일",
                 "source_website": "웹사이트",
                 "source_text": "텍스트",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "웹 페이지"
             },
             "relative": {

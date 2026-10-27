@@ -7,7 +7,6 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,7 +28,6 @@ function pasSource(string $kind, Agent ...$agents): Model
         'file' => [AgentFileFactory::new()->create($workspace), 'files'],
         'website' => [SourceWebsite::factory()->ingested()->create($workspace), 'websites'],
         'text' => [SourceText::factory()->create($workspace), 'texts'],
-        'youtube' => [SourceYoutubeVideo::factory()->ingested()->create($workspace), 'youtubeVideos'],
     };
 
     foreach ($agents as $agent) {
@@ -51,7 +49,7 @@ it('deletes the agent own source of each kind and keeps one another agent uses',
 
     expect($own::query()->find($own->getKey()))->toBeNull()
         ->and($shared::query()->find($shared->getKey()))->not->toBeNull();
-})->with(['file', 'website', 'text', 'youtube']);
+})->with(['file', 'website', 'text']);
 
 it('deletes a source of each kind shared only with another deleted agent', function (string $kind): void {
     $agent = Agent::factory()->create();
@@ -65,7 +63,7 @@ it('deletes a source of each kind shared only with another deleted agent', funct
     app(PurgeAgentAction::class)->execute($agent);
 
     expect($shared::query()->find($shared->getKey()))->toBeNull();
-})->with(['file', 'website', 'text', 'youtube']);
+})->with(['file', 'website', 'text']);
 
 it('keeps the files of a source another agent still uses', function (): void {
     $agent = Agent::factory()->create();

@@ -8,7 +8,6 @@ use App\Identity\Workspace\Models\Workspace;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Str;
 use LogicException;
 
@@ -41,7 +40,7 @@ final class KnowledgeStoragePath
     /**
      * @throws LogicException when the source has no workspace or external id yet
      */
-    public static function forSource(SourceFile|SourceText|SourceWebsite|SourceYoutubeVideo $source, string $subfolder = ''): string
+    public static function forSource(SourceFile|SourceText|SourceWebsite $source, string $subfolder = ''): string
     {
         $externalId = (string) $source->getAttribute('external_id');
         $workspaceId = (int) $source->getAttribute('workspace_id');

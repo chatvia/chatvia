@@ -367,7 +367,6 @@ declare namespace Domain {
                         markdown: number;
                         audio: number;
                         video: number;
-                        youtube: number;
                     };
                     export type SourceFileResourceData = {
                         id: number;

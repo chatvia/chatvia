@@ -1317,7 +1317,6 @@
                 "web": "Website",
                 "audio": "Áudio",
                 "video": "Vídeo",
-                "youtube": "YouTube",
                 "qa": "P&R",
                 "markdown": "Markdown",
                 "connectors": "Conectores"
@@ -1490,35 +1489,6 @@
                 "delete_description": "Tem a certeza de que pretende eliminar esta entrada P&R? Esta ação não pode ser anulada.",
                 "remove_question": "Remover pergunta",
                 "actions": "Ações"
-            },
-            "youtube": {
-                "load_failed": "Falha ao carregar os vídeos do YouTube",
-                "added": "Vídeo do YouTube adicionado com sucesso",
-                "add_failed": "Falha ao adicionar o vídeo do YouTube",
-                "deleted": "Vídeo do YouTube eliminado com sucesso",
-                "delete_failed": "Falha ao eliminar o vídeo",
-                "retrain_started": "Novo treino do vídeo do YouTube iniciado",
-                "retrain_failed": "Falha ao treinar novamente o vídeo",
-                "status": {
-                    "completed": "Concluído",
-                    "processing": "A processar",
-                    "pending": "Pendente",
-                    "failed": "Falhou"
-                },
-                "add_title": "Adicionar Vídeo do YouTube",
-                "add_description": "Introduza um URL de vídeo do YouTube para extrair a sua transcrição e adicioná-la à base de conhecimento do seu agente.",
-                "url_label": "URL do YouTube",
-                "add_video": "Adicionar Vídeo",
-                "list_title": "Vídeos do YouTube ({count})",
-                "list_description": "Gira os vídeos do YouTube na base de conhecimento do seu agente.",
-                "empty_title": "Ainda não há vídeos do YouTube",
-                "empty_description": "Adicione o seu primeiro vídeo do YouTube para começar.",
-                "video_alt": "Vídeo do YouTube",
-                "video_fallback_title": "Vídeo do YouTube",
-                "added_at": "Adicionado {date}",
-                "retrain": "Treinar novamente",
-                "delete_title": "Eliminar Vídeo do YouTube",
-                "delete_description": "Tem a certeza de que pretende eliminar este vídeo do YouTube? Isto irá removê-lo da base de conhecimento do seu agente."
             },
             "connectors": {
                 "load_failed": "Falha ao carregar os conectores",
@@ -1699,7 +1669,6 @@
                 "web": "Adicione páginas de um site para seu agente aprender.",
                 "text": "Escreva ou cole texto para seu agente aprender.",
                 "qa": "Escreva respostas para as perguntas mais frequentes.",
-                "youtube": "Adicione vídeos do YouTube. Seu agente aprende com as transcrições.",
                 "audio": "Envie ou grave áudio. Seu agente aprende com a transcrição.",
                 "video": "Envie vídeos. Seu agente aprende com as transcrições.",
                 "markdown": "Envie arquivos Markdown para seu agente aprender."
@@ -2275,7 +2244,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Nenhuma fonte de conhecimento recuperada ainda",
-            "knowledge_empty_hint": "Ficheiros, websites, excertos de texto e vídeos do YouTube aparecem aqui assim que o agente os utilizar.",
+            "knowledge_empty_hint": "Ficheiros, websites e excertos de texto aparecem aqui assim que o agente os utilizar.",
             "functions_empty": "Nenhuma chamada de função ainda",
             "functions_empty_hint": "As funções webhook aparecem aqui assim que o agente as invocar.",
             "mcp_empty": "Nenhuma chamada de ferramenta MCP ainda",
@@ -2289,7 +2258,6 @@
                 "source_file": "Ficheiro",
                 "source_website": "Website",
                 "source_text": "Texto",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Página web"
             },
             "relative": {

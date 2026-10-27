@@ -21,7 +21,6 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Membership\Team\Models\Team;
 use Domain\Notification\Models\UserNotification;
 use Domain\Security\Models\BlockedVisitor;
@@ -56,8 +55,6 @@ beforeEach(function (): void {
 
     Storage::fake();
     $this->withoutMiddleware(ThrottleRequests::class);
-    // Swept like every other source, so their routes must be on.
-    config(['chatvia.features.youtube_sources' => true]);
 
     $this->ownerA = User::factory()->create();
     $this->agentA = createAgent($this->ownerA, ['name' => 'Agent A']);
@@ -148,7 +145,6 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'text', 'textId' => isolationText($agent),
         'id' => Str::contains($route->uri(), '/sources/qa/') ? isolationQuestionAnswer($agent) : isolationText($agent),
         'qa' => isolationQuestionAnswer($agent),
-        'youtube' => isolationYoutubeVideo($agent),
         'topic' => isolationTopic($agent),
         'chatter' => Chatter::factory()->grantedTo($agent)->create(),
         'form' => FormDefinition::factory()->forAgent($agent)->create(),
@@ -218,11 +214,6 @@ function isolationLink(SourceWebsite $website): AgentWebsiteUrl
 function isolationText(Agent $agent): SourceText
 {
     return SourceText::factory()->attachedTo($agent)->create();
-}
-
-function isolationYoutubeVideo(Agent $agent): SourceYoutubeVideo
-{
-    return SourceYoutubeVideo::factory()->attachedTo($agent)->create();
 }
 
 function isolationQuestionAnswer(Agent $agent): AgentQuestionAnswer
@@ -341,7 +332,7 @@ function isolationRecordParameters(): array
 {
     return [
         'agent', 'conversation', 'conversationId', 'function', 'external_id', 'mcp', 'file', 'source', 'fileId',
-        'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'qa', 'youtube', 'topic',
+        'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'qa', 'topic',
         'chatter', 'form', 'run', 'case', 'team', 'role', 'roleId', 'invitation', 'invitationId', 'member', 'export', 'tokenId', 'prompt',
         'event', 'blockedVisitor', 'notification',
     ];

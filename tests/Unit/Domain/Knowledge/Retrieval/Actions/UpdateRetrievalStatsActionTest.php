@@ -7,7 +7,6 @@ use Domain\Knowledge\Retrieval\Actions\UpdateRetrievalStatsAction;
 use Domain\Knowledge\Retrieval\Data\SourceRefData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -93,23 +92,16 @@ it('names each kind of source for the rollup', function (): void {
         'workspace_id' => $agent->workspace_id,
         'excerpt' => "Our   opening\nhours:\n\n".Str::repeat('nine to five ', 10),
     ]);
-    $titled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/dQw4w9WgXcQ', 'title' => 'Product tour']);
-    $untitled = SourceYoutubeVideo::factory()->ingested()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://youtu.be/aaaaaaaaaaa', 'title' => null]);
 
     app(UpdateRetrievalStatsAction::class)->execute(collect([
         new SourceRefData('source_website', $website->id),
         new SourceRefData('source_text', $text->id),
-        new SourceRefData('source_youtube_video', $titled->id),
-        new SourceRefData('source_youtube_video', $untitled->id),
     ]), $agent->id);
 
     expect(Event::dispatched(SourceRetrieved::class)->sole()[0]->sources)->toBe([
         ['type' => 'source_website', 'id' => $website->id, 'name' => 'https://docs.example.test', 'mime' => null],
         // Whitespace squashed, then cut to 80 characters.
         ['type' => 'source_text', 'id' => $text->id, 'name' => 'Our opening hours: nine to five nine to five nine to five nine to five nine to f...', 'mime' => null],
-        ['type' => 'source_youtube_video', 'id' => $titled->id, 'name' => 'Product tour', 'mime' => null],
-        // A video without a title is named by its URL.
-        ['type' => 'source_youtube_video', 'id' => $untitled->id, 'name' => 'https://youtu.be/aaaaaaaaaaa', 'mime' => null],
     ]);
 });
 

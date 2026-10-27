@@ -23,7 +23,6 @@
                 "web": "وب‌سایت",
                 "audio": "صدا",
                 "video": "ویدیو",
-                "youtube": "YouTube",
                 "qa": "پرسش و پاسخ",
                 "markdown": "Markdown",
                 "connectors": "اتصال‌دهنده‌ها"
@@ -189,35 +188,6 @@
                 "created_at": "ایجاد شده در {date}",
                 "delete_title": "حذف پرسش و پاسخ",
                 "delete_description": "آیا مطمئن هستید که می‌خواهید این پرسش و پاسخ را حذف کنید؟ این عمل قابل بازگشت نیست."
-            },
-            "youtube": {
-                "load_failed": "بارگذاری ویدیوهای YouTube ناموفق بود",
-                "added": "ویدیوی YouTube با موفقیت اضافه شد",
-                "add_failed": "افزودن ویدیوی YouTube ناموفق بود",
-                "deleted": "ویدیوی YouTube با موفقیت حذف شد",
-                "delete_failed": "حذف ویدیو ناموفق بود",
-                "retrain_started": "بازآموزی ویدیوی YouTube آغاز شد",
-                "retrain_failed": "بازآموزی ویدیو ناموفق بود",
-                "status": {
-                    "completed": "تکمیل شده",
-                    "processing": "در حال پردازش",
-                    "pending": "در انتظار",
-                    "failed": "ناموفق"
-                },
-                "add_title": "افزودن ویدیوی YouTube",
-                "add_description": "یک آدرس ویدیوی YouTube وارد کنید تا متن آن استخراج شده و به پایگاه دانش دستیار شما اضافه شود.",
-                "url_label": "آدرس YouTube",
-                "add_video": "افزودن ویدیو",
-                "list_title": "ویدیوهای YouTube ({count})",
-                "list_description": "مدیریت ویدیوهای YouTube در پایگاه دانش دستیار شما.",
-                "empty_title": "هنوز ویدیوی YouTube وجود ندارد",
-                "empty_description": "اولین ویدیوی YouTube را اضافه کنید تا شروع کنید.",
-                "video_alt": "ویدیوی YouTube",
-                "video_fallback_title": "ویدیوی YouTube",
-                "added_at": "اضافه شده در {date}",
-                "retrain": "بازآموزی",
-                "delete_title": "حذف ویدیوی YouTube",
-                "delete_description": "آیا مطمئن هستید که می‌خواهید این ویدیوی YouTube را حذف کنید؟ این عمل آن را از پایگاه دانش دستیار شما حذف می‌کند."
             },
             "connectors": {
                 "load_failed": "بارگذاری اتصال‌دهنده‌ها ناموفق بود",

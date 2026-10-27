@@ -11,7 +11,7 @@
                 "mcp": "MCP"
             },
             "knowledge_empty": "Inga kunskapskällor har hämtats ännu",
-            "knowledge_empty_hint": "Filer, webbplatser, textavsnitt och YouTube-videor visas här när agenten använder dem.",
+            "knowledge_empty_hint": "Filer, webbplatser och textavsnitt visas här när agenten använder dem.",
             "functions_empty": "Inga funktionsanrop ännu",
             "functions_empty_hint": "Webhook-funktioner visas här när agenten anropar dem.",
             "mcp_empty": "Inga MCP-verktygsanrop ännu",
@@ -25,7 +25,6 @@
                 "source_file": "Fil",
                 "source_website": "Webbplats",
                 "source_text": "Text",
-                "source_youtube_video": "YouTube",
                 "agent_website_url": "Webbsida"
             },
             "relative": {

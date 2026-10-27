@@ -10,7 +10,6 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -80,7 +79,6 @@ class AppServiceProvider extends ServiceProvider
             'source_file' => SourceFile::class,
             'source_website' => SourceWebsite::class,
             'source_text' => SourceText::class,
-            'source_youtube_video' => SourceYoutubeVideo::class,
             'agent_website_url' => AgentWebsiteUrl::class,
         ]);
     }

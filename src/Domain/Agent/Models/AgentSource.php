@@ -14,9 +14,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The pivot that attaches a knowledge source (file, website, text, YouTube
- * video) to an agent, with how often answers retrieved it. A source can be
- * shared by several agents of one workspace.
+ * The pivot that attaches a knowledge source (file, website, text) to an
+ * agent, with how often answers retrieved it. A source can be shared by
+ * several agents of one workspace.
  *
  * @property int $agent_id
  * @property string $sourceable_type

@@ -12,7 +12,6 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Support\MimeType;
@@ -55,7 +54,6 @@ class SourceLabeler
                 'source_file' => $this->files($group, $sourceIds),
                 'source_website' => $this->websitePages($group, $sourceIds),
                 'source_text' => $this->texts($group, $sourceIds),
-                'source_youtube_video' => $this->videos($group, $sourceIds),
                 default => [],
             };
 
@@ -137,24 +135,6 @@ class SourceLabeler
             $excerpt = Str::of((string) $excerpts->get($chunk->chunkable_id))->replaceMatches('/\s+/u', ' ')->trim()->toString();
 
             return $excerpt === '' ? [] : [$chunk->id => new SourceLabelData(Str::limit($excerpt, self::TEXT_LABEL_LENGTH, preserveWords: true), SourceKind::Text)];
-        })->all();
-    }
-
-    /**
-     * @param  Collection<int, RetrievedChunkData>  $chunks
-     * @param  list<int>  $ids
-     * @return array<int, SourceLabelData>
-     */
-    private function videos(Collection $chunks, array $ids): array
-    {
-        $videos = SourceYoutubeVideo::query()->whereIn('id', $ids)->get(['id', 'title', 'url'])->keyBy('id');
-
-        return $chunks->mapWithKeys(function (RetrievedChunkData $chunk) use ($videos): array {
-            $video = $videos->get($chunk->chunkable_id);
-
-            return $video instanceof SourceYoutubeVideo
-                ? [$chunk->id => new SourceLabelData($video->title ?: $video->url, SourceKind::Video, $video->url)]
-                : [];
         })->all();
     }
 }

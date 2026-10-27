@@ -17,6 +17,7 @@ use Domain\Form\Models\FormSubmission;
  * unanswered one) narrow the list.
  */
 it('returns lead ids only for conversations on the current page', function (): void {
+    config(['chatvia.license.licensed' => true]);
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $definition = FormDefinition::factory()->create(['agent_id' => $agent->id]);
@@ -39,6 +40,21 @@ it('returns lead ids only for conversations on the current page', function (): v
 
     expect($pageIds)->toHaveCount(10)
         ->and($leadIds)->toBe($pageIds);
+});
+
+it('marks no leads without a license key, since leads need one', function (): void {
+    config(['chatvia.license.licensed' => false]);
+    $agent = Agent::factory()->create();
+    $session = Session::factory()->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
+    FormSubmission::factory()->forDefinition(FormDefinition::factory()->create(['agent_id' => $agent->id]))->submitted()->create([
+        'chat_conversation_id' => $conversation->id,
+    ]);
+
+    $page = app(ListChatLogConversationsAction::class)->execute($agent, new ChatLogFiltersData);
+
+    expect($page->conversations)->toHaveCount(1)
+        ->and($page->lead_conversation_ids)->toBeEmpty();
 });
 
 it('loads the next page from the cursor and has none after the last', function (): void {

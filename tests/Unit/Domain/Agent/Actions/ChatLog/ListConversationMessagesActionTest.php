@@ -108,6 +108,7 @@ it('returns nothing for a conversation of another agent', function (): void {
 });
 
 it('attaches the latest submitted lead and ignores pending forms', function (): void {
+    config(['chatvia.license.licensed' => true]);
     $agent = Agent::factory()->create();
     $conversation = lcmConversation($agent);
     $definition = FormDefinition::factory()->forAgent($agent)->create();
@@ -126,6 +127,17 @@ it('attaches the latest submitted lead and ignores pending forms', function (): 
 
     expect($lead?->id)->toBe($latest->id)
         ->and($lead?->email)->toBe('new@example.com');
+});
+
+it('has no lead without a license key, since leads need one', function (): void {
+    config(['chatvia.license.licensed' => false]);
+    $agent = Agent::factory()->create();
+    $conversation = lcmConversation($agent);
+    FormSubmission::factory()->forDefinition(FormDefinition::factory()->forAgent($agent)->create())->submitted()->create([
+        'chat_conversation_id' => $conversation->id,
+    ]);
+
+    expect(app(ListConversationMessagesAction::class)->execute($agent, $conversation)->lead)->toBeNull();
 });
 
 it('has no lead when the only form was never filled', function (): void {

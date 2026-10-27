@@ -1,14 +1,17 @@
 {{--
     The test window of the models step: each model is checked as the window
-    opens, one after another ({@see \App\Admin\Pages\Setup::testModel()}).
-    Each section is one short card: its title and how many are done ("3/5"),
-    the model being asked now, and a row of marks, one per model, that turn
-    from waiting to a spinner to a tick, a warning when the provider is busy,
-    or a cross. A mark's tooltip names its model. What went wrong is listed
-    under the marks, once per reason with the models it hit (and a model's
-    reply, when the test shows it). When every model is done it sends
-    `model-tests-done` with the number that failed, so the window's Continue
-    can wait for it ({@see \App\Admin\Pages\Setup::testModelsAction()}).
+    opens, four at once, each in its own request
+    ({@see \App\Admin\Pages\Setup::testModel()}): enough to be quick, few
+    enough to leave the web server's workers and the provider's rate limit
+    room. Each section is one short card: its title and how many are done
+    ("3/5"), the model being asked now (and how many more are), and a row of
+    marks, one per model, that turn from waiting to a spinner to a tick, a
+    warning when the provider is busy, or a cross. A mark's tooltip names its
+    model. What went wrong is listed under the marks, once per reason with
+    the models it hit (and a model's reply, when the test shows it). When
+    every model is done it sends `model-tests-done` with the number that
+    failed, so the window's Continue can wait for it
+    ({@see \App\Admin\Pages\Setup::testModelsAction()}).
 
     @var list<array{section: string, title: string, rows: list<array{key: string, label: string, name: string}>}> $sections
         What is tested, by section (chat, embeddings, reranker, images or files),
@@ -99,16 +102,25 @@
 
             return parts.join(' ')
         },
+        running(ids) {
+            return ids.filter((id) => this.state(id) === 'running').length
+        },
         async init() {
-            for (const test of this.tests) {
-                this.results[this.id(test)] = { state: 'running' }
+            const queue = [...this.tests]
 
-                try {
-                    this.results[this.id(test)] = await $wire.testModel(test.section, test.key)
-                } catch (error) {
-                    this.results[this.id(test)] = { state: 'failed', message: 'The test could not run. Try again.' }
+            const run = async () => {
+                for (let test = queue.shift(); test; test = queue.shift()) {
+                    this.results[this.id(test)] = { state: 'running' }
+
+                    try {
+                        this.results[this.id(test)] = await $wire.testModel(test.section, test.key)
+                    } catch (error) {
+                        this.results[this.id(test)] = { state: 'failed', message: 'The test could not run. Try again.' }
+                    }
                 }
             }
+
+            await Promise.all(Array.from({ length: Math.min(4, queue.length) }, run))
 
             this.$dispatch('model-tests-done', { failed: this.count('failed') })
         },
@@ -131,7 +143,7 @@
                 <span class="cv-model-tests__count" x-text="progress(ids)">0/{{ count($ids) }}</span>
             </div>
 
-            {{-- The model being asked now, and the marks: under it, or before it when the card has one. --}}
+            {{-- The model being asked now (and how many more are), and the marks: under it, or before it when the card has one. --}}
             <div class="cv-model-tests__body">
                 <p class="cv-model-tests__now" aria-live="polite">
                     @foreach ($section['rows'] as $row)
@@ -142,6 +154,12 @@
                             <span class="cv-model-tests__name">{!! $row['label'] !!}</span>
                         </span>
                     @endforeach
+                    <span
+                        class="cv-model-tests__more"
+                        x-show="running(ids) > 1"
+                        x-cloak
+                        x-text="`and ${running(ids) - 1} more`"
+                    ></span>
                     <span
                         class="cv-model-tests__done"
                         x-show="current(ids) === null"

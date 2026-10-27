@@ -1050,6 +1050,33 @@ it('tests the chat models, the embedding model and the reranker on Next, and goe
     $page->fillForm(['rerank_api_key' => 'co-other'])->goToWizardStep(4)->assertActionMounted('testModels');
 });
 
+it('runs the model tests side by side, each keeping its answer outside the page state', function (): void {
+    setupFakeScaleway($this->dimensions);
+    Http::fake(['api.scaleway.ai/v1/chat/completions' => Http::response(['choices' => [['message' => ['role' => 'assistant', 'content' => 'OK'], 'finish_reason' => 'stop']]])]);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(3)
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->goToWizardStep(4)
+        ->assertActionMounted('testModels');
+
+    // Tests that run at once each send the page as it was: one answering
+    // must not change it, or the last one back would undo the others.
+    expect($page->snapshot['memo']['async'] ?? [])->toContain('testModel');
+    $before = $page->snapshot['data'];
+
+    $page->call('testModel', 'chat', 'gemma-4-26b-a4b-it')->assertReturned(['state' => 'passed', 'message' => null]);
+    $page->call('testModel', 'chat', 'gpt-oss-120b')->assertReturned(['state' => 'passed', 'message' => null]);
+    $page->call('testModel', 'embeddings', 'embeddings')->assertReturned(['state' => 'passed', 'message' => null]);
+
+    expect($page->snapshot['data'])->toEqual($before);
+
+    $page->callMountedAction()
+        ->assertActionNotMounted('testModels')
+        ->assertWizardCurrentStep(4);
+});
+
 it('keeps the wizard on the models step while something did not answer, and says what to do', function (): void {
     setupFakeScaleway($this->dimensions);
     Http::fake(['api.scaleway.ai/v1/chat/completions' => fn (Request $request) => match ($request['model']) {

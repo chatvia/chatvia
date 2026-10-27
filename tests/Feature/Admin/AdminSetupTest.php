@@ -309,56 +309,78 @@ function setupLicensable(): void
     ]);
 }
 
-it('encourages a license on the first step, and activates a typed key on Next', function (): void {
+/** The setup page on its App step (name and license), every service running. */
+function setupAppStep(User $admin): Testable
+{
+    return adminPage(Setup::class, $admin)
+        ->set('server', setupServicesRunning())
+        ->goToWizardStep(9)
+        ->assertWizardCurrentStep(9);
+}
+
+it('encourages a license on the step before the last, and activates a typed key on Next', function (): void {
     setupLicensable();
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('chat.acme.com')])]);
 
-    adminPage(Setup::class, $this->admin)
-        ->set('server', setupServicesRunning())
-        ->assertSeeInOrder(['Services', 'License (optional)', 'Get the most out of ChatVia.ai', '10,000 agent replies a month', 'Buy a license'])
+    setupAppStep($this->admin)
+        ->assertSeeInOrder(['App name', 'License (optional)', 'Get the most out of ChatVia.ai', '10,000 agent replies a month', 'Buy a license'])
         ->assertFormFieldVisible('license_key')
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
-        ->goToNextWizardStep()
+        ->goToWizardStep(10)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(2)
+        ->assertWizardCurrentStep(10)
         ->assertNotified('License activated')
         ->assertSet('data.license_key', null);
 
     expect(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'));
 });
 
-it('stays on the first step when chatvia.ai refuses the license key', function (): void {
+it('stays on the App step when chatvia.ai refuses the license key', function (): void {
     setupLicensable();
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['message' => 'This key is active on another domain.'], 422)]);
 
-    adminPage(Setup::class, $this->admin)
-        ->set('server', setupServicesRunning())
+    setupAppStep($this->admin)
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
-        ->goToNextWizardStep()
+        ->goToWizardStep(10)
         ->assertHasFormErrors(['license_key' => 'This key is active on another domain.'])
-        ->assertWizardCurrentStep(1);
+        ->assertWizardCurrentStep(9);
 
     expect(savedSetting(BrandSettings::class, 'license_key'))->toBeNull();
 });
 
-it('goes on without a license key, and asks for none on an address only this computer opens', function (): void {
-    LicenseKeys::trust();
-    config(['app.url' => 'http://localhost:8080']);
+it('goes on without a license key', function (): void {
+    setupLicensable();
+    Http::fake();
 
-    adminPage(Setup::class, $this->admin)
-        ->set('server', setupServicesRunning())
-        ->assertSee(['Get the most out of ChatVia.ai', 'once ChatVia.ai runs at its real address'])
-        ->assertFormFieldHidden('license_key')
-        ->goToNextWizardStep()
-        ->assertWizardCurrentStep(2);
+    setupAppStep($this->admin)
+        ->goToWizardStep(10)
+        ->assertHasNoFormErrors()
+        ->assertWizardCurrentStep(10);
+
+    Http::assertNotSent(fn (Request $request): bool => Str::contains($request->url(), 'licenses.test'));
+});
+
+it('takes a license key on an address only this computer opens, and says it is tied to it', function (): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'http://localhost:8080', 'chatvia.license.api_url' => 'https://licenses.test/api/licenses']);
+    Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('localhost')])]);
+
+    setupAppStep($this->admin)
+        ->assertSee(['Get the most out of ChatVia.ai', 'best added once ChatVia.ai runs at its real address', 'remove it on the License page'])
+        ->assertFormFieldVisible('license_key')
+        ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
+        ->goToWizardStep(10)
+        ->assertHasNoFormErrors()
+        ->assertWizardCurrentStep(10);
+
+    expect(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('localhost'));
 });
 
 it('shows who a saved license key is licensed to, and asks for no other', function (): void {
     setupLicensable();
     saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::activatedFor('chat.acme.com')]);
 
-    adminPage(Setup::class, $this->admin)
-        ->set('server', setupServicesRunning())
+    setupAppStep($this->admin)
         ->assertSee(['Pro license, licensed to Acme Ltd', 'The free limits are lifted.'])
         ->assertDontSee('Buy a license')
         ->assertFormFieldHidden('license_key');
@@ -1601,7 +1623,7 @@ it('sends email with the provider set up, or warns that nobody gets email', func
         ->and(savedSetting(MailSettings::class, 'from_address'))->toBe('support@acme.test');
 });
 
-it('names the app on the first step, and the sender name of emails follows until it is changed', function (): void {
+it('names the app on the App step, and the sender name of emails follows until it is changed', function (): void {
     setupFakeScaleway($this->dimensions);
 
     adminPage(Setup::class, $this->admin)
@@ -1623,13 +1645,12 @@ it('names the app on the first step, and the sender name of emails follows until
         ->and(config('app.name'))->toBe('Acme Help');
 });
 
-it('needs an app name before the next step', function (): void {
-    adminPage(Setup::class, $this->admin)
-        ->set('server', setupServicesRunning())
+it('needs an app name before the last step', function (): void {
+    setupAppStep($this->admin)
         ->fillForm(['app_name' => ''])
-        ->goToNextWizardStep()
+        ->goToWizardStep(10)
         ->assertHasFormErrors(['app_name' => 'required'])
-        ->assertWizardCurrentStep(1);
+        ->assertWizardCurrentStep(9);
 });
 
 it('ends on a final step that says congratulations and links to the workspace sign-in', function (): void {
@@ -1639,9 +1660,9 @@ it('ends on a final step that says congratulations and links to the workspace si
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
         ->goToWizardStep(3)
         ->fillForm(['chat_models' => ['gpt-oss-120b'], 'default_model' => 'gpt-oss-120b'])
-        ->goToWizardStep(9)
+        ->goToWizardStep(10)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(9)
+        ->assertWizardCurrentStep(10)
         ->assertSeeInOrder(['Congratulations', 'Finish setup', '/login'])
         ->assertDontSee(['Your choices', 'Default values'])
         ->call('complete')

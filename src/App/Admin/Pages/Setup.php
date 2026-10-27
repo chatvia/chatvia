@@ -115,17 +115,11 @@ use Support\License\LicenseFeature;
  * step. Each key is checked before the next step and saved once.
  *
  * 1. Server: the services ChatVia.ai runs on (database, Redis, queue,
- *    scheduler, live updates), checked live as on the Status page; the
- *    app's name, which the sender name of emails follows until it is
- *    changed there; and keyword search: pg_textsearch is recommended, with
- *    why and how to get it, and turned on here when the database has it
- *    loaded; and pg_partman,
+ *    scheduler, live updates), checked live as on the Status page; keyword
+ *    search: pg_textsearch is recommended, with why and how to get it, and
+ *    turned on here when the database has it loaded; and pg_partman,
  *    which analytics needs, with a warning and a link to the docs when missing.
- *    License (optional): what a license key adds to a free install, with a
- *    link to buy one, and the key, activated at chatvia.ai and saved on Next
- *    ({@see activateLicense()}). An address only this computer opens gets
- *    no field: a key works for one domain. Next with a service down asks
- *    first ({@see serverDownAction()}); nothing else is saved.
+ *    Next with a service down asks first ({@see serverDownAction()}).
  * 2. AI provider: the main provider and its key (its model list checks it);
  *    more providers can be added later in Settings → AI providers.
  * 3. Models: the chat models agents can use (one or more, one of them the
@@ -159,7 +153,13 @@ use Support\License\LicenseFeature;
  * 8. Observability: Spectra, the log of every AI call (the default), or
  *    none. What it saves of each call is changed in Settings →
  *    Observability.
- * 9. Final: "Congratulations", a link to the workspace sign-in page for
+ * 9. App: the app's name, which the sender name of emails follows until it
+ *    is changed in the Mailer step; and the license (optional): what a key
+ *    adds to a free install, with a link to buy one, and the key, activated
+ *    at chatvia.ai and saved on Next ({@see activateLicense()}), the one
+ *    thing saved before Finish setup. On an address only this computer
+ *    opens, the field says the key is tied to it until removed.
+ * 10. Final: "Congratulations", a link to the workspace sign-in page for
  *    after Finish setup, and the Finish setup button itself, in the middle
  *    in place of the action bar.
  *
@@ -378,6 +378,7 @@ class Setup extends SimplePage
                 $this->storageStep(),
                 $this->emailStep(),
                 $this->observabilityStep(),
+                $this->appStep(),
                 $this->finalStep(),
             ])
                 ->contained(false)
@@ -478,36 +479,6 @@ class Setup extends SimplePage
                             'headline' => $this->serverHeadline(),
                         ]),
                     ]),
-                Section::make('App name')
-                    ->description('The name people see in browser tabs, the dashboard, the admin panel and emails. You can change it later in Settings → Platform.')
-                    ->icon(Heroicon::OutlinedTag)
-                    ->schema([
-                        TextInput::make('app_name')
-                            ->label('App name')
-                            ->required()
-                            ->maxLength(60)
-                            ->live(onBlur: true)
-                            // The sender name of emails follows until it is changed by hand.
-                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state, ?string $old): void {
-                                if ($get('from_name') === $old) {
-                                    $set('from_name', $state);
-                                }
-                            }),
-                    ]),
-                Section::make('License (optional)')
-                    ->description('ChatVia.ai is free to use, with a few limits. A license key lifts them and supports its development.')
-                    ->icon(Heroicon::OutlinedCheckBadge)
-                    ->schema([
-                        $this->licenseCallout(),
-                        TextInput::make('license_key')
-                            ->label('License key')
-                            ->password()
-                            ->revealable()
-                            ->autocomplete('off')
-                            ->placeholder('cvl1.…')
-                            ->helperText('Paste the whole key from your email. Next activates it for this site at chatvia.ai. You can also add it later on the License page.')
-                            ->visible(fn (): bool => $this->licenseStatus() !== LicenseStatus::Valid && ! $this->runsOnLocalAddress()),
-                    ]),
                 Section::make('Keyword search')
                     ->description('Agents find answers in two ways: by meaning, and by the words of the question. Both run in the database.')
                     ->icon(Heroicon::OutlinedMagnifyingGlass)
@@ -519,10 +490,7 @@ class Setup extends SimplePage
                     ->visible(fn (): bool => ! $this->hasPartman())
                     ->schema([$this->analyticsCallout()]),
             ])
-            ->afterValidation(function (): void {
-                $this->showingErrors(fn () => $this->activateLicense());
-                $this->confirmServer();
-            });
+            ->afterValidation(fn () => $this->confirmServer());
     }
 
     private function connectStep(): Step
@@ -934,6 +902,48 @@ class Setup extends SimplePage
                             ->visible(fn (): bool => ! app(ToolRecording::class)->spectraInstalled()),
                     ]),
             ]);
+    }
+
+    private function appStep(): Step
+    {
+        return Step::make('App')
+            ->description('Its name and license')
+            ->icon(Heroicon::OutlinedTag)
+            ->schema([
+                Section::make('App name')
+                    ->description('The name people see in browser tabs, the dashboard, the admin panel and emails. You can change it later in Settings → Platform.')
+                    ->icon(Heroicon::OutlinedTag)
+                    ->schema([
+                        TextInput::make('app_name')
+                            ->label('App name')
+                            ->required()
+                            ->maxLength(60)
+                            ->live(onBlur: true)
+                            // The sender name of emails follows until it is changed by hand.
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state, ?string $old): void {
+                                if ($get('from_name') === $old) {
+                                    $set('from_name', $state);
+                                }
+                            }),
+                    ]),
+                Section::make('License (optional)')
+                    ->description('ChatVia.ai is free to use, with a few limits. A license key lifts them and supports its development.')
+                    ->icon(Heroicon::OutlinedCheckBadge)
+                    ->schema([
+                        $this->licenseCallout(),
+                        TextInput::make('license_key')
+                            ->label('License key')
+                            ->password()
+                            ->revealable()
+                            ->autocomplete('off')
+                            ->placeholder('cvl1.…')
+                            ->helperText(fn (): string => $this->runsOnLocalAddress()
+                                ? 'Paste the whole key from your email. Next activates it at chatvia.ai for this address, which only this computer opens: remove it on the License page before ChatVia.ai moves to its real address.'
+                                : 'Paste the whole key from your email. Next activates it for this site at chatvia.ai. You can also add it later on the License page.')
+                            ->visible(fn (): bool => $this->licenseStatus() !== LicenseStatus::Valid),
+                    ]),
+            ])
+            ->afterValidation(fn () => $this->showingErrors(fn () => $this->activateLicense()));
     }
 
     private function finalStep(): Step
@@ -1417,7 +1427,7 @@ class Setup extends SimplePage
         })
             ->description(fn (): string => match (true) {
                 $this->licenseStatus() === LicenseStatus::Valid => 'The free limits are lifted. You can hide the credit on the License page.',
-                $this->runsOnLocalAddress() => "{$limits} A key works for one domain: add it on the License page once ChatVia.ai runs at its real address.",
+                $this->runsOnLocalAddress() => "{$limits} A key works for one domain at a time, so it is best added once ChatVia.ai runs at its real address.",
                 default => $limits.' A license key lifts every limit and lets you hide the credit. A Pro license costs $399, one time, and never expires.',
             })
             ->icon(fn (): Heroicon => $this->licenseStatus() === LicenseStatus::Valid ? Heroicon::OutlinedCheckBadge : Heroicon::OutlinedSparkles)
@@ -1434,7 +1444,7 @@ class Setup extends SimplePage
     }
 
     /**
-     * The server step's license check: a typed key is activated for this
+     * The app step's license check: a typed key is activated for this
      * domain at chatvia.ai and saved at once, so it works whether the setup
      * is finished or skipped. The field is emptied once it is, so going back
      * and on does not activate it again.
@@ -1443,7 +1453,7 @@ class Setup extends SimplePage
     {
         $key = Str::of((string) ($this->data['license_key'] ?? ''))->replaceMatches('/\s+/', '')->toString();
 
-        if ($key === '' || $this->runsOnLocalAddress()) {
+        if ($key === '') {
             return;
         }
 

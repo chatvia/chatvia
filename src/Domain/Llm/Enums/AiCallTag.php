@@ -50,6 +50,7 @@ enum AiCallTag: string
     // Files an agent makes in a chat.
     case ImageGeneration = 'image-generation';
     case AudioGeneration = 'audio-generation';
+    case VideoGeneration = 'video-generation';
 
     // Everything else.
     case AnalyticsAssistant = 'analytics-assistant';

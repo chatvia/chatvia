@@ -30,6 +30,10 @@ final class AiProviderIcon
             AiProvider::Jina => 'images/llms/jina.svg',
             AiProvider::Voyage => 'images/llms/voyage.svg',
             AiProvider::Azure, AiProvider::AzureOpenAi => 'images/llms/microsoft.svg',
+            AiProvider::Kling => 'images/llms/kling.svg',
+            AiProvider::BytePlus => 'images/llms/byteplus.svg',
+            AiProvider::Runway => 'images/llms/runway.svg',
+            AiProvider::Fal => 'images/llms/fal.svg',
         });
     }
 

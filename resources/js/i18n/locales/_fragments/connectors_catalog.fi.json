@@ -181,6 +181,10 @@
                 "name": "Äänen luonti",
                 "description": "Anna agentin luoda äänitiedostoja isännöidyssä chatissa, kun kävijä pyytää: mikä tahansa teksti luettuna ääneen, valmiina toistettavaksi tai ladattavaksi."
             },
+            "video-generation": {
+                "name": "Videoiden luonti",
+                "description": "Anna agentin tehdä lyhyitä videoita isännöityyn chattiin, kun kävijä pyytää: tuotevideoita, kohtauksia, animoituja ideoita ja paljon muuta."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Hae ajantasaisia tuloksia Googlesta, Bingistä, YouTubesta ja muista hakukoneista: uutisia, hintoja, paikkoja. Palvelun tarjoaa SerpApi.",

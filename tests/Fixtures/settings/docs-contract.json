@@ -34,7 +34,8 @@
         "Pictures per chat per hour",
         "OpenAI model",
         "OpenRouter model",
-        "Google model"
+        "Google model",
+        "fal.ai model"
     ],
     "settings/ai-models#models-for-app-tasks": [
         "Model for quick tasks",
@@ -70,6 +71,18 @@
         "Scaleway AI model",
         "OpenAI model"
     ],
+    "settings/ai-models#video-generation": [
+        "Video generation",
+        "Videos per chat per hour",
+        "Length, in seconds",
+        "Resolution",
+        "Google model",
+        "ElevenLabs model",
+        "Kling model",
+        "BytePlus model",
+        "Runway model",
+        "fal.ai model"
+    ],
     "settings/ai-models#voice-conversations": [
         "Voice conversations",
         "Default voice",
@@ -88,6 +101,10 @@
         "API key",
         "Endpoint"
     ],
+    "settings/ai-providers#byteplus-modelark": [
+        "API key",
+        "Address"
+    ],
     "settings/ai-providers#cohere": [
         "API key",
         "Address"
@@ -95,6 +112,9 @@
     "settings/ai-providers#elevenlabs": [
         "API key",
         "Address"
+    ],
+    "settings/ai-providers#falai": [
+        "API key"
     ],
     "settings/ai-providers#google-gemini": [
         "API key",
@@ -107,6 +127,10 @@
         "API key",
         "Address"
     ],
+    "settings/ai-providers#kling": [
+        "API key",
+        "Address"
+    ],
     "settings/ai-providers#mistral": [
         "API key",
         "Address"
@@ -116,6 +140,9 @@
         "Address"
     ],
     "settings/ai-providers#openrouter": [
+        "API key"
+    ],
+    "settings/ai-providers#runway": [
         "API key"
     ],
     "settings/ai-providers#scaleway-ai": [
@@ -303,7 +330,7 @@
         "Records",
         "Audio and video",
         "Live voice calls",
-        "Pictures and audio"
+        "Pictures, audio and video"
     ],
     "settings/platform#tracking-code": [
         "Code"

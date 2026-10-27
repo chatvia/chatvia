@@ -181,6 +181,10 @@
                 "name": "Audioerzeugung",
                 "description": "Lass den Agenten im gehosteten Chat Audiodateien erstellen, wenn ein Besucher danach fragt: jeder Text vorgelesen, bereit zum Abspielen oder Herunterladen."
             },
+            "video-generation": {
+                "name": "Videoerzeugung",
+                "description": "Lass den Agenten im gehosteten Chat kurze Videos erstellen, wenn ein Besucher danach fragt: Produktclips, Szenen, animierte Ideen und mehr."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Google, Bing, YouTube und andere Suchmaschinen nach aktuellen Ergebnissen durchsuchen: Nachrichten, Preise, Orte. Bereitgestellt von SerpApi.",

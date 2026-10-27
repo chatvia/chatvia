@@ -1,5 +1,5 @@
 /**
- * Hosted chat API for the images and audio an agent makes: how a
+ * Hosted chat API for the images, audio and videos an agent makes: how a
  * conversation's files stand, asked for while one is still being made.
  */
 import conversations from '@/routes/conversations';

@@ -168,7 +168,11 @@
             "audio_failed": "Ljudet kunde inte skapas.",
             "refused": "Tjänsten avvisade den här begäran.",
             "timed_out": "Det tog för lång tid. Fråga igen.",
-            "download": "Ladda ner"
+            "download": "Ladda ner",
+            "video": "Skapad video",
+            "video_alt": "Skapad video: {prompt}",
+            "video_pending": "Skapar din video… Det kan ta några minuter.",
+            "video_failed": "Videon kunde inte skapas."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Ljudgenerering",
                 "description": "Låt agenten skapa ljudfiler i den hostade chatten när en besökare ber om det: vilken text som helst uppläst, redo att spela upp eller ladda ner."
+            },
+            "video-generation": {
+                "name": "Videogenerering",
+                "description": "Låt agenten skapa korta videor i den hostade chatten när en besökare ber om det: produktklipp, scener, animerade idéer och mer."
             }
         }
     },

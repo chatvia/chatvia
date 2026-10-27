@@ -17,7 +17,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Gates Chatvia's OWN built-in MCP servers (/mcp/weather, /mcp/currency,
  * /mcp/charts, /mcp/forms, /mcp/calendar, /mcp/image-generation,
- * /mcp/audio-generation, /mcp/perplexity, /mcp/account-analytics). These
+ * /mcp/audio-generation, /mcp/video-generation, /mcp/perplexity,
+ * /mcp/account-analytics). These
  * are public HTTP routes but must only ever be driven by Chatvia's
  * server-side tool loop.
  *

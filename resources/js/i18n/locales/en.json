@@ -168,7 +168,11 @@
             "audio_failed": "This audio could not be made.",
             "refused": "This request was refused by the service.",
             "timed_out": "This took too long. Please ask again.",
-            "download": "Download"
+            "download": "Download",
+            "video": "Generated video",
+            "video_alt": "Generated video: {prompt}",
+            "video_pending": "Making your video… This can take a few minutes.",
+            "video_failed": "This video could not be made."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Audio generation",
                 "description": "Let the agent make audio files in the hosted chat when a visitor asks: any text read aloud, ready to play or download."
+            },
+            "video-generation": {
+                "name": "Video generation",
+                "description": "Let the agent make short videos in the hosted chat when a visitor asks: product clips, scenes, animated ideas and more."
             }
         }
     },

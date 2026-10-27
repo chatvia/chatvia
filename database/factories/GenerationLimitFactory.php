@@ -10,8 +10,8 @@ use App\Identity\Workspace\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * A monthly generation cap of 50 for a new workspace, nothing made yet this
- * month.
+ * A monthly cap of 50 pictures and audio files for a new workspace, no video
+ * cap, nothing made yet this month.
  *
  * @extends Factory<GenerationLimit>
  */
@@ -29,6 +29,8 @@ class GenerationLimitFactory extends Factory
             'workspace_id' => fn (): int => User::factory()->create()->workspace()->id,
             'monthly_limit' => 50,
             'generations_used' => 0,
+            'monthly_video_limit' => null,
+            'videos_used' => 0,
             'period_starts_at' => fn () => now()->startOfMonth(),
         ];
     }

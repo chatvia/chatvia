@@ -199,12 +199,13 @@ return new class extends Migration
             $table->foreignId('agent_id');
             $table->foreignId('chat_conversation_id');
 
-            $table->enum('kind', ['image', 'audio']);
+            $table->enum('kind', ['image', 'audio', 'video']);
             $table->enum('status', ['pending', 'ready', 'failed'])->default('pending');
             $table->text('prompt');
             $table->enum('shape', ['square', 'landscape', 'portrait'])->nullable();
             $table->string('voice', 100)->nullable();
             $table->string('service', 100);
+            $table->string('task_id', 255)->nullable();
 
             $table->string('filepath', 2048)->nullable();
             $table->string('mime_type', 100)->nullable();

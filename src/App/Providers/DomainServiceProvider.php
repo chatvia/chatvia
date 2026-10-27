@@ -113,6 +113,7 @@ use Domain\Llm\Contracts\ImageGenerator;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Contracts\VideoGenerator;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Events\LlmCallRefused;
@@ -120,6 +121,7 @@ use Domain\Llm\Events\LlmUnlisted;
 use Domain\Llm\Listeners\NotifyAdminsOfUnlistedLlm;
 use Domain\Llm\Listeners\QueueLlmListingCheck;
 use Domain\Llm\Operations\Media\ElevenLabsSpeaker;
+use Domain\Llm\Operations\Media\FalImageGenerator;
 use Domain\Llm\Operations\Media\GoogleImageGenerator;
 use Domain\Llm\Operations\Media\NullImageGenerator;
 use Domain\Llm\Operations\Media\NullSpeaker;
@@ -129,6 +131,13 @@ use Domain\Llm\Operations\Media\OpenAiSpeaker;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\OpenRouterImageGenerator;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
+use Domain\Llm\Operations\Media\Video\ElevenLabsVideoGenerator;
+use Domain\Llm\Operations\Media\Video\FalVideoGenerator;
+use Domain\Llm\Operations\Media\Video\GoogleVideoGenerator;
+use Domain\Llm\Operations\Media\Video\KlingVideoGenerator;
+use Domain\Llm\Operations\Media\Video\NullVideoGenerator;
+use Domain\Llm\Operations\Media\Video\RunwayVideoGenerator;
+use Domain\Llm\Operations\Media\Video\SeedanceVideoGenerator;
 use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
 use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
 use Domain\Llm\Services\AiCallTags;
@@ -298,8 +307,21 @@ class DomainServiceProvider extends ServiceProvider
             'openai' => $app->make(OpenAiImageGenerator::class),
             'openrouter' => $app->make(OpenRouterImageGenerator::class),
             'google' => $app->make(GoogleImageGenerator::class),
+            'fal' => $app->make(FalImageGenerator::class),
             'none' => $app->make(NullImageGenerator::class),
-            default => throw $this->unknownAiDriver('image_generator', ['openai', 'openrouter', 'google', 'none']),
+            default => throw $this->unknownAiDriver('image_generator', ['openai', 'openrouter', 'google', 'fal', 'none']),
+        });
+
+        // Videos cost more still: off until an admin picks a service.
+        $this->app->bind(fn ($app): VideoGenerator => match ($this->aiDriver('video_generator', auto: 'none')) {
+            'google' => $app->make(GoogleVideoGenerator::class),
+            'elevenlabs' => $app->make(ElevenLabsVideoGenerator::class),
+            'kling' => $app->make(KlingVideoGenerator::class),
+            'byteplus' => $app->make(SeedanceVideoGenerator::class),
+            'runway' => $app->make(RunwayVideoGenerator::class),
+            'fal' => $app->make(FalVideoGenerator::class),
+            'none' => $app->make(NullVideoGenerator::class),
+            default => throw $this->unknownAiDriver('video_generator', ['google', 'elevenlabs', 'kling', 'byteplus', 'runway', 'fal', 'none']),
         });
     }
 

@@ -65,12 +65,29 @@ class GeneratedMediaFactory extends Factory
         ]);
     }
 
+    /** A landscape video, started at its service (`task_id`) and still being made. */
+    public function video(): static
+    {
+        return $this->state([
+            'kind' => GeneratedMediaKind::Video,
+            'prompt' => 'Waves rolling onto a beach at sunset',
+            'shape' => 'landscape',
+            'voice' => null,
+            'service' => 'fake:video-model',
+            'task_id' => 'fake-task-1',
+        ]);
+    }
+
     /** Made: its file path is set under the agent's folder. */
     public function ready(): static
     {
         return $this->state(fn (array $attributes): array => [
             'status' => GeneratedMediaStatus::Ready,
-            'mime_type' => ($attributes['kind'] ?? null) === GeneratedMediaKind::Audio ? 'audio/mpeg' : 'image/png',
+            'mime_type' => match ($attributes['kind'] ?? null) {
+                GeneratedMediaKind::Audio => 'audio/mpeg',
+                GeneratedMediaKind::Video => 'video/mp4',
+                default => 'image/png',
+            },
             'size_bytes' => 4,
         ])->afterMaking(function (GeneratedMedia $media): void {
             $conversation = Conversation::query()->find($media->chat_conversation_id);
@@ -82,7 +99,11 @@ class GeneratedMediaFactory extends Factory
                     $agent,
                     $conversation->external_id,
                     $media->external_id,
-                    $media->kind === GeneratedMediaKind::Audio ? 'mp3' : 'png',
+                    match ($media->kind) {
+                        GeneratedMediaKind::Audio => 'mp3',
+                        GeneratedMediaKind::Video => 'mp4',
+                        GeneratedMediaKind::Image => 'png',
+                    },
                 );
             }
         });

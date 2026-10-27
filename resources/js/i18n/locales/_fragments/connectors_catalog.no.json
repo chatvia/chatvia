@@ -181,6 +181,10 @@
                 "name": "Lydgenerering",
                 "description": "La agenten lage lydfiler i den hostede chatten når en besøkende ber om det: hvilken som helst tekst lest høyt, klar til å spille av eller laste ned."
             },
+            "video-generation": {
+                "name": "Videogenerering",
+                "description": "La agenten lage korte videoer i den hostede chatten når en besøkende ber om det: produktklipp, scener, animerte idéer og mer."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Søk i Google, Bing, YouTube og andre søkemotorer etter ferske resultater: nyheter, priser, steder. Levert av SerpApi.",

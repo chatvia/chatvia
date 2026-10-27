@@ -252,9 +252,11 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
 
         if ($address !== null && ! $provider->needsBaseUrl()) {
             $card->advancedFields(fn (): array => [
-                $this->url($address, 'Address', help: $provider === AiProvider::Scaleway
-                    ? 'To bill a specific Scaleway project, use https://api.scaleway.ai/{project-id}/v1.'
-                    : 'Change it only to go through a proxy or to use another region.'),
+                $this->url($address, 'Address', help: match ($provider) {
+                    AiProvider::Scaleway => 'To bill a specific Scaleway project, use https://api.scaleway.ai/{project-id}/v1.',
+                    AiProvider::BytePlus => 'Change it only to go through a proxy or to use another region. For Volcengine Ark in China, use https://ark.cn-beijing.volces.com/api/v3 with a Volcengine key.',
+                    default => 'Change it only to go through a proxy or to use another region.',
+                }),
             ]);
         }
 

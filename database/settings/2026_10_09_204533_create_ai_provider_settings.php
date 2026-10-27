@@ -38,6 +38,12 @@ return new class extends SettingsMigration
             $group->add('azure_endpoint');
             $group->addEncrypted('azure_openai_api_key');
             $group->add('azure_openai_endpoint');
+            $group->addEncrypted('kling_api_key');
+            $group->add('kling_endpoint');
+            $group->addEncrypted('byteplus_api_key');
+            $group->add('byteplus_endpoint');
+            $group->addEncrypted('runway_api_key');
+            $group->addEncrypted('fal_api_key');
         });
     }
 

@@ -181,6 +181,10 @@
                 "name": "Generación de audio",
                 "description": "Deja que el agente cree archivos de audio en el chat alojado cuando un visitante lo pida: cualquier texto leído en voz alta, listo para reproducir o descargar."
             },
+            "video-generation": {
+                "name": "Generación de vídeo",
+                "description": "Deja que el agente cree vídeos cortos en el chat alojado cuando un visitante lo pida: clips de productos, escenas, ideas animadas y más."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Busca en Google, Bing, YouTube y otros buscadores resultados en directo: noticias, precios, lugares. Con la tecnología de SerpApi.",

@@ -10,14 +10,20 @@ use Domain\Conversation\Enums\GeneratedMediaFailure;
 use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Enums\GeneratedMediaStatus;
 use Domain\Conversation\Events\GeneratedMediaUpdated;
+use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Llm\Contracts\ImageGenerator;
+use Domain\Llm\Contracts\VideoGenerator;
 use Domain\Llm\Data\Image\ImagePromptData;
+use Domain\Llm\Data\Video\VideoPromptData;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\ImageShape;
+use Domain\Llm\Enums\VideoResolution;
+use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Exceptions\ImageGenerationFailedException;
+use Domain\Llm\Exceptions\VideoGenerationFailedException;
 use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
@@ -31,14 +37,17 @@ use Throwable;
  * agent's folder ({@see GeneratedMediaFiles}) and the item turns ready; when
  * the service refuses, fails or times out the item turns failed
  * ({@see FailGeneratedMediaAction}). Either way the chat is told at once.
- * An item that is no longer pending is left alone, so a job that runs twice
- * makes one file.
+ * A video takes minutes, so it is only started here: its task id is kept
+ * and {@see CheckGeneratedVideoAction} fetches it once it is made.
+ * An item that is no longer pending (or a video already started) is left
+ * alone, so a job that runs twice makes one file.
  */
 class GenerateMediaAction
 {
     public function __construct(
         private readonly ImageGenerator $images,
         private readonly AudioGeneration $audio,
+        private readonly VideoGenerator $videos,
         private readonly ReadAloudAvailability $readAloud,
         private readonly GeneratedMediaFiles $files,
         private readonly FailGeneratedMediaAction $fail,
@@ -46,7 +55,7 @@ class GenerateMediaAction
 
     public function execute(GeneratedMedia $media): void
     {
-        if ($media->status !== GeneratedMediaStatus::Pending) {
+        if ($media->status !== GeneratedMediaStatus::Pending || filled($media->task_id)) {
             return;
         }
 
@@ -58,6 +67,12 @@ class GenerateMediaAction
         }
 
         try {
+            if ($media->kind === GeneratedMediaKind::Video) {
+                $this->startVideo($media);
+
+                return;
+            }
+
             [$bytes, $mimeType, $extension] = $media->kind === GeneratedMediaKind::Image
                 ? $this->image($media)
                 : $this->audio($media, $agent);
@@ -97,6 +112,21 @@ class GenerateMediaAction
         return [$image->bytes, $image->mimeType, $image->extension()];
     }
 
+    /** Asks for the video with the admin's length and resolution, then checks on it from time to time. */
+    private function startVideo(GeneratedMedia $media): void
+    {
+        $taskId = $this->videos->start(new VideoPromptData(
+            prompt: $media->prompt,
+            shape: VideoShape::tryFrom((string) $media->shape) ?? VideoShape::Landscape,
+            seconds: (int) config('chatvia.ai.video_duration'),
+            resolution: VideoResolution::tryFrom((string) config('chatvia.ai.video_resolution')) ?? VideoResolution::Hd720,
+        ));
+
+        $media->update(['task_id' => $taskId]);
+
+        CheckGeneratedVideoJob::dispatch($media)->delay(now()->addSeconds(CheckGeneratedVideoAction::INTERVAL_SECONDS));
+    }
+
     /**
      * @return array{string, string, string} the bytes, the MIME type and the extension
      */
@@ -113,7 +143,8 @@ class GenerateMediaAction
     private function failureOf(Throwable $e): GeneratedMediaFailure
     {
         return match (true) {
-            $e instanceof ImageGenerationFailedException && $e->refused => GeneratedMediaFailure::Refused,
+            $e instanceof ImageGenerationFailedException && $e->refused,
+            $e instanceof VideoGenerationFailedException && $e->refused => GeneratedMediaFailure::Refused,
             $e instanceof ConnectionException, $e->getPrevious() instanceof ConnectionException => GeneratedMediaFailure::TimedOut,
             default => GeneratedMediaFailure::Failed,
         };

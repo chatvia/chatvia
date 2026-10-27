@@ -12,7 +12,7 @@ use Domain\Conversation\Models\Message;
 use Illuminate\Support\Collection;
 
 /**
- * Brings each image and audio artifact of a reply up to date from its row.
+ * Brings each image, audio and video artifact of a reply up to date from its row.
  * A reply stores its artifact while the file is still being made, and the
  * history the chat reads (live memory or the chat log) keeps that copy, so
  * every load overwrites the artifact's status, link and type with the

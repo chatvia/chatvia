@@ -1,0 +1,31 @@
+[
+    {
+        "name": "generate-video",
+        "title": "Generate Video Tool",
+        "description": "Make a short video for the visitor from a description. The video is made in the background, takes a few minutes, and the chat shows it when it is ready. Write the description in English: the subject, what happens, the camera, the style and setting the visitor asked for.",
+        "inputSchema": {
+            "properties": {
+                "prompt": {
+                    "description": "What the video shows, in English, up to 1000 characters.",
+                    "type": "string"
+                },
+                "shape": {
+                    "description": "landscape (wide, the default) or portrait (tall, for phones).",
+                    "enum": [
+                        "landscape",
+                        "portrait"
+                    ],
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "prompt"
+            ]
+        },
+        "annotations": {
+            "title": "Generate Video Tool",
+            "openWorldHint": true
+        }
+    }
+]

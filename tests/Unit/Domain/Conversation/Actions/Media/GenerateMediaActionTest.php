@@ -8,16 +8,22 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\GeneratedMediaFailure;
 use Domain\Conversation\Enums\GeneratedMediaStatus;
 use Domain\Conversation\Events\GeneratedMediaUpdated;
+use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Llm\Enums\ImageShape;
+use Domain\Llm\Enums\VideoResolution;
+use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Exceptions\ImageGenerationFailedException;
+use Domain\Llm\Exceptions\VideoGenerationFailedException;
 use Domain\Llm\Services\AudioGeneration;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\Llm\FakeImageGenerator;
 use Tests\Support\Llm\FakeSpeaker;
+use Tests\Support\Llm\FakeVideoGenerator;
 
 /**
  * Making one pending file: saved under the agent's folder and ready, or
@@ -95,4 +101,35 @@ it('leaves an item that is no longer pending alone', function (): void {
     expect($images->drawn)->toBe([])
         ->and($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed);
     Event::assertNotDispatched(GeneratedMediaUpdated::class);
+});
+
+it('starts a video and checks on it later, without waiting for it', function (): void {
+    Queue::fake();
+    config(['chatvia.ai.video_duration' => 6, 'chatvia.ai.video_resolution' => '1080p']);
+    $videos = FakeVideoGenerator::install();
+    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create(['task_id' => null, 'shape' => 'portrait', 'prompt' => 'Rain on a window']);
+
+    app(GenerateMediaAction::class)->execute($media);
+    app(GenerateMediaAction::class)->execute($media->refresh());
+
+    expect($media->status)->toBe(GeneratedMediaStatus::Pending)
+        ->and($media->task_id)->toBe('fake-task-1')
+        ->and($videos->started)->toHaveCount(1)
+        ->and($videos->started[0]->prompt)->toBe('Rain on a window')
+        ->and($videos->started[0]->shape)->toBe(VideoShape::Portrait)
+        ->and($videos->started[0]->seconds)->toBe(6)
+        ->and($videos->started[0]->resolution)->toBe(VideoResolution::Hd1080);
+
+    Queue::assertPushed(CheckGeneratedVideoJob::class, 1);
+    Event::assertNotDispatched(GeneratedMediaUpdated::class);
+});
+
+it('marks a video the service refuses to start', function (): void {
+    FakeVideoGenerator::install(startFailure: VideoGenerationFailedException::refused('Fake'));
+    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create(['task_id' => null]);
+
+    app(GenerateMediaAction::class)->execute($media);
+
+    expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed)
+        ->and($media->failure)->toBe(GeneratedMediaFailure::Refused);
 });

@@ -168,7 +168,11 @@
             "audio_failed": "Impossible de créer cet audio.",
             "refused": "Le service a refusé cette demande.",
             "timed_out": "Cela a pris trop de temps. Veuillez redemander.",
-            "download": "Télécharger"
+            "download": "Télécharger",
+            "video": "Vidéo générée",
+            "video_alt": "Vidéo générée : {prompt}",
+            "video_pending": "Création de votre vidéo… Cela peut prendre quelques minutes.",
+            "video_failed": "Impossible de créer cette vidéo."
         }
     },
     "messages": {
@@ -4314,6 +4318,10 @@
             "audio-generation": {
                 "name": "Génération audio",
                 "description": "Laissez l'agent créer des fichiers audio dans le chat hébergé quand un visiteur le demande : n'importe quel texte lu à voix haute, prêt à écouter ou à télécharger."
+            },
+            "video-generation": {
+                "name": "Génération de vidéos",
+                "description": "Laissez l'agent créer de courtes vidéos dans le chat hébergé quand un visiteur le demande : clips produit, scènes, idées animées et plus encore."
             }
         }
     },

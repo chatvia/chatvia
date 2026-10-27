@@ -11,8 +11,8 @@ use Domain\Conversation\Models\GeneratedMedia;
 use Spatie\LaravelData\Data;
 
 /**
- * Where one generated image or audio file stands, as the chat shows it: the
- * fields an image or audio artifact takes from its row on every load and on
+ * Where one generated image, audio file or video stands, as the chat shows it: the
+ * fields an image, audio or video artifact takes from its row on every load and on
  * every live update. The link is there only once the file is made.
  */
 class GeneratedMediaData extends Data

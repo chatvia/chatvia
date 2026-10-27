@@ -181,6 +181,10 @@
                 "name": "Génération audio",
                 "description": "Laissez l'agent créer des fichiers audio dans le chat hébergé quand un visiteur le demande : n'importe quel texte lu à voix haute, prêt à écouter ou à télécharger."
             },
+            "video-generation": {
+                "name": "Génération de vidéos",
+                "description": "Laissez l'agent créer de courtes vidéos dans le chat hébergé quand un visiteur le demande : clips produit, scènes, idées animées et plus encore."
+            },
             "serpapi": {
                 "name": "SerpApi",
                 "description": "Cherchez des résultats en direct sur Google, Bing, YouTube et d'autres moteurs : actualités, prix, lieux. Propulsé par SerpApi.",

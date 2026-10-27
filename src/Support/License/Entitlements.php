@@ -67,7 +67,7 @@ final readonly class Entitlements
 
     /**
      * Whether agents may use their capabilities (charts, calendar booking,
-     * forms and leads, image and audio generation).
+     * forms and leads, image, audio and video generation).
      */
     public function capabilities(): bool
     {

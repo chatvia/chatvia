@@ -25,7 +25,7 @@ use Support\Concerns\HasExternalId;
 use Throwable;
 
 /**
- * An image or audio file an agent made in a conversation. The row is created
+ * An image, audio file or video an agent made in a conversation. The row is created
  * as soon as the agent asks for it (pending) and a background job makes the
  * file, so a reload never loses it. The reply that asked for it points at
  * the row through its artifact (`metadata.artifacts[].data.id` = external id),
@@ -50,6 +50,7 @@ use Throwable;
  * @property string|null $shape An image's shape (square, landscape, portrait)
  * @property string|null $voice The voice an audio file is read in
  * @property string $service The service and model that make it
+ * @property string|null $task_id A video's task at its service, while it is being made
  * @property string|null $filepath
  * @property string|null $mime_type
  * @property int|null $size_bytes
@@ -70,6 +71,7 @@ use Throwable;
     'shape',
     'voice',
     'service',
+    'task_id',
     'filepath',
     'mime_type',
     'size_bytes',

@@ -220,7 +220,7 @@ class WorkspaceResource extends Resource
                             ->visible(fn (Workspace $record): bool => $record->messageLimit !== null),
                     ]),
                 Section::make('Generation limit')
-                    ->description('A cap on the pictures and audio files the workspace\'s agents make in chats each month.')
+                    ->description('Caps on the pictures, audio files and videos the workspace\'s agents make in chats each month.')
                     ->icon(Heroicon::OutlinedPhoto)
                     ->extraAttributes(['class' => 'cv-settings-card'])
                     ->columns(2)
@@ -232,6 +232,15 @@ class WorkspaceResource extends Resource
                         TextEntry::make('generations_used')
                             ->label('Made this month')
                             ->state(fn (Workspace $record): ?int => $record->generationLimit?->usedThisMonth())
+                            ->numeric()
+                            ->placeholder('Counted only while a limit is set'),
+                        TextEntry::make('generationLimit.monthly_video_limit')
+                            ->label('Monthly limit on videos')
+                            ->numeric()
+                            ->placeholder('No limit'),
+                        TextEntry::make('videos_used')
+                            ->label('Videos made this month')
+                            ->state(fn (Workspace $record): ?int => $record->generationLimit?->videosThisMonth())
                             ->numeric()
                             ->placeholder('Counted only while a limit is set'),
                     ]),

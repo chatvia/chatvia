@@ -9,7 +9,7 @@ use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Models\GeneratedMedia;
 
 /**
- * Where an agent's generated images and audio are kept, and how they go: one
+ * Where an agent's generated images, audio and videos are kept, and how they go: one
  * file per row on the private disk under the agent's folder
  * (`…/agents/{agent}/generated/{conversation}/`), so purging the agent or
  * deleting the workspace wipes them with the rest.
@@ -72,7 +72,7 @@ final class GeneratedMediaFiles
     }
 
     /**
-     * The generated items a reply points at: the ids of its image and audio
+     * The generated items a reply points at: the ids of its image, audio and video
      * artifacts.
      *
      * @param  array<string, mixed>|null  $metadata

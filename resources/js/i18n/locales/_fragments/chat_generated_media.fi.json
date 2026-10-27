@@ -3,10 +3,14 @@
         "generated_media": {
             "image": "Luotu kuva",
             "image_alt": "Luotu kuva: {prompt}",
+            "video": "Luotu video",
+            "video_alt": "Luotu video: {prompt}",
             "image_pending": "Kuvaasi luodaan…",
             "audio_pending": "Äänitiedostoasi luodaan…",
+            "video_pending": "Videotasi luodaan… Tämä voi kestää muutaman minuutin.",
             "image_failed": "Kuvaa ei voitu luoda.",
             "audio_failed": "Äänitiedostoa ei voitu luoda.",
+            "video_failed": "Videota ei voitu luoda.",
             "refused": "Palvelu hylkäsi tämän pyynnön.",
             "timed_out": "Tämä kesti liian kauan. Pyydä uudelleen.",
             "download": "Lataa"

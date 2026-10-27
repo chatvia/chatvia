@@ -3,10 +3,14 @@
         "generated_media": {
             "image": "Generated image",
             "image_alt": "Generated image: {prompt}",
+            "video": "Generated video",
+            "video_alt": "Generated video: {prompt}",
             "image_pending": "Making your image…",
             "audio_pending": "Making your audio…",
+            "video_pending": "Making your video… This can take a few minutes.",
             "image_failed": "This image could not be made.",
             "audio_failed": "This audio could not be made.",
+            "video_failed": "This video could not be made.",
             "refused": "This request was refused by the service.",
             "timed_out": "This took too long. Please ask again.",
             "download": "Download"

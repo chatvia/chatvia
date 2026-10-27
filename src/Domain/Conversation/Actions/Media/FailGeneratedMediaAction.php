@@ -36,7 +36,7 @@ class FailGeneratedMediaAction
         }
 
         $media->refresh();
-        $this->allowance->release($media->workspace_id, $media->created_at ?? now());
+        $this->allowance->release($media->workspace_id, $media->kind, $media->created_at ?? now());
 
         GeneratedMediaUpdated::dispatch($media->conversation->external_id, GeneratedMediaData::fromModel($media));
     }

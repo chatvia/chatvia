@@ -4,6 +4,7 @@ use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\AiSettings;
 use Domain\Llm\Contracts\ImageGenerator;
 use Domain\Llm\Enums\AiProvider;
+use Domain\Llm\Operations\Media\FalImageGenerator;
 use Domain\Llm\Operations\Media\GoogleImageGenerator;
 use Domain\Llm\Operations\Media\NullImageGenerator;
 use Domain\Llm\Operations\Media\OpenAiImageGenerator;
@@ -40,6 +41,7 @@ it('stays off while a key is connected and nothing is picked', function (): void
         'openai' => 'OpenAI GPT Image (connected)',
         'openrouter' => 'OpenRouter (not connected)',
         'google' => 'Google Gemini (connected)',
+        'fal' => 'fal.ai (not connected)',
         'none' => 'Off',
     ])->and($field->isOptionDisabled('openrouter', 'OpenRouter'))->toBeTrue()
         ->and(app(ImageGenerator::class))->toBeInstanceOf(NullImageGenerator::class);
@@ -77,6 +79,7 @@ it('picks each service by its saved name', function (string $driver, string $cla
     'openai' => ['openai', OpenAiImageGenerator::class],
     'openrouter' => ['openrouter', OpenRouterImageGenerator::class],
     'google' => ['google', GoogleImageGenerator::class],
+    'fal' => ['fal', FalImageGenerator::class],
     'off' => ['none', NullImageGenerator::class],
     'automatic stays off' => ['auto', NullImageGenerator::class],
 ]);
@@ -116,4 +119,26 @@ it('sums up the service and model in use', function (): void {
 
     adminPage(ManageAiModelSettings::class, $this->admin)
         ->assertSee('Google Gemini · gemini-3-pro-image');
+});
+
+it('turns fal.ai on once fal.ai accepts the key', function (): void {
+    connectAiProviders(AiProvider::Fal);
+    Http::fake(['queue.fal.run/*' => Http::response(['detail' => 'Request not found'], 404)]);
+
+    adminPage(ManageAiModelSettings::class, $this->admin)
+        ->fillForm(['image_generator' => 'fal', 'fal_image_model' => 'fal-ai/qwen-image'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(ImageGenerator::class)->name())->toBe('fal fal-ai/qwen-image');
+
+    Http::assertSent(fn (Request $request): bool => Str::startsWith($request->url(), 'https://queue.fal.run/')
+        && $request->hasHeader('Authorization', 'Key test-key'));
+});
+
+it('offers every fal.ai model the generator knows how to shape', function (): void {
+    /** @var Select $field */
+    $field = adminPage(ManageAiModelSettings::class, $this->admin)->instance()->form->getFlatFields(withHidden: true)['fal_image_model'];
+
+    expect(array_keys($field->getOptions()))->toBe(array_keys(FalImageGenerator::MODELS));
 });

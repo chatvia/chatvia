@@ -25,6 +25,7 @@ enum AiService: string
     case ReadAloud = 'read_aloud';
     case ImageGeneration = 'image_generation';
     case AudioGeneration = 'audio_generation';
+    case VideoGeneration = 'video_generation';
     case WebPages = 'web_pages';
     case VisitorCountry = 'visitor_country';
 
@@ -40,6 +41,7 @@ enum AiService: string
             self::ReadAloud => __('Read aloud'),
             self::ImageGeneration => __('Image generation'),
             self::AudioGeneration => __('Audio generation'),
+            self::VideoGeneration => __('Video generation'),
             self::WebPages => __('Web pages'),
             self::VisitorCountry => __('Visitor country'),
         };
@@ -57,6 +59,7 @@ enum AiService: string
             self::ReadAloud => __('Play agent replies as speech'),
             self::ImageGeneration => __('Let agents make pictures in chats'),
             self::AudioGeneration => __('Let agents make audio files in chats'),
+            self::VideoGeneration => __('Let agents make videos in chats'),
             self::WebPages => __('Firecrawl reads websites for knowledge'),
             self::VisitorCountry => __('IP2Location finds the country of each visitor'),
         };
@@ -74,6 +77,7 @@ enum AiService: string
             self::ReadAloud => Heroicon::OutlinedSpeakerWave,
             self::ImageGeneration => Heroicon::OutlinedPhoto,
             self::AudioGeneration => Heroicon::OutlinedMusicalNote,
+            self::VideoGeneration => Heroicon::OutlinedFilm,
             self::WebPages => Heroicon::OutlinedGlobeAlt,
             self::VisitorCountry => Heroicon::OutlinedMapPin,
         };
@@ -92,6 +96,7 @@ enum AiService: string
             self::ReadAloud => ManageAiModelSettings::cardUrl('read_aloud'),
             self::ImageGeneration => ManageAiModelSettings::cardUrl('image_generation'),
             self::AudioGeneration => ManageAiModelSettings::cardUrl('audio_generation'),
+            self::VideoGeneration => ManageAiModelSettings::cardUrl('video_generation'),
             self::WebPages => ManageKnowledgeSettings::cardUrl('website_import'),
             self::VisitorCountry => ManagePlatformSettings::cardUrl('ip2location'),
         };

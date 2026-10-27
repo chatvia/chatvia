@@ -18,6 +18,7 @@ import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i1
 import { auth as chatBroadcastAuth } from './routes/chat/broadcasting';
 import type { SharedData } from './types';
 import { csrfHeaders, setCsrfToken } from './utils/csrf';
+import { startErrorTracking } from './utils/errorTracking';
 import { createChatEventBus } from './utils/eventBus';
 import { setUrlDefaults } from './wayfinder';
 
@@ -102,13 +103,15 @@ createInertiaApp({
         // dropdown alignment, sheet side) — `dir` is reactive via the i18n locale.
         const dir = computed<'ltr' | 'rtl'>(() => (isRTL(normalizeLocale(i18n.global.locale.value)) ? 'rtl' : 'ltr'));
 
-        createApp({ render: () => h(ConfigProvider, { dir: dir.value }, () => h(App, props)) })
+        const app = createApp({ render: () => h(ConfigProvider, { dir: dir.value }, () => h(App, props)) })
             .use(plugin)
             .use(i18n)
             .use(Vue3ColorPicker)
             .use(formKitPlugin, formKitConfig())
-            .provide('chatEventBus', chatEventBus)
-            .mount(el as Element);
+            .provide('chatEventBus', chatEventBus);
+
+        startErrorTracking(app);
+        app.mount(el as Element);
     },
     progress: {
         color: '#4B5563',

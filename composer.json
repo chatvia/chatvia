@@ -55,6 +55,7 @@
         "resend/resend-php": "^1.16",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
         "saade/filament-laravel-log": "^4.0",
+        "sentry/sentry-laravel": "^4.29",
         "smalot/pdfparser": "^2.12",
         "socialiteproviders/microsoft": "^4.7",
         "spatie/laravel-data": "^4.15",
@@ -180,7 +181,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "sentry/sentry-laravel"
+            ]
         }
     },
     "config": {

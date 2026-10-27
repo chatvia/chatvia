@@ -38,6 +38,18 @@ class PlatformSettings extends AdminSettings
     #[ConfigKey('horizon.notify_email')]
     public ?string $horizon_notify_email = null;
 
+    // Sentry: the server's errors (sentry/sentry-laravel reads its key while
+    // it boots, so the queue needs a restart) and the browser's, sent from
+    // the page. A DSN is no secret: Sentry puts the browser's in every page.
+    #[ConfigKey('sentry.dsn')]
+    public ?string $sentry_dsn = null;
+
+    #[ConfigKey('chatvia.sentry.browser_dsn')]
+    public ?string $sentry_browser_dsn = null;
+
+    #[ConfigKey('sentry.environment')]
+    public ?string $sentry_environment = null;
+
     // The most workers per Horizon supervisor (config/horizon.php). Horizon
     // reads them when it starts.
     #[ConfigKey('horizon.defaults.chat.maxProcesses')]

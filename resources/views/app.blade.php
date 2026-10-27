@@ -15,6 +15,13 @@
              (the Docker image). The browser sees this key anyway. --}}
         <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
 
+        {{-- Where the browser sends its errors (Settings → Platform → Sentry).
+             Sentry expects this DSN in the page: it can only send events. --}}
+        @if (filled(config('chatvia.sentry.browser_dsn')))
+            <meta name="sentry-dsn" content="{{ config('chatvia.sentry.browser_dsn') }}">
+            <meta name="sentry-environment" content="{{ config('sentry.environment') ?: app()->environment() }}">
+        @endif
+
         @include('partials.tracking-code')
 
         <script>

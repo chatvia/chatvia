@@ -91,6 +91,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sentry
+    |--------------------------------------------------------------------------
+    |
+    | Where the dashboard and the hosted chat send the errors of people's
+    | browsers. The server's own errors use config/sentry.php of the
+    | sentry/sentry-laravel package. Both are set in the admin panel
+    | (Settings → Platform). Nothing is sent while a DSN is empty.
+    |
+    */
+
+    'sentry' => [
+        'browser_dsn' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Sign-up And Message Limits
     |--------------------------------------------------------------------------
     |

@@ -523,7 +523,7 @@ theme.
   Secrets are encrypted and never sent back to the browser. A blank field
   keeps its default, which `.env` can still preset (optional). `.env` keeps
   only what the app needs to start (database, Redis, drivers, Reverb and so
-  on), plus the embedding storage, the Bunny CDN `assets` disk, the
+  on), plus the embedding storage, the
   built-in tools' secret and address (`BUILTIN_MCP_*`) and
   `TRUSTED_PROXIES`.
 - **Program paths are set in the admin panel** (**Settings → Platform →
@@ -590,6 +590,13 @@ theme.
   server or S3-compatible storage. Knowledge files follow it too: the default
   disk is always `private`, and `FILESYSTEM_DISK` is no longer read. With
   nothing set, files stay on the local disk.
+- S3-compatible storage takes up to three buckets, each with its own
+  endpoint, region and keys: a private bucket (required), a public bucket
+  with its public URL for profile photos and agent logos (else they stay on
+  this server, and the page says so), and a backups bucket (else backups go
+  to the private bucket). Bunny
+  CDN support and the `BUNNYCDN_*` / `FILESYSTEM_ASSETS_DRIVER` keys are
+  removed: put a CDN in front of the public bucket instead.
 - `php artisan chatvia:admin:create-user` creates an admin with its own workspace,
   the usual way to create the first account.
 - `.env.example` was rewritten: a fresh copy starts without paid services.

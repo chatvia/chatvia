@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Storage;
 /**
  * Saving a setting is one upsert on the (model, group, key) unique key: a
  * second save of the same key updates the one row in place, and each saved
- * value reads back with its own type. An uploaded image goes to the
- * CDN-backed `assets` disk and reads back as that disk's URL.
+ * value reads back with its own type. An uploaded image goes to the public
+ * `assets` disk and reads back as that disk's URL.
  */
 beforeEach(function (): void {
     Storage::fake('assets');

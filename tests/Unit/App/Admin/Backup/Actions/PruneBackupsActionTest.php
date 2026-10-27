@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\Storage;
  * backup go too.
  */
 beforeEach(function (): void {
-    Storage::fake('private');
+    Storage::fake('backups');
 });
 
 function pbaStored(int $daysAgo): Backup
 {
     $backup = Backup::factory()->completed(now()->subDays($daysAgo))->create();
-    Storage::disk('private')->put((string) $backup->path, 'archive');
+    Storage::disk('backups')->put((string) $backup->path, 'archive');
 
     return $backup;
 }
@@ -30,8 +30,8 @@ it('keeps the newest backups and deletes the older ones with their archives', fu
     app(PruneBackupsAction::class)->execute(2);
 
     expect(Backup::query()->orderBy('id')->pluck('id')->all())->toBe([$middle->id, $newest->id])
-        ->and(Storage::disk('private')->exists((string) $oldest->path))->toBeFalse()
-        ->and(Storage::disk('private')->exists((string) $middle->path))->toBeTrue();
+        ->and(Storage::disk('backups')->exists((string) $oldest->path))->toBeFalse()
+        ->and(Storage::disk('backups')->exists((string) $middle->path))->toBeTrue();
 });
 
 it('deletes failed attempts older than the oldest kept backup', function (): void {

@@ -5,6 +5,7 @@ use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\MailSetupData;
 use App\Admin\Settings\Data\RerankerSetupData;
+use App\Admin\Settings\Data\S3BucketData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\KnowledgeSettings;
@@ -154,7 +155,12 @@ it('saves every optional service with its own key', function (): void {
         'transcriber' => AiProvider::OpenAi,
         'transcriptionApiKey' => 'sk-openai',
         'firecrawlApiKey' => 'fc-key',
-        'storage' => new StorageSetupData(driver: 's3', endpoint: 'https://s3.example.com', region: 'eu-west-1', key: 's3-key', secret: 's3-secret', pathStyle: true, bucket: 'files'),
+        'storage' => new StorageSetupData(
+            driver: 's3',
+            private: new S3BucketData(bucket: 'files', endpoint: 'https://s3.example.com', region: 'eu-west-1', key: 's3-key', secret: 's3-secret', pathStyle: true),
+            public: new S3BucketData(bucket: 'images', region: 'auto', key: 'r2-key', secret: 'r2-secret', url: 'https://images.example.com'),
+            backup: new S3BucketData(bucket: 'archives', region: 'eu-west-1', key: 'backup-key', secret: 'backup-secret'),
+        ),
         'mail' => new MailSetupData(MailProvider::Smtp, ['smtp_host' => 'smtp.example.com', 'smtp_port' => '587', 'smtp_password' => 'mail-secret'], 'support@acme.test', 'Acme Support'),
     ]));
 
@@ -173,9 +179,17 @@ it('saves every optional service with its own key', function (): void {
         ->and(savedSetting(AiProviderSettings::class, 'openai_api_key'))->toBe('sk-openai')
         ->and(savedSetting(KnowledgeSettings::class, 'firecrawl_api_key'))->toBe('fc-key')
         ->and(savedSetting(StorageSettings::class, 'driver'))->toBe('s3')
-        ->and(savedSetting(StorageSettings::class, 's3_bucket'))->toBe('files')
-        ->and(savedSetting(StorageSettings::class, 's3_path_style'))->toBeTrue()
-        ->and(savedSetting(StorageSettings::class, 's3_secret'))->toBe('s3-secret')
+        ->and(savedSetting(StorageSettings::class, 's3_private_bucket'))->toBe('files')
+        ->and(savedSetting(StorageSettings::class, 's3_private_endpoint'))->toBe('https://s3.example.com')
+        ->and(savedSetting(StorageSettings::class, 's3_private_path_style'))->toBeTrue()
+        ->and(savedSetting(StorageSettings::class, 's3_private_secret'))->toBe('s3-secret')
+        ->and(savedSetting(StorageSettings::class, 's3_public_bucket'))->toBe('images')
+        ->and(savedSetting(StorageSettings::class, 's3_public_url'))->toBe('https://images.example.com')
+        ->and(savedSetting(StorageSettings::class, 's3_public_key'))->toBe('r2-key')
+        ->and(savedSetting(StorageSettings::class, 's3_public_secret'))->toBe('r2-secret')
+        ->and(savedSetting(StorageSettings::class, 's3_backup_bucket'))->toBe('archives')
+        ->and(savedSetting(StorageSettings::class, 's3_backup_key'))->toBe('backup-key')
+        ->and(savedSetting(StorageSettings::class, 's3_backup_secret'))->toBe('backup-secret')
         ->and(savedSetting(MailSettings::class, 'mailer'))->toBe('smtp')
         ->and(savedSetting(MailSettings::class, 'smtp_host'))->toBe('smtp.example.com')
         ->and(savedSetting(MailSettings::class, 'smtp_port'))->toBe(587)

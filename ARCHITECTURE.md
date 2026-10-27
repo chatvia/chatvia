@@ -1040,14 +1040,14 @@ unless a row names another page, its setting is on **Settings → AI models**.
 | Speech to text | `Transcriber` | `scaleway`, `openai`, `none` | `chatvia.ai.transcriber` |
 | Voice calls | `RealtimeCalls` | `openai` (the Realtime API), `none` (the voice button is hidden) | `chatvia.ai.voice`, `services.openai.realtime_*`, `chatvia.voice.*` |
 | Source summaries (whole PDFs) | `SourceSummaryModel` | any catalog model that reads PDF files (models.dev inputs); Automatic, or off | `chatvia.ai.source_summaries.*` |
-| Files | Laravel disks `private`, `assets` | local or S3-compatible (`private`; given the `s3` disk by `StorageDisks`), Bunny CDN or local (`assets`) | `filesystems.storage` + `filesystems.disks.s3` (Settings → Storage), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
+| Files | Laravel disks `private`, `assets`, `backups` | local or S3-compatible; `StorageDisks` builds each from the `s3` disk and a bucket with its own connection: `private` the private bucket, `assets` the public bucket (else local) and `backups` the backups bucket (else the private one) | `filesystems.storage` + `filesystems.buckets` (Settings → Storage) |
 
 Everything an admin may want to change lives in the admin panel under
 **Settings**, not in `.env`: API keys and OAuth apps, the AI services, models
 and endpoints, e-mail, file storage, brand, default language, CSP, the
 widget, retention and limits. `.env` keeps only what the app needs before it
 can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
-`VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `BUILTIN_MCP_SECRET`
+`VITE_*`, the embedding storage, `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
 install), `TRUSTED_PROXIES`, and `CHATVIA_URI` (ChatVia.ai's own site,
 chatvia.ai by default, the base of the `chatvia.license.*` URLs: where license

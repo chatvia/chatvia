@@ -14,12 +14,25 @@ return new class extends SettingsMigration
     {
         $this->migrator->inGroup('storage', function (SettingsBlueprint $group): void {
             $group->add('driver');
-            $group->add('s3_endpoint');
-            $group->add('s3_region');
-            $group->add('s3_key');
-            $group->addEncrypted('s3_secret');
-            $group->add('s3_path_style');
-            $group->add('s3_bucket');
+            $group->add('s3_private_bucket');
+            $group->add('s3_private_endpoint');
+            $group->add('s3_private_region');
+            $group->add('s3_private_key');
+            $group->addEncrypted('s3_private_secret');
+            $group->add('s3_private_path_style');
+            $group->add('s3_public_bucket');
+            $group->add('s3_public_url');
+            $group->add('s3_public_endpoint');
+            $group->add('s3_public_region');
+            $group->add('s3_public_key');
+            $group->addEncrypted('s3_public_secret');
+            $group->add('s3_public_path_style');
+            $group->add('s3_backup_bucket');
+            $group->add('s3_backup_endpoint');
+            $group->add('s3_backup_region');
+            $group->add('s3_backup_key');
+            $group->addEncrypted('s3_backup_secret');
+            $group->add('s3_backup_path_style');
         });
     }
 

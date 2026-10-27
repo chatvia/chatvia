@@ -23,7 +23,7 @@ use Illuminate\Support\Str;
  * are faked; tar runs for real.
  */
 beforeEach(function (): void {
-    Storage::fake('private');
+    Storage::fake('backups');
     config([
         'chatvia.backup.public_key' => null,
         'chatvia.backup.include_files' => false,
@@ -90,7 +90,7 @@ function rbaMembers(Backup $backup): array
 {
     // tar itself, not PharData: Phar caches an archive by its path, and two
     // backups made in the same second have the same name.
-    $archive = Storage::disk('private')->path((string) $backup->path);
+    $archive = Storage::disk('backups')->path((string) $backup->path);
 
     return Str::of(Process::run(['tar', '-tf', $archive])->throw()->output())
         ->trim()
@@ -106,11 +106,11 @@ it('stores the database and Redis in one tar, as ./manage backup does', function
 
     expect($backup->status)->toBe(BackupStatus::Completed)
         ->and($backup->path)->toMatch('#^backups/chatvia-\d{4}-\d{2}-\d{2}-\d{6}\.tar$#')
-        ->and($backup->disk)->toBe('private')
+        ->and($backup->disk)->toBe('backups')
         ->and($backup->parts->all())->toBe([BackupPart::Database, BackupPart::Redis])
         ->and($backup->isEncrypted())->toBeFalse()
-        ->and($backup->sha256)->toBe(hash_file('sha256', Storage::disk('private')->path($backup->path)))
-        ->and($backup->size)->toBe(Storage::disk('private')->size($backup->path))
+        ->and($backup->sha256)->toBe(hash_file('sha256', Storage::disk('backups')->path($backup->path)))
+        ->and($backup->size)->toBe(Storage::disk('backups')->size($backup->path))
         ->and($backup->started_at)->not->toBeNull()
         ->and($backup->finished_at)->not->toBeNull();
 
@@ -156,7 +156,7 @@ it('encrypts the archive to the public key, and only then adds the app key', fun
 
     expect($members['secrets.env'])->toContain('APP_KEY='.config('app.key'))
         ->and($members['backup.env'])->toContain("HOLDS=database secrets redis\n")
-        ->and(Storage::disk('private')->files('backups'))->toBe([$backup->path]);
+        ->and(Storage::disk('backups')->files('backups'))->toBe([$backup->path]);
 });
 
 it('adds the uploaded files on this server, without the backups', function (): void {
@@ -179,7 +179,7 @@ it('adds the uploaded files on this server, without the backups', function (): v
     expect($backup->parts->all())->toBe([BackupPart::Database, BackupPart::Redis, BackupPart::Files]);
 
     $listing = (string) Process::pipe([
-        ['tar', '-xOf', Storage::disk('private')->path((string) $backup->path), 'files.tar'],
+        ['tar', '-xOf', Storage::disk('backups')->path((string) $backup->path), 'files.tar'],
         ['tar', '-tf', '-'],
     ])->output();
 
@@ -220,7 +220,7 @@ it('saves a failed step on the backup and keeps no archive or work folder', func
     expect($backup->status)->toBe(BackupStatus::Failed)
         ->and($backup->error)->toContain('pg_dump of the pgsql database failed: connection refused')
         ->and($backup->finished_at)->not->toBeNull()
-        ->and(Storage::disk('private')->allFiles())->toBe([])
+        ->and(Storage::disk('backups')->allFiles())->toBe([])
         ->and(File::isDirectory(storage_path('framework/backups/'.$backup->external_id)))->toBeFalse();
 });
 
@@ -254,12 +254,12 @@ it('deletes the backups past the number to keep', function (): void {
     rbaFakePrograms();
     config(['chatvia.backup.keep' => 1]);
     $old = Backup::factory()->completed(now()->subDay())->create();
-    Storage::disk('private')->put($old->path, 'old');
+    Storage::disk('backups')->put($old->path, 'old');
 
     $backup = rbaRun();
 
     expect(Backup::query()->pluck('id')->all())->toBe([$backup->id])
-        ->and(Storage::disk('private')->exists($old->path))->toBeFalse();
+        ->and(Storage::disk('backups')->exists($old->path))->toBeFalse();
 });
 
 it('leaves out the analytics database while the analytics tables are in the main one', function (): void {

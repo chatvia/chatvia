@@ -8,32 +8,73 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * Where the app keeps its files: on this server, or in S3-compatible object
- * storage, with that service's address, keys and bucket. They fill
- * `filesystems.storage` and the `s3` disk; {@see StorageDisks} then builds
- * the `private` disk from them.
+ * storage with up to three buckets (private files, public images, backups),
+ * each with its own address and keys, so each may sit with another service
+ * or account. They fill `filesystems.storage` and `filesystems.buckets`;
+ * {@see StorageDisks} then builds the `private`, `assets` and `backups`
+ * disks from them.
  */
 class StorageSettings extends AdminSettings
 {
     #[ConfigKey('filesystems.storage')]
     public ?string $driver = null;
 
-    #[ConfigKey('filesystems.disks.s3.endpoint')]
-    public ?string $s3_endpoint = null;
+    #[ConfigKey('filesystems.buckets.private.name')]
+    public ?string $s3_private_bucket = null;
 
-    #[ConfigKey('filesystems.disks.s3.region')]
-    public ?string $s3_region = null;
+    #[ConfigKey('filesystems.buckets.private.endpoint')]
+    public ?string $s3_private_endpoint = null;
 
-    #[ConfigKey('filesystems.disks.s3.key')]
-    public ?string $s3_key = null;
+    #[ConfigKey('filesystems.buckets.private.region')]
+    public ?string $s3_private_region = null;
 
-    #[ConfigKey('filesystems.disks.s3.secret'), ShouldBeEncrypted]
-    public ?string $s3_secret = null;
+    #[ConfigKey('filesystems.buckets.private.key')]
+    public ?string $s3_private_key = null;
 
-    #[ConfigKey('filesystems.disks.s3.use_path_style_endpoint')]
-    public ?bool $s3_path_style = null;
+    #[ConfigKey('filesystems.buckets.private.secret'), ShouldBeEncrypted]
+    public ?string $s3_private_secret = null;
 
-    #[ConfigKey('filesystems.disks.s3.bucket')]
-    public ?string $s3_bucket = null;
+    #[ConfigKey('filesystems.buckets.private.path_style')]
+    public ?bool $s3_private_path_style = null;
+
+    #[ConfigKey('filesystems.buckets.public.name')]
+    public ?string $s3_public_bucket = null;
+
+    #[ConfigKey('filesystems.buckets.public.url')]
+    public ?string $s3_public_url = null;
+
+    #[ConfigKey('filesystems.buckets.public.endpoint')]
+    public ?string $s3_public_endpoint = null;
+
+    #[ConfigKey('filesystems.buckets.public.region')]
+    public ?string $s3_public_region = null;
+
+    #[ConfigKey('filesystems.buckets.public.key')]
+    public ?string $s3_public_key = null;
+
+    #[ConfigKey('filesystems.buckets.public.secret'), ShouldBeEncrypted]
+    public ?string $s3_public_secret = null;
+
+    #[ConfigKey('filesystems.buckets.public.path_style')]
+    public ?bool $s3_public_path_style = null;
+
+    #[ConfigKey('filesystems.buckets.backup.name')]
+    public ?string $s3_backup_bucket = null;
+
+    #[ConfigKey('filesystems.buckets.backup.endpoint')]
+    public ?string $s3_backup_endpoint = null;
+
+    #[ConfigKey('filesystems.buckets.backup.region')]
+    public ?string $s3_backup_region = null;
+
+    #[ConfigKey('filesystems.buckets.backup.key')]
+    public ?string $s3_backup_key = null;
+
+    #[ConfigKey('filesystems.buckets.backup.secret'), ShouldBeEncrypted]
+    public ?string $s3_backup_secret = null;
+
+    #[ConfigKey('filesystems.buckets.backup.path_style')]
+    public ?bool $s3_backup_path_style = null;
 
     public static function group(): string
     {

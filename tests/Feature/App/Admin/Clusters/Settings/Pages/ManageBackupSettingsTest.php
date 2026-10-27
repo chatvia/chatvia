@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Storage;
 beforeEach(function (): void {
     $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
-    Storage::fake('private');
+    Storage::fake('backups');
 });
 
 it('saves the schedule and the number of backups to keep', function (): void {
@@ -93,7 +93,7 @@ it('lists the backups, newest first, with why one failed', function (): void {
 
 it('downloads a backup', function (): void {
     $backup = Backup::factory()->completed()->create();
-    Storage::disk('private')->put((string) $backup->path, 'archive');
+    Storage::disk('backups')->put((string) $backup->path, 'archive');
 
     adminPage(ManageBackupSettings::class, $this->admin)
         ->callAction(TestAction::make('download')->table($backup))
@@ -102,14 +102,14 @@ it('downloads a backup', function (): void {
 
 it('deletes a backup with its file', function (): void {
     $backup = Backup::factory()->completed()->create();
-    Storage::disk('private')->put((string) $backup->path, 'archive');
+    Storage::disk('backups')->put((string) $backup->path, 'archive');
 
     adminPage(ManageBackupSettings::class, $this->admin)
         ->callAction(TestAction::make('delete')->table($backup))
         ->assertNotified('Backup deleted');
 
     expect(Backup::query()->exists())->toBeFalse()
-        ->and(Storage::disk('private')->exists((string) $backup->path))->toBeFalse();
+        ->and(Storage::disk('backups')->exists((string) $backup->path))->toBeFalse();
 });
 
 it('shows on the overview when the last backup failed', function (): void {

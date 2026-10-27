@@ -19,6 +19,7 @@ use App\Admin\Settings\CreditLicense;
 use App\Admin\Settings\Data\MailSetupData;
 use App\Admin\Settings\Data\ModelCheckData;
 use App\Admin\Settings\Data\RerankerSetupData;
+use App\Admin\Settings\Data\S3BucketData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\FirecrawlCheck;
@@ -317,9 +318,11 @@ class Setup extends SimplePage
             'rerank_custom_model' => config('chatvia.ai.rerank.custom.model'),
             'document_reader' => $this->suggestedReader($provider),
             'website_import' => filled(config('services.firecrawl.key')) ? self::FIRECRAWL : self::NOT_NOW,
-            'transcriber' => in_array(app(AiSettings::class)->transcriber, $this->speechOptions(), true) ? app(AiSettings::class)->transcriber : self::NOT_NOW,
-            'voice' => in_array(app(AiSettings::class)->voice, $this->voiceOptions(), true) ? app(AiSettings::class)->voice : self::NOT_NOW,
+            'transcriber' => collect($this->speechOptions())->containsStrict(app(AiSettings::class)->transcriber) ? app(AiSettings::class)->transcriber : self::NOT_NOW,
+            'voice' => collect($this->voiceOptions())->containsStrict(app(AiSettings::class)->voice) ? app(AiSettings::class)->voice : self::NOT_NOW,
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
+            'public_files' => filled(app(StorageSettings::class)->s3_public_bucket) ? 'bucket' : 'local',
+            'backup_files' => filled(app(StorageSettings::class)->s3_backup_bucket) ? 'bucket' : 'private',
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
             'app_name' => config('app.name'),
@@ -544,7 +547,7 @@ class Setup extends SimplePage
             ->schema([
                 Callout::make(fn (Get $get): string => 'Connected to '.$this->providerLabel($get('provider')))
                     ->description(fn (Get $get): ?string => ($account = AiProvider::tryFrom((string) $get('provider'))) instanceof AiProvider
-                        ? 'This key gives you: '.$this->capabilityList($account).'.'
+                        ? "This key gives you: {$this->capabilityList($account)}."
                         : null)
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->success(),
@@ -719,12 +722,14 @@ class Setup extends SimplePage
 
     private function storageStep(): Step
     {
+        $s3 = fn (Get $get): bool => $get('storage_driver') === 's3';
+
         return Step::make('Storage')
             ->description('Where files are kept')
             ->icon(Heroicon::OutlinedArchiveBox)
             ->schema([
                 Section::make('Where files are kept')
-                    ->description('Knowledge files, chat attachments and backups.')
+                    ->description('Knowledge files, chat attachments, generated media, public images and backups.')
                     ->icon(Heroicon::OutlinedArchiveBox)
                     ->schema([
                         CardRadio::make('storage_driver')
@@ -740,39 +745,122 @@ class Setup extends SimplePage
                             ])
                             ->required()
                             ->live(),
-                        TextInput::make('s3_endpoint')
-                            ->label('Endpoint')
-                            ->url()
-                            ->helperText('For example https://s3.fr-par.scw.cloud or http://minio:9000. Leave empty for AWS S3.')
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        TextInput::make('s3_region')
-                            ->label('Region')
-                            ->helperText('For example fr-par, eu-west-1, or auto for Cloudflare R2.')
-                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3')
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        TextInput::make('s3_key')
-                            ->label('Access key ID')
-                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3')
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        TextInput::make('s3_secret')
-                            ->label('Secret access key')
-                            ->password()
-                            ->revealable()
-                            ->autocomplete('new-password')
-                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3' && blank(config('filesystems.disks.s3.secret')))
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        TextInput::make('s3_bucket')
-                            ->label('Bucket')
-                            ->helperText('Every file of the app goes here. Keep this bucket private.')
-                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3')
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        Toggle::make('s3_path_style')
-                            ->label('Use path-style addresses')
-                            ->helperText('MinIO and some other servers need it.')
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
+                    ]),
+                Section::make('Private files')
+                    ->description('Knowledge files, chat attachments, and generated images and videos. Keep this bucket private: the app opens its files only through short-lived signed links.')
+                    ->icon(Heroicon::OutlinedLockClosed)
+                    ->columns(2)
+                    ->visible($s3)
+                    ->schema($this->bucketFields('private', 'Private bucket', 'For example chatvia-files.')),
+                Section::make('Public images')
+                    ->description('Profile photos and agent logos. Visitors\' browsers load them straight from where they are kept, so a bucket for them must be public.')
+                    ->icon(Heroicon::OutlinedPhoto)
+                    ->columns(2)
+                    ->visible($s3)
+                    ->schema([
+                        CardRadio::make('public_files')
+                            ->hiddenLabel()
+                            ->options(['local' => 'This server', 'bucket' => 'A public bucket'])
+                            ->descriptions([
+                                'local' => 'This server keeps and serves them. Fine for one server.',
+                                'bucket' => 'A bucket anyone can read. Needed when the app runs on more than one server.',
+                            ])
+                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => Heroicon::OutlinedGlobeAlt])
+                            ->default('local')
+                            ->live()
+                            ->columnSpanFull(),
+                        ...$this->bucketFields('public', 'Public bucket', 'Turn on public read access for this bucket.'),
+                    ]),
+                Section::make('Backups')
+                    ->description('The backups of the database and Redis. They hold all your data, so keep their bucket private.')
+                    ->icon(Heroicon::OutlinedCircleStack)
+                    ->columns(2)
+                    ->visible($s3)
+                    ->schema([
+                        CardRadio::make('backup_files')
+                            ->hiddenLabel()
+                            ->options(['private' => 'The private bucket', 'bucket' => 'A bucket of their own'])
+                            ->descriptions([
+                                'private' => 'Next to the private files. Nothing more to set up.',
+                                'bucket' => 'Safer: the backups stay if the private bucket is deleted.',
+                            ])
+                            ->icons(['private' => Heroicon::OutlinedLockClosed, 'bucket' => Heroicon::OutlinedArchiveBox])
+                            ->default('private')
+                            ->live()
+                            ->columnSpanFull(),
+                        ...$this->bucketFields('backup', 'Backups bucket', 'For example chatvia-backups.'),
                     ]),
             ])
             ->afterValidation(fn () => $this->showingErrors($this->checkStorage(...)));
+    }
+
+    /**
+     * One bucket's name and connection. Each bucket has its own, so it may
+     * sit with another service or account; the public one also asks for the
+     * URL that serves its files.
+     *
+     * @return list<Component>
+     */
+    private function bucketFields(string $bucket, string $label, string $help): array
+    {
+        $used = fn (Get $get): bool => $this->usesBucket($get, $bucket);
+
+        return [
+            TextInput::make("s3_{$bucket}_bucket")
+                ->label($label)
+                ->helperText($help)
+                ->when($bucket === 'public', fn (TextInput $input): TextInput => $input
+                    ->different('s3_private_bucket')
+                    ->different('s3_backup_bucket')
+                    ->validationMessages(['different' => 'Use a bucket of its own: anyone can read the files in the public bucket.']))
+                ->required($used)
+                ->visible($used)
+                ->columnSpan($bucket === 'public' ? 1 : 'full'),
+            ...($bucket === 'public' ? [
+                TextInput::make('s3_public_url')
+                    ->label('Public URL')
+                    ->url()
+                    ->helperText('The address that serves its files, for example https://pub-1234.r2.dev or your CDN.')
+                    ->required($used)
+                    ->visible($used),
+            ] : []),
+            TextInput::make("s3_{$bucket}_endpoint")
+                ->label('Endpoint')
+                ->url()
+                ->helperText('For example https://s3.fr-par.scw.cloud or http://minio:9000. Leave empty for AWS S3.')
+                ->visible($used),
+            TextInput::make("s3_{$bucket}_region")
+                ->label('Region')
+                ->helperText('For example fr-par, eu-west-1, or auto for Cloudflare R2.')
+                ->required($used)
+                ->visible($used),
+            TextInput::make("s3_{$bucket}_key")
+                ->label('Access key ID')
+                ->required($used)
+                ->visible($used),
+            TextInput::make("s3_{$bucket}_secret")
+                ->label('Secret access key')
+                ->password()
+                ->revealable()
+                ->autocomplete('new-password')
+                ->required(fn (Get $get): bool => $used($get) && blank(config("filesystems.buckets.{$bucket}.secret")))
+                ->visible($used),
+            Toggle::make("s3_{$bucket}_path_style")
+                ->label('Use path-style addresses')
+                ->helperText('MinIO and some other servers need it.')
+                ->visible($used)
+                ->columnSpanFull(),
+        ];
+    }
+
+    /** Whether the form keeps files in this bucket of S3-compatible storage. */
+    private function usesBucket(Get $get, string $bucket): bool
+    {
+        return $get('storage_driver') === 's3' && match ($bucket) {
+            'public' => $get('public_files') === 'bucket',
+            'backup' => $get('backup_files') === 'bucket',
+            default => true,
+        };
     }
 
     private function emailStep(): Step
@@ -1167,7 +1255,7 @@ class Setup extends SimplePage
                 ->in(fn (): array => $this->imageModels())
                 ->searchable()
                 ->required()
-                ->helperText(fn (): string => in_array(true, $this->modelsReadingImages, true) ? 'Only the models that read images are listed.' : 'A model that reads images.')
+                ->helperText(fn (): string => collect($this->modelsReadingImages)->containsStrict(true) ? 'Only the models that read images are listed.' : 'A model that reads images.')
                 ->hintAction($this->testAction(self::TEST_IMAGES))
                 ->visible(fn (Get $get): bool => $this->models !== [] && (bool) $get('describe_images')),
             Toggle::make('chat_files')
@@ -1218,7 +1306,7 @@ class Setup extends SimplePage
         }
 
         if ($field->kind === 'secret' && ($url = $provider->keysUrl()) !== null && $component instanceof TextInput) {
-            $component->hintAction(Action::make('getMailKey_'.$provider->value)
+            $component->hintAction(Action::make("getMailKey_{$provider->value}")
                 ->label('Get a key')
                 ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                 ->iconPosition('after')
@@ -1274,8 +1362,8 @@ class Setup extends SimplePage
             ->description(fn (): HtmlString => new HtmlString(match ($this->pgTextsearchState()) {
                 PgTextsearchState::Active, PgTextsearchState::SwitchedOff => 'The <code>SEARCH_LEXICAL_DRIVER</code> setting in <code>.env</code> keeps the built-in search. Remove it, then run <code>php artisan chatvia:search:lexical-indexes</code>. '.e($why),
                 PgTextsearchState::ReadyToEnable => e($why).' The database has it loaded: turn it on here. This also rebuilds the search indexes.',
-                PgTextsearchState::NotPreloaded => e($why).' It is installed on the database server, but PostgreSQL does not load it. '.$load,
-                PgTextsearchState::NotInstalled => e($why).' Install it from its <a href="https://github.com/timescale/pg_textsearch/releases" target="_blank" rel="noopener" class="underline">releases page</a> (the Docker setup and <code>install.sh</code> include it). '.$load.' A managed cloud database often cannot load it: then go on, the built-in search works.',
+                PgTextsearchState::NotPreloaded => e($why)." It is installed on the database server, but PostgreSQL does not load it. {$load}",
+                PgTextsearchState::NotInstalled => e($why).' Install it from its <a href="https://github.com/timescale/pg_textsearch/releases" target="_blank" rel="noopener" class="underline">releases page</a> (the Docker setup and <code>install.sh</code> include it). '."{$load} A managed cloud database often cannot load it: then go on, the built-in search works.",
             }))
             ->icon(Heroicon::OutlinedLightBulb)
             ->status(fn (): string => $this->pgTextsearchState() === PgTextsearchState::SwitchedOff ? 'info' : 'warning')
@@ -1323,13 +1411,13 @@ class Setup extends SimplePage
             .'with no API, voice conversations, live chat, capabilities or forms, and the "Powered by ChatVia.ai" credit under every chat.';
 
         return Callout::make(fn (): string => match ($this->licenseStatus()) {
-            LicenseStatus::Valid => $this->licenseType().' license, licensed to '.$this->license()->read($this->savedLicenseKey())?->licensee,
+            LicenseStatus::Valid => "{$this->licenseType()} license, licensed to ".$this->license()->read($this->savedLicenseKey())?->licensee,
             LicenseStatus::Missing => 'Get the most out of ChatVia.ai',
             default => 'The saved license is not active here',
         })
             ->description(fn (): string => match (true) {
                 $this->licenseStatus() === LicenseStatus::Valid => 'The free limits are lifted. You can hide the credit on the License page.',
-                $this->runsOnLocalAddress() => $limits.' A key works for one domain: add it on the License page once ChatVia.ai runs at its real address.',
+                $this->runsOnLocalAddress() => "{$limits} A key works for one domain: add it on the License page once ChatVia.ai runs at its real address.",
                 default => $limits.' A license key lifts every limit and lets you hide the credit. A Pro license costs $399, one time, and never expires.',
             })
             ->icon(fn (): Heroicon => $this->licenseStatus() === LicenseStatus::Valid ? Heroicon::OutlinedCheckBadge : Heroicon::OutlinedSparkles)
@@ -1484,7 +1572,7 @@ class Setup extends SimplePage
 
                 $this->data['chat_models'] = $chosen;
 
-                if (! in_array($this->data['default_model'] ?? null, $chosen, true)) {
+                if (! collect($chosen)->containsStrict($this->data['default_model'] ?? null)) {
                     $this->data['default_model'] = $chosen[0] ?? null;
                 }
             });
@@ -1574,7 +1662,7 @@ class Setup extends SimplePage
                     ->reject(fn (array $section): bool => $section['rows'] === [])
                     ->values()
                     ->all(),
-                'image' => in_array(self::TEST_IMAGES, $sections, true) ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('images/setup/test-cat.png'))) : null,
+                'image' => collect($sections)->containsStrict(self::TEST_IMAGES) ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('images/setup/test-cat.png'))) : null,
                 'onFailure' => $onFailure,
             ]));
     }
@@ -1644,7 +1732,7 @@ class Setup extends SimplePage
     public function testModel(string $section, string $key): array
     {
         $state = $this->form->getRawState();
-        $testable = in_array($key, array_column($this->testRows($section), 'key'), true);
+        $testable = collect(array_column($this->testRows($section), 'key'))->containsStrict($key);
 
         $check = match (true) {
             ! $testable => ModelCheckData::failed('This is not one of the models to test.'),
@@ -1698,7 +1786,7 @@ class Setup extends SimplePage
             ->modalHeading('Continue with a service down?')
             ->modalDescription(fn (): string => sprintf(
                 'Down: %s. ChatVia.ai does not work fully while a service is down: agents may not answer, and sources are not trained. You can fix it later: the Status page checks every service at any time.',
-                implode(', ', array_map(fn (Service $service): string => $service->label(), $this->servicesDown())),
+                Arr::join(array_map(fn (Service $service): string => $service->label(), $this->servicesDown()), ', '),
             ))
             ->modalSubmitActionLabel('Continue anyway')
             ->modalCancelActionLabel('Fix it first')
@@ -1720,7 +1808,7 @@ class Setup extends SimplePage
             ->modalHeading('ChatVia.ai does not work without these')
             ->modalDescription(fn (): string => sprintf(
                 'Still missing: %s. Until they are set up, agents cannot answer, sources cannot be trained and search does not work. You can finish the setup later from Settings.',
-                implode(', ', app(SetupRequirements::class)->missing()) ?: 'nothing',
+                Arr::join(app(SetupRequirements::class)->missing(), ', ') ?: 'nothing',
             ))
             ->modalSubmitActionLabel('Skip anyway')
             ->color('danger')
@@ -1810,7 +1898,7 @@ class Setup extends SimplePage
             $this->readModels($state);
         }
 
-        if (in_array($this->listStatus, [ModelListStatus::KeyRefused->value, ModelListStatus::Unreachable->value], true)) {
+        if (collect([ModelListStatus::KeyRefused->value, ModelListStatus::Unreachable->value])->containsStrict($this->listStatus)) {
             $field = match (true) {
                 $this->listStatus !== ModelListStatus::Unreachable->value => 'data.api_key',
                 ! $this->account($state) instanceof AiProvider => 'data.server_url',
@@ -1908,7 +1996,7 @@ class Setup extends SimplePage
     {
         $key = $state[$this->earlierKeyField('embedding_provider', $state) ?? 'embedding_api_key'] ?? null;
 
-        return hash('sha256', implode("\n", [(string) ($state['embedding_provider'] ?? ''), (string) ($state['embedding_model'] ?? ''), (string) $key]));
+        return hash('sha256', Arr::join([(string) ($state['embedding_provider'] ?? ''), (string) ($state['embedding_model'] ?? ''), (string) $key], "\n"));
     }
 
     /**
@@ -1975,7 +2063,7 @@ class Setup extends SimplePage
     {
         $chosen = $this->rerankerData($state);
 
-        return hash('sha256', implode("\n", [$chosen->driver, $chosen->model ?? '', $this->filled($state, $this->rerankerKeyField($state)) ?? '', $chosen->url ?? '']));
+        return hash('sha256', Arr::join([$chosen->driver, $chosen->model ?? '', $this->filled($state, $this->rerankerKeyField($state)) ?? '', $chosen->url ?? ''], "\n"));
     }
 
     /**
@@ -2060,7 +2148,7 @@ class Setup extends SimplePage
         $models = $this->chosenModels($state);
 
         $chat = $models !== []
-            && collect($models)->every(fn (RemoteModelData $model): bool => in_array($this->rememberedCheck("chat:{$model->id}", $this->fingerprint($state)), [ModelCheckData::PASSED, ModelCheckData::BUSY], true));
+            && collect($models)->every(fn (RemoteModelData $model): bool => collect([ModelCheckData::PASSED, ModelCheckData::BUSY])->containsStrict($this->rememberedCheck("chat:{$model->id}", $this->fingerprint($state))));
         $embeddings = ! $this->embeddingProvider($state) instanceof EmbeddingProvider || $this->rememberedCheck(self::TEST_EMBEDDINGS, $this->embeddingFingerprint($state)) === ModelCheckData::PASSED;
         $reranker = ! $this->rerankerData($state)->isOn() || $this->rememberedCheck(self::TEST_RERANKER, $this->rerankerFingerprint($state)) === ModelCheckData::PASSED;
 
@@ -2129,7 +2217,11 @@ class Setup extends SimplePage
         }
     }
 
-    /** The storage step's check: S3-compatible storage writes, reads and deletes a test file. */
+    /**
+     * The storage step's check: each bucket of S3-compatible storage writes,
+     * reads and deletes a test file, and the public one also serves it at
+     * its public URL.
+     */
     private function checkStorage(): void
     {
         $storage = $this->storageData($this->form->getRawState());
@@ -2138,18 +2230,17 @@ class Setup extends SimplePage
             return;
         }
 
-        $error = app(StorageCheck::class)->check(new StorageSetupData(
-            driver: 's3',
-            endpoint: $storage->endpoint,
-            region: $storage->region,
-            key: $storage->key,
-            secret: $storage->secret ?? config('filesystems.disks.s3.secret'),
-            pathStyle: $storage->pathStyle,
-            bucket: $storage->bucket,
-        ));
+        $check = app(StorageCheck::class);
 
-        if ($error !== null) {
-            throw ValidationException::withMessages(['data.s3_bucket' => $error]);
+        $errors = collect(['private' => $storage->private, 'public' => $storage->public, 'backup' => $storage->backup])
+            ->filter()
+            ->mapWithKeys(fn (S3BucketData $bucket, string $name): array => ["data.s3_{$name}_bucket" => $check->check(
+                $bucket->secret === null ? S3BucketData::from([...$bucket->toArray(), 'secret' => config("filesystems.buckets.{$name}.secret")]) : $bucket,
+            )])
+            ->filter();
+
+        if ($errors->isNotEmpty()) {
+            throw ValidationException::withMessages($errors->all());
         }
     }
 
@@ -2304,14 +2395,33 @@ class Setup extends SimplePage
      */
     private function storageData(array $state): StorageSetupData
     {
+        $driver = ($state['storage_driver'] ?? 'local') === 's3' ? 's3' : 'local';
+
+        if ($driver === 'local') {
+            return new StorageSetupData($driver);
+        }
+
         return new StorageSetupData(
-            driver: ($state['storage_driver'] ?? 'local') === 's3' ? 's3' : 'local',
-            endpoint: $this->filled($state, 's3_endpoint'),
-            region: $this->filled($state, 's3_region'),
-            key: $this->filled($state, 's3_key'),
-            secret: $this->filled($state, 's3_secret'),
-            pathStyle: (bool) ($state['s3_path_style'] ?? false),
-            bucket: $this->filled($state, 's3_bucket'),
+            driver: $driver,
+            private: $this->bucketData($state, 'private'),
+            public: ($state['public_files'] ?? null) === 'bucket' ? $this->bucketData($state, 'public') : null,
+            backup: ($state['backup_files'] ?? null) === 'bucket' ? $this->bucketData($state, 'backup') : null,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $state
+     */
+    private function bucketData(array $state, string $bucket): S3BucketData
+    {
+        return new S3BucketData(
+            bucket: $this->filled($state, "s3_{$bucket}_bucket"),
+            endpoint: $this->filled($state, "s3_{$bucket}_endpoint"),
+            region: $this->filled($state, "s3_{$bucket}_region"),
+            key: $this->filled($state, "s3_{$bucket}_key"),
+            secret: $this->filled($state, "s3_{$bucket}_secret"),
+            pathStyle: (bool) ($state["s3_{$bucket}_path_style"] ?? false),
+            url: $bucket === 'public' ? $this->filled($state, 's3_public_url') : null,
         );
     }
 
@@ -2398,7 +2508,7 @@ class Setup extends SimplePage
     /** "chat · embeddings · speech to text" */
     private function capabilityList(AiProvider $provider): string
     {
-        return implode(' · ', array_map(fn (AiCapability $capability): string => $capability->label(), $provider->capabilities()));
+        return Arr::join(array_map(fn (AiCapability $capability): string => $capability->label(), $provider->capabilities()), ' · ');
     }
 
     private function providerLabel(mixed $value): string
@@ -2632,7 +2742,7 @@ class Setup extends SimplePage
      */
     private function fingerprint(array $state): string
     {
-        return hash('sha256', implode("\n", [$state['provider'] ?? '', $state['server_url'] ?? '', $state['chat_endpoint'] ?? '', $state['api_key'] ?? '']));
+        return hash('sha256', Arr::join([$state['provider'] ?? '', $state['server_url'] ?? '', $state['chat_endpoint'] ?? '', $state['api_key'] ?? ''], "\n"));
     }
 
     private function forgetList(): void
@@ -2711,7 +2821,7 @@ class Setup extends SimplePage
      */
     private function fileModels(): array
     {
-        return array_values(array_filter(array_map(strval(...), array_keys($this->models)), fn (string $id): bool => in_array($id, $this->modelsReadingFiles, true)));
+        return array_values(array_filter(array_map(strval(...), array_keys($this->models)), fn (string $id): bool => collect($this->modelsReadingFiles)->containsStrict($id)));
     }
 
     /**
@@ -2775,8 +2885,8 @@ class Setup extends SimplePage
             ->map(fn (string|int $id): string => (string) $id)
             ->mapWithKeys(fn (string $id): array => [$id => collect([
                 $this->modelName($id) === $id ? null : $id,
-                in_array($id, $this->suggestedModels, true) ? 'Suggested: calls tools well' : null,
-                in_array($id, $this->modelsWithoutTools, true) ? 'No tool calling: tools will not work' : null,
+                collect($this->suggestedModels)->containsStrict($id) ? 'Suggested: calls tools well' : null,
+                collect($this->modelsWithoutTools)->containsStrict($id) ? 'No tool calling: tools will not work' : null,
             ])->filter()->implode(' · ')])
             ->filter()
             ->all();
@@ -2811,7 +2921,7 @@ class Setup extends SimplePage
     {
         $state = Cache::get($this->checkCacheKey($what, $fingerprint));
 
-        return in_array($state, [ModelCheckData::PASSED, ModelCheckData::BUSY, ModelCheckData::FAILED], true) ? $state : null;
+        return collect([ModelCheckData::PASSED, ModelCheckData::BUSY, ModelCheckData::FAILED])->containsStrict($state) ? $state : null;
     }
 
     private function checkCacheKey(string $what, string $fingerprint): string
@@ -2842,7 +2952,7 @@ class Setup extends SimplePage
 
         return match (true) {
             $own instanceof EmbeddingProvider => $own,
-            in_array($current, $fitting, true) && $current->account()->isConnected() => $current,
+            collect($fitting)->containsStrict($current) && $current->account()->isConnected() => $current,
             default => array_find($fitting, fn (EmbeddingProvider $fits): bool => $fits->account()->isConnected()) ?? $fitting[0] ?? null,
         };
     }

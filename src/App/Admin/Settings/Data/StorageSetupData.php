@@ -8,19 +8,18 @@ use Spatie\LaravelData\Data;
 
 /**
  * Where an install keeps its files, as the admin setup asks for it: this
- * server, or an S3-compatible service with its address, keys and bucket.
- * A null secret keeps the saved one.
+ * server, or S3-compatible storage with a private bucket and, optionally, a
+ * public bucket and a backups bucket, each with its own connection. A
+ * missing public or backups bucket keeps public images on this server and
+ * backups in the private bucket.
  */
 final class StorageSetupData extends Data
 {
     public function __construct(
         public string $driver = 'local',
-        public ?string $endpoint = null,
-        public ?string $region = null,
-        public ?string $key = null,
-        public ?string $secret = null,
-        public bool $pathStyle = false,
-        public ?string $bucket = null,
+        public ?S3BucketData $private = null,
+        public ?S3BucketData $public = null,
+        public ?S3BucketData $backup = null,
     ) {}
 
     public function usesS3(): bool

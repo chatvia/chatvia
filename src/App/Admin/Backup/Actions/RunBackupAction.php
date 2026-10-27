@@ -24,7 +24,7 @@ use Throwable;
  * Makes a waiting backup: dumps the databases and Redis into a work folder,
  * packs them in one tar in the layout of `./manage backup` (so `./manage
  * restore` takes it), encrypts it to the admin's public key when one is set,
- * and stores it on the `private` disk under `backups/`. Then deletes the
+ * and stores it on the `backups` disk under `backups/`. Then deletes the
  * backups past the number to keep.
  *
  * The app key goes in only when the archive is encrypted: with it, anyone
@@ -37,7 +37,7 @@ use Throwable;
  */
 class RunBackupAction
 {
-    public const string DISK = 'private';
+    public const string DISK = 'backups';
 
     public const string FOLDER = 'backups';
 
@@ -67,7 +67,7 @@ class RunBackupAction
             return $backup;
         }
 
-        $work = storage_path('framework/backups/'.$backup->external_id);
+        $work = storage_path("framework/backups/{$backup->external_id}");
 
         try {
             $this->failAbandoned($backup);
@@ -99,7 +99,7 @@ class RunBackupAction
     {
         $publicKey = (string) config('chatvia.backup.public_key');
         $parts = $this->dumpParts($work, encrypted: filled($publicKey));
-        $this->writeInfo($work.'/backup.env', $parts);
+        $this->writeInfo("{$work}/backup.env", $parts);
 
         $name = 'chatvia-'.now()->format('Y-m-d-His').'.tar';
         $this->pack($work, $name, $parts);
@@ -107,12 +107,12 @@ class RunBackupAction
         $fingerprint = null;
 
         if (filled($publicKey)) {
-            $fingerprint = $this->encryption->encrypt($publicKey, $work.'/'.$name, $work.'/'.$name.'.gpg');
-            File::delete($work.'/'.$name);
+            $fingerprint = $this->encryption->encrypt($publicKey, "{$work}/{$name}", "{$work}/{$name}.gpg");
+            File::delete("{$work}/{$name}");
             $name .= '.gpg';
         }
 
-        $archive = $work.'/'.$name;
+        $archive = "{$work}/{$name}";
         // Private: on this server's disk only the app's own user may read it.
         $path = Storage::disk(self::DISK)->putFileAs(self::FOLDER, new HttpFile($archive), $name, ['visibility' => 'private']);
 
@@ -141,20 +141,20 @@ class RunBackupAction
     private function dumpParts(string $work, bool $encrypted): array
     {
         $main = (string) config('database.default');
-        $this->postgres->dump($main, $work.'/'.BackupPart::Database->member());
-        File::put($work.'/database-extras.sql', $this->postgres->settingsSql($main));
+        $this->postgres->dump($main, "{$work}/".BackupPart::Database->member());
+        File::put("{$work}/database-extras.sql", $this->postgres->settingsSql($main));
         $parts = [BackupPart::Database];
 
         if ($encrypted) {
-            File::put($work.'/'.BackupPart::Secrets->member(), $this->secrets());
+            File::put("{$work}/".BackupPart::Secrets->member(), $this->secrets());
             $parts[] = BackupPart::Secrets;
         }
 
-        $this->redis->dump($work.'/'.BackupPart::Redis->member());
+        $this->redis->dump("{$work}/".BackupPart::Redis->member());
         $parts[] = BackupPart::Redis;
 
         if (config('chatvia.backup.include_files') && config('filesystems.storage') !== 's3') {
-            $this->packFiles($work.'/'.BackupPart::Files->member());
+            $this->packFiles("{$work}/".BackupPart::Files->member());
             $parts[] = BackupPart::Files;
         }
 
@@ -168,7 +168,7 @@ class RunBackupAction
             $connection = (string) $part->connection();
 
             if ($this->postgres->isSeparate($connection) && $this->postgres->exists($connection)) {
-                $this->postgres->dump($connection, $work.'/'.$part->member());
+                $this->postgres->dump($connection, "{$work}/{$part->member()}");
                 $parts[] = $part;
             }
         }
@@ -189,7 +189,7 @@ class RunBackupAction
             '# The app key of this install, saved by ChatVia.ai\'s own backup.',
             '# Keep it safe: without it, encrypted data cannot be read.',
             'APP_KEY='.config('app.key'),
-            ...(filled($previous) ? ['APP_PREVIOUS_KEYS='.$previous] : []),
+            ...(filled($previous) ? ["APP_PREVIOUS_KEYS={$previous}"] : []),
         ])->implode("\n")."\n";
     }
 
@@ -218,7 +218,7 @@ class RunBackupAction
             ->prepend('backup.env')
             ->all();
 
-        $this->tar(['-cf', $work.'/'.$name, '-C', $work, ...$members]);
+        $this->tar(['-cf', "{$work}/{$name}", '-C', $work, ...$members]);
     }
 
     /**

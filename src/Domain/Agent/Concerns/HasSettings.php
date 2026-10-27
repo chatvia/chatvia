@@ -158,7 +158,7 @@ trait HasSettings
      */
     private function settingDefaults(string $group): ?array
     {
-        return config('model-settings.defaults.'.$this::class.'.'.$group);
+        return config('model-settings.defaults.'.$this::class.".{$group}");
     }
 
     /**
@@ -195,8 +195,8 @@ trait HasSettings
      * Mirror ProfilePhotoStorage: process and upload first, and only let the
      * new path reach the database once the upload succeeds — a failed upload
      * throws and leaves the existing image untouched. Brand assets (widget
-     * logo/avatar) are public + CDN-served, so they live on the `assets` disk
-     * and read back via its pull-zone URL.
+     * logo/avatar) are public, so they live on the `assets` disk (the public
+     * bucket or this server) and read back via its URL.
      *
      * @return string the stored path
      */
@@ -208,7 +208,7 @@ trait HasSettings
         $data = Image::decodeBinary($image->getContent())->scale(height: 128)->encode(new PngEncoder)->toString();
         $file = new File(create_temp_file($image->getFilename(), $data));
 
-        $uploadedPath = $disk->putFile($this->settingsStorageRoot().'/settings/'.$group, $file);
+        $uploadedPath = $disk->putFile("{$this->settingsStorageRoot()}/settings/{$group}", $file);
 
         // putFile returns false on failure when a disk doesn't throw — never
         // overwrite the saved value with a non-path. (The assets disk has
@@ -218,7 +218,7 @@ trait HasSettings
         }
 
         // Delete the replaced file only after the new one is safely stored,
-        // best-effort: a stale CDN object must not fail an otherwise-good save.
+        // best-effort: a stale stored object must not fail an otherwise-good save.
         if (filled($previousPath) && $previousPath !== $uploadedPath) {
             try {
                 $disk->delete($previousPath);

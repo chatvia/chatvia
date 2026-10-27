@@ -15,13 +15,11 @@ use Tests\Support\Config\ConfigFile;
 function shdNoCloudStorageEnv(): array
 {
     return [
-        'BUNNYCDN_STORAGE_ZONE' => null,
-        'FILESYSTEM_ASSETS_DRIVER' => null,
         'APP_URL' => 'https://files.example.org',
     ];
 }
 
-it('stores files on the local disk when no bucket or CDN zone is configured', function (): void {
+it('stores files on the local disk when no bucket is configured', function (): void {
     $config = ConfigFile::with('filesystems.php', shdNoCloudStorageEnv());
     $disks = $config['disks'];
 
@@ -32,31 +30,19 @@ it('stores files on the local disk when no bucket or CDN zone is configured', fu
             'serve' => true,
             'url' => 'https://files.example.org/private-storage',
         ])
-        ->and($disks['s3']['bucket'])->toBeNull()
+        ->and($disks['s3'])->toBe(['driver' => 's3', 'throw' => true, 'report' => true])
         ->and($disks)->not->toHaveKey('public')
         ->and($disks['assets'])->toMatchArray([
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => 'https://files.example.org/storage',
         ])
+        ->and($disks['backups'])->toMatchArray(['driver' => 'local', 'root' => storage_path('app/private')])
+        ->and($config['buckets'])->toHaveKeys(['private', 'public', 'backup'])
+        ->and($config['buckets']['private'])->toBe(['name' => null, 'endpoint' => null, 'region' => null, 'key' => null, 'secret' => null, 'path_style' => false])
+        ->and($config['buckets']['public'])->toHaveKey('url', null)
         // `php artisan storage:link` publishes the public folder at /storage.
         ->and($config['links'])->toBe([public_path('storage') => storage_path('app/public')]);
-});
-
-it('keeps the CDN when its env is set', function (): void {
-    $assets = ConfigFile::with('filesystems.php', [...shdNoCloudStorageEnv(), 'BUNNYCDN_STORAGE_ZONE' => 'acme-zone'])['disks']['assets'];
-
-    expect($assets)->toMatchArray(['driver' => 'bunnycdn', 'storage_zone' => 'acme-zone']);
-});
-
-it('lets an explicit driver override the detected one', function (): void {
-    $assets = ConfigFile::with('filesystems.php', [
-        ...shdNoCloudStorageEnv(),
-        'BUNNYCDN_STORAGE_ZONE' => 'acme-zone',
-        'FILESYSTEM_ASSETS_DRIVER' => 'local',
-    ])['disks']['assets'];
-
-    expect($assets['driver'])->toBe('local');
 });
 
 it('derives passkey origins from APP_URL plus the www variant', function (): void {
@@ -84,6 +70,11 @@ it('resolves helper binaries from PATH by default, never from .env', function ()
         'pdftotext' => 'pdftotext',
         'ffmpeg' => 'ffmpeg',
         'ffprobe' => 'ffprobe',
+        'pg_dump' => 'pg_dump',
+        'pg_restore' => 'pg_restore',
+        'redis_cli' => 'redis-cli',
+        'gpg' => 'gpg',
+        'tar' => 'tar',
     ])->and(ConfigFile::with('laravel-pdf.php', ['WEASYPRINT_BIN_PATH' => '/bin/sh'])['weasyprint']['binary'])->toBe('weasyprint');
 });
 

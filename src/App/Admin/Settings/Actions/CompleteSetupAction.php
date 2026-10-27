@@ -9,6 +9,7 @@ use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\MailSetupData;
 use App\Admin\Settings\Data\RerankerSetupData;
+use App\Admin\Settings\Data\S3BucketData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\KnowledgeSettings;
@@ -239,18 +240,33 @@ final readonly class CompleteSetupAction
             return;
         }
 
+        $this->saveBucket('private', $storage->private);
+        $this->saveBucket('public', $storage->public);
+        $this->saveBucket('backup', $storage->backup);
+        $this->set($this->storage, 's3_public_url', $storage->public?->url);
+    }
+
+    /**
+     * One bucket's name and connection; a bucket that is not used is
+     * cleared, and a blank secret keeps the saved one.
+     */
+    private function saveBucket(string $name, ?S3BucketData $bucket): void
+    {
         foreach ([
-            's3_endpoint' => $storage->endpoint,
-            's3_region' => $storage->region,
-            's3_key' => $storage->key,
-            's3_path_style' => $storage->pathStyle,
-            's3_bucket' => $storage->bucket,
-        ] as $property => $value) {
+            'bucket' => $bucket?->bucket,
+            'endpoint' => $bucket?->endpoint,
+            'region' => $bucket?->region,
+            'key' => $bucket?->key,
+            'path_style' => $bucket?->pathStyle,
+        ] as $field => $value) {
+            $property = "s3_{$name}_{$field}";
             $this->set($this->storage, $property, StorageSettings::cast($property, $value));
         }
 
-        if (filled($storage->secret)) {
-            $this->storage->s3_secret = $storage->secret;
+        if ($bucket === null) {
+            $this->storage->{"s3_{$name}_secret"} = null;
+        } elseif (filled($bucket->secret)) {
+            $this->storage->{"s3_{$name}_secret"} = $bucket->secret;
         }
     }
 

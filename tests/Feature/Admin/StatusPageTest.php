@@ -37,7 +37,8 @@ beforeEach(function (): void {
     $this->admin = adminUser();
     Filament::setCurrentPanel('admin');
     Storage::fake('private');
-    Storage::fake('public');
+    Storage::fake('assets');
+    Storage::fake('backups');
     FakeRedisAndHorizon::bind();
 });
 
@@ -234,7 +235,8 @@ it('opens the details of a card with a hint and few lines', function (): void {
 it('saves a file to each disk and reads it back', function (): void {
     expect(app(ServiceChecks::class)->check(Service::Storage)->state)->toBe(ServiceState::Running)
         ->and(Storage::disk('private')->allFiles())->toBe([])
-        ->and(Storage::disk('public')->allFiles())->toBe([]);
+        ->and(Storage::disk('assets')->allFiles())->toBe([])
+        ->and(Storage::disk('backups')->allFiles())->toBe([]);
 });
 
 it('says when live updates do not go through Reverb, or Reverb does not answer', function (): void {

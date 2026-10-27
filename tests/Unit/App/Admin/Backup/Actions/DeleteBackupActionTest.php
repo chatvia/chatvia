@@ -9,17 +9,17 @@ use Illuminate\Support\Facades\Storage;
  * Deleting a backup: the archive and the row go; a backup being made stays.
  */
 beforeEach(function (): void {
-    Storage::fake('private');
+    Storage::fake('backups');
 });
 
 it('deletes the archive and the row', function (): void {
     $backup = Backup::factory()->completed()->create();
-    Storage::disk('private')->put((string) $backup->path, 'archive');
+    Storage::disk('backups')->put((string) $backup->path, 'archive');
 
     app(DeleteBackupAction::class)->execute($backup);
 
     expect(Backup::query()->exists())->toBeFalse()
-        ->and(Storage::disk('private')->exists((string) $backup->path))->toBeFalse();
+        ->and(Storage::disk('backups')->exists((string) $backup->path))->toBeFalse();
 });
 
 it('deletes a failed backup that has no archive', function (): void {

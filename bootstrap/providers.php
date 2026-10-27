@@ -9,7 +9,6 @@ use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
 use App\Providers\DatabaseServiceProvider;
 use App\Providers\DomainServiceProvider;
-use App\Providers\FilesystemServiceProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\HttpMacroServiceProvider;
@@ -31,7 +30,6 @@ return [
     HttpMacroServiceProvider::class,
     AuthServiceProvider::class,
     RateLimitServiceProvider::class,
-    FilesystemServiceProvider::class,
     ApiDocsServiceProvider::class,
     DatabaseServiceProvider::class,
     DomainServiceProvider::class,

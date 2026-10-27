@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNRegion;
-
 return [
 
     /*
@@ -12,8 +10,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | The `private` disk holds every file that is not public: knowledge files,
-    | chat attachments, images from knowledge files and backups. Its files
-    | are opened only through signed links.
+    | chat attachments, images from knowledge files and generated media. Its
+    | files are opened only through signed links.
     |
     */
 
@@ -24,10 +22,12 @@ return [
     | File Storage
     |--------------------------------------------------------------------------
     |
-    | Where the `private` disk keeps its files: "local" (this server) or "s3"
-    | (the S3-compatible service of the `s3` disk below, such as AWS S3,
-    | Scaleway, Cloudflare R2 or MinIO). Both are set in the admin panel
-    | (Settings → Storage). Switching moves no files.
+    | Where the app keeps its files: "local" (this server) or "s3" (an
+    | S3-compatible service, such as AWS S3, Scaleway, Cloudflare R2 or
+    | MinIO). With "s3", each bucket below has its own connection: `private`
+    | holds the private files, and the optional `public` (served from its
+    | `url`) and `backup` hold the public images and the backups. All are set
+    | in the admin panel (Settings → Storage). Switching moves no files.
     |
     | Supported: "local", "s3"
     |
@@ -35,18 +35,47 @@ return [
 
     'storage' => 'local',
 
+    'buckets' => [
+        'private' => [
+            'name' => null,
+            'endpoint' => null,
+            'region' => null,
+            'key' => null,
+            'secret' => null,
+            'path_style' => false,
+        ],
+        'public' => [
+            'name' => null,
+            'url' => null,
+            'endpoint' => null,
+            'region' => null,
+            'key' => null,
+            'secret' => null,
+            'path_style' => false,
+        ],
+        'backup' => [
+            'name' => null,
+            'endpoint' => null,
+            'region' => null,
+            'key' => null,
+            'secret' => null,
+            'path_style' => false,
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
-    | The disks the app writes to. `private` stays on this server until the
-    | storage above is "s3"; App\Admin\Settings\StorageDisks then gives it the
-    | `s3` disk's settings. `assets` (profile photos, widget logos) uses Bunny
-    | CDN when BUNNYCDN_STORAGE_ZONE is set, and this server otherwise.
-    | `local` keeps data exports.
+    | The disks the app writes to. `private`, `assets` (profile photos, agent
+    | logos) and `backups` stay on this server until the storage above is
+    | "s3"; App\Admin\Settings\StorageDisks then builds each from the `s3`
+    | disk and its bucket's connection: `private` the private bucket,
+    | `assets` the public bucket when one is set, and `backups` the backup
+    | bucket, or else the private one. `local` keeps data exports.
     |
-    | Supported drivers: "local", "s3", "bunnycdn"
+    | Supported drivers: "local", "s3"
     |
     */
 
@@ -69,33 +98,28 @@ return [
             'report' => true,
         ],
 
+        // The base of every bucket's disk; the bucket and its connection
+        // come from `buckets` above.
         's3' => [
             'driver' => 's3',
-            'key' => null,
-            'secret' => null,
-            'region' => null,
-            'bucket' => null,
-            'endpoint' => null,
-            'use_path_style_endpoint' => false,
             'throw' => true,
             'report' => true,
         ],
 
-        'assets' => env('FILESYSTEM_ASSETS_DRIVER', filled(env('BUNNYCDN_STORAGE_ZONE')) ? 'bunnycdn' : 'local') === 'bunnycdn' ? [
-            'driver' => 'bunnycdn',
-            'storage_zone' => env('BUNNYCDN_STORAGE_ZONE'),
-            'pull_zone' => env('BUNNYCDN_PULL_ZONE'),
-            'api_key' => env('BUNNYCDN_API_KEY'),
-            'region' => env('BUNNYCDN_REGION', BunnyCDNRegion::DEFAULT),
-            'throw' => true,
-            'report' => true,
-        ] : [
+        'assets' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => env('APP_URL').'/storage',
             'throw' => true,
             'report' => true,
             'visibility' => 'public',
+        ],
+
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'throw' => true,
+            'report' => true,
         ],
 
     ],

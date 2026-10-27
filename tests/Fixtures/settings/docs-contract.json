@@ -429,12 +429,17 @@
     ],
     "settings/storage#where-files-are-kept": [
         "Store files in",
+        "Private bucket",
         "Endpoint",
         "Region",
         "Access key ID",
         "Secret access key",
-        "Bucket",
-        "Use path-style addresses"
+        "Use path-style addresses",
+        "Keep profile photos and agent logos on",
+        "Public bucket",
+        "Public URL",
+        "Keep backups in",
+        "Backups bucket"
     ],
     "settings/widget#ai-disclosure": [
         "Show \"AI assistant\" in the header"

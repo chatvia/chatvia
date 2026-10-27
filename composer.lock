@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "38b970943b3d349117198763adeae21c",
+    "content-hash": "ce6a1d534d4e493191ca408f536879a1",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -7585,65 +7585,6 @@
                 "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.6"
             },
             "time": "2026-09-27T20:07:45+00:00"
-        },
-        {
-            "name": "platformcommunity/flysystem-bunnycdn",
-            "version": "v3.4.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/PlatformCommunity/flysystem-bunnycdn.git",
-                "reference": "67d6f90c00e3d912f809008caf4df35aaba4c7e8"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/PlatformCommunity/flysystem-bunnycdn/zipball/67d6f90c00e3d912f809008caf4df35aaba4c7e8",
-                "reference": "67d6f90c00e3d912f809008caf4df35aaba4c7e8",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "guzzlehttp/guzzle": "^7.4",
-                "league/flysystem": "^3.16",
-                "league/mime-type-detection": "^1.11",
-                "php": "^8.3"
-            },
-            "require-dev": {
-                "fakerphp/faker": "^1.23",
-                "laravel/pint": "^1.30",
-                "league/flysystem-adapter-test-utilities": "^3",
-                "league/flysystem-memory": "^3.0",
-                "league/flysystem-path-prefixing": "^3.3",
-                "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "PlatformCommunity\\Flysystem\\BunnyCDN\\": "src/",
-                    "PlatformCommunity\\Flysystem\\BunnyCDN\\Tests\\": "tests/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Alex",
-                    "email": "alex@platformapp.io"
-                }
-            ],
-            "description": "Flysystem adapter for BunnyCDN",
-            "support": {
-                "issues": "https://github.com/PlatformCommunity/flysystem-bunnycdn/issues",
-                "source": "https://github.com/PlatformCommunity/flysystem-bunnycdn/tree/v3.4.1"
-            },
-            "time": "2026-08-15T21:02:25+00:00"
         },
         {
             "name": "pontedilana/php-weasyprint",

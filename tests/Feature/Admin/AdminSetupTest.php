@@ -6,11 +6,13 @@ use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\BrandSettings;
+use App\Admin\Settings\Data\S3BucketData;
 use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SetupStatus;
+use App\Admin\Settings\StorageCheck;
 use App\Admin\Settings\StorageSettings;
 use App\Admin\Status\Data\ServiceStatusData;
 use App\Admin\Status\Service;
@@ -1513,16 +1515,72 @@ it('asks for S3 details, and stops when the storage does not work', function ():
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
         ->goToWizardStep(7)
-        ->assertHasFormErrors(['s3_region', 's3_key', 's3_secret', 's3_bucket'])
+        ->assertHasFormErrors(['s3_private_region', 's3_private_key', 's3_private_secret', 's3_private_bucket'])
         ->fillForm([
-            's3_endpoint' => 'http://127.0.0.1:9',
-            's3_region' => 'us-east-1',
-            's3_key' => 'key',
-            's3_secret' => 'secret',
-            's3_bucket' => 'files',
+            's3_private_endpoint' => 'http://127.0.0.1:9',
+            's3_private_region' => 'us-east-1',
+            's3_private_key' => 'key',
+            's3_private_secret' => 'secret',
+            's3_private_bucket' => 'files',
         ])
         ->goToWizardStep(7)
-        ->assertHasFormErrors(['s3_bucket']);
+        ->assertHasFormErrors(['s3_private_bucket']);
+});
+
+it('checks the public and backups buckets with their own connections, and shows a failure on the bucket that failed', function (): void {
+    setupFakeScaleway($this->dimensions);
+    // StorageCheck is final: stand in for it with a class of the same shape.
+    app()->instance(StorageCheck::class, new class
+    {
+        public function check(S3BucketData $bucket): ?string
+        {
+            return $bucket->bucket === 'images' && $bucket->url === 'https://images.example.org' && $bucket->key === 'r2-key'
+                ? 'The bucket images works, but its files do not load from https://images.example.org.'
+                : null;
+        }
+    });
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
+        ->fillForm([
+            's3_private_region' => 'fr-par',
+            's3_private_key' => 'key',
+            's3_private_secret' => 'secret',
+            's3_private_bucket' => 'files',
+            'public_files' => 'bucket',
+            's3_public_bucket' => 'images',
+            's3_public_url' => 'https://images.example.org',
+            's3_public_region' => 'auto',
+            's3_public_key' => 'r2-key',
+            's3_public_secret' => 'r2-secret',
+            'backup_files' => 'bucket',
+            's3_backup_bucket' => 'archives',
+            's3_backup_region' => 'fr-par',
+            's3_backup_key' => 'key',
+            's3_backup_secret' => 'secret',
+        ])
+        ->goToWizardStep(7)
+        ->assertHasFormErrors(['s3_public_bucket'])
+        ->assertHasNoFormErrors(['s3_private_bucket', 's3_backup_bucket']);
+});
+
+it('keeps public images on this server and backups in the private bucket until a bucket of their own, with its connection, is picked', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->assertFormSet(['public_files' => 'local', 'backup_files' => 'private'])
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
+        ->assertFormFieldVisible('s3_private_region')
+        ->assertFormFieldHidden('s3_public_bucket')
+        ->assertFormFieldHidden('s3_public_region')
+        ->assertFormFieldHidden('s3_backup_bucket')
+        ->assertFormFieldHidden('s3_backup_region')
+        ->fillForm(['public_files' => 'bucket', 'backup_files' => 'bucket'])
+        ->assertFormFieldVisible('s3_public_bucket')
+        ->assertFormFieldVisible('s3_public_url')
+        ->assertFormFieldVisible('s3_public_region')
+        ->assertFormFieldVisible('s3_backup_bucket')
+        ->assertFormFieldVisible('s3_backup_region');
 });
 
 it('sends email with the provider set up, or warns that nobody gets email', function (): void {

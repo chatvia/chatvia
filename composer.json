@@ -49,7 +49,6 @@
         "league/html-to-markdown": "^5.2.3",
         "pgvector/pgvector": "^0.2.2",
         "phpoffice/phpspreadsheet": "^5.10",
-        "platformcommunity/flysystem-bunnycdn": "^3.3",
         "pontedilana/php-weasyprint": "^2.7",
         "ratchet/pawl": "^0.4.3",
         "resend/resend-php": "^1.16",

@@ -113,7 +113,7 @@ class ManageBackupSettings extends AdminSettingsPage implements HasTable
                     ->danger()
                     ->visible(fn (): bool => $this->missingPrograms() !== []),
                 Callout::make('Backups are kept on this server')
-                    ->description('If this server\'s disk breaks, the backups are lost with it. Keep files in S3-compatible storage (Settings → Storage), or download the backups and keep them somewhere else.')
+                    ->description('If this server\'s disk breaks, the backups are lost with it. Keep files in S3-compatible storage (Settings → Storage), where backups go to the private bucket or a backups bucket of their own, or download the backups and keep them somewhere else.')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning()
                     ->visible(fn (): bool => config('filesystems.storage') !== 's3'),
@@ -360,14 +360,14 @@ class ManageBackupSettings extends AdminSettingsPage implements HasTable
         $next = app(BackupSchedule::class)->nextDueAt();
         $keep = (int) $this->valueInUse('keep');
 
-        return $this->frequency()->label().', keeps '.$keep.' · next '.($next === null || $next->isPast() ? 'within the hour' : $next->format('Y-m-d H:i'));
+        return "{$this->frequency()->label()}, keeps {$keep} · next ".($next === null || $next->isPast() ? 'within the hour' : $next->format('Y-m-d H:i'));
     }
 
     private function listSummary(): string
     {
         $count = Backup::query()->where('status', BackupStatus::Completed)->count();
 
-        return $count === 0 ? 'None yet' : $count.' '.Str::plural('backup', $count);
+        return $count === 0 ? 'None yet' : "{$count} ".Str::plural('backup', $count);
     }
 
     /** The saved public key as gpg reads it; null when none is saved or it cannot be read. */
@@ -398,7 +398,7 @@ class ManageBackupSettings extends AdminSettingsPage implements HasTable
 
         return collect([
             'Fingerprint '.Str::of($key->fingerprint)->split(4)->implode(' '),
-            $key->expiresAt instanceof CarbonImmutable ? 'Expires '.$key->expiresAt->format('Y-m-d') : 'Does not expire',
+            $key->expiresAt instanceof CarbonImmutable ? "Expires {$key->expiresAt->format('Y-m-d')}" : 'Does not expire',
             'Each backup also holds the app key, so a restore can read every saved secret.',
         ])->implode(' · ');
     }

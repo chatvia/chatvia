@@ -35,7 +35,7 @@ class BackupFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'status' => BackupStatus::Completed,
-            'disk' => 'private',
+            'disk' => 'backups',
             'path' => 'backups/chatvia-'.fake()->unique()->numerify('##########').'.tar',
             'size' => 1024,
             'sha256' => hash('sha256', fake()->uuid()),

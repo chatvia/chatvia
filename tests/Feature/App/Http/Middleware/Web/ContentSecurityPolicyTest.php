@@ -65,9 +65,9 @@ describe('enforce mode', function (): void {
         expect($response->headers->has('X-Frame-Options'))->toBeFalse();
     });
 
-    it('lets the chat load images from the CDN pull zone and the asset host, but no third-party icon CDN', function (): void {
+    it('lets the chat load images from the public bucket and the asset host, but no third-party icon CDN', function (): void {
         config([
-            'filesystems.disks.assets.pull_zone' => 'https://cdn-zone.example.net',
+            'filesystems.disks.assets.url' => 'https://cdn-zone.example.net/images',
             'app.asset_url' => 'https://assets.example.net/build',
         ]);
 
@@ -81,7 +81,7 @@ describe('enforce mode', function (): void {
             ->not->toContain('https://storage');
     });
 
-    it('lets the chat load images from the local assets disk when no CDN is configured', function (): void {
+    it('lets the chat load images from the local assets disk when no public bucket is set', function (): void {
         config([
             'filesystems.disks.assets' => [
                 'driver' => 'local',

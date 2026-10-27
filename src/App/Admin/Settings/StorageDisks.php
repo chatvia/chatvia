@@ -9,17 +9,20 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Filesystem\FilesystemManager;
 
 /**
- * Builds the `private` disk from `filesystems.storage` (set in Settings →
- * Storage): the `s3` disk when S3-compatible storage is chosen, else the
- * local disk of config/filesystems.php. A disk's config is a whole array
- * whose shape depends on its driver, so it is replaced as one, and a disk a
- * long-running process already opened is dropped so the next use opens it
- * again. {@see SettingsConfig} runs this after every apply.
+ * Builds the app's disks from `filesystems.storage` and `filesystems.buckets`
+ * (set in Settings → Storage). With S3-compatible storage, each disk is the
+ * `s3` disk with a bucket and that bucket's own connection: `private` the
+ * private bucket, `assets` the public bucket (when one is set, else this
+ * server) and `backups` the backup bucket (else the private one); otherwise
+ * all three are the local disks of config/filesystems.php. A disk's config is a
+ * whole array whose shape depends on its driver, so it is replaced as one,
+ * and a disk a long-running process already opened is dropped so the next
+ * use opens it again. {@see SettingsConfig} runs this after every apply.
  */
 final class StorageDisks
 {
     /** The disks that follow the storage setting. */
-    public const array DISKS = ['private'];
+    public const array DISKS = ['private', 'assets', 'backups'];
 
     /** @var array<string, array<string, mixed>>|null The local disks of config/filesystems.php. */
     private ?array $local = null;
@@ -66,16 +69,48 @@ final class StorageDisks
      */
     public function disks(): array
     {
+        $local = $this->localDisks();
+
         if ($this->config->get('filesystems.storage') !== 's3') {
-            return $this->localDisks();
+            return $local;
         }
 
-        return ['private' => (array) $this->config->get('filesystems.disks.s3')];
+        $private = $this->bucketDisk('private');
+
+        return [
+            'private' => $private,
+            // No visibility: AWS blocks object ACLs by default and R2 has
+            // none, so the bucket's own public access serves the images.
+            'assets' => filled($this->config->get('filesystems.buckets.public.name'))
+                ? [...$this->bucketDisk('public'), 'url' => $this->config->get('filesystems.buckets.public.url')]
+                : $local['assets'],
+            'backups' => filled($this->config->get('filesystems.buckets.backup.name')) ? $this->bucketDisk('backup') : $private,
+        ];
     }
 
     /**
-     * The local disk of config/filesystems.php, read before this class first
-     * replaces it.
+     * The `s3` disk with one bucket's name and connection.
+     *
+     * @return array<string, mixed>
+     */
+    private function bucketDisk(string $bucket): array
+    {
+        $config = (array) $this->config->get("filesystems.buckets.{$bucket}");
+
+        return [
+            ...(array) $this->config->get('filesystems.disks.s3'),
+            'bucket' => $config['name'] ?? null,
+            'endpoint' => $config['endpoint'] ?? null,
+            'region' => $config['region'] ?? null,
+            'key' => $config['key'] ?? null,
+            'secret' => $config['secret'] ?? null,
+            'use_path_style_endpoint' => (bool) ($config['path_style'] ?? false),
+        ];
+    }
+
+    /**
+     * The local disks of config/filesystems.php, read before this class
+     * first replaces them.
      *
      * @return array<string, array<string, mixed>>
      */

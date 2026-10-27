@@ -4,6 +4,7 @@ namespace App\Http\Middleware\Web;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 use Symfony\Component\HttpFoundation\Response;
@@ -90,9 +91,8 @@ class ContentSecurityPolicy
                 config('app.url'),
                 // Built assets when they are served from a CDN host.
                 config('app.asset_url'),
-                // Profile photos, agent logo and avatar: the CDN pull zone, or
-                // the local disk URL when no CDN is configured.
-                config('filesystems.disks.assets.pull_zone'),
+                // Profile photos, agent logo and avatar: the public bucket's
+                // URL, or the local disk URL when no public bucket is set.
                 config('filesystems.disks.assets.url'),
             ]);
         }
@@ -100,14 +100,14 @@ class ContentSecurityPolicy
         $reportUri = Str::trim((string) config('chatvia.security.csp_report_uri', ''));
 
         if ($reportUri !== '') {
-            $directives[] = 'report-uri '.$reportUri;
+            $directives[] = "report-uri {$reportUri}";
         }
 
         // In enforce mode the full policy replaces the framing-only one; in
         // report-only mode it goes next to it, and only reports.
         $response->headers->set(
             $enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only',
-            implode('; ', $directives),
+            Arr::join($directives, '; '),
         );
 
         // These two never block a page load, so they go out in both modes.
@@ -171,7 +171,7 @@ class ContentSecurityPolicy
             }
         }
 
-        return implode(' ', array_values(array_unique($sources)));
+        return Arr::join(array_values(array_unique($sources)), ' ');
     }
 
     /**

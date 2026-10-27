@@ -14,6 +14,7 @@ use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Benchmark;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,10 @@ final readonly class ServiceChecks
         private ServerProgramFinder $programs,
         private ModelsDevCatalog $catalog,
         private AnalyticsDatabase $analytics,
+        private MasterSupervisorRepository $masters,
+        private SupervisorRepository $supervisors,
+        private JobRepository $jobs,
+        private MetricsRepository $metrics,
     ) {}
 
     public function check(Service $service): ServiceStatusData
@@ -127,7 +132,7 @@ final readonly class ServiceChecks
         ];
 
         if ($missing !== []) {
-            return new ServiceStatusData(ServiceState::Down, __('Missing extensions: :list.', ['list' => implode(', ', $missing)]), checks: $checks, hint: __('Install them on the database server, then run the migrations again.'));
+            return new ServiceStatusData(ServiceState::Down, __('Missing extensions: :list.', ['list' => Arr::join($missing, ', ')]), checks: $checks, hint: __('Install them on the database server, then run the migrations again.'));
         }
 
         if ($partman === null) {
@@ -155,7 +160,7 @@ final readonly class ServiceChecks
         $uptime = $read('Server', 'uptime_in_seconds');
 
         return new ServiceStatusData(ServiceState::Running, __('Answers.'), checks: array_values(array_filter([
-            $version !== null ? new ServiceCheckData(__('Version'), 'Redis '.$version) : null,
+            $version !== null ? new ServiceCheckData(__('Version'), "Redis {$version}") : null,
             new ServiceCheckData(__('Response time'), __(':ms ms', ['ms' => $time])),
             $memory !== null ? new ServiceCheckData(__('Memory in use'), $memory, CheckMark::Info) : null,
             $clients !== null ? new ServiceCheckData(__('Connections'), Number::format((int) $clients), CheckMark::Info) : null,
@@ -166,14 +171,13 @@ final readonly class ServiceChecks
     /** The queue as Horizon's own dashboard shows it. */
     private function queue(): ServiceStatusData
     {
-        $masters = app(MasterSupervisorRepository::class)->all();
-        $jobs = app(JobRepository::class);
-        $failed = $jobs->countRecentlyFailed();
+        $masters = $this->masters->all();
+        $failed = $this->jobs->countRecentlyFailed();
 
         // The jobs that wait and the ones that failed are kept in Redis, so
         // they are known while Horizon is down too.
         $counts = [
-            new ServiceCheckData(__('Waiting jobs'), Number::format($jobs->countPending()), CheckMark::Info),
+            new ServiceCheckData(__('Waiting jobs'), Number::format($this->jobs->countPending()), CheckMark::Info),
             new ServiceCheckData(__('Failed this week'), Number::format($failed), $failed > 0 ? CheckMark::Warning : CheckMark::Passed),
         ];
 
@@ -191,14 +195,14 @@ final readonly class ServiceChecks
         }
 
         // Each supervisor counts its workers per queue.
-        $workers = collect(app(SupervisorRepository::class)->all())
+        $workers = collect($this->supervisors->all())
             ->sum(fn (object $supervisor): int => (int) array_sum((array) $supervisor->processes));
         $paused = collect($masters)->every(fn (object $master): bool => $master->status === 'paused');
 
         $checks = [
             new ServiceCheckData('Horizon', $paused ? __('Paused') : __('Running'), $paused ? CheckMark::Warning : CheckMark::Passed),
             new ServiceCheckData(__('Workers'), Number::format($workers), $workers > 0 ? CheckMark::Passed : CheckMark::Failed),
-            new ServiceCheckData(__('Jobs a minute'), Number::format((float) app(MetricsRepository::class)->jobsProcessedPerMinute()), CheckMark::Info),
+            new ServiceCheckData(__('Jobs a minute'), Number::format((float) $this->metrics->jobsProcessedPerMinute()), CheckMark::Info),
             ...$counts,
         ];
 
@@ -253,7 +257,7 @@ final readonly class ServiceChecks
         $config = (array) config('broadcasting.connections.reverb');
         $options = (array) ($config['options'] ?? []);
         $address = ($options['scheme'] ?? 'https').'://'.($options['host'] ?? 'localhost').':'.($options['port'] ?? 443);
-        $path = '/apps/'.$config['app_id'].'/channels';
+        $path = "/apps/{$config['app_id']}/channels";
         $addressCheck = fn (CheckMark $mark): ServiceCheckData => new ServiceCheckData(__('Address'), Str::after($address, '://'), $mark);
 
         try {
@@ -330,7 +334,7 @@ final readonly class ServiceChecks
         $checks = [];
         $local = false;
 
-        foreach (['private' => __('Private files'), 'public' => __('Public files')] as $disk => $label) {
+        foreach (['private' => __('Private files'), 'assets' => __('Public files'), 'backups' => __('Backups')] as $disk => $label) {
             $config = (array) config("filesystems.disks.{$disk}");
             $s3 = ($config['driver'] ?? '') === 's3';
             $local = $local || ! $s3;
@@ -375,7 +379,7 @@ final readonly class ServiceChecks
         $sender = (string) config('mail.from.address');
         $from = new ServiceCheckData(__('Sender'), filled($sender) ? $sender : __('Not set'), filled($sender) ? CheckMark::Passed : CheckMark::Warning);
 
-        if (in_array($transport, ['log', 'array'], true)) {
+        if (collect(['log', 'array'])->containsStrict($transport)) {
             return new ServiceStatusData(ServiceState::Warning, __('Emails go to the log.'), checks: [
                 new ServiceCheckData(__('Mailer'), Str::headline($transport), CheckMark::Warning),
                 $from,
@@ -392,7 +396,7 @@ final readonly class ServiceChecks
         }
 
         $address = ($config['host'] ?? '').':'.($config['port'] ?? 587);
-        $socket = @stream_socket_client('tcp://'.$address, $code, $message, self::TIMEOUT_SECONDS);
+        $socket = @stream_socket_client("tcp://{$address}", $code, $message, self::TIMEOUT_SECONDS);
 
         if ($socket === false) {
             return new ServiceStatusData(ServiceState::Down, __('The mail server does not answer.'), checks: [
@@ -458,13 +462,13 @@ final readonly class ServiceChecks
         // warned about: the card stays running and the dashboard banner
         // leaves it out. Those lines come first, so the card shows them.
         $checks = array_map(fn (ServerProgram $program): ServiceCheckData => match (true) {
-            ! in_array($program, $missing, true) => new ServiceCheckData($program->value, __('Found')),
+            ! collect($missing)->containsStrict($program) => new ServiceCheckData($program->value, __('Found')),
             isset($losses[$program->value]) => new ServiceCheckData($program->value, __('Not found'), CheckMark::Info, __('Optional'), $losses[$program->value]),
             $program->hasBuiltinFallback() => new ServiceCheckData($program->value, __('Not found'), CheckMark::Skipped, __('Built-in used')),
             default => new ServiceCheckData($program->value, __('Not found'), CheckMark::Skipped, __('Not needed now')),
-        }, [...$losing, ...array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => ! in_array($program, $losing, true))]);
+        }, [...$losing, ...array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => ! collect($losing)->containsStrict($program))]);
 
-        $names = fn (array $programs): string => implode(', ', array_map(fn (ServerProgram $program): string => $program->value, $programs));
+        $names = fn (array $programs): string => Arr::join(array_map(fn (ServerProgram $program): string => $program->value, $programs), ', ');
 
         if ($losing !== []) {
             // Only a program that reads uploads makes file types unreadable;

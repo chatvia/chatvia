@@ -40,9 +40,9 @@ class ProfilePhotoStorage
             ->cover(self::SIZE, self::SIZE)
             ->encode(new JpegEncoder(quality: self::QUALITY));
 
-        $path = $user->storageRoot().'/profile-photos/'.Str::uuid().'.jpg';
+        $path = "{$user->storageRoot()}/profile-photos/".Str::uuid7().'.jpg';
 
-        $disk->put($path, (string) $encoded, ['visibility' => 'public']);
+        $disk->put($path, (string) $encoded);
 
         return $path;
     }

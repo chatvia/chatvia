@@ -22,8 +22,6 @@ return new class extends Migration
 
             $table->text('app_authentication_secret')->nullable();
             $table->text('app_authentication_recovery_codes')->nullable();
-            // Platform staff: may open the admin panel. Everything else about an
-            // account (owner or teammate) is its role in `workspace_user`.
             $table->boolean('is_admin')->default(false);
             $table->rememberToken();
 
@@ -34,6 +32,7 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->ipAddress('registered_ip')->nullable();
+
             $table->string('registered_country_code', 2)->nullable();
 
             $table->string('profile_image_path')->nullable();
@@ -41,7 +40,6 @@ return new class extends Migration
             $table->string('deactivation_reason')->nullable();
 
             $table->timestamp('deactivated_at')->nullable();
-            $table->timestamp('last_login_at')->nullable();
 
             $table->string('date_format', 32)->nullable();
 
@@ -49,10 +47,9 @@ return new class extends Migration
 
             $table->enum('onboarding_tour', ['agent', 'done'])->nullable();
 
-            // Which notifications ring the bell, show a desktop alert or play
-            // a sound, per category. Null keeps the defaults.
             $table->jsonb('notification_preferences')->nullable();
 
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
         });
 

@@ -4,8 +4,8 @@
             "about_aria": "About guardrails",
             "about_title": "What are guardrails?",
             "about_body": "Guardrails are safety checks on your agent's chats. They check each visitor message before the agent answers, and each answer the agent writes. They can hide personal data, stop attempts to trick the agent, block abusive language, and keep the agent on topic.",
-            "about_ai_calls": "PII detection matches fixed patterns and adds no AI calls. Checks marked “AI check” ask an AI model: one extra call for the visitor's message and one for the answer, so up to two per reply.",
-            "about_cost": "All AI checks share these calls, so turning on more of them adds no more calls. Replies can take a little longer and use more AI tokens.",
+            "about_ai_calls": "Not every check slows replies down. PII detection (email addresses, phone numbers, Social Security numbers, credit cards, IP addresses, API keys and more) matches fixed patterns. It needs no AI model and adds no delay. Checks marked “AI check”, like prompt injection, blocked topics and toxicity, ask an AI model: one extra call for the visitor's message and one for the answer, so up to two per reply.",
+            "about_cost": "All AI checks share these calls, so turning on more of them adds no more calls. With any AI check on, replies take a little longer and use more AI tokens.",
             "ai_check": "AI check",
             "test_off": "Guardrails are off. Turn them on to test a message."
         }

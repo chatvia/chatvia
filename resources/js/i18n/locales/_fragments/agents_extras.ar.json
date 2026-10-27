@@ -12,6 +12,7 @@
             "by_user": "بواسطة {name}",
             "conversation_trace": "المحادثة {conversation} · التتبع {trace}",
             "filter_labels": {
+                "api_key": "مفتاح API",
                 "email": "البريد الإلكتروني",
                 "credit_card": "بطاقة الائتمان",
                 "us_ssn": "رقم الضمان الاجتماعي الأمريكي",

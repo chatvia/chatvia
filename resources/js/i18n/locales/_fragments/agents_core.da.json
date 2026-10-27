@@ -303,7 +303,7 @@
             "enable_guardrails": "Aktivér sikkerhedsregler",
             "master_switch": "Når slået fra, springes alle sikkerhedstjek over.",
             "pii_label": "PII-registrering og -redigering",
-            "pii_help": "Registrér og redigér personhenførbare oplysninger, før de når modellen eller gemmes.",
+            "pii_help": "Find og skjul personoplysninger og API-nøgler, før de når modellen eller gemmes. Bruger faste mønstre, så det giver ingen forsinkelse.",
             "manage_filters": "Administrér filtre",
             "blocked_topics": "Blokerede emner",
             "blocked_topics_help": "Agenten afviser spørgsmål, der matcher et af disse emner.",

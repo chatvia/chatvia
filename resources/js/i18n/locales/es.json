@@ -693,7 +693,7 @@
             "enable_guardrails": "Activar restricciones",
             "master_switch": "Cuando está desactivado, se omiten todas las verificaciones de restricciones.",
             "pii_label": "Detección y redacción de PII",
-            "pii_help": "Detecta y redacta información de identificación personal antes de que llegue al modelo o se almacene.",
+            "pii_help": "Detecta y oculta datos personales y claves de API antes de que lleguen al modelo o se guarden. Usa patrones fijos, así que no añade retraso.",
             "manage_filters": "Gestionar filtros",
             "blocked_topics": "Temas bloqueados",
             "blocked_topics_help": "El agente rechaza preguntas que coincidan con cualquiera de estos temas.",
@@ -756,7 +756,8 @@
                 "phone": "Número de teléfono",
                 "iban": "Cuenta bancaria (IBAN)",
                 "uk_nino": "Número de Seguro Nacional del Reino Unido",
-                "ip_address": "Dirección IP"
+                "ip_address": "Dirección IP",
+                "api_key": "Clave de API"
             },
             "outcome_labels": {
                 "blocked": "Bloqueado",
@@ -856,10 +857,10 @@
             "open_conversation": "Abrir conversación",
             "about_title": "¿Qué son las restricciones?",
             "about_body": "Las restricciones son controles de seguridad en los chats de tu agente. Revisan cada mensaje del visitante antes de que el agente responda, y cada respuesta que escribe el agente. Pueden ocultar datos personales, frenar intentos de engañar al agente, bloquear lenguaje ofensivo y mantener al agente en el tema.",
-            "about_ai_calls": "La detección de PII usa patrones fijos y no añade llamadas a la IA. Los controles marcados con «Control de IA» consultan a un modelo de IA: una llamada extra para el mensaje del visitante y otra para la respuesta, así que como máximo dos por respuesta.",
+            "about_ai_calls": "No todos los controles hacen más lentas las respuestas. La detección de PII (direcciones de correo, números de teléfono, números de la Seguridad Social, tarjetas de crédito, direcciones IP, claves de API y más) usa patrones fijos. No necesita un modelo de IA y no añade retraso. Los controles marcados como «Control de IA», como la inyección de instrucciones, los temas bloqueados y la toxicidad, consultan un modelo de IA: una llamada extra para el mensaje del visitante y otra para la respuesta, es decir, hasta dos por respuesta.",
             "ai_check": "Control de IA",
             "about_aria": "Acerca de las restricciones",
-            "about_cost": "Todos los controles de IA comparten estas llamadas, así que activar más no añade más llamadas. Las respuestas pueden tardar un poco más y usar más tokens de IA.",
+            "about_cost": "Todos los controles de IA comparten estas llamadas, así que activar más no añade más llamadas. Con cualquier control de IA activo, las respuestas tardan un poco más y usan más tokens de IA.",
             "test_off": "Las restricciones están desactivadas. Actívalas para probar un mensaje.",
             "block": {
                 "visitor_short": "Visitante · {id}",

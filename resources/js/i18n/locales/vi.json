@@ -693,7 +693,7 @@
             "enable_guardrails": "Bật quy tắc kiểm soát",
             "master_switch": "Khi tắt, tất cả kiểm tra quy tắc kiểm soát sẽ bị bỏ qua.",
             "pii_label": "Phát hiện & ẩn thông tin PII",
-            "pii_help": "Phát hiện và ẩn thông tin nhận dạng cá nhân trước khi nó đến mô hình hoặc được lưu trữ.",
+            "pii_help": "Phát hiện và ẩn dữ liệu cá nhân và khóa API trước khi chúng đến mô hình hoặc được lưu. Dùng mẫu cố định nên không gây chậm trễ.",
             "manage_filters": "Quản lý bộ lọc",
             "blocked_topics": "Chủ đề bị chặn",
             "blocked_topics_help": "Trợ lý AI sẽ từ chối các câu hỏi khớp với bất kỳ chủ đề nào trong số này.",
@@ -749,10 +749,10 @@
             },
             "about_title": "Quy tắc kiểm soát là gì?",
             "about_body": "Quy tắc kiểm soát là các bước kiểm tra an toàn trong cuộc trò chuyện của trợ lý AI. Chúng kiểm tra từng tin nhắn của khách trước khi trợ lý trả lời, và từng câu trả lời trợ lý viết ra. Chúng có thể ẩn dữ liệu cá nhân, chặn các cố gắng lừa trợ lý, chặn ngôn từ xúc phạm và giữ trợ lý đúng chủ đề.",
-            "about_ai_calls": "Phát hiện PII so khớp theo mẫu cố định và không thêm lệnh gọi AI nào. Các bước kiểm tra có nhãn “Kiểm tra AI” sẽ hỏi một mô hình AI: thêm một lệnh gọi cho tin nhắn của khách và một cho câu trả lời, tức tối đa hai lệnh gọi cho mỗi phản hồi.",
+            "about_ai_calls": "Không phải bước kiểm tra nào cũng làm câu trả lời chậm hơn. Phát hiện PII (địa chỉ email, số điện thoại, số an sinh xã hội, thẻ tín dụng, địa chỉ IP, khóa API và hơn thế nữa) so khớp theo mẫu cố định. Bước này không cần mô hình AI và không gây chậm trễ. Các bước có nhãn “Kiểm tra AI”, như chèn lệnh, chủ đề bị chặn và ngôn từ độc hại, sẽ hỏi một mô hình AI: thêm một lệnh gọi cho tin nhắn của khách và một cho câu trả lời, tức tối đa hai lệnh gọi cho mỗi câu trả lời.",
             "ai_check": "Kiểm tra AI",
             "about_aria": "Giới thiệu về quy tắc kiểm soát",
-            "about_cost": "Mọi bước kiểm tra AI dùng chung các lệnh gọi này, nên bật thêm cũng không làm tăng số lệnh gọi. Phản hồi có thể chậm hơn một chút và dùng nhiều token AI hơn.",
+            "about_cost": "Mọi bước kiểm tra AI dùng chung các lệnh gọi này, nên bật thêm cũng không tăng số lệnh gọi. Khi bật bất kỳ bước kiểm tra AI nào, câu trả lời sẽ đến chậm hơn một chút và dùng nhiều token AI hơn.",
             "test_off": "Quy tắc kiểm soát đang tắt. Hãy bật để thử một tin nhắn.",
             "filter_labels": {
                 "email": "Địa chỉ email",
@@ -763,7 +763,8 @@
                 "phone": "Số điện thoại",
                 "iban": "Tài khoản ngân hàng (IBAN)",
                 "uk_nino": "Số Bảo hiểm Quốc gia Anh",
-                "ip_address": "Địa chỉ IP"
+                "ip_address": "Địa chỉ IP",
+                "api_key": "Khóa API"
             },
             "outcome_labels": {
                 "blocked": "Đã chặn",

@@ -26,7 +26,8 @@
         },
         "guardrails": {
             "injection_help": "메시지, 지식, 도구 결과에서 에이전트의 지침을 무시하거나 노출하려는 시도를 탐지하고 차단합니다.",
-            "refusal_message_placeholder": "죄송합니다. 해당 요청은 도와드릴 수 없습니다."
+            "refusal_message_placeholder": "죄송합니다. 해당 요청은 도와드릴 수 없습니다.",
+            "pii_help": "개인 정보와 API 키를 모델에 전달되거나 저장되기 전에 찾아서 숨깁니다. 정해진 패턴을 쓰므로 지연이 없습니다."
         }
     }
 }

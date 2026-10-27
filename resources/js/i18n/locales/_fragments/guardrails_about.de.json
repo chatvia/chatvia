@@ -4,8 +4,8 @@
             "about_aria": "Über Leitplanken",
             "about_title": "Was sind Leitplanken?",
             "about_body": "Leitplanken sind Sicherheitsprüfungen für die Chats Ihres Agenten. Sie prüfen jede Nachricht eines Besuchers, bevor der Agent antwortet, und jede Antwort, die der Agent schreibt. Sie können persönliche Daten verbergen, Versuche stoppen, den Agenten auszutricksen, beleidigende Sprache blockieren und den Agenten beim Thema halten.",
-            "about_ai_calls": "Die PII-Erkennung nutzt feste Muster und verursacht keine KI-Aufrufe. Prüfungen mit der Markierung „KI-Prüfung“ fragen ein KI-Modell: ein zusätzlicher Aufruf für die Nachricht des Besuchers und einer für die Antwort, also höchstens zwei pro Antwort.",
-            "about_cost": "Alle KI-Prüfungen teilen sich diese Aufrufe, weitere Prüfungen erzeugen also keine weiteren Aufrufe. Antworten können etwas länger dauern und mehr KI-Tokens verbrauchen.",
+            "about_ai_calls": "Nicht jede Prüfung macht Antworten langsamer. Die PII-Erkennung (E-Mail-Adressen, Telefonnummern, Sozialversicherungsnummern, Kreditkarten, IP-Adressen, API-Schlüssel und mehr) nutzt feste Muster. Sie braucht kein KI-Modell und verzögert nichts. Prüfungen mit der Marke „KI-Prüfung“, etwa Prompt-Injection, gesperrte Themen und toxische Sprache, fragen ein KI-Modell: ein zusätzlicher Aufruf für die Nachricht des Besuchers und einer für die Antwort, also bis zu zwei pro Antwort.",
+            "about_cost": "Alle KI-Prüfungen teilen sich diese Aufrufe. Mehr davon einzuschalten, verursacht also keine weiteren Aufrufe. Ist eine KI-Prüfung an, dauern Antworten etwas länger und verbrauchen mehr KI-Tokens.",
             "ai_check": "KI-Prüfung",
             "test_off": "Die Leitplanken sind aus. Schalten Sie sie ein, um eine Nachricht zu testen."
         }

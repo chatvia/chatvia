@@ -12,6 +12,7 @@
             "by_user": "Von {name}",
             "conversation_trace": "Konversation {conversation} · Ablaufverfolgung {trace}",
             "filter_labels": {
+                "api_key": "API-Schlüssel",
                 "email": "E-Mail-Adresse",
                 "credit_card": "Kreditkarte",
                 "us_ssn": "US-Sozialversicherungsnummer",

@@ -5,6 +5,7 @@ namespace Domain\Guardrail\Services\Detectors;
 use Domain\Guardrail\Data\CustomPiiPatternData;
 use Domain\Guardrail\Data\PiiRedactionData;
 use Domain\Guardrail\Enums\PiiFilterType;
+use Domain\Guardrail\Services\Detectors\Filters\ApiKeyFilter;
 use Domain\Guardrail\Services\Detectors\Filters\CardFilter;
 use Domain\Guardrail\Services\Detectors\Filters\DanishCprFilter;
 use Domain\Guardrail\Services\Detectors\Filters\EmailFilter;
@@ -21,8 +22,8 @@ use Illuminate\Support\Facades\Pipeline;
  * LLM call. Catches the high-risk identifiers an AI agent must never echo or
  * leak: emails, phone numbers, IBANs (mod-97 checked), credit cards
  * (Luhn-validated), US SSNs, German social-insurance numbers, UK National
- * Insurance numbers, Danish CPR numbers and IP addresses, plus the owner's own
- * patterns ({@see CustomPiiPatternData}). These are all *structured*
+ * Insurance numbers, Danish CPR numbers, IP addresses and provider-prefixed API
+ * keys, plus the owner's own patterns ({@see CustomPiiPatternData}). These are all *structured*
  * identifiers with rigid formats, so regex (+ checksum/date validation) is the
  * right tool — an LLM/NER pass is only worth it for unstructured PII like names
  * or addresses, which this detector does not target.
@@ -81,6 +82,7 @@ class PiiDetector
     private function filterClass(PiiFilterType $type): string
     {
         return match ($type) {
+            PiiFilterType::ApiKey => ApiKeyFilter::class,
             PiiFilterType::Email => EmailFilter::class,
             PiiFilterType::Iban => IbanFilter::class,
             PiiFilterType::CreditCard => CardFilter::class,

@@ -26,7 +26,8 @@
         },
         "guardrails": {
             "injection_help": "检测并阻止在消息、知识库和工具结果中试图覆盖或泄露智能体指令的行为。",
-            "refusal_message_placeholder": "抱歉，我无法协助处理该请求。"
+            "refusal_message_placeholder": "抱歉，我无法协助处理该请求。",
+            "pii_help": "在个人数据和 API 密钥到达模型或被保存之前将其检测并隐藏。使用固定规则，因此不会增加延迟。"
         }
     }
 }

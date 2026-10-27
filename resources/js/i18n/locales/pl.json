@@ -693,7 +693,7 @@
             "enable_guardrails": "Włącz zabezpieczenia",
             "master_switch": "Gdy wyłączone, wszystkie kontrole zabezpieczeń są pomijane.",
             "pii_label": "Wykrywanie i redakcja danych PII",
-            "pii_help": "Wykrywaj i redaguj dane osobowe przed przekazaniem ich do modelu lub zapisaniem.",
+            "pii_help": "Wykrywa i ukrywa dane osobowe oraz klucze API, zanim trafią do modelu lub zostaną zapisane. Używa stałych wzorców, więc nie dodaje opóźnienia.",
             "manage_filters": "Zarządzaj filtrami",
             "blocked_topics": "Zablokowane tematy",
             "blocked_topics_help": "Agent odmawia odpowiedzi na pytania pasujące do tych tematów.",
@@ -756,7 +756,8 @@
                 "phone": "Numer telefonu",
                 "iban": "Konto bankowe (IBAN)",
                 "uk_nino": "Brytyjski numer National Insurance",
-                "ip_address": "Adres IP"
+                "ip_address": "Adres IP",
+                "api_key": "Klucz API"
             },
             "outcome_labels": {
                 "blocked": "Zablokowano",
@@ -856,10 +857,10 @@
             "open_conversation": "Otwórz rozmowę",
             "about_title": "Czym są zabezpieczenia?",
             "about_body": "Zabezpieczenia to kontrole bezpieczeństwa czatów agenta. Sprawdzają każdą wiadomość odwiedzającego, zanim agent odpowie, oraz każdą odpowiedź napisaną przez agenta. Mogą ukrywać dane osobowe, zatrzymywać próby oszukania agenta, blokować obraźliwy język i pilnować, by agent trzymał się tematu.",
-            "about_ai_calls": "Wykrywanie danych PII dopasowuje stałe wzorce i nie dodaje wywołań AI. Kontrole oznaczone „Kontrola AI” pytają model AI: jedno dodatkowe wywołanie dla wiadomości odwiedzającego i jedno dla odpowiedzi, czyli najwyżej dwa na odpowiedź.",
+            "about_ai_calls": "Nie każda kontrola spowalnia odpowiedzi. Wykrywanie danych PII (adresy e-mail, numery telefonów, numery ubezpieczenia społecznego, karty kredytowe, adresy IP, klucze API i inne) dopasowuje stałe wzorce. Nie potrzebuje modelu AI i nie dodaje opóźnienia. Kontrole oznaczone „Kontrola AI”, takie jak wstrzykiwanie poleceń, zablokowane tematy i toksyczność, pytają model AI: jedno dodatkowe wywołanie dla wiadomości odwiedzającego i jedno dla odpowiedzi, czyli maksymalnie dwa na odpowiedź.",
             "ai_check": "Kontrola AI",
             "about_aria": "Informacje o zabezpieczeniach",
-            "about_cost": "Wszystkie kontrole AI dzielą te wywołania, więc włączenie kolejnych nie dodaje wywołań. Odpowiedzi mogą trwać nieco dłużej i zużywać więcej tokenów AI.",
+            "about_cost": "Wszystkie kontrole AI dzielą te wywołania, więc włączenie kolejnych nie dodaje wywołań. Gdy działa jakakolwiek kontrola AI, odpowiedzi pojawiają się nieco później i zużywają więcej tokenów AI.",
             "test_off": "Zabezpieczenia są wyłączone. Włącz je, aby przetestować wiadomość.",
             "block": {
                 "visitor_short": "Odwiedzający · {id}",

@@ -5,6 +5,7 @@
                 "prompt_leak": "प्रॉम्प्ट लीक"
             },
             "filter_labels": {
+                "api_key": "API कुंजी",
                 "email": "ईमेल पता",
                 "credit_card": "क्रेडिट कार्ड",
                 "us_ssn": "अमेरिकी सोशल सिक्योरिटी नंबर",

@@ -693,7 +693,7 @@
             "enable_guardrails": "Koruma kurallarını etkinleştir",
             "master_switch": "Kapalıyken tüm koruma kuralı denetimleri atlanır.",
             "pii_label": "PII algılama ve gizleme",
-            "pii_help": "Kişisel olarak tanımlanabilir bilgileri modele ulaşmadan veya saklanmadan önce algılayıp gizleyin.",
+            "pii_help": "Kişisel verileri ve API anahtarlarını modele ulaşmadan veya kaydedilmeden önce bulur ve gizler. Sabit kalıplar kullandığı için gecikme eklemez.",
             "manage_filters": "Filtreleri yönet",
             "blocked_topics": "Engellenen konular",
             "blocked_topics_help": "Asistan, bu konulardan herhangi biriyle eşleşen soruları reddeder.",
@@ -749,10 +749,10 @@
             },
             "about_title": "Koruma kuralları nedir?",
             "about_body": "Koruma kuralları, asistanınızın sohbetlerindeki güvenlik kontrolleridir. Asistan yanıt vermeden önce ziyaretçinin her mesajını ve asistanın yazdığı her yanıtı kontrol ederler. Kişisel verileri gizleyebilir, asistanı kandırma girişimlerini durdurabilir, hakaret içeren dili engelleyebilir ve asistanı konuda tutabilirler.",
-            "about_ai_calls": "PII algılama sabit kalıplar kullanır ve AI çağrısı eklemez. “AI kontrolü” ile işaretli kontroller bir AI modeline sorar: ziyaretçinin mesajı için bir ek çağrı ve yanıt için bir tane, yani yanıt başına en fazla iki.",
+            "about_ai_calls": "Her kontrol yanıtları yavaşlatmaz. PII algılama (e-posta adresleri, telefon numaraları, sosyal güvenlik numaraları, kredi kartları, IP adresleri, API anahtarları ve daha fazlası) sabit kalıplar kullanır. AI modeline ihtiyaç duymaz ve gecikme eklemez. İstem enjeksiyonu, engellenen konular ve toksik dil gibi “AI kontrolü” ile işaretli kontroller bir AI modeline sorar: ziyaretçinin mesajı için bir, yanıt için bir ek çağrı, yani yanıt başına en fazla iki.",
             "ai_check": "AI kontrolü",
             "about_aria": "Koruma kuralları hakkında",
-            "about_cost": "Tüm AI kontrolleri bu çağrıları paylaşır, bu yüzden daha fazlasını açmak çağrı eklemez. Yanıtlar biraz daha uzun sürebilir ve daha fazla AI tokeni kullanabilir.",
+            "about_cost": "Tüm AI kontrolleri bu çağrıları paylaşır, bu yüzden daha fazlasını açmak çağrı eklemez. Herhangi bir AI kontrolü açıkken yanıtlar biraz daha geç gelir ve daha fazla AI token'ı kullanır.",
             "test_off": "Koruma kuralları kapalı. Bir mesajı test etmek için açın.",
             "filter_labels": {
                 "email": "E-posta adresi",
@@ -763,7 +763,8 @@
                 "phone": "Telefon numarası",
                 "iban": "Banka hesabı (IBAN)",
                 "uk_nino": "Birleşik Krallık Ulusal Sigorta numarası",
-                "ip_address": "IP adresi"
+                "ip_address": "IP adresi",
+                "api_key": "API anahtarı"
             },
             "outcome_labels": {
                 "blocked": "Engellendi",

@@ -693,7 +693,7 @@
             "enable_guardrails": "Aktivér sikkerhedsregler",
             "master_switch": "Når slået fra, springes alle sikkerhedstjek over.",
             "pii_label": "PII-registrering og -redigering",
-            "pii_help": "Registrér og redigér personhenførbare oplysninger, før de når modellen eller gemmes.",
+            "pii_help": "Find og skjul personoplysninger og API-nøgler, før de når modellen eller gemmes. Bruger faste mønstre, så det giver ingen forsinkelse.",
             "manage_filters": "Administrér filtre",
             "blocked_topics": "Blokerede emner",
             "blocked_topics_help": "Agenten afviser spørgsmål, der matcher et af disse emner.",
@@ -756,7 +756,8 @@
                 "phone": "Telefonnummer",
                 "iban": "Bankkonto (IBAN)",
                 "uk_nino": "Britisk National Insurance-nummer",
-                "ip_address": "IP-adresse"
+                "ip_address": "IP-adresse",
+                "api_key": "API-nøgle"
             },
             "outcome_labels": {
                 "blocked": "Blokeret",
@@ -856,10 +857,10 @@
             "open_conversation": "Åbn samtale",
             "about_title": "Hvad er sikkerhedsregler?",
             "about_body": "Sikkerhedsregler er sikkerhedstjek af din agents chats. De tjekker hver besked fra en besøgende, før agenten svarer, og hvert svar, agenten skriver. De kan skjule persondata, stoppe forsøg på at narre agenten, blokere krænkende sprog og holde agenten til emnet.",
-            "about_ai_calls": "PII-registrering bruger faste mønstre og tilføjer ingen AI-kald. Tjek mærket „AI-tjek“ spørger en AI-model: ét ekstra kald for den besøgendes besked og ét for svaret, altså højst to pr. svar.",
+            "about_ai_calls": "Ikke alle tjek gør svarene langsommere. PII-registrering (e-mailadresser, telefonnumre, personnumre, kreditkort, IP-adresser, API-nøgler og mere) bruger faste mønstre. Den kræver ingen AI-model og giver ingen forsinkelse. Tjek mærket „AI-tjek“, som prompt injection, blokerede emner og giftigt sprog, spørger en AI-model: ét ekstra kald for besøgendes besked og ét for svaret, altså op til to pr. svar.",
             "ai_check": "AI-tjek",
             "about_aria": "Om sikkerhedsregler",
-            "about_cost": "Alle AI-tjek deler disse kald, så flere slået til giver ikke flere kald. Svar kan tage lidt længere tid og bruge flere AI-tokens.",
+            "about_cost": "Alle AI-tjek deler disse kald, så flere slået til giver ikke flere kald. Med et AI-tjek slået til tager svarene lidt længere tid og bruger flere AI-tokens.",
             "test_off": "Sikkerhedsreglerne er slået fra. Slå dem til for at teste en besked.",
             "block": {
                 "visitor_short": "Besøgende · {id}",

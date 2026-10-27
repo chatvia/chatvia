@@ -12,6 +12,7 @@
             "by_user": "Por {name}",
             "conversation_trace": "Conversa {conversation} · Rastreio {trace}",
             "filter_labels": {
+                "api_key": "Chave de API",
                 "email": "Endereço de e-mail",
                 "credit_card": "Cartão de crédito",
                 "us_ssn": "Número de Segurança Social dos EUA",

@@ -5,6 +5,7 @@
                 "prompt_leak": "프롬프트 유출"
             },
             "filter_labels": {
+                "api_key": "API 키",
                 "email": "이메일 주소",
                 "credit_card": "신용카드",
                 "us_ssn": "미국 사회보장번호",

@@ -12,6 +12,7 @@
             "by_user": "Käyttäjältä {name}",
             "conversation_trace": "Keskustelu {conversation} · Jäljitys {trace}",
             "filter_labels": {
+                "api_key": "API-avain",
                 "email": "Sähköpostiosoite",
                 "credit_card": "Luottokortti",
                 "us_ssn": "Yhdysvaltain sosiaaliturvatunnus",

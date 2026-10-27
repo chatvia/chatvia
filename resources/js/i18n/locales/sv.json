@@ -693,7 +693,7 @@
             "enable_guardrails": "Aktivera skyddsräcken",
             "master_switch": "När avstängd hoppas alla skyddsräckeskontroller över.",
             "pii_label": "PII-identifiering och redaktion",
-            "pii_help": "Identifiera och redigera personligt identifierbar information innan den når modellen eller lagras.",
+            "pii_help": "Hitta och dölj personuppgifter och API-nycklar innan de når modellen eller sparas. Använder fasta mönster, så det ger ingen fördröjning.",
             "manage_filters": "Hantera filter",
             "blocked_topics": "Blockerade ämnen",
             "blocked_topics_help": "Agenten avvisar frågor som matchar något av dessa ämnen.",
@@ -756,7 +756,8 @@
                 "phone": "Telefonnummer",
                 "iban": "Bankkonto (IBAN)",
                 "uk_nino": "Brittiskt National Insurance-nummer",
-                "ip_address": "IP-adress"
+                "ip_address": "IP-adress",
+                "api_key": "API-nyckel"
             },
             "outcome_labels": {
                 "blocked": "Blockerad",
@@ -856,10 +857,10 @@
             "open_conversation": "Öppna konversationen",
             "about_title": "Vad är skyddsräcken?",
             "about_body": "Skyddsräcken är säkerhetskontroller av agentens chattar. De kontrollerar varje meddelande från en besökare innan agenten svarar, och varje svar som agenten skriver. De kan dölja personuppgifter, stoppa försök att lura agenten, blockera kränkande språk och hålla agenten till ämnet.",
-            "about_ai_calls": "PII-identifiering använder fasta mönster och lägger inte till några AI-anrop. Kontroller märkta ”AI-kontroll” frågar en AI-modell: ett extra anrop för besökarens meddelande och ett för svaret, alltså högst två per svar.",
+            "about_ai_calls": "Alla kontroller gör inte svaren långsammare. PII-identifiering (e-postadresser, telefonnummer, personnummer, kreditkort, IP-adresser, API-nycklar med mera) använder fasta mönster. Den behöver ingen AI-modell och ger ingen fördröjning. Kontroller märkta ”AI-kontroll”, som promptinjektion, blockerade ämnen och kränkande språk, frågar en AI-modell: ett extra anrop för besökarens meddelande och ett för svaret, alltså högst två per svar.",
             "ai_check": "AI-kontroll",
             "about_aria": "Om skyddsräcken",
-            "about_cost": "Alla AI-kontroller delar på dessa anrop, så fler påslagna kontroller ger inte fler anrop. Svar kan ta lite längre tid och använda fler AI-tokens.",
+            "about_cost": "Alla AI-kontroller delar på dessa anrop, så fler påslagna ger inte fler anrop. Med en AI-kontroll på tar svaren lite längre tid och använder fler AI-tokens.",
             "test_off": "Skyddsräckena är avstängda. Slå på dem för att testa ett meddelande.",
             "block": {
                 "visitor_short": "Besökare · {id}",

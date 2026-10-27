@@ -303,7 +303,7 @@
             "enable_guardrails": "Aktivera skyddsräcken",
             "master_switch": "När avstängd hoppas alla skyddsräckeskontroller över.",
             "pii_label": "PII-identifiering och redaktion",
-            "pii_help": "Identifiera och redigera personligt identifierbar information innan den når modellen eller lagras.",
+            "pii_help": "Hitta och dölj personuppgifter och API-nycklar innan de når modellen eller sparas. Använder fasta mönster, så det ger ingen fördröjning.",
             "manage_filters": "Hantera filter",
             "blocked_topics": "Blockerade ämnen",
             "blocked_topics_help": "Agenten avvisar frågor som matchar något av dessa ämnen.",

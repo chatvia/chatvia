@@ -4,8 +4,8 @@
             "about_aria": "Om sikkerhetssperrer",
             "about_title": "Hva er sikkerhetssperrer?",
             "about_body": "Sikkerhetssperrer er sikkerhetssjekker av agentens chatter. De sjekker hver melding fra en besøkende før agenten svarer, og hvert svar agenten skriver. De kan skjule personopplysninger, stoppe forsøk på å lure agenten, blokkere krenkende språk og holde agenten til temaet.",
-            "about_ai_calls": "PII-oppdagelse bruker faste mønstre og legger ikke til AI-kall. Sjekker merket «AI-sjekk» spør en AI-modell: ett ekstra kall for den besøkendes melding og ett for svaret, altså høyst to per svar.",
-            "about_cost": "Alle AI-sjekker deler disse kallene, så flere slått på gir ikke flere kall. Svar kan ta litt lengre tid og bruke flere AI-tokens.",
+            "about_ai_calls": "Ikke alle sjekker gjør svarene tregere. PII-oppdagelse (e-postadresser, telefonnumre, personnumre, kredittkort, IP-adresser, API-nøkler og mer) bruker faste mønstre. Den trenger ingen AI-modell og gir ingen forsinkelse. Sjekker merket «AI-sjekk», som prompt injection, blokkerte emner og giftig språk, spør en AI-modell: ett ekstra kall for besøkendes melding og ett for svaret, altså opptil to per svar.",
+            "about_cost": "Alle AI-sjekker deler disse kallene, så flere slått på gir ikke flere kall. Med en AI-sjekk slått på tar svarene litt lengre tid og bruker flere AI-tokens.",
             "ai_check": "AI-sjekk",
             "test_off": "Sikkerhetssperrene er slått av. Slå dem på for å teste en melding."
         }

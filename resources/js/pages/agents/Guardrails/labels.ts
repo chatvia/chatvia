@@ -6,6 +6,7 @@
  */
 
 export const FILTER_LABELS: Record<string, string> = {
+    api_key: 'agents.guardrails.filter_labels.api_key',
     email: 'agents.guardrails.filter_labels.email',
     iban: 'agents.guardrails.filter_labels.iban',
     credit_card: 'agents.guardrails.filter_labels.credit_card',

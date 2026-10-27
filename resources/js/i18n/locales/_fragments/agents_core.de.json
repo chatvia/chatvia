@@ -303,7 +303,7 @@
             "enable_guardrails": "Leitplanken aktivieren",
             "master_switch": "Wenn deaktiviert, werden alle Leitplankenprüfungen übersprungen.",
             "pii_label": "PII-Erkennung & Schwärzung",
-            "pii_help": "Personenbezogene Daten erkennen und schwärzen, bevor sie das Modell erreichen oder gespeichert werden.",
+            "pii_help": "Personenbezogene Daten und API-Schlüssel erkennen und verbergen, bevor sie das Modell erreichen oder gespeichert werden. Nutzt feste Muster und verzögert daher nichts.",
             "manage_filters": "Filter verwalten",
             "blocked_topics": "Gesperrte Themen",
             "blocked_topics_help": "Der Agent lehnt Fragen ab, die einem dieser Themen entsprechen.",

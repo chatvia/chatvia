@@ -303,7 +303,7 @@
             "enable_guardrails": "Ota turvarajat käyttöön",
             "master_switch": "Kun pois käytöstä, kaikki turvarajatarkistukset ohitetaan.",
             "pii_label": "Henkilötietojen havaitseminen ja peittäminen",
-            "pii_help": "Havaitse ja peitä henkilötiedot ennen kuin ne saavuttavat mallin tai tallennetaan.",
+            "pii_help": "Havaitse ja piilota henkilötiedot ja API-avaimet ennen kuin ne päätyvät mallille tai tallennetaan. Käyttää kiinteitä kaavoja, joten se ei lisää viivettä.",
             "manage_filters": "Hallinnoi suodattimia",
             "blocked_topics": "Estetyt aiheet",
             "blocked_topics_help": "Agentti kieltäytyy vastaaamasta näihin aiheisiin liittyviin kysymyksiin.",

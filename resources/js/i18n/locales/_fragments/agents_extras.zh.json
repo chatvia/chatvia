@@ -5,6 +5,7 @@
                 "prompt_leak": "提示词泄露"
             },
             "filter_labels": {
+                "api_key": "API 密钥",
                 "email": "电子邮件地址",
                 "credit_card": "信用卡",
                 "us_ssn": "美国社会安全号码",

@@ -12,6 +12,7 @@
             "by_user": "Av {name}",
             "conversation_trace": "Konversation {conversation} · Spårning {trace}",
             "filter_labels": {
+                "api_key": "API-nyckel",
                 "email": "E-postadress",
                 "credit_card": "Kreditkort",
                 "us_ssn": "Amerikanskt personnummer (SSN)",

@@ -5,6 +5,7 @@
                 "prompt_leak": "İstem sızıntısı"
             },
             "filter_labels": {
+                "api_key": "API anahtarı",
                 "email": "E-posta adresi",
                 "credit_card": "Kredi kartı",
                 "us_ssn": "ABD Sosyal Güvenlik Numarası",

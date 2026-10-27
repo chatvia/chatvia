@@ -12,6 +12,7 @@
             "by_user": "By {name}",
             "conversation_trace": "Conversation {conversation} · Trace {trace}",
             "filter_labels": {
+                "api_key": "API key",
                 "email": "Email address",
                 "credit_card": "Credit card",
                 "us_ssn": "US Social Security Number",

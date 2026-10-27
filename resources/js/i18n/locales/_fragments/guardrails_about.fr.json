@@ -4,8 +4,8 @@
             "about_aria": "À propos des garde-fous",
             "about_title": "Que sont les garde-fous ?",
             "about_body": "Les garde-fous sont des contrôles de sécurité sur les conversations de votre agent. Ils vérifient chaque message du visiteur avant que l'agent réponde, ainsi que chaque réponse de l'agent. Ils peuvent masquer les données personnelles, arrêter les tentatives de manipuler l'agent, bloquer les propos injurieux et garder l'agent dans son sujet.",
-            "about_ai_calls": "La détection des données personnelles utilise des motifs fixes et n'ajoute aucun appel à l'IA. Les contrôles marqués « Contrôle IA » interrogent un modèle d'IA : un appel de plus pour le message du visiteur et un pour la réponse, soit deux au maximum par réponse.",
-            "about_cost": "Tous les contrôles IA partagent ces appels : en activer davantage n'ajoute pas d'appels. Les réponses peuvent prendre un peu plus de temps et consommer plus de jetons d'IA.",
+            "about_ai_calls": "Tous les contrôles ne ralentissent pas les réponses. La détection des données personnelles (adresses e-mail, numéros de téléphone, numéros de sécurité sociale, cartes bancaires, adresses IP, clés d'API, etc.) utilise des motifs fixes. Elle n'a besoin d'aucun modèle d'IA et n'ajoute aucun délai. Les contrôles marqués « Contrôle IA », comme l'injection de prompt, les sujets bloqués et la toxicité, interrogent un modèle d'IA : un appel de plus pour le message du visiteur et un pour la réponse, soit deux au maximum par réponse.",
+            "about_cost": "Tous les contrôles IA partagent ces appels : en activer davantage n'ajoute pas d'appels. Dès qu'un contrôle IA est actif, les réponses prennent un peu plus de temps et utilisent plus de jetons d'IA.",
             "ai_check": "Contrôle IA",
             "test_off": "Les garde-fous sont désactivés. Activez-les pour tester un message."
         }

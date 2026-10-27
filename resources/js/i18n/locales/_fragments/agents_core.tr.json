@@ -26,7 +26,8 @@
         },
         "guardrails": {
             "injection_help": "Mesajlarda, bilgide ve araç sonuçlarında asistanın talimatlarını geçersiz kılma veya açığa çıkarma girişimlerini algılayıp engelleyin.",
-            "refusal_message_placeholder": "Üzgünüm, bu istekte yardımcı olamıyorum."
+            "refusal_message_placeholder": "Üzgünüm, bu istekte yardımcı olamıyorum.",
+            "pii_help": "Kişisel verileri ve API anahtarlarını modele ulaşmadan veya kaydedilmeden önce bulur ve gizler. Sabit kalıplar kullandığı için gecikme eklemez."
         }
     }
 }

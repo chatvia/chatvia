@@ -5,6 +5,7 @@
                 "prompt_leak": "Rò rỉ câu lệnh"
             },
             "filter_labels": {
+                "api_key": "Khóa API",
                 "email": "Địa chỉ email",
                 "credit_card": "Thẻ tín dụng",
                 "us_ssn": "Số An sinh Xã hội Hoa Kỳ",

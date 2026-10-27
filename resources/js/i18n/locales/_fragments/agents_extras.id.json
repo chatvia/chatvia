@@ -5,6 +5,7 @@
                 "prompt_leak": "Kebocoran prompt"
             },
             "filter_labels": {
+                "api_key": "Kunci API",
                 "email": "Alamat email",
                 "credit_card": "Kartu kredit",
                 "us_ssn": "Nomor Jaminan Sosial AS",

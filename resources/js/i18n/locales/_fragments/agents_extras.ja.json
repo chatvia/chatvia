@@ -5,6 +5,7 @@
                 "prompt_leak": "プロンプト漏えい"
             },
             "filter_labels": {
+                "api_key": "APIキー",
                 "email": "メールアドレス",
                 "credit_card": "クレジットカード",
                 "us_ssn": "米国社会保障番号",

@@ -303,7 +303,7 @@
             "enable_guardrails": "Activar restricciones",
             "master_switch": "Cuando está desactivado, se omiten todas las verificaciones de restricciones.",
             "pii_label": "Detección y redacción de PII",
-            "pii_help": "Detecta y redacta información de identificación personal antes de que llegue al modelo o se almacene.",
+            "pii_help": "Detecta y oculta datos personales y claves de API antes de que lleguen al modelo o se guarden. Usa patrones fijos, así que no añade retraso.",
             "manage_filters": "Gestionar filtros",
             "blocked_topics": "Temas bloqueados",
             "blocked_topics_help": "El agente rechaza preguntas que coincidan con cualquiera de estos temas.",

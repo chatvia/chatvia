@@ -693,7 +693,7 @@
             "enable_guardrails": "Ativar guardrails",
             "master_switch": "Quando desativado, todas as verificações de guardrail são ignoradas.",
             "pii_label": "Deteção e redação de PII",
-            "pii_help": "Detete e redija informações de identificação pessoal antes de chegarem ao modelo ou serem armazenadas.",
+            "pii_help": "Deteta e oculta dados pessoais e chaves de API antes de chegarem ao modelo ou serem guardados. Usa padrões fixos, por isso não acrescenta atraso.",
             "manage_filters": "Gerir filtros",
             "blocked_topics": "Tópicos bloqueados",
             "blocked_topics_help": "O agente recusa questões que correspondam a qualquer um destes tópicos.",
@@ -756,7 +756,8 @@
                 "phone": "Número de telefone",
                 "iban": "Conta bancária (IBAN)",
                 "uk_nino": "Número de Seguro Nacional do Reino Unido",
-                "ip_address": "Endereço IP"
+                "ip_address": "Endereço IP",
+                "api_key": "Chave de API"
             },
             "outcome_labels": {
                 "blocked": "Bloqueado",
@@ -856,10 +857,10 @@
             "open_conversation": "Abrir conversa",
             "about_title": "O que são guardrails?",
             "about_body": "Os guardrails são verificações de segurança nas conversas do seu agente. Verificam cada mensagem do visitante antes de o agente responder, e cada resposta que o agente escreve. Podem ocultar dados pessoais, travar tentativas de enganar o agente, bloquear linguagem ofensiva e manter o agente no tema.",
-            "about_ai_calls": "A deteção de PII usa padrões fixos e não acrescenta chamadas à IA. As verificações marcadas com «Verificação por IA» consultam um modelo de IA: uma chamada extra para a mensagem do visitante e outra para a resposta, ou seja, no máximo duas por resposta.",
+            "about_ai_calls": "Nem todas as verificações tornam as respostas mais lentas. A deteção de PII (endereços de email, números de telefone, números da segurança social, cartões de crédito, endereços IP, chaves de API e mais) usa padrões fixos. Não precisa de um modelo de IA e não acrescenta atraso. As verificações marcadas como “Verificação por IA”, como a injeção de prompts, os temas bloqueados e a toxicidade, consultam um modelo de IA: uma chamada extra para a mensagem do visitante e outra para a resposta, ou seja, até duas por resposta.",
             "ai_check": "Verificação por IA",
             "about_aria": "Sobre os guardrails",
-            "about_cost": "Todas as verificações por IA partilham estas chamadas, por isso ativar mais não acrescenta chamadas. As respostas podem demorar um pouco mais e usar mais tokens de IA.",
+            "about_cost": "Todas as verificações por IA partilham estas chamadas, por isso ativar mais não acrescenta chamadas. Com qualquer verificação por IA ativa, as respostas demoram um pouco mais e usam mais tokens de IA.",
             "test_off": "Os guardrails estão desativados. Ative-os para testar uma mensagem.",
             "block": {
                 "visitor_short": "Visitante · {id}",

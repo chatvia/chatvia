@@ -12,6 +12,7 @@
             "by_user": "توسط {name}",
             "conversation_trace": "مکالمه {conversation} · ردیابی {trace}",
             "filter_labels": {
+                "api_key": "کلید API",
                 "email": "نشانی ایمیل",
                 "credit_card": "کارت اعتباری",
                 "us_ssn": "شماره تأمین اجتماعی آمریکا",

@@ -12,6 +12,7 @@
             "by_user": "Af {name}",
             "conversation_trace": "Samtale {conversation} · Spor {trace}",
             "filter_labels": {
+                "api_key": "API-nøgle",
                 "email": "E-mailadresse",
                 "credit_card": "Kreditkort",
                 "us_ssn": "Amerikansk personnummer (SSN)",

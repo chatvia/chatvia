@@ -4,8 +4,8 @@
             "about_aria": "Tietoa turvarajoista",
             "about_title": "Mitä turvarajat ovat?",
             "about_body": "Turvarajat ovat agenttisi keskustelujen turvatarkistuksia. Ne tarkistavat jokaisen kävijän viestin ennen kuin agentti vastaa, sekä jokaisen agentin kirjoittaman vastauksen. Ne voivat piilottaa henkilötietoja, pysäyttää yritykset huijata agenttia, estää loukkaavan kielen ja pitää agentin aiheessa.",
-            "about_ai_calls": "Henkilötietojen havaitseminen käyttää kiinteitä kaavoja eikä lisää tekoälykutsuja. Tarkistukset, joissa on merkintä ”Tekoälytarkistus”, kysyvät tekoälymallilta: yksi lisäkutsu kävijän viestille ja yksi vastaukselle, eli enintään kaksi vastausta kohden.",
-            "about_cost": "Kaikki tekoälytarkistukset jakavat nämä kutsut, joten useamman tarkistuksen käyttöön ottaminen ei lisää kutsuja. Vastaukset voivat viipyä hieman pidempään ja kuluttaa enemmän tekoälytokeneita.",
+            "about_ai_calls": "Kaikki tarkistukset eivät hidasta vastauksia. Henkilötietojen havaitseminen (sähköpostiosoitteet, puhelinnumerot, henkilötunnukset, luottokortit, IP-osoitteet, API-avaimet ja muut) käyttää kiinteitä kaavoja. Se ei tarvitse tekoälymallia eikä lisää viivettä. ”Tekoälytarkistus”-merkityt tarkistukset, kuten kehotteen injektointi, estetyt aiheet ja loukkaava kieli, kysyvät tekoälymallilta: yksi lisäkutsu kävijän viestille ja yksi vastaukselle, eli enintään kaksi vastausta kohden.",
+            "about_cost": "Kaikki tekoälytarkistukset jakavat nämä kutsut, joten useamman käyttöönotto ei lisää kutsuja. Kun jokin tekoälytarkistus on päällä, vastaukset tulevat hieman hitaammin ja kuluttavat enemmän tekoälytokeneita.",
             "ai_check": "Tekoälytarkistus",
             "test_off": "Turvarajat ovat pois päältä. Ota ne käyttöön testataksesi viestiä."
         }

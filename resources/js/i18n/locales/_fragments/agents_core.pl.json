@@ -303,7 +303,7 @@
             "enable_guardrails": "Włącz zabezpieczenia",
             "master_switch": "Gdy wyłączone, wszystkie kontrole zabezpieczeń są pomijane.",
             "pii_label": "Wykrywanie i redakcja danych PII",
-            "pii_help": "Wykrywaj i redaguj dane osobowe przed przekazaniem ich do modelu lub zapisaniem.",
+            "pii_help": "Wykrywa i ukrywa dane osobowe oraz klucze API, zanim trafią do modelu lub zostaną zapisane. Używa stałych wzorców, więc nie dodaje opóźnienia.",
             "manage_filters": "Zarządzaj filtrami",
             "blocked_topics": "Zablokowane tematy",
             "blocked_topics_help": "Agent odmawia odpowiedzi na pytania pasujące do tych tematów.",

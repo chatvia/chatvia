@@ -693,7 +693,7 @@
             "enable_guardrails": "Leitplanken aktivieren",
             "master_switch": "Wenn deaktiviert, werden alle Leitplankenprüfungen übersprungen.",
             "pii_label": "PII-Erkennung & Schwärzung",
-            "pii_help": "Personenbezogene Daten erkennen und schwärzen, bevor sie das Modell erreichen oder gespeichert werden.",
+            "pii_help": "Personenbezogene Daten und API-Schlüssel erkennen und verbergen, bevor sie das Modell erreichen oder gespeichert werden. Nutzt feste Muster und verzögert daher nichts.",
             "manage_filters": "Filter verwalten",
             "blocked_topics": "Gesperrte Themen",
             "blocked_topics_help": "Der Agent lehnt Fragen ab, die einem dieser Themen entsprechen.",
@@ -756,7 +756,8 @@
                 "phone": "Telefonnummer",
                 "iban": "Bankkonto (IBAN)",
                 "uk_nino": "Britische Sozialversicherungsnummer (NINO)",
-                "ip_address": "IP-Adresse"
+                "ip_address": "IP-Adresse",
+                "api_key": "API-Schlüssel"
             },
             "outcome_labels": {
                 "blocked": "Blockiert",
@@ -856,10 +857,10 @@
             "open_conversation": "Unterhaltung öffnen",
             "about_title": "Was sind Leitplanken?",
             "about_body": "Leitplanken sind Sicherheitsprüfungen für die Chats Ihres Agenten. Sie prüfen jede Nachricht eines Besuchers, bevor der Agent antwortet, und jede Antwort, die der Agent schreibt. Sie können persönliche Daten verbergen, Versuche stoppen, den Agenten auszutricksen, beleidigende Sprache blockieren und den Agenten beim Thema halten.",
-            "about_ai_calls": "Die PII-Erkennung nutzt feste Muster und verursacht keine KI-Aufrufe. Prüfungen mit der Markierung „KI-Prüfung“ fragen ein KI-Modell: ein zusätzlicher Aufruf für die Nachricht des Besuchers und einer für die Antwort, also höchstens zwei pro Antwort.",
+            "about_ai_calls": "Nicht jede Prüfung macht Antworten langsamer. Die PII-Erkennung (E-Mail-Adressen, Telefonnummern, Sozialversicherungsnummern, Kreditkarten, IP-Adressen, API-Schlüssel und mehr) nutzt feste Muster. Sie braucht kein KI-Modell und verzögert nichts. Prüfungen mit der Marke „KI-Prüfung“, etwa Prompt-Injection, gesperrte Themen und toxische Sprache, fragen ein KI-Modell: ein zusätzlicher Aufruf für die Nachricht des Besuchers und einer für die Antwort, also bis zu zwei pro Antwort.",
             "ai_check": "KI-Prüfung",
             "about_aria": "Über Leitplanken",
-            "about_cost": "Alle KI-Prüfungen teilen sich diese Aufrufe, weitere Prüfungen erzeugen also keine weiteren Aufrufe. Antworten können etwas länger dauern und mehr KI-Tokens verbrauchen.",
+            "about_cost": "Alle KI-Prüfungen teilen sich diese Aufrufe. Mehr davon einzuschalten, verursacht also keine weiteren Aufrufe. Ist eine KI-Prüfung an, dauern Antworten etwas länger und verbrauchen mehr KI-Tokens.",
             "test_off": "Die Leitplanken sind aus. Schalten Sie sie ein, um eine Nachricht zu testen.",
             "block": {
                 "visitor_short": "Besucher · {id}",

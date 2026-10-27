@@ -304,7 +304,7 @@
             "enable_guardrails": "Enable guardrails",
             "master_switch": "When off, all guardrail checks are skipped.",
             "pii_label": "PII detection & redaction",
-            "pii_help": "Detect and redact personally identifiable information before it reaches the model or is stored.",
+            "pii_help": "Detect and hide personal data and API keys before they reach the model or are stored. It uses fixed patterns, so it adds no delay.",
             "manage_filters": "Manage filters",
             "blocked_topics": "Blocked topics",
             "blocked_topics_help": "The agent refuses questions matching any of these topics.",

@@ -303,7 +303,7 @@
             "enable_guardrails": "Activer les garde-fous",
             "master_switch": "Lorsque désactivé, toutes les vérifications des garde-fous sont ignorées.",
             "pii_label": "Détection et masquage des données personnelles",
-            "pii_help": "Détectez et masquez les informations personnellement identifiables avant qu'elles n'atteignent le modèle ou ne soient stockées.",
+            "pii_help": "Détecte et masque les données personnelles et les clés d'API avant qu'elles n'atteignent le modèle ou ne soient enregistrées. Utilise des motifs fixes, donc n'ajoute aucun délai.",
             "manage_filters": "Gérer les filtres",
             "blocked_topics": "Sujets bloqués",
             "blocked_topics_help": "L'agent refuse les questions correspondant à l'un de ces sujets.",

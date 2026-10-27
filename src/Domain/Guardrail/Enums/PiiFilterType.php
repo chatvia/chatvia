@@ -6,14 +6,17 @@ namespace Domain\Guardrail\Enums;
  * The catalog of selectable PII filters. Each case is one redaction filter the
  * workspace can toggle per agent (stored in the `guardrails.filters` setting).
  *
- * Declaration order IS the pipeline order: email and the structured numbers run
- * before the looser phone pattern so it can't swallow their digits (IBAN even
+ * Declaration order IS the pipeline order: API keys run first, as their long
+ * letter-and-digit runs would otherwise feed the number patterns; email and
+ * the structured numbers run before the looser phone pattern so it can't
+ * swallow their digits (IBAN even
  * before cards, whose pattern would take an IBAN's digits), and the digit-only
  * national IDs (Danish CPR) run before phone for the same reason.
  * PiiDetector iterates these cases to build its filter pipeline.
  */
 enum PiiFilterType: string
 {
+    case ApiKey = 'api_key';
     case Email = 'email';
     case Iban = 'iban';
     case CreditCard = 'credit_card';
@@ -27,6 +30,7 @@ enum PiiFilterType: string
     public function label(): string
     {
         return match ($this) {
+            self::ApiKey => 'API key',
             self::Email => 'Email address',
             self::Iban => 'Bank account (IBAN)',
             self::CreditCard => 'Credit card',
@@ -41,8 +45,8 @@ enum PiiFilterType: string
 
     /**
      * Picked when PII redaction is first turned on (a new agent has it off).
-     * The common identifiers (email, IBAN,
-     * card, US SSN, phone) are on; region-specific national IDs are opt-in
+     * The common identifiers (API key, email,
+     * IBAN, card, US SSN, phone) are on; region-specific national IDs are opt-in
      * (they overlap with ordinary numbers, so a workspace should choose them
      * deliberately), and so are IP addresses, which technical support often
      * needs.
@@ -50,7 +54,7 @@ enum PiiFilterType: string
     public function enabledByDefault(): bool
     {
         return match ($this) {
-            self::Email, self::Iban, self::CreditCard, self::UsSsn, self::Phone => true,
+            self::ApiKey, self::Email, self::Iban, self::CreditCard, self::UsSsn, self::Phone => true,
             self::GermanSsn, self::UkNino, self::DanishCpr, self::IpAddress => false,
         };
     }

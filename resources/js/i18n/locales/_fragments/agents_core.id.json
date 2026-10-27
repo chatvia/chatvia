@@ -26,7 +26,8 @@
         },
         "guardrails": {
             "injection_help": "Deteksi dan blokir upaya untuk menimpa instruksi agen atau mengungkapkannya, dalam pesan, pengetahuan, dan hasil alat.",
-            "refusal_message_placeholder": "Maaf, saya tidak dapat membantu permintaan itu."
+            "refusal_message_placeholder": "Maaf, saya tidak dapat membantu permintaan itu.",
+            "pii_help": "Deteksi dan sembunyikan data pribadi dan kunci API sebelum sampai ke model atau disimpan. Memakai pola tetap, jadi tidak menambah jeda."
         }
     }
 }

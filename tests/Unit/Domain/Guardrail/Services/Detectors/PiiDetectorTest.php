@@ -2,6 +2,7 @@
 
 use Domain\Guardrail\Services\Detectors\PiiAllowlist;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
+use Illuminate\Support\Str;
 
 /**
  * PII redaction is the deterministic, free half of the guardrails — it runs on
@@ -166,4 +167,22 @@ it('masks IP addresses but not version numbers or times', function (): void {
 
 it('masks a UK National Insurance number with a valid prefix only', function (): void {
     expect(pdDetector()->redact('NINO AB123456D and GB123456A.', ['uk_nino'])->text)->toBe('NINO [UK_NINO_1] and GB123456A.');
+});
+
+it('redacts provider-prefixed API keys and private keys', function (): void {
+    $openRouter = 'sk-or-v1-'.Str::repeat('a', 64);
+    $github = 'ghp_'.Str::repeat('A', 36);
+    $pem = "-----BEGIN RSA PRIVATE KEY-----\nAAAA\n-----END RSA PRIVATE KEY-----";
+
+    $r = pdDetector()->redact("Keys: {$openRouter}, {$github} and AKIAIOSFODNN7EXAMPLE.\n{$pem}", ['api_key']);
+
+    expect($r->text)->toBe("Keys: [API_KEY_1], [API_KEY_2] and [API_KEY_3].\n[API_KEY_4]")
+        ->and($r->types)->toBe(['api_key'])
+        ->and($r->count)->toBe(4);
+});
+
+it('does NOT treat a plain hash or id as an API key', function (): void {
+    $r = pdDetector()->redact('Commit 9fceb02d0ae598e95dc970b74767f19372d61af8, order sk-12345.', ['api_key']);
+
+    expect($r->count)->toBe(0);
 });

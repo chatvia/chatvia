@@ -26,7 +26,8 @@
         },
         "guardrails": {
             "injection_help": "Phát hiện và chặn các nỗ lực ghi đè hoặc làm lộ hướng dẫn của trợ lý AI, trong tin nhắn, kiến thức và kết quả công cụ.",
-            "refusal_message_placeholder": "Xin lỗi, tôi không thể hỗ trợ yêu cầu đó."
+            "refusal_message_placeholder": "Xin lỗi, tôi không thể hỗ trợ yêu cầu đó.",
+            "pii_help": "Phát hiện và ẩn dữ liệu cá nhân và khóa API trước khi chúng đến mô hình hoặc được lưu. Dùng mẫu cố định nên không gây chậm trễ."
         }
     }
 }

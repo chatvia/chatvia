@@ -693,7 +693,7 @@
             "enable_guardrails": "Ota turvarajat käyttöön",
             "master_switch": "Kun pois käytöstä, kaikki turvarajatarkistukset ohitetaan.",
             "pii_label": "Henkilötietojen havaitseminen ja peittäminen",
-            "pii_help": "Havaitse ja peitä henkilötiedot ennen kuin ne saavuttavat mallin tai tallennetaan.",
+            "pii_help": "Havaitse ja piilota henkilötiedot ja API-avaimet ennen kuin ne päätyvät mallille tai tallennetaan. Käyttää kiinteitä kaavoja, joten se ei lisää viivettä.",
             "manage_filters": "Hallinnoi suodattimia",
             "blocked_topics": "Estetyt aiheet",
             "blocked_topics_help": "Agentti kieltäytyy vastaaamasta näihin aiheisiin liittyviin kysymyksiin.",
@@ -756,7 +756,8 @@
                 "phone": "Puhelinnumero",
                 "iban": "Pankkitili (IBAN)",
                 "uk_nino": "Britannian National Insurance -numero",
-                "ip_address": "IP-osoite"
+                "ip_address": "IP-osoite",
+                "api_key": "API-avain"
             },
             "outcome_labels": {
                 "blocked": "Estetty",
@@ -856,10 +857,10 @@
             "open_conversation": "Avaa keskustelu",
             "about_title": "Mitä turvarajat ovat?",
             "about_body": "Turvarajat ovat agenttisi keskustelujen turvatarkistuksia. Ne tarkistavat jokaisen kävijän viestin ennen kuin agentti vastaa, sekä jokaisen agentin kirjoittaman vastauksen. Ne voivat piilottaa henkilötietoja, pysäyttää yritykset huijata agenttia, estää loukkaavan kielen ja pitää agentin aiheessa.",
-            "about_ai_calls": "Henkilötietojen havaitseminen käyttää kiinteitä kaavoja eikä lisää tekoälykutsuja. Tarkistukset, joissa on merkintä ”Tekoälytarkistus”, kysyvät tekoälymallilta: yksi lisäkutsu kävijän viestille ja yksi vastaukselle, eli enintään kaksi vastausta kohden.",
+            "about_ai_calls": "Kaikki tarkistukset eivät hidasta vastauksia. Henkilötietojen havaitseminen (sähköpostiosoitteet, puhelinnumerot, henkilötunnukset, luottokortit, IP-osoitteet, API-avaimet ja muut) käyttää kiinteitä kaavoja. Se ei tarvitse tekoälymallia eikä lisää viivettä. ”Tekoälytarkistus”-merkityt tarkistukset, kuten kehotteen injektointi, estetyt aiheet ja loukkaava kieli, kysyvät tekoälymallilta: yksi lisäkutsu kävijän viestille ja yksi vastaukselle, eli enintään kaksi vastausta kohden.",
             "ai_check": "Tekoälytarkistus",
             "about_aria": "Tietoa turvarajoista",
-            "about_cost": "Kaikki tekoälytarkistukset jakavat nämä kutsut, joten useamman tarkistuksen käyttöön ottaminen ei lisää kutsuja. Vastaukset voivat viipyä hieman pidempään ja kuluttaa enemmän tekoälytokeneita.",
+            "about_cost": "Kaikki tekoälytarkistukset jakavat nämä kutsut, joten useamman käyttöönotto ei lisää kutsuja. Kun jokin tekoälytarkistus on päällä, vastaukset tulevat hieman hitaammin ja kuluttavat enemmän tekoälytokeneita.",
             "test_off": "Turvarajat ovat pois päältä. Ota ne käyttöön testataksesi viestiä.",
             "block": {
                 "visitor_short": "Kävijä · {id}",

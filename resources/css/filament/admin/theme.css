@@ -1950,24 +1950,22 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     align-content: start;
 }
 
-/* The test window of a section of the models step: one row per model, a
- * spinner while it is asked, then a tick or a cross with the reason. */
-.cv-model-tests__list {
+/* The test window of the models step: a card per section with how many
+ * are done, the model being asked now, and a row of marks, one per model,
+ * that turn from a spinner into a tick, a warning or a cross. */
+.cv-model-tests__section {
     display: grid;
     gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.cv-model-test {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem 0.875rem;
+    padding: 0.875rem 1rem;
     border: 1px solid var(--cv-border, rgb(0 0 0 / 0.08));
     border-radius: 0.75rem;
-    transition: border-color 150ms, background-color 150ms;
+    transition:
+        border-color 150ms,
+        background-color 150ms;
+
+    & + & {
+        margin-top: 0.75rem;
+    }
 
     &[data-state='passed'] {
         border-color: color-mix(in oklab, var(--color-success-500) 35%, transparent);
@@ -1995,11 +1993,126 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     border-radius: 0.75rem;
 }
 
-.cv-model-test__status {
+/* The section's title, and how many of its models are done ("3/5"). */
+.cv-model-tests__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.cv-model-tests__title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-gray-950);
+}
+
+:is(.dark) .cv-model-tests__title {
+    color: var(--color-white);
+}
+
+.cv-model-tests__count {
+    flex: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--cv-text-muted);
+}
+
+/* The model being asked now above the marks; a card with one model has its
+ * mark before the name instead. */
+.cv-model-tests__body {
+    display: grid;
+    gap: 0.5rem;
+
+    .cv-model-tests__section--single > & {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cv-model-tests__section--single > & > .cv-model-tests__marks {
+        order: -1;
+    }
+}
+
+/* The model being asked now, or how many answered once all are done. */
+.cv-model-tests__now {
+    min-width: 0;
+    min-height: 1.5rem;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: var(--cv-text);
+
+    [data-state='waiting'] > .cv-model-tests__body > & {
+        color: var(--cv-text-muted);
+    }
+}
+
+.cv-model-tests__current {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.cv-model-tests__verb {
+    flex: none;
+    color: var(--cv-text-muted);
+}
+
+.cv-model-tests__name {
+    min-width: 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.cv-model-tests__done {
+    font-weight: 500;
+
+    .cv-model-tests__section[data-state='passed'] & {
+        color: var(--color-success-600);
+    }
+
+    .cv-model-tests__section[data-state='busy'] & {
+        color: var(--color-warning-700);
+    }
+
+    .cv-model-tests__section[data-state='failed'] & {
+        color: var(--color-danger-600);
+    }
+}
+
+:is(.dark) .cv-model-tests__done {
+    .cv-model-tests__section[data-state='passed'] & {
+        color: var(--color-success-400);
+    }
+
+    .cv-model-tests__section[data-state='busy'] & {
+        color: var(--color-warning-400);
+    }
+
+    .cv-model-tests__section[data-state='failed'] & {
+        color: var(--color-danger-400);
+    }
+}
+
+/* One mark per model, side by side; its tooltip names the model. */
+.cv-model-tests__marks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cv-model-test {
     display: grid;
     place-items: center;
-    flex: none;
-    width: 1.25rem;
+    width: 1.5rem;
     height: 1.5rem;
 
     & > * {
@@ -2013,8 +2126,8 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 .cv-model-test__waiting {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 1rem;
+    height: 1rem;
     border: 2px dashed var(--cv-text-subtle, rgb(0 0 0 / 0.3));
     border-radius: 9999px;
 }
@@ -2026,22 +2139,22 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 .cv-model-test__passed {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.375rem;
+    height: 1.375rem;
     color: var(--color-success-500);
     animation: cv-model-test-pop 220ms ease-out;
 }
 
 .cv-model-test__busy {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.375rem;
+    height: 1.375rem;
     color: var(--color-warning-500);
     animation: cv-model-test-pop 220ms ease-out;
 }
 
 .cv-model-test__failed {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.375rem;
+    height: 1.375rem;
     color: var(--color-danger-500);
     animation: cv-model-test-pop 220ms ease-out;
 }
@@ -2061,41 +2174,44 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
-.cv-model-test__body {
+/* Under the marks: why a model is busy or failed, or its reply when the
+ * test shows it. */
+.cv-model-tests__notes {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.125rem 0 0;
+    padding: 0.625rem 0 0;
+    border-top: 1px solid var(--cv-border, rgb(0 0 0 / 0.08));
+    list-style: none;
+}
+
+.cv-model-tests__note {
     display: grid;
     gap: 0.125rem;
-    min-width: 0;
     font-size: 0.875rem;
-    line-height: 1.5rem;
-}
-
-.cv-model-test__name {
-    font-weight: 500;
-    color: var(--cv-text);
-    overflow-wrap: anywhere;
-}
-
-/* Under a model: its reply when it passed, or why it is busy or failed. */
-.cv-model-test__message {
-    color: var(--cv-text-muted);
     line-height: 1.375rem;
+    color: var(--cv-text);
+}
+
+.cv-model-tests__message {
+    color: var(--cv-text-muted);
     overflow-wrap: anywhere;
 
-    [data-state='busy'] > .cv-model-test__body > & {
+    [data-state='busy'] > & {
         color: var(--color-warning-700);
     }
 
-    [data-state='failed'] > .cv-model-test__body > & {
+    [data-state='failed'] > & {
         color: var(--color-danger-600);
     }
 }
 
-:is(.dark) .cv-model-test__message {
-    [data-state='busy'] > .cv-model-test__body > & {
+:is(.dark) .cv-model-tests__message {
+    [data-state='busy'] > & {
         color: var(--color-warning-400);
     }
 
-    [data-state='failed'] > .cv-model-test__body > & {
+    [data-state='failed'] > & {
         color: var(--color-danger-400);
     }
 }
@@ -2130,22 +2246,6 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     &[data-state='failed'] {
         color: var(--color-danger-400);
     }
-}
-
-/* The title over each section's rows, when Next tests the whole step. */
-.cv-model-tests__title {
-    margin: 0 0 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--color-gray-950);
-
-    .cv-model-tests__list + & {
-        margin-top: 1.25rem;
-    }
-}
-
-:is(.dark) .cv-model-tests__title {
-    color: var(--color-white);
 }
 
 .cv-model-tests__hint {

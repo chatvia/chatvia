@@ -1520,10 +1520,11 @@ class Setup extends SimplePage
 
     /**
      * The test window: it asks each model of the sections given to answer
-     * now, with the key typed, one after another as it opens. Each row turns
-     * from a spinner to a tick, a warning when the provider is busy, or a
-     * cross with the reason ({@see testModel()}). With several sections,
-     * each shows under its title; one with nothing to test is left out.
+     * now, with the key typed, one after another as it opens. Each section
+     * is one short card: how many are done, the model being asked, and a
+     * row of marks that turn into ticks, warnings when the provider is
+     * busy, or crosses; the reasons are listed below ({@see testModel()}).
+     * A section with nothing to test is left out.
      *
      * @param  list<string>  $sections
      * @param  string|null  $onFailure  What to do when a model did not answer, shown under the summary.
@@ -1536,7 +1537,7 @@ class Setup extends SimplePage
                 'sections' => collect($sections)
                     ->map(fn (string $section): array => [
                         'section' => $section,
-                        'title' => count($sections) > 1 ? self::sectionTitle($section) : null,
+                        'title' => self::sectionTitle($section),
                         'rows' => $this->testRows($section),
                     ])
                     ->reject(fn (array $section): bool => $section['rows'] === [])
@@ -1560,33 +1561,37 @@ class Setup extends SimplePage
     }
 
     /**
-     * What a section's test checks, each by a key and its label (HTML, with
-     * the model's logo): the chosen chat models, the embedding model, the
-     * reranker, or the model for image descriptions; none when nothing is
-     * chosen.
+     * What a section's test checks, each by a key, its label (HTML, with the
+     * model's logo) and its name as plain text: the chosen chat models, the
+     * embedding model, the reranker, or the model for image descriptions;
+     * none when nothing is chosen.
      *
-     * @return list<array{key: string, label: string}>
+     * @return list<array{key: string, label: string, name: string}>
      */
     private function testRows(string $section): array
     {
         $state = (array) $this->data;
 
+        $model = fn (string $id): array => [
+            'key' => $id,
+            'label' => ModelLogo::label($this->modelName($id), $this->chatKind($state), $id),
+            'name' => $this->modelName($id),
+        ];
+        $service = fn (string $key, string $name): array => ['key' => $key, 'label' => e($name), 'name' => $name];
+
         return match ($section) {
-            self::TEST_CHAT => array_map(fn (RemoteModelData $model): array => [
-                'key' => $model->id,
-                'label' => ModelLogo::label($this->modelName($model->id), $this->chatKind($state), $model->id),
-            ], $this->chosenModels($state)),
+            self::TEST_CHAT => array_map(fn (RemoteModelData $chosen): array => $model($chosen->id), $this->chosenModels($state)),
             self::TEST_IMAGES => (bool) ($state['describe_images'] ?? false) && filled($state['vision_model'] ?? null) && $this->models !== []
-                ? [['key' => (string) $state['vision_model'], 'label' => ModelLogo::label($this->modelName((string) $state['vision_model']), $this->chatKind($state), (string) $state['vision_model'])]]
+                ? [$model((string) $state['vision_model'])]
                 : [],
             self::TEST_FILES => (bool) ($state['chat_files'] ?? false) && filled($state['files_model'] ?? null) && $this->models !== []
-                ? [['key' => (string) $state['files_model'], 'label' => ModelLogo::label($this->modelName((string) $state['files_model']), $this->chatKind($state), (string) $state['files_model'])]]
+                ? [$model((string) $state['files_model'])]
                 : [],
             self::TEST_EMBEDDINGS => ($provider = $this->embeddingProvider($state)) instanceof EmbeddingProvider
-                ? [['key' => self::TEST_EMBEDDINGS, 'label' => e($provider->label().(filled($state['embedding_model'] ?? null) ? " · {$state['embedding_model']}" : ''))]]
+                ? [$service(self::TEST_EMBEDDINGS, $provider->label().(filled($state['embedding_model'] ?? null) ? " · {$state['embedding_model']}" : ''))]
                 : [],
             default => ($reranker = $this->rerankerData($state))->isOn()
-                ? [['key' => self::TEST_RERANKER, 'label' => e((AiProvider::tryFrom($reranker->driver)?->label() ?? 'Your reranker server').(filled($reranker->model) ? " · {$reranker->model}" : ''))]]
+                ? [$service(self::TEST_RERANKER, (AiProvider::tryFrom($reranker->driver)?->label() ?? 'Your reranker server').(filled($reranker->model) ? " · {$reranker->model}" : ''))]
                 : [],
         };
     }
